@@ -1,0 +1,104 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Iniciar sesión — TradeFlow Colón{% endblock %}
+
+{% block extra_css %}
+body { background: var(--tf-light); }
+.login-wrap {
+  min-height: calc(100vh - 64px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem 1rem;
+}
+.login-card {
+  background: #fff;
+  border: 1px solid var(--tf-border);
+  border-radius: 16px;
+  width: 100%; max-width: 420px;
+  padding: 2.25rem 2rem;
+}
+.login-logo {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 1.75rem;
+}
+.login-logo img { height: 40px; width: 40px; object-fit: contain; }
+.login-logo .wordmark {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem; color: var(--tf-dark);
+}
+.login-logo .wordmark span { color: var(--tf-teal); }
+.login-logo .sub { font-size: 0.72rem; color: var(--tf-muted); }
+.login-title { font-size: 1.05rem; font-weight: 600; color: var(--tf-dark); margin-bottom: 1.5rem; }
+.btn-login {
+  width: 100%; padding: 11px;
+  background: var(--tf-dark); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 0.95rem; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer; margin-top: 6px;
+  transition: background .18s;
+}
+.btn-login:hover { background: var(--tf-dark2); }
+.divider {
+  text-align: center; color: var(--tf-muted); font-size: 0.82rem;
+  margin: 1rem 0; display: flex; align-items: center; gap: 10px;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--tf-border);
+}
+.signup-link { text-align: center; font-size: 0.88rem; color: var(--tf-muted); }
+.signup-link a { color: var(--tf-teal); font-weight: 600; text-decoration: none; }
+.signup-link a:hover { text-decoration: underline; }
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="login-wrap">
+  <div class="login-card">
+
+    <div class="login-logo">
+      <img src="{% static 'img/logo.png' %}" alt="TradeFlow">
+      <div>
+        <div class="wordmark">Trade<span>Flow</span></div>
+        <div class="sub">Zona Libre de Colón · Panamá</div>
+      </div>
+    </div>
+
+    <div class="login-title">Bienvenido de vuelta</div>
+
+    {% if messages %}
+      {% for message in messages %}
+      <div class="tf-alert tf-alert-{{ message.tags }}" style="margin-bottom:1.25rem;">
+        <span class="tf-alert-icon">
+          {% if message.tags == 'success' %}✓{% elif message.tags == 'danger' %}✕{% else %}!{% endif %}
+        </span>
+        <span class="tf-alert-msg">{{ message }}</span>
+        <button class="tf-alert-close" onclick="this.closest('.tf-alert').remove()">✕</button>
+      </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="tf-field">
+        <label class="tf-label">Usuario</label>
+        <input type="text" name="username" class="tf-input"
+               placeholder="tu_usuario" autofocus required>
+      </div>
+      <div class="tf-field">
+        <label class="tf-label">Contraseña</label>
+        <input type="password" name="password" class="tf-input"
+               placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn-login">Iniciar sesión</button>
+    </form>
+
+    <div class="divider">o</div>
+    <div class="signup-link">
+      ¿No tienes cuenta? <a href="{% url 'signup' %}">Regístrate gratis</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

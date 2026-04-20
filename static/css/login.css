@@ -1,0 +1,109 @@
+/*
+=============================================================
+TRADEFLOW COLÓN — static/css/login.css
+=============================================================
+Estilos exclusivos de la página de inicio de sesión.
+=============================================================
+*/
+.login-page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* Decoración de fondo */
+.login-page::before {
+  content: '';
+  position: fixed;
+  top: -200px;
+  right: -200px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(9,134,152,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.login-card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-md);
+}
+
+/* Logo */
+.login-logo { text-align: center; margin-bottom: 28px; }
+.login-logo-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--color-primary);
+  border-radius: 12px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-logo-icon svg { width: 26px; height: 26px; fill: white; }
+.login-logo h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+.login-logo p  { font-size: 0.8rem; color: var(--color-muted); }
+
+/* Formulario */
+.login-form { display: flex; flex-direction: column; gap: 14px; }
+
+.login-form .form-group { display: flex; flex-direction: column; gap: 5px; }
+.login-form input[type="text"],
+.login-form input[type="password"],
+.login-form input[type="email"] {
+  height: 42px;
+  font-size: 0.9rem;
+}
+
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+.remember-me { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--color-muted); }
+.remember-me input { width: auto; }
+.forgot-link { color: var(--color-primary); font-size: 0.8rem; }
+
+.btn-login {
+  width: 100%;
+  height: 44px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-main);
+}
+.btn-login:hover { background: var(--color-primary-dark); }
+
+.login-footer {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+/* Credenciales de demo */
+.demo-box {
+  margin-top: 20px;
+  padding: 12px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  border: 1px dashed var(--color-border);
+  text-align: center;
+}
+.demo-box strong { color: var(--color-secondary); }

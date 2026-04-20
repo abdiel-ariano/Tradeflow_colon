@@ -1,0 +1,44 @@
+# =============================================================================
+# TRADEFLOW COLÓN — requirements.txt
+# =============================================================================
+# Instalar todo de una vez:
+#   pip install -r requirements.txt
+#
+# En Railway se instala automáticamente en cada deploy.
+# =============================================================================
+
+# ── Framework principal ────────────────────────────────────────────────────
+Django>=4.2,<5.0
+
+# ── Base de datos ──────────────────────────────────────────────────────────
+psycopg2-binary>=2.9        # driver PostgreSQL (binary = sin compilar, más fácil)
+dj-database-url>=2.1        # parsea DATABASE_URL a formato Django
+
+# ── Variables de entorno ───────────────────────────────────────────────────
+python-decouple>=3.8        # lee .env en local y variables de entorno en prod
+
+# ── Archivos estáticos en producción ──────────────────────────────────────
+whitenoise>=6.6             # sirve CSS/JS directamente desde Django sin Nginx
+
+# ── Imágenes ──────────────────────────────────────────────────────────────
+Pillow>=10.0                # procesamiento de imágenes para ImageField
+
+# ── Servidor de producción ────────────────────────────────────────────────
+gunicorn>=21.2              # servidor WSGI para Railway/Heroku (reemplaza runserver)
+
+# ── Generación de PDFs (facturas y packing lists) ─────────────────────────
+# Descomenta cuando implementes el generador de documentos (Semana 3)
+# WeasyPrint>=60.0
+
+# ── Seguridad extra ────────────────────────────────────────────────────────
+# django-axes bloquea IPs tras X intentos de login fallidos
+# Descomenta cuando tengas tiempo de configurarlo (añade migration + middleware)
+# django-axes>=6.3
+
+# ── Códigos QR (pre-registro ZLC) ─────────────────────────────────────────
+# Descomenta para el feature de QR de visitantes
+# qrcode[pil]>=7.4
+
+# ── HTMX (interactividad sin JavaScript pesado) ───────────────────────────
+# Descomenta si decides usar HTMX para el carrito o filtros dinámicos
+# django-htmx>=1.17

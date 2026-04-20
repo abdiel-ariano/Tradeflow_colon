@@ -1,0 +1,61 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>Usuarios del Sistema</h2>
+  <p class="text-muted">Personal con acceso a TradeFlow Colón</p>
+</div>
+
+<div class="table-card">
+  <div class="table-card-header">
+    <span>{{ usuarios|length }} usuario{{ usuarios|length|pluralize }}</span>
+    <a href="/admin/auth/user/add/" class="btn btn-primary" style="padding:5px 12px;font-size:.8rem;">+ Nuevo Usuario</a>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Nombre completo</th>
+        <th>Email</th>
+        <th>Rol</th>
+        <th>Último acceso</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in usuarios %}
+      <tr>
+        <td style="display:flex;align-items:center;gap:8px;">
+          <div class="avatar" style="width:28px;height:28px;font-size:.7rem;background:var(--color-primary);">
+            {{ u.username|first|upper }}
+          </div>
+          {{ u.username }}
+        </td>
+        <td>{{ u.get_full_name|default:"—" }}</td>
+        <td>{{ u.email|default:"—" }}</td>
+        <td>
+          {% if u.is_superuser %}
+          <span class="badge badge-info">Superusuario</span>
+          {% elif u.is_staff %}
+          <span class="badge badge-warning">Staff</span>
+          {% else %}
+          <span class="badge badge-secondary">Operador</span>
+          {% endif %}
+        </td>
+        <td>{{ u.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</td>
+        <td>
+          {% if u.is_active %}
+          <span class="badge badge-success">Activo</span>
+          {% else %}
+          <span class="badge badge-danger">Inactivo</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--color-muted);">No hay usuarios.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

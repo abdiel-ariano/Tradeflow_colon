@@ -1,0 +1,148 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{#
+  carrito.html — Vista del carrito de compras del comprador
+
+  Contexto esperado:
+    carrito       → dict de sesión con los items
+    total         → Decimal con el total
+    carrito_count → int para el badge del navbar
+#}
+
+{% block title %}Mi Carrito — TradeFlow Colón{% endblock %}
+
+{% block extra_css %}
+.carrito-wrap { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+.carrito-titulo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem; color: var(--tf-dark); margin-bottom: 1.75rem;
+}
+.carrito-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; }
+.carrito-items { display: flex; flex-direction: column; gap: 10px; }
+.carrito-item {
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  display: flex; gap: 1rem; align-items: center;
+}
+.carrito-item-img {
+  width: 72px; height: 72px;
+  border-radius: var(--radius-sm);
+  object-fit: cover; flex-shrink: 0;
+  background: #f0ede8;
+}
+.carrito-item-img-placeholder {
+  width: 72px; height: 72px; border-radius: var(--radius-sm);
+  background: #f0ede8; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--tf-sand2);
+}
+.carrito-item-info { flex: 1; }
+.carrito-item-nombre { font-size: 0.95rem; font-weight: 600; color: var(--tf-dark); margin-bottom: 3px; }
+.carrito-item-precio { font-size: 0.83rem; color: var(--tf-muted); }
+.carrito-item-subtotal {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.05rem; color: var(--tf-dark); text-align: right; min-width: 80px;
+}
+.btn-quitar {
+  background: none; border: none; color: var(--tf-muted);
+  cursor: pointer; font-size: 0.8rem; padding: 4px 8px;
+  border-radius: 4px; transition: all .15s;
+}
+.btn-quitar:hover { background: #fdecea; color: #7d1a14; }
+.resumen-card {
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--radius); padding: 1.5rem;
+  position: sticky; top: 80px;
+}
+.resumen-titulo { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--tf-muted); margin-bottom: 1rem; }
+.resumen-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 8px; color: var(--tf-muted); }
+.resumen-total {
+  display: flex; justify-content: space-between;
+  border-top: 1px solid var(--tf-border); padding-top: 12px; margin-top: 12px;
+  font-size: 1.05rem; font-weight: 600; color: var(--tf-dark);
+}
+.resumen-total span:last-child { font-family: 'DM Serif Display', serif; font-size: 1.2rem; }
+.btn-checkout {
+  width: 100%; padding: 12px;
+  background: var(--tf-dark); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; margin-top: 1rem; transition: background .18s;
+  text-decoration: none; display: block; text-align: center;
+}
+.btn-checkout:hover { background: var(--tf-dark2); color: #fff; }
+.carrito-vacio { text-align: center; padding: 4rem 1rem; }
+.carrito-vacio h3 { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--tf-dark); margin-bottom: 8px; }
+{% endblock %}
+
+{% block content %}
+<div class="carrito-wrap">
+  <h1 class="carrito-titulo">
+    Mi Carrito
+    {% if carrito_count > 0 %}
+      <span style="font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:400;color:var(--tf-muted);">{{ carrito_count }} artículo{{ carrito_count|pluralize }}</span>
+    {% endif %}
+  </h1>
+
+  {% if carrito %}
+  <div class="carrito-grid">
+    {# ── Lista de items ── #}
+    <div class="carrito-items">
+      {% for prod_id, item in carrito.items %}
+      <div class="carrito-item">
+        {% if item.imagen %}
+          <img src="{{ item.imagen }}" alt="{{ item.nombre }}" class="carrito-item-img">
+        {% else %}
+          <div class="carrito-item-img-placeholder">P</div>
+        {% endif %}
+        <div class="carrito-item-info">
+          <div class="carrito-item-nombre">{{ item.nombre }}</div>
+          <div class="carrito-item-precio">USD {{ item.precio }} × {{ item.cantidad }} unidad{{ item.cantidad|pluralize }}</div>
+        </div>
+        <div class="carrito-item-subtotal">USD {{ item.subtotal }}</div>
+        <form method="post" action="{% url 'quitar_del_carrito' prod_id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-quitar" title="Eliminar del carrito">Quitar</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# ── Resumen y checkout ── #}
+    <div class="resumen-card">
+      <div class="resumen-titulo">Resumen de compra</div>
+      <div class="resumen-row">
+        <span>Subtotal</span>
+        <span>USD {{ total }}</span>
+      </div>
+      <div class="resumen-row">
+        <span>Envío</span>
+        <span>Se calcula al confirmar</span>
+      </div>
+      <div class="resumen-total">
+        <span>Total estimado</span>
+        <span>USD {{ total }}</span>
+      </div>
+      <a href="{% url 'checkout' %}" class="btn-checkout">Confirmar pedido</a>
+      <a href="{% url 'tienda' %}" class="btn-tf btn-tf-ghost"
+         style="width:100%;justify-content:center;margin-top:8px;font-size:0.85rem;">
+        Seguir comprando
+      </a>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="carrito-vacio">
+    <h3>Tu carrito está vacío</h3>
+    <p style="color:var(--tf-muted);">Explora el catálogo y agrega productos.</p>
+    <a href="{% url 'tienda' %}" class="btn-tf btn-tf-teal" style="margin-top:1.5rem;">
+      Ir a la tienda
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

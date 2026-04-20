@@ -1,0 +1,420 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}TradeFlow Colón — Compra, gestiona, exporta{% endblock %}
+
+{% block extra_css %}
+.hero {
+  background: var(--tf-dark);
+  color: #fff;
+  padding: 6rem 2rem 5rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: rgba(98,146,154,.12);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -120px; left: -60px;
+  width: 380px; height: 380px;
+  border-radius: 50%;
+  background: rgba(217,202,179,.07);
+  pointer-events: none;
+}
+.hero-inner {
+  max-width: 1160px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4rem; align-items: center;
+  position: relative; z-index: 1;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(98,146,154,.2);
+  border: 1px solid rgba(98,146,154,.35);
+  color: var(--tf-sand);
+  font-size: 0.78rem; font-weight: 600;
+  padding: 5px 12px; border-radius: 20px;
+  letter-spacing: .05em; text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+.hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 3rem; line-height: 1.15;
+  color: #fff; margin-bottom: 1.25rem;
+}
+.hero h1 em {
+  color: var(--tf-sand); font-style: normal;
+}
+.hero-desc {
+  font-size: 1.05rem; color: rgba(240,240,240,.75);
+  line-height: 1.7; margin-bottom: 2rem; max-width: 480px;
+}
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-cta .btn-tf-teal  { padding: 12px 26px; font-size: 0.95rem; }
+.hero-cta .btn-tf-ghost { padding: 12px 22px; font-size: 0.95rem; color: rgba(255,255,255,.7); }
+.hero-cta .btn-tf-ghost:hover { background: rgba(255,255,255,.08); color: #fff; }
+.hero-stats {
+  display: flex; gap: 2rem; margin-top: 2.5rem;
+  padding-top: 2rem; border-top: 1px solid rgba(255,255,255,.1);
+}
+.hero-stat-num {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem; color: #fff; line-height: 1;
+}
+.hero-stat-num span { color: var(--tf-sand); }
+.hero-stat-lbl { font-size: 0.78rem; color: rgba(240,240,240,.5); margin-top: 3px; }
+.hero-visual {
+  display: flex; justify-content: center; align-items: center;
+}
+.hero-mockup {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 100%; max-width: 360px;
+}
+.mockup-hdr {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 1rem; padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.mockup-dot { width: 8px; height: 8px; border-radius: 50%; }
+.mockup-card {
+  background: rgba(255,255,255,.08);
+  border-radius: 10px; padding: 12px;
+  margin-bottom: 8px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.mockup-card-label { font-size: 0.8rem; color: rgba(255,255,255,.6); }
+.mockup-card-val   { font-size: 1rem; font-weight: 600; color: #fff; }
+.mockup-bar-wrap   { margin-top: 1rem; }
+.mockup-bar-lbl    { font-size: 0.72rem; color: rgba(255,255,255,.4); margin-bottom: 5px; display:flex; justify-content:space-between; }
+.mockup-bar-track  { height: 5px; background: rgba(255,255,255,.1); border-radius: 3px; overflow:hidden; }
+.mockup-bar-fill   { height: 100%; border-radius: 3px; background: var(--tf-teal); }
+
+.features { padding: 5rem 2rem; background: #faf8f5; }
+.features-inner { max-width: 1160px; margin: 0 auto; }
+.features-eyebrow {
+  font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .09em; color: var(--tf-teal); margin-bottom: 10px;
+}
+.features-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.2rem; color: var(--tf-dark);
+  margin-bottom: 3rem; max-width: 480px;
+}
+.features-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem;
+}
+.feature-card {
+  background: #fff;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--radius); padding: 1.75rem;
+  transition: box-shadow .2s, transform .2s;
+}
+.feature-card:hover {
+  box-shadow: 0 8px 28px rgba(64,75,87,.1);
+  transform: translateY(-3px);
+}
+.feature-icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; margin-bottom: 1rem;
+}
+.fi-teal { background: rgba(98,146,154,.15); }
+.fi-sand { background: rgba(217,202,179,.35); }
+.fi-dark { background: rgba(64,75,87,.1); }
+.feature-title { font-size: 1rem; font-weight: 600; color: var(--tf-dark); margin-bottom: 6px; }
+.feature-desc  { font-size: 0.88rem; color: var(--tf-muted); line-height: 1.65; }
+
+.how-it-works { padding: 5rem 2rem; }
+.hiw-inner { max-width: 1160px; margin: 0 auto; }
+.hiw-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.2rem; color: var(--tf-dark);
+  text-align: center; margin-bottom: 3rem;
+}
+.hiw-steps {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem;
+  position: relative;
+}
+.hiw-steps::before {
+  content: '';
+  position: absolute;
+  top: 22px; left: 12%; right: 12%;
+  height: 1px; background: var(--tf-border);
+  z-index: 0;
+}
+.hiw-step { text-align: center; position: relative; z-index: 1; }
+.hiw-step-num {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--tf-dark);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 0.9rem;
+  margin: 0 auto 1rem;
+  border: 3px solid #fff;
+}
+.hiw-step-title { font-size: 0.93rem; font-weight: 600; color: var(--tf-dark); margin-bottom: 5px; }
+.hiw-step-desc  { font-size: 0.82rem; color: var(--tf-muted); line-height: 1.55; }
+
+.productos-section { padding: 5rem 2rem; background: #faf8f5; }
+.ps-inner { max-width: 1160px; margin: 0 auto; }
+.ps-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; }
+.ps-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem; color: var(--tf-dark);
+}
+.productos-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem;
+}
+.producto-card {
+  background: #fff;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--radius); overflow: hidden;
+  transition: box-shadow .2s, transform .2s;
+}
+.producto-card:hover {
+  box-shadow: 0 6px 24px rgba(64,75,87,.1);
+  transform: translateY(-2px);
+}
+.producto-img {
+  height: 180px;
+  background: linear-gradient(135deg, var(--tf-light) 0%, var(--tf-sand) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem;
+}
+.producto-body { padding: 1rem 1.25rem; }
+.producto-categoria {
+  font-size: 0.72rem; font-weight: 600; color: var(--tf-teal);
+  text-transform: uppercase; letter-spacing: .05em;
+  margin-bottom: 5px;
+}
+.producto-nombre { font-size: 0.95rem; font-weight: 600; color: var(--tf-dark); margin-bottom: 4px; }
+.producto-empresa { font-size: 0.8rem; color: var(--tf-muted); margin-bottom: 10px; }
+.producto-footer { display: flex; align-items: center; justify-content: space-between; }
+.producto-precio { font-size: 1.05rem; font-weight: 600; color: var(--tf-dark); }
+.btn-ver {
+  font-size: 0.8rem; padding: 5px 12px;
+  border-radius: 6px; border: 1px solid var(--tf-border);
+  background: transparent; color: var(--tf-muted);
+  cursor: pointer; text-decoration: none;
+  transition: all .15s;
+}
+.btn-ver:hover { background: var(--tf-dark); color: #fff; border-color: var(--tf-dark); }
+
+.cta-section {
+  padding: 5rem 2rem;
+  background: var(--tf-dark);
+  text-align: center;
+}
+.cta-inner { max-width: 600px; margin: 0 auto; }
+.cta-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.2rem; color: #fff; margin-bottom: 1rem;
+}
+.cta-title em { color: var(--tf-sand); font-style: normal; }
+.cta-desc { font-size: 1rem; color: rgba(240,240,240,.7); line-height: 1.7; margin-bottom: 2rem; }
+.cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">
+        <span>●</span> Zona Libre de Colón · Panamá
+      </div>
+      <h1>Compra en la ZLC<br>desde <em>cualquier lugar</em><br>del mundo</h1>
+      <p class="hero-desc">
+        TradeFlow conecta compradores globales con más de 2,600 empresas
+        de la Zona Libre de Colón. Compra, gestiona y exporta — todo en un solo lugar.
+      </p>
+      <div class="hero-cta">
+        <a href="{% url 'signup' %}" class="btn-tf btn-tf-teal">Crear cuenta gratis</a>
+        <a href="#como-funciona"    class="btn-tf btn-tf-ghost">Cómo funciona</a>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="hero-stat-num">2,600<span>+</span></div>
+          <div class="hero-stat-lbl">Empresas en la ZLC</div>
+        </div>
+        <div>
+          <div class="hero-stat-num">$33<span>B</span></div>
+          <div class="hero-stat-lbl">En transacciones anuales</div>
+        </div>
+        <div>
+          <div class="hero-stat-num">180<span>+</span></div>
+          <div class="hero-stat-lbl">Países compradores</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-mockup">
+        <div class="mockup-hdr">
+          <div class="mockup-dot" style="background:#e05a52"></div>
+          <div class="mockup-dot" style="background:#f5c842"></div>
+          <div class="mockup-dot" style="background:#4ecb71"></div>
+          <span style="font-size:.75rem;color:rgba(255,255,255,.4);margin-left:8px;">Dashboard TradeFlow</span>
+        </div>
+        <div class="mockup-card">
+          <div><div class="mockup-card-label">Órdenes hoy</div><div class="mockup-card-val">24</div></div>
+          <div style="background:rgba(98,146,154,.3);color:var(--tf-sand);font-size:.72rem;padding:3px 8px;border-radius:20px;font-weight:600;">+12%</div>
+        </div>
+        <div class="mockup-card">
+          <div><div class="mockup-card-label">Ingresos del mes</div><div class="mockup-card-val">$18,450</div></div>
+          <div style="background:rgba(98,146,154,.3);color:var(--tf-sand);font-size:.72rem;padding:3px 8px;border-radius:20px;font-weight:600;">+28%</div>
+        </div>
+        <div class="mockup-card">
+          <div><div class="mockup-card-label">Productos activos</div><div class="mockup-card-val">142</div></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#4ecb71;"></div>
+        </div>
+        <div class="mockup-bar-wrap">
+          <div class="mockup-bar-lbl"><span>Fulfillment rate</span><span>94%</span></div>
+          <div class="mockup-bar-track"><div class="mockup-bar-fill" style="width:94%"></div></div>
+        </div>
+        <div class="mockup-bar-wrap">
+          <div class="mockup-bar-lbl"><span>Envíos completados</span><span>87%</span></div>
+          <div class="mockup-bar-track"><div class="mockup-bar-fill" style="width:87%;background:var(--tf-sand2)"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-inner">
+    <div class="features-eyebrow">Por qué TradeFlow</div>
+    <div class="features-title">Todo lo que necesitas para comerciar desde la ZLC</div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon fi-teal">🌐</div>
+        <div class="feature-title">Compra sin viajar</div>
+        <div class="feature-desc">Accede al catálogo completo de la Zona Libre desde cualquier país del mundo. Sin colas, sin trámites físicos.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-sand">📦</div>
+        <div class="feature-title">Gestión de inventario</div>
+        <div class="feature-desc">Control de stock en tiempo real con alertas automáticas. Reserva, vende y repone sin perder una sola orden.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-dark">📄</div>
+        <div class="feature-title">Documentos aduaneros</div>
+        <div class="feature-desc">Generación automática de facturas comerciales y packing lists cumpliendo la normativa de la Autoridad Nacional de Aduanas.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-teal">💳</div>
+        <div class="feature-title">Pago seguro</div>
+        <div class="feature-desc">Múltiples métodos de pago con cifrado. Cada transacción registrada y trazable de extremo a extremo.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-sand">📱</div>
+        <div class="feature-title">Pre-registro con QR</div>
+        <div class="feature-desc">Agiliza el ingreso de compradores a la ZLC con códigos QR personales. Sin filas, sin papeles.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-dark">📊</div>
+        <div class="feature-title">Analítica de ventas</div>
+        <div class="feature-desc">Dashboards en tiempo real. Conoce tus productos más vendidos, compradores frecuentes y tendencias del mercado.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CÓMO FUNCIONA -->
+<section class="how-it-works" id="como-funciona">
+  <div class="hiw-inner">
+    <div class="hiw-title">¿Cómo funciona?</div>
+    <div class="hiw-steps">
+      <div class="hiw-step">
+        <div class="hiw-step-num">1</div>
+        <div class="hiw-step-title">Crea tu cuenta</div>
+        <div class="hiw-step-desc">Regístrate como comprador o empresa vendedora en menos de 2 minutos.</div>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-step-num">2</div>
+        <div class="hiw-step-title">Explora el catálogo</div>
+        <div class="hiw-step-desc">Miles de productos de electrónica, textiles, perfumería y más.</div>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-step-num" style="background:var(--tf-teal);">3</div>
+        <div class="hiw-step-title">Realiza tu pedido</div>
+        <div class="hiw-step-desc">Agrega al carrito, confirma y paga de forma segura desde tu dispositivo.</div>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-step-num" style="background:var(--tf-teal);">4</div>
+        <div class="hiw-step-title">Recibe tu mercancía</div>
+        <div class="hiw-step-desc">Seguimiento en tiempo real. Tu pedido llega donde tú estás.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTOS DESTACADOS -->
+{% if productos %}
+<section class="productos-section">
+  <div class="ps-inner">
+    <div class="ps-header">
+      <div class="ps-title">Productos destacados</div>
+      <a href="{% url 'signup' %}" class="btn-tf btn-tf-outline">Ver catálogo completo</a>
+    </div>
+    <div class="productos-grid">
+      {% for producto in productos %}
+      <div class="producto-card">
+        <div class="producto-img">
+          {% if producto.image %}
+            <img src="{{ producto.image.url }}" alt="{{ producto.name }}"
+                 style="width:100%;height:100%;object-fit:cover;">
+          {% else %}
+            📦
+          {% endif %}
+        </div>
+        <div class="producto-body">
+          <div class="producto-categoria">{{ producto.category.name|default:"General" }}</div>
+          <div class="producto-nombre">{{ producto.name }}</div>
+          <div class="producto-empresa">{{ producto.company.name }}</div>
+          <div class="producto-footer">
+            <div class="producto-precio">{{ producto.currency }} {{ producto.unit_price }}</div>
+            <a href="{% url 'signup' %}" class="btn-ver">Ver producto</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- CTA FINAL -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <div class="cta-title">La Zona Libre está<br><em>esperándote</em></div>
+    <p class="cta-desc">
+      Únete a la plataforma que está digitalizando el segundo hub comercial
+      más importante del mundo. Compra, vende y exporta — todo desde Colón.
+    </p>
+    <div class="cta-btns">
+      <a href="{% url 'signup' %}" class="btn-tf btn-tf-teal" style="padding:13px 28px;font-size:1rem;">
+        Comenzar ahora
+      </a>
+      <a href="{% url 'login' %}"  class="btn-tf btn-tf-outline" style="padding:13px 24px;font-size:1rem;background:transparent;color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.2);">
+        Ya tengo cuenta
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,304 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+=============================================================
+TRADEFLOW COLÓN — templates/core/dashboard.html
+=============================================================
+Qué hace:
+  Página principal del sistema. Muestra:
+    1. KPI Cards   — Órdenes, Ingresos, Clientes, Conversión
+    2. Gráficos    — Línea (ingresos vs gastos) + Barras (por día)
+    3. Tabla       — Últimas 5 órdenes con estado y monto
+
+Variables recibidas de views.py → dashboard_view():
+  total_ordenes, cambio_ordenes     → KPI órdenes
+  ingresos, cambio_ingresos         → KPI ingresos
+  clientes_activos                  → KPI clientes
+  tasa_conversion                   → KPI conversión
+  ordenes_recientes                 → QuerySet de últimas órdenes
+  dias_labels                       → Lista ['Lun','Mar',...]
+  ordenes_por_dia                   → Lista [42, 67, ...]
+  periodo_activo                    → 7, 30 o 90 (días seleccionados)
+
+Extiende: base.html
+CSS extra: dashboard.css
+JS extra: Chart.js (CDN) + script inline para los gráficos
+=============================================================
+{% endcomment %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js para los gráficos de línea y barras -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── ENCABEZADO DE PÁGINA ── -->
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h2>Dashboard</h2>
+      <p class="text-muted">
+        Bienvenido, <strong>{{ user.first_name|default:user.username }}</strong> —
+        Estado de tu negocio en tiempo real
+      </p>
+    </div>
+    <button class="btn btn-secondary" onclick="window.print()">
+      Exportar
+    </button>
+  </div>
+</div>
+
+<!-- ── SELECTOR DE PERÍODO ── -->
+<div class="date-row">
+  <div class="date-pills">
+    <a href="?periodo=7"  class="date-pill {% if periodo_activo == 7 %}active{% endif %}">7 días</a>
+    <a href="?periodo=30" class="date-pill {% if periodo_activo == 30 %}active{% endif %}">30 días</a>
+    <a href="?periodo=90" class="date-pill {% if periodo_activo == 90 %}active{% endif %}">90 días</a>
+  </div>
+  <small class="text-muted">Actualizado ahora</small>
+</div>
+
+<!-- ── KPI CARDS ── -->
+<!--
+  Cada card muestra un indicador clave del negocio.
+  Los valores vienen de views.py → dashboard_view().
+  El cambio porcentual compara con el período anterior.
+-->
+<div class="kpi-grid">
+
+  <!-- KPI 1: Órdenes totales -->
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <div class="kpi-label">Órdenes totales</div>
+      <div class="kpi-icon">
+        <i data-feather="shopping-cart" width="16" height="16" style="color:var(--color-primary)"></i>
+      </div>
+    </div>
+    <div class="kpi-value">{{ total_ordenes|default:"0" }}</div>
+    <div class="kpi-change {% if cambio_ordenes < 0 %}down{% endif %}">
+      {% if cambio_ordenes >= 0 %}▲{% else %}▼{% endif %}
+      {{ cambio_ordenes|default:"0" }}%
+      <span>vs período anterior</span>
+    </div>
+  </div>
+
+  <!-- KPI 2: Ingresos -->
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <div class="kpi-label">Ingresos</div>
+      <div class="kpi-icon">
+        <i data-feather="dollar-sign" width="16" height="16" style="color:var(--color-primary)"></i>
+      </div>
+    </div>
+    <div class="kpi-value">${{ ingresos|default:"0.00" }}</div>
+    <div class="kpi-change {% if cambio_ingresos < 0 %}down{% endif %}">
+      {% if cambio_ingresos >= 0 %}▲{% else %}▼{% endif %}
+      {{ cambio_ingresos|default:"0" }}%
+      <span>vs período anterior</span>
+    </div>
+  </div>
+
+  <!-- KPI 3: Clientes activos -->
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <div class="kpi-label">Clientes activos</div>
+      <div class="kpi-icon">
+        <i data-feather="users" width="16" height="16" style="color:var(--color-primary)"></i>
+      </div>
+    </div>
+    <div class="kpi-value">{{ clientes_activos|default:"0" }}</div>
+    <div class="kpi-change">
+      <span>Total registrados</span>
+    </div>
+  </div>
+
+  <!-- KPI 4: Tasa de conversión -->
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <div class="kpi-label">Tasa conversión</div>
+      <div class="kpi-icon">
+        <i data-feather="trending-up" width="16" height="16" style="color:var(--color-primary)"></i>
+      </div>
+    </div>
+    <div class="kpi-value">{{ tasa_conversion|default:"0" }}%</div>
+    <div class="kpi-change">
+      <span>Órdenes completadas / total</span>
+    </div>
+  </div>
+
+</div><!-- /kpi-grid -->
+
+
+<!-- ── GRÁFICOS ── -->
+<div class="charts-grid">
+
+  <!-- Gráfico de línea: Ingresos (datos mockeados si no hay suficiente BD) -->
+  <div class="chart-card">
+    <div class="chart-title">Ingresos — últimos {{ periodo_activo }} días</div>
+    <div style="position:relative; height:200px;">
+      <canvas id="lineChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Gráfico de barras: Órdenes por día de la semana -->
+  <div class="chart-card">
+    <div class="chart-title">Órdenes por día de la semana</div>
+    <div style="position:relative; height:200px;">
+      <canvas id="barChart"></canvas>
+    </div>
+  </div>
+
+</div><!-- /charts-grid -->
+
+
+<!-- ── TABLA DE ÓRDENES RECIENTES ── -->
+<div class="table-card">
+  <div class="table-card-header">
+    <span>Órdenes Recientes</span>
+    <a href="{% url 'lista_ordenes' %}" class="view-all-link">Ver todas →</a>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#ID</th>
+        <th>Cliente</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+        <th>Monto</th>
+        <th>Pago</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for orden in ordenes_recientes %}
+      <tr>
+        <td><a href="#" class="order-id-link">#{{ orden.pk }}</a></td>
+        <td>{{ orden.cliente.nombre }}</td>
+        <td>{{ orden.fecha_creacion|date:"d/m/Y" }}</td>
+        <td><span class="badge {{ orden.badge_color }}">{{ orden.get_estado_display }}</span></td>
+        <td>${{ orden.total }}</td>
+        <td>{{ orden.get_metodo_pago_display }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center; padding:32px; color:var(--color-muted);">
+          No hay órdenes aún.
+          <a href="{% url 'lista_ordenes' %}">Crear primera orden →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/**
+ * Gráficos del Dashboard con Chart.js
+ *
+ * Los datos vienen del backend (views.py → dashboard_view()).
+ * Django los pasa al template como variables de contexto y
+ * aquí se convierten a arrays de JavaScript con el filtro |safe.
+ *
+ * ordenes_por_dia → [42, 67, 55, 89, 74, 91, 38]  (un valor por día)
+ * dias_labels     → ['Lun', 'Mar', 'Mié', ...]
+ */
+
+// Activar iconos Feather que se renderizaron con
+feather.replace();
+
+// ── Gráfico de Línea (Ingresos) ──
+const lineCtx = document.getElementById('lineChart');
+if (lineCtx) {
+  // Datos de ejemplo — reemplaza con datos reales del contexto Django
+  const dias = {{ periodo_activo|default:7 }};
+  const etiquetas = Array.from({length: dias}, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (dias - 1 - i));
+    return d.toLocaleDateString('es-PA', {day:'numeric', month:'short'});
+  });
+  // Datos simulados — reemplaza con {{ ingresos_diarios|safe }} desde views.py
+  const datosIngresos = etiquetas.map(() => Math.floor(Math.random() * 3000 + 1000));
+  const datosGastos   = etiquetas.map(() => Math.floor(Math.random() * 1500 + 500));
+
+  new Chart(lineCtx, {
+    type: 'line',
+    data: {
+      labels: etiquetas,
+      datasets: [
+        {
+          label: 'Ingresos',
+          data: datosIngresos,
+          borderColor: '#098698',
+          backgroundColor: 'rgba(9,134,152,0.06)',
+          tension: 0.4,
+          pointRadius: 3,
+          borderWidth: 2,
+          fill: true,
+        },
+        {
+          label: 'Gastos',
+          data: datosGastos,
+          borderColor: '#d9cab3',
+          backgroundColor: 'rgba(217,202,179,0.04)',
+          tension: 0.4,
+          pointRadius: 3,
+          borderWidth: 2,
+          fill: true,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 10 }, maxTicksLimit: 7 } },
+        y: { ticks: { font: { size: 10 }, callback: v => '$' + v.toLocaleString() } }
+      }
+    }
+  });
+}
+
+// ── Gráfico de Barras (Órdenes por día) ──
+const barCtx = document.getElementById('barChart');
+if (barCtx) {
+  // Datos reales del contexto Django: dias_labels y ordenes_por_dia
+  const diasLabels   = {{ dias_labels|safe }};
+  const ordenesDia   = {{ ordenes_por_dia|safe }};
+
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: diasLabels,
+      datasets: [{
+        label: 'Órdenes',
+        data: ordenesDia,
+        backgroundColor: '#098698',
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 11 } } },
+        y: { ticks: { font: { size: 10 }, stepSize: 1 } }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

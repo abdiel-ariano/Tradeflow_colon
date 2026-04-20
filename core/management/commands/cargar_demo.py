@@ -1,0 +1,314 @@
+"""
+=============================================================================
+TRADEFLOW COLÓN — core/management/commands/cargar_demo.py
+=============================================================================
+Comando de Django para cargar datos de demostración en la base de datos.
+Descarga imágenes de placeholder desde picsum.photos y las guarda en /media/.
+
+USO:
+    python manage.py cargar_demo
+
+RESULTADO:
+    - 3 categorías (Electrónica, Textiles, Perfumería)
+    - 3 empresas de la Zona Libre de Colón
+    - 9 productos con imágenes descargadas automáticamente
+    - 1 usuario buyer de demo  (usuario: demo_buyer  / clave: Demo1234!)
+    - 1 usuario seller de demo (usuario: demo_seller / clave: Demo1234!)
+
+NOTAS:
+    - Requiere conexión a internet para descargar las imágenes.
+    - Si los datos ya existen, los omite (safe to re-run).
+    - Las imágenes se guardan en MEDIA_ROOT/products/
+=============================================================================
+"""
+
+import urllib.request
+import os
+from django.core.management.base import BaseCommand
+from django.contrib.auth.models import User
+from django.conf import settings
+
+from core.models import (
+    UserProfile, Company, Category, Product, Inventory
+)
+
+
+# ---------------------------------------------------------------------------
+# Datos de demostración
+# ---------------------------------------------------------------------------
+
+CATEGORIAS = [
+    'Electrónica',
+    'Textiles',
+    'Perfumería y Cosméticos',
+]
+
+EMPRESAS = [
+    {
+        'name':         'TechZone Colón S.A.',
+        'ruc':          '8-NT-2-123456',
+        'address_text': 'Zona Libre de Colón, Edificio Tech Center, Local 12',
+        'is_verified':  True,
+    },
+    {
+        'name':         'Textiles Internacionales ZLC',
+        'ruc':          '8-NT-2-234567',
+        'address_text': 'Zona Libre de Colón, Avenida Roosevelt, Local 45',
+        'is_verified':  True,
+    },
+    {
+        'name':         'Fragancias del Mundo Ltda.',
+        'ruc':          '8-NT-2-345678',
+        'address_text': 'Zona Libre de Colón, Plaza Comercial Norte, Local 8',
+        'is_verified':  True,
+    },
+]
+
+# Cada producto tiene: nombre, descripción, SKU, precio, categoría (índice),
+# empresa (índice), stock, imagen_seed (para picsum.photos), imagen_filename
+PRODUCTOS = [
+    {
+        'name':        'Smartphone Samsung Galaxy A55',
+        'description': 'Teléfono inteligente con pantalla AMOLED 6.6", cámara de 50MP y batería de 5000mAh. Importado directamente desde Samsung Electronics.',
+        'sku':         'ELEC-SA55-001',
+        'unit_price':  389.99,
+        'categoria':   0,
+        'empresa':     0,
+        'stock':       45,
+        'img_seed':    1,
+        'img_file':    'samsung_a55.jpg',
+    },
+    {
+        'name':        'Auriculares Sony WH-1000XM5',
+        'description': 'Auriculares inalámbricos con cancelación de ruido líder en la industria. Autonomía de 30 horas. Incluye estuche de transporte.',
+        'sku':         'ELEC-SONY-002',
+        'unit_price':  249.00,
+        'categoria':   0,
+        'empresa':     0,
+        'stock':       30,
+        'img_seed':    20,
+        'img_file':    'sony_wh1000.jpg',
+    },
+    {
+        'name':        'Tablet Lenovo Tab P12',
+        'description': 'Tablet de 12.7 pulgadas con pantalla LTPS, procesador MediaTek Dimensity 7050 y 8GB RAM. Ideal para trabajo y entretenimiento.',
+        'sku':         'ELEC-LEN-003',
+        'unit_price':  319.00,
+        'categoria':   0,
+        'empresa':     0,
+        'stock':       20,
+        'img_seed':    42,
+        'img_file':    'lenovo_tab.jpg',
+    },
+    {
+        'name':        'Conjunto de Lino Premium para Dama',
+        'description': 'Conjunto de pantalón y blusa en lino 100% importado de Italia. Disponible en tallas S-XL. Colores: beige, blanco y azul marino.',
+        'sku':         'TEXT-LINO-001',
+        'unit_price':  89.50,
+        'categoria':   1,
+        'empresa':     1,
+        'stock':       80,
+        'img_seed':    64,
+        'img_file':    'conjunto_lino.jpg',
+    },
+    {
+        'name':        'Camisa Oxford Caballero',
+        'description': 'Camisa de algodón Oxford de alta calidad. Corte slim fit. Disponible en blanco, azul celeste y gris. Tallas S al XXL.',
+        'sku':         'TEXT-OXF-002',
+        'unit_price':  45.00,
+        'categoria':   1,
+        'empresa':     1,
+        'stock':       120,
+        'img_seed':    85,
+        'img_file':    'camisa_oxford.jpg',
+    },
+    {
+        'name':        'Mochila Ejecutiva de Cuero',
+        'description': 'Mochila de cuero genuino con compartimento para laptop de 15.6", puerto USB externo y sistema anti-robo. Importada de España.',
+        'sku':         'TEXT-MCH-003',
+        'unit_price':  129.00,
+        'categoria':   1,
+        'empresa':     1,
+        'stock':       35,
+        'img_seed':    100,
+        'img_file':    'mochila_cuero.jpg',
+    },
+    {
+        'name':        'Perfume Chanel N°5 Eau de Parfum',
+        'description': 'Eau de Parfum 100ml. La fragancia más icónica del mundo. Notas florales con aldehídos. Presentación original con certificado de autenticidad.',
+        'sku':         'PERF-CH5-001',
+        'unit_price':  185.00,
+        'categoria':   2,
+        'empresa':     2,
+        'stock':       25,
+        'img_seed':    15,
+        'img_file':    'chanel_n5.jpg',
+    },
+    {
+        'name':        'Colonia Dior Sauvage EDT',
+        'description': 'Eau de Toilette 200ml para caballero. Fragancia fresca y especiada con notas de bergamota y pimienta de Sichuan. 100% original.',
+        'sku':         'PERF-DS-002',
+        'unit_price':  145.00,
+        'categoria':   2,
+        'empresa':     2,
+        'stock':       40,
+        'img_seed':    33,
+        'img_file':    'dior_sauvage.jpg',
+    },
+    {
+        'name':        'Set de Maquillaje MAC Professional',
+        'description': 'Kit profesional MAC con 24 sombras, base, corrector, rubor y labiales. Edición limitada importada directamente de los distribuidores oficiales.',
+        'sku':         'PERF-MAC-003',
+        'unit_price':  210.00,
+        'categoria':   2,
+        'empresa':     2,
+        'stock':       18,
+        'img_seed':    77,
+        'img_file':    'mac_set.jpg',
+    },
+]
+
+USUARIOS_DEMO = [
+    {
+        'username':   'demo_buyer',
+        'first_name': 'Carlos',
+        'last_name':  'Rodríguez',
+        'email':      'demo.buyer@tradeflow.pa',
+        'password':   'Demo1234!',
+        'role':       'buyer',
+        'phone':      '+507 6500-0001',
+    },
+    {
+        'username':   'demo_seller',
+        'first_name': 'Ana',
+        'last_name':  'Martínez',
+        'email':      'demo.seller@tradeflow.pa',
+        'password':   'Demo1234!',
+        'role':       'seller',
+        'phone':      '+507 6500-0002',
+    },
+]
+
+
+class Command(BaseCommand):
+    """
+    Carga datos de demostración para TradeFlow Colón.
+    Crea categorías, empresas, productos con imágenes y usuarios de prueba.
+    """
+    help = 'Carga datos de demostración con imágenes para TradeFlow Colón'
+
+    def handle(self, *args, **options):
+        self.stdout.write('=' * 60)
+        self.stdout.write('TRADEFLOW — Cargando datos de demostración')
+        self.stdout.write('=' * 60)
+
+        # Asegura que la carpeta de imágenes existe
+        media_products = os.path.join(settings.MEDIA_ROOT, 'products')
+        os.makedirs(media_products, exist_ok=True)
+
+        # 1. Categorías
+        self.stdout.write('\n[1/4] Creando categorías...')
+        categorias_obj = []
+        for nombre in CATEGORIAS:
+            cat, created = Category.objects.get_or_create(name=nombre)
+            categorias_obj.append(cat)
+            estado = 'CREADA' if created else 'ya existe'
+            self.stdout.write(f'  {nombre} — {estado}')
+
+        # 2. Empresas
+        self.stdout.write('\n[2/4] Creando empresas...')
+        empresas_obj = []
+        for data in EMPRESAS:
+            empresa, created = Company.objects.get_or_create(
+                name=data['name'],
+                defaults={
+                    'ruc':          data['ruc'],
+                    'address_text': data['address_text'],
+                    'is_verified':  data['is_verified'],
+                }
+            )
+            empresas_obj.append(empresa)
+            estado = 'CREADA' if created else 'ya existe'
+            self.stdout.write(f'  {empresa.name} — {estado}')
+
+        # 3. Productos con imágenes
+        self.stdout.write('\n[3/4] Creando productos e imágenes...')
+        for data in PRODUCTOS:
+            if Product.objects.filter(sku=data['sku']).exists():
+                self.stdout.write(f'  {data["name"]} — ya existe, omitido')
+                continue
+
+            # Descarga la imagen
+            img_path = os.path.join(media_products, data['img_file'])
+            img_relative = f'products/{data["img_file"]}'
+            if not os.path.exists(img_path):
+                url = f'https://picsum.photos/seed/{data["img_seed"]}/600/600'
+                try:
+                    self.stdout.write(f'  Descargando imagen para {data["name"]}...')
+                    urllib.request.urlretrieve(url, img_path)
+                except Exception as e:
+                    self.stdout.write(
+                        self.style.WARNING(f'  No se pudo descargar imagen: {e}')
+                    )
+                    img_relative = ''
+
+            # Crea el producto
+            producto = Product.objects.create(
+                company    = empresas_obj[data['empresa']],
+                category   = categorias_obj[data['categoria']],
+                name       = data['name'],
+                description= data['description'],
+                sku        = data['sku'],
+                unit_price = data['unit_price'],
+                currency   = 'USD',
+                image      = img_relative,
+                is_active  = True,
+            )
+
+            # Crea el inventario asociado
+            Inventory.objects.create(
+                product         = producto,
+                stock_qty       = data['stock'],
+                reserved_qty    = 0,
+                low_stock_alert = 5,
+            )
+
+            self.stdout.write(
+                self.style.SUCCESS(f'  {producto.name} — CREADO (stock: {data["stock"]})')
+            )
+
+        # 4. Usuarios de demo
+        self.stdout.write('\n[4/4] Creando usuarios de demo...')
+        for data in USUARIOS_DEMO:
+            if User.objects.filter(username=data['username']).exists():
+                self.stdout.write(f'  {data["username"]} — ya existe, omitido')
+                continue
+
+            user = User.objects.create_user(
+                username   = data['username'],
+                first_name = data['first_name'],
+                last_name  = data['last_name'],
+                email      = data['email'],
+                password   = data['password'],
+            )
+            UserProfile.objects.create(
+                user  = user,
+                role  = data['role'],
+                phone = data['phone'],
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f'  {data["username"]} ({data["role"]}) — CREADO | clave: {data["password"]}'
+                )
+            )
+
+        # Resumen final
+        self.stdout.write('\n' + '=' * 60)
+        self.stdout.write(self.style.SUCCESS('Datos de demo cargados correctamente.'))
+        self.stdout.write(f'  Productos: {Product.objects.count()}')
+        self.stdout.write(f'  Empresas:  {Company.objects.count()}')
+        self.stdout.write(f'  Usuarios:  {User.objects.filter(is_superuser=False).count()}')
+        self.stdout.write('\nAccesos de prueba:')
+        self.stdout.write('  Buyer:  demo_buyer  / Demo1234!')
+        self.stdout.write('  Seller: demo_seller / Demo1234!')
+        self.stdout.write('=' * 60)

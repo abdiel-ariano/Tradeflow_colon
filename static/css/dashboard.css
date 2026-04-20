@@ -1,0 +1,62 @@
+/*
+=============================================================
+TRADEFLOW COLÓN — static/css/dashboard.css
+=============================================================
+Estilos exclusivos del Dashboard (KPI cards + gráficos).
+=============================================================
+*/
+.date-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+.date-pills { display: flex; gap: 4px; }
+.date-pill {
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: white;
+  color: var(--color-muted);
+  transition: var(--transition);
+  text-decoration: none;
+}
+.date-pill:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.date-pill.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+
+/* KPI Grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+.kpi-card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  transition: var(--transition);
+}
+.kpi-card:hover { border-color: var(--color-primary); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.kpi-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.kpi-label { font-size: 0.72rem; color: var(--color-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi-icon { width: 34px; height: 34px; border-radius: var(--radius-md); background: var(--color-primary-light); display: flex; align-items: center; justify-content: center; }
+.kpi-icon svg { width: 16px; height: 16px; }
+.kpi-value { font-size: 1.6rem; font-weight: 700; color: var(--color-text); line-height: 1; margin-bottom: 8px; }
+.kpi-change { display: flex; align-items: center; gap: 5px; font-size: 0.78rem; color: var(--color-success); }
+.kpi-change.down { color: var(--color-danger); }
+.kpi-change span { color: var(--color-muted); font-weight: 400; }
+
+/* Gráficos */
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.chart-card { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 18px; }
+.chart-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 14px; }
+
+/* Tabla reciente */
+.table-card { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+.table-card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.view-all-link { font-size: 0.78rem; color: var(--color-primary); }
+
+@media (max-width: 1024px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px)  { .charts-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }

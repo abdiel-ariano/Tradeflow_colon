@@ -1,0 +1,73 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/formularios.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h2>Empresas</h2>
+      <p class="text-muted">Empresas vendedoras de la Zona Libre de Colón</p>
+    </div>
+    <a href="/admin/core/company/add/" class="btn btn-primary" target="_blank">
+      <i data-feather="plus" width="14" height="14"></i> Nueva Empresa
+    </a>
+  </div>
+</div>
+
+<div class="table-card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nombre</th>
+        <th>RUC</th>
+        <th>Verificada</th>
+        <th>Productos</th>
+        <th>Registrada</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for empresa in empresas %}
+      <tr>
+        <td>{{ empresa.pk }}</td>
+        <td><strong>{{ empresa.name }}</strong></td>
+        <td>{{ empresa.ruc|default:"—" }}</td>
+        <td>
+          {% if empresa.is_verified %}
+            <span class="badge badge-success">Verificada</span>
+          {% else %}
+            <span class="badge badge-warning">Pendiente</span>
+          {% endif %}
+        </td>
+        <td>{{ empresa.total_productos }}</td>
+        <td>{{ empresa.created_at|date:"d/m/Y" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:40px;color:var(--color-muted);">
+          No hay empresas registradas aún.
+          <a href="/admin/core/company/add/" target="_blank">Agregar desde el admin →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if empresas.has_other_pages %}
+  <div class="pagination">
+    {% if empresas.has_previous %}
+      <a href="?page={{ empresas.previous_page_number }}" class="btn btn-secondary">Anterior</a>
+    {% endif %}
+    <span>Página {{ empresas.number }} de {{ empresas.paginator.num_pages }}</span>
+    {% if empresas.has_next %}
+      <a href="?page={{ empresas.next_page_number }}" class="btn btn-secondary">Siguiente</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

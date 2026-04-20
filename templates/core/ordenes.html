@@ -1,0 +1,231 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+=============================================================
+TRADEFLOW COLÓN — templates/core/ordenes.html
+=============================================================
+Qué hace:
+  Página de gestión de órdenes con:
+    - Panel de filtros (búsqueda, estado, pago, fechas)
+    - Tabla completa de órdenes con badges de estado
+    - Paginación con Django Paginator
+    - Botón de exportar CSV (via filtros.js)
+
+Variables del contexto (views.py → ordenes_view()):
+  ordenes         → Página actual del Paginator (iterable)
+  form_filtros    → Instancia de FiltroOrdenForm
+  total_resultados → Int con total de resultados filtrados
+
+Extiende: base.html
+CSS: ordenes.css
+JS:  filtros.js
+=============================================================
+{% endcomment %}
+
+{% block title %}Órdenes{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ordenes.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ── ENCABEZADO ── -->
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h2>Gestión de Órdenes</h2>
+      <p class="text-muted">Administra, filtra y revisa todas las órdenes</p>
+    </div>
+    <a href="{% url 'lista_ordenes' %}" class="btn btn-primary">
+      <i data-feather="plus" width="14" height="14"></i> Nueva Orden
+    </a>
+  </div>
+</div>
+
+<!-- ── PANEL DE FILTROS ── -->
+<!--
+  El formulario usa GET para que los filtros aparezcan en la URL
+  y se puedan compartir o refrescar sin perder los filtros.
+  Ejemplo de URL filtrada:
+    /ordenes/?estado=pendiente&metodo_pago=tarjeta&busqueda=maria
+-->
+<form id="filtrosForm" method="get" action="">
+  <div class="filters-panel">
+
+    <!-- Búsqueda por ID o nombre de cliente -->
+    <div class="filter-group" style="flex:1;min-width:200px;">
+      <label>Buscar</label>
+      <input
+        type="text"
+        name="busqueda"
+        class="filter-input filter-search"
+        placeholder="ID de orden o nombre del cliente..."
+        value="{{ form_filtros.busqueda.value|default:'' }}"
+      />
+    </div>
+
+    <!-- Filtro por estado -->
+    <div class="filter-group">
+      <label>Estado</label>
+      {{ form_filtros.estado }}
+    </div>
+
+    <!-- Filtro por método de pago -->
+    <div class="filter-group">
+      <label>Método de pago</label>
+      {{ form_filtros.metodo_pago }}
+    </div>
+
+    <!-- Rango de fechas -->
+    <div class="filter-group">
+      <label>Desde</label>
+      {{ form_filtros.fecha_desde }}
+    </div>
+    <div class="filter-group">
+      <label>Hasta</label>
+      {{ form_filtros.fecha_hasta }}
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-primary">Filtrar</button>
+      <button type="button" id="btnLimpiar" class="btn btn-secondary">Limpiar</button>
+      <button type="button" id="btnExportCSV" class="btn btn-secondary">CSV</button>
+    </div>
+
+  </div>
+</form>
+
+<!-- Contador de resultados -->
+<p class="results-info">
+  {{ total_resultados|default:"0" }} resultado{{ total_resultados|pluralize }} encontrado{{ total_resultados|pluralize }}
+</p>
+
+<!-- ── TABLA DE ÓRDENES ── -->
+<div class="orders-table-card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <!-- Checkbox "Seleccionar todos" -->
+        <th style="width:36px;">
+          <input type="checkbox" id="selectAll" title="Seleccionar todas" />
+        </th>
+        <th>Orden ID</th>
+        <th>Cliente</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+        <th>Monto</th>
+        <th>Pago</th>
+        <th style="width:60px;">Acc.</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for orden in ordenes %}
+      <tr>
+        <!-- Checkbox individual de fila -->
+        <td>
+          <input type="checkbox" class="row-checkbox" value="{{ orden.pk }}" />
+        </td>
+
+        <!-- ID con link a detalle (puedes crear una vista detalle más adelante) -->
+        <td>
+          <a href="#" class="order-id-link">#{{ orden.pk }}</a>
+        </td>
+
+        <td>{{ orden.cliente.nombre }}</td>
+
+        <!-- Fecha formateada con filtro de Django -->
+        <td>{{ orden.fecha_creacion|date:"d/m/Y" }}</td>
+
+        <!-- Badge de estado: clase CSS definida en models.py → badge_color() -->
+        <td>
+          <span class="badge {{ orden.badge_color }}">
+            {{ orden.get_estado_display }}
+          </span>
+        </td>
+
+        <td>${{ orden.total }}</td>
+
+        <td>{{ orden.get_metodo_pago_display }}</td>
+
+        <!-- Menú de acciones (3 puntos) -->
+        <td style="text-align:center;">
+          <div class="dropdown" style="position:relative;display:inline-block;">
+            <button class="action-btn dropdown-trigger" title="Acciones">•••</button>
+            <div class="dropdown-menu" style="
+              position:absolute;right:0;top:28px;
+              background:white;border:1px solid var(--color-border);
+              border-radius:var(--radius-lg);min-width:160px;
+              box-shadow:var(--shadow-md);z-index:100;display:none;
+              ">
+              <a href="#" style="display:block;padding:8px 14px;font-size:.82rem;color:var(--color-text);">Ver detalles</a>
+              <a href="#" style="display:block;padding:8px 14px;font-size:.82rem;color:var(--color-text);">Editar</a>
+              <a href="#" style="display:block;padding:8px 14px;font-size:.82rem;color:var(--color-text);">Descargar PDF</a>
+              <a href="#" style="display:block;padding:8px 14px;font-size:.82rem;color:var(--color-danger);">Cancelar</a>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" style="text-align:center;padding:40px;color:var(--color-muted);">
+          No se encontraron órdenes con los filtros aplicados.
+          <br><br>
+          <a href="{% url 'lista_ordenes' %}" class="btn btn-primary">Crear primera orden</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ── PAGINACIÓN ── -->
+  {% if ordenes.has_other_pages %}
+  <div class="pagination">
+    <span>
+      Mostrando {{ ordenes.start_index }}–{{ ordenes.end_index }}
+      de {{ ordenes.paginator.count }} órdenes
+    </span>
+
+    <div class="pagination-nums">
+      <!-- Página anterior -->
+      {% if ordenes.has_previous %}
+      <a href="?{% if request.GET.busqueda %}busqueda={{ request.GET.busqueda }}&{% endif %}pagina={{ ordenes.previous_page_number }}"
+         class="page-num">‹</a>
+      {% endif %}
+
+      <!-- Números de página -->
+      {% for num in ordenes.paginator.page_range %}
+        {% if ordenes.number == num %}
+          <span class="page-num active">{{ num }}</span>
+        {% elif num > ordenes.number|add:'-3' and num < ordenes.number|add:'3' %}
+          <a href="?pagina={{ num }}" class="page-num">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      <!-- Página siguiente -->
+      {% if ordenes.has_next %}
+      <a href="?{% if request.GET.busqueda %}busqueda={{ request.GET.busqueda }}&{% endif %}pagina={{ ordenes.next_page_number }}"
+         class="page-num">›</a>
+      {% endif %}
+    </div>
+
+    <!-- Items por página -->
+    <form method="get" style="display:inline;">
+      <select name="items" onchange="this.form.submit()" class="filter-input" style="height:28px;width:90px;font-size:.78rem;">
+        <option value="10"  {% if request.GET.items == '10'  %}selected{% endif %}>10 / pág</option>
+        <option value="25"  {% if request.GET.items == '25'  %}selected{% endif %}>25 / pág</option>
+        <option value="50"  {% if request.GET.items == '50'  %}selected{% endif %}>50 / pág</option>
+      </select>
+    </form>
+  </div>
+  {% endif %}
+
+</div><!-- /orders-table-card -->
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/filtros.js' %}"></script>
+{% endblock %}

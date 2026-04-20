@@ -1,0 +1,41 @@
+/*
+=============================================================
+TRADEFLOW COLÓN — static/css/productos.css
+=============================================================
+Estilos del catálogo de productos en grid.
+=============================================================
+*/
+.products-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.catalog-card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+}
+.catalog-card:hover { border-color: var(--color-primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.catalog-img {
+  height: 100px;
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+.catalog-body { padding: 14px; }
+.catalog-name { font-size: 0.875rem; font-weight: 700; margin-bottom: 3px; }
+.catalog-cat  { font-size: 0.72rem; color: var(--color-muted); margin-bottom: 10px; }
+.catalog-footer { display: flex; justify-content: space-between; align-items: center; }
+.catalog-price { font-size: 1rem; font-weight: 800; color: var(--color-primary); }
+.catalog-stock { font-size: 0.72rem; font-weight: 600; }
+.stock-ok   { color: var(--color-success); }
+.stock-low  { color: var(--color-warning); }
+.stock-out  { color: var(--color-danger); }
+
+.catalog-inactive { opacity: 0.5; }

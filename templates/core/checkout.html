@@ -1,0 +1,104 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{#
+  checkout.html — Formulario de confirmación de compra
+
+  Contexto esperado:
+    carrito   → dict de sesión con los items
+    subtotal  → Decimal
+#}
+
+{% block title %}Confirmar Pedido — TradeFlow Colón{% endblock %}
+
+{% block extra_css %}
+.checkout-wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.checkout-titulo { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--tf-dark); margin-bottom: 1.75rem; }
+.checkout-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; }
+.checkout-form-card { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: var(--radius); padding: 1.5rem; }
+.checkout-section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--tf-muted); margin-bottom: 1rem; }
+.checkout-textarea {
+  width: 100%; border: 1.5px solid var(--tf-border); border-radius: var(--radius-sm);
+  padding: 10px 13px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+  color: var(--tf-text); resize: vertical; min-height: 80px; transition: border-color .18s;
+}
+.checkout-textarea:focus { outline: none; border-color: var(--tf-teal); }
+.info-box {
+  background: #e8f4f8; border: 1px solid #9fcfe0; border-radius: var(--radius-sm);
+  padding: 12px 14px; font-size: 0.85rem; color: #1a4f65; line-height: 1.5;
+  margin-bottom: 1rem;
+}
+.resumen-item {
+  display: flex; gap: 10px; align-items: center;
+  margin-bottom: 10px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--tf-border);
+}
+.resumen-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.resumen-item img { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: #f0ede8; }
+.resumen-item-info { flex: 1; }
+.resumen-item-nombre { font-size: 0.85rem; font-weight: 500; color: var(--tf-dark); }
+.resumen-item-qty { font-size: 0.78rem; color: var(--tf-muted); }
+.resumen-item-price { font-size: 0.9rem; font-weight: 600; color: var(--tf-dark); }
+.total-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem; color: var(--tf-muted); }
+.total-final { display: flex; justify-content: space-between; border-top: 1px solid var(--tf-border); padding-top: 10px; margin-top: 10px; font-weight: 600; color: var(--tf-dark); }
+.total-final span:last-child { font-family: 'DM Serif Display', serif; font-size: 1.15rem; }
+.btn-confirmar {
+  width: 100%; padding: 12px; background: var(--tf-teal); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; margin-top: 1rem; transition: background .18s;
+}
+.btn-confirmar:hover { background: var(--tf-teal2); }
+{% endblock %}
+
+{% block content %}
+<div class="checkout-wrap">
+  <h1 class="checkout-titulo">Confirmar pedido</h1>
+  <div class="checkout-grid">
+
+    {# ── Formulario ── #}
+    <form method="post" action="{% url 'checkout' %}">
+      {% csrf_token %}
+      <div class="checkout-form-card">
+        <div class="checkout-section-title">Información de envío</div>
+        <div class="info-box">
+          Este es un pago de demostración. No se realizará ningún cargo real.
+          Tu orden será creada y marcada como pagada automáticamente.
+        </div>
+        <div class="tf-field">
+          <label class="tf-label">Notas adicionales (opcional)</label>
+          <textarea name="notas" class="checkout-textarea"
+                    placeholder="Instrucciones especiales de entrega, referencias, etc."></textarea>
+        </div>
+        <input type="hidden" name="shipping_cost" value="0">
+        <button type="submit" class="btn-confirmar">Confirmar y pagar</button>
+      </div>
+    </form>
+
+    {# ── Resumen ── #}
+    <div>
+      <div class="checkout-form-card">
+        <div class="checkout-section-title">Tu pedido</div>
+        {% for prod_id, item in carrito.items %}
+        <div class="resumen-item">
+          {% if item.imagen %}
+            <img src="{{ item.imagen }}" alt="{{ item.nombre }}">
+          {% else %}
+            <div style="width:48px;height:48px;border-radius:6px;background:#f0ede8;flex-shrink:0;"></div>
+          {% endif %}
+          <div class="resumen-item-info">
+            <div class="resumen-item-nombre">{{ item.nombre }}</div>
+            <div class="resumen-item-qty">{{ item.cantidad }} unidad{{ item.cantidad|pluralize }}</div>
+          </div>
+          <div class="resumen-item-price">USD {{ item.subtotal }}</div>
+        </div>
+        {% endfor %}
+        <div class="total-row"><span>Subtotal</span><span>USD {{ subtotal }}</span></div>
+        <div class="total-row"><span>Envío</span><span>Por confirmar</span></div>
+        <div class="total-final"><span>Total</span><span>USD {{ subtotal }}</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

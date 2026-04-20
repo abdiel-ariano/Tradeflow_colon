@@ -1,0 +1,340 @@
+{% load static %}
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}TradeFlow Colón{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tf-dark:   #404b57;
+      --tf-teal:   #62929a;
+      --tf-sand:   #d9cab3;
+      --tf-light:  #f0f0f0;
+      --tf-white:  #ffffff;
+      --tf-dark2:  #2e3740;
+      --tf-teal2:  #4a7880;
+      --tf-sand2:  #c4b09a;
+      --tf-text:   #2e3740;
+      --tf-muted:  #6b7a88;
+      --tf-border: rgba(64,75,87,0.13);
+      --radius:    12px;
+      --radius-sm: 8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--tf-text);
+      background: var(--tf-white);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ── */
+    .tf-nav {
+      background: var(--tf-white);
+      border-bottom: 1px solid var(--tf-border);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      gap: 1rem;
+    }
+    .tf-nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .tf-nav-brand img {
+      height: 36px;
+      width: 36px;
+      object-fit: contain;
+    }
+    .brand-wordmark {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      color: var(--tf-dark);
+      letter-spacing: -0.2px;
+      line-height: 1;
+    }
+    .brand-wordmark span { color: var(--tf-teal); }
+    .brand-sub {
+      font-size: 0.68rem;
+      color: var(--tf-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      letter-spacing: .04em;
+      margin-top: 1px;
+    }
+    .tf-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .tf-nav-links a.nav-link {
+      font-size: 0.88rem;
+      color: var(--tf-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      transition: color .18s, background .18s;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .tf-nav-links a.nav-link:hover { color: var(--tf-dark); background: var(--tf-light); }
+    .tf-nav-links a.nav-link.active { color: var(--tf-teal); }
+    .nav-divider { width: 1px; height: 28px; background: var(--tf-border); margin: 0 6px; }
+    .tf-nav-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--tf-sand);
+      color: var(--tf-dark);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 0.78rem;
+      flex-shrink: 0;
+    }
+    .tf-nav-user-name { font-size: 0.85rem; color: var(--tf-muted); white-space: nowrap; }
+
+    /* ── Buttons ── */
+    .btn-tf {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 18px; border-radius: var(--radius-sm);
+      font-size: 0.88rem; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      border: none; cursor: pointer;
+      text-decoration: none; transition: all .18s;
+      white-space: nowrap;
+    }
+    .btn-tf:active { transform: scale(0.98); }
+    .btn-tf-primary { background: var(--tf-dark); color: #fff; }
+    .btn-tf-primary:hover { background: var(--tf-dark2); color: #fff; }
+    .btn-tf-teal { background: var(--tf-teal); color: #fff; }
+    .btn-tf-teal:hover { background: var(--tf-teal2); color: #fff; }
+    .btn-tf-outline {
+      background: transparent; color: var(--tf-dark);
+      border: 1.5px solid var(--tf-border);
+    }
+    .btn-tf-outline:hover { background: var(--tf-light); color: var(--tf-dark); border-color: rgba(64,75,87,0.3); }
+    .btn-tf-ghost { background: transparent; color: var(--tf-muted); }
+    .btn-tf-ghost:hover { background: var(--tf-light); color: var(--tf-dark); }
+
+    /* ── Alerts ── */
+    .tf-messages { padding: 0.75rem 2rem 0; }
+    .tf-alert {
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+      display: flex; align-items: flex-start; gap: 10px;
+      border: 1.5px solid transparent;
+      line-height: 1.5;
+    }
+    .tf-alert-success { background:#edf7ee; border-color:#9ecfa0; color:#1e5c21; }
+    .tf-alert-danger  { background:#fdecea; border-color:#f5a9a3; color:#7d1a14; }
+    .tf-alert-info    { background:#e8f4f8; border-color:#9fcfe0; color:#1a4f65; }
+    .tf-alert-warning { background:#fef8e7; border-color:#f5d98c; color:#6b4a00; }
+    .tf-alert-icon { font-size: 0.9rem; flex-shrink: 0; margin-top: 2px; }
+    .tf-alert-msg { flex: 1; }
+    .tf-alert-close {
+      background: none; border: none; cursor: pointer; color: inherit;
+      opacity: 0.5; font-size: 0.85rem; padding: 0; flex-shrink: 0;
+      line-height: 1; margin-top: 2px;
+    }
+    .tf-alert-close:hover { opacity: 1; }
+
+    /* ── Inputs ── */
+    .tf-input {
+      width: 100%; border: 1.5px solid var(--tf-border);
+      border-radius: var(--radius-sm); padding: 10px 13px;
+      font-size: 0.93rem; font-family: 'DM Sans', sans-serif;
+      color: var(--tf-text); background: var(--tf-white);
+      transition: border-color .18s, box-shadow .18s; outline: none;
+    }
+    .tf-input:focus { border-color: var(--tf-teal); box-shadow: 0 0 0 3px rgba(98,146,154,.15); }
+    .tf-input::placeholder { color: #b0bac5; }
+    .tf-input.is-error { border-color: #e05a52; box-shadow: 0 0 0 3px rgba(224,90,82,.1); }
+    .tf-label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--tf-muted); margin-bottom: 5px; }
+    .tf-field { margin-bottom: 1rem; }
+
+    /* ── Cards ── */
+    .tf-card {
+      background: var(--tf-white);
+      border: 1px solid var(--tf-border);
+      border-radius: var(--radius); padding: 1.5rem;
+    }
+    .tf-card-sand {
+      background: #faf8f5;
+      border: 1px solid rgba(217,202,179,0.5);
+      border-radius: var(--radius); padding: 1.5rem;
+    }
+
+    /* ── Badges ── */
+    .tf-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; font-weight: 600;
+      padding: 3px 9px; border-radius: 20px;
+    }
+    .tf-badge-teal    { background: rgba(98,146,154,.15); color: var(--tf-teal2); }
+    .tf-badge-sand    { background: rgba(217,202,179,.4); color: #7a6a55; }
+    .tf-badge-dark    { background: rgba(64,75,87,.1);    color: var(--tf-dark); }
+    .tf-badge-success { background: #edf7ee; color: #1e5c21; }
+    .tf-badge-warn    { background: #fef8e7; color: #6b4a00; }
+    .tf-badge-danger  { background: #fdecea; color: #7d1a14; }
+
+    /* ── Section helpers ── */
+    .tf-section { padding: 4rem 2rem; }
+    .tf-section-sm { padding: 2.5rem 2rem; }
+    .tf-container { max-width: 1160px; margin: 0 auto; }
+
+    /* ── Footer ── */
+    .tf-footer {
+      background: var(--tf-dark);
+      color: rgba(240,240,240,.65);
+      padding: 3rem 2rem 1.5rem;
+      margin-top: auto;
+    }
+    .tf-footer .footer-grid {
+      max-width: 1160px; margin: 0 auto;
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 2rem;
+    }
+    .tf-footer .footer-brand-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.2rem; color: #fff;
+    }
+    .tf-footer .footer-brand-name span { color: var(--tf-sand); }
+    .tf-footer a { color: rgba(240,240,240,.55); text-decoration: none; font-size: 0.83rem; transition: color .15s; }
+    .tf-footer a:hover { color: #fff; }
+    .tf-footer .footer-col-title {
+      font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .09em; color: rgba(240,240,240,.35); margin-bottom: 10px;
+    }
+    .tf-footer .footer-col-links { display: flex; flex-direction: column; gap: 7px; }
+    .tf-footer .footer-bottom {
+      max-width: 1160px; margin: 1.5rem auto 0;
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top: 1rem; font-size: 0.78rem;
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+    }
+
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="tf-nav">
+  <a href="{% url 'home' %}" class="tf-nav-brand">
+    <img src="{% static 'img/logo.png' %}" alt="Logo TradeFlow">
+    <div>
+      <div class="brand-wordmark">Trade<span>Flow</span></div>
+      <div class="brand-sub">Zona Libre de Colón</div>
+    </div>
+  </a>
+
+  <div class="tf-nav-links">
+    {% if request.user.is_authenticated %}
+      {% with role=request.user.profile.role %}
+        {% if role == 'admin' or request.user.is_superuser %}
+          <a href="{% url 'dashboard' %}"       class="nav-link {% if nav_activo == 'dashboard' %}active{% endif %}">Dashboard</a>
+          <a href="{% url 'lista_ordenes' %}"   class="nav-link {% if nav_activo == 'ordenes' %}active{% endif %}">Órdenes</a>
+          <a href="{% url 'lista_productos' %}" class="nav-link {% if nav_activo == 'productos' %}active{% endif %}">Productos</a>
+          <a href="{% url 'lista_empresas' %}"  class="nav-link {% if nav_activo == 'empresas' %}active{% endif %}">Empresas</a>
+        {% elif role == 'buyer' %}
+          <a href="{% url 'tienda' %}"  class="nav-link {% if nav_activo == 'tienda' %}active{% endif %}">Tienda</a>
+          <a href="#" class="nav-link {% if nav_activo == 'mis_ordenes' %}active{% endif %}">Mis Órdenes</a>
+        {% elif role == 'seller' %}
+          <a href="{% url 'portal_seller' %}" class="nav-link {% if nav_activo == 'mi_tienda' %}active{% endif %}">Mi Tienda</a>
+          <a href="#" class="nav-link {% if nav_activo == 'mis_ventas' %}active{% endif %}">Mis Ventas</a>
+        {% endif %}
+      {% endwith %}
+      <div class="nav-divider"></div>
+      <div class="tf-nav-avatar">
+        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+      </div>
+      <span class="tf-nav-user-name">{{ request.user.first_name|default:request.user.username }}</span>
+      <a href="{% url 'logout' %}" class="btn-tf btn-tf-ghost" style="padding:6px 12px;font-size:0.82rem;">Salir</a>
+    {% else %}
+      <a href="{% url 'login' %}"  class="btn-tf btn-tf-outline" style="padding:7px 16px;">Iniciar sesión</a>
+      <a href="{% url 'signup' %}" class="btn-tf btn-tf-teal"    style="padding:7px 16px;">Crear cuenta</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- Mensajes flash — siempre visibles, bien diseñados -->
+{% if messages %}
+<div class="tf-messages">
+  {% for message in messages %}
+  <div class="tf-alert tf-alert-{{ message.tags }}">
+    <span class="tf-alert-icon">
+      {% if message.tags == 'success' %}✓{% elif message.tags == 'danger' %}✕{% elif message.tags == 'warning' %}!{% else %}i{% endif %}
+    </span>
+    <span class="tf-alert-msg">{{ message }}</span>
+    <button class="tf-alert-close" onclick="this.closest('.tf-alert').remove()">✕</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Contenido principal -->
+<main style="flex:1;">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+{% block footer %}
+<footer class="tf-footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name">Trade<span>Flow</span></div>
+      <p style="font-size:.83rem;margin-top:8px;line-height:1.6;">
+        Digitalizando el comercio de la<br>Zona Libre de Colón para el mundo.
+      </p>
+      <p style="font-size:.75rem;margin-top:6px;color:rgba(240,240,240,.3);font-style:italic;">
+        "Colón para el mundo"
+      </p>
+    </div>
+    <div>
+      <div class="footer-col-title">Plataforma</div>
+      <div class="footer-col-links">
+        <a href="{% url 'home' %}">Inicio</a>
+        <a href="{% url 'signup' %}">Crear cuenta</a>
+        <a href="{% url 'login' %}">Iniciar sesión</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Legal</div>
+      <div class="footer-col-links">
+        <a href="#">Términos de uso</a>
+        <a href="#">Privacidad</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Contacto</div>
+      <div class="footer-col-links">
+        <a href="#">info@tradeflow.pa</a>
+        <a href="#">Zona Libre de Colón</a>
+        <a href="#">Panamá</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 TradeFlow Colón · Todos los derechos reservados.</span>
+    <span>Centro Supérate · Fundación Alberto Motta</span>
+  </div>
+</footer>
+{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

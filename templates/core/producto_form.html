@@ -1,0 +1,76 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+Formulario para crear un nuevo producto.
+Vista: nuevo_producto_view()
+{% endcomment %}
+{% block title %}Nuevo Producto{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/formularios.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h2>Nuevo Producto</h2>
+      <p class="text-muted">Agrega un artículo al catálogo</p>
+    </div>
+    <a href="{% url 'productos' %}" class="btn btn-secondary">← Volver al catálogo</a>
+  </div>
+</div>
+
+<div class="card" style="max-width:640px;">
+  <form method="post" enctype="multipart/form-data" data-validate>
+    {% csrf_token %}
+
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Nombre del producto *</label>
+        {{ form.nombre }}
+        {% if form.nombre.errors %}<span style="color:var(--color-danger);font-size:.75rem;">{{ form.nombre.errors.0 }}</span>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label>Categoría</label>
+        {{ form.categoria }}
+      </div>
+
+      <div class="form-group">
+        <label>Precio (USD) *</label>
+        {{ form.precio }}
+        {% if form.precio.errors %}<span style="color:var(--color-danger);font-size:.75rem;">{{ form.precio.errors.0 }}</span>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label>Stock disponible</label>
+        {{ form.stock }}
+      </div>
+
+      <div class="form-group">
+        <label>Imagen (opcional)</label>
+        {{ form.imagen }}
+      </div>
+
+      <div class="form-group full">
+        <label>Descripción</label>
+        {{ form.descripcion }}
+      </div>
+
+      <div class="form-group" style="flex-direction:row;align-items:center;gap:8px;">
+        {{ form.activo }}
+        <label style="text-transform:none;margin-bottom:0;font-size:.9rem;font-weight:400;">Disponible para venta</label>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <a href="{% url 'productos' %}" class="btn btn-secondary" style="flex:1;justify-content:center;">Cancelar</a>
+      <button type="submit" class="btn btn-primary" style="flex:2;justify-content:center;">Guardar producto</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/formularios.js' %}"></script>
+{% endblock %}

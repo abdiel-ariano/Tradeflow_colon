@@ -1,0 +1,303 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{#
+  tienda.html — Portal del Comprador: Catálogo de productos
+  Extiende base.html. Requiere el decorator @buyer_required en la vista.
+
+  Contexto esperado:
+    productos     → Page object de Product (paginado)
+    categorias    → QuerySet de Category
+    buscar        → str, término de búsqueda actual
+    cat_activa    → str, ID de categoría activa
+    carrito_count → int, unidades en el carrito para el badge
+#}
+
+{% block title %}Tienda — TradeFlow Colón{% endblock %}
+
+{% block extra_css %}
+.tienda-wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+/* Barra de búsqueda y filtros */
+.filtros-bar {
+  display: flex; gap: 12px; align-items: center;
+  flex-wrap: wrap; margin-bottom: 2rem;
+}
+.filtros-bar .search-wrap {
+  flex: 1; min-width: 220px; position: relative;
+}
+.filtros-bar .search-wrap input {
+  width: 100%; padding: 9px 13px 9px 38px;
+  border: 1.5px solid var(--tf-border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem; color: var(--tf-text);
+  transition: border-color .18s;
+}
+.filtros-bar .search-wrap input:focus {
+  outline: none; border-color: var(--tf-teal);
+}
+.filtros-bar .search-icon {
+  position: absolute; left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--tf-muted); font-size: 0.9rem;
+}
+.filtros-bar select {
+  padding: 9px 13px;
+  border: 1.5px solid var(--tf-border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem; color: var(--tf-text);
+  background: var(--tf-white); cursor: pointer;
+}
+.filtros-bar select:focus { outline: none; border-color: var(--tf-teal); }
+
+/* Badge del carrito */
+.carrito-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 16px;
+  background: var(--tf-dark); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem; font-weight: 500;
+  text-decoration: none; cursor: pointer;
+  transition: background .18s; white-space: nowrap;
+}
+.carrito-btn:hover { background: var(--tf-dark2); color: #fff; }
+.carrito-badge {
+  background: var(--tf-teal); color: #fff;
+  font-size: 0.7rem; font-weight: 700;
+  min-width: 18px; height: 18px;
+  border-radius: 9px; padding: 0 5px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Encabezado de resultados */
+.resultados-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.25rem; flex-wrap: wrap; gap: 8px;
+}
+.resultados-hdr h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem; color: var(--tf-dark); margin: 0;
+}
+.resultados-count { font-size: 0.85rem; color: var(--tf-muted); }
+
+/* Grid de productos */
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+.producto-card {
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: box-shadow .2s, transform .2s;
+  display: flex; flex-direction: column;
+}
+.producto-card:hover {
+  box-shadow: 0 6px 24px rgba(64,75,87,.1);
+  transform: translateY(-2px);
+}
+.producto-img {
+  height: 200px; overflow: hidden; background: #f0ede8;
+  display: flex; align-items: center; justify-content: center;
+}
+.producto-img img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .3s;
+}
+.producto-card:hover .producto-img img { transform: scale(1.04); }
+.producto-img-placeholder {
+  font-size: 3.5rem; color: var(--tf-sand2);
+  font-family: 'DM Serif Display', serif;
+}
+.producto-body { padding: 1rem 1.25rem; flex: 1; display: flex; flex-direction: column; }
+.producto-cat {
+  font-size: 0.72rem; font-weight: 600; color: var(--tf-teal);
+  text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px;
+}
+.producto-nombre {
+  font-size: 0.97rem; font-weight: 600; color: var(--tf-dark);
+  margin-bottom: 4px; line-height: 1.35;
+}
+.producto-empresa { font-size: 0.8rem; color: var(--tf-muted); margin-bottom: 8px; }
+.producto-desc {
+  font-size: 0.82rem; color: var(--tf-muted); line-height: 1.55;
+  margin-bottom: 12px; flex: 1;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.producto-footer {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 10px;
+  border-top: 1px solid var(--tf-border); padding-top: 12px; margin-top: auto;
+}
+.producto-precio {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem; color: var(--tf-dark);
+}
+.producto-stock-warn {
+  font-size: 0.73rem; color: #b05a00;
+  background: #fef3e2; padding: 2px 7px;
+  border-radius: 4px; font-weight: 500; margin-top: 3px;
+}
+.btn-agregar {
+  background: var(--tf-teal); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  padding: 8px 14px; font-size: 0.83rem; font-weight: 500;
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+  transition: background .18s; white-space: nowrap;
+}
+.btn-agregar:hover { background: var(--tf-teal2); }
+.btn-agregar:disabled {
+  background: #ccc; cursor: not-allowed;
+}
+
+/* Estado vacío */
+.estado-vacio {
+  text-align: center; padding: 4rem 1rem;
+  color: var(--tf-muted);
+}
+.estado-vacio h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem; color: var(--tf-dark);
+  margin-bottom: 8px;
+}
+
+/* Paginación */
+.paginacion {
+  display: flex; justify-content: center; gap: 6px;
+  margin-top: 2.5rem; flex-wrap: wrap;
+}
+.paginacion a, .paginacion span {
+  padding: 7px 14px; border-radius: var(--radius-sm);
+  font-size: 0.88rem; text-decoration: none;
+  border: 1px solid var(--tf-border); color: var(--tf-muted);
+  transition: all .15s;
+}
+.paginacion a:hover { background: var(--tf-light); color: var(--tf-dark); }
+.paginacion .activa {
+  background: var(--tf-dark); color: #fff;
+  border-color: var(--tf-dark);
+}
+{% endblock %}
+
+{% block content %}
+<div class="tienda-wrap">
+
+  {# ── Filtros y carrito ── #}
+  <form method="get" action="{% url 'tienda' %}">
+    <div class="filtros-bar">
+      <div class="search-wrap">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" name="buscar" placeholder="Buscar productos, marcas, SKU..."
+               value="{{ buscar }}">
+      </div>
+      <select name="categoria" id="cat-select" onchange="this.form.submit()">
+          <option value="">Todas las categorías</option>
+          {% for cat in categorias %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      <button type="submit" class="btn-tf btn-tf-outline" style="padding:9px 16px;">
+        Buscar
+      </button>
+    </div>
+  </form>
+
+  {# ── Encabezado y acceso al carrito ── #}
+  <div class="resultados-hdr">
+    <div>
+      <h2>
+        {% if buscar %}
+          Resultados para "{{ buscar }}"
+        {% elif cat_activa %}
+          {% for cat in categorias %}{% if cat.id|stringformat:"s" == cat_activa %}{{ cat.name }}{% endif %}{% endfor %}
+        {% else %}
+          Catálogo TradeFlow
+        {% endif %}
+      </h2>
+      <div class="resultados-count">{{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }} encontrado{{ productos.paginator.count|pluralize }}</div>
+    </div>
+    <a href="{% url 'ver_carrito' %}" class="carrito-btn">
+      Carrito
+      {% if carrito_count > 0 %}
+        <span class="carrito-badge">{{ carrito_count }}</span>
+      {% endif %}
+    </a>
+  </div>
+
+  {# ── Grid de productos ── #}
+  {% if productos %}
+    <div class="productos-grid">
+      {% for producto in productos %}
+      <div class="producto-card">
+        <div class="producto-img">
+          {% if producto.image %}
+            <img src="{{ producto.image.url }}" alt="{{ producto.name }}" loading="lazy">
+          {% else %}
+            <div class="producto-img-placeholder">P</div>
+          {% endif %}
+        </div>
+        <div class="producto-body">
+          <div class="producto-cat">{{ producto.category.name|default:"General" }}</div>
+          <div class="producto-nombre">{{ producto.name }}</div>
+          <div class="producto-empresa">{{ producto.company.name }}</div>
+          <div class="producto-desc">{{ producto.description }}</div>
+          <div class="producto-footer">
+            <div>
+              <div class="producto-precio">USD {{ producto.unit_price }}</div>
+              {% if producto.available_qty <= 5 and producto.available_qty > 0 %}
+                <div class="producto-stock-warn">Solo {{ producto.available_qty }} disponibles</div>
+              {% endif %}
+            </div>
+            {% if producto.available_qty > 0 %}
+              <form method="post" action="{% url 'agregar_al_carrito' producto.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="cantidad" value="1">
+                <button type="submit" class="btn-agregar">Agregar</button>
+              </form>
+            {% else %}
+              <button class="btn-agregar" disabled>Sin stock</button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# ── Paginación ── #}
+    {% if productos.has_other_pages %}
+    <div class="paginacion">
+      {% if productos.has_previous %}
+        <a href="?page={{ productos.previous_page_number }}&buscar={{ buscar }}&categoria={{ cat_activa }}">Anterior</a>
+      {% endif %}
+      {% for num in productos.paginator.page_range %}
+        {% if productos.number == num %}
+          <span class="activa">{{ num }}</span>
+        {% elif num > productos.number|add:'-3' and num < productos.number|add:'3' %}
+          <a href="?page={{ num }}&buscar={{ buscar }}&categoria={{ cat_activa }}">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if productos.has_next %}
+        <a href="?page={{ productos.next_page_number }}&buscar={{ buscar }}&categoria={{ cat_activa }}">Siguiente</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  {% else %}
+    {# ── Estado vacío ── #}
+    <div class="estado-vacio">
+      <h3>No se encontraron productos</h3>
+      <p>Intenta con otro término de búsqueda o revisa todas las categorías.</p>
+      <a href="{% url 'tienda' %}" class="btn-tf btn-tf-teal" style="margin-top:1rem;">
+        Ver todos los productos
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

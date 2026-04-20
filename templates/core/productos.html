@@ -1,0 +1,91 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+=============================================================
+TRADEFLOW COLÓN — templates/core/productos.html
+=============================================================
+Catálogo de productos con búsqueda y filtro por categoría.
+Variables: productos, categorias, q, categoria_id
+=============================================================
+{% endcomment %}
+{% block title %}Productos{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/productos.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h2>Catálogo de Productos</h2>
+      <p class="text-muted">Gestiona tu inventario y precios</p>
+    </div>
+    <a href="#" class="btn btn-primary">
+      <i data-feather="plus" width="14" height="14"></i> Nuevo Producto
+    </a>
+  </div>
+</div>
+
+<!-- Filtros -->
+<form method="get" action="" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+  <input type="text" name="q" value="{{ q }}"
+         class="form-control" placeholder="Buscar producto..." style="flex:1;min-width:200px;" />
+
+  <select name="categoria" class="form-control" style="width:180px;">
+  <option value="">Todas las categorías</option>
+  {% for cat in categorias %}
+  <option value="{{ cat.pk }}" {% if cat_activa == cat.pk|stringformat:'s' %}selected{% endif %}>
+    {{ cat.name }}
+  </option>
+  {% endfor %}
+</select>
+
+  <button type="submit" class="btn btn-primary">Buscar</button>
+  {% if q or categoria_id %}
+  <a href="{% url 'productos' %}" class="btn btn-secondary">Limpiar</a>
+  {% endif %}
+</form>
+
+<!-- Contador -->
+<p class="text-muted" style="margin-bottom:16px;font-size:.82rem;">
+  {{ productos|length }} producto{{ productos|length|pluralize }} encontrado{{ productos|length|pluralize }}
+</p>
+
+<!-- Grid de productos -->
+<div class="products-catalog-grid">
+  {% for producto in productos %}
+  <div class="catalog-card {% if not producto.activo %}catalog-inactive{% endif %}">
+    <div class="catalog-img">
+      {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="height:100%;object-fit:cover;">
+      {% elif producto.categoria and producto.categoria.icono %}
+        {{ producto.categoria.icono }}
+      {% else %}
+        📦
+      {% endif %}
+    </div>
+    <div class="catalog-body">
+      <div class="catalog-name">{{ producto.nombre }}</div>
+      <div class="catalog-cat">{{ producto.categoria.nombre|default:"Sin categoría" }}</div>
+      <div class="catalog-footer">
+        <span class="catalog-price">${{ producto.precio }}</span>
+        <span class="catalog-stock
+          {% if producto.stock == 0 %}stock-out
+          {% elif producto.stock <= 5 %}stock-low
+          {% else %}stock-ok{% endif %}">
+          {% if producto.stock == 0 %}Sin stock
+          {% elif producto.stock <= 5 %}Pocas uds ({{ producto.stock }})
+          {% else %}{{ producto.stock }} uds{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div style="grid-column:span 4;text-align:center;padding:48px;color:var(--color-muted);">
+    No hay productos registrados.
+    <br><br>
+    <a href="#" class="btn btn-primary">Agregar primer producto</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{#
+  detalle_mi_orden.html — Detalle de una orden del comprador
+
+  Contexto esperado:
+    orden  → Order instance (con items y payment precargados)
+    pago   → Payment instance o None
+#}
+
+{% block title %}Orden {{ orden.order_number }} — TradeFlow Colón{% endblock %}
+
+{% block extra_css %}
+.detalle-wrap { max-width: 820px; margin: 0 auto; padding: 2rem 1.5rem; }
+.detalle-nav {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; color: var(--tf-muted); margin-bottom: 1.5rem;
+}
+.detalle-nav a { color: var(--tf-teal); text-decoration: none; }
+.detalle-nav a:hover { text-decoration: underline; }
+.detalle-num { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--tf-dark); margin-bottom: 4px; }
+.detalle-fecha { font-size: 0.85rem; color: var(--tf-muted); margin-bottom: 1.75rem; }
+.detalle-grid { display: grid; grid-template-columns: 1fr 280px; gap: 1.25rem; align-items: start; }
+.detalle-card { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 10px; }
+.detalle-card-title { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--tf-muted); margin-bottom: 1rem; }
+.item-row {
+  display: flex; gap: 1rem; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--tf-border);
+}
+.item-row:last-child { border-bottom: none; }
+.item-img { width: 56px; height: 56px; border-radius: 6px; object-fit: cover; background: #f0ede8; flex-shrink: 0; }
+.item-info { flex: 1; }
+.item-nombre { font-size: 0.9rem; font-weight: 500; color: var(--tf-dark); }
+.item-empresa { font-size: 0.78rem; color: var(--tf-muted); }
+.item-qty { font-size: 0.82rem; color: var(--tf-muted); margin-top: 2px; }
+.item-precio { font-size: 0.95rem; font-weight: 600; color: var(--tf-dark); text-align: right; }
+.resumen-fila { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--tf-muted); margin-bottom: 6px; }
+.resumen-total-final { display: flex; justify-content: space-between; border-top: 1px solid var(--tf-border); padding-top: 10px; margin-top: 6px; font-weight: 600; color: var(--tf-dark); }
+.resumen-total-final span:last-child { font-family: 'DM Serif Display', serif; font-size: 1.1rem; }
+.badge-estado { font-size: 0.78rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; display: inline-block; }
+.estado-pending   { background: #fef8e7; color: #6b4a00; }
+.estado-paid      { background: #e8f4f8; color: #1a4f65; }
+.estado-packed    { background: #e8f4f8; color: #1a4f65; }
+.estado-shipped   { background: rgba(98,146,154,.15); color: var(--tf-teal2); }
+.estado-delivered { background: #edf7ee; color: #1e5c21; }
+.estado-cancelled { background: #fdecea; color: #7d1a14; }
+.info-fila { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px; }
+.info-fila .lbl { color: var(--tf-muted); }
+.info-fila .val { color: var(--tf-dark); font-weight: 500; text-align: right; }
+{% endblock %}
+
+{% block content %}
+<div class="detalle-wrap">
+
+  {# Navegación de migas de pan #}
+  <div class="detalle-nav">
+    <a href="{% url 'mis_ordenes' %}">Mis Órdenes</a>
+    <span>/</span>
+    <span>{{ orden.order_number }}</span>
+  </div>
+
+  <div class="detalle-num">{{ orden.order_number }}</div>
+  <div class="detalle-fecha">Realizada el {{ orden.created_at|date:"d \d\e F \d\e Y, H:i" }}</div>
+
+  <div class="detalle-grid">
+    {# ── Columna izquierda: items y notas ── #}
+    <div>
+      <div class="detalle-card">
+        <div class="detalle-card-title">Productos ({{ orden.items.count }})</div>
+        {% for item in orden.items.all %}
+        <div class="item-row">
+          {% if item.product.image %}
+            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-img">
+          {% else %}
+            <div class="item-img" style="display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--tf-sand2);">P</div>
+          {% endif %}
+          <div class="item-info">
+            <div class="item-nombre">{{ item.product.name }}</div>
+            <div class="item-empresa">{{ item.product.company.name }}</div>
+            <div class="item-qty">{{ item.qty }} unidad{{ item.qty|pluralize }} × USD {{ item.unit_price_snapshot }}</div>
+          </div>
+          <div class="item-precio">USD {{ item.line_total }}</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if orden.notes %}
+      <div class="detalle-card">
+        <div class="detalle-card-title">Notas de la orden</div>
+        <p style="font-size:0.88rem;color:var(--tf-muted);line-height:1.6;margin:0;">{{ orden.notes }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    {# ── Columna derecha: resumen, estado y pago ── #}
+    <div>
+      <div class="detalle-card">
+        <div class="detalle-card-title">Estado</div>
+        <span class="badge-estado estado-{{ orden.status }}">{{ orden.get_status_display }}</span>
+      </div>
+
+      <div class="detalle-card">
+        <div class="detalle-card-title">Resumen de pago</div>
+        <div class="resumen-fila"><span>Subtotal</span><span>USD {{ orden.subtotal }}</span></div>
+        <div class="resumen-fila"><span>Envío</span><span>USD {{ orden.shipping_cost }}</span></div>
+        <div class="resumen-total-final"><span>Total</span><span>USD {{ orden.total }}</span></div>
+      </div>
+
+      {% if pago %}
+      <div class="detalle-card">
+        <div class="detalle-card-title">Información de pago</div>
+        <div class="info-fila"><span class="lbl">Método</span><span class="val">{{ pago.get_provider_display }}</span></div>
+        <div class="info-fila"><span class="lbl">Estado</span><span class="val">{{ pago.get_status_display }}</span></div>
+        {% if pago.paid_at %}
+        <div class="info-fila"><span class="lbl">Pagado el</span><span class="val">{{ pago.paid_at|date:"d/m/Y H:i" }}</span></div>
+        {% endif %}
+        {% if pago.txn_ref %}
+        <div class="info-fila"><span class="lbl">Referencia</span><span class="val" style="font-size:0.78rem;">{{ pago.txn_ref }}</span></div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <a href="{% url 'tienda' %}" class="btn-tf btn-tf-teal"
+         style="width:100%;justify-content:center;margin-top:4px;">
+        Seguir comprando
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
