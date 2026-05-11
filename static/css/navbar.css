@@ -88,7 +88,7 @@ Qué hace:
   text-decoration: none;
 }
 .nav-item.active {
-  background: var(--color-primary-alpha20);
+  background: var(--color-primary-overlay);
   color: white;
   border-left-color: var(--color-primary);
 }
@@ -136,7 +136,7 @@ Qué hace:
 .btn-logout {
   margin-top: 6px;
   width: 100%;
-  background: var(--color-danger-alpha15);
+  background: var(--color-danger-subtle);
   color: var(--color-danger);
   border: none;
   border-radius: var(--radius-md);
@@ -148,7 +148,7 @@ Qué hace:
   text-decoration: none;
   display: block;
 }
-.btn-logout:hover { background: var(--color-danger-alpha30); }
+.btn-logout:hover { background: var(--color-danger-hover); }
 
 /* ---- ÁREA PRINCIPAL ---- */
 .main-area {

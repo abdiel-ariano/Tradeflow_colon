@@ -128,10 +128,10 @@
       border: 1.5px solid transparent;
       line-height: 1.5;
     }
-    .tf-alert-success { background:var(--state-success-bg); border-color:var(--state-success-border); color:var(--state-success-text); }
-    .tf-alert-danger  { background:var(--state-danger-bg);  border-color:var(--state-danger-border);  color:var(--state-danger-text); }
-    .tf-alert-info    { background:var(--state-info-bg);    border-color:var(--state-info-border);    color:var(--state-info-text); }
-    .tf-alert-warning { background:var(--state-warning-bg); border-color:var(--state-warning-border); color:var(--state-warning-text); }
+    .tf-alert-success { background:var(--alert-success-bg); border-color:var(--alert-success-border); color:var(--alert-success-fg); }
+    .tf-alert-danger  { background:var(--alert-danger-bg);  border-color:var(--alert-danger-border);  color:var(--alert-danger-fg); }
+    .tf-alert-info    { background:var(--alert-info-bg);    border-color:var(--alert-info-border);    color:var(--alert-info-fg); }
+    .tf-alert-warning { background:var(--alert-warning-bg); border-color:var(--alert-warning-border); color:var(--alert-warning-fg); }
     .tf-alert-icon { font-size: 0.9rem; flex-shrink: 0; margin-top: 2px; }
     .tf-alert-msg { flex: 1; }
     .tf-alert-close {
@@ -149,9 +149,9 @@
       color: var(--tf-text); background: var(--tf-white);
       transition: border-color .18s, box-shadow .18s; outline: none;
     }
-    .tf-input:focus { border-color: var(--tf-teal); box-shadow: 0 0 0 3px var(--tf-teal-alpha15); }
+    .tf-input:focus { border-color: var(--tf-teal); box-shadow: 0 0 0 3px var(--tf-teal-faint); }
     .tf-input::placeholder { color: var(--ui-placeholder); }
-    .tf-input.is-error { border-color: var(--ui-input-error); box-shadow: 0 0 0 3px var(--ui-input-error-focus); }
+    .tf-input.is-error { border-color: var(--ui-input-error); box-shadow: 0 0 0 3px var(--ui-input-error-glow); }
     .tf-label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--tf-muted); margin-bottom: 5px; }
     .tf-field { margin-bottom: 1rem; }
 
@@ -163,7 +163,7 @@
     }
     .tf-card-sand {
       background: var(--ui-card-sand-bg);
-      border: 1px solid var(--tf-sand-alpha50);
+      border: 1px solid var(--tf-sand-dim);
       border-radius: var(--radius); padding: 1.5rem;
     }
 
@@ -173,12 +173,12 @@
       font-size: 0.72rem; font-weight: 600;
       padding: 3px 9px; border-radius: 20px;
     }
-    .tf-badge-teal    { background: var(--tf-teal-alpha15);  color: var(--tf-teal2); }
-    .tf-badge-sand    { background: var(--tf-sand-alpha40);  color: var(--tf-sand-text); }
-    .tf-badge-dark    { background: var(--tf-dark-alpha10);  color: var(--tf-dark); }
-    .tf-badge-success { background: var(--state-success-bg); color: var(--state-success-text); }
-    .tf-badge-warn    { background: var(--state-warning-bg); color: var(--state-warning-text); }
-    .tf-badge-danger  { background: var(--state-danger-bg);  color: var(--state-danger-text); }
+    .tf-badge-teal    { background: var(--tf-teal-faint);  color: var(--tf-teal2); }
+    .tf-badge-sand    { background: var(--tf-sand-faint);  color: var(--tf-sand-text); }
+    .tf-badge-dark    { background: var(--tf-dark-faint);  color: var(--tf-dark); }
+    .tf-badge-success { background: var(--alert-success-bg); color: var(--alert-success-fg); }
+    .tf-badge-warn    { background: var(--alert-warning-bg); color: var(--alert-warning-fg); }
+    .tf-badge-danger  { background: var(--alert-danger-bg);  color: var(--alert-danger-fg); }
 
     /* ── Section helpers ── */
     .tf-section { padding: 4rem 2rem; }
