@@ -52,11 +52,11 @@ Estilos para la tabla de órdenes, filtros y paginación.
 .data-table td {
   padding: 12px 16px;
   font-size: 0.845rem;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--ui-table-divider);
   vertical-align: middle;
 }
 .data-table tbody tr:last-child td { border-bottom: none; }
-.data-table tbody tr:hover td { background: #fafafa; }
+.data-table tbody tr:hover td { background: var(--ui-table-row-hover); }
 
 .order-id-link { color: var(--color-primary); font-weight: 600; }
 .order-id-link:hover { text-decoration: underline; }

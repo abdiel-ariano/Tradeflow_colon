@@ -5,21 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
   <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+  <link rel="stylesheet" href="{% static 'css/colors.css' %}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display&display=swap" rel="stylesheet">
   <style>
     :root {
-      --tf-dark:   #404b57;
-      --tf-teal:   #62929a;
-      --tf-sand:   #d9cab3;
-      --tf-light:  #f0f0f0;
-      --tf-white:  #ffffff;
-      --tf-dark2:  #2e3740;
-      --tf-teal2:  #4a7880;
-      --tf-sand2:  #c4b09a;
-      --tf-text:   #2e3740;
-      --tf-muted:  #6b7a88;
-      --tf-border: rgba(64,75,87,0.13);
       --radius:    12px;
       --radius-sm: 8px;
     }
@@ -123,7 +113,7 @@
       background: transparent; color: var(--tf-dark);
       border: 1.5px solid var(--tf-border);
     }
-    .btn-tf-outline:hover { background: var(--tf-light); color: var(--tf-dark); border-color: rgba(64,75,87,0.3); }
+    .btn-tf-outline:hover { background: var(--tf-light); color: var(--tf-dark); border-color: var(--tf-border-hover); }
     .btn-tf-ghost { background: transparent; color: var(--tf-muted); }
     .btn-tf-ghost:hover { background: var(--tf-light); color: var(--tf-dark); }
 
@@ -138,10 +128,10 @@
       border: 1.5px solid transparent;
       line-height: 1.5;
     }
-    .tf-alert-success { background:#edf7ee; border-color:#9ecfa0; color:#1e5c21; }
-    .tf-alert-danger  { background:#fdecea; border-color:#f5a9a3; color:#7d1a14; }
-    .tf-alert-info    { background:#e8f4f8; border-color:#9fcfe0; color:#1a4f65; }
-    .tf-alert-warning { background:#fef8e7; border-color:#f5d98c; color:#6b4a00; }
+    .tf-alert-success { background:var(--state-success-bg); border-color:var(--state-success-border); color:var(--state-success-text); }
+    .tf-alert-danger  { background:var(--state-danger-bg);  border-color:var(--state-danger-border);  color:var(--state-danger-text); }
+    .tf-alert-info    { background:var(--state-info-bg);    border-color:var(--state-info-border);    color:var(--state-info-text); }
+    .tf-alert-warning { background:var(--state-warning-bg); border-color:var(--state-warning-border); color:var(--state-warning-text); }
     .tf-alert-icon { font-size: 0.9rem; flex-shrink: 0; margin-top: 2px; }
     .tf-alert-msg { flex: 1; }
     .tf-alert-close {
@@ -159,9 +149,9 @@
       color: var(--tf-text); background: var(--tf-white);
       transition: border-color .18s, box-shadow .18s; outline: none;
     }
-    .tf-input:focus { border-color: var(--tf-teal); box-shadow: 0 0 0 3px rgba(98,146,154,.15); }
-    .tf-input::placeholder { color: #b0bac5; }
-    .tf-input.is-error { border-color: #e05a52; box-shadow: 0 0 0 3px rgba(224,90,82,.1); }
+    .tf-input:focus { border-color: var(--tf-teal); box-shadow: 0 0 0 3px var(--tf-teal-alpha15); }
+    .tf-input::placeholder { color: var(--ui-placeholder); }
+    .tf-input.is-error { border-color: var(--ui-input-error); box-shadow: 0 0 0 3px var(--ui-input-error-focus); }
     .tf-label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--tf-muted); margin-bottom: 5px; }
     .tf-field { margin-bottom: 1rem; }
 
@@ -172,8 +162,8 @@
       border-radius: var(--radius); padding: 1.5rem;
     }
     .tf-card-sand {
-      background: #faf8f5;
-      border: 1px solid rgba(217,202,179,0.5);
+      background: var(--ui-card-sand-bg);
+      border: 1px solid var(--tf-sand-alpha50);
       border-radius: var(--radius); padding: 1.5rem;
     }
 
@@ -183,12 +173,12 @@
       font-size: 0.72rem; font-weight: 600;
       padding: 3px 9px; border-radius: 20px;
     }
-    .tf-badge-teal    { background: rgba(98,146,154,.15); color: var(--tf-teal2); }
-    .tf-badge-sand    { background: rgba(217,202,179,.4); color: #7a6a55; }
-    .tf-badge-dark    { background: rgba(64,75,87,.1);    color: var(--tf-dark); }
-    .tf-badge-success { background: #edf7ee; color: #1e5c21; }
-    .tf-badge-warn    { background: #fef8e7; color: #6b4a00; }
-    .tf-badge-danger  { background: #fdecea; color: #7d1a14; }
+    .tf-badge-teal    { background: var(--tf-teal-alpha15);  color: var(--tf-teal2); }
+    .tf-badge-sand    { background: var(--tf-sand-alpha40);  color: var(--tf-sand-text); }
+    .tf-badge-dark    { background: var(--tf-dark-alpha10);  color: var(--tf-dark); }
+    .tf-badge-success { background: var(--state-success-bg); color: var(--state-success-text); }
+    .tf-badge-warn    { background: var(--state-warning-bg); color: var(--state-warning-text); }
+    .tf-badge-danger  { background: var(--state-danger-bg);  color: var(--state-danger-text); }
 
     /* ── Section helpers ── */
     .tf-section { padding: 4rem 2rem; }

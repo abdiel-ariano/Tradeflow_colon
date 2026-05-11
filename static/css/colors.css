@@ -1,0 +1,164 @@
+/*
+=============================================================
+TRADEFLOW COLÓN — static/css/colors.css
+=============================================================
+Librería central de colores. Fuente única de verdad.
+
+Cargar PRIMERO en base.html:
+  <link rel="stylesheet" href="{% static 'css/colors.css' %}">
+
+Nunca definir colores fuera de este archivo.
+=============================================================
+*/
+
+:root {
+
+  /* ════════════════════════════════════════════
+     PALETA PÚBLICA  (--tf-*)
+     Usada en base.html, Home, tienda, portales
+     ════════════════════════════════════════════ */
+
+  --tf-teal:        #62929a;
+  --tf-teal2:       #4a7880;
+  --tf-teal-alpha15:rgba(98,146,154,.15);
+
+  --tf-dark:        #404b57;
+  --tf-dark2:       #2e3740;
+  --tf-dark-alpha10:rgba(64,75,87,.1);
+
+  --tf-sand:        #d9cab3;
+  --tf-sand2:       #c4b09a;
+  --tf-sand-alpha40:rgba(217,202,179,.4);
+  --tf-sand-alpha50:rgba(217,202,179,.5);
+  --tf-sand-text:   #7a6a55;
+
+  --tf-blue:        #005396;
+  --tf-green:       #96c91b;
+  --tf-green-dark:  #1a3a00;
+
+  --tf-light:       #f0f0f0;
+  --tf-white:       #ffffff;
+  --tf-text:        #2e3740;
+  --tf-muted:       #6b7a88;
+  --tf-border:      rgba(64,75,87,0.13);
+  --tf-border-hover:rgba(64,75,87,0.3);
+
+
+  /* ════════════════════════════════════════════
+     PALETA ADMIN  (--color-*)
+     Usada en style.css, navbar.css, dashboard.css
+     ════════════════════════════════════════════ */
+
+  --color-primary:       #098698;
+  --color-primary-dark:  #076f7f;
+  --color-primary-light: #e0f4f6;
+  --color-primary-focus: rgba(9,134,152,0.12);
+  --color-primary-alpha20:rgba(9,134,152,0.2);
+
+  --color-secondary:     #404b57;
+  --color-accent:        #d9cab3;
+  --color-bg:            #f0f0f0;
+  --color-white:         #ffffff;
+  --color-text:          #2c3e50;
+  --color-muted:         #7f8c8d;
+  --color-border:        #e0e0e0;
+
+  --color-success:       #27ae60;
+  --color-warning:       #f39c12;
+  --color-danger:        #e74c3c;
+  --color-info:          #3498db;
+  --color-danger-alpha15:rgba(231,76,60,0.15);
+  --color-danger-alpha30:rgba(231,76,60,0.3);
+
+
+  /* ════════════════════════════════════════════
+     TOKENS DE ESTADO — alertas (tf-alert-*)
+     ════════════════════════════════════════════ */
+
+  --state-success-bg:     #edf7ee;
+  --state-success-text:   #1e5c21;
+  --state-success-border: #9ecfa0;
+
+  --state-danger-bg:      #fdecea;
+  --state-danger-text:    #7d1a14;
+  --state-danger-border:  #f5a9a3;
+
+  --state-warning-bg:     #fef8e7;
+  --state-warning-text:   #6b4a00;
+  --state-warning-border: #f5d98c;
+
+  --state-info-bg:        #e8f4f8;
+  --state-info-text:      #1a4f65;
+  --state-info-border:    #9fcfe0;
+
+
+  /* ════════════════════════════════════════════
+     TOKENS DE ESTADO — badges admin (badge-*)
+     ════════════════════════════════════════════ */
+
+  --badge-success-bg:     #d4edda;
+  --badge-success-text:   #155724;
+
+  --badge-warning-bg:     #fff3cd;
+  --badge-warning-text:   #856404;
+
+  --badge-info-bg:        #cce5ff;
+  --badge-info-text:      #004085;
+
+  --badge-danger-bg:      #f8d7da;
+  --badge-danger-text:    #721c24;
+
+  --badge-secondary-bg:   #e2e3e5;
+  --badge-secondary-text: #383d41;
+
+
+  /* ════════════════════════════════════════════
+     TOKENS DE ESTADO — órdenes (order-*)
+     ════════════════════════════════════════════ */
+
+  --order-pending-bg:    #faeeda;
+  --order-pending-text:  #854f0b;
+
+  --order-paid-bg:       #e6f1fb;
+  --order-paid-text:     #185fa5;
+
+  --order-shipped-bg:    #eeedfe;
+  --order-shipped-text:  #534ab7;
+
+  --order-packed-bg:     #e6f1fb;
+  --order-packed-text:   #185fa5;
+
+  --order-delivered-bg:  #e1f5ee;
+  --order-delivered-text:#0f6e56;
+
+  --order-cancelled-bg:  #fcebeb;
+  --order-cancelled-text:#a32d2d;
+
+
+  /* ════════════════════════════════════════════
+     TOKENS DE STOCK
+     ════════════════════════════════════════════ */
+
+  --stock-ok-bg:   #e1f5ee;
+  --stock-ok-text: #0f6e56;
+
+  --stock-low-bg:   #faeeda;
+  --stock-low-text: #854f0b;
+
+  --stock-out-bg:   #fcebeb;
+  --stock-out-text: #a32d2d;
+
+
+  /* ════════════════════════════════════════════
+     TOKENS DE COMPONENTES UI
+     ════════════════════════════════════════════ */
+
+  --ui-card-sand-bg:      #faf8f5;
+  --ui-card-hover-border: #c5c5c5;
+  --ui-table-divider:     #f5f5f5;
+  --ui-table-row-hover:   #fafafa;
+  --ui-placeholder:       #b0bac5;
+  --ui-input-error:       #e05a52;
+  --ui-input-error-focus: rgba(224,90,82,.1);
+
+}

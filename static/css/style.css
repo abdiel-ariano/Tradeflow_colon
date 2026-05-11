@@ -3,44 +3,20 @@
 TRADEFLOW COLÓN — static/css/style.css
 =============================================================
 Qué hace:
-  Archivo CSS principal. Define las variables globales de color,
-  tipografía y utilidades compartidas por TODOS los templates.
+  Estilos globales, tipografía y utilidades compartidas.
+  Los colores viven en colors.css (fuente única de verdad).
 
   Incluir en base.html con:
+    <link rel="stylesheet" href="{% static 'css/colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
-Variables CSS disponibles (usar en cualquier otro CSS):
-  --color-primary    → Teal principal (#098698)
-  --color-secondary  → Azul grisáceo (#404b57)
-  --color-accent     → Beige arena (#d9cab3)
-  --color-bg         → Fondo de página (#f0f0f0)
-  --color-text       → Texto principal (#2c3e50)
 =============================================================
 */
 
 /* ---- IMPORTAR FUENTE ---- */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-/* ---- VARIABLES GLOBALES ---- */
+/* ---- TOKENS DE DISEÑO (sin colores — ver colors.css) ---- */
 :root {
-  /* Paleta oficial TradeFlow Colón */
-  --color-primary:   #098698;
-  --color-primary-dark: #076f7f;
-  --color-primary-light: #e0f4f6;
-  --color-secondary: #404b57;
-  --color-accent:    #d9cab3;
-  --color-bg:        #f0f0f0;
-  --color-white:     #ffffff;
-  --color-text:      #2c3e50;
-  --color-muted:     #7f8c8d;
-  --color-border:    #e0e0e0;
-
-  /* Semánticos */
-  --color-success:   #27ae60;
-  --color-warning:   #f39c12;
-  --color-danger:    #e74c3c;
-  --color-info:      #3498db;
-
   /* Tipografía */
   --font-main: 'DM Sans', system-ui, sans-serif;
   --font-mono: 'Courier New', monospace;
@@ -113,11 +89,11 @@ h3 { font-size: 1.1rem; }
   font-weight: 600;
   letter-spacing: 0.2px;
 }
-.badge-success  { background: #d4edda; color: #155724; }
-.badge-warning  { background: #fff3cd; color: #856404; }
-.badge-info     { background: #cce5ff; color: #004085; }
-.badge-danger   { background: #f8d7da; color: #721c24; }
-.badge-secondary{ background: #e2e3e5; color: #383d41; }
+.badge-success  { background: var(--badge-success-bg);   color: var(--badge-success-text); }
+.badge-warning  { background: var(--badge-warning-bg);   color: var(--badge-warning-text); }
+.badge-info     { background: var(--badge-info-bg);      color: var(--badge-info-text); }
+.badge-danger   { background: var(--badge-danger-bg);    color: var(--badge-danger-text); }
+.badge-secondary{ background: var(--badge-secondary-bg); color: var(--badge-secondary-text); }
 
 /* ---- BOTONES GLOBALES ---- */
 .btn {
@@ -162,7 +138,7 @@ h3 { font-size: 1.1rem; }
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
 }
-.card:hover { border-color: #c5c5c5; }
+.card:hover { border-color: var(--ui-card-hover-border); }
 
 /* ---- FORMULARIOS ---- */
 .form-control,
@@ -189,7 +165,7 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(9,134,152,0.12);
+  box-shadow: 0 0 0 3px var(--color-primary-focus);
 }
 
 label {
@@ -224,10 +200,10 @@ label {
   box-shadow: var(--shadow-md);
   animation: slideIn 0.3s ease;
 }
-.alert-success { background: #d4edda; color: #155724; border-left: 4px solid var(--color-success); }
-.alert-error   { background: #f8d7da; color: #721c24; border-left: 4px solid var(--color-danger); }
-.alert-warning { background: #fff3cd; color: #856404; border-left: 4px solid var(--color-warning); }
-.alert-info    { background: #cce5ff; color: #004085; border-left: 4px solid var(--color-info); }
+.alert-success { background: var(--badge-success-bg);   color: var(--badge-success-text); border-left: 4px solid var(--color-success); }
+.alert-error   { background: var(--badge-danger-bg);    color: var(--badge-danger-text);  border-left: 4px solid var(--color-danger); }
+.alert-warning { background: var(--badge-warning-bg);   color: var(--badge-warning-text); border-left: 4px solid var(--color-warning); }
+.alert-info    { background: var(--badge-info-bg);      color: var(--badge-info-text);    border-left: 4px solid var(--color-info); }
 .alert-close   { cursor: pointer; font-size: 1rem; opacity: 0.6; background: none; border: none; }
 
 @keyframes slideIn {
@@ -257,7 +233,7 @@ label {
   border: 1px solid var(--color-border);
   font-size: 0.8rem;
   color: var(--color-muted);
-  background: white;
+  background: var(--color-white);
   transition: var(--transition);
 }
 .page-num:hover { border-color: var(--color-primary); color: var(--color-primary); }
