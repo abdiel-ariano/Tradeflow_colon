@@ -1,0 +1,246 @@
+/* TradeFlow Colón — portal vendedor (paleta --tf-*) */
+
+.seller-layout {
+  display: flex;
+  min-height: calc(100vh - 64px);
+  background: var(--tf-light);
+}
+
+.seller-side {
+  width: 248px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, var(--tf-mid) 0%, var(--tf-dark) 100%);
+  color: #fff;
+  padding: 1.5rem 0;
+}
+
+.seller-side-brand {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  padding: 0 1.25rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 1rem;
+}
+
+.seller-side-brand small {
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  opacity: 0.65;
+  margin-top: 4px;
+}
+
+.seller-side a {
+  display: block;
+  padding: 10px 1.25rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+}
+
+.seller-side a:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.seller-side a.active {
+  border-left-color: var(--tf-orange);
+  background: rgba(0, 0, 0, 0.15);
+  color: #fff;
+}
+
+.seller-main {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  max-width: 1100px;
+}
+
+.seller-main h1 {
+  font-family: 'DM Serif Display', serif;
+  color: var(--tf-dark);
+  font-size: 1.85rem;
+  margin: 0 0 0.35rem;
+}
+
+.seller-sub {
+  color: var(--tf-muted);
+  font-size: 0.92rem;
+  margin-bottom: 1.75rem;
+}
+
+.seller-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.seller-toolbar .tf-input {
+  max-width: 280px;
+}
+
+.seller-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.seller-stat {
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.seller-stat .label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tf-muted);
+}
+
+.seller-stat .value {
+  font-size: 1.65rem;
+  font-weight: 600;
+  color: var(--tf-dark);
+  margin-top: 6px;
+}
+
+.seller-stat.accent {
+  border-top: 3px solid var(--tf-orange);
+}
+
+.seller-table-wrap {
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.seller-table-wrap h2 {
+  font-size: 1rem;
+  padding: 1rem 1.25rem;
+  margin: 0;
+  border-bottom: 1px solid var(--tf-border);
+  color: var(--tf-dark);
+}
+
+table.seller-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+table.seller-table th {
+  text-align: left;
+  padding: 10px 1.25rem;
+  background: var(--tf-light);
+  color: var(--tf-muted);
+  font-weight: 600;
+}
+
+table.seller-table td {
+  padding: 12px 1.25rem;
+  border-top: 1px solid var(--tf-border);
+  vertical-align: middle;
+}
+
+table.seller-table a {
+  color: var(--tf-blue);
+  font-weight: 500;
+}
+
+.seller-product-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--tf-light);
+}
+
+.seller-form-card {
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  max-width: 720px;
+}
+
+.seller-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 1.5rem;
+}
+
+.btn-seller-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  border: none;
+  cursor: pointer;
+  background: var(--tf-orange);
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.18s;
+}
+
+.btn-seller-primary:hover {
+  background: var(--tf-orange-light);
+  color: #fff;
+}
+
+.btn-seller-outline {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1.5px solid var(--tf-border);
+  background: transparent;
+  color: var(--tf-dark);
+  text-decoration: none;
+}
+
+.btn-seller-outline:hover {
+  background: var(--tf-light);
+}
+
+.seller-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.seller-stock-pill {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.seller-stock-ok {
+  background: var(--stock-ok-bg);
+  color: var(--stock-ok-fg);
+}
+
+.seller-stock-low {
+  background: var(--stock-low-bg);
+  color: var(--stock-low-fg);
+}
+
+.seller-stock-out {
+  background: var(--stock-out-bg);
+  color: var(--stock-out-fg);
+}

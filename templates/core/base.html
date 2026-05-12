@@ -234,16 +234,17 @@
     {% if request.user.is_authenticated %}
       {% with role=request.user.profile.role %}
         {% if role == 'admin' or request.user.is_superuser %}
-          <a href="{% url 'dashboard' %}"       class="nav-link {% if nav_activo == 'dashboard' %}active{% endif %}">Dashboard</a>
-          <a href="{% url 'lista_ordenes' %}"   class="nav-link {% if nav_activo == 'ordenes' %}active{% endif %}">Órdenes</a>
-          <a href="{% url 'lista_productos' %}" class="nav-link {% if nav_activo == 'productos' %}active{% endif %}">Productos</a>
-          <a href="{% url 'lista_empresas' %}"  class="nav-link {% if nav_activo == 'empresas' %}active{% endif %}">Empresas</a>
+          <a href="{% url 'dashboard' %}"       class="nav-link" data-tf-nav="dashboard">Dashboard</a>
+          <a href="{% url 'lista_ordenes' %}"   class="nav-link" data-tf-nav="ordenes">Órdenes</a>
+          <a href="{% url 'lista_productos' %}" class="nav-link" data-tf-nav="productos">Productos</a>
+          <a href="{% url 'lista_empresas' %}"  class="nav-link" data-tf-nav="empresas">Empresas</a>
         {% elif role == 'buyer' %}
-          <a href="{% url 'tienda' %}"  class="nav-link {% if nav_activo == 'tienda' %}active{% endif %}">Tienda</a>
-          <a href="#" class="nav-link {% if nav_activo == 'mis_ordenes' %}active{% endif %}">Mis Órdenes</a>
+          <a href="{% url 'tienda' %}"  class="nav-link" data-tf-nav="tienda">Tienda</a>
+          <a href="{% url 'mis_ordenes' %}" class="nav-link" data-tf-nav="mis_ordenes">Mis Órdenes</a>
         {% elif role == 'seller' %}
-          <a href="{% url 'portal_seller' %}" class="nav-link {% if nav_activo == 'mi_tienda' %}active{% endif %}">Mi Tienda</a>
-          <a href="#" class="nav-link {% if nav_activo == 'mis_ventas' %}active{% endif %}">Mis Ventas</a>
+          <a href="{% url 'seller_dashboard' %}" class="nav-link" data-tf-nav="mi_tienda">Mi Tienda</a>
+          <a href="{% url 'seller_productos' %}" class="nav-link" data-tf-nav="seller_productos">Productos</a>
+          <a href="{% url 'seller_ventas' %}" class="nav-link" data-tf-nav="seller_ventas">Mis ventas</a>
         {% endif %}
       {% endwith %}
       <div class="nav-divider"></div>
@@ -258,6 +259,15 @@
     {% endif %}
   </div>
 </nav>
+<script>
+(function () {
+  var cur = "{{ nav_activo|default:''|escapejs }}";
+  if (!cur) return;
+  document.querySelectorAll(".tf-nav-links a.nav-link[data-tf-nav]").forEach(function (a) {
+    if (a.getAttribute("data-tf-nav") === cur) a.classList.add("active");
+  });
+})();
+</script>
 
 <!-- Mensajes flash — siempre visibles, bien diseñados -->
 {% if messages %}

@@ -31,8 +31,22 @@ urlpatterns = [
     path('mis-ordenes/',                     views.mis_ordenes,         name='mis_ordenes'),
     path('mis-ordenes/<int:pk>/',            views.detalle_mi_orden,    name='detalle_mi_orden'),
 
-    # Portal del vendedor (placeholder)
+    # Portal del vendedor
     path('mi-tienda/', views.portal_seller, name='portal_seller'),
+    # Rutas solicitadas por especificación (nombres alternos)
+    path('mi-tienda/productos/', views.seller_mis_productos, name='seller_mis_productos'),
+    path('mi-tienda/productos/nuevo/', views.seller_agregar_producto, name='seller_agregar_producto'),
+    path('mi-tienda/productos/<int:pk>/editar/', views.seller_editar_producto, name='seller_editar_producto'),
+    path('mi-tienda/productos/<int:pk>/toggle/', views.seller_toggle_producto, name='seller_toggle_producto'),
+    path('mi-tienda/ventas/', views.seller_mis_ventas, name='seller_mis_ventas'),
+    path('mi-tienda/ventas/<int:pk>/', views.seller_detalle_venta, name='seller_detalle_venta'),
+    # Compatibilidad con rutas previas
+    path('mi-tienda/panel/', views.seller_dashboard, name='seller_dashboard'),
+    path('mi-tienda/productos-legacy/', views.seller_productos, name='seller_productos'),
+    path('mi-tienda/productos-legacy/nuevo/', views.seller_producto_nuevo, name='seller_producto_nuevo'),
+    path('mi-tienda/productos-legacy/<int:pk>/editar/', views.seller_producto_editar, name='seller_producto_editar'),
+    path('mi-tienda/ventas-legacy/', views.seller_ventas, name='seller_ventas'),
+    path('mi-tienda/ventas-legacy/<int:pk>/', views.seller_venta_detalle, name='seller_venta_detalle'),
 
     # ── Órdenes (admin) ───────────────────────────────────────────────────
     path('ordenes/',                              views.lista_ordenes,        name='lista_ordenes'),

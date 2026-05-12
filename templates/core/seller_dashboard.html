@@ -1,0 +1,63 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Panel — {{ company.name }} — TradeFlow{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
+{% endblock %}
+{% block content %}
+<div class="seller-layout">
+  {% include "core/seller_sidebar.html" %}
+  <div class="seller-main">
+    <h1>Resumen</h1>
+    <p class="seller-sub">Indicadores de tu catálogo y pedidos recientes.</p>
+    <div class="seller-stats">
+      <div class="seller-stat"><div class="label">Productos</div><div class="value">{{ total_productos }}</div></div>
+      <div class="seller-stat"><div class="label">Activos</div><div class="value">{{ productos_activos }}</div></div>
+      <div class="seller-stat accent"><div class="label">Stock bajo</div><div class="value">{{ bajo_stock }}</div></div>
+      <div class="seller-stat"><div class="label">Órdenes (7 días)</div><div class="value">{{ ordenes_semana }}</div></div>
+      <div class="seller-stat"><div class="label">Ventas líneas (7 días)</div><div class="value">{{ ventas_semana }} USD</div></div>
+    </div>
+    <div class="seller-table-wrap">
+      <h2>Órdenes recientes</h2>
+      {% if ordenes_recientes %}
+      <table class="seller-table">
+        <thead><tr><th>Orden</th><th>Comprador</th><th>Estado</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for o in ordenes_recientes %}
+          <tr>
+            <td><a href="{% url 'seller_venta_detalle' o.pk %}">{{ o.order_number }}</a></td>
+            <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
+            <td><span class="tf-badge seller-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span></td>
+            <td>{{ o.total }} USD</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="padding:1.25rem;color:var(--tf-muted);margin:0;">Aún no hay órdenes con tus productos.</p>
+      {% endif %}
+    </div>
+    <div class="seller-form-actions" style="margin-top:1.25rem;">
+      <a href="{% url 'seller_producto_nuevo' %}" class="btn-seller-primary">Nuevo producto</a>
+      <a href="{% url 'seller_ventas' %}" class="btn-seller-outline">Ver todas las ventas</a>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var map = {
+    pending: { bg: "var(--order-pending-bg)", fg: "var(--order-pending-fg)" },
+    paid: { bg: "var(--order-paid-bg)", fg: "var(--order-paid-fg)" },
+    packed: { bg: "var(--order-packed-bg)", fg: "var(--order-packed-fg)" },
+    shipped: { bg: "var(--order-shipped-bg)", fg: "var(--order-shipped-fg)" },
+    delivered: { bg: "var(--order-delivered-bg)", fg: "var(--order-delivered-fg)" },
+    cancelled: { bg: "var(--order-cancelled-bg)", fg: "var(--order-cancelled-fg)" },
+  };
+  document.querySelectorAll(".seller-ord-status").forEach(function (el) {
+    var st = el.getAttribute("data-status");
+    var t = map[st];
+    if (t) { el.style.background = t.bg; el.style.color = t.fg; }
+  });
+})();
+</script>
+{% endblock %}

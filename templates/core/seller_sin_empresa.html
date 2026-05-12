@@ -1,0 +1,37 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Mi Tienda — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<style>
+  .seller-page { max-width: 640px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+  .seller-card {
+    background: var(--tf-white);
+    border: 1px solid var(--tf-border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    border-left: 4px solid var(--tf-orange);
+  }
+  .seller-page h1 {
+    font-family: 'DM Serif Display', serif;
+    color: var(--tf-dark);
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .seller-page p { color: var(--tf-muted); line-height: 1.6; margin-bottom: 1.25rem; }
+  .seller-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="seller-page">
+  <div class="seller-card">
+    <h1>Empresa no asignada</h1>
+    <p>
+      Tu cuenta de vendedor aún no está vinculada a una empresa en TradeFlow Colón.
+      Un administrador debe designarte como propietario de tu empresa en el panel de administración.
+    </p>
+    <div class="seller-actions">
+      <a href="{% url 'logout' %}" class="btn-tf btn-tf-outline">Cerrar sesión</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
