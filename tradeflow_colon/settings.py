@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'tradeflow_colon.wsgi.application'
 #
 # PostgreSQL remoto (Supabase, Neon, Railway, etc.):
 #   1. Crea el proyecto en Supabase y copia la URI (Settings → Database → URI).
-#   2. En .env: DATABASE_URL=postgresql://postgres.[ref]:[PASSWORD]@...pooler.supabase.com:6543/postgres
+#   2. En .env: DATABASE_URL=postgresql://postgres:TU_CONTRASENA@db.ayyukcenmtujsshzoebp.supabase.co:5432/postgres
 #   3. pip install -r requirements.txt   (ya incluye psycopg2-binary y dj-database-url)
 #   4. python manage.py migrate
 #   5. Carga datos una vez: python manage.py cargar_demo  (o fixtures / SQL desde Supabase)
@@ -185,3 +185,9 @@ if not DEBUG:
 
 # ── Campo de clave primaria ────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Si es True, tras migrar la app core y con la tabla de productos vacía, se ejecuta
+# automáticamente el comando cargar_demo (útil en Supabase / Postgres nuevo).
+# Por defecto sigue el valor de DEBUG (True en local .env, False en producción).
+# Fuerza con SEED_DEMO_IF_EMPTY=false o true en .env.
+SEED_DEMO_IF_EMPTY = config('SEED_DEMO_IF_EMPTY', default=DEBUG, cast=bool)

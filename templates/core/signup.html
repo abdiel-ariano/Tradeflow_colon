@@ -4,9 +4,22 @@
 {% block footer %}{% endblock %}
 {% block extra_css %}
 <style>
-  .auth-page { min-height: calc(100vh - 64px); background: #F2F3F5; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+  .auth-page {
+    min-height: calc(100vh - 64px);
+    width: 100%;
+    box-sizing: border-box;
+    background: #F2F3F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
   .auth-card {
-    width: 100%; max-width: 480px; background: #fff; border: 1px solid #D1D5DB;
+    width: 100%;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #fff; border: 1px solid #D1D5DB;
     border-radius: 12px; padding: 2.25rem 2rem;
     box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08);
   }
