@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Mis productos — TradeFlow{% endblock %}
+{% block title %}Mis productos — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
 {% endblock %}
@@ -9,23 +9,21 @@
   {% include "core/seller_sidebar.html" %}
   <div class="seller-main">
     <h1>Mis productos</h1>
-    <p class="seller-sub">Gestiona el catálogo de {{ company.name }}.</p>
+    <p class="seller-sub">Catálogo de <strong>{{ company.name }}</strong>.</p>
     <div class="seller-toolbar">
-      <a href="{% url 'seller_agregar_producto' %}" class="btn-seller-primary">Nuevo producto</a>
+      <a href="{% url 'seller_agregar_producto' %}" class="btn-seller-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span> Nuevo producto</a>
       <form class="seller-filters" method="get" action="">
-        <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Buscar nombre o SKU…">
-        <select class="tf-input" name="categoria" style="max-width:220px;">
+        <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Buscar nombre o SKU…" style="min-width:200px;">
+        <select class="tf-input" name="categoria" id="seller-prod-cat" style="max-width:220px;">
           <option value="">Todas las categorías</option>
-          {% for c in categorias %}
-          <option value="{{ c.pk }}">{{ c.name }}</option>
-          {% endfor %}
+          {% for c in categorias %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
         </select>
-        <button type="submit" class="btn-seller-outline">Filtrar</button>
+        <button type="submit" class="btn-seller-outline"><span class="material-symbols-rounded" style="font-size:18px;">search</span> Filtrar</button>
       </form>
     </div>
     <script>
     (function () {
-      var sel = document.querySelector("select[name=categoria]");
+      var sel = document.getElementById("seller-prod-cat");
       if (!sel) return;
       var wanted = "{{ cat_activa|escapejs }}";
       for (var i = 0; i < sel.options.length; i++) {
@@ -38,28 +36,24 @@
       <table class="seller-table">
         <thead>
           <tr>
-            <th></th>
+            <th style="width:56px;"></th>
             <th>Producto</th>
             <th>SKU</th>
             <th>Precio</th>
             <th>Stock</th>
             <th>Estado</th>
-            <th></th>
+            <th style="text-align:right;">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {% for p in productos %}
           <tr>
-            <td style="width:56px;">
-              {% if p.image %}
-              <img class="seller-product-thumb" src="{{ p.image.url }}" alt="">
-              {% else %}
-              <div class="seller-product-thumb"></div>
-              {% endif %}
+            <td>
+              {% if p.image %}<img class="seller-product-thumb" src="{{ p.image.url }}" alt="">{% else %}<div class="seller-product-thumb" style="display:flex;align-items:center;justify-content:center;"><span class="material-symbols-rounded" style="color:#D1D5DB;font-size:24px;">image</span></div>{% endif %}
             </td>
             <td><strong>{{ p.name }}</strong>{% if p.category %}<br><span style="color:var(--tf-muted);font-size:0.82rem;">{{ p.category.name }}</span>{% endif %}</td>
             <td>{{ p.sku|default:"—" }}</td>
-            <td>{{ p.unit_price }} {{ p.currency }}</td>
+            <td><span class="tf-price" style="font-size:0.95rem;">{{ p.unit_price }} {{ p.currency }}</span></td>
             <td>
               {% if p.inventory %}
                 {% with av=p.inventory.available %}
@@ -69,25 +63,30 @@
                 <span class="seller-stock-pill seller-stock-out">0</span>
               {% endif %}
             </td>
-            <td>{% if p.is_active %}<span class="tf-badge tf-badge-teal">Activo</span>{% else %}<span class="tf-badge tf-badge-warn">Inactivo</span>{% endif %}</td>
-            <td style="white-space:nowrap;">
-              <a href="{% url 'seller_editar_producto' p.pk %}">Editar</a> ·
-              <a href="{% url 'seller_toggle_producto' p.pk %}">Toggle</a>
+            <td>{% if p.is_active %}<span class="seller-badge-active">Activo</span>{% else %}<span class="seller-badge-inactive">Inactivo</span>{% endif %}</td>
+            <td style="text-align:right;white-space:nowrap;">
+              <a href="{% url 'seller_editar_producto' p.pk %}" class="btn-seller-outline" style="padding:6px 10px;"><span class="material-symbols-rounded" style="font-size:18px;">edit</span></a>
+              <form method="post" action="{% url 'seller_toggle_producto' p.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-seller-outline" style="padding:6px 10px;" title="Activar / desactivar">
+                  <span class="material-symbols-rounded" style="font-size:18px;">toggle_on</span>
+                </button>
+              </form>
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
       {% else %}
-      <p style="padding:1.25rem;color:var(--tf-muted);">No hay productos con estos filtros.</p>
+      <p style="padding:1.25rem;color:var(--tf-muted);margin:0;">No hay productos con estos filtros.</p>
       {% endif %}
     </div>
     {% if productos.has_other_pages %}
-    <nav style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
+    <nav style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       {% if productos.has_previous %}
       <a class="btn-seller-outline" href="?page={{ productos.previous_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Anterior</a>
       {% endif %}
-      <span style="align-self:center;color:var(--tf-muted);font-size:0.88rem;">Página {{ productos.number }} de {{ productos.paginator.num_pages }}</span>
+      <span style="color:var(--tf-muted);font-size:0.88rem;">Página {{ productos.number }} de {{ productos.paginator.num_pages }}</span>
       {% if productos.has_next %}
       <a class="btn-seller-outline" href="?page={{ productos.next_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Siguiente</a>
       {% endif %}

@@ -1,79 +1,120 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}{{ titulo_pagina }} — TradeFlow{% endblock %}
+{% block title %}{{ titulo_pagina }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
+<style>
+  .spf-grid { display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; align-items: start; }
+  @media (max-width: 991px) { .spf-grid { grid-template-columns: 1fr; } }
+  .spf-preview { border: 1px dashed #D1D5DB; border-radius: 12px; padding: 1rem; text-align: center; background: #F2F3F5; }
+  .spf-preview img { max-width: 100%; border-radius: 8px; max-height: 220px; object-fit: contain; display: none; margin-top: 8px; }
+  .spf-preview img.is-on { display: inline-block; }
+  .spf-preview .ph { color: #6B7A88; font-size: 0.875rem; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 1rem 0; }
+</style>
 {% endblock %}
 {% block content %}
 <div class="seller-layout">
   {% include "core/seller_sidebar.html" %}
   <div class="seller-main">
-    <h1>{% if es_edicion %}Editar producto{% else %}Nuevo producto{% endif %}</h1>
-    <p class="seller-sub">Los cambios se reflejan de inmediato en la tienda si el producto está activo.</p>
+    <h1 id="spf-title">{% if es_edicion %}Editar producto{% else %}Nuevo producto{% endif %}</h1>
+    <p class="seller-sub">Los cambios se reflejan en la tienda cuando el producto está activo.</p>
     <div class="seller-form-card">
-      <form method="post" enctype="multipart/form-data" novalidate>
+      <form method="post" enctype="multipart/form-data" novalidate class="spf-grid" id="spf-form">
         {% csrf_token %}
-        <div class="tf-field">
-          <label class="tf-label" for="id_name">Nombre</label>
-          {{ product_form.name }}
-          {% if product_form.name.errors %}<div style="color:var(--ui-input-error);font-size:0.8rem;margin-top:4px;">{{ product_form.name.errors.0 }}</div>{% endif %}
-        </div>
-        <div class="tf-field">
-          <label class="tf-label" for="id_category">Categoría</label>
-          {{ product_form.category }}
-        </div>
-        <div class="tf-field">
-          <label class="tf-label" for="id_sku">SKU</label>
-          {{ product_form.sku }}
-        </div>
-        <div class="tf-field" style="display:grid;grid-template-columns:1fr 140px;gap:12px;">
-          <div>
+        <div>
+          <div class="tf-field">
+            <label class="tf-label" for="id_name">Nombre</label>
+            {{ product_form.name }}
+            {% if product_form.name.errors %}<div style="color:#EF4444;font-size:0.8rem;margin-top:4px;">{{ product_form.name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="tf-field">
+            <label class="tf-label" for="id_category">Categoría</label>
+            {{ product_form.category }}
+          </div>
+          <div class="tf-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label class="tf-label" for="id_sku">SKU</label>
+              {{ product_form.sku }}
+            </div>
+            <div>
+              <label class="tf-label" for="id_currency">Moneda</label>
+              {{ product_form.currency }}
+            </div>
+          </div>
+          <div class="tf-field">
             <label class="tf-label" for="id_unit_price">Precio unitario</label>
             {{ product_form.unit_price }}
-            {% if product_form.unit_price.errors %}<div style="color:var(--ui-input-error);font-size:0.8rem;margin-top:4px;">{{ product_form.unit_price.errors.0 }}</div>{% endif %}
+            {% if product_form.unit_price.errors %}<div style="color:#EF4444;font-size:0.8rem;margin-top:4px;">{{ product_form.unit_price.errors.0 }}</div>{% endif %}
           </div>
-          <div>
-            <label class="tf-label" for="id_currency">Moneda</label>
-            {{ product_form.currency }}
+          <div class="tf-field">
+            <label class="tf-label" for="id_description">Descripción</label>
+            {{ product_form.description }}
+          </div>
+          <div class="tf-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label class="tf-label" for="id_stock_qty">Stock total</label>
+              {{ inv_form.stock_qty }}
+              {% if inv_form.stock_qty.errors %}<div style="color:#EF4444;font-size:0.8rem;">{{ inv_form.stock_qty.errors.0 }}</div>{% endif %}
+            </div>
+            <div>
+              <label class="tf-label" for="id_low_stock_alert">Alerta stock bajo</label>
+              {{ inv_form.low_stock_alert }}
+            </div>
+          </div>
+          <div class="tf-field" style="display:flex;align-items:center;gap:10px;">
+            {{ product_form.is_active }}
+            <label class="tf-label" for="id_is_active" style="margin:0;">Disponible en tienda</label>
+          </div>
+          {% if product_form.non_field_errors %}
+          <div class="tf-flash tf-flash-danger" style="margin-top:8px;padding:12px;border-radius:8px;">{{ product_form.non_field_errors.0 }}</div>
+          {% endif %}
+          <div class="seller-form-actions">
+            <button type="submit" class="btn-seller-primary"><span class="material-symbols-rounded" style="font-size:18px;">save</span> Guardar</button>
+            <a href="{% url 'seller_mis_productos' %}" class="btn-seller-outline"><span class="material-symbols-rounded" style="font-size:18px;">close</span> Cancelar</a>
           </div>
         </div>
-        <div class="tf-field">
-          <label class="tf-label" for="id_description">Descripción</label>
-          {{ product_form.description }}
-        </div>
-        <div class="tf-field">
+        <div>
           <label class="tf-label" for="id_image">Imagen</label>
-          {{ product_form.image }}
-          {% if es_edicion %}
-          {% if product.image %}
-          <p style="font-size:0.82rem;color:var(--tf-muted);margin-top:6px;">Actual: <a href="{{ product.image.url }}" target="_blank" rel="noopener">ver archivo</a></p>
-          {% endif %}
-          {% endif %}
-        </div>
-        <div class="tf-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div>
-            <label class="tf-label" for="id_stock_qty">Stock total</label>
-            {{ inv_form.stock_qty }}
-            {% if inv_form.stock_qty.errors %}<div style="color:var(--ui-input-error);font-size:0.8rem;">{{ inv_form.stock_qty.errors.0 }}</div>{% endif %}
+          <div class="spf-preview">
+            <div class="ph" id="spf-ph">
+              <span class="material-symbols-rounded" style="font-size:40px;color:#D1D5DB;">add_photo_alternate</span>
+              <span>Vista previa</span>
+            </div>
+            <img id="spf-img-prev" alt="">
+            {{ product_form.image }}
+            {% if es_edicion %}{% if product.image %}
+            <p style="font-size:0.82rem;color:var(--tf-muted);margin-top:10px;text-align:left;">Actual: <a href="{{ product.image.url }}" target="_blank" rel="noopener">ver archivo</a></p>
+            {% endif %}{% endif %}
           </div>
-          <div>
-            <label class="tf-label" for="id_low_stock_alert">Alerta stock bajo</label>
-            {{ inv_form.low_stock_alert }}
-          </div>
-        </div>
-        <div class="tf-field" style="display:flex;align-items:center;gap:10px;">
-          {{ product_form.is_active }}
-          <label class="tf-label" for="id_is_active" style="margin:0;">Disponible en tienda</label>
-        </div>
-        {% if product_form.non_field_errors %}
-        <div class="tf-alert tf-alert-danger" style="margin-top:8px;">{{ product_form.non_field_errors.0 }}</div>
-        {% endif %}
-        <div class="seller-form-actions">
-          <button type="submit" class="btn-seller-primary">Guardar</button>
-          <a href="{% url 'seller_productos' %}" class="btn-seller-outline">Cancelar</a>
         </div>
       </form>
     </div>
   </div>
 </div>
+<script>
+(function () {
+  var inp = document.getElementById("id_image");
+  var img = document.getElementById("spf-img-prev");
+  var ph = document.getElementById("spf-ph");
+  if (!inp || !img) return;
+  function show(src) {
+    if (src) {
+      img.src = src;
+      img.classList.add("is-on");
+      if (ph) ph.style.display = "none";
+    } else {
+      img.removeAttribute("src");
+      img.classList.remove("is-on");
+      if (ph) ph.style.display = "flex";
+    }
+  }
+  inp.addEventListener("change", function () {
+    var f = inp.files && inp.files[0];
+    if (!f) { show(""); return; }
+    var r = new FileReader();
+    r.onload = function () { show(r.result); };
+    r.readAsDataURL(f);
+  });
+})();
+</script>
 {% endblock %}

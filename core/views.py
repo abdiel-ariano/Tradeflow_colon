@@ -18,6 +18,7 @@ from django.http import Http404, JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
+import json
 
 from .decorators import admin_required, buyer_required, seller_required
 from .forms import SellerProductForm, SellerInventoryForm
@@ -144,38 +145,59 @@ def home_view(request):
 
 @admin_required
 def dashboard(request):
-    hoy         = timezone.now()
-    hace_7_dias = hoy - timedelta(days=7)
+    """
+    Panel de administración con KPIs, selector de período y gráficos (Chart.js).
+    """
+    hoy = timezone.now()
+    try:
+        periodo = int(request.GET.get('periodo', 7))
+    except (TypeError, ValueError):
+        periodo = 7
+    if periodo not in (7, 30, 90):
+        periodo = 7
 
-    total_ordenes    = Order.objects.count()
-    ordenes_semana   = Order.objects.filter(created_at__gte=hace_7_dias).count()
-    ingresos_total   = Order.objects.filter(status='delivered').aggregate(t=Sum('total'))['t'] or 0
-    ingresos_semana  = Order.objects.filter(
-        status='delivered', created_at__gte=hace_7_dias
-    ).aggregate(t=Sum('total'))['t'] or 0
-    total_productos  = Product.objects.filter(is_active=True).count()
-    total_empresas   = Company.objects.count()
-    ordenes_recientes = Order.objects.select_related('buyer').order_by('-created_at')[:5]
+    hace_periodo = hoy - timedelta(days=periodo)
 
-    dias_semana     = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    total_ordenes = Order.objects.count()
+    ordenes_semana = Order.objects.filter(created_at__gte=hace_periodo).count()
+    ingresos_total = Order.objects.filter(status='delivered').aggregate(t=Sum('total'))['t'] or Decimal('0')
+    ingresos_semana = Order.objects.filter(
+        status='delivered', created_at__gte=hace_periodo
+    ).aggregate(t=Sum('total'))['t'] or Decimal('0')
+    total_productos = Product.objects.filter(is_active=True).count()
+    total_empresas = Company.objects.count()
+    ordenes_recientes = Order.objects.select_related('buyer').order_by('-created_at')[:8]
+
+    clientes_activos = Order.objects.values('buyer').distinct().count()
+    entregadas = Order.objects.filter(status='delivered').count()
+    tasa_conversion = Decimal('0')
+    if total_ordenes > 0:
+        tasa_conversion = round(Decimal(100) * entregadas / total_ordenes, 1)
+
+    dias_semana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
     ordenes_por_dia = []
     for i in range(7):
-        dia   = hoy - timedelta(days=hoy.weekday() - i)
+        dia = hoy - timedelta(days=hoy.weekday() - i)
         count = Order.objects.filter(created_at__date=dia.date()).count()
         ordenes_por_dia.append(count)
 
     context = {
-        'total_ordenes':     total_ordenes,
-        'ordenes_semana':    ordenes_semana,
-        'ingresos_total':    ingresos_total,
-        'ingresos_semana':   ingresos_semana,
-        'total_productos':   total_productos,
-        'total_empresas':    total_empresas,
-        'ordenes_recientes': ordenes_recientes,
-        'dias_semana':       dias_semana,
-        'ordenes_por_dia':   ordenes_por_dia,
-        'titulo_pagina':     'Dashboard',
-        'nav_activo':        'dashboard',
+        'total_ordenes':        total_ordenes,
+        'ordenes_semana':       ordenes_semana,
+        'ingresos_total':       ingresos_total,
+        'ingresos_semana':      ingresos_semana,
+        'total_productos':      total_productos,
+        'total_empresas':       total_empresas,
+        'ordenes_recientes':    ordenes_recientes,
+        'dias_semana':          dias_semana,
+        'ordenes_por_dia':      ordenes_por_dia,
+        'dias_labels_json':     json.dumps(dias_semana),
+        'ordenes_por_dia_json': json.dumps(ordenes_por_dia),
+        'clientes_activos':     clientes_activos,
+        'tasa_conversion':      tasa_conversion,
+        'periodo_activo':       periodo,
+        'titulo_pagina':        'Dashboard',
+        'nav_activo':           'dashboard',
     }
     return render(request, 'core/dashboard.html', context)
 
@@ -560,11 +582,19 @@ def portal_seller(request):
     )
     ingresos_mes = ingresos_mes_items.aggregate(t=Sum('line_total'))['t'] or Decimal('0.00')
 
+    hace_7 = now - timedelta(days=7)
+    ordenes_semana = (
+        Order.objects.filter(items__product__company=company, created_at__gte=hace_7)
+        .distinct()
+        .count()
+    )
+
     context = {
         'company': company,
         'total_productos': total_productos,
         'bajo_stock': bajo_stock,
         'ingresos_mes': ingresos_mes,
+        'ordenes_semana': ordenes_semana,
         'ordenes_recientes': ordenes_recientes,
         'titulo_pagina': 'Mi Tienda',
         'nav_activo': 'mi_tienda',
@@ -837,7 +867,9 @@ def seller_editar_producto(request, pk):
 
 @seller_required
 def seller_toggle_producto(request, pk):
-    """Activa/desactiva un producto del vendedor y vuelve a la lista."""
+    """Activa/desactiva un producto del vendedor (solo POST con CSRF)."""
+    if request.method != 'POST':
+        return redirect('seller_mis_productos')
     company, resp = _seller_company_or_response(request, 'seller_productos')
     if resp:
         return resp

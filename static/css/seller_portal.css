@@ -1,4 +1,37 @@
-/* TradeFlow Colón — portal vendedor (paleta --tf-*) */
+/**
+ * TradeFlow Colón — portal vendedor (variables alineadas a base / diseño ZLC).
+ */
+:root {
+  --tf-navy: #0f2a44;
+  --tf-navy-mid: #1b3b63;
+  --tf-blue: #2e5b8a;
+  --tf-orange: #f26522;
+  --tf-orange-h: #ff7a3d;
+  --tf-orange-s: #ffa15a;
+  --tf-light: #f2f3f5;
+  --tf-border: #d1d5db;
+  --tf-muted: #6b7a88;
+  --tf-white: #ffffff;
+  --tf-body: #374151;
+  --order-pending-bg: #fef8e7;
+  --order-pending-fg: #6b4a00;
+  --order-paid-bg: #e8f4f8;
+  --order-paid-fg: #1a4f65;
+  --order-packed-bg: #e8f4f8;
+  --order-packed-fg: #1a4f65;
+  --order-shipped-bg: #e0f2f1;
+  --order-shipped-fg: #0d5c56;
+  --order-delivered-bg: #edf7ee;
+  --order-delivered-fg: #1e5c21;
+  --order-cancelled-bg: #fdecea;
+  --order-cancelled-fg: #7d1a14;
+  --stock-ok-bg: #edf7ee;
+  --stock-ok-fg: #1e5c21;
+  --stock-low-bg: #fef8e7;
+  --stock-low-fg: #6b4a00;
+  --stock-out-bg: #fdecea;
+  --stock-out-fg: #7d1a14;
+}
 
 .seller-layout {
   display: flex;
@@ -9,14 +42,15 @@
 .seller-side {
   width: 248px;
   flex-shrink: 0;
-  background: linear-gradient(180deg, var(--tf-mid) 0%, var(--tf-dark) 100%);
+  background: linear-gradient(180deg, var(--tf-navy-mid) 0%, var(--tf-navy) 100%);
   color: #fff;
   padding: 1.5rem 0;
 }
 
 .seller-side-brand {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.1rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
   padding: 0 1.25rem 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   margin-bottom: 1rem;
@@ -24,20 +58,28 @@
 
 .seller-side-brand small {
   display: block;
-  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
   font-size: 0.72rem;
   opacity: 0.65;
   margin-top: 4px;
 }
 
 .seller-side a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 1.25rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border-left: 3px solid transparent;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.seller-side a .material-symbols-rounded {
+  font-size: 20px;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
 .seller-side a:hover {
@@ -47,7 +89,7 @@
 
 .seller-side a.active {
   border-left-color: var(--tf-orange);
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.2);
   color: #fff;
 }
 
@@ -58,28 +100,17 @@
 }
 
 .seller-main h1 {
-  font-family: 'DM Serif Display', serif;
-  color: var(--tf-dark);
-  font-size: 1.85rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 1.75rem;
+  color: var(--tf-navy);
   margin: 0 0 0.35rem;
 }
 
 .seller-sub {
   color: var(--tf-muted);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   margin-bottom: 1.75rem;
-}
-
-.seller-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 1.25rem;
-}
-
-.seller-toolbar .tf-input {
-  max-width: 280px;
 }
 
 .seller-stats {
@@ -94,24 +125,45 @@
   border: 1px solid var(--tf-border);
   border-radius: 12px;
   padding: 1.25rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.seller-stat:hover {
+  box-shadow: 0 8px 24px rgba(15, 42, 68, 0.12);
 }
 
 .seller-stat .label {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--tf-muted);
+  font-weight: 600;
 }
 
 .seller-stat .value {
-  font-size: 1.65rem;
-  font-weight: 600;
-  color: var(--tf-dark);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--tf-navy);
   margin-top: 6px;
 }
 
 .seller-stat.accent {
   border-top: 3px solid var(--tf-orange);
+}
+
+.seller-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.seller-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
 .seller-table-wrap {
@@ -122,17 +174,19 @@
 }
 
 .seller-table-wrap h2 {
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
+  font-weight: 600;
   padding: 1rem 1.25rem;
   margin: 0;
   border-bottom: 1px solid var(--tf-border);
-  color: var(--tf-dark);
+  color: var(--tf-navy);
 }
 
 table.seller-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.88rem;
+  font-size: 0.875rem;
 }
 
 table.seller-table th {
@@ -151,7 +205,12 @@ table.seller-table td {
 
 table.seller-table a {
   color: var(--tf-blue);
-  font-weight: 500;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+table.seller-table a:hover {
+  text-decoration: underline;
 }
 
 .seller-product-thumb {
@@ -167,7 +226,7 @@ table.seller-table a {
   border: 1px solid var(--tf-border);
   border-radius: 12px;
   padding: 1.75rem;
-  max-width: 720px;
+  max-width: 760px;
 }
 
 .seller-form-actions {
@@ -183,48 +242,44 @@ table.seller-table a {
   gap: 6px;
   padding: 10px 20px;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   border: none;
   cursor: pointer;
   background: var(--tf-orange);
   color: #fff;
   text-decoration: none;
-  transition: background 0.18s;
+  transition: all 0.2s ease;
 }
 
 .btn-seller-primary:hover {
-  background: var(--tf-orange-light);
+  background: var(--tf-orange-h);
   color: #fff;
+  box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3);
 }
 
 .btn-seller-outline {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   padding: 10px 18px;
   border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  border: 1.5px solid var(--tf-border);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid var(--tf-border);
   background: transparent;
-  color: var(--tf-dark);
+  color: var(--tf-navy);
   text-decoration: none;
+  transition: all 0.2s ease;
 }
 
 .btn-seller-outline:hover {
   background: var(--tf-light);
 }
 
-.seller-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
 .seller-stock-pill {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 4px 10px;
   border-radius: 20px;
@@ -243,4 +298,26 @@ table.seller-table a {
 .seller-stock-out {
   background: var(--stock-out-bg);
   color: var(--stock-out-fg);
+}
+
+.seller-badge-active {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(46, 91, 138, 0.12);
+  color: var(--tf-blue);
+}
+
+.seller-badge-inactive {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--tf-light);
+  color: var(--tf-muted);
 }

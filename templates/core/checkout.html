@@ -1,104 +1,66 @@
 {% extends "core/base.html" %}
 {% load static %}
-
-{#
-  checkout.html — Formulario de confirmación de compra
-
-  Contexto esperado:
-    carrito   → dict de sesión con los items
-    subtotal  → Decimal
-#}
-
-{% block title %}Confirmar Pedido — TradeFlow Colón{% endblock %}
-
+{% block title %}Checkout — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-.checkout-wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
-.checkout-titulo { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--tf-dark); margin-bottom: 1.75rem; }
-.checkout-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; }
-.checkout-form-card { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: var(--radius); padding: 1.5rem; }
-.checkout-section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--tf-muted); margin-bottom: 1rem; }
-.checkout-textarea {
-  width: 100%; border: 1.5px solid var(--tf-border); border-radius: var(--radius-sm);
-  padding: 10px 13px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
-  color: var(--tf-text); resize: vertical; min-height: 80px; transition: border-color .18s;
-}
-.checkout-textarea:focus { outline: none; border-color: var(--tf-teal); }
-.info-box {
-  background: #e8f4f8; border: 1px solid #9fcfe0; border-radius: var(--radius-sm);
-  padding: 12px 14px; font-size: 0.85rem; color: #1a4f65; line-height: 1.5;
-  margin-bottom: 1rem;
-}
-.resumen-item {
-  display: flex; gap: 10px; align-items: center;
-  margin-bottom: 10px; padding-bottom: 10px;
-  border-bottom: 1px solid var(--tf-border);
-}
-.resumen-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.resumen-item img { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: #f0ede8; }
-.resumen-item-info { flex: 1; }
-.resumen-item-nombre { font-size: 0.85rem; font-weight: 500; color: var(--tf-dark); }
-.resumen-item-qty { font-size: 0.78rem; color: var(--tf-muted); }
-.resumen-item-price { font-size: 0.9rem; font-weight: 600; color: var(--tf-dark); }
-.total-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem; color: var(--tf-muted); }
-.total-final { display: flex; justify-content: space-between; border-top: 1px solid var(--tf-border); padding-top: 10px; margin-top: 10px; font-weight: 600; color: var(--tf-dark); }
-.total-final span:last-child { font-family: 'DM Serif Display', serif; font-size: 1.15rem; }
-.btn-confirmar {
-  width: 100%; padding: 12px; background: var(--tf-teal); color: #fff;
-  border: none; border-radius: var(--radius-sm);
-  font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
-  cursor: pointer; margin-top: 1rem; transition: background .18s;
-}
-.btn-confirmar:hover { background: var(--tf-teal2); }
+<style>
+  .co-wrap { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .co-title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.5rem; }
+  .co-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; }
+  @media (max-width: 991px) { .co-grid { grid-template-columns: 1fr; } }
+  .co-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.35rem; }
+  .co-sec { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8125rem; color: #6B7A88; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 1rem; }
+  .co-note { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 12px 14px; font-size: 0.875rem; color: #1E40AF; margin-bottom: 1rem; display: flex; gap: 10px; align-items: flex-start; }
+  .co-note .material-symbols-rounded { font-size: 20px; flex-shrink: 0; }
+  .co-ta { width: 100%; min-height: 88px; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.9rem; resize: vertical; }
+  .co-ta:focus { outline: none; border-color: #2E5B8A; box-shadow: 0 0 0 3px rgba(46, 91, 138, 0.15); }
+  .co-pay { border: 1px dashed #D1D5DB; border-radius: 8px; padding: 12px; margin-top: 1rem; font-size: 0.875rem; color: #374151; display: flex; align-items: center; gap: 8px; }
+  .co-pay .material-symbols-rounded { color: #2E5B8A; }
+  .co-submit { width: 100%; margin-top: 1.25rem; padding: 12px 16px; border: none; border-radius: 8px; background: #F26522; color: #fff; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; }
+  .co-submit:hover { background: #FF7A3D; box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3); }
+  .co-line { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #D1D5DB; font-size: 0.875rem; }
+  .co-line:last-of-type { border-bottom: none; }
+  .co-line img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #F2F3F5; }
+  .co-line-info { flex: 1; }
+  .co-line-name { font-weight: 600; color: #0F2A44; }
+  .co-line-q { font-size: 0.78rem; color: #6B7A88; }
+  .co-line-pr { font-weight: 700; color: #F26522; }
+  .co-tot { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid #D1D5DB; font-family: 'Inter', sans-serif; font-weight: 700; color: #0F2A44; }
+</style>
 {% endblock %}
-
 {% block content %}
-<div class="checkout-wrap">
-  <h1 class="checkout-titulo">Confirmar pedido</h1>
-  <div class="checkout-grid">
-
-    {# ── Formulario ── #}
+<div class="co-wrap">
+  <h1 class="co-title">Confirmar pedido</h1>
+  <div class="co-grid">
     <form method="post" action="{% url 'checkout' %}">
       {% csrf_token %}
-      <div class="checkout-form-card">
-        <div class="checkout-section-title">Información de envío</div>
-        <div class="info-box">
-          Este es un pago de demostración. No se realizará ningún cargo real.
-          Tu orden será creada y marcada como pagada automáticamente.
+      <div class="co-card">
+        <div class="co-sec">Dirección y notas</div>
+        <div class="co-note">
+          <span class="material-symbols-rounded">info</span>
+          <span>Demo: el pago es simulado. La orden se crea y marca como pagada automáticamente.</span>
         </div>
-        <div class="tf-field">
-          <label class="tf-label">Notas adicionales (opcional)</label>
-          <textarea name="notas" class="checkout-textarea"
-                    placeholder="Instrucciones especiales de entrega, referencias, etc."></textarea>
-        </div>
+        <label class="tf-label" for="id_notas">Notas (opcional)</label>
+        <textarea name="notas" id="id_notas" class="co-ta" placeholder="Instrucciones de entrega, referencias…"></textarea>
         <input type="hidden" name="shipping_cost" value="0">
-        <button type="submit" class="btn-confirmar">Confirmar y pagar</button>
+        <div class="co-pay"><span class="material-symbols-rounded">credit_card</span> Método de pago: mock (desarrollo)</div>
+        <button type="submit" class="co-submit"><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span> Confirmar y pagar</button>
       </div>
     </form>
-
-    {# ── Resumen ── #}
-    <div>
-      <div class="checkout-form-card">
-        <div class="checkout-section-title">Tu pedido</div>
-        {% for prod_id, item in carrito.items %}
-        <div class="resumen-item">
-          {% if item.imagen %}
-            <img src="{{ item.imagen }}" alt="{{ item.nombre }}">
-          {% else %}
-            <div style="width:48px;height:48px;border-radius:6px;background:#f0ede8;flex-shrink:0;"></div>
-          {% endif %}
-          <div class="resumen-item-info">
-            <div class="resumen-item-nombre">{{ item.nombre }}</div>
-            <div class="resumen-item-qty">{{ item.cantidad }} unidad{{ item.cantidad|pluralize }}</div>
-          </div>
-          <div class="resumen-item-price">USD {{ item.subtotal }}</div>
+    <div class="co-card">
+      <div class="co-sec">Resumen</div>
+      {% for prod_id, item in carrito.items %}
+      <div class="co-line">
+        {% if item.imagen %}<img src="{{ item.imagen }}" alt="">{% else %}<div style="width:48px;height:48px;border-radius:8px;background:#F2F3F5;"></div>{% endif %}
+        <div class="co-line-info">
+          <div class="co-line-name">{{ item.nombre }}</div>
+          <div class="co-line-q">{{ item.cantidad }} u.</div>
         </div>
-        {% endfor %}
-        <div class="total-row"><span>Subtotal</span><span>USD {{ subtotal }}</span></div>
-        <div class="total-row"><span>Envío</span><span>Por confirmar</span></div>
-        <div class="total-final"><span>Total</span><span>USD {{ subtotal }}</span></div>
+        <div class="co-line-pr">USD {{ item.subtotal }}</div>
       </div>
+      {% endfor %}
+      <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:#6B7A88;margin-top:8px;"><span>Subtotal</span><span>USD {{ subtotal }}</span></div>
+      <div class="co-tot"><span>Total</span><span>USD {{ subtotal }}</span></div>
     </div>
-
   </div>
 </div>
 {% endblock %}

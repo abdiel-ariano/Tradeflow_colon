@@ -1,25 +1,41 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Mi Tienda — {{ company.name }}{% endblock %}
+{% block title %}Mi panel — {{ company.name }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
+<style>
+  .ps-hero { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  @media (max-width: 991px) { .ps-hero { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 575px) { .ps-hero { grid-template-columns: 1fr; } }
+  .ps-hero .seller-stat .value { font-size: 1.35rem; }
+  .ps-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1rem; }
+</style>
 {% endblock %}
 {% block content %}
 <div class="seller-layout">
   {% include "core/seller_sidebar.html" %}
   <div class="seller-main">
-    <h1>Mi Tienda</h1>
-    <p class="seller-sub">Resumen de tu catálogo e ingresos del mes.</p>
-    <div class="seller-stats">
+    <h1>Mi panel</h1>
+    <p class="seller-sub">Resumen de <strong>{{ company.name }}</strong> — productos, stock e ingresos del mes.</p>
+    <div class="ps-hero">
       <div class="seller-stat"><div class="label">Productos activos</div><div class="value">{{ total_productos }}</div></div>
       <div class="seller-stat accent"><div class="label">Stock bajo</div><div class="value">{{ bajo_stock }}</div></div>
-      <div class="seller-stat"><div class="label">Ingresos del mes</div><div class="value">{{ ingresos_mes }} USD</div></div>
+      <div class="seller-stat"><div class="label">Órdenes (7 días)</div><div class="value">{{ ordenes_semana }}</div></div>
+      <div class="seller-stat"><div class="label">Ingresos del mes</div><div class="value">{{ ingresos_mes }} <span style="font-size:0.75rem;font-weight:600;color:#6B7A88;">USD</span></div></div>
     </div>
     <div class="seller-table-wrap">
       <h2>Últimas ventas</h2>
       {% if ordenes_recientes %}
       <table class="seller-table">
-        <thead><tr><th>Orden</th><th>Comprador</th><th>Fecha</th><th>Estado</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Orden</th>
+            <th>Comprador</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
         <tbody>
           {% for o in ordenes_recientes %}
           <tr>
@@ -27,6 +43,7 @@
             <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
             <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
             <td><span class="tf-badge seller-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span></td>
+            <td><a href="{% url 'seller_detalle_venta' o.pk %}"><span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">visibility</span></a></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -35,9 +52,9 @@
       <p style="padding:1.25rem;color:var(--tf-muted);margin:0;">No hay ventas aún.</p>
       {% endif %}
     </div>
-    <div class="seller-form-actions" style="margin-top:1.25rem;">
-      <a href="{% url 'seller_agregar_producto' %}" class="btn-seller-primary">Nuevo producto</a>
-      <a href="{% url 'seller_mis_ventas' %}" class="btn-seller-outline">Ver todas las ventas</a>
+    <div class="ps-actions">
+      <a href="{% url 'seller_agregar_producto' %}" class="btn-seller-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span> Nuevo producto</a>
+      <a href="{% url 'seller_mis_ventas' %}" class="btn-seller-outline"><span class="material-symbols-rounded" style="font-size:18px;">payments</span> Ver todas las ventas</a>
     </div>
   </div>
 </div>
