@@ -109,7 +109,7 @@
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 1100;
       box-shadow: var(--tf-shadow-nav);
       gap: 1rem;
     }
@@ -292,15 +292,18 @@
       color: var(--tf-white);
     }
 
-    /* ----- Flash messages ----- */
+    /* ----- Flash messages (solo esquina superior derecha; no cubrir la marca del nav) ----- */
     .tf-flash-stack {
       position: fixed;
       top: 72px;
       right: 16px;
-      left: 16px;
+      left: auto;
       z-index: 1050;
-      max-width: 420px;
-      margin-left: auto;
+      width: min(420px, calc(100vw - 32px));
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
       pointer-events: none;
     }
     .tf-flash-stack > * { pointer-events: auto; }
@@ -310,13 +313,14 @@
       align-items: flex-start;
       gap: 10px;
       padding: 14px 16px;
-      margin-bottom: 10px;
       border-radius: var(--tf-radius-card);
       border: 1px solid var(--tf-border);
       background: var(--tf-white);
       box-shadow: var(--tf-shadow-card-hover);
       font-size: 0.875rem;
       line-height: 1.45;
+      width: 100%;
+      box-sizing: border-box;
     }
     .tf-flash .material-symbols-rounded {
       flex-shrink: 0;
@@ -481,7 +485,11 @@
       gap: 8px;
     }
 
-    main.tf-main { flex: 1; width: 100%; }
+    main.tf-main {
+      flex: 1;
+      width: 100%;
+      color: var(--tf-body);
+    }
 
     {% block extra_css %}{% endblock %}
   </style>

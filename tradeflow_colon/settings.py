@@ -81,10 +81,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'tradeflow_colon.wsgi.application'
 
 # ── Base de datos ──────────────────────────────────────────────────────────
-# DATABASE_URL en local:      postgres://user:pass@localhost:5432/tradeflow_db
-# DATABASE_URL en Railway:    lo provee Railway automáticamente al agregar PostgreSQL
+# SQLite (por defecto): no definas DATABASE_URL en .env
 #
-# Si DATABASE_URL no está definida, cae a SQLite para no romper el arranque.
+# PostgreSQL remoto (Supabase, Neon, Railway, etc.):
+#   1. Crea el proyecto en Supabase y copia la URI (Settings → Database → URI).
+#   2. En .env: DATABASE_URL=postgresql://postgres.[ref]:[PASSWORD]@...pooler.supabase.com:6543/postgres
+#   3. pip install -r requirements.txt   (ya incluye psycopg2-binary y dj-database-url)
+#   4. python manage.py migrate
+#   5. Carga datos una vez: python manage.py cargar_demo  (o fixtures / SQL desde Supabase)
+# Supabase usa SSL; en local con DEBUG=True pon DB_SSL=false si el pooler da error de certificado.
+#
+# DATABASE_URL en Railway: la provee el addon PostgreSQL automáticamente.
+#
 _db_url = config('DATABASE_URL', default=None)
 
 if _db_url:

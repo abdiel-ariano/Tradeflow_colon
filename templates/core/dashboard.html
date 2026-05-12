@@ -6,7 +6,13 @@
 {% endblock %}
 {% block extra_css %}
 <style>
-  .adm-shell { display: flex; min-height: calc(100vh - 64px); background: #F2F3F5; }
+  /* Colores explícitos: evita texto blanco heredado (p. ej. de utilidades de Bootstrap). */
+  .adm-shell {
+    display: flex;
+    min-height: calc(100vh - 64px);
+    background: #F2F3F5;
+    color: #374151;
+  }
   .adm-side {
     width: 240px; flex-shrink: 0; background: #0F2A44; color: #fff; padding: 1.25rem 0;
     display: flex; flex-direction: column; gap: 4px;
@@ -18,7 +24,14 @@
   .adm-side a .material-symbols-rounded { font-size: 20px; font-variation-settings: 'FILL' 0, 'wght' 400; }
   .adm-side a:hover { background: rgba(255,255,255,0.06); color: #fff; }
   .adm-side a.is-active { border-left-color: #F26522; background: rgba(0,0,0,0.2); color: #fff; }
-  .adm-main { flex: 1; padding: 2rem 1.5rem; overflow-x: auto; }
+  .adm-main {
+    flex: 1;
+    padding: 2rem 1.5rem;
+    overflow-x: auto;
+    background: #F2F3F5;
+    color: #374151;
+  }
+  .adm-main strong { color: #0F2A44; }
   .adm-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
   .adm-head h1 { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 0.35rem; }
   .adm-head p { margin: 0; color: #6B7A88; font-size: 0.9rem; }
