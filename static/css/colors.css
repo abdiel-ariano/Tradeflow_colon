@@ -38,35 +38,40 @@ CONVENCIÓN DE SUFIJOS
         Usada en: base.html, Home.html, tienda, portales
      ════════════════════════════════════════════════════════ */
 
-  /* Teal — color principal de la marca exterior */
-  --tf-teal:       #62929a;   /* botones, links, acento activo */
-  --tf-teal2:      #4a7880;   /* variante oscura (hover del teal) */
-  --tf-teal-faint: rgba(98,146,154,.15);  /* fondo sutil: badges, focus ring */
+  /* Acento principal (compat: base.html usa --tf-teal) → azul ZLC */
+  --tf-teal:       #2E5B8A;
+  --tf-teal2:      #1B3B63;
+  --tf-teal-faint: rgba(46, 91, 138, 0.12);
 
-  /* Oscuro — texto y fondos de contraste */
-  --tf-dark:       #404b57;   /* texto principal, botones dark */
-  --tf-dark2:      #2e3740;   /* hover del dark, texto más fuerte */
-  --tf-dark-faint: rgba(64,75,87,.1);  /* fondo muy sutil: badge-dark */
+  /* Paleta oficial TradeFlow Colón (Zona Libre) */
+  --tf-dark:         #0F2A44;
+  --tf-dark2:        #0a1f33;
+  --tf-dark-faint:   rgba(15, 42, 68, 0.08);
+  --tf-mid:          #1B3B63;
+  --tf-blue:         #2E5B8A;
+  --tf-orange:       #F26522;
+  --tf-orange-light: #FF7A3D;
+  --tf-orange-soft:  #FFA15A;
 
-  /* Arena — color cálido secundario */
-  --tf-sand:       #d9cab3;   /* avatares, detalles decorativos */
-  --tf-sand2:      #c4b09a;   /* variante oscura del sand */
-  --tf-sand-faint: rgba(217,202,179,.4);  /* fondo badge-sand */
-  --tf-sand-dim:   rgba(217,202,179,.5);  /* borde semitransparente cards */
-  --tf-sand-fg:    #7a6a55;   /* texto sobre fondo sand */
+  /* Arena / calor — alineado a acentos naranja para highlights */
+  --tf-sand:       #FFA15A;
+  --tf-sand2:      #F26522;
+  --tf-sand-faint: rgba(255, 161, 90, 0.35);
+  --tf-sand-dim:   rgba(15, 42, 68, 0.12);
+  --tf-sand-fg:    #6B3D1A;
+  --tf-sand-text:  #6B3D1A;
 
-  /* Colores de acento (portales buyer/seller) */
-  --tf-blue:       #005396;   /* portal comprador — azul institucional */
-  --tf-green:      #96c91b;   /* portal vendedor — verde lima */
-  --tf-green-dark: #1a3a00;   /* texto/fondo sobre verde lima */
+  /* Portales (identificación rápida en UI) */
+  --tf-green:      #F26522;
+  --tf-green-dark: #0F2A44;
 
   /* Neutros */
-  --tf-light:      #f0f0f0;   /* fondo de página */
+  --tf-light:      #F2F3F5;
   --tf-white:      #ffffff;
-  --tf-text:       #2e3740;   /* texto principal */
-  --tf-muted:      #6b7a88;   /* texto secundario / placeholders */
-  --tf-border:     rgba(64,75,87,0.13);  /* bordes de tarjetas y divisores */
-  --tf-border-hover: rgba(64,75,87,0.3); /* bordes al hacer hover */
+  --tf-text:       #0F2A44;
+  --tf-muted:      #6B7A88;
+  --tf-border:     #D1D5DB;
+  --tf-border-hover: #b8c0c9;
 
 
   /* ════════════════════════════════════════════════════════

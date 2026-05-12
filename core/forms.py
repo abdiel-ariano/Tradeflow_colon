@@ -35,6 +35,41 @@ class ProductForm(forms.ModelForm):
         }
 
 
+class SellerProductForm(forms.ModelForm):
+    """
+    Formulario de producto para el portal vendedor (sin selector de empresa).
+    La empresa se asigna en la vista según la compañía del usuario.
+    """
+
+    class Meta:
+        model = Product
+        fields = ['category', 'name', 'description', 'sku', 'unit_price', 'currency', 'image', 'is_active']
+        widgets = {
+            'category':    forms.Select(attrs={'class': 'tf-input'}),
+            'name':        forms.TextInput(attrs={'class': 'tf-input', 'placeholder': 'Nombre del producto'}),
+            'description': forms.Textarea(attrs={'class': 'tf-input', 'rows': 4, 'placeholder': 'Descripción'}),
+            'sku':         forms.TextInput(attrs={'class': 'tf-input', 'placeholder': 'SKU (opcional)'}),
+            'unit_price':  forms.NumberInput(attrs={'class': 'tf-input', 'step': '0.01', 'min': '0'}),
+            'currency':    forms.Select(attrs={'class': 'tf-input'}),
+            'image':       forms.ClearableFileInput(attrs={'class': 'tf-input'}),
+            'is_active':   forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class SellerInventoryForm(forms.ModelForm):
+    """
+    Campos de inventario editables por el vendedor (stock y umbral de alerta).
+    """
+
+    class Meta:
+        model = Inventory
+        fields = ['stock_qty', 'low_stock_alert']
+        widgets = {
+            'stock_qty':       forms.NumberInput(attrs={'class': 'tf-input', 'min': '0'}),
+            'low_stock_alert': forms.NumberInput(attrs={'class': 'tf-input', 'min': '0'}),
+        }
+
+
 class InventoryForm(forms.ModelForm):
     class Meta:
         model  = Inventory

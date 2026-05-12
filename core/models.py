@@ -62,11 +62,20 @@ class Company(models.Model):
     """
     Empresa vendedora de la Zona Libre de Colón.
     Un Product pertenece a una Company.
+    El campo owner identifica al usuario vendedor responsable del portal Mi Tienda.
     """
     name         = models.CharField(max_length=200, verbose_name='Nombre de empresa')
     ruc          = models.CharField(max_length=50, blank=True, verbose_name='RUC / Registro')
     address_text = models.TextField(blank=True, verbose_name='Dirección')
     is_verified  = models.BooleanField(default=False, verbose_name='¿Verificada?')
+    owner        = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='owned_companies',
+        verbose_name='Propietario (vendedor)',
+    )
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -207,7 +207,7 @@ class Command(BaseCommand):
         os.makedirs(media_products, exist_ok=True)
 
         # 1. Categorías
-        self.stdout.write('\n[1/4] Creando categorías...')
+        self.stdout.write('\n[1/5] Creando categorías...')
         categorias_obj = []
         for nombre in CATEGORIAS:
             cat, created = Category.objects.get_or_create(name=nombre)
@@ -216,7 +216,7 @@ class Command(BaseCommand):
             self.stdout.write(f'  {nombre} — {estado}')
 
         # 2. Empresas
-        self.stdout.write('\n[2/4] Creando empresas...')
+        self.stdout.write('\n[2/5] Creando empresas...')
         empresas_obj = []
         for data in EMPRESAS:
             empresa, created = Company.objects.get_or_create(
@@ -232,7 +232,7 @@ class Command(BaseCommand):
             self.stdout.write(f'  {empresa.name} — {estado}')
 
         # 3. Productos con imágenes
-        self.stdout.write('\n[3/4] Creando productos e imágenes...')
+        self.stdout.write('\n[3/5] Creando productos e imágenes...')
         for data in PRODUCTOS:
             if Product.objects.filter(sku=data['sku']).exists():
                 self.stdout.write(f'  {data["name"]} — ya existe, omitido')
@@ -278,7 +278,7 @@ class Command(BaseCommand):
             )
 
         # 4. Usuarios de demo
-        self.stdout.write('\n[4/4] Creando usuarios de demo...')
+        self.stdout.write('\n[4/5] Creando usuarios de demo...')
         for data in USUARIOS_DEMO:
             if User.objects.filter(username=data['username']).exists():
                 self.stdout.write(f'  {data["username"]} — ya existe, omitido')
@@ -302,6 +302,26 @@ class Command(BaseCommand):
                 )
             )
 
+        # 5. Asociar vendedor demo a empresa TechZone (portal Mi Tienda)
+        self.stdout.write('\n[5/5] Vinculando vendedor demo a empresa...')
+        demo_seller = User.objects.filter(username='demo_seller').first()
+        techzone = Company.objects.filter(name='TechZone Colón S.A.').first()
+        if demo_seller and techzone:
+            if techzone.owner_id != demo_seller.id:
+                techzone.owner = demo_seller
+                techzone.save(update_fields=['owner'])
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f'  {techzone.name} → propietario: {demo_seller.username}'
+                    )
+                )
+            else:
+                self.stdout.write(f'  {techzone.name} — ya vinculada a demo_seller')
+        else:
+            self.stdout.write(
+                self.style.WARNING('  No se pudo vincular demo_seller (usuario o empresa ausente).')
+            )
+
         # Resumen final
         self.stdout.write('\n' + '=' * 60)
         self.stdout.write(self.style.SUCCESS('Datos de demo cargados correctamente.'))
@@ -310,5 +330,5 @@ class Command(BaseCommand):
         self.stdout.write(f'  Usuarios:  {User.objects.filter(is_superuser=False).count()}')
         self.stdout.write('\nAccesos de prueba:')
         self.stdout.write('  Buyer:  demo_buyer  / Demo1234!')
-        self.stdout.write('  Seller: demo_seller / Demo1234!')
+        self.stdout.write('  Seller: demo_seller / Demo1234! (Mi Tienda → TechZone Colón S.A.)')
         self.stdout.write('=' * 60)

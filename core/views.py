@@ -14,13 +14,15 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Q, Sum, Count
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
 
 from .decorators import admin_required, buyer_required, seller_required
+from .forms import SellerProductForm, SellerInventoryForm
 from .models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document
@@ -534,10 +536,297 @@ def portal_buyer(request):
 
 @seller_required
 def portal_seller(request):
-    """Portal del vendedor — se completa más adelante."""
-    return render(request, 'core/portal_seller_temp.html', {
+    """Raíz del portal vendedor: redirige al panel principal."""
+    return redirect('seller_dashboard')
+
+
+def _get_seller_company(user):
+    """
+    Devuelve la empresa cuyo propietario es el usuario autenticado, o None.
+    """
+    if not user.is_authenticated:
+        return None
+    return Company.objects.filter(owner=user).first()
+
+
+def _seller_company_or_response(request, nav_activo='mi_tienda'):
+    """
+    Obtiene la empresa del vendedor o devuelve una respuesta HttpResponse
+    con la plantilla de aviso si no hay empresa vinculada.
+    """
+    company = _get_seller_company(request.user)
+    if company:
+        return company, None
+    messages.warning(
+        request,
+        'Tu cuenta no tiene una empresa vinculada. Contacta al administrador para asignarte una empresa en el sistema.',
+    )
+    ctx = {
         'titulo_pagina': 'Mi Tienda',
-    })
+        'nav_activo':    nav_activo,
+    }
+    return None, render(request, 'core/seller_sin_empresa.html', ctx)
+
+
+def _seller_low_stock_count(company):
+    """
+    Cuenta cuántos productos de la empresa tienen inventario en nivel bajo.
+    """
+    n = 0
+    qs = Inventory.objects.filter(product__company=company).select_related('product')
+    for inv in qs:
+        if inv.is_low_stock:
+            n += 1
+    return n
+
+
+@seller_required
+def seller_dashboard(request):
+    """
+    Panel principal del vendedor: métricas de productos, stock y órdenes recientes.
+    """
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+
+    hoy         = timezone.now()
+    hace_7_dias = hoy - timedelta(days=7)
+
+    productos_qs = Product.objects.filter(company=company)
+    total_productos  = productos_qs.count()
+    activos          = productos_qs.filter(is_active=True).count()
+    bajo_stock       = _seller_low_stock_count(company)
+
+    ordenes_recientes = (
+        Order.objects.filter(items__product__company=company)
+        .distinct()
+        .select_related('buyer')
+        .order_by('-created_at')[:6]
+    )
+
+    ordenes_semana = (
+        Order.objects.filter(
+            items__product__company=company,
+            created_at__gte=hace_7_dias,
+        )
+        .distinct()
+        .count()
+    )
+
+    ventas_items = OrderItem.objects.filter(
+        product__company=company,
+        order__status__in=('paid', 'packed', 'shipped', 'delivered'),
+        order__created_at__gte=hace_7_dias,
+    )
+    ventas_semana = ventas_items.aggregate(t=Sum('line_total'))['t'] or Decimal('0.00')
+
+    context = {
+        'company':           company,
+        'total_productos':   total_productos,
+        'productos_activos': activos,
+        'bajo_stock':        bajo_stock,
+        'ordenes_semana':    ordenes_semana,
+        'ventas_semana':     ventas_semana,
+        'ordenes_recientes': ordenes_recientes,
+        'titulo_pagina':     'Panel de vendedor',
+        'nav_activo':        'mi_tienda',
+    }
+    return render(request, 'core/seller_dashboard.html', context)
+
+
+@seller_required
+def seller_productos(request):
+    """
+    Lista los productos del catálogo de la empresa del vendedor con filtros y paginación.
+    """
+    company, resp = _seller_company_or_response(request, 'seller_productos')
+    if resp:
+        return resp
+
+    productos = (
+        Product.objects.filter(company=company)
+        .select_related('category', 'company')
+        .prefetch_related('inventory')
+        .order_by('name')
+    )
+
+    buscar    = request.GET.get('buscar', '').strip()
+    categoria = request.GET.get('categoria', '').strip()
+    if buscar:
+        productos = productos.filter(
+            Q(name__icontains=buscar)
+            | Q(description__icontains=buscar)
+            | Q(sku__icontains=buscar)
+        )
+    if categoria:
+        productos = productos.filter(category_id=categoria)
+
+    paginator = Paginator(productos, 12)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    context = {
+        'company':       company,
+        'productos':     page_obj,
+        'categorias':    Category.objects.all().order_by('name'),
+        'buscar':        buscar,
+        'cat_activa':    categoria,
+        'titulo_pagina': 'Mis productos',
+        'nav_activo':    'seller_productos',
+    }
+    return render(request, 'core/seller_productos.html', context)
+
+
+@seller_required
+def seller_producto_nuevo(request):
+    """
+    Crea un producto nuevo e inventario asociado para la empresa del vendedor.
+    """
+    company, resp = _seller_company_or_response(request, 'seller_productos')
+    if resp:
+        return resp
+
+    product_form = SellerProductForm()
+    inv_form     = SellerInventoryForm()
+
+    if request.method == 'POST':
+        product_form = SellerProductForm(request.POST, request.FILES)
+        inv_form     = SellerInventoryForm(request.POST)
+        if product_form.is_valid() and inv_form.is_valid():
+            with transaction.atomic():
+                product = product_form.save(commit=False)
+                product.company = company
+                product.save()
+                inv = inv_form.save(commit=False)
+                inv.product = product
+                inv.reserved_qty = 0
+                inv.save()
+            messages.success(request, f'Producto "{product.name}" creado correctamente.')
+            return redirect('seller_productos')
+        messages.error(request, 'Revisa los datos del formulario.')
+
+    context = {
+        'company':        company,
+        'product_form':   product_form,
+        'inv_form':       inv_form,
+        'titulo_pagina':  'Nuevo producto',
+        'nav_activo':     'seller_productos',
+        'es_edicion':     False,
+    }
+    return render(request, 'core/seller_producto_form.html', context)
+
+
+@seller_required
+def seller_producto_editar(request, pk):
+    """
+    Edita un producto existente de la empresa del vendedor y su inventario.
+    """
+    company, resp = _seller_company_or_response(request, 'seller_productos')
+    if resp:
+        return resp
+
+    product = get_object_or_404(
+        Product.objects.select_related('company').prefetch_related('inventory'),
+        pk=pk,
+        company=company,
+    )
+
+    try:
+        inventory = product.inventory
+    except Inventory.DoesNotExist:
+        inventory = Inventory(product=product, stock_qty=0, reserved_qty=0, low_stock_alert=5)
+        inventory.save()
+
+    product_form = SellerProductForm(request.POST or None, request.FILES or None, instance=product)
+    inv_form     = SellerInventoryForm(request.POST or None, instance=inventory)
+
+    if request.method == 'POST':
+        if product_form.is_valid() and inv_form.is_valid():
+            with transaction.atomic():
+                product_form.save()
+                inv_form.save()
+            messages.success(request, 'Cambios guardados.')
+            return redirect('seller_productos')
+        messages.error(request, 'Revisa los datos del formulario.')
+
+    context = {
+        'company':        company,
+        'product':        product,
+        'product_form':   product_form,
+        'inv_form':       inv_form,
+        'titulo_pagina':  f'Editar: {product.name}',
+        'nav_activo':     'seller_productos',
+        'es_edicion':     True,
+    }
+    return render(request, 'core/seller_producto_form.html', context)
+
+
+@seller_required
+def seller_ventas(request):
+    """
+    Lista las órdenes que incluyen al menos un producto de la empresa del vendedor.
+    """
+    company, resp = _seller_company_or_response(request, 'seller_ventas')
+    if resp:
+        return resp
+
+    ordenes = (
+        Order.objects.filter(items__product__company=company)
+        .distinct()
+        .select_related('buyer')
+        .order_by('-created_at')
+    )
+
+    estado = request.GET.get('estado', '').strip()
+    if estado:
+        ordenes = ordenes.filter(status=estado)
+
+    paginator = Paginator(ordenes, 10)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    context = {
+        'company':        company,
+        'ordenes':        page_obj,
+        'estado_actual':  estado,
+        'status_choices': Order.STATUS_CHOICES,
+        'titulo_pagina':  'Mis ventas',
+        'nav_activo':     'seller_ventas',
+    }
+    return render(request, 'core/seller_ventas.html', context)
+
+
+@seller_required
+def seller_venta_detalle(request, pk):
+    """
+    Muestra el detalle de una orden limitado a las líneas de la empresa del vendedor.
+    """
+    company, resp = _seller_company_or_response(request, 'seller_ventas')
+    if resp:
+        return resp
+
+    orden = get_object_or_404(
+        Order.objects.select_related('buyer', 'ship_address'),
+        pk=pk,
+    )
+    lineas = list(
+        orden.items.filter(product__company=company)
+        .select_related('product')
+        .order_by('id')
+    )
+    if not lineas:
+        raise Http404('Orden no encontrada o sin productos de tu empresa.')
+
+    subtotal_vendedor = sum((li.line_total for li in lineas), Decimal('0.00'))
+
+    context = {
+        'company':            company,
+        'orden':              orden,
+        'lineas_vendedor':    lineas,
+        'subtotal_vendedor':  subtotal_vendedor,
+        'pago':               getattr(orden, 'payment', None),
+        'titulo_pagina':      f'Venta {orden.order_number}',
+        'nav_activo':         'seller_ventas',
+    }
+    return render(request, 'core/seller_venta_detalle.html', context)
 
 
 # =============================================================================
@@ -567,51 +856,6 @@ def api_productos(request):
         for p in productos[:20]
     ]
     return JsonResponse({'productos': data})
-
-"""
-=============================================================================
-TRADEFLOW COLÓN — Vistas del portal comprador (buyer)
-=============================================================================
-Este bloque de vistas maneja el flujo completo de compra para usuarios
-con rol 'buyer'. Debe agregarse al archivo core/views.py existente.
-
-FLUJO COMPLETO:
-    /tienda/        → tienda()       Catálogo con filtros
-    /carrito/       → ver_carrito()  Ver y modificar el carrito
-    /carrito/agregar/<id>/  → agregar_al_carrito()
-    /carrito/quitar/<id>/   → quitar_del_carrito()
-    /checkout/      → checkout()     Confirmación y pago
-    /mis-ordenes/   → mis_ordenes()  Historial del comprador
-    /mis-ordenes/<pk>/  → detalle_mi_orden()
-
-CARRITO EN SESIÓN:
-    El carrito se almacena en request.session['carrito'] como un
-    diccionario con la siguiente estructura:
-    {
-        '<product_id>': {
-            'nombre':   str,
-            'precio':   str,   # Decimal como string para serialización
-            'cantidad': int,
-            'subtotal': str,
-            'imagen':   str,   # URL relativa de la imagen
-        }
-    }
-
-DEPENDENCIAS:
-    - core/decorators.py → @buyer_required
-    - core/models.py     → Product, Inventory, Order, OrderItem, Payment
-=============================================================================
-"""
-
-from decimal import Decimal
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.core.paginator import Paginator
-from django.db.models import Q
-
-# Estos imports ya están en views.py — no los dupliques
-# from .decorators import buyer_required
-# from .models import Product, Category, Order, OrderItem, Payment, Address
 
 
 # ---------------------------------------------------------------------------

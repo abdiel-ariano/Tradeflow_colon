@@ -41,10 +41,14 @@ admin.site.register(User, UserAdmin)
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    list_display   = ['name', 'ruc', 'is_verified', 'created_at']
+    """
+    Administración de empresas; incluye propietario vendedor para el portal Mi Tienda.
+    """
+    list_display   = ['name', 'ruc', 'owner', 'is_verified', 'created_at']
     list_filter    = ['is_verified']
-    search_fields  = ['name', 'ruc']
+    search_fields  = ['name', 'ruc', 'owner__username', 'owner__email']
     list_editable  = ['is_verified']
+    raw_id_fields  = ['owner']
     list_per_page  = 25
 
 

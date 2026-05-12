@@ -1,0 +1,95 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Mis productos — TradeFlow{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
+{% endblock %}
+{% block content %}
+<div class="seller-layout">
+  {% include "core/seller_sidebar.html" %}
+  <div class="seller-main">
+    <h1>Productos</h1>
+    <p class="seller-sub">Gestiona el catálogo de {{ company.name }}.</p>
+    <div class="seller-toolbar">
+      <a href="{% url 'seller_producto_nuevo' %}" class="btn-seller-primary">Nuevo producto</a>
+      <form class="seller-filters" method="get" action="">
+        <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Buscar nombre o SKU…">
+        <select class="tf-input" name="categoria" style="max-width:220px;">
+          <option value="">Todas las categorías</option>
+          {% for c in categorias %}
+          <option value="{{ c.pk }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-seller-outline">Filtrar</button>
+      </form>
+    </div>
+    <script>
+    (function () {
+      var sel = document.querySelector("select[name=categoria]");
+      if (!sel) return;
+      var wanted = "{{ cat_activa|escapejs }}";
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === wanted) { sel.selectedIndex = i; break; }
+      }
+    })();
+    </script>
+    <div class="seller-table-wrap">
+      {% if productos %}
+      <table class="seller-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Producto</th>
+            <th>SKU</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in productos %}
+          <tr>
+            <td style="width:56px;">
+              {% if p.image %}
+              <img class="seller-product-thumb" src="{{ p.image.url }}" alt="">
+              {% else %}
+              <div class="seller-product-thumb"></div>
+              {% endif %}
+            </td>
+            <td><strong>{{ p.name }}</strong>{% if p.category %}<br><span style="color:var(--tf-muted);font-size:0.82rem;">{{ p.category.name }}</span>{% endif %}</td>
+            <td>{{ p.sku|default:"—" }}</td>
+            <td>{{ p.unit_price }} {{ p.currency }}</td>
+            <td>
+              {% if p.inventory %}
+                {% with av=p.inventory.available %}
+                <span class="seller-stock-pill {% if not av %}seller-stock-out{% elif p.inventory.is_low_stock %}seller-stock-low{% else %}seller-stock-ok{% endif %}">{{ av }} disp.</span>
+                {% endwith %}
+              {% else %}
+                <span class="seller-stock-pill seller-stock-out">0</span>
+              {% endif %}
+            </td>
+            <td>{% if p.is_active %}<span class="tf-badge tf-badge-teal">Activo</span>{% else %}<span class="tf-badge tf-badge-warn">Inactivo</span>{% endif %}</td>
+            <td><a href="{% url 'seller_producto_editar' p.pk %}">Editar</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="padding:1.25rem;color:var(--tf-muted);">No hay productos con estos filtros.</p>
+      {% endif %}
+    </div>
+    {% if productos.has_other_pages %}
+    <nav style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
+      {% if productos.has_previous %}
+      <a class="btn-seller-outline" href="?page={{ productos.previous_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Anterior</a>
+      {% endif %}
+      <span style="align-self:center;color:var(--tf-muted);font-size:0.88rem;">Página {{ productos.number }} de {{ productos.paginator.num_pages }}</span>
+      {% if productos.has_next %}
+      <a class="btn-seller-outline" href="?page={{ productos.next_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Siguiente</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

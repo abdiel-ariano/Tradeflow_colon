@@ -31,8 +31,14 @@ urlpatterns = [
     path('mis-ordenes/',                     views.mis_ordenes,         name='mis_ordenes'),
     path('mis-ordenes/<int:pk>/',            views.detalle_mi_orden,    name='detalle_mi_orden'),
 
-    # Portal del vendedor (placeholder)
+    # Portal del vendedor
     path('mi-tienda/', views.portal_seller, name='portal_seller'),
+    path('mi-tienda/panel/', views.seller_dashboard, name='seller_dashboard'),
+    path('mi-tienda/productos/', views.seller_productos, name='seller_productos'),
+    path('mi-tienda/productos/nuevo/', views.seller_producto_nuevo, name='seller_producto_nuevo'),
+    path('mi-tienda/productos/<int:pk>/editar/', views.seller_producto_editar, name='seller_producto_editar'),
+    path('mi-tienda/ventas/', views.seller_ventas, name='seller_ventas'),
+    path('mi-tienda/ventas/<int:pk>/', views.seller_venta_detalle, name='seller_venta_detalle'),
 
     # ── Órdenes (admin) ───────────────────────────────────────────────────
     path('ordenes/',                              views.lista_ordenes,        name='lista_ordenes'),
