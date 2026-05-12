@@ -1,113 +1,96 @@
 {% extends "core/base.html" %}
 {% load static %}
-
-{#
-  mis_ordenes.html — Historial de compras del comprador
-
-  Contexto esperado:
-    ordenes       → Page object de Order filtradas por buyer=request.user
-    estado_actual → str, filtro activo
-    status_choices→ lista de tuplas (valor, etiqueta)
-#}
-
-{% block title %}Mis Órdenes — TradeFlow Colón{% endblock %}
-
+{% block title %}Mis órdenes — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-.ordenes-wrap { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
-.ordenes-titulo { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--tf-dark); margin-bottom: 1.75rem; }
-.filtro-estados { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.filtro-btn {
-  padding: 6px 14px; border-radius: 20px; font-size: 0.83rem; font-weight: 500;
-  border: 1.5px solid var(--tf-border); color: var(--tf-muted);
-  text-decoration: none; transition: all .15s;
-}
-.filtro-btn:hover { border-color: var(--tf-dark); color: var(--tf-dark); }
-.filtro-btn.activo { background: var(--tf-dark); color: #fff; border-color: var(--tf-dark); }
-.orden-card {
-  background: var(--tf-white); border: 1px solid var(--tf-border);
-  border-radius: var(--radius); padding: 1.25rem 1.5rem;
-  margin-bottom: 10px; transition: box-shadow .2s;
-  display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
-}
-.orden-card:hover { box-shadow: 0 4px 16px rgba(64,75,87,.08); }
-.orden-num { font-weight: 600; color: var(--tf-dark); font-size: 0.95rem; min-width: 140px; }
-.orden-fecha { font-size: 0.83rem; color: var(--tf-muted); }
-.orden-items-preview { font-size: 0.83rem; color: var(--tf-muted); flex: 1; }
-.orden-total { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--tf-dark); min-width: 90px; text-align: right; }
-.orden-ver { font-size: 0.82rem; text-decoration: none; color: var(--tf-teal); font-weight: 500; white-space: nowrap; }
-.orden-ver:hover { text-decoration: underline; }
-.badge-estado {
-  font-size: 0.72rem; font-weight: 600; padding: 3px 9px; border-radius: 20px;
-}
-.estado-pending   { background: #fef8e7; color: #6b4a00; }
-.estado-paid      { background: #e8f4f8; color: #1a4f65; }
-.estado-packed    { background: #e8f4f8; color: #1a4f65; }
-.estado-shipped   { background: rgba(98,146,154,.15); color: var(--tf-teal2); }
-.estado-delivered { background: #edf7ee; color: #1e5c21; }
-.estado-cancelled { background: #fdecea; color: #7d1a14; }
-.ordenes-vacias { text-align: center; padding: 4rem 1rem; }
-.ordenes-vacias h3 { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--tf-dark); margin-bottom: 8px; }
+<style>
+  .mo-wrap { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .mo-title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.25rem; }
+  .mo-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+  .mo-tab {
+    padding: 8px 14px; border-radius: 20px; border: 1px solid #D1D5DB; background: #fff; color: #374151;
+    font-size: 0.8125rem; font-weight: 600; text-decoration: none; transition: all 0.2s ease;
+  }
+  .mo-tab:hover { border-color: #2E5B8A; color: #0F2A44; }
+  .mo-tab.is-on { background: #0F2A44; color: #fff; border-color: #0F2A44; }
+  .mo-card {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1.15rem 1.25rem;
+    background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; margin-bottom: 10px;
+    transition: box-shadow 0.2s ease;
+  }
+  .mo-card:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08); }
+  .mo-num { font-family: 'Inter', sans-serif; font-weight: 700; color: #0F2A44; font-size: 0.95rem; min-width: 140px; }
+  .mo-date { font-size: 0.8125rem; color: #6B7A88; }
+  .mo-prev { flex: 1; min-width: 200px; font-size: 0.8125rem; color: #6B7A88; }
+  .mo-total { font-family: 'Inter', sans-serif; font-weight: 700; color: #F26522; min-width: 90px; text-align: right; }
+  .mo-link { font-size: 0.8125rem; font-weight: 600; color: #2E5B8A; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+  .mo-link:hover { text-decoration: underline; }
+  .mo-badge { font-size: 0.72rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+  .mo-empty { text-align: center; padding: 3rem 1rem; color: #6B7A88; }
+</style>
 {% endblock %}
-
 {% block content %}
-<div class="ordenes-wrap">
-  <h1 class="ordenes-titulo">Mis Órdenes</h1>
-
-  {# ── Filtros por estado ── #}
-  <div class="filtro-estados">
-    <a href="{% url 'mis_ordenes' %}" class="filtro-btn {% if not estado_actual %}activo{% endif %}">Todas</a>
+<div class="mo-wrap">
+  <h1 class="mo-title">Mis órdenes</h1>
+  <div class="mo-tabs" id="mo-tabs" data-current="{{ estado_actual|escapejs }}">
+    <a href="{% url 'mis_ordenes' %}" class="mo-tab" data-estado="">Todas</a>
     {% for valor, etiqueta in status_choices %}
-      <a href="?estado={{ valor }}"
-         class="filtro-btn {% if estado_actual == valor %}activo{% endif %}">
-        {{ etiqueta }}
-      </a>
+    <a href="?estado={{ valor }}" class="mo-tab" data-estado="{{ valor }}">{{ etiqueta }}</a>
     {% endfor %}
   </div>
-
-  {# ── Lista de órdenes ── #}
   {% if ordenes %}
     {% for orden in ordenes %}
-    <div class="orden-card">
+    <div class="mo-card">
       <div>
-        <div class="orden-num">{{ orden.order_number }}</div>
-        <div class="orden-fecha">{{ orden.created_at|date:"d/m/Y H:i" }}</div>
+        <div class="mo-num">{{ orden.order_number }}</div>
+        <div class="mo-date">{{ orden.created_at|date:"d/m/Y H:i" }}</div>
       </div>
-      <div class="orden-items-preview">
-        {% for item in orden.items.all|slice:":2" %}
-          {{ item.qty }}x {{ item.product.name }}{% if not forloop.last %}, {% endif %}
-        {% endfor %}
+      <div class="mo-prev">
+        {% for item in orden.items.all|slice:":2" %}{{ item.qty }}× {{ item.product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
         {% if orden.items.count > 2 %} y {{ orden.items.count|add:"-2" }} más{% endif %}
       </div>
-      <span class="badge-estado estado-{{ orden.status }}">
-        {{ orden.get_status_display }}
-      </span>
-      <div class="orden-total">USD {{ orden.total }}</div>
-      <a href="{% url 'detalle_mi_orden' orden.pk %}" class="orden-ver">Ver detalle</a>
+      <span class="mo-badge mo-st" data-st="{{ orden.status }}">{{ orden.get_status_display }}</span>
+      <div class="mo-total">USD {{ orden.total }}</div>
+      <a href="{% url 'detalle_mi_orden' orden.pk %}" class="mo-link">Ver detalle <span class="material-symbols-rounded" style="font-size:18px;">chevron_right</span></a>
     </div>
     {% endfor %}
-
-    {# ── Paginación ── #}
     {% if ordenes.has_other_pages %}
-    <div style="display:flex;justify-content:center;gap:6px;margin-top:1.5rem;flex-wrap:wrap;">
+    <div style="display:flex;justify-content:center;gap:8px;margin-top:1.5rem;flex-wrap:wrap;">
       {% if ordenes.has_previous %}
-        <a href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual }}"
-           class="btn-tf btn-tf-outline" style="padding:7px 14px;font-size:0.85rem;">Anterior</a>
+      <a href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">Anterior</a>
       {% endif %}
       {% if ordenes.has_next %}
-        <a href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual }}"
-           class="btn-tf btn-tf-outline" style="padding:7px 14px;font-size:0.85rem;">Siguiente</a>
+      <a href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">Siguiente</a>
       {% endif %}
     </div>
     {% endif %}
-
   {% else %}
-  <div class="ordenes-vacias">
-    <h3>Aún no tienes órdenes</h3>
-    <p style="color:var(--tf-muted);">Explora el catálogo y realiza tu primera compra.</p>
-    <a href="{% url 'tienda' %}" class="btn-tf btn-tf-teal" style="margin-top:1.5rem;">
-      Ir a la tienda
-    </a>
+  <div class="mo-empty">
+    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">Aún no tienes órdenes</p>
+    <p style="margin:0;">Explora el catálogo y realiza tu primera compra.</p>
+    <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> Ir a la tienda</a>
   </div>
   {% endif %}
 </div>
+<script>
+(function () {
+  var root = document.getElementById('mo-tabs');
+  if (!root) return;
+  var cur = root.getAttribute('data-current') || '';
+  root.querySelectorAll('.mo-tab').forEach(function (a) {
+    if ((a.getAttribute('data-estado') || '') === cur) a.classList.add('is-on');
+  });
+  var map = {
+    pending: { bg: '#fef8e7', fg: '#6b4a00' },
+    paid: { bg: '#e8f4f8', fg: '#1a4f65' },
+    packed: { bg: '#e8f4f8', fg: '#1a4f65' },
+    shipped: { bg: '#e0f2f1', fg: '#0d5c56' },
+    delivered: { bg: '#edf7ee', fg: '#1e5c21' },
+    cancelled: { bg: '#fdecea', fg: '#7d1a14' },
+  };
+  document.querySelectorAll('.mo-st').forEach(function (el) {
+    var t = map[el.getAttribute('data-st')];
+    if (t) { el.style.background = t.bg; el.style.color = t.fg; }
+  });
+})();
+</script>
 {% endblock %}

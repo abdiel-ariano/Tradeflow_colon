@@ -1,10 +1,19 @@
 {% load static %}
 <aside class="seller-side" id="seller-side-nav" data-seller-nav="{{ nav_activo|default:''|escapejs }}">
-  <div class="seller-side-brand">Mi Tienda<small>{{ company.name }}</small></div>
+  <div class="seller-side-brand">
+    Mi Tienda
+    <small>{{ company.name }}</small>
+  </div>
   <nav>
-    <a href="{% url 'seller_dashboard' %}" data-seller-nav="mi_tienda">Panel</a>
-    <a href="{% url 'seller_productos' %}" data-seller-nav="seller_productos">Productos</a>
-    <a href="{% url 'seller_ventas' %}" data-seller-nav="seller_ventas">Ventas</a>
+    <a href="{% url 'portal_seller' %}" data-seller-nav="mi_tienda">
+      <span class="material-symbols-rounded">dashboard</span> Mi panel
+    </a>
+    <a href="{% url 'seller_mis_productos' %}" data-seller-nav="seller_productos">
+      <span class="material-symbols-rounded">inventory_2</span> Productos
+    </a>
+    <a href="{% url 'seller_mis_ventas' %}" data-seller-nav="seller_ventas">
+      <span class="material-symbols-rounded">payments</span> Mis ventas
+    </a>
   </nav>
 </aside>
 <script>

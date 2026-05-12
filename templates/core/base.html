@@ -1,41 +1,116 @@
 {% load static %}
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
+  {% block extra_head %}{% endblock %}
   <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
-  <link rel="stylesheet" href="{% static 'css/colors.css' %}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
   <style>
     :root {
-      --radius:    12px;
-      --radius-sm: 8px;
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      color: var(--tf-text);
-      background: var(--tf-white);
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+      --tf-navy: #0F2A44;
+      --tf-navy-mid: #1B3B63;
+      --tf-blue: #2E5B8A;
+      --tf-orange: #F26522;
+      --tf-orange-h: #FF7A3D;
+      --tf-orange-s: #FFA15A;
+      --tf-light: #F2F3F5;
+      --tf-border: #D1D5DB;
+      --tf-muted: #6B7A88;
+      --tf-white: #FFFFFF;
+      --tf-body: #374151;
+      --tf-title: #0F2A44;
+      --tf-subtitle: #1B3B63;
+      --tf-danger: #EF4444;
+      --tf-radius-card: 12px;
+      --tf-radius-btn: 8px;
+      --tf-radius-input: 8px;
+      --tf-radius-badge: 20px;
+      --tf-radius-modal: 16px;
+      --tf-shadow-card-hover: 0 8px 24px rgba(15, 42, 68, 0.12);
+      --tf-shadow-nav: 0 1px 0 #D1D5DB;
+      --tf-shadow-btn-primary: 0 4px 12px rgba(242, 101, 34, 0.3);
     }
 
-    /* ── Navbar ── */
+    .material-symbols-rounded {
+      font-family: 'Material Symbols Rounded';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+    }
+    .material-symbols-rounded.tf-ms-18 { font-size: 18px; }
+    .material-symbols-rounded.tf-ms-nav { font-size: 20px; margin-right: 6px; opacity: 0.9; }
+    .tf-btn .material-symbols-rounded { font-size: 18px; margin-right: 6px; }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-weight: 400;
+      color: var(--tf-body);
+      background: var(--tf-light);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1, .tf-page-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: var(--tf-title);
+      margin: 0 0 0.5rem;
+    }
+    h2, .tf-subtitle {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      color: var(--tf-subtitle);
+      margin: 0 0 0.75rem;
+    }
+    .tf-label {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 0.8125rem;
+      color: var(--tf-muted);
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+    .tf-price {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      color: var(--tf-orange);
+    }
+
+    /* ----- Navbar ----- */
     .tf-nav {
-      background: var(--tf-white);
-      border-bottom: 1px solid var(--tf-border);
-      padding: 0 2rem;
+      background: var(--tf-navy);
       height: 64px;
+      padding: 0 1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 200;
+      z-index: 100;
+      box-shadow: var(--tf-shadow-nav);
       gap: 1rem;
     }
     .tf-nav-brand {
@@ -44,297 +119,548 @@
       gap: 10px;
       text-decoration: none;
       flex-shrink: 0;
+      color: var(--tf-white);
     }
     .tf-nav-brand img {
       height: 36px;
       width: 36px;
       object-fit: contain;
+      filter: brightness(0) invert(1);
     }
-    .brand-wordmark {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.25rem;
-      color: var(--tf-dark);
-      letter-spacing: -0.2px;
-      line-height: 1;
+    .tf-nav-brand .brand-wordmark {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--tf-white);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
     }
-    .brand-wordmark span { color: var(--tf-teal); }
-    .brand-sub {
-      font-size: 0.68rem;
-      color: var(--tf-muted);
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 400;
-      letter-spacing: .04em;
-      margin-top: 1px;
+    .tf-nav-brand .brand-sub {
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
+
     .tf-nav-links {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
-    .tf-nav-links a.nav-link {
-      font-size: 0.88rem;
-      color: var(--tf-muted);
-      padding: 6px 12px;
-      border-radius: var(--radius-sm);
-      transition: color .18s, background .18s;
+    .tf-nav-group { display: none; align-items: center; gap: 2px; }
+    .tf-nav-group.is-visible { display: flex; }
+
+    .tf-nav-links a.nav-link-tf {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.875rem;
       font-weight: 500;
+      color: rgba(255, 255, 255, 0.75);
+      padding: 8px 12px;
+      border-radius: var(--tf-radius-btn);
+      text-decoration: none;
+      transition: color 0.2s ease, background 0.2s ease;
       white-space: nowrap;
     }
-    .tf-nav-links a.nav-link:hover { color: var(--tf-dark); background: var(--tf-light); }
-    .tf-nav-links a.nav-link.active { color: var(--tf-teal); }
-    .nav-divider { width: 1px; height: 28px; background: var(--tf-border); margin: 0 6px; }
-    .tf-nav-avatar {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: var(--tf-sand);
-      color: var(--tf-dark);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 600; font-size: 0.78rem;
+    .tf-nav-links a.nav-link-tf:hover {
+      color: var(--tf-white);
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .tf-nav-links a.nav-link-tf.active {
+      color: var(--tf-white);
+      text-decoration: underline;
+      text-decoration-color: var(--tf-orange);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 6px;
+    }
+
+    .tf-nav-divider {
+      width: 1px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.15);
+      margin: 0 8px;
       flex-shrink: 0;
     }
-    .tf-nav-user-name { font-size: 0.85rem; color: var(--tf-muted); white-space: nowrap; }
 
-    /* ── Buttons ── */
-    .btn-tf {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 18px; border-radius: var(--radius-sm);
-      font-size: 0.88rem; font-weight: 500;
-      font-family: 'DM Sans', sans-serif;
-      border: none; cursor: pointer;
-      text-decoration: none; transition: all .18s;
+    .tf-nav-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--tf-orange);
+      color: var(--tf-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    .tf-nav-user-name {
+      font-size: 0.8125rem;
+      color: rgba(255, 255, 255, 0.85);
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .btn-tf:active { transform: scale(0.98); }
-    .btn-tf-primary { background: var(--tf-dark); color: #fff; }
-    .btn-tf-primary:hover { background: var(--tf-dark2); color: #fff; }
-    .btn-tf-teal { background: var(--tf-teal); color: #fff; }
-    .btn-tf-teal:hover { background: var(--tf-teal2); color: #fff; }
-    .btn-tf-outline {
-      background: transparent; color: var(--tf-dark);
-      border: 1.5px solid var(--tf-border);
-    }
-    .btn-tf-outline:hover { background: var(--tf-light); color: var(--tf-dark); border-color: var(--tf-border-hover); }
-    .btn-tf-ghost { background: transparent; color: var(--tf-muted); }
-    .btn-tf-ghost:hover { background: var(--tf-light); color: var(--tf-dark); }
 
-    /* ── Alerts ── */
-    .tf-messages { padding: 0.75rem 2rem 0; }
-    .tf-alert {
-      border-radius: var(--radius-sm);
-      padding: 11px 14px;
-      margin-bottom: 8px;
-      font-size: 0.88rem;
-      display: flex; align-items: flex-start; gap: 10px;
-      border: 1.5px solid transparent;
-      line-height: 1.5;
+    .tf-nav-cart {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      padding: 8px;
+      border-radius: var(--tf-radius-btn);
     }
-    .tf-alert-success { background:var(--alert-success-bg); border-color:var(--alert-success-border); color:var(--alert-success-fg); }
-    .tf-alert-danger  { background:var(--alert-danger-bg);  border-color:var(--alert-danger-border);  color:var(--alert-danger-fg); }
-    .tf-alert-info    { background:var(--alert-info-bg);    border-color:var(--alert-info-border);    color:var(--alert-info-fg); }
-    .tf-alert-warning { background:var(--alert-warning-bg); border-color:var(--alert-warning-border); color:var(--alert-warning-fg); }
-    .tf-alert-icon { font-size: 0.9rem; flex-shrink: 0; margin-top: 2px; }
-    .tf-alert-msg { flex: 1; }
-    .tf-alert-close {
-      background: none; border: none; cursor: pointer; color: inherit;
-      opacity: 0.5; font-size: 0.85rem; padding: 0; flex-shrink: 0;
-      line-height: 1; margin-top: 2px;
+    .tf-nav-cart:hover { color: var(--tf-white); background: rgba(255,255,255,0.06); }
+    .tf-nav-cart-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      line-height: 18px;
+      text-align: center;
+      background: var(--tf-orange);
+      color: var(--tf-white);
+      border-radius: 20px;
+      display: none;
     }
-    .tf-alert-close:hover { opacity: 1; }
+    .tf-nav-cart-badge.has-count { display: block; }
 
-    /* ── Inputs ── */
+    .tf-btn-ghost-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.85);
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: var(--tf-radius-btn);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .tf-btn-ghost-nav:hover {
+      color: var(--tf-white);
+      border-color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .tf-btn-primary-sm {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--tf-white);
+      background: var(--tf-orange);
+      border: none;
+      border-radius: var(--tf-radius-btn);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .tf-btn-primary-sm:hover {
+      background: var(--tf-orange-h);
+      color: var(--tf-white);
+      box-shadow: var(--tf-shadow-btn-primary);
+    }
+    .tf-btn-outline-sm {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--tf-white);
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: var(--tf-radius-btn);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .tf-btn-outline-sm:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--tf-white);
+    }
+
+    /* ----- Flash messages ----- */
+    .tf-flash-stack {
+      position: fixed;
+      top: 72px;
+      right: 16px;
+      left: 16px;
+      z-index: 1050;
+      max-width: 420px;
+      margin-left: auto;
+      pointer-events: none;
+    }
+    .tf-flash-stack > * { pointer-events: auto; }
+
+    .tf-flash {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      border-radius: var(--tf-radius-card);
+      border: 1px solid var(--tf-border);
+      background: var(--tf-white);
+      box-shadow: var(--tf-shadow-card-hover);
+      font-size: 0.875rem;
+      line-height: 1.45;
+    }
+    .tf-flash .material-symbols-rounded {
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .tf-flash-msg { flex: 1; color: var(--tf-body); }
+    .tf-flash-close {
+      flex-shrink: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+      color: var(--tf-muted);
+      line-height: 1;
+      transition: color 0.2s ease;
+    }
+    .tf-flash-close:hover { color: var(--tf-title); }
+    .tf-flash-success { border-color: #BBF7D0; background: #F0FDF4; }
+    .tf-flash-danger, .tf-flash-error { border-color: #FECACA; background: #FEF2F2; }
+    .tf-flash-warning { border-color: #FDE68A; background: #FFFBEB; }
+    .tf-flash-info, .tf-flash-debug { border-color: #BFDBFE; background: #EFF6FF; }
+
+    /* ----- Buttons (global) ----- */
+    .tf-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 20px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--tf-radius-btn);
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .tf-btn-primary {
+      background: var(--tf-orange);
+      color: var(--tf-white);
+    }
+    .tf-btn-primary:hover {
+      background: var(--tf-orange-h);
+      color: var(--tf-white);
+      box-shadow: var(--tf-shadow-btn-primary);
+    }
+    .tf-btn-secondary {
+      background: transparent;
+      color: var(--tf-navy);
+      border: 1px solid var(--tf-border);
+    }
+    .tf-btn-secondary:hover {
+      background: var(--tf-white);
+      border-color: var(--tf-muted);
+    }
+    .tf-btn-danger {
+      background: var(--tf-danger);
+      color: var(--tf-white);
+    }
+    .tf-btn-danger:hover {
+      filter: brightness(0.95);
+      color: var(--tf-white);
+    }
+
+    /* ----- Inputs ----- */
     .tf-input {
-      width: 100%; border: 1.5px solid var(--tf-border);
-      border-radius: var(--radius-sm); padding: 10px 13px;
-      font-size: 0.93rem; font-family: 'DM Sans', sans-serif;
-      color: var(--tf-text); background: var(--tf-white);
-      transition: border-color .18s, box-shadow .18s; outline: none;
+      width: 100%;
+      padding: 10px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9375rem;
+      color: var(--tf-body);
+      background: var(--tf-white);
+      border: 1px solid var(--tf-border);
+      border-radius: var(--tf-radius-input);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      outline: none;
     }
-    .tf-input:focus { border-color: var(--tf-teal); box-shadow: 0 0 0 3px var(--tf-teal-faint); }
-    .tf-input::placeholder { color: var(--ui-placeholder); }
-    .tf-input.is-error { border-color: var(--ui-input-error); box-shadow: 0 0 0 3px var(--ui-input-error-glow); }
-    .tf-label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--tf-muted); margin-bottom: 5px; }
-    .tf-field { margin-bottom: 1rem; }
+    .tf-input:focus {
+      border-color: var(--tf-blue);
+      box-shadow: 0 0 0 3px rgba(46, 91, 138, 0.15);
+    }
+    .tf-input::placeholder { color: var(--tf-muted); }
 
-    /* ── Cards ── */
+    /* ----- Cards ----- */
     .tf-card {
       background: var(--tf-white);
       border: 1px solid var(--tf-border);
-      border-radius: var(--radius); padding: 1.5rem;
+      border-radius: var(--tf-radius-card);
+      padding: 1.5rem;
+      transition: box-shadow 0.2s ease;
     }
-    .tf-card-sand {
-      background: var(--ui-card-sand-bg);
-      border: 1px solid var(--tf-sand-dim);
-      border-radius: var(--radius); padding: 1.5rem;
-    }
+    .tf-card:hover { box-shadow: var(--tf-shadow-card-hover); }
 
-    /* ── Badges ── */
+    /* ----- Badges ----- */
     .tf-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 0.72rem; font-weight: 600;
-      padding: 3px 9px; border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: var(--tf-radius-badge);
+      font-family: 'Inter', sans-serif;
     }
-    .tf-badge-teal    { background: var(--tf-teal-faint);  color: var(--tf-teal2); }
-    .tf-badge-sand    { background: var(--tf-sand-faint);  color: var(--tf-sand-text); }
-    .tf-badge-dark    { background: var(--tf-dark-faint);  color: var(--tf-dark); }
-    .tf-badge-success { background: var(--alert-success-bg); color: var(--alert-success-fg); }
-    .tf-badge-warn    { background: var(--alert-warning-bg); color: var(--alert-warning-fg); }
-    .tf-badge-danger  { background: var(--alert-danger-bg);  color: var(--alert-danger-fg); }
+    .tf-badge-neutral { background: var(--tf-light); color: var(--tf-muted); }
+    .tf-badge-orange { background: rgba(242, 101, 34, 0.12); color: var(--tf-orange); }
+    .tf-badge-navy { background: rgba(15, 42, 68, 0.08); color: var(--tf-navy); }
 
-    /* ── Section helpers ── */
-    .tf-section { padding: 4rem 2rem; }
-    .tf-section-sm { padding: 2.5rem 2rem; }
-    .tf-container { max-width: 1160px; margin: 0 auto; }
-
-    /* ── Footer ── */
+    /* ----- Footer ----- */
     .tf-footer {
-      background: var(--tf-dark);
-      color: rgba(240,240,240,.65);
-      padding: 3rem 2rem 1.5rem;
+      background: var(--tf-navy);
+      color: rgba(255, 255, 255, 0.65);
+      padding: 3rem 1.5rem 1.5rem;
       margin-top: auto;
     }
-    .tf-footer .footer-grid {
-      max-width: 1160px; margin: 0 auto;
-      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 2rem;
+    .tf-footer-grid {
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 2rem;
     }
-    .tf-footer .footer-brand-name {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.2rem; color: #fff;
+    @media (max-width: 991px) {
+      .tf-footer-grid { grid-template-columns: 1fr 1fr; }
     }
-    .tf-footer .footer-brand-name span { color: var(--tf-sand); }
-    .tf-footer a { color: rgba(240,240,240,.55); text-decoration: none; font-size: 0.83rem; transition: color .15s; }
-    .tf-footer a:hover { color: #fff; }
-    .tf-footer .footer-col-title {
-      font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .09em; color: rgba(240,240,240,.35); margin-bottom: 10px;
+    @media (max-width: 575px) {
+      .tf-footer-grid { grid-template-columns: 1fr; }
     }
-    .tf-footer .footer-col-links { display: flex; flex-direction: column; gap: 7px; }
-    .tf-footer .footer-bottom {
-      max-width: 1160px; margin: 1.5rem auto 0;
-      border-top: 1px solid rgba(255,255,255,.08);
-      padding-top: 1rem; font-size: 0.78rem;
-      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+    .tf-footer-brand {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--tf-white);
     }
+    .tf-footer a {
+      color: rgba(255, 255, 255, 0.55);
+      text-decoration: none;
+      font-size: 0.8125rem;
+      transition: color 0.2s ease;
+    }
+    .tf-footer a:hover { color: var(--tf-white); }
+    .tf-footer-col-title {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.35);
+      margin-bottom: 10px;
+    }
+    .tf-footer-links { display: flex; flex-direction: column; gap: 8px; }
+    .tf-footer-bottom {
+      max-width: 1160px;
+      margin: 1.5rem auto 0;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.45);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    main.tf-main { flex: 1; width: 100%; }
 
     {% block extra_css %}{% endblock %}
   </style>
 </head>
 <body>
+  {% if request.user.is_authenticated %}
+  <div id="tf-nav-meta" class="d-none"
+       data-role="{{ request.user.profile.role }}"
+       data-superuser="{{ request.user.is_superuser|yesno:'1,0' }}"
+       data-nav-active="{{ nav_activo|default:'' }}"
+       data-cart-count="{% firstof carrito_count 0 %}"></div>
+  {% endif %}
 
-<!-- Navbar -->
-<nav class="tf-nav">
-  <a href="{% url 'home' %}" class="tf-nav-brand">
-    <img src="{% static 'img/logo.png' %}" alt="Logo TradeFlow">
-    <div>
-      <div class="brand-wordmark">Trade<span>Flow</span></div>
-      <div class="brand-sub">Zona Libre de Colón</div>
-    </div>
-  </a>
-
-  <div class="tf-nav-links">
-    {% if request.user.is_authenticated %}
-      {% with role=request.user.profile.role %}
-        {% if role == 'admin' or request.user.is_superuser %}
-          <a href="{% url 'dashboard' %}"       class="nav-link" data-tf-nav="dashboard">Dashboard</a>
-          <a href="{% url 'lista_ordenes' %}"   class="nav-link" data-tf-nav="ordenes">Órdenes</a>
-          <a href="{% url 'lista_productos' %}" class="nav-link" data-tf-nav="productos">Productos</a>
-          <a href="{% url 'lista_empresas' %}"  class="nav-link" data-tf-nav="empresas">Empresas</a>
-        {% elif role == 'buyer' %}
-          <a href="{% url 'tienda' %}"  class="nav-link" data-tf-nav="tienda">Tienda</a>
-          <a href="{% url 'mis_ordenes' %}" class="nav-link" data-tf-nav="mis_ordenes">Mis Órdenes</a>
-        {% elif role == 'seller' %}
-          <a href="{% url 'seller_dashboard' %}" class="nav-link" data-tf-nav="mi_tienda">Mi Tienda</a>
-          <a href="{% url 'seller_productos' %}" class="nav-link" data-tf-nav="seller_productos">Productos</a>
-          <a href="{% url 'seller_ventas' %}" class="nav-link" data-tf-nav="seller_ventas">Mis ventas</a>
-        {% endif %}
-      {% endwith %}
-      <div class="nav-divider"></div>
-      <div class="tf-nav-avatar">
-        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+  <nav class="tf-nav" aria-label="Principal">
+    <a href="{% url 'home' %}" class="tf-nav-brand">
+      <img src="{% static 'img/logo.png' %}" width="36" height="36" alt="">
+      <div>
+        <div class="brand-wordmark">TradeFlow</div>
+        <div class="brand-sub">Zona Libre de Colón</div>
       </div>
-      <span class="tf-nav-user-name">{{ request.user.first_name|default:request.user.username }}</span>
-      <a href="{% url 'logout' %}" class="btn-tf btn-tf-ghost" style="padding:6px 12px;font-size:0.82rem;">Salir</a>
-    {% else %}
-      <a href="{% url 'login' %}"  class="btn-tf btn-tf-outline" style="padding:7px 16px;">Iniciar sesión</a>
-      <a href="{% url 'signup' %}" class="btn-tf btn-tf-teal"    style="padding:7px 16px;">Crear cuenta</a>
-    {% endif %}
-  </div>
-</nav>
-<script>
-(function () {
-  var cur = "{{ nav_activo|default:''|escapejs }}";
-  if (!cur) return;
-  document.querySelectorAll(".tf-nav-links a.nav-link[data-tf-nav]").forEach(function (a) {
-    if (a.getAttribute("data-tf-nav") === cur) a.classList.add("active");
-  });
-})();
-</script>
+    </a>
 
-<!-- Mensajes flash — siempre visibles, bien diseñados -->
-{% if messages %}
-<div class="tf-messages">
-  {% for message in messages %}
-  <div class="tf-alert tf-alert-{{ message.tags }}">
-    <span class="tf-alert-icon">
-      {% if message.tags == 'success' %}✓{% elif message.tags == 'danger' %}✕{% elif message.tags == 'warning' %}!{% else %}i{% endif %}
-    </span>
-    <span class="tf-alert-msg">{{ message }}</span>
-    <button class="tf-alert-close" onclick="this.closest('.tf-alert').remove()">✕</button>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-
-<!-- Contenido principal -->
-<main style="flex:1;">
-  {% block content %}{% endblock %}
-</main>
-
-<!-- Footer -->
-{% block footer %}
-<footer class="tf-footer">
-  <div class="footer-grid">
-    <div>
-      <div class="footer-brand-name">Trade<span>Flow</span></div>
-      <p style="font-size:.83rem;margin-top:8px;line-height:1.6;">
-        Digitalizando el comercio de la<br>Zona Libre de Colón para el mundo.
-      </p>
-      <p style="font-size:.75rem;margin-top:6px;color:rgba(240,240,240,.3);font-style:italic;">
-        "Colón para el mundo"
-      </p>
+    <div class="tf-nav-links">
+      {% if request.user.is_authenticated %}
+        <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
+          <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
+          <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>Órdenes</a>
+          <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Productos</a>
+          <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>Empresas</a>
+        </div>
+        <div class="tf-nav-group" id="tf-nav-buyer" data-tf-nav-group="buyer">
+          <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Tienda</a>
+          <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>Mis órdenes</a>
+          <a href="{% url 'ver_carrito' %}" class="tf-nav-cart" id="tf-nav-cart-link" title="Carrito" data-tf-nav="carrito">
+            <span class="material-symbols-rounded">shopping_cart</span>
+            <span class="tf-nav-cart-badge" id="tf-nav-cart-badge">0</span>
+          </a>
+        </div>
+        <div class="tf-nav-group" id="tf-nav-seller" data-tf-nav-group="seller">
+          <a href="{% url 'portal_seller' %}" class="nav-link-tf" data-tf-nav="mi_tienda"><span class="material-symbols-rounded tf-ms-nav">store</span>Mi panel</a>
+          <a href="{% url 'seller_mis_productos' %}" class="nav-link-tf" data-tf-nav="seller_productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Productos</a>
+          <a href="{% url 'seller_mis_ventas' %}" class="nav-link-tf" data-tf-nav="seller_ventas"><span class="material-symbols-rounded tf-ms-nav">payments</span>Mis ventas</a>
+        </div>
+        <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
+        <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
+        <span class="tf-nav-user-name">{{ request.user.first_name|default:request.user.username }}</span>
+        <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
+          <span class="material-symbols-rounded tf-ms-18">logout</span>Salir
+        </a>
+      {% else %}
+        <a href="{% url 'login' %}" class="tf-btn-outline-sm">Iniciar sesión</a>
+        <a href="{% url 'signup' %}" class="tf-btn-primary-sm">Crear cuenta</a>
+      {% endif %}
     </div>
-    <div>
-      <div class="footer-col-title">Plataforma</div>
-      <div class="footer-col-links">
-        <a href="{% url 'home' %}">Inicio</a>
-        <a href="{% url 'signup' %}">Crear cuenta</a>
-        <a href="{% url 'login' %}">Iniciar sesión</a>
+  </nav>
+
+  <script>
+  (function () {
+    var meta = document.getElementById('tf-nav-meta');
+    if (!meta) return;
+    var role = meta.getAttribute('data-role') || '';
+    var isSuper = meta.getAttribute('data-superuser') === '1';
+    var navActive = meta.getAttribute('data-nav-active') || '';
+    var cartCount = parseInt(meta.getAttribute('data-cart-count') || '0', 10) || 0;
+
+    function showGroup(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.add('is-visible');
+    }
+    if (isSuper || role === 'admin') {
+      showGroup('tf-nav-admin');
+    } else if (role === 'buyer') {
+      showGroup('tf-nav-buyer');
+    } else if (role === 'seller') {
+      showGroup('tf-nav-seller');
+    }
+
+    document.querySelectorAll('.nav-link-tf[data-tf-nav]').forEach(function (a) {
+      if (a.getAttribute('data-tf-nav') === navActive) a.classList.add('active');
+    });
+    var cartLink = document.getElementById('tf-nav-cart-link');
+    if (cartLink && navActive === 'carrito') cartLink.classList.add('active');
+
+    var u = document.querySelector('.tf-nav-user-name');
+    var initials = '';
+    if (u && u.textContent) {
+      var parts = u.textContent.trim().split(/\s+/);
+      initials = (parts[0].charAt(0) || '').toUpperCase() + (parts.length > 1 ? parts[parts.length - 1].charAt(0) : '').toUpperCase();
+    }
+    var av = document.getElementById('tf-nav-avatar-initials');
+    if (av) av.textContent = initials || 'U';
+
+    var badge = document.getElementById('tf-nav-cart-badge');
+    if (badge) {
+      badge.textContent = String(cartCount);
+      if (cartCount > 0) badge.classList.add('has-count');
+    }
+  })();
+  </script>
+
+  {% if messages %}
+  <div class="tf-flash-stack" id="tf-flash-root" aria-live="polite">
+    {% for message in messages %}
+    <div class="tf-flash tf-flash-{{ message.tags }}" data-tf-tags="{{ message.tags }}">
+      <span class="material-symbols-rounded tf-flash-icon" aria-hidden="true">info</span>
+      <span class="tf-flash-msg">{{ message }}</span>
+      <button type="button" class="tf-flash-close" aria-label="Cerrar">
+        <span class="material-symbols-rounded tf-ms-18">close</span>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  <script>
+  (function () {
+    var iconFor = function (tags) {
+      var t = (tags || '').toLowerCase();
+      if (t.indexOf('success') !== -1) return 'check_circle';
+      if (t.indexOf('error') !== -1 || t.indexOf('danger') !== -1) return 'error';
+      if (t.indexOf('warning') !== -1) return 'warning';
+      if (t.indexOf('info') !== -1 || t.indexOf('debug') !== -1) return 'info';
+      return 'info';
+    };
+    document.querySelectorAll('#tf-flash-root .tf-flash').forEach(function (row) {
+      var tags = row.getAttribute('data-tf-tags') || '';
+      var ico = row.querySelector('.tf-flash-icon');
+      if (ico) ico.textContent = iconFor(tags);
+      var btn = row.querySelector('.tf-flash-close');
+      if (btn) btn.addEventListener('click', function () { row.remove(); });
+    });
+  })();
+  </script>
+  {% endif %}
+
+  <main class="tf-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer %}
+  <footer class="tf-footer">
+    <div class="tf-footer-grid">
+      <div>
+        <div class="tf-footer-brand">TradeFlow Colón</div>
+        <p style="font-size:0.875rem;margin-top:10px;line-height:1.6;color:rgba(255,255,255,0.55);">
+          Marketplace B2B/B2C para la Zona Libre de Colón, Panamá.
+        </p>
+      </div>
+      <div>
+        <div class="tf-footer-col-title">Plataforma</div>
+        <div class="tf-footer-links">
+          <a href="{% url 'home' %}">Inicio</a>
+          <a href="{% url 'signup' %}">Crear cuenta</a>
+          <a href="{% url 'login' %}">Iniciar sesión</a>
+        </div>
+      </div>
+      <div>
+        <div class="tf-footer-col-title">Legal</div>
+        <div class="tf-footer-links">
+          <a href="#">Términos de uso</a>
+          <a href="#">Privacidad</a>
+          <a href="#">Cookies</a>
+        </div>
+      </div>
+      <div>
+        <div class="tf-footer-col-title">Contacto</div>
+        <div class="tf-footer-links">
+          <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a>
+          <a href="#">Zona Libre de Colón</a>
+          <a href="#">Panamá</a>
+        </div>
       </div>
     </div>
-    <div>
-      <div class="footer-col-title">Legal</div>
-      <div class="footer-col-links">
-        <a href="#">Términos de uso</a>
-        <a href="#">Privacidad</a>
-        <a href="#">Cookies</a>
-      </div>
+    <div class="tf-footer-bottom">
+      <span>2026 TradeFlow Colón. Todos los derechos reservados.</span>
+      <span>Centro Supérate · Fundación Alberto Motta</span>
     </div>
-    <div>
-      <div class="footer-col-title">Contacto</div>
-      <div class="footer-col-links">
-        <a href="#">info@tradeflow.pa</a>
-        <a href="#">Zona Libre de Colón</a>
-        <a href="#">Panamá</a>
-      </div>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© 2026 TradeFlow Colón · Todos los derechos reservados.</span>
-    <span>Centro Supérate · Fundación Alberto Motta</span>
-  </div>
-</footer>
-{% endblock %}
+  </footer>
+  {% endblock %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-{% block extra_js %}{% endblock %}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_js %}{% endblock %}
 </body>
 </html>
