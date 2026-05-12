@@ -1,11 +1,9 @@
 """
 =============================================================================
-TRADEFLOW COLÓN — core/views.py  (v4 — Roles + Signup)
+TRADEFLOW COLÓN — core/views.py  (v5 — Portal vendedor + Roles)
 =============================================================================
-CAMBIOS en esta versión:
-  - login_view: redirige según rol después del login
-  - signup_view: registro público crea User + UserProfile
-  - dashboard y vistas admin protegidas con @admin_required
+Incluye: autenticación, admin, portal comprador (tienda, carrito, checkout),
+portal vendedor (panel, productos, ventas) y API JSON de productos.
 =============================================================================
 """
 from django.shortcuts import render, redirect, get_object_or_404
@@ -536,8 +534,42 @@ def portal_buyer(request):
 
 @seller_required
 def portal_seller(request):
-    """Raíz del portal vendedor: redirige al panel principal."""
-    return redirect('seller_dashboard')
+    """Dashboard del vendedor en /mi-tienda/ con métricas y ventas recientes."""
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+
+    now = timezone.now()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    productos_qs = Product.objects.filter(company=company)
+    total_productos = productos_qs.filter(is_active=True).count()
+    bajo_stock = _seller_low_stock_count(company)
+
+    ordenes_recientes = (
+        Order.objects.filter(items__product__company=company)
+        .distinct()
+        .select_related('buyer')
+        .order_by('-created_at')[:8]
+    )
+
+    ingresos_mes_items = OrderItem.objects.filter(
+        product__company=company,
+        order__status='delivered',
+        order__created_at__gte=month_start,
+    )
+    ingresos_mes = ingresos_mes_items.aggregate(t=Sum('line_total'))['t'] or Decimal('0.00')
+
+    context = {
+        'company': company,
+        'total_productos': total_productos,
+        'bajo_stock': bajo_stock,
+        'ingresos_mes': ingresos_mes,
+        'ordenes_recientes': ordenes_recientes,
+        'titulo_pagina': 'Mi Tienda',
+        'nav_activo': 'mi_tienda',
+    }
+    return render(request, 'core/portal_seller.html', context)
 
 
 def _get_seller_company(user):
@@ -675,6 +707,40 @@ def seller_productos(request):
     }
     return render(request, 'core/seller_productos.html', context)
 
+@seller_required
+def seller_mis_productos(request):
+    """Alias con mismo contenido de lista de productos, usando template alterno."""
+    company, resp = _seller_company_or_response(request, 'seller_productos')
+    if resp:
+        return resp
+    productos = (
+        Product.objects.filter(company=company)
+        .select_related('category', 'company')
+        .prefetch_related('inventory')
+        .order_by('name')
+    )
+    buscar    = request.GET.get('buscar', '').strip()
+    categoria = request.GET.get('categoria', '').strip()
+    if buscar:
+        productos = productos.filter(
+            Q(name__icontains=buscar) |
+            Q(description__icontains=buscar) |
+            Q(sku__icontains=buscar)
+        )
+    if categoria:
+        productos = productos.filter(category_id=categoria)
+    paginator = Paginator(productos, 12)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+    return render(request, 'core/seller_mis_productos.html', {
+        'company': company,
+        'productos': page_obj,
+        'categorias': Category.objects.all().order_by('name'),
+        'buscar': buscar,
+        'cat_activa': categoria,
+        'titulo_pagina': 'Mis productos',
+        'nav_activo': 'seller_productos',
+    })
+
 
 @seller_required
 def seller_producto_nuevo(request):
@@ -713,6 +779,11 @@ def seller_producto_nuevo(request):
         'es_edicion':     False,
     }
     return render(request, 'core/seller_producto_form.html', context)
+
+@seller_required
+def seller_agregar_producto(request):
+    """Alias de creación de producto para ruta solicitada por especificación."""
+    return seller_producto_nuevo(request)
 
 
 @seller_required
@@ -759,6 +830,24 @@ def seller_producto_editar(request, pk):
     }
     return render(request, 'core/seller_producto_form.html', context)
 
+@seller_required
+def seller_editar_producto(request, pk):
+    """Alias de edición de producto para ruta solicitada por especificación."""
+    return seller_producto_editar(request, pk)
+
+@seller_required
+def seller_toggle_producto(request, pk):
+    """Activa/desactiva un producto del vendedor y vuelve a la lista."""
+    company, resp = _seller_company_or_response(request, 'seller_productos')
+    if resp:
+        return resp
+    product = get_object_or_404(Product, pk=pk, company=company)
+    product.is_active = not product.is_active
+    product.save(update_fields=['is_active'])
+    estado = "activo" if product.is_active else "inactivo"
+    messages.success(request, f'Producto \"{product.name}\" ahora está {estado}.')
+    return redirect('seller_mis_productos')
+
 
 @seller_required
 def seller_ventas(request):
@@ -793,6 +882,31 @@ def seller_ventas(request):
     }
     return render(request, 'core/seller_ventas.html', context)
 
+@seller_required
+def seller_mis_ventas(request):
+    """Alias de listado de ventas con template alterno y nombre pedido."""
+    company, resp = _seller_company_or_response(request, 'seller_ventas')
+    if resp:
+        return resp
+    ordenes = (
+        Order.objects.filter(items__product__company=company)
+        .distinct()
+        .select_related('buyer')
+        .order_by('-created_at')
+    )
+    estado = request.GET.get('estado', '').strip()
+    if estado:
+        ordenes = ordenes.filter(status=estado)
+    paginator = Paginator(ordenes, 10)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+    return render(request, 'core/seller_mis_ventas.html', {
+        'company': company,
+        'ordenes': page_obj,
+        'estado_actual': estado,
+        'status_choices': Order.STATUS_CHOICES,
+        'titulo_pagina': 'Mis ventas',
+        'nav_activo': 'seller_ventas',
+    })
 
 @seller_required
 def seller_venta_detalle(request, pk):
@@ -828,6 +942,10 @@ def seller_venta_detalle(request, pk):
     }
     return render(request, 'core/seller_venta_detalle.html', context)
 
+@seller_required
+def seller_detalle_venta(request, pk):
+    """Alias de detalle de venta para el nombre solicitado en URLs."""
+    return seller_venta_detalle(request, pk)
 
 # =============================================================================
 # API JSON

@@ -1,0 +1,92 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Mis ventas — TradeFlow{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
+{% endblock %}
+{% block content %}
+<div class="seller-layout">
+  {% include "core/seller_sidebar.html" %}
+  <div class="seller-main">
+    <h1>Mis ventas</h1>
+    <p class="seller-sub">Órdenes que incluyen productos de {{ company.name }}.</p>
+    <form class="seller-filters" method="get" action="" style="margin-bottom:1rem;">
+      <select class="tf-input" name="estado" id="seller-ventas-estado" style="max-width:260px;">
+        <option value="">Todos los estados</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-seller-outline">Filtrar</button>
+    </form>
+    <script>
+    (function () {
+      var sel = document.getElementById("seller-ventas-estado");
+      if (!sel) return;
+      var cur = "{{ estado_actual|escapejs }}";
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === cur) { sel.selectedIndex = i; break; }
+      }
+    })();
+    </script>
+    <div class="seller-table-wrap">
+      {% if ordenes %}
+      <table class="seller-table">
+        <thead>
+          <tr>
+            <th>Orden</th>
+            <th>Fecha</th>
+            <th>Comprador</th>
+            <th>Estado</th>
+            <th>Total orden</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in ordenes %}
+          <tr>
+            <td><strong>{{ o.order_number }}</strong></td>
+            <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
+            <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
+            <td><span class="tf-badge seller-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span></td>
+            <td>{{ o.total }} USD</td>
+            <td><a href="{% url 'seller_detalle_venta' o.pk %}">Ver</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="padding:1.25rem;color:var(--tf-muted);">No hay ventas registradas.</p>
+      {% endif %}
+    </div>
+    {% if ordenes.has_other_pages %}
+    <nav style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
+      {% if ordenes.has_previous %}
+      <a class="btn-seller-outline" href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}">Anterior</a>
+      {% endif %}
+      <span style="align-self:center;color:var(--tf-muted);font-size:0.88rem;">Página {{ ordenes.number }} de {{ ordenes.paginator.num_pages }}</span>
+      {% if ordenes.has_next %}
+      <a class="btn-seller-outline" href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}">Siguiente</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+  </div>
+</div>
+<script>
+(function () {
+  var map = {
+    pending: { bg: "var(--order-pending-bg)", fg: "var(--order-pending-fg)" },
+    paid: { bg: "var(--order-paid-bg)", fg: "var(--order-paid-fg)" },
+    packed: { bg: "var(--order-packed-bg)", fg: "var(--order-packed-fg)" },
+    shipped: { bg: "var(--order-shipped-bg)", fg: "var(--order-shipped-fg)" },
+    delivered: { bg: "var(--order-delivered-bg)", fg: "var(--order-delivered-fg)" },
+    cancelled: { bg: "var(--order-cancelled-bg)", fg: "var(--order-cancelled-fg)" },
+  };
+  document.querySelectorAll(".seller-ord-status").forEach(function (el) {
+    var st = el.getAttribute("data-status");
+    var t = map[st];
+    if (t) { el.style.background = t.bg; el.style.color = t.fg; }
+  });
+})();
+</script>
+{% endblock %}
