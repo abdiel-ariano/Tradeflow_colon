@@ -109,7 +109,8 @@
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 1100;
+      z-index: 2000;
+      isolation: isolate;
       box-shadow: var(--tf-shadow-nav);
       gap: 1rem;
     }
@@ -292,19 +293,28 @@
       color: var(--tf-white);
     }
 
-    /* ----- Flash messages (solo esquina superior derecha; no cubrir la marca del nav) ----- */
+    /* ----- Flash messages (esquina superior derecha; nunca invadir la zona del logo) ----- */
     .tf-flash-stack {
       position: fixed;
       top: 72px;
       right: 16px;
       left: auto;
-      z-index: 1050;
-      width: min(420px, calc(100vw - 32px));
+      z-index: 1030;
+      /* Reserva ~160px a la izquierda para logo + texto "TradeFlow" en móviles */
+      width: min(420px, calc(100vw - 32px - 160px));
       display: flex;
       flex-direction: column;
       align-items: stretch;
       gap: 10px;
       pointer-events: none;
+    }
+    @media (max-width: 520px) {
+      .tf-flash-stack {
+        left: 16px;
+        right: 16px;
+        width: auto;
+        top: 80px;
+      }
     }
     .tf-flash-stack > * { pointer-events: auto; }
 
