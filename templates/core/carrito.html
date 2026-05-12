@@ -4,9 +4,21 @@
 {% block extra_css %}
 <style>
   .c-wrap { max-width: 1040px; margin: 0 auto; padding: 2rem 1.5rem; }
-  .c-title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.5rem; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .c-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.75rem;
+    color: #0F2A44;
+    margin: 0 0 1.5rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    text-align: center;
+  }
   .c-title span { font-size: 0.875rem; font-weight: 500; color: #6B7A88; }
-  .c-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; }
+  .c-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; max-width: 920px; margin: 0 auto; }
   @media (max-width: 991px) { .c-grid { grid-template-columns: 1fr; } }
   .c-list { display: flex; flex-direction: column; gap: 12px; }
   .c-item {

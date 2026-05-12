@@ -3,10 +3,23 @@
 {% block title %}Checkout — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
-  .co-wrap { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
-  .co-title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.5rem; }
-  .co-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; }
-  @media (max-width: 991px) { .co-grid { grid-template-columns: 1fr; } }
+  .co-wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .co-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.75rem;
+    color: #0F2A44;
+    margin: 0 0 1.5rem;
+    text-align: center;
+  }
+  .co-stack { display: flex; flex-direction: column; gap: 1.25rem; width: 100%; }
   .co-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.35rem; }
   .co-sec { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8125rem; color: #6B7A88; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 1rem; }
   .co-note { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 12px 14px; font-size: 0.875rem; color: #1E40AF; margin-bottom: 1rem; display: flex; gap: 10px; align-items: flex-start; }
@@ -30,7 +43,7 @@
 {% block content %}
 <div class="co-wrap">
   <h1 class="co-title">Confirmar pedido</h1>
-  <div class="co-grid">
+  <div class="co-stack">
     <form method="post" action="{% url 'checkout' %}">
       {% csrf_token %}
       <div class="co-card">

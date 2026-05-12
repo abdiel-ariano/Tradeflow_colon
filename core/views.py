@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q, Sum, Count
+from django.db.models import Count, Prefetch, Q, Sum
 from django.http import Http404, JsonResponse
 from django.utils import timezone
 from datetime import timedelta
@@ -133,9 +133,12 @@ def home_view(request):
         if request.user.is_authenticated:
             return redirect(_redirect_by_role(request.user))
         from .models import Product
-        productos = Product.objects.filter(
-            is_active=True
-        ).select_related('company', 'category').order_by('?')[:6]
+        productos = (
+            Product.objects.filter(is_active=True)
+            .select_related('company', 'category')
+            .defer('company__owner')
+            .order_by('?')[:6]
+        )
         return render(request, 'core/home.html', {'productos': productos})
 
 
@@ -311,9 +314,12 @@ def nueva_orden_paso2(request):
         messages.error(request, 'Debes completar el paso 1 primero.')
         return redirect('nueva_orden_paso1')
 
-    productos  = Product.objects.filter(is_active=True).select_related(
-        'category', 'company', 'inventory'
-    ).order_by('name')
+    productos  = (
+        Product.objects.filter(is_active=True)
+        .select_related('category', 'company', 'inventory')
+        .defer('company__owner')
+        .order_by('name')
+    )
     categorias = Category.objects.all()
 
     buscar    = request.GET.get('buscar', '')
@@ -494,9 +500,12 @@ def nueva_orden_paso3(request):
 
 @admin_required
 def lista_productos(request):
-    productos  = Product.objects.select_related(
-        'company', 'category'
-    ).prefetch_related('inventory').order_by('name')
+    productos  = (
+        Product.objects.select_related('company', 'category')
+        .defer('company__owner')
+        .prefetch_related('inventory')
+        .order_by('name')
+    )
     buscar    = request.GET.get('buscar', '')
     categoria = request.GET.get('categoria', '')
 
@@ -708,6 +717,7 @@ def seller_productos(request):
     productos = (
         Product.objects.filter(company=company)
         .select_related('category', 'company')
+        .defer('company__owner')
         .prefetch_related('inventory')
         .order_by('name')
     )
@@ -746,6 +756,7 @@ def seller_mis_productos(request):
     productos = (
         Product.objects.filter(company=company)
         .select_related('category', 'company')
+        .defer('company__owner')
         .prefetch_related('inventory')
         .order_by('name')
     )
@@ -826,7 +837,9 @@ def seller_producto_editar(request, pk):
         return resp
 
     product = get_object_or_404(
-        Product.objects.select_related('company').prefetch_related('inventory'),
+        Product.objects.select_related('company')
+        .defer('company__owner')
+        .prefetch_related('inventory'),
         pk=pk,
         company=company,
     )
@@ -985,8 +998,10 @@ def seller_detalle_venta(request, pk):
 
 @login_required
 def api_productos(request):
-    productos = Product.objects.filter(is_active=True).select_related(
-        'category', 'company', 'inventory'
+    productos = (
+        Product.objects.filter(is_active=True)
+        .select_related('category', 'company', 'inventory')
+        .defer('company__owner')
     )
     buscar = request.GET.get('q', '')
     if buscar:
@@ -1073,9 +1088,9 @@ def tienda(request):
     """
     # Obtener productos activos con sus relaciones en una sola consulta
     productos = (
-        Product.objects
-        .filter(is_active=True)
+        Product.objects.filter(is_active=True)
         .select_related('company', 'category', 'inventory')
+        .defer('company__owner')
         .order_by('name')
     )
 
@@ -1423,11 +1438,16 @@ def detalle_mi_orden(request, pk):
     Un usuario no puede acceder a la orden de otro con su ID.
     """
     orden = get_object_or_404(
-        Order.objects
-        .select_related('buyer', 'ship_address')
-        .prefetch_related('items__product__company'),
+        Order.objects.select_related('buyer', 'ship_address').prefetch_related(
+            Prefetch(
+                'items',
+                queryset=OrderItem.objects.select_related('product__company').defer(
+                    'product__company__owner'
+                ),
+            )
+        ),
         pk=pk,
-        buyer=request.user   # Clave de seguridad
+        buyer=request.user,  # Clave de seguridad
     )
 
     context = {

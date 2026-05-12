@@ -10,6 +10,7 @@ Vista: nuevo_producto_view()
 {% endblock %}
 
 {% block content %}
+<div class="tf-centered-form-wide" style="padding-top:1.5rem;padding-bottom:2rem;">
 <div class="page-header">
   <div class="page-header-row">
     <div>
@@ -20,7 +21,7 @@ Vista: nuevo_producto_view()
   </div>
 </div>
 
-<div class="card" style="max-width:640px;">
+<div class="card" style="max-width:640px;margin:0 auto;">
   <form method="post" enctype="multipart/form-data" data-validate>
     {% csrf_token %}
 
@@ -68,6 +69,7 @@ Vista: nuevo_producto_view()
       <button type="submit" class="btn btn-primary" style="flex:2;justify-content:center;">Guardar producto</button>
     </div>
   </form>
+</div>
 </div>
 {% endblock %}
 
