@@ -1,0 +1,99 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+================================================================================
+templates/core/mis_cotizaciones.html — TradeFlow Colón
+Propósito: listado de cotizaciones del comprador con estado y acceso a detalle.
+Contexto: vista mis_cotizaciones; badges de estado aplicados por JavaScript.
+================================================================================
+{% endcomment %}
+{% block title %}Mis cotizaciones — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<style>
+  .cot-list-page { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  .cot-list-hdr { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem; }
+  .cot-list-hdr h1 { font-size: 1.5rem; font-weight: 700; color: var(--tf-navy); margin: 0; }
+  .cot-table-wrap {
+    background: #fff;
+    border: 1px solid var(--tf-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(15,42,68,0.06);
+  }
+  .cot-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .cot-table th {
+    background: #f9fafb;
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7a88;
+    font-weight: 600;
+  }
+  .cot-table td { padding: 14px 16px; border-top: 1px solid #f3f4f6; vertical-align: middle; }
+  .cot-table tr:hover td { background: #fafafa; }
+  .cot-num { font-weight: 600; color: #f26522; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="cot-list-page">
+  <div class="cot-list-hdr">
+    <h1>Mis cotizaciones</h1>
+    <a href="{% url 'solicitar_cotizacion' %}" class="tf-btn-primary">
+      <span class="material-symbols-rounded" style="font-size:18px;">add</span>
+      Nueva cotización
+    </a>
+  </div>
+  <div class="cot-table-wrap">
+    <table class="cot-table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Empresa</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Validez</th>
+          <th style="text-align:right;">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in cotizaciones %}
+        <tr>
+          <td><span class="cot-num">{{ c.numero }}</span></td>
+          <td>{{ c.empresa.name }}</td>
+          <td><span class="tf-badge cot-est-badge" data-cot-est="{{ c.estado }}">{{ c.get_estado_display }}</span></td>
+          <td>{{ c.created_at|date:"d/m/Y" }}</td>
+          <td>{{ c.validez_dias }} días</td>
+          <td style="text-align:right;">
+            <a href="{% url 'detalle_cotizacion' c.pk %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8rem;">Ver detalle</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="padding:2rem;text-align:center;color:var(--tf-muted);">Aún no tienes cotizaciones. Crea la primera desde el botón superior.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+(function () {
+  var map = {
+    pendiente: { bg: '#FEF3C7', color: '#92400E' },
+    respondida: { bg: '#DBEAFE', color: '#1E40AF' },
+    aceptada: { bg: '#D1FAE5', color: '#065F46' },
+    rechazada: { bg: '#FEE2E2', color: '#991B1B' }
+  };
+  document.querySelectorAll('.cot-est-badge').forEach(function (el) {
+    var st = el.getAttribute('data-cot-est');
+    var s = map[st];
+    if (s) {
+      el.style.background = s.bg;
+      el.style.color = s.color;
+    }
+  });
+})();
+</script>
+{% endblock %}

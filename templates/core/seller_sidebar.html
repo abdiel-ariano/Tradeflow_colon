@@ -1,4 +1,7 @@
 {% load static %}
+{% comment %}
+seller_sidebar.html — Navegación lateral del portal Mi Tienda (vendedor).
+{% endcomment %}
 <aside class="seller-side" id="seller-side-nav" data-seller-nav="{{ nav_activo|default:''|escapejs }}">
   <div class="seller-side-brand">
     Mi Tienda
@@ -13,6 +16,9 @@
     </a>
     <a href="{% url 'seller_mis_ventas' %}" data-seller-nav="seller_ventas">
       <span class="material-symbols-rounded">payments</span> Mis ventas
+    </a>
+    <a href="{% url 'seller_cotizaciones' %}" data-seller-nav="seller_cotizaciones">
+      <span class="material-symbols-rounded">request_quote</span> Cotizaciones
     </a>
   </nav>
 </aside>

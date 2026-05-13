@@ -7,6 +7,7 @@ portal vendedor (panel, productos, ventas) y API JSON de productos.
 =============================================================================
 """
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -17,7 +18,7 @@ from django.db.models import Count, Prefetch, Q, Sum
 from django.http import Http404, HttpResponse, JsonResponse
 from django.utils import timezone
 from datetime import timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import json
 import logging
 
@@ -25,7 +26,8 @@ from .decorators import admin_required, buyer_required, seller_required
 from .forms import SellerProductForm, SellerInventoryForm
 from .models import (
     UserProfile, Company, Category, Product, Inventory,
-    Address, Order, OrderItem, Payment, Shipment, Document
+    Address, Order, OrderItem, Payment, Shipment, Document,
+    Cotizacion, CotizacionItem,
 )
 from .utils.email_sender import enviar_cambio_estado, enviar_confirmacion_orden
 from .utils.pdf_generator import generar_factura_pdf
@@ -1153,19 +1155,16 @@ def tienda(request):
     Muestra el catálogo de productos disponibles para el comprador.
 
     Funcionalidades:
-        - Búsqueda por nombre, descripción o SKU
-        - Filtro por categoría
-        - Paginación de 9 productos por página
-        - Muestra solo productos activos con stock disponible
+        - Pestañas: por categoría (sidebar + grid) o por empresa (cards de empresa).
+        - Búsqueda por nombre, descripción o SKU; filtros por categoría y empresa.
+        - Paginación de 9 productos por página.
+        - Solo productos activos.
 
     Contexto enviado al template:
-        productos    → QuerySet paginado de Product
-        categorias   → QuerySet de Category para el filtro
-        buscar       → Término de búsqueda actual
-        cat_activa   → ID de categoría seleccionada
-        carrito_count→ Cantidad de items en el carrito (para el badge)
+        productos, categorias, empresas_catalogo, empresas_filtro,
+        buscar, cat_activa, emp_activa, vista_tab, tienda_params,
+        carrito_count, titulo_pagina, nav_activo.
     """
-    # Obtener productos activos con sus relaciones en una sola consulta
     productos = (
         Product.objects.filter(is_active=True)
         .select_related('company', 'category', 'inventory')
@@ -1173,35 +1172,72 @@ def tienda(request):
         .order_by('name')
     )
 
-    # Filtros de búsqueda
     buscar    = request.GET.get('buscar', '').strip()
     categoria = request.GET.get('categoria', '').strip()
+    empresa   = request.GET.get('empresa', '').strip()
+    vista_tab = request.GET.get('vista', 'categoria').strip() or 'categoria'
+    if vista_tab not in ('categoria', 'empresa'):
+        vista_tab = 'categoria'
 
     if buscar:
         productos = productos.filter(
-            Q(name__icontains=buscar)        |
-            Q(description__icontains=buscar) |
-            Q(sku__icontains=buscar)
+            Q(name__icontains=buscar)
+            | Q(description__icontains=buscar)
+            | Q(sku__icontains=buscar)
         )
 
     if categoria:
         productos = productos.filter(category__id=categoria)
 
-    # Paginación
+    if empresa:
+        productos = productos.filter(company__id=empresa)
+
     paginator = Paginator(productos, 9)
-    page_obj  = paginator.get_page(request.GET.get('page', 1))
+    page_obj = paginator.get_page(request.GET.get('page', 1))
 
     categorias = Category.objects.all().order_by('name')
-    carrito    = _get_carrito(request)
+    carrito = _get_carrito(request)
+
+    empresas_catalogo = (
+        Company.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
+        .order_by('name')
+    )
+    empresas_filtro = empresas_catalogo
+
+    qcopy = request.GET.copy()
+    qcopy.pop('page', None)
+    tienda_params = qcopy.urlencode()
+
+    q_cat = request.GET.copy()
+    for k in ('page', 'vista', 'empresa'):
+        q_cat.pop(k, None)
+    q_cat['vista'] = 'categoria'
+    url_tab_categoria = f"{reverse('tienda')}?{q_cat.urlencode()}"
+
+    q_emp = request.GET.copy()
+    for k in ('page', 'vista', 'categoria'):
+        q_emp.pop(k, None)
+    q_emp['vista'] = 'empresa'
+    url_tab_empresa = f"{reverse('tienda')}?{q_emp.urlencode()}"
 
     context = {
-        'productos':     page_obj,
-        'categorias':    categorias,
-        'buscar':        buscar,
-        'cat_activa':    categoria,
+        'productos': page_obj,
+        'categorias': categorias,
+        'empresas_catalogo': empresas_catalogo,
+        'empresas_filtro': empresas_filtro,
+        'buscar': buscar,
+        'cat_activa': categoria,
+        'emp_activa': empresa,
+        'vista_tab': vista_tab,
+        'tienda_params': tienda_params,
+        'url_tab_categoria': url_tab_categoria,
+        'url_tab_empresa': url_tab_empresa,
         'carrito_count': _contar_items(carrito),
         'titulo_pagina': 'Tienda TradeFlow',
-        'nav_activo':    'tienda',
+        'nav_activo': 'tienda',
     }
     return render(request, 'core/tienda.html', context)
 
@@ -1568,3 +1604,323 @@ def descargar_factura(request, orden_pk):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+
+# ---------------------------------------------------------------------------
+# COTIZACIONES — RFQ buyer / seller
+# ---------------------------------------------------------------------------
+
+
+@buyer_required
+def solicitar_cotizacion(request):
+    """
+    El comprador solicita una cotización formal a una empresa.
+
+    GET con parámetro empresa: muestra productos de esa empresa para indicar cantidades.
+    POST: crea Cotizacion + CotizacionItem para cada línea con cantidad > 0.
+    Genera número COT-YYYYMM-XXXX automáticamente al guardar.
+    """
+    empresas = (
+        Company.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
+        .order_by('name')
+    )
+
+    empresa_id = request.GET.get('empresa', '').strip()
+    empresa_obj = None
+    productos_emp = []
+    if empresa_id:
+        empresa_obj = get_object_or_404(Company, pk=int(empresa_id))
+        productos_emp = (
+            Product.objects.filter(company=empresa_obj, is_active=True)
+            .select_related('category', 'inventory')
+            .defer('company__owner')
+            .order_by('name')
+        )
+
+    if request.method == 'POST':
+        eid = request.POST.get('empresa_id', '').strip()
+        if not eid:
+            messages.error(request, 'Selecciona una empresa.')
+            return redirect('solicitar_cotizacion')
+        empresa_dest = get_object_or_404(Company, pk=int(eid))
+        try:
+            validez = int(request.POST.get('validez_dias', '30') or '30')
+        except ValueError:
+            validez = 30
+        if validez < 1:
+            validez = 1
+        notas_buyer = request.POST.get('notas_buyer', '').strip()
+
+        lines = []
+        seen = set()
+        for key, raw in request.POST.items():
+            if not key.startswith('qty_'):
+                continue
+            try:
+                pid = int(key.replace('qty_', '', 1))
+            except ValueError:
+                continue
+            try:
+                qty = int(raw or '0')
+            except ValueError:
+                qty = 0
+            if qty <= 0 or pid in seen:
+                continue
+            seen.add(pid)
+            prod = Product.objects.filter(
+                pk=pid, company=empresa_dest, is_active=True
+            ).first()
+            if prod:
+                lines.append((prod, qty))
+
+        if not lines:
+            messages.error(request, 'Indica al menos un producto con cantidad mayor a cero.')
+            return redirect(f"{reverse('solicitar_cotizacion')}?empresa={empresa_dest.pk}")
+
+        with transaction.atomic():
+            cot = Cotizacion.objects.create(
+                buyer=request.user,
+                empresa=empresa_dest,
+                notas_buyer=notas_buyer,
+                validez_dias=validez,
+            )
+            for prod, qty in lines:
+                CotizacionItem.objects.create(
+                    cotizacion=cot,
+                    product=prod,
+                    cantidad_solicitada=qty,
+                )
+
+        messages.success(request, f'Cotización {cot.numero} enviada a {empresa_dest.name}.')
+        return redirect('detalle_cotizacion', pk=cot.pk)
+
+    context = {
+        'empresas': empresas,
+        'empresa_obj': empresa_obj,
+        'empresa_id': empresa_id,
+        'productos_emp': productos_emp,
+        'carrito_count': _contar_items(_get_carrito(request)),
+        'titulo_pagina': 'Nueva cotización',
+        'nav_activo': 'mis_cotizaciones',
+    }
+    return render(request, 'core/cotizacion_form.html', context)
+
+
+@buyer_required
+def mis_cotizaciones(request):
+    """
+    Lista todas las cotizaciones del comprador con empresa, estado y fecha.
+    """
+    lista = (
+        Cotizacion.objects.filter(buyer=request.user)
+        .select_related('empresa', 'order')
+        .prefetch_related('items')
+        .order_by('-created_at')
+    )
+    context = {
+        'cotizaciones': lista,
+        'carrito_count': _contar_items(_get_carrito(request)),
+        'titulo_pagina': 'Mis cotizaciones',
+        'nav_activo': 'mis_cotizaciones',
+    }
+    return render(request, 'core/mis_cotizaciones.html', context)
+
+
+@buyer_required
+def detalle_cotizacion(request, pk):
+    """
+    Detalle de cotización con ítems. Si está respondida, muestra precios del vendedor.
+    Permite convertir en orden (POST acción convertir), rechazar (POST rechazar)
+    o aceptar tras conversión (orden vinculada).
+    """
+    cot = get_object_or_404(
+        Cotizacion.objects.select_related('empresa', 'buyer', 'order').prefetch_related(
+            Prefetch(
+                'items',
+                queryset=CotizacionItem.objects.select_related('product', 'product__category').defer(
+                    'product__company__owner'
+                ),
+            )
+        ),
+        pk=pk,
+        buyer=request.user,
+    )
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion', '').strip()
+        if accion == 'rechazar' and cot.estado in ('pendiente', 'respondida'):
+            cot.estado = 'rechazada'
+            cot.save(update_fields=['estado', 'updated_at'])
+            messages.info(request, 'Cotización marcada como rechazada.')
+            return redirect('detalle_cotizacion', pk=cot.pk)
+
+        if accion == 'convertir' and cot.estado == 'respondida' and not cot.order_id:
+            items = list(cot.items.all())
+            if not items or any(it.precio_ofertado is None for it in items):
+                messages.error(request, 'La cotización no tiene precios completos para generar la orden.')
+                return redirect('detalle_cotizacion', pk=cot.pk)
+
+            addr = Address.objects.filter(user=request.user).order_by('-is_default', 'id').first()
+
+            with transaction.atomic():
+                orden = Order.objects.create(
+                    buyer=request.user,
+                    ship_address=addr,
+                    order_type='b2c',
+                    shipping_cost=Decimal('0.00'),
+                    notes=f'Generada desde cotización {cot.numero}',
+                    status='pending',
+                )
+                items_ok = 0
+                for it in items:
+                    prod = it.product
+                    qty = it.cantidad_solicitada
+                    if prod.available_qty < qty:
+                        orden.delete()
+                        messages.error(
+                            request,
+                            f'Stock insuficiente para "{prod.name}". No se creó la orden.',
+                        )
+                        return redirect('detalle_cotizacion', pk=cot.pk)
+                    OrderItem.objects.create(
+                        order=orden,
+                        product=prod,
+                        qty=qty,
+                        unit_price_snapshot=it.precio_ofertado,
+                    )
+                    if hasattr(prod, 'inventory'):
+                        prod.inventory.reserve(qty)
+                    items_ok += 1
+
+                if items_ok == 0:
+                    orden.delete()
+                    messages.error(request, 'No se pudo crear la orden.')
+                    return redirect('detalle_cotizacion', pk=cot.pk)
+
+                orden.recalculate_totals()
+                orden.save(update_fields=['subtotal', 'total', 'updated_at'])
+                Payment.objects.create(
+                    order=orden,
+                    provider='mock',
+                    status='approved',
+                    amount=orden.total,
+                    currency='USD',
+                    paid_at=timezone.now(),
+                    txn_ref=f'TF-MOCK-COT-{cot.numero}',
+                )
+                orden.status = 'paid'
+                orden.save(update_fields=['status'])
+                cot.order = orden
+                cot.estado = 'aceptada'
+                cot.save(update_fields=['order', 'estado', 'updated_at'])
+
+            messages.success(request, f'Orden {orden.order_number} creada desde la cotización.')
+            return redirect('detalle_cotizacion', pk=cot.pk)
+
+        return redirect('detalle_cotizacion', pk=cot.pk)
+
+    total_ofertado = Decimal('0.00')
+    for it in cot.items.all():
+        if it.linea_total is not None:
+            total_ofertado += it.linea_total
+
+    valida_hasta = cot.created_at + timedelta(days=cot.validez_dias)
+
+    orden_detail_url = ''
+    if cot.order_id:
+        orden_detail_url = reverse('detalle_mi_orden', args=[cot.order_id])
+
+    context = {
+        'cot': cot,
+        'total_ofertado': total_ofertado,
+        'valida_hasta': valida_hasta,
+        'orden_detail_url': orden_detail_url,
+        'carrito_count': _contar_items(_get_carrito(request)),
+        'titulo_pagina': f'Cotización {cot.numero}',
+        'nav_activo': 'mis_cotizaciones',
+    }
+    return render(request, 'core/detalle_cotizacion.html', context)
+
+
+@seller_required
+def seller_cotizaciones(request):
+    """
+    Lista cotizaciones recibidas por la empresa del vendedor autenticado.
+    """
+    company, resp = _seller_company_or_response(request, 'seller_cotizaciones')
+    if resp:
+        return resp
+
+    lista = (
+        Cotizacion.objects.filter(empresa=company)
+        .select_related('buyer', 'order')
+        .annotate(n_items=Count('items'))
+        .order_by('-created_at')
+    )
+    context = {
+        'company': company,
+        'cotizaciones': lista,
+        'titulo_pagina': 'Cotizaciones recibidas',
+        'nav_activo': 'seller_cotizaciones',
+    }
+    return render(request, 'core/seller_cotizaciones.html', context)
+
+
+@seller_required
+def seller_responder_cotizacion(request, pk):
+    """
+    El vendedor responde con precio unitario ofertado por ítem y notas para el comprador.
+    """
+    company, resp = _seller_company_or_response(request, 'seller_cotizaciones')
+    if resp:
+        return resp
+
+    cot = get_object_or_404(
+        Cotizacion.objects.prefetch_related(
+            Prefetch(
+                'items',
+                queryset=CotizacionItem.objects.select_related('product').defer(
+                    'product__company__owner'
+                ),
+            )
+        ),
+        pk=pk,
+        empresa=company,
+    )
+
+    if request.method == 'POST':
+        if cot.estado not in ('pendiente', 'respondida'):
+            messages.warning(request, 'Esta cotización ya no admite cambios.')
+            return redirect('seller_cotizaciones')
+
+        notas_seller = request.POST.get('notas_seller', '').strip()
+        items_list = list(cot.items.all())
+        with transaction.atomic():
+            for it in items_list:
+                key = f'precio_{it.pk}'
+                raw = request.POST.get(key, '').strip()
+                if raw:
+                    try:
+                        it.precio_ofertado = Decimal(raw)
+                    except (InvalidOperation, ValueError):
+                        messages.error(request, f'Precio inválido en línea: {it.product.name}')
+                        return redirect('seller_responder_cotizacion', pk=cot.pk)
+                    it.save(update_fields=['precio_ofertado'])
+            cot.notas_seller = notas_seller
+            if items_list and all(x.precio_ofertado is not None for x in items_list):
+                cot.estado = 'respondida'
+            cot.save(update_fields=['notas_seller', 'estado', 'updated_at'])
+
+        messages.success(request, 'Cotización actualizada.')
+        return redirect('seller_cotizaciones')
+
+    context = {
+        'company': company,
+        'cot': cot,
+        'titulo_pagina': f'Responder {cot.numero}',
+        'nav_activo': 'seller_cotizaciones',
+    }
+    return render(request, 'core/seller_responder_cotizacion.html', context)

@@ -1,0 +1,67 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+================================================================================
+templates/core/seller_cotizaciones.html — TradeFlow Colón
+Propósito: listado de cotizaciones RFQ recibidas por la empresa del vendedor.
+Contexto: vista seller_cotizaciones; botón Responder visible vía JavaScript.
+================================================================================
+{% endcomment %}
+{% block title %}Cotizaciones — {{ company.name }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
+{% endblock %}
+{% block content %}
+<div class="seller-layout">
+  {% include "core/seller_sidebar.html" %}
+  <div class="seller-main">
+    <h1>Cotizaciones recibidas</h1>
+    <p class="seller-sub">Solicitudes de <strong>{{ company.name }}</strong>.</p>
+    <div class="seller-table-wrap">
+      <table class="seller-table">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Comprador</th>
+            <th>Productos</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th style="text-align:right;">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in cotizaciones %}
+          <tr>
+            <td><strong style="color:#f26522;">{{ c.numero }}</strong></td>
+            <td>{{ c.buyer.get_full_name|default:c.buyer.username }}</td>
+            <td>{{ c.n_items }}</td>
+            <td>{{ c.created_at|date:"d/m/Y H:i" }}</td>
+            <td><span class="tf-badge cot-sell-est" data-cot-est="{{ c.estado }}">{{ c.get_estado_display }}</span></td>
+            <td style="text-align:right;">
+              <a href="{% url 'seller_responder_cotizacion' c.pk %}" class="btn-seller-primary sm cot-btn-responder" data-cot-est="{{ c.estado }}">
+                <span class="material-symbols-rounded" style="font-size:18px;">reply</span>
+                Responder
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" style="padding:2rem;text-align:center;color:var(--tf-muted);">No hay cotizaciones recibidas.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  document.querySelectorAll('.cot-btn-responder').forEach(function (a) {
+    var st = a.getAttribute('data-cot-est');
+    if (st !== 'pendiente') {
+      a.style.display = 'none';
+    }
+  });
+})();
+</script>
+{% endblock %}

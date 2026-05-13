@@ -3,85 +3,264 @@
 {% comment %}
 ================================================================================
 templates/core/portal_seller.html — TradeFlow Colón
-Propósito: panel principal del vendedor (KPIs y últimas ventas).
-Contexto: vista portal_seller; métricas en grid 4 columnas; badges de estado por JS.
+Propósito: panel principal del vendedor con KPIs en cards y tabla de ventas.
+Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS.
 ================================================================================
 {% endcomment %}
 {% block title %}Mi panel — {{ company.name }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
+<style>
+  .ps-dash-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .ps-dash-greet {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: #0f2a44;
+    margin: 0 0 6px;
+    line-height: 1.2;
+  }
+  .ps-dash-company {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #6b7a88;
+    margin: 0;
+  }
+  .ps-dash-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 8px;
+    border: none;
+    background: #f26522;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+  }
+  .ps-dash-new:hover {
+    background: #ff7a3d;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3);
+  }
+  .ps-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 991px) {
+    .ps-metric-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 575px) {
+    .ps-metric-grid { grid-template-columns: 1fr; }
+  }
+  .ps-metric-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
+    padding: 20px 24px;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
+    position: relative;
+    min-width: 0;
+  }
+  .ps-metric-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .ps-metric-lbl {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7a88;
+    margin-bottom: 10px;
+  }
+  .ps-metric-num {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 36px;
+    color: #0f2a44;
+    line-height: 1.1;
+  }
+  .ps-metric-num.ps-metric-num-sm {
+    font-size: 28px;
+  }
+  .ps-metric-sub {
+    font-size: 0.8rem;
+    color: #6b7a88;
+    margin-top: 6px;
+  }
+  .ps-metric-ico {
+    font-size: 28px;
+    color: #6b7a88;
+    font-variation-settings: 'FILL' 0, 'wght' 400;
+  }
+  .ps-metric-ico.ps-ico-orange { color: #f26522; }
+  .ps-metric-ico.ps-ico-blue { color: #2e5b8a; }
+  .ps-sales-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .ps-sales-card h2 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #0f2a44;
+    margin: 0;
+    padding: 18px 20px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .ps-sales-card .seller-table-wrap {
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .ps-sales-card .seller-table thead th {
+    background: #f9fafb;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7a88;
+    font-weight: 600;
+  }
+  .ps-sales-card .seller-table tbody tr:hover {
+    background: #fafafa;
+  }
+  .ps-ord-num {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: #f26522;
+    text-decoration: none;
+  }
+  .ps-ord-num:hover {
+    text-decoration: underline;
+    color: #ff7a3d;
+  }
+  .ps-foot-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+</style>
 {% endblock %}
 {% block content %}
 <div class="seller-layout">
   {% include "core/seller_sidebar.html" %}
   <div class="seller-main">
-    <h1>Mi panel</h1>
-    <p class="seller-sub">Resumen de <strong>{{ company.name }}</strong> — productos, stock e ingresos del mes.</p>
-
-    <div class="ps-metrics-grid">
-      <div class="seller-stat">
-        <div class="label">Productos activos</div>
-        <div class="value">{{ total_productos }}</div>
-        <div class="sub">En catálogo publicado</div>
+    <header class="ps-dash-header">
+      <div>
+        <h1 class="ps-dash-greet">Bienvenida, {{ request.user.first_name|default:request.user.username }}</h1>
+        <p class="ps-dash-company">{{ company.name }}</p>
       </div>
-      <div class="seller-stat accent">
-        <div class="label">Stock bajo</div>
-        <div class="value">{{ bajo_stock }}</div>
-        <div class="sub">Bajo umbral configurado</div>
-      </div>
-      <div class="seller-stat">
-        <div class="label">Órdenes (7 días)</div>
-        <div class="value">{{ ordenes_semana }}</div>
-        <div class="sub">Con ítems de tu empresa</div>
-      </div>
-      <div class="seller-stat">
-        <div class="label">Ingresos del mes</div>
-        <div class="value">{{ ingresos_mes }} <span style="font-size:0.85rem;font-weight:600;color:var(--tf-muted);">USD</span></div>
-        <div class="sub">Órdenes entregadas</div>
-      </div>
-    </div>
-
-    <div class="seller-table-wrap">
-      <h2>Últimas ventas</h2>
-      {% if ordenes_recientes %}
-      <table class="seller-table">
-        <thead>
-          <tr>
-            <th>Orden</th>
-            <th>Comprador</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th style="text-align:right;">Ver</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for o in ordenes_recientes %}
-          <tr>
-            <td><a href="{% url 'seller_detalle_venta' o.pk %}">{{ o.order_number }}</a></td>
-            <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
-            <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
-            <td>
-              <span class="tf-badge seller-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span>
-            </td>
-            <td style="text-align:right;">
-              <a href="{% url 'seller_detalle_venta' o.pk %}" class="btn-seller-outline sm" title="Detalle">
-                <span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">visibility</span>
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p style="padding:1.25rem;color:var(--tf-muted);margin:0;">No hay ventas aún.</p>
-      {% endif %}
-    </div>
-
-    <div class="ps-actions">
-      <a href="{% url 'seller_agregar_producto' %}" class="btn-seller-primary">
-        <span class="material-symbols-rounded" style="font-size:18px;">add</span>
+      <a href="{% url 'seller_agregar_producto' %}" class="ps-dash-new">
+        <span class="material-symbols-rounded" style="font-size:20px;">add</span>
         Nuevo producto
       </a>
+    </header>
+
+    <div class="ps-metric-grid">
+      <div class="ps-metric-card">
+        <div class="ps-metric-top">
+          <div>
+            <div class="ps-metric-lbl">Productos activos</div>
+            <div class="ps-metric-num">{{ total_productos }}</div>
+            <div class="ps-metric-sub">En catálogo publicado</div>
+          </div>
+          <span class="material-symbols-rounded ps-metric-ico">inventory_2</span>
+        </div>
+      </div>
+      <div class="ps-metric-card">
+        <div class="ps-metric-top">
+          <div>
+            <div class="ps-metric-lbl">Stock bajo</div>
+            <div class="ps-metric-num" id="ps-m-low" data-bajo="{{ bajo_stock }}">{{ bajo_stock }}</div>
+            <div class="ps-metric-sub">Bajo umbral configurado</div>
+          </div>
+          <span class="material-symbols-rounded ps-metric-ico">warning</span>
+        </div>
+      </div>
+      <div class="ps-metric-card">
+        <div class="ps-metric-top">
+          <div>
+            <div class="ps-metric-lbl">Órdenes 7 días</div>
+            <div class="ps-metric-num">{{ ordenes_semana }}</div>
+            <div class="ps-metric-sub">Con ítems de tu empresa</div>
+          </div>
+          <span class="material-symbols-rounded ps-metric-ico ps-ico-orange">receipt_long</span>
+        </div>
+      </div>
+      <div class="ps-metric-card">
+        <div class="ps-metric-top">
+          <div>
+            <div class="ps-metric-lbl">Ingresos del mes</div>
+            <div class="ps-metric-num ps-metric-num-sm">{{ ingresos_mes }} <span style="font-size:0.75rem;font-weight:600;color:#6b7a88;">USD</span></div>
+            <div class="ps-metric-sub">Órdenes entregadas</div>
+          </div>
+          <span class="material-symbols-rounded ps-metric-ico ps-ico-blue">payments</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ps-sales-card">
+      <h2>Últimas ventas</h2>
+      <div class="seller-table-wrap" style="border:none;box-shadow:none;">
+        {% if ordenes_recientes %}
+        <table class="seller-table">
+          <thead>
+            <tr>
+              <th>Orden</th>
+              <th>Comprador</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th style="text-align:right;">Ver</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in ordenes_recientes %}
+            <tr>
+              <td>
+                <a href="{% url 'seller_detalle_venta' o.pk %}" class="ps-ord-num">{{ o.order_number }}</a>
+              </td>
+              <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
+              <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
+              <td>
+                <span class="tf-badge seller-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span>
+              </td>
+              <td style="text-align:right;">
+                <a href="{% url 'seller_detalle_venta' o.pk %}" class="btn-seller-outline sm" title="Ver detalle">
+                  <span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">visibility</span>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p style="padding:1.25rem 20px;color:var(--tf-muted);margin:0;">No hay ventas aún.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ps-foot-actions">
       <a href="{% url 'seller_mis_ventas' %}" class="btn-seller-outline">
         <span class="material-symbols-rounded" style="font-size:18px;">payments</span>
         Ver todas las ventas
@@ -91,20 +270,23 @@ Contexto: vista portal_seller; métricas en grid 4 columnas; badges de estado po
 </div>
 <script>
 (function () {
+  var el = document.getElementById('ps-m-low');
+  if (el) {
+    var n = parseInt(el.getAttribute('data-bajo') || '0', 10) || 0;
+    el.style.color = n > 0 ? '#F26522' : '#065F46';
+  }
   var map = {
-    pending: "tf-badge-st-pending",
-    paid: "tf-badge-st-paid",
-    packed: "tf-badge-st-packed",
-    shipped: "tf-badge-st-shipped",
-    delivered: "tf-badge-st-delivered",
-    cancelled: "tf-badge-st-cancelled"
+    pending: 'tf-badge-st-pending',
+    paid: 'tf-badge-st-paid',
+    packed: 'tf-badge-st-packed',
+    shipped: 'tf-badge-st-shipped',
+    delivered: 'tf-badge-st-delivered',
+    cancelled: 'tf-badge-st-cancelled'
   };
-  document.querySelectorAll(".seller-ord-status").forEach(function (el) {
-    var st = el.getAttribute("data-status");
+  document.querySelectorAll('.seller-ord-status').forEach(function (badge) {
+    var st = badge.getAttribute('data-status');
     var cls = map[st];
-    if (cls) {
-      el.classList.add(cls);
-    }
+    if (cls) badge.classList.add(cls);
   });
 })();
 </script>
