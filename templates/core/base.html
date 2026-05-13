@@ -1,4 +1,12 @@
 {% load static %}
+{% comment %}
+================================================================================
+templates/core/base.html — TradeFlow Colón
+Propósito: plantilla maestra (navbar, footer, flash, sistema de diseño global).
+Contexto: Django 4.2 + Bootstrap 5 CDN + Inter + Material Symbols Rounded.
+Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
+================================================================================
+{% endcomment %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -33,9 +41,21 @@
       --tf-radius-input: 8px;
       --tf-radius-badge: 20px;
       --tf-radius-modal: 16px;
-      --tf-shadow-card-hover: 0 8px 24px rgba(15, 42, 68, 0.12);
+      --tf-shadow-card: 0 2px 8px rgba(15, 42, 68, 0.08);
+      --tf-shadow-card-hover: 0 8px 24px rgba(15, 42, 68, 0.15);
       --tf-shadow-nav: 0 1px 0 #D1D5DB;
       --tf-shadow-btn-primary: 0 4px 12px rgba(242, 101, 34, 0.3);
+    }
+
+    /* Fondos oscuros (landing hero/CTA): títulos siempre legibles frente a reglas globales de h1. */
+    .lp-hero h1,
+    .lp-hero .lp-hero-title,
+    section.lp-hero h1 {
+      color: #ffffff !important;
+    }
+    .lp-cta h2,
+    section.lp-cta h2 {
+      color: #ffffff !important;
     }
 
     .material-symbols-rounded {
@@ -159,11 +179,12 @@
       align-items: center;
       font-size: 0.875rem;
       font-weight: 500;
-      color: rgba(255, 255, 255, 0.75);
-      padding: 8px 12px;
+      color: rgba(255, 255, 255, 0.85);
+      padding: 8px 12px 10px;
       border-radius: var(--tf-radius-btn);
       text-decoration: none;
-      transition: color 0.2s ease, background 0.2s ease;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
       white-space: nowrap;
     }
     .tf-nav-links a.nav-link-tf:hover {
@@ -171,11 +192,8 @@
       background: rgba(255, 255, 255, 0.06);
     }
     .tf-nav-links a.nav-link-tf.active {
-      color: var(--tf-white);
-      text-decoration: underline;
-      text-decoration-color: var(--tf-orange);
-      text-decoration-thickness: 2px;
-      text-underline-offset: 6px;
+      color: #ffffff;
+      border-bottom-color: var(--tf-orange);
     }
 
     .tf-nav-divider {
@@ -381,7 +399,7 @@
     .tf-btn-secondary {
       background: transparent;
       color: var(--tf-navy);
-      border: 1px solid var(--tf-border);
+      border: 1.5px solid var(--tf-border);
     }
     .tf-btn-secondary:hover {
       background: var(--tf-white);
@@ -404,14 +422,14 @@
       font-size: 0.9375rem;
       color: var(--tf-body);
       background: var(--tf-white);
-      border: 1px solid var(--tf-border);
+      border: 1.5px solid var(--tf-border);
       border-radius: var(--tf-radius-input);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
       outline: none;
     }
     .tf-input:focus {
-      border-color: var(--tf-blue);
-      box-shadow: 0 0 0 3px rgba(46, 91, 138, 0.15);
+      border-color: var(--tf-orange);
+      box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.15);
     }
     .tf-input::placeholder { color: var(--tf-muted); }
 
@@ -421,11 +439,12 @@
       border: 1px solid var(--tf-border);
       border-radius: var(--tf-radius-card);
       padding: 1.5rem;
+      box-shadow: var(--tf-shadow-card);
       transition: box-shadow 0.2s ease;
     }
     .tf-card:hover { box-shadow: var(--tf-shadow-card-hover); }
 
-    /* ----- Badges ----- */
+    /* ----- Badges (estado de orden — paleta oficial) ----- */
     .tf-badge {
       display: inline-flex;
       align-items: center;
@@ -439,6 +458,12 @@
     .tf-badge-neutral { background: var(--tf-light); color: var(--tf-muted); }
     .tf-badge-orange { background: rgba(242, 101, 34, 0.12); color: var(--tf-orange); }
     .tf-badge-navy { background: rgba(15, 42, 68, 0.08); color: var(--tf-navy); }
+    .tf-badge-st-pending { background: #fef3c7; color: #92400e; }
+    .tf-badge-st-paid { background: #dbeafe; color: #1e40af; }
+    .tf-badge-st-packed { background: #e0e7ff; color: #3730a3; }
+    .tf-badge-st-shipped { background: #d1fae5; color: #065f46; }
+    .tf-badge-st-delivered { background: #d1fae5; color: #065f46; }
+    .tf-badge-st-cancelled { background: #fee2e2; color: #991b1b; }
 
     /* ----- Footer ----- */
     .tf-footer {
@@ -498,6 +523,7 @@
     main.tf-main {
       flex: 1;
       width: 100%;
+      min-width: 0;
       color: var(--tf-body);
     }
 

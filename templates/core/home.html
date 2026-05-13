@@ -1,101 +1,333 @@
 {% extends "core/base.html" %}
 {% load static %}
+{% comment %}
+================================================================================
+templates/core/home.html — TradeFlow Colón
+Propósito: landing pública (hero, estadísticas, features, productos, CTA).
+Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2A44.
+================================================================================
+{% endcomment %}
 {% block title %}TradeFlow Colón — Compra, gestiona, exporta{% endblock %}
 {% block extra_css %}
 <style>
-  .lp-hero { background: #0F2A44; color: #fff; padding: 5rem 1.5rem 4.5rem; position: relative; overflow: hidden; }
-  .lp-hero-inner { max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 3rem; align-items: center; }
-  @media (max-width: 991px) { .lp-hero-inner { grid-template-columns: 1fr; } }
+  .lp-hero {
+    background: #0f2a44;
+    color: #ffffff;
+    min-height: 500px;
+    padding: 4rem 1.5rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .lp-hero-inner {
+    max-width: 1160px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+  @media (max-width: 991px) {
+    .lp-hero-inner { grid-template-columns: 1fr; }
+  }
   .lp-eyebrow {
-    display: inline-flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 600;
-    letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1rem;
   }
-  .lp-hero h1 {
-    font-family: 'Inter', sans-serif; font-weight: 700; font-size: clamp(2rem, 4vw, 3rem);
-    line-height: 1.15; margin: 0 0 1.25rem; color: #fff;
+  .lp-hero-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.15;
+    margin: 0 0 1.25rem;
+    color: #ffffff !important;
   }
-  .lp-hero-desc { font-size: 1.05rem; color: rgba(255,255,255,0.78); line-height: 1.7; max-width: 520px; margin-bottom: 1.75rem; }
+  .lp-hero-desc {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.7;
+    max-width: 520px;
+    margin-bottom: 1.75rem;
+  }
   .lp-hero-cta { display: flex; flex-wrap: wrap; gap: 12px; }
   .lp-btn-primary {
-    display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 8px; border: none;
-    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.95rem; color: #fff; background: #F26522;
-    text-decoration: none; cursor: pointer; transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #ffffff;
+    background: #f26522;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
-  .lp-btn-primary:hover { background: #FF7A3D; color: #fff; box-shadow: 0 4px 12px rgba(242, 101, 34, 0.35); }
+  .lp-btn-primary:hover {
+    background: #ff7a3d;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(242, 101, 34, 0.35);
+  }
   .lp-btn-outline {
-    display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 8px;
-    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.95rem; color: #fff;
-    border: 1px solid rgba(255,255,255,0.45); background: transparent; text-decoration: none; transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: transparent;
+    text-decoration: none;
+    transition: all 0.2s ease;
   }
-  .lp-btn-outline:hover { background: rgba(255,255,255,0.08); color: #fff; }
-  .lp-stats { display: flex; flex-wrap: wrap; gap: 2.5rem; margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.12); }
-  .lp-stat-num { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.75rem; color: #fff; }
-  .lp-stat-num span { color: #FFA15A; }
-  .lp-stat-lbl { font-size: 0.78rem; color: rgba(255,255,255,0.55); margin-top: 4px; font-weight: 500; }
+  .lp-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+  }
+  .lp-stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .lp-stat-item {
+    flex: 1 1 auto;
+    min-width: 120px;
+    padding: 0 1.25rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    text-align: center;
+  }
+  .lp-stat-item:first-child { padding-left: 0; text-align: left; }
+  .lp-stat-item:last-child { border-right: none; padding-right: 0; }
+  @media (max-width: 575px) {
+    .lp-stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 0; text-align: center; }
+    .lp-stat-item:first-child { text-align: center; }
+  }
+  .lp-stat-num {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    color: #f26522;
+    line-height: 1.1;
+  }
+  .lp-stat-lbl {
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 6px;
+    font-weight: 500;
+  }
   .lp-mock {
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
-    padding: 1.25rem; max-width: 380px; margin-left: auto;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 400px;
+    width: 100%;
+    margin-left: auto;
+    box-sizing: border-box;
   }
-  .lp-mock-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.875rem; }
+  @media (max-width: 991px) {
+    .lp-mock { margin-left: 0; max-width: none; }
+  }
+  .lp-mock-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.65);
+    margin-bottom: 1rem;
+  }
+  .lp-mock-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.875rem;
+    color: #ffffff;
+  }
   .lp-mock-row:last-child { border-bottom: none; }
-  .lp-features { padding: 4.5rem 1.5rem; background: #F2F3F5; }
+  .lp-mock-row span:first-child { color: rgba(255, 255, 255, 0.65); }
+  .lp-mock-val { font-weight: 700; color: #ffffff; }
+  .lp-mock-val.accent { color: #ffa15a; }
+  .lp-features { padding: 4.5rem 1.5rem; background: #f2f3f5; }
   .lp-features-inner { max-width: 1160px; margin: 0 auto; }
-  .lp-sec-title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin-bottom: 2rem; }
+  .lp-sec-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.75rem;
+    color: #0f2a44;
+    margin-bottom: 2rem;
+  }
   .lp-fgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
   @media (max-width: 991px) { .lp-fgrid { grid-template-columns: 1fr; } }
   .lp-fcard {
-    background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.5rem;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
     transition: box-shadow 0.2s ease;
   }
-  .lp-fcard:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.12); }
-  .lp-fcard .material-symbols-rounded { font-size: 28px; color: #2E5B8A; margin-bottom: 0.75rem; }
-  .lp-fcard h3 { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1rem; color: #1B3B63; margin: 0 0 0.5rem; }
+  .lp-fcard:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.15); }
+  .lp-fcard .material-symbols-rounded { font-size: 28px; color: #2e5b8a; margin-bottom: 0.75rem; }
+  .lp-fcard h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #1b3b63;
+    margin: 0 0 0.5rem;
+  }
   .lp-fcard p { font-size: 0.875rem; color: #374151; line-height: 1.65; margin: 0; }
-  .lp-products { padding: 4.5rem 1.5rem; background: #fff; }
+  .lp-products { padding: 4.5rem 1.5rem; background: #ffffff; }
   .lp-products-inner { max-width: 1160px; margin: 0 auto; }
-  .lp-phdr { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+  .lp-phdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
   .lp-pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
   @media (max-width: 991px) { .lp-pgrid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 575px) { .lp-pgrid { grid-template-columns: 1fr; } }
-  .lp-pcard { border: 1px solid #D1D5DB; border-radius: 12px; overflow: hidden; background: #fff; transition: box-shadow 0.2s ease; }
-  .lp-pcard:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.12); }
-  .lp-pimg { height: 180px; background: #F2F3F5; display: flex; align-items: center; justify-content: center; }
-  .lp-pimg img { width: 100%; height: 100%; object-fit: cover; }
-  .lp-pbody { padding: 1rem 1.15rem 1.25rem; }
-  .lp-pcat { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #2E5B8A; margin-bottom: 4px; }
-  .lp-pname { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.95rem; color: #0F2A44; margin-bottom: 4px; }
-  .lp-pcom { font-size: 0.8125rem; color: #6B7A88; margin-bottom: 10px; }
-  .lp-pfoot { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-  .lp-pprice { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.05rem; color: #F26522; }
-  .lp-cta { padding: 4rem 1.5rem; background: #0F2A44; text-align: center; }
+  .lp-pcard {
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
+    transition: box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .lp-pcard:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.15); }
+  .lp-pimg {
+    height: 200px;
+    background: #f2f3f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .lp-pimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lp-pbody { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+  .lp-pcat {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #2e5b8a;
+    margin-bottom: 4px;
+  }
+  .lp-pname {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #0f2a44;
+    margin-bottom: 4px;
+  }
+  .lp-pcom { font-size: 0.8125rem; color: #6b7a88; margin-bottom: 12px; }
+  .lp-pfoot {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: auto;
+  }
+  .lp-pprice {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #f26522;
+  }
+  .lp-padd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #ffffff;
+    background: #f26522;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .lp-padd:hover { background: #ff7a3d; color: #ffffff; }
+  .lp-cta { padding: 4rem 1.5rem; background: #0f2a44; text-align: center; }
   .lp-cta-inner { max-width: 640px; margin: 0 auto; }
-  .lp-cta h2 { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.85rem; color: #fff; margin: 0 0 1rem; }
-  .lp-cta p { color: rgba(255,255,255,0.72); font-size: 1rem; line-height: 1.65; margin-bottom: 1.5rem; }
+  .lp-cta h2 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.85rem;
+    color: #ffffff !important;
+    margin: 0 0 1rem;
+  }
+  .lp-cta p { color: rgba(255, 255, 255, 0.72); font-size: 1rem; line-height: 1.65; margin-bottom: 1.5rem; }
 </style>
 {% endblock %}
 {% block content %}
 <section class="lp-hero">
   <div class="lp-hero-inner">
-    <div>
-      <div class="lp-eyebrow"><span class="material-symbols-rounded" style="font-size:16px;">location_on</span> Zona Libre de Colón · Panamá</div>
-      <h1>Compra en la ZLC desde cualquier lugar del mundo</h1>
+    <div class="lp-hero-col-text">
+      <div class="lp-eyebrow">
+        <span class="material-symbols-rounded" style="font-size:16px;">location_on</span>
+        Zona Libre de Colón · Panamá
+      </div>
+      <h1 class="lp-hero-title">Compra en la ZLC desde cualquier lugar del mundo</h1>
       <p class="lp-hero-desc">
         TradeFlow conecta compradores con empresas de la Zona Libre de Colón. Catálogo, pedidos y trazabilidad en una sola plataforma.
       </p>
       <div class="lp-hero-cta">
-        <a href="{% url 'signup' %}" class="lp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">rocket_launch</span> Crear cuenta</a>
-        <a href="{% url 'login' %}" class="lp-btn-outline"><span class="material-symbols-rounded" style="font-size:18px;">login</span> Iniciar sesión</a>
+        <a href="{% url 'signup' %}" class="lp-btn-primary">
+          <span class="material-symbols-rounded" style="font-size:18px;">rocket_launch</span>
+          Crear cuenta
+        </a>
+        <a href="{% url 'login' %}" class="lp-btn-outline">
+          <span class="material-symbols-rounded" style="font-size:18px;">login</span>
+          Iniciar sesión
+        </a>
       </div>
       <div class="lp-stats">
-        <div><div class="lp-stat-num">2,600<span>+</span></div><div class="lp-stat-lbl">Empresas en la ZLC</div></div>
-        <div><div class="lp-stat-num">$33<span>B</span></div><div class="lp-stat-lbl">Transacciones anuales</div></div>
-        <div><div class="lp-stat-num">180<span>+</span></div><div class="lp-stat-lbl">Países compradores</div></div>
+        <div class="lp-stat-item">
+          <div class="lp-stat-num">2,600+</div>
+          <div class="lp-stat-lbl">Empresas en la ZLC</div>
+        </div>
+        <div class="lp-stat-item">
+          <div class="lp-stat-num">$33B</div>
+          <div class="lp-stat-lbl">Transacciones anuales</div>
+        </div>
+        <div class="lp-stat-item">
+          <div class="lp-stat-num">180+</div>
+          <div class="lp-stat-lbl">Países compradores</div>
+        </div>
       </div>
     </div>
     <div class="lp-mock" aria-hidden="true">
-      <div class="lp-mock-row"><span style="color:rgba(255,255,255,0.55);">Órdenes activas</span><span style="font-weight:700;">128</span></div>
-      <div class="lp-mock-row"><span style="color:rgba(255,255,255,0.55);">Fulfillment</span><span style="font-weight:700;color:#FFA15A;">94%</span></div>
-      <div class="lp-mock-row"><span style="color:rgba(255,255,255,0.55);">Envíos en tránsito</span><span style="font-weight:700;">42</span></div>
+      <div class="lp-mock-title">Resumen operativo</div>
+      <div class="lp-mock-row"><span>Órdenes activas</span><span class="lp-mock-val">128</span></div>
+      <div class="lp-mock-row"><span>Fulfillment</span><span class="lp-mock-val accent">94%</span></div>
+      <div class="lp-mock-row"><span>Envíos en tránsito</span><span class="lp-mock-val">42</span></div>
     </div>
   </div>
 </section>
@@ -103,12 +335,36 @@
   <div class="lp-features-inner">
     <h2 class="lp-sec-title">Por qué TradeFlow</h2>
     <div class="lp-fgrid">
-      <div class="lp-fcard"><span class="material-symbols-rounded">public</span><h3>Acceso global</h3><p>Explora ofertas de la ZLC sin fricción y con información clara de cada vendedor.</p></div>
-      <div class="lp-fcard"><span class="material-symbols-rounded">inventory_2</span><h3>Inventario en vivo</h3><p>Stock y reservas integrados para evitar ventas duplicadas y mejorar la confianza.</p></div>
-      <div class="lp-fcard"><span class="material-symbols-rounded">description</span><h3>Documentación</h3><p>Base lista para facturas y listas de empaque alineadas a procesos de exportación.</p></div>
-      <div class="lp-fcard"><span class="material-symbols-rounded">payments</span><h3>Pagos trazables</h3><p>Flujos de pago mock y preparación para integraciones con pasarelas profesionales.</p></div>
-      <div class="lp-fcard"><span class="material-symbols-rounded">qr_code_2</span><h3>Pre-registro</h3><p>Experiencias de registro y roles separados para compradores y vendedores.</p></div>
-      <div class="lp-fcard"><span class="material-symbols-rounded">monitoring</span><h3>Analítica</h3><p>Paneles para administración y vendedores con métricas operativas y comerciales.</p></div>
+      <div class="lp-fcard">
+        <span class="material-symbols-rounded">public</span>
+        <h3>Acceso global</h3>
+        <p>Explora ofertas de la ZLC sin fricción y con información clara de cada vendedor.</p>
+      </div>
+      <div class="lp-fcard">
+        <span class="material-symbols-rounded">inventory_2</span>
+        <h3>Inventario en vivo</h3>
+        <p>Stock y reservas integrados para evitar ventas duplicadas y mejorar la confianza.</p>
+      </div>
+      <div class="lp-fcard">
+        <span class="material-symbols-rounded">description</span>
+        <h3>Documentación</h3>
+        <p>Base lista para facturas y listas de empaque alineadas a procesos de exportación.</p>
+      </div>
+      <div class="lp-fcard">
+        <span class="material-symbols-rounded">payments</span>
+        <h3>Pagos trazables</h3>
+        <p>Flujos de pago mock y preparación para integraciones con pasarelas profesionales.</p>
+      </div>
+      <div class="lp-fcard">
+        <span class="material-symbols-rounded">qr_code_2</span>
+        <h3>Pre-registro</h3>
+        <p>Experiencias de registro y roles separados para compradores y vendedores.</p>
+      </div>
+      <div class="lp-fcard">
+        <span class="material-symbols-rounded">monitoring</span>
+        <h3>Analítica</h3>
+        <p>Paneles para administración y vendedores con métricas operativas y comerciales.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -123,7 +379,11 @@
       {% for producto in productos %}
       <article class="lp-pcard">
         <div class="lp-pimg">
-          {% if producto.image %}<img src="{{ producto.image.url }}" alt="{{ producto.name }}">{% else %}<span class="material-symbols-rounded" style="font-size:48px;color:#D1D5DB;">inventory_2</span>{% endif %}
+          {% if producto.image %}
+          <img src="{{ producto.image.url }}" alt="{{ producto.name }}">
+          {% else %}
+          <span class="material-symbols-rounded" style="font-size:48px;color:#D1D5DB;">inventory_2</span>
+          {% endif %}
         </div>
         <div class="lp-pbody">
           <div class="lp-pcat">{{ producto.category.name|default:"General" }}</div>
@@ -131,8 +391,9 @@
           <div class="lp-pcom">{{ producto.company.name }}</div>
           <div class="lp-pfoot">
             <span class="lp-pprice">{{ producto.currency }} {{ producto.unit_price }}</span>
-            <a href="{% url 'signup' %}" class="lp-btn-primary" style="padding:8px 14px;font-size:0.8125rem;">
-              <span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span> Add to Cart
+            <a href="{% url 'signup' %}" class="lp-padd">
+              <span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span>
+              Add to Cart
             </a>
           </div>
         </div>
@@ -147,7 +408,10 @@
     <h2>La Zona Libre está esperándote</h2>
     <p>Únete a la plataforma que digitaliza el comercio de Colón para compradores y empresas.</p>
     <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
-      <a href="{% url 'signup' %}" class="lp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">person_add</span> Comenzar ahora</a>
+      <a href="{% url 'signup' %}" class="lp-btn-primary">
+        <span class="material-symbols-rounded" style="font-size:18px;">person_add</span>
+        Comenzar ahora
+      </a>
       <a href="{% url 'login' %}" class="lp-btn-outline">Ya tengo cuenta</a>
     </div>
   </div>

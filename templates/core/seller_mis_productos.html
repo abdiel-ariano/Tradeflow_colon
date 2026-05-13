@@ -1,5 +1,12 @@
 {% extends "core/base.html" %}
 {% load static %}
+{% comment %}
+================================================================================
+templates/core/seller_mis_productos.html — TradeFlow Colón
+Propósito: listado y filtro de productos del vendedor (empresa asignada).
+Contexto: vista seller_mis_productos; tabla con miniatura 56px, stock y acciones.
+================================================================================
+{% endcomment %}
 {% block title %}Mis productos — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
@@ -11,14 +18,20 @@
     <h1>Mis productos</h1>
     <p class="seller-sub">Catálogo de <strong>{{ company.name }}</strong>.</p>
     <div class="seller-toolbar">
-      <a href="{% url 'seller_agregar_producto' %}" class="btn-seller-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span> Nuevo producto</a>
+      <a href="{% url 'seller_agregar_producto' %}" class="btn-seller-primary">
+        <span class="material-symbols-rounded" style="font-size:18px;">add</span>
+        Nuevo producto
+      </a>
       <form class="seller-filters" method="get" action="">
         <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Buscar nombre o SKU…" style="min-width:200px;">
         <select class="tf-input" name="categoria" id="seller-prod-cat" style="max-width:220px;">
           <option value="">Todas las categorías</option>
           {% for c in categorias %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
         </select>
-        <button type="submit" class="btn-seller-outline"><span class="material-symbols-rounded" style="font-size:18px;">search</span> Filtrar</button>
+        <button type="submit" class="btn-seller-outline">
+          <span class="material-symbols-rounded" style="font-size:18px;">search</span>
+          Filtrar
+        </button>
       </form>
     </div>
     <script>
@@ -27,7 +40,10 @@
       if (!sel) return;
       var wanted = "{{ cat_activa|escapejs }}";
       for (var i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].value === wanted) { sel.selectedIndex = i; break; }
+        if (sel.options[i].value === wanted) {
+          sel.selectedIndex = i;
+          break;
+        }
       }
     })();
     </script>
@@ -36,24 +52,35 @@
       <table class="seller-table">
         <thead>
           <tr>
-            <th style="width:56px;"></th>
+            <th style="width:72px;"></th>
             <th>Producto</th>
             <th>SKU</th>
             <th>Precio</th>
             <th>Stock</th>
             <th>Estado</th>
-            <th style="text-align:right;">Acciones</th>
+            <th class="seller-actions-cell">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {% for p in productos %}
           <tr>
             <td>
-              {% if p.image %}<img class="seller-product-thumb" src="{{ p.image.url }}" alt="">{% else %}<div class="seller-product-thumb" style="display:flex;align-items:center;justify-content:center;"><span class="material-symbols-rounded" style="color:#D1D5DB;font-size:24px;">image</span></div>{% endif %}
+              {% if p.image %}
+              <img class="seller-product-thumb" src="{{ p.image.url }}" alt="">
+              {% else %}
+              <div class="seller-product-thumb" style="display:flex;align-items:center;justify-content:center;">
+                <span class="material-symbols-rounded" style="color:#D1D5DB;font-size:24px;">image</span>
+              </div>
+              {% endif %}
             </td>
-            <td><strong>{{ p.name }}</strong>{% if p.category %}<br><span style="color:var(--tf-muted);font-size:0.82rem;">{{ p.category.name }}</span>{% endif %}</td>
+            <td class="name-cell">
+              <strong>{{ p.name }}</strong>
+              {% if p.category %}
+              <br><span style="color:var(--tf-muted);font-size:0.82rem;">{{ p.category.name }}</span>
+              {% endif %}
+            </td>
             <td>{{ p.sku|default:"—" }}</td>
-            <td><span class="tf-price" style="font-size:0.95rem;">{{ p.unit_price }} {{ p.currency }}</span></td>
+            <td class="price-cell">{{ p.unit_price }} {{ p.currency }}</td>
             <td>
               {% if p.inventory %}
                 {% with av=p.inventory.available %}
@@ -63,12 +90,20 @@
                 <span class="seller-stock-pill seller-stock-out">0</span>
               {% endif %}
             </td>
-            <td>{% if p.is_active %}<span class="seller-badge-active">Activo</span>{% else %}<span class="seller-badge-inactive">Inactivo</span>{% endif %}</td>
-            <td style="text-align:right;white-space:nowrap;">
-              <a href="{% url 'seller_editar_producto' p.pk %}" class="btn-seller-outline" style="padding:6px 10px;"><span class="material-symbols-rounded" style="font-size:18px;">edit</span></a>
-              <form method="post" action="{% url 'seller_toggle_producto' p.pk %}" style="display:inline;">
+            <td>
+              {% if p.is_active %}
+              <span class="seller-badge-active">Activo</span>
+              {% else %}
+              <span class="seller-badge-inactive">Inactivo</span>
+              {% endif %}
+            </td>
+            <td class="seller-actions-cell">
+              <a href="{% url 'seller_editar_producto' p.pk %}" class="btn-seller-outline sm" title="Editar">
+                <span class="material-symbols-rounded" style="font-size:18px;">edit</span>
+              </a>
+              <form method="post" action="{% url 'seller_toggle_producto' p.pk %}">
                 {% csrf_token %}
-                <button type="submit" class="btn-seller-outline" style="padding:6px 10px;" title="Activar / desactivar">
+                <button type="submit" class="btn-seller-outline sm" title="Activar o desactivar">
                   <span class="material-symbols-rounded" style="font-size:18px;">toggle_on</span>
                 </button>
               </form>
