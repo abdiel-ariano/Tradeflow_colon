@@ -47,14 +47,10 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       --tf-shadow-btn-primary: 0 4px 12px rgba(242, 101, 34, 0.3);
     }
 
-    /* Fondos oscuros (landing hero/CTA): títulos siempre legibles frente a reglas globales de h1. */
+    /* Fondos oscuros (landing hero): título legible frente a reglas globales de h1. */
     .lp-hero h1,
     .lp-hero .lp-hero-title,
     section.lp-hero h1 {
-      color: #ffffff !important;
-    }
-    .lp-cta h2,
-    section.lp-cta h2 {
       color: #ffffff !important;
     }
 
@@ -254,6 +250,31 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       display: none;
     }
     .tf-nav-cart-badge.has-count { display: block; }
+
+    /* ----- Navbar modo público (visitante): fondo claro, marca y enlaces oscuros ----- */
+    body.tf-public .tf-nav {
+      background: #ffffff;
+      box-shadow: 0 1px 0 #d1d5db, 0 2px 12px rgba(15, 42, 68, 0.06);
+    }
+    body.tf-public .tf-nav-brand .brand-wordmark {
+      color: var(--tf-navy);
+    }
+    body.tf-public .tf-nav-brand .brand-sub {
+      color: var(--tf-muted);
+    }
+    body.tf-public .tf-nav-brand img {
+      filter: none;
+    }
+    body.tf-public .tf-btn-outline-sm {
+      color: var(--tf-navy);
+      border-color: var(--tf-border);
+      background: #ffffff;
+    }
+    body.tf-public .tf-btn-outline-sm:hover {
+      color: var(--tf-navy);
+      background: var(--tf-light);
+      border-color: var(--tf-muted);
+    }
 
     .tf-btn-ghost-nav {
       display: inline-flex;
@@ -465,12 +486,13 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
     .tf-badge-st-delivered { background: #d1fae5; color: #065f46; }
     .tf-badge-st-cancelled { background: #fee2e2; color: #991b1b; }
 
-    /* ----- Footer ----- */
+    /* ----- Footer (tema claro: texto oscuro sobre fondo gris) ----- */
     .tf-footer {
-      background: var(--tf-navy);
-      color: rgba(255, 255, 255, 0.65);
+      background: #f2f3f5;
+      color: var(--tf-body);
       padding: 3rem 1.5rem 1.5rem;
       margin-top: auto;
+      border-top: 1px solid var(--tf-border);
     }
     .tf-footer-grid {
       max-width: 1160px;
@@ -489,21 +511,27 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 1.15rem;
-      color: var(--tf-white);
+      color: var(--tf-navy);
+    }
+    .tf-footer-lead {
+      font-size: 0.875rem;
+      margin-top: 10px;
+      line-height: 1.6;
+      color: var(--tf-muted);
     }
     .tf-footer a {
-      color: rgba(255, 255, 255, 0.55);
+      color: var(--tf-body);
       text-decoration: none;
       font-size: 0.8125rem;
       transition: color 0.2s ease;
     }
-    .tf-footer a:hover { color: var(--tf-white); }
+    .tf-footer a:hover { color: var(--tf-orange); }
     .tf-footer-col-title {
       font-size: 0.6875rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: rgba(255, 255, 255, 0.35);
+      color: var(--tf-muted);
       margin-bottom: 10px;
     }
     .tf-footer-links { display: flex; flex-direction: column; gap: 8px; }
@@ -511,9 +539,9 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       max-width: 1160px;
       margin: 1.5rem auto 0;
       padding-top: 1rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid var(--tf-border);
       font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.45);
+      color: var(--tf-muted);
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
@@ -554,7 +582,7 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
     {% block extra_css %}{% endblock %}
   </style>
 </head>
-<body>
+<body class="{% if not request.user.is_authenticated %}tf-public{% endif %}">
   {% if request.user.is_authenticated %}
   <div id="tf-nav-meta" class="d-none"
        data-role="{{ request.user.profile.role }}"
@@ -692,7 +720,7 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
     <div class="tf-footer-grid">
       <div>
         <div class="tf-footer-brand">TradeFlow Colón</div>
-        <p style="font-size:0.875rem;margin-top:10px;line-height:1.6;color:rgba(255,255,255,0.55);">
+        <p class="tf-footer-lead">
           Marketplace B2B/B2C para la Zona Libre de Colón, Panamá.
         </p>
       </div>

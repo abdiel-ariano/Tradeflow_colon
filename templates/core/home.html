@@ -4,23 +4,18 @@
 ================================================================================
 templates/core/home.html — TradeFlow Colón
 Propósito: landing pública (hero, estadísticas, features, productos, CTA).
-Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2A44.
+Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
+(inline + !important) para evitar que Bootstrap u otros estilos lo anulen.
 ================================================================================
 {% endcomment %}
 {% block title %}TradeFlow Colón — Compra, gestiona, exporta{% endblock %}
 {% block extra_css %}
 <style>
-  .lp-hero {
-    background: #0f2a44;
-    color: #ffffff;
-    min-height: 500px;
-    padding: 4rem 1.5rem 4rem;
-    position: relative;
-    overflow: hidden;
-  }
+  /* Hero: el fondo principal va en el <section> inline; aquí solo layout y refuerzo de color */
   .lp-hero-inner {
     max-width: 1160px;
     margin: 0 auto;
+    padding: 0 1.5rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3rem;
@@ -37,7 +32,7 @@ Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.7) !important;
     margin-bottom: 1rem;
   }
   .lp-hero-title {
@@ -50,7 +45,7 @@ Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2
   }
   .lp-hero-desc {
     font-size: 1.05rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.85) !important;
     line-height: 1.7;
     max-width: 520px;
     margin-bottom: 1.75rem;
@@ -66,7 +61,7 @@ Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 0.95rem;
-    color: #ffffff;
+    color: #ffffff !important;
     background: #f26522;
     text-decoration: none;
     cursor: pointer;
@@ -74,7 +69,7 @@ Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2
   }
   .lp-btn-primary:hover {
     background: #ff7a3d;
-    color: #ffffff;
+    color: #ffffff !important;
     box-shadow: 0 4px 12px rgba(242, 101, 34, 0.35);
   }
   .lp-btn-outline {
@@ -86,7 +81,7 @@ Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2
     font-family: 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.95rem;
-    color: #ffffff;
+    color: #ffffff !important;
     border: 1px solid rgba(255, 255, 255, 0.45);
     background: transparent;
     text-decoration: none;
@@ -94,7 +89,7 @@ Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2
   }
   .lp-btn-outline:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
+    color: #ffffff !important;
   }
   .lp-stats {
     display: flex;
@@ -120,24 +115,25 @@ Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 2rem;
-    color: #f26522;
+    color: #f26522 !important;
     line-height: 1.1;
   }
   .lp-stat-lbl {
     font-size: 0.8125rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.7) !important;
     margin-top: 6px;
     font-weight: 500;
   }
   .lp-mock {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 16px;
     padding: 24px;
     max-width: 400px;
     width: 100%;
     margin-left: auto;
     box-sizing: border-box;
+    color: #ffffff !important;
   }
   @media (max-width: 991px) {
     .lp-mock { margin-left: 0; max-width: none; }
@@ -147,7 +143,7 @@ Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.7) !important;
     margin-bottom: 1rem;
   }
   .lp-mock-row {
@@ -157,12 +153,12 @@ Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2
     padding: 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 0.875rem;
-    color: #ffffff;
+    color: #ffffff !important;
   }
   .lp-mock-row:last-child { border-bottom: none; }
-  .lp-mock-row span:first-child { color: rgba(255, 255, 255, 0.65); }
-  .lp-mock-val { font-weight: 700; color: #ffffff; }
-  .lp-mock-val.accent { color: #ffa15a; }
+  .lp-mock-row span:first-child { color: rgba(255, 255, 255, 0.7) !important; }
+  .lp-mock-val { font-weight: 700; color: #ffffff !important; }
+  .lp-mock-val.accent { color: #ffa15a !important; }
   .lp-features { padding: 4.5rem 1.5rem; background: #f2f3f5; }
   .lp-features-inner { max-width: 1160px; margin: 0 auto; }
   .lp-sec-title {
@@ -274,24 +270,44 @@ Contexto: datos de productos desde home_view; texto claro obligatorio sobre #0F2
     transition: all 0.2s ease;
   }
   .lp-padd:hover { background: #ff7a3d; color: #ffffff; }
-  .lp-cta { padding: 4rem 1.5rem; background: #0f2a44; text-align: center; }
+  .lp-cta {
+    padding: 4rem 1.5rem;
+    background: #ffffff;
+    text-align: center;
+    border-top: 1px solid #d1d5db;
+  }
   .lp-cta-inner { max-width: 640px; margin: 0 auto; }
   .lp-cta h2 {
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 1.85rem;
-    color: #ffffff !important;
+    color: #0f2a44 !important;
     margin: 0 0 1rem;
   }
-  .lp-cta p { color: rgba(255, 255, 255, 0.72); font-size: 1rem; line-height: 1.65; margin-bottom: 1.5rem; }
+  .lp-cta p {
+    color: #6b7a88 !important;
+    font-size: 1rem;
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+  }
+  .lp-cta .lp-btn-outline {
+    color: #0f2a44 !important;
+    border-color: #d1d5db !important;
+    background: #ffffff !important;
+  }
+  .lp-cta .lp-btn-outline:hover {
+    background: #f2f3f5 !important;
+    color: #0f2a44 !important;
+    border-color: #6b7a88 !important;
+  }
 </style>
 {% endblock %}
 {% block content %}
-<section class="lp-hero">
+<section class="lp-hero" style="background-color: #0F2A44 !important; background-image: none !important; min-height: 520px; padding: 80px 0; position: relative; overflow: hidden;">
   <div class="lp-hero-inner">
     <div class="lp-hero-col-text">
       <div class="lp-eyebrow">
-        <span class="material-symbols-rounded" style="font-size:16px;">location_on</span>
+        <span class="material-symbols-rounded" style="font-size:16px;color:rgba(255,255,255,0.85) !important;">location_on</span>
         Zona Libre de Colón · Panamá
       </div>
       <h1 class="lp-hero-title">Compra en la ZLC desde cualquier lugar del mundo</h1>

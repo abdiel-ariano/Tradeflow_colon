@@ -2,6 +2,7 @@
 {% load static %}
 {% block title %}Dashboard — TradeFlow Colón{% endblock %}
 {% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 {% endblock %}
 {% block extra_css %}
@@ -60,6 +61,7 @@
   .adm-kpi-lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #6B7A88 !important; }
   .adm-kpi-val { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.5rem; color: #0F2A44 !important; }
   .adm-kpi-sub { font-size: 0.78rem; color: #6B7A88 !important; margin-top: 6px; }
+  .adm-kpi-delta { font-size: 0.72rem; font-weight: 600; margin-top: 4px; color: #2E5B8A !important; }
   .adm-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
   @media (max-width: 991px) { .adm-charts { grid-template-columns: 1fr; } }
   .adm-chart-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.25rem; }
@@ -96,24 +98,28 @@
     </div>
     <div class="adm-kpi-grid">
       <div class="adm-kpi">
-        <div class="adm-kpi-top"><span class="adm-kpi-lbl">Órdenes totales</span><span class="material-symbols-rounded" style="color:#2E5B8A;">receipt_long</span></div>
-        <div class="adm-kpi-val">{{ total_ordenes }}</div>
-        <div class="adm-kpi-sub">En período: {{ ordenes_semana }}</div>
+        <div class="adm-kpi-top"><span class="adm-kpi-lbl">Órdenes (período)</span><span class="material-symbols-rounded" style="color:#2E5B8A;">receipt_long</span></div>
+        <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">{{ ordenes_semana }}</div>
+        <div class="adm-kpi-delta">vs. período anterior: {{ ordenes_delta_label }}</div>
+        <div class="adm-kpi-sub">Histórico total: {{ total_ordenes }} órdenes</div>
       </div>
       <div class="adm-kpi">
-        <div class="adm-kpi-top"><span class="adm-kpi-lbl">Ingresos (entregadas)</span><span class="material-symbols-rounded" style="color:#2E5B8A;">payments</span></div>
-        <div class="adm-kpi-val">USD {{ ingresos_total }}</div>
-        <div class="adm-kpi-sub">En período: USD {{ ingresos_semana }}</div>
+        <div class="adm-kpi-top"><span class="adm-kpi-lbl">Ingresos entregados (período)</span><span class="material-symbols-rounded" style="color:#2E5B8A;">payments</span></div>
+        <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">USD {{ ingresos_semana }}</div>
+        <div class="adm-kpi-delta">vs. período anterior: {{ ingresos_delta_label }}</div>
+        <div class="adm-kpi-sub">Acumulado histórico entregado: USD {{ ingresos_total }}</div>
       </div>
       <div class="adm-kpi">
-        <div class="adm-kpi-top"><span class="adm-kpi-lbl">Clientes activos</span><span class="material-symbols-rounded" style="color:#2E5B8A;">groups</span></div>
-        <div class="adm-kpi-val">{{ clientes_activos }}</div>
-        <div class="adm-kpi-sub">Compradores con al menos una orden</div>
+        <div class="adm-kpi-top"><span class="adm-kpi-lbl">Compradores únicos (período)</span><span class="material-symbols-rounded" style="color:#2E5B8A;">groups</span></div>
+        <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">{{ clientes_periodo }}</div>
+        <div class="adm-kpi-delta">vs. período anterior: {{ clientes_delta_label }}</div>
+        <div class="adm-kpi-sub">Con al menos una orden (histórico): {{ clientes_activos }}</div>
       </div>
       <div class="adm-kpi">
-        <div class="adm-kpi-top"><span class="adm-kpi-lbl">Tasa conversión</span><span class="material-symbols-rounded" style="color:#2E5B8A;">trending_up</span></div>
-        <div class="adm-kpi-val">{{ tasa_conversion }}%</div>
-        <div class="adm-kpi-sub">Entregadas sobre total de órdenes</div>
+        <div class="adm-kpi-top"><span class="adm-kpi-lbl">Tasa conversión (período)</span><span class="material-symbols-rounded" style="color:#2E5B8A;">trending_up</span></div>
+        <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">{{ tasa_periodo }}%</div>
+        <div class="adm-kpi-delta">Δ vs. período anterior: {{ tasa_delta_pp_fmt }} pp</div>
+        <div class="adm-kpi-sub">Global (histórico): {{ tasa_conversion }}% entregadas / total</div>
       </div>
     </div>
     <div class="adm-charts">

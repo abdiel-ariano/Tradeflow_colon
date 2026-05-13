@@ -14,11 +14,12 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q, Sum
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
 import json
+import logging
 
 from .decorators import admin_required, buyer_required, seller_required
 from .forms import SellerProductForm, SellerInventoryForm
@@ -26,6 +27,29 @@ from .models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document
 )
+from .utils.email_sender import enviar_cambio_estado, enviar_confirmacion_orden
+from .utils.pdf_generator import generar_factura_pdf
+
+log = logging.getLogger(__name__)
+
+
+def _period_delta_pct(current, previous):
+    """
+    Texto corto de variación porcentual entre el período actual y el anterior.
+
+    Args:
+        current: Valor numérico del período reciente.
+        previous: Valor del período inmediatamente anterior (misma duración).
+    """
+    try:
+        cur = float(current)
+        prev = float(previous)
+    except (TypeError, ValueError):
+        return "n/a"
+    if prev <= 0:
+        return "nuevo" if cur > 0 else "sin base"
+    pct = (cur - prev) / prev * 100.0
+    return f"{pct:+.1f}%"
 
 
 # =============================================================================
@@ -150,6 +174,9 @@ def home_view(request):
 def dashboard(request):
     """
     Panel de administración con KPIs, selector de período y gráficos (Chart.js).
+
+    Incluye comparación del período seleccionado frente al período inmediatamente
+    anterior de la misma duración (órdenes creadas, ingresos entregados, etc.).
     """
     hoy = timezone.now()
     try:
@@ -159,23 +186,61 @@ def dashboard(request):
     if periodo not in (7, 30, 90):
         periodo = 7
 
-    hace_periodo = hoy - timedelta(days=periodo)
+    inicio_actual = hoy - timedelta(days=periodo)
+    inicio_anterior = hoy - timedelta(days=periodo * 2)
 
     total_ordenes = Order.objects.count()
-    ordenes_semana = Order.objects.filter(created_at__gte=hace_periodo).count()
+    ordenes_semana = Order.objects.filter(created_at__gte=inicio_actual).count()
+    ordenes_periodo_prev = Order.objects.filter(
+        created_at__gte=inicio_anterior,
+        created_at__lt=inicio_actual,
+    ).count()
+
     ingresos_total = Order.objects.filter(status='delivered').aggregate(t=Sum('total'))['t'] or Decimal('0')
     ingresos_semana = Order.objects.filter(
-        status='delivered', created_at__gte=hace_periodo
+        status='delivered', created_at__gte=inicio_actual
     ).aggregate(t=Sum('total'))['t'] or Decimal('0')
+    ingresos_periodo_prev = Order.objects.filter(
+        status='delivered',
+        created_at__gte=inicio_anterior,
+        created_at__lt=inicio_actual,
+    ).aggregate(t=Sum('total'))['t'] or Decimal('0')
+
     total_productos = Product.objects.filter(is_active=True).count()
     total_empresas = Company.objects.count()
     ordenes_recientes = Order.objects.select_related('buyer').order_by('-created_at')[:8]
 
     clientes_activos = Order.objects.values('buyer').distinct().count()
+    clientes_periodo = Order.objects.filter(created_at__gte=inicio_actual).values('buyer').distinct().count()
+    clientes_periodo_prev = (
+        Order.objects.filter(
+            created_at__gte=inicio_anterior,
+            created_at__lt=inicio_actual,
+        )
+        .values('buyer')
+        .distinct()
+        .count()
+    )
+
     entregadas = Order.objects.filter(status='delivered').count()
     tasa_conversion = Decimal('0')
     if total_ordenes > 0:
         tasa_conversion = round(Decimal(100) * entregadas / total_ordenes, 1)
+
+    tot_cur = Order.objects.filter(created_at__gte=inicio_actual).count()
+    del_cur = Order.objects.filter(created_at__gte=inicio_actual, status='delivered').count()
+    tasa_periodo = round(Decimal(100) * del_cur / tot_cur, 1) if tot_cur else Decimal('0')
+    tot_prev = Order.objects.filter(
+        created_at__gte=inicio_anterior,
+        created_at__lt=inicio_actual,
+    ).count()
+    del_prev = Order.objects.filter(
+        created_at__gte=inicio_anterior,
+        created_at__lt=inicio_actual,
+        status='delivered',
+    ).count()
+    tasa_periodo_prev = round(Decimal(100) * del_prev / tot_prev, 1) if tot_prev else Decimal('0')
+    tasa_delta_pp = tasa_periodo - tasa_periodo_prev
 
     dias_semana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
     ordenes_por_dia = []
@@ -187,8 +252,12 @@ def dashboard(request):
     context = {
         'total_ordenes':        total_ordenes,
         'ordenes_semana':       ordenes_semana,
+        'ordenes_delta_label':  _period_delta_pct(ordenes_semana, ordenes_periodo_prev),
         'ingresos_total':       ingresos_total,
         'ingresos_semana':      ingresos_semana,
+        'ingresos_delta_label': _period_delta_pct(
+            float(ingresos_semana), float(ingresos_periodo_prev)
+        ),
         'total_productos':      total_productos,
         'total_empresas':       total_empresas,
         'ordenes_recientes':    ordenes_recientes,
@@ -197,7 +266,12 @@ def dashboard(request):
         'dias_labels_json':     json.dumps(dias_semana),
         'ordenes_por_dia_json': json.dumps(ordenes_por_dia),
         'clientes_activos':     clientes_activos,
+        'clientes_periodo':     clientes_periodo,
+        'clientes_delta_label': _period_delta_pct(clientes_periodo, clientes_periodo_prev),
         'tasa_conversion':      tasa_conversion,
+        'tasa_periodo':         tasa_periodo,
+        'tasa_delta_pp':        tasa_delta_pp,
+        'tasa_delta_pp_fmt':    f'{tasa_delta_pp:+.1f}',
         'periodo_activo':       periodo,
         'titulo_pagina':        'Dashboard',
         'nav_activo':           'dashboard',
@@ -262,6 +336,7 @@ def cambiar_estado_orden(request, pk, estado):
     estados_validos = [e[0] for e in Order.STATUS_CHOICES]
 
     if estado in estados_validos:
+        estado_anterior = orden.status
         orden.status = estado
         orden.save(update_fields=['status', 'updated_at'])
         if estado == 'delivered':
@@ -271,6 +346,10 @@ def cambiar_estado_orden(request, pk, estado):
                 pago.paid_at = timezone.now()
                 pago.save(update_fields=['status', 'paid_at'])
         messages.success(request, f'Orden actualizada a "{orden.get_status_display()}".')
+        try:
+            enviar_cambio_estado(orden, estado_anterior)
+        except Exception:
+            log.exception('No se pudo enviar email de cambio de estado.')
     else:
         messages.error(request, 'Estado no válido.')
 
@@ -1372,6 +1451,10 @@ def checkout(request):
             request,
             f'Orden {orden.order_number} creada exitosamente. ¡Gracias por tu compra!'
         )
+        try:
+            enviar_confirmacion_orden(orden)
+        except Exception:
+            log.exception('No se pudo enviar email de confirmación de orden.')
         return redirect('detalle_mi_orden', pk=orden.pk)
 
     context = {
@@ -1458,3 +1541,30 @@ def detalle_mi_orden(request, pk):
         'nav_activo':    'mis_ordenes',
     }
     return render(request, 'core/detalle_mi_orden.html', context)
+
+
+@login_required
+def descargar_factura(request, orden_pk):
+    """
+    Genera y descarga la factura PDF de una orden.
+
+    El comprador solo puede descargar sus propias órdenes. Los administradores
+    pueden descargar cualquier orden.
+    """
+    orden = get_object_or_404(
+        Order.objects.select_related('buyer').prefetch_related('items__product__company'),
+        pk=orden_pk,
+    )
+    if orden.buyer_id != request.user.id and not (
+        request.user.is_superuser or getattr(getattr(request.user, 'profile', None), 'role', None) == 'admin'
+    ):
+        raise Http404()
+
+    try:
+        pdf_bytes = generar_factura_pdf(orden_pk)
+    except Order.DoesNotExist:
+        raise Http404()
+    filename = f"factura_{orden.order_number}.pdf"
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
