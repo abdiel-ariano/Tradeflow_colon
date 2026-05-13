@@ -1,5 +1,9 @@
 /**
- * TradeFlow Colón — portal vendedor (variables alineadas a base / diseño ZLC).
+ * =============================================================================
+ * static/css/seller_portal.css — TradeFlow Colón (portal vendedor)
+ * Propósito: layout seller + tablas + métricas + botones alineados a --tf-*.
+ * Contexto: usado por portal_seller, seller_mis_productos, seller_mis_ventas, etc.
+ * =============================================================================
  */
 :root {
   --tf-navy: #0f2a44;
@@ -13,24 +17,18 @@
   --tf-muted: #6b7a88;
   --tf-white: #ffffff;
   --tf-body: #374151;
-  --order-pending-bg: #fef8e7;
-  --order-pending-fg: #6b4a00;
-  --order-paid-bg: #e8f4f8;
-  --order-paid-fg: #1a4f65;
-  --order-packed-bg: #e8f4f8;
-  --order-packed-fg: #1a4f65;
-  --order-shipped-bg: #e0f2f1;
-  --order-shipped-fg: #0d5c56;
-  --order-delivered-bg: #edf7ee;
-  --order-delivered-fg: #1e5c21;
-  --order-cancelled-bg: #fdecea;
-  --order-cancelled-fg: #7d1a14;
-  --stock-ok-bg: #edf7ee;
-  --stock-ok-fg: #1e5c21;
-  --stock-low-bg: #fef8e7;
-  --stock-low-fg: #6b4a00;
-  --stock-out-bg: #fdecea;
-  --stock-out-fg: #7d1a14;
+  --order-pending-bg: #fef3c7;
+  --order-pending-fg: #92400e;
+  --order-paid-bg: #dbeafe;
+  --order-paid-fg: #1e40af;
+  --order-packed-bg: #e0e7ff;
+  --order-packed-fg: #3730a3;
+  --order-shipped-bg: #d1fae5;
+  --order-shipped-fg: #065f46;
+  --order-delivered-bg: #d1fae5;
+  --order-delivered-fg: #065f46;
+  --order-cancelled-bg: #fee2e2;
+  --order-cancelled-fg: #991b1b;
 }
 
 .seller-layout {
@@ -69,7 +67,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 1.25rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 500;
@@ -95,6 +93,7 @@
 
 .seller-main {
   flex: 1;
+  min-width: 0;
   padding: 2rem 1.5rem;
   max-width: 1100px;
 }
@@ -113,6 +112,21 @@
   margin-bottom: 1.75rem;
 }
 
+.ps-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 1.75rem;
+}
+
+@media (max-width: 991px) {
+  .ps-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 575px) {
+  .ps-metrics-grid { grid-template-columns: 1fr; }
+}
+
 .seller-stats {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -124,26 +138,34 @@
   background: var(--tf-white);
   border: 1px solid var(--tf-border);
   border-radius: 12px;
-  padding: 1.25rem;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
   transition: box-shadow 0.2s ease;
 }
 
 .seller-stat:hover {
-  box-shadow: 0 8px 24px rgba(15, 42, 68, 0.12);
+  box-shadow: 0 8px 24px rgba(15, 42, 68, 0.15);
 }
 
 .seller-stat .label {
   font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   color: var(--tf-muted);
   font-weight: 600;
 }
 
 .seller-stat .value {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--tf-navy);
+  margin-top: 8px;
+  line-height: 1.1;
+}
+
+.seller-stat .sub {
+  font-size: 0.8rem;
+  color: var(--tf-muted);
   margin-top: 6px;
 }
 
@@ -157,7 +179,7 @@
   gap: 12px;
   align-items: center;
   margin-bottom: 1.25rem;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .seller-filters {
@@ -172,6 +194,8 @@
   border: 1px solid var(--tf-border);
   border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
+  margin-bottom: 1.5rem;
 }
 
 .seller-table-wrap h2 {
@@ -182,6 +206,7 @@
   margin: 0;
   border-bottom: 1px solid var(--tf-border);
   color: var(--tf-navy);
+  background: #fff;
 }
 
 table.seller-table {
@@ -190,18 +215,41 @@ table.seller-table {
   font-size: 0.875rem;
 }
 
-table.seller-table th {
+table.seller-table thead th {
   text-align: left;
-  padding: 10px 1.25rem;
-  background: var(--tf-light);
+  padding: 14px 1.25rem;
+  background: #f9fafb;
   color: var(--tf-muted);
   font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--tf-border);
 }
 
-table.seller-table td {
-  padding: 12px 1.25rem;
-  border-top: 1px solid var(--tf-border);
+table.seller-table tbody td {
+  padding: 16px 1.25rem;
+  border-bottom: 1px solid #f3f4f6;
   vertical-align: middle;
+  color: var(--tf-body);
+}
+
+table.seller-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+table.seller-table tbody tr:hover td {
+  background: #fafafa;
+}
+
+table.seller-table td.name-cell strong {
+  font-weight: 600;
+  color: var(--tf-navy);
+}
+
+table.seller-table td.price-cell {
+  font-weight: 600;
+  color: var(--tf-orange);
 }
 
 table.seller-table a {
@@ -215,11 +263,14 @@ table.seller-table a:hover {
 }
 
 .seller-product-thumb {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
+  max-width: 56px;
+  max-height: 56px;
   object-fit: cover;
   border-radius: 8px;
   background: var(--tf-light);
+  display: block;
 }
 
 .seller-form-card {
@@ -228,6 +279,7 @@ table.seller-table a:hover {
   border-radius: 12px;
   padding: 1.75rem;
   max-width: 760px;
+  box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
 }
 
 .seller-form-actions {
@@ -264,19 +316,25 @@ table.seller-table a:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 18px;
+  padding: 8px 14px;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  border: 1px solid var(--tf-border);
+  border: 1.5px solid var(--tf-border);
   background: transparent;
   color: var(--tf-navy);
   text-decoration: none;
   transition: all 0.2s ease;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
 }
 
 .btn-seller-outline:hover {
   background: var(--tf-light);
+}
+
+.btn-seller-outline.sm {
+  padding: 6px 10px;
 }
 
 .seller-stock-pill {
@@ -287,18 +345,18 @@ table.seller-table a:hover {
 }
 
 .seller-stock-ok {
-  background: var(--stock-ok-bg);
-  color: var(--stock-ok-fg);
+  color: #065f46;
+  background: #ecfdf5;
 }
 
 .seller-stock-low {
-  background: var(--stock-low-bg);
-  color: var(--stock-low-fg);
+  color: #92400e;
+  background: #fffbeb;
 }
 
 .seller-stock-out {
-  background: var(--stock-out-bg);
-  color: var(--stock-out-fg);
+  color: #991b1b;
+  background: #fef2f2;
 }
 
 .seller-badge-active {
@@ -308,8 +366,8 @@ table.seller-table a:hover {
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: rgba(46, 91, 138, 0.12);
-  color: var(--tf-blue);
+  background: #d1fae5;
+  color: #065f46;
 }
 
 .seller-badge-inactive {
@@ -319,6 +377,22 @@ table.seller-table a:hover {
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: var(--tf-light);
-  color: var(--tf-muted);
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.seller-actions-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.seller-actions-cell form {
+  display: inline;
+}
+
+.ps-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 0.5rem;
 }

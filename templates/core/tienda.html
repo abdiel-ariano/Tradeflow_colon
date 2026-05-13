@@ -1,131 +1,345 @@
 {% extends "core/base.html" %}
 {% load static %}
+{% comment %}
+================================================================================
+templates/core/tienda.html — TradeFlow Colón
+Propósito: catálogo comprador (categorías, búsqueda, grid de productos, carrito).
+Contexto: grid CSS sidebar 240px + principal; sin position absolute en sidebar.
+================================================================================
+{% endcomment %}
 {% block title %}Tienda — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
-  .t-layout { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; display: grid; grid-template-columns: 220px 1fr; gap: 1.5rem; align-items: start; }
-  @media (max-width: 991px) { .t-layout { grid-template-columns: 1fr; } }
-  .t-side { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1rem; position: sticky; top: 72px; }
-  .t-side h2 { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8125rem; color: #6B7A88; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 0.75rem; }
-  .t-cat { display: block; padding: 8px 10px; border-radius: 8px; color: #374151; text-decoration: none; font-size: 0.875rem; font-weight: 500; margin-bottom: 4px; transition: background 0.2s ease; }
-  .t-cat:hover { background: #F2F3F5; color: #0F2A44; }
-  .t-cat.is-on { background: rgba(242, 101, 34, 0.12); color: #F26522; font-weight: 700; }
-  .t-main-hdr { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; }
-  .t-main-hdr h1 { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.5rem; color: #0F2A44; margin: 0; }
-  .t-count { font-size: 0.875rem; color: #6B7A88; }
-  .t-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: center; }
+  .t-page {
+    background: #f2f3f5;
+    min-height: calc(100vh - 64px);
+  }
+  .t-layout {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 0;
+    max-width: 1280px;
+    margin: 0 auto;
+    min-height: calc(100vh - 64px);
+    width: 100%;
+    align-items: stretch;
+  }
+  @media (max-width: 991px) {
+    .t-layout { grid-template-columns: 1fr; }
+  }
+  .t-side {
+    background: #ffffff;
+    border-right: 1px solid #d1d5db;
+    padding: 20px;
+    box-sizing: border-box;
+    align-self: start;
+  }
+  @media (max-width: 991px) {
+    .t-side {
+      border-right: none;
+      border-bottom: 1px solid #d1d5db;
+    }
+  }
+  .t-side h2 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #6b7a88;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 12px;
+  }
+  .t-cat {
+    display: block;
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: #374151;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .t-cat:hover { background: #f2f3f5; color: #0f2a44; }
+  .t-cat.is-on {
+    background: #fff5f0;
+    color: #f26522;
+    font-weight: 600;
+  }
+  .t-main {
+    min-width: 0;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+  .t-main-hdr { margin-bottom: 20px; }
+  .t-main-hdr h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #0f2a44;
+    margin: 0 0 6px;
+  }
+  .t-count { font-size: 0.875rem; color: #6b7a88; }
+  .t-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    align-items: center;
+  }
   .t-search { flex: 1; min-width: 220px; position: relative; }
   .t-search .tf-input { padding-left: 42px; }
-  .t-search .material-symbols-rounded { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6B7A88; font-size: 20px; pointer-events: none; }
-  .t-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
-  @media (max-width: 991px) { .t-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 575px) { .t-grid { grid-template-columns: 1fr; } }
-  .t-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s ease; }
-  .t-card:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.12); }
-  .t-img { height: 200px; background: #F2F3F5; display: flex; align-items: center; justify-content: center; }
-  .t-img img { width: 100%; height: 100%; object-fit: cover; }
-  .t-body { padding: 1rem 1.15rem 1.2rem; flex: 1; display: flex; flex-direction: column; }
-  .t-catb { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #2E5B8A; margin-bottom: 4px; }
-  .t-name { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.95rem; color: #0F2A44; margin-bottom: 4px; }
-  .t-emp { font-size: 0.8125rem; color: #6B7A88; margin-bottom: 8px; }
-  .t-desc { font-size: 0.8125rem; color: #6B7A88; line-height: 1.55; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; }
-  .t-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid #D1D5DB; padding-top: 12px; margin-top: auto; }
-  .t-price { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.05rem; color: #F26522; }
-  .t-warn { font-size: 0.72rem; color: #6b4a00; background: #fef8e7; padding: 2px 8px; border-radius: 20px; font-weight: 600; margin-top: 4px; display: inline-block; }
-  .t-btn-add {
-    display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: none;
-    background: #F26522; color: #fff; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: all 0.2s ease;
+  .t-search .material-symbols-rounded {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7a88;
+    font-size: 20px;
+    pointer-events: none;
   }
-  .t-btn-add:hover { background: #FF7A3D; box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3); }
-  .t-btn-add:disabled { background: #D1D5DB; color: #6B7A88; cursor: not-allowed; box-shadow: none; }
-  .t-empty { text-align: center; padding: 3rem 1rem; color: #6B7A88; }
-  .t-pag { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-top: 2rem; }
-  .t-pag a, .t-pag span { padding: 8px 14px; border-radius: 8px; border: 1px solid #D1D5DB; font-size: 0.875rem; text-decoration: none; color: #374151; }
-  .t-pag a:hover { background: #F2F3F5; }
-  .t-pag span.is-cur { background: #0F2A44; color: #fff; border-color: #0F2A44; }
+  .t-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 991px) {
+    .t-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 575px) {
+    .t-grid { grid-template-columns: 1fr; }
+  }
+  .t-card {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
+    transition: box-shadow 0.2s ease;
+  }
+  .t-card:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.15); }
+  .t-img {
+    height: 200px;
+    background: #f2f3f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .t-img img {
+    width: 100%;
+    height: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+  .t-body {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .t-catb {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #2e5b8a;
+    margin-bottom: 4px;
+  }
+  .t-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #0f2a44;
+    margin-bottom: 4px;
+  }
+  .t-emp { font-size: 0.8125rem; color: #6b7a88; margin-bottom: 8px; }
+  .t-desc {
+    font-size: 0.8125rem;
+    color: #6b7a88;
+    line-height: 1.55;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .t-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 12px;
+    margin-top: auto;
+  }
+  .t-price {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #f26522;
+  }
+  .t-warn {
+    font-size: 0.72rem;
+    color: #6b4a00;
+    background: #fef8e7;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-top: 4px;
+    display: inline-block;
+  }
+  .t-btn-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    background: #f26522;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .t-btn-add:hover {
+    background: #ff7a3d;
+    box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3);
+  }
+  .t-btn-add:disabled {
+    background: #d1d5db;
+    color: #6b7a88;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .t-empty { text-align: center; padding: 3rem 1rem; color: #6b7a88; }
+  .t-pag {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
+  .t-pag a,
+  .t-pag span {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 0.875rem;
+    text-decoration: none;
+    color: #374151;
+  }
+  .t-pag a:hover { background: #f2f3f5; }
+  .t-pag span.is-cur { background: #0f2a44; color: #ffffff; border-color: #0f2a44; }
 </style>
 {% endblock %}
 {% block content %}
-<div id="tf-tienda-meta" data-buscar="{{ buscar|escapejs }}" data-cat="{{ cat_activa|escapejs }}" data-cur-page="{{ productos.number }}" hidden></div>
-<script>
-var TF_CAT_NAMES = {};
-{% for c in categorias %}TF_CAT_NAMES["{{ c.pk }}"] = "{{ c.name|escapejs }}";{% endfor %}
-</script>
-<div class="t-layout">
-  <aside class="t-side">
-    <h2>Categorías</h2>
-    <a href="{% url 'tienda' %}" class="t-cat tf-cat-link" data-cat-id="">Todas</a>
-    {% for cat in categorias %}
-    <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="t-cat tf-cat-link" data-cat-id="{{ cat.id }}">{{ cat.name }}</a>
-    {% endfor %}
-  </aside>
-  <div>
-    <div class="t-main-hdr">
-      <div>
+<div class="t-page">
+  <div id="tf-tienda-meta" data-buscar="{{ buscar|escapejs }}" data-cat="{{ cat_activa|escapejs }}" data-cur-page="{{ productos.number }}" hidden></div>
+  <script>
+  var TF_CAT_NAMES = {};
+  {% for c in categorias %}TF_CAT_NAMES["{{ c.pk }}"] = "{{ c.name|escapejs }}";{% endfor %}
+  </script>
+  <div class="t-layout">
+    <aside class="t-side" aria-label="Categorías">
+      <h2>Categorías</h2>
+      <a href="{% url 'tienda' %}" class="t-cat tf-cat-link" data-cat-id="">Todas</a>
+      {% for cat in categorias %}
+      <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="t-cat tf-cat-link" data-cat-id="{{ cat.id }}">{{ cat.name }}</a>
+      {% endfor %}
+    </aside>
+    <div class="t-main">
+      <div class="t-main-hdr">
         <h1 id="tf-tienda-title">Catálogo TradeFlow</h1>
         <div class="t-count">{{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }}</div>
       </div>
-    </div>
-    <form class="t-filters" method="get" action="{% url 'tienda' %}">
-      <div class="t-search">
-        <span class="material-symbols-rounded">search</span>
-        <input type="search" name="buscar" class="tf-input" placeholder="Buscar productos, SKU…" value="{{ buscar }}">
-      </div>
-      <select name="categoria" id="t-cat-select" class="tf-input" style="max-width:220px;">
-        <option value="">Todas las categorías</option>
-        {% for cat in categorias %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
-      </select>
-      <button type="submit" class="tf-btn-secondary" style="padding:10px 18px;"><span class="material-symbols-rounded" style="font-size:18px;">filter_alt</span> Aplicar</button>
-    </form>
-    {% if productos %}
-    <div class="t-grid">
-      {% for producto in productos %}
-      <article class="t-card">
-        <div class="t-img">
-          {% if producto.image %}<img src="{{ producto.image.url }}" alt="{{ producto.name }}" loading="lazy">{% else %}<span class="material-symbols-rounded" style="font-size:48px;color:#D1D5DB;">inventory_2</span>{% endif %}
+      <form class="t-filters" method="get" action="{% url 'tienda' %}">
+        <div class="t-search">
+          <span class="material-symbols-rounded">search</span>
+          <input type="search" name="buscar" class="tf-input" placeholder="Buscar productos, SKU…" value="{{ buscar }}">
         </div>
-        <div class="t-body">
-          <div class="t-catb">{{ producto.category.name|default:"General" }}</div>
-          <div class="t-name">{{ producto.name }}</div>
-          <div class="t-emp">{{ producto.company.name }}</div>
-          <div class="t-desc">{{ producto.description }}</div>
-          <div class="t-foot">
-            <div>
-              <div class="t-price">USD {{ producto.unit_price }}</div>
-              {% if producto.available_qty > 0 %}
-                {% if producto.available_qty <= 5 %}<div class="t-warn">Stock bajo: {{ producto.available_qty }}</div>{% endif %}
-              {% endif %}
-            </div>
-            {% if producto.available_qty > 0 %}
-            <form method="post" action="{% url 'agregar_al_carrito' producto.pk %}">
-              {% csrf_token %}
-              <input type="hidden" name="cantidad" value="1">
-              <button type="submit" class="t-btn-add"><span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span> Agregar</button>
-            </form>
+        <select name="categoria" id="t-cat-select" class="tf-input" style="max-width:220px;">
+          <option value="">Todas las categorías</option>
+          {% for cat in categorias %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="tf-btn-secondary" style="padding:10px 18px;">
+          <span class="material-symbols-rounded" style="font-size:18px;">filter_alt</span>
+          Aplicar
+        </button>
+      </form>
+      {% if productos %}
+      <div class="t-grid">
+        {% for producto in productos %}
+        <article class="t-card">
+          <div class="t-img">
+            {% if producto.image %}
+            <img src="{{ producto.image.url }}" alt="{{ producto.name }}" loading="lazy">
             {% else %}
-            <button type="button" class="t-btn-add" disabled>Sin stock</button>
+            <span class="material-symbols-rounded" style="font-size:48px;color:#D1D5DB;">inventory_2</span>
             {% endif %}
           </div>
-        </div>
-      </article>
-      {% endfor %}
+          <div class="t-body">
+            <div class="t-catb">{{ producto.category.name|default:"General" }}</div>
+            <div class="t-name">{{ producto.name }}</div>
+            <div class="t-emp">{{ producto.company.name }}</div>
+            <div class="t-desc">{{ producto.description }}</div>
+            <div class="t-foot">
+              <div>
+                <div class="t-price">USD {{ producto.unit_price }}</div>
+                {% if producto.available_qty > 0 %}
+                  {% if producto.available_qty <= 5 %}
+                  <div class="t-warn">Stock bajo: {{ producto.available_qty }}</div>
+                  {% endif %}
+                {% endif %}
+              </div>
+              {% if producto.available_qty > 0 %}
+              <form method="post" action="{% url 'agregar_al_carrito' producto.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="cantidad" value="1">
+                <button type="submit" class="t-btn-add">
+                  <span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span>
+                  Agregar
+                </button>
+              </form>
+              {% else %}
+              <button type="button" class="t-btn-add" disabled>Sin stock</button>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% if productos.has_other_pages %}
+      <div class="t-pag" id="tf-tienda-pag" data-cur="{{ productos.number }}">
+        {% if productos.has_previous %}
+        <a href="?page={{ productos.previous_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Anterior</a>
+        {% endif %}
+        {% for num in productos.paginator.page_range %}
+        <a href="?page={{ num }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}" class="tf-pag-n" data-page="{{ num }}">{{ num }}</a>
+        {% endfor %}
+        {% if productos.has_next %}
+        <a href="?page={{ productos.next_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Siguiente</a>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="t-empty">
+        <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">No se encontraron productos</p>
+        <p style="margin:0;">Prueba otros filtros o vuelve al catálogo completo.</p>
+        <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1rem;display:inline-flex;">Ver todo</a>
+      </div>
+      {% endif %}
     </div>
-    {% if productos.has_other_pages %}
-    <div class="t-pag" id="tf-tienda-pag" data-cur="{{ productos.number }}">
-      {% if productos.has_previous %}<a href="?page={{ productos.previous_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Anterior</a>{% endif %}
-      {% for num in productos.paginator.page_range %}
-      <a href="?page={{ num }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}" class="tf-pag-n" data-page="{{ num }}">{{ num }}</a>
-      {% endfor %}
-      {% if productos.has_next %}<a href="?page={{ productos.next_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Siguiente</a>{% endif %}
-    </div>
-    {% endif %}
-    {% else %}
-    <div class="t-empty">
-      <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">No se encontraron productos</p>
-      <p style="margin:0;">Prueba otros filtros o vuelve al catálogo completo.</p>
-      <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1rem;display:inline-flex;">Ver todo</a>
-    </div>
-    {% endif %}
   </div>
 </div>
 <script>
@@ -136,17 +350,26 @@ var TF_CAT_NAMES = {};
   var cat = meta.getAttribute('data-cat') || '';
   var title = document.getElementById('tf-tienda-title');
   if (title) {
-    if (buscar) title.textContent = 'Resultados para "' + buscar + '"';
-    else if (cat && TF_CAT_NAMES[cat]) title.textContent = TF_CAT_NAMES[cat];
-    else title.textContent = 'Catálogo TradeFlow';
+    if (buscar) {
+      title.textContent = 'Resultados para "' + buscar + '"';
+    } else if (cat && TF_CAT_NAMES[cat]) {
+      title.textContent = TF_CAT_NAMES[cat];
+    } else {
+      title.textContent = 'Catálogo TradeFlow';
+    }
   }
   document.querySelectorAll('.tf-cat-link').forEach(function (a) {
-    if ((a.getAttribute('data-cat-id') || '') === cat) a.classList.add('is-on');
+    if ((a.getAttribute('data-cat-id') || '') === cat) {
+      a.classList.add('is-on');
+    }
   });
   var sel = document.getElementById('t-cat-select');
   if (sel && cat) {
     for (var i = 0; i < sel.options.length; i++) {
-      if (sel.options[i].value === cat) { sel.selectedIndex = i; break; }
+      if (sel.options[i].value === cat) {
+        sel.selectedIndex = i;
+        break;
+      }
     }
   }
   var cur = meta.getAttribute('data-cur-page');
