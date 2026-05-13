@@ -270,16 +270,36 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
     transition: all 0.2s ease;
   }
   .lp-padd:hover { background: #ff7a3d; color: #ffffff; }
-  .lp-cta { padding: 4rem 1.5rem; background: #0f2a44; text-align: center; }
+  .lp-cta {
+    padding: 4rem 1.5rem;
+    background: #ffffff;
+    text-align: center;
+    border-top: 1px solid #d1d5db;
+  }
   .lp-cta-inner { max-width: 640px; margin: 0 auto; }
   .lp-cta h2 {
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 1.85rem;
-    color: #ffffff !important;
+    color: #0f2a44 !important;
     margin: 0 0 1rem;
   }
-  .lp-cta p { color: rgba(255, 255, 255, 0.72); font-size: 1rem; line-height: 1.65; margin-bottom: 1.5rem; }
+  .lp-cta p {
+    color: #6b7a88 !important;
+    font-size: 1rem;
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+  }
+  .lp-cta .lp-btn-outline {
+    color: #0f2a44 !important;
+    border-color: #d1d5db !important;
+    background: #ffffff !important;
+  }
+  .lp-cta .lp-btn-outline:hover {
+    background: #f2f3f5 !important;
+    color: #0f2a44 !important;
+    border-color: #6b7a88 !important;
+  }
 </style>
 {% endblock %}
 {% block content %}
