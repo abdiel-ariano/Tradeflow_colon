@@ -27,8 +27,7 @@ Pillow>=10.0                # procesamiento de imágenes para ImageField
 gunicorn>=21.2              # servidor WSGI para Railway/Heroku (reemplaza runserver)
 
 # ── Generación de PDFs (facturas y packing lists) ─────────────────────────
-# Descomenta cuando implementes el generador de documentos (Semana 3)
-# WeasyPrint>=60.0
+reportlab>=4.0
 
 # ── Seguridad extra ────────────────────────────────────────────────────────
 # django-axes bloquea IPs tras X intentos de login fallidos

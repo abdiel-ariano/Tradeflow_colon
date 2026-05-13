@@ -30,6 +30,7 @@ urlpatterns = [
     path('checkout/',                        views.checkout,            name='checkout'),
     path('mis-ordenes/',                     views.mis_ordenes,         name='mis_ordenes'),
     path('mis-ordenes/<int:pk>/',            views.detalle_mi_orden,    name='detalle_mi_orden'),
+    path('ordenes/<int:orden_pk>/factura/',  views.descargar_factura,   name='descargar_factura'),
 
     # Portal del vendedor
     path('mi-tienda/', views.portal_seller, name='portal_seller'),
