@@ -11,7 +11,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import (
     UserProfile, Company, Category, Product, Inventory,
-    Address, Order, OrderItem, Payment, Shipment, Document
+    Address, Order, OrderItem, Payment, Shipment, Document,
+    Cotizacion, CotizacionItem,
 )
 
 
@@ -196,6 +197,24 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display  = ['order', 'doc_type', 'doc_number', 'created_at']
     list_filter   = ['doc_type']
     search_fields = ['order__order_number', 'doc_number']
+
+
+class CotizacionItemInline(admin.TabularInline):
+    model = CotizacionItem
+    extra = 0
+    raw_id_fields = ['product']
+
+
+@admin.register(Cotizacion)
+class CotizacionAdmin(admin.ModelAdmin):
+    """
+    Administración de cotizaciones RFQ entre compradores y empresas.
+    """
+    list_display = ['numero', 'buyer', 'empresa', 'estado', 'created_at', 'order']
+    list_filter = ['estado', 'created_at']
+    search_fields = ['numero', 'buyer__username', 'empresa__name']
+    readonly_fields = ['numero', 'created_at', 'updated_at']
+    inlines = [CotizacionItemInline]
 
 
 # =============================================================================

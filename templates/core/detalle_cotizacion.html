@@ -1,0 +1,223 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+================================================================================
+templates/core/detalle_cotizacion.html — TradeFlow Colón
+Propósito: documento visual de cotización RFQ y acciones (convertir, rechazar).
+Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaScript.
+================================================================================
+{% endcomment %}
+{% block title %}Cotización {{ cot.numero }} — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<style>
+  .cot-doc { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem 3rem; font-family: 'Inter', sans-serif; }
+  .cot-doc-paper {
+    background: #fff;
+    border: 1px solid var(--tf-border);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(15,42,68,0.08);
+  }
+  .cot-doc-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .cot-doc-head img { max-height: 48px; }
+  .cot-doc-title { text-align: right; }
+  .cot-doc-title h1 { margin: 0; font-size: 1.75rem; font-weight: 800; color: var(--tf-navy); letter-spacing: 0.02em; }
+  .cot-doc-title .cot-doc-num { font-size: 0.95rem; color: #f26522; font-weight: 600; margin-top: 6px; }
+  .cot-doc-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  @media (max-width: 640px) { .cot-doc-grid2 { grid-template-columns: 1fr; } }
+  .cot-doc-box h3 { margin: 0 0 8px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7a88; }
+  .cot-doc-box p { margin: 0; font-size: 0.9rem; color: #374151; line-height: 1.5; }
+  .cot-doc-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin-bottom: 1.5rem; }
+  .cot-doc-table thead th {
+    background: #0f2a44;
+    color: #fff;
+    text-align: left;
+    padding: 12px 14px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .cot-doc-table tbody tr:nth-child(even) { background: #f9fafb; }
+  .cot-doc-table td { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+  .cot-pendiente { color: #6b7a88; font-style: italic; }
+  .cot-precio { color: #f26522; font-weight: 700; }
+  .cot-doc-total { text-align: right; font-size: 1.1rem; font-weight: 700; color: var(--tf-navy); margin-bottom: 1.5rem; }
+  .cot-doc-notes { background: #f9fafb; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; font-size: 0.875rem; color: #374151; }
+  .cot-doc-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 1.25rem; }
+  .cot-doc-foot { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; font-size: 0.8rem; color: #6b7a88; text-align: center; }
+  .cot-doc-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .cot-hidden { display: none !important; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="cot-doc">
+  <div id="cot-det-meta" data-estado="{{ cot.estado }}" data-order-url="{{ orden_detail_url|escapejs }}" hidden></div>
+  <div class="cot-doc-paper">
+    <header class="cot-doc-head">
+      <div>
+        <img src="{% static 'img/logo.png' %}" alt="TradeFlow">
+      </div>
+      <div class="cot-doc-title">
+        <h1>COTIZACIÓN</h1>
+        <div class="cot-doc-num">{{ cot.numero }}</div>
+      </div>
+    </header>
+
+    <div class="cot-doc-grid2">
+      <div class="cot-doc-box">
+        <h3>De</h3>
+        <p><strong>{{ cot.empresa.name }}</strong><br>{{ cot.empresa.address_text|default:"Zona Libre de Colón" }}</p>
+      </div>
+      <div class="cot-doc-box">
+        <h3>Para</h3>
+        <p>
+          <strong>{{ cot.buyer.get_full_name|default:cot.buyer.username }}</strong><br>
+          Fecha de emisión: {{ cot.created_at|date:"d/m/Y" }}<br>
+          Válido hasta: {{ valida_hasta|date:"d/m/Y" }}<br>
+          Cliente ID: {{ cot.buyer.id }}
+        </p>
+      </div>
+    </div>
+
+    <table class="cot-doc-table">
+      <thead>
+        <tr>
+          <th>Descripción</th>
+          <th style="width:90px;">Cantidad</th>
+          <th style="width:120px;">Precio unit.</th>
+          <th style="width:110px;text-align:right;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in cot.items.all %}
+        <tr>
+          <td>{{ it.product.name }}</td>
+          <td>{{ it.cantidad_solicitada }}</td>
+          <td>
+            <span class="cot-precio-cell" data-has-precio="{{ it.precio_ofertado|yesno:'1,0' }}">
+              <span class="cot-precio-val cot-precio">{{ it.precio_ofertado }}</span>
+              <span class="cot-pendiente cot-pendiente-lbl">Por confirmar</span>
+            </span>
+          </td>
+          <td style="text-align:right;">
+            <span class="cot-line-total" data-line="{{ it.id }}">
+              <span class="cot-precio cot-line-amt">{{ it.linea_total|default_if_none:'' }}</span>
+              <span class="cot-pendiente cot-line-pend">—</span>
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="cot-doc-total">Total general: USD <span id="cot-doc-total-val">{{ total_ofertado }}</span></div>
+
+    <div class="cot-doc-notes">
+      <strong>Términos:</strong> Válido por {{ cot.validez_dias }} días desde la emisión. Sujeto a disponibilidad de stock.
+    </div>
+    {% if cot.notas_buyer %}
+    <div class="cot-doc-notes"><strong>Notas del comprador:</strong><br>{{ cot.notas_buyer }}</div>
+    {% endif %}
+    {% if cot.notas_seller %}
+    <div class="cot-doc-notes"><strong>Notas del vendedor:</strong><br>{{ cot.notas_seller }}</div>
+    {% endif %}
+
+    <div class="cot-doc-actions" id="cot-doc-actions">
+      <span class="cot-doc-badge" id="cot-badge-pend" style="background:#FEF3C7;color:#92400E;">Esperando respuesta</span>
+      <span class="cot-doc-badge cot-hidden" id="cot-badge-resp" style="background:#D1FAE5;color:#065F46;">Respondida</span>
+      <span class="cot-doc-badge cot-hidden" id="cot-badge-acep" style="background:#DBEAFE;color:#1E40AF;">Aceptada</span>
+      <span class="cot-doc-badge cot-hidden" id="cot-badge-rec" style="background:#FEE2E2;color:#991B1B;">Rechazada</span>
+
+      <form method="post" class="cot-hidden" id="cot-form-convert" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="convertir">
+        <button type="submit" class="tf-btn-primary">
+          <span class="material-symbols-rounded" style="font-size:18px;">shopping_bag</span>
+          Convertir en orden
+        </button>
+      </form>
+      <form method="post" class="cot-hidden" id="cot-form-reject" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="rechazar">
+        <button type="submit" class="tf-btn-secondary">Rechazar cotización</button>
+      </form>
+      <a href="#" class="tf-btn-secondary cot-hidden" id="cot-link-ver-orden">Ver orden</a>
+    </div>
+
+    <footer class="cot-doc-foot">
+      TradeFlow Colón — Zona Libre de Colón, Panamá · info@tradeflow.pa
+    </footer>
+  </div>
+  <div style="margin-top:1rem;">
+    <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">
+      <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+      Volver
+    </a>
+  </div>
+</div>
+<script>
+(function () {
+  var meta = document.getElementById('cot-det-meta');
+  if (!meta) return;
+  var st = meta.getAttribute('data-estado') || '';
+  var orderUrl = meta.getAttribute('data-order-url') || '';
+
+  document.querySelectorAll('.cot-precio-cell').forEach(function (cell) {
+    var has = cell.getAttribute('data-has-precio') === '1';
+    var pv = cell.querySelector('.cot-precio-val');
+    var pl = cell.querySelector('.cot-pendiente-lbl');
+    if (has) {
+      if (pl) pl.classList.add('cot-hidden');
+    } else {
+      if (pv) pv.classList.add('cot-hidden');
+    }
+  });
+  document.querySelectorAll('.cot-line-total').forEach(function (row) {
+    var amt = row.querySelector('.cot-line-amt');
+    var pend = row.querySelector('.cot-line-pend');
+    if (amt && amt.textContent.trim() && amt.textContent.indexOf('None') === -1) {
+      if (pend) pend.classList.add('cot-hidden');
+    } else {
+      if (amt) amt.classList.add('cot-hidden');
+    }
+  });
+
+  var bp = document.getElementById('cot-badge-pend');
+  var br = document.getElementById('cot-badge-resp');
+  var ba = document.getElementById('cot-badge-acep');
+  var brec = document.getElementById('cot-badge-rec');
+  var fc = document.getElementById('cot-form-convert');
+  var fr = document.getElementById('cot-form-reject');
+  var lo = document.getElementById('cot-link-ver-orden');
+
+  function show(el, on) {
+    if (!el) return;
+    if (on) el.classList.remove('cot-hidden'); else el.classList.add('cot-hidden');
+  }
+
+  if (st === 'pendiente') {
+    show(bp, true); show(br, false); show(ba, false); show(brec, false);
+    show(fc, false); show(fr, false);
+  } else if (st === 'respondida') {
+    show(bp, false); show(br, true); show(ba, false); show(brec, false);
+    show(fc, true); show(fr, true);
+  } else if (st === 'aceptada') {
+    show(bp, false); show(br, false); show(ba, true); show(brec, false);
+    show(fc, false); show(fr, false);
+    if (orderUrl && lo) { lo.href = orderUrl; lo.classList.remove('cot-hidden'); }
+  } else if (st === 'rechazada') {
+    show(bp, false); show(br, false); show(ba, false); show(brec, true);
+    show(fc, false); show(fr, false);
+  }
+})();
+</script>
+{% endblock %}

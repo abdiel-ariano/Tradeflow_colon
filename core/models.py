@@ -14,8 +14,8 @@ Tablas implementadas (mapeadas exactamente al ERD del PDF):
   Payment      → pago asociado a una orden
   Shipment     → envío asociado a una orden
   Document     → documentos generados (factura, packing list, etc.)
-
-COMANDOS (después de reemplazar este archivo):
+  Cotizacion   → solicitud formal de precios (RFQ) buyer → empresa
+  CotizacionItem → líneas de cotización con cantidad y precio ofertado
   python manage.py makemigrations
   python manage.py migrate
   python manage.py createsuperuser
@@ -469,3 +469,112 @@ class Document(models.Model):
 
     def __str__(self):
         return f'{self.get_doc_type_display()} {self.doc_number} — {self.order.order_number}'
+
+
+# =============================================================================
+# COTIZACIÓN (solicitud formal de precios antes de ordenar)
+# =============================================================================
+
+class Cotizacion(models.Model):
+    """
+    Cotización: permite al comprador solicitar precio formal de uno o más
+    productos a una empresa antes de confirmar la orden.
+    """
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('respondida', 'Respondida'),
+        ('aceptada', 'Aceptada'),
+        ('rechazada', 'Rechazada'),
+    ]
+
+    numero = models.CharField(max_length=30, unique=True, editable=False, verbose_name='Número')
+    buyer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='cotizaciones',
+        verbose_name='Comprador',
+    )
+    empresa = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name='cotizaciones',
+        verbose_name='Empresa',
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='pendiente',
+        verbose_name='Estado',
+    )
+    notas_buyer = models.TextField(blank=True, verbose_name='Notas del comprador')
+    notas_seller = models.TextField(blank=True, verbose_name='Notas del vendedor')
+    validez_dias = models.PositiveIntegerField(default=30, verbose_name='Validez (días)')
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='cotizacion_origen',
+        verbose_name='Orden generada',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Cotización'
+        verbose_name_plural = 'Cotizaciones'
+        ordering = ['-created_at']
+
+    @staticmethod
+    def _generate_numero():
+        """Formato COT-YYYYMM-XXXX (hex)."""
+        now = timezone.now()
+        suffix = uuid.uuid4().hex[:4].upper()
+        return f'COT-{now.strftime("%Y%m")}-{suffix}'
+
+    def save(self, *args, **kwargs):
+        if not self.numero:
+            self.numero = self._generate_numero()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.numero
+
+
+class CotizacionItem(models.Model):
+    """Ítem de una cotización con cantidad solicitada y precio ofertado opcional."""
+
+    cotizacion = models.ForeignKey(
+        Cotizacion,
+        on_delete=models.CASCADE,
+        related_name='items',
+        verbose_name='Cotización',
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        verbose_name='Producto',
+    )
+    cantidad_solicitada = models.PositiveIntegerField(verbose_name='Cantidad solicitada')
+    precio_ofertado = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name='Precio ofertado (unitario)',
+    )
+    notas = models.TextField(blank=True, verbose_name='Notas de línea')
+
+    class Meta:
+        verbose_name = 'Ítem de cotización'
+        verbose_name_plural = 'Ítems de cotización'
+
+    def __str__(self):
+        return f'{self.cantidad_solicitada}× {self.product.name} ({self.cotizacion.numero})'
+
+    @property
+    def linea_total(self):
+        """Subtotal de línea si ya hay precio ofertado."""
+        if self.precio_ofertado is None:
+            return None
+        return self.precio_ofertado * self.cantidad_solicitada

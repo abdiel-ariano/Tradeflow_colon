@@ -32,6 +32,10 @@ urlpatterns = [
     path('mis-ordenes/<int:pk>/',            views.detalle_mi_orden,    name='detalle_mi_orden'),
     path('ordenes/<int:orden_pk>/factura/',  views.descargar_factura,   name='descargar_factura'),
 
+    path('cotizaciones/', views.mis_cotizaciones, name='mis_cotizaciones'),
+    path('cotizaciones/nueva/', views.solicitar_cotizacion, name='solicitar_cotizacion'),
+    path('cotizaciones/<int:pk>/', views.detalle_cotizacion, name='detalle_cotizacion'),
+
     # Portal del vendedor
     path('mi-tienda/', views.portal_seller, name='portal_seller'),
     # Rutas solicitadas por especificación (nombres alternos)
@@ -41,6 +45,8 @@ urlpatterns = [
     path('mi-tienda/productos/<int:pk>/toggle/', views.seller_toggle_producto, name='seller_toggle_producto'),
     path('mi-tienda/ventas/', views.seller_mis_ventas, name='seller_mis_ventas'),
     path('mi-tienda/ventas/<int:pk>/', views.seller_detalle_venta, name='seller_detalle_venta'),
+    path('mi-tienda/cotizaciones/', views.seller_cotizaciones, name='seller_cotizaciones'),
+    path('mi-tienda/cotizaciones/<int:pk>/responder/', views.seller_responder_cotizacion, name='seller_responder_cotizacion'),
     # Compatibilidad con rutas previas
     path('mi-tienda/panel/', views.seller_dashboard, name='seller_dashboard'),
     path('mi-tienda/productos-legacy/', views.seller_productos, name='seller_productos'),
