@@ -1,34 +1,8 @@
-{% load static %}
 {% comment %}
-seller_sidebar.html — Navegación lateral del portal Mi Tienda (vendedor).
+================================================================================
+templates/core/seller_sidebar.html — TradeFlow Colón (deprecado)
+Propósito: antes contenía la barra lateral "Mi Tienda" + enlaces de sección.
+Contexto: se dejó de incluir para evitar duplicar la navegación del navbar
+(base.html, grupo tf-nav-seller). No uses {% include %} de este archivo.
+================================================================================
 {% endcomment %}
-<aside class="seller-side" id="seller-side-nav" data-seller-nav="{{ nav_activo|default:''|escapejs }}">
-  <div class="seller-side-brand">
-    Mi Tienda
-    <small>{{ company.name }}</small>
-  </div>
-  <nav>
-    <a href="{% url 'portal_seller' %}" data-seller-nav="mi_tienda">
-      <span class="material-symbols-rounded">dashboard</span> Mi panel
-    </a>
-    <a href="{% url 'seller_mis_productos' %}" data-seller-nav="seller_productos">
-      <span class="material-symbols-rounded">inventory_2</span> Productos
-    </a>
-    <a href="{% url 'seller_mis_ventas' %}" data-seller-nav="seller_ventas">
-      <span class="material-symbols-rounded">payments</span> Mis ventas
-    </a>
-    <a href="{% url 'seller_cotizaciones' %}" data-seller-nav="seller_cotizaciones">
-      <span class="material-symbols-rounded">request_quote</span> Cotizaciones
-    </a>
-  </nav>
-</aside>
-<script>
-(function () {
-  var nav = document.getElementById("seller-side-nav");
-  if (!nav) return;
-  var cur = nav.getAttribute("data-seller-nav") || "";
-  nav.querySelectorAll("a[data-seller-nav]").forEach(function (a) {
-    if (a.getAttribute("data-seller-nav") === cur) a.classList.add("active");
-  });
-})();
-</script>

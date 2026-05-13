@@ -31,71 +31,22 @@
   --order-cancelled-fg: #991b1b;
 }
 
+/**
+ * Layout seller: una sola columna. La navegación vive en base.html (navbar por rol);
+ * se retiró la barra lateral "Mi Tienda / …" para evitar duplicar enlaces.
+ */
 .seller-layout {
-  display: flex;
+  display: block;
   min-height: calc(100vh - 64px);
   background: var(--tf-light);
 }
 
-.seller-side {
-  width: 248px;
-  flex-shrink: 0;
-  background: linear-gradient(180deg, var(--tf-navy-mid) 0%, var(--tf-navy) 100%);
-  color: #fff;
-  padding: 1.5rem 0;
-}
-
-.seller-side-brand {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-weight: 700;
-  font-size: 1rem;
-  padding: 0 1.25rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  margin-bottom: 1rem;
-}
-
-.seller-side-brand small {
-  display: block;
-  font-weight: 500;
-  font-size: 0.72rem;
-  opacity: 0.65;
-  margin-top: 4px;
-}
-
-.seller-side a {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 1.25rem;
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border-left: 3px solid transparent;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.seller-side a .material-symbols-rounded {
-  font-size: 20px;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-.seller-side a:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-
-.seller-side a.active {
-  border-left-color: var(--tf-orange);
-  background: rgba(0, 0, 0, 0.2);
-  color: #fff;
-}
-
 .seller-main {
-  flex: 1;
   min-width: 0;
   padding: 2rem 1.5rem;
-  max-width: 1100px;
+  max-width: 1160px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .seller-main h1 {
@@ -234,6 +185,15 @@ table.seller-table tbody td {
   color: var(--tf-body);
 }
 
+/* Primera columna: miniatura fija (evita que la imagen estire la fila) */
+table.seller-table tbody td.seller-td-thumb,
+table.seller-table thead th.seller-th-thumb {
+  width: 72px;
+  max-width: 72px;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
 table.seller-table tbody tr:last-child td {
   border-bottom: none;
 }
@@ -271,6 +231,20 @@ table.seller-table a:hover {
   border-radius: 8px;
   background: var(--tf-light);
   display: block;
+  flex-shrink: 0;
+}
+
+.seller-thumb-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background: #f2f3f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7a88;
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
 .seller-form-card {

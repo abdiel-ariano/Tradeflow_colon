@@ -3,8 +3,8 @@
 {% comment %}
 ================================================================================
 templates/core/portal_seller.html — TradeFlow Colón
-Propósito: panel principal del vendedor con KPIs en cards y tabla de ventas.
-Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS.
+Propósito: panel principal del vendedor (KPIs en cards y últimas ventas).
+Contexto: vista portal_seller; sin barra lateral duplicada; badges de estado vía JS.
 ================================================================================
 {% endcomment %}
 {% block title %}Mi panel — {{ company.name }}{% endblock %}
@@ -17,7 +17,7 @@ Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS
     justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
-    margin-bottom: 28px;
+    margin-bottom: 32px;
   }
   .ps-dash-greet {
     font-family: 'Inter', sans-serif;
@@ -36,14 +36,14 @@ Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS
   .ps-dash-new {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 22px;
+    gap: 6px;
+    padding: 10px 20px;
     border-radius: 8px;
     border: none;
     background: #f26522;
     color: #ffffff;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 0.9rem;
     text-decoration: none;
     transition: background 0.2s ease, box-shadow 0.2s ease;
@@ -58,7 +58,7 @@ Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    margin-bottom: 28px;
+    margin-bottom: 32px;
   }
   @media (max-width: 991px) {
     .ps-metric-grid { grid-template-columns: repeat(2, 1fr); }
@@ -72,99 +72,116 @@ Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS
     border: 1px solid #d1d5db;
     padding: 20px 24px;
     box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
-    position: relative;
     min-width: 0;
   }
   .ps-metric-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
   }
   .ps-metric-lbl {
-    font-size: 0.75rem;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: #6b7a88;
-    margin-bottom: 10px;
+    display: block;
+    margin-bottom: 8px;
   }
   .ps-metric-num {
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 36px;
     color: #0f2a44;
-    line-height: 1.1;
+    line-height: 1;
+    margin: 8px 0 4px;
   }
-  .ps-metric-num.ps-metric-num-sm {
-    font-size: 28px;
+  .ps-metric-num.ps-ingresos {
+    font-size: 24px;
   }
   .ps-metric-sub {
-    font-size: 0.8rem;
+    font-size: 12px;
     color: #6b7a88;
-    margin-top: 6px;
   }
   .ps-metric-ico {
-    font-size: 28px;
-    color: #6b7a88;
+    font-size: 22px;
+    color: #2e5b8a;
     font-variation-settings: 'FILL' 0, 'wght' 400;
   }
   .ps-metric-ico.ps-ico-orange { color: #f26522; }
-  .ps-metric-ico.ps-ico-blue { color: #2e5b8a; }
-  .ps-sales-card {
-    background: #ffffff;
+  .ps-sales-wrap {
+    background: #fff;
     border-radius: 12px;
     border: 1px solid #d1d5db;
-    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
     overflow: hidden;
     margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
   }
-  .ps-sales-card h2 {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
+  .ps-sales-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid #d1d5db;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .ps-sales-head h2 {
+    font-size: 16px;
+    font-weight: 600;
     color: #0f2a44;
     margin: 0;
-    padding: 18px 20px;
-    border-bottom: 1px solid #f3f4f6;
-  }
-  .ps-sales-card .seller-table-wrap {
-    margin: 0;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-  }
-  .ps-sales-card .seller-table thead th {
-    background: #f9fafb;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6b7a88;
-    font-weight: 600;
-  }
-  .ps-sales-card .seller-table tbody tr:hover {
-    background: #fafafa;
-  }
-  .ps-ord-num {
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+  }
+  .ps-sales-head a {
+    font-size: 13px;
     color: #f26522;
     text-decoration: none;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
   }
-  .ps-ord-num:hover {
-    text-decoration: underline;
-    color: #ff7a3d;
+  .ps-sales-head a:hover { text-decoration: underline; }
+  .ps-sales-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
   }
-  .ps-foot-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
+  .ps-sales-table thead tr { background: #f9fafb; }
+  .ps-sales-table th {
+    padding: 10px 20px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7a88;
+  }
+  .ps-sales-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+  .ps-sales-table tbody tr:hover td { background: #fafafa; }
+  .ps-ord-link {
+    font-weight: 600;
+    color: #f26522;
+    font-size: 13px;
+    text-decoration: none;
+  }
+  .ps-ord-link:hover { text-decoration: underline; color: #ff7a3d; }
+  .ps-ord-num-td { color: #0f2a44; }
+  .ps-badge-ord {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
   }
 </style>
 {% endblock %}
 {% block content %}
 <div class="seller-layout">
-  {% include "core/seller_sidebar.html" %}
   <div class="seller-main">
     <header class="ps-dash-header">
       <div>
@@ -172,7 +189,7 @@ Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS
         <p class="ps-dash-company">{{ company.name }}</p>
       </div>
       <a href="{% url 'seller_agregar_producto' %}" class="ps-dash-new">
-        <span class="material-symbols-rounded" style="font-size:20px;">add</span>
+        <span class="material-symbols-rounded" style="font-size:18px;">add</span>
         Nuevo producto
       </a>
     </header>
@@ -181,7 +198,7 @@ Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS
       <div class="ps-metric-card">
         <div class="ps-metric-top">
           <div>
-            <div class="ps-metric-lbl">Productos activos</div>
+            <span class="ps-metric-lbl">Productos activos</span>
             <div class="ps-metric-num">{{ total_productos }}</div>
             <div class="ps-metric-sub">En catálogo publicado</div>
           </div>
@@ -191,7 +208,7 @@ Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS
       <div class="ps-metric-card">
         <div class="ps-metric-top">
           <div>
-            <div class="ps-metric-lbl">Stock bajo</div>
+            <span class="ps-metric-lbl">Stock bajo</span>
             <div class="ps-metric-num" id="ps-m-low" data-bajo="{{ bajo_stock }}">{{ bajo_stock }}</div>
             <div class="ps-metric-sub">Bajo umbral configurado</div>
           </div>
@@ -201,7 +218,7 @@ Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS
       <div class="ps-metric-card">
         <div class="ps-metric-top">
           <div>
-            <div class="ps-metric-lbl">Órdenes 7 días</div>
+            <span class="ps-metric-lbl">Órdenes 7 días</span>
             <div class="ps-metric-num">{{ ordenes_semana }}</div>
             <div class="ps-metric-sub">Con ítems de tu empresa</div>
           </div>
@@ -211,82 +228,80 @@ Contexto: vista portal_seller; sin breadcrumb duplicado; badges de estado por JS
       <div class="ps-metric-card">
         <div class="ps-metric-top">
           <div>
-            <div class="ps-metric-lbl">Ingresos del mes</div>
-            <div class="ps-metric-num ps-metric-num-sm">{{ ingresos_mes }} <span style="font-size:0.75rem;font-weight:600;color:#6b7a88;">USD</span></div>
+            <span class="ps-metric-lbl">Ingresos del mes</span>
+            <div class="ps-metric-num ps-ingresos">USD {{ ingresos_mes }}</div>
             <div class="ps-metric-sub">Órdenes entregadas</div>
           </div>
-          <span class="material-symbols-rounded ps-metric-ico ps-ico-blue">payments</span>
+          <span class="material-symbols-rounded ps-metric-ico">payments</span>
         </div>
       </div>
     </div>
 
-    <div class="ps-sales-card">
-      <h2>Últimas ventas</h2>
-      <div class="seller-table-wrap" style="border:none;box-shadow:none;">
-        {% if ordenes_recientes %}
-        <table class="seller-table">
-          <thead>
-            <tr>
-              <th>Orden</th>
-              <th>Comprador</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-              <th style="text-align:right;">Ver</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for o in ordenes_recientes %}
-            <tr>
-              <td>
-                <a href="{% url 'seller_detalle_venta' o.pk %}" class="ps-ord-num">{{ o.order_number }}</a>
-              </td>
-              <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
-              <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
-              <td>
-                <span class="tf-badge seller-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span>
-              </td>
-              <td style="text-align:right;">
-                <a href="{% url 'seller_detalle_venta' o.pk %}" class="btn-seller-outline sm" title="Ver detalle">
-                  <span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">visibility</span>
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
-        <p style="padding:1.25rem 20px;color:var(--tf-muted);margin:0;">No hay ventas aún.</p>
-        {% endif %}
+    <div class="ps-sales-wrap">
+      <div class="ps-sales-head">
+        <h2>Últimas ventas</h2>
+        <a href="{% url 'seller_mis_ventas' %}">Ver todas</a>
       </div>
-    </div>
-
-    <div class="ps-foot-actions">
-      <a href="{% url 'seller_mis_ventas' %}" class="btn-seller-outline">
-        <span class="material-symbols-rounded" style="font-size:18px;">payments</span>
-        Ver todas las ventas
-      </a>
+      {% if ordenes_recientes %}
+      <table class="ps-sales-table">
+        <thead>
+          <tr>
+            <th>Orden</th>
+            <th>Comprador</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th style="text-align:right;">Ver</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in ordenes_recientes %}
+          <tr>
+            <td>
+              <a href="{% url 'seller_detalle_venta' o.pk %}" class="ps-ord-link">{{ o.order_number }}</a>
+            </td>
+            <td class="ps-ord-num-td">{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
+            <td style="font-size:12px;color:#6b7a88;">{{ o.created_at|date:"d/m/Y H:i" }}</td>
+            <td>
+              <span class="ps-badge-ord ps-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span>
+            </td>
+            <td style="text-align:right;">
+              <a href="{% url 'seller_detalle_venta' o.pk %}" title="Ver detalle" style="display:inline-flex;color:#6b7a88;">
+                <span class="material-symbols-rounded" style="font-size:20px;">visibility</span>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="padding:1.25rem 20px;color:#6b7a88;margin:0;">No hay ventas aún.</p>
+      {% endif %}
     </div>
   </div>
 </div>
 <script>
 (function () {
-  var el = document.getElementById('ps-m-low');
-  if (el) {
-    var n = parseInt(el.getAttribute('data-bajo') || '0', 10) || 0;
-    el.style.color = n > 0 ? '#F26522' : '#065F46';
+  var low = document.getElementById('ps-m-low');
+  if (low) {
+    var n = parseInt(low.getAttribute('data-bajo') || '0', 10) || 0;
+    low.style.color = n > 0 ? '#F26522' : '#065F46';
   }
   var map = {
-    pending: 'tf-badge-st-pending',
-    paid: 'tf-badge-st-paid',
-    packed: 'tf-badge-st-packed',
-    shipped: 'tf-badge-st-shipped',
-    delivered: 'tf-badge-st-delivered',
-    cancelled: 'tf-badge-st-cancelled'
+    pending:   { bg: '#FEF3C7', fg: '#92400E', label: 'Pendiente' },
+    paid:      { bg: '#DBEAFE', fg: '#1E40AF', label: 'Pagado' },
+    packed:    { bg: '#E0E7FF', fg: '#3730A3', label: 'Empacado' },
+    shipped:   { bg: '#D1FAE5', fg: '#065F46', label: 'Enviado' },
+    delivered: { bg: '#D1FAE5', fg: '#065F46', label: 'Entregado' },
+    cancelled: { bg: '#FEE2E2', fg: '#991B1B', label: 'Cancelado' }
   };
-  document.querySelectorAll('.seller-ord-status').forEach(function (badge) {
-    var st = badge.getAttribute('data-status');
-    var cls = map[st];
-    if (cls) badge.classList.add(cls);
+  document.querySelectorAll('.ps-ord-status').forEach(function (el) {
+    var st = el.getAttribute('data-status');
+    var row = map[st];
+    if (row) {
+      el.style.background = row.bg;
+      el.style.color = row.fg;
+      el.textContent = row.label;
+    }
   });
 })();
 </script>

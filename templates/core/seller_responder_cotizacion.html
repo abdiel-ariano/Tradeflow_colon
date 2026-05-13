@@ -19,7 +19,6 @@ Contexto: vista seller_responder_cotizacion; POST con precio por línea.
 {% endblock %}
 {% block content %}
 <div class="seller-layout">
-  {% include "core/seller_sidebar.html" %}
   <div class="seller-main">
     <h1>Responder cotización</h1>
     <p class="seller-sub">{{ cot.numero }} · {{ cot.buyer.get_full_name|default:cot.buyer.username }}</p>
