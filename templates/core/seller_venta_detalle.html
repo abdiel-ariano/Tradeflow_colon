@@ -6,7 +6,6 @@
 {% endblock %}
 {% block content %}
 <div class="seller-layout">
-  {% include "core/seller_sidebar.html" %}
   <div class="seller-main">
     <p class="seller-sub"><a href="{% url 'seller_ventas' %}" class="btn-seller-outline" style="display:inline-flex;">← Volver a ventas</a></p>
     <h1>Orden {{ orden.order_number }}</h1>
