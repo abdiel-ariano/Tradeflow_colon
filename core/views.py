@@ -1818,7 +1818,7 @@ def detalle_cotizacion(request, pk):
                 cot.save(update_fields=['order', 'estado', 'updated_at'])
 
             messages.success(request, f'Orden {orden.order_number} creada desde la cotización.')
-            return redirect('detalle_cotizacion', pk=cot.pk)
+            return redirect('detalle_mi_orden', pk=orden.pk)
 
         return redirect('detalle_cotizacion', pk=cot.pk)
 
