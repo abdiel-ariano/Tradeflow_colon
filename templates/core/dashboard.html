@@ -1,5 +1,12 @@
 {% extends "core/base.html" %}
 {% load static %}
+{% comment %}
+================================================================================
+templates/core/dashboard.html — TradeFlow Colón
+Propósito: panel administrativo con KPIs, gráficos Chart.js con datos reales del ORM,
+           actividad reciente y vista B2B/B2C del período. Estado de órdenes vía JS.
+================================================================================
+{% endcomment %}
 {% block title %}Dashboard — TradeFlow Colón{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
@@ -7,7 +14,6 @@
 {% endblock %}
 {% block extra_css %}
 <style>
-  /* Colores explícitos + !important: gana sobre utilidades Bootstrap (p. ej. text-white). */
   .adm-shell {
     display: flex;
     min-height: calc(100vh - 64px);
@@ -49,7 +55,7 @@
   }
   .adm-pill:hover { border-color: #2E5B8A; color: #0F2A44 !important; }
   .adm-pill.is-active { background: #0F2A44; color: #fff !important; border-color: #0F2A44; }
-  .adm-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .adm-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem; }
   @media (max-width: 1199px) { .adm-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 575px) { .adm-kpi-grid { grid-template-columns: 1fr; } }
   .adm-kpi {
@@ -62,10 +68,50 @@
   .adm-kpi-val { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.5rem; color: #0F2A44 !important; }
   .adm-kpi-sub { font-size: 0.78rem; color: #6B7A88 !important; margin-top: 6px; }
   .adm-kpi-delta { font-size: 0.72rem; font-weight: 600; margin-top: 4px; color: #2E5B8A !important; }
-  .adm-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .adm-meta-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 991px) { .adm-meta-strip { grid-template-columns: 1fr; } }
+  .adm-meta-card {
+    background: #fff;
+    border: 1px solid #D1D5DB;
+    border-radius: 12px;
+    padding: 1rem 1.15rem;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .adm-meta-card .material-symbols-rounded { color: #2E5B8A; font-size: 22px; flex-shrink: 0; }
+  .adm-meta-card h3 { margin: 0 0 4px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6B7A88 !important; }
+  .adm-meta-card p { margin: 0; font-size: 0.875rem; color: #374151 !important; line-height: 1.45; }
+  .adm-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
   @media (max-width: 991px) { .adm-charts { grid-template-columns: 1fr; } }
   .adm-chart-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.25rem; }
-  .adm-chart-title { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; color: #1B3B63 !important; margin-bottom: 1rem; }
+  .adm-chart-title { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; color: #1B3B63 !important; margin-bottom: 0.35rem; }
+  .adm-chart-lead { font-size: 0.78rem; color: #6B7A88 !important; margin: 0 0 0.75rem; line-height: 1.4; }
+  .adm-lower-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 991px) { .adm-lower-grid { grid-template-columns: 1fr; } }
+  .adm-act-list { max-height: 280px; overflow-y: auto; }
+  .adm-act-row {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #F3F4F6;
+    align-items: flex-start;
+  }
+  .adm-act-row:last-child { border-bottom: none; }
+  .adm-act-ico { color: #2E5B8A; font-size: 20px; flex-shrink: 0; }
+  .adm-act-body strong { display: block; font-size: 0.84rem; color: #0F2A44 !important; }
+  .adm-act-body span { font-size: 0.78rem; color: #6B7A88 !important; }
+  .adm-act-time { font-size: 0.72rem; color: #9CA3AF !important; margin-top: 4px; display: block; }
   .adm-table-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; overflow: hidden; }
   .adm-table-head { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid #D1D5DB; }
   .adm-table-head span { font-family: 'Inter', sans-serif; font-weight: 600; color: #0F2A44 !important; }
@@ -88,7 +134,7 @@
     <div class="adm-head">
       <div>
         <h1>Dashboard</h1>
-        <p>Bienvenido, <strong>{{ user.first_name|default:user.username }}</strong> — resumen operativo</p>
+        <p>Bienvenido, <strong>{{ user.first_name|default:user.username }}</strong> — resumen operativo ZLC · {{ total_productos }} productos activos · {{ total_empresas }} empresas</p>
       </div>
       <div class="adm-pills" id="adm-period-pills" data-current-period="{{ periodo_activo }}">
         <a href="?periodo=7" class="adm-pill" data-period="7">7 días</a>
@@ -122,16 +168,70 @@
         <div class="adm-kpi-sub">Global (histórico): {{ tasa_conversion }}% entregadas / total</div>
       </div>
     </div>
-    <div class="adm-charts">
-      <div class="adm-chart-card">
-        <div class="adm-chart-title">Actividad — últimos 7 días de la semana</div>
-        <div style="height:220px;position:relative;"><canvas id="admLineChart"></canvas></div>
+
+    <div class="adm-meta-strip">
+      <div class="adm-meta-card">
+        <span class="material-symbols-rounded">public</span>
+        <div>
+          <h3>Importación / exportación (proxy)</h3>
+          <p><strong>{{ ordenes_b2b }}</strong> órdenes B2B y <strong>{{ ordenes_b2c }}</strong> B2C en el período seleccionado.</p>
+        </div>
       </div>
-      <div class="adm-chart-card">
-        <div class="adm-chart-title">Órdenes por día (semana actual)</div>
-        <div style="height:220px;position:relative;"><canvas id="admBarChart"></canvas></div>
+      <div class="adm-meta-card">
+        <span class="material-symbols-rounded">group</span>
+        <div>
+          <h3>Usuarios en plataforma</h3>
+          <p><strong>{{ usuarios_plataforma }}</strong> cuentas activas · <strong>{{ usuarios_login_periodo }}</strong> con inicio de sesión en el período.</p>
+        </div>
+      </div>
+      <div class="adm-meta-card">
+        <span class="material-symbols-rounded">inventory_2</span>
+        <div>
+          <h3>Catálogo ZLC</h3>
+          <p><strong>{{ total_productos }}</strong> productos publicados · <strong>{{ total_empresas }}</strong> empresas registradas.</p>
+        </div>
       </div>
     </div>
+
+    <div class="adm-charts">
+      <div class="adm-chart-card">
+        <div class="adm-chart-title">Ingresos entregados por día (USD)</div>
+        <p class="adm-chart-lead">Suma de totales de órdenes con estado entregado, por día calendario (alineado al filtro superior; máx. 31 puntos).</p>
+        <div style="height:240px;position:relative;"><canvas id="admLineChart"></canvas></div>
+      </div>
+      <div class="adm-chart-card">
+        <div class="adm-chart-title">Órdenes creadas por día</div>
+        <p class="adm-chart-lead">Conteo de órdenes nuevas por día (cualquier estado).</p>
+        <div style="height:240px;position:relative;"><canvas id="admBarChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="adm-lower-grid">
+      <div class="adm-chart-card">
+        <div class="adm-chart-title">Mix B2B vs B2C</div>
+        <p class="adm-chart-lead">Distribución de órdenes creadas en el período según tipo de pedido.</p>
+        <div style="height:260px;position:relative;max-width:360px;margin:0 auto;"><canvas id="admDoughnutChart"></canvas></div>
+      </div>
+      <div class="adm-chart-card">
+        <div class="adm-chart-title">Actividad reciente</div>
+        <p class="adm-chart-lead">Últimas órdenes y altas de usuario.</p>
+        <div class="adm-act-list">
+          {% for item in actividad_reciente %}
+          <div class="adm-act-row">
+            <span class="material-symbols-rounded adm-act-ico">{{ item.icon }}</span>
+            <div class="adm-act-body">
+              <strong>{{ item.titulo }}</strong>
+              <span>{{ item.detalle }}</span>
+              <span class="adm-act-time">{{ item.ts|date:"d/m/Y H:i" }}</span>
+            </div>
+          </div>
+          {% empty %}
+          <p style="padding:1rem;color:#6B7A88;font-size:0.875rem;margin:0;">Sin actividad reciente.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
     <div class="adm-table-card">
       <div class="adm-table-head">
         <span>Últimas órdenes</span>
@@ -194,20 +294,23 @@
 {% block extra_js %}
 <script>
 (function () {
-  var diasLabels = {{ dias_labels_json|safe }};
+  var chartLabels = {{ chart_labels_json|safe }};
+  var ingresosDia = {{ ingresos_por_dia_json|safe }};
   var ordenesDia = {{ ordenes_por_dia_json|safe }};
-  var lineVals = ordenesDia.map(function (n) { return n * 120 + 500; });
+  var b2b = {{ ordenes_b2b }};
+  var b2c = {{ ordenes_b2c }};
+
   var lineCtx = document.getElementById('admLineChart');
   if (lineCtx && typeof Chart !== 'undefined') {
     new Chart(lineCtx, {
       type: 'line',
       data: {
-        labels: diasLabels,
+        labels: chartLabels,
         datasets: [{
-          label: 'Actividad',
-          data: lineVals,
+          label: 'USD entregados',
+          data: ingresosDia,
           borderColor: '#F26522',
-          backgroundColor: 'rgba(242,101,34,0.08)',
+          backgroundColor: 'rgba(242,101,34,0.12)',
           tension: 0.35,
           fill: true,
           borderWidth: 2,
@@ -219,18 +322,27 @@
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { ticks: { font: { size: 11 }, color: '#6B7A88' } },
-          y: { ticks: { font: { size: 10 }, color: '#6B7A88' } },
+          x: { ticks: { font: { size: 10 }, color: '#6B7A88', maxRotation: 45 } },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              font: { size: 10 },
+              color: '#6B7A88',
+              callback: function (value) { return 'US$' + Number(value).toFixed(0); },
+            },
+          },
         },
       },
     });
   }
+
   var barCtx = document.getElementById('admBarChart');
   if (barCtx && typeof Chart !== 'undefined') {
+    var maxO = Math.max.apply(null, ordenesDia.concat([0]));
     new Chart(barCtx, {
       type: 'bar',
       data: {
-        labels: diasLabels,
+        labels: chartLabels,
         datasets: [{
           label: 'Órdenes',
           data: ordenesDia,
@@ -243,11 +355,50 @@
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { ticks: { font: { size: 11 }, color: '#6B7A88' } },
-          y: { ticks: { font: { size: 10 }, stepSize: 1, color: '#6B7A88' } },
+          x: { ticks: { font: { size: 10 }, color: '#6B7A88', maxRotation: 45 } },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              font: { size: 10 },
+              color: '#6B7A88',
+              stepSize: maxO <= 8 ? 1 : undefined,
+              precision: 0,
+            },
+          },
         },
       },
     });
+  }
+
+  var donutCtx = document.getElementById('admDoughnutChart');
+  if (donutCtx && typeof Chart !== 'undefined') {
+    var totalMix = b2b + b2c;
+    if (totalMix > 0) {
+      new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['B2B (empresa)', 'B2C (consumidor)'],
+          datasets: [{
+            data: [b2b, b2c],
+            backgroundColor: ['#0F2A44', '#F26522'],
+            borderWidth: 2,
+            borderColor: '#fff',
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#374151', font: { size: 11 } } },
+          },
+        },
+      });
+    } else {
+      var p = document.createElement('p');
+      p.style.cssText = 'text-align:center;color:#6B7A88;font-size:0.875rem;padding:2rem 0;margin:0;';
+      p.textContent = 'Sin órdenes en el período para mostrar el mix B2B/B2C.';
+      donutCtx.parentNode.appendChild(p);
+    }
   }
 })();
 </script>

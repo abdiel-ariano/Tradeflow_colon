@@ -14,6 +14,7 @@ RESULTADO:
     - 9 productos con imágenes descargadas automáticamente
     - 1 usuario buyer de demo  (usuario: demo_buyer  / clave: Demo1234!)
     - 1 usuario seller de demo (usuario: demo_seller / clave: Demo1234!)
+    - 1 usuario admin de demo  (usuario: demo_admin  / clave: Demo1234!) → /dashboard/
 
 NOTAS:
     - Requiere conexión a internet para descargar las imágenes.
@@ -187,6 +188,15 @@ USUARIOS_DEMO = [
         'role':       'seller',
         'phone':      '+507 6500-0002',
     },
+    {
+        'username':   'demo_admin',
+        'first_name': 'Patricia',
+        'last_name':  'Vásquez',
+        'email':      'demo.admin@tradeflow.pa',
+        'password':   'Demo1234!',
+        'role':       'admin',
+        'phone':      '+507 6500-0003',
+    },
 ]
 
 
@@ -207,7 +217,7 @@ class Command(BaseCommand):
         os.makedirs(media_products, exist_ok=True)
 
         # 1. Categorías
-        self.stdout.write('\n[1/5] Creando categorías...')
+        self.stdout.write('\n[1/6] Creando categorías...')
         categorias_obj = []
         for nombre in CATEGORIAS:
             cat, created = Category.objects.get_or_create(name=nombre)
@@ -216,7 +226,7 @@ class Command(BaseCommand):
             self.stdout.write(f'  {nombre} — {estado}')
 
         # 2. Empresas
-        self.stdout.write('\n[2/5] Creando empresas...')
+        self.stdout.write('\n[2/6] Creando empresas...')
         empresas_obj = []
         for data in EMPRESAS:
             empresa, created = Company.objects.get_or_create(
@@ -232,7 +242,7 @@ class Command(BaseCommand):
             self.stdout.write(f'  {empresa.name} — {estado}')
 
         # 3. Productos con imágenes
-        self.stdout.write('\n[3/5] Creando productos e imágenes...')
+        self.stdout.write('\n[3/6] Creando productos e imágenes...')
         for data in PRODUCTOS:
             if Product.objects.filter(sku=data['sku']).exists():
                 self.stdout.write(f'  {data["name"]} — ya existe, omitido')
@@ -278,7 +288,7 @@ class Command(BaseCommand):
             )
 
         # 4. Usuarios de demo
-        self.stdout.write('\n[4/5] Creando usuarios de demo...')
+        self.stdout.write('\n[4/6] Creando usuarios de demo...')
         for data in USUARIOS_DEMO:
             if User.objects.filter(username=data['username']).exists():
                 self.stdout.write(f'  {data["username"]} — ya existe, omitido')
@@ -303,7 +313,7 @@ class Command(BaseCommand):
             )
 
         # 5. Asociar vendedor demo a empresa TechZone (portal Mi Tienda)
-        self.stdout.write('\n[5/5] Vinculando vendedor demo a empresa...')
+        self.stdout.write('\n[5/6] Vinculando vendedor demo a empresa...')
         demo_seller = User.objects.filter(username='demo_seller').first()
         techzone = Company.objects.filter(name='TechZone Colón S.A.').first()
         if demo_seller and techzone:
@@ -322,6 +332,23 @@ class Command(BaseCommand):
                 self.style.WARNING('  No se pudo vincular demo_seller (usuario o empresa ausente).')
             )
 
+        # 6. Asegurar rol admin en demo_admin si el usuario ya existía con otro rol
+        self.stdout.write('\n[6/6] Ajustando cuenta demo_admin (rol admin)...')
+        adm = User.objects.filter(username='demo_admin').first()
+        if adm:
+            prof = getattr(adm, 'profile', None)
+            if prof and prof.role != 'admin':
+                prof.role = 'admin'
+                prof.save(update_fields=['role'])
+                self.stdout.write(self.style.SUCCESS('  demo_admin → rol actualizado a admin'))
+            elif not prof:
+                UserProfile.objects.create(user=adm, role='admin', phone='+507 6500-0003')
+                self.stdout.write(self.style.SUCCESS('  demo_admin → perfil admin creado'))
+            else:
+                self.stdout.write('  demo_admin — rol admin OK')
+        else:
+            self.stdout.write(self.style.WARNING('  demo_admin no existe; ejecuta de nuevo o crea el usuario en admin.'))
+
         # Resumen final
         self.stdout.write('\n' + '=' * 60)
         self.stdout.write(self.style.SUCCESS('Datos de demo cargados correctamente.'))
@@ -331,4 +358,5 @@ class Command(BaseCommand):
         self.stdout.write('\nAccesos de prueba:')
         self.stdout.write('  Buyer:  demo_buyer  / Demo1234!')
         self.stdout.write('  Seller: demo_seller / Demo1234! (Mi Tienda → TechZone Colón S.A.)')
+        self.stdout.write('  Admin:  demo_admin  / Demo1234! (Dashboard /dashboard/)')
         self.stdout.write('=' * 60)
