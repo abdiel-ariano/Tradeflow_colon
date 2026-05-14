@@ -1,73 +1,108 @@
 {% extends "core/base.html" %}
 {% load static %}
-
+{% comment %}
+Admin — empresas registradas. Contexto: lista_empresas en core/views.py
+{% endcomment %}
+{% block title %}Empresas — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/formularios.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_shell.css' %}">
 {% endblock %}
-
 {% block content %}
-<div class="page-header">
-  <div class="page-header-row">
-    <div>
-      <h2>Empresas</h2>
-      <p class="text-muted">Empresas vendedoras de la Zona Libre de Colón</p>
-    </div>
-    <a href="/admin/core/company/add/" class="btn btn-primary" target="_blank">
-      <i data-feather="plus" width="14" height="14"></i> Nueva Empresa
-    </a>
-  </div>
-</div>
+<div class="adm-shell">
+  {% include "core/admin_rail.html" %}
+  <div class="adm-main">
+    <header class="adm-head">
+      <div>
+        <h1>Empresas</h1>
+        <p>Directorio de vendedores en la plataforma: verificación, RUC y volumen de catálogo.</p>
+      </div>
+      <div class="adm-head-actions">
+        <a href="/admin/core/company/add/" class="adm-btn adm-btn--primary" target="_blank" rel="noopener noreferrer">
+          <span class="material-symbols-rounded" aria-hidden="true">add</span>
+          Nueva en Django Admin
+        </a>
+      </div>
+    </header>
 
-<div class="table-card">
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Nombre</th>
-        <th>RUC</th>
-        <th>Verificada</th>
-        <th>Productos</th>
-        <th>Registrada</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for empresa in empresas %}
-      <tr>
-        <td>{{ empresa.pk }}</td>
-        <td><strong>{{ empresa.name }}</strong></td>
-        <td>{{ empresa.ruc|default:"—" }}</td>
-        <td>
-          {% if empresa.is_verified %}
-            <span class="badge badge-success">Verificada</span>
-          {% else %}
-            <span class="badge badge-warning">Pendiente</span>
+    <p class="adm-result-hint">
+      Mostrando {{ empresas.start_index }}–{{ empresas.end_index }} de {{ empresas.paginator.count }} empresas
+    </p>
+
+    <div class="adm-table-card">
+      <div class="adm-table-head">
+        <span>Directorio</span>
+      </div>
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Empresa</th>
+            <th>RUC</th>
+            <th>Verificación</th>
+            <th style="text-align:right;">Productos</th>
+            <th>Alta</th>
+            <th style="text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for empresa in empresas %}
+          <tr>
+            <td>{{ empresa.pk }}</td>
+            <td><strong>{{ empresa.name }}</strong></td>
+            <td>{{ empresa.ruc|default:"—" }}</td>
+            <td>
+              {% if empresa.is_verified %}
+              <span class="adm-badge adm-emp-ver" data-verified="1">Verificada</span>
+              {% else %}
+              <span class="adm-badge adm-emp-ver" data-verified="0">Pendiente</span>
+              {% endif %}
+            </td>
+            <td style="text-align:right;">{{ empresa.total_productos }}</td>
+            <td>{{ empresa.created_at|date:"d/m/Y" }}</td>
+            <td style="text-align:right;">
+              <a href="/admin/core/company/{{ empresa.pk }}/change/" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 12px;font-size:0.78rem;">Editar</a>
+              <a href="{% url 'lista_productos' %}?buscar={{ empresa.name|urlencode }}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Productos</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="adm-empty">No hay empresas registradas.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% if empresas.has_other_pages %}
+      <div class="adm-pagination">
+        <span>Página {{ empresas.number }} de {{ empresas.paginator.num_pages }}</span>
+        <div class="adm-pagination-nums">
+          {% if empresas.has_previous %}
+          <a class="adm-page-link" href="?page={{ empresas.previous_page_number }}">Anterior</a>
           {% endif %}
-        </td>
-        <td>{{ empresa.total_productos }}</td>
-        <td>{{ empresa.created_at|date:"d/m/Y" }}</td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" style="text-align:center;padding:40px;color:var(--color-muted);">
-          No hay empresas registradas aún.
-          <a href="/admin/core/company/add/" target="_blank">Agregar desde el admin →</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  {% if empresas.has_other_pages %}
-  <div class="pagination">
-    {% if empresas.has_previous %}
-      <a href="?page={{ empresas.previous_page_number }}" class="btn btn-secondary">Anterior</a>
-    {% endif %}
-    <span>Página {{ empresas.number }} de {{ empresas.paginator.num_pages }}</span>
-    {% if empresas.has_next %}
-      <a href="?page={{ empresas.next_page_number }}" class="btn btn-secondary">Siguiente</a>
-    {% endif %}
+          {% if empresas.has_next %}
+          <a class="adm-page-link" href="?page={{ empresas.next_page_number }}">Siguiente</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
   </div>
-  {% endif %}
-
 </div>
+<script>
+(function () {
+  document.querySelectorAll('.adm-emp-ver').forEach(function (el) {
+    var v = el.getAttribute('data-verified') === '1';
+    if (v) {
+      el.style.background = '#edf7ee';
+      el.style.color = '#166534';
+    } else {
+      el.style.background = '#fff7ed';
+      el.style.color = '#9a3412';
+    }
+  });
+})();
+</script>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/admin_rail.js' %}"></script>
 {% endblock %}

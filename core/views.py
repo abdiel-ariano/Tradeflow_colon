@@ -355,7 +355,11 @@ def dashboard(request):
 
 @admin_required
 def lista_ordenes(request):
-    ordenes = Order.objects.select_related('buyer').order_by('-created_at')
+    ordenes = (
+        Order.objects.select_related('buyer')
+        .annotate(item_count=Count('items'))
+        .order_by('-created_at')
+    )
     buscar  = request.GET.get('buscar', '')
     estado  = request.GET.get('estado', '')
 
@@ -372,13 +376,31 @@ def lista_ordenes(request):
     paginator = Paginator(ordenes, 10)
     page_obj  = paginator.get_page(request.GET.get('page', 1))
 
+    from urllib.parse import urlencode
+
+    filtros_q = {}
+    if buscar:
+        filtros_q['buscar'] = buscar
+    if estado:
+        filtros_q['estado'] = estado
+    orden_filtros_query = urlencode(filtros_q)
+
+    estado_opciones = [{'value': '', 'label': 'Todos los estados', 'selected': not bool(estado)}]
+    for val, label in Order.STATUS_CHOICES:
+        estado_opciones.append({
+            'value':    val,
+            'label':    label,
+            'selected': bool(estado) and estado == val,
+        })
+
     context = {
-        'ordenes':        page_obj,
-        'buscar':         buscar,
-        'estado_actual':  estado,
-        'status_choices': Order.STATUS_CHOICES,
-        'titulo_pagina':  'Gestión de Órdenes',
-        'nav_activo':     'ordenes',
+        'ordenes':             page_obj,
+        'buscar':              buscar,
+        'estado_actual':       estado,
+        'estado_opciones':     estado_opciones,
+        'orden_filtros_query': orden_filtros_query,
+        'titulo_pagina':       'Gestión de Órdenes',
+        'nav_activo':          'ordenes',
     }
     return render(request, 'core/ordenes.html', context)
 
@@ -390,12 +412,22 @@ def detalle_orden(request, pk):
                      .prefetch_related('items__product', 'documents'),
         pk=pk
     )
+    otros_estados = [(v, lbl) for v, lbl in Order.STATUS_CHOICES if v != orden.status]
+    try:
+        pago = Payment.objects.get(order=orden)
+    except Payment.DoesNotExist:
+        pago = None
+    try:
+        envio = Shipment.objects.get(order=orden)
+    except Shipment.DoesNotExist:
+        envio = None
     context = {
-        'orden':         orden,
-        'pago':          getattr(orden, 'payment',  None),
-        'envio':         getattr(orden, 'shipment', None),
-        'titulo_pagina': f'Orden {orden.order_number}',
-        'nav_activo':    'ordenes',
+        'orden':           orden,
+        'pago':            pago,
+        'envio':           envio,
+        'otros_estados':   otros_estados,
+        'titulo_pagina':   f'Orden {orden.order_number}',
+        'nav_activo':      'ordenes',
     }
     return render(request, 'core/detalle_orden.html', context)
 
@@ -670,14 +702,32 @@ def lista_productos(request):
     paginator  = Paginator(productos, 12)
     page_obj   = paginator.get_page(request.GET.get('page', 1))
     categorias = Category.objects.all()
+    categorias_opciones = [
+        {
+            'id':       c.pk,
+            'name':     c.name,
+            'selected': bool(categoria and str(c.pk) == str(categoria)),
+        }
+        for c in categorias
+    ]
+
+    from urllib.parse import urlencode
+
+    prod_filtros = {}
+    if buscar:
+        prod_filtros['buscar'] = buscar
+    if categoria:
+        prod_filtros['categoria'] = categoria
+    producto_filtros_query = urlencode(prod_filtros)
 
     return render(request, 'core/productos.html', {
-        'productos':     page_obj,
-        'categorias':    categorias,
-        'buscar':        buscar,
-        'cat_activa':    categoria,
-        'titulo_pagina': 'Catálogo de Productos',
-        'nav_activo':    'productos',
+        'productos':              page_obj,
+        'categorias_opciones':    categorias_opciones,
+        'buscar':                 buscar,
+        'cat_activa':             categoria,
+        'producto_filtros_query': producto_filtros_query,
+        'titulo_pagina':          'Catálogo de Productos',
+        'nav_activo':             'productos',
     })
 
 
