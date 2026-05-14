@@ -1,91 +1,140 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% comment %}
-=============================================================
-TRADEFLOW COLÓN — templates/core/productos.html
-=============================================================
-Catálogo de productos con búsqueda y filtro por categoría.
-Variables: productos, categorias, q, categoria_id
-=============================================================
+Admin — catálogo de productos. Contexto: lista_productos en core/views.py
 {% endcomment %}
-{% block title %}Productos{% endblock %}
+{% block title %}Productos — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/productos.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_shell.css' %}">
+<style>
+  .adm-prod-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .adm-prod-actions a { font-size: 0.75rem; }
+</style>
 {% endblock %}
-
 {% block content %}
-<div class="page-header">
-  <div class="page-header-row">
-    <div>
-      <h2>Catálogo de Productos</h2>
-      <p class="text-muted">Gestiona tu inventario y precios</p>
+<div class="adm-shell">
+  {% include "core/admin_rail.html" %}
+  <div class="adm-main">
+    <header class="adm-head">
+      <div>
+        <h1>Catálogo de productos</h1>
+        <p>Vista global del inventario publicado en la ZLC: empresa, categoría, precio y disponibilidad.</p>
+      </div>
+      <div class="adm-head-actions">
+        <a href="/admin/core/product/add/" class="adm-btn adm-btn--primary" target="_blank" rel="noopener noreferrer">
+          <span class="material-symbols-rounded" aria-hidden="true">add</span>
+          Nuevo en Django Admin
+        </a>
+      </div>
+    </header>
+
+    <form class="adm-filter-card" method="get" action="">
+      <div class="adm-filter-grid">
+        <div class="adm-field adm-field--grow">
+          <label for="adm-prod-buscar">Buscar</label>
+          <input id="adm-prod-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Nombre, SKU o descripción" autocomplete="off">
+        </div>
+        <div class="adm-field">
+          <label for="adm-prod-cat">Categoría</label>
+          <select id="adm-prod-cat" name="categoria">
+            <option value="">Todas</option>
+            {% for row in categorias_opciones %}
+            <option value="{{ row.id }}" {% if row.selected %}selected{% endif %}>{{ row.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="adm-filter-actions">
+          <button type="submit" class="adm-btn adm-btn--primary">Aplicar</button>
+          <a href="{% url 'lista_productos' %}" class="adm-btn adm-btn--secondary">Limpiar</a>
+        </div>
+      </div>
+    </form>
+
+    <p class="adm-result-hint">
+      Mostrando {{ productos.start_index }}–{{ productos.end_index }} de {{ productos.paginator.count }} productos
+    </p>
+
+    <div class="adm-prod-grid">
+      {% for p in productos %}
+      <article class="adm-prod-card {% if not p.is_active %}is-inactive{% endif %}">
+        <div class="adm-prod-img">
+          {% if p.image %}
+          <img src="{{ p.image.url }}" alt="">
+          {% else %}
+          <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+          {% endif %}
+        </div>
+        <div class="adm-prod-body">
+          <div class="adm-prod-name">{{ p.name }}</div>
+          <div class="adm-prod-meta">
+            <span class="material-symbols-rounded" aria-hidden="true">business</span>
+            {{ p.company.name }}
+          </div>
+          <div class="adm-prod-meta">
+            {% if p.category %}
+            <span class="adm-chip">{{ p.category.name }}</span>
+            {% else %}
+            <span class="adm-chip">Sin categoría</span>
+            {% endif %}
+            {% if p.sku %}
+            <span class="adm-chip">SKU {{ p.sku }}</span>
+            {% endif %}
+          </div>
+          <div class="adm-prod-foot">
+            <span class="adm-prod-price">{{ p.currency }} {{ p.unit_price }}</span>
+            <span class="adm-prod-stock adm-prod-stock-js" data-qty="{{ p.available_qty }}" data-low="{% if p.inventory %}{{ p.inventory.low_stock_alert }}{% else %}5{% endif %}">
+              —
+            </span>
+          </div>
+          <div class="adm-prod-actions">
+            <a href="/admin/core/product/{{ p.pk }}/change/" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 10px;">Editar</a>
+            <a href="{% url 'tienda' %}?buscar={{ p.name|urlencode }}" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 10px;">Ver en tienda</a>
+          </div>
+        </div>
+      </article>
+      {% empty %}
+      <div class="adm-empty" style="grid-column: 1 / -1;">No hay productos con los filtros actuales.</div>
+      {% endfor %}
     </div>
-    <a href="#" class="btn btn-primary">
-      <i data-feather="plus" width="14" height="14"></i> Nuevo Producto
-    </a>
-  </div>
-</div>
 
-<!-- Filtros -->
-<form method="get" action="" style="display:flex;gap:8px;flex-wrap:wrap;margin:0 auto 20px;max-width:900px;justify-content:center;">
-  <input type="text" name="q" value="{{ q }}"
-         class="form-control" placeholder="Buscar producto..." style="flex:1;min-width:200px;" />
-
-  <select name="categoria" class="form-control" style="width:180px;">
-  <option value="">Todas las categorías</option>
-  {% for cat in categorias %}
-  <option value="{{ cat.pk }}" {% if cat_activa == cat.pk|stringformat:'s' %}selected{% endif %}>
-    {{ cat.name }}
-  </option>
-  {% endfor %}
-</select>
-
-  <button type="submit" class="btn btn-primary">Buscar</button>
-  {% if q or categoria_id %}
-  <a href="{% url 'productos' %}" class="btn btn-secondary">Limpiar</a>
-  {% endif %}
-</form>
-
-<!-- Contador -->
-<p class="text-muted" style="margin-bottom:16px;font-size:.82rem;">
-  {{ productos|length }} producto{{ productos|length|pluralize }} encontrado{{ productos|length|pluralize }}
-</p>
-
-<!-- Grid de productos -->
-<div class="products-catalog-grid">
-  {% for producto in productos %}
-  <div class="catalog-card {% if not producto.activo %}catalog-inactive{% endif %}">
-    <div class="catalog-img">
-      {% if producto.imagen %}
-        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="height:100%;object-fit:cover;">
-      {% elif producto.categoria and producto.categoria.icono %}
-        {{ producto.categoria.icono }}
-      {% else %}
-        📦
-      {% endif %}
-    </div>
-    <div class="catalog-body">
-      <div class="catalog-name">{{ producto.nombre }}</div>
-      <div class="catalog-cat">{{ producto.categoria.nombre|default:"Sin categoría" }}</div>
-      <div class="catalog-footer">
-        <span class="catalog-price">${{ producto.precio }}</span>
-        <span class="catalog-stock
-          {% if producto.stock == 0 %}stock-out
-          {% elif producto.stock <= 5 %}stock-low
-          {% else %}stock-ok{% endif %}">
-          {% if producto.stock == 0 %}Sin stock
-          {% elif producto.stock <= 5 %}Pocas uds ({{ producto.stock }})
-          {% else %}{{ producto.stock }} uds{% endif %}
-        </span>
+    {% if productos.has_other_pages %}
+    <div class="adm-table-card" style="margin-top:1.25rem;">
+      <div class="adm-pagination" style="border-top:none;">
+        <span>Página {{ productos.number }} de {{ productos.paginator.num_pages }}</span>
+        <div class="adm-pagination-nums">
+          {% if productos.has_previous %}
+          <a class="adm-page-link" href="?{% if producto_filtros_query %}{{ producto_filtros_query }}&amp;{% endif %}page={{ productos.previous_page_number }}">Anterior</a>
+          {% endif %}
+          {% if productos.has_next %}
+          <a class="adm-page-link" href="?{% if producto_filtros_query %}{{ producto_filtros_query }}&amp;{% endif %}page={{ productos.next_page_number }}">Siguiente</a>
+          {% endif %}
+        </div>
       </div>
     </div>
+    {% endif %}
   </div>
-  {% empty %}
-  <div style="grid-column:span 4;text-align:center;padding:48px;color:var(--color-muted);">
-    No hay productos registrados.
-    <br><br>
-    <a href="#" class="btn btn-primary">Agregar primer producto</a>
-  </div>
-  {% endfor %}
 </div>
+<script>
+(function () {
+  document.querySelectorAll('.adm-prod-stock-js').forEach(function (el) {
+    var qty = parseInt(el.getAttribute('data-qty'), 10);
+    var low = parseInt(el.getAttribute('data-low'), 10);
+    if (isNaN(low)) low = 5;
+    el.classList.remove('adm-prod-stock--ok', 'adm-prod-stock--low', 'adm-prod-stock--out');
+    if (isNaN(qty) || qty <= 0) {
+      el.textContent = 'Sin stock';
+      el.classList.add('adm-prod-stock--out');
+    } else if (qty <= low) {
+      el.textContent = qty + ' uds · bajo';
+      el.classList.add('adm-prod-stock--low');
+    } else {
+      el.textContent = qty + ' uds disponibles';
+      el.classList.add('adm-prod-stock--ok');
+    }
+  });
+})();
+</script>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/admin_rail.js' %}"></script>
 {% endblock %}

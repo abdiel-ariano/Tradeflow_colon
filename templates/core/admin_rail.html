@@ -1,0 +1,43 @@
+{% comment %}
+Rail lateral compartido del panel administrativo (TradeFlow Colón).
+Contexto: nav_activo — dashboard | ordenes | productos | empresas
+{% endcomment %}
+<aside class="adm-side" id="admRail" data-nav-active="{{ nav_activo|default:'dashboard' }}" aria-label="Menú administración">
+  <div class="adm-rail-brand">
+    <div class="adm-rail-brand-mark">
+      <span class="material-symbols-rounded" aria-hidden="true">hub</span>
+      <div class="adm-rail-brand-text">
+        <strong>TradeFlow</strong>
+        <span>Panel admin</span>
+      </div>
+    </div>
+  </div>
+  <nav class="adm-rail-nav">
+    <a href="{% url 'dashboard' %}" data-adm-nav="dashboard" title="Dashboard">
+      <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
+      <span class="adm-rail-label">Dashboard</span>
+    </a>
+    <a href="{% url 'lista_ordenes' %}" data-adm-nav="ordenes" title="Órdenes">
+      <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
+      <span class="adm-rail-label">Órdenes</span>
+    </a>
+    <a href="{% url 'lista_productos' %}" data-adm-nav="productos" title="Productos">
+      <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+      <span class="adm-rail-label">Productos</span>
+    </a>
+    <a href="{% url 'lista_empresas' %}" data-adm-nav="empresas" title="Empresas">
+      <span class="material-symbols-rounded" aria-hidden="true">business</span>
+      <span class="adm-rail-label">Empresas</span>
+    </a>
+  </nav>
+  <div class="adm-rail-footer">
+    <button type="button" class="adm-rail-toggle" id="admRailToggle" title="Alternar ancho del menú lateral">
+      <span class="material-symbols-rounded" aria-hidden="true">dock_to_right</span>
+      <span class="adm-rail-toggle-txt">Compacto</span>
+    </button>
+    <a class="adm-rail-dj" href="/admin/" target="_blank" rel="noopener noreferrer" title="Sitio Django Admin">
+      <span class="material-symbols-rounded" aria-hidden="true">admin_panel_settings</span>
+      <span class="adm-rail-label">Django Admin</span>
+    </a>
+  </div>
+</aside>

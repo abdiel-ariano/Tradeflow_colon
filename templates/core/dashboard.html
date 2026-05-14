@@ -13,123 +13,11 @@ Propósito: panel administrativo con KPIs, gráficos Chart.js con datos reales d
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 {% endblock %}
 {% block extra_css %}
-<style>
-  .adm-shell {
-    display: flex;
-    min-height: calc(100vh - 64px);
-    background: #F2F3F5 !important;
-    color: #374151 !important;
-  }
-  .adm-side {
-    width: 240px; flex-shrink: 0; background: #0F2A44; color: #fff; padding: 1.25rem 0;
-    display: flex; flex-direction: column; gap: 4px;
-  }
-  .adm-side a {
-    display: flex; align-items: center; gap: 10px; padding: 10px 1.25rem; color: rgba(255,255,255,0.78);
-    text-decoration: none; font-size: 0.875rem; font-weight: 500; border-left: 3px solid transparent; transition: all 0.2s ease;
-  }
-  .adm-side a .material-symbols-rounded { font-size: 20px; font-variation-settings: 'FILL' 0, 'wght' 400; }
-  .adm-side a:hover { background: rgba(255,255,255,0.06); color: #fff; }
-  .adm-side a.is-active { border-left-color: #F26522; background: rgba(0,0,0,0.2); color: #fff; }
-  .adm-main {
-    flex: 1;
-    padding: 2rem 1.5rem;
-    overflow-x: auto;
-    background: #F2F3F5 !important;
-    color: #374151 !important;
-  }
-  .adm-main p,
-  .adm-main span:not(.material-symbols-rounded),
-  .adm-main td,
-  .adm-main div {
-    color: inherit;
-  }
-  .adm-main strong { color: #0F2A44 !important; }
-  .adm-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
-  .adm-head h1 { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.75rem; color: #0F2A44 !important; margin: 0 0 0.35rem; }
-  .adm-head p { margin: 0; color: #6B7A88 !important; font-size: 0.9rem; }
-  .adm-pills { display: flex; gap: 8px; flex-wrap: wrap; }
-  .adm-pill {
-    padding: 8px 14px; border-radius: 8px; border: 1px solid #D1D5DB; background: #fff; color: #374151 !important;
-    font-size: 0.8125rem; font-weight: 600; text-decoration: none; transition: all 0.2s ease;
-  }
-  .adm-pill:hover { border-color: #2E5B8A; color: #0F2A44 !important; }
-  .adm-pill.is-active { background: #0F2A44; color: #fff !important; border-color: #0F2A44; }
-  .adm-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem; }
-  @media (max-width: 1199px) { .adm-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 575px) { .adm-kpi-grid { grid-template-columns: 1fr; } }
-  .adm-kpi {
-    background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.25rem;
-    transition: box-shadow 0.2s ease;
-  }
-  .adm-kpi:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.12); }
-  .adm-kpi-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-  .adm-kpi-lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #6B7A88 !important; }
-  .adm-kpi-val { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.5rem; color: #0F2A44 !important; }
-  .adm-kpi-sub { font-size: 0.78rem; color: #6B7A88 !important; margin-top: 6px; }
-  .adm-kpi-delta { font-size: 0.72rem; font-weight: 600; margin-top: 4px; color: #2E5B8A !important; }
-  .adm-meta-strip {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 1.5rem;
-  }
-  @media (max-width: 991px) { .adm-meta-strip { grid-template-columns: 1fr; } }
-  .adm-meta-card {
-    background: #fff;
-    border: 1px solid #D1D5DB;
-    border-radius: 12px;
-    padding: 1rem 1.15rem;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-  .adm-meta-card .material-symbols-rounded { color: #2E5B8A; font-size: 22px; flex-shrink: 0; }
-  .adm-meta-card h3 { margin: 0 0 4px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6B7A88 !important; }
-  .adm-meta-card p { margin: 0; font-size: 0.875rem; color: #374151 !important; line-height: 1.45; }
-  .adm-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-  @media (max-width: 991px) { .adm-charts { grid-template-columns: 1fr; } }
-  .adm-chart-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.25rem; }
-  .adm-chart-title { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; color: #1B3B63 !important; margin-bottom: 0.35rem; }
-  .adm-chart-lead { font-size: 0.78rem; color: #6B7A88 !important; margin: 0 0 0.75rem; line-height: 1.4; }
-  .adm-lower-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  @media (max-width: 991px) { .adm-lower-grid { grid-template-columns: 1fr; } }
-  .adm-act-list { max-height: 280px; overflow-y: auto; }
-  .adm-act-row {
-    display: flex;
-    gap: 10px;
-    padding: 10px 0;
-    border-bottom: 1px solid #F3F4F6;
-    align-items: flex-start;
-  }
-  .adm-act-row:last-child { border-bottom: none; }
-  .adm-act-ico { color: #2E5B8A; font-size: 20px; flex-shrink: 0; }
-  .adm-act-body strong { display: block; font-size: 0.84rem; color: #0F2A44 !important; }
-  .adm-act-body span { font-size: 0.78rem; color: #6B7A88 !important; }
-  .adm-act-time { font-size: 0.72rem; color: #9CA3AF !important; margin-top: 4px; display: block; }
-  .adm-table-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; overflow: hidden; }
-  .adm-table-head { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid #D1D5DB; }
-  .adm-table-head span { font-family: 'Inter', sans-serif; font-weight: 600; color: #0F2A44 !important; }
-  .adm-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-  .adm-table th { text-align: left; padding: 10px 1.25rem; background: #F2F3F5; color: #6B7A88 !important; font-weight: 600; }
-  .adm-table td { padding: 12px 1.25rem; border-top: 1px solid #D1D5DB; color: #374151 !important; }
-  .adm-table a { color: #2E5B8A !important; font-weight: 600; text-decoration: none; }
-  .adm-badge { display: inline-flex; padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
-</style>
+<link rel="stylesheet" href="{% static 'css/admin_shell.css' %}">
 {% endblock %}
 {% block content %}
 <div class="adm-shell">
-  <aside class="adm-side" aria-label="Menú administración">
-    <a href="{% url 'dashboard' %}" data-adm-nav="dashboard"><span class="material-symbols-rounded">dashboard</span>Dashboard</a>
-    <a href="{% url 'lista_ordenes' %}" data-adm-nav="ordenes"><span class="material-symbols-rounded">receipt_long</span>Órdenes</a>
-    <a href="{% url 'lista_productos' %}" data-adm-nav="productos"><span class="material-symbols-rounded">inventory_2</span>Productos</a>
-    <a href="{% url 'lista_empresas' %}" data-adm-nav="empresas"><span class="material-symbols-rounded">business</span>Empresas</a>
-  </aside>
+  {% include "core/admin_rail.html" %}
   <div class="adm-main">
     <div class="adm-head">
       <div>
@@ -273,9 +161,6 @@ Propósito: panel administrativo con KPIs, gráficos Chart.js con datos reales d
       if (a.getAttribute('data-period') === p) a.classList.add('is-active');
     });
   }
-  document.querySelectorAll('.adm-side a[data-adm-nav]').forEach(function (a) {
-    if (a.getAttribute('data-adm-nav') === 'dashboard') a.classList.add('is-active');
-  });
   var stMap = {
     pending: { bg: '#fef8e7', fg: '#6b4a00' },
     paid: { bg: '#e8f4f8', fg: '#1a4f65' },
@@ -292,6 +177,7 @@ Propósito: panel administrativo con KPIs, gráficos Chart.js con datos reales d
 </script>
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'js/admin_rail.js' %}"></script>
 <script>
 (function () {
   var chartLabels = {{ chart_labels_json|safe }};
