@@ -134,6 +134,7 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
     margin-left: auto;
     box-sizing: border-box;
     color: #ffffff !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
   }
   @media (max-width: 991px) {
     .lp-mock { margin-left: 0; max-width: none; }
@@ -300,19 +301,102 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
     color: #0f2a44 !important;
     border-color: #6b7a88 !important;
   }
-</style>
+  .lp-hero-deco {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 80% 50% at 85% 20%, rgba(242, 101, 34, 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 40% at 10% 80%, rgba(46, 91, 138, 0.25) 0%, transparent 50%);
+    z-index: 0;
+  }
+  .lp-hero-inner { position: relative; z-index: 1; }
+  .lp-trust {
+    background: linear-gradient(180deg, #0c2438 0%, #0F2A44 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 1.75rem 1.5rem;
+  }
+  .lp-trust-inner {
+    max-width: 1160px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
+  @media (max-width: 991px) { .lp-trust-inner { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 575px) { .lp-trust-inner { grid-template-columns: 1fr; } }
+  .lp-trust-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .lp-trust-item .material-symbols-rounded {
+    font-size: 26px;
+    color: #ffa15a !important;
+    flex-shrink: 0;
+  }
+  .lp-trust-item strong {
+    display: block;
+    font-size: 0.875rem;
+    color: #ffffff !important;
+    margin-bottom: 4px;
+  }
+  .lp-trust-item span {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.72) !important;
+    line-height: 1.45;
+  }
+  .lp-proof {
+    padding: 3rem 1.5rem;
+    background: linear-gradient(180deg, #ffffff 0%, #f2f3f5 100%);
+    border-bottom: 1px solid #d1d5db;
+  }
+  .lp-proof-inner { max-width: 900px; margin: 0 auto; text-align: center; }
+  .lp-proof-quote {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #0f2a44;
+    line-height: 1.65;
+    margin: 0 0 1.25rem;
+  }
+  .lp-proof-meta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.875rem;
+    color: #6b7a88;
+  }
+  .lp-proof-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: #fff5f0;
+    color: #f26522;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border: 1px solid rgba(242, 101, 34, 0.25);
+  }
 {% endblock %}
 {% block content %}
-<section class="lp-hero" style="background-color: #0F2A44 !important; background-image: none !important; min-height: 520px; padding: 80px 0; position: relative; overflow: hidden;">
+<section class="lp-hero" style="background-color: #0F2A44 !important; background-image: linear-gradient(145deg, rgba(27,59,99,0.55) 0%, rgba(15,42,68,0.98) 42%, #0a1f33 100%) !important; min-height: 540px; padding: 88px 0 72px; position: relative; overflow: hidden;">
+  <div class="lp-hero-deco" aria-hidden="true"></div>
   <div class="lp-hero-inner">
     <div class="lp-hero-col-text">
       <div class="lp-eyebrow">
         <span class="material-symbols-rounded" style="font-size:16px;color:rgba(255,255,255,0.85) !important;">location_on</span>
         Zona Libre de Colón · Panamá
       </div>
-      <h1 class="lp-hero-title">Compra en la ZLC desde cualquier lugar del mundo</h1>
+      <h1 class="lp-hero-title">La ZLC en una plataforma B2B en la que confían compradores y operadores</h1>
       <p class="lp-hero-desc">
-        TradeFlow conecta compradores con empresas de la Zona Libre de Colón. Catálogo, pedidos y trazabilidad en una sola plataforma.
+        TradeFlow conecta compradores con empresas verificadas de la Zona Libre de Colón: catálogo claro, pedidos trazables y herramientas listas para escalar ante inversores y socios logísticos.
       </p>
       <div class="lp-hero-cta">
         <a href="{% url 'signup' %}" class="lp-btn-primary">
@@ -340,10 +424,40 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
       </div>
     </div>
     <div class="lp-mock" aria-hidden="true">
-      <div class="lp-mock-title">Resumen operativo</div>
-      <div class="lp-mock-row"><span>Órdenes activas</span><span class="lp-mock-val">128</span></div>
-      <div class="lp-mock-row"><span>Fulfillment</span><span class="lp-mock-val accent">94%</span></div>
-      <div class="lp-mock-row"><span>Envíos en tránsito</span><span class="lp-mock-val">42</span></div>
+      <div class="lp-mock-title">Panel operativo (vista previa)</div>
+      <div class="lp-mock-row"><span>Órdenes en período</span><span class="lp-mock-val">128</span></div>
+      <div class="lp-mock-row"><span>Cumplimiento envíos</span><span class="lp-mock-val accent">94%</span></div>
+      <div class="lp-mock-row"><span>Empresas activas</span><span class="lp-mock-val">36</span></div>
+    </div>
+  </div>
+</section>
+<section class="lp-trust" aria-label="Señales de confianza">
+  <div class="lp-trust-inner">
+    <div class="lp-trust-item">
+      <span class="material-symbols-rounded">verified</span>
+      <div><strong>Empresas verificadas</strong><span>Catálogo enlazado a compañías con perfil en ZLC.</span></div>
+    </div>
+    <div class="lp-trust-item">
+      <span class="material-symbols-rounded">lock</span>
+      <div><strong>Accesos por rol</strong><span>Comprador, vendedor y administración con rutas separadas.</span></div>
+    </div>
+    <div class="lp-trust-item">
+      <span class="material-symbols-rounded">receipt_long</span>
+      <div><strong>Documentos y órdenes</strong><span>Flujo de pedidos con estados y base para facturación.</span></div>
+    </div>
+    <div class="lp-trust-item">
+      <span class="material-symbols-rounded">trending_up</span>
+      <div><strong>Listo para escalar</strong><span>Arquitectura pensada para crecer con más módulos y datos.</span></div>
+    </div>
+  </div>
+</section>
+<section class="lp-proof">
+  <div class="lp-proof-inner">
+    <div class="lp-proof-badge"><span class="material-symbols-rounded" style="font-size:16px;">format_quote</span> Caso de uso</div>
+    <p class="lp-proof-quote">“Necesitábamos una vitrina seria para la ZLC: precios claros, stock visible y un back-office que no parezca prototipo. TradeFlow encaja con lo que buscan socios e inversores.”</p>
+    <div class="lp-proof-meta">
+      <span class="material-symbols-rounded" style="font-size:18px;color:#2E5B8A;">business_center</span>
+      <span>Operaciones B2B · Zona Libre de Colón · Panamá</span>
     </div>
   </div>
 </section>
