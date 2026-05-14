@@ -175,10 +175,12 @@ def home_view(request):
 @admin_required
 def dashboard(request):
     """
-    Panel de administración con KPIs, selector de período y gráficos (Chart.js).
+    Panel de administración con KPIs, selector de período y gráficos Chart.js
+    alimentados con datos reales del ORM.
 
-    Incluye comparación del período seleccionado frente al período inmediatamente
-    anterior de la misma duración (órdenes creadas, ingresos entregados, etc.).
+    Incluye serie diaria de ingresos (órdenes entregadas) y conteo de órdenes
+    creadas, distribución B2B/B2C en el período, actividad reciente y comparación
+    frente al período anterior de la misma duración.
     """
     hoy = timezone.now()
     try:
@@ -210,7 +212,7 @@ def dashboard(request):
 
     total_productos = Product.objects.filter(is_active=True).count()
     total_empresas = Company.objects.count()
-    ordenes_recientes = Order.objects.select_related('buyer').order_by('-created_at')[:8]
+    ordenes_recientes = Order.objects.select_related('buyer').order_by('-created_at')[:10]
 
     clientes_activos = Order.objects.values('buyer').distinct().count()
     clientes_periodo = Order.objects.filter(created_at__gte=inicio_actual).values('buyer').distinct().count()
@@ -244,12 +246,60 @@ def dashboard(request):
     tasa_periodo_prev = round(Decimal(100) * del_prev / tot_prev, 1) if tot_prev else Decimal('0')
     tasa_delta_pp = tasa_periodo - tasa_periodo_prev
 
-    dias_semana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    # --- Series diarias (últimos N días dentro del período; máx. 31 puntos) ---
+    n_chart = min(periodo, 31)
+    chart_labels = []
+    ingresos_por_dia = []
     ordenes_por_dia = []
-    for i in range(7):
-        dia = hoy - timedelta(days=hoy.weekday() - i)
-        count = Order.objects.filter(created_at__date=dia.date()).count()
-        ordenes_por_dia.append(count)
+    for i in range(n_chart):
+        day = (hoy - timedelta(days=n_chart - 1 - i)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        day_next = day + timedelta(days=1)
+        chart_labels.append(day.strftime('%d/%m'))
+        ing = Order.objects.filter(
+            status='delivered',
+            created_at__gte=day,
+            created_at__lt=day_next,
+        ).aggregate(t=Sum('total'))['t'] or Decimal('0')
+        ingresos_por_dia.append(float(ing))
+        ordenes_por_dia.append(
+            Order.objects.filter(created_at__gte=day, created_at__lt=day_next).count()
+        )
+
+    # --- Proxy importación/exportación: órdenes B2B vs B2C en el período ---
+    ordenes_b2b = Order.objects.filter(created_at__gte=inicio_actual, order_type='b2b').count()
+    ordenes_b2c = Order.objects.filter(created_at__gte=inicio_actual, order_type='b2c').count()
+
+    usuarios_plataforma = User.objects.filter(is_active=True).count()
+    usuarios_login_periodo = User.objects.filter(
+        is_active=True,
+        last_login__isnull=False,
+        last_login__gte=inicio_actual,
+    ).count()
+
+    # --- Actividad reciente (órdenes + altas de usuario) ---
+    actividad = []
+    for o in Order.objects.select_related('buyer').order_by('-created_at')[:8]:
+        actividad.append(
+            {
+                'ts': o.created_at,
+                'icon': 'receipt_long',
+                'titulo': f'Orden {o.order_number}',
+                'detalle': (o.buyer.get_full_name() or o.buyer.username) + ' · ' + o.get_status_display(),
+            }
+        )
+    for u in User.objects.order_by('-date_joined')[:6]:
+        actividad.append(
+            {
+                'ts': u.date_joined,
+                'icon': 'person_add',
+                'titulo': f'Usuario {u.username}',
+                'detalle': u.email or '—',
+            }
+        )
+    actividad.sort(key=lambda x: x['ts'], reverse=True)
+    actividad = actividad[:12]
 
     context = {
         'total_ordenes':        total_ordenes,
@@ -263,10 +313,14 @@ def dashboard(request):
         'total_productos':      total_productos,
         'total_empresas':       total_empresas,
         'ordenes_recientes':    ordenes_recientes,
-        'dias_semana':          dias_semana,
-        'ordenes_por_dia':      ordenes_por_dia,
-        'dias_labels_json':     json.dumps(dias_semana),
+        'chart_labels_json':    json.dumps(chart_labels),
+        'ingresos_por_dia_json': json.dumps(ingresos_por_dia),
         'ordenes_por_dia_json': json.dumps(ordenes_por_dia),
+        'ordenes_b2b':          ordenes_b2b,
+        'ordenes_b2c':          ordenes_b2c,
+        'usuarios_plataforma':  usuarios_plataforma,
+        'usuarios_login_periodo': usuarios_login_periodo,
+        'actividad_reciente':   actividad,
         'clientes_activos':     clientes_activos,
         'clientes_periodo':     clientes_periodo,
         'clientes_delta_label': _period_delta_pct(clientes_periodo, clientes_periodo_prev),
