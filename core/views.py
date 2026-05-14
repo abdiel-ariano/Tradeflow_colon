@@ -59,17 +59,22 @@ def _period_delta_pct(current, previous):
 # =============================================================================
 
 def _redirect_by_role(user):
-    """Devuelve la URL de inicio según el rol del usuario."""
+    """
+    URL de inicio tras login o al visitar la home autenticado.
+
+    Los administradores deben ir a /dashboard/, nunca a / (home pública),
+    para evitar ERR_TOO_MANY_REDIRECTS (home redirige de nuevo al mismo rol).
+    """
     try:
         role = user.profile.role
     except Exception:
         role = None
 
     if user.is_superuser or role == 'admin':
-        return '/'
+        return reverse('dashboard')
     if role == 'seller':
-        return '/mi-tienda/'
-    return '/tienda/'
+        return reverse('portal_seller')
+    return reverse('tienda')
 
 
 # =============================================================================
@@ -89,9 +94,18 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'¡Bienvenido, {user.first_name or user.username}!')
-            # Respeta ?next= si existe, sino redirige por rol
-            next_url = request.GET.get('next', '')
-            return redirect(next_url if next_url else _redirect_by_role(user))
+            next_url = (request.GET.get('next') or '').strip()
+            if next_url.startswith('//') or '://' in next_url:
+                next_url = ''
+            elif next_url.startswith('/'):
+                home_path = reverse('home')
+                login_path = reverse('login')
+                if next_url in (home_path, '/') or next_url == login_path or next_url.startswith(login_path + '?'):
+                    next_url = ''
+            else:
+                next_url = ''
+            dest = next_url if next_url else _redirect_by_role(user)
+            return redirect(dest)
         else:
             messages.error(request, 'Usuario o contraseña incorrectos.')
 
@@ -156,16 +170,16 @@ def signup_view(request):
 
 
 def home_view(request):
-        if request.user.is_authenticated:
-            return redirect(_redirect_by_role(request.user))
-        from .models import Product
-        productos = (
-            Product.objects.filter(is_active=True)
-            .select_related('company', 'category')
-            .defer('company__owner')
-            .order_by('?')[:6]
-        )
-        return render(request, 'core/home.html', {'productos': productos})
+    if request.user.is_authenticated:
+        return redirect(_redirect_by_role(request.user))
+    from .models import Product
+    productos = (
+        Product.objects.filter(is_active=True)
+        .select_related('company', 'category')
+        .defer('company__owner')
+        .order_by('?')[:6]
+    )
+    return render(request, 'core/home.html', {'productos': productos})
 
 
 # =============================================================================

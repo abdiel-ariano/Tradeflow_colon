@@ -196,6 +196,7 @@ USUARIOS_DEMO = [
         'password':   'Demo1234!',
         'role':       'admin',
         'phone':      '+507 6500-0003',
+        'is_staff':   True,
     },
 ]
 
@@ -301,6 +302,9 @@ class Command(BaseCommand):
                 email      = data['email'],
                 password   = data['password'],
             )
+            if data.get('is_staff'):
+                user.is_staff = True
+                user.save(update_fields=['is_staff'])
             UserProfile.objects.create(
                 user  = user,
                 role  = data['role'],
@@ -336,6 +340,10 @@ class Command(BaseCommand):
         self.stdout.write('\n[6/6] Ajustando cuenta demo_admin (rol admin)...')
         adm = User.objects.filter(username='demo_admin').first()
         if adm:
+            if not adm.is_staff:
+                adm.is_staff = True
+                adm.save(update_fields=['is_staff'])
+                self.stdout.write(self.style.SUCCESS('  demo_admin → is_staff activado (panel Django /admin/)'))
             prof = getattr(adm, 'profile', None)
             if prof and prof.role != 'admin':
                 prof.role = 'admin'
@@ -358,5 +366,5 @@ class Command(BaseCommand):
         self.stdout.write('\nAccesos de prueba:')
         self.stdout.write('  Buyer:  demo_buyer  / Demo1234!')
         self.stdout.write('  Seller: demo_seller / Demo1234! (Mi Tienda → TechZone Colón S.A.)')
-        self.stdout.write('  Admin:  demo_admin  / Demo1234! (Dashboard /dashboard/)')
+        self.stdout.write('  Admin:  demo_admin  / Demo1234! — /dashboard/ (app) y /admin/ (Django, requiere is_staff)')
         self.stdout.write('=' * 60)
