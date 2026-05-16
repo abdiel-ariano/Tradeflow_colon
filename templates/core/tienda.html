@@ -11,15 +11,23 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
 {% block title %}{% trans "Tienda — TradeFlow Colón" %}{% endblock %}
 {% block extra_css %}
 <style>
+  @media (prefers-reduced-motion: reduce) {
+    .t-cat,
+    .t-tab,
+    .t-card,
+    .t-btn-add,
+    .t-emp-btn { transition: none !important; }
+  }
   .t-page {
-    background: #f2f3f5;
+    background: var(--tf-light, #f2f3f5);
     min-height: calc(100vh - 64px);
+    padding-inline: clamp(0.5rem, 2vw, 1rem);
   }
   .t-layout {
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr);
     gap: 0;
-    max-width: 1280px;
+    max-width: min(1320px, 100%);
     margin: 0 auto;
     min-height: calc(100vh - 64px);
     width: 100%;
@@ -34,7 +42,7 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
   .t-side {
     background: #ffffff;
     border-right: 1px solid #d1d5db;
-    padding: 20px;
+    padding: clamp(1rem, 2.5vw, 1.35rem);
     box-sizing: border-box;
     align-self: start;
   }
@@ -70,9 +78,13 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
     color: #f26522;
     font-weight: 600;
   }
+  .t-cat:focus-visible {
+    outline: 2px solid var(--tf-orange, #f26522);
+    outline-offset: 2px;
+  }
   .t-main {
     min-width: 0;
-    padding: 24px;
+    padding: clamp(1.15rem, 3vw, 1.75rem);
     box-sizing: border-box;
   }
   .t-tabs {
@@ -93,9 +105,10 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
     transition: color 0.2s ease, border-color 0.2s ease;
   }
   .t-tab:hover { color: #0f2a44; }
-  .t-tab.is-on {
-    color: #0f2a44;
-    border-bottom-color: #f26522;
+  .t-tab:focus-visible {
+    outline: 2px solid var(--tf-orange, #f26522);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
   .t-main-hdr { margin-bottom: 16px; }
   .t-main-hdr h1 {
@@ -108,7 +121,7 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
   .t-count { font-size: 0.875rem; color: #6b7a88; }
   .t-filters {
     display: flex;
-    gap: 10px;
+    gap: clamp(0.5rem, 1.5vw, 0.85rem);
     flex-wrap: wrap;
     margin-bottom: 20px;
     align-items: center;
@@ -145,9 +158,17 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
     flex-direction: column;
     min-width: 0;
     box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
-    transition: box-shadow 0.2s ease;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
   }
-  .t-card:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.15); }
+  @media (prefers-reduced-motion: no-preference) {
+    .t-card:hover {
+      box-shadow: 0 12px 32px rgba(15, 42, 68, 0.14);
+      transform: translateY(-3px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .t-card:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.15); }
+  }
   .t-img {
     height: 200px;
     background: #f2f3f5;
@@ -266,6 +287,10 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
     cursor: not-allowed;
     box-shadow: none;
   }
+  .t-btn-add:focus-visible {
+    outline: 2px solid var(--tf-navy-mid, #1b3b63);
+    outline-offset: 2px;
+  }
   .t-empty { text-align: center; padding: 3rem 1rem; color: #6b7a88; }
   .t-pag {
     display: flex;
@@ -348,6 +373,10 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
     transition: background 0.2s ease;
   }
   .t-emp-btn:hover { background: #ff7a3d; color: #ffffff; }
+  .t-emp-btn:focus-visible {
+    outline: 2px solid var(--tf-orange, #f26522);
+    outline-offset: 2px;
+  }
   .t-back-emp {
     display: inline-flex;
     align-items: center;
