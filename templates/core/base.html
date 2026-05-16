@@ -131,11 +131,11 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       color: var(--tf-orange);
     }
 
-    /* ----- Navbar ----- */
+    /* ----- Navbar (padding lateral responsive; alineado al resto del layout público) ----- */
     .tf-nav {
       background: var(--tf-navy);
       height: 64px;
-      padding: 0 1.5rem;
+      padding: 0 clamp(1rem, 4vw, 2.5rem);
       display: flex;
       align-items: center;
       justify-content: space-between;
