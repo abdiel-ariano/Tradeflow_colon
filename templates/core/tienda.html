@@ -1,5 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
+{% load i18n %}
 {% comment %}
 ================================================================================
 templates/core/tienda.html — TradeFlow Colón
@@ -7,7 +8,7 @@ Propósito: catálogo comprador con pestañas por categoría / empresa y filtros
 Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tags).
 ================================================================================
 {% endcomment %}
-{% block title %}Tienda — TradeFlow Colón{% endblock %}
+{% block title %}{% trans "Tienda — TradeFlow Colón" %}{% endblock %}
 {% block extra_css %}
 <style>
   .t-page {
@@ -377,41 +378,41 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
   {% for c in categorias %}TF_CAT_NAMES["{{ c.pk }}"] = "{{ c.name|escapejs }}";{% endfor %}
   </script>
   <div class="t-layout" id="t-layout-root">
-    <aside class="t-side t-cat-sidebar" id="t-cat-sidebar" aria-label="Categorías">
-      <h2>Categorías</h2>
-      <a href="{{ url_tab_categoria }}" class="t-cat tf-cat-link" data-cat-id="">Todas</a>
+    <aside class="t-side t-cat-sidebar" id="t-cat-sidebar" aria-label="{% trans 'Categorías' %}">
+      <h2>{% trans "Categorías" %}</h2>
+      <a href="{{ url_tab_categoria }}" class="t-cat tf-cat-link" data-cat-id="">{% trans "Todas" %}</a>
       {% for cat in categorias %}
       <a href="{{ url_tab_categoria }}&categoria={{ cat.id }}" class="t-cat tf-cat-link" data-cat-id="{{ cat.id }}">{{ cat.name }}</a>
       {% endfor %}
     </aside>
     <div class="t-main">
       <div class="t-tabs" role="tablist">
-        <a href="{{ url_tab_categoria }}" class="t-tab tf-tienda-tab" id="t-tab-cat" data-vista-link="categoria">Por categoría</a>
-        <a href="{{ url_tab_empresa }}" class="t-tab tf-tienda-tab" id="t-tab-emp" data-vista-link="empresa">Por empresa</a>
+        <a href="{{ url_tab_categoria }}" class="t-tab tf-tienda-tab" id="t-tab-cat" data-vista-link="categoria">{% trans "Por categoría" %}</a>
+        <a href="{{ url_tab_empresa }}" class="t-tab tf-tienda-tab" id="t-tab-emp" data-vista-link="empresa">{% trans "Por empresa" %}</a>
       </div>
 
       <div class="t-main-hdr">
-        <h1 id="tf-tienda-title">Catálogo TradeFlow</h1>
-        <div class="t-count" id="tf-tienda-count">{{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }}</div>
+        <h1 id="tf-tienda-title">{% trans "Catálogo TradeFlow" %}</h1>
+        <div class="t-count" id="tf-tienda-count">{% blocktrans count counter=productos.paginator.count %}{{ counter }} producto{% plural %}{{ counter }} productos{% endblocktrans %}</div>
       </div>
 
       <form class="t-filters" method="get" action="{% url 'tienda' %}" id="t-filter-form">
         <input type="hidden" name="vista" id="t-filter-vista" value="{{ vista_tab }}">
         <div class="t-search">
           <span class="material-symbols-rounded">search</span>
-          <input type="search" name="buscar" class="tf-input" placeholder="Buscar productos, SKU…" value="{{ buscar }}">
+          <input type="search" name="buscar" class="tf-input" placeholder="{% trans 'Buscar productos, SKU…' %}" value="{{ buscar }}">
         </div>
         <select name="categoria" id="t-cat-select" class="tf-input t-sel">
-          <option value="">Todas las categorías</option>
+          <option value="">{% trans "Todas las categorías" %}</option>
           {% for cat in categorias %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
         </select>
         <select name="empresa" id="t-emp-select" class="tf-input t-sel">
-          <option value="">Todas las empresas</option>
+          <option value="">{% trans "Todas las empresas" %}</option>
           {% for emp in empresas_filtro %}<option value="{{ emp.id }}">{{ emp.name }}</option>{% endfor %}
         </select>
         <button type="submit" class="tf-btn-primary" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;">
           <span class="material-symbols-rounded" style="font-size:18px;">search</span>
-          Aplicar filtros
+          {% trans "Aplicar filtros" %}
         </button>
       </form>
 
@@ -422,13 +423,13 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
           <article class="t-emp-card">
             <div class="t-emp-av">{{ emp.name|slice:":1"|upper }}</div>
             <h3 class="t-emp-name">{{ emp.name }}</h3>
-            <p class="t-emp-count">{{ emp.num_productos }} producto{{ emp.num_productos|pluralize }} disponible{{ emp.num_productos|pluralize }}</p>
-            <a href="{{ url_tab_empresa }}&empresa={{ emp.id }}" class="t-emp-btn">Ver productos</a>
+            <p class="t-emp-count">{% blocktrans count n=emp.num_productos %}{{ n }} producto disponible{% plural %}{{ n }} productos disponibles{% endblocktrans %}</p>
+            <a href="{{ url_tab_empresa }}&empresa={{ emp.id }}" class="t-emp-btn">{% trans "Ver productos" %}</a>
           </article>
           {% endfor %}
         </div>
         {% else %}
-        <div class="t-empty">No hay empresas con productos activos.</div>
+        <div class="t-empty">{% trans "No hay empresas con productos activos." %}</div>
         {% endif %}
       </div>
 
@@ -436,7 +437,7 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
         {% if emp_activa %}
         <a href="{{ url_tab_empresa }}" class="t-back-emp" id="t-back-emp">
           <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
-          Todas las empresas
+          {% trans "Todas las empresas" %}
         </a>
         {% endif %}
 
@@ -457,14 +458,14 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
                 <span class="material-symbols-rounded">business</span>
                 <span>{{ producto.company.name }}</span>
               </div>
-              <span class="t-cat-badge">{{ producto.category.name|default:"General" }}</span>
+              <span class="t-cat-badge">{% if producto.category.name %}{{ producto.category.name }}{% else %}{% trans "General" %}{% endif %}</span>
               <div class="t-desc">{{ producto.description }}</div>
               <div class="t-foot">
                 <div>
                   <div class="t-price">USD {{ producto.unit_price }}</div>
                   {% if producto.available_qty > 0 %}
                     {% if producto.available_qty <= 5 %}
-                    <div class="t-warn">Stock bajo: {{ producto.available_qty }}</div>
+                    <div class="t-warn">{% blocktrans with qty=producto.available_qty %}Stock bajo: {{ qty }}{% endblocktrans %}</div>
                     {% endif %}
                   {% endif %}
                 </div>
@@ -474,11 +475,11 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
                   <input type="hidden" name="cantidad" value="1">
                   <button type="submit" class="t-btn-add">
                     <span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span>
-                    Agregar
+                    {% trans "Agregar" %}
                   </button>
                 </form>
                 {% else %}
-                <button type="button" class="t-btn-add" disabled>Sin stock</button>
+                <button type="button" class="t-btn-add" disabled>{% trans "Sin stock" %}</button>
                 {% endif %}
               </div>
             </div>
@@ -488,29 +489,39 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
         {% if productos.has_other_pages %}
         <div class="t-pag" id="tf-tienda-pag" data-cur="{{ productos.number }}">
           {% if productos.has_previous %}
-          <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}">Anterior</a>
+          <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}">{% trans "Anterior" %}</a>
           {% endif %}
           {% for num in productos.paginator.page_range %}
           <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ num }}" class="tf-pag-n" data-page="{{ num }}">{{ num }}</a>
           {% endfor %}
           {% if productos.has_next %}
-          <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}">Siguiente</a>
+          <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}">{% trans "Siguiente" %}</a>
           {% endif %}
         </div>
         {% endif %}
         {% else %}
         <div class="t-empty">
-          <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">No se encontraron productos</p>
-          <p style="margin:0;">Prueba otros filtros o vuelve al catálogo completo.</p>
-          <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1rem;display:inline-flex;">Ver todo</a>
+          <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "No se encontraron productos" %}</p>
+          <p style="margin:0;">{% trans "Prueba otros filtros o vuelve al catálogo completo." %}</p>
+          <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1rem;display:inline-flex;">{% trans "Ver todo" %}</a>
         </div>
         {% endif %}
       </div>
     </div>
   </div>
 </div>
+{% trans "Resultados para" as tf_js_results_for %}
+{% trans "Productos de la empresa" as tf_js_products_company %}
+{% trans "Empresas en TradeFlow" as tf_js_companies_title %}
+{% trans "Catálogo TradeFlow" as tf_js_catalog_title %}
 <script>
 (function () {
+  var TF_I18N = {
+    resultsFor: "{{ tf_js_results_for|escapejs }}",
+    productsCompany: "{{ tf_js_products_company|escapejs }}",
+    companiesTitle: "{{ tf_js_companies_title|escapejs }}",
+    catalogTitle: "{{ tf_js_catalog_title|escapejs }}"
+  };
   var meta = document.getElementById('tf-tienda-meta');
   if (!meta) return;
   var buscar = meta.getAttribute('data-buscar') || '';
@@ -550,15 +561,15 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
 
   if (title) {
     if (buscar) {
-      title.textContent = 'Resultados para "' + buscar + '"';
+      title.textContent = TF_I18N.resultsFor + ' "' + buscar + '"';
     } else if (cat && TF_CAT_NAMES[cat]) {
       title.textContent = TF_CAT_NAMES[cat];
     } else if (emp && vista === 'empresa') {
-      title.textContent = 'Productos de la empresa';
+      title.textContent = TF_I18N.productsCompany;
     } else if (vista === 'empresa' && !emp) {
-      title.textContent = 'Empresas en TradeFlow';
+      title.textContent = TF_I18N.companiesTitle;
     } else {
-      title.textContent = 'Catálogo TradeFlow';
+      title.textContent = TF_I18N.catalogTitle;
     }
   }
 

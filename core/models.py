@@ -76,6 +76,18 @@ class Company(models.Model):
         related_name='owned_companies',
         verbose_name='Propietario (vendedor)',
     )
+    latitud      = models.FloatField(
+        null=True,
+        blank=True,
+        default=9.3667,
+        verbose_name='Latitud (ZLC)',
+    )
+    longitud     = models.FloatField(
+        null=True,
+        blank=True,
+        default=-79.9000,
+        verbose_name='Longitud (ZLC)',
+    )
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:

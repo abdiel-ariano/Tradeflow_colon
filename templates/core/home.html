@@ -1,5 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
+{% load i18n %}
 {% comment %}
 ================================================================================
 templates/core/home.html — TradeFlow Colón
@@ -8,7 +9,7 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
 (inline + !important) para evitar que Bootstrap u otros estilos lo anulen.
 ================================================================================
 {% endcomment %}
-{% block title %}TradeFlow Colón — Compra, gestiona, exporta{% endblock %}
+{% block title %}{% trans "TradeFlow Colón — Compra, gestiona, exporta" %}{% endblock %}
 {% block extra_css %}
 <style>
   /* Hero: el fondo principal va en el <section> inline; aquí solo layout y refuerzo de color */
@@ -392,108 +393,108 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
     <div class="lp-hero-col-text">
       <div class="lp-eyebrow">
         <span class="material-symbols-rounded" style="font-size:16px;color:rgba(255,255,255,0.85) !important;">location_on</span>
-        Zona Libre de Colón · Panamá
+        {% trans "Zona Libre de Colón · Panamá" %}
       </div>
-      <h1 class="lp-hero-title">La ZLC en una plataforma B2B en la que confían compradores y operadores</h1>
+      <h1 class="lp-hero-title">{% trans "La ZLC en una plataforma B2B en la que confían compradores y operadores" %}</h1>
       <p class="lp-hero-desc">
-        TradeFlow conecta compradores con empresas verificadas de la Zona Libre de Colón: catálogo claro, pedidos trazables y herramientas listas para escalar ante inversores y socios logísticos.
+        {% trans "TradeFlow conecta compradores con empresas verificadas de la Zona Libre de Colón: catálogo claro, pedidos trazables y herramientas listas para escalar ante inversores y socios logísticos." %}
       </p>
       <div class="lp-hero-cta">
         <a href="{% url 'signup' %}" class="lp-btn-primary">
           <span class="material-symbols-rounded" style="font-size:18px;">rocket_launch</span>
-          Crear cuenta
+          {% trans "Crear cuenta" %}
         </a>
         <a href="{% url 'login' %}" class="lp-btn-outline">
           <span class="material-symbols-rounded" style="font-size:18px;">login</span>
-          Iniciar sesión
+          {% trans "Iniciar sesión" %}
         </a>
       </div>
       <div class="lp-stats">
         <div class="lp-stat-item">
           <div class="lp-stat-num">2,600+</div>
-          <div class="lp-stat-lbl">Empresas en la ZLC</div>
+          <div class="lp-stat-lbl">{% trans "Empresas en la ZLC" %}</div>
         </div>
         <div class="lp-stat-item">
           <div class="lp-stat-num">$33B</div>
-          <div class="lp-stat-lbl">Transacciones anuales</div>
+          <div class="lp-stat-lbl">{% trans "Transacciones anuales" %}</div>
         </div>
         <div class="lp-stat-item">
           <div class="lp-stat-num">180+</div>
-          <div class="lp-stat-lbl">Países compradores</div>
+          <div class="lp-stat-lbl">{% trans "Países compradores" %}</div>
         </div>
       </div>
     </div>
     <div class="lp-mock" aria-hidden="true">
-      <div class="lp-mock-title">Panel operativo (vista previa)</div>
-      <div class="lp-mock-row"><span>Órdenes en período</span><span class="lp-mock-val">128</span></div>
-      <div class="lp-mock-row"><span>Cumplimiento envíos</span><span class="lp-mock-val accent">94%</span></div>
-      <div class="lp-mock-row"><span>Empresas activas</span><span class="lp-mock-val">36</span></div>
+      <div class="lp-mock-title">{% trans "Panel operativo (vista previa)" %}</div>
+      <div class="lp-mock-row"><span>{% trans "Órdenes en período" %}</span><span class="lp-mock-val">128</span></div>
+      <div class="lp-mock-row"><span>{% trans "Cumplimiento envíos" %}</span><span class="lp-mock-val accent">94%</span></div>
+      <div class="lp-mock-row"><span>{% trans "Empresas activas" %}</span><span class="lp-mock-val">36</span></div>
     </div>
   </div>
 </section>
-<section class="lp-trust" aria-label="Señales de confianza">
+<section class="lp-trust" aria-label="{% trans 'Señales de confianza' %}">
   <div class="lp-trust-inner">
     <div class="lp-trust-item">
       <span class="material-symbols-rounded">verified</span>
-      <div><strong>Empresas verificadas</strong><span>Catálogo enlazado a compañías con perfil en ZLC.</span></div>
+      <div><strong>{% trans "Empresas verificadas" %}</strong><span>{% trans "Catálogo enlazado a compañías con perfil en ZLC." %}</span></div>
     </div>
     <div class="lp-trust-item">
       <span class="material-symbols-rounded">lock</span>
-      <div><strong>Accesos por rol</strong><span>Comprador, vendedor y administración con rutas separadas.</span></div>
+      <div><strong>{% trans "Accesos por rol" %}</strong><span>{% trans "Comprador, vendedor y administración con rutas separadas." %}</span></div>
     </div>
     <div class="lp-trust-item">
       <span class="material-symbols-rounded">receipt_long</span>
-      <div><strong>Documentos y órdenes</strong><span>Flujo de pedidos con estados y base para facturación.</span></div>
+      <div><strong>{% trans "Documentos y órdenes" %}</strong><span>{% trans "Flujo de pedidos con estados y base para facturación." %}</span></div>
     </div>
     <div class="lp-trust-item">
       <span class="material-symbols-rounded">trending_up</span>
-      <div><strong>Listo para escalar</strong><span>Arquitectura pensada para crecer con más módulos y datos.</span></div>
+      <div><strong>{% trans "Listo para escalar" %}</strong><span>{% trans "Arquitectura pensada para crecer con más módulos y datos." %}</span></div>
     </div>
   </div>
 </section>
 <section class="lp-proof">
   <div class="lp-proof-inner">
-    <div class="lp-proof-badge"><span class="material-symbols-rounded" style="font-size:16px;">format_quote</span> Caso de uso</div>
-    <p class="lp-proof-quote">“Necesitábamos una vitrina seria para la ZLC: precios claros, stock visible y un back-office que no parezca prototipo. TradeFlow encaja con lo que buscan socios e inversores.”</p>
+    <div class="lp-proof-badge"><span class="material-symbols-rounded" style="font-size:16px;">format_quote</span> {% trans "Caso de uso" %}</div>
+    <p class="lp-proof-quote">{% trans "“Necesitábamos una vitrina seria para la ZLC: precios claros, stock visible y un back-office que no parezca prototipo. TradeFlow encaja con lo que buscan socios e inversores.”" %}</p>
     <div class="lp-proof-meta">
       <span class="material-symbols-rounded" style="font-size:18px;color:#2E5B8A;">business_center</span>
-      <span>Operaciones B2B · Zona Libre de Colón · Panamá</span>
+      <span>{% trans "Operaciones B2B · Zona Libre de Colón · Panamá" %}</span>
     </div>
   </div>
 </section>
 <section class="lp-features">
   <div class="lp-features-inner">
-    <h2 class="lp-sec-title">Por qué TradeFlow</h2>
+    <h2 class="lp-sec-title">{% trans "Por qué TradeFlow" %}</h2>
     <div class="lp-fgrid">
       <div class="lp-fcard">
         <span class="material-symbols-rounded">public</span>
-        <h3>Acceso global</h3>
-        <p>Explora ofertas de la ZLC sin fricción y con información clara de cada vendedor.</p>
+        <h3>{% trans "Acceso global" %}</h3>
+        <p>{% trans "Explora ofertas de la ZLC sin fricción y con información clara de cada vendedor." %}</p>
       </div>
       <div class="lp-fcard">
         <span class="material-symbols-rounded">inventory_2</span>
-        <h3>Inventario en vivo</h3>
-        <p>Stock y reservas integrados para evitar ventas duplicadas y mejorar la confianza.</p>
+        <h3>{% trans "Inventario en vivo" %}</h3>
+        <p>{% trans "Stock y reservas integrados para evitar ventas duplicadas y mejorar la confianza." %}</p>
       </div>
       <div class="lp-fcard">
         <span class="material-symbols-rounded">description</span>
-        <h3>Documentación</h3>
-        <p>Base lista para facturas y listas de empaque alineadas a procesos de exportación.</p>
+        <h3>{% trans "Documentación" %}</h3>
+        <p>{% trans "Base lista para facturas y listas de empaque alineadas a procesos de exportación." %}</p>
       </div>
       <div class="lp-fcard">
         <span class="material-symbols-rounded">payments</span>
-        <h3>Pagos trazables</h3>
-        <p>Flujos de pago mock y preparación para integraciones con pasarelas profesionales.</p>
+        <h3>{% trans "Pagos trazables" %}</h3>
+        <p>{% trans "Flujos de pago mock y preparación para integraciones con pasarelas profesionales." %}</p>
       </div>
       <div class="lp-fcard">
         <span class="material-symbols-rounded">qr_code_2</span>
-        <h3>Pre-registro</h3>
-        <p>Experiencias de registro y roles separados para compradores y vendedores.</p>
+        <h3>{% trans "Pre-registro" %}</h3>
+        <p>{% trans "Experiencias de registro y roles separados para compradores y vendedores." %}</p>
       </div>
       <div class="lp-fcard">
         <span class="material-symbols-rounded">monitoring</span>
-        <h3>Analítica</h3>
-        <p>Paneles para administración y vendedores con métricas operativas y comerciales.</p>
+        <h3>{% trans "Analítica" %}</h3>
+        <p>{% trans "Paneles para administración y vendedores con métricas operativas y comerciales." %}</p>
       </div>
     </div>
   </div>
@@ -502,8 +503,8 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
 <section class="lp-products">
   <div class="lp-products-inner">
     <div class="lp-phdr">
-      <h2 class="lp-sec-title" style="margin:0;">Productos destacados</h2>
-      <a href="{% url 'signup' %}" class="tf-btn-secondary" style="padding:10px 18px;">Ver catálogo completo</a>
+      <h2 class="lp-sec-title" style="margin:0;">{% trans "Productos destacados" %}</h2>
+      <a href="{% url 'signup' %}" class="tf-btn-secondary" style="padding:10px 18px;">{% trans "Ver catálogo completo" %}</a>
     </div>
     <div class="lp-pgrid">
       {% for producto in productos %}
@@ -516,14 +517,14 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
           {% endif %}
         </div>
         <div class="lp-pbody">
-          <div class="lp-pcat">{{ producto.category.name|default:"General" }}</div>
+          <div class="lp-pcat">{% if producto.category.name %}{{ producto.category.name }}{% else %}{% trans "General" %}{% endif %}</div>
           <div class="lp-pname">{{ producto.name }}</div>
           <div class="lp-pcom">{{ producto.company.name }}</div>
           <div class="lp-pfoot">
             <span class="lp-pprice">{{ producto.currency }} {{ producto.unit_price }}</span>
             <a href="{% url 'signup' %}" class="lp-padd">
               <span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span>
-              Add to Cart
+              {% trans "Añadir al carrito" %}
             </a>
           </div>
         </div>
@@ -535,14 +536,14 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
 {% endif %}
 <section class="lp-cta">
   <div class="lp-cta-inner">
-    <h2>La Zona Libre está esperándote</h2>
-    <p>Únete a la plataforma que digitaliza el comercio de Colón para compradores y empresas.</p>
+    <h2>{% trans "La Zona Libre está esperándote" %}</h2>
+    <p>{% trans "Únete a la plataforma que digitaliza el comercio de Colón para compradores y empresas." %}</p>
     <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
       <a href="{% url 'signup' %}" class="lp-btn-primary">
         <span class="material-symbols-rounded" style="font-size:18px;">person_add</span>
-        Comenzar ahora
+        {% trans "Comenzar ahora" %}
       </a>
-      <a href="{% url 'login' %}" class="lp-btn-outline">Ya tengo cuenta</a>
+      <a href="{% url 'login' %}" class="lp-btn-outline">{% trans "Ya tengo cuenta" %}</a>
     </div>
   </div>
 </section>

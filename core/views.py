@@ -19,8 +19,16 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
+import base64
+import html as html_module
+import io
 import json
 import logging
+
+import folium
+import qrcode
+from folium.plugins import MarkerCluster
+from django.core import signing
 
 from .decorators import admin_required, buyer_required, seller_required
 from .forms import SellerProductForm, SellerInventoryForm
@@ -294,6 +302,184 @@ def home_view(request):
         .order_by('?')[:6]
     )
     return render(request, 'core/home.html', {'productos': productos})
+
+
+# ── Sal firmado para QR de visitante ZLC (pre-registro) ─────────────────────
+_QR_SALT = 'tradeflow.zlc.visitante'
+
+
+def mapa_zlc(request):
+    """
+    Mapa interactivo (Leaflet vía Folium) de empresas registradas en la ZLC.
+
+    Centro en Zona Libre de Colón (9.3667, -79.9000). Cada empresa es un
+    marcador dentro de un cluster; color naranja si verificada y gris si no.
+    El popup incluye nombre, categorías de productos activos, conteo y enlace
+    al catálogo filtrado por empresa.
+
+    Args:
+        request: HttpRequest.
+
+    Returns:
+        HttpResponse: Plantilla con HTML del mapa embebido.
+    """
+    m = folium.Map(location=[9.3667, -79.9000], zoom_start=13, tiles='OpenStreetMap')
+    cluster = MarkerCluster(name='Empresas ZLC').add_to(m)
+    empresas = Company.objects.annotate(
+        n_activos=Count('products', filter=Q(products__is_active=True))
+    ).order_by('name')
+
+    for c in empresas:
+        lat = float(c.latitud) if c.latitud is not None else 9.3667
+        lng = float(c.longitud) if c.longitud is not None else -79.9000
+        cats = Category.objects.filter(
+            products__company=c, products__is_active=True
+        ).distinct()[:12]
+        cat_txt = ', '.join(x.name for x in cats) or '—'
+        nombre = html_module.escape(c.name)
+        cat_txt_e = html_module.escape(cat_txt)
+        catalog_url = request.build_absolute_uri(
+            reverse('tienda') + '?empresa=' + str(c.pk)
+        )
+        catalog_url_e = html_module.escape(catalog_url)
+        html_popup = (
+            '<div style="min-width:220px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.45;">'
+            f'<strong style="color:#0F2A44;">{nombre}</strong><br>'
+            f'<span style="color:#6B7A88;">Productos activos:</span> {c.n_activos}<br>'
+            f'<span style="color:#6B7A88;">Categorías:</span> {cat_txt_e}<br>'
+            f'<a href="{catalog_url_e}" target="_blank" rel="noopener noreferrer" '
+            'style="display:inline-block;margin-top:10px;padding:8px 14px;background:#F26522;'
+            'color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.85rem;">'
+            'Ver catálogo</a></div>'
+        )
+        icon_color = 'orange' if c.is_verified else 'gray'
+        folium.Marker(
+            location=[lat, lng],
+            popup=folium.Popup(html_popup, max_width=340),
+            tooltip=nombre,
+            icon=folium.Icon(color=icon_color),
+        ).add_to(cluster)
+
+    map_html = m._repr_html_()
+    return render(request, 'core/mapa_zlc.html', {
+        'map_html':       map_html,
+        'titulo_pagina':  'Mapa ZLC',
+        'nav_activo':     'mapa_zlc',
+    })
+
+
+def visitante_zlc_verificacion(request):
+    """
+    Pantalla pública de verificación leyendo el token ``t`` firmado en la query.
+
+    Muestra nombre, usuario y correo del comprador asociado al QR si el token
+    es válido y no ha expirado.
+
+    Args:
+        request: HttpRequest (GET con ``t``).
+
+    Returns:
+        HttpResponse: Detalle o mensaje de error.
+    """
+    token = (request.GET.get('t') or '').strip()
+    if not token:
+        return render(
+            request,
+            'core/visitante_zlc_verificacion.html',
+            {'error': 'Enlace incompleto o no válido.'},
+            status=400,
+        )
+    try:
+        payload = signing.loads(token, salt=_QR_SALT, max_age=60 * 60 * 24 * 365 * 3)
+        uid = int(payload['uid'])
+        subject = User.objects.select_related('profile').get(pk=uid, is_active=True)
+    except (
+        signing.BadSignature,
+        signing.SignatureExpired,
+        User.DoesNotExist,
+        KeyError,
+        TypeError,
+        ValueError,
+    ):
+        return render(
+            request,
+            'core/visitante_zlc_verificacion.html',
+            {'error': 'Código expirado o alterado. Solicita un nuevo QR en TradeFlow.'},
+            status=404,
+        )
+
+    profile = getattr(subject, 'profile', None)
+    return render(
+        request,
+        'core/visitante_zlc_verificacion.html',
+        {'error': None, 'subject': subject, 'profile': profile},
+    )
+
+
+def _visitante_qr_verify_url(request) -> str:
+    """Construye la URL absoluta firmada que se incrusta en el PNG del QR."""
+    from urllib.parse import urlencode
+
+    token = signing.dumps({'uid': request.user.pk}, salt=_QR_SALT)
+    base = request.build_absolute_uri(reverse('visitante_zlc_verificacion'))
+    return base + '?' + urlencode({'t': token})
+
+
+def _qr_png_bytes(payload: str) -> bytes:
+    """Genera imagen PNG del código QR con el texto o URL dado."""
+    qr = qrcode.QRCode(version=None, box_size=8, border=2)
+    qr.add_data(payload)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color='#0F2A44', back_color='#FFFFFF')
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    return buf.getvalue()
+
+
+@login_required
+def mi_qr(request):
+    """
+    Página del comprador con el QR grande, instrucciones y enlace de descarga.
+
+    El QR apunta a la URL de verificación firmada para agilizar ingreso o
+    validaciones en la Zona Libre de Colón.
+
+    Args:
+        request: HttpRequest (usuario autenticado).
+
+    Returns:
+        HttpResponse: Plantilla ``mi_qr.html``.
+    """
+    verify_url = _visitante_qr_verify_url(request)
+    png = _qr_png_bytes(verify_url)
+    b64 = base64.b64encode(png).decode('ascii')
+    profile = getattr(request.user, 'profile', None)
+    return render(request, 'core/mi_qr.html', {
+        'verify_url':     verify_url,
+        'qr_data_uri':    'data:image/png;base64,' + b64,
+        'generated_at':   timezone.now(),
+        'profile':        profile,
+        'titulo_pagina':  'Mi código QR ZLC',
+        'nav_activo':     'mi_qr',
+    })
+
+
+@login_required
+def generar_qr_visitante(request):
+    """
+    Devuelve la imagen PNG del QR de visitante para descargar o incrustar.
+
+    Args:
+        request: HttpRequest.
+
+    Returns:
+        HttpResponse: ``image/png`` con ``Content-Disposition: attachment``.
+    """
+    verify_url = _visitante_qr_verify_url(request)
+    png = _qr_png_bytes(verify_url)
+    resp = HttpResponse(png, content_type='image/png')
+    resp['Content-Disposition'] = 'attachment; filename="tradeflow-zlc-qr.png"'
+    return resp
 
 
 # =============================================================================

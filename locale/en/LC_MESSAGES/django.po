@@ -1,0 +1,317 @@
+# TradeFlow Colón — English translations
+# Copyright (C) TradeFlow
+# This file is distributed under the same license as the TradeFlow package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: TradeFlow Colón\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-15 20:27-0500\n"
+"PO-Revision-Date: 2026-05-12 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Mapa"
+msgstr "Map"
+
+msgid "Mis órdenes"
+msgstr "My orders"
+
+msgid "Mis cotizaciones"
+msgstr "My quotes"
+
+msgid "Mi QR"
+msgstr "My QR"
+
+msgid "TradeFlow Colón — Compra, gestiona, exporta"
+msgstr "TradeFlow Colón — Buy, manage, export"
+
+msgid "Zona Libre de Colón · Panamá"
+msgstr "Colón Free Zone · Panama"
+
+msgid "La ZLC en una plataforma B2B en la que confían compradores y operadores"
+msgstr "The CFZ on a B2B platform trusted by buyers and operators"
+
+msgid ""
+"TradeFlow conecta compradores con empresas verificadas de la Zona Libre de "
+"Colón: catálogo claro, pedidos trazables y herramientas listas para escalar "
+"ante inversores y socios logísticos."
+msgstr ""
+"TradeFlow connects buyers with verified Colón Free Zone companies: a clear "
+"catalog, traceable orders, and tools ready to scale with investors and "
+"logistics partners."
+
+msgid "Crear cuenta"
+msgstr "Create account"
+
+msgid "Iniciar sesión"
+msgstr "Log in"
+
+msgid "Empresas en la ZLC"
+msgstr "Companies in the CFZ"
+
+msgid "Transacciones anuales"
+msgstr "Annual transactions"
+
+msgid "Países compradores"
+msgstr "Buyer countries"
+
+msgid "Panel operativo (vista previa)"
+msgstr "Operations dashboard (preview)"
+
+msgid "Órdenes en período"
+msgstr "Orders in period"
+
+msgid "Cumplimiento envíos"
+msgstr "Shipment fulfillment"
+
+msgid "Empresas activas"
+msgstr "Active companies"
+
+msgid "Señales de confianza"
+msgstr "Trust signals"
+
+msgid "Empresas verificadas"
+msgstr "Verified companies"
+
+msgid "Catálogo enlazado a compañías con perfil en ZLC."
+msgstr "Catalog linked to companies with a CFZ profile."
+
+msgid "Accesos por rol"
+msgstr "Role-based access"
+
+msgid "Comprador, vendedor y administración con rutas separadas."
+msgstr "Buyer, seller, and admin with separate paths."
+
+msgid "Documentos y órdenes"
+msgstr "Documents and orders"
+
+msgid "Flujo de pedidos con estados y base para facturación."
+msgstr "Order flow with statuses and a foundation for invoicing."
+
+msgid "Listo para escalar"
+msgstr "Built to scale"
+
+msgid "Arquitectura pensada para crecer con más módulos y datos."
+msgstr "Architecture designed to grow with more modules and data."
+
+msgid "Caso de uso"
+msgstr "Use case"
+
+msgid ""
+"“Necesitábamos una vitrina seria para la ZLC: precios claros, stock visible "
+"y un back-office que no parezca prototipo. TradeFlow encaja con lo que "
+"buscan socios e inversores.”"
+msgstr ""
+"“We needed a serious storefront for the CFZ: clear prices, visible stock, "
+"and a back office that doesn’t feel like a prototype. TradeFlow fits what "
+"partners and investors are looking for.”"
+
+msgid "Operaciones B2B · Zona Libre de Colón · Panamá"
+msgstr "B2B operations · Colón Free Zone · Panama"
+
+msgid "Por qué TradeFlow"
+msgstr "Why TradeFlow"
+
+msgid "Acceso global"
+msgstr "Global access"
+
+msgid ""
+"Explora ofertas de la ZLC sin fricción y con información clara de cada "
+"vendedor."
+msgstr ""
+"Explore CFZ offers with low friction and clear information for each seller."
+
+msgid "Inventario en vivo"
+msgstr "Live inventory"
+
+msgid ""
+"Stock y reservas integrados para evitar ventas duplicadas y mejorar la "
+"confianza."
+msgstr ""
+"Integrated stock and reservations to avoid duplicate sales and build trust."
+
+msgid "Documentación"
+msgstr "Documentation"
+
+msgid ""
+"Base lista para facturas y listas de empaque alineadas a procesos de "
+"exportación."
+msgstr ""
+"A foundation for invoices and packing lists aligned with export processes."
+
+msgid "Pagos trazables"
+msgstr "Traceable payments"
+
+msgid ""
+"Flujos de pago mock y preparación para integraciones con pasarelas "
+"profesionales."
+msgstr ""
+"Mock payment flows and groundwork for professional gateway integrations."
+
+msgid "Pre-registro"
+msgstr "Pre-registration"
+
+msgid ""
+"Experiencias de registro y roles separados para compradores y vendedores."
+msgstr ""
+"Registration experiences and separate roles for buyers and sellers."
+
+msgid "Analítica"
+msgstr "Analytics"
+
+msgid ""
+"Paneles para administración y vendedores con métricas operativas y "
+"comerciales."
+msgstr ""
+"Dashboards for admins and sellers with operational and commercial metrics."
+
+msgid "Productos destacados"
+msgstr "Featured products"
+
+msgid "Ver catálogo completo"
+msgstr "View full catalog"
+
+msgid "General"
+msgstr "General"
+
+msgid "Añadir al carrito"
+msgstr "Add to cart"
+
+msgid "La Zona Libre está esperándote"
+msgstr "The Free Zone is waiting for you"
+
+msgid ""
+"Únete a la plataforma que digitaliza el comercio de Colón para compradores y "
+"empresas."
+msgstr ""
+"Join the platform digitizing Colón commerce for buyers and companies."
+
+msgid "Comenzar ahora"
+msgstr "Get started"
+
+msgid "Ya tengo cuenta"
+msgstr "I already have an account"
+
+msgid "Iniciar sesión — TradeFlow Colón"
+msgstr "Log in — TradeFlow Colón"
+
+msgid "Bienvenido de vuelta"
+msgstr "Welcome back"
+
+msgid "Tipo de cuenta"
+msgstr "Account type"
+
+msgid "Cliente"
+msgstr "Customer"
+
+msgid "Empresa"
+msgstr "Business"
+
+msgid "Usuario"
+msgstr "Username"
+
+msgid "tu_usuario"
+msgstr "your_username"
+
+msgid "Contraseña"
+msgstr "Password"
+
+msgid "o"
+msgstr "or"
+
+msgid "¿No tienes cuenta?"
+msgstr "Don’t have an account?"
+
+msgid "Tienda — TradeFlow Colón"
+msgstr "Store — TradeFlow Colón"
+
+msgid "Categorías"
+msgstr "Categories"
+
+msgid "Todas"
+msgstr "All"
+
+msgid "Por categoría"
+msgstr "By category"
+
+msgid "Por empresa"
+msgstr "By company"
+
+msgid "Catálogo TradeFlow"
+msgstr "TradeFlow catalog"
+
+#, python-format
+msgid "%(counter)s producto"
+msgid_plural "%(counter)s productos"
+msgstr[0] "%(counter)s product"
+msgstr[1] "%(counter)s products"
+
+msgid "Buscar productos, SKU…"
+msgstr "Search products, SKU…"
+
+msgid "Todas las categorías"
+msgstr "All categories"
+
+msgid "Todas las empresas"
+msgstr "All companies"
+
+msgid "Aplicar filtros"
+msgstr "Apply filters"
+
+#, python-format
+msgid "%(n)s producto disponible"
+msgid_plural "%(n)s productos disponibles"
+msgstr[0] "%(n)s product available"
+msgstr[1] "%(n)s products available"
+
+msgid "Ver productos"
+msgstr "View products"
+
+msgid "No hay empresas con productos activos."
+msgstr "No companies with active products."
+
+#, python-format
+msgid "Stock bajo: %(qty)s"
+msgstr "Low stock: %(qty)s"
+
+msgid "Agregar"
+msgstr "Add"
+
+msgid "Sin stock"
+msgstr "Out of stock"
+
+msgid "Anterior"
+msgstr "Previous"
+
+msgid "Siguiente"
+msgstr "Next"
+
+msgid "No se encontraron productos"
+msgstr "No products found"
+
+msgid "Prueba otros filtros o vuelve al catálogo completo."
+msgstr "Try other filters or return to the full catalog."
+
+msgid "Ver todo"
+msgstr "View all"
+
+msgid "Resultados para"
+msgstr "Results for"
+
+msgid "Productos de la empresa"
+msgstr "Company products"
+
+msgid "Empresas en TradeFlow"
+msgstr "Companies on TradeFlow"
+
+msgid "Español"
+msgstr "Spanish"
+
+msgid "English"
+msgstr "English"

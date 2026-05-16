@@ -1,0 +1,42 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+ACCIÓN: CREAR — templates/core/visitante_zlc_verificacion.html
+Contexto: error (str opcional), subject (User), profile (UserProfile).
+{% endcomment %}
+{% block title %}Verificación ZLC — TradeFlow{% endblock %}
+{% block extra_css %}
+<style>
+  .vz-page { max-width: 560px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+  .vz-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.5rem; }
+  .vz-card h1 { font-size: 1.25rem; color: #0F2A44; margin: 0 0 1rem; }
+  .vz-err { color: #991b1b; background: #fee2e2; padding: 12px 14px; border-radius: 8px; font-size: 0.9rem; }
+  .vz-dl dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: #6B7A88; margin-top: 12px; }
+  .vz-dl dd { margin: 4px 0 0; font-size: 0.95rem; color: #374151; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="vz-page">
+  <div class="vz-card">
+    {% if error %}
+    <h1>No se pudo verificar</h1>
+    <p class="vz-err">{{ error }}</p>
+    {% else %}
+    <h1>Pre-registro TradeFlow — ZLC</h1>
+    <p style="color:#6B7A88;font-size:0.9rem;">Datos asociados al código. Uso operativo en la Zona Libre de Colón.</p>
+    <dl class="vz-dl">
+      <dt>Nombre</dt>
+      <dd>{{ subject.get_full_name|default:subject.username }}</dd>
+      <dt>Usuario</dt>
+      <dd>{{ subject.username }}</dd>
+      <dt>Correo</dt>
+      <dd>{{ subject.email|default:"—" }}</dd>
+      {% if profile.phone %}
+      <dt>Teléfono</dt>
+      <dd>{{ profile.phone }}</dd>
+      {% endif %}
+    </dl>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

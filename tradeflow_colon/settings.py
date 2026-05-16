@@ -21,6 +21,8 @@ from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
 
+from django.utils.translation import gettext_lazy as _
+
 # ── Rutas ─────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -44,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'axes',
     'core',
 ]
 
@@ -52,10 +55,12 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',       # ← sirve static en prod
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'axes.middleware.AxesMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -71,6 +76,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.template.context_processors.i18n',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -121,10 +127,16 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ── Internacionalización ───────────────────────────────────────────────────
-LANGUAGE_CODE = 'es-pa'
+LANGUAGE_CODE = 'es'
+LANGUAGES = [
+    ('es', _('Español')),
+    ('en', _('English')),
+]
 TIME_ZONE     = 'America/Panama'
 USE_I18N      = True
+USE_L10N      = True
 USE_TZ        = True
+LOCALE_PATHS = [BASE_DIR / 'locale']
 
 # ── Archivos estáticos ─────────────────────────────────────────────────────
 STATIC_URL  = '/static/'
@@ -139,6 +151,10 @@ MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ── Autenticación ──────────────────────────────────────────────────────────
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 LOGIN_URL           = '/login/'
 LOGIN_REDIRECT_URL  = '/'
 LOGOUT_REDIRECT_URL = '/login/'
@@ -168,6 +184,13 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='TradeFlow <no-reply@tradeflow.pa>')
 # URL pública (sin / final) para enlaces en correos: ej. https://tuapp.railway.app o http://127.0.0.1:8000
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
+
+# ── django-axes (bloqueo por intentos fallidos de login) ──────────────────
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_TEMPLATE = 'core/bloqueado.html'
+AXES_LOCKOUT_PARAMETERS = [['username'], ['ip_address']]
 
 # ── Seguridad en producción ────────────────────────────────────────────────
 # Estas opciones solo se activan cuando DEBUG=False
