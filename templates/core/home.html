@@ -4,946 +4,1122 @@
 {% comment %}
 ================================================================================
 templates/core/home.html — TradeFlow Colón
-Propósito: landing pública (hero, estadísticas, features, carrusel de productos, CTA).
-Contexto: ``productos_carrusel`` desde home_view (hero vitrina + showcase).
-Hero con fondo #0F2A44 forzado (inline + !important).
+================================================================================
+Landing pública animada (PreExpo 2026): hero parallax, partículas CSS, mockup
+flotante con CountUp, carrusel autoplay, scroll reveal (IntersectionObserver),
+features stagger, timeline «Cómo funciona», grid de productos y CTA final.
+
+Contexto Django (home_view):
+  - productos_carrusel: hasta 12 productos activos
+  - productos: primeros 6 para grid destacados
+  - empresas_carousel: empresas con productos activos
+
+Extiende core/base.html. Sin == en tags. CSS en extra_css, JS en extra_js.
+Fuentes: Inter (base), DM Serif Display (títulos hero/CTA). Material Symbols.
+Respeta prefers-reduced-motion. Sin librerías externas de animación.
 ================================================================================
 {% endcomment %}
 {% block title %}{% trans "TradeFlow Colón — Compra, gestiona, exporta" %}{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block extra_css %}
 <style>
-  /* Hero: respiración lateral fuerte para que el texto no roce el borde del viewport */
-  .lp-hero-inner {
-    max-width: 1200px;
+  /* ── Contenedores globales ── */
+  .lp-section {
+    padding: 80px 0;
+  }
+  .lp-container {
+    max-width: 1160px;
     margin: 0 auto;
-    padding-left: clamp(1.35rem, 5vw, 3rem);
-    padding-right: clamp(1.35rem, 5vw, 3rem);
-    display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    gap: clamp(2rem, 5vw, 3.5rem);
+    padding: 0 32px;
+    box-sizing: border-box;
+  }
+  @media (max-width: 768px) {
+    .lp-container { padding: 0 20px; }
+    .lp-section { padding: 64px 0; }
+  }
+  .lp-sec-head {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .lp-sec-head h2 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: clamp(1.75rem, 3vw, 2.35rem);
+    font-weight: 400;
+    color: var(--tf-navy, #0f2a44);
+    margin: 0 0 0.75rem;
+    letter-spacing: -0.02em;
+  }
+  .lp-sec-head p {
+    color: var(--tf-muted, #6b7a88);
+    font-size: 1.05rem;
+    max-width: 40rem;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+  .lp-title-serif {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Scroll reveal ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-left {
+    opacity: 0;
+    transform: translateX(-40px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .reveal-right {
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal-right.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .stagger-1 { transition-delay: 0.1s; }
+  .stagger-2 { transition-delay: 0.2s; }
+  .stagger-3 { transition-delay: 0.3s; }
+  .stagger-4 { transition-delay: 0.4s; }
+  .stagger-5 { transition-delay: 0.5s; }
+  .stagger-6 { transition-delay: 0.6s; }
+  .stagger-7, .stagger-8, .stagger-9, .stagger-10, .stagger-11, .stagger-12 {
+    transition-delay: 0.6s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal-left, .reveal-right {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  /* ── Hero parallax ── */
+  #hero {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
     align-items: center;
+    color: #fff;
+  }
+  .lp-hero-bg {
+    position: absolute;
+    inset: -20% 0 0 0;
+    z-index: 0;
+    background: linear-gradient(135deg, #0f2a44 0%, #1b3b63 50%, #0f2a44 100%);
+    background-size: cover;
+    background-position: center;
+    will-change: transform;
+  }
+  @media (min-width: 769px) {
+    .lp-hero-bg { background-attachment: fixed; }
+  }
+  .lp-particles {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .lp-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0.15;
+    animation: lp-float 8s ease-in-out infinite;
+  }
+  .lp-particle:nth-child(1) { left: 8%; top: 18%; animation-delay: 0s; opacity: 0.2; }
+  .lp-particle:nth-child(2) { left: 22%; top: 62%; animation-delay: 1.2s; opacity: 0.12; }
+  .lp-particle:nth-child(3) { left: 48%; top: 28%; animation-delay: 2.4s; opacity: 0.25; }
+  .lp-particle:nth-child(4) { left: 72%; top: 55%; animation-delay: 0.8s; opacity: 0.18; }
+  .lp-particle:nth-child(5) { left: 88%; top: 22%; animation-delay: 3s; opacity: 0.1; }
+  .lp-particle:nth-child(6) { left: 58%; top: 78%; animation-delay: 1.8s; opacity: 0.22; }
+  @keyframes lp-float {
+    0%, 100% { transform: translateY(0); opacity: 0.12; }
+    50% { transform: translateY(-18px); opacity: 0.28; }
+  }
+  .lp-hero-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: clamp(5rem, 12vh, 7rem) 32px 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: center;
+    box-sizing: border-box;
   }
   @media (max-width: 991px) {
-    .lp-hero-inner { grid-template-columns: 1fr; gap: 2.25rem; }
+    .lp-hero-inner {
+      grid-template-columns: 1fr;
+      padding-left: 20px;
+      padding-right: 20px;
+    }
   }
-  .lp-hero-col-text > * {
-    animation: lp-hero-enter 0.65s ease backwards;
-  }
-  .lp-hero-col-text .lp-eyebrow { animation-delay: 0.05s; }
-  .lp-hero-col-text .lp-hero-title { animation-delay: 0.12s; }
-  .lp-hero-col-text .lp-hero-desc { animation-delay: 0.2s; }
-  .lp-hero-col-text .lp-hero-cta { animation-delay: 0.28s; }
-  .lp-hero-col-text .lp-stats { animation-delay: 0.36s; }
-  @keyframes lp-hero-enter {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .lp-hero-col-text > * { animation: none; }
-  }
-  .lp-eyebrow {
+
+  .lp-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.7) !important;
-    margin-bottom: 1rem;
+    color: rgba(255, 255, 255, 0.88);
+    opacity: 0;
+    animation: lp-fade-up 0.7s ease 0.2s forwards;
   }
   .lp-hero-title {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: clamp(2.05rem, 4.2vw, 3.15rem);
-    line-height: 1.15;
-    margin: 0 0 1.25rem;
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+    line-height: 1.12;
     color: #ffffff !important;
-    letter-spacing: -0.02em;
-    text-shadow: 0 2px 28px rgba(0, 0, 0, 0.35);
+    margin: 1.25rem 0 1.25rem;
+  }
+  .lp-word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(12px);
+    animation: lp-word-in 0.5s ease forwards;
+  }
+  .lp-word:nth-child(1) { animation-delay: 0.35s; }
+  .lp-word:nth-child(2) { animation-delay: 0.42s; }
+  .lp-word:nth-child(3) { animation-delay: 0.49s; }
+  .lp-word:nth-child(4) { animation-delay: 0.56s; }
+  .lp-word:nth-child(5) { animation-delay: 0.63s; }
+  .lp-word:nth-child(6) { animation-delay: 0.7s; }
+  .lp-word:nth-child(7) { animation-delay: 0.77s; }
+  .lp-word:nth-child(8) { animation-delay: 0.84s; }
+  .lp-word:nth-child(9) { animation-delay: 0.91s; }
+  .lp-word:nth-child(10) { animation-delay: 0.98s; }
+  @keyframes lp-word-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes lp-fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   .lp-hero-desc {
     font-size: 1.05rem;
-    color: rgba(255, 255, 255, 0.85) !important;
-    line-height: 1.7;
-    max-width: 520px;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.82);
+    max-width: 32rem;
     margin-bottom: 1.75rem;
+    opacity: 0;
+    animation: lp-fade-up 0.7s ease 0.8s forwards;
   }
-  .lp-hero-cta { display: flex; flex-wrap: wrap; gap: 12px; }
-  .lp-btn-primary {
+  .lp-hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    opacity: 0;
+    animation: lp-fade-up 0.7s ease 1s forwards;
+  }
+  .lp-btn-ripple {
+    position: relative;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 13px 26px;
     border-radius: 10px;
-    border: none;
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 0.95rem;
-    color: #ffffff !important;
-    background: linear-gradient(135deg, #ff7a3d 0%, #f26522 52%, #e85718 100%);
     text-decoration: none;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-    box-shadow: 0 6px 22px rgba(242, 101, 34, 0.42);
+    border: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  }
+  .lp-btn-ripple:focus-visible {
+    outline: 2px solid var(--tf-orange-s, #ffa15a);
+    outline-offset: 3px;
+  }
+  .lp-btn-primary {
+    background: var(--tf-orange, #f26522);
+    color: #fff !important;
+    box-shadow: 0 4px 16px rgba(242, 101, 34, 0.35);
   }
   .lp-btn-primary:hover {
-    color: #ffffff !important;
-    filter: brightness(1.06);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(242, 101, 34, 0.48);
+    background: var(--tf-orange-h, #ff7a3d);
+    transform: scale(1.05);
+    color: #fff !important;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .lp-btn-primary { transition: filter 0.2s ease, box-shadow 0.2s ease; }
-    .lp-btn-primary:hover { transform: none; }
+  .lp-btn-outline-hero {
+    background: transparent;
+    color: #fff !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
   }
-  .lp-btn-outline {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 22px;
-    border-radius: 10px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(8px);
-    text-decoration: none;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  .lp-btn-outline-hero:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff !important;
   }
-  .lp-btn-outline:hover {
-    background: rgba(255, 255, 255, 0.14);
-    border-color: rgba(255, 255, 255, 0.65);
-    color: #ffffff !important;
-    transform: translateY(-1px);
+  .lp-ripple-span {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.45);
+    transform: scale(0);
+    animation: lp-ripple 0.6s ease-out;
+    pointer-events: none;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .lp-btn-outline:hover { transform: none; }
+  @keyframes lp-ripple {
+    to { transform: scale(4); opacity: 0; }
   }
-  .lp-stats {
+
+  /* Mockup flotante */
+  .lp-mockup-wrap {
     display: flex;
-    flex-wrap: wrap;
-    margin-top: 2.5rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    justify-content: center;
+    perspective: 800px;
   }
-  .lp-stat-item {
-    flex: 1 1 auto;
-    min-width: 120px;
-    padding: 0 1.25rem;
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
+  .lp-mockup {
+    width: 100%;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+    animation: floatCard 5s ease-in-out infinite;
+    overflow: hidden;
+  }
+  @keyframes floatCard {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .lp-mockup-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .lp-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .lp-dot-r { background: #ff5f57; }
+  .lp-dot-y { background: #febc2e; }
+  .lp-dot-g { background: #28c840; }
+  .lp-mockup-body { padding: 20px; }
+  .lp-mock-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .lp-mock-metric {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 12px 8px;
     text-align: center;
   }
-  .lp-stat-item:first-child { padding-left: 0; text-align: left; }
-  .lp-stat-item:last-child { border-right: none; padding-right: 0; }
-  @media (max-width: 575px) {
-    .lp-stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 0; text-align: center; }
-    .lp-stat-item:first-child { text-align: center; }
-  }
-  .lp-stat-num {
-    font-family: 'Inter', sans-serif;
+  .lp-mock-metric strong {
+    display: block;
+    font-size: 1.25rem;
+    color: #fff;
     font-weight: 700;
-    font-size: 2rem;
-    color: #f26522 !important;
+    line-height: 1.2;
+  }
+  .lp-mock-metric span {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.3;
+    display: block;
+    margin-top: 4px;
+  }
+  .lp-mock-progress-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .lp-mock-progress-track {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .lp-mock-progress-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--tf-orange, #f26522), var(--tf-orange-s, #ffa15a));
+    border-radius: 8px;
+    transition: width 1.4s ease 0.6s;
+  }
+  .lp-mock-progress-fill.is-filled { width: 78%; }
+
+  /* Stats hero */
+  .lp-hero-stats {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 2.5rem;
+    padding-top: 2.5rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .lp-hero-stat strong {
+    display: block;
+    font-size: clamp(1.65rem, 3vw, 2.1rem);
+    font-weight: 700;
+    color: var(--tf-orange-s, #ffa15a);
     line-height: 1.1;
   }
-  .lp-stat-lbl {
+  .lp-hero-stat span {
     font-size: 0.8125rem;
-    color: rgba(255, 255, 255, 0.7) !important;
-    margin-top: 6px;
-    font-weight: 500;
+    color: rgba(255, 255, 255, 0.72);
+    margin-top: 4px;
+    display: block;
   }
-  /* Columna derecha del hero: vitrina motivacional (sin gráfico ficticio tipo “panel”) */
-  .lp-hero-visual {
+
+  @media (prefers-reduced-motion: reduce) {
+    .lp-badge, .lp-hero-desc, .lp-hero-cta, .lp-word {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    .lp-mockup { animation: none; }
+    .lp-particle { animation: none; }
+    .lp-hero-bg { background-attachment: scroll; }
+    .lp-btn-primary:hover { transform: none; }
+  }
+
+  /* ── Carrusel ── */
+  .lp-carousel-section {
+    background: var(--tf-light, #f2f3f5);
+  }
+  .lp-carousel {
     position: relative;
-    border-radius: 20px;
-    padding: clamp(1.35rem, 3vw, 1.85rem);
-    max-width: 440px;
-    width: 100%;
-    margin-left: auto;
-    box-sizing: border-box;
-    background: linear-gradient(155deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(15, 42, 68, 0.35) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    box-shadow:
-      0 24px 56px rgba(0, 0, 0, 0.35),
-      inset 0 1px 0 rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    color: #ffffff !important;
     overflow: hidden;
-    animation: lp-hero-visual-float 7s ease-in-out infinite;
+    padding-bottom: 2.5rem;
   }
-  @keyframes lp-hero-visual-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+  .lp-carousel-viewport {
+    overflow: hidden;
+    margin: 0 48px;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .lp-hero-visual { animation: none; }
+  @media (max-width: 768px) {
+    .lp-carousel-viewport { margin: 0 8px; }
   }
-  .lp-hero-visual-glow {
-    position: absolute;
-    inset: -40%;
-    background:
-      radial-gradient(circle at 30% 20%, rgba(242, 101, 34, 0.35) 0%, transparent 42%),
-      radial-gradient(circle at 78% 62%, rgba(46, 91, 138, 0.45) 0%, transparent 48%);
-    opacity: 0.85;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .lp-hero-visual > *:not(.lp-hero-visual-glow) { position: relative; z-index: 1; }
-  @media (max-width: 991px) {
-    .lp-hero-visual { margin-left: 0; max-width: none; }
-  }
-  .lp-hero-visual-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.92) !important;
-    background: rgba(242, 101, 34, 0.35);
-    border: 1px solid rgba(255, 161, 90, 0.45);
-    padding: 7px 12px;
-    border-radius: 999px;
-    margin-bottom: 1rem;
-  }
-  .lp-hero-visual-badge .material-symbols-rounded {
-    font-size: 17px !important;
-    color: #ffa15a !important;
-  }
-  .lp-hero-visual-lead {
-    font-size: 1.125rem;
-    font-weight: 700;
-    line-height: 1.35;
-    margin: 0 0 1rem;
-    color: #ffffff !important;
-  }
-  .lp-hero-visual-cards {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-bottom: 1.25rem;
-  }
-  @media (max-width: 400px) {
-    .lp-hero-visual-cards { grid-template-columns: 1fr; }
-  }
-  .lp-hero-mini {
+  .lp-carousel-track {
     display: flex;
-    gap: 10px;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+  .lp-carousel-slide {
+    flex: 0 0 33.333%;
+    min-width: 0;
+    padding: 0 12px;
+    box-sizing: border-box;
+  }
+  @media (max-width: 991px) {
+    .lp-carousel-slide { flex: 0 0 50%; }
+  }
+  @media (max-width: 575px) {
+    .lp-carousel-slide { flex: 0 0 100%; }
+  }
+  .lp-carousel-card {
+    background: #fff;
+    border: 1px solid var(--tf-border, #d1d5db);
+    border-radius: 14px;
+    padding: 1.5rem;
+    min-height: 200px;
+    box-shadow: 0 4px 16px rgba(15, 42, 68, 0.06);
+    height: 100%;
+    box-sizing: border-box;
+  }
+  .lp-carousel-card--empresa {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    padding: 10px 11px;
-    border-radius: 12px;
-    background: rgba(10, 31, 51, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    text-decoration: none !important;
-    color: #ffffff !important;
-    transition: border-color 0.2s ease, transform 0.22s ease, box-shadow 0.22s ease;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    gap: 10px;
   }
-  .lp-hero-mini:hover {
-    border-color: rgba(255, 161, 90, 0.55);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .lp-hero-mini:hover { transform: none; }
-  }
-  .lp-hero-mini-img {
-    width: 52px;
-    height: 52px;
-    border-radius: 10px;
-    overflow: hidden;
-    flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.08);
+  .lp-emp-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--tf-navy, #0f2a44);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.35rem;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .lp-hero-mini-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+  .lp-carousel-card--step .material-symbols-rounded {
+    font-size: 40px;
+    color: var(--tf-orange, #f26522);
   }
-  .lp-hero-mini-body { min-width: 0; text-align: left; }
-  .lp-hero-mini-name {
-    font-size: 0.8125rem;
+  .lp-step-num {
+    font-size: 0.7rem;
     font-weight: 700;
-    line-height: 1.25;
-    margin: 0 0 2px;
-    color: #ffffff !important;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    color: var(--tf-muted, #6b7a88);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
-  .lp-hero-mini-meta {
-    font-size: 0.6875rem;
-    color: rgba(255, 255, 255, 0.72) !important;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .lp-hero-visual-steps {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(10, 31, 51, 0.45);
-  }
-  .lp-hero-visual-steps li {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px 14px;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: rgba(255, 255, 255, 0.88) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .lp-hero-visual-steps li:last-child { border-bottom: none; }
-  .lp-hero-visual-steps .material-symbols-rounded {
-    font-size: 22px !important;
-    color: #ffa15a !important;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-  .lp-hero-visual-steps strong {
-    display: block;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: #ffffff !important;
-    margin-bottom: 2px;
-  }
-  .lp-hero-visual-placeholder {
-    padding: 14px;
-    border-radius: 14px;
-    background: rgba(10, 31, 51, 0.45);
-    border: 1px dashed rgba(255, 255, 255, 0.22);
-    font-size: 0.8125rem;
-    line-height: 1.55;
-    color: rgba(255, 255, 255, 0.82) !important;
-    margin-bottom: 1.1rem;
-  }
-  .lp-features { padding: 4.5rem 1.5rem; background: #f2f3f5; }
-  .lp-features-inner { max-width: 1160px; margin: 0 auto; }
-  .lp-sec-title {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 1.75rem;
-    color: #0f2a44;
-    margin-bottom: 2rem;
-  }
-  .lp-fgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
-  @media (max-width: 991px) { .lp-fgrid { grid-template-columns: 1fr; } }
-  .lp-fcard {
-    background: #ffffff;
-    border: 1px solid #d1d5db;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
-    transition: box-shadow 0.2s ease;
-  }
-  .lp-fcard:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.15); }
-  .lp-fcard .material-symbols-rounded { font-size: 28px; color: #2e5b8a; margin-bottom: 0.75rem; }
-  .lp-fcard h3 {
-    font-family: 'Inter', sans-serif;
+  .lp-carousel-card h3 {
+    font-size: 1rem;
     font-weight: 600;
-    font-size: 1rem;
-    color: #1b3b63;
-    margin: 0 0 0.5rem;
+    color: var(--tf-navy, #0f2a44);
+    margin: 0;
   }
-  .lp-fcard p { font-size: 0.875rem; color: #374151; line-height: 1.65; margin: 0; }
-  /* Showcase + carrusel de productos (landing pública) */
-  .lp-showcase {
-    padding: clamp(3rem, 5vw, 4.5rem) clamp(1.25rem, 4vw, 2rem);
-    background: linear-gradient(180deg, #ffffff 0%, var(--tf-light, #f2f3f5) 48%, #ffffff 100%);
-    border-top: 1px solid var(--tf-border, #d1d5db);
-    border-bottom: 1px solid var(--tf-border, #d1d5db);
-  }
-  .lp-showcase-inner {
-    max-width: 1160px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-    gap: clamp(1.75rem, 4vw, 3rem);
-    align-items: stretch;
-  }
-  @media (max-width: 991px) {
-    .lp-showcase-inner { grid-template-columns: 1fr; }
-  }
-  .lp-showcase-intro {
-    padding: clamp(0.5rem, 2vw, 1rem) 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    min-width: 0;
-  }
-  .lp-showcase-intro .lp-sec-title { margin-bottom: 0; }
-  .lp-showcase-lead {
-    font-size: 1rem;
-    line-height: 1.7;
+  .lp-carousel-card p {
+    font-size: 0.875rem;
     color: var(--tf-muted, #6b7a88);
     margin: 0;
+    line-height: 1.55;
   }
-  .lp-showcase-list {
-    margin: 0;
-    padding-left: 1.15rem;
-    color: var(--tf-text, #0f2a44);
-    font-size: 0.9375rem;
-    line-height: 1.65;
-  }
-  .lp-showcase-list li { margin-bottom: 0.5rem; }
-  .lp-showcase-actions {
+  .lp-carousel-dots {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 0.5rem;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 1.25rem;
   }
-  .lp-carousel-shell {
-    position: relative;
-    display: flex;
-    align-items: stretch;
-    gap: 10px;
-    min-width: 0;
-    padding: 8px 4px;
+  .lp-carousel-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    background: #d1d5db;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
   }
-  .lp-carousel-viewport-wrap {
-    flex: 1;
-    position: relative;
-    min-width: 0;
-    border-radius: 18px;
-    background: linear-gradient(165deg, #ffffff 0%, var(--tf-light, #f2f3f5) 55%, #ffffff 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.85),
-      0 18px 42px rgba(15, 42, 68, 0.14);
+  .lp-carousel-dot.is-active {
+    background: var(--tf-orange, #f26522);
+    transform: scale(1.15);
   }
-  .lp-carousel-viewport-wrap::before,
-  .lp-carousel-viewport-wrap::after {
-    content: '';
+  .lp-carousel-dot:focus-visible {
+    outline: 2px solid var(--tf-orange, #f26522);
+    outline-offset: 2px;
+  }
+  .lp-carousel-btn {
     position: absolute;
-    top: 6px;
-    bottom: 18px;
-    width: clamp(28px, 5vw, 44px);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--tf-border, #d1d5db);
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.1);
     z-index: 2;
-    pointer-events: none;
   }
-  .lp-carousel-viewport-wrap::before {
-    left: 0;
-    border-radius: 18px 0 0 18px;
-    background: linear-gradient(90deg, var(--tf-light, #f2f3f5) 0%, rgba(242, 243, 245, 0) 100%);
+  .lp-carousel-btn:hover { border-color: var(--tf-orange, #f26522); color: var(--tf-orange, #f26522); }
+  .lp-carousel-btn:focus-visible {
+    outline: 2px solid var(--tf-orange, #f26522);
+    outline-offset: 2px;
   }
-  .lp-carousel-viewport-wrap::after {
-    right: 0;
-    border-radius: 0 18px 18px 0;
-    background: linear-gradient(270deg, var(--tf-light, #f2f3f5) 0%, rgba(242, 243, 245, 0) 100%);
+  .lp-carousel-btn--prev { left: 0; }
+  .lp-carousel-btn--next { right: 0; }
+
+  /* ── Features ── */
+  .lp-features-section { background: #fff; }
+  .lp-fgrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
   }
-  .lp-carousel-viewport {
+  @media (max-width: 991px) { .lp-fgrid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 575px) { .lp-fgrid { grid-template-columns: 1fr; } }
+  .lp-fcard {
+    background: #fff;
+    border: 1px solid var(--tf-border, #d1d5db);
+    border-radius: 12px;
+    padding: 1.65rem;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
+    border-top: 3px solid transparent;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .lp-fcard:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(15, 42, 68, 0.12);
+    border-top-color: var(--tf-orange, #f26522);
+  }
+  .lp-fcard .material-symbols-rounded {
+    font-size: 32px;
+    color: var(--tf-blue, #2e5b8a);
+    margin-bottom: 0.85rem;
+  }
+  .lp-fcard h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--tf-navy-mid, #1b3b63);
+    margin: 0 0 0.5rem;
+  }
+  .lp-fcard p {
+    font-size: 0.875rem;
+    color: #374151;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* ── Timeline ── */
+  .lp-timeline-section { background: var(--tf-light, #f2f3f5); }
+  .lp-timeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    position: relative;
+    padding-top: 24px;
+  }
+  @media (max-width: 991px) {
+    .lp-timeline { grid-template-columns: 1fr; gap: 32px; }
+  }
+  .lp-timeline-line {
+    position: absolute;
+    top: 48px;
+    left: 12%;
+    right: 12%;
+    height: 3px;
+    background: #d1d5db;
+    z-index: 0;
+  }
+  .lp-timeline-line svg {
     width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    scroll-padding-inline: 6px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(46, 91, 138, 0.35) transparent;
-    border-radius: 16px;
-    -webkit-overflow-scrolling: touch;
+    height: 3px;
+    display: block;
   }
-  .lp-carousel-viewport::-webkit-scrollbar { height: 8px; }
-  .lp-carousel-viewport::-webkit-scrollbar-thumb {
-    background: rgba(46, 91, 138, 0.35);
-    border-radius: 8px;
+  .lp-timeline-line path {
+    stroke: var(--tf-orange, #f26522);
+    stroke-width: 3;
+    fill: none;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    transition: stroke-dashoffset 1.8s ease;
   }
-  .lp-carousel-track {
+  .lp-timeline-line.visible path { stroke-dashoffset: 0; }
+  @media (max-width: 991px) { .lp-timeline-line { display: none; } }
+  .lp-tstep {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 0 8px;
+  }
+  .lp-tstep-circle {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: var(--tf-navy, #0f2a44);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.25rem;
     display: flex;
-    gap: 1.125rem;
-    padding: 10px 8px 14px;
-    min-height: 100%;
+    align-items: center;
+    justify-content: center;
+    transform: scale(0);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .lp-cr-slide {
-    flex: 0 0 min(348px, 88vw);
-    scroll-snap-align: start;
-    border: 2px solid rgba(242, 101, 34, 0.14);
-    border-radius: 16px;
+  .lp-tstep.visible .lp-tstep-circle {
+    transform: scale(1);
+  }
+  .lp-tstep .material-symbols-rounded {
+    font-size: 28px;
+    color: var(--tf-orange, #f26522);
+    margin-bottom: 8px;
+  }
+  .lp-tstep h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--tf-navy, #0f2a44);
+    margin: 0 0 0.35rem;
+  }
+  .lp-tstep p {
+    font-size: 0.8125rem;
+    color: var(--tf-muted, #6b7a88);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ── Productos ── */
+  .lp-products-section { background: #fff; }
+  .lp-pgrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 991px) { .lp-pgrid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 575px) { .lp-pgrid { grid-template-columns: 1fr; } }
+  .lp-pcard {
+    border: 1px solid var(--tf-border, #d1d5db);
+    border-radius: 12px;
     overflow: hidden;
-    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
-    box-shadow:
-      0 6px 22px rgba(15, 42, 68, 0.1),
-      0 1px 0 rgba(255, 255, 255, 0.9) inset;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    transition: box-shadow 0.28s ease, transform 0.28s ease, border-color 0.28s ease;
-    animation: lp-cr-rise 0.55s ease backwards;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
   }
-  .lp-cr-slide:nth-child(1) { animation-delay: 0.02s; }
-  .lp-cr-slide:nth-child(2) { animation-delay: 0.07s; }
-  .lp-cr-slide:nth-child(3) { animation-delay: 0.12s; }
-  .lp-cr-slide:nth-child(4) { animation-delay: 0.17s; }
-  .lp-cr-slide:hover {
-    border-color: rgba(242, 101, 34, 0.55);
-    box-shadow:
-      0 18px 46px rgba(242, 101, 34, 0.22),
-      0 14px 34px rgba(15, 42, 68, 0.12);
-    transform: translateY(-5px);
-  }
-  @keyframes lp-cr-rise {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .lp-carousel-viewport { scroll-behavior: auto; }
-    .lp-cr-slide {
-      animation: none;
-      transition: box-shadow 0.2s ease;
-    }
-    .lp-cr-slide:hover { transform: none; }
-  }
-  .lp-cr-img {
-    height: 196px;
+  .lp-pimg-wrap {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
     background: var(--tf-light, #f2f3f5);
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
   }
-  .lp-cr-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .lp-cr-body { padding: 1rem 1.1rem 1.15rem; flex: 1; display: flex; flex-direction: column; }
-  .lp-cr-cat {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--tf-blue, #2e5b8a);
-    margin-bottom: 4px;
-  }
-  .lp-cr-name {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 0.98rem;
-    color: var(--tf-text, #0f2a44);
-    margin: 0 0 4px;
-    line-height: 1.35;
-  }
-  .lp-cr-com { font-size: 0.8125rem; color: var(--tf-muted, #6b7a88); margin-bottom: 10px; }
-  .lp-cr-foot {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: auto;
-  }
-  .lp-cr-price {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 1.08rem;
-    color: var(--tf-orange, #f26522);
-  }
-  .lp-cr-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+  .lp-pimg-wrap img {
     width: 100%;
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: none;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #ffffff !important;
-    background: var(--tf-orange, #f26522);
-    text-decoration: none;
-    cursor: pointer;
-    transition: background 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s ease;
   }
-  .lp-cr-cta:hover {
-    background: var(--tf-orange-light, #ff7a3d);
-    color: #ffffff !important;
-    box-shadow: 0 4px 14px rgba(242, 101, 34, 0.35);
-  }
-  .lp-cr-nav {
-    flex-shrink: 0;
-    align-self: center;
-    width: 46px;
-    height: 46px;
-    border-radius: 12px;
-    border: 1px solid var(--tf-border, #d1d5db);
-    background: var(--tf-white, #ffffff);
-    color: var(--tf-mid, #1b3b63);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 14px rgba(15, 42, 68, 0.1);
-    position: relative;
-    z-index: 3;
-  }
-  .lp-cr-nav:hover {
-    background: linear-gradient(180deg, #ffffff 0%, var(--tf-light, #f2f3f5) 100%);
-    border-color: var(--tf-orange, #f26522);
-    box-shadow: 0 8px 22px rgba(242, 101, 34, 0.2);
-  }
-  .lp-cr-nav:active { transform: scale(0.96); }
-  .lp-cr-nav:focus-visible {
-    outline: 2px solid var(--tf-orange, #f26522);
-    outline-offset: 2px;
-  }
-  @media (max-width: 575px) {
-    .lp-carousel-shell { gap: 6px; }
-    .lp-cr-nav { width: 40px; height: 40px; }
-  }
-  .lp-cta {
-    padding: 4rem 1.5rem;
-    background: #ffffff;
-    text-align: center;
-    border-top: 1px solid #d1d5db;
-  }
-  .lp-cta-inner { max-width: 640px; margin: 0 auto; }
-  .lp-cta h2 {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 1.85rem;
-    color: #0f2a44 !important;
-    margin: 0 0 1rem;
-  }
-  .lp-cta p {
-    color: #6b7a88 !important;
-    font-size: 1rem;
-    line-height: 1.65;
-    margin-bottom: 1.5rem;
-  }
-  .lp-cta .lp-btn-outline {
-    color: #0f2a44 !important;
-    border-color: #d1d5db !important;
-    background: #ffffff !important;
-  }
-  .lp-cta .lp-btn-outline:hover {
-    background: #f2f3f5 !important;
-    color: #0f2a44 !important;
-    border-color: #6b7a88 !important;
-  }
-  .lp-hero-deco {
+  .lp-pcard:hover .lp-pimg-wrap img { transform: scale(1.08); }
+  .lp-poverlay {
     position: absolute;
     inset: 0;
-    pointer-events: none;
-    background: radial-gradient(ellipse 80% 50% at 85% 20%, rgba(242, 101, 34, 0.18) 0%, transparent 55%),
-      radial-gradient(ellipse 60% 40% at 10% 80%, rgba(46, 91, 138, 0.25) 0%, transparent 50%);
-    z-index: 0;
-  }
-  .lp-hero-inner { position: relative; z-index: 1; }
-  .lp-trust {
-    background: linear-gradient(180deg, #0c2438 0%, #0F2A44 100%);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 1.75rem 1.5rem;
-  }
-  .lp-trust-inner {
-    max-width: 1160px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.25rem;
-  }
-  @media (max-width: 991px) { .lp-trust-inner { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 575px) { .lp-trust-inner { grid-template-columns: 1fr; } }
-  .lp-trust-item {
+    background: rgba(242, 101, 34, 0.55);
+    opacity: 0;
+    transition: opacity 0.35s ease;
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 1rem;
   }
-  .lp-trust-item .material-symbols-rounded {
-    font-size: 26px;
-    color: #ffa15a !important;
-    flex-shrink: 0;
-  }
-  .lp-trust-item strong {
-    display: block;
+  .lp-pcard:hover .lp-poverlay { opacity: 1; }
+  .lp-poverlay a {
+    display: inline-flex;
+    padding: 10px 18px;
+    background: #fff;
+    color: var(--tf-navy, #0f2a44);
+    font-weight: 600;
     font-size: 0.875rem;
-    color: #ffffff !important;
+    border-radius: 8px;
+    text-decoration: none;
+    transform: translateY(12px);
+    transition: transform 0.35s ease;
+  }
+  .lp-pcard:hover .lp-poverlay a { transform: translateY(0); }
+  .lp-pbody { padding: 1.1rem; }
+  .lp-pname {
+    font-weight: 600;
+    color: var(--tf-navy, #0f2a44);
     margin-bottom: 4px;
   }
-  .lp-trust-item span {
-    font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.72) !important;
-    line-height: 1.45;
+  .lp-pprice {
+    font-weight: 700;
+    color: var(--tf-navy, #0f2a44);
+    transition: color 0.25s ease;
   }
-  .lp-proof {
-    padding: 3rem 1.5rem;
-    background: linear-gradient(180deg, #ffffff 0%, #f2f3f5 100%);
-    border-bottom: 1px solid #d1d5db;
+  .lp-pcard:hover .lp-pprice { color: var(--tf-orange, #f26522); }
+
+  /* ── CTA final parallax ── */
+  .lp-cta-final {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    color: #fff;
+    padding: 80px 32px;
   }
-  .lp-proof-inner { max-width: 900px; margin: 0 auto; text-align: center; }
-  .lp-proof-quote {
-    font-family: 'Inter', sans-serif;
-    font-size: 1.2rem;
-    font-weight: 500;
-    color: #0f2a44;
+  .lp-cta-final-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, #0f2a44 0%, #1b3b63 50%, #0a1f33 100%);
+    z-index: 0;
+  }
+  @media (min-width: 769px) {
+    .lp-cta-final-bg { background-attachment: fixed; }
+  }
+  .lp-cta-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .lp-cta-title {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    color: #fff !important;
+    margin: 0 0 1rem;
+    position: relative;
+    display: inline-block;
+  }
+  .lp-cta-title::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background: var(--tf-orange, #f26522);
+    transition: width 1s ease 0.5s;
+  }
+  .lp-cta-title.visible::after { width: 100%; }
+  .lp-cta-final p {
+    color: rgba(255, 255, 255, 0.82);
     line-height: 1.65;
-    margin: 0 0 1.25rem;
+    margin-bottom: 1.75rem;
   }
-  .lp-proof-meta {
+  .lp-cta-btns {
     display: flex;
     justify-content: center;
-    align-items: center;
-    gap: 10px;
     flex-wrap: wrap;
-    font-size: 0.875rem;
-    color: #6b7a88;
+    gap: 14px;
   }
-  .lp-proof-badge {
+  .lp-btn-shine {
+    position: relative;
+    overflow: hidden;
+    background: var(--tf-orange, #f26522);
+    color: #fff !important;
+    padding: 13px 28px;
+    border-radius: 10px;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    background: #fff5f0;
-    color: #f26522;
-    font-weight: 600;
-    font-size: 0.75rem;
-    border: 1px solid rgba(242, 101, 34, 0.25);
+    gap: 8px;
   }
+  .lp-btn-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    transition: left 0.55s ease;
+  }
+  .lp-btn-shine:hover::before { left: 120%; }
+  .lp-btn-shine:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+  .lp-btn-fill-outline {
+    padding: 12px 26px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    color: #fff !important;
+    text-decoration: none;
+    font-weight: 600;
+    background: transparent;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .lp-btn-fill-outline:hover {
+    background: #fff;
+    color: var(--tf-navy, #0f2a44) !important;
+  }
+  .lp-btn-fill-outline:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lp-carousel-track { transition: none; }
+    .lp-pcard:hover .lp-pimg-wrap img { transform: none; }
+    .lp-fcard:hover { transform: none; }
+    .lp-cta-final-bg { background-attachment: scroll; }
+    .lp-btn-shine::before { display: none; }
+  }
+</style>
 {% endblock %}
+
 {% block content %}
-<section class="lp-hero" style="background-color: #0F2A44 !important; background-image: linear-gradient(145deg, rgba(27,59,99,0.55) 0%, rgba(15,42,68,0.98) 42%, #0a1f33 100%) !important; min-height: 560px; padding: clamp(72px, 12vw, 96px) 0 clamp(56px, 8vw, 80px); position: relative; overflow: hidden;">
-  <div class="lp-hero-deco" aria-hidden="true"></div>
+<section id="hero" aria-labelledby="lp-hero-heading">
+  <div class="lp-hero-bg" id="lp-hero-bg" aria-hidden="true"></div>
+  <div class="lp-particles" aria-hidden="true">
+    <span class="lp-particle"></span>
+    <span class="lp-particle"></span>
+    <span class="lp-particle"></span>
+    <span class="lp-particle"></span>
+    <span class="lp-particle"></span>
+    <span class="lp-particle"></span>
+  </div>
   <div class="lp-hero-inner">
     <div class="lp-hero-col-text">
-      <div class="lp-eyebrow">
-        <span class="material-symbols-rounded" style="font-size:16px;color:rgba(255,255,255,0.85) !important;">location_on</span>
+      <div class="lp-badge">
+        <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">location_on</span>
         {% trans "Zona Libre de Colón · Panamá" %}
       </div>
-      <h1 class="lp-hero-title">{% trans "La ZLC en una plataforma B2B en la que confían compradores y operadores" %}</h1>
+      <h1 class="lp-hero-title lp-title-serif" id="lp-hero-heading">
+        <span class="lp-word">{% trans "Compra" %}</span>
+        <span class="lp-word">{% trans "en" %}</span>
+        <span class="lp-word">{% trans "la" %}</span>
+        <span class="lp-word">{% trans "ZLC" %}</span>
+        <span class="lp-word">{% trans "desde" %}</span>
+        <span class="lp-word">{% trans "cualquier" %}</span>
+        <span class="lp-word">{% trans "lugar" %}</span>
+        <span class="lp-word">{% trans "del" %}</span>
+        <span class="lp-word">{% trans "mundo" %}</span>
+      </h1>
       <p class="lp-hero-desc">
-        {% trans "TradeFlow conecta compradores con empresas verificadas de la Zona Libre de Colón: catálogo claro, pedidos trazables y herramientas listas para escalar ante inversores y socios logísticos." %}
+        {% trans "TradeFlow conecta compradores con empresas verificadas de la Zona Libre de Colón: catálogo claro, pedidos trazables y herramientas listas para escalar." %}
       </p>
       <div class="lp-hero-cta">
-        <a href="{% url 'signup' %}" class="lp-btn-primary">
-          <span class="material-symbols-rounded" style="font-size:18px;">rocket_launch</span>
+        <a href="{% url 'signup' %}" class="lp-btn-ripple lp-btn-primary" data-lp-ripple>
+          <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">rocket_launch</span>
           {% trans "Crear cuenta" %}
         </a>
-        <a href="{% url 'login' %}" class="lp-btn-outline">
-          <span class="material-symbols-rounded" style="font-size:18px;">login</span>
-          {% trans "Iniciar sesión" %}
+        <a href="#lp-como-funciona" class="lp-btn-ripple lp-btn-outline-hero" data-lp-ripple>
+          <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">play_circle</span>
+          {% trans "Cómo funciona" %}
         </a>
       </div>
-      <div class="lp-stats">
-        <div class="lp-stat-item">
-          <div class="lp-stat-num">2,600+</div>
-          <div class="lp-stat-lbl">{% trans "Empresas en la ZLC" %}</div>
-        </div>
-        <div class="lp-stat-item">
-          <div class="lp-stat-num">$33B</div>
-          <div class="lp-stat-lbl">{% trans "Transacciones anuales" %}</div>
-        </div>
-        <div class="lp-stat-item">
-          <div class="lp-stat-num">180+</div>
-          <div class="lp-stat-lbl">{% trans "Países compradores" %}</div>
-        </div>
-      </div>
     </div>
-    <aside class="lp-hero-visual" aria-label="{% trans 'Ejemplo de catálogo en TradeFlow' %}">
-      <div class="lp-hero-visual-glow" aria-hidden="true"></div>
-      <div class="lp-hero-visual-badge">
-        <span class="material-symbols-rounded" aria-hidden="true">bolt</span>
-        {% trans "Operaciones ZLC sin fricción" %}
-      </div>
-      <p class="lp-hero-visual-lead">{% trans "Descubre proveedores, compara precios y cierra pedidos con la misma seriedad que esperan tus socios." %}</p>
-      {% if productos_carrusel %}
-      <div class="lp-hero-visual-cards">
-        {% for producto in productos_carrusel %}
-          {% if forloop.counter <= 4 %}
-          <a href="{% url 'signup' %}" class="lp-hero-mini">
-            <div class="lp-hero-mini-img">
-              {% if producto.image %}
-              <img src="{{ producto.image.url }}" alt="" loading="lazy" width="104" height="104">
-              {% else %}
-              <span class="material-symbols-rounded" style="font-size:28px;color:rgba(255,255,255,0.35);">inventory_2</span>
-              {% endif %}
+    <div class="lp-mockup-wrap">
+      <div class="lp-mockup" id="lp-mockup" aria-hidden="true">
+        <div class="lp-mockup-bar">
+          <span class="lp-dot lp-dot-r"></span>
+          <span class="lp-dot lp-dot-y"></span>
+          <span class="lp-dot lp-dot-g"></span>
+        </div>
+        <div class="lp-mockup-body">
+          <div class="lp-mock-metrics">
+            <div class="lp-mock-metric">
+              <strong data-lp-count="128" data-lp-count-suffix="">0</strong>
+              <span>{% trans "Órdenes activas" %}</span>
             </div>
-            <div class="lp-hero-mini-body">
-              <div class="lp-hero-mini-name">{{ producto.name }}</div>
-              <p class="lp-hero-mini-meta">{{ producto.company.name }} · {{ producto.currency }} {{ producto.unit_price }}</p>
+            <div class="lp-mock-metric">
+              <strong data-lp-count="94" data-lp-count-suffix="%">0</strong>
+              <span>{% trans "Fulfillment" %}</span>
             </div>
-          </a>
-          {% endif %}
-        {% endfor %}
+            <div class="lp-mock-metric">
+              <strong data-lp-count="42" data-lp-count-suffix="">0</strong>
+              <span>{% trans "Envíos en tránsito" %}</span>
+            </div>
+          </div>
+          <div class="lp-mock-progress-label">
+            <span>{% trans "Cumplimiento operativo" %}</span>
+            <span>78%</span>
+          </div>
+          <div class="lp-mock-progress-track">
+            <div class="lp-mock-progress-fill" id="lp-mock-progress"></div>
+          </div>
+        </div>
       </div>
-      {% else %}
-      <p class="lp-hero-visual-placeholder">{% trans "Al registrarte verás inventario actualizado, empresas verificadas y precios claros listos para cotizar o comprar." %}</p>
-      {% endif %}
-      <ul class="lp-hero-visual-steps">
-        <li>
-          <span class="material-symbols-rounded" aria-hidden="true">travel_explore</span>
-          <div><strong>{% trans "Explora la vitrina" %}</strong>{% trans "Filtra por empresa y categoría sin salir del contexto ZLC." %}</div>
-        </li>
-        <li>
-          <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
-          <div><strong>{% trans "Arma tu pedido" %}</strong>{% trans "Carrito y estados pensados para compradores B2B." %}</div>
-        </li>
-        <li>
-          <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
-          <div><strong>{% trans "Seguimiento claro" %}</strong>{% trans "Del pago mock al despacho con trazabilidad para tu equipo." %}</div>
-        </li>
-      </ul>
-    </aside>
-  </div>
-</section>
-<section class="lp-trust" aria-label="{% trans 'Señales de confianza' %}">
-  <div class="lp-trust-inner">
-    <div class="lp-trust-item">
-      <span class="material-symbols-rounded">verified</span>
-      <div><strong>{% trans "Empresas verificadas" %}</strong><span>{% trans "Catálogo enlazado a compañías con perfil en ZLC." %}</span></div>
     </div>
-    <div class="lp-trust-item">
-      <span class="material-symbols-rounded">lock</span>
-      <div><strong>{% trans "Accesos por rol" %}</strong><span>{% trans "Comprador, vendedor y administración con rutas separadas." %}</span></div>
-    </div>
-    <div class="lp-trust-item">
-      <span class="material-symbols-rounded">receipt_long</span>
-      <div><strong>{% trans "Documentos y órdenes" %}</strong><span>{% trans "Flujo de pedidos con estados y base para facturación." %}</span></div>
-    </div>
-    <div class="lp-trust-item">
-      <span class="material-symbols-rounded">trending_up</span>
-      <div><strong>{% trans "Listo para escalar" %}</strong><span>{% trans "Arquitectura pensada para crecer con más módulos y datos." %}</span></div>
-    </div>
-  </div>
-</section>
-<section class="lp-proof">
-  <div class="lp-proof-inner">
-    <div class="lp-proof-badge"><span class="material-symbols-rounded" style="font-size:16px;">format_quote</span> {% trans "Caso de uso" %}</div>
-    <p class="lp-proof-quote">{% trans "“Necesitábamos una vitrina seria para la ZLC: precios claros, stock visible y un back-office que no parezca prototipo. TradeFlow encaja con lo que buscan socios e inversores.”" %}</p>
-    <div class="lp-proof-meta">
-      <span class="material-symbols-rounded" style="font-size:18px;color:#2E5B8A;">business_center</span>
-      <span>{% trans "Operaciones B2B · Zona Libre de Colón · Panamá" %}</span>
-    </div>
-  </div>
-</section>
-<section class="lp-features">
-  <div class="lp-features-inner">
-    <h2 class="lp-sec-title">{% trans "Por qué TradeFlow" %}</h2>
-    <div class="lp-fgrid">
-      <div class="lp-fcard">
-        <span class="material-symbols-rounded">public</span>
-        <h3>{% trans "Acceso global" %}</h3>
-        <p>{% trans "Explora ofertas de la ZLC sin fricción y con información clara de cada vendedor." %}</p>
+    <div class="lp-hero-stats" id="lp-hero-stats">
+      <div class="lp-hero-stat">
+        <strong data-lp-count="2600" data-lp-count-suffix="+">0</strong>
+        <span>{% trans "Empresas en la ZLC" %}</span>
       </div>
-      <div class="lp-fcard">
-        <span class="material-symbols-rounded">inventory_2</span>
-        <h3>{% trans "Inventario en vivo" %}</h3>
-        <p>{% trans "Stock y reservas integrados para evitar ventas duplicadas y mejorar la confianza." %}</p>
+      <div class="lp-hero-stat">
+        <strong data-lp-count="33" data-lp-count-prefix="$" data-lp-count-suffix="B">0</strong>
+        <span>{% trans "Transacciones anuales" %}</span>
       </div>
-      <div class="lp-fcard">
-        <span class="material-symbols-rounded">description</span>
-        <h3>{% trans "Documentación" %}</h3>
-        <p>{% trans "Base lista para facturas y listas de empaque alineadas a procesos de exportación." %}</p>
-      </div>
-      <div class="lp-fcard">
-        <span class="material-symbols-rounded">payments</span>
-        <h3>{% trans "Pagos trazables" %}</h3>
-        <p>{% trans "Flujos de pago mock y preparación para integraciones con pasarelas profesionales." %}</p>
-      </div>
-      <div class="lp-fcard">
-        <span class="material-symbols-rounded">qr_code_2</span>
-        <h3>{% trans "Pre-registro" %}</h3>
-        <p>{% trans "Experiencias de registro y roles separados para compradores y vendedores." %}</p>
-      </div>
-      <div class="lp-fcard">
-        <span class="material-symbols-rounded">monitoring</span>
-        <h3>{% trans "Analítica" %}</h3>
-        <p>{% trans "Paneles para administración y vendedores con métricas operativas y comerciales." %}</p>
+      <div class="lp-hero-stat">
+        <strong data-lp-count="180" data-lp-count-suffix="+">0</strong>
+        <span>{% trans "Países compradores" %}</span>
       </div>
     </div>
   </div>
 </section>
-{% if productos_carrusel %}
-<section class="lp-showcase" aria-labelledby="lp-showcase-heading">
-  <div class="lp-showcase-inner">
-    <div class="lp-showcase-intro">
-      <h2 id="lp-showcase-heading" class="lp-sec-title">{% trans "TradeFlow en vitrina: productos reales de la ZLC" %}</h2>
-      <p class="lp-showcase-lead">
-        {% trans "TradeFlow Colón es la plataforma que digitaliza el comercio de la Zona Libre de Colón: reunimos empresas verificadas, precios claros y pedidos trazables para compradores que buscan proveedores serios y para vendedores que quieren escalar sin fricción." %}
-      </p>
-      <ul class="lp-showcase-list">
-        <li>{% trans "Catálogo conectado a empresas registradas en el ecosistema ZLC." %}</li>
-        <li>{% trans "Stock y categorías visibles para generar confianza antes del primer pedido." %}</li>
-        <li>{% trans "Registro por rol (comprador / vendedor) para mantener experiencias claras y seguras." %}</li>
-      </ul>
-      <div class="lp-showcase-actions">
-        <a href="{% url 'signup' %}" class="lp-btn-primary" style="display:inline-flex;">
-          <span class="material-symbols-rounded" style="font-size:18px;">shopping_bag_speed</span>
-          {% trans "Crear cuenta y comprar" %}
-        </a>
-        <a href="{% url 'signup' %}" class="tf-btn-secondary" style="padding:10px 18px;display:inline-flex;align-items:center;gap:8px;">
-          <span class="material-symbols-rounded" style="font-size:18px;">storefront</span>
-          {% trans "Publicar mi catálogo" %}
-        </a>
-      </div>
+
+<section class="lp-section lp-carousel-section" aria-labelledby="lp-carousel-title">
+  <div class="lp-container">
+    <div class="lp-sec-head reveal">
+      <h2 id="lp-carousel-title" class="lp-title-serif">{% trans "Empresas y proceso en la ZLC" %}</h2>
+      <p>{% trans "Conoce vendedores verificados y el flujo de compra B2B en cuatro pasos." %}</p>
     </div>
-    <div class="lp-carousel-shell" data-lp-carousel data-lp-autoplay-ms="5200">
-      <button type="button" class="lp-cr-nav" data-lp-cr-prev aria-label="{% trans 'Productos anteriores' %}">
-        <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+    <div class="lp-carousel reveal" id="lp-carousel" data-lp-autoplay-ms="4000">
+      <button type="button" class="lp-carousel-btn lp-carousel-btn--prev" id="lp-carousel-prev" aria-label="{% trans 'Anterior' %}">
+        <span class="material-symbols-rounded">chevron_left</span>
       </button>
-      <div class="lp-carousel-viewport-wrap">
-      <div class="lp-carousel-viewport" tabindex="0" role="region" aria-roledescription="{% trans 'Carrusel' %}" aria-label="{% trans 'Productos destacados de TradeFlow' %}">
-        <div class="lp-carousel-track">
-          {% for producto in productos_carrusel %}
-          <article class="lp-cr-slide">
-            <div class="lp-cr-img">
-              {% if producto.image %}
-              <img src="{{ producto.image.url }}" alt="{{ producto.name }}" loading="lazy" width="400" height="220">
-              {% else %}
-              <span class="material-symbols-rounded" style="font-size:48px;color:#D1D5DB;">inventory_2</span>
-              {% endif %}
-            </div>
-            <div class="lp-cr-body">
-              <div class="lp-cr-cat">{% if producto.category %}{{ producto.category.name }}{% else %}{% trans "General" %}{% endif %}</div>
-              <h3 class="lp-cr-name">{{ producto.name }}</h3>
-              <div class="lp-cr-com">{{ producto.company.name }}</div>
-              <div class="lp-cr-foot">
-                <span class="lp-cr-price">{{ producto.currency }} {{ producto.unit_price }}</span>
-                <a href="{% url 'signup' %}" class="lp-cr-cta">
-                  <span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span>
-                  {% trans "Empezar con este tipo de oferta" %}
-                </a>
-              </div>
-            </div>
-          </article>
+      <div class="lp-carousel-viewport">
+        <div class="lp-carousel-track" id="lp-carousel-track">
+          {% for emp in empresas_carousel %}
+          <div class="lp-carousel-slide">
+            <article class="lp-carousel-card lp-carousel-card--empresa">
+              <div class="lp-emp-avatar">{{ emp.name|slice:":1"|upper }}</div>
+              <h3>{{ emp.name }}</h3>
+              <p>{% blocktrans count n=emp.num_productos %}{{ n }} producto activo{% plural %}{{ n }} productos activos{% endblocktrans %}</p>
+            </article>
+          </div>
           {% endfor %}
+          <div class="lp-carousel-slide">
+            <article class="lp-carousel-card lp-carousel-card--step">
+              <span class="lp-step-num">{% trans "Paso" %} 1</span>
+              <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
+              <h3>{% trans "Crea tu cuenta" %}</h3>
+              <p>{% trans "Regístrate como comprador en minutos y accede al catálogo ZLC." %}</p>
+            </article>
+          </div>
+          <div class="lp-carousel-slide">
+            <article class="lp-carousel-card lp-carousel-card--step">
+              <span class="lp-step-num">{% trans "Paso" %} 2</span>
+              <span class="material-symbols-rounded" aria-hidden="true">search</span>
+              <h3>{% trans "Explora el catálogo" %}</h3>
+              <p>{% trans "Filtra por categoría, empresa o SKU con stock en tiempo real." %}</p>
+            </article>
+          </div>
+          <div class="lp-carousel-slide">
+            <article class="lp-carousel-card lp-carousel-card--step">
+              <span class="lp-step-num">{% trans "Paso" %} 3</span>
+              <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
+              <h3>{% trans "Realiza tu pedido" %}</h3>
+              <p>{% trans "Carrito, checkout y trazabilidad de estados en un solo lugar." %}</p>
+            </article>
+          </div>
+          <div class="lp-carousel-slide">
+            <article class="lp-carousel-card lp-carousel-card--step">
+              <span class="lp-step-num">{% trans "Paso" %} 4</span>
+              <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
+              <h3>{% trans "Recibe tu mercancía" %}</h3>
+              <p>{% trans "Seguimiento de envíos y documentación alineada a exportación." %}</p>
+            </article>
+          </div>
         </div>
       </div>
-      </div>
-      <button type="button" class="lp-cr-nav" data-lp-cr-next aria-label="{% trans 'Productos siguientes' %}">
-        <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+      <button type="button" class="lp-carousel-btn lp-carousel-btn--next" id="lp-carousel-next" aria-label="{% trans 'Siguiente' %}">
+        <span class="material-symbols-rounded">chevron_right</span>
       </button>
+      <div class="lp-carousel-dots" id="lp-carousel-dots" role="tablist" aria-label="{% trans 'Diapositivas del carrusel' %}"></div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-section lp-features-section" aria-labelledby="lp-features-title">
+  <div class="lp-container">
+    <div class="lp-sec-head reveal">
+      <h2 id="lp-features-title" class="lp-title-serif">{% trans "Por qué TradeFlow" %}</h2>
+    </div>
+    <div class="lp-fgrid">
+      <article class="lp-fcard reveal stagger-1">
+        <span class="material-symbols-rounded" aria-hidden="true">travel_explore</span>
+        <h3>{% trans "Compra sin viajar" %}</h3>
+        <p>{% trans "Accede a la ZLC desde cualquier país con información clara de cada vendedor." %}</p>
+      </article>
+      <article class="lp-fcard reveal stagger-2">
+        <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+        <h3>{% trans "Inventario en tiempo real" %}</h3>
+        <p>{% trans "Stock y reservas integrados para evitar ventas duplicadas." %}</p>
+      </article>
+      <article class="lp-fcard reveal stagger-3">
+        <span class="material-symbols-rounded" aria-hidden="true">description</span>
+        <h3>{% trans "Documentos aduaneros" %}</h3>
+        <p>{% trans "Base para facturas y listas de empaque en procesos de exportación." %}</p>
+      </article>
+      <article class="lp-fcard reveal stagger-4">
+        <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+        <h3>{% trans "Pago seguro" %}</h3>
+        <p>{% trans "Flujos trazables y preparación para pasarelas profesionales." %}</p>
+      </article>
+      <article class="lp-fcard reveal stagger-5">
+        <span class="material-symbols-rounded" aria-hidden="true">qr_code_scanner</span>
+        <h3>{% trans "Pre-registro QR" %}</h3>
+        <p>{% trans "Experiencias de registro y roles separados para compradores y vendedores." %}</p>
+      </article>
+      <article class="lp-fcard reveal stagger-6">
+        <span class="material-symbols-rounded" aria-hidden="true">analytics</span>
+        <h3>{% trans "Analítica avanzada" %}</h3>
+        <p>{% trans "Métricas operativas y comerciales para tomar mejores decisiones." %}</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="lp-section lp-timeline-section" id="lp-como-funciona" aria-labelledby="lp-timeline-title">
+  <div class="lp-container">
+    <div class="lp-sec-head reveal">
+      <h2 id="lp-timeline-title" class="lp-title-serif">{% trans "Cómo funciona" %}</h2>
+      <p>{% trans "Cuatro pasos para comprar en la Zona Libre de Colón con TradeFlow." %}</p>
+    </div>
+    <div class="lp-timeline" id="lp-timeline">
+      <div class="lp-timeline-line reveal" id="lp-timeline-line" aria-hidden="true">
+        <svg viewBox="0 0 1000 3" preserveAspectRatio="none"><path d="M0 1.5 H1000"></path></svg>
+      </div>
+      <div class="lp-tstep reveal-left stagger-1">
+        <div class="lp-tstep-circle">1</div>
+        <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
+        <h3>{% trans "Crea tu cuenta" %}</h3>
+        <p>{% trans "Registro rápido como comprador B2B." %}</p>
+      </div>
+      <div class="lp-tstep reveal stagger-2">
+        <div class="lp-tstep-circle">2</div>
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <h3>{% trans "Explora el catálogo" %}</h3>
+        <p>{% trans "Busca por categoría, empresa o SKU." %}</p>
+      </div>
+      <div class="lp-tstep reveal-right stagger-3">
+        <div class="lp-tstep-circle">3</div>
+        <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
+        <h3>{% trans "Realiza tu pedido" %}</h3>
+        <p>{% trans "Checkout con estados y trazabilidad." %}</p>
+      </div>
+      <div class="lp-tstep reveal stagger-4">
+        <div class="lp-tstep-circle">4</div>
+        <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
+        <h3>{% trans "Recibe tu mercancía" %}</h3>
+        <p>{% trans "Seguimiento y documentación de envío." %}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if productos %}
+<section class="lp-section lp-products-section" aria-labelledby="lp-products-title">
+  <div class="lp-container">
+    <div class="lp-sec-head reveal">
+      <h2 id="lp-products-title" class="lp-title-serif">{% trans "Productos destacados" %}</h2>
+      <p>{% trans "Una muestra del catálogo disponible al registrarte." %}</p>
+    </div>
+    <div class="lp-pgrid">
+      {% for producto in productos %}
+      <article class="lp-pcard reveal stagger-{{ forloop.counter }}">
+        <div class="lp-pimg-wrap">
+          {% if producto.image %}
+          <img src="{{ producto.image.url }}" alt="{{ producto.name }}" loading="lazy">
+          {% else %}
+          <span class="material-symbols-rounded" style="font-size:48px;color:#D1D5DB;" aria-hidden="true">inventory_2</span>
+          {% endif %}
+          <div class="lp-poverlay">
+            <a href="{% url 'signup' %}">{% trans "Ver producto" %}</a>
+          </div>
+        </div>
+        <div class="lp-pbody">
+          <div class="lp-pname">{{ producto.name }}</div>
+          <div class="lp-pprice">{{ producto.currency }} {{ producto.unit_price }}</div>
+        </div>
+      </article>
+      {% endfor %}
     </div>
   </div>
 </section>
 {% endif %}
-<section class="lp-cta">
+
+<section class="lp-cta-final" aria-labelledby="lp-cta-title">
+  <div class="lp-cta-final-bg" aria-hidden="true"></div>
   <div class="lp-cta-inner">
-    <h2>{% trans "La Zona Libre está esperándote" %}</h2>
-    <p>{% trans "Únete a la plataforma que digitaliza el comercio de Colón para compradores y empresas." %}</p>
-    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
-      <a href="{% url 'signup' %}" class="lp-btn-primary">
-        <span class="material-symbols-rounded" style="font-size:18px;">person_add</span>
+    <h2 class="lp-cta-title reveal lp-title-serif" id="lp-cta-title">{% trans "La Zona Libre está esperándote" %}</h2>
+    <p class="reveal">{% trans "Únete a la plataforma que digitaliza el comercio de Colón para compradores y empresas." %}</p>
+    <div class="lp-cta-btns reveal">
+      <a href="{% url 'signup' %}" class="lp-btn-shine">
+        <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">person_add</span>
         {% trans "Comenzar ahora" %}
       </a>
-      <a href="{% url 'login' %}" class="lp-btn-outline">{% trans "Ya tengo cuenta" %}</a>
+      <a href="{% url 'login' %}" class="lp-btn-fill-outline">{% trans "Ya tengo cuenta" %}</a>
     </div>
   </div>
 </section>
@@ -952,127 +1128,196 @@ Hero con fondo #0F2A44 forzado (inline + !important).
 {% block extra_js %}
 <script>
 (function () {
-  var root = document.querySelector('[data-lp-carousel]');
-  if (!root) return;
-  var viewport = root.querySelector('.lp-carousel-viewport');
-  var btnPrev = root.querySelector('[data-lp-cr-prev]');
-  var btnNext = root.querySelector('[data-lp-cr-next]');
-  if (!viewport || !btnPrev || !btnNext) return;
+  'use strict';
 
-  var slides = viewport.querySelectorAll('.lp-cr-slide');
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var autoplayMs = parseInt(root.getAttribute('data-lp-autoplay-ms'), 10);
-  if (!autoplayMs || autoplayMs < 2800) autoplayMs = 5200;
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var paused = false;
-  var autoplayTimer = null;
-  var resumeAfterManualTimer = null;
-
-  function slideStep() {
-    var slide = viewport.querySelector('.lp-cr-slide');
-    if (!slide) return Math.round(viewport.clientWidth * 0.85);
-    var gap = 18;
-    try {
-      var track = viewport.querySelector('.lp-carousel-track');
-      if (track && track.children.length > 1) {
-        var s0 = track.children[0].offsetWidth;
-        var s1 = track.children[1].offsetLeft - track.children[0].offsetLeft;
-        gap = Math.max(s1 - s0, 16);
-      }
-    } catch (e) {}
-    return slide.offsetWidth + gap;
+  /* ── Parallax hero background ── */
+  var heroBg = document.getElementById('lp-hero-bg');
+  if (heroBg && !reducedMotion) {
+    window.addEventListener('scroll', function () {
+      var y = window.scrollY * 0.35;
+      heroBg.style.transform = 'translate3d(0, ' + y + 'px, 0)';
+    }, { passive: true });
   }
 
-  function scrollByDir(dir) {
-    var delta = slideStep() * dir;
-    viewport.scrollBy({ left: delta, behavior: reduceMotion ? 'auto' : 'smooth' });
-  }
+  /* ── Ripple en CTAs ── */
+  document.querySelectorAll('[data-lp-ripple]').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      if (reducedMotion) return;
+      var rect = btn.getBoundingClientRect();
+      var ripple = document.createElement('span');
+      ripple.className = 'lp-ripple-span';
+      var size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      btn.appendChild(ripple);
+      setTimeout(function () { ripple.remove(); }, 600);
+    });
+  });
 
-  function maxScroll() {
-    return Math.max(0, viewport.scrollWidth - viewport.clientWidth - 1);
-  }
-
-  function tickAutoplay() {
-    if (paused || document.visibilityState !== 'visible') return;
-    if (slides.length <= 1) return;
-    var mx = maxScroll();
-    if (mx <= 6) return;
-    if (viewport.scrollLeft >= mx - 10) {
-      viewport.scrollTo({ left: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
-    } else {
-      scrollByDir(1);
+  /* ── CountUp ── */
+  function runCountUp(el) {
+    if (el.getAttribute('data-lp-counted')) return;
+    el.setAttribute('data-lp-counted', '1');
+    var end = parseFloat(el.getAttribute('data-lp-count'), 10) || 0;
+    var prefix = el.getAttribute('data-lp-count-prefix') || '';
+    var suffix = el.getAttribute('data-lp-count-suffix') || '';
+    var duration = reducedMotion ? 0 : 1400;
+    var start = 0;
+    var startTime = null;
+    function step(ts) {
+      if (!startTime) startTime = ts;
+      var p = duration ? Math.min((ts - startTime) / duration, 1) : 1;
+      var val = Math.floor(start + (end - start) * p);
+      el.textContent = prefix + val + suffix;
+      if (p < 1) requestAnimationFrame(step);
     }
+    requestAnimationFrame(step);
   }
 
-  function startAutoplay() {
-    stopAutoplay();
-    if (reduceMotion || slides.length <= 1) return;
-    autoplayTimer = window.setInterval(tickAutoplay, autoplayMs);
+  function observeCountUps(root) {
+    if (!root || reducedMotion) {
+      (root || document).querySelectorAll('[data-lp-count]').forEach(function (el) {
+        var end = el.getAttribute('data-lp-count');
+        el.textContent = (el.getAttribute('data-lp-count-prefix') || '') + end + (el.getAttribute('data-lp-count-suffix') || '');
+      });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.querySelectorAll('[data-lp-count]').forEach(runCountUp);
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    io.observe(root);
   }
 
-  function stopAutoplay() {
-    if (autoplayTimer !== null) {
-      window.clearInterval(autoplayTimer);
+  var mockup = document.getElementById('lp-mockup');
+  if (mockup) observeCountUps(mockup);
+  var progress = document.getElementById('lp-mock-progress');
+  if (progress && !reducedMotion) {
+    var pio = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) {
+        progress.classList.add('is-filled');
+        pio.disconnect();
+      }
+    }, { threshold: 0.4 });
+    pio.observe(progress);
+  } else if (progress) {
+    progress.classList.add('is-filled');
+  }
+
+  var stats = document.getElementById('lp-hero-stats');
+  if (stats) observeCountUps(stats);
+
+  /* ── Scroll reveal ── */
+  if (!reducedMotion) {
+    var revealObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          if (entry.target.classList.contains('lp-tstep')) {
+            entry.target.classList.add('visible');
+          }
+        }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .lp-tstep, .lp-cta-title, #lp-timeline-line').forEach(function (el) {
+      revealObs.observe(el);
+    });
+  } else {
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .lp-tstep, .lp-cta-title').forEach(function (el) {
+      el.classList.add('visible');
+    });
+    var tl = document.getElementById('lp-timeline-line');
+    if (tl) tl.classList.add('visible');
+    if (progress) progress.classList.add('is-filled');
+  }
+
+  /* ── Carrusel ── */
+  var carousel = document.getElementById('lp-carousel');
+  var track = document.getElementById('lp-carousel-track');
+  if (carousel && track) {
+    var slides = track.querySelectorAll('.lp-carousel-slide');
+    var currentSlide = 0;
+    var autoplayMs = parseInt(carousel.getAttribute('data-lp-autoplay-ms'), 10) || 4000;
+    var autoplayTimer = null;
+    var dotsRoot = document.getElementById('lp-carousel-dots');
+
+    function slidesPerView() {
+      if (window.innerWidth <= 575) return 1;
+      if (window.innerWidth <= 991) return 2;
+      return 3;
+    }
+
+    function maxIndex() {
+      return Math.max(0, slides.length - slidesPerView());
+    }
+
+    function goTo(idx) {
+      currentSlide = Math.max(0, Math.min(idx, maxIndex()));
+      var slideEl = slides[0];
+      var step = slideEl ? slideEl.getBoundingClientRect().width : 0;
+      track.style.transform = 'translateX(-' + (currentSlide * step) + 'px)';
+      if (dotsRoot) {
+        dotsRoot.querySelectorAll('.lp-carousel-dot').forEach(function (dot, i) {
+          dot.classList.toggle('is-active', i === currentSlide);
+          dot.setAttribute('aria-selected', i === currentSlide ? 'true' : 'false');
+        });
+      }
+    }
+
+    function nextSlide() { goTo(currentSlide + 1 > maxIndex() ? 0 : currentSlide + 1); }
+    function prevSlide() { goTo(currentSlide - 1 < 0 ? maxIndex() : currentSlide - 1); }
+
+    if (dotsRoot) {
+      for (var d = 0; d <= maxIndex(); d++) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'lp-carousel-dot' + (d === 0 ? ' is-active' : '');
+        dot.setAttribute('role', 'tab');
+        dot.setAttribute('aria-label', 'Slide ' + (d + 1));
+        dot.setAttribute('aria-selected', d === 0 ? 'true' : 'false');
+        (function (index) {
+          dot.addEventListener('click', function () { goTo(index); resetAutoplay(); });
+        })(d);
+        dotsRoot.appendChild(dot);
+      }
+    }
+
+    function startAutoplay() {
+      if (reducedMotion) return;
+      stopAutoplay();
+      autoplayTimer = setInterval(nextSlide, autoplayMs);
+    }
+    function stopAutoplay() {
+      if (autoplayTimer) clearInterval(autoplayTimer);
       autoplayTimer = null;
     }
-  }
-
-  function bumpManualPause() {
-    paused = true;
-    stopAutoplay();
-    window.clearTimeout(resumeAfterManualTimer);
-    resumeAfterManualTimer = window.setTimeout(function () {
-      paused = false;
+    function resetAutoplay() {
+      stopAutoplay();
       startAutoplay();
-    }, 4200);
-  }
+    }
 
-  root.addEventListener('mouseenter', function () {
-    paused = true;
-    stopAutoplay();
-  });
-  root.addEventListener('mouseleave', function () {
-    paused = false;
+    var prevBtn = document.getElementById('lp-carousel-prev');
+    var nextBtn = document.getElementById('lp-carousel-next');
+    if (prevBtn) prevBtn.addEventListener('click', function () { prevSlide(); resetAutoplay(); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { nextSlide(); resetAutoplay(); });
+
+    carousel.addEventListener('mouseenter', stopAutoplay);
+    carousel.addEventListener('mouseleave', startAutoplay);
+    carousel.addEventListener('focusin', stopAutoplay);
+    carousel.addEventListener('focusout', startAutoplay);
+
+    window.addEventListener('resize', function () { goTo(Math.min(currentSlide, maxIndex())); });
+
+    goTo(0);
     startAutoplay();
-  });
-  root.addEventListener('focusin', function () {
-    paused = true;
-    stopAutoplay();
-  });
-  root.addEventListener('focusout', function (ev) {
-    if (!root.contains(ev.relatedTarget)) {
-      paused = false;
-      startAutoplay();
-    }
-  });
-
-  document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'visible') startAutoplay();
-    else stopAutoplay();
-  });
-
-  btnPrev.addEventListener('click', function () {
-    bumpManualPause();
-    scrollByDir(-1);
-  });
-  btnNext.addEventListener('click', function () {
-    bumpManualPause();
-    scrollByDir(1);
-  });
-
-  viewport.addEventListener('keydown', function (ev) {
-    if (ev.key === 'ArrowLeft') {
-      ev.preventDefault();
-      bumpManualPause();
-      scrollByDir(-1);
-    } else if (ev.key === 'ArrowRight') {
-      ev.preventDefault();
-      bumpManualPause();
-      scrollByDir(1);
-    }
-  });
-
-  startAutoplay();
+  }
 })();
 </script>
 {% endblock %}
