@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 {% load static %}
 {% load i18n %}
 {% comment %}
@@ -5,10 +6,10 @@
 templates/core/base.html — TradeFlow Colón
 Propósito: plantilla maestra (navbar, footer, flash, sistema de diseño global).
 Contexto: Django 4.2 + Bootstrap 5 CDN + Inter + Material Symbols Rounded.
-Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
+CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle.html
+(sin <link> a /static/css/*.css) para evitar regresiones por estáticos ausentes.
 ================================================================================
 {% endcomment %}
-<!DOCTYPE html>
 {% get_current_language as CURRENT_LANGUAGE %}
 <html lang="{{ CURRENT_LANGUAGE }}">
 <head>
@@ -23,7 +24,180 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
   <style>
+    /* ═══════════════════════════════════════════════════════════════════════════
+       BLINDAJE — utilidades críticas (evita regresión de estilos)
+       ═══════════════════════════════════════════════════════════════════════════ */
+
+    .tf-breadcrumb-secondary { display: none !important; }
+
+    body > p:first-of-type a[href*="mi-tienda"],
+    body > p:first-of-type a[href*="dashboard"] {
+      display: none !important;
+    }
+
+    .btn-tf {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: var(--tf-radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      border: none;
+      cursor: pointer;
+      text-decoration: none !important;
+      transition: all 0.2s;
+      white-space: nowrap;
+      position: relative;
+      z-index: 1;
+    }
+    .btn-tf + .btn-tf { margin-left: 8px; }
+    .btn-primary-tf {
+      background: var(--tf-orange);
+      color: #fff !important;
+    }
+    .btn-primary-tf:hover {
+      background: var(--tf-orange-h);
+      color: #fff !important;
+      transform: translateY(-1px);
+    }
+    .btn-secondary-tf {
+      background: transparent;
+      color: var(--tf-navy) !important;
+      border: 1.5px solid var(--tf-border);
+    }
+    .btn-secondary-tf:hover {
+      background: var(--tf-light);
+      border-color: var(--tf-navy);
+    }
+
+    .tf-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 991px) { .tf-metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 575px) { .tf-metrics-grid { grid-template-columns: 1fr; } }
+
+    .tf-metric-card {
+      background: var(--tf-white);
+      border-radius: var(--tf-radius);
+      border: 1px solid var(--tf-border);
+      padding: 20px 24px;
+      box-shadow: var(--tf-shadow);
+    }
+    .tf-metric-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--tf-muted);
+      margin-bottom: 8px;
+    }
+    .tf-metric-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--tf-navy);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .tf-metric-sub { font-size: 12px; color: var(--tf-muted); }
+
+    .tf-table-container {
+      background: var(--tf-white);
+      border-radius: var(--tf-radius);
+      border: 1px solid var(--tf-border);
+      overflow: hidden;
+    }
+    .tf-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .tf-table thead th {
+      background: #F9FAFB;
+      padding: 12px 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--tf-muted);
+      text-align: left;
+      border-bottom: 1px solid var(--tf-border);
+    }
+    .tf-table tbody td {
+      padding: 14px 20px;
+      border-bottom: 1px solid #F3F4F6;
+      font-size: 13px;
+      color: #374151;
+      vertical-align: middle;
+    }
+    .tf-table tbody tr:last-child td { border-bottom: none; }
+    .tf-table tbody tr:hover { background: #FAFAFA; }
+    .tf-table-img {
+      width: 56px !important;
+      height: 56px !important;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .badge-pending   { background: #FEF3C7; color: #92400E; }
+    .badge-paid      { background: #DBEAFE; color: #1E40AF; }
+    .badge-packed    { background: #E0E7FF; color: #3730A3; }
+    .badge-shipped   { background: #D1FAE5; color: #065F46; }
+    .badge-delivered { background: #D1FAE5; color: #065F46; }
+    .badge-cancelled { background: #FEE2E2; color: #991B1B; }
+    .badge-active    { background: #D1FAE5; color: #065F46; }
+    .badge-inactive  { background: #FEE2E2; color: #991B1B; }
+
+    .tf-page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    .tf-page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .tf-page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--tf-navy);
+      margin: 0;
+      line-height: 1.2;
+    }
+    .tf-page-subtitle {
+      font-size: 14px;
+      color: var(--tf-muted);
+      margin: 4px 0 0;
+    }
+
+    .tf-alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: var(--tf-radius-sm);
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .tf-alert-success { background: #ECFDF5; border: 1px solid #6EE7B7; color: #065F46; }
+    .tf-alert-danger { background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; }
+    .tf-alert-info { background: #EFF6FF; border: 1px solid #93C5FD; color: #1E40AF; }
+
     :root {
+      --tf-mid: #1B3B63;
+      --tf-radius: 12px;
+      --tf-radius-sm: 8px;
+      --tf-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
+      --tf-shadow-lg: 0 8px 24px rgba(15, 42, 68, 0.15);
       --tf-navy: #0F2A44;
       --tf-navy-mid: #1B3B63;
       --tf-blue: #2E5B8A;
@@ -131,9 +305,11 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       color: var(--tf-orange);
     }
 
-    /* ----- Navbar (padding lateral responsive; alineado al resto del layout público) ----- */
+    /* ----- Navbar (.tf-nav + .tf-navbar): blindaje + padding lateral responsive ----- */
+    .tf-nav.tf-navbar,
+    .tf-navbar.tf-nav,
     .tf-nav {
-      background: var(--tf-navy);
+      background: var(--tf-navy) !important;
       height: 64px;
       padding: 0 clamp(1rem, 4vw, 2.5rem);
       display: flex;
@@ -191,20 +367,20 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       align-items: center;
       font-size: 0.875rem;
       font-weight: 500;
-      color: rgba(255, 255, 255, 0.85);
+      color: rgba(255, 255, 255, 0.85) !important;
       padding: 8px 12px 10px;
       border-radius: var(--tf-radius-btn);
-      text-decoration: none;
+      text-decoration: none !important;
       border-bottom: 2px solid transparent;
       transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
       white-space: nowrap;
     }
     .tf-nav-links a.nav-link-tf:hover {
-      color: var(--tf-white);
+      color: var(--tf-white) !important;
       background: rgba(255, 255, 255, 0.06);
     }
     .tf-nav-links a.nav-link-tf.active {
-      color: #ffffff;
+      color: #ffffff !important;
       border-bottom-color: var(--tf-orange);
     }
 
@@ -567,13 +743,13 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
     .tf-badge-st-delivered { background: #d1fae5; color: #065f46; }
     .tf-badge-st-cancelled { background: #fee2e2; color: #991b1b; }
 
-    /* ----- Footer (tema claro: texto oscuro sobre fondo gris) ----- */
+    /* ----- Footer (tema oscuro marca) ----- */
     .tf-footer {
-      background: #f2f3f5;
-      color: var(--tf-body);
-      padding: 3rem 1.5rem 1.5rem;
+      background: var(--tf-navy);
+      color: rgba(255, 255, 255, 0.65);
+      padding: 40px 32px 24px;
       margin-top: auto;
-      border-top: 1px solid var(--tf-border);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
     .tf-footer-grid {
       max-width: 1160px;
@@ -592,16 +768,16 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 1.15rem;
-      color: var(--tf-navy);
+      color: #ffffff;
     }
     .tf-footer-lead {
       font-size: 0.875rem;
       margin-top: 10px;
       line-height: 1.6;
-      color: var(--tf-muted);
+      color: rgba(255, 255, 255, 0.65);
     }
     .tf-footer a {
-      color: var(--tf-body);
+      color: rgba(255, 255, 255, 0.78);
       text-decoration: none;
       font-size: 0.8125rem;
       transition: color 0.2s ease;
@@ -612,7 +788,7 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--tf-muted);
+      color: rgba(255, 255, 255, 0.5);
       margin-bottom: 10px;
     }
     .tf-footer-links { display: flex; flex-direction: column; gap: 8px; }
@@ -620,9 +796,9 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       max-width: 1160px;
       margin: 1.5rem auto 0;
       padding-top: 1rem;
-      border-top: 1px solid var(--tf-border);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
       font-size: 0.75rem;
-      color: var(--tf-muted);
+      color: rgba(255, 255, 255, 0.55);
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
@@ -719,6 +895,8 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
       }
     }
 
+    {% include "core/includes/static_css_bundle.html" %}
+
     {% block extra_css %}{% endblock %}
   </style>
 </head>
@@ -731,7 +909,7 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
        data-cart-count="{% firstof carrito_count 0 %}"></div>
   {% endif %}
 
-  <nav class="tf-nav" aria-label="Principal">
+  <nav class="tf-nav tf-navbar" aria-label="Principal">
     <a href="{% url 'home' %}" class="tf-nav-brand">
       <img src="{% static 'img/logo.png' %}" width="36" height="36" alt="">
       <div>
