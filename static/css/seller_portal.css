@@ -43,7 +43,7 @@
 
 .seller-main {
   min-width: 0;
-  padding: 2rem 1.5rem;
+  padding: clamp(2.35rem, 5vw, 3.5rem) 1.5rem clamp(2rem, 4vw, 3rem);
   max-width: 1160px;
   margin: 0 auto;
   box-sizing: border-box;
@@ -254,6 +254,17 @@ table.seller-table a:hover {
   padding: 1.75rem;
   max-width: 760px;
   box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
+  transition:
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .seller-form-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(15, 42, 68, 0.12);
+  }
 }
 
 .seller-form-actions {
