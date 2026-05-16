@@ -19,8 +19,16 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
+import base64
+import html as html_module
+import io
 import json
 import logging
+
+import folium
+import qrcode
+from folium.plugins import MarkerCluster
+from django.core import signing
 
 from .decorators import admin_required, buyer_required, seller_required
 from .forms import SellerProductForm, SellerInventoryForm
@@ -33,6 +41,120 @@ from .utils.email_sender import enviar_cambio_estado, enviar_confirmacion_orden
 from .utils.pdf_generator import generar_factura_pdf
 
 log = logging.getLogger(__name__)
+
+
+def _normalize_dashboard_dias(raw):
+    """
+    Normaliza el período de gráficos del panel admin a 7, 30 o 90 días.
+
+    Args:
+        raw: Valor leído de query string (``días`` o ``periodo``), o None.
+
+    Returns:
+        int: 7, 30 o 90.
+    """
+    try:
+        d = int(raw)
+    except (TypeError, ValueError):
+        d = 7
+    if d not in (7, 30, 90):
+        d = 7
+    return d
+
+
+def _parse_dashboard_dias(request):
+    """
+    Lee ``dias`` o, si falta, ``periodo`` (compatibilidad) del request GET.
+
+    Args:
+        request: HttpRequest.
+
+    Returns:
+        int: Días normalizados (7, 30 o 90).
+    """
+    raw = request.GET.get('dias')
+    if raw is None:
+        raw = request.GET.get('periodo')
+    return _normalize_dashboard_dias(raw)
+
+
+def _build_dashboard_charts_payload(dias, now=None):
+    """
+    Construye etiquetas y series diarias para Chart.js y conteos por estado.
+
+    Por cada día natural (desde hace ``dias`` días hasta hoy, inclusive):
+    ``ordenes_por_dia`` cuenta órdenes creadas ese día; ``ingresos_por_dia``
+    suma ``Order.total`` de órdenes creadas ese día excluyendo canceladas.
+
+    ``estados_data`` agrupa órdenes **creadas** en la ventana de ``dias``:
+    ``paid`` incluye estados ``paid`` y ``packed`` para alinear la dona con
+    los cinco estados pedidos en especificación (pending, paid, shipped,
+    delivered, cancelled).
+
+    Args:
+        dias: Número de días calendario (7, 30 o 90).
+        now: Momento de referencia (por defecto ``timezone.now()``).
+
+    Returns:
+        dict: ``chart_labels``, ``ordenes_por_dia`` (list[int]),
+        ``ingresos_por_dia`` (list[float]), ``estados_data`` (dict),
+        ``dias`` (int).
+    """
+    if now is None:
+        now = timezone.now()
+
+    dias = _normalize_dashboard_dias(dias)
+    weekday_es = ('Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom')
+
+    chart_labels = []
+    ordenes_por_dia = []
+    ingresos_por_dia = []
+
+    for i in range(dias):
+        day = (now - timedelta(days=dias - 1 - i)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        day_next = day + timedelta(days=1)
+        if dias == 7:
+            chart_labels.append(weekday_es[day.weekday()])
+        else:
+            chart_labels.append(day.strftime('%d/%m'))
+
+        ordenes_por_dia.append(
+            Order.objects.filter(
+                created_at__gte=day, created_at__lt=day_next
+            ).count()
+        )
+        ing = (
+            Order.objects.filter(
+                created_at__gte=day, created_at__lt=day_next
+            )
+            .exclude(status='cancelled')
+            .aggregate(t=Sum('total'))['t']
+            or Decimal('0')
+        )
+        ingresos_por_dia.append(float(ing))
+
+    window_start = (now - timedelta(days=dias - 1)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    qs = Order.objects.filter(created_at__gte=window_start)
+    by_status = {row['status']: row['c'] for row in qs.values('status').annotate(c=Count('id'))}
+    estados_data = {
+        'pending':   by_status.get('pending', 0),
+        'paid':      by_status.get('paid', 0) + by_status.get('packed', 0),
+        'shipped':   by_status.get('shipped', 0),
+        'delivered': by_status.get('delivered', 0),
+        'cancelled': by_status.get('cancelled', 0),
+    }
+
+    return {
+        'chart_labels':    chart_labels,
+        'ordenes_por_dia': ordenes_por_dia,
+        'ingresos_por_dia': ingresos_por_dia,
+        'estados_data':    estados_data,
+        'dias':            dias,
+    }
 
 
 def _period_delta_pct(current, previous):
@@ -182,36 +304,239 @@ def home_view(request):
     return render(request, 'core/home.html', {'productos': productos})
 
 
+# ── Sal firmado para QR de visitante ZLC (pre-registro) ─────────────────────
+_QR_SALT = 'tradeflow.zlc.visitante'
+
+
+def mapa_zlc(request):
+    """
+    Mapa interactivo (Leaflet vía Folium) de empresas registradas en la ZLC.
+
+    Centro en Zona Libre de Colón (9.3667, -79.9000). Cada empresa es un
+    marcador dentro de un cluster; color naranja si verificada y gris si no.
+    El popup incluye nombre, categorías de productos activos, conteo y enlace
+    al catálogo filtrado por empresa.
+
+    Args:
+        request: HttpRequest.
+
+    Returns:
+        HttpResponse: Plantilla con HTML del mapa embebido.
+    """
+    m = folium.Map(location=[9.3667, -79.9000], zoom_start=13, tiles='OpenStreetMap')
+    cluster = MarkerCluster(name='Empresas ZLC').add_to(m)
+    empresas = Company.objects.annotate(
+        n_activos=Count('products', filter=Q(products__is_active=True))
+    ).order_by('name')
+
+    for c in empresas:
+        lat = float(c.latitud) if c.latitud is not None else 9.3667
+        lng = float(c.longitud) if c.longitud is not None else -79.9000
+        cats = Category.objects.filter(
+            products__company=c, products__is_active=True
+        ).distinct()[:12]
+        cat_txt = ', '.join(x.name for x in cats) or '—'
+        nombre = html_module.escape(c.name)
+        cat_txt_e = html_module.escape(cat_txt)
+        catalog_url = request.build_absolute_uri(
+            reverse('tienda') + '?empresa=' + str(c.pk)
+        )
+        catalog_url_e = html_module.escape(catalog_url)
+        html_popup = (
+            '<div style="min-width:220px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.45;">'
+            f'<strong style="color:#0F2A44;">{nombre}</strong><br>'
+            f'<span style="color:#6B7A88;">Productos activos:</span> {c.n_activos}<br>'
+            f'<span style="color:#6B7A88;">Categorías:</span> {cat_txt_e}<br>'
+            f'<a href="{catalog_url_e}" target="_blank" rel="noopener noreferrer" '
+            'style="display:inline-block;margin-top:10px;padding:8px 14px;background:#F26522;'
+            'color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.85rem;">'
+            'Ver catálogo</a></div>'
+        )
+        icon_color = 'orange' if c.is_verified else 'gray'
+        folium.Marker(
+            location=[lat, lng],
+            popup=folium.Popup(html_popup, max_width=340),
+            tooltip=nombre,
+            icon=folium.Icon(color=icon_color),
+        ).add_to(cluster)
+
+    map_html = m._repr_html_()
+    return render(request, 'core/mapa_zlc.html', {
+        'map_html':       map_html,
+        'titulo_pagina':  'Mapa ZLC',
+        'nav_activo':     'mapa_zlc',
+    })
+
+
+def visitante_zlc_verificacion(request):
+    """
+    Pantalla pública de verificación leyendo el token ``t`` firmado en la query.
+
+    Muestra nombre, usuario y correo del comprador asociado al QR si el token
+    es válido y no ha expirado.
+
+    Args:
+        request: HttpRequest (GET con ``t``).
+
+    Returns:
+        HttpResponse: Detalle o mensaje de error.
+    """
+    token = (request.GET.get('t') or '').strip()
+    if not token:
+        return render(
+            request,
+            'core/visitante_zlc_verificacion.html',
+            {'error': 'Enlace incompleto o no válido.'},
+            status=400,
+        )
+    try:
+        payload = signing.loads(token, salt=_QR_SALT, max_age=60 * 60 * 24 * 365 * 3)
+        uid = int(payload['uid'])
+        subject = User.objects.select_related('profile').get(pk=uid, is_active=True)
+    except (
+        signing.BadSignature,
+        signing.SignatureExpired,
+        User.DoesNotExist,
+        KeyError,
+        TypeError,
+        ValueError,
+    ):
+        return render(
+            request,
+            'core/visitante_zlc_verificacion.html',
+            {'error': 'Código expirado o alterado. Solicita un nuevo QR en TradeFlow.'},
+            status=404,
+        )
+
+    profile = getattr(subject, 'profile', None)
+    return render(
+        request,
+        'core/visitante_zlc_verificacion.html',
+        {'error': None, 'subject': subject, 'profile': profile},
+    )
+
+
+def _visitante_qr_verify_url(request) -> str:
+    """Construye la URL absoluta firmada que se incrusta en el PNG del QR."""
+    from urllib.parse import urlencode
+
+    token = signing.dumps({'uid': request.user.pk}, salt=_QR_SALT)
+    base = request.build_absolute_uri(reverse('visitante_zlc_verificacion'))
+    return base + '?' + urlencode({'t': token})
+
+
+def _qr_png_bytes(payload: str) -> bytes:
+    """Genera imagen PNG del código QR con el texto o URL dado."""
+    qr = qrcode.QRCode(version=None, box_size=8, border=2)
+    qr.add_data(payload)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color='#0F2A44', back_color='#FFFFFF')
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    return buf.getvalue()
+
+
+@login_required
+def mi_qr(request):
+    """
+    Página del comprador con el QR grande, instrucciones y enlace de descarga.
+
+    El QR apunta a la URL de verificación firmada para agilizar ingreso o
+    validaciones en la Zona Libre de Colón.
+
+    Args:
+        request: HttpRequest (usuario autenticado).
+
+    Returns:
+        HttpResponse: Plantilla ``mi_qr.html``.
+    """
+    verify_url = _visitante_qr_verify_url(request)
+    png = _qr_png_bytes(verify_url)
+    b64 = base64.b64encode(png).decode('ascii')
+    profile = getattr(request.user, 'profile', None)
+    return render(request, 'core/mi_qr.html', {
+        'verify_url':     verify_url,
+        'qr_data_uri':    'data:image/png;base64,' + b64,
+        'generated_at':   timezone.now(),
+        'profile':        profile,
+        'titulo_pagina':  'Mi código QR ZLC',
+        'nav_activo':     'mi_qr',
+    })
+
+
+@login_required
+def generar_qr_visitante(request):
+    """
+    Devuelve la imagen PNG del QR de visitante para descargar o incrustar.
+
+    Args:
+        request: HttpRequest.
+
+    Returns:
+        HttpResponse: ``image/png`` con ``Content-Disposition: attachment``.
+    """
+    verify_url = _visitante_qr_verify_url(request)
+    png = _qr_png_bytes(verify_url)
+    resp = HttpResponse(png, content_type='image/png')
+    resp['Content-Disposition'] = 'attachment; filename="tradeflow-zlc-qr.png"'
+    return resp
+
+
 # =============================================================================
 # DASHBOARD (solo admin)
 # =============================================================================
 
 @admin_required
+def api_dashboard_stats(request):
+    """
+    Devuelve JSON con series diarias y conteos por estado para el dashboard admin.
+
+    Se usa con ``fetch`` desde el template para cambiar 7 / 30 / 90 días sin
+    recargar la página. Solo administradores autenticados.
+
+    Query parameters:
+        dias: 7, 30 o 90 (opcional; por defecto 7).
+
+    Returns:
+        JsonResponse: ``chart_labels``, ``ordenes_por_dia``, ``ingresos_por_dia``,
+        ``estados_data``, ``dias``.
+    """
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    dias = _normalize_dashboard_dias(request.GET.get('dias'))
+    payload = _build_dashboard_charts_payload(dias)
+    return JsonResponse(payload)
+
+
+@admin_required
 def dashboard(request):
     """
-    Panel de administración con KPIs, selector de período y gráficos Chart.js
-    alimentados con datos reales del ORM.
+    Panel de administración con KPIs, selector de período (7 / 30 / 90 días) y
+    gráficos Chart.js alimentados con datos reales del ORM.
 
-    Incluye serie diaria de ingresos (órdenes entregadas) y conteo de órdenes
-    creadas, distribución B2B/B2C en el período, actividad reciente y comparación
-    frente al período anterior de la misma duración.
+    Variables de gráficos en contexto (además de JSON para el cliente):
+    ``ordenes_por_dia``, ``ingresos_por_dia``, ``estados_data`` y
+    ``chart_labels``, derivadas de :func:`_build_dashboard_charts_payload`.
+
+    El parámetro GET ``dias`` (o ``periodo`` por compatibilidad) controla la
+    ventana de KPIs y la carga inicial de los gráficos; cambios posteriores
+    usan :func:`api_dashboard_stats` vía JavaScript.
     """
     hoy = timezone.now()
-    try:
-        periodo = int(request.GET.get('periodo', 7))
-    except (TypeError, ValueError):
-        periodo = 7
-    if periodo not in (7, 30, 90):
-        periodo = 7
+    dias = _parse_dashboard_dias(request)
 
-    inicio_actual = hoy - timedelta(days=periodo)
-    inicio_anterior = hoy - timedelta(days=periodo * 2)
+    first_day = (hoy - timedelta(days=dias - 1)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    inicio_actual = first_day
+    inicio_anterior = first_day - timedelta(days=dias)
+    inicio_prev_end = first_day
 
     total_ordenes = Order.objects.count()
     ordenes_semana = Order.objects.filter(created_at__gte=inicio_actual).count()
     ordenes_periodo_prev = Order.objects.filter(
         created_at__gte=inicio_anterior,
-        created_at__lt=inicio_actual,
+        created_at__lt=inicio_prev_end,
     ).count()
 
     ingresos_total = Order.objects.filter(status='delivered').aggregate(t=Sum('total'))['t'] or Decimal('0')
@@ -221,7 +546,7 @@ def dashboard(request):
     ingresos_periodo_prev = Order.objects.filter(
         status='delivered',
         created_at__gte=inicio_anterior,
-        created_at__lt=inicio_actual,
+        created_at__lt=inicio_prev_end,
     ).aggregate(t=Sum('total'))['t'] or Decimal('0')
 
     total_productos = Product.objects.filter(is_active=True).count()
@@ -233,7 +558,7 @@ def dashboard(request):
     clientes_periodo_prev = (
         Order.objects.filter(
             created_at__gte=inicio_anterior,
-            created_at__lt=inicio_actual,
+            created_at__lt=inicio_prev_end,
         )
         .values('buyer')
         .distinct()
@@ -250,38 +575,22 @@ def dashboard(request):
     tasa_periodo = round(Decimal(100) * del_cur / tot_cur, 1) if tot_cur else Decimal('0')
     tot_prev = Order.objects.filter(
         created_at__gte=inicio_anterior,
-        created_at__lt=inicio_actual,
+        created_at__lt=inicio_prev_end,
     ).count()
     del_prev = Order.objects.filter(
         created_at__gte=inicio_anterior,
-        created_at__lt=inicio_actual,
+        created_at__lt=inicio_prev_end,
         status='delivered',
     ).count()
     tasa_periodo_prev = round(Decimal(100) * del_prev / tot_prev, 1) if tot_prev else Decimal('0')
     tasa_delta_pp = tasa_periodo - tasa_periodo_prev
 
-    # --- Series diarias (últimos N días dentro del período; máx. 31 puntos) ---
-    n_chart = min(periodo, 31)
-    chart_labels = []
-    ingresos_por_dia = []
-    ordenes_por_dia = []
-    for i in range(n_chart):
-        day = (hoy - timedelta(days=n_chart - 1 - i)).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        day_next = day + timedelta(days=1)
-        chart_labels.append(day.strftime('%d/%m'))
-        ing = Order.objects.filter(
-            status='delivered',
-            created_at__gte=day,
-            created_at__lt=day_next,
-        ).aggregate(t=Sum('total'))['t'] or Decimal('0')
-        ingresos_por_dia.append(float(ing))
-        ordenes_por_dia.append(
-            Order.objects.filter(created_at__gte=day, created_at__lt=day_next).count()
-        )
+    charts = _build_dashboard_charts_payload(dias, now=hoy)
+    chart_labels = charts['chart_labels']
+    ordenes_por_dia = charts['ordenes_por_dia']
+    ingresos_por_dia = charts['ingresos_por_dia']
+    estados_data = charts['estados_data']
 
-    # --- Proxy importación/exportación: órdenes B2B vs B2C en el período ---
     ordenes_b2b = Order.objects.filter(created_at__gte=inicio_actual, order_type='b2b').count()
     ordenes_b2c = Order.objects.filter(created_at__gte=inicio_actual, order_type='b2c').count()
 
@@ -292,7 +601,6 @@ def dashboard(request):
         last_login__gte=inicio_actual,
     ).count()
 
-    # --- Actividad reciente (órdenes + altas de usuario) ---
     actividad = []
     for o in Order.objects.select_related('buyer').order_by('-created_at')[:8]:
         actividad.append(
@@ -327,9 +635,16 @@ def dashboard(request):
         'total_productos':      total_productos,
         'total_empresas':       total_empresas,
         'ordenes_recientes':    ordenes_recientes,
+        'chart_labels':         chart_labels,
+        'ordenes_por_dia':      ordenes_por_dia,
+        'ingresos_por_dia':     ingresos_por_dia,
+        'estados_data':         estados_data,
         'chart_labels_json':    json.dumps(chart_labels),
-        'ingresos_por_dia_json': json.dumps(ingresos_por_dia),
         'ordenes_por_dia_json': json.dumps(ordenes_por_dia),
+        'ingresos_por_dia_json': json.dumps(ingresos_por_dia),
+        'estados_data_json':    json.dumps(estados_data),
+        'charts_initial_json':  json.dumps(charts),
+        'api_dashboard_stats_url': reverse('api_dashboard_stats'),
         'ordenes_b2b':          ordenes_b2b,
         'ordenes_b2c':          ordenes_b2c,
         'usuarios_plataforma':  usuarios_plataforma,
@@ -342,7 +657,8 @@ def dashboard(request):
         'tasa_periodo':         tasa_periodo,
         'tasa_delta_pp':        tasa_delta_pp,
         'tasa_delta_pp_fmt':    f'{tasa_delta_pp:+.1f}',
-        'periodo_activo':       periodo,
+        'periodo_activo':       dias,
+        'dias_activo':          dias,
         'titulo_pagina':        'Dashboard',
         'nav_activo':           'dashboard',
     }

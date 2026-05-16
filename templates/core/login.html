@@ -1,6 +1,7 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Iniciar sesión — TradeFlow Colón{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Iniciar sesión — TradeFlow Colón" %}{% endblock %}
 {% block footer %}{% endblock %}
 {% block extra_css %}
 <style>
@@ -63,37 +64,37 @@
       <img src="{% static 'img/logo.png' %}" alt="TradeFlow">
       <div>
         <div class="auth-brand">TradeFlow</div>
-        <div class="auth-brand-sub">Zona Libre de Colón · Panamá</div>
+        <div class="auth-brand-sub">{% trans "Zona Libre de Colón · Panamá" %}</div>
       </div>
     </div>
-    <div class="auth-title">Bienvenido de vuelta</div>
-    <div class="auth-toggle" id="auth-login-toggle" role="group" aria-label="Tipo de cuenta">
+    <div class="auth-title">{% trans "Bienvenido de vuelta" %}</div>
+    <div class="auth-toggle" id="auth-login-toggle" role="group" aria-label="{% trans 'Tipo de cuenta' %}">
       <button type="button" id="auth-toggle-customer" class="is-on">
-        <span class="material-symbols-rounded">person</span> Customer
+        <span class="material-symbols-rounded">person</span> {% trans "Cliente" %}
       </button>
       <button type="button" id="auth-toggle-business">
-        <span class="material-symbols-rounded">store</span> Business
+        <span class="material-symbols-rounded">store</span> {% trans "Empresa" %}
       </button>
     </div>
     <form method="post" action="{% url 'login' %}" novalidate>
       {% csrf_token %}
       <div class="auth-field">
-        <label class="tf-label" for="id_username">Usuario</label>
+        <label class="tf-label" for="id_username">{% trans "Usuario" %}</label>
         <span class="field-ico"><span class="material-symbols-rounded">person</span></span>
-        <input type="text" name="username" id="id_username" class="tf-input" placeholder="tu_usuario" autocomplete="username" autofocus required>
+        <input type="text" name="username" id="id_username" class="tf-input" placeholder="{% trans 'tu_usuario' %}" autocomplete="username" autofocus required>
       </div>
       <div class="auth-field">
-        <label class="tf-label" for="id_password">Contraseña</label>
+        <label class="tf-label" for="id_password">{% trans "Contraseña" %}</label>
         <span class="field-ico"><span class="material-symbols-rounded">lock</span></span>
-        <input type="password" name="password" id="id_password" class="tf-input" placeholder="Contraseña" autocomplete="current-password" required>
+        <input type="password" name="password" id="id_password" class="tf-input" placeholder="{% trans 'Contraseña' %}" autocomplete="current-password" required>
       </div>
       <button type="submit" class="auth-submit">
-        <span class="material-symbols-rounded" style="font-size:18px;">login</span> Iniciar sesión
+        <span class="material-symbols-rounded" style="font-size:18px;">login</span> {% trans "Iniciar sesión" %}
       </button>
     </form>
-    <div class="auth-divider">o</div>
+    <div class="auth-divider">{% trans "o" %}</div>
     <div class="auth-footer">
-      ¿No tienes cuenta? <a href="{% url 'signup' %}">Sign up</a>
+      {% trans "¿No tienes cuenta?" %} <a href="{% url 'signup' %}">{% trans "Crear cuenta" %}</a>
     </div>
   </div>
 </div>

@@ -2,15 +2,18 @@
 {% load static %}
 {% comment %}
 ================================================================================
-templates/core/dashboard.html — TradeFlow Colón
-Propósito: panel administrativo con KPIs, gráficos Chart.js con datos reales del ORM,
-           actividad reciente y vista B2B/B2C del período. Estado de órdenes vía JS.
+ACCIÓN: REEMPLAZAR
+DESTINO: templates/core/dashboard.html
+================================================================================
+TradeFlow Colón — Panel admin con KPIs y gráficos Chart.js (datos ORM reales).
+Dependencias: admin_shell.css, admin_rail.js, Chart.js (CDN), api_dashboard_stats.
+Sin comparaciones == en {% if %}; estado de período y gráficos vía JavaScript.
 ================================================================================
 {% endcomment %}
 {% block title %}Dashboard — TradeFlow Colón{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin_shell.css' %}">
@@ -24,10 +27,17 @@ Propósito: panel administrativo con KPIs, gráficos Chart.js con datos reales d
         <h1>Dashboard</h1>
         <p>Bienvenido, <strong>{{ user.first_name|default:user.username }}</strong> — resumen operativo ZLC · {{ total_productos }} productos activos · {{ total_empresas }} empresas</p>
       </div>
-      <div class="adm-pills" id="adm-period-pills" data-current-period="{{ periodo_activo }}">
-        <a href="?periodo=7" class="adm-pill" data-period="7">7 días</a>
-        <a href="?periodo=30" class="adm-pill" data-period="30">30 días</a>
-        <a href="?periodo=90" class="adm-pill" data-period="90">90 días</a>
+      <div
+        class="adm-pills"
+        id="adm-dias-pills"
+        role="group"
+        aria-label="Período de gráficos"
+        data-dias-activo="{{ dias_activo }}"
+        data-api-url="{{ api_dashboard_stats_url }}"
+      >
+        <button type="button" class="adm-pill js-dias-pill" data-dias="7">7 días</button>
+        <button type="button" class="adm-pill js-dias-pill" data-dias="30">30 días</button>
+        <button type="button" class="adm-pill js-dias-pill" data-dias="90">90 días</button>
       </div>
     </div>
     <div class="adm-kpi-grid">
@@ -83,22 +93,23 @@ Propósito: panel administrativo con KPIs, gráficos Chart.js con datos reales d
 
     <div class="adm-charts">
       <div class="adm-chart-card">
-        <div class="adm-chart-title">Ingresos entregados por día (USD)</div>
-        <p class="adm-chart-lead">Suma de totales de órdenes con estado entregado, por día calendario (alineado al filtro superior; máx. 31 puntos).</p>
-        <div style="height:240px;position:relative;"><canvas id="admLineChart"></canvas></div>
+        <div class="adm-chart-title">Órdenes por día</div>
+        <p class="adm-chart-lead">Órdenes creadas por día calendario en el rango seleccionado (eje X: día de la semana en vista 7 días).</p>
+        <div style="height:240px;position:relative;"><canvas id="admBarChart" aria-label="Gráfico de barras de órdenes por día"></canvas></div>
       </div>
       <div class="adm-chart-card">
-        <div class="adm-chart-title">Órdenes creadas por día</div>
-        <p class="adm-chart-lead">Conteo de órdenes nuevas por día (cualquier estado).</p>
-        <div style="height:240px;position:relative;"><canvas id="admBarChart"></canvas></div>
+        <div class="adm-chart-title">Ingresos por día (USD)</div>
+        <p class="adm-chart-lead">Suma de totales de órdenes creadas cada día (excluye canceladas).</p>
+        <div style="height:240px;position:relative;"><canvas id="admLineChart" aria-label="Gráfico de línea de ingresos por día"></canvas></div>
       </div>
     </div>
 
     <div class="adm-lower-grid">
       <div class="adm-chart-card">
-        <div class="adm-chart-title">Mix B2B vs B2C</div>
-        <p class="adm-chart-lead">Distribución de órdenes creadas en el período según tipo de pedido.</p>
-        <div style="height:260px;position:relative;max-width:360px;margin:0 auto;"><canvas id="admDoughnutChart"></canvas></div>
+        <div class="adm-chart-title">Distribución por estado</div>
+        <p class="adm-chart-lead">Órdenes creadas en el período: pendiente, pagado (incl. empacado), enviado, entregado, cancelado.</p>
+        <div style="height:260px;position:relative;max-width:400px;margin:0 auto;"><canvas id="admDoughnutChart" aria-label="Gráfico de dona de estados"></canvas></div>
+        <p id="adm-doughnut-empty" class="adm-chart-lead" style="display:none;text-align:center;padding:1rem 0;margin:0;">No hay órdenes en este período.</p>
       </div>
       <div class="adm-chart-card">
         <div class="adm-chart-title">Actividad reciente</div>
@@ -152,15 +163,9 @@ Propósito: panel administrativo con KPIs, gráficos Chart.js con datos reales d
     </div>
   </div>
 </div>
+<script type="application/json" id="adm-charts-initial">{{ charts_initial_json|safe }}</script>
 <script>
 (function () {
-  var cur = document.getElementById('adm-period-pills');
-  if (cur) {
-    var p = cur.getAttribute('data-current-period') || '7';
-    cur.querySelectorAll('.adm-pill').forEach(function (a) {
-      if (a.getAttribute('data-period') === p) a.classList.add('is-active');
-    });
-  }
   var stMap = {
     pending: { bg: '#fef8e7', fg: '#6b4a00' },
     paid: { bg: '#e8f4f8', fg: '#1a4f65' },
@@ -173,100 +178,189 @@ Propósito: panel administrativo con KPIs, gráficos Chart.js con datos reales d
     var t = stMap[el.getAttribute('data-st')];
     if (t) { el.style.background = t.bg; el.style.color = t.fg; }
   });
-})();
-</script>
-{% endblock %}
-{% block extra_js %}
-<script src="{% static 'js/admin_rail.js' %}"></script>
-<script>
-(function () {
-  var chartLabels = {{ chart_labels_json|safe }};
-  var ingresosDia = {{ ingresos_por_dia_json|safe }};
-  var ordenesDia = {{ ordenes_por_dia_json|safe }};
-  var b2b = {{ ordenes_b2b }};
-  var b2c = {{ ordenes_b2c }};
 
-  var lineCtx = document.getElementById('admLineChart');
-  if (lineCtx && typeof Chart !== 'undefined') {
-    new Chart(lineCtx, {
-      type: 'line',
-      data: {
-        labels: chartLabels,
-        datasets: [{
-          label: 'USD entregados',
-          data: ingresosDia,
-          borderColor: '#F26522',
-          backgroundColor: 'rgba(242,101,34,0.12)',
-          tension: 0.35,
-          fill: true,
-          borderWidth: 2,
-          pointRadius: 3,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { ticks: { font: { size: 10 }, color: '#6B7A88', maxRotation: 45 } },
-          y: {
-            beginAtZero: true,
-            ticks: {
-              font: { size: 10 },
-              color: '#6B7A88',
-              callback: function (value) { return 'US$' + Number(value).toFixed(0); },
-            },
-          },
-        },
-      },
-    });
+  var pillsRoot = document.getElementById('adm-dias-pills');
+  if (!pillsRoot || typeof Chart === 'undefined') return;
+
+  var raw = document.getElementById('adm-charts-initial');
+  var initial = {};
+  try {
+    initial = JSON.parse(raw ? raw.textContent : '{}');
+  } catch (e) {
+    initial = {};
   }
 
   var barCtx = document.getElementById('admBarChart');
-  if (barCtx && typeof Chart !== 'undefined') {
-    var maxO = Math.max.apply(null, ordenesDia.concat([0]));
-    new Chart(barCtx, {
-      type: 'bar',
-      data: {
-        labels: chartLabels,
-        datasets: [{
-          label: 'Órdenes',
-          data: ordenesDia,
-          backgroundColor: '#2E5B8A',
-          borderRadius: 6,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { ticks: { font: { size: 10 }, color: '#6B7A88', maxRotation: 45 } },
-          y: {
-            beginAtZero: true,
-            ticks: {
-              font: { size: 10 },
-              color: '#6B7A88',
-              stepSize: maxO <= 8 ? 1 : undefined,
-              precision: 0,
-            },
-          },
-        },
-      },
+  var lineCtx = document.getElementById('admLineChart');
+  var donutCtx = document.getElementById('admDoughnutChart');
+  var donutEmptyEl = document.getElementById('adm-doughnut-empty');
+
+  var estadoLabels = ['Pendiente', 'Pagado', 'Enviado', 'Entregado', 'Cancelado'];
+  var estadoColors = ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#065F46', '#FEE2E2'];
+  var estadoKeys = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
+
+  function estadosSeries(ed) {
+    return estadoKeys.map(function (k) {
+      return ed && typeof ed[k] === 'number' ? ed[k] : 0;
     });
   }
 
-  var donutCtx = document.getElementById('admDoughnutChart');
-  if (donutCtx && typeof Chart !== 'undefined') {
-    var totalMix = b2b + b2c;
-    if (totalMix > 0) {
-      new Chart(donutCtx, {
+  function sumArr(a) {
+    return a.reduce(function (s, v) { return s + v; }, 0);
+  }
+
+  var barChart = null;
+  var lineChart = null;
+  var doughnutChart = null;
+
+  function applyPayload(payload) {
+    var labels = payload.chart_labels || [];
+    var ordenesDia = payload.ordenes_por_dia || [];
+    var ingresosDia = payload.ingresos_por_dia || [];
+    var ed = payload.estados_data || {};
+
+    if (barChart) {
+      barChart.data.labels = labels;
+      barChart.data.datasets[0].data = ordenesDia;
+      barChart.update();
+    }
+    if (lineChart) {
+      lineChart.data.labels = labels;
+      lineChart.data.datasets[0].data = ingresosDia;
+      lineChart.update();
+    }
+
+    var estVals = estadosSeries(ed);
+    var totalEst = sumArr(estVals);
+    if (donutEmptyEl) {
+      donutEmptyEl.style.display = totalEst > 0 ? 'none' : 'block';
+    }
+    if (donutCtx) {
+      donutCtx.style.display = totalEst > 0 ? 'block' : 'none';
+    }
+    if (totalEst > 0 && donutCtx) {
+      if (doughnutChart) {
+        doughnutChart.data.datasets[0].data = estVals;
+        doughnutChart.update();
+      } else {
+        doughnutChart = new Chart(donutCtx, {
+          type: 'doughnut',
+          data: {
+            labels: estadoLabels,
+            datasets: [{
+              data: estVals,
+              backgroundColor: estadoColors,
+              borderWidth: 2,
+              borderColor: '#fff',
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: '#374151', font: { size: 11 } } },
+            },
+          },
+        });
+      }
+    } else if (doughnutChart) {
+      doughnutChart.destroy();
+      doughnutChart = null;
+    }
+  }
+
+  function createCharts(payload) {
+    var labels = payload.chart_labels || [];
+    var ordenesDia = payload.ordenes_por_dia || [];
+    var ingresosDia = payload.ingresos_por_dia || [];
+    var ed = payload.estados_data || {};
+    var estVals = estadosSeries(ed);
+    var totalEst = sumArr(estVals);
+
+    if (barCtx) {
+      barChart = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Órdenes',
+            data: ordenesDia,
+            backgroundColor: '#F26522',
+            borderRadius: 6,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 10 }, color: '#6B7A88', maxRotation: 45 },
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                font: { size: 10 },
+                color: '#6B7A88',
+                precision: 0,
+              },
+              grid: { color: 'rgba(209,213,219,0.6)' },
+            },
+          },
+        },
+      });
+    }
+
+    if (lineCtx) {
+      lineChart = new Chart(lineCtx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'USD',
+            data: ingresosDia,
+            borderColor: '#0F2A44',
+            backgroundColor: 'rgba(15,42,68,0.1)',
+            tension: 0.35,
+            fill: true,
+            borderWidth: 2,
+            pointRadius: 3,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { size: 10 }, color: '#6B7A88', maxRotation: 45 } },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                font: { size: 10 },
+                color: '#6B7A88',
+                callback: function (value) { return 'US$' + Number(value).toFixed(0); },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    if (donutEmptyEl) {
+      donutEmptyEl.style.display = totalEst > 0 ? 'none' : 'block';
+    }
+    if (donutCtx) {
+      donutCtx.style.display = totalEst > 0 ? 'block' : 'none';
+    }
+    if (donutCtx && totalEst > 0) {
+      doughnutChart = new Chart(donutCtx, {
         type: 'doughnut',
         data: {
-          labels: ['B2B (empresa)', 'B2C (consumidor)'],
+          labels: estadoLabels,
           datasets: [{
-            data: [b2b, b2c],
-            backgroundColor: ['#0F2A44', '#F26522'],
+            data: estVals,
+            backgroundColor: estadoColors,
             borderWidth: 2,
             borderColor: '#fff',
           }],
@@ -279,13 +373,38 @@ Propósito: panel administrativo con KPIs, gráficos Chart.js con datos reales d
           },
         },
       });
-    } else {
-      var p = document.createElement('p');
-      p.style.cssText = 'text-align:center;color:#6B7A88;font-size:0.875rem;padding:2rem 0;margin:0;';
-      p.textContent = 'Sin órdenes en el período para mostrar el mix B2B/B2C.';
-      donutCtx.parentNode.appendChild(p);
     }
   }
+
+  createCharts(initial);
+
+  var diasActivo = pillsRoot.getAttribute('data-dias-activo') || '7';
+  pillsRoot.querySelectorAll('.js-dias-pill').forEach(function (btn) {
+    if (btn.getAttribute('data-dias') === diasActivo) btn.classList.add('is-active');
+  });
+
+  var apiUrl = pillsRoot.getAttribute('data-api-url') || '';
+
+  pillsRoot.querySelectorAll('.js-dias-pill').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var d = btn.getAttribute('data-dias');
+      if (!d || !apiUrl) return;
+      pillsRoot.querySelectorAll('.js-dias-pill').forEach(function (b) { b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+
+      var url = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'dias=' + encodeURIComponent(d);
+      fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!barChart || !lineChart) return;
+          applyPayload(data);
+        })
+        .catch(function () { /* silencioso: el usuario puede recargar */ });
+    });
+  });
 })();
 </script>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/admin_rail.js' %}"></script>
 {% endblock %}

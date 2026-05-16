@@ -8,6 +8,12 @@ from . import views
 
 urlpatterns = [
 
+    # ── Mapa ZLC + QR visitante ─────────────────────────────────────────────
+    path('mapa/', views.mapa_zlc, name='mapa_zlc'),
+    path('visitante/zlc/', views.visitante_zlc_verificacion, name='visitante_zlc_verificacion'),
+    path('mi-qr/', views.mi_qr, name='mi_qr'),
+    path('mi-qr/descargar/', views.generar_qr_visitante, name='descargar_qr'),
+
     # ── Autenticación ─────────────────────────────────────────────────────
     path('login/',   views.login_view,  name='login'),
     path('logout/',  views.logout_view, name='logout'),
@@ -70,6 +76,9 @@ urlpatterns = [
 
     # ── Empresas (admin) ──────────────────────────────────────────────────
     path('empresas/', views.lista_empresas, name='lista_empresas'),
+
+    # ── Dashboard API (Chart.js, sin recarga) ─────────────────────────────
+    path('api/dashboard-stats/', views.api_dashboard_stats, name='api_dashboard_stats'),
 
     # ── API JSON ──────────────────────────────────────────────────────────
     path('api/productos/', views.api_productos, name='api_productos'),

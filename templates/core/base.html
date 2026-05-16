@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 {% comment %}
 ================================================================================
 templates/core/base.html — TradeFlow Colón
@@ -8,7 +9,8 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
 ================================================================================
 {% endcomment %}
 <!DOCTYPE html>
-<html lang="es">
+{% get_current_language as CURRENT_LANGUAGE %}
+<html lang="{{ CURRENT_LANGUAGE }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -190,6 +192,38 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
     .tf-nav-links a.nav-link-tf.active {
       color: #ffffff;
       border-bottom-color: var(--tf-orange);
+    }
+
+    .tf-lang-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 6px;
+    }
+    .tf-lang-switch button {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.88);
+      border-radius: 6px;
+      padding: 4px 9px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .tf-lang-switch button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .tf-lang-switch button.is-active {
+      border-color: var(--tf-orange);
+      color: #fff;
+      background: rgba(242, 101, 34, 0.22);
+    }
+    .tf-lang-sep {
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 0.72rem;
+      user-select: none;
     }
 
     .tf-nav-divider {
@@ -601,6 +635,20 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
     </a>
 
     <div class="tf-nav-links">
+      <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>{% trans "Mapa" %}</a>
+      <div
+        class="tf-lang-switch"
+        id="tf-lang-root"
+        data-current-lang="{{ CURRENT_LANGUAGE }}"
+      >
+        <form action="{% url 'set_language' %}" method="post" style="display:inline-flex;align-items:center;gap:4px;margin:0;">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" name="language" value="es">ES</button>
+          <span class="tf-lang-sep">|</span>
+          <button type="submit" name="language" value="en">EN</button>
+        </form>
+      </div>
       {% if request.user.is_authenticated %}
         <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
           <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
@@ -610,8 +658,9 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
         </div>
         <div class="tf-nav-group" id="tf-nav-buyer" data-tf-nav-group="buyer">
           <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Tienda</a>
-          <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>Mis órdenes</a>
-          <a href="{% url 'mis_cotizaciones' %}" class="nav-link-tf" data-tf-nav="mis_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">description</span>Mis cotizaciones</a>
+          <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>{% trans "Mis órdenes" %}</a>
+          <a href="{% url 'mis_cotizaciones' %}" class="nav-link-tf" data-tf-nav="mis_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">description</span>{% trans "Mis cotizaciones" %}</a>
+          <a href="{% url 'mi_qr' %}" class="nav-link-tf" data-tf-nav="mi_qr"><span class="material-symbols-rounded tf-ms-nav">qr_code_2</span>{% trans "Mi QR" %}</a>
           <a href="{% url 'ver_carrito' %}" class="tf-nav-cart" id="tf-nav-cart-link" title="Carrito" data-tf-nav="carrito">
             <span class="material-symbols-rounded">shopping_cart</span>
             <span class="tf-nav-cart-badge" id="tf-nav-cart-badge">0</span>
@@ -638,11 +687,27 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
 
   <script>
   (function () {
+    var langRoot = document.getElementById('tf-lang-root');
+    if (langRoot) {
+      var cl = langRoot.getAttribute('data-current-lang') || 'es';
+      langRoot.querySelectorAll('button[name="language"]').forEach(function (btn) {
+        if (btn.value === cl) btn.classList.add('is-active');
+      });
+    }
+
     var meta = document.getElementById('tf-nav-meta');
+    var navActive = meta ? (meta.getAttribute('data-nav-active') || '') : '';
+
+    document.querySelectorAll('.nav-link-tf[data-tf-nav]').forEach(function (a) {
+      if (a.getAttribute('data-tf-nav') === navActive) a.classList.add('active');
+    });
+    var cartLink = document.getElementById('tf-nav-cart-link');
+    if (cartLink && navActive === 'carrito') cartLink.classList.add('active');
+
     if (!meta) return;
+
     var role = meta.getAttribute('data-role') || '';
     var isSuper = meta.getAttribute('data-superuser') === '1';
-    var navActive = meta.getAttribute('data-nav-active') || '';
     var cartCount = parseInt(meta.getAttribute('data-cart-count') || '0', 10) || 0;
 
     function showGroup(id) {
@@ -656,12 +721,6 @@ Todas las pantallas heredan variables --tf-* , cards, botones, badges de orden.
     } else if (role === 'seller') {
       showGroup('tf-nav-seller');
     }
-
-    document.querySelectorAll('.nav-link-tf[data-tf-nav]').forEach(function (a) {
-      if (a.getAttribute('data-tf-nav') === navActive) a.classList.add('active');
-    });
-    var cartLink = document.getElementById('tf-nav-cart-link');
-    if (cartLink && navActive === 'carrito') cartLink.classList.add('active');
 
     var u = document.querySelector('.tf-nav-user-name');
     var initials = '';
