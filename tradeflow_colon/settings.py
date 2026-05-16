@@ -166,6 +166,8 @@ EMAIL_USE_TLS      = config('EMAIL_USE_TLS',  default=True, cast=bool)
 EMAIL_HOST_USER    = config('EMAIL_HOST_USER',    default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='TradeFlow <no-reply@tradeflow.pa>')
+# URL pública (sin / final) para enlaces en correos: ej. https://tuapp.railway.app o http://127.0.0.1:8000
+PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
 # ── Seguridad en producción ────────────────────────────────────────────────
 # Estas opciones solo se activan cuando DEBUG=False
