@@ -295,13 +295,13 @@ def home_view(request):
     if request.user.is_authenticated:
         return redirect(_redirect_by_role(request.user))
     from .models import Product
-    productos = (
+    productos_carrusel = (
         Product.objects.filter(is_active=True)
         .select_related('company', 'category')
         .defer('company__owner')
-        .order_by('?')[:6]
+        .order_by('-created_at')[:12]
     )
-    return render(request, 'core/home.html', {'productos': productos})
+    return render(request, 'core/home.html', {'productos_carrusel': productos_carrusel})
 
 
 # ── Sal firmado para QR de visitante ZLC (pre-registro) ─────────────────────

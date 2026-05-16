@@ -4,9 +4,9 @@
 {% comment %}
 ================================================================================
 templates/core/home.html — TradeFlow Colón
-Propósito: landing pública (hero, estadísticas, features, productos, CTA).
-Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
-(inline + !important) para evitar que Bootstrap u otros estilos lo anulen.
+Propósito: landing pública (hero, estadísticas, features, carrusel de productos, CTA).
+Contexto: ``productos_carrusel`` desde home_view (activos, orden por fecha).
+Hero con fondo #0F2A44 forzado (inline + !important).
 ================================================================================
 {% endcomment %}
 {% block title %}{% trans "TradeFlow Colón — Compra, gestiona, exporta" %}{% endblock %}
@@ -190,70 +190,157 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
     margin: 0 0 0.5rem;
   }
   .lp-fcard p { font-size: 0.875rem; color: #374151; line-height: 1.65; margin: 0; }
-  .lp-products { padding: 4.5rem 1.5rem; background: #ffffff; }
-  .lp-products-inner { max-width: 1160px; margin: 0 auto; }
-  .lp-phdr {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 2rem;
+  /* Showcase + carrusel de productos (landing pública) */
+  .lp-showcase {
+    padding: clamp(3rem, 5vw, 4.5rem) clamp(1.25rem, 4vw, 2rem);
+    background: linear-gradient(180deg, #ffffff 0%, var(--tf-light, #f2f3f5) 48%, #ffffff 100%);
+    border-top: 1px solid var(--tf-border, #d1d5db);
+    border-bottom: 1px solid var(--tf-border, #d1d5db);
   }
-  .lp-pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
-  @media (max-width: 991px) { .lp-pgrid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 575px) { .lp-pgrid { grid-template-columns: 1fr; } }
-  .lp-pcard {
-    border: 1px solid #d1d5db;
-    border-radius: 12px;
+  .lp-showcase-inner {
+    max-width: 1160px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: clamp(1.75rem, 4vw, 3rem);
+    align-items: stretch;
+  }
+  @media (max-width: 991px) {
+    .lp-showcase-inner { grid-template-columns: 1fr; }
+  }
+  .lp-showcase-intro {
+    padding: clamp(0.5rem, 2vw, 1rem) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+  .lp-showcase-intro .lp-sec-title { margin-bottom: 0; }
+  .lp-showcase-lead {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--tf-muted, #6b7a88);
+    margin: 0;
+  }
+  .lp-showcase-list {
+    margin: 0;
+    padding-left: 1.15rem;
+    color: var(--tf-text, #0f2a44);
+    font-size: 0.9375rem;
+    line-height: 1.65;
+  }
+  .lp-showcase-list li { margin-bottom: 0.5rem; }
+  .lp-showcase-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 0.5rem;
+  }
+  .lp-carousel-shell {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    min-width: 0;
+    padding: 8px 4px;
+  }
+  .lp-carousel-viewport {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scroll-padding-inline: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(46, 91, 138, 0.35) transparent;
+    border-radius: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .lp-carousel-viewport::-webkit-scrollbar { height: 8px; }
+  .lp-carousel-viewport::-webkit-scrollbar-thumb {
+    background: rgba(46, 91, 138, 0.35);
+    border-radius: 8px;
+  }
+  .lp-carousel-track {
+    display: flex;
+    gap: 1.125rem;
+    padding: 10px 8px 14px;
+    min-height: 100%;
+  }
+  .lp-cr-slide {
+    flex: 0 0 min(320px, 82vw);
+    scroll-snap-align: start;
+    border: 1px solid var(--tf-border, #d1d5db);
+    border-radius: 14px;
     overflow: hidden;
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
-    transition: box-shadow 0.2s ease;
+    background: var(--tf-white, #ffffff);
+    box-shadow: 0 4px 18px rgba(15, 42, 68, 0.08);
     display: flex;
     flex-direction: column;
     min-width: 0;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+    animation: lp-cr-rise 0.5s ease backwards;
   }
-  .lp-pcard:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.15); }
-  .lp-pimg {
-    height: 200px;
-    background: #f2f3f5;
+  .lp-cr-slide:nth-child(1) { animation-delay: 0.02s; }
+  .lp-cr-slide:nth-child(2) { animation-delay: 0.07s; }
+  .lp-cr-slide:nth-child(3) { animation-delay: 0.12s; }
+  .lp-cr-slide:nth-child(4) { animation-delay: 0.17s; }
+  .lp-cr-slide:hover {
+    box-shadow: 0 12px 32px rgba(15, 42, 68, 0.14);
+    transform: translateY(-3px);
+  }
+  @keyframes lp-cr-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lp-carousel-viewport { scroll-behavior: auto; }
+    .lp-cr-slide {
+      animation: none;
+      transition: box-shadow 0.2s ease;
+    }
+    .lp-cr-slide:hover { transform: none; }
+  }
+  .lp-cr-img {
+    height: 176px;
+    background: var(--tf-light, #f2f3f5);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
   }
-  .lp-pimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .lp-pbody { padding: 16px; flex: 1; display: flex; flex-direction: column; }
-  .lp-pcat {
+  .lp-cr-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lp-cr-body { padding: 1rem 1.1rem 1.15rem; flex: 1; display: flex; flex-direction: column; }
+  .lp-cr-cat {
     font-size: 0.6875rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #2e5b8a;
+    color: var(--tf-blue, #2e5b8a);
     margin-bottom: 4px;
   }
-  .lp-pname {
+  .lp-cr-name {
     font-family: 'Inter', sans-serif;
     font-weight: 600;
-    font-size: 0.95rem;
-    color: #0f2a44;
-    margin-bottom: 4px;
+    font-size: 0.98rem;
+    color: var(--tf-text, #0f2a44);
+    margin: 0 0 4px;
+    line-height: 1.35;
   }
-  .lp-pcom { font-size: 0.8125rem; color: #6b7a88; margin-bottom: 12px; }
-  .lp-pfoot {
+  .lp-cr-com { font-size: 0.8125rem; color: var(--tf-muted, #6b7a88); margin-bottom: 10px; }
+  .lp-cr-foot {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     margin-top: auto;
   }
-  .lp-pprice {
+  .lp-cr-price {
     font-family: 'Inter', sans-serif;
     font-weight: 700;
-    font-size: 1.1rem;
-    color: #f26522;
+    font-size: 1.08rem;
+    color: var(--tf-orange, #f26522);
   }
-  .lp-padd {
+  .lp-cr-cta {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -265,13 +352,46 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
     font-family: 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.875rem;
-    color: #ffffff;
-    background: #f26522;
+    color: #ffffff !important;
+    background: var(--tf-orange, #f26522);
     text-decoration: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
   }
-  .lp-padd:hover { background: #ff7a3d; color: #ffffff; }
+  .lp-cr-cta:hover {
+    background: var(--tf-orange-light, #ff7a3d);
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(242, 101, 34, 0.35);
+  }
+  .lp-cr-nav {
+    flex-shrink: 0;
+    align-self: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--tf-border, #d1d5db);
+    background: var(--tf-white, #ffffff);
+    color: var(--tf-mid, #1b3b63);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
+  }
+  .lp-cr-nav:hover {
+    background: var(--tf-dark-faint, rgba(15, 42, 68, 0.06));
+    border-color: var(--tf-blue, #2e5b8a);
+  }
+  .lp-cr-nav:active { transform: scale(0.96); }
+  .lp-cr-nav:focus-visible {
+    outline: 2px solid var(--tf-orange, #f26522);
+    outline-offset: 2px;
+  }
+  @media (max-width: 575px) {
+    .lp-carousel-shell { gap: 6px; }
+    .lp-cr-nav { width: 40px; height: 40px; }
+  }
   .lp-cta {
     padding: 4rem 1.5rem;
     background: #ffffff;
@@ -499,37 +619,64 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
     </div>
   </div>
 </section>
-{% if productos %}
-<section class="lp-products">
-  <div class="lp-products-inner">
-    <div class="lp-phdr">
-      <h2 class="lp-sec-title" style="margin:0;">{% trans "Productos destacados" %}</h2>
-      <a href="{% url 'signup' %}" class="tf-btn-secondary" style="padding:10px 18px;">{% trans "Ver catálogo completo" %}</a>
+{% if productos_carrusel %}
+<section class="lp-showcase" aria-labelledby="lp-showcase-heading">
+  <div class="lp-showcase-inner">
+    <div class="lp-showcase-intro">
+      <h2 id="lp-showcase-heading" class="lp-sec-title">{% trans "TradeFlow en vitrina: productos reales de la ZLC" %}</h2>
+      <p class="lp-showcase-lead">
+        {% trans "TradeFlow Colón es la plataforma que digitaliza el comercio de la Zona Libre de Colón: reunimos empresas verificadas, precios claros y pedidos trazables para compradores que buscan proveedores serios y para vendedores que quieren escalar sin fricción." %}
+      </p>
+      <ul class="lp-showcase-list">
+        <li>{% trans "Catálogo conectado a empresas registradas en el ecosistema ZLC." %}</li>
+        <li>{% trans "Stock y categorías visibles para generar confianza antes del primer pedido." %}</li>
+        <li>{% trans "Registro por rol (comprador / vendedor) para mantener experiencias claras y seguras." %}</li>
+      </ul>
+      <div class="lp-showcase-actions">
+        <a href="{% url 'signup' %}" class="lp-btn-primary" style="display:inline-flex;">
+          <span class="material-symbols-rounded" style="font-size:18px;">shopping_bag_speed</span>
+          {% trans "Crear cuenta y comprar" %}
+        </a>
+        <a href="{% url 'signup' %}" class="tf-btn-secondary" style="padding:10px 18px;display:inline-flex;align-items:center;gap:8px;">
+          <span class="material-symbols-rounded" style="font-size:18px;">storefront</span>
+          {% trans "Publicar mi catálogo" %}
+        </a>
+      </div>
     </div>
-    <div class="lp-pgrid">
-      {% for producto in productos %}
-      <article class="lp-pcard">
-        <div class="lp-pimg">
-          {% if producto.image %}
-          <img src="{{ producto.image.url }}" alt="{{ producto.name }}">
-          {% else %}
-          <span class="material-symbols-rounded" style="font-size:48px;color:#D1D5DB;">inventory_2</span>
-          {% endif %}
+    <div class="lp-carousel-shell" data-lp-carousel>
+      <button type="button" class="lp-cr-nav" data-lp-cr-prev aria-label="{% trans 'Productos anteriores' %}">
+        <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+      </button>
+      <div class="lp-carousel-viewport" tabindex="0" role="region" aria-roledescription="{% trans 'Carrusel' %}" aria-label="{% trans 'Productos destacados de TradeFlow' %}">
+        <div class="lp-carousel-track">
+          {% for producto in productos_carrusel %}
+          <article class="lp-cr-slide">
+            <div class="lp-cr-img">
+              {% if producto.image %}
+              <img src="{{ producto.image.url }}" alt="{{ producto.name }}" loading="lazy" width="400" height="220">
+              {% else %}
+              <span class="material-symbols-rounded" style="font-size:48px;color:#D1D5DB;">inventory_2</span>
+              {% endif %}
+            </div>
+            <div class="lp-cr-body">
+              <div class="lp-cr-cat">{% if producto.category %}{{ producto.category.name }}{% else %}{% trans "General" %}{% endif %}</div>
+              <h3 class="lp-cr-name">{{ producto.name }}</h3>
+              <div class="lp-cr-com">{{ producto.company.name }}</div>
+              <div class="lp-cr-foot">
+                <span class="lp-cr-price">{{ producto.currency }} {{ producto.unit_price }}</span>
+                <a href="{% url 'signup' %}" class="lp-cr-cta">
+                  <span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span>
+                  {% trans "Empezar con este tipo de oferta" %}
+                </a>
+              </div>
+            </div>
+          </article>
+          {% endfor %}
         </div>
-        <div class="lp-pbody">
-          <div class="lp-pcat">{% if producto.category.name %}{{ producto.category.name }}{% else %}{% trans "General" %}{% endif %}</div>
-          <div class="lp-pname">{{ producto.name }}</div>
-          <div class="lp-pcom">{{ producto.company.name }}</div>
-          <div class="lp-pfoot">
-            <span class="lp-pprice">{{ producto.currency }} {{ producto.unit_price }}</span>
-            <a href="{% url 'signup' %}" class="lp-padd">
-              <span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span>
-              {% trans "Añadir al carrito" %}
-            </a>
-          </div>
-        </div>
-      </article>
-      {% endfor %}
+      </div>
+      <button type="button" class="lp-cr-nav" data-lp-cr-next aria-label="{% trans 'Productos siguientes' %}">
+        <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+      </button>
     </div>
   </div>
 </section>
@@ -547,4 +694,52 @@ Contexto: datos de productos desde home_view. Hero con fondo #0F2A44 forzado
     </div>
   </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var root = document.querySelector('[data-lp-carousel]');
+  if (!root) return;
+  var viewport = root.querySelector('.lp-carousel-viewport');
+  var btnPrev = root.querySelector('[data-lp-cr-prev]');
+  var btnNext = root.querySelector('[data-lp-cr-next]');
+  if (!viewport || !btnPrev || !btnNext) return;
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function slideStep() {
+    var slide = viewport.querySelector('.lp-cr-slide');
+    if (!slide) return Math.round(viewport.clientWidth * 0.85);
+    var gap = 18;
+    try {
+      var track = viewport.querySelector('.lp-carousel-track');
+      if (track && track.children.length > 1) {
+        var s0 = track.children[0].offsetWidth;
+        var s1 = track.children[1].offsetLeft - track.children[0].offsetLeft;
+        gap = Math.max(s1 - s0, 16);
+      }
+    } catch (e) {}
+    return slide.offsetWidth + gap;
+  }
+
+  function scrollByDir(dir) {
+    var delta = slideStep() * dir;
+    viewport.scrollBy({ left: delta, behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+
+  btnPrev.addEventListener('click', function () { scrollByDir(-1); });
+  btnNext.addEventListener('click', function () { scrollByDir(1); });
+
+  viewport.addEventListener('keydown', function (ev) {
+    if (ev.key === 'ArrowLeft') {
+      ev.preventDefault();
+      scrollByDir(-1);
+    } else if (ev.key === 'ArrowRight') {
+      ev.preventDefault();
+      scrollByDir(1);
+    }
+  });
+})();
+</script>
 {% endblock %}
