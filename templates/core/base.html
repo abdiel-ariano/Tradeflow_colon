@@ -221,6 +221,20 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       --tf-shadow-card-hover: 0 8px 24px rgba(15, 42, 68, 0.15);
       --tf-shadow-nav: 0 1px 0 #D1D5DB;
       --tf-shadow-btn-primary: 0 4px 12px rgba(242, 101, 34, 0.3);
+      --tf-motion-fast: 0.18s;
+      --tf-motion-med: 0.28s;
+      --tf-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes tf-soft-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Fondos oscuros (landing hero): título legible frente a reglas globales de h1. */
@@ -291,13 +305,13 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       color: var(--tf-orange);
     }
 
-    /* ----- Navbar (.tf-nav + .tf-navbar blindaje) ----- */
+    /* ----- Navbar (.tf-nav + .tf-navbar): blindaje + padding lateral responsive ----- */
     .tf-nav.tf-navbar,
     .tf-navbar.tf-nav,
     .tf-nav {
       background: var(--tf-navy) !important;
       height: 64px;
-      padding: 0 1.5rem;
+      padding: 0 clamp(1rem, 4vw, 2.5rem);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -616,7 +630,13 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       border: none;
       cursor: pointer;
       text-decoration: none;
-      transition: all 0.2s ease;
+      transition:
+        background var(--tf-motion-med) ease,
+        color var(--tf-motion-med) ease,
+        border-color var(--tf-motion-med) ease,
+        box-shadow var(--tf-motion-med) ease,
+        transform var(--tf-motion-fast) var(--tf-motion-ease),
+        filter var(--tf-motion-fast) ease;
     }
     .tf-btn-primary {
       background: var(--tf-orange);
@@ -655,7 +675,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       background: var(--tf-white);
       border: 1.5px solid var(--tf-border);
       border-radius: var(--tf-radius-input);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition:
+        border-color var(--tf-motion-med) ease,
+        box-shadow var(--tf-motion-med) ease,
+        background var(--tf-motion-fast) ease;
       outline: none;
     }
     .tf-input:focus {
@@ -671,9 +694,33 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       border-radius: var(--tf-radius-card);
       padding: 1.5rem;
       box-shadow: var(--tf-shadow-card);
-      transition: box-shadow 0.2s ease;
+      transition:
+        box-shadow var(--tf-motion-med) var(--tf-motion-ease),
+        transform var(--tf-motion-med) var(--tf-motion-ease),
+        border-color var(--tf-motion-fast) ease;
     }
-    .tf-card:hover { box-shadow: var(--tf-shadow-card-hover); }
+    .tf-card:hover {
+      box-shadow: var(--tf-shadow-card-hover);
+    }
+
+    main.tf-main .form-control {
+      transition:
+        border-color var(--tf-motion-med) ease,
+        box-shadow var(--tf-motion-med) ease,
+        background-color var(--tf-motion-fast) ease;
+    }
+
+    .form-card {
+      background: var(--tf-white);
+      border: 1px solid var(--tf-border);
+      border-radius: var(--tf-radius-card);
+      padding: clamp(1.35rem, 3.5vw, 1.85rem);
+      box-shadow: var(--tf-shadow-card);
+      transition:
+        box-shadow var(--tf-motion-med) var(--tf-motion-ease),
+        transform var(--tf-motion-med) var(--tf-motion-ease),
+        border-color var(--tf-motion-fast) ease;
+    }
 
     /* ----- Badges (estado de orden — paleta oficial) ----- */
     .tf-badge {
@@ -765,12 +812,12 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       color: var(--tf-body);
     }
 
-    /* Formularios y bloques centrados (evita formularios pegados a una esquina) */
+    /* Formularios y bloques centrados — más aire respecto al navbar (sticky 64px) */
     .tf-centered-page {
       max-width: 1100px;
       margin-left: auto;
       margin-right: auto;
-      padding: 1.5rem 1.25rem 3rem;
+      padding: clamp(2.35rem, 6.5vw, 4rem) clamp(1.25rem, 4vw, 2rem) clamp(2.5rem, 5vw, 4rem);
       width: 100%;
       box-sizing: border-box;
     }
@@ -787,6 +834,65 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       margin-right: auto;
       width: 100%;
       box-sizing: border-box;
+      padding-top: clamp(2rem, 5vw, 3.25rem);
+      padding-bottom: clamp(2rem, 5vw, 4rem);
+    }
+
+    /* Dentro del portal vendedor el seller-main ya aporta aire superior */
+    .seller-main .tf-centered-form-wide {
+      padding-top: 0;
+      padding-bottom: clamp(1rem, 3vw, 2rem);
+    }
+      .tf-centered-page,
+      .seller-layout .seller-main,
+      .cot-form-page,
+      main.tf-main > .tf-centered-form-wide,
+      main.tf-main > .cot-list-page,
+      main.tf-main > .cot-doc,
+      main.tf-main > .map-zlc-wrap,
+      main.tf-main > .mo-wrap,
+      main.tf-main > .c-wrap,
+      main.tf-main > .co-wrap {
+        animation: tf-soft-in 0.44s var(--tf-motion-ease) both;
+      }
+
+      .auth-page .auth-card {
+        animation: tf-soft-in 0.46s var(--tf-motion-ease) both;
+      }
+
+      .tf-card:hover,
+      .form-card:hover {
+        transform: translateY(-3px);
+      }
+
+      .tf-btn:active {
+        transform: scale(0.985);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tf-centered-page,
+      .seller-layout .seller-main,
+      .cot-form-page,
+      main.tf-main > .tf-centered-form-wide,
+      main.tf-main > .cot-list-page,
+      main.tf-main > .cot-doc,
+      main.tf-main > .map-zlc-wrap,
+      main.tf-main > .mo-wrap,
+      main.tf-main > .c-wrap,
+      main.tf-main > .co-wrap,
+      .auth-page .auth-card {
+        animation: none !important;
+      }
+
+      .tf-card:hover,
+      .form-card:hover {
+        transform: none;
+      }
+
+      .tf-btn:active {
+        transform: none;
+      }
     }
 
     {% include "core/includes/static_css_bundle.html" %}
