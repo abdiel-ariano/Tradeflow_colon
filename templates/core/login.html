@@ -9,11 +9,11 @@
     min-height: calc(100vh - 64px);
     width: 100%;
     box-sizing: border-box;
-    background: #F2F3F5;
+    background: var(--tf-light, #F2F3F5);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: clamp(2.5rem, 10vh, 4.5rem) 1rem;
+    padding: 48px 24px;
   }
   .auth-card {
     width: 100%;
@@ -94,7 +94,7 @@
     </form>
     <div class="auth-divider">{% trans "o" %}</div>
     <div class="auth-footer">
-      {% trans "¿No tienes cuenta?" %} <a href="{% url 'signup' %}">{% trans "Crear cuenta" %}</a>
+      {% trans "¿No tienes cuenta?" %} <a href="{% url 'signup' %}">{% trans "Regístrate gratis" %}</a>
     </div>
   </div>
 </div>

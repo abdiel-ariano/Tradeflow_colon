@@ -925,23 +925,29 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         id="tf-lang-root"
         data-current-lang="{{ CURRENT_LANGUAGE }}"
       >
-        <form action="{% url 'set_language' %}" method="post" style="display:inline-flex;align-items:center;gap:4px;margin:0;">
+        <form action="{% url 'set_language' %}" method="post" id="language-form" style="display:inline-flex;align-items:center;gap:4px;margin:0;">
           {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <button type="submit" name="language" value="es">ES</button>
+          <input type="hidden" name="next" id="language-next" value="{{ request.path }}">
+          <button type="submit" name="language" value="es" id="btn-es"
+                  style="padding:4px 10px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:rgba(255,255,255,0.8);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;">
+            ES
+          </button>
           <span class="tf-lang-sep">|</span>
-          <button type="submit" name="language" value="en">EN</button>
+          <button type="submit" name="language" value="en" id="btn-en"
+                  style="padding:4px 10px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:rgba(255,255,255,0.8);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;">
+            EN
+          </button>
         </form>
       </div>
       {% if request.user.is_authenticated %}
         <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
-          <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
-          <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>Órdenes</a>
-          <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Productos</a>
-          <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>Empresas</a>
+          <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>{% trans "Dashboard" %}</a>
+          <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>{% trans "Órdenes" %}</a>
+          <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>{% trans "Productos" %}</a>
+          <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>{% trans "Empresas" %}</a>
         </div>
         <div class="tf-nav-group" id="tf-nav-buyer" data-tf-nav-group="buyer">
-          <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Tienda</a>
+          <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>{% trans "Tienda" %}</a>
           <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>{% trans "Mis órdenes" %}</a>
           <a href="{% url 'mis_cotizaciones' %}" class="nav-link-tf" data-tf-nav="mis_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">description</span>{% trans "Mis cotizaciones" %}</a>
           <a href="{% url 'mi_qr' %}" class="nav-link-tf" data-tf-nav="mi_qr"><span class="material-symbols-rounded tf-ms-nav">qr_code_2</span>{% trans "Mi QR" %}</a>
@@ -951,32 +957,41 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           </a>
         </div>
         <div class="tf-nav-group" id="tf-nav-seller" data-tf-nav-group="seller">
-          <a href="{% url 'portal_seller' %}" class="nav-link-tf" data-tf-nav="mi_tienda"><span class="material-symbols-rounded tf-ms-nav">store</span>Mi panel</a>
-          <a href="{% url 'seller_mis_productos' %}" class="nav-link-tf" data-tf-nav="seller_productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Productos</a>
-          <a href="{% url 'seller_mis_ventas' %}" class="nav-link-tf" data-tf-nav="seller_ventas"><span class="material-symbols-rounded tf-ms-nav">payments</span>Mis ventas</a>
+          <a href="{% url 'portal_seller' %}" class="nav-link-tf" data-tf-nav="mi_tienda"><span class="material-symbols-rounded tf-ms-nav">store</span>{% trans "Mi Panel" %}</a>
+          <a href="{% url 'seller_mis_productos' %}" class="nav-link-tf" data-tf-nav="seller_productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>{% trans "Productos" %}</a>
+          <a href="{% url 'seller_mis_ventas' %}" class="nav-link-tf" data-tf-nav="seller_ventas"><span class="material-symbols-rounded tf-ms-nav">payments</span>{% trans "Mis ventas" %}</a>
           <a href="{% url 'seller_cotizaciones' %}" class="nav-link-tf" data-tf-nav="seller_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">request_quote</span>Cotizaciones</a>
         </div>
         <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
-        <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
-        <span class="tf-nav-user-name">{{ request.user.first_name|default:request.user.username }}</span>
+        <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+          <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
+          <span class="tf-nav-user-name" style="color:rgba(255,255,255,0.8);font-size:13px;">{{ request.user.first_name|default:request.user.username }}</span>
+        </a>
         <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
-          <span class="material-symbols-rounded tf-ms-18">logout</span>Salir
+          <span class="material-symbols-rounded tf-ms-18">logout</span>{% trans "Salir" %}
         </a>
       {% else %}
-        <a href="{% url 'login' %}" class="tf-btn-outline-sm">Iniciar sesión</a>
-        <a href="{% url 'signup' %}" class="tf-btn-primary-sm">Crear cuenta</a>
+        <a href="{% url 'login' %}" class="tf-btn-outline-sm">{% trans "Iniciar sesión" %}</a>
+        <a href="{% url 'signup' %}" class="tf-btn-primary-sm">{% trans "Crear cuenta" %}</a>
       {% endif %}
     </div>
   </nav>
 
   <script>
   (function () {
-    var langRoot = document.getElementById('tf-lang-root');
-    if (langRoot) {
-      var cl = langRoot.getAttribute('data-current-lang') || 'es';
-      langRoot.querySelectorAll('button[name="language"]').forEach(function (btn) {
-        if (btn.value === cl) btn.classList.add('is-active');
-      });
+    var lang = document.documentElement.lang || 'es';
+    var activeBtn = document.getElementById('btn-' + lang);
+    if (activeBtn) {
+      activeBtn.style.background = '#F26522';
+      activeBtn.style.borderColor = '#F26522';
+      activeBtn.style.color = '#fff';
+    }
+    var nextInput = document.getElementById('language-next');
+    if (nextInput) {
+      var path = window.location.pathname;
+      path = path.replace(/^\/(en|es)\//, '/');
+      if (path.charAt(0) !== '/') path = '/' + path;
+      nextInput.value = path || '/';
     }
 
     var meta = document.getElementById('tf-nav-meta');
@@ -1056,7 +1071,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </script>
   {% endif %}
 
-  <main class="tf-main">
+  <main class="tf-main" style="padding-top: 48px; flex: 1;">
     {% block content %}{% endblock %}
   </main>
 
