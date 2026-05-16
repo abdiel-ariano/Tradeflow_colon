@@ -71,6 +71,9 @@ urlpatterns = [
     # ── Empresas (admin) ──────────────────────────────────────────────────
     path('empresas/', views.lista_empresas, name='lista_empresas'),
 
+    # ── Dashboard API (Chart.js, sin recarga) ─────────────────────────────
+    path('api/dashboard-stats/', views.api_dashboard_stats, name='api_dashboard_stats'),
+
     # ── API JSON ──────────────────────────────────────────────────────────
     path('api/productos/', views.api_productos, name='api_productos'),
 ]

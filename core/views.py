@@ -35,6 +35,120 @@ from .utils.pdf_generator import generar_factura_pdf
 log = logging.getLogger(__name__)
 
 
+def _normalize_dashboard_dias(raw):
+    """
+    Normaliza el período de gráficos del panel admin a 7, 30 o 90 días.
+
+    Args:
+        raw: Valor leído de query string (``días`` o ``periodo``), o None.
+
+    Returns:
+        int: 7, 30 o 90.
+    """
+    try:
+        d = int(raw)
+    except (TypeError, ValueError):
+        d = 7
+    if d not in (7, 30, 90):
+        d = 7
+    return d
+
+
+def _parse_dashboard_dias(request):
+    """
+    Lee ``dias`` o, si falta, ``periodo`` (compatibilidad) del request GET.
+
+    Args:
+        request: HttpRequest.
+
+    Returns:
+        int: Días normalizados (7, 30 o 90).
+    """
+    raw = request.GET.get('dias')
+    if raw is None:
+        raw = request.GET.get('periodo')
+    return _normalize_dashboard_dias(raw)
+
+
+def _build_dashboard_charts_payload(dias, now=None):
+    """
+    Construye etiquetas y series diarias para Chart.js y conteos por estado.
+
+    Por cada día natural (desde hace ``dias`` días hasta hoy, inclusive):
+    ``ordenes_por_dia`` cuenta órdenes creadas ese día; ``ingresos_por_dia``
+    suma ``Order.total`` de órdenes creadas ese día excluyendo canceladas.
+
+    ``estados_data`` agrupa órdenes **creadas** en la ventana de ``dias``:
+    ``paid`` incluye estados ``paid`` y ``packed`` para alinear la dona con
+    los cinco estados pedidos en especificación (pending, paid, shipped,
+    delivered, cancelled).
+
+    Args:
+        dias: Número de días calendario (7, 30 o 90).
+        now: Momento de referencia (por defecto ``timezone.now()``).
+
+    Returns:
+        dict: ``chart_labels``, ``ordenes_por_dia`` (list[int]),
+        ``ingresos_por_dia`` (list[float]), ``estados_data`` (dict),
+        ``dias`` (int).
+    """
+    if now is None:
+        now = timezone.now()
+
+    dias = _normalize_dashboard_dias(dias)
+    weekday_es = ('Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom')
+
+    chart_labels = []
+    ordenes_por_dia = []
+    ingresos_por_dia = []
+
+    for i in range(dias):
+        day = (now - timedelta(days=dias - 1 - i)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        day_next = day + timedelta(days=1)
+        if dias == 7:
+            chart_labels.append(weekday_es[day.weekday()])
+        else:
+            chart_labels.append(day.strftime('%d/%m'))
+
+        ordenes_por_dia.append(
+            Order.objects.filter(
+                created_at__gte=day, created_at__lt=day_next
+            ).count()
+        )
+        ing = (
+            Order.objects.filter(
+                created_at__gte=day, created_at__lt=day_next
+            )
+            .exclude(status='cancelled')
+            .aggregate(t=Sum('total'))['t']
+            or Decimal('0')
+        )
+        ingresos_por_dia.append(float(ing))
+
+    window_start = (now - timedelta(days=dias - 1)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    qs = Order.objects.filter(created_at__gte=window_start)
+    by_status = {row['status']: row['c'] for row in qs.values('status').annotate(c=Count('id'))}
+    estados_data = {
+        'pending':   by_status.get('pending', 0),
+        'paid':      by_status.get('paid', 0) + by_status.get('packed', 0),
+        'shipped':   by_status.get('shipped', 0),
+        'delivered': by_status.get('delivered', 0),
+        'cancelled': by_status.get('cancelled', 0),
+    }
+
+    return {
+        'chart_labels':    chart_labels,
+        'ordenes_por_dia': ordenes_por_dia,
+        'ingresos_por_dia': ingresos_por_dia,
+        'estados_data':    estados_data,
+        'dias':            dias,
+    }
+
+
 def _period_delta_pct(current, previous):
     """
     Texto corto de variación porcentual entre el período actual y el anterior.
@@ -187,31 +301,56 @@ def home_view(request):
 # =============================================================================
 
 @admin_required
+def api_dashboard_stats(request):
+    """
+    Devuelve JSON con series diarias y conteos por estado para el dashboard admin.
+
+    Se usa con ``fetch`` desde el template para cambiar 7 / 30 / 90 días sin
+    recargar la página. Solo administradores autenticados.
+
+    Query parameters:
+        dias: 7, 30 o 90 (opcional; por defecto 7).
+
+    Returns:
+        JsonResponse: ``chart_labels``, ``ordenes_por_dia``, ``ingresos_por_dia``,
+        ``estados_data``, ``dias``.
+    """
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    dias = _normalize_dashboard_dias(request.GET.get('dias'))
+    payload = _build_dashboard_charts_payload(dias)
+    return JsonResponse(payload)
+
+
+@admin_required
 def dashboard(request):
     """
-    Panel de administración con KPIs, selector de período y gráficos Chart.js
-    alimentados con datos reales del ORM.
+    Panel de administración con KPIs, selector de período (7 / 30 / 90 días) y
+    gráficos Chart.js alimentados con datos reales del ORM.
 
-    Incluye serie diaria de ingresos (órdenes entregadas) y conteo de órdenes
-    creadas, distribución B2B/B2C en el período, actividad reciente y comparación
-    frente al período anterior de la misma duración.
+    Variables de gráficos en contexto (además de JSON para el cliente):
+    ``ordenes_por_dia``, ``ingresos_por_dia``, ``estados_data`` y
+    ``chart_labels``, derivadas de :func:`_build_dashboard_charts_payload`.
+
+    El parámetro GET ``dias`` (o ``periodo`` por compatibilidad) controla la
+    ventana de KPIs y la carga inicial de los gráficos; cambios posteriores
+    usan :func:`api_dashboard_stats` vía JavaScript.
     """
     hoy = timezone.now()
-    try:
-        periodo = int(request.GET.get('periodo', 7))
-    except (TypeError, ValueError):
-        periodo = 7
-    if periodo not in (7, 30, 90):
-        periodo = 7
+    dias = _parse_dashboard_dias(request)
 
-    inicio_actual = hoy - timedelta(days=periodo)
-    inicio_anterior = hoy - timedelta(days=periodo * 2)
+    first_day = (hoy - timedelta(days=dias - 1)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    inicio_actual = first_day
+    inicio_anterior = first_day - timedelta(days=dias)
+    inicio_prev_end = first_day
 
     total_ordenes = Order.objects.count()
     ordenes_semana = Order.objects.filter(created_at__gte=inicio_actual).count()
     ordenes_periodo_prev = Order.objects.filter(
         created_at__gte=inicio_anterior,
-        created_at__lt=inicio_actual,
+        created_at__lt=inicio_prev_end,
     ).count()
 
     ingresos_total = Order.objects.filter(status='delivered').aggregate(t=Sum('total'))['t'] or Decimal('0')
@@ -221,7 +360,7 @@ def dashboard(request):
     ingresos_periodo_prev = Order.objects.filter(
         status='delivered',
         created_at__gte=inicio_anterior,
-        created_at__lt=inicio_actual,
+        created_at__lt=inicio_prev_end,
     ).aggregate(t=Sum('total'))['t'] or Decimal('0')
 
     total_productos = Product.objects.filter(is_active=True).count()
@@ -233,7 +372,7 @@ def dashboard(request):
     clientes_periodo_prev = (
         Order.objects.filter(
             created_at__gte=inicio_anterior,
-            created_at__lt=inicio_actual,
+            created_at__lt=inicio_prev_end,
         )
         .values('buyer')
         .distinct()
@@ -250,38 +389,22 @@ def dashboard(request):
     tasa_periodo = round(Decimal(100) * del_cur / tot_cur, 1) if tot_cur else Decimal('0')
     tot_prev = Order.objects.filter(
         created_at__gte=inicio_anterior,
-        created_at__lt=inicio_actual,
+        created_at__lt=inicio_prev_end,
     ).count()
     del_prev = Order.objects.filter(
         created_at__gte=inicio_anterior,
-        created_at__lt=inicio_actual,
+        created_at__lt=inicio_prev_end,
         status='delivered',
     ).count()
     tasa_periodo_prev = round(Decimal(100) * del_prev / tot_prev, 1) if tot_prev else Decimal('0')
     tasa_delta_pp = tasa_periodo - tasa_periodo_prev
 
-    # --- Series diarias (últimos N días dentro del período; máx. 31 puntos) ---
-    n_chart = min(periodo, 31)
-    chart_labels = []
-    ingresos_por_dia = []
-    ordenes_por_dia = []
-    for i in range(n_chart):
-        day = (hoy - timedelta(days=n_chart - 1 - i)).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        day_next = day + timedelta(days=1)
-        chart_labels.append(day.strftime('%d/%m'))
-        ing = Order.objects.filter(
-            status='delivered',
-            created_at__gte=day,
-            created_at__lt=day_next,
-        ).aggregate(t=Sum('total'))['t'] or Decimal('0')
-        ingresos_por_dia.append(float(ing))
-        ordenes_por_dia.append(
-            Order.objects.filter(created_at__gte=day, created_at__lt=day_next).count()
-        )
+    charts = _build_dashboard_charts_payload(dias, now=hoy)
+    chart_labels = charts['chart_labels']
+    ordenes_por_dia = charts['ordenes_por_dia']
+    ingresos_por_dia = charts['ingresos_por_dia']
+    estados_data = charts['estados_data']
 
-    # --- Proxy importación/exportación: órdenes B2B vs B2C en el período ---
     ordenes_b2b = Order.objects.filter(created_at__gte=inicio_actual, order_type='b2b').count()
     ordenes_b2c = Order.objects.filter(created_at__gte=inicio_actual, order_type='b2c').count()
 
@@ -292,7 +415,6 @@ def dashboard(request):
         last_login__gte=inicio_actual,
     ).count()
 
-    # --- Actividad reciente (órdenes + altas de usuario) ---
     actividad = []
     for o in Order.objects.select_related('buyer').order_by('-created_at')[:8]:
         actividad.append(
@@ -327,9 +449,16 @@ def dashboard(request):
         'total_productos':      total_productos,
         'total_empresas':       total_empresas,
         'ordenes_recientes':    ordenes_recientes,
+        'chart_labels':         chart_labels,
+        'ordenes_por_dia':      ordenes_por_dia,
+        'ingresos_por_dia':     ingresos_por_dia,
+        'estados_data':         estados_data,
         'chart_labels_json':    json.dumps(chart_labels),
-        'ingresos_por_dia_json': json.dumps(ingresos_por_dia),
         'ordenes_por_dia_json': json.dumps(ordenes_por_dia),
+        'ingresos_por_dia_json': json.dumps(ingresos_por_dia),
+        'estados_data_json':    json.dumps(estados_data),
+        'charts_initial_json':  json.dumps(charts),
+        'api_dashboard_stats_url': reverse('api_dashboard_stats'),
         'ordenes_b2b':          ordenes_b2b,
         'ordenes_b2c':          ordenes_b2c,
         'usuarios_plataforma':  usuarios_plataforma,
@@ -342,7 +471,8 @@ def dashboard(request):
         'tasa_periodo':         tasa_periodo,
         'tasa_delta_pp':        tasa_delta_pp,
         'tasa_delta_pp_fmt':    f'{tasa_delta_pp:+.1f}',
-        'periodo_activo':       periodo,
+        'periodo_activo':       dias,
+        'dias_activo':          dias,
         'titulo_pagina':        'Dashboard',
         'nav_activo':           'dashboard',
     }
