@@ -1,6 +1,14 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Crear cuenta — TradeFlow Colón{% endblock %}
+{% load i18n %}
+{% comment %}
+================================================================================
+templates/core/signup.html — TradeFlow Colón
+Propósito: registro de compradores y vendedores con selector de rol.
+Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
+================================================================================
+{% endcomment %}
+{% block title %}{% trans "Crear cuenta — TradeFlow Colón" %}{% endblock %}
 {% block footer %}{% endblock %}
 {% block extra_css %}
 <style>
@@ -8,11 +16,11 @@
     min-height: calc(100vh - 64px);
     width: 100%;
     box-sizing: border-box;
-    background: #F2F3F5;
+    background: var(--tf-light, #F2F3F5);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: clamp(2.5rem, 10vh, 4.5rem) 1.25rem;
+    padding: 48px 24px;
   }
   .auth-card {
     width: 100%;
@@ -64,69 +72,67 @@
       <img src="{% static 'img/logo.png' %}" alt="TradeFlow">
       <div>
         <div class="auth-brand">TradeFlow</div>
-        <div class="auth-brand-sub">Zona Libre de Colón · Panamá</div>
+        <div class="auth-brand-sub">{% trans "Zona Libre de Colón · Panamá" %}</div>
       </div>
     </div>
-    <div class="auth-title">Crea tu cuenta</div>
+    <div class="auth-title">{% trans "Crear tu cuenta" %}</div>
     <form method="post" action="{% url 'signup' %}" novalidate>
       {% csrf_token %}
-      <div class="auth-toggle" role="radiogroup" aria-label="Tipo de cuenta">
+      <div class="auth-toggle" role="radiogroup" aria-label="{% trans 'Tipo de cuenta' %}">
         <div class="auth-toggle-cell">
           <input type="radio" name="role" id="r_buyer" value="buyer" checked>
           <label for="r_buyer">
             <span class="material-symbols-rounded">shopping_bag</span>
-            Customer
-            <small>Comprador</small>
+            {% trans "Comprador" %}
           </label>
         </div>
         <div class="auth-toggle-cell">
           <input type="radio" name="role" id="r_seller" value="seller">
           <label for="r_seller">
             <span class="material-symbols-rounded">store</span>
-            Business
-            <small>Vendedor</small>
+            {% trans "Vendedor" %}
           </label>
         </div>
       </div>
       <div class="row-2">
         <div class="tf-field">
-          <label class="tf-label" for="id_first_name">Nombre <span class="req">*</span></label>
-          <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="Nombre" value="{{ request.POST.first_name }}" required>
+          <label class="tf-label" for="id_first_name">{% trans "Nombre" %} <span class="req">*</span></label>
+          <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="{% trans 'Nombre' %}" value="{{ request.POST.first_name }}" required>
         </div>
         <div class="tf-field">
-          <label class="tf-label" for="id_last_name">Apellido</label>
-          <input type="text" name="last_name" id="id_last_name" class="tf-input" placeholder="Apellido" value="{{ request.POST.last_name }}">
+          <label class="tf-label" for="id_last_name">{% trans "Apellido" %}</label>
+          <input type="text" name="last_name" id="id_last_name" class="tf-input" placeholder="{% trans 'Apellido' %}" value="{{ request.POST.last_name }}">
         </div>
       </div>
       <div class="tf-field">
-        <label class="tf-label" for="id_email">Correo <span class="req">*</span></label>
+        <label class="tf-label" for="id_email">{% trans "Correo electrónico" %} <span class="req">*</span></label>
         <input type="email" name="email" id="id_email" class="tf-input" placeholder="correo@ejemplo.com" value="{{ request.POST.email }}" required>
       </div>
       <div class="tf-field">
-        <label class="tf-label" for="id_username">Usuario <span class="req">*</span></label>
-        <input type="text" name="username" id="id_username" class="tf-input" placeholder="usuario" value="{{ request.POST.username }}" required>
+        <label class="tf-label" for="id_username">{% trans "Usuario" %} <span class="req">*</span></label>
+        <input type="text" name="username" id="id_username" class="tf-input" placeholder="{% trans 'Usuario' %}" value="{{ request.POST.username }}" required>
       </div>
       <div class="tf-field">
-        <label class="tf-label" for="id_phone">Teléfono</label>
+        <label class="tf-label" for="id_phone">{% trans "Teléfono" %}</label>
         <input type="tel" name="phone" id="id_phone" class="tf-input" placeholder="+507 6000-0000" value="{{ request.POST.phone }}">
       </div>
       <div class="row-2">
         <div class="tf-field">
-          <label class="tf-label" for="id_password1">Contraseña <span class="req">*</span></label>
-          <input type="password" name="password1" id="id_password1" class="tf-input" placeholder="Mín. 8 caracteres" required>
+          <label class="tf-label" for="id_password1">{% trans "Contraseña" %} <span class="req">*</span></label>
+          <input type="password" name="password1" id="id_password1" class="tf-input" placeholder="{% trans 'Mín. 8 caracteres' %}" required>
         </div>
         <div class="tf-field">
-          <label class="tf-label" for="id_password2">Confirmar <span class="req">*</span></label>
-          <input type="password" name="password2" id="id_password2" class="tf-input" placeholder="Repite" required>
+          <label class="tf-label" for="id_password2">{% trans "Confirmar contraseña" %} <span class="req">*</span></label>
+          <input type="password" name="password2" id="id_password2" class="tf-input" placeholder="{% trans 'Confirmar contraseña' %}" required>
         </div>
       </div>
       <button type="submit" class="auth-submit">
-        <span class="material-symbols-rounded" style="font-size:18px;">person_add</span> Sign up
+        <span class="material-symbols-rounded" style="font-size:18px;">person_add</span> {% trans "Crear cuenta" %}
       </button>
     </form>
-    <div class="auth-divider">o</div>
+    <div class="auth-divider">{% trans "o" %}</div>
     <div class="auth-footer">
-      ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
+      {% trans "¿Ya tienes cuenta?" %} <a href="{% url 'login' %}">{% trans "Iniciar sesión" %}</a>
     </div>
   </div>
 </div>

@@ -290,6 +290,84 @@ def signup_view(request):
     })
 
 
+@login_required
+def mi_perfil(request):
+    """
+    Vista del perfil del usuario autenticado.
+
+    GET: Muestra información actual del perfil.
+    POST: Actualiza nombre, apellido, email y teléfono, o cambia la contraseña.
+
+    Incluye resumen de actividad según rol (buyer, seller, admin).
+    """
+    from django.contrib.auth import update_session_auth_hash
+
+    profile = request.user.profile
+    role = profile.role
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+
+        if action == 'update_info':
+            request.user.first_name = request.POST.get('first_name', '').strip()
+            request.user.last_name = request.POST.get('last_name', '').strip()
+            request.user.email = request.POST.get('email', '').strip()
+            profile.phone = request.POST.get('phone', '').strip()
+            request.user.save()
+            profile.save()
+            messages.success(request, 'Perfil actualizado correctamente.')
+
+        elif action == 'change_password':
+            current = request.POST.get('current_password')
+            new_pass = request.POST.get('new_password')
+            confirm = request.POST.get('confirm_password')
+
+            if not request.user.check_password(current):
+                messages.error(request, 'La contraseña actual es incorrecta.')
+            elif new_pass != confirm:
+                messages.error(request, 'Las contraseñas nuevas no coinciden.')
+            elif len(new_pass or '') < 8:
+                messages.error(request, 'La contraseña debe tener mínimo 8 caracteres.')
+            else:
+                request.user.set_password(new_pass)
+                request.user.save()
+                update_session_auth_hash(request, request.user)
+                messages.success(request, 'Contraseña cambiada exitosamente.')
+
+        return redirect('mi_perfil')
+
+    actividad = {}
+    show_buyer = role == 'buyer'
+    show_seller = role == 'seller'
+    show_admin = role == 'admin' or request.user.is_superuser
+
+    if show_buyer:
+        actividad['total_ordenes'] = Order.objects.filter(buyer=request.user).count()
+        actividad['ultima_orden'] = (
+            Order.objects.filter(buyer=request.user).order_by('-created_at').first()
+        )
+
+    elif show_seller:
+        empresas = Company.objects.filter(owner=request.user)
+        actividad['total_productos'] = Product.objects.filter(
+            company__in=empresas, is_active=True
+        ).count()
+
+    elif show_admin:
+        actividad['total_usuarios'] = User.objects.filter(is_active=True).count()
+        actividad['total_ordenes'] = Order.objects.count()
+
+    return render(request, 'core/mi_perfil.html', {
+        'profile': profile,
+        'actividad': actividad,
+        'titulo_pagina': 'Mi Perfil',
+        'nav_activo': 'perfil',
+        'show_buyer': show_buyer,
+        'show_seller': show_seller,
+        'show_admin': show_admin,
+        'role_key': role,
+    })
+
 
 def home_view(request):
     if request.user.is_authenticated:

@@ -1,12 +1,16 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Checkout — TradeFlow Colón{% endblock %}
+{% load i18n %}
+{% comment %}
+templates/core/checkout.html — confirmación de pedido (comprador).
+{% endcomment %}
+{% block title %}{% trans "Confirmar pedido" %} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .co-wrap {
     max-width: 640px;
     margin: 0 auto;
-    padding: clamp(2.35rem, 6vw, 3.75rem) 1.25rem clamp(2.5rem, 5vw, 4rem);
+    padding: 48px 24px 64px;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -42,7 +46,7 @@
 {% endblock %}
 {% block content %}
 <div class="co-wrap">
-  <h1 class="co-title">Confirmar pedido</h1>
+  <h1 class="co-title">{% trans "Confirmar pedido" %}</h1>
   <div class="co-stack">
     <form method="post" action="{% url 'checkout' %}">
       {% csrf_token %}
@@ -60,7 +64,7 @@
       </div>
     </form>
     <div class="co-card">
-      <div class="co-sec">Resumen</div>
+      <div class="co-sec">{% trans "Resumen" %}</div>
       {% for prod_id, item in carrito.items %}
       <div class="co-line">
         {% if item.imagen %}<img src="{{ item.imagen }}" alt="">{% else %}<div style="width:48px;height:48px;border-radius:8px;background:#F2F3F5;"></div>{% endif %}
@@ -71,8 +75,8 @@
         <div class="co-line-pr">USD {{ item.subtotal }}</div>
       </div>
       {% endfor %}
-      <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:#6B7A88;margin-top:8px;"><span>Subtotal</span><span>USD {{ subtotal }}</span></div>
-      <div class="co-tot"><span>Total</span><span>USD {{ subtotal }}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:#6B7A88;margin-top:8px;"><span>{% trans "Subtotal" %}</span><span>USD {{ subtotal }}</span></div>
+      <div class="co-tot"><span>{% trans "Total" %}</span><span>USD {{ subtotal }}</span></div>
     </div>
   </div>
 </div>
