@@ -210,7 +210,18 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
 </style>
 {% endblock %}
 {% block content %}
-<div class="perfil-wrap" id="perfil-root" data-role="{{ role_key }}">
+<div class="tf-page perfil-wrap" id="perfil-root" data-role="{{ role_key }}" style="padding-top: 48px;">
+  {% if not profile.email_verificado %}
+  <div style="margin-bottom:20px;padding:14px 18px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;font-size:14px;color:#92400E;">
+    <p style="margin:0 0 10px;">{% trans "Tu correo aún no está verificado." %}</p>
+    <form method="post" action="{% url 'reenviar_verificacion' %}">
+      {% csrf_token %}
+      <button type="submit" class="perfil-btn-primary" style="font-size:13px;">
+        {% trans "Reenviar email de verificación" %}
+      </button>
+    </form>
+  </div>
+  {% endif %}
   <div class="perfil-hero">
     <div class="perfil-avatar" id="perfil-avatar-initials" aria-hidden="true"></div>
     <div class="perfil-hero-text">

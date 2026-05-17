@@ -14,12 +14,16 @@ from __future__ import annotations
 
 import html as html_std
 import logging
+import uuid
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.html import strip_tags
 
-from core.models import Order
+from core.models import Order, UserProfile
 
 log = logging.getLogger(__name__)
 
@@ -315,6 +319,92 @@ def _cambio_estado_plain(orden: Order, estado_anterior: str, headline: str) -> s
         "TradeFlow Colón — Zona Libre de Colón, Panamá",
     ]
     return "\n".join(lines)
+
+
+def enviar_verificacion_email(user: User, request) -> None:
+    """
+    Envía email de verificación al registrarse.
+
+    Genera token único UUID y lo guarda en el perfil. El enlace expira
+    conceptualmente en 24 horas (el token se invalida al verificar).
+
+    Args:
+        user: Instancia de User recién creado.
+        request: HttpRequest para construir URL absoluta.
+    """
+    profile = user.profile
+    token = str(uuid.uuid4()).replace('-', '')
+    profile.token_verificacion = token
+    profile.email_verificado = False
+    profile.save(update_fields=['token_verificacion', 'email_verificado'])
+
+    link = request.build_absolute_uri(
+        reverse('verificar_email', kwargs={'token': token})
+    )
+
+    html_message = render_to_string(
+        'core/emails/verificacion_email.html',
+        {
+            'user': user,
+            'link': link,
+            'expiracion': '24 horas',
+        },
+    )
+
+    try:
+        send_mail(
+            subject='Verifica tu cuenta en TradeFlow Colón',
+            message=strip_tags(html_message),
+            from_email=getattr(
+                settings,
+                'DEFAULT_FROM_EMAIL',
+                'TradeFlow <no-reply@tradeflow.pa>',
+            ),
+            recipient_list=[user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+    except Exception as exc:
+        log.exception('enviar_verificacion_email falló: %s', exc)
+        raise
+
+
+def enviar_bienvenida(user: User) -> None:
+    """
+    Email de bienvenida después de verificar el email.
+
+    Incluye enlaces para comenzar según el rol del usuario.
+    """
+    base = _public_base_url()
+    es_seller = False
+    try:
+        es_seller = user.profile.role == 'seller'
+    except UserProfile.DoesNotExist:
+        pass
+    html_message = render_to_string(
+        'core/emails/bienvenida.html',
+        {
+            'user': user,
+            'es_seller': es_seller,
+            'url_tienda': base + reverse('tienda'),
+            'url_panel': base + reverse('portal_seller'),
+        },
+    )
+    try:
+        send_mail(
+            subject='¡Bienvenido a TradeFlow Colón!',
+            message=strip_tags(html_message),
+            from_email=getattr(
+                settings,
+                'DEFAULT_FROM_EMAIL',
+                'TradeFlow <no-reply@tradeflow.pa>',
+            ),
+            recipient_list=[user.email],
+            html_message=html_message,
+            fail_silently=True,
+        )
+    except Exception as exc:
+        log.exception('enviar_bienvenida falló: %s', exc)
 
 
 def enviar_cambio_estado(orden: Order, estado_anterior: str) -> None:

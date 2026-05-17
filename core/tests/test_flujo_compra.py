@@ -57,21 +57,23 @@ class TestFlujoBuyer(TestCase):
             first_name='Ana',
             last_name='Buyer',
         )
-        UserProfile.objects.create(user=self.buyer, role='buyer', phone='+507 6000-0000')
+        UserProfile.objects.create(
+            user=self.buyer, role='buyer', phone='+507 6000-0000', email_verificado=True,
+        )
 
         self.other = User.objects.create_user(
             username='buyer_otro',
             email='otro@test.pa',
             password='TestPass123!',
         )
-        UserProfile.objects.create(user=self.other, role='buyer')
+        UserProfile.objects.create(user=self.other, role='buyer', email_verificado=True)
 
         self.seller_user = User.objects.create_user(
             username='seller_test',
             email='seller@test.pa',
             password='TestPass123!',
         )
-        UserProfile.objects.create(user=self.seller_user, role='seller')
+        UserProfile.objects.create(user=self.seller_user, role='seller', email_verificado=True)
 
         self.admin_user = User.objects.create_user(
             username='admin_test',
@@ -79,7 +81,7 @@ class TestFlujoBuyer(TestCase):
             password='TestPass123!',
             is_staff=True,
         )
-        UserProfile.objects.create(user=self.admin_user, role='admin')
+        UserProfile.objects.create(user=self.admin_user, role='admin', email_verificado=True)
 
     def test_buyer_puede_ver_tienda(self):
         """El buyer autenticado accede a /tienda/ con 200."""

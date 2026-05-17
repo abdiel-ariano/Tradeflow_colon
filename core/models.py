@@ -45,6 +45,16 @@ class UserProfile(models.Model):
     user   = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone  = models.CharField(max_length=30, blank=True, verbose_name='Teléfono')
     role   = models.CharField(max_length=10, choices=ROLE_CHOICES, default='buyer', verbose_name='Rol')
+    email_verificado = models.BooleanField(
+        default=False,
+        verbose_name='Email verificado',
+    )
+    token_verificacion = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text='Token UUID para verificación de email',
+    )
 
     class Meta:
         verbose_name        = 'Perfil de usuario'

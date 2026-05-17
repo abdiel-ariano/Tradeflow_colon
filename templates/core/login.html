@@ -58,7 +58,7 @@
 </style>
 {% endblock %}
 {% block content %}
-<div class="auth-page">
+<div class="auth-page" style="min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5);">
   <div class="auth-card">
     <div class="auth-logo">
       <img src="{% static 'img/logo.png' %}" alt="TradeFlow">
@@ -96,6 +96,18 @@
     <div class="auth-footer">
       {% trans "¿No tienes cuenta?" %} <a href="{% url 'signup' %}">{% trans "Regístrate gratis" %}</a>
     </div>
+    {% if mostrar_reenvio %}
+    <div style="margin-top:1.25rem;padding:14px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;font-size:0.875rem;color:#1E40AF;">
+      <p style="margin:0 0 10px;">{% trans "¿No recibiste el correo de verificación?" %}</p>
+      <form method="post" action="{% url 'reenviar_verificacion_public' %}">
+        {% csrf_token %}
+        <input type="hidden" name="email" value="{{ email_pendiente }}">
+        <button type="submit" class="auth-submit" style="margin-top:0;font-size:0.8125rem;padding:10px 14px;">
+          {% trans "Reenviar email de verificación" %}
+        </button>
+      </form>
+    </div>
+    {% endif %}
   </div>
 </div>
 <script>

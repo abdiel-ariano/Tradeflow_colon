@@ -1,215 +1,617 @@
 """
 =============================================================================
-core/utils/pdf_generator.py — TradeFlow Colón
-Generación de facturas PDF (ReportLab) para órdenes.
+TradeFlow Colón — Generador PDF (ReportLab)
+=============================================================================
+Este módulo genera documentos PDF para el marketplace B2B/B2C de la Zona
+Libre de Colón (ZLC), Panamá: facturas comerciales, listas de empaque
+(alineadas a prácticas documentales ante la ANA / DUA) y cotizaciones
+formales (RFQ).
+
+Contexto legal — Panamá ZLC:
+  · Ley 76 de 2002 y normativa conexa sobre el régimen de Zona Libre.
+  · Operaciones en ZLC: tratamiento fiscal distinto; la documentación debe
+    reflejar condiciones de ITBMS según el caso (muchas ventas ZLC/B2B
+    documentan exención o no sujeción — ver notas en cada PDF).
+  · ANA (Aduanas Nacional): facturas y packing lists sirven de soporte a
+    declaraciones DUA; los textos legales del pie no sustituyen asesoría
+    contable ni aduanera.
+
+Cada función devuelve ``bytes`` listos para ``HttpResponse`` o almacenamiento.
 =============================================================================
 """
+
 from __future__ import annotations
 
 import io
-from pathlib import Path
+from decimal import Decimal
+from xml.sax.saxutils import escape
 
-from django.conf import settings
+from django.utils import timezone
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+from reportlab.lib.colors import HexColor
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import cm
-from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.lib.units import cm, mm
+from reportlab.platypus import (
+    HRFlowable,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
-from core.models import Order
+# --- Paleta TradeFlow (identidad visual) ------------------------------------
+TF_NAVY = HexColor("#0F2A44")
+TF_ORANGE = HexColor("#F26522")
+TF_LIGHT = HexColor("#F2F3F5")
+TF_BORDER = HexColor("#D1D5DB")
+TF_MUTED = HexColor("#6B7A88")
+
+_PAGE_FRAME_W = A4[0] - 4 * cm
 
 
-def generar_factura_pdf(orden_id: int) -> bytes:
+def _get_styles():
     """
-    Construye un PDF de factura comercial para la orden indicada.
-
-    Incluye cabecera TradeFlow, número TF-YYYYMM-XXXX, comprador, líneas de
-    detalle, totales en USD y pie para uso documental en Zona Libre de Colón.
-
-    Args:
-        orden_id: Clave primaria (pk) de la orden en la base de datos.
-
-    Returns:
-        Contenido del PDF como bytes (listo para HttpResponse).
-
-    Raises:
-        Order.DoesNotExist: Si no existe la orden.
+    Estilos de párrafo personalizados con nombres únicos para el documento.
+    No usa ``textTransform`` (no soportado por ReportLab ParagraphStyle).
     """
-    orden = (
-        Order.objects.select_related('buyer', 'ship_address')
-        .prefetch_related('items__product__company')
-        .get(pk=orden_id)
+    base = getSampleStyleSheet()
+    sty = base
+
+    sty.add(
+        ParagraphStyle(
+            name="DocTitle",
+            parent=base["Heading1"],
+            fontName="Helvetica-Bold",
+            fontSize=18,
+            leading=22,
+            textColor=TF_NAVY,
+            spaceAfter=4,
+            alignment=TA_CENTER,
+        )
+    )
+    sty.add(
+        ParagraphStyle(
+            name="DocSubtitle",
+            parent=base["Normal"],
+            fontName="Helvetica",
+            fontSize=9,
+            leading=12,
+            textColor=TF_MUTED,
+            spaceAfter=10,
+            alignment=TA_CENTER,
+        )
+    )
+    sty.add(
+        ParagraphStyle(
+            name="SectionTitle",
+            parent=base["Heading2"],
+            fontName="Helvetica-Bold",
+            fontSize=11,
+            leading=14,
+            textColor=TF_ORANGE,
+            spaceBefore=8,
+            spaceAfter=6,
+            alignment=TA_LEFT,
+        )
+    )
+    sty.add(
+        ParagraphStyle(
+            name="BodySmall",
+            parent=base["Normal"],
+            fontName="Helvetica",
+            fontSize=9,
+            leading=12,
+            textColor=HexColor("#374151"),
+            alignment=TA_LEFT,
+        )
+    )
+    sty.add(
+        ParagraphStyle(
+            name="LabelGray",
+            parent=base["Normal"],
+            fontName="Helvetica",
+            fontSize=9,
+            leading=11,
+            textColor=TF_MUTED,
+            alignment=TA_LEFT,
+        )
+    )
+    sty.add(
+        ParagraphStyle(
+            name="TotalLabel",
+            parent=base["Normal"],
+            fontName="Helvetica",
+            fontSize=10,
+            leading=13,
+            textColor=TF_NAVY,
+            alignment=TA_RIGHT,
+        )
+    )
+    sty.add(
+        ParagraphStyle(
+            name="TotalValue",
+            parent=base["Normal"],
+            fontName="Helvetica-Bold",
+            fontSize=11,
+            leading=14,
+            textColor=TF_NAVY,
+            alignment=TA_RIGHT,
+        )
+    )
+    sty.add(
+        ParagraphStyle(
+            name="Legal",
+            parent=base["Normal"],
+            fontName="Helvetica-Oblique",
+            fontSize=7.5,
+            leading=10,
+            textColor=TF_MUTED,
+            alignment=TA_LEFT,
+        )
+    )
+    return sty
+
+
+def _format_dt(dt) -> str:
+    if dt is None:
+        return "—"
+    if timezone.is_aware(dt):
+        dt = timezone.localtime(dt)
+    return dt.strftime("%d/%m/%Y %H:%M")
+
+
+def _usd(amount: Decimal) -> str:
+    q = amount.quantize(Decimal("0.01"))
+    return f"{q:.2f}"
+
+
+def _usd_cell(amount: Decimal) -> str:
+    return f"USD {_usd(amount)}"
+
+
+def _table_style_navy_header() -> TableStyle:
+    return TableStyle(
+        [
+            ("BACKGROUND", (0, 0), (-1, 0), TF_NAVY),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, 0), 9),
+            ("LINEBELOW", (0, 0), (-1, 0), 2, TF_ORANGE),
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, TF_LIGHT]),
+            ("GRID", (0, 0), (-1, -1), 0.5, TF_BORDER),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ]
     )
 
+
+def _orange_rule():
+    return HRFlowable(
+        width=_PAGE_FRAME_W,
+        thickness=1.5,
+        color=TF_ORANGE,
+        spaceAfter=8,
+        spaceBefore=3 * mm,
+    )
+
+
+def _story_doc_footer_legal(styles) -> list:
+    return [
+        Spacer(1, 0.4 * cm),
+        _orange_rule(),
+        Paragraph(
+            "Ley 76 (Zona Libre de Colón) y normativa aplicable. Sobre ITBMS: "
+            "en operaciones de ZLC la tributación depende del hecho imponible y "
+            "del tipo de operación; este documento es comercial y deberá "
+            "coordinarse con asesor fiscal. Documento de soporte para trámites "
+            "ante ANA / declaraciones DUA; no reemplaza guías oficiales ni "
+            "dictámenes de la autoridad aduanera.",
+            styles["Legal"],
+        ),
+    ]
+
+
+def generar_factura_pdf(orden) -> bytes:
+    """
+    Factura comercial en USD para una instancia de ``Order``.
+
+    Usa ``orden.items.all()`` con datos snapshot del pedido (empresa del
+    producto, cantidades y precios).
+    """
+    styles = _get_styles()
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        rightMargin=2 * cm,
         leftMargin=2 * cm,
-        topMargin=1.5 * cm,
-        bottomMargin=1.5 * cm,
+        rightMargin=2 * cm,
+        topMargin=1.4 * cm,
+        bottomMargin=1.4 * cm,
         title=f"Factura {orden.order_number}",
     )
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        name="TFTitle",
-        parent=styles["Heading1"],
-        fontSize=18,
-        textColor=colors.HexColor("#0F2A44"),
-        spaceAfter=6,
-        fontName="Helvetica-Bold",
-    )
-    sub_style = ParagraphStyle(
-        name="TFSub",
-        parent=styles["Normal"],
-        fontSize=9,
-        textColor=colors.HexColor("#6B7A88"),
-        spaceAfter=12,
-    )
-    body = ParagraphStyle(
-        name="TFBody",
-        parent=styles["Normal"],
-        fontSize=10,
-        textColor=colors.HexColor("#374151"),
-        leading=14,
-    )
-    small_right = ParagraphStyle(
-        name="TFSmallRight",
-        parent=styles["Normal"],
-        fontSize=8,
-        textColor=colors.HexColor("#6B7A88"),
-        alignment=TA_RIGHT,
-    )
 
-    story = []
-    logo_path = Path(settings.BASE_DIR) / "static" / "img" / "logo.png"
-    if logo_path.is_file():
-        try:
-            img = Image(str(logo_path), width=2.2 * cm, height=2.2 * cm)
-            story.append(img)
-            story.append(Spacer(1, 0.2 * cm))
-        except OSError:
-            pass
+    story: list = []
+    story.append(Paragraph("TradeFlow Colón", styles["DocTitle"]))
+    story.append(
+        Paragraph(
+            "Factura comercial — Zona Libre de Colón, República de Panamá",
+            styles["DocSubtitle"],
+        )
+    )
+    story.append(_orange_rule())
 
-    story.append(Paragraph("TradeFlow Colón", title_style))
-    story.append(Paragraph("Marketplace B2B/B2C — Zona Libre de Colón, Panamá", sub_style))
+    buyer = orden.buyer
+    buyer_name = escape(buyer.get_full_name() or buyer.username or "")
+    buyer_email = escape(buyer.email or "—")
 
     empresas = sorted(
         {item.product.company.name for item in orden.items.all()},
+        key=str.lower,
     )
-    emp_txt = " · ".join(empresas) if empresas else "Varios proveedores ZLC"
-    story.append(Paragraph(f"<b>Vendedores / origen mercancía:</b> {emp_txt}", body))
-    story.append(Spacer(1, 0.4 * cm))
+    vendedores_txt = escape(" · ".join(empresas)) if empresas else "—"
 
-    meta_data = [
-        ["Número de orden:", orden.order_number],
-        ["Fecha de emisión:", orden.created_at.strftime("%d/%m/%Y %H:%M")],
-        ["Estado:", orden.get_status_display()],
+    meta_rows = [
+        ["Número:", escape(str(orden.order_number))],
+        ["Fecha de emisión:", _format_dt(orden.created_at)],
+        ["Tipo de orden:", escape(str(orden.get_order_type_display()))],
+        ["Comprador:", buyer_name],
+        ["Correo:", buyer_email],
+        ["Vendedores (origen mercancía ZLC):", vendedores_txt],
     ]
-    meta_tbl = Table(meta_data, colWidths=[4.2 * cm, 11 * cm])
+    meta_tbl = Table(meta_rows, colWidths=[4.5 * cm, 12.5 * cm])
     meta_tbl.setStyle(
         TableStyle(
             [
                 ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 10),
-                ("TEXTCOLOR", (0, 0), (0, -1), colors.HexColor("#6B7A88")),
-                ("TEXTCOLOR", (1, 0), (1, -1), colors.HexColor("#0F2A44")),
-                ("FONTNAME", (1, 0), (1, -1), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("TEXTCOLOR", (0, 0), (0, -1), TF_MUTED),
+                ("TEXTCOLOR", (1, 0), (1, -1), TF_NAVY),
+                ("FONTNAME", (1, 0), (1, -1), "Helvetica"),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
             ]
         )
     )
     story.append(meta_tbl)
-    story.append(Spacer(1, 0.5 * cm))
+    story.append(Spacer(1, 0.25 * cm))
 
-    buyer = orden.buyer
-    buyer_name = buyer.get_full_name() or buyer.username
-    buyer_lines = f"<b>Comprador:</b> {buyer_name}<br/><b>Email:</b> {buyer.email or '—'}"
-    if orden.ship_address:
+    if orden.ship_address_id:
         a = orden.ship_address
-        addr = f"{a.line1}"
+        addr_html = escape(f"{a.line1}")
         if a.line2:
-            addr += f", {a.line2}"
-        addr += f"<br/>{a.city}, {a.country} {a.postal_code}".strip()
-        buyer_lines += f"<br/><b>Envío:</b><br/>{addr}"
-    story.append(Paragraph(buyer_lines, body))
-    story.append(Spacer(1, 0.6 * cm))
+            addr_html += escape(f", {a.line2}")
+        addr_html += escape(f"<br/>{a.city}, {a.country} {a.postal_code or ''}".strip())
+        story.append(Paragraph(f"<b>Dirección de envío</b><br/>{addr_html}", styles["BodySmall"]))
+        story.append(Spacer(1, 0.25 * cm))
 
-    table_data = [["Producto", "Cant.", "P. unit. (USD)", "Subtotal (USD)"]]
+    story.append(Paragraph("Detalle de líneas", styles["SectionTitle"]))
+
+    table_data = [
+        [
+            "Producto / proveedor ZLC",
+            Paragraph("Cant.", styles["BodySmall"]),
+            Paragraph("P. unit.<br/>USD", styles["BodySmall"]),
+            Paragraph("Total línea<br/>USD", styles["BodySmall"]),
+        ]
+    ]
     for item in orden.items.all():
+        cname = item.product.company.name
+        cell_txt = f"<b>{escape(item.product.name)}</b><br/><font color='#6B7A88' size='8'>{escape(cname)}</font>"
         table_data.append(
             [
-                Paragraph(item.product.name[:80], body),
+                Paragraph(cell_txt, styles["BodySmall"]),
                 str(item.qty),
-                f"{item.unit_price_snapshot:.2f}",
-                f"{item.line_total:.2f}",
+                _usd_cell(item.unit_price_snapshot),
+                _usd_cell(item.line_total),
             ]
         )
 
     items_tbl = Table(
         table_data,
-        colWidths=[8.5 * cm, 2 * cm, 3.2 * cm, 3.2 * cm],
+        colWidths=[8.2 * cm, 2 * cm, 3.4 * cm, 3.4 * cm],
         repeatRows=1,
     )
-    items_tbl.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0F2A44")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, 0), 9),
-                ("ALIGN", (1, 0), (-1, -1), "CENTER"),
-                ("ALIGN", (2, 1), (-1, -1), "RIGHT"),
-                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 1), (-1, -1), 9),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#D1D5DB")),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F9FAFB")]),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-            ]
-        )
-    )
+    ts = _table_style_navy_header()
+    ts.add("ALIGN", (1, 0), (-1, -1), "CENTER")
+    ts.add("ALIGN", (2, 1), (-1, -1), "RIGHT")
+    items_tbl.setStyle(ts)
     story.append(items_tbl)
-    story.append(Spacer(1, 0.5 * cm))
+    story.append(Spacer(1, 0.45 * cm))
 
-    totals_data = [
-        ["Subtotal", f"USD {orden.subtotal:.2f}"],
-        ["Envío", f"USD {orden.shipping_cost:.2f}"],
-        ["Total", f"USD {orden.total:.2f}"],
-    ]
-    totals_tbl = Table(totals_data, colWidths=[13.5 * cm, 3.4 * cm])
-    totals_tbl.setStyle(
+    totals = Table(
+        [
+            [Paragraph("Subtotal", styles["TotalLabel"]), Paragraph(_usd_cell(orden.subtotal), styles["TotalValue"])],
+            [
+                Paragraph("Envío", styles["TotalLabel"]),
+                Paragraph(_usd_cell(orden.shipping_cost), styles["TotalValue"]),
+            ],
+            [
+                Paragraph("<b>Total</b>", styles["TotalLabel"]),
+                Paragraph(f"<b>{_usd_cell(orden.total)}</b>", styles["TotalValue"]),
+            ],
+        ],
+        colWidths=[12 * cm, 5 * cm],
+    )
+    totals.setStyle(
         TableStyle(
             [
                 ("ALIGN", (0, 0), (0, -1), "RIGHT"),
                 ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, 1), 10),
-                ("FONTSIZE", (0, 2), (-1, 2), 12),
-                ("FONTNAME", (0, 2), (-1, 2), "Helvetica-Bold"),
-                ("TEXTCOLOR", (0, 2), (-1, 2), colors.HexColor("#0F2A44")),
-                ("LINEABOVE", (0, 2), (-1, 2), 1, colors.HexColor("#0F2A44")),
-                ("TOPPADDING", (0, 2), (-1, 2), 8),
+                ("LINEABOVE", (0, 2), (1, 2), 1.2, TF_NAVY),
+                ("LINEBELOW", (0, 2), (1, 2), 2, TF_ORANGE),
+                ("TOPPADDING", (0, 2), (1, 2), 6),
+                ("BOTTOMPADDING", (0, 2), (1, 2), 6),
             ]
         )
     )
-    story.append(totals_tbl)
-    story.append(Spacer(1, 1 * cm))
-    story.append(
-        Paragraph(
-            "Documento generado electrónicamente para fines comerciales y aduaneros "
-            "en el marco de operaciones de la Zona Libre de Colón, Panamá.",
-            sub_style,
-        )
-    )
-    story.append(Spacer(1, 0.3 * cm))
-    story.append(Paragraph("Zona Libre de Colón, Panamá", small_right))
+    story.append(totals)
+
+    story.extend(_story_doc_footer_legal(styles))
 
     doc.build(story)
-    pdf_bytes = buffer.getvalue()
+    out = buffer.getvalue()
     buffer.close()
-    return pdf_bytes
+    return out
+
+
+def generar_packing_list_pdf(orden) -> bytes:
+    """
+    Lista de empaque — formato útil como anexo para inspección y DUA (ANA).
+
+    Incluye descripción de mercancía, cantidades y referencia de orden,
+    coherente con las mismas líneas que la factura.
+    """
+    styles = _get_styles()
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=2 * cm,
+        rightMargin=2 * cm,
+        topMargin=1.4 * cm,
+        bottomMargin=1.4 * cm,
+        title=f"Packing List {orden.order_number}",
+    )
+
+    story: list = []
+    story.append(Paragraph("Packing list / Lista de empaque", styles["DocTitle"]))
+    story.append(
+        Paragraph(
+            "Documento de empaque — referencia para autoridad aduanera (ANA) y DUA — ZLC",
+            styles["DocSubtitle"],
+        )
+    )
+    story.append(_orange_rule())
+
+    buyer = orden.buyer
+    buyer_name = escape(buyer.get_full_name() or buyer.username or "")
+
+    empresas = sorted(
+        {item.product.company.name for item in orden.items.all()},
+        key=str.lower,
+    )
+
+    ship_rows = [
+        ["Referencia orden:", escape(str(orden.order_number))],
+        ["Fecha:", _format_dt(orden.created_at)],
+        ["Tipo:", escape(str(orden.get_order_type_display()))],
+        ["Expedidor(es) ZLC:", escape(" · ".join(empresas)) if empresas else "—"],
+        ["Consignatario:", buyer_name],
+    ]
+    ship_tbl = Table(ship_rows, colWidths=[4.5 * cm, 12.5 * cm])
+    ship_tbl.setStyle(
+        TableStyle(
+            [
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("TEXTCOLOR", (0, 0), (0, -1), TF_MUTED),
+                ("TEXTCOLOR", (1, 0), (1, -1), TF_NAVY),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    story.append(ship_tbl)
+    story.append(Spacer(1, 0.3 * cm))
+
+    if orden.ship_address_id:
+        a = orden.ship_address
+        addr_html = escape(f"{a.line1}, {a.line2 or ''}<br/>{a.city}, {a.country} {a.postal_code or ''}")
+        story.append(
+            Paragraph(f"<b>Lugar de entrega / consignatario (detalle)</b><br/>{addr_html}", styles["BodySmall"])
+        )
+        story.append(Spacer(1, 0.3 * cm))
+
+    story.append(Paragraph("Mercancía detallada", styles["SectionTitle"]))
+
+    pl_data = [
+        [
+            "#",
+            "SKU",
+            "Descripción",
+            "Proveedor ZLC",
+            Paragraph("Cant.", styles["BodySmall"]),
+            "U.M.",
+            Paragraph("Peso neto<br/>(kg)", styles["BodySmall"]),
+            Paragraph("Peso bruto<br/>(kg)", styles["BodySmall"]),
+        ]
+    ]
+    total_qty = 0
+    for n, item in enumerate(orden.items.all(), start=1):
+        total_qty += item.qty
+        sku = item.product.sku or "—"
+        pl_data.append(
+            [
+                str(n),
+                escape(sku),
+                Paragraph(escape(item.product.name), styles["BodySmall"]),
+                Paragraph(escape(item.product.company.name), styles["BodySmall"]),
+                str(item.qty),
+                "und.",
+                "—",
+                "—",
+            ]
+        )
+
+    pl_tbl = Table(
+        pl_data,
+        colWidths=[0.9 * cm, 1.8 * cm, 3.7 * cm, 3.2 * cm, 1.3 * cm, 1 * cm, 1.5 * cm, 1.5 * cm],
+        repeatRows=1,
+    )
+    ts = _table_style_navy_header()
+    ts.add("ALIGN", (0, 0), (0, -1), "CENTER")
+    ts.add("ALIGN", (4, 1), (5, -1), "CENTER")
+    ts.add("ALIGN", (6, 0), (-1, -1), "CENTER")
+    pl_tbl.setStyle(ts)
+    story.append(pl_tbl)
+
+    story.append(Spacer(1, 0.35 * cm))
+    story.append(
+        Paragraph(
+            f"<b>Total piezas declaradas (unidades):</b> {total_qty}. "
+            f"Los pesos neto/bruto deben completarse conforme al despacho físico y "
+            f"coincidir con la declaración DUA ante ANA.",
+            styles["LabelGray"],
+        )
+    )
+    story.extend(_story_doc_footer_legal(styles))
+
+    doc.build(story)
+    out = buffer.getvalue()
+    buffer.close()
+    return out
+
+
+def generar_cotizacion_pdf(cotizacion) -> bytes:
+    """
+    PDF formal de cotización (RFQ) con ítems, precios ofertados y notas.
+    """
+    styles = _get_styles()
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=2 * cm,
+        rightMargin=2 * cm,
+        topMargin=1.4 * cm,
+        bottomMargin=1.4 * cm,
+        title=f"Cotización {cotizacion.numero}",
+    )
+
+    story: list = []
+    story.append(Paragraph("Cotización formal (RFQ)", styles["DocTitle"]))
+    story.append(
+        Paragraph(
+            "TradeFlow Colón — propuesta de precios en marco ZLC; validez según plazo indicado",
+            styles["DocSubtitle"],
+        )
+    )
+    story.append(_orange_rule())
+
+    empresa = cotizacion.empresa
+    buyer = cotizacion.buyer
+    buyer_name = escape(buyer.get_full_name() or buyer.username or "")
+    ruc = escape(empresa.ruc or "—")
+
+    header_rows = [
+        ["Número:", escape(str(cotizacion.numero))],
+        ["Fecha:", _format_dt(cotizacion.created_at)],
+        ["Empresa ofertante:", escape(empresa.name)],
+        ["RUC / registro:", ruc],
+        ["Comprador:", buyer_name],
+        ["Validez de la oferta:", f"{cotizacion.validez_dias} días"],
+    ]
+    ht = Table(header_rows, colWidths=[4.5 * cm, 12.5 * cm])
+    ht.setStyle(
+        TableStyle(
+            [
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("TEXTCOLOR", (0, 0), (0, -1), TF_MUTED),
+                ("TEXTCOLOR", (1, 0), (1, -1), TF_NAVY),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    story.append(ht)
+    story.append(Spacer(1, 0.35 * cm))
+
+    story.append(Paragraph("Líneas cotizadas", styles["SectionTitle"]))
+
+    rows = [
+        [
+            "Producto",
+            Paragraph("Cant.<br/>solicitada", styles["BodySmall"]),
+            Paragraph("Precio ofertado<br/>(unit. USD)", styles["BodySmall"]),
+            Paragraph("Notas de línea", styles["BodySmall"]),
+        ]
+    ]
+
+    subtotal = Decimal("0")
+    has_amounts = False
+    for it in cotizacion.items.all():
+        precio_txt: str
+        if it.precio_ofertado is not None:
+            precio_txt = _usd_cell(it.precio_ofertado)
+            subtotal += it.precio_ofertado * it.cantidad_solicitada
+            has_amounts = True
+        else:
+            precio_txt = "Pendiente"
+        notas_cell = escape(it.notas) if it.notas else "—"
+        rows.append(
+            [
+                Paragraph(escape(it.product.name), styles["BodySmall"]),
+                str(it.cantidad_solicitada),
+                precio_txt,
+                Paragraph(notas_cell, styles["BodySmall"]),
+            ]
+        )
+
+    ct = Table(rows, colWidths=[5.8 * cm, 2.2 * cm, 3.5 * cm, 5.5 * cm], repeatRows=1)
+    ts = _table_style_navy_header()
+    ts.add("ALIGN", (1, 0), (2, -1), "CENTER")
+    ct.setStyle(ts)
+    story.append(ct)
+
+    if has_amounts:
+        story.append(Spacer(1, 0.35 * cm))
+        tot = Table(
+            [
+                [
+                    Paragraph("Subtotal estimado (USD)", styles["TotalLabel"]),
+                    Paragraph(_usd_cell(subtotal), styles["TotalValue"]),
+                ],
+            ],
+            colWidths=[12 * cm, 5 * cm],
+        )
+        tot.setStyle(
+            TableStyle(
+                [
+                    ("ALIGN", (0, 0), (1, 0), "RIGHT"),
+                    ("LINEABOVE", (0, 0), (1, 0), 1, TF_NAVY),
+                ]
+            )
+        )
+        story.append(tot)
+
+    story.append(Spacer(1, 0.4 * cm))
+    story.append(Paragraph("Notas del comprador", styles["SectionTitle"]))
+    nb = cotizacion.notas_buyer.strip() if cotizacion.notas_buyer else "—"
+    story.append(Paragraph(escape(nb), styles["BodySmall"]))
+
+    story.append(Paragraph("Notas del vendedor", styles["SectionTitle"]))
+    ns = cotizacion.notas_seller.strip() if cotizacion.notas_seller else "—"
+    story.append(Paragraph(escape(ns), styles["BodySmall"]))
+
+    story.extend(_story_doc_footer_legal(styles))
+
+    doc.build(story)
+    out = buffer.getvalue()
+    buffer.close()
+    return out
