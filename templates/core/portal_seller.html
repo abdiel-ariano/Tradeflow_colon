@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load static i18n %}
 {% comment %}
 ================================================================================
 templates/core/portal_seller.html — TradeFlow Colón
@@ -184,7 +184,7 @@ Contexto: vista portal_seller; sin barra lateral duplicada; badges de estado ví
   <div class="seller-main">
     <header class="ps-dash-header">
       <div>
-        <h1 class="ps-dash-greet">Bienvenida, {{ request.user.first_name|default:request.user.username }}</h1>
+        <h1 class="ps-dash-greet">{% blocktrans with name=request.user.first_name|default:request.user.username %}Bienvenida, {{ name }}{% endblocktrans %}</h1>
         <p class="ps-dash-company">{{ company.name }}</p>
       </div>
       <a href="{% url 'seller_agregar_producto' %}" class="ps-dash-new">

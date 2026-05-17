@@ -1,9 +1,9 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load static i18n %}
 {% comment %}
 Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views.py
 {% endcomment %}
-{% block title %}Órdenes — TradeFlow Colón{% endblock %}
+{% block title %}{% trans "Órdenes" %} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 {% endblock %}
 {% block content %}
@@ -12,13 +12,13 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
   <div class="adm-main">
     <header class="adm-head">
       <div>
-        <h1>Gestión de órdenes</h1>
-        <p>Filtra por cliente o número TF, revisa estado y abre el detalle para actualizar el flujo operativo.</p>
+        <h1>{% trans "Gestión de órdenes" %}</h1>
+        <p>{% trans "Filtra por cliente o número TF, revisa estado y abre el detalle para actualizar el flujo operativo." %}</p>
       </div>
       <div class="adm-head-actions">
         <a href="{% url 'nueva_orden_paso1' %}" class="adm-btn adm-btn--primary">
           <span class="material-symbols-rounded" aria-hidden="true">add</span>
-          Nueva orden
+          {% trans "Nueva orden" %}
         </a>
       </div>
     </header>
