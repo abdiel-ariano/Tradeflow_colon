@@ -60,30 +60,30 @@
         {% if item.imagen %}<img src="{{ item.imagen }}" alt="" class="c-img">{% else %}<div class="c-ph"><span class="material-symbols-rounded" style="color:#D1D5DB;">inventory_2</span></div>{% endif %}
         <div class="c-info">
           <div class="c-name">{{ item.nombre }}</div>
-          <div class="c-meta">USD {{ item.precio }} c/u</div>
-          <div class="c-qty"><span class="material-symbols-rounded" style="font-size:18px;">numbers</span> Cantidad: <span>{{ item.cantidad }}</span></div>
+          <div class="c-meta">{% blocktrans with price=item.precio %}USD {{ price }} c/u{% endblocktrans %}</div>
+          <div class="c-qty"><span class="material-symbols-rounded" style="font-size:18px;">numbers</span> {% trans "Cantidad:" %} <span>{{ item.cantidad }}</span></div>
         </div>
         <div class="c-sub">USD {{ item.subtotal }}</div>
         <form method="post" action="{% url 'quitar_del_carrito' prod_id %}">{% csrf_token %}
-          <button type="submit" class="c-remove" title="Quitar" aria-label="Quitar"><span class="material-symbols-rounded">delete</span></button>
+          <button type="submit" class="c-remove" title="{% trans 'Quitar' %}" aria-label="{% trans 'Quitar' %}"><span class="material-symbols-rounded">delete</span></button>
         </form>
       </div>
       {% endfor %}
     </div>
     <aside class="c-sum">
-      <h2>Resumen</h2>
-      <div class="c-row"><span>Subtotal</span><span>USD {{ total }}</span></div>
-      <div class="c-row"><span>Envío</span><span>Al confirmar</span></div>
-      <div class="c-total"><span>Total</span><span>USD {{ total }}</span></div>
-      <a href="{% url 'checkout' %}" class="c-checkout"><span class="material-symbols-rounded" style="font-size:18px;">payments</span> Proceed to Checkout</a>
-      <a href="{% url 'tienda' %}" class="tf-btn-secondary" style="width:100%;justify-content:center;margin-top:10px;padding:10px;">Seguir comprando</a>
+      <h2>{% trans "Resumen" %}</h2>
+      <div class="c-row"><span>{% trans "Subtotal" %}</span><span>USD {{ total }}</span></div>
+      <div class="c-row"><span>{% trans "Envío" %}</span><span>{% trans "Al confirmar" %}</span></div>
+      <div class="c-total"><span>{% trans "Total" %}</span><span>USD {{ total }}</span></div>
+      <a href="{% url 'checkout' %}" class="c-checkout"><span class="material-symbols-rounded" style="font-size:18px;">payments</span> {% trans "Ir al checkout" %}</a>
+      <a href="{% url 'tienda' %}" class="tf-btn-secondary" style="width:100%;justify-content:center;margin-top:10px;padding:10px;">{% trans "Seguir comprando" %}</a>
     </aside>
   </div>
   {% else %}
   <div class="c-empty">
-    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">Tu carrito está vacío</p>
-    <p style="color:#6B7A88;margin:0;">Explora la tienda y agrega productos.</p>
-    <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> Ir a la tienda</a>
+    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "Tu carrito está vacío" %}</p>
+    <p style="color:#6B7A88;margin:0;">{% trans "Explora la tienda y agrega productos." %}</p>
+    <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> {% trans "Ir a la tienda" %}</a>
   </div>
   {% endif %}
 </div>

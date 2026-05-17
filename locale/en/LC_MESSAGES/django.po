@@ -856,6 +856,136 @@ msgstr "Spanish"
 msgid "English"
 msgstr "English"
 
+#: core/views.py
+#, python-format
+msgid "\"%(name)s\" agregado al carrito."
+msgstr "\"%(name)s\" added to cart."
+
+#: core/views.py
+msgid "La cantidad debe ser al menos 1."
+msgstr "Quantity must be at least 1."
+
+#: core/views.py
+#, python-format
+msgid "\"%(name)s\" no tiene stock disponible."
+msgstr "\"%(name)s\" is out of stock."
+
+#: templates/core/base.html
+msgid "Cotizaciones"
+msgstr "Quotes"
+
+#: templates/core/base.html
+msgid "Marketplace B2B/B2C para la Zona Libre de Colón, Panamá."
+msgstr "B2B/B2C marketplace for the Colón Free Zone, Panama."
+
+#: templates/core/base.html
+msgid "Plataforma"
+msgstr "Platform"
+
+#: templates/core/base.html
+msgid "Inicio"
+msgstr "Home"
+
+#: templates/core/base.html
+msgid "Legal"
+msgstr "Legal"
+
+#: templates/core/base.html
+msgid "Términos de uso"
+msgstr "Terms of use"
+
+#: templates/core/base.html
+msgid "Privacidad"
+msgstr "Privacy"
+
+#: templates/core/base.html
+msgid "Cookies"
+msgstr "Cookies"
+
+#: templates/core/base.html
+msgid "Contacto"
+msgstr "Contact"
+
+#: templates/core/base.html
+msgid "Zona Libre de Colón"
+msgstr "Colón Free Zone"
+
+#: templates/core/base.html
+msgid "Panamá"
+msgstr "Panama"
+
+#: templates/core/base.html
+msgid "2026 TradeFlow Colón. Todos los derechos reservados."
+msgstr "2026 TradeFlow Colón. All rights reserved."
+
+#: templates/core/base.html
+msgid "Centro Supérate · Fundación Alberto Motta"
+msgstr "Centro Supérate · Alberto Motta Foundation"
+
+#: templates/core/carrito.html
+msgid "Resumen"
+msgstr "Summary"
+
+#: templates/core/carrito.html
+msgid "Envío"
+msgstr "Shipping"
+
+#: templates/core/carrito.html
+msgid "Al confirmar"
+msgstr "On confirmation"
+
+#: templates/core/carrito.html
+msgid "Ir al checkout"
+msgstr "Proceed to checkout"
+
+#: templates/core/carrito.html
+msgid "Seguir comprando"
+msgstr "Continue shopping"
+
+#: templates/core/carrito.html
+msgid "Tu carrito está vacío"
+msgstr "Your cart is empty"
+
+#: templates/core/carrito.html
+msgid "Explora la tienda y agrega productos."
+msgstr "Browse the store and add products."
+
+#: templates/core/carrito.html
+msgid "Ir a la tienda"
+msgstr "Go to store"
+
+#: templates/core/carrito.html
+msgid "Cantidad:"
+msgstr "Quantity:"
+
+#: templates/core/carrito.html
+msgid "Quitar"
+msgstr "Remove"
+
+#: templates/core/checkout.html
+msgid "Dirección y notas"
+msgstr "Address and notes"
+
+#: templates/core/checkout.html
+msgid "Demo: el pago es simulado. La orden se crea y marca como pagada automáticamente."
+msgstr "Demo: payment is simulated. The order is created and marked as paid automatically."
+
+#: templates/core/checkout.html
+msgid "Notas (opcional)"
+msgstr "Notes (optional)"
+
+#: templates/core/checkout.html
+msgid "Instrucciones de entrega, referencias…"
+msgstr "Delivery instructions, references…"
+
+#: templates/core/checkout.html
+msgid "Método de pago: mock (desarrollo)"
+msgstr "Payment method: mock (development)"
+
+#: templates/core/checkout.html
+msgid "Confirmar y pagar"
+msgstr "Confirm and pay"
+
 #~ msgid ""
 #~ "La ZLC en una plataforma B2B en la que confían compradores y operadores"
 #~ msgstr "The CFZ on a B2B platform trusted by buyers and operators"
