@@ -92,26 +92,34 @@ def _parse_dashboard_dias(request):
 
 def _dashboard_calendar_days(dias, now=None):
     """
-    Genera ventanas diarias en zona horaria local (America/Panama).
+    Genera ventanas [inicio, fin) por día natural en la zona horaria del proyecto.
+
+    Args:
+        dias: Número de días (7, 30 o 90).
+        now: Momento de referencia (aware); por defecto ``timezone.now()``.
 
     Returns:
-        list[tuple]: ``(local_date, day_start, day_end)`` con datetimes aware.
+        list[tuple]: Cada elemento es (day_start, day_end, label_str).
     """
     if now is None:
         now = timezone.now()
-
     dias = _normalize_dashboard_dias(dias)
-    tz = timezone.get_current_timezone()
     local_date = timezone.localtime(now).date()
-    calendar_days = []
-
+    tzinfo = timezone.get_current_timezone()
+    weekday_es = ('Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom')
+    days = []
     for i in range(dias):
         day_date = local_date - timedelta(days=dias - 1 - i)
-        day_start = timezone.make_aware(datetime.combine(day_date, time.min), tz)
+        day_start = timezone.make_aware(
+            datetime.combine(day_date, time.min), tzinfo
+        )
         day_end = day_start + timedelta(days=1)
-        calendar_days.append((day_date, day_start, day_end))
-
-    return calendar_days
+        if dias == 7:
+            label = weekday_es[day_date.weekday()]
+        else:
+            label = day_date.strftime('%d/%m')
+        days.append((day_start, day_end, label))
+    return days
 
 
 def _build_dashboard_charts_payload(dias, now=None):
@@ -128,29 +136,22 @@ def _build_dashboard_charts_payload(dias, now=None):
         now = timezone.now()
 
     dias = _normalize_dashboard_dias(dias)
-    weekday_es = ('Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom')
+    calendar_days = _dashboard_calendar_days(dias, now=now)
 
     chart_labels = []
     ordenes_por_dia = []
     ingresos_por_dia = []
 
-    calendar_days = _dashboard_calendar_days(dias, now)
-    for day_date, day_start, day_end in calendar_days:
-        if dias == 7:
-            chart_labels.append(weekday_es[day_date.weekday()])
-        else:
-            chart_labels.append(day_date.strftime('%d/%m'))
-
+    for day_start, day_end, label in calendar_days:
+        chart_labels.append(label)
         ordenes_por_dia.append(
             Order.objects.filter(
-                created_at__gte=day_start,
-                created_at__lt=day_end,
+                created_at__gte=day_start, created_at__lt=day_end
             ).count()
         )
         ing = (
             Order.objects.filter(
-                created_at__gte=day_start,
-                created_at__lt=day_end,
+                created_at__gte=day_start, created_at__lt=day_end
             )
             .exclude(status='cancelled')
             .aggregate(t=Sum('total'))['t']
@@ -158,7 +159,7 @@ def _build_dashboard_charts_payload(dias, now=None):
         )
         ingresos_por_dia.append(float(ing))
 
-    window_start = calendar_days[0][1]
+    window_start = calendar_days[0][0] if calendar_days else timezone.localtime(now)
     qs = Order.objects.filter(created_at__gte=window_start)
     by_status = {row['status']: row['c'] for row in qs.values('status').annotate(c=Count('id'))}
     estados_data = {
