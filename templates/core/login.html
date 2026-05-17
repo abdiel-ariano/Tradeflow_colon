@@ -1,6 +1,16 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% load i18n %}
+{% comment %}
+================================================================================
+ACCIÓN: REEMPLAZAR
+DESTINO: templates/core/login.html
+================================================================================
+TradeFlow Colón — Inicio de sesión.
+Contexto: login_view; require_email_verification, mostrar_reenvio, email_pendiente.
+Sin comparaciones == en tags; pills/toggles con JavaScript.
+================================================================================
+{% endcomment %}
 {% block title %}{% trans "Iniciar sesión — TradeFlow Colón" %}{% endblock %}
 {% block footer %}{% endblock %}
 {% block extra_css %}
@@ -20,45 +30,97 @@
     max-width: 420px;
     margin-left: auto;
     margin-right: auto;
-    background: #fff; border: 1px solid #D1D5DB;
-    border-radius: 12px; padding: 2.25rem 2rem;
+    background: var(--tf-white, #fff);
+    border: 1px solid var(--tf-border, #D1D5DB);
+    border-radius: 12px;
+    padding: 2.25rem 2rem;
     box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08);
   }
   .auth-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
   .auth-logo img { width: 48px; height: 48px; object-fit: contain; }
-  .auth-brand { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.35rem; color: #0F2A44; }
-  .auth-brand-sub { font-size: 0.75rem; color: #6B7A88; font-weight: 500; margin-top: 2px; }
-  .auth-title { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1rem; color: #1B3B63; margin-bottom: 1.25rem; }
-  .auth-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 1.5rem; border-radius: 8px; overflow: hidden; border: 1px solid #D1D5DB; }
-  .auth-toggle button {
-    padding: 10px 12px; font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 600;
-    border: none; background: #F2F3F5; color: #6B7A88; cursor: pointer; transition: all 0.2s ease;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
+  .auth-brand { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.35rem; color: var(--tf-navy, #0F2A44); }
+  .auth-brand-sub { font-size: 0.75rem; color: var(--tf-muted, #6B7A88); font-weight: 500; margin-top: 2px; }
+  .auth-title { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1rem; color: var(--tf-mid, #1B3B63); margin-bottom: 1.25rem; }
+  .auth-dev-banner {
+    margin-bottom: 1rem;
+    padding: 10px 12px;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    color: #166534;
+    line-height: 1.45;
   }
-  .auth-toggle button.is-on { background: #0F2A44; color: #fff; }
+  .auth-verify-banner {
+    margin-top: 1.25rem;
+    padding: 14px;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #1E40AF;
+  }
+  .auth-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 1.5rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--tf-border, #D1D5DB); }
+  .auth-toggle button {
+    padding: 10px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: none;
+    background: var(--tf-light, #F2F3F5);
+    color: var(--tf-muted, #6B7A88);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .auth-toggle button.is-on { background: var(--tf-navy, #0F2A44); color: #fff; }
   .auth-toggle button .material-symbols-rounded { font-size: 18px; }
   .auth-field { margin-bottom: 1rem; position: relative; }
   .auth-field .tf-input { padding-left: 42px; }
   .auth-field .field-ico {
-    position: absolute; left: 12px; top: 34px; color: #6B7A88; pointer-events: none;
+    position: absolute;
+    left: 12px;
+    top: 34px;
+    color: var(--tf-muted, #6B7A88);
+    pointer-events: none;
   }
   .auth-field .field-ico .material-symbols-rounded { font-size: 20px; }
   .auth-submit {
-    width: 100%; margin-top: 0.5rem; padding: 12px 16px; border: none; border-radius: 8px;
-    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.9375rem; color: #fff;
-    background: #F26522; cursor: pointer; transition: all 0.2s ease;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: #fff;
+    background: var(--tf-orange, #F26522);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
-  .auth-submit:hover { background: #FF7A3D; box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3); }
-  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 1.25rem 0; color: #6B7A88; font-size: 0.8125rem; }
-  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: #D1D5DB; }
-  .auth-footer { text-align: center; font-size: 0.875rem; color: #6B7A88; }
-  .auth-footer a { color: #F26522; font-weight: 700; text-decoration: none; }
+  .auth-submit:hover { background: var(--tf-orange-h, #FF7A3D); box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3); }
+  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 1.25rem 0; color: var(--tf-muted, #6B7A88); font-size: 0.8125rem; }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--tf-border, #D1D5DB); }
+  .auth-footer { text-align: center; font-size: 0.875rem; color: var(--tf-muted, #6B7A88); }
+  .auth-footer a { color: var(--tf-orange, #F26522); font-weight: 700; text-decoration: none; }
   .auth-footer a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 {% block content %}
-<div class="auth-page" style="min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5);">
+<div
+  class="auth-page"
+  style="min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5);"
+  id="auth-login-root"
+  data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
+>
   <div class="auth-card">
     <div class="auth-logo">
       <img src="{% static 'img/logo.png' %}" alt="TradeFlow">
@@ -67,6 +129,11 @@
         <div class="auth-brand-sub">{% trans "Zona Libre de Colón · Panamá" %}</div>
       </div>
     </div>
+
+    <div class="auth-dev-banner" id="auth-dev-banner" hidden>
+      {% trans "Verificación de email desactivada para pruebas locales." %}
+    </div>
+
     <div class="auth-title">{% trans "Bienvenido de vuelta" %}</div>
     <div class="auth-toggle" id="auth-login-toggle" role="group" aria-label="{% trans 'Tipo de cuenta' %}">
       <button type="button" id="auth-toggle-customer" class="is-on">
@@ -96,27 +163,42 @@
     <div class="auth-footer">
       {% trans "¿No tienes cuenta?" %} <a href="{% url 'signup' %}">{% trans "Regístrate gratis" %}</a>
     </div>
-    {% if mostrar_reenvio %}
-    <div style="margin-top:1.25rem;padding:14px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;font-size:0.875rem;color:#1E40AF;">
+
+    <div class="auth-verify-banner" id="auth-verify-resend" hidden>
       <p style="margin:0 0 10px;">{% trans "¿No recibiste el correo de verificación?" %}</p>
       <form method="post" action="{% url 'reenviar_verificacion_public' %}">
         {% csrf_token %}
-        <input type="hidden" name="email" value="{{ email_pendiente }}">
+        <input type="hidden" name="email" id="auth-pending-email" value="{{ email_pendiente|default:'' }}">
         <button type="submit" class="auth-submit" style="margin-top:0;font-size:0.8125rem;padding:10px 14px;">
           {% trans "Reenviar email de verificación" %}
         </button>
       </form>
     </div>
-    {% endif %}
   </div>
 </div>
 <script>
 (function () {
+  var root = document.getElementById('auth-login-root');
+  var requireVer = root && root.getAttribute('data-require-verification') === '1';
+  var devBanner = document.getElementById('auth-dev-banner');
+  if (devBanner && !requireVer) {
+    devBanner.hidden = false;
+  }
+  var resend = document.getElementById('auth-verify-resend');
+  var pendingEmail = '{{ email_pendiente|default:""|escapejs }}';
+  var showResend = requireVer && pendingEmail.length > 0;
+  if (resend && showResend) {
+    resend.hidden = false;
+    var em = document.getElementById('auth-pending-email');
+    if (em) em.value = pendingEmail;
+  }
+
   var a = document.getElementById('auth-toggle-customer');
   var b = document.getElementById('auth-toggle-business');
-  if (!a || !b) return;
-  a.addEventListener('click', function () { a.classList.add('is-on'); b.classList.remove('is-on'); });
-  b.addEventListener('click', function () { b.classList.add('is-on'); a.classList.remove('is-on'); });
+  if (a && b) {
+    a.addEventListener('click', function () { a.classList.add('is-on'); b.classList.remove('is-on'); });
+    b.addEventListener('click', function () { b.classList.add('is-on'); a.classList.remove('is-on'); });
+  }
 })();
 </script>
 {% endblock %}

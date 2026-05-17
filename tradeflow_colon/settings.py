@@ -170,6 +170,15 @@ MESSAGE_TAGS = {
 }
 
 # ── Email ──────────────────────────────────────────────────────────────────
+# REQUIRE_EMAIL_VERIFICATION: en DEBUG por defecto False (login sin bloqueo);
+# en producción por defecto True. Forzar con .env en cualquier entorno.
+# Con EMAIL_BACKEND consola los enlaces de verificación se imprimen en la
+# terminal del runserver (no llegan a Gmail).
+REQUIRE_EMAIL_VERIFICATION = config(
+    'REQUIRE_EMAIL_VERIFICATION',
+    default=not DEBUG,
+    cast=bool,
+)
 # Para desarrollo: imprime emails en consola (sin configurar nada más)
 # Para producción: cambia a smtp y rellena las variables en .env / Railway
 EMAIL_BACKEND = config(

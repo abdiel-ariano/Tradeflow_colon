@@ -306,9 +306,11 @@ class Command(BaseCommand):
                 user.is_staff = True
                 user.save(update_fields=['is_staff'])
             UserProfile.objects.create(
-                user  = user,
-                role  = data['role'],
-                phone = data['phone'],
+                user=user,
+                role=data['role'],
+                phone=data['phone'],
+                email_verificado=True,
+                token_verificacion=None,
             )
             self.stdout.write(
                 self.style.SUCCESS(
@@ -350,12 +352,33 @@ class Command(BaseCommand):
                 prof.save(update_fields=['role'])
                 self.stdout.write(self.style.SUCCESS('  demo_admin → rol actualizado a admin'))
             elif not prof:
-                UserProfile.objects.create(user=adm, role='admin', phone='+507 6500-0003')
+                UserProfile.objects.create(
+                    user=adm,
+                    role='admin',
+                    phone='+507 6500-0003',
+                    email_verificado=True,
+                    token_verificacion=None,
+                )
                 self.stdout.write(self.style.SUCCESS('  demo_admin → perfil admin creado'))
             else:
                 self.stdout.write('  demo_admin — rol admin OK')
+            if prof:
+                if not prof.email_verificado or prof.token_verificacion:
+                    prof.email_verificado = True
+                    prof.token_verificacion = None
+                    prof.save(update_fields=['email_verificado', 'token_verificacion'])
         else:
             self.stdout.write(self.style.WARNING('  demo_admin no existe; ejecuta de nuevo o crea el usuario en admin.'))
+
+        for uname in ('demo_buyer', 'demo_seller', 'demo_admin'):
+            u = User.objects.filter(username=uname).first()
+            if not u:
+                continue
+            prof = getattr(u, 'profile', None)
+            if prof and (not prof.email_verificado or prof.token_verificacion):
+                prof.email_verificado = True
+                prof.token_verificacion = None
+                prof.save(update_fields=['email_verificado', 'token_verificacion'])
 
         # Resumen final
         self.stdout.write('\n' + '=' * 60)
@@ -367,4 +390,18 @@ class Command(BaseCommand):
         self.stdout.write('  Buyer:  demo_buyer  / Demo1234!')
         self.stdout.write('  Seller: demo_seller / Demo1234! (Mi Tienda → TechZone Colón S.A.)')
         self.stdout.write('  Admin:  demo_admin  / Demo1234! — /dashboard/ (app) y /admin/ (Django, requiere is_staff)')
+        if getattr(settings, 'REQUIRE_EMAIL_VERIFICATION', False):
+            self.stdout.write(
+                self.style.WARNING(
+                    '\nREQUIRE_EMAIL_VERIFICATION está activo: las cuentas nuevas '
+                    'deben verificar email. Las demo quedan con email_verificado=True.'
+                )
+            )
+        backend = getattr(settings, 'EMAIL_BACKEND', '')
+        if 'console' in backend:
+            self.stdout.write(
+                self.style.NOTICE(
+                    'Los correos de prueba se imprimen en esta terminal (EMAIL_BACKEND consola).'
+                )
+            )
         self.stdout.write('=' * 60)

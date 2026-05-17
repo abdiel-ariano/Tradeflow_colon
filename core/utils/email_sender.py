@@ -351,6 +351,14 @@ def enviar_verificacion_email(user: User, request) -> None:
         },
     )
 
+    backend = getattr(settings, 'EMAIL_BACKEND', '')
+    if 'console' in backend:
+        log.info(
+            'TradeFlow verificación (consola) — usuario=%s — URL: %s',
+            user.username,
+            link,
+        )
+
     try:
         send_mail(
             subject='Verifica tu cuenta en TradeFlow Colón',

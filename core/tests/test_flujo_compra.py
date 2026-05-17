@@ -22,6 +22,7 @@ from core.models import (
 
 @override_settings(
     AXES_ENABLED=False,
+    REQUIRE_EMAIL_VERIFICATION=False,
     AUTHENTICATION_BACKENDS=[
         'django.contrib.auth.backends.ModelBackend',
     ],
