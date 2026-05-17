@@ -18,7 +18,7 @@ from django.db import transaction
 from django.db.models import Count, Prefetch, Q, Sum
 from django.http import Http404, HttpResponse, JsonResponse
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 from decimal import Decimal, InvalidOperation
 import base64
 import html as html_module
@@ -90,27 +90,39 @@ def _parse_dashboard_dias(request):
     return _normalize_dashboard_dias(raw)
 
 
+def _dashboard_calendar_days(dias, now=None):
+    """
+    Genera ventanas diarias en zona horaria local (America/Panama).
+
+    Returns:
+        list[tuple]: ``(local_date, day_start, day_end)`` con datetimes aware.
+    """
+    if now is None:
+        now = timezone.now()
+
+    dias = _normalize_dashboard_dias(dias)
+    tz = timezone.get_current_timezone()
+    local_date = timezone.localtime(now).date()
+    calendar_days = []
+
+    for i in range(dias):
+        day_date = local_date - timedelta(days=dias - 1 - i)
+        day_start = timezone.make_aware(datetime.combine(day_date, time.min), tz)
+        day_end = day_start + timedelta(days=1)
+        calendar_days.append((day_date, day_start, day_end))
+
+    return calendar_days
+
+
 def _build_dashboard_charts_payload(dias, now=None):
     """
     Construye etiquetas y series diarias para Chart.js y conteos por estado.
 
-    Por cada día natural (desde hace ``dias`` días hasta hoy, inclusive):
-    ``ordenes_por_dia`` cuenta órdenes creadas ese día; ``ingresos_por_dia``
-    suma ``Order.total`` de órdenes creadas ese día excluyendo canceladas.
+    Buckets por **medianoche local** (``TIME_ZONE``), no UTC naive con
+    ``replace(hour=0)`` sobre ``now`` aware.
 
-    ``estados_data`` agrupa órdenes **creadas** en la ventana de ``dias``:
-    ``paid`` incluye estados ``paid`` y ``packed`` para alinear la dona con
-    los cinco estados pedidos en especificación (pending, paid, shipped,
-    delivered, cancelled).
-
-    Args:
-        dias: Número de días calendario (7, 30 o 90).
-        now: Momento de referencia (por defecto ``timezone.now()``).
-
-    Returns:
-        dict: ``chart_labels``, ``ordenes_por_dia``, ``ingresos_por_dia``,
-        ``estados_data``, ``ventas_por_categoria``, ``ventas_por_empresa``,
-        ``productos_top``, ``ordenes_por_tipo``, ``dias``.
+    ``estados_data`` agrupa órdenes **creadas** en la ventana de ``dias``;
+    ``paid`` incluye ``packed``.
     """
     if now is None:
         now = timezone.now()
@@ -122,24 +134,23 @@ def _build_dashboard_charts_payload(dias, now=None):
     ordenes_por_dia = []
     ingresos_por_dia = []
 
-    for i in range(dias):
-        day = (now - timedelta(days=dias - 1 - i)).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        day_next = day + timedelta(days=1)
+    calendar_days = _dashboard_calendar_days(dias, now)
+    for day_date, day_start, day_end in calendar_days:
         if dias == 7:
-            chart_labels.append(weekday_es[day.weekday()])
+            chart_labels.append(weekday_es[day_date.weekday()])
         else:
-            chart_labels.append(day.strftime('%d/%m'))
+            chart_labels.append(day_date.strftime('%d/%m'))
 
         ordenes_por_dia.append(
             Order.objects.filter(
-                created_at__gte=day, created_at__lt=day_next
+                created_at__gte=day_start,
+                created_at__lt=day_end,
             ).count()
         )
         ing = (
             Order.objects.filter(
-                created_at__gte=day, created_at__lt=day_next
+                created_at__gte=day_start,
+                created_at__lt=day_end,
             )
             .exclude(status='cancelled')
             .aggregate(t=Sum('total'))['t']
@@ -147,9 +158,7 @@ def _build_dashboard_charts_payload(dias, now=None):
         )
         ingresos_por_dia.append(float(ing))
 
-    window_start = (now - timedelta(days=dias - 1)).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
+    window_start = calendar_days[0][1]
     qs = Order.objects.filter(created_at__gte=window_start)
     by_status = {row['status']: row['c'] for row in qs.values('status').annotate(c=Count('id'))}
     estados_data = {
@@ -1009,6 +1018,7 @@ def dashboard(request):
         'ordenes_por_dia_json': json.dumps(ordenes_por_dia),
         'ingresos_por_dia_json': json.dumps(ingresos_por_dia),
         'estados_data_json':    json.dumps(estados_data),
+        'charts_initial':       charts,
         'charts_initial_json':  _charts_json(charts),
         'api_dashboard_stats_url': reverse('api_dashboard_stats'),
         'ordenes_b2b':          ordenes_b2b,
