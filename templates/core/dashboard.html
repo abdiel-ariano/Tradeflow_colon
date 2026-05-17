@@ -12,7 +12,6 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 {% block title %}{% trans "Panel de ventas" %} — TradeFlow Colón{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 {% endblock %}
 {% block extra_css %}
 <style>
@@ -110,6 +109,12 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     min-height: 240px;
     height: 240px;
     position: relative;
+    width: 100%;
+  }
+  .adm-chart-canvas-wrap canvas {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
   }
   .adm-chart-canvas-wrap.adm-chart-tall {
     min-height: 280px;
@@ -358,25 +363,14 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
   </div>
 </div>
 
-<script type="application/json" id="adm-charts-initial">{{ charts_initial_json|safe }}</script>
+{{ charts_initial|json_script:"adm-charts-initial" }}
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
 <script src="{% static 'js/admin_rail.js' %}"></script>
+<script src="{% static 'js/dashboard_charts.js' %}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  var chartsErrorEl = document.getElementById('adm-charts-error');
-  function showChartsError(msg) {
-    if (!chartsErrorEl) return;
-    if (msg) chartsErrorEl.textContent = msg;
-    chartsErrorEl.classList.add('is-visible');
-  }
-  function hideChartsError() {
-    if (chartsErrorEl) chartsErrorEl.classList.remove('is-visible');
-  }
-
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var animOpts = reduced ? { duration: 0 } : { duration: 650, easing: 'easeOutQuart' };
-
+(function () {
   var stMap = {
     pending: { bg: '#fef8e7', fg: '#6b4a00' },
     paid: { bg: '#e8f4f8', fg: '#1a4f65' },
@@ -389,12 +383,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var t = stMap[el.getAttribute('data-st')];
     if (t) { el.style.background = t.bg; el.style.color = t.fg; }
   });
-
-  var pillsRoot = document.getElementById('adm-dias-pills');
   var pruebasBanner = document.getElementById('adm-pruebas-banner');
   if (pruebasBanner && pruebasBanner.getAttribute('data-show-pruebas') === '1') {
     pruebasBanner.classList.add('is-visible');
   }
+  var pillsRoot = document.getElementById('adm-dias-pills');
   if (pillsRoot) {
     var modoKpi = pillsRoot.getAttribute('data-dashboard-modo');
     var kpiLbl = document.getElementById('adm-kpi-ingresos-lbl');
@@ -415,351 +408,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
   }
-
-  function emptyPayload(len) {
-    var n = len || 7;
-    var labels = [];
-    var i;
-    for (i = 0; i < n; i += 1) labels.push('');
-    return {
-      chart_labels: labels,
-      ordenes_por_dia: Array(n).fill(0),
-      ingresos_por_dia: Array(n).fill(0),
-      estados_data: { pending: 0, paid: 0, shipped: 0, delivered: 0, cancelled: 0 },
-      ventas_por_categoria: [],
-      ventas_por_empresa: [],
-      productos_top: [],
-      ordenes_por_tipo: { b2b: 0, b2c: 0 },
-    };
-  }
-
-  var raw = document.getElementById('adm-charts-initial');
-  var initial = emptyPayload(7);
-  try {
-    initial = JSON.parse(raw ? raw.textContent.trim() : '{}');
-  } catch (e) {
-    initial = emptyPayload(7);
-  }
-
-  if (typeof Chart === 'undefined') {
-    showChartsError();
-    return;
-  }
-  hideChartsError();
-
-  if (!pillsRoot) return;
-
-  var catColors = ['#F26522', '#2E5B8A', '#1B3B63', '#FF7A3D', '#6B7A88', '#FFA15A'];
-  var estadoLabels = ['Pendiente', 'Pagado', 'Enviado', 'Entregado', 'Cancelado'];
-  var estadoColors = ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#065F46', '#FEE2E2'];
-  var estadoKeys = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
-
-  function estadosSeries(ed) {
-    return estadoKeys.map(function (k) {
-      return ed && typeof ed[k] === 'number' ? ed[k] : 0;
-    });
-  }
-  function sumArr(a) { return a.reduce(function (s, v) { return s + v; }, 0); }
-
-  function createLineGradient(ctx) {
-    var g = ctx.createLinearGradient(0, 0, 0, 240);
-    g.addColorStop(0, 'rgba(46, 91, 138, 0.35)');
-    g.addColorStop(1, 'rgba(46, 91, 138, 0.02)');
-    return g;
-  }
-
-  function toggleEmpty(el, canvasWrap, show) {
-    if (el) el.classList.toggle('is-visible', show);
-    if (canvasWrap) canvasWrap.style.display = show ? 'none' : 'block';
-  }
-
-  var barChart, lineChart, doughnutChart, catChart, empChart, prodChart;
-
-  function destroyCharts() {
-    [barChart, lineChart, doughnutChart, catChart, empChart, prodChart].forEach(function (c) {
-      if (c) c.destroy();
-    });
-    barChart = lineChart = doughnutChart = catChart = empChart = prodChart = null;
-  }
-
-  function updateMetaTipo(tipo) {
-    var b2b = document.getElementById('adm-meta-b2b');
-    var b2c = document.getElementById('adm-meta-b2c');
-    if (!tipo) return;
-    if (b2b) b2b.textContent = String(tipo.b2b || 0);
-    if (b2c) b2c.textContent = String(tipo.b2c || 0);
-  }
-
-  function applyPayload(payload) {
-    var labels = payload.chart_labels || [];
-    var ordenesDia = payload.ordenes_por_dia || [];
-    var ingresosDia = payload.ingresos_por_dia || [];
-    var ed = payload.estados_data || {};
-
-    if (barChart) {
-      barChart.data.labels = labels;
-      barChart.data.datasets[0].data = ordenesDia;
-      barChart.update(animOpts);
-    }
-    if (lineChart) {
-      lineChart.data.labels = labels;
-      lineChart.data.datasets[0].data = ingresosDia;
-      if (lineChart.ctx) {
-        lineChart.data.datasets[0].backgroundColor = createLineGradient(lineChart.ctx);
-      }
-      lineChart.update(animOpts);
-    }
-
-    var estVals = estadosSeries(ed);
-    var totalEst = sumArr(estVals);
-    var donutWrap = document.getElementById('admDoughnutChart');
-    toggleEmpty(document.getElementById('adm-doughnut-empty'), donutWrap ? donutWrap.parentElement : null, totalEst === 0);
-    if (totalEst > 0) {
-      if (!doughnutChart && donutWrap) {
-        doughnutChart = new Chart(donutWrap, {
-          type: 'doughnut',
-          data: {
-            labels: estadoLabels,
-            datasets: [{ data: estVals, backgroundColor: estadoColors, borderWidth: 2, borderColor: '#fff' }],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: animOpts,
-            plugins: { legend: { position: 'bottom', labels: { color: '#374151', font: { size: 11 } } } },
-          },
-        });
-      } else if (doughnutChart) {
-        doughnutChart.data.datasets[0].data = estVals;
-        doughnutChart.update(animOpts);
-      }
-    } else if (doughnutChart) {
-      doughnutChart.destroy();
-      doughnutChart = null;
-    }
-
-    var cats = payload.ventas_por_categoria || [];
-    var catLabels = cats.map(function (c) { return c.label; });
-    var catData = cats.map(function (c) { return c.pct; });
-    toggleEmpty(document.getElementById('adm-cat-empty'), document.getElementById('admCatDoughnut').parentElement, cats.length === 0);
-    if (catChart && cats.length) {
-      catChart.data.labels = catLabels;
-      catChart.data.datasets[0].data = catData;
-      catChart.update(animOpts);
-    }
-
-    var emps = payload.ventas_por_empresa || [];
-    toggleEmpty(document.getElementById('adm-emp-empty'), document.getElementById('admEmpChart').parentElement, emps.length === 0);
-    if (empChart && emps.length) {
-      empChart.data.labels = emps.map(function (e) { return e.label; });
-      empChart.data.datasets[0].data = emps.map(function (e) { return e.total; });
-      empChart.update(animOpts);
-    }
-
-    var prods = payload.productos_top || [];
-    toggleEmpty(document.getElementById('adm-prod-empty'), document.getElementById('admProdChart').parentElement, prods.length === 0);
-    if (prodChart && prods.length) {
-      prodChart.data.labels = prods.map(function (p) { return p.label; });
-      prodChart.data.datasets[0].data = prods.map(function (p) { return p.units; });
-      prodChart.update(animOpts);
-    }
-
-    updateMetaTipo(payload.ordenes_por_tipo);
-  }
-
-  function createCharts(payload) {
-    destroyCharts();
-    var labels = payload.chart_labels || [];
-    var ordenesDia = payload.ordenes_por_dia || [];
-    var ingresosDia = payload.ingresos_por_dia || [];
-    var ed = payload.estados_data || {};
-    var estVals = estadosSeries(ed);
-
-    var barCtx = document.getElementById('admBarChart');
-    if (barCtx) {
-      barChart = new Chart(barCtx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Órdenes',
-            data: ordenesDia,
-            backgroundColor: '#F26522',
-            borderRadius: 6,
-          }],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: animOpts,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#6B7A88', maxRotation: 45 } },
-            y: { beginAtZero: true, ticks: { precision: 0, color: '#6B7A88' }, grid: { color: 'rgba(209,213,219,0.6)' } },
-          },
-        },
-      });
-    }
-
-    var lineCtx = document.getElementById('admLineChart');
-    if (lineCtx) {
-      var lCtx = lineCtx.getContext('2d');
-      lineChart = new Chart(lineCtx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'USD',
-            data: ingresosDia,
-            borderColor: '#0F2A44',
-            backgroundColor: createLineGradient(lCtx),
-            fill: true,
-            tension: 0.4,
-            borderWidth: 2,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-          }],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: animOpts,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: '#6B7A88', maxRotation: 45 } },
-            y: {
-              beginAtZero: true,
-              ticks: {
-                color: '#6B7A88',
-                callback: function (v) { return 'US$' + Number(v).toFixed(0); },
-              },
-            },
-          },
-        },
-      });
-    }
-
-    var donutCtx = document.getElementById('admDoughnutChart');
-    var totalEst = sumArr(estVals);
-    toggleEmpty(document.getElementById('adm-doughnut-empty'), donutCtx ? donutCtx.parentElement : null, totalEst === 0);
-    if (donutCtx && totalEst > 0) {
-      doughnutChart = new Chart(donutCtx, {
-        type: 'doughnut',
-        data: {
-          labels: estadoLabels,
-          datasets: [{ data: estVals, backgroundColor: estadoColors, borderWidth: 2, borderColor: '#fff' }],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: animOpts,
-          plugins: { legend: { position: 'bottom', labels: { color: '#374151', font: { size: 11 } } } },
-        },
-      });
-    }
-
-    var cats = payload.ventas_por_categoria || [];
-    var catCtx = document.getElementById('admCatDoughnut');
-    toggleEmpty(document.getElementById('adm-cat-empty'), catCtx ? catCtx.parentElement : null, cats.length === 0);
-    if (catCtx && cats.length) {
-      catChart = new Chart(catCtx, {
-        type: 'doughnut',
-        data: {
-          labels: cats.map(function (c) { return c.label; }),
-          datasets: [{
-            data: cats.map(function (c) { return c.pct; }),
-            backgroundColor: catColors.slice(0, cats.length),
-            borderWidth: 2,
-            borderColor: '#fff',
-          }],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: animOpts,
-          plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
-        },
-      });
-    }
-
-    var emps = payload.ventas_por_empresa || [];
-    var empCtx = document.getElementById('admEmpChart');
-    toggleEmpty(document.getElementById('adm-emp-empty'), empCtx ? empCtx.parentElement : null, emps.length === 0);
-    if (empCtx && emps.length) {
-      empChart = new Chart(empCtx, {
-        type: 'bar',
-        data: {
-          labels: emps.map(function (e) { return e.label; }),
-          datasets: [{ data: emps.map(function (e) { return e.total; }), backgroundColor: '#2E5B8A', borderRadius: 4 }],
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: animOpts,
-          plugins: { legend: { display: false } },
-          scales: { x: { beginAtZero: true, ticks: { callback: function (v) { return 'US$' + v; } } } } },
-        },
-      });
-    }
-
-    var prods = payload.productos_top || [];
-    var prodCtx = document.getElementById('admProdChart');
-    toggleEmpty(document.getElementById('adm-prod-empty'), prodCtx ? prodCtx.parentElement : null, prods.length === 0);
-    if (prodCtx && prods.length) {
-      prodChart = new Chart(prodCtx, {
-        type: 'bar',
-        data: {
-          labels: prods.map(function (p) { return p.label; }),
-          datasets: [{ data: prods.map(function (p) { return p.units; }), backgroundColor: '#F26522', borderRadius: 4 }],
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: animOpts,
-          plugins: { legend: { display: false } },
-          scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } },
-        },
-      });
-    }
-
-    updateMetaTipo(payload.ordenes_por_tipo);
-  }
-
-  createCharts(initial);
-
-  var diasActivo = pillsRoot.getAttribute('data-dias-activo') || '7';
-  pillsRoot.querySelectorAll('.js-dias-pill').forEach(function (btn) {
-    if (btn.getAttribute('data-dias') === diasActivo) btn.classList.add('is-active');
-  });
-
-  var apiUrl = pillsRoot.getAttribute('data-api-url') || '';
-  pillsRoot.querySelectorAll('.js-dias-pill').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var d = btn.getAttribute('data-dias');
-      if (!d || !apiUrl) return;
-      pillsRoot.querySelectorAll('.js-dias-pill').forEach(function (b) { b.classList.remove('is-active'); });
-      btn.classList.add('is-active');
-      var url = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'dias=' + encodeURIComponent(d);
-      fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
-        .then(function (r) {
-          if (!r.ok) throw new Error('HTTP ' + r.status);
-          return r.json();
-        })
-        .then(function (data) {
-          hideChartsError();
-          if (!barChart || !lineChart) {
-            createCharts(data);
-            return;
-          }
-          applyPayload(data);
-        })
-        .catch(function () {
-          showChartsError('No se pudieron actualizar los gráficos. Intenta de nuevo.');
-        });
-    });
-  });
-});
+})();
 </script>
 {% endblock %}
