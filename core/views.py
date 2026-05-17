@@ -27,6 +27,7 @@ import json
 import logging
 
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.translation import gettext as _
 
 import folium
 import qrcode
@@ -1962,6 +1963,14 @@ def _contar_items(carrito):
     return sum(item['cantidad'] for item in carrito.values())
 
 
+def _request_wants_json(request):
+    """True si el cliente espera respuesta JSON (fetch/AJAX)."""
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return True
+    accept = request.headers.get('Accept', '')
+    return 'application/json' in accept
+
+
 # ---------------------------------------------------------------------------
 # TIENDA — Catálogo principal del comprador
 # ---------------------------------------------------------------------------
@@ -2094,11 +2103,17 @@ def agregar_al_carrito(request, producto_id):
 
     # Validar cantidad
     if cantidad < 1:
-        messages.error(request, 'La cantidad debe ser al menos 1.')
+        msg = _('La cantidad debe ser al menos 1.')
+        if _request_wants_json(request):
+            return JsonResponse({'ok': False, 'message': msg}, status=400)
+        messages.error(request, msg)
         return redirect('tienda')
 
     if disponible == 0:
-        messages.error(request, f'"{producto.name}" no tiene stock disponible.')
+        msg = _('"%(name)s" no tiene stock disponible.') % {'name': producto.name}
+        if _request_wants_json(request):
+            return JsonResponse({'ok': False, 'message': msg}, status=400)
+        messages.error(request, msg)
         return redirect('tienda')
 
     # Actualizar carrito en sesión
@@ -2109,10 +2124,14 @@ def agregar_al_carrito(request, producto_id):
         # El producto ya está en el carrito — sumar cantidades
         nueva_cantidad = carrito[producto_key]['cantidad'] + cantidad
         if nueva_cantidad > disponible:
-            messages.warning(
-                request,
-                f'Solo hay {disponible} unidades disponibles de "{producto.name}".'
-            )
+            warn_msg = _('Solo hay %(qty)s unidades disponibles de "%(name)s".') % {
+                'qty': disponible,
+                'name': producto.name,
+            }
+            if _request_wants_json(request):
+                pass
+            else:
+                messages.warning(request, warn_msg)
             nueva_cantidad = disponible
         carrito[producto_key]['cantidad'] = nueva_cantidad
         carrito[producto_key]['subtotal'] = str(
@@ -2122,10 +2141,13 @@ def agregar_al_carrito(request, producto_id):
         # Producto nuevo en el carrito
         if cantidad > disponible:
             cantidad = disponible
-            messages.warning(
-                request,
-                f'Solo hay {disponible} unidades disponibles. Se ajustó la cantidad.'
-            )
+            if not _request_wants_json(request):
+                messages.warning(
+                    request,
+                    _('Solo hay %(qty)s unidades disponibles. Se ajustó la cantidad.') % {
+                        'qty': disponible,
+                    },
+                )
         carrito[producto_key] = {
             'nombre':   producto.name,
             'precio':   str(producto.unit_price),
@@ -2135,7 +2157,16 @@ def agregar_al_carrito(request, producto_id):
         }
 
     _save_carrito(request, carrito)
-    messages.success(request, f'"{producto.name}" agregado al carrito.')
+    ok_msg = _('"%(name)s" agregado al carrito.') % {'name': producto.name}
+    if _request_wants_json(request):
+        return JsonResponse({
+            'ok': True,
+            'message': ok_msg,
+            'carrito_count': _contar_items(carrito),
+            'producto_id': producto_id,
+            'cantidad_en_carrito': carrito[producto_key]['cantidad'],
+        })
+    messages.success(request, ok_msg)
     return redirect('tienda')
 
 
@@ -2157,8 +2188,17 @@ def quitar_del_carrito(request, producto_id):
         nombre = carrito[producto_key]['nombre']
         del carrito[producto_key]
         _save_carrito(request, carrito)
-        messages.info(request, f'"{nombre}" eliminado del carrito.')
+        ok_msg = _('"%(name)s" eliminado del carrito.') % {'name': nombre}
+        if _request_wants_json(request):
+            return JsonResponse({
+                'ok': True,
+                'message': ok_msg,
+                'carrito_count': _contar_items(carrito),
+            })
+        messages.info(request, ok_msg)
 
+    if _request_wants_json(request):
+        return JsonResponse({'ok': True, 'message': '', 'carrito_count': _contar_items(carrito)})
     return redirect('ver_carrito')
 
 

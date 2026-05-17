@@ -54,13 +54,13 @@ templates/core/checkout.html — confirmación de pedido (comprador).
         <div class="co-sec">Dirección y notas</div>
         <div class="co-note">
           <span class="material-symbols-rounded">info</span>
-          <span>Demo: el pago es simulado. La orden se crea y marca como pagada automáticamente.</span>
+          <span>{% trans "Demo: el pago es simulado. La orden se crea y marca como pagada automáticamente." %}</span>
         </div>
-        <label class="tf-label" for="id_notas">Notas (opcional)</label>
-        <textarea name="notas" id="id_notas" class="co-ta" placeholder="Instrucciones de entrega, referencias…"></textarea>
+        <label class="tf-label" for="id_notas">{% trans "Notas (opcional)" %}</label>
+        <textarea name="notas" id="id_notas" class="co-ta" placeholder="{% trans 'Instrucciones de entrega, referencias…' %}"></textarea>
         <input type="hidden" name="shipping_cost" value="0">
-        <div class="co-pay"><span class="material-symbols-rounded">credit_card</span> Método de pago: mock (desarrollo)</div>
-        <button type="submit" class="co-submit"><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span> Confirmar y pagar</button>
+        <div class="co-pay"><span class="material-symbols-rounded">credit_card</span> {% trans "Método de pago: mock (desarrollo)" %}</div>
+        <button type="submit" class="co-submit"><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span> {% trans "Confirmar y pagar" %}</button>
       </div>
     </form>
     <div class="co-card">
@@ -70,7 +70,7 @@ templates/core/checkout.html — confirmación de pedido (comprador).
         {% if item.imagen %}<img src="{{ item.imagen }}" alt="">{% else %}<div style="width:48px;height:48px;border-radius:8px;background:#F2F3F5;"></div>{% endif %}
         <div class="co-line-info">
           <div class="co-line-name">{{ item.nombre }}</div>
-          <div class="co-line-q">{{ item.cantidad }} u.</div>
+          <div class="co-line-q">{% blocktrans with qty=item.cantidad %}{{ qty }} u.{% endblocktrans %}</div>
         </div>
         <div class="co-line-pr">USD {{ item.subtotal }}</div>
       </div>

@@ -266,6 +266,8 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
     cursor: not-allowed;
     box-shadow: none;
   }
+  .t-btn-add.is-loading { opacity: 0.75; pointer-events: none; }
+  .t-btn-add.is-added { background: #1b3b63; }
   .t-empty { text-align: center; padding: 3rem 1rem; color: #6b7a88; }
   .t-pag {
     display: flex;
@@ -470,7 +472,7 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
                   {% endif %}
                 </div>
                 {% if producto.available_qty > 0 %}
-                <form method="post" action="{% url 'agregar_al_carrito' producto.pk %}">
+                <form method="post" class="js-cart-add-form" action="{% url 'agregar_al_carrito' producto.pk %}">
                   {% csrf_token %}
                   <input type="hidden" name="cantidad" value="1">
                   <button type="submit" class="t-btn-add">
