@@ -37,8 +37,17 @@ from .models import (
     Address, Order, OrderItem, Payment, Shipment, Document,
     Cotizacion, CotizacionItem,
 )
-from .utils.email_sender import enviar_cambio_estado, enviar_confirmacion_orden
-from .utils.pdf_generator import generar_factura_pdf
+from .utils.email_sender import (
+    enviar_bienvenida,
+    enviar_cambio_estado,
+    enviar_confirmacion_orden,
+    enviar_verificacion_email,
+)
+from .utils.pdf_generator import (
+    generar_cotizacion_pdf,
+    generar_factura_pdf,
+    generar_packing_list_pdf,
+)
 
 log = logging.getLogger(__name__)
 
@@ -214,6 +223,26 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
+            if not (user.is_superuser or user.is_staff):
+                try:
+                    profile = user.profile
+                    if not profile.email_verificado:
+                        messages.warning(
+                            request,
+                            'Debes verificar tu email antes de iniciar sesión. '
+                            'Revisa tu bandeja de entrada o solicita un nuevo email.',
+                        )
+                        return render(
+                            request,
+                            'core/login.html',
+                            {
+                                'mostrar_reenvio': True,
+                                'email_pendiente': user.email,
+                            },
+                        )
+                except UserProfile.DoesNotExist:
+                    pass
+
             login(request, user)
             messages.success(request, f'¡Bienvenido, {user.first_name or user.username}!')
             next_url = (request.GET.get('next') or '').strip()
@@ -279,10 +308,23 @@ def signup_view(request):
             )
             UserProfile.objects.create(user=user, role=role, phone=phone)
 
-            # Login automático después del registro
-            login(request, user)
-            messages.success(request, f'¡Bienvenido a TradeFlow, {first_name}! Tu cuenta ha sido creada.')
-            return redirect(_redirect_by_role(user))
+            try:
+                enviar_verificacion_email(user, request)
+            except Exception as exc:
+                log.exception('No se pudo enviar email de verificación: %s', exc)
+                messages.warning(
+                    request,
+                    'Cuenta creada, pero no pudimos enviar el correo de verificación. '
+                    'Contacta a soporte@tradeflow.pa.',
+                )
+                return redirect('login')
+
+            messages.success(
+                request,
+                f'Cuenta creada. Revisa tu email {email} '
+                f'para verificar tu cuenta antes de iniciar sesión.',
+            )
+            return redirect('login')
 
     return render(request, 'core/signup.html', {
         'role_choices': [('buyer', 'Comprador'), ('seller', 'Vendedor')],
@@ -2120,10 +2162,7 @@ def descargar_factura(request, orden_pk):
     ):
         raise Http404()
 
-    try:
-        pdf_bytes = generar_factura_pdf(orden_pk)
-    except Order.DoesNotExist:
-        raise Http404()
+    pdf_bytes = generar_factura_pdf(orden)
     filename = f"factura_{orden.order_number}.pdf"
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
