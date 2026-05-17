@@ -1,16 +1,18 @@
-# TradeFlow Colón — English translations
-# Copyright (C) TradeFlow
-# This file is distributed under the same license as the TradeFlow package.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: TradeFlow Colón\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-17 16:43-0500\n"
-"PO-Revision-Date: 2026-05-12 12:00+0000\n"
-"Last-Translator: \n"
-"Language-Team: English\n"
-"Language: en\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,195 +20,181 @@ msgstr ""
 
 #: core/models.py:281 templates/core/mi_perfil.html:404
 msgid "Pendiente"
-msgstr "Pending"
+msgstr ""
 
 #: core/models.py:282 templates/core/mi_perfil.html:405
 msgid "Pagado"
-msgstr "Paid"
+msgstr ""
 
 #: core/models.py:283 templates/core/mi_perfil.html:406
 msgid "Empacado"
-msgstr "Packed"
+msgstr ""
 
 #: core/models.py:284 templates/core/mi_perfil.html:407
 msgid "Enviado"
-msgstr "Shipped"
+msgstr ""
 
 #: core/models.py:285 templates/core/mi_perfil.html:408
 msgid "Entregado"
-msgstr "Delivered"
+msgstr ""
 
 #: core/models.py:286 templates/core/mi_perfil.html:409
 msgid "Cancelado"
-msgstr "Cancelled"
+msgstr ""
 
 #: core/models.py:290
 msgid "Consumidor final (B2C)"
-msgstr "End consumer (B2C)"
+msgstr ""
 
 #: core/models.py:291
 msgid "Empresa a empresa (B2B)"
-msgstr "Business to business (B2B)"
+msgstr ""
 
 #: templates/core/base.html:924
 msgid "Mapa"
-msgstr "Map"
+msgstr ""
 
 #: templates/core/base.html:946 templates/core/mi_perfil.html:366
 msgid "Dashboard"
-msgstr "Dashboard"
+msgstr ""
 
 #: templates/core/base.html:947 templates/core/ordenes.html:6
-#, fuzzy
-#| msgid "Mis órdenes"
 msgid "Órdenes"
-msgstr "Orders"
+msgstr ""
 
 #: templates/core/base.html:948 templates/core/base.html:963
 #: templates/core/mi_perfil.html:362
-#, fuzzy
-#| msgid "Ver productos"
 msgid "Productos"
-msgstr "View products"
+msgstr ""
 
 #: templates/core/base.html:949
-#, fuzzy
-#| msgid "Empresa"
 msgid "Empresas"
-msgstr "Business"
+msgstr ""
 
 #: templates/core/base.html:952
 msgid "Tienda"
-msgstr "Store"
+msgstr ""
 
 #: templates/core/base.html:953 templates/core/mi_perfil.html:357
 #: templates/core/mis_ordenes.html:3 templates/core/mis_ordenes.html:33
 msgid "Mis órdenes"
-msgstr "My orders"
+msgstr ""
 
 #: templates/core/base.html:954
 msgid "Mis cotizaciones"
-msgstr "My quotes"
+msgstr ""
 
 #: templates/core/base.html:955
 msgid "Mi QR"
-msgstr "My QR"
+msgstr ""
 
 #: templates/core/base.html:962 templates/core/mi_perfil.html:361
 msgid "Mi Panel"
-msgstr "My Dashboard"
+msgstr ""
 
 #: templates/core/base.html:964 templates/core/mi_perfil.html:363
-#, fuzzy
-#| msgid "Mis órdenes"
 msgid "Mis ventas"
-msgstr "My orders"
+msgstr ""
 
 #: templates/core/base.html:973
 msgid "Salir"
-msgstr "Sign Out"
+msgstr ""
 
 #: templates/core/base.html:976 templates/core/login.html:159
 #: templates/core/signup.html:135
 msgid "Iniciar sesión"
-msgstr "Log in"
+msgstr ""
 
 #: templates/core/base.html:977 templates/core/home.html:883
 #: templates/core/signup.html:130
 msgid "Crear cuenta"
-msgstr "Create account"
+msgstr ""
 
 #: templates/core/carrito.html:3 templates/core/carrito.html:54
-#, fuzzy
-#| msgid "Añadir al carrito"
 msgid "Mi carrito"
-msgstr "Add to cart"
+msgstr ""
 
 #: templates/core/carrito.html:54
-#, fuzzy, python-format
-#| msgid "%(counter)s producto"
-#| msgid_plural "%(counter)s productos"
+#, python-format
 msgid "%(counter)s artículo"
 msgid_plural "%(counter)s artículos"
-msgstr[0] "%(counter)s product"
-msgstr[1] "%(counter)s products"
+msgstr[0] ""
+msgstr[1] ""
 
 #: templates/core/checkout.html:7 templates/core/checkout.html:49
 msgid "Confirmar pedido"
-msgstr "Confirm Order"
+msgstr ""
 
 #: templates/core/checkout.html:67
 msgid "Resumen"
-msgstr "Summary"
+msgstr ""
 
 #: templates/core/checkout.html:78
 msgid "Subtotal"
-msgstr "Subtotal"
+msgstr ""
 
 #: templates/core/checkout.html:79
 msgid "Total"
-msgstr "Total"
+msgstr ""
 
 #: templates/core/dashboard.html:12
 msgid "Panel de ventas"
-msgstr "Sales dashboard"
+msgstr ""
 
 #: templates/core/dashboard.html:150
 msgid "Panel de ventas ZLC"
-msgstr "CFZ sales dashboard"
+msgstr ""
 
 #: templates/core/dashboard.html:161
 msgid "Período de análisis"
-msgstr "Analysis period"
+msgstr ""
 
 #: templates/core/dashboard.html:177
 msgid "Modo pruebas (PreExpo)"
-msgstr "Test mode (PreExpo)"
+msgstr ""
 
 #: templates/core/dashboard.html:178
 msgid ""
 "Los gráficos usan órdenes creadas en el período (pending, paid, enviado, "
 "etc.). No necesitas marcar entregado para ver barras, línea y dona."
 msgstr ""
-"Charts use orders created in the period (pending, paid, shipped, etc.). "
-"You do not need to mark delivered to see bar, line, and doughnut charts."
 
 #: templates/core/dashboard.html:179
 msgid "Entregadas en el período:"
-msgstr "Delivered in period:"
+msgstr ""
 
 #: templates/core/dashboard.html:200
 msgid "Ingresos del período (órdenes activas)"
-msgstr "Period revenue (active orders)"
+msgstr ""
 
 #: templates/core/dashboard.html:201
 msgid "Ingresos entregados (período)"
-msgstr "Delivered revenue (period)"
+msgstr ""
 
 #: templates/core/dashboard.html:210
 msgid "Acumulado activo (no canceladas): USD"
-msgstr "Active total (non-cancelled): USD"
+msgstr ""
 
 #: templates/core/dashboard.html:211
 msgid "Acumulado entregado: USD"
-msgstr "Delivered total: USD"
+msgstr ""
 
 #: templates/core/dashboard.html:235
 msgid "No se pudo cargar Chart.js. Revisa la conexión."
-msgstr "Chart.js could not be loaded. Check your connection."
+msgstr ""
 
 #: templates/core/dashboard.html:276
 msgid "Sin órdenes en este período"
-msgstr "No orders in this period"
+msgstr ""
 
 #: templates/core/home.html:22
 msgid "TradeFlow Colón — Compra, gestiona, exporta"
-msgstr "TradeFlow Colón — Buy, manage, export"
+msgstr ""
 
 #: templates/core/home.html:864 templates/core/login.html:129
 #: templates/core/signup.html:75
 msgid "Zona Libre de Colón · Panamá"
-msgstr "Colón Free Zone · Panama"
+msgstr ""
 
 #: templates/core/home.html:867
 msgid "Compra"
@@ -245,28 +233,18 @@ msgid "mundo"
 msgstr ""
 
 #: templates/core/home.html:878
-#, fuzzy
-#| msgid ""
-#| "TradeFlow conecta compradores con empresas verificadas de la Zona Libre "
-#| "de Colón: catálogo claro, pedidos trazables y herramientas listas para "
-#| "escalar ante inversores y socios logísticos."
 msgid ""
 "TradeFlow conecta compradores con empresas verificadas de la Zona Libre de "
 "Colón: catálogo claro, pedidos trazables y herramientas listas para escalar."
 msgstr ""
-"TradeFlow connects buyers with verified Colón Free Zone companies: a clear "
-"catalog, traceable orders, and tools ready to scale with investors and "
-"logistics partners."
 
 #: templates/core/home.html:887 templates/core/home.html:1046
 msgid "Cómo funciona"
 msgstr ""
 
 #: templates/core/home.html:902
-#, fuzzy
-#| msgid "Empresas activas"
 msgid "Órdenes activas"
-msgstr "Active companies"
+msgstr ""
 
 #: templates/core/home.html:906
 msgid "Fulfillment"
@@ -277,28 +255,24 @@ msgid "Envíos en tránsito"
 msgstr ""
 
 #: templates/core/home.html:914
-#, fuzzy
-#| msgid "Cumplimiento envíos"
 msgid "Cumplimiento operativo"
-msgstr "Shipment fulfillment"
+msgstr ""
 
 #: templates/core/home.html:926
 msgid "Empresas en la ZLC"
-msgstr "Companies in the CFZ"
+msgstr ""
 
 #: templates/core/home.html:930
 msgid "Transacciones anuales"
-msgstr "Annual transactions"
+msgstr ""
 
 #: templates/core/home.html:934
 msgid "Países compradores"
-msgstr "Buyer countries"
+msgstr ""
 
 #: templates/core/home.html:943
-#, fuzzy
-#| msgid "Empresas en la ZLC"
 msgid "Empresas y proceso en la ZLC"
-msgstr "Companies in the CFZ"
+msgstr ""
 
 #: templates/core/home.html:944
 msgid "Conoce vendedores verificados y el flujo de compra B2B en cuatro pasos."
@@ -306,16 +280,14 @@ msgstr ""
 
 #: templates/core/home.html:947 templates/core/tienda.html:492
 msgid "Anterior"
-msgstr "Previous"
+msgstr ""
 
 #: templates/core/home.html:957
-#, fuzzy, python-format
-#| msgid "%(n)s producto disponible"
-#| msgid_plural "%(n)s productos disponibles"
+#, python-format
 msgid "%(n)s producto activo"
 msgid_plural "%(n)s productos activos"
-msgstr[0] "%(n)s product available"
-msgstr[1] "%(n)s products available"
+msgstr[0] ""
+msgstr[1] ""
 
 #: templates/core/home.html:963 templates/core/home.html:971
 #: templates/core/home.html:979 templates/core/home.html:987
@@ -323,10 +295,8 @@ msgid "Paso"
 msgstr ""
 
 #: templates/core/home.html:965 templates/core/home.html:1056
-#, fuzzy
-#| msgid "Crear cuenta"
 msgid "Crea tu cuenta"
-msgstr "Create account"
+msgstr ""
 
 #: templates/core/home.html:966
 msgid "Regístrate como comprador en minutos y accede al catálogo ZLC."
@@ -358,7 +328,7 @@ msgstr ""
 
 #: templates/core/home.html:995 templates/core/tienda.html:498
 msgid "Siguiente"
-msgstr "Next"
+msgstr ""
 
 #: templates/core/home.html:998
 msgid "Diapositivas del carrusel"
@@ -366,141 +336,111 @@ msgstr ""
 
 #: templates/core/home.html:1006
 msgid "Por qué TradeFlow"
-msgstr "Why TradeFlow"
+msgstr ""
 
 #: templates/core/home.html:1011
 msgid "Compra sin viajar"
 msgstr ""
 
 #: templates/core/home.html:1012
-#, fuzzy
-#| msgid ""
-#| "Explora ofertas de la ZLC sin fricción y con información clara de cada "
-#| "vendedor."
 msgid ""
 "Accede a la ZLC desde cualquier país con información clara de cada vendedor."
 msgstr ""
-"Explore CFZ offers with low friction and clear information for each seller."
 
 #: templates/core/home.html:1016
-#, fuzzy
-#| msgid "Inventario en vivo"
 msgid "Inventario en tiempo real"
-msgstr "Live inventory"
+msgstr ""
 
 #: templates/core/home.html:1017
-#, fuzzy
-#| msgid ""
-#| "Stock y reservas integrados para evitar ventas duplicadas y mejorar la "
-#| "confianza."
 msgid "Stock y reservas integrados para evitar ventas duplicadas."
 msgstr ""
-"Integrated stock and reservations to avoid duplicate sales and build trust."
 
 #: templates/core/home.html:1021
-#, fuzzy
-#| msgid "Documentos y órdenes"
 msgid "Documentos aduaneros"
-msgstr "Documents and orders"
+msgstr ""
 
 #: templates/core/home.html:1022
-#, fuzzy
-#| msgid ""
-#| "Base lista para facturas y listas de empaque alineadas a procesos de "
-#| "exportación."
 msgid "Base para facturas y listas de empaque en procesos de exportación."
 msgstr ""
-"A foundation for invoices and packing lists aligned with export processes."
 
 #: templates/core/home.html:1026
 msgid "Pago seguro"
-msgstr "Secure payment"
+msgstr ""
 
 #: templates/core/home.html:1027
-#, fuzzy
-#| msgid ""
-#| "Flujos de pago mock y preparación para integraciones con pasarelas "
-#| "profesionales."
 msgid "Flujos trazables y preparación para pasarelas profesionales."
 msgstr ""
-"Mock payment flows and groundwork for professional gateway integrations."
 
 #: templates/core/home.html:1031
-#, fuzzy
-#| msgid "Pre-registro"
 msgid "Pre-registro QR"
-msgstr "Pre-registration"
+msgstr ""
 
 #: templates/core/home.html:1032
 msgid ""
 "Experiencias de registro y roles separados para compradores y vendedores."
-msgstr "Registration experiences and separate roles for buyers and sellers."
+msgstr ""
 
 #: templates/core/home.html:1036
-#, fuzzy
-#| msgid "Analítica"
 msgid "Analítica avanzada"
-msgstr "Analytics"
+msgstr ""
 
 #: templates/core/home.html:1037
 msgid "Métricas operativas y comerciales para tomar mejores decisiones."
-msgstr "Operational and commercial metrics for better decisions."
+msgstr ""
 
 #: templates/core/home.html:1047
 msgid "Cuatro pasos para comprar en la Zona Libre de Colón con TradeFlow."
-msgstr "Four steps to buy in the Colón Free Zone with TradeFlow."
+msgstr ""
 
 #: templates/core/home.html:1057
 msgid "Registro rápido como comprador B2B."
-msgstr "Quick registration as a B2B buyer."
+msgstr ""
 
 #: templates/core/home.html:1063
 msgid "Busca por categoría, empresa o SKU."
-msgstr "Search by category, company, or SKU."
+msgstr ""
 
 #: templates/core/home.html:1069
 msgid "Checkout con estados y trazabilidad."
-msgstr "Checkout with status tracking."
+msgstr ""
 
 #: templates/core/home.html:1075
 msgid "Seguimiento y documentación de envío."
-msgstr "Shipment tracking and documentation."
+msgstr ""
 
 #: templates/core/home.html:1085
 msgid "Productos destacados"
-msgstr "Featured products"
+msgstr ""
 
 #: templates/core/home.html:1086
 msgid "Una muestra del catálogo disponible al registrarte."
-msgstr "A sample of the catalog available when you sign up."
+msgstr ""
 
 #: templates/core/home.html:1098
-#, fuzzy
-#| msgid "Ver productos"
 msgid "Ver producto"
-msgstr "View products"
+msgstr ""
 
 #: templates/core/home.html:1115
 msgid "La Zona Libre está esperándote"
-msgstr "The Free Zone is waiting for you"
+msgstr ""
 
 #: templates/core/home.html:1116
 msgid ""
 "Únete a la plataforma que digitaliza el comercio de Colón para compradores y "
 "empresas."
-msgstr "Join the platform digitizing Colón commerce for buyers and companies."
+msgstr ""
 
 #: templates/core/home.html:1120
 msgid "Comenzar ahora"
-msgstr "Get started"
+msgstr ""
 
 #: templates/core/home.html:1122
 msgid "Ya tengo cuenta"
-msgstr "I already have an account"
+msgstr ""
 
 #: templates/core/login.html:14
 msgid "Iniciar sesión — TradeFlow Colón"
-msgstr "Log in — TradeFlow Colón"
+msgstr ""
 
 #: templates/core/login.html:134
 msgid "Verificación de email desactivada para pruebas locales."
@@ -508,45 +448,45 @@ msgstr ""
 
 #: templates/core/login.html:137
 msgid "Bienvenido de vuelta"
-msgstr "Welcome back"
+msgstr ""
 
 #: templates/core/login.html:138 templates/core/signup.html:81
 msgid "Tipo de cuenta"
-msgstr "Account type"
+msgstr ""
 
 #: templates/core/login.html:140
 msgid "Cliente"
-msgstr "Customer"
+msgstr ""
 
 #: templates/core/login.html:143
 msgid "Empresa"
-msgstr "Business"
+msgstr ""
 
 #: templates/core/login.html:149 templates/core/signup.html:112
 #: templates/core/signup.html:113
 msgid "Usuario"
-msgstr "Username"
+msgstr ""
 
 #: templates/core/login.html:151
 msgid "tu_usuario"
-msgstr "your_username"
+msgstr ""
 
 #: templates/core/login.html:154 templates/core/login.html:156
 #: templates/core/signup.html:121
 msgid "Contraseña"
-msgstr "Password"
+msgstr ""
 
 #: templates/core/login.html:162 templates/core/signup.html:133
 msgid "o"
-msgstr "or"
+msgstr ""
 
 #: templates/core/login.html:164
 msgid "¿No tienes cuenta?"
-msgstr "Don’t have an account?"
+msgstr ""
 
 #: templates/core/login.html:164
 msgid "Regístrate gratis"
-msgstr "Sign up for free"
+msgstr ""
 
 #: templates/core/login.html:168
 msgid "¿No recibiste el correo de verificación?"
@@ -558,7 +498,7 @@ msgstr ""
 
 #: templates/core/mi_perfil.html:11
 msgid "Mi Perfil"
-msgstr "My Profile"
+msgstr ""
 
 #: templates/core/mi_perfil.html:216
 msgid "Tu correo aún no está verificado."
@@ -566,353 +506,264 @@ msgstr ""
 
 #: templates/core/mi_perfil.html:232
 msgid "Miembro desde"
-msgstr "Member since"
+msgstr ""
 
 #: templates/core/mi_perfil.html:242
 msgid "Información personal"
-msgstr "Personal information"
+msgstr ""
 
 #: templates/core/mi_perfil.html:249 templates/core/signup.html:99
 #: templates/core/signup.html:100
 msgid "Nombre"
-msgstr "First name"
+msgstr ""
 
 #: templates/core/mi_perfil.html:254 templates/core/signup.html:103
 #: templates/core/signup.html:104
 msgid "Apellido"
-msgstr "Last name"
+msgstr ""
 
 #: templates/core/mi_perfil.html:260 templates/core/signup.html:108
 msgid "Correo electrónico"
-msgstr "Email"
+msgstr ""
 
 #: templates/core/mi_perfil.html:265 templates/core/signup.html:116
 msgid "Teléfono"
-msgstr "Phone"
+msgstr ""
 
 #: templates/core/mi_perfil.html:271
 msgid "Guardar cambios"
-msgstr "Save changes"
+msgstr ""
 
 #: templates/core/mi_perfil.html:279
 msgid "Seguridad"
-msgstr "Security"
+msgstr ""
 
 #: templates/core/mi_perfil.html:285
-#, fuzzy
-#| msgid "Contraseña"
 msgid "Contraseña actual"
-msgstr "Password"
+msgstr ""
 
 #: templates/core/mi_perfil.html:289
-#, fuzzy
-#| msgid "Contraseña"
 msgid "Nueva contraseña"
-msgstr "Password"
+msgstr ""
 
 #: templates/core/mi_perfil.html:297
 msgid "Confirmar nueva contraseña"
-msgstr "Confirm new password"
+msgstr ""
 
 #: templates/core/mi_perfil.html:303
-#, fuzzy
-#| msgid "Contraseña"
 msgid "Cambiar contraseña"
-msgstr "Password"
+msgstr ""
 
 #: templates/core/mi_perfil.html:313
 msgid "Tu actividad"
-msgstr "Your activity"
+msgstr ""
 
 #: templates/core/mi_perfil.html:318
 msgid "Órdenes realizadas"
-msgstr "Orders placed"
+msgstr ""
 
 #: templates/core/mi_perfil.html:321
 msgid "Última orden"
-msgstr "Last order"
+msgstr ""
 
 #: templates/core/mi_perfil.html:329
-#, fuzzy
-#| msgid "Mis órdenes"
 msgid "Ver mis órdenes"
-msgstr "My orders"
+msgstr ""
 
 #: templates/core/mi_perfil.html:335
 msgid "Productos activos en catálogo"
-msgstr "Active products in catalog"
+msgstr ""
 
 #: templates/core/mi_perfil.html:338
-#, fuzzy
-#| msgid "Ver productos"
 msgid "Ver mis productos"
-msgstr "View products"
+msgstr ""
 
 #: templates/core/mi_perfil.html:344
 msgid "Usuarios registrados"
-msgstr "Registered users"
+msgstr ""
 
 #: templates/core/mi_perfil.html:346
-#, fuzzy
-#| msgid "Órdenes en período"
 msgid "Órdenes del sistema"
-msgstr "Orders in period"
+msgstr ""
 
 #: templates/core/mi_perfil.html:353
-#, fuzzy
-#| msgid "Accesos por rol"
 msgid "Accesos rápidos"
-msgstr "Role-based access"
+msgstr ""
 
 #: templates/core/mi_perfil.html:356
 msgid "Ir a la tienda"
-msgstr "Go to store"
+msgstr ""
 
 #: templates/core/mi_perfil.html:358
 msgid "Mi QR de visitante"
-msgstr "Visitor QR"
+msgstr ""
 
 #: templates/core/mi_perfil.html:367
-#, fuzzy
-#| msgid "Mis órdenes"
 msgid "Gestionar órdenes"
-msgstr "My orders"
+msgstr ""
 
 #: templates/core/mi_perfil.html:368
-#, fuzzy
-#| msgid "Ver productos"
 msgid "Gestionar productos"
-msgstr "View products"
+msgstr ""
 
 #: templates/core/mi_perfil.html:382 templates/core/signup.html:86
 msgid "Comprador"
-msgstr "Buyer"
+msgstr ""
 
 #: templates/core/mi_perfil.html:383 templates/core/signup.html:93
 msgid "Vendedor"
-msgstr "Seller"
+msgstr ""
 
 #: templates/core/mi_perfil.html:384
 msgid "Administrador"
-msgstr "Administrator"
+msgstr ""
 
 #: templates/core/ordenes.html:15
 msgid "Gestión de órdenes"
-msgstr "Order management"
+msgstr ""
 
 #: templates/core/ordenes.html:16
 msgid ""
 "Filtra por cliente o número TF, revisa estado y abre el detalle para "
 "actualizar el flujo operativo."
 msgstr ""
-"Filter by customer or TF number, review status, and open details to update "
-"the operational workflow."
 
 #: templates/core/ordenes.html:21
 msgid "Nueva orden"
-msgstr "New order"
+msgstr ""
 
 #: templates/core/portal_seller.html:187
 #, python-format
 msgid "Bienvenida, %(name)s"
-msgstr "Welcome, %(name)s"
+msgstr ""
 
 #: templates/core/signup.html:11
-#, fuzzy
-#| msgid "Tienda — TradeFlow Colón"
 msgid "Crear cuenta — TradeFlow Colón"
-msgstr "Store — TradeFlow Colón"
+msgstr ""
 
 #: templates/core/signup.html:78
-#, fuzzy
-#| msgid "Crear cuenta"
 msgid "Crear tu cuenta"
-msgstr "Create account"
+msgstr ""
 
 #: templates/core/signup.html:122
 msgid "Mín. 8 caracteres"
-msgstr "Min. 8 characters"
+msgstr ""
 
 #: templates/core/signup.html:125 templates/core/signup.html:126
-#, fuzzy
-#| msgid "Contraseña"
 msgid "Confirmar contraseña"
-msgstr "Password"
+msgstr ""
 
 #: templates/core/signup.html:135
-#, fuzzy
-#| msgid "¿No tienes cuenta?"
 msgid "¿Ya tienes cuenta?"
-msgstr "Don’t have an account?"
+msgstr ""
 
 #: templates/core/tienda.html:11
 msgid "Tienda — TradeFlow Colón"
-msgstr "Store — TradeFlow Colón"
+msgstr ""
 
 #: templates/core/tienda.html:381 templates/core/tienda.html:382
 msgid "Categorías"
-msgstr "Categories"
+msgstr ""
 
 #: templates/core/tienda.html:383
 msgid "Todas"
-msgstr "All"
+msgstr ""
 
 #: templates/core/tienda.html:390
 msgid "Por categoría"
-msgstr "By category"
+msgstr ""
 
 #: templates/core/tienda.html:391
 msgid "Por empresa"
-msgstr "By company"
+msgstr ""
 
 #: templates/core/tienda.html:395 templates/core/tienda.html:516
 msgid "Catálogo TradeFlow"
-msgstr "TradeFlow catalog"
+msgstr ""
 
 #: templates/core/tienda.html:396
 #, python-format
 msgid "%(counter)s producto"
 msgid_plural "%(counter)s productos"
-msgstr[0] "%(counter)s product"
-msgstr[1] "%(counter)s products"
+msgstr[0] ""
+msgstr[1] ""
 
 #: templates/core/tienda.html:403
 msgid "Buscar productos, SKU…"
-msgstr "Search products, SKU…"
+msgstr ""
 
 #: templates/core/tienda.html:406
 msgid "Todas las categorías"
-msgstr "All categories"
+msgstr ""
 
 #: templates/core/tienda.html:410 templates/core/tienda.html:440
 msgid "Todas las empresas"
-msgstr "All companies"
+msgstr ""
 
 #: templates/core/tienda.html:415
 msgid "Aplicar filtros"
-msgstr "Apply filters"
+msgstr ""
 
 #: templates/core/tienda.html:426
 #, python-format
 msgid "%(n)s producto disponible"
 msgid_plural "%(n)s productos disponibles"
-msgstr[0] "%(n)s product available"
-msgstr[1] "%(n)s products available"
+msgstr[0] ""
+msgstr[1] ""
 
 #: templates/core/tienda.html:427
 msgid "Ver productos"
-msgstr "View products"
+msgstr ""
 
 #: templates/core/tienda.html:432
 msgid "No hay empresas con productos activos."
-msgstr "No companies with active products."
+msgstr ""
 
 #: templates/core/tienda.html:461
 msgid "General"
-msgstr "General"
+msgstr ""
 
 #: templates/core/tienda.html:468
 #, python-format
 msgid "Stock bajo: %(qty)s"
-msgstr "Low stock: %(qty)s"
+msgstr ""
 
 #: templates/core/tienda.html:478
 msgid "Agregar"
-msgstr "Add"
+msgstr ""
 
 #: templates/core/tienda.html:482
 msgid "Sin stock"
-msgstr "Out of stock"
+msgstr ""
 
 #: templates/core/tienda.html:504
 msgid "No se encontraron productos"
-msgstr "No products found"
+msgstr ""
 
 #: templates/core/tienda.html:505
 msgid "Prueba otros filtros o vuelve al catálogo completo."
-msgstr "Try other filters or return to the full catalog."
+msgstr ""
 
 #: templates/core/tienda.html:506
 msgid "Ver todo"
-msgstr "View all"
+msgstr ""
 
 #: templates/core/tienda.html:513
 msgid "Resultados para"
-msgstr "Results for"
+msgstr ""
 
 #: templates/core/tienda.html:514
 msgid "Productos de la empresa"
-msgstr "Company products"
+msgstr ""
 
 #: templates/core/tienda.html:515
 msgid "Empresas en TradeFlow"
-msgstr "Companies on TradeFlow"
+msgstr ""
 
 #: tradeflow_colon/settings.py:132
 msgid "Español"
-msgstr "Spanish"
+msgstr ""
 
 #: tradeflow_colon/settings.py:133
 msgid "English"
-msgstr "English"
-
-#~ msgid ""
-#~ "La ZLC en una plataforma B2B en la que confían compradores y operadores"
-#~ msgstr "The CFZ on a B2B platform trusted by buyers and operators"
-
-#~ msgid "Panel operativo (vista previa)"
-#~ msgstr "Operations dashboard (preview)"
-
-#~ msgid "Señales de confianza"
-#~ msgstr "Trust signals"
-
-#~ msgid "Empresas verificadas"
-#~ msgstr "Verified companies"
-
-#~ msgid "Catálogo enlazado a compañías con perfil en ZLC."
-#~ msgstr "Catalog linked to companies with a CFZ profile."
-
-#~ msgid "Comprador, vendedor y administración con rutas separadas."
-#~ msgstr "Buyer, seller, and admin with separate paths."
-
-#~ msgid "Flujo de pedidos con estados y base para facturación."
-#~ msgstr "Order flow with statuses and a foundation for invoicing."
-
-#~ msgid "Listo para escalar"
-#~ msgstr "Built to scale"
-
-#~ msgid "Arquitectura pensada para crecer con más módulos y datos."
-#~ msgstr "Architecture designed to grow with more modules and data."
-
-#~ msgid "Caso de uso"
-#~ msgstr "Use case"
-
-#~ msgid ""
-#~ "“Necesitábamos una vitrina seria para la ZLC: precios claros, stock "
-#~ "visible y un back-office que no parezca prototipo. TradeFlow encaja con "
-#~ "lo que buscan socios e inversores.”"
-#~ msgstr ""
-#~ "“We needed a serious storefront for the CFZ: clear prices, visible stock, "
-#~ "and a back office that doesn’t feel like a prototype. TradeFlow fits what "
-#~ "partners and investors are looking for.”"
-
-#~ msgid "Operaciones B2B · Zona Libre de Colón · Panamá"
-#~ msgstr "B2B operations · Colón Free Zone · Panama"
-
-#~ msgid "Acceso global"
-#~ msgstr "Global access"
-
-#~ msgid "Documentación"
-#~ msgstr "Documentation"
-
-#~ msgid "Pagos trazables"
-#~ msgstr "Traceable payments"
-
-#~ msgid ""
-#~ "Paneles para administración y vendedores con métricas operativas y "
-#~ "comerciales."
-#~ msgstr ""
-#~ "Dashboards for admins and sellers with operational and commercial metrics."
-
-#~ msgid "Ver catálogo completo"
-#~ msgstr "View full catalog"
+msgstr ""

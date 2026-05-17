@@ -207,10 +207,45 @@ def _usd_cell(amount: Decimal) -> str:
     return f"USD {_usd(amount)}"
 
 
+def _meta_row_table(rows, styles) -> Table:
+    """
+    Tabla meta de dos columnas con labels cortos y valores en Paragraph (sin solapes).
+
+    Args:
+        rows: lista de tuplas (label_sin_dos_puntos, valor_html_escaped_o_texto).
+    """
+    data = []
+    for label, value in rows:
+        label_para = Paragraph(
+            f"<font color='#6B7A88'><b>{escape(label)}</b></font>",
+            styles["LabelGray"],
+        )
+        if isinstance(value, Paragraph):
+            value_para = value
+        else:
+            value_para = Paragraph(str(value), styles["BodySmall"])
+        data.append([label_para, value_para])
+
+    meta_tbl = Table(data, colWidths=[6.2 * cm, 10.8 * cm])
+    meta_tbl.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                ("LEFTPADDING", (0, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
+    )
+    return meta_tbl
+
+
 def _table_style_navy_header() -> TableStyle:
     return TableStyle(
         [
             ("BACKGROUND", (0, 0), (-1, 0), TF_NAVY),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
             ("LINEBELOW", (0, 0), (-1, 0), 2, TF_ORANGE),
             ("ALIGN", (0, 0), (-1, -1), "LEFT"),
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -257,7 +292,8 @@ def generar_factura_pdf(orden) -> bytes:
     Factura comercial en USD para una instancia de ``Order``.
 
     Usa ``orden.items.all()`` con datos snapshot del pedido (empresa del
-    producto, cantidades y precios).
+    producto, cantidades y precios). Meta y cabeceras de tabla evitan solapes
+    (labels cortos + Paragraph en ambas columnas).
     """
     styles = _get_styles()
     buffer = io.BytesIO()
@@ -289,34 +325,21 @@ def generar_factura_pdf(orden) -> bytes:
         {item.product.company.name for item in orden.items.all()},
         key=str.lower,
     )
-    vendedores_txt = escape(" · ".join(empresas)) if empresas else "—"
+    expedidor_txt = escape(" · ".join(empresas)) if empresas else "—"
 
-    meta_rows = [
-        ["Número:", escape(str(orden.order_number))],
-        ["Fecha de emisión:", _format_dt(orden.created_at)],
-        ["Tipo de orden:", escape(str(orden.get_order_type_display()))],
-        ["Comprador:", buyer_name],
-        ["Correo:", buyer_email],
-        [
-            "Vendedores (origen mercancía ZLC):",
-            Paragraph(vendedores_txt, styles["BodySmall"]),
-        ],
-    ]
-    meta_tbl = Table(meta_rows, colWidths=[4.5 * cm, 12.5 * cm])
-    meta_tbl.setStyle(
-        TableStyle(
+    story.append(
+        _meta_row_table(
             [
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ("TEXTCOLOR", (0, 0), (0, -1), TF_MUTED),
-                ("TEXTCOLOR", (1, 0), (1, -1), TF_NAVY),
-                ("FONTNAME", (1, 0), (1, -1), "Helvetica"),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ]
+                ("Número", escape(str(orden.order_number))),
+                ("Fecha de emisión", escape(_format_dt(orden.created_at))),
+                ("Tipo de orden", escape(str(orden.get_order_type_display()))),
+                ("Comprador", buyer_name),
+                ("Correo", buyer_email),
+                ("Expedidor(es) ZLC", expedidor_txt),
+            ],
+            styles,
         )
     )
-    story.append(meta_tbl)
     story.append(Spacer(1, 0.25 * cm))
 
     if orden.ship_address_id:
@@ -355,7 +378,7 @@ def generar_factura_pdf(orden) -> bytes:
 
     items_tbl = Table(
         table_data,
-        colWidths=[8.0 * cm, 2.2 * cm, 3.4 * cm, 3.4 * cm],
+        colWidths=[7.6 * cm, 2.3 * cm, 3.5 * cm, 3.6 * cm],
         repeatRows=1,
     )
     ts = _table_style_navy_header()
@@ -438,33 +461,19 @@ def generar_packing_list_pdf(orden) -> bytes:
         key=str.lower,
     )
 
-    ship_rows = [
-        ["Referencia orden:", escape(str(orden.order_number))],
-        ["Fecha:", _format_dt(orden.created_at)],
-        ["Tipo:", escape(str(orden.get_order_type_display()))],
-        [
-            "Expedidor(es) ZLC:",
-            Paragraph(
-                escape(" · ".join(empresas)) if empresas else "—",
-                styles["BodySmall"],
-            ),
-        ],
-        ["Consignatario:", Paragraph(buyer_name, styles["BodySmall"])],
-    ]
-    ship_tbl = Table(ship_rows, colWidths=[4.5 * cm, 12.5 * cm])
-    ship_tbl.setStyle(
-        TableStyle(
+    expedidor_txt = escape(" · ".join(empresas)) if empresas else "—"
+    story.append(
+        _meta_row_table(
             [
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ("TEXTCOLOR", (0, 0), (0, -1), TF_MUTED),
-                ("TEXTCOLOR", (1, 0), (1, -1), TF_NAVY),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ]
+                ("Referencia orden", escape(str(orden.order_number))),
+                ("Fecha", escape(_format_dt(orden.created_at))),
+                ("Tipo", escape(str(orden.get_order_type_display()))),
+                ("Expedidor(es) ZLC", expedidor_txt),
+                ("Consignatario", buyer_name),
+            ],
+            styles,
         )
     )
-    story.append(ship_tbl)
     story.append(Spacer(1, 0.3 * cm))
 
     if orden.ship_address_id:
@@ -508,7 +517,7 @@ def generar_packing_list_pdf(orden) -> bytes:
 
     pl_tbl = Table(
         pl_data,
-        colWidths=[0.8 * cm, 2.2 * cm, 4.2 * cm, 3.4 * cm, 1.2 * cm, 1 * cm, 1.5 * cm, 1.5 * cm],
+        colWidths=[0.8 * cm, 2.2 * cm, 4.5 * cm, 3.5 * cm, 1.2 * cm, 0.9 * cm, 1.4 * cm, 1.5 * cm],
         repeatRows=1,
     )
     ts = _table_style_navy_header()

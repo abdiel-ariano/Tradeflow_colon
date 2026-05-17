@@ -179,6 +179,14 @@ REQUIRE_EMAIL_VERIFICATION = config(
     default=not DEBUG,
     cast=bool,
 )
+
+# Dashboard KPI ingresos: False = suma órdenes no canceladas (modo pruebas PreExpo);
+# True = solo status=delivered (producción / cierre contable).
+DASHBOARD_KPI_REVENUE_DELIVERED_ONLY = config(
+    'DASHBOARD_KPI_REVENUE_DELIVERED_ONLY',
+    default=False,
+    cast=bool,
+)
 # Para desarrollo: imprime emails en consola (sin configurar nada más)
 # Para producción: cambia a smtp y rellena las variables en .env / Railway
 EMAIL_BACKEND = config(
