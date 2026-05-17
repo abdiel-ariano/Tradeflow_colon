@@ -104,8 +104,7 @@ def _dashboard_calendar_days(dias, now=None):
     if now is None:
         now = timezone.now()
     dias = _normalize_dashboard_dias(dias)
-    local_now = timezone.localtime(now)
-    local_date = local_now.date()
+    local_date = timezone.localtime(now).date()
     tzinfo = timezone.get_current_timezone()
     weekday_es = ('Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom')
     days = []
@@ -127,23 +126,11 @@ def _build_dashboard_charts_payload(dias, now=None):
     """
     Construye etiquetas y series diarias para Chart.js y conteos por estado.
 
-    Por cada día natural (desde hace ``dias`` días hasta hoy, inclusive):
-    ``ordenes_por_dia`` cuenta órdenes creadas ese día; ``ingresos_por_dia``
-    suma ``Order.total`` de órdenes creadas ese día excluyendo canceladas.
+    Buckets por **medianoche local** (``TIME_ZONE``), no UTC naive con
+    ``replace(hour=0)`` sobre ``now`` aware.
 
-    ``estados_data`` agrupa órdenes **creadas** en la ventana de ``dias``:
-    ``paid`` incluye estados ``paid`` y ``packed`` para alinear la dona con
-    los cinco estados pedidos en especificación (pending, paid, shipped,
-    delivered, cancelled).
-
-    Args:
-        dias: Número de días calendario (7, 30 o 90).
-        now: Momento de referencia (por defecto ``timezone.now()``).
-
-    Returns:
-        dict: ``chart_labels``, ``ordenes_por_dia``, ``ingresos_por_dia``,
-        ``estados_data``, ``ventas_por_categoria``, ``ventas_por_empresa``,
-        ``productos_top``, ``ordenes_por_tipo``, ``dias``.
+    ``estados_data`` agrupa órdenes **creadas** en la ventana de ``dias``;
+    ``paid`` incluye ``packed``.
     """
     if now is None:
         now = timezone.now()
