@@ -26,6 +26,8 @@ import io
 import json
 import logging
 
+from django.core.serializers.json import DjangoJSONEncoder
+
 import folium
 import qrcode
 from folium.plugins import MarkerCluster
@@ -224,6 +226,11 @@ def _build_dashboard_charts_payload(dias, now=None):
         'ordenes_por_tipo':     ordenes_por_tipo,
         'dias':                 dias,
     }
+
+
+def _charts_json(payload):
+    """Serializa el payload de gráficos del dashboard para plantilla o API."""
+    return json.dumps(payload, ensure_ascii=False, cls=DjangoJSONEncoder)
 
 
 def _period_delta_pct(current, previous):
@@ -830,7 +837,7 @@ def api_dashboard_stats(request):
         return JsonResponse({'error': 'Método no permitido'}, status=405)
     dias = _normalize_dashboard_dias(request.GET.get('dias'))
     payload = _build_dashboard_charts_payload(dias)
-    return JsonResponse(payload)
+    return JsonResponse(payload, encoder=DjangoJSONEncoder)
 
 
 @admin_required
@@ -968,7 +975,7 @@ def dashboard(request):
         'ordenes_por_dia_json': json.dumps(ordenes_por_dia),
         'ingresos_por_dia_json': json.dumps(ingresos_por_dia),
         'estados_data_json':    json.dumps(estados_data),
-        'charts_initial_json':  json.dumps(charts),
+        'charts_initial_json':  _charts_json(charts),
         'api_dashboard_stats_url': reverse('api_dashboard_stats'),
         'ordenes_b2b':          ordenes_b2b,
         'ordenes_b2c':          ordenes_b2c,

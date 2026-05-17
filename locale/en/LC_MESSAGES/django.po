@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TradeFlow Colón\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-16 16:55-0500\n"
+"POT-Creation-Date: 2026-05-17 16:13-0500\n"
 "PO-Revision-Date: 2026-05-12 12:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: English\n"
@@ -20,18 +20,18 @@ msgstr ""
 msgid "Mapa"
 msgstr "Map"
 
-#: templates/core/base.html:944 templates/core/mi_perfil.html:355
+#: templates/core/base.html:944 templates/core/mi_perfil.html:366
 msgid "Dashboard"
 msgstr "Dashboard"
 
-#: templates/core/base.html:945
+#: templates/core/base.html:945 templates/core/ordenes.html:6
 #, fuzzy
 #| msgid "Mis órdenes"
 msgid "Órdenes"
-msgstr "My orders"
+msgstr "Orders"
 
 #: templates/core/base.html:946 templates/core/base.html:961
-#: templates/core/mi_perfil.html:351
+#: templates/core/mi_perfil.html:362
 #, fuzzy
 #| msgid "Ver productos"
 msgid "Productos"
@@ -47,7 +47,7 @@ msgstr "Business"
 msgid "Tienda"
 msgstr "Store"
 
-#: templates/core/base.html:951 templates/core/mi_perfil.html:346
+#: templates/core/base.html:951 templates/core/mi_perfil.html:357
 msgid "Mis órdenes"
 msgstr "My orders"
 
@@ -59,11 +59,11 @@ msgstr "My quotes"
 msgid "Mi QR"
 msgstr "My QR"
 
-#: templates/core/base.html:960 templates/core/mi_perfil.html:350
+#: templates/core/base.html:960 templates/core/mi_perfil.html:361
 msgid "Mi Panel"
 msgstr "My Dashboard"
 
-#: templates/core/base.html:962 templates/core/mi_perfil.html:352
+#: templates/core/base.html:962 templates/core/mi_perfil.html:363
 #, fuzzy
 #| msgid "Mis órdenes"
 msgid "Mis ventas"
@@ -73,7 +73,7 @@ msgstr "My orders"
 msgid "Salir"
 msgstr "Sign Out"
 
-#: templates/core/base.html:974 templates/core/login.html:92
+#: templates/core/base.html:974 templates/core/login.html:159
 #: templates/core/signup.html:135
 msgid "Iniciar sesión"
 msgstr "Log in"
@@ -99,11 +99,27 @@ msgstr "Subtotal"
 msgid "Total"
 msgstr "Total"
 
+#: templates/core/dashboard.html:12
+msgid "Panel de ventas"
+msgstr "Sales dashboard"
+
+#: templates/core/dashboard.html:137
+msgid "Panel de ventas ZLC"
+msgstr "CFZ sales dashboard"
+
+#: templates/core/dashboard.html:198
+msgid "No se pudo cargar Chart.js. Revisa la conexión."
+msgstr "Chart.js could not be loaded. Check your connection."
+
+#: templates/core/dashboard.html:239
+msgid "Sin órdenes en este período"
+msgstr "No orders in this period"
+
 #: templates/core/home.html:22
 msgid "TradeFlow Colón — Compra, gestiona, exporta"
 msgstr "TradeFlow Colón — Buy, manage, export"
 
-#: templates/core/home.html:864 templates/core/login.html:67
+#: templates/core/home.html:864 templates/core/login.html:129
 #: templates/core/signup.html:75
 msgid "Zona Libre de Colón · Panamá"
 msgstr "Colón Free Zone · Panama"
@@ -398,213 +414,250 @@ msgstr "Get started"
 msgid "Ya tengo cuenta"
 msgstr "I already have an account"
 
-#: templates/core/login.html:4
+#: templates/core/login.html:14
 msgid "Iniciar sesión — TradeFlow Colón"
 msgstr "Log in — TradeFlow Colón"
 
-#: templates/core/login.html:70
+#: templates/core/login.html:134
+msgid "Verificación de email desactivada para pruebas locales."
+msgstr ""
+
+#: templates/core/login.html:137
 msgid "Bienvenido de vuelta"
 msgstr "Welcome back"
 
-#: templates/core/login.html:71 templates/core/signup.html:81
+#: templates/core/login.html:138 templates/core/signup.html:81
 msgid "Tipo de cuenta"
 msgstr "Account type"
 
-#: templates/core/login.html:73
+#: templates/core/login.html:140
 msgid "Cliente"
 msgstr "Customer"
 
-#: templates/core/login.html:76
+#: templates/core/login.html:143
 msgid "Empresa"
 msgstr "Business"
 
-#: templates/core/login.html:82 templates/core/signup.html:112
+#: templates/core/login.html:149 templates/core/signup.html:112
 #: templates/core/signup.html:113
 msgid "Usuario"
 msgstr "Username"
 
-#: templates/core/login.html:84
+#: templates/core/login.html:151
 msgid "tu_usuario"
 msgstr "your_username"
 
-#: templates/core/login.html:87 templates/core/login.html:89
+#: templates/core/login.html:154 templates/core/login.html:156
 #: templates/core/signup.html:121
 msgid "Contraseña"
 msgstr "Password"
 
-#: templates/core/login.html:95 templates/core/signup.html:133
+#: templates/core/login.html:162 templates/core/signup.html:133
 msgid "o"
 msgstr "or"
 
-#: templates/core/login.html:97
+#: templates/core/login.html:164
 msgid "¿No tienes cuenta?"
 msgstr "Don’t have an account?"
 
-#: templates/core/login.html:97
+#: templates/core/login.html:164
 msgid "Regístrate gratis"
 msgstr "Sign up for free"
+
+#: templates/core/login.html:168
+msgid "¿No recibiste el correo de verificación?"
+msgstr ""
+
+#: templates/core/login.html:173 templates/core/mi_perfil.html:220
+msgid "Reenviar email de verificación"
+msgstr ""
 
 #: templates/core/mi_perfil.html:11
 msgid "Mi Perfil"
 msgstr "My Profile"
 
-#: templates/core/mi_perfil.html:221
+#: templates/core/mi_perfil.html:216
+msgid "Tu correo aún no está verificado."
+msgstr ""
+
+#: templates/core/mi_perfil.html:232
 msgid "Miembro desde"
 msgstr "Member since"
 
-#: templates/core/mi_perfil.html:231
+#: templates/core/mi_perfil.html:242
 msgid "Información personal"
 msgstr "Personal information"
 
-#: templates/core/mi_perfil.html:238 templates/core/signup.html:99
+#: templates/core/mi_perfil.html:249 templates/core/signup.html:99
 #: templates/core/signup.html:100
 msgid "Nombre"
 msgstr "First name"
 
-#: templates/core/mi_perfil.html:243 templates/core/signup.html:103
+#: templates/core/mi_perfil.html:254 templates/core/signup.html:103
 #: templates/core/signup.html:104
 msgid "Apellido"
 msgstr "Last name"
 
-#: templates/core/mi_perfil.html:249 templates/core/signup.html:108
+#: templates/core/mi_perfil.html:260 templates/core/signup.html:108
 msgid "Correo electrónico"
 msgstr "Email"
 
-#: templates/core/mi_perfil.html:254 templates/core/signup.html:116
+#: templates/core/mi_perfil.html:265 templates/core/signup.html:116
 msgid "Teléfono"
 msgstr "Phone"
 
-#: templates/core/mi_perfil.html:260
+#: templates/core/mi_perfil.html:271
 msgid "Guardar cambios"
 msgstr "Save changes"
 
-#: templates/core/mi_perfil.html:268
+#: templates/core/mi_perfil.html:279
 msgid "Seguridad"
 msgstr "Security"
 
-#: templates/core/mi_perfil.html:274
+#: templates/core/mi_perfil.html:285
 #, fuzzy
 #| msgid "Contraseña"
 msgid "Contraseña actual"
 msgstr "Password"
 
-#: templates/core/mi_perfil.html:278
+#: templates/core/mi_perfil.html:289
 #, fuzzy
 #| msgid "Contraseña"
 msgid "Nueva contraseña"
 msgstr "Password"
 
-#: templates/core/mi_perfil.html:286
+#: templates/core/mi_perfil.html:297
 msgid "Confirmar nueva contraseña"
 msgstr "Confirm new password"
 
-#: templates/core/mi_perfil.html:292
+#: templates/core/mi_perfil.html:303
 #, fuzzy
 #| msgid "Contraseña"
 msgid "Cambiar contraseña"
 msgstr "Password"
 
-#: templates/core/mi_perfil.html:302
+#: templates/core/mi_perfil.html:313
 msgid "Tu actividad"
 msgstr "Your activity"
 
-#: templates/core/mi_perfil.html:307
+#: templates/core/mi_perfil.html:318
 msgid "Órdenes realizadas"
 msgstr "Orders placed"
 
-#: templates/core/mi_perfil.html:310
+#: templates/core/mi_perfil.html:321
 msgid "Última orden"
 msgstr "Last order"
 
-#: templates/core/mi_perfil.html:318
+#: templates/core/mi_perfil.html:329
 #, fuzzy
 #| msgid "Mis órdenes"
 msgid "Ver mis órdenes"
 msgstr "My orders"
 
-#: templates/core/mi_perfil.html:324
+#: templates/core/mi_perfil.html:335
 msgid "Productos activos en catálogo"
 msgstr "Active products in catalog"
 
-#: templates/core/mi_perfil.html:327
+#: templates/core/mi_perfil.html:338
 #, fuzzy
 #| msgid "Ver productos"
 msgid "Ver mis productos"
 msgstr "View products"
 
-#: templates/core/mi_perfil.html:333
+#: templates/core/mi_perfil.html:344
 msgid "Usuarios registrados"
 msgstr "Registered users"
 
-#: templates/core/mi_perfil.html:335
+#: templates/core/mi_perfil.html:346
 #, fuzzy
 #| msgid "Órdenes en período"
 msgid "Órdenes del sistema"
 msgstr "Orders in period"
 
-#: templates/core/mi_perfil.html:342
+#: templates/core/mi_perfil.html:353
 #, fuzzy
 #| msgid "Accesos por rol"
 msgid "Accesos rápidos"
 msgstr "Role-based access"
 
-#: templates/core/mi_perfil.html:345
+#: templates/core/mi_perfil.html:356
 msgid "Ir a la tienda"
 msgstr "Go to store"
 
-#: templates/core/mi_perfil.html:347
+#: templates/core/mi_perfil.html:358
 msgid "Mi QR de visitante"
 msgstr "Visitor QR"
 
-#: templates/core/mi_perfil.html:356
+#: templates/core/mi_perfil.html:367
 #, fuzzy
 #| msgid "Mis órdenes"
 msgid "Gestionar órdenes"
 msgstr "My orders"
 
-#: templates/core/mi_perfil.html:357
+#: templates/core/mi_perfil.html:368
 #, fuzzy
 #| msgid "Ver productos"
 msgid "Gestionar productos"
 msgstr "View products"
 
-#: templates/core/mi_perfil.html:371 templates/core/signup.html:86
+#: templates/core/mi_perfil.html:382 templates/core/signup.html:86
 msgid "Comprador"
 msgstr "Buyer"
 
-#: templates/core/mi_perfil.html:372 templates/core/signup.html:93
+#: templates/core/mi_perfil.html:383 templates/core/signup.html:93
 msgid "Vendedor"
 msgstr "Seller"
 
-#: templates/core/mi_perfil.html:373
+#: templates/core/mi_perfil.html:384
 msgid "Administrador"
 msgstr "Administrator"
 
-#: templates/core/mi_perfil.html:393
+#: templates/core/mi_perfil.html:404
 #, fuzzy
 #| msgid "Cliente"
 msgid "Pendiente"
 msgstr "Customer"
 
-#: templates/core/mi_perfil.html:394
+#: templates/core/mi_perfil.html:405
 msgid "Pagado"
 msgstr "Paid"
 
-#: templates/core/mi_perfil.html:395
+#: templates/core/mi_perfil.html:406
 msgid "Empacado"
 msgstr "Packed"
 
-#: templates/core/mi_perfil.html:396
+#: templates/core/mi_perfil.html:407
 msgid "Enviado"
 msgstr "Shipped"
 
-#: templates/core/mi_perfil.html:397
+#: templates/core/mi_perfil.html:408
 msgid "Entregado"
 msgstr "Delivered"
 
-#: templates/core/mi_perfil.html:398
+#: templates/core/mi_perfil.html:409
 msgid "Cancelado"
 msgstr "Cancelled"
+
+#: templates/core/ordenes.html:15
+msgid "Gestión de órdenes"
+msgstr "Order management"
+
+#: templates/core/ordenes.html:16
+msgid ""
+"Filtra por cliente o número TF, revisa estado y abre el detalle para "
+"actualizar el flujo operativo."
+msgstr ""
+"Filter by customer or TF number, review status, and open details to update "
+"the operational workflow."
+
+#: templates/core/ordenes.html:21
+msgid "Nueva orden"
+msgstr "New order"
+
+#: templates/core/portal_seller.html:187
+#, python-format
+msgid "Bienvenida, %(name)s"
+msgstr "Welcome, %(name)s"
 
 #: templates/core/signup.html:11
 #, fuzzy

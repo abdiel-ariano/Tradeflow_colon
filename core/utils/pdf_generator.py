@@ -152,7 +152,42 @@ def _get_styles():
             alignment=TA_LEFT,
         )
     )
+    sty.add(
+        ParagraphStyle(
+            name="TableHeaderWhite",
+            parent=base["Normal"],
+            fontName="Helvetica-Bold",
+            fontSize=9,
+            leading=11,
+            textColor=colors.white,
+            alignment=TA_CENTER,
+        )
+    )
+    sty.add(
+        ParagraphStyle(
+            name="TableHeaderWhiteLeft",
+            parent=sty["TableHeaderWhite"],
+            alignment=TA_LEFT,
+        )
+    )
+    sty.add(
+        ParagraphStyle(
+            name="TableCellProduct",
+            parent=base["Normal"],
+            fontName="Helvetica",
+            fontSize=9,
+            leading=12,
+            textColor=HexColor("#374151"),
+            alignment=TA_LEFT,
+        )
+    )
     return sty
+
+
+def _table_header_cell(styles, text: str, align_center: bool = True) -> Paragraph:
+    """Celda de cabecera navy con texto blanco legible (Paragraph, no string plano)."""
+    key = "TableHeaderWhite" if align_center else "TableHeaderWhiteLeft"
+    return Paragraph(text, styles[key])
 
 
 def _format_dt(dt) -> str:
@@ -176,16 +211,17 @@ def _table_style_navy_header() -> TableStyle:
     return TableStyle(
         [
             ("BACKGROUND", (0, 0), (-1, 0), TF_NAVY),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 9),
             ("LINEBELOW", (0, 0), (-1, 0), 2, TF_ORANGE),
             ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, TF_LIGHT]),
             ("GRID", (0, 0), (-1, -1), 0.5, TF_BORDER),
-            ("TOPPADDING", (0, 0), (-1, -1), 5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ("TOPPADDING", (0, 0), (-1, 0), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 7),
+            ("TOPPADDING", (0, 1), (-1, -1), 8),
+            ("BOTTOMPADDING", (0, 1), (-1, -1), 8),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
         ]
     )
 
@@ -261,7 +297,10 @@ def generar_factura_pdf(orden) -> bytes:
         ["Tipo de orden:", escape(str(orden.get_order_type_display()))],
         ["Comprador:", buyer_name],
         ["Correo:", buyer_email],
-        ["Vendedores (origen mercancía ZLC):", vendedores_txt],
+        [
+            "Vendedores (origen mercancía ZLC):",
+            Paragraph(vendedores_txt, styles["BodySmall"]),
+        ],
     ]
     meta_tbl = Table(meta_rows, colWidths=[4.5 * cm, 12.5 * cm])
     meta_tbl.setStyle(
@@ -293,18 +332,21 @@ def generar_factura_pdf(orden) -> bytes:
 
     table_data = [
         [
-            "Producto / proveedor ZLC",
-            Paragraph("Cant.", styles["BodySmall"]),
-            Paragraph("P. unit.<br/>USD", styles["BodySmall"]),
-            Paragraph("Total línea<br/>USD", styles["BodySmall"]),
+            _table_header_cell(styles, "Producto / proveedor ZLC", align_center=False),
+            _table_header_cell(styles, "Cant."),
+            _table_header_cell(styles, "P. unit.<br/>USD"),
+            _table_header_cell(styles, "Total línea<br/>USD"),
         ]
     ]
     for item in orden.items.all():
         cname = item.product.company.name
-        cell_txt = f"<b>{escape(item.product.name)}</b><br/><font color='#6B7A88' size='8'>{escape(cname)}</font>"
+        cell_txt = (
+            f"<b>{escape(item.product.name)}</b><br/>"
+            f"<font color='#6B7A88' size='8'>{escape(cname)}</font>"
+        )
         table_data.append(
             [
-                Paragraph(cell_txt, styles["BodySmall"]),
+                Paragraph(cell_txt, styles["TableCellProduct"]),
                 str(item.qty),
                 _usd_cell(item.unit_price_snapshot),
                 _usd_cell(item.line_total),
@@ -313,7 +355,7 @@ def generar_factura_pdf(orden) -> bytes:
 
     items_tbl = Table(
         table_data,
-        colWidths=[8.2 * cm, 2 * cm, 3.4 * cm, 3.4 * cm],
+        colWidths=[8.0 * cm, 2.2 * cm, 3.4 * cm, 3.4 * cm],
         repeatRows=1,
     )
     ts = _table_style_navy_header()
@@ -400,8 +442,14 @@ def generar_packing_list_pdf(orden) -> bytes:
         ["Referencia orden:", escape(str(orden.order_number))],
         ["Fecha:", _format_dt(orden.created_at)],
         ["Tipo:", escape(str(orden.get_order_type_display()))],
-        ["Expedidor(es) ZLC:", escape(" · ".join(empresas)) if empresas else "—"],
-        ["Consignatario:", buyer_name],
+        [
+            "Expedidor(es) ZLC:",
+            Paragraph(
+                escape(" · ".join(empresas)) if empresas else "—",
+                styles["BodySmall"],
+            ),
+        ],
+        ["Consignatario:", Paragraph(buyer_name, styles["BodySmall"])],
     ]
     ship_tbl = Table(ship_rows, colWidths=[4.5 * cm, 12.5 * cm])
     ship_tbl.setStyle(
@@ -431,14 +479,14 @@ def generar_packing_list_pdf(orden) -> bytes:
 
     pl_data = [
         [
-            "#",
-            "SKU",
-            "Descripción",
-            "Proveedor ZLC",
-            Paragraph("Cant.", styles["BodySmall"]),
-            "U.M.",
-            Paragraph("Peso neto<br/>(kg)", styles["BodySmall"]),
-            Paragraph("Peso bruto<br/>(kg)", styles["BodySmall"]),
+            _table_header_cell(styles, "#"),
+            _table_header_cell(styles, "SKU"),
+            _table_header_cell(styles, "Descripción", align_center=False),
+            _table_header_cell(styles, "Proveedor ZLC", align_center=False),
+            _table_header_cell(styles, "Cant."),
+            _table_header_cell(styles, "U.M."),
+            _table_header_cell(styles, "Peso neto<br/>(kg)"),
+            _table_header_cell(styles, "Peso bruto<br/>(kg)"),
         ]
     ]
     total_qty = 0
@@ -448,9 +496,9 @@ def generar_packing_list_pdf(orden) -> bytes:
         pl_data.append(
             [
                 str(n),
-                escape(sku),
-                Paragraph(escape(item.product.name), styles["BodySmall"]),
-                Paragraph(escape(item.product.company.name), styles["BodySmall"]),
+                Paragraph(escape(sku), styles["TableCellProduct"]),
+                Paragraph(escape(item.product.name), styles["TableCellProduct"]),
+                Paragraph(escape(item.product.company.name), styles["TableCellProduct"]),
                 str(item.qty),
                 "und.",
                 "—",
@@ -460,7 +508,7 @@ def generar_packing_list_pdf(orden) -> bytes:
 
     pl_tbl = Table(
         pl_data,
-        colWidths=[0.9 * cm, 1.8 * cm, 3.7 * cm, 3.2 * cm, 1.3 * cm, 1 * cm, 1.5 * cm, 1.5 * cm],
+        colWidths=[0.8 * cm, 2.2 * cm, 4.2 * cm, 3.4 * cm, 1.2 * cm, 1 * cm, 1.5 * cm, 1.5 * cm],
         repeatRows=1,
     )
     ts = _table_style_navy_header()
@@ -546,10 +594,10 @@ def generar_cotizacion_pdf(cotizacion) -> bytes:
 
     rows = [
         [
-            "Producto",
-            Paragraph("Cant.<br/>solicitada", styles["BodySmall"]),
-            Paragraph("Precio ofertado<br/>(unit. USD)", styles["BodySmall"]),
-            Paragraph("Notas de línea", styles["BodySmall"]),
+            _table_header_cell(styles, "Producto", align_center=False),
+            _table_header_cell(styles, "Cant.<br/>solicitada"),
+            _table_header_cell(styles, "Precio ofertado<br/>(unit. USD)"),
+            _table_header_cell(styles, "Notas de línea", align_center=False),
         ]
     ]
 
