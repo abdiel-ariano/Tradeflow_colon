@@ -6,6 +6,7 @@ Incluye: autenticación, admin, portal comprador (tienda, carrito, checkout),
 portal vendedor (panel, productos, ventas) y API JSON de productos.
 =============================================================================
 """
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
@@ -105,9 +106,9 @@ def _build_dashboard_charts_payload(dias, now=None):
         now: Momento de referencia (por defecto ``timezone.now()``).
 
     Returns:
-        dict: ``chart_labels``, ``ordenes_por_dia`` (list[int]),
-        ``ingresos_por_dia`` (list[float]), ``estados_data`` (dict),
-        ``dias`` (int).
+        dict: ``chart_labels``, ``ordenes_por_dia``, ``ingresos_por_dia``,
+        ``estados_data``, ``ventas_por_categoria``, ``ventas_por_empresa``,
+        ``productos_top``, ``ordenes_por_tipo``, ``dias``.
     """
     if now is None:
         now = timezone.now()
@@ -157,12 +158,71 @@ def _build_dashboard_charts_payload(dias, now=None):
         'cancelled': by_status.get('cancelled', 0),
     }
 
+    order_ids_period = list(
+        qs.exclude(status='cancelled').values_list('id', flat=True)
+    )
+    items_period = OrderItem.objects.filter(order_id__in=order_ids_period)
+
+    cat_rows = (
+        items_period.values('product__category__name')
+        .annotate(total=Sum('line_total'))
+        .order_by('-total')[:6]
+    )
+    cat_grand = float(
+        items_period.aggregate(t=Sum('line_total'))['t'] or 0
+    )
+    ventas_por_categoria = []
+    for row in cat_rows:
+        label = row['product__category__name'] or 'General'
+        total_f = float(row['total'] or 0)
+        pct = round(100.0 * total_f / cat_grand, 1) if cat_grand > 0 else 0.0
+        ventas_por_categoria.append({
+            'label': label,
+            'total': total_f,
+            'pct': pct,
+        })
+
+    emp_rows = (
+        items_period.values('product__company__name')
+        .annotate(total=Sum('line_total'))
+        .order_by('-total')[:8]
+    )
+    ventas_por_empresa = [
+        {
+            'label': row['product__company__name'] or 'Sin empresa',
+            'total': float(row['total'] or 0),
+        }
+        for row in emp_rows
+    ]
+
+    prod_rows = (
+        items_period.values('product__name')
+        .annotate(units=Sum('qty'))
+        .order_by('-units')[:8]
+    )
+    productos_top = [
+        {
+            'label': row['product__name'] or 'Producto',
+            'units': int(row['units'] or 0),
+        }
+        for row in prod_rows
+    ]
+
+    ordenes_por_tipo = {
+        'b2b': qs.filter(order_type='b2b').count(),
+        'b2c': qs.filter(order_type='b2c').count(),
+    }
+
     return {
-        'chart_labels':    chart_labels,
-        'ordenes_por_dia': ordenes_por_dia,
-        'ingresos_por_dia': ingresos_por_dia,
-        'estados_data':    estados_data,
-        'dias':            dias,
+        'chart_labels':         chart_labels,
+        'ordenes_por_dia':      ordenes_por_dia,
+        'ingresos_por_dia':     ingresos_por_dia,
+        'estados_data':         estados_data,
+        'ventas_por_categoria': ventas_por_categoria,
+        'ventas_por_empresa':   ventas_por_empresa,
+        'productos_top':        productos_top,
+        'ordenes_por_tipo':     ordenes_por_tipo,
+        'dias':                 dias,
     }
 
 
@@ -212,6 +272,23 @@ def _redirect_by_role(user):
 # AUTENTICACIÓN
 # =============================================================================
 
+def _login_template_context(**extra):
+    """
+    Contexto común para la plantilla de login.
+
+    Args:
+        **extra: Claves adicionales (p. ej. mostrar_reenvio, email_pendiente).
+
+    Returns:
+        dict: Contexto para ``core/login.html``.
+    """
+    ctx = {
+        'require_email_verification': settings.REQUIRE_EMAIL_VERIFICATION,
+    }
+    ctx.update(extra)
+    return ctx
+
+
 def login_view(request):
     """Login con redirección inteligente según rol."""
     if request.user.is_authenticated:
@@ -223,7 +300,9 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            if not (user.is_superuser or user.is_staff):
+            if settings.REQUIRE_EMAIL_VERIFICATION and not (
+                user.is_superuser or user.is_staff
+            ):
                 try:
                     profile = user.profile
                     if not profile.email_verificado:
@@ -235,10 +314,10 @@ def login_view(request):
                         return render(
                             request,
                             'core/login.html',
-                            {
-                                'mostrar_reenvio': True,
-                                'email_pendiente': user.email,
-                            },
+                            _login_template_context(
+                                mostrar_reenvio=True,
+                                email_pendiente=user.email,
+                            ),
                         )
                 except UserProfile.DoesNotExist:
                     pass
@@ -260,7 +339,7 @@ def login_view(request):
         else:
             messages.error(request, 'Usuario o contraseña incorrectos.')
 
-    return render(request, 'core/login.html')
+    return render(request, 'core/login.html', _login_template_context())
 
 
 def logout_view(request):
@@ -306,25 +385,44 @@ def signup_view(request):
                 first_name = first_name,
                 last_name  = last_name,
             )
-            UserProfile.objects.create(user=user, role=role, phone=phone)
+            if settings.REQUIRE_EMAIL_VERIFICATION:
+                UserProfile.objects.create(
+                    user=user,
+                    role=role,
+                    phone=phone,
+                    email_verificado=False,
+                )
+                try:
+                    enviar_verificacion_email(user, request)
+                except Exception as exc:
+                    log.exception('No se pudo enviar email de verificación: %s', exc)
+                    messages.warning(
+                        request,
+                        'Cuenta creada, pero no pudimos enviar el correo de verificación. '
+                        'Contacta a soporte@tradeflow.pa.',
+                    )
+                    return redirect('login')
 
-            try:
-                enviar_verificacion_email(user, request)
-            except Exception as exc:
-                log.exception('No se pudo enviar email de verificación: %s', exc)
-                messages.warning(
+                messages.success(
                     request,
-                    'Cuenta creada, pero no pudimos enviar el correo de verificación. '
-                    'Contacta a soporte@tradeflow.pa.',
+                    f'Cuenta creada. Revisa tu email {email} '
+                    f'para verificar tu cuenta antes de iniciar sesión.',
                 )
                 return redirect('login')
 
+            UserProfile.objects.create(
+                user=user,
+                role=role,
+                phone=phone,
+                email_verificado=True,
+                token_verificacion=None,
+            )
+            login(request, user)
             messages.success(
                 request,
-                f'Cuenta creada. Revisa tu email {email} '
-                f'para verificar tu cuenta antes de iniciar sesión.',
+                f'¡Bienvenido a TradeFlow, {first_name}! Tu cuenta ha sido creada.',
             )
-            return redirect('login')
+            return redirect(_redirect_by_role(user))
 
     return render(request, 'core/signup.html', {
         'role_choices': [('buyer', 'Comprador'), ('seller', 'Vendedor')],
@@ -372,6 +470,13 @@ def reenviar_verificacion(request):
     """
     Reenvía el correo de verificación al usuario autenticado no verificado.
     """
+    if not settings.REQUIRE_EMAIL_VERIFICATION:
+        messages.info(
+            request,
+            'Verificación de email desactivada en este entorno.',
+        )
+        return redirect('mi_perfil')
+
     profile = request.user.profile
     if not profile.email_verificado:
         try:
@@ -393,6 +498,13 @@ def reenviar_verificacion_public(request):
     """
     Reenvía verificación por email sin sesión (formulario en login).
     """
+    if not settings.REQUIRE_EMAIL_VERIFICATION:
+        messages.info(
+            request,
+            'Verificación de email desactivada en este entorno.',
+        )
+        return redirect('login')
+
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
         user = User.objects.filter(email__iexact=email).first()
@@ -712,8 +824,7 @@ def api_dashboard_stats(request):
         dias: 7, 30 o 90 (opcional; por defecto 7).
 
     Returns:
-        JsonResponse: ``chart_labels``, ``ordenes_por_dia``, ``ingresos_por_dia``,
-        ``estados_data``, ``dias``.
+        JsonResponse: payload de :func:`_build_dashboard_charts_payload`.
     """
     if request.method != 'GET':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
