@@ -233,6 +233,18 @@ def _charts_json(payload):
     return json.dumps(payload, ensure_ascii=False, cls=DjangoJSONEncoder)
 
 
+def _dashboard_revenue_qs():
+    """
+    QuerySet base para KPIs de ingresos del dashboard admin.
+
+    Si ``DASHBOARD_KPI_REVENUE_DELIVERED_ONLY`` es True, solo órdenes entregadas;
+    si False (modo pruebas), todas las no canceladas.
+    """
+    if settings.DASHBOARD_KPI_REVENUE_DELIVERED_ONLY:
+        return Order.objects.filter(status='delivered')
+    return Order.objects.exclude(status='cancelled')
+
+
 def _period_delta_pct(current, previous):
     """
     Texto corto de variación porcentual entre el período actual y el anterior.
@@ -871,15 +883,37 @@ def dashboard(request):
         created_at__lt=inicio_prev_end,
     ).count()
 
-    ingresos_total = Order.objects.filter(status='delivered').aggregate(t=Sum('total'))['t'] or Decimal('0')
-    ingresos_semana = Order.objects.filter(
-        status='delivered', created_at__gte=inicio_actual
-    ).aggregate(t=Sum('total'))['t'] or Decimal('0')
-    ingresos_periodo_prev = Order.objects.filter(
-        status='delivered',
+    revenue_qs = _dashboard_revenue_qs()
+    ingresos_total = revenue_qs.aggregate(t=Sum('total'))['t'] or Decimal('0')
+    ingresos_semana = revenue_qs.filter(created_at__gte=inicio_actual).aggregate(
+        t=Sum('total')
+    )['t'] or Decimal('0')
+    ingresos_periodo_prev = revenue_qs.filter(
         created_at__gte=inicio_anterior,
         created_at__lt=inicio_prev_end,
     ).aggregate(t=Sum('total'))['t'] or Decimal('0')
+
+    ordenes_activas_periodo = (
+        Order.objects.filter(created_at__gte=inicio_actual)
+        .exclude(status='cancelled')
+        .count()
+    )
+    ordenes_entregadas_periodo = Order.objects.filter(
+        created_at__gte=inicio_actual, status='delivered'
+    ).count()
+    pct_entregadas_periodo = (
+        round(Decimal(100) * ordenes_entregadas_periodo / ordenes_activas_periodo, 1)
+        if ordenes_activas_periodo
+        else Decimal('0')
+    )
+
+    dashboard_modo_pruebas = not settings.DASHBOARD_KPI_REVENUE_DELIVERED_ONLY
+    if dashboard_modo_pruebas:
+        kpi_ingresos_label = 'Ingresos del período (órdenes activas)'
+        kpi_ingresos_sub = 'Todas las no canceladas; no hace falta marcar entregado'
+    else:
+        kpi_ingresos_label = 'Ingresos entregados (período)'
+        kpi_ingresos_sub = 'Solo órdenes con estado Entregado'
 
     total_productos = Product.objects.filter(is_active=True).count()
     total_empresas = Company.objects.count()
@@ -993,6 +1027,12 @@ def dashboard(request):
         'dias_activo':          dias,
         'titulo_pagina':        'Dashboard',
         'nav_activo':           'dashboard',
+        'dashboard_modo_pruebas': dashboard_modo_pruebas,
+        'kpi_ingresos_label':   kpi_ingresos_label,
+        'kpi_ingresos_sub':     kpi_ingresos_sub,
+        'ordenes_activas_periodo': ordenes_activas_periodo,
+        'ordenes_entregadas_periodo': ordenes_entregadas_periodo,
+        'pct_entregadas_periodo': pct_entregadas_periodo,
     }
     return render(request, 'core/dashboard.html', context)
 

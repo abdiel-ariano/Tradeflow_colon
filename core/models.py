@@ -24,6 +24,7 @@ Tablas implementadas (mapeadas exactamente al ERD del PDF):
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 import uuid
 
 
@@ -277,17 +278,17 @@ class Order(models.Model):
     Un buyer (User) hace una Order con una o más OrderItems.
     """
     STATUS_CHOICES = [
-        ('pending',   'Pendiente'),
-        ('paid',      'Pagado'),
-        ('packed',    'Empacado'),
-        ('shipped',   'Enviado'),
-        ('delivered', 'Entregado'),
-        ('cancelled', 'Cancelado'),
+        ('pending',   _('Pendiente')),
+        ('paid',      _('Pagado')),
+        ('packed',    _('Empacado')),
+        ('shipped',   _('Enviado')),
+        ('delivered', _('Entregado')),
+        ('cancelled', _('Cancelado')),
     ]
 
     ORDER_TYPE_CHOICES = [
-        ('b2c', 'Consumidor final (B2C)'),
-        ('b2b', 'Empresa a empresa (B2B)'),
+        ('b2c', _('Consumidor final (B2C)')),
+        ('b2b', _('Empresa a empresa (B2B)')),
     ]
 
     buyer        = models.ForeignKey(

@@ -126,6 +126,19 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     font-size: 0.875rem;
   }
   .adm-charts-error.is-visible { display: block; }
+  .adm-pruebas-banner {
+    display: none;
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    background: #fff5f0;
+    border: 1px solid var(--tf-orange, #F26522);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    color: var(--tf-navy, #0F2A44);
+    line-height: 1.5;
+  }
+  .adm-pruebas-banner.is-visible { display: block; }
+  .adm-pruebas-banner strong { color: var(--tf-orange, #F26522); }
 </style>
 {% endblock %}
 {% block content %}
@@ -145,14 +158,28 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         class="adm-pills"
         id="adm-dias-pills"
         role="group"
-        aria-label="Período de análisis"
+        aria-label="{% trans 'Período de análisis' %}"
         data-dias-activo="{{ dias_activo }}"
         data-api-url="{{ api_dashboard_stats_url }}"
+        data-dashboard-modo="{% if dashboard_modo_pruebas %}pruebas{% else %}produccion{% endif %}"
       >
         <button type="button" class="adm-pill js-dias-pill" data-dias="7">7 días</button>
         <button type="button" class="adm-pill js-dias-pill" data-dias="30">30 días</button>
         <button type="button" class="adm-pill js-dias-pill" data-dias="90">90 días</button>
       </div>
+    </div>
+
+    <div
+      class="adm-pruebas-banner"
+      id="adm-pruebas-banner"
+      data-show-pruebas="{% if dashboard_modo_pruebas %}1{% else %}0{% endif %}"
+    >
+      <strong>{% trans "Modo pruebas (PreExpo)" %}</strong> —
+      {% trans "Los gráficos usan órdenes creadas en el período (pending, paid, enviado, etc.). No necesitas marcar entregado para ver barras, línea y dona." %}
+      {% trans "Entregadas en el período:" %}
+      <strong id="adm-pct-entregadas">{{ pct_entregadas_periodo }}%</strong>
+      (<span id="adm-ord-entregadas">{{ ordenes_entregadas_periodo }}</span> /
+      <span id="adm-ord-activas">{{ ordenes_activas_periodo }}</span>).
     </div>
 
     <div class="adm-kpi-grid">
@@ -167,12 +194,22 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
       </div>
       <div class="adm-kpi adm-kpi-in">
         <div class="adm-kpi-top">
-          <span class="adm-kpi-lbl">Ingresos entregados (período)</span>
+          <span
+            class="adm-kpi-lbl"
+            id="adm-kpi-ingresos-lbl"
+            data-lbl-pruebas="{% trans 'Ingresos del período (órdenes activas)' %}"
+            data-lbl-prod="{% trans 'Ingresos entregados (período)' %}"
+          >{{ kpi_ingresos_label }}</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">payments</span>
         </div>
         <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">USD {{ ingresos_semana }}</div>
         <div class="adm-kpi-delta">vs. período anterior: {{ ingresos_delta_label }}</div>
-        <div class="adm-kpi-sub">Acumulado entregado: USD {{ ingresos_total }}</div>
+        <div
+          class="adm-kpi-sub"
+          id="adm-kpi-ingresos-sub"
+          data-sub-pruebas="{% trans 'Acumulado activo (no canceladas): USD' %}"
+          data-sub-prod="{% trans 'Acumulado entregado: USD' %}"
+        >{{ kpi_ingresos_sub }}: USD {{ ingresos_total }}</div>
       </div>
       <div class="adm-kpi adm-kpi-in">
         <div class="adm-kpi-top">
@@ -354,6 +391,30 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   var pillsRoot = document.getElementById('adm-dias-pills');
+  var pruebasBanner = document.getElementById('adm-pruebas-banner');
+  if (pruebasBanner && pruebasBanner.getAttribute('data-show-pruebas') === '1') {
+    pruebasBanner.classList.add('is-visible');
+  }
+  if (pillsRoot) {
+    var modoKpi = pillsRoot.getAttribute('data-dashboard-modo');
+    var kpiLbl = document.getElementById('adm-kpi-ingresos-lbl');
+    var kpiSub = document.getElementById('adm-kpi-ingresos-sub');
+    if (kpiLbl) {
+      if (modoKpi === 'pruebas' && kpiLbl.getAttribute('data-lbl-pruebas')) {
+        kpiLbl.textContent = kpiLbl.getAttribute('data-lbl-pruebas');
+      } else if (kpiLbl.getAttribute('data-lbl-prod')) {
+        kpiLbl.textContent = kpiLbl.getAttribute('data-lbl-prod');
+      }
+    }
+    if (kpiSub) {
+      var totalTxt = kpiSub.textContent.replace(/^[^U]*/, '').trim();
+      if (modoKpi === 'pruebas' && kpiSub.getAttribute('data-sub-pruebas')) {
+        kpiSub.textContent = kpiSub.getAttribute('data-sub-pruebas') + ' ' + totalTxt;
+      } else if (kpiSub.getAttribute('data-sub-prod')) {
+        kpiSub.textContent = kpiSub.getAttribute('data-sub-prod') + ' ' + totalTxt;
+      }
+    }
+  }
 
   function emptyPayload(len) {
     var n = len || 7;

@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% block title %}Mis órdenes — TradeFlow Colón{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Mis órdenes" %} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .mo-wrap { max-width: 1000px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1.5rem clamp(2rem, 4vw, 3rem); }
@@ -30,7 +30,7 @@
 {% endblock %}
 {% block content %}
 <div class="mo-wrap">
-  <h1 class="mo-title">Mis órdenes</h1>
+  <h1 class="mo-title">{% trans "Mis órdenes" %}</h1>
   <div class="mo-tabs" id="mo-tabs" data-current="{{ estado_actual|escapejs }}">
     <a href="{% url 'mis_ordenes' %}" class="mo-tab" data-estado="">Todas</a>
     {% for valor, etiqueta in status_choices %}

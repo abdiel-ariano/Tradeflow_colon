@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% block title %}Mi carrito — TradeFlow Colón{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Mi carrito" %} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .c-wrap { max-width: 1040px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1.5rem clamp(2rem, 4vw, 3rem); }
@@ -51,7 +51,7 @@
 {% endblock %}
 {% block content %}
 <div class="c-wrap">
-  <h1 class="c-title">Mi carrito {% if carrito_count %}<span>{{ carrito_count }} artículo{{ carrito_count|pluralize }}</span>{% endif %}</h1>
+  <h1 class="c-title">{% trans "Mi carrito" %}{% if carrito_count %} <span>{% blocktrans count counter=carrito_count %}{{ counter }} artículo{% plural %}{{ counter }} artículos{% endblocktrans %}</span>{% endif %}</h1>
   {% if carrito %}
   <div class="c-grid">
     <div class="c-list">
