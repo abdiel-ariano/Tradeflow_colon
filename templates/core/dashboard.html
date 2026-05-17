@@ -12,7 +12,6 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 {% block title %}{% trans "Panel de ventas" %} — TradeFlow Colón{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 {% endblock %}
 {% block extra_css %}
 <style>
@@ -358,9 +357,10 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
   </div>
 </div>
 
-<script type="application/json" id="adm-charts-initial">{{ charts_initial_json|safe }}</script>
+{{ charts_initial|json_script:"adm-charts-initial" }}
 {% endblock %}
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="{% static 'js/admin_rail.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -433,16 +433,36 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
+  function payloadLooksValid(p) {
+    if (!p || !Array.isArray(p.chart_labels)) return false;
+    var n = p.chart_labels.length;
+    if (n < 1) return false;
+    return (
+      Array.isArray(p.ordenes_por_dia) && p.ordenes_por_dia.length === n &&
+      Array.isArray(p.ingresos_por_dia) && p.ingresos_por_dia.length === n
+    );
+  }
+
   var raw = document.getElementById('adm-charts-initial');
-  var initial = emptyPayload(7);
+  var diasDefault = 7;
+  if (pillsRoot) {
+    var dAttr = parseInt(pillsRoot.getAttribute('data-dias-activo'), 10);
+    if (dAttr === 7 || dAttr === 30 || dAttr === 90) diasDefault = dAttr;
+  }
+  var initial = emptyPayload(diasDefault);
   try {
-    initial = JSON.parse(raw ? raw.textContent.trim() : '{}');
+    var parsed = JSON.parse(raw ? raw.textContent : '{}');
+    if (payloadLooksValid(parsed)) {
+      initial = parsed;
+    } else {
+      showChartsError('Los datos de gráficos llegaron incompletos. Recarga la página o cambia el período.');
+    }
   } catch (e) {
-    initial = emptyPayload(7);
+    showChartsError('No se pudieron leer los datos iniciales de los gráficos.');
   }
 
   if (typeof Chart === 'undefined') {
-    showChartsError();
+    showChartsError('No se pudo cargar Chart.js. Revisa la conexión o el bloqueo del CDN.');
     return;
   }
   hideChartsError();
@@ -539,29 +559,96 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     var cats = payload.ventas_por_categoria || [];
-    var catLabels = cats.map(function (c) { return c.label; });
-    var catData = cats.map(function (c) { return c.pct; });
-    toggleEmpty(document.getElementById('adm-cat-empty'), document.getElementById('admCatDoughnut').parentElement, cats.length === 0);
-    if (catChart && cats.length) {
-      catChart.data.labels = catLabels;
-      catChart.data.datasets[0].data = catData;
-      catChart.update(animOpts);
+    var catCtx = document.getElementById('admCatDoughnut');
+    toggleEmpty(document.getElementById('adm-cat-empty'), catCtx ? catCtx.parentElement : null, cats.length === 0);
+    if (cats.length && catCtx) {
+      if (catChart) {
+        catChart.data.labels = cats.map(function (c) { return c.label; });
+        catChart.data.datasets[0].data = cats.map(function (c) { return c.pct; });
+        catChart.update(animOpts);
+      } else {
+        catChart = new Chart(catCtx, {
+          type: 'doughnut',
+          data: {
+            labels: cats.map(function (c) { return c.label; }),
+            datasets: [{
+              data: cats.map(function (c) { return c.pct; }),
+              backgroundColor: catColors.slice(0, cats.length),
+              borderWidth: 2,
+              borderColor: '#fff',
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: animOpts,
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
+          },
+        });
+      }
+    } else if (catChart) {
+      catChart.destroy();
+      catChart = null;
     }
 
     var emps = payload.ventas_por_empresa || [];
-    toggleEmpty(document.getElementById('adm-emp-empty'), document.getElementById('admEmpChart').parentElement, emps.length === 0);
-    if (empChart && emps.length) {
-      empChart.data.labels = emps.map(function (e) { return e.label; });
-      empChart.data.datasets[0].data = emps.map(function (e) { return e.total; });
-      empChart.update(animOpts);
+    var empCtx = document.getElementById('admEmpChart');
+    toggleEmpty(document.getElementById('adm-emp-empty'), empCtx ? empCtx.parentElement : null, emps.length === 0);
+    if (emps.length && empCtx) {
+      if (empChart) {
+        empChart.data.labels = emps.map(function (e) { return e.label; });
+        empChart.data.datasets[0].data = emps.map(function (e) { return e.total; });
+        empChart.update(animOpts);
+      } else {
+        empChart = new Chart(empCtx, {
+          type: 'bar',
+          data: {
+            labels: emps.map(function (e) { return e.label; }),
+            datasets: [{ data: emps.map(function (e) { return e.total; }), backgroundColor: '#2E5B8A', borderRadius: 4 }],
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: animOpts,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { callback: function (v) { return 'US$' + v; } } } } },
+          },
+        });
+      }
+    } else if (empChart) {
+      empChart.destroy();
+      empChart = null;
     }
 
     var prods = payload.productos_top || [];
-    toggleEmpty(document.getElementById('adm-prod-empty'), document.getElementById('admProdChart').parentElement, prods.length === 0);
-    if (prodChart && prods.length) {
-      prodChart.data.labels = prods.map(function (p) { return p.label; });
-      prodChart.data.datasets[0].data = prods.map(function (p) { return p.units; });
-      prodChart.update(animOpts);
+    var prodCtx = document.getElementById('admProdChart');
+    toggleEmpty(document.getElementById('adm-prod-empty'), prodCtx ? prodCtx.parentElement : null, prods.length === 0);
+    if (prods.length && prodCtx) {
+      if (prodChart) {
+        prodChart.data.labels = prods.map(function (p) { return p.label; });
+        prodChart.data.datasets[0].data = prods.map(function (p) { return p.units; });
+        prodChart.update(animOpts);
+      } else {
+        prodChart = new Chart(prodCtx, {
+          type: 'bar',
+          data: {
+            labels: prods.map(function (p) { return p.label; }),
+            datasets: [{ data: prods.map(function (p) { return p.units; }), backgroundColor: '#F26522', borderRadius: 4 }],
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: animOpts,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } },
+          },
+        });
+      }
+    } else if (prodChart) {
+      prodChart.destroy();
+      prodChart = null;
     }
 
     updateMetaTipo(payload.ordenes_por_tipo);
@@ -727,7 +814,19 @@ document.addEventListener('DOMContentLoaded', function () {
     updateMetaTipo(payload.ordenes_por_tipo);
   }
 
+  function chartsNeedRebuild(payload) {
+    if (!barChart || !lineChart) return true;
+    return !payloadLooksValid(payload);
+  }
+
+  function resizeAllCharts() {
+    [barChart, lineChart, doughnutChart, catChart, empChart, prodChart].forEach(function (c) {
+      if (c && typeof c.resize === 'function') c.resize();
+    });
+  }
+
   createCharts(initial);
+  requestAnimationFrame(resizeAllCharts);
 
   var diasActivo = pillsRoot.getAttribute('data-dias-activo') || '7';
   pillsRoot.querySelectorAll('.js-dias-pill').forEach(function (btn) {
@@ -748,12 +847,18 @@ document.addEventListener('DOMContentLoaded', function () {
           return r.json();
         })
         .then(function (data) {
+          if (!payloadLooksValid(data)) {
+            showChartsError('La API devolvió datos incompletos para los gráficos.');
+            return;
+          }
           hideChartsError();
-          if (!barChart || !lineChart) {
+          if (chartsNeedRebuild(data)) {
             createCharts(data);
+            requestAnimationFrame(resizeAllCharts);
             return;
           }
           applyPayload(data);
+          requestAnimationFrame(resizeAllCharts);
         })
         .catch(function () {
           showChartsError('No se pudieron actualizar los gráficos. Intenta de nuevo.');
