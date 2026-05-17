@@ -18,6 +18,9 @@ urlpatterns = [
     path('login/',   views.login_view,  name='login'),
     path('logout/',  views.logout_view, name='logout'),
     path('signup/',  views.signup_view, name='signup'),
+    path('verificar-email/<str:token>/', views.verificar_email, name='verificar_email'),
+    path('reenviar-verificacion/', views.reenviar_verificacion, name='reenviar_verificacion'),
+    path('reenviar-verificacion-email/', views.reenviar_verificacion_public, name='reenviar_verificacion_public'),
     path('perfil/',  views.mi_perfil, name='mi_perfil'),
 
     # ── Dashboard (admin) ─────────────────────────────────────────────────
@@ -38,10 +41,12 @@ urlpatterns = [
     path('mis-ordenes/',                     views.mis_ordenes,         name='mis_ordenes'),
     path('mis-ordenes/<int:pk>/',            views.detalle_mi_orden,    name='detalle_mi_orden'),
     path('ordenes/<int:orden_pk>/factura/',  views.descargar_factura,   name='descargar_factura'),
+    path('ordenes/<int:orden_pk>/packing-list/', views.descargar_packing_list, name='descargar_packing_list'),
 
     path('cotizaciones/', views.mis_cotizaciones, name='mis_cotizaciones'),
     path('cotizaciones/nueva/', views.solicitar_cotizacion, name='solicitar_cotizacion'),
     path('cotizaciones/<int:pk>/', views.detalle_cotizacion, name='detalle_cotizacion'),
+    path('cotizaciones/<int:pk>/pdf/', views.descargar_cotizacion_pdf, name='descargar_cotizacion_pdf'),
 
     # Portal del vendedor
     path('mi-tienda/', views.portal_seller, name='portal_seller'),

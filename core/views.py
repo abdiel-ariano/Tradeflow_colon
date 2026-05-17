@@ -332,6 +332,88 @@ def signup_view(request):
     })
 
 
+def verificar_email(request, token):
+    """
+    Activa la cuenta si el token de verificación es válido.
+
+    Si el email ya estaba verificado, informa al usuario. Invalida el token
+    tras uso exitoso y envía correo de bienvenida.
+    """
+    try:
+        profile = UserProfile.objects.select_related('user').get(
+            token_verificacion=token,
+        )
+        if profile.email_verificado:
+            messages.info(
+                request,
+                'Tu email ya estaba verificado. Puedes iniciar sesión.',
+            )
+        else:
+            profile.email_verificado = True
+            profile.token_verificacion = None
+            profile.save(update_fields=['email_verificado', 'token_verificacion'])
+            enviar_bienvenida(profile.user)
+            messages.success(
+                request,
+                '¡Email verificado! Tu cuenta está activa.',
+            )
+        return redirect('login')
+
+    except UserProfile.DoesNotExist:
+        messages.error(
+            request,
+            'El link de verificación es inválido o ya fue usado.',
+        )
+        return redirect('login')
+
+
+@login_required
+def reenviar_verificacion(request):
+    """
+    Reenvía el correo de verificación al usuario autenticado no verificado.
+    """
+    profile = request.user.profile
+    if not profile.email_verificado:
+        try:
+            enviar_verificacion_email(request.user, request)
+            messages.success(
+                request,
+                'Email de verificación reenviado. Revisa tu bandeja de entrada.',
+            )
+        except Exception as exc:
+            log.exception('reenviar_verificacion: %s', exc)
+            messages.error(
+                request,
+                'No pudimos reenviar el correo. Intenta más tarde.',
+            )
+    return redirect('mi_perfil')
+
+
+def reenviar_verificacion_public(request):
+    """
+    Reenvía verificación por email sin sesión (formulario en login).
+    """
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        user = User.objects.filter(email__iexact=email).first()
+        if user:
+            try:
+                profile = user.profile
+                if not profile.email_verificado:
+                    enviar_verificacion_email(user, request)
+                    messages.success(
+                        request,
+                        'Email de verificación reenviado. Revisa tu bandeja de entrada.',
+                    )
+                else:
+                    messages.info(request, 'Esa cuenta ya está verificada. Puedes iniciar sesión.')
+            except UserProfile.DoesNotExist:
+                pass
+        else:
+            messages.warning(request, 'No encontramos una cuenta con ese correo.')
+    return redirect('login')
+
+
 @login_required
 def mi_perfil(request):
     """
@@ -2164,6 +2246,48 @@ def descargar_factura(request, orden_pk):
 
     pdf_bytes = generar_factura_pdf(orden)
     filename = f"factura_{orden.order_number}.pdf"
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+def descargar_packing_list(request, orden_pk):
+    """
+    Descarga el packing list PDF de una orden.
+
+    Mismas reglas de acceso que descargar_factura.
+    """
+    orden = get_object_or_404(
+        Order.objects.select_related('buyer').prefetch_related('items__product__company'),
+        pk=orden_pk,
+    )
+    if orden.buyer_id != request.user.id and not (
+        request.user.is_superuser or getattr(getattr(request.user, 'profile', None), 'role', None) == 'admin'
+    ):
+        raise Http404()
+
+    pdf_bytes = generar_packing_list_pdf(orden)
+    filename = f"packing_list_{orden.order_number}.pdf"
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+def descargar_cotizacion_pdf(request, pk):
+    """
+    Descarga la cotización formal en PDF (solo el comprador titular).
+    """
+    cotizacion = get_object_or_404(
+        Cotizacion.objects.select_related('buyer', 'empresa').prefetch_related(
+            'items__product',
+        ),
+        pk=pk,
+        buyer=request.user,
+    )
+    pdf_bytes = generar_cotizacion_pdf(cotizacion)
+    filename = f"cotizacion_{cotizacion.numero}.pdf"
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response

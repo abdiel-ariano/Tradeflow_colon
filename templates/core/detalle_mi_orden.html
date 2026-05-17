@@ -131,9 +131,14 @@
       </div>
       {% endif %}
 
-      <a href="{% url 'descargar_factura' orden_pk=orden.pk %}" class="detalle-factura-btn">
+      <a href="{% url 'descargar_factura' orden_pk=orden.pk %}" class="btn-tf btn-primary-tf" style="width:100%;justify-content:center;margin-bottom:8px;">
         <span class="material-symbols-rounded" style="font-size:20px;">description</span>
         Descargar Factura PDF
+      </a>
+
+      <a href="{% url 'descargar_packing_list' orden_pk=orden.pk %}" class="btn-tf btn-secondary-tf" style="width:100%;justify-content:center;margin-bottom:12px;">
+        <span class="material-symbols-rounded" style="font-size:20px;">inventory</span>
+        Packing List PDF
       </a>
 
       <a href="{% url 'tienda' %}" class="btn-tf btn-tf-teal"

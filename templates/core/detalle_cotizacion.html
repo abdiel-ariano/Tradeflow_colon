@@ -132,6 +132,10 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
     {% endif %}
 
     <div class="cot-doc-actions" id="cot-doc-actions">
+      <a href="{% url 'descargar_cotizacion_pdf' pk=cot.pk %}" class="btn-tf btn-secondary-tf" style="margin-right:8px;">
+        <span class="material-symbols-rounded" style="font-size:18px;">download</span>
+        Descargar Cotización PDF
+      </a>
       <span class="cot-doc-badge" id="cot-badge-pend" style="background:#FEF3C7;color:#92400E;">Esperando respuesta</span>
       <span class="cot-doc-badge cot-hidden" id="cot-badge-resp" style="background:#D1FAE5;color:#065F46;">Respondida</span>
       <span class="cot-doc-badge cot-hidden" id="cot-badge-acep" style="background:#DBEAFE;color:#1E40AF;">Aceptada</span>
