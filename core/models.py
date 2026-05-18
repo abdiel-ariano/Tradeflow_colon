@@ -21,6 +21,8 @@ Tablas implementadas (mapeadas exactamente al ERD del PDF):
   python manage.py createsuperuser
 =============================================================================
 """
+from decimal import Decimal
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -99,6 +101,16 @@ class Company(models.Model):
         default=-79.9000,
         verbose_name='Longitud (ZLC)',
     )
+    is_featured = models.BooleanField(
+        default=False,
+        verbose_name='Destacada en home',
+    )
+    carousel_priority = models.IntegerField(
+        default=0,
+        verbose_name='Prioridad carrusel',
+    )
+    tagline_es = models.CharField(max_length=200, blank=True, verbose_name='Eslogan (ES)')
+    tagline_en = models.CharField(max_length=200, blank=True, verbose_name='Eslogan (EN)')
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -125,6 +137,75 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# =============================================================================
+# SECCIONES PROMOCIONALES HOME (CMS ligero)
+# =============================================================================
+
+class HomePromoSection(models.Model):
+    """Bloque configurable en la landing sin redeploy (PreExpo / campañas)."""
+
+    SECTION_TYPES = [
+        ('product_row', _('Fila de productos')),
+        ('product_carousel', _('Carrusel de productos')),
+        ('category_spotlight', _('Destacado por categoría')),
+        ('company_spotlight', _('Destacado por empresa')),
+        ('seasonal_banner', _('Banner de temporada')),
+        ('bestsellers', _('Más vendidos')),
+        ('daily_deals', _('Ofertas del día')),
+    ]
+
+    slug = models.SlugField(max_length=80, unique=True)
+    section_type = models.CharField(max_length=32, choices=SECTION_TYPES)
+    title_es = models.CharField(max_length=200)
+    title_en = models.CharField(max_length=200, blank=True)
+    subtitle_es = models.CharField(max_length=300, blank=True)
+    subtitle_en = models.CharField(max_length=300, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.IntegerField(default=0)
+    starts_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    max_items = models.PositiveSmallIntegerField(default=8)
+    config = models.JSONField(default=dict, blank=True)
+    products = models.ManyToManyField(
+        'Product',
+        blank=True,
+        related_name='promo_sections',
+        verbose_name='Productos',
+    )
+    companies = models.ManyToManyField(
+        'Company',
+        blank=True,
+        related_name='promo_sections',
+        verbose_name='Empresas',
+    )
+    categories = models.ManyToManyField(
+        'Category',
+        blank=True,
+        related_name='promo_sections',
+        verbose_name='Categorías',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('Sección promocional home')
+        verbose_name_plural = _('Secciones promocionales home')
+        ordering = ['sort_order', 'slug']
+
+    def __str__(self):
+        return self.title_es or self.slug
+
+    def title_for_lang(self, lang_code: str) -> str:
+        if lang_code == 'en' and self.title_en:
+            return self.title_en
+        return self.title_es
+
+    def subtitle_for_lang(self, lang_code: str) -> str:
+        if lang_code == 'en' and self.subtitle_en:
+            return self.subtitle_en
+        return self.subtitle_es
 
 
 # =============================================================================
@@ -158,15 +239,55 @@ class Product(models.Model):
     currency    = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD')
     image       = models.ImageField(upload_to='products/', blank=True, null=True, verbose_name='Imagen')
     is_active   = models.BooleanField(default=True, verbose_name='¿Activo?')
+    is_featured = models.BooleanField(default=False, verbose_name='Destacado')
+    is_bestseller = models.BooleanField(
+        default=False,
+        verbose_name='Más vendido (manual o recalculado)',
+    )
+    promo_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name='Precio promocional',
+    )
+    promo_starts_at = models.DateTimeField(null=True, blank=True)
+    promo_ends_at = models.DateTimeField(null=True, blank=True)
+    merchandising_priority = models.IntegerField(default=0, verbose_name='Prioridad merchandising')
     created_at  = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name        = 'Producto'
         verbose_name_plural = 'Productos'
-        ordering            = ['name']
+        ordering            = ['-merchandising_priority', 'name']
 
     def __str__(self):
         return f'{self.name} — {self.currency} {self.unit_price}'
+
+    @property
+    def is_on_promo_now(self) -> bool:
+        """True si hay promo vigente y menor que precio lista."""
+        if self.promo_price is None or self.promo_price >= self.unit_price:
+            return False
+        now = timezone.now()
+        if self.promo_starts_at and now < self.promo_starts_at:
+            return False
+        if self.promo_ends_at and now > self.promo_ends_at:
+            return False
+        return True
+
+    @property
+    def display_price(self) -> Decimal:
+        if self.is_on_promo_now:
+            return self.promo_price
+        return self.unit_price
+
+    @property
+    def discount_pct(self) -> int:
+        if not self.is_on_promo_now or self.unit_price <= 0:
+            return 0
+        pct = (Decimal('1') - (self.promo_price / self.unit_price)) * Decimal('100')
+        return int(pct.quantize(Decimal('1')))
 
     @property
     def stock_qty(self):
@@ -399,17 +520,17 @@ class Payment(models.Model):
     Relación 1-a-1 con Order (una orden tiene un solo pago).
     """
     PROVIDER_CHOICES = [
-        ('mock',  'Simulado (desarrollo)'),
+        ('mock', _('Simulado (desarrollo)')),
         ('stripe', 'Stripe'),
         ('paypal', 'PayPal'),
-        ('bank',   'Transferencia bancaria'),
+        ('bank', _('Transferencia bancaria')),
     ]
 
     STATUS_CHOICES = [
-        ('pending',  'Pendiente'),
-        ('approved', 'Aprobado'),
-        ('rejected', 'Rechazado'),
-        ('refunded', 'Reembolsado'),
+        ('pending', _('Pendiente')),
+        ('approved', _('Aprobado')),
+        ('rejected', _('Rechazado')),
+        ('refunded', _('Reembolsado')),
     ]
 
     order    = models.OneToOneField(
@@ -438,10 +559,10 @@ class Payment(models.Model):
 class Shipment(models.Model):
     """Registro del envío físico de una orden."""
     STATUS_CHOICES = [
-        ('label',      'Etiqueta generada'),
-        ('in_transit', 'En tránsito'),
-        ('delivered',  'Entregado'),
-        ('returned',   'Devuelto'),
+        ('label', _('Etiqueta generada')),
+        ('in_transit', _('En tránsito')),
+        ('delivered', _('Entregado')),
+        ('returned', _('Devuelto')),
     ]
 
     order           = models.OneToOneField(
@@ -504,10 +625,10 @@ class Cotizacion(models.Model):
     productos a una empresa antes de confirmar la orden.
     """
     ESTADO_CHOICES = [
-        ('pendiente', 'Pendiente'),
-        ('respondida', 'Respondida'),
-        ('aceptada', 'Aceptada'),
-        ('rechazada', 'Rechazada'),
+        ('pendiente', _('Pendiente')),
+        ('respondida', _('Respondida')),
+        ('aceptada', _('Aceptada')),
+        ('rechazada', _('Rechazada')),
     ]
 
     numero = models.CharField(max_length=30, unique=True, editable=False, verbose_name='Número')

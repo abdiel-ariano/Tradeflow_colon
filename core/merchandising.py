@@ -1,0 +1,195 @@
+"""
+=============================================================================
+ACCIÓN: CREAR
+DESTINO: core/merchandising.py
+=============================================================================
+Helpers de merchandising para home, tienda y API (ofertas, bestsellers, CMS).
+=============================================================================
+"""
+from __future__ import annotations
+
+from datetime import timedelta
+
+from django.db import models
+from django.db.models import Count, Q, Sum
+from django.utils import timezone
+from django.utils.translation import get_language
+
+from .models import Category, Company, HomePromoSection, OrderItem, Product
+
+
+def active_products_base():
+    """QuerySet base de productos activos con relaciones."""
+    return (
+        Product.objects.filter(is_active=True)
+        .select_related('company', 'category', 'inventory')
+        .defer('company__owner')
+    )
+
+
+def daily_deals(limit: int = 8):
+    """Productos con promoción vigente, prioridad merchandising."""
+    now = timezone.now()
+    return list(
+        active_products_base()
+        .filter(
+            promo_price__isnull=False,
+            promo_price__lt=models.F('unit_price'),
+        )
+        .filter(Q(promo_starts_at__isnull=True) | Q(promo_starts_at__lte=now))
+        .filter(Q(promo_ends_at__isnull=True) | Q(promo_ends_at__gte=now))
+        .order_by('-merchandising_priority', '-created_at')[:limit]
+    )
+
+
+def bestsellers(limit: int = 8, days: int = 30):
+    """Top por unidades vendidas en ventana; fallback a flag is_bestseller."""
+    since = timezone.now() - timedelta(days=days)
+    top_ids = (
+        OrderItem.objects.filter(order__created_at__gte=since)
+        .exclude(order__status='cancelled')
+        .values('product_id')
+        .annotate(units=Sum('qty'))
+        .order_by('-units')[:limit]
+    )
+    id_order = [row['product_id'] for row in top_ids if row['product_id']]
+    if id_order:
+        products = {p.pk: p for p in active_products_base().filter(pk__in=id_order)}
+        ordered = [products[pk] for pk in id_order if pk in products]
+        if len(ordered) >= max(1, limit // 2):
+            return ordered[:limit]
+    return list(
+        active_products_base()
+        .filter(Q(is_bestseller=True) | Q(is_featured=True))
+        .order_by('-merchandising_priority', '-created_at')[:limit]
+    )
+
+
+def featured_products(limit: int = 8):
+    return list(
+        active_products_base()
+        .filter(is_featured=True)
+        .order_by('-merchandising_priority', '-created_at')[:limit]
+    )
+
+
+def featured_companies_carousel(limit: int = 10):
+    qs = (
+        Company.objects.filter(is_featured=True)
+        .annotate(num_productos=Count('products', filter=Q(products__is_active=True)))
+        .filter(num_productos__gt=0)
+        .order_by('-carousel_priority', 'name')[:limit]
+    )
+    if qs.exists():
+        return list(qs)
+    return list(
+        Company.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
+        .order_by('-num_productos')[:limit]
+    )
+
+
+def carousel_products(limit: int = 12):
+    """Productos para carrusel: promo, bestsellers o destacados."""
+    deals = daily_deals(limit=limit)
+    if len(deals) >= 4:
+        return deals
+    best = bestsellers(limit=limit)
+    if len(best) >= 4:
+        return best
+    return list(
+        active_products_base().order_by('-merchandising_priority', '-created_at')[:limit]
+    )
+
+
+def _section_in_window(section: HomePromoSection, now=None) -> bool:
+    if now is None:
+        now = timezone.now()
+    if not section.is_active:
+        return False
+    if section.starts_at and now < section.starts_at:
+        return False
+    if section.ends_at and now > section.ends_at:
+        return False
+    return True
+
+
+def active_home_sections(now=None):
+    """Secciones CMS activas ordenadas."""
+    if now is None:
+        now = timezone.now()
+    sections = HomePromoSection.objects.prefetch_related(
+        'products', 'companies', 'categories'
+    ).order_by('sort_order', 'slug')
+    return [s for s in sections if _section_in_window(s, now)]
+
+
+def resolve_section_products(section: HomePromoSection):
+    """Productos para una sección según tipo y M2M."""
+    limit = section.max_items or 8
+    manual = list(
+        section.products.filter(is_active=True).select_related(
+            'company', 'category', 'inventory'
+        )[:limit]
+    )
+    if manual:
+        return manual
+    st = section.section_type
+    if st == 'daily_deals':
+        return daily_deals(limit)
+    if st == 'bestsellers':
+        return bestsellers(limit)
+    if st in ('product_row', 'product_carousel'):
+        return featured_products(limit)
+    if st == 'category_spotlight' and section.categories.exists():
+        cat = section.categories.first()
+        return list(
+            active_products_base()
+            .filter(category=cat)
+            .order_by('-merchandising_priority')[:limit]
+        )
+    if st == 'company_spotlight' and section.companies.exists():
+        comp = section.companies.first()
+        return list(
+            active_products_base()
+            .filter(company=comp)
+            .order_by('-merchandising_priority')[:limit]
+        )
+    return featured_products(limit)
+
+
+def category_spotlights(limit_per_cat: int = 4, max_cats: int = 4):
+    """Filas por categoría con productos activos."""
+    rows = []
+    for cat in Category.objects.annotate(
+        n=Count('products', filter=Q(products__is_active=True))
+    ).filter(n__gt=0).order_by('-n')[:max_cats]:
+        prods = list(
+            active_products_base()
+            .filter(category=cat)
+            .order_by('-merchandising_priority')[:limit_per_cat]
+        )
+        if prods:
+            rows.append({'category': cat, 'products': prods})
+    return rows
+
+
+def home_stats():
+    """Estadísticas para hero CountUp."""
+    from .models import Order
+
+    return {
+        'empresas': Company.objects.count(),
+        'productos': Product.objects.filter(is_active=True).count(),
+        'ordenes': Order.objects.exclude(status='cancelled').count(),
+        'categorias': Category.objects.count(),
+    }
+
+
+def localized_company_tagline(company: Company) -> str:
+    lang = (get_language() or 'es')[:2]
+    if lang == 'en' and company.tagline_en:
+        return company.tagline_en
+    return company.tagline_es or ''
