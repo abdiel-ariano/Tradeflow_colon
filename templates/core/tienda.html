@@ -306,7 +306,7 @@ show_cart_actions, tienda_params.
     color: var(--tf-muted);
     text-decoration: line-through;
     display: block;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--tf-font-body);
   }
   .td-btn-add {
     background: var(--tf-orange);
@@ -407,54 +407,61 @@ show_cart_actions, tienda_params.
 <div class="td-page">
   <div id="tf-tienda-meta"
        data-cat-active="{{ cat_activa|escapejs }}"
+       data-empresa-active="{{ empresa_activa|escapejs }}"
+       data-orden-active="{{ orden_activo|escapejs }}"
+       data-buscar-active="{{ buscar|escapejs }}"
        data-cur-page="{{ productos.number }}"
        hidden></div>
 
   <div class="td-wrap">
-    <aside class="td-sidebar" aria-label="{% trans 'Categorías' %}">
+    <aside class="td-sidebar" aria-label="{% trans 'Filtros del catálogo' %}">
       <div class="td-side-card">
         <div class="td-side-head">
           <span class="material-symbols-rounded" aria-hidden="true">filter_list</span>
-          {% trans "Categorías" %}
+          {% trans "Filtros" %}
         </div>
-        <ul class="td-cat-list" id="td-cat-list">
-          <li>
-            <a href="{% url 'tienda' %}{% if buscar %}?buscar={{ buscar|urlencode }}{% endif %}"
-               class="td-cat-link"
-               data-cat-id=""
-               id="td-cat-all">{% trans "Todas las categorías" %}</a>
-          </li>
-          {% for cat in categorias %}
-          <li>
-            <a href="{% url 'tienda' %}?categoria={{ cat.pk }}{% if buscar %}&amp;buscar={{ buscar|urlencode }}{% endif %}"
-               class="td-cat-link"
-               data-cat-id="{{ cat.pk }}">{{ cat.name }}</a>
-          </li>
-          {% endfor %}
-        </ul>
+        <form method="get" action="{% url 'tienda' %}" id="filtros-form" style="padding:8px 0 12px;">
+          <div style="position:relative;margin:0 16px 16px;">
+            <span class="material-symbols-rounded" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tf-muted);font-size:18px;pointer-events:none;">search</span>
+            <input type="text" name="buscar" id="input-buscar" placeholder="{% trans 'Buscar productos, SKU...' %}" value="{{ buscar }}" class="td-search-input" style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-family:var(--tf-font-body);box-sizing:border-box;">
+          </div>
+          <div style="padding:0 16px;margin-top:16px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Categoría" %}</label>
+            <select name="categoria" id="select-categoria" style="width:100%;padding:9px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:14px;font-family:var(--tf-font-body);color:#374151;background:#fff;">
+              <option value="">{% trans "Todas las categorías" %}</option>
+              {% for cat in categorias %}
+              <option value="{{ cat.id }}">{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="padding:0 16px;margin-top:16px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Empresa" %}</label>
+            <select name="empresa" id="select-empresa" style="width:100%;padding:9px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:14px;font-family:var(--tf-font-body);color:#374151;background:#fff;">
+              <option value="">{% trans "Todas las empresas" %}</option>
+              {% for empresa in empresas %}
+              <option value="{{ empresa.id }}">{{ empresa.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="padding:0 16px;margin-top:16px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Ordenar por" %}</label>
+            <select name="orden" id="select-orden" style="width:100%;padding:9px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:14px;font-family:var(--tf-font-body);color:#374151;background:#fff;">
+              <option value="nombre">{% trans "Nombre A-Z" %}</option>
+              <option value="precio_asc">{% trans "Precio: menor a mayor" %}</option>
+              <option value="precio_desc">{% trans "Precio: mayor a menor" %}</option>
+              <option value="novedades">{% trans "Más recientes" %}</option>
+            </select>
+          </div>
+          <button type="submit" class="td-btn-search" style="display:block;width:calc(100% - 32px);margin:16px 16px 0;background:var(--tf-navy);color:#fff;padding:10px;border:none;border-radius:10px;font-weight:600;font-family:var(--tf-font-body);cursor:pointer;">{% trans "Aplicar" %}</button>
+          <a href="{% url 'tienda' %}" id="btn-limpiar" style="display:none;margin:12px 16px 8px;text-align:center;font-size:13px;color:var(--tf-muted);text-decoration:none;padding:8px;border-radius:8px;border:1px solid #E5E7EB;">
+            <span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">filter_alt_off</span>
+            {% trans "Limpiar filtros" %}
+          </a>
+        </form>
       </div>
     </aside>
 
     <div class="td-main">
-      <form class="td-toolbar" method="get" action="{% url 'tienda' %}" id="td-filter-form">
-        {% if cat_activa %}
-        <input type="hidden" name="categoria" value="{{ cat_activa }}">
-        {% endif %}
-        <div class="td-search-wrap">
-          <span class="material-symbols-rounded" aria-hidden="true">search</span>
-          <input type="search"
-                 name="buscar"
-                 class="td-search-input"
-                 id="td-search-input"
-                 placeholder="{% trans 'Buscar productos, SKU…' %}"
-                 value="{{ buscar }}">
-        </div>
-        <button type="submit" class="td-btn-search">
-          <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">search</span>
-          {% trans "Buscar" %}
-        </button>
-      </form>
-
       <div class="td-results-hdr">
         <div>
           <h1 id="td-results-title">{% trans "Catálogo TradeFlow" %}</h1>
@@ -555,17 +562,49 @@ show_cart_actions, tienda_params.
 (function () {
   'use strict';
   var meta = document.getElementById('tf-tienda-meta');
-  if (!meta) return;
+  var catActiva = meta ? (meta.getAttribute('data-cat-active') || '') : '';
+  var empresaActiva = meta ? (meta.getAttribute('data-empresa-active') || '') : '';
+  var ordenActivo = meta ? (meta.getAttribute('data-orden-active') || 'nombre') : 'nombre';
+  var buscarActual = meta ? (meta.getAttribute('data-buscar-active') || '') : '';
+  var curPage = meta ? (meta.getAttribute('data-cur-page') || '1') : '1';
 
-  var catActive = meta.getAttribute('data-cat-active') || '';
-  var curPage = meta.getAttribute('data-cur-page') || '1';
-
-  document.querySelectorAll('.td-cat-link').forEach(function (link) {
-    var id = link.getAttribute('data-cat-id') || '';
-    if (id === catActive) {
-      link.setAttribute('data-active', 'true');
+  function markSelect(sel, value) {
+    if (!sel || !value) return;
+    var i;
+    for (i = 0; i < sel.options.length; i += 1) {
+      if (sel.options[i].value === value) {
+        sel.selectedIndex = i;
+        break;
+      }
     }
-  });
+  }
+
+  markSelect(document.getElementById('select-categoria'), catActiva);
+  markSelect(document.getElementById('select-empresa'), empresaActiva);
+  markSelect(document.getElementById('select-orden'), ordenActivo);
+
+  var inputBuscar = document.getElementById('input-buscar');
+  if (inputBuscar && buscarActual) {
+    inputBuscar.value = buscarActual;
+  }
+
+  var form = document.getElementById('filtros-form');
+  if (form) {
+    ['select-categoria', 'select-empresa', 'select-orden'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('change', function () {
+          form.submit();
+        });
+      }
+    });
+  }
+
+  var btnLimpiar = document.getElementById('btn-limpiar');
+  if (btnLimpiar) {
+    var hayFiltros = !!(catActiva || empresaActiva || buscarActual || ordenActivo !== 'nombre');
+    btnLimpiar.style.display = hayFiltros ? 'block' : 'none';
+  }
 
   document.querySelectorAll('.td-pag-link').forEach(function (link) {
     if (link.getAttribute('data-page') === curPage) {

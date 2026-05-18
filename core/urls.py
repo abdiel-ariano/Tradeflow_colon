@@ -89,4 +89,5 @@ urlpatterns = [
     # ── API JSON ──────────────────────────────────────────────────────────
     path('api/productos/', views.api_productos, name='api_productos'),
     path('api/home-merchandising/', views.api_home_merchandising, name='api_home_merchandising'),
+    path('api/asistente/', views.api_asistente, name='api_asistente'),
 ]
