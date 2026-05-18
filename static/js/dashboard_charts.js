@@ -65,16 +65,21 @@
     }
   }
 
+  function i18n(key, fallback) {
+    var bag = window.TF_I18N || {};
+    return bag[key] || fallback;
+  }
+
   function boot() {
     if (typeof Chart === 'undefined') {
-      showChartsError('No se pudo cargar Chart.js. Recarga la página.');
+      showChartsError(i18n('chartLoadError', 'No se pudo cargar Chart.js. Recarga la página.'));
       return;
     }
 
     var pillsRoot = document.getElementById('adm-dias-pills');
     var parsed = parseInitialPayload(pillsRoot);
     if (!parsed.ok) {
-      showChartsError('Datos de gráficos incompletos. Recarga o cambia el período (7/30/90).');
+      showChartsError(i18n('chartDataError', 'Datos de gráficos incompletos. Recarga o cambia el período (7/30/90).'));
     } else {
       hideChartsError();
     }
@@ -83,7 +88,13 @@
     var animDuration = reduced ? 0 : 400;
 
     var catColors = ['#F26522', '#2E5B8A', '#1B3B63', '#FF7A3D', '#6B7A88', '#FFA15A'];
-    var estadoLabels = ['Pendiente', 'Pagado', 'Enviado', 'Entregado', 'Cancelado'];
+    var estadoLabels = [
+      i18n('chartPending', 'Pendiente'),
+      i18n('chartPaid', 'Pagado'),
+      i18n('chartShipped', 'Enviado'),
+      i18n('chartDelivered', 'Entregado'),
+      i18n('chartCancelled', 'Cancelado'),
+    ];
     var estadoColors = ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#065F46', '#FEE2E2'];
     var estadoKeys = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
 
@@ -156,7 +167,7 @@
             data: {
               labels: labels,
               datasets: [{
-                label: 'Órdenes',
+                label: i18n('chartOrders', 'Órdenes'),
                 data: ordenesDia,
                 backgroundColor: '#F26522',
                 borderRadius: 6,
@@ -188,7 +199,7 @@
             data: {
               labels: labels,
               datasets: [{
-                label: 'USD',
+                label: i18n('chartUsd', 'USD'),
                 data: ingresosDia,
                 borderColor: '#0F2A44',
                 backgroundColor: createLineGradient(lCtx),
@@ -315,7 +326,7 @@
     try {
       createCharts(parsed.payload);
     } catch (e) {
-      showChartsError('No se pudieron inicializar los gráficos: ' + e.message);
+      showChartsError(i18n('chartInitError', 'No se pudieron inicializar los gráficos.') + ' ' + e.message);
       return;
     }
 
@@ -347,7 +358,7 @@
               createCharts(data);
             })
             .catch(function () {
-              showChartsError('No se pudieron actualizar los gráficos.');
+              showChartsError(i18n('chartUpdateError', 'No se pudieron actualizar los gráficos.'));
             });
         });
       });

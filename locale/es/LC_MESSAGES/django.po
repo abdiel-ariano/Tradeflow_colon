@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-17 16:43-0500\n"
+"POT-Creation-Date: 2026-05-17 19:16-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,96 +18,346 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: core/models.py:281 templates/core/mi_perfil.html:404
-msgid "Pendiente"
+#: core/context_processors.py:48 templates/core/base.html:1106
+msgid "Cerrar"
 msgstr ""
 
-#: core/models.py:282 templates/core/mi_perfil.html:405
-msgid "Pagado"
+#: core/context_processors.py:49 templates/core/base.html:1001
+msgid "Carrito"
 msgstr ""
 
-#: core/models.py:283 templates/core/mi_perfil.html:406
-msgid "Empacado"
+#: core/context_processors.py:50
+msgid "Diapositiva"
 msgstr ""
 
-#: core/models.py:284 templates/core/mi_perfil.html:407
-msgid "Enviado"
+#: core/context_processors.py:51
+msgid "Producto agregado al carrito"
 msgstr ""
 
-#: core/models.py:285 templates/core/mi_perfil.html:408
-msgid "Entregado"
+#: core/context_processors.py:52
+msgid "No se pudo agregar al carrito"
 msgstr ""
 
-#: core/models.py:286 templates/core/mi_perfil.html:409
-msgid "Cancelado"
+#: core/context_processors.py:53
+msgid "Error de conexión"
 msgstr ""
 
-#: core/models.py:290
-msgid "Consumidor final (B2C)"
-msgstr ""
-
-#: core/models.py:291
-msgid "Empresa a empresa (B2B)"
-msgstr ""
-
-#: templates/core/base.html:924
-msgid "Mapa"
-msgstr ""
-
-#: templates/core/base.html:946 templates/core/mi_perfil.html:366
-msgid "Dashboard"
-msgstr ""
-
-#: templates/core/base.html:947 templates/core/ordenes.html:6
+#: core/context_processors.py:54 core/context_processors.py:58
+#: templates/core/admin_rail.html:21 templates/core/admin_rail.html:23
+#: templates/core/base.html:992 templates/core/home.html:36
+#: templates/core/ordenes.html:6
 msgid "Órdenes"
 msgstr ""
 
-#: templates/core/base.html:948 templates/core/base.html:963
-#: templates/core/mi_perfil.html:362
+#: core/context_processors.py:55 templates/core/admin_rail.html:25
+#: templates/core/admin_rail.html:27 templates/core/base.html:993
+#: templates/core/base.html:1008 templates/core/mi_perfil.html:362
 msgid "Productos"
 msgstr ""
 
-#: templates/core/base.html:949
+#: core/context_processors.py:56 templates/core/admin_rail.html:29
+#: templates/core/admin_rail.html:31 templates/core/base.html:994
+#: templates/core/home.html:34
 msgid "Empresas"
 msgstr ""
 
-#: templates/core/base.html:952
+#: core/context_processors.py:57 templates/core/home.html:165
+msgid "Sin productos en esta sección por ahora."
+msgstr ""
+
+#: core/context_processors.py:59
+msgid "USD"
+msgstr ""
+
+#: core/context_processors.py:60 core/models.py:402 core/models.py:530
+#: core/models.py:628 templates/core/mi_perfil.html:404
+msgid "Pendiente"
+msgstr ""
+
+#: core/context_processors.py:61 core/models.py:403
+#: templates/core/mi_perfil.html:405
+msgid "Pagado"
+msgstr ""
+
+#: core/context_processors.py:62 core/models.py:405
+#: templates/core/mi_perfil.html:407
+msgid "Enviado"
+msgstr ""
+
+#: core/context_processors.py:63 core/models.py:406 core/models.py:564
+#: templates/core/mi_perfil.html:408
+msgid "Entregado"
+msgstr ""
+
+#: core/context_processors.py:64 core/models.py:407
+#: templates/core/mi_perfil.html:409
+msgid "Cancelado"
+msgstr ""
+
+#: core/context_processors.py:65
+msgid "No se pudo cargar Chart.js. Recarga la página."
+msgstr ""
+
+#: core/context_processors.py:66
+msgid "Datos de gráficos incompletos. Recarga o cambia el período (7/30/90)."
+msgstr ""
+
+#: core/context_processors.py:67
+msgid "No se pudieron actualizar los gráficos."
+msgstr ""
+
+#: core/context_processors.py:68
+msgid "No se pudieron inicializar los gráficos."
+msgstr ""
+
+#: core/context_processors.py:69
+msgid "Archivo CSV descargado correctamente."
+msgstr ""
+
+#: core/models.py:150
+msgid "Fila de productos"
+msgstr ""
+
+#: core/models.py:151
+msgid "Carrusel de productos"
+msgstr ""
+
+#: core/models.py:152
+msgid "Destacado por categoría"
+msgstr ""
+
+#: core/models.py:153
+msgid "Destacado por empresa"
+msgstr ""
+
+#: core/models.py:154
+msgid "Banner de temporada"
+msgstr ""
+
+#: core/models.py:155 templates/core/tienda.html:440
+msgid "Más vendidos"
+msgstr ""
+
+#: core/models.py:156 templates/core/home.html:81
+msgid "Ofertas del día"
+msgstr ""
+
+#: core/models.py:193
+msgid "Sección promocional home"
+msgstr ""
+
+#: core/models.py:194
+msgid "Secciones promocionales home"
+msgstr ""
+
+#: core/models.py:404 templates/core/mi_perfil.html:406
+msgid "Empacado"
+msgstr ""
+
+#: core/models.py:411
+msgid "Consumidor final (B2C)"
+msgstr ""
+
+#: core/models.py:412
+msgid "Empresa a empresa (B2B)"
+msgstr ""
+
+#: core/models.py:523
+msgid "Simulado (desarrollo)"
+msgstr ""
+
+#: core/models.py:526
+msgid "Transferencia bancaria"
+msgstr ""
+
+#: core/models.py:531
+msgid "Aprobado"
+msgstr ""
+
+#: core/models.py:532
+msgid "Rechazado"
+msgstr ""
+
+#: core/models.py:533
+msgid "Reembolsado"
+msgstr ""
+
+#: core/models.py:562
+msgid "Etiqueta generada"
+msgstr ""
+
+#: core/models.py:563
+msgid "En tránsito"
+msgstr ""
+
+#: core/models.py:565
+msgid "Devuelto"
+msgstr ""
+
+#: core/models.py:629
+msgid "Respondida"
+msgstr ""
+
+#: core/models.py:630
+msgid "Aceptada"
+msgstr ""
+
+#: core/models.py:631
+msgid "Rechazada"
+msgstr ""
+
+#: core/views.py:2194
+msgid "La cantidad debe ser al menos 1."
+msgstr ""
+
+#: core/views.py:2201
+#, python-format
+msgid "\"%(name)s\" no tiene stock disponible."
+msgstr ""
+
+#: core/views.py:2215
+#, python-format
+msgid "Solo hay %(qty)s unidades disponibles de \"%(name)s\"."
+msgstr ""
+
+#: core/views.py:2235
+#, python-format
+msgid "Solo hay %(qty)s unidades disponibles. Se ajustó la cantidad."
+msgstr ""
+
+#: core/views.py:2248
+#, python-format
+msgid "\"%(name)s\" agregado al carrito."
+msgstr ""
+
+#: core/views.py:2279
+#, python-format
+msgid "\"%(name)s\" eliminado del carrito."
+msgstr ""
+
+#: templates/core/admin_rail.html:6
+msgid "Menú administración"
+msgstr ""
+
+#: templates/core/admin_rail.html:12 templates/core/home.html:196
+msgid "Panel admin"
+msgstr ""
+
+#: templates/core/admin_rail.html:17 templates/core/admin_rail.html:19
+#: templates/core/base.html:991 templates/core/mi_perfil.html:366
+msgid "Dashboard"
+msgstr ""
+
+#: templates/core/admin_rail.html:35
+msgid "Alternar ancho del menú lateral"
+msgstr ""
+
+#: templates/core/admin_rail.html:37
+msgid "Compacto"
+msgstr ""
+
+#: templates/core/admin_rail.html:39
+msgid "Sitio Django Admin"
+msgstr ""
+
+#: templates/core/admin_rail.html:41
+msgid "Django Admin"
+msgstr ""
+
+#: templates/core/base.html:969
+msgid "Mapa"
+msgstr ""
+
+#: templates/core/base.html:997
 msgid "Tienda"
 msgstr ""
 
-#: templates/core/base.html:953 templates/core/mi_perfil.html:357
+#: templates/core/base.html:998 templates/core/mi_perfil.html:357
 #: templates/core/mis_ordenes.html:3 templates/core/mis_ordenes.html:33
 msgid "Mis órdenes"
 msgstr ""
 
-#: templates/core/base.html:954
+#: templates/core/base.html:999
 msgid "Mis cotizaciones"
 msgstr ""
 
-#: templates/core/base.html:955
+#: templates/core/base.html:1000
 msgid "Mi QR"
 msgstr ""
 
-#: templates/core/base.html:962 templates/core/mi_perfil.html:361
+#: templates/core/base.html:1007 templates/core/mi_perfil.html:361
 msgid "Mi Panel"
 msgstr ""
 
-#: templates/core/base.html:964 templates/core/mi_perfil.html:363
+#: templates/core/base.html:1009 templates/core/mi_perfil.html:363
 msgid "Mis ventas"
 msgstr ""
 
-#: templates/core/base.html:973
+#: templates/core/base.html:1010
+msgid "Cotizaciones"
+msgstr ""
+
+#: templates/core/base.html:1018
 msgid "Salir"
 msgstr ""
 
-#: templates/core/base.html:976 templates/core/login.html:159
+#: templates/core/base.html:1021 templates/core/base.html:1153
+#: templates/core/home.html:207 templates/core/login.html:159
 #: templates/core/signup.html:135
 msgid "Iniciar sesión"
 msgstr ""
 
-#: templates/core/base.html:977 templates/core/home.html:883
-#: templates/core/signup.html:130
+#: templates/core/base.html:1022 templates/core/base.html:1152
+#: templates/core/home.html:206 templates/core/signup.html:130
 msgid "Crear cuenta"
+msgstr ""
+
+#: templates/core/base.html:1145
+msgid "Marketplace B2B/B2C para la Zona Libre de Colón, Panamá."
+msgstr ""
+
+#: templates/core/base.html:1149
+msgid "Plataforma"
+msgstr ""
+
+#: templates/core/base.html:1151
+msgid "Inicio"
+msgstr ""
+
+#: templates/core/base.html:1157
+msgid "Legal"
+msgstr ""
+
+#: templates/core/base.html:1159
+msgid "Términos de uso"
+msgstr ""
+
+#: templates/core/base.html:1160
+msgid "Privacidad"
+msgstr ""
+
+#: templates/core/base.html:1161
+msgid "Cookies"
+msgstr ""
+
+#: templates/core/base.html:1165
+msgid "Contacto"
+msgstr ""
+
+#: templates/core/base.html:1168
+msgid "Zona Libre de Colón"
+msgstr ""
+
+#: templates/core/base.html:1169
+msgid "Panamá"
+msgstr ""
+
+#: templates/core/base.html:1174
+msgid "2026 TradeFlow Colón. Todos los derechos reservados."
+msgstr ""
+
+#: templates/core/base.html:1175
+msgid "Centro Supérate · Fundación Alberto Motta"
 msgstr ""
 
 #: templates/core/carrito.html:3 templates/core/carrito.html:54
@@ -121,321 +371,328 @@ msgid_plural "%(counter)s artículos"
 msgstr[0] ""
 msgstr[1] ""
 
+#: templates/core/carrito.html:63
+#, python-format
+msgid "USD %(price)s c/u"
+msgstr ""
+
+#: templates/core/carrito.html:64
+msgid "Cantidad:"
+msgstr ""
+
+#: templates/core/carrito.html:68
+msgid "Quitar"
+msgstr ""
+
+#: templates/core/carrito.html:74 templates/core/checkout.html:67
+msgid "Resumen"
+msgstr ""
+
+#: templates/core/carrito.html:75 templates/core/checkout.html:78
+msgid "Subtotal"
+msgstr ""
+
+#: templates/core/carrito.html:76
+msgid "Envío"
+msgstr ""
+
+#: templates/core/carrito.html:76
+msgid "Al confirmar"
+msgstr ""
+
+#: templates/core/carrito.html:77 templates/core/checkout.html:79
+msgid "Total"
+msgstr ""
+
+#: templates/core/carrito.html:78
+msgid "Ir al checkout"
+msgstr ""
+
+#: templates/core/carrito.html:79
+msgid "Seguir comprando"
+msgstr ""
+
+#: templates/core/carrito.html:84
+msgid "Tu carrito está vacío"
+msgstr ""
+
+#: templates/core/carrito.html:85
+msgid "Explora la tienda y agrega productos."
+msgstr ""
+
+#: templates/core/carrito.html:86 templates/core/mi_perfil.html:356
+msgid "Ir a la tienda"
+msgstr ""
+
 #: templates/core/checkout.html:7 templates/core/checkout.html:49
 msgid "Confirmar pedido"
 msgstr ""
 
-#: templates/core/checkout.html:67
-msgid "Resumen"
+#: templates/core/checkout.html:57
+msgid ""
+"Demo: el pago es simulado. La orden se crea y marca como pagada "
+"automáticamente."
 msgstr ""
 
-#: templates/core/checkout.html:78
-msgid "Subtotal"
+#: templates/core/checkout.html:59
+msgid "Notas (opcional)"
 msgstr ""
 
-#: templates/core/checkout.html:79
-msgid "Total"
+#: templates/core/checkout.html:60
+msgid "Instrucciones de entrega, referencias…"
+msgstr ""
+
+#: templates/core/checkout.html:62
+msgid "Método de pago: mock (desarrollo)"
+msgstr ""
+
+#: templates/core/checkout.html:63
+msgid "Confirmar y pagar"
+msgstr ""
+
+#: templates/core/checkout.html:73
+#, python-format
+msgid "%(qty)s u."
 msgstr ""
 
 #: templates/core/dashboard.html:12
 msgid "Panel de ventas"
 msgstr ""
 
-#: templates/core/dashboard.html:150
+#: templates/core/dashboard.html:155
 msgid "Panel de ventas ZLC"
 msgstr ""
 
-#: templates/core/dashboard.html:161
+#: templates/core/dashboard.html:166
 msgid "Período de análisis"
 msgstr ""
 
-#: templates/core/dashboard.html:177
+#: templates/core/dashboard.html:182
 msgid "Modo pruebas (PreExpo)"
 msgstr ""
 
-#: templates/core/dashboard.html:178
+#: templates/core/dashboard.html:183
 msgid ""
 "Los gráficos usan órdenes creadas en el período (pending, paid, enviado, "
 "etc.). No necesitas marcar entregado para ver barras, línea y dona."
 msgstr ""
 
-#: templates/core/dashboard.html:179
+#: templates/core/dashboard.html:184
 msgid "Entregadas en el período:"
 msgstr ""
 
-#: templates/core/dashboard.html:200
+#: templates/core/dashboard.html:205
 msgid "Ingresos del período (órdenes activas)"
 msgstr ""
 
-#: templates/core/dashboard.html:201
+#: templates/core/dashboard.html:206
 msgid "Ingresos entregados (período)"
 msgstr ""
 
-#: templates/core/dashboard.html:210
+#: templates/core/dashboard.html:215
 msgid "Acumulado activo (no canceladas): USD"
 msgstr ""
 
-#: templates/core/dashboard.html:211
+#: templates/core/dashboard.html:216
 msgid "Acumulado entregado: USD"
 msgstr ""
 
-#: templates/core/dashboard.html:235
+#: templates/core/dashboard.html:240
 msgid "No se pudo cargar Chart.js. Revisa la conexión."
 msgstr ""
 
-#: templates/core/dashboard.html:276
+#: templates/core/dashboard.html:281
 msgid "Sin órdenes en este período"
 msgstr ""
 
-#: templates/core/home.html:22
+#: templates/core/home.html:12
 msgid "TradeFlow Colón — Compra, gestiona, exporta"
 msgstr ""
 
-#: templates/core/home.html:864 templates/core/login.html:129
+#: templates/core/home.html:24 templates/core/login.html:129
 #: templates/core/signup.html:75
 msgid "Zona Libre de Colón · Panamá"
 msgstr ""
 
-#: templates/core/home.html:867
-msgid "Compra"
-msgstr ""
-
-#: templates/core/home.html:868
-msgid "en"
-msgstr ""
-
-#: templates/core/home.html:869
-msgid "la"
-msgstr ""
-
-#: templates/core/home.html:870
-msgid "ZLC"
-msgstr ""
-
-#: templates/core/home.html:871
-msgid "desde"
-msgstr ""
-
-#: templates/core/home.html:872
-msgid "cualquier"
-msgstr ""
-
-#: templates/core/home.html:873
-msgid "lugar"
-msgstr ""
-
-#: templates/core/home.html:874
-msgid "del"
-msgstr ""
-
-#: templates/core/home.html:875
-msgid "mundo"
-msgstr ""
-
-#: templates/core/home.html:878
+#: templates/core/home.html:26
 msgid ""
-"TradeFlow conecta compradores con empresas verificadas de la Zona Libre de "
-"Colón: catálogo claro, pedidos trazables y herramientas listas para escalar."
+"Compra, gestiona y exporta desde la <span class=\"lp-hero-accent\">ZLC</span>"
 msgstr ""
 
-#: templates/core/home.html:887 templates/core/home.html:1046
+#: templates/core/home.html:28
+msgid ""
+"Marketplace B2B y B2C con empresas verificadas, ofertas del día y logística "
+"ZLC."
+msgstr ""
+
+#: templates/core/home.html:30
+msgid "Crear cuenta gratis"
+msgstr ""
+
+#: templates/core/home.html:31
+msgid "Explorar catálogo"
+msgstr ""
+
+#: templates/core/home.html:35
+msgid "Productos activos"
+msgstr ""
+
+#: templates/core/home.html:37 templates/core/tienda.html:424
+#: templates/core/tienda.html:425
+msgid "Categorías"
+msgstr ""
+
+#: templates/core/home.html:52
+msgid "Empresas y ofertas en movimiento"
+msgstr ""
+
+#: templates/core/home.html:53
+msgid "Carrusel con proveedores destacados y productos con promoción vigente."
+msgstr ""
+
+#: templates/core/home.html:63
+msgid "Ver catálogo"
+msgstr ""
+
+#: templates/core/home.html:82
+msgid ""
+"Precios promocionales vigentes — sin esperar a marcar pedidos entregados."
+msgstr ""
+
+#: templates/core/home.html:91
+msgid "Sin ofertas activas en este momento. Vuelve pronto."
+msgstr ""
+
+#: templates/core/home.html:99
+msgid "Más vendidos ZLC"
+msgstr ""
+
+#: templates/core/home.html:100
+msgid "Basado en ventas recientes del marketplace."
+msgstr ""
+
+#: templates/core/home.html:109
+msgid "Aún no hay datos de más vendidos."
+msgstr ""
+
+#: templates/core/home.html:119
+msgid "Ver categoría"
+msgstr ""
+
+#: templates/core/home.html:133
+msgid "Empresas destacadas"
+msgstr ""
+
+#: templates/core/home.html:140
+msgid "Ver tienda"
+msgstr ""
+
+#: templates/core/home.html:174
 msgid "Cómo funciona"
 msgstr ""
 
-#: templates/core/home.html:902
-msgid "Órdenes activas"
+#: templates/core/home.html:177
+msgid "Regístrate"
 msgstr ""
 
-#: templates/core/home.html:906
-msgid "Fulfillment"
+#: templates/core/home.html:177
+msgid "Crea tu cuenta comprador o vendedor en minutos."
 msgstr ""
 
-#: templates/core/home.html:910
-msgid "Envíos en tránsito"
+#: templates/core/home.html:178
+msgid "Explora el catálogo ZLC"
 msgstr ""
 
-#: templates/core/home.html:914
-msgid "Cumplimiento operativo"
+#: templates/core/home.html:178
+msgid "Filtra por empresa, categoría, ofertas y más vendidos."
 msgstr ""
 
-#: templates/core/home.html:926
-msgid "Empresas en la ZLC"
+#: templates/core/home.html:179
+msgid "Cotiza o compra"
 msgstr ""
 
-#: templates/core/home.html:930
-msgid "Transacciones anuales"
+#: templates/core/home.html:179
+msgid "RFQ formal B2B o checkout B2C con carrito."
 msgstr ""
 
-#: templates/core/home.html:934
-msgid "Países compradores"
+#: templates/core/home.html:180
+msgid "Exporta con documentación"
 msgstr ""
 
-#: templates/core/home.html:943
-msgid "Empresas y proceso en la ZLC"
+#: templates/core/home.html:180
+msgid "Factura y packing list alineados a prácticas ZLC / ANA."
 msgstr ""
 
-#: templates/core/home.html:944
-msgid "Conoce vendedores verificados y el flujo de compra B2B en cuatro pasos."
+#: templates/core/home.html:188
+msgid "Confianza TradeFlow"
 msgstr ""
 
-#: templates/core/home.html:947 templates/core/tienda.html:492
-msgid "Anterior"
+#: templates/core/home.html:191
+msgid "Empresas ZLC"
 msgstr ""
 
-#: templates/core/home.html:957
-#, python-format
-msgid "%(n)s producto activo"
-msgid_plural "%(n)s productos activos"
-msgstr[0] ""
-msgstr[1] ""
-
-#: templates/core/home.html:963 templates/core/home.html:971
-#: templates/core/home.html:979 templates/core/home.html:987
-msgid "Paso"
+#: templates/core/home.html:191
+msgid "Proveedores del corredor en un solo lugar."
 msgstr ""
 
-#: templates/core/home.html:965 templates/core/home.html:1056
-msgid "Crea tu cuenta"
+#: templates/core/home.html:192
+msgid "Logística"
 msgstr ""
 
-#: templates/core/home.html:966
-msgid "Regístrate como comprador en minutos y accede al catálogo ZLC."
+#: templates/core/home.html:192
+msgid "Seguimiento de órdenes y estados claros."
 msgstr ""
 
-#: templates/core/home.html:973 templates/core/home.html:1062
-msgid "Explora el catálogo"
+#: templates/core/home.html:193
+msgid "Cotizaciones RFQ"
 msgstr ""
 
-#: templates/core/home.html:974
-msgid "Filtra por categoría, empresa o SKU con stock en tiempo real."
+#: templates/core/home.html:193
+msgid "Precios formales antes de cerrar B2B."
 msgstr ""
 
-#: templates/core/home.html:981 templates/core/home.html:1068
-msgid "Realiza tu pedido"
+#: templates/core/home.html:194
+msgid "PDF legales"
 msgstr ""
 
-#: templates/core/home.html:982
-msgid "Carrito, checkout y trazabilidad de estados en un solo lugar."
+#: templates/core/home.html:194
+msgid "Factura y packing para trámites aduaneros."
 msgstr ""
 
-#: templates/core/home.html:989 templates/core/home.html:1074
-msgid "Recibe tu mercancía"
+#: templates/core/home.html:195
+msgid "ES / EN"
 msgstr ""
 
-#: templates/core/home.html:990
-msgid "Seguimiento de envíos y documentación alineada a exportación."
+#: templates/core/home.html:195
+msgid "Plataforma lista para inversores internacionales."
 msgstr ""
 
-#: templates/core/home.html:995 templates/core/tienda.html:498
-msgid "Siguiente"
+#: templates/core/home.html:196
+msgid "KPIs y gráficos para operación PreExpo."
 msgstr ""
 
-#: templates/core/home.html:998
-msgid "Diapositivas del carrusel"
+#: templates/core/home.html:203
+msgid "Empieza en la Zona Libre hoy"
 msgstr ""
 
-#: templates/core/home.html:1006
-msgid "Por qué TradeFlow"
+#: templates/core/home.html:204
+msgid "Únete a TradeFlow Colón — demo lista para PreExpo 2026."
 msgstr ""
 
-#: templates/core/home.html:1011
-msgid "Compra sin viajar"
+#: templates/core/includes/product_card.html:24
+msgid "Top ZLC"
 msgstr ""
 
-#: templates/core/home.html:1012
-msgid ""
-"Accede a la ZLC desde cualquier país con información clara de cada vendedor."
+#: templates/core/includes/product_card.html:26
+msgid "Destacado"
 msgstr ""
 
-#: templates/core/home.html:1016
-msgid "Inventario en tiempo real"
+#: templates/core/includes/product_card.html:48
+msgid "Agregar"
 msgstr ""
 
-#: templates/core/home.html:1017
-msgid "Stock y reservas integrados para evitar ventas duplicadas."
-msgstr ""
-
-#: templates/core/home.html:1021
-msgid "Documentos aduaneros"
-msgstr ""
-
-#: templates/core/home.html:1022
-msgid "Base para facturas y listas de empaque en procesos de exportación."
-msgstr ""
-
-#: templates/core/home.html:1026
-msgid "Pago seguro"
-msgstr ""
-
-#: templates/core/home.html:1027
-msgid "Flujos trazables y preparación para pasarelas profesionales."
-msgstr ""
-
-#: templates/core/home.html:1031
-msgid "Pre-registro QR"
-msgstr ""
-
-#: templates/core/home.html:1032
-msgid ""
-"Experiencias de registro y roles separados para compradores y vendedores."
-msgstr ""
-
-#: templates/core/home.html:1036
-msgid "Analítica avanzada"
-msgstr ""
-
-#: templates/core/home.html:1037
-msgid "Métricas operativas y comerciales para tomar mejores decisiones."
-msgstr ""
-
-#: templates/core/home.html:1047
-msgid "Cuatro pasos para comprar en la Zona Libre de Colón con TradeFlow."
-msgstr ""
-
-#: templates/core/home.html:1057
-msgid "Registro rápido como comprador B2B."
-msgstr ""
-
-#: templates/core/home.html:1063
-msgid "Busca por categoría, empresa o SKU."
-msgstr ""
-
-#: templates/core/home.html:1069
-msgid "Checkout con estados y trazabilidad."
-msgstr ""
-
-#: templates/core/home.html:1075
-msgid "Seguimiento y documentación de envío."
-msgstr ""
-
-#: templates/core/home.html:1085
-msgid "Productos destacados"
-msgstr ""
-
-#: templates/core/home.html:1086
-msgid "Una muestra del catálogo disponible al registrarte."
-msgstr ""
-
-#: templates/core/home.html:1098
-msgid "Ver producto"
-msgstr ""
-
-#: templates/core/home.html:1115
-msgid "La Zona Libre está esperándote"
-msgstr ""
-
-#: templates/core/home.html:1116
-msgid ""
-"Únete a la plataforma que digitaliza el comercio de Colón para compradores y "
-"empresas."
-msgstr ""
-
-#: templates/core/home.html:1120
-msgid "Comenzar ahora"
-msgstr ""
-
-#: templates/core/home.html:1122
-msgid "Ya tengo cuenta"
+#: templates/core/includes/product_card.html:54
+msgid "Iniciar sesión para comprar"
 msgstr ""
 
 #: templates/core/login.html:14
@@ -590,10 +847,6 @@ msgstr ""
 msgid "Accesos rápidos"
 msgstr ""
 
-#: templates/core/mi_perfil.html:356
-msgid "Ir a la tienda"
-msgstr ""
-
 #: templates/core/mi_perfil.html:358
 msgid "Mi QR de visitante"
 msgstr ""
@@ -661,109 +914,124 @@ msgstr ""
 msgid "Tienda — TradeFlow Colón"
 msgstr ""
 
-#: templates/core/tienda.html:381 templates/core/tienda.html:382
-msgid "Categorías"
-msgstr ""
-
-#: templates/core/tienda.html:383
+#: templates/core/tienda.html:426
 msgid "Todas"
 msgstr ""
 
-#: templates/core/tienda.html:390
+#: templates/core/tienda.html:433
 msgid "Por categoría"
 msgstr ""
 
-#: templates/core/tienda.html:391
+#: templates/core/tienda.html:434
 msgid "Por empresa"
 msgstr ""
 
-#: templates/core/tienda.html:395 templates/core/tienda.html:516
+#: templates/core/tienda.html:438
+msgid "Todos"
+msgstr ""
+
+#: templates/core/tienda.html:439
+msgid "Ofertas"
+msgstr ""
+
+#: templates/core/tienda.html:441
+msgid "Destacados"
+msgstr ""
+
+#: templates/core/tienda.html:457 templates/core/tienda.html:546
 msgid "Catálogo TradeFlow"
 msgstr ""
 
-#: templates/core/tienda.html:396
+#: templates/core/tienda.html:458
 #, python-format
 msgid "%(counter)s producto"
 msgid_plural "%(counter)s productos"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/core/tienda.html:403
+#: templates/core/tienda.html:465
 msgid "Buscar productos, SKU…"
 msgstr ""
 
-#: templates/core/tienda.html:406
+#: templates/core/tienda.html:468
 msgid "Todas las categorías"
 msgstr ""
 
-#: templates/core/tienda.html:410 templates/core/tienda.html:440
+#: templates/core/tienda.html:472 templates/core/tienda.html:509
 msgid "Todas las empresas"
 msgstr ""
 
-#: templates/core/tienda.html:415
+#: templates/core/tienda.html:477
+msgid "Orden: nombre"
+msgstr ""
+
+#: templates/core/tienda.html:478
+msgid "Precio: menor a mayor"
+msgstr ""
+
+#: templates/core/tienda.html:479
+msgid "Precio: mayor a menor"
+msgstr ""
+
+#: templates/core/tienda.html:480
+msgid "Novedades"
+msgstr ""
+
+#: templates/core/tienda.html:484
 msgid "Aplicar filtros"
 msgstr ""
 
-#: templates/core/tienda.html:426
+#: templates/core/tienda.html:495
 #, python-format
 msgid "%(n)s producto disponible"
 msgid_plural "%(n)s productos disponibles"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/core/tienda.html:427
+#: templates/core/tienda.html:496
 msgid "Ver productos"
 msgstr ""
 
-#: templates/core/tienda.html:432
+#: templates/core/tienda.html:501
 msgid "No hay empresas con productos activos."
 msgstr ""
 
-#: templates/core/tienda.html:461
-msgid "General"
+#: templates/core/tienda.html:522
+msgid "Anterior"
 msgstr ""
 
-#: templates/core/tienda.html:468
-#, python-format
-msgid "Stock bajo: %(qty)s"
+#: templates/core/tienda.html:528
+msgid "Siguiente"
 msgstr ""
 
-#: templates/core/tienda.html:478
-msgid "Agregar"
-msgstr ""
-
-#: templates/core/tienda.html:482
-msgid "Sin stock"
-msgstr ""
-
-#: templates/core/tienda.html:504
+#: templates/core/tienda.html:534
 msgid "No se encontraron productos"
 msgstr ""
 
-#: templates/core/tienda.html:505
+#: templates/core/tienda.html:535
 msgid "Prueba otros filtros o vuelve al catálogo completo."
 msgstr ""
 
-#: templates/core/tienda.html:506
+#: templates/core/tienda.html:536
 msgid "Ver todo"
 msgstr ""
 
-#: templates/core/tienda.html:513
+#: templates/core/tienda.html:543
 msgid "Resultados para"
 msgstr ""
 
-#: templates/core/tienda.html:514
+#: templates/core/tienda.html:544
 msgid "Productos de la empresa"
 msgstr ""
 
-#: templates/core/tienda.html:515
+#: templates/core/tienda.html:545
 msgid "Empresas en TradeFlow"
 msgstr ""
 
-#: tradeflow_colon/settings.py:132
+#: tradeflow_colon/settings.py:134
 msgid "Español"
 msgstr ""
 
-#: tradeflow_colon/settings.py:133
+#: tradeflow_colon/settings.py:135
 msgid "English"
 msgstr ""

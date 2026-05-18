@@ -36,7 +36,7 @@
     row.innerHTML =
       '<span class="material-symbols-rounded tf-toast-ico" aria-hidden="true">' + icon + '</span>' +
       '<span class="tf-toast-msg"></span>' +
-      '<button type="button" class="tf-toast-close" aria-label="Cerrar">' +
+      '<button type="button" class="tf-toast-close" aria-label="' + ((window.TF_I18N && window.TF_I18N.close) || 'Cerrar') + '">' +
       '<span class="material-symbols-rounded" style="font-size:18px;">close</span></button>';
     row.querySelector('.tf-toast-msg').textContent = message;
     root.appendChild(row);
@@ -84,7 +84,7 @@
           .then(function (res) {
             var data = res.data || {};
             if (!res.ok || data.ok === false) {
-              showToast(data.message || 'No se pudo agregar al carrito.', 'error');
+              showToast(data.message || (window.TF_I18N && window.TF_I18N.cartError) || 'No se pudo agregar al carrito.', 'error');
               return;
             }
             if (data.carrito_count !== undefined) {
@@ -99,7 +99,7 @@
             }
           })
           .catch(function () {
-            showToast('Error de conexión. Intenta de nuevo.', 'error');
+            showToast((window.TF_I18N && window.TF_I18N.networkError) || 'Error de conexión. Intenta de nuevo.', 'error');
           })
           .finally(function () {
             if (btn) {
