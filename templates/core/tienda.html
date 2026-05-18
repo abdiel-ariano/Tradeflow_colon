@@ -11,6 +11,7 @@ show_cart_actions, tienda_params.
 {% block title %}{% trans "Tienda — TradeFlow Colón" %}{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/home_merchandising.css' %}">
 {% endblock %}
 {% block extra_css %}
 <style>
@@ -29,15 +30,194 @@ show_cart_actions, tienda_params.
   .td-page {
     background: var(--tf-light);
     min-height: calc(100vh - 64px);
-    padding: 32px 0 48px;
+    padding: 0 0 56px;
   }
+  .td-hero-band {
+    background: linear-gradient(120deg, var(--tf-navy) 0%, var(--tf-mid) 55%, #163352 100%);
+    padding: 28px 0 32px;
+    margin-bottom: 28px;
+  }
+  .td-hero-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  @media (max-width: 991px) {
+    .td-hero-inner { padding: 0 20px; }
+  }
+  .td-hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .td-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--tf-orange);
+    background: rgba(242, 101, 34, 0.14);
+    border: 1px solid rgba(242, 101, 34, 0.35);
+    border-radius: 20px;
+    padding: 5px 12px;
+    margin-bottom: 10px;
+  }
+  .td-hero-h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.6rem, 3vw, 2.25rem);
+    color: var(--tf-white);
+    margin: 0 0 8px;
+    line-height: 1.2;
+  }
+  .td-hero-desc {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.95rem;
+    max-width: 520px;
+    margin: 0;
+    line-height: 1.55;
+  }
+  .td-hero-cart {
+    background: var(--tf-orange);
+    color: var(--tf-white);
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+  }
+  .td-hero-cart:hover {
+    background: var(--tf-orange-h);
+    color: var(--tf-white);
+  }
+  .td-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 22px;
+  }
+  @media (max-width: 768px) {
+    .td-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  .td-stat {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .td-stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.55rem;
+    color: var(--tf-white);
+    display: block;
+    line-height: 1.1;
+  }
+  .td-stat-lbl {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: 4px;
+    display: block;
+  }
+  .td-promo {
+    background: linear-gradient(90deg, #FFF5F0, #fff);
+    border: 1px solid rgba(242, 101, 34, 0.25);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .td-promo h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--tf-navy);
+    margin: 0 0 4px;
+  }
+  .td-promo p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--tf-muted);
+  }
+  .td-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+  .td-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    background: var(--tf-white);
+    border: 1.5px solid #E5E7EB;
+    text-decoration: none;
+    transition: all 0.18s ease;
+  }
+  .td-tab:hover {
+    border-color: var(--tf-orange);
+    color: var(--tf-orange);
+  }
+  .td-tab[data-active="true"] {
+    background: var(--tf-navy);
+    border-color: var(--tf-navy);
+    color: var(--tf-white);
+  }
+  .td-tab[data-active="true"]:hover {
+    background: var(--tf-mid);
+    color: var(--tf-white);
+  }
+  .td-spotlight {
+    margin-bottom: 32px;
+  }
+  .td-spot-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .td-spot-head h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--tf-navy);
+    margin: 0;
+  }
+  .td-spot-head a {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tf-orange);
+    text-decoration: none;
+  }
+  .td-spot-head a:hover { text-decoration: underline; }
   .td-wrap {
-    max-width: 1240px;
+    max-width: 1320px;
     margin: 0 auto;
     padding: 0 40px;
     display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 32px;
+    grid-template-columns: 260px 1fr;
+    gap: 28px;
     align-items: start;
   }
   @media (max-width: 991px) {
@@ -200,14 +380,32 @@ show_cart_actions, tienda_params.
 
   .td-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
   }
-  @media (max-width: 1024px) {
-    .td-grid { grid-template-columns: repeat(2, 1fr); }
+  .td-grid-spot {
+    grid-template-columns: repeat(4, 1fr);
   }
-  @media (max-width: 768px) {
-    .td-grid { grid-template-columns: 1fr; }
+  @media (max-width: 1200px) {
+    .td-grid, .td-grid-spot { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .td-grid, .td-grid-spot { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .td-grid, .td-grid-spot { grid-template-columns: 1fr; }
+  }
+  .tf-product-card-btn-disabled {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: 8px;
+    background: #F3F4F6;
+    color: #9CA3AF;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 12px;
   }
 
   .td-card {
@@ -410,8 +608,47 @@ show_cart_actions, tienda_params.
        data-empresa-active="{{ empresa_activa|escapejs }}"
        data-orden-active="{{ orden_activo|escapejs }}"
        data-buscar-active="{{ buscar|escapejs }}"
+       data-tab-active="{{ tab_catalogo|escapejs }}"
        data-cur-page="{{ productos.number }}"
        hidden></div>
+
+  <header class="td-hero-band" aria-label="{% trans 'Resumen del catálogo' %}">
+    <div class="td-hero-inner">
+      <div class="td-hero-top">
+        <div>
+          <span class="td-hero-badge">
+            <span class="material-symbols-rounded" style="font-size:14px;" aria-hidden="true">storefront</span>
+            {% trans "Zona Libre de Colón" %}
+          </span>
+          <h1 class="td-hero-h1">{% trans "Tu catálogo B2B en TradeFlow" %}</h1>
+          <p class="td-hero-desc">{% trans "Explora ofertas, empresas verificadas y productos destacados. Filtra por categoría o agrega al carrito en un clic." %}</p>
+        </div>
+        <a href="{% url 'ver_carrito' %}" class="td-hero-cart">
+          <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">shopping_cart</span>
+          {% trans "Carrito" %}
+          <span class="td-cart-badge" id="td-hero-cart-badge" data-count="{{ carrito_count|default:0 }}">{{ carrito_count|default:0 }}</span>
+        </a>
+      </div>
+      <div class="td-stats" role="list">
+        <div class="td-stat" role="listitem">
+          <span class="td-stat-val">{{ tienda_stats.productos }}</span>
+          <span class="td-stat-lbl">{% trans "Productos" %}</span>
+        </div>
+        <div class="td-stat" role="listitem">
+          <span class="td-stat-val">{{ tienda_stats.empresas }}</span>
+          <span class="td-stat-lbl">{% trans "Empresas" %}</span>
+        </div>
+        <div class="td-stat" role="listitem">
+          <span class="td-stat-val">{{ tienda_stats.categorias }}</span>
+          <span class="td-stat-lbl">{% trans "Categorías" %}</span>
+        </div>
+        <div class="td-stat" role="listitem">
+          <span class="td-stat-val">{{ tienda_stats.ofertas }}</span>
+          <span class="td-stat-lbl">{% trans "Ofertas" %}</span>
+        </div>
+      </div>
+    </div>
+  </header>
 
   <div class="td-wrap">
     <aside class="td-sidebar" aria-label="{% trans 'Filtros del catálogo' %}">
@@ -421,6 +658,9 @@ show_cart_actions, tienda_params.
           {% trans "Filtros" %}
         </div>
         <form method="get" action="{% url 'tienda' %}" id="filtros-form" style="padding:8px 0 12px;">
+          {% if tab_catalogo and tab_catalogo != 'todos' %}
+          <input type="hidden" name="tab" value="{{ tab_catalogo }}">
+          {% endif %}
           <div style="position:relative;margin:0 16px 16px;">
             <span class="material-symbols-rounded" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tf-muted);font-size:18px;pointer-events:none;">search</span>
             <input type="text" name="buscar" id="input-buscar" placeholder="{% trans 'Buscar productos, SKU...' %}" value="{{ buscar }}" class="td-search-input" style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-family:var(--tf-font-body);box-sizing:border-box;">
@@ -462,71 +702,59 @@ show_cart_actions, tienda_params.
     </aside>
 
     <div class="td-main">
+      {% if promo_banner %}
+      <section class="td-promo" aria-labelledby="td-promo-title">
+        <div>
+          <h2 id="td-promo-title">{{ promo_banner.title_es }}</h2>
+          {% if promo_banner.subtitle_es %}<p>{{ promo_banner.subtitle_es }}</p>{% endif %}
+        </div>
+        <a href="{{ tab_urls.ofertas }}" class="td-tab" style="flex-shrink:0;">{% trans "Ver ofertas" %}</a>
+      </section>
+      {% endif %}
+
+      <nav class="td-tabs" aria-label="{% trans 'Vistas del catálogo' %}">
+        <a href="{{ tab_urls.todos }}" class="td-tab" data-tab="todos"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">grid_view</span>{% trans "Todos" %}</a>
+        <a href="{{ tab_urls.ofertas }}" class="td-tab" data-tab="ofertas"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">local_offer</span>{% trans "Ofertas" %}</a>
+        <a href="{{ tab_urls.bestsellers }}" class="td-tab" data-tab="bestsellers"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">trending_up</span>{% trans "Más vendidos" %}</a>
+        <a href="{{ tab_urls.destacados }}" class="td-tab" data-tab="destacados"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">star</span>{% trans "Destacados" %}</a>
+      </nav>
+
+      {% if show_spotlights and spotlight_ofertas %}
+      <section class="td-spotlight" aria-labelledby="td-spot-ofertas">
+        <div class="td-spot-head"><h2 id="td-spot-ofertas">{% trans "Ofertas del día" %}</h2><a href="{{ tab_urls.ofertas }}">{% trans "Ver todas" %} →</a></div>
+        <div class="td-grid td-grid-spot">{% for producto in spotlight_ofertas %}{% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}{% endfor %}</div>
+      </section>
+      {% endif %}
+      {% if show_spotlights and spotlight_bestsellers %}
+      <section class="td-spotlight" aria-labelledby="td-spot-best">
+        <div class="td-spot-head"><h2 id="td-spot-best">{% trans "Más vendidos en la ZLC" %}</h2><a href="{{ tab_urls.bestsellers }}">{% trans "Ver ranking" %} →</a></div>
+        <div class="td-grid td-grid-spot">{% for producto in spotlight_bestsellers %}{% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}{% endfor %}</div>
+      </section>
+      {% endif %}
+      {% if show_spotlights and spotlight_destacados %}
+      <section class="td-spotlight" aria-labelledby="td-spot-feat">
+        <div class="td-spot-head"><h2 id="td-spot-feat">{% trans "Selección destacada" %}</h2><a href="{{ tab_urls.destacados }}">{% trans "Ver destacados" %} →</a></div>
+        <div class="td-grid td-grid-spot">{% for producto in spotlight_destacados %}{% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}{% endfor %}</div>
+      </section>
+      {% endif %}
+
       <div class="td-results-hdr">
         <div>
-          <h1 id="td-results-title">{% trans "Catálogo TradeFlow" %}</h1>
+          <h1 id="td-results-title">
+            {% if tab_catalogo == 'ofertas' %}{% trans "Ofertas activas" %}
+            {% elif tab_catalogo == 'bestsellers' %}{% trans "Más vendidos" %}
+            {% elif tab_catalogo == 'destacados' %}{% trans "Productos destacados" %}
+            {% else %}{% trans "Catálogo completo" %}{% endif %}
+          </h1>
           <p class="td-results-count" id="td-results-count">
             {% blocktrans count counter=productos.paginator.count %}{{ counter }} producto encontrado{% plural %}{{ counter }} productos encontrados{% endblocktrans %}
           </p>
         </div>
-        <a href="{% url 'ver_carrito' %}" class="td-cart-link">
-          <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">shopping_cart</span>
-          {% trans "Carrito" %}
-          <span class="td-cart-badge" id="td-cart-badge" data-count="{{ carrito_count|default:0 }}">{{ carrito_count|default:0 }}</span>
-        </a>
       </div>
 
       <div class="td-grid" id="td-product-grid">
         {% for producto in productos %}
-        <article class="td-card" data-product-id="{{ producto.pk }}">
-          <div class="td-card-media">
-            {% if producto.image %}
-            <img src="{{ producto.image.url }}" alt="{{ producto.name }}" loading="lazy" width="400" height="300">
-            {% else %}
-            <div class="td-card-ph">
-              <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
-            </div>
-            {% endif %}
-            <span class="td-card-badge">{{ producto.company.name }}</span>
-          </div>
-          <div class="td-card-body">
-            {% if producto.category %}
-            <p class="td-card-cat">{{ producto.category.name }}</p>
-            {% endif %}
-            <h2 class="td-card-name">{{ producto.name }}</h2>
-            <p class="td-card-co">
-              <span class="material-symbols-rounded" aria-hidden="true">business</span>
-              {{ producto.company.name }}
-            </p>
-            <div class="td-card-foot">
-              <div>
-                {% if producto.is_on_promo_now %}
-                <span class="td-card-price-old">{{ producto.currency }} {{ producto.unit_price }}</span>
-                {% endif %}
-                <span class="td-card-price">{{ producto.currency }} {{ producto.display_price }}</span>
-              </div>
-              {% if producto.available_qty %}
-                {% if show_cart_actions %}
-                <form method="post" action="{% url 'agregar_al_carrito' producto.pk %}" class="js-cart-add-form">
-                  {% csrf_token %}
-                  <input type="hidden" name="cantidad" value="1">
-                  <button type="submit" class="td-btn-add">
-                    <span class="material-symbols-rounded" style="font-size:15px;" aria-hidden="true">add_shopping_cart</span>
-                    {% trans "Agregar" %}
-                  </button>
-                </form>
-                {% else %}
-                <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="td-btn-add">
-                  <span class="material-symbols-rounded" style="font-size:15px;" aria-hidden="true">login</span>
-                  {% trans "Comprar" %}
-                </a>
-                {% endif %}
-              {% else %}
-              <span class="td-btn-add is-disabled">{% trans "Sin stock" %}</span>
-              {% endif %}
-            </div>
-          </div>
-        </article>
+        {% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}
         {% empty %}
         <div class="td-empty">
           <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
@@ -566,6 +794,7 @@ show_cart_actions, tienda_params.
   var empresaActiva = meta ? (meta.getAttribute('data-empresa-active') || '') : '';
   var ordenActivo = meta ? (meta.getAttribute('data-orden-active') || 'nombre') : 'nombre';
   var buscarActual = meta ? (meta.getAttribute('data-buscar-active') || '') : '';
+  var tabActiva = meta ? (meta.getAttribute('data-tab-active') || 'todos') : 'todos';
   var curPage = meta ? (meta.getAttribute('data-cur-page') || '1') : '1';
 
   function markSelect(sel, value) {
@@ -612,7 +841,13 @@ show_cart_actions, tienda_params.
     }
   });
 
-  var badge = document.getElementById('td-cart-badge');
+  document.querySelectorAll('.td-tab[data-tab]').forEach(function (tab) {
+    if (tab.getAttribute('data-tab') === tabActiva) {
+      tab.setAttribute('data-active', 'true');
+    }
+  });
+
+  var badge = document.getElementById('td-hero-cart-badge');
   var navBadge = document.getElementById('tf-nav-cart-badge');
   if (badge) {
     var n = parseInt(badge.getAttribute('data-count'), 10) || 0;

@@ -57,6 +57,18 @@
 .tf-price-old { text-decoration: line-through; color: var(--tf-muted, #6B7A88); font-size: 0.85rem; margin-right: 8px; }
 .tf-price-now { font-weight: 700; color: var(--tf-orange, #F26522); }
 .tf-product-card-btn { width: 100%; margin-top: 12px; justify-content: center; }
+.tf-product-card-btn-disabled {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 8px;
+  background: #F3F4F6;
+  color: #9CA3AF;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 12px;
+}
 .reveal, .reveal-right { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .reveal.visible, .reveal-right.visible { opacity: 1; transform: none; }
 .reveal-right { transform: translateX(24px); }

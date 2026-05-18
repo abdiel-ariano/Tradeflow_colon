@@ -360,11 +360,12 @@ def _consultar_groq(mensaje_usuario: str, historial, snapshot: dict) -> str | No
         'role': 'user',
         'content': mensaje_usuario[:500],
     })
+    model = getattr(settings, 'GROQ_MODEL', None) or 'llama-3.1-8b-instant'
     response = client.chat.completions.create(
-        model='llama3-8b-8192',
+        model=model,
         messages=messages,
-        max_tokens=400,
-        temperature=0.5,
+        max_tokens=512,
+        temperature=0.45,
     )
     content = response.choices[0].message.content
     return content.strip() if content else None
