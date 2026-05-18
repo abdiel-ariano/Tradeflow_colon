@@ -25,10 +25,18 @@ import html as html_module
 import io
 import json
 import logging
+import re
 
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.html import escape
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
+
+AUTH_MODEL_BACKEND = 'django.contrib.auth.backends.ModelBackend'
+
+NOMBRE_REGEX = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s'\-]{2,50}$")
+USERNAME_REGEX = re.compile(r"^[a-zA-Z][a-zA-Z0-9._]{2,29}$")
+EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
 
 import folium
 import qrcode
@@ -353,7 +361,7 @@ def login_view(request):
                 except UserProfile.DoesNotExist:
                     pass
 
-            login(request, user)
+            login(request, user, backend=AUTH_MODEL_BACKEND)
             messages.success(request, f'¡Bienvenido, {user.first_name or user.username}!')
             next_url = (request.GET.get('next') or '').strip()
             if next_url.startswith('//') or '://' in next_url:
@@ -385,75 +393,121 @@ def signup_view(request):
         return redirect(_redirect_by_role(request.user))
 
     if request.method == 'POST':
-        first_name = request.POST.get('first_name', '').strip()
-        last_name  = request.POST.get('last_name', '').strip()
-        username   = request.POST.get('username', '').strip()
-        email      = request.POST.get('email', '').strip()
-        phone      = request.POST.get('phone', '').strip()
-        role       = request.POST.get('role', 'buyer')
-        password1  = request.POST.get('password1', '')
-        password2  = request.POST.get('password2', '')
+        first_name = escape(request.POST.get('first_name', '').strip())
+        last_name = escape(request.POST.get('last_name', '').strip())
+        username = escape(request.POST.get('username', '').strip())
+        email = request.POST.get('email', '').strip()
+        phone = escape(request.POST.get('phone', '').strip())
+        role = request.POST.get('role', 'buyer')
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
 
-        # Validaciones
+        errores = []
+        signup_ctx = {
+            'role_choices': [('buyer', 'Comprador'), ('seller', 'Vendedor')],
+            'selected_role': role if role in ('buyer', 'seller') else 'buyer',
+        }
+
         if not all([first_name, username, email, password1, password2]):
-            messages.error(request, 'Todos los campos marcados con * son obligatorios.')
-        elif password1 != password2:
-            messages.error(request, 'Las contraseñas no coinciden.')
-        elif len(password1) < 8:
-            messages.error(request, 'La contraseña debe tener al menos 8 caracteres.')
-        elif User.objects.filter(username=username).exists():
-            messages.error(request, f'El usuario "{username}" ya existe. Elige otro.')
-        elif User.objects.filter(email=email).exists():
-            messages.error(request, 'Ya existe una cuenta con ese correo.')
-        elif role not in ('buyer', 'seller'):
-            messages.error(request, 'Tipo de cuenta no válido.')
-        else:
-            # Crear usuario
-            user = User.objects.create_user(
-                username   = username,
-                email      = email,
-                password   = password1,
-                first_name = first_name,
-                last_name  = last_name,
+            errores.append('Todos los campos marcados con * son obligatorios.')
+
+        if not NOMBRE_REGEX.match(first_name):
+            errores.append(
+                'El nombre solo puede contener letras y espacios '
+                '(mínimo 2 caracteres, máximo 50).'
             )
-            if settings.REQUIRE_EMAIL_VERIFICATION:
-                UserProfile.objects.create(
-                    user=user,
-                    role=role,
-                    phone=phone,
-                    email_verificado=False,
-                )
-                try:
-                    enviar_verificacion_email(user, request)
-                except Exception as exc:
-                    log.exception('No se pudo enviar email de verificación: %s', exc)
-                    messages.warning(
-                        request,
-                        'Cuenta creada, pero no pudimos enviar el correo de verificación. '
-                        'Contacta a soporte@tradeflow.pa.',
-                    )
-                    return redirect('login')
 
-                messages.success(
-                    request,
-                    f'Cuenta creada. Revisa tu email {email} '
-                    f'para verificar tu cuenta antes de iniciar sesión.',
-                )
-                return redirect('login')
+        if last_name and not NOMBRE_REGEX.match(last_name):
+            errores.append('El apellido solo puede contener letras y espacios.')
 
+        if not USERNAME_REGEX.match(username):
+            errores.append(
+                'El usuario debe comenzar con una letra y solo '
+                'puede contener letras, números, puntos y '
+                'guiones bajos (3-30 caracteres).'
+            )
+
+        if not EMAIL_REGEX.match(email):
+            errores.append('Ingresa un correo electrónico válido.')
+
+        if len(password1) < 8:
+            errores.append('La contraseña debe tener al menos 8 caracteres.')
+
+        if password1.isdigit():
+            errores.append('La contraseña no puede ser solo números.')
+
+        if password1.lower() in [
+            'password', '12345678', 'qwerty123',
+            'tradeflow', username.lower(),
+        ]:
+            errores.append(
+                'La contraseña es demasiado común. Elige una más segura.'
+            )
+
+        if password1 != password2:
+            errores.append('Las contraseñas no coinciden.')
+
+        if errores:
+            for error in errores:
+                messages.error(request, error)
+            return render(request, 'core/signup.html', signup_ctx)
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, f'El usuario "{username}" ya existe. Elige otro.')
+            return render(request, 'core/signup.html', signup_ctx)
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Ya existe una cuenta con ese correo.')
+            return render(request, 'core/signup.html', signup_ctx)
+        if role not in ('buyer', 'seller'):
+            messages.error(request, 'Tipo de cuenta no válido.')
+            return render(request, 'core/signup.html', signup_ctx)
+
+        # Crear usuario
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password1,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        if settings.REQUIRE_EMAIL_VERIFICATION:
             UserProfile.objects.create(
                 user=user,
                 role=role,
                 phone=phone,
-                email_verificado=True,
-                token_verificacion=None,
+                email_verificado=False,
             )
-            login(request, user)
+            try:
+                enviar_verificacion_email(user, request)
+            except Exception as exc:
+                log.exception('No se pudo enviar email de verificación: %s', exc)
+                messages.warning(
+                    request,
+                    'Cuenta creada, pero no pudimos enviar el correo de verificación. '
+                    'Contacta a soporte@tradeflow.pa.',
+                )
+                return redirect('login')
+
             messages.success(
                 request,
-                f'¡Bienvenido a TradeFlow, {first_name}! Tu cuenta ha sido creada.',
+                f'Cuenta creada. Revisa tu email {email} '
+                f'para verificar tu cuenta antes de iniciar sesión.',
             )
-            return redirect(_redirect_by_role(user))
+            return redirect('login')
+
+        UserProfile.objects.create(
+            user=user,
+            role=role,
+            phone=phone,
+            email_verificado=True,
+            token_verificacion=None,
+        )
+        login(request, user, backend=AUTH_MODEL_BACKEND)
+        messages.success(
+            request,
+            f'¡Bienvenido a TradeFlow, {first_name}! Tu cuenta ha sido creada.',
+        )
+        return redirect(_redirect_by_role(user))
 
     return render(request, 'core/signup.html', {
         'role_choices': [('buyer', 'Comprador'), ('seller', 'Vendedor')],
@@ -704,6 +758,47 @@ def api_home_merchandising(request):
         }
         cache.set(cache_key, data, 120)
     return JsonResponse(data)
+
+
+@require_POST
+def api_asistente(request):
+    """
+    Endpoint AJAX para el chat del asistente IA (Groq).
+
+    POST body (JSON):
+        mensaje: Pregunta del usuario.
+        historial: Mensajes anteriores (opcional).
+
+    Returns:
+        JsonResponse: ``ok`` y ``respuesta``.
+    """
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {'ok': False, 'respuesta': 'Error de formato.'},
+            status=400,
+        )
+
+    mensaje = (data.get('mensaje') or '').strip()
+    historial = data.get('historial') or []
+
+    if not mensaje:
+        return JsonResponse(
+            {'ok': False, 'respuesta': 'Escribe un mensaje.'},
+            status=400,
+        )
+
+    if len(mensaje) > 500:
+        return JsonResponse(
+            {'ok': False, 'respuesta': 'Mensaje demasiado largo.'},
+            status=400,
+        )
+
+    from .utils.ai_assistant import consultar_asistente
+
+    respuesta = consultar_asistente(mensaje, historial)
+    return JsonResponse({'ok': True, 'respuesta': respuesta})
 
 
 # ── Sal firmado para QR de visitante ZLC (pre-registro) ─────────────────────
@@ -2119,6 +2214,12 @@ def tienda(request):
         qcopy['tab'] = tab_catalogo
     if orden and orden != 'nombre':
         qcopy['orden'] = orden
+    if categoria:
+        qcopy['categoria'] = categoria
+    if empresa:
+        qcopy['empresa'] = empresa
+    if buscar:
+        qcopy['buscar'] = buscar
     tienda_params = qcopy.urlencode()
 
     q_cat = request.GET.copy()
@@ -2133,14 +2234,18 @@ def tienda(request):
     q_emp['vista'] = 'empresa'
     url_tab_empresa = f"{reverse('tienda')}?{q_emp.urlencode()}"
 
+    empresas = empresas_filtro
+
     context = {
         'productos': page_obj,
         'categorias': categorias,
+        'empresas': empresas,
         'empresas_catalogo': empresas_catalogo,
         'empresas_filtro': empresas_filtro,
         'buscar': buscar,
         'cat_activa': categoria,
         'emp_activa': empresa,
+        'empresa_activa': empresa,
         'vista_tab': vista_tab,
         'tienda_params': tienda_params,
         'url_tab_categoria': url_tab_categoria,

@@ -235,3 +235,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Por defecto sigue el valor de DEBUG (True en local .env, False en producción).
 # Fuerza con SEED_DEMO_IF_EMPTY=false o true en .env.
 SEED_DEMO_IF_EMPTY = config('SEED_DEMO_IF_EMPTY', default=DEBUG, cast=bool)
+
+# ── Asistente IA (Groq API gratuita) ───────────────────────────────────────
+GROQ_API_KEY = config('GROQ_API_KEY', default='')

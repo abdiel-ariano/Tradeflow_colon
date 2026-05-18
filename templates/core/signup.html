@@ -98,6 +98,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
         <div class="tf-field">
           <label class="tf-label" for="id_first_name">{% trans "Nombre" %} <span class="req">*</span></label>
           <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="{% trans 'Nombre' %}" value="{{ request.POST.first_name }}" required>
+          <p style="font-size:12px; color:#6B7A88; margin-top:4px;">{% trans "Solo letras y espacios (sin números ni símbolos)." %}</p>
         </div>
         <div class="tf-field">
           <label class="tf-label" for="id_last_name">{% trans "Apellido" %}</label>
@@ -111,6 +112,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
       <div class="tf-field">
         <label class="tf-label" for="id_username">{% trans "Usuario" %} <span class="req">*</span></label>
         <input type="text" name="username" id="id_username" class="tf-input" placeholder="{% trans 'Usuario' %}" value="{{ request.POST.username }}" required>
+        <p style="font-size:12px; color:#6B7A88; margin-top:4px;">{% trans "Solo letras, números, puntos y guiones bajos. Debe comenzar con una letra (3-30 caracteres)." %}</p>
       </div>
       <div class="tf-field">
         <label class="tf-label" for="id_phone">{% trans "Teléfono" %}</label>
