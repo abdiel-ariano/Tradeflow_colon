@@ -2124,18 +2124,46 @@ def tienda(request):
     Funcionalidades:
         - Pestañas: por categoría (sidebar + grid) o por empresa (cards de empresa).
         - Búsqueda por nombre, descripción o SKU; filtros por categoría y empresa.
-        - Paginación de 9 productos por página.
+        - Paginación de 12 productos por página.
         - Solo productos activos.
 
     Contexto enviado al template:
         productos, categorias, empresas_catalogo, empresas_filtro,
         buscar, cat_activa, emp_activa, vista_tab, tienda_params,
-        carrito_count, titulo_pagina, nav_activo.
+        carrito_count, titulo_pagina, nav_activo, tienda_stats, tab_urls,
+        show_spotlights, spotlight_*.
     """
     from . import merchandising as merch
     from django.db import models as db_models
 
-    productos = merch.active_products_base()
+    def _tienda_tab_url(tab_name):
+        q = request.GET.copy()
+        q.pop('page', None)
+        if tab_name == 'todos':
+            q.pop('tab', None)
+        else:
+            q['tab'] = tab_name
+        qs = q.urlencode()
+        return f"{reverse('tienda')}?{qs}" if qs else reverse('tienda')
+
+    catalogo_base = merch.active_products_base()
+    now = timezone.now()
+    promo_q = (
+        Q(promo_price__isnull=False)
+        & Q(promo_price__lt=db_models.F('unit_price'))
+        & (Q(promo_starts_at__isnull=True) | Q(promo_starts_at__lte=now))
+        & (Q(promo_ends_at__isnull=True) | Q(promo_ends_at__gte=now))
+    )
+    tienda_stats = {
+        'productos': catalogo_base.count(),
+        'empresas': catalogo_base.values('company_id').distinct().count(),
+        'categorias': catalogo_base.exclude(
+            category__isnull=True,
+        ).values('category_id').distinct().count(),
+        'ofertas': catalogo_base.filter(promo_q).count(),
+    }
+
+    productos = catalogo_base
     tab_catalogo = request.GET.get('tab', 'todos').strip() or 'todos'
     orden = request.GET.get('orden', 'nombre').strip() or 'nombre'
 
@@ -2146,16 +2174,8 @@ def tienda(request):
     if vista_tab not in ('categoria', 'empresa'):
         vista_tab = 'categoria'
 
-    now = timezone.now()
     if tab_catalogo == 'ofertas':
-        productos = productos.filter(
-            promo_price__isnull=False,
-            promo_price__lt=db_models.F('unit_price'),
-        ).filter(
-            Q(promo_starts_at__isnull=True) | Q(promo_starts_at__lte=now)
-        ).filter(
-            Q(promo_ends_at__isnull=True) | Q(promo_ends_at__gte=now)
-        )
+        productos = productos.filter(promo_q)
     elif tab_catalogo == 'bestsellers':
         ids = [p.pk for p in merch.bestsellers(48)]
         if ids:
@@ -2193,7 +2213,23 @@ def tienda(request):
     if empresa:
         productos = productos.filter(company__id=empresa)
 
-    paginator = Paginator(productos, 9)
+    show_spotlights = (
+        vista_tab == 'categoria'
+        and tab_catalogo == 'todos'
+        and not buscar
+        and not categoria
+        and not empresa
+    )
+    if show_spotlights:
+        spotlight_ofertas = merch.daily_deals(4)
+        spotlight_bestsellers = merch.bestsellers(4)
+        spotlight_destacados = merch.featured_products(4)
+    else:
+        spotlight_ofertas = []
+        spotlight_bestsellers = []
+        spotlight_destacados = []
+
+    paginator = Paginator(productos, 12)
     page_obj = paginator.get_page(request.GET.get('page', 1))
 
     categorias = Category.objects.all().order_by('name')
@@ -2257,6 +2293,17 @@ def tienda(request):
         'orden_activo': orden,
         'promo_banner': promo_banner,
         'show_cart_actions': True,
+        'tienda_stats': tienda_stats,
+        'tab_urls': {
+            'todos': _tienda_tab_url('todos'),
+            'ofertas': _tienda_tab_url('ofertas'),
+            'bestsellers': _tienda_tab_url('bestsellers'),
+            'destacados': _tienda_tab_url('destacados'),
+        },
+        'show_spotlights': show_spotlights,
+        'spotlight_ofertas': spotlight_ofertas,
+        'spotlight_bestsellers': spotlight_bestsellers,
+        'spotlight_destacados': spotlight_destacados,
     }
     return render(request, 'core/tienda.html', context)
 

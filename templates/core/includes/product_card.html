@@ -40,6 +40,7 @@ Variables: product, show_cart_actions (bool), card_extra_class (opcional)
       {% endif %}
     </div>
     {% if show_cart_actions %}
+      {% if product.available_qty %}
     <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form tf-product-card-form">
       {% csrf_token %}
       <input type="hidden" name="cantidad" value="1">
@@ -48,6 +49,9 @@ Variables: product, show_cart_actions (bool), card_extra_class (opcional)
         {% trans "Agregar" %}
       </button>
     </form>
+      {% else %}
+    <span class="tf-product-card-btn tf-product-card-btn-disabled">{% trans "Sin stock" %}</span>
+      {% endif %}
     {% else %}
     <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="tf-btn-secondary tf-product-card-btn">
       <span class="material-symbols-rounded" aria-hidden="true">login</span>

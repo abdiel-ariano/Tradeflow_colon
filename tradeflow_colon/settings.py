@@ -238,3 +238,4 @@ SEED_DEMO_IF_EMPTY = config('SEED_DEMO_IF_EMPTY', default=DEBUG, cast=bool)
 
 # ── Asistente IA (Groq API gratuita) ───────────────────────────────────────
 GROQ_API_KEY = config('GROQ_API_KEY', default='')
+GROQ_MODEL = config('GROQ_MODEL', default='llama-3.1-8b-instant')
