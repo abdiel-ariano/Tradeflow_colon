@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 from .models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document,
-    Cotizacion, CotizacionItem,
+    Cotizacion, CotizacionItem, HomePromoSection,
 )
 
 
@@ -45,8 +45,8 @@ class CompanyAdmin(admin.ModelAdmin):
     """
     Administración de empresas; incluye propietario vendedor para el portal Mi Tienda.
     """
-    list_display   = ['name', 'ruc', 'owner', 'is_verified', 'created_at']
-    list_filter    = ['is_verified']
+    list_display   = ['name', 'ruc', 'owner', 'is_verified', 'is_featured', 'created_at']
+    list_filter    = ['is_verified', 'is_featured']
     search_fields  = ['name', 'ruc', 'owner__username', 'owner__email']
     list_editable  = ['is_verified']
     raw_id_fields  = ['owner']
@@ -86,12 +86,24 @@ class InventoryInline(admin.StackedInline):
         return True
 
 
+@admin.register(HomePromoSection)
+class HomePromoSectionAdmin(admin.ModelAdmin):
+    list_display = ['slug', 'section_type', 'title_es', 'is_active', 'sort_order', 'starts_at', 'ends_at']
+    list_filter = ['section_type', 'is_active']
+    search_fields = ['slug', 'title_es', 'title_en']
+    filter_horizontal = ['products', 'companies', 'categories']
+    ordering = ['sort_order']
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display   = ['name', 'company', 'category', 'unit_price', 'currency', 'is_active', 'stock_display']
-    list_filter    = ['company', 'category', 'currency', 'is_active']
+    list_display   = [
+        'name', 'company', 'unit_price', 'promo_price', 'currency',
+        'is_active', 'is_featured', 'is_bestseller', 'stock_display',
+    ]
+    list_filter    = ['company', 'category', 'currency', 'is_active', 'is_featured', 'is_bestseller']
     search_fields  = ['name', 'sku']
-    list_editable  = ['unit_price', 'is_active']
+    list_editable  = ['unit_price', 'is_active', 'is_featured']
     inlines        = [InventoryInline]
     list_per_page  = 25
 

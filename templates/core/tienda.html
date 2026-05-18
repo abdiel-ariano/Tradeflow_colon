@@ -362,6 +362,47 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
   }
   .t-back-emp:hover { text-decoration: underline; }
   .t-hidden { display: none !important; }
+  .t-catalog-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .t-catalog-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--tf-border, #d1d5db);
+    background: var(--tf-white, #ffffff);
+    color: var(--tf-mid, #1b3b63);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .t-catalog-pill:hover {
+    border-color: var(--tf-blue, #2e5b8a);
+    color: var(--tf-navy, #0f2a44);
+  }
+  .t-catalog-pill.is-on {
+    background: var(--tf-orange, #f26522);
+    border-color: var(--tf-orange, #f26522);
+    color: var(--tf-white, #ffffff);
+  }
+  .t-promo-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, var(--tf-navy, #0f2a44), var(--tf-blue, #2e5b8a));
+    color: var(--tf-white, #ffffff);
+    text-decoration: none;
+  }
+  .t-promo-banner strong { font-family: 'Inter', sans-serif; font-size: 1rem; }
+  .t-promo-banner span { font-size: 0.875rem; opacity: 0.92; }
 </style>
 {% endblock %}
 {% block content %}
@@ -393,6 +434,25 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
         <a href="{{ url_tab_empresa }}" class="t-tab tf-tienda-tab" id="t-tab-emp" data-vista-link="empresa">{% trans "Por empresa" %}</a>
       </div>
 
+      <div class="t-catalog-tabs" id="t-catalog-tabs" role="group" data-tab-activo="{{ tab_catalogo|default:'todos' }}">
+        <a href="{% url 'tienda' %}?tab=todos" class="t-catalog-pill" data-tab="todos">{% trans "Todos" %}</a>
+        <a href="{% url 'tienda' %}?tab=ofertas" class="t-catalog-pill" data-tab="ofertas">{% trans "Ofertas" %}</a>
+        <a href="{% url 'tienda' %}?tab=bestsellers" class="t-catalog-pill" data-tab="bestsellers">{% trans "Más vendidos" %}</a>
+        <a href="{% url 'tienda' %}?tab=destacados" class="t-catalog-pill" data-tab="destacados">{% trans "Destacados" %}</a>
+      </div>
+
+      {% if promo_banner %}
+      <a href="{% url 'tienda' %}?tab=ofertas" class="t-promo-banner" id="t-promo-banner">
+        <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
+        <div>
+          <strong>{% if LANGUAGE_CODE == 'en' and promo_banner.title_en %}{{ promo_banner.title_en }}{% else %}{{ promo_banner.title_es }}{% endif %}</strong>
+          {% if promo_banner.subtitle_es or promo_banner.subtitle_en %}
+          <span> — {% if LANGUAGE_CODE == 'en' and promo_banner.subtitle_en %}{{ promo_banner.subtitle_en }}{% else %}{{ promo_banner.subtitle_es }}{% endif %}</span>
+          {% endif %}
+        </div>
+      </a>
+      {% endif %}
+
       <div class="t-main-hdr">
         <h1 id="tf-tienda-title">{% trans "Catálogo TradeFlow" %}</h1>
         <div class="t-count" id="tf-tienda-count">{% blocktrans count counter=productos.paginator.count %}{{ counter }} producto{% plural %}{{ counter }} productos{% endblocktrans %}</div>
@@ -411,6 +471,13 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
         <select name="empresa" id="t-emp-select" class="tf-input t-sel">
           <option value="">{% trans "Todas las empresas" %}</option>
           {% for emp in empresas_filtro %}<option value="{{ emp.id }}">{{ emp.name }}</option>{% endfor %}
+        </select>
+        <input type="hidden" name="tab" id="t-tab-catalog" value="{{ tab_catalogo|default:'todos' }}">
+        <select name="orden" id="t-orden-select" class="tf-input t-sel">
+          <option value="nombre">{% trans "Orden: nombre" %}</option>
+          <option value="precio_asc">{% trans "Precio: menor a mayor" %}</option>
+          <option value="precio_desc">{% trans "Precio: mayor a menor" %}</option>
+          <option value="novedades">{% trans "Novedades" %}</option>
         </select>
         <button type="submit" class="tf-btn-primary" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;">
           <span class="material-symbols-rounded" style="font-size:18px;">search</span>
@@ -444,48 +511,9 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
         {% endif %}
 
         {% if productos %}
-        <div class="t-grid">
+        <div class="t-grid lp-product-grid">
           {% for producto in productos %}
-          <article class="t-card">
-            <div class="t-img">
-              {% if producto.image %}
-              <img src="{{ producto.image.url }}" alt="{{ producto.name }}" loading="lazy">
-              {% else %}
-              <span class="material-symbols-rounded" style="font-size:48px;color:#D1D5DB;">inventory_2</span>
-              {% endif %}
-            </div>
-            <div class="t-body">
-              <div class="t-name">{{ producto.name }}</div>
-              <div class="t-co-row">
-                <span class="material-symbols-rounded">business</span>
-                <span>{{ producto.company.name }}</span>
-              </div>
-              <span class="t-cat-badge">{% if producto.category.name %}{{ producto.category.name }}{% else %}{% trans "General" %}{% endif %}</span>
-              <div class="t-desc">{{ producto.description }}</div>
-              <div class="t-foot">
-                <div>
-                  <div class="t-price">USD {{ producto.unit_price }}</div>
-                  {% if producto.available_qty > 0 %}
-                    {% if producto.available_qty <= 5 %}
-                    <div class="t-warn">{% blocktrans with qty=producto.available_qty %}Stock bajo: {{ qty }}{% endblocktrans %}</div>
-                    {% endif %}
-                  {% endif %}
-                </div>
-                {% if producto.available_qty > 0 %}
-                <form method="post" class="js-cart-add-form" action="{% url 'agregar_al_carrito' producto.pk %}">
-                  {% csrf_token %}
-                  <input type="hidden" name="cantidad" value="1">
-                  <button type="submit" class="t-btn-add">
-                    <span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span>
-                    {% trans "Agregar" %}
-                  </button>
-                </form>
-                {% else %}
-                <button type="button" class="t-btn-add" disabled>{% trans "Sin stock" %}</button>
-                {% endif %}
-              </div>
-            </div>
-          </article>
+          {% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}
           {% endfor %}
         </div>
         {% if productos.has_other_pages %}
@@ -594,6 +622,24 @@ Contexto: vista tienda; pestañas y estado activo vía JavaScript (sin == en tag
     for (var j = 0; j < selE.options.length; j++) {
       if (selE.options[j].value === emp) {
         selE.selectedIndex = j;
+        break;
+      }
+    }
+  }
+
+  var tabRoot = document.getElementById('t-catalog-tabs');
+  if (tabRoot) {
+    var tabAct = tabRoot.getAttribute('data-tab-activo') || 'todos';
+    tabRoot.querySelectorAll('.t-catalog-pill').forEach(function (pill) {
+      if (pill.getAttribute('data-tab') === tabAct) pill.classList.add('is-on');
+    });
+  }
+  var ordenSel = document.getElementById('t-orden-select');
+  var ordenAct = '{{ orden_activo|default:"nombre"|escapejs }}';
+  if (ordenSel && ordenAct) {
+    for (var o = 0; o < ordenSel.options.length; o += 1) {
+      if (ordenSel.options[o].value === ordenAct) {
+        ordenSel.selectedIndex = o;
         break;
       }
     }

@@ -28,6 +28,7 @@ import logging
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_GET
 
 import folium
 import qrcode
@@ -636,28 +637,73 @@ def mi_perfil(request):
 
 
 def home_view(request):
+    """
+    Landing pública PreExpo: merchandising ORM, secciones CMS y stats reales.
+
+    Usuarios autenticados redirigen a su panel; invitados ven la landing completa.
+    """
     if request.user.is_authenticated:
         return redirect(_redirect_by_role(request.user))
-    from .models import Product
-    productos_carrusel = list(
-        Product.objects.filter(is_active=True)
-        .select_related('company', 'category')
-        .defer('company__owner')
-        .order_by('-created_at')[:12]
+
+    from . import merchandising as merch
+
+    promo_sections = []
+    for section in merch.active_home_sections():
+        promo_sections.append({
+            'section': section,
+            'products': merch.resolve_section_products(section),
+        })
+
+    return render(
+        request,
+        'core/home.html',
+        {
+            'stats': merch.home_stats(),
+            'daily_deals': merch.daily_deals(8),
+            'bestsellers': merch.bestsellers(8),
+            'featured_products': merch.featured_products(8),
+            'carousel_products': merch.carousel_products(12),
+            'empresas_carousel': merch.featured_companies_carousel(10),
+            'category_spotlights': merch.category_spotlights(4, 4),
+            'promo_sections': promo_sections,
+            'show_cart_actions': False,
+        },
     )
-    productos = productos_carrusel[:6]
-    empresas_carousel = (
-        Company.objects.annotate(
-            num_productos=Count('products', filter=Q(products__is_active=True)),
-        )
-        .filter(num_productos__gt=0)
-        .order_by('-num_productos')[:8]
-    )
-    return render(request, 'core/home.html', {
-        'productos_carrusel': productos_carrusel,
-        'productos': productos,
-        'empresas_carousel': empresas_carousel,
-    })
+
+
+@require_GET
+def api_home_merchandising(request):
+    """
+    JSON público de merchandising home (cacheable) para integraciones ligeras.
+
+    Returns:
+        JsonResponse: ofertas, bestsellers, destacados y secciones CMS activas.
+    """
+    from django.core.cache import cache
+
+    from . import merchandising as merch
+
+    cache_key = 'tf_home_merch_v1'
+    data = cache.get(cache_key)
+    if data is None:
+        sections = []
+        for section in merch.active_home_sections():
+            sections.append({
+                'slug': section.slug,
+                'type': section.section_type,
+                'title_es': section.title_es,
+                'title_en': section.title_en or section.title_es,
+                'product_ids': [p.pk for p in merch.resolve_section_products(section)],
+            })
+        data = {
+            'daily_deals': [p.pk for p in merch.daily_deals(12)],
+            'bestsellers': [p.pk for p in merch.bestsellers(12)],
+            'featured': [p.pk for p in merch.featured_products(12)],
+            'sections': sections,
+            'stats': merch.home_stats(),
+        }
+        cache.set(cache_key, data, 120)
+    return JsonResponse(data)
 
 
 # ── Sal firmado para QR de visitante ZLC (pre-registro) ─────────────────────
@@ -701,12 +747,12 @@ def mapa_zlc(request):
         html_popup = (
             '<div style="min-width:220px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.45;">'
             f'<strong style="color:#0F2A44;">{nombre}</strong><br>'
-            f'<span style="color:#6B7A88;">Productos activos:</span> {c.n_activos}<br>'
-            f'<span style="color:#6B7A88;">Categorías:</span> {cat_txt_e}<br>'
+            f'<span style="color:#6B7A88;">{_('Productos activos:')}</span> {c.n_activos}<br>'
+            f'<span style="color:#6B7A88;">{_('Categorías:')}</span> {cat_txt_e}<br>'
             f'<a href="{catalog_url_e}" target="_blank" rel="noopener noreferrer" '
             'style="display:inline-block;margin-top:10px;padding:8px 14px;background:#F26522;'
             'color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.85rem;">'
-            'Ver catálogo</a></div>'
+            f'{_("Ver catálogo")}</a></div>'
         )
         icon_color = 'orange' if c.is_verified else 'gray'
         folium.Marker(
@@ -1991,12 +2037,12 @@ def tienda(request):
         buscar, cat_activa, emp_activa, vista_tab, tienda_params,
         carrito_count, titulo_pagina, nav_activo.
     """
-    productos = (
-        Product.objects.filter(is_active=True)
-        .select_related('company', 'category', 'inventory')
-        .defer('company__owner')
-        .order_by('name')
-    )
+    from . import merchandising as merch
+    from django.db import models as db_models
+
+    productos = merch.active_products_base()
+    tab_catalogo = request.GET.get('tab', 'todos').strip() or 'todos'
+    orden = request.GET.get('orden', 'nombre').strip() or 'nombre'
 
     buscar    = request.GET.get('buscar', '').strip()
     categoria = request.GET.get('categoria', '').strip()
@@ -2004,6 +2050,40 @@ def tienda(request):
     vista_tab = request.GET.get('vista', 'categoria').strip() or 'categoria'
     if vista_tab not in ('categoria', 'empresa'):
         vista_tab = 'categoria'
+
+    now = timezone.now()
+    if tab_catalogo == 'ofertas':
+        productos = productos.filter(
+            promo_price__isnull=False,
+            promo_price__lt=db_models.F('unit_price'),
+        ).filter(
+            Q(promo_starts_at__isnull=True) | Q(promo_starts_at__lte=now)
+        ).filter(
+            Q(promo_ends_at__isnull=True) | Q(promo_ends_at__gte=now)
+        )
+    elif tab_catalogo == 'bestsellers':
+        ids = [p.pk for p in merch.bestsellers(48)]
+        if ids:
+            productos = productos.filter(pk__in=ids)
+        else:
+            productos = productos.filter(is_bestseller=True)
+    elif tab_catalogo == 'destacados':
+        productos = productos.filter(is_featured=True)
+
+    if orden == 'precio_asc':
+        productos = productos.order_by('unit_price')
+    elif orden == 'precio_desc':
+        productos = productos.order_by('-unit_price')
+    elif orden == 'novedades':
+        productos = productos.order_by('-created_at')
+    else:
+        productos = productos.order_by('name')
+
+    promo_banner = merch.active_home_sections()
+    promo_banner = next(
+        (s for s in promo_banner if s.section_type == 'seasonal_banner'),
+        None,
+    )
 
     if buscar:
         productos = productos.filter(
@@ -2035,6 +2115,10 @@ def tienda(request):
 
     qcopy = request.GET.copy()
     qcopy.pop('page', None)
+    if tab_catalogo and tab_catalogo != 'todos':
+        qcopy['tab'] = tab_catalogo
+    if orden and orden != 'nombre':
+        qcopy['orden'] = orden
     tienda_params = qcopy.urlencode()
 
     q_cat = request.GET.copy()
@@ -2064,6 +2148,10 @@ def tienda(request):
         'carrito_count': _contar_items(carrito),
         'titulo_pagina': 'Tienda TradeFlow',
         'nav_activo': 'tienda',
+        'tab_catalogo': tab_catalogo,
+        'orden_activo': orden,
+        'promo_banner': promo_banner,
+        'show_cart_actions': True,
     }
     return render(request, 'core/tienda.html', context)
 

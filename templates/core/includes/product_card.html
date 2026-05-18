@@ -1,0 +1,58 @@
+{% load static i18n %}
+{% comment %}
+================================================================================
+ACCIÓN: CREAR
+DESTINO: templates/core/includes/product_card.html
+================================================================================
+Tarjeta de producto reutilizable (home, tienda). Badges promo/bestseller, moneda,
+botón agregar al carrito (buyer) o login con next (anónimo).
+Variables: product, show_cart_actions (bool), card_extra_class (opcional)
+================================================================================
+{% endcomment %}
+<article class="tf-product-card {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
+  <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-product-card-media">
+    {% if product.image %}
+    <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" width="400" height="300">
+    {% else %}
+    <div class="tf-product-card-ph">
+      <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+    </div>
+    {% endif %}
+    {% if product.is_on_promo_now %}
+    <span class="tf-product-badge tf-product-badge-promo">-{{ product.discount_pct }}%</span>
+    {% elif product.is_bestseller %}
+    <span class="tf-product-badge tf-product-badge-top">{% trans "Top ZLC" %}</span>
+    {% elif product.is_featured %}
+    <span class="tf-product-badge tf-product-badge-feat">{% trans "Destacado" %}</span>
+    {% endif %}
+  </a>
+  <div class="tf-product-card-body">
+    <p class="tf-product-card-company">{{ product.company.name }}</p>
+    <h3 class="tf-product-card-title">
+      <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}">{{ product.name }}</a>
+    </h3>
+    <div class="tf-product-card-price">
+      {% if product.is_on_promo_now %}
+      <span class="tf-price-old">{{ product.currency }} {{ product.unit_price }}</span>
+      <span class="tf-price-now">{{ product.currency }} {{ product.display_price }}</span>
+      {% else %}
+      <span class="tf-price-now">{{ product.currency }} {{ product.display_price }}</span>
+      {% endif %}
+    </div>
+    {% if show_cart_actions %}
+    <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form tf-product-card-form">
+      {% csrf_token %}
+      <input type="hidden" name="cantidad" value="1">
+      <button type="submit" class="tf-btn-primary tf-product-card-btn">
+        <span class="material-symbols-rounded" aria-hidden="true">add_shopping_cart</span>
+        {% trans "Agregar" %}
+      </button>
+    </form>
+    {% else %}
+    <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="tf-btn-secondary tf-product-card-btn">
+      <span class="material-symbols-rounded" aria-hidden="true">login</span>
+      {% trans "Iniciar sesión para comprar" %}
+    </a>
+    {% endif %}
+  </div>
+</article>
