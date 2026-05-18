@@ -2,271 +2,1216 @@
 {% load static i18n %}
 {% comment %}
 ================================================================================
-ACCIÓN: REEMPLAZAR
-DESTINO: templates/core/home.html
-================================================================================
-Landing PreExpo 2026: merchandising ORM, secciones CMS, i18n unificado (sin trans
-por palabra en hero). Contexto: home_view (stats, daily_deals, bestsellers, etc.)
+templates/core/home.html — TradeFlow Colón
+Propósito: landing pública PreExpo 2026 (inversores). Contexto home_view:
+stats, featured_products, empresas_carousel, show_cart_actions.
 ================================================================================
 {% endcomment %}
-{% block title %}{% trans "TradeFlow Colón — Compra, gestiona, exporta" %}{% endblock %}
+{% block title %}{% trans "TradeFlow Colón — Compra en la ZLC" %}{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 {% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/home_merchandising.css' %}">
-{% endblock %}
-{% block content %}
-<main class="lp-root" id="lp-root">
-  <section class="lp-section lp-hero" id="lp-hero">
-    <div class="lp-container lp-hero-grid">
-      <div class="lp-hero-copy reveal">
-        <p class="lp-eyebrow">{% trans "Zona Libre de Colón · Panamá" %}</p>
-        <h1 class="lp-hero-title lp-title-serif" id="lp-hero-heading">
-          {% blocktrans %}Compra, gestiona y exporta desde la <span class="lp-hero-accent">ZLC</span>{% endblocktrans %}
-        </h1>
-        <p class="lp-hero-lead">{% trans "Marketplace B2B y B2C con empresas verificadas, ofertas del día y logística ZLC." %}</p>
-        <div class="lp-hero-cta">
-          <a href="{% url 'signup' %}" class="lp-btn lp-btn-primary">{% trans "Crear cuenta gratis" %}</a>
-          <a href="{% url 'tienda' %}" class="lp-btn lp-btn-secondary">{% trans "Explorar catálogo" %}</a>
-        </div>
-        <dl class="lp-stats" id="lp-stats">
-          <div><dt>{% trans "Empresas" %}</dt><dd data-count="{{ stats.empresas }}">0</dd></div>
-          <div><dt>{% trans "Productos activos" %}</dt><dd data-count="{{ stats.productos }}">0</dd></div>
-          <div><dt>{% trans "Órdenes" %}</dt><dd data-count="{{ stats.ordenes }}">0</dd></div>
-          <div><dt>{% trans "Categorías" %}</dt><dd data-count="{{ stats.categorias }}">0</dd></div>
-        </dl>
-      </div>
-      <div class="lp-hero-visual reveal-right" aria-hidden="true">
-        <div class="lp-mock-card">
-          <span class="material-symbols-rounded">storefront</span>
-          <p>TradeFlow Colón</p>
-        </div>
-      </div>
-    </div>
-  </section>
+<style>
+  :root {
+    --tf-navy: #0F2A44;
+    --tf-mid: #1B3B63;
+    --tf-blue: #2E5B8A;
+    --tf-orange: #F26522;
+    --tf-orange-h: #FF7A3D;
+    --tf-light: #F2F3F5;
+    --tf-border: #D1D5DB;
+    --tf-muted: #6B7A88;
+    --tf-white: #FFFFFF;
+    --tf-shadow-card-hover: 0 20px 48px rgba(15, 42, 68, 0.14);
+  }
 
-  <section class="lp-section lp-section-alt" id="lp-carousel">
-    <div class="lp-container">
-      <div class="lp-sec-head reveal">
-        <h2 class="lp-title-serif">{% trans "Empresas y ofertas en movimiento" %}</h2>
-        <p>{% trans "Carrusel con proveedores destacados y productos con promoción vigente." %}</p>
+  .hm-root { overflow-x: hidden; }
+
+  /* ── Hero ── */
+  .hm-hero {
+    background: linear-gradient(135deg, var(--tf-navy) 0%, var(--tf-mid) 40%, var(--tf-navy) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 88px 0 0;
+  }
+  .hm-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--tf-white);
+    pointer-events: none;
+    animation: hmFloatParticle ease-in-out infinite;
+  }
+  .hm-p1 { width: 10px; height: 10px; left: 8%; top: 18%; opacity: 0.08; animation-duration: 15s; }
+  .hm-p2 { width: 14px; height: 14px; left: 82%; top: 12%; opacity: 0.06; animation-duration: 18s; }
+  .hm-p3 { width: 8px; height: 8px; left: 72%; top: 68%; opacity: 0.1; animation-duration: 22s; }
+  .hm-p4 { width: 12px; height: 12px; left: 15%; top: 72%; opacity: 0.07; animation-duration: 25s; }
+  .hm-p5 { width: 6px; height: 6px; left: 48%; top: 8%; opacity: 0.12; animation-duration: 19s; }
+  .hm-p6 { width: 11px; height: 11px; left: 92%; top: 48%; opacity: 0.06; animation-duration: 28s; }
+  .hm-p7 { width: 9px; height: 9px; left: 28%; top: 42%; opacity: 0.09; animation-duration: 16s; }
+  .hm-p8 { width: 13px; height: 13px; left: 58%; top: 82%; opacity: 0.08; animation-duration: 21s; }
+  @keyframes hmFloatParticle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    33% { transform: translateY(-20px) rotate(120deg); }
+    66% { transform: translateY(10px) rotate(240deg); }
+  }
+
+  .hm-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 40px;
+    gap: 60px;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+  @media (max-width: 991px) {
+    .hm-hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .hm-hero-mockup { justify-self: center; }
+  }
+
+  .hm-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(242, 101, 34, 0.15);
+    border: 1px solid rgba(242, 101, 34, 0.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tf-orange);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .hm-hero-badge .material-symbols-rounded { font-size: 14px; }
+
+  .hm-hero-h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.5rem, 5vw, 3.8rem);
+    color: var(--tf-white) !important;
+    line-height: 1.15;
+    margin: 20px 0 24px;
+  }
+  .hm-hero-h1 .hm-accent { color: var(--tf-orange); }
+
+  .hm-hero-desc {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.75;
+    max-width: 480px;
+    margin-bottom: 36px;
+  }
+
+  .hm-hero-ctas {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .hm-btn-primary {
+    background: var(--tf-orange);
+    color: var(--tf-white);
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .hm-btn-primary:hover {
+    background: var(--tf-orange-h);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(242, 101, 34, 0.4);
+    color: var(--tf-white);
+  }
+  .hm-btn-secondary {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    padding: 13px 24px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  .hm-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: var(--tf-white);
+  }
+
+  .hm-mockup-card {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 28px;
+    max-width: 420px;
+    width: 100%;
+    animation: hmFloatCard 5s ease-in-out infinite;
+  }
+  @keyframes hmFloatCard {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+  .hm-mockup-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .hm-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .hm-dot-r { background: #E05252; }
+  .hm-dot-y { background: #F5C842; }
+  .hm-dot-g { background: #4ECB71; }
+  .hm-mockup-title { font-size: 12px; color: rgba(255, 255, 255, 0.5); margin: 0; }
+  .hm-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .hm-metric {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .hm-metric-val {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--tf-white);
+    line-height: 1.1;
+  }
+  .hm-metric-val.green { color: #4ECB71; }
+  .hm-metric-val.orange { color: var(--tf-orange); }
+  .hm-metric-lbl { font-size: 11px; color: rgba(255, 255, 255, 0.55); margin-top: 4px; }
+  .hm-metric-badge {
+    display: inline-block;
+    background: rgba(242, 101, 34, 0.2);
+    color: var(--tf-orange);
+    font-size: 10px;
+    border-radius: 10px;
+    padding: 2px 7px;
+    margin-top: 6px;
+  }
+  .hm-bar-wrap { margin-bottom: 14px; }
+  .hm-bar-lbl { font-size: 11px; color: rgba(255, 255, 255, 0.55); margin-bottom: 6px; }
+  .hm-bar-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .hm-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    width: 0;
+    transition: width 1.5s ease-out 1.2s;
+  }
+  .hm-bar-fill.orange { background: var(--tf-orange); }
+  .hm-bar-fill.teal { background: #62929a; }
+  .hm-bars-ready .hm-bar-fill[data-w="94"] { width: 94%; }
+  .hm-bars-ready .hm-bar-fill[data-w="87"] { width: 87%; }
+
+  .hm-hero-animate {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .hm-hero-mockup.hm-hero-animate { transform: translateX(28px); }
+  .hm-hero-visible {
+    opacity: 1 !important;
+    transform: translate(0, 0) !important;
+  }
+
+  /* ── Stats band ── */
+  .hm-stats-band {
+    background: var(--tf-navy);
+    padding: 40px 0 60px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .hm-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .hm-stat {
+    text-align: center;
+    padding: 0 16px;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .hm-stat:last-child { border-right: none; }
+  .hm-stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.8rem;
+    color: var(--tf-orange);
+    font-weight: 400;
+    line-height: 1;
+  }
+  .hm-stat-lbl {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 6px;
+  }
+  @media (max-width: 575px) {
+    .hm-stats-grid { grid-template-columns: 1fr; gap: 24px; }
+    .hm-stat { border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 20px; }
+    .hm-stat:last-child { border-bottom: none; }
+  }
+
+  /* ── Products ── */
+  .hm-products {
+    background: var(--tf-white);
+    padding: 80px 0;
+  }
+  .hm-container {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .hm-sec-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--tf-orange);
+    margin-bottom: 10px;
+  }
+  .hm-sec-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    color: var(--tf-navy);
+    margin-bottom: 12px;
+  }
+  .hm-sec-sub {
+    font-size: 1rem;
+    color: var(--tf-muted);
+    max-width: 520px;
+    margin-bottom: 40px;
+  }
+  .hm-product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 991px) { .hm-product-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 575px) { .hm-product-grid { grid-template-columns: 1fr; } }
+
+  .hm-pcard {
+    background: var(--tf-white);
+    border-radius: 14px;
+    border: 1px solid #E5E7EB;
+    overflow: hidden;
+    transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .hm-pcard:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--tf-shadow-card-hover);
+    border-color: transparent;
+  }
+  .hm-pcard-media {
+    position: relative;
+    padding-top: 75%;
+    overflow: hidden;
+    background: var(--tf-light);
+  }
+  .hm-pcard-media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .hm-pcard:hover .hm-pcard-media img { transform: scale(1.06); }
+  .hm-pcard-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 42, 68, 0.15);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .hm-pcard:hover .hm-pcard-overlay { opacity: 1; }
+  .hm-pcard-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(15, 42, 68, 0.85);
+    backdrop-filter: blur(8px);
+    color: var(--tf-white);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    z-index: 2;
+  }
+  .hm-pcard-body { padding: 16px 18px 18px; }
+  .hm-pcard-cat {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tf-orange);
+    margin-bottom: 6px;
+  }
+  .hm-pcard-name {
+    font-size: 0.97rem;
+    font-weight: 600;
+    color: var(--tf-navy);
+    line-height: 1.35;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .hm-pcard-co {
+    font-size: 12px;
+    color: var(--tf-muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .hm-pcard-co .material-symbols-rounded { font-size: 12px; }
+  .hm-pcard-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #F3F4F6;
+    padding-top: 12px;
+  }
+  .hm-pcard-price {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    color: var(--tf-navy);
+  }
+  .hm-pcard-price small { font-size: 13px; font-weight: 500; font-family: 'Inter', sans-serif; }
+  .hm-pcard-add {
+    background: var(--tf-orange);
+    color: var(--tf-white);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+  }
+  .hm-pcard-add:hover {
+    background: var(--tf-orange-h);
+    transform: scale(1.04);
+    color: var(--tf-white);
+  }
+  .hm-empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--tf-muted);
+    grid-column: 1 / -1;
+  }
+
+  /* ── Companies carousel ── */
+  .hm-companies {
+    background: var(--tf-light);
+    padding: 70px 0;
+  }
+  .hm-carousel-wrap { position: relative; overflow: hidden; margin-top: 32px; }
+  .hm-carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+  .hm-carousel-slide {
+    flex: 0 0 calc(33.333% - 16px);
+    margin-right: 24px;
+    min-width: 0;
+  }
+  @media (max-width: 991px) {
+    .hm-carousel-slide { flex: 0 0 calc(50% - 12px); }
+  }
+  @media (max-width: 575px) {
+    .hm-carousel-slide { flex: 0 0 100%; margin-right: 0; }
+  }
+  .hm-emp-card {
+    background: var(--tf-white);
+    border-radius: 14px;
+    border: 1px solid #E5E7EB;
+    padding: 28px 24px;
+    text-align: center;
+    transition: all 0.25s ease;
+    height: 100%;
+    box-sizing: border-box;
+  }
+  .hm-emp-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15, 42, 68, 0.1);
+    border-color: var(--tf-orange);
+  }
+  .hm-emp-av {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--tf-navy);
+    color: var(--tf-white);
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .hm-emp-name {
+    font-size: 0.97rem;
+    font-weight: 700;
+    color: var(--tf-navy);
+    margin-bottom: 6px;
+  }
+  .hm-emp-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(78, 203, 113, 0.12);
+    color: #1a7a3c;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+  }
+  .hm-emp-verified .material-symbols-rounded { font-size: 12px; }
+  .hm-emp-count { font-size: 13px; color: var(--tf-muted); }
+  .hm-emp-btn {
+    margin-top: 16px;
+    width: 100%;
+    background: transparent;
+    color: var(--tf-orange);
+    border: 1.5px solid var(--tf-orange);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+    text-decoration: none;
+    box-sizing: border-box;
+  }
+  .hm-emp-btn:hover {
+    background: var(--tf-orange);
+    color: var(--tf-white);
+  }
+  .hm-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .hm-carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: var(--tf-border);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .hm-carousel-dot.is-on {
+    background: var(--tf-orange);
+    transform: scale(1.2);
+  }
+
+  /* ── Features ── */
+  .hm-features {
+    background: var(--tf-white);
+    padding: 80px 0;
+  }
+  .hm-features-head { text-align: center; max-width: 640px; margin: 0 auto 48px; }
+  .hm-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 991px) { .hm-feature-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 575px) { .hm-feature-grid { grid-template-columns: 1fr; } }
+  .hm-feat {
+    background: var(--tf-white);
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 28px 24px;
+    transition: all 0.28s ease;
+  }
+  .hm-feat:hover {
+    border-color: var(--tf-orange);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15, 42, 68, 0.1);
+  }
+  .hm-feat:hover .hm-feat-ico { transform: scale(1.1); }
+  .hm-feat-ico {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    transition: transform 0.25s ease;
+  }
+  .hm-feat-ico .material-symbols-rounded { font-size: 26px; }
+  .hm-feat h3 { font-size: 1rem; font-weight: 700; color: var(--tf-navy); margin: 0; }
+  .hm-feat p { font-size: 13px; color: var(--tf-muted); line-height: 1.65; margin: 8px 0 0; }
+
+  /* ── Timeline ── */
+  .hm-how {
+    background: var(--tf-light);
+    padding: 80px 0;
+  }
+  .hm-how-head { text-align: center; margin-bottom: 48px; }
+  .hm-timeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    position: relative;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  @media (max-width: 991px) {
+    .hm-timeline { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 575px) {
+    .hm-timeline { grid-template-columns: 1fr; }
+  }
+  .hm-timeline-line {
+    position: absolute;
+    top: 26px;
+    left: 12%;
+    right: 12%;
+    height: 2px;
+    background: #E5E7EB;
+    z-index: 0;
+  }
+  .hm-timeline-line-fill {
+    height: 100%;
+    width: 0;
+    background: var(--tf-orange);
+    transition: width 1.2s ease 0.4s;
+  }
+  .hm-timeline.hm-line-ready .hm-timeline-line-fill { width: 100%; }
+  .hm-step { text-align: center; position: relative; z-index: 1; }
+  .hm-step-num {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--tf-navy);
+    color: var(--tf-white);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--tf-light);
+    transform: scale(0);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .hm-step.visible .hm-step-num { transform: scale(1); }
+  .hm-step-ico {
+    font-size: 28px;
+    color: var(--tf-orange);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .hm-step h3 { font-size: 1rem; font-weight: 700; color: var(--tf-navy); margin: 0 0 8px; }
+  .hm-step p {
+    font-size: 13px;
+    color: var(--tf-muted);
+    max-width: 180px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* ── CTA ── */
+  .hm-cta {
+    background: var(--tf-navy);
+    padding: 80px 0;
+    text-align: center;
+  }
+  .hm-cta-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    color: var(--tf-white);
+    margin: 0;
+    position: relative;
+    display: inline-block;
+  }
+  .hm-cta-title .hm-accent { color: var(--tf-orange); }
+  .hm-cta-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    height: 3px;
+    width: 0;
+    background: var(--tf-orange);
+    transition: width 1s ease 0.5s;
+  }
+  .hm-cta-title.visible::after { width: 100%; }
+  .hm-cta-desc {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 1.05rem;
+    max-width: 540px;
+    margin: 20px auto 36px;
+  }
+  .hm-cta-btns {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .hm-btn-shine {
+    overflow: hidden;
+    position: relative;
+  }
+  .hm-btn-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+  .hm-btn-shine:hover::before { transform: translateX(100%); }
+
+  /* ── Scroll reveal ── */
+  .reveal, .stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5, .stagger-6 {
+    opacity: 0;
+    transform: translateY(36px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .reveal-left {
+    opacity: 0;
+    transform: translateX(-36px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .reveal-right {
+    opacity: 0;
+    transform: translateX(36px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .stagger-1 { transition-delay: 0.08s; }
+  .stagger-2 { transition-delay: 0.16s; }
+  .stagger-3 { transition-delay: 0.24s; }
+  .stagger-4 { transition-delay: 0.32s; }
+  .stagger-5 { transition-delay: 0.40s; }
+  .stagger-6 { transition-delay: 0.48s; }
+  .visible {
+    opacity: 1 !important;
+    transform: translate(0, 0) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hm-particle, .hm-mockup-card { animation: none !important; }
+    .hm-hero-animate, .reveal, .reveal-left, .reveal-right,
+    .stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5, .stagger-6,
+    .hm-step-num, .hm-bar-fill, .hm-timeline-line-fill {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+      animation: none !important;
+      width: auto !important;
+    }
+    .hm-bar-fill[data-w="94"] { width: 94% !important; }
+    .hm-bar-fill[data-w="87"] { width: 87% !important; }
+    .hm-carousel-track { transition: none !important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="hm-root" id="hm-root">
+  <section class="hm-hero" id="hm-hero" aria-labelledby="hm-hero-heading">
+    <span class="hm-particle hm-p1" aria-hidden="true"></span>
+    <span class="hm-particle hm-p2" aria-hidden="true"></span>
+    <span class="hm-particle hm-p3" aria-hidden="true"></span>
+    <span class="hm-particle hm-p4" aria-hidden="true"></span>
+    <span class="hm-particle hm-p5" aria-hidden="true"></span>
+    <span class="hm-particle hm-p6" aria-hidden="true"></span>
+    <span class="hm-particle hm-p7" aria-hidden="true"></span>
+    <span class="hm-particle hm-p8" aria-hidden="true"></span>
+
+    <div class="hm-hero-grid">
+      <div class="hm-hero-copy">
+        <p class="hm-hero-badge hero-badge hm-hero-animate">
+          <span class="material-symbols-rounded" aria-hidden="true">location_on</span>
+          {% trans "Zona Libre de Colón · Panamá" %}
+        </p>
+        <h1 class="hm-hero-h1 hero-h1 hm-hero-animate" id="hm-hero-heading">
+          {% trans "Compra en la ZLC desde cualquier lugar del" %} <span class="hm-accent">{% trans "mundo" %}</span>
+        </h1>
+        <p class="hm-hero-desc hero-desc hm-hero-animate">
+          {% trans "Marketplace B2B y B2C con empresas verificadas, inventario en tiempo real y documentación lista para exportar desde la Zona Libre de Colón." %}
+        </p>
+        <div class="hm-hero-ctas hero-ctas hm-hero-animate">
+          <a href="{% url 'signup' %}" class="hm-btn-primary hm-btn-ripple" id="hm-cta-signup">
+            <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">rocket_launch</span>
+            {% trans "Crear cuenta gratis" %}
+          </a>
+          <button type="button" class="hm-btn-secondary" id="hm-scroll-how">
+            <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">play_circle</span>
+            {% trans "Cómo funciona" %}
+          </button>
+        </div>
       </div>
-      <div class="lp-carousel" id="lp-carousel-root" data-slide-count="{{ empresas_carousel|length|add:carousel_products|length }}">
-        <div class="lp-carousel-track" id="lp-carousel-track">
-          {% for emp in empresas_carousel %}
-          <div class="lp-carousel-slide" data-slide-type="company">
-            <div class="lp-carousel-card">
-              <span class="material-symbols-rounded lp-carousel-ico">domain</span>
-              <h3>{{ emp.name }}</h3>
-              <p>{% if LANGUAGE_CODE == 'en' and emp.tagline_en %}{{ emp.tagline_en }}{% else %}{{ emp.tagline_es }}{% endif %}</p>
-              <a href="{% url 'tienda' %}?empresa={{ emp.pk }}" class="lp-link">{% trans "Ver catálogo" %}</a>
+
+      <div class="hm-hero-mockup hero-mockup hm-hero-animate">
+        <div class="hm-mockup-card" id="hm-mockup-card">
+          <div class="hm-mockup-head">
+            <span class="hm-dot hm-dot-r" aria-hidden="true"></span>
+            <span class="hm-dot hm-dot-y" aria-hidden="true"></span>
+            <span class="hm-dot hm-dot-g" aria-hidden="true"></span>
+            <p class="hm-mockup-title">Dashboard TradeFlow</p>
+          </div>
+          <div class="hm-metrics">
+            <div class="hm-metric">
+              <div class="hm-metric-val">128</div>
+              <div class="hm-metric-lbl">{% trans "Órdenes activas" %}</div>
+              <span class="hm-metric-badge">+12%</span>
+            </div>
+            <div class="hm-metric">
+              <div class="hm-metric-val green">94%</div>
+              <div class="hm-metric-lbl">Fulfillment</div>
+            </div>
+            <div class="hm-metric">
+              <div class="hm-metric-val orange">$18,450</div>
+              <div class="hm-metric-lbl">{% trans "Ingresos mes" %}</div>
+            </div>
+            <div class="hm-metric">
+              <div class="hm-metric-val">{{ stats.productos|default:142 }}</div>
+              <div class="hm-metric-lbl">{% trans "Productos activos" %}</div>
             </div>
           </div>
-          {% endfor %}
-          {% for product in carousel_products %}
-          <div class="lp-carousel-slide" data-slide-type="product">
-            {% include "core/includes/product_card.html" with product=product show_cart_actions=show_cart_actions card_extra_class="lp-carousel-product" %}
+          <div class="hm-bar-wrap">
+            <div class="hm-bar-lbl">Fulfillment rate</div>
+            <div class="hm-bar-track"><div class="hm-bar-fill orange" data-w="94"></div></div>
           </div>
+          <div class="hm-bar-wrap">
+            <div class="hm-bar-lbl">{% trans "Envíos completados" %}</div>
+            <div class="hm-bar-track"><div class="hm-bar-fill teal" data-w="87"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hm-stats-band" id="hm-stats-band" aria-label="{% trans 'Estadísticas ZLC' %}">
+    <div class="hm-stats-grid">
+      <div class="hm-stat reveal">
+        <div class="hm-stat-num" data-count="2600" data-suffix="+">0</div>
+        <div class="hm-stat-lbl">{% trans "Empresas en la ZLC" %}</div>
+      </div>
+      <div class="hm-stat reveal stagger-2">
+        <div class="hm-stat-num" data-count="33" data-prefix="$" data-suffix="B">0</div>
+        <div class="hm-stat-lbl">{% trans "Transacciones anuales" %}</div>
+      </div>
+      <div class="hm-stat reveal stagger-3">
+        <div class="hm-stat-num" data-count="180" data-suffix="+">0</div>
+        <div class="hm-stat-lbl">{% trans "Países compradores" %}</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hm-products" id="hm-products">
+    <div class="hm-container">
+      <p class="hm-sec-label reveal">{% trans "Catálogo ZLC" %}</p>
+      <h2 class="hm-sec-title reveal stagger-1">{% trans "Productos destacados de la Zona Libre" %}</h2>
+      <p class="hm-sec-sub reveal stagger-2">{% trans "Selección curada de proveedores verificados listos para compra o cotización." %}</p>
+      <div class="hm-product-grid" id="hm-product-grid">
+        {% for product in featured_products|slice:":6" %}
+        <article class="hm-pcard reveal stagger-{{ forloop.counter }}" data-product-id="{{ product.pk }}">
+          <div class="hm-pcard-media">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" width="400" height="300">
+            {% endif %}
+            <span class="hm-pcard-overlay" aria-hidden="true"></span>
+            <span class="hm-pcard-badge">{{ product.company.name }}</span>
+          </div>
+          <div class="hm-pcard-body">
+            {% if product.category %}
+            <p class="hm-pcard-cat">{{ product.category.name }}</p>
+            {% endif %}
+            <h3 class="hm-pcard-name">{{ product.name }}</h3>
+            <p class="hm-pcard-co">
+              <span class="material-symbols-rounded" aria-hidden="true">business</span>
+              {{ product.company.name }}
+            </p>
+            <div class="hm-pcard-foot">
+              <div class="hm-pcard-price">
+                <small>{{ product.currency }}</small> {{ product.display_price }}
+              </div>
+              {% if show_cart_actions %}
+              <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form">
+                {% csrf_token %}
+                <input type="hidden" name="cantidad" value="1">
+                <button type="submit" class="hm-pcard-add">
+                  <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">add_shopping_cart</span>
+                  {% trans "Agregar" %}
+                </button>
+              </form>
+              {% else %}
+              <a href="{% url 'login' %}?next={% url 'tienda' %}" class="hm-pcard-add">
+                <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">add_shopping_cart</span>
+                {% trans "Agregar" %}
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+        {% empty %}
+        <p class="hm-empty reveal">{% trans "Sin productos destacados por ahora. Explora el catálogo completo." %}</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="hm-companies" id="hm-companies">
+    <div class="hm-container">
+      <p class="hm-sec-label reveal">{% trans "Empresas de la ZLC" %}</p>
+      <h2 class="hm-sec-title reveal stagger-1">{% trans "Conectamos compradores con las mejores empresas de la Zona Libre" %}</h2>
+      <div class="hm-carousel-wrap reveal stagger-2" id="hm-emp-carousel">
+        <div class="hm-carousel-track" id="hm-emp-track">
+          {% for emp in empresas_carousel %}
+          <div class="hm-carousel-slide">
+            <article class="hm-emp-card">
+              <div class="hm-emp-av">{{ emp.name|slice:":1"|upper }}</div>
+              <h3 class="hm-emp-name">{{ emp.name }}</h3>
+              {% if emp.is_verified %}
+              <span class="hm-emp-verified">
+                <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+                {% trans "Verificada" %}
+              </span>
+              {% endif %}
+              <p class="hm-emp-count">{% blocktrans count n=emp.num_productos %}{{ n }} producto{% plural %}{{ n }} productos{% endblocktrans %}</p>
+              <a href="{% url 'tienda' %}?empresa={{ emp.pk }}" class="hm-emp-btn">{% trans "Ver catálogo" %}</a>
+            </article>
+          </div>
+          {% empty %}
+          <p class="hm-empty" style="flex:1;text-align:center;padding:2rem;">{% trans "Próximamente más empresas en el carrusel." %}</p>
           {% endfor %}
         </div>
-        <div class="lp-carousel-dots" id="lp-carousel-dots" role="tablist"></div>
+        <div class="hm-carousel-dots" id="hm-emp-dots" role="tablist" aria-label="{% trans 'Empresas' %}"></div>
       </div>
     </div>
   </section>
 
-  <section class="lp-section" id="lp-daily-deals">
-    <div class="lp-container">
-      <div class="lp-sec-head reveal">
-        <h2 class="lp-title-serif">{% trans "Ofertas del día" %}</h2>
-        <p>{% trans "Precios promocionales vigentes — sin esperar a marcar pedidos entregados." %}</p>
+  <section class="hm-features" id="hm-features">
+    <div class="hm-container">
+      <div class="hm-features-head">
+        <p class="hm-sec-label reveal">{% trans "Por qué TradeFlow" %}</p>
+        <h2 class="hm-sec-title reveal stagger-1">{% trans "Todo lo que necesitas para comerciar en la Zona Libre" %}</h2>
       </div>
-      {% if daily_deals %}
-      <div class="lp-product-grid reveal">
-        {% for product in daily_deals %}
-        {% include "core/includes/product_card.html" with product=product show_cart_actions=show_cart_actions %}
-        {% endfor %}
-      </div>
-      {% else %}
-      <p class="lp-empty">{% trans "Sin ofertas activas en este momento. Vuelve pronto." %}</p>
-      {% endif %}
-    </div>
-  </section>
-
-  <section class="lp-section lp-section-alt" id="lp-bestsellers">
-    <div class="lp-container">
-      <div class="lp-sec-head reveal">
-        <h2 class="lp-title-serif">{% trans "Más vendidos ZLC" %}</h2>
-        <p>{% trans "Basado en ventas recientes del marketplace." %}</p>
-      </div>
-      {% if bestsellers %}
-      <div class="lp-product-grid reveal">
-        {% for product in bestsellers %}
-        {% include "core/includes/product_card.html" with product=product show_cart_actions=show_cart_actions %}
-        {% endfor %}
-      </div>
-      {% else %}
-      <p class="lp-empty">{% trans "Aún no hay datos de más vendidos." %}</p>
-      {% endif %}
-    </div>
-  </section>
-
-  {% for row in category_spotlights %}
-  <section class="lp-section" id="lp-cat-{{ row.category.pk }}">
-    <div class="lp-container">
-      <div class="lp-sec-head reveal">
-        <h2 class="lp-title-serif">{{ row.category.name }}</h2>
-        <a href="{% url 'tienda' %}?categoria={{ row.category.pk }}" class="lp-link">{% trans "Ver categoría" %}</a>
-      </div>
-      <div class="lp-product-grid reveal">
-        {% for product in row.products %}
-        {% include "core/includes/product_card.html" with product=product show_cart_actions=show_cart_actions %}
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-  {% endfor %}
-
-  <section class="lp-section lp-section-alt" id="lp-companies">
-    <div class="lp-container">
-      <div class="lp-sec-head reveal">
-        <h2 class="lp-title-serif">{% trans "Empresas destacadas" %}</h2>
-      </div>
-      <div class="lp-company-grid reveal">
-        {% for emp in empresas_carousel %}
-        <article class="lp-company-card">
-          <h3>{{ emp.name }}</h3>
-          <p>{% if LANGUAGE_CODE == 'en' and emp.tagline_en %}{{ emp.tagline_en }}{% else %}{{ emp.tagline_es }}{% endif %}</p>
-          <a href="{% url 'tienda' %}?empresa={{ emp.pk }}" class="lp-btn lp-btn-secondary">{% trans "Ver tienda" %}</a>
+      <div class="hm-feature-grid">
+        <article class="hm-feat reveal stagger-1">
+          <div class="hm-feat-ico" style="background:rgba(15,42,68,0.08);"><span class="material-symbols-rounded" style="color:var(--tf-navy);">travel_explore</span></div>
+          <h3>{% trans "Compra sin viajar" %}</h3>
+          <p>{% trans "Accede al catálogo ZLC desde cualquier país sin mover mercancía hasta confirmar." %}</p>
         </article>
-        {% endfor %}
+        <article class="hm-feat reveal stagger-2">
+          <div class="hm-feat-ico" style="background:rgba(242,101,34,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-orange);">inventory_2</span></div>
+          <h3>{% trans "Inventario en tiempo real" %}</h3>
+          <p>{% trans "Stock actualizado por vendedor para decisiones de compra confiables." %}</p>
+        </article>
+        <article class="hm-feat reveal stagger-3">
+          <div class="hm-feat-ico" style="background:rgba(46,91,138,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-blue);">description</span></div>
+          <h3>{% trans "Documentos aduaneros" %}</h3>
+          <p>{% trans "Factura y packing list listos para trámites de exportación." %}</p>
+        </article>
+        <article class="hm-feat reveal stagger-4">
+          <div class="hm-feat-ico" style="background:rgba(78,203,113,0.1);"><span class="material-symbols-rounded" style="color:#1a7a3c;">lock</span></div>
+          <h3>{% trans "Pago seguro" %}</h3>
+          <p>{% trans "Flujo de checkout y estados de orden transparentes para comprador y vendedor." %}</p>
+        </article>
+        <article class="hm-feat reveal stagger-5">
+          <div class="hm-feat-ico" style="background:rgba(242,101,34,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-orange);">qr_code_scanner</span></div>
+          <h3>{% trans "Pre-registro QR" %}</h3>
+          <p>{% trans "Visitantes ZLC con verificación rápida para networking PreExpo." %}</p>
+        </article>
+        <article class="hm-feat reveal stagger-6">
+          <div class="hm-feat-ico" style="background:rgba(15,42,68,0.08);"><span class="material-symbols-rounded" style="color:var(--tf-navy);">analytics</span></div>
+          <h3>{% trans "Analítica avanzada" %}</h3>
+          <p>{% trans "Panel admin con KPIs y gráficos para operación e inversores." %}</p>
+        </article>
       </div>
     </div>
   </section>
 
-  {% for block in promo_sections %}
-  <section class="lp-section" id="lp-promo-{{ block.section.slug }}">
-    <div class="lp-container">
-      <div class="lp-sec-head reveal">
-        <h2 class="lp-title-serif">
-          {% if LANGUAGE_CODE == 'en' and block.section.title_en %}{{ block.section.title_en }}{% else %}{{ block.section.title_es }}{% endif %}
-        </h2>
-        <p>
-          {% if LANGUAGE_CODE == 'en' and block.section.subtitle_en %}{{ block.section.subtitle_en }}{% else %}{{ block.section.subtitle_es }}{% endif %}
-        </p>
+  <section class="hm-how" id="como-funciona">
+    <div class="hm-container">
+      <div class="hm-how-head">
+        <h2 class="hm-sec-title reveal">{% trans "¿Cómo funciona?" %}</h2>
       </div>
-      {% if block.products %}
-      <div class="lp-product-grid reveal">
-        {% for product in block.products %}
-        {% include "core/includes/product_card.html" with product=product show_cart_actions=show_cart_actions %}
-        {% endfor %}
-      </div>
-      {% else %}
-      <p class="lp-empty">{% trans "Sin productos en esta sección por ahora." %}</p>
-      {% endif %}
-    </div>
-  </section>
-  {% endfor %}
-
-  <section class="lp-section lp-section-alt" id="lp-how">
-    <div class="lp-container">
-      <div class="lp-sec-head reveal">
-        <h2 class="lp-title-serif">{% trans "Cómo funciona" %}</h2>
-      </div>
-      <ol class="lp-timeline reveal">
-        <li><span class="lp-step-num">1</span><div><h3>{% trans "Regístrate" %}</h3><p>{% trans "Crea tu cuenta comprador o vendedor en minutos." %}</p></div></li>
-        <li><span class="lp-step-num">2</span><div><h3>{% trans "Explora el catálogo ZLC" %}</h3><p>{% trans "Filtra por empresa, categoría, ofertas y más vendidos." %}</p></div></li>
-        <li><span class="lp-step-num">3</span><div><h3>{% trans "Cotiza o compra" %}</h3><p>{% trans "RFQ formal B2B o checkout B2C con carrito." %}</p></div></li>
-        <li><span class="lp-step-num">4</span><div><h3>{% trans "Exporta con documentación" %}</h3><p>{% trans "Factura y packing list alineados a prácticas ZLC / ANA." %}</p></div></li>
-      </ol>
-    </div>
-  </section>
-
-  <section class="lp-section" id="lp-trust">
-    <div class="lp-container">
-      <div class="lp-sec-head reveal">
-        <h2 class="lp-title-serif">{% trans "Confianza TradeFlow" %}</h2>
-      </div>
-      <div class="lp-features reveal">
-        <article><span class="material-symbols-rounded">verified</span><h3>{% trans "Empresas ZLC" %}</h3><p>{% trans "Proveedores del corredor en un solo lugar." %}</p></article>
-        <article><span class="material-symbols-rounded">local_shipping</span><h3>{% trans "Logística" %}</h3><p>{% trans "Seguimiento de órdenes y estados claros." %}</p></article>
-        <article><span class="material-symbols-rounded">request_quote</span><h3>{% trans "Cotizaciones RFQ" %}</h3><p>{% trans "Precios formales antes de cerrar B2B." %}</p></article>
-        <article><span class="material-symbols-rounded">description</span><h3>{% trans "PDF legales" %}</h3><p>{% trans "Factura y packing para trámites aduaneros." %}</p></article>
-        <article><span class="material-symbols-rounded">language</span><h3>{% trans "ES / EN" %}</h3><p>{% trans "Plataforma lista para inversores internacionales." %}</p></article>
-        <article><span class="material-symbols-rounded">insights</span><h3>{% trans "Panel admin" %}</h3><p>{% trans "KPIs y gráficos para operación PreExpo." %}</p></article>
+      <div class="hm-timeline reveal" id="hm-timeline">
+        <div class="hm-timeline-line" aria-hidden="true"><div class="hm-timeline-line-fill"></div></div>
+        <div class="hm-step reveal stagger-1">
+          <div class="hm-step-num">1</div>
+          <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">person_add</span>
+          <h3>{% trans "Crea tu cuenta" %}</h3>
+          <p>{% trans "Regístrate como comprador o empresa en 2 minutos" %}</p>
+        </div>
+        <div class="hm-step reveal stagger-2">
+          <div class="hm-step-num">2</div>
+          <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">search</span>
+          <h3>{% trans "Explora el catálogo" %}</h3>
+          <p>{% trans "Miles de productos de empresas verificadas de la ZLC" %}</p>
+        </div>
+        <div class="hm-step reveal stagger-3">
+          <div class="hm-step-num">3</div>
+          <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">shopping_cart</span>
+          <h3>{% trans "Realiza tu pedido" %}</h3>
+          <p>{% trans "Agrega al carrito y paga de forma segura" %}</p>
+        </div>
+        <div class="hm-step reveal stagger-4">
+          <div class="hm-step-num">4</div>
+          <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">local_shipping</span>
+          <h3>{% trans "Recibe tu mercancía" %}</h3>
+          <p>{% trans "Seguimiento en tiempo real hasta tu destino" %}</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="lp-section lp-cta-final lp-section-alt">
-    <div class="lp-container lp-cta-inner reveal">
-      <h2 class="lp-title-serif">{% trans "Empieza en la Zona Libre hoy" %}</h2>
-      <p>{% trans "Únete a TradeFlow Colón — demo lista para PreExpo 2026." %}</p>
-      <div class="lp-hero-cta">
-        <a href="{% url 'signup' %}" class="lp-btn lp-btn-primary">{% trans "Crear cuenta" %}</a>
-        <a href="{% url 'login' %}" class="lp-btn lp-btn-secondary">{% trans "Iniciar sesión" %}</a>
+  <section class="hm-cta" id="hm-cta">
+    <div class="hm-container">
+      <h2 class="hm-cta-title reveal" id="hm-cta-title">
+        {% trans "Empieza hoy en la" %} <span class="hm-accent">ZLC</span>
+      </h2>
+      <p class="hm-cta-desc reveal stagger-1">{% trans "Únete a TradeFlow Colón — la plataforma lista para PreExpo 2026 e inversores internacionales." %}</p>
+      <div class="hm-cta-btns reveal stagger-2">
+        <a href="{% url 'signup' %}" class="hm-btn-primary hm-btn-shine">{% trans "Comenzar ahora" %}</a>
+        <a href="{% url 'login' %}" class="hm-btn-secondary">{% trans "Ya tengo cuenta" %}</a>
       </div>
     </div>
   </section>
 </main>
+
+<div id="hm-page-meta"
+     data-emp-slides="{{ empresas_carousel|length }}"
+     hidden></div>
 {% endblock %}
+
 {% block extra_js %}
-<script src="{% static 'js/cart_ajax.js' %}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  var i18n = window.TF_I18N || {};
+(function () {
+  'use strict';
+
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  document.querySelectorAll('#lp-stats dd[data-count]').forEach(function (el) {
-    var target = parseInt(el.getAttribute('data-count'), 10) || 0;
-    if (reduced) { el.textContent = String(target); return; }
-    var cur = 0;
-    var step = Math.max(1, Math.ceil(target / 40));
-    var t = setInterval(function () {
-      cur += step;
-      if (cur >= target) { cur = target; clearInterval(t); }
-      el.textContent = String(cur);
-    }, 30);
+  function heroEnter() {
+    var items = [
+      { sel: '.hero-badge', delay: 100 },
+      { sel: '.hero-h1', delay: 300 },
+      { sel: '.hero-desc', delay: 500 },
+      { sel: '.hero-ctas', delay: 700 },
+      { sel: '.hero-mockup', delay: 400 }
+    ];
+    items.forEach(function (item) {
+      setTimeout(function () {
+        var el = document.querySelector(item.sel);
+        if (el) el.classList.add('hm-hero-visible');
+      }, reduced ? 0 : item.delay);
+    });
+    setTimeout(function () {
+      var card = document.getElementById('hm-mockup-card');
+      if (card) card.classList.add('hm-bars-ready');
+    }, reduced ? 0 : 900);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', heroEnter);
+  } else {
+    heroEnter();
+  }
+
+  var howBtn = document.getElementById('hm-scroll-how');
+  if (howBtn) {
+    howBtn.addEventListener('click', function () {
+      var t = document.getElementById('como-funciona');
+      if (t) t.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    });
+  }
+
+  document.querySelectorAll('.hm-btn-ripple').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      var rect = btn.getBoundingClientRect();
+      var ripple = document.createElement('span');
+      ripple.style.cssText = 'position:absolute;border-radius:50%;background:rgba(255,255,255,0.35);transform:scale(0);animation:hmRipple 0.5s ease-out;pointer-events:none;width:80px;height:80px;left:' + (e.clientX - rect.left - 40) + 'px;top:' + (e.clientY - rect.top - 40) + 'px;';
+      btn.appendChild(ripple);
+      setTimeout(function () { if (ripple.parentNode) ripple.parentNode.removeChild(ripple); }, 520);
+    });
   });
 
-  var track = document.getElementById('lp-carousel-track');
-  var dotsRoot = document.getElementById('lp-carousel-dots');
-  if (track && dotsRoot) {
-    var slides = track.querySelectorAll('.lp-carousel-slide');
-    var idx = 0;
-    var slideLabel = i18n.slide || 'Diapositiva';
-    slides.forEach(function (_, i) {
+  var style = document.createElement('style');
+  style.textContent = '@keyframes hmRipple{to{transform:scale(2.5);opacity:0;}}';
+  document.head.appendChild(style);
+
+  function countUp(el, target, duration, prefix, suffix) {
+    if (reduced) {
+      el.textContent = (prefix || '') + target.toLocaleString() + (suffix || '');
+      return;
+    }
+    var start = 0;
+    var step = target / (duration / 16);
+    var timer = setInterval(function () {
+      start += step;
+      if (start >= target) {
+        start = target;
+        clearInterval(timer);
+      }
+      el.textContent = (prefix || '') + Math.floor(start).toLocaleString() + (suffix || '');
+    }, 16);
+  }
+
+  var statsObs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      entry.target.querySelectorAll('[data-count]').forEach(function (el) {
+        var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+        countUp(el, target, 1800, el.getAttribute('data-prefix') || '', el.getAttribute('data-suffix') || '');
+      });
+      statsObs.unobserve(entry.target);
+    });
+  }, { threshold: 0.3 });
+  var statsBand = document.getElementById('hm-stats-band');
+  if (statsBand) statsObs.observe(statsBand);
+
+  var revealObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('visible');
+      if (entry.target.id === 'hm-timeline') {
+        entry.target.classList.add('hm-line-ready');
+        entry.target.querySelectorAll('.hm-step').forEach(function (s) { s.classList.add('visible'); });
+      }
+      if (entry.target.id === 'hm-cta-title') {
+        entry.target.classList.add('visible');
+      }
+      revealObserver.unobserve(entry.target);
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll(
+    '.reveal, .reveal-left, .reveal-right, .stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5, .stagger-6, #hm-timeline, #hm-cta-title'
+  ).forEach(function (el) {
+    if (reduced) el.classList.add('visible');
+    else revealObserver.observe(el);
+  });
+
+  var meta = document.getElementById('hm-page-meta');
+  var slideCount = meta ? parseInt(meta.getAttribute('data-emp-slides'), 10) : 0;
+  var track = document.getElementById('hm-emp-track');
+  var dotsRoot = document.getElementById('hm-emp-dots');
+  if (!track || slideCount < 1) return;
+
+  var slides = track.querySelectorAll('.hm-carousel-slide');
+  var idx = 0;
+  var perView = 3;
+  var timer = null;
+  var paused = false;
+
+  function perViewNow() {
+    if (window.innerWidth < 576) return 1;
+    if (window.innerWidth < 992) return 2;
+    return 3;
+  }
+
+  function maxIdx() {
+    perView = perViewNow();
+    return Math.max(0, slides.length - perView);
+  }
+
+  function buildDots() {
+    if (!dotsRoot) return;
+    dotsRoot.innerHTML = '';
+    var pages = maxIdx() + 1;
+    var i;
+    for (i = 0; i < pages; i += 1) {
       var b = document.createElement('button');
       b.type = 'button';
-      b.setAttribute('role', 'tab');
-      b.setAttribute('aria-label', slideLabel + ' ' + (i + 1));
-      b.addEventListener('click', function () { go(i); });
-      dotsRoot.appendChild(b);
-    });
-    function go(n) {
-      idx = n % slides.length;
-      track.style.transform = 'translateX(-' + (idx * 100) + '%)';
-      dotsRoot.querySelectorAll('button').forEach(function (btn, j) {
-        btn.classList.toggle('is-on', j === idx);
-        btn.setAttribute('aria-selected', j === idx ? 'true' : 'false');
+      b.className = 'hm-carousel-dot' + (i === 0 ? ' is-on' : '');
+      b.setAttribute('data-idx', String(i));
+      b.setAttribute('aria-label', ((window.TF_I18N && window.TF_I18N.slide) || 'Diapositiva') + ' ' + (i + 1));
+      b.addEventListener('click', function () {
+        idx = parseInt(this.getAttribute('data-idx'), 10) || 0;
+        update();
+        resetAuto();
       });
-    }
-    go(0);
-    if (!reduced && slides.length > 1) {
-      setInterval(function () { go(idx + 1); }, 5500);
+      dotsRoot.appendChild(b);
     }
   }
 
-  if (!reduced) {
-    var obs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) e.target.classList.add('visible');
+  function update() {
+    perView = perViewNow();
+    if (idx > maxIdx()) idx = 0;
+    var slideW = slides[0] ? slides[0].offsetWidth + 24 : 0;
+    track.style.transform = 'translateX(-' + (idx * slideW) + 'px)';
+    if (dotsRoot) {
+      dotsRoot.querySelectorAll('.hm-carousel-dot').forEach(function (d, i) {
+        d.classList.toggle('is-on', i === idx);
       });
-    }, { threshold: 0.12 });
-    document.querySelectorAll('.reveal, .reveal-right').forEach(function (el) { obs.observe(el); });
-  } else {
-    document.querySelectorAll('.reveal, .reveal-right').forEach(function (el) { el.classList.add('visible'); });
+    }
   }
-});
+
+  function resetAuto() {
+    if (timer) clearInterval(timer);
+    if (reduced || slides.length <= perViewNow()) return;
+    timer = setInterval(function () {
+      if (paused) return;
+      idx = idx >= maxIdx() ? 0 : idx + 1;
+      update();
+    }, 4500);
+  }
+
+  var wrap = document.getElementById('hm-emp-carousel');
+  if (wrap) {
+    wrap.addEventListener('mouseenter', function () { paused = true; });
+    wrap.addEventListener('mouseleave', function () { paused = false; });
+  }
+
+  buildDots();
+  update();
+  resetAuto();
+  window.addEventListener('resize', function () { buildDots(); update(); });
+})();
 </script>
 {% endblock %}
