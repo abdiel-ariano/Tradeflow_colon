@@ -727,7 +727,7 @@ show_cart_actions, tienda_params.
       {% endif %}
       {% if show_spotlights and spotlight_bestsellers %}
       <section class="td-spotlight" aria-labelledby="td-spot-best">
-        <div class="td-spot-head"><h2 id="td-spot-best">{% trans "Más vendidos en la ZLC" %}</h2><a href="{{ tab_urls.bestsellers }}">{% trans "Ver ranking" %} →</a></div>
+        <div class="td-spot-head"><h2 id="td-spot-best">{% trans "Más vendidos en la Zona Libre de Colón" %}</h2><a href="{{ tab_urls.bestsellers }}">{% trans "Ver ranking" %} →</a></div>
         <div class="td-grid td-grid-spot">{% for producto in spotlight_bestsellers %}{% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}{% endfor %}</div>
       </section>
       {% endif %}

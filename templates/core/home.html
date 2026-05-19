@@ -7,7 +7,7 @@ Propósito: landing pública PreExpo 2026 (inversores). Contexto home_view:
 stats, featured_products, empresas_carousel, show_cart_actions.
 ================================================================================
 {% endcomment %}
-{% block title %}{% trans "TradeFlow Colón — Compra en la ZLC" %}{% endblock %}
+{% block title %}{% trans "TradeFlow Colón — Compra en la Zona Libre de Colón" %}{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 {% endblock %}
@@ -259,21 +259,26 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   }
   .hm-stat {
     text-align: center;
-    padding: 0 16px;
+    padding: 0 48px;
     border-right: 1px solid rgba(255, 255, 255, 0.15);
   }
   .hm-stat:last-child { border-right: none; }
   .hm-stat-num {
     font-family: 'DM Serif Display', serif;
-    font-size: 2.8rem;
-    color: var(--tf-orange);
+    font-size: clamp(3rem, 6vw, 4.5rem);
     font-weight: 400;
+    color: #FFFFFF !important;
     line-height: 1;
+    display: block;
+  }
+  .hm-stat-num .hm-stat-suffix {
+    color: #F26522;
   }
   .hm-stat-lbl {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
-    margin-top: 6px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: 8px;
+    font-weight: 500;
   }
   @media (max-width: 575px) {
     .hm-stats-grid { grid-template-columns: 1fr; gap: 24px; }
@@ -778,7 +783,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
           {% trans "Zona Libre de Colón · Panamá" %}
         </p>
         <h1 class="hm-hero-h1 hero-h1 hm-hero-animate" id="hm-hero-heading">
-          {% trans "Compra en la ZLC desde cualquier lugar del" %} <span class="hm-accent">{% trans "mundo" %}</span>
+          {% trans "Compra en la Zona Libre de Colón desde cualquier lugar del" %} <span class="hm-accent">{% trans "mundo" %}</span>
         </h1>
         <p class="hm-hero-desc hero-desc hm-hero-animate">
           {% trans "Marketplace B2B y B2C con empresas verificadas, inventario en tiempo real y documentación lista para exportar desde la Zona Libre de Colón." %}
@@ -835,11 +840,11 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     </div>
   </section>
 
-  <section class="hm-stats-band" id="hm-stats-band" aria-label="{% trans 'Estadísticas ZLC' %}">
+  <section class="hm-stats-band" id="hm-stats-band" aria-label="{% trans 'Estadísticas de la Zona Libre de Colón' %}">
     <div class="hm-stats-grid">
       <div class="hm-stat reveal">
         <div class="hm-stat-num" data-count="2600" data-suffix="+">0</div>
-        <div class="hm-stat-lbl">{% trans "Empresas en la ZLC" %}</div>
+        <div class="hm-stat-lbl">{% trans "Empresas en la Zona Libre de Colón" %}</div>
       </div>
       <div class="hm-stat reveal stagger-2">
         <div class="hm-stat-num" data-count="33" data-prefix="$" data-suffix="B">0</div>
@@ -854,7 +859,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 
   <section class="hm-products" id="hm-products">
     <div class="hm-container">
-      <p class="hm-sec-label reveal">{% trans "Catálogo ZLC" %}</p>
+      <p class="hm-sec-label reveal">{% trans "Catálogo" %}</p>
       <h2 class="hm-sec-title reveal stagger-1">{% trans "Productos destacados de la Zona Libre" %}</h2>
       <p class="hm-sec-sub reveal stagger-2">{% trans "Selección curada de proveedores verificados listos para compra o cotización." %}</p>
       <div class="hm-product-grid" id="hm-product-grid">
@@ -907,7 +912,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 
   <section class="hm-companies" id="hm-companies">
     <div class="hm-container">
-      <p class="hm-sec-label reveal">{% trans "Empresas de la ZLC" %}</p>
+      <p class="hm-sec-label reveal">{% trans "Empresas de la Zona Libre de Colón" %}</p>
       <h2 class="hm-sec-title reveal stagger-1">{% trans "Conectamos compradores con las mejores empresas de la Zona Libre" %}</h2>
       <div class="hm-carousel-wrap reveal stagger-2" id="hm-emp-carousel">
         <div class="hm-carousel-track" id="hm-emp-track">
@@ -945,7 +950,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
         <article class="hm-feat reveal stagger-1">
           <div class="hm-feat-ico" style="background:rgba(15,42,68,0.08);"><span class="material-symbols-rounded" style="color:var(--tf-navy);">travel_explore</span></div>
           <h3>{% trans "Compra sin viajar" %}</h3>
-          <p>{% trans "Accede al catálogo ZLC desde cualquier país sin mover mercancía hasta confirmar." %}</p>
+          <p>{% trans "Accede al catálogo de la Zona Libre de Colón desde cualquier país sin mover mercancía hasta confirmar." %}</p>
         </article>
         <article class="hm-feat reveal stagger-2">
           <div class="hm-feat-ico" style="background:rgba(242,101,34,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-orange);">inventory_2</span></div>
@@ -965,7 +970,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
         <article class="hm-feat reveal stagger-5">
           <div class="hm-feat-ico" style="background:rgba(242,101,34,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-orange);">qr_code_scanner</span></div>
           <h3>{% trans "Pre-registro QR" %}</h3>
-          <p>{% trans "Visitantes ZLC con verificación rápida para networking PreExpo." %}</p>
+          <p>{% trans "Visitantes de la Zona Libre de Colón con verificación rápida para networking PreExpo." %}</p>
         </article>
         <article class="hm-feat reveal stagger-6">
           <div class="hm-feat-ico" style="background:rgba(15,42,68,0.08);"><span class="material-symbols-rounded" style="color:var(--tf-navy);">analytics</span></div>
@@ -993,7 +998,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
           <div class="hm-step-num">2</div>
           <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">search</span>
           <h3>{% trans "Explora el catálogo" %}</h3>
-          <p>{% trans "Miles de productos de empresas verificadas de la ZLC" %}</p>
+          <p>{% trans "Miles de productos de empresas verificadas de la Zona Libre de Colón" %}</p>
         </div>
         <div class="hm-step reveal stagger-3">
           <div class="hm-step-num">3</div>
@@ -1014,7 +1019,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   <section class="hm-cta" id="hm-cta">
     <div class="hm-container">
       <h2 class="hm-cta-title reveal" id="hm-cta-title">
-        {% trans "Empieza hoy en la" %} <span class="hm-accent">ZLC</span>
+        {% trans "Empieza hoy en la" %} <span class="hm-accent">{% trans "Zona Libre de Colón" %}</span>
       </h2>
       <p class="hm-cta-desc reveal stagger-1">{% trans "Únete a TradeFlow Colón — la plataforma lista para PreExpo 2026 e inversores internacionales." %}</p>
       <div class="hm-cta-btns reveal stagger-2">
@@ -1087,7 +1092,13 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 
   function countUp(el, target, duration, prefix, suffix) {
     if (reduced) {
-      el.textContent = (prefix || '') + target.toLocaleString() + (suffix || '');
+      var suf0 = suffix || '';
+      if (suf0) {
+        el.innerHTML = (prefix || '') + target.toLocaleString() +
+          '<span class="hm-stat-suffix">' + suf0 + '</span>';
+      } else {
+        el.textContent = (prefix || '') + target.toLocaleString();
+      }
       return;
     }
     var start = 0;
@@ -1098,7 +1109,13 @@ stats, featured_products, empresas_carousel, show_cart_actions.
         start = target;
         clearInterval(timer);
       }
-      el.textContent = (prefix || '') + Math.floor(start).toLocaleString() + (suffix || '');
+      var num = Math.floor(start).toLocaleString();
+      var suf = suffix || '';
+      if (suf) {
+        el.innerHTML = (prefix || '') + num + '<span class="hm-stat-suffix">' + suf + '</span>';
+      } else {
+        el.textContent = (prefix || '') + num;
+      }
     }, 16);
   }
 
