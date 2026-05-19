@@ -927,7 +927,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
                 {% trans "Verificada" %}
               </span>
               {% endif %}
-              <p class="hm-emp-count">{% blocktrans count n=emp.num_productos %}{{ n }} producto{% plural %}{{ n }} productos{% endblocktrans %}</p>
+              <p class="hm-emp-count">{% blocktrans count counter=emp.num_productos %}{{ counter }} producto{% plural %}{{ counter }} productos{% endblocktrans %}</p>
               <a href="{% url 'tienda' %}?empresa={{ emp.pk }}" class="hm-emp-btn">{% trans "Ver catálogo" %}</a>
             </article>
           </div>
