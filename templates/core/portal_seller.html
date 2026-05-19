@@ -184,7 +184,7 @@ Contexto: vista portal_seller; sin barra lateral duplicada; badges de estado ví
   <div class="seller-main">
     <header class="ps-dash-header">
       <div>
-        <h1 class="ps-dash-greet">{% blocktrans with name=request.user.first_name|default:request.user.username %}Bienvenida, {{ name }}{% endblocktrans %}</h1>
+        <h1 class="ps-dash-greet">{% blocktrans with name=request.user.get_full_name|default:request.user.username %}Bienvenida, {{ name }}{% endblocktrans %}</h1>
         <p class="ps-dash-company">{{ company.name }}</p>
       </div>
       <a href="{% url 'seller_agregar_producto' %}" class="ps-dash-new">
@@ -236,6 +236,33 @@ Contexto: vista portal_seller; sin barra lateral duplicada; badges de estado ví
       </div>
     </div>
 
+    {% if not ordenes_recientes %}
+    <div class="ps-quick-grid" style="margin-bottom:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+      <div class="ps-quick-card" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:24px;text-align:center;transition:all 0.25s ease;">
+        <span class="material-symbols-rounded" style="font-size:40px;color:#F26522;display:block;margin:0 auto 12px;">add_circle</span>
+        <h3 style="font-size:16px;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "Agrega productos" %}</h3>
+        <p style="font-size:13px;color:#6B7A88;margin:0 0 16px;line-height:1.5;">{% trans "Publica tu catálogo en la Zona Libre de Colón" %}</p>
+        <a href="{% url 'seller_agregar_producto' %}" style="display:inline-flex;align-items:center;gap:6px;background:#F26522;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">{% trans "Nuevo producto" %}</a>
+      </div>
+      <div class="ps-quick-card" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:24px;text-align:center;transition:all 0.25s ease;">
+        <span class="material-symbols-rounded" style="font-size:40px;color:#0F2A44;display:block;margin:0 auto 12px;">storefront</span>
+        <h3 style="font-size:16px;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "Tu catálogo" %}</h3>
+        <p style="font-size:13px;color:#6B7A88;margin:0 0 16px;line-height:1.5;">{% trans "Gestiona tus productos e inventario" %}</p>
+        <a href="{% url 'seller_mis_productos' %}" style="display:inline-flex;align-items:center;gap:6px;background:#0F2A44;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">{% trans "Ver productos" %}</a>
+      </div>
+      <div class="ps-quick-card" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:24px;text-align:center;transition:all 0.25s ease;">
+        <span class="material-symbols-rounded" style="font-size:40px;color:#2E5B8A;display:block;margin:0 auto 12px;">request_quote</span>
+        <h3 style="font-size:16px;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "Cotizaciones" %}</h3>
+        <p style="font-size:13px;color:#6B7A88;margin:0 0 16px;line-height:1.5;">{% trans "Responde solicitudes de compradores" %}</p>
+        <a href="{% url 'seller_cotizaciones' %}" style="display:inline-flex;align-items:center;gap:6px;background:#2E5B8A;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">{% trans "Ver cotizaciones" %}</a>
+      </div>
+    </div>
+    <style>
+      @media (max-width: 900px) { .ps-quick-grid { grid-template-columns: 1fr !important; } }
+      .ps-quick-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(15,42,68,0.1); border-color: #F26522 !important; }
+    </style>
+    {% endif %}
+
     <div class="ps-sales-wrap">
       <div class="ps-sales-head">
         <h2>Últimas ventas</h2>
@@ -273,7 +300,19 @@ Contexto: vista portal_seller; sin barra lateral duplicada; badges de estado ví
         </tbody>
       </table>
       {% else %}
-      <p style="padding:1.25rem 20px;color:#6b7a88;margin:0;">No hay ventas aún.</p>
+      <div style="padding:48px 24px;text-align:center;">
+        <div style="width:72px;height:72px;border-radius:50%;background:#F2F3F5;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+          <span class="material-symbols-rounded" style="font-size:36px;color:#D1D5DB;" aria-hidden="true">receipt_long</span>
+        </div>
+        <h3 style="font-size:16px;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "Aún no tienes ventas" %}</h3>
+        <p style="font-size:13px;color:#6B7A88;max-width:280px;margin:0 auto 20px;line-height:1.6;">
+          {% trans "Cuando los compradores adquieran tus productos, tus ventas aparecerán aquí." %}
+        </p>
+        <a href="{% url 'seller_mis_productos' %}" style="display:inline-flex;align-items:center;gap:6px;background:#F26522;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+          <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">inventory_2</span>
+          {% trans "Ver mis productos" %}
+        </a>
+      </div>
       {% endif %}
     </div>
   </div>

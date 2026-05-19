@@ -18,11 +18,11 @@ msgstr ""
 
 #: core/context_processors.py:48 templates/core/base.html:1106
 msgid "Cerrar"
-msgstr ""
+msgstr "Close"
 
 #: core/context_processors.py:49 templates/core/base.html:1001
 msgid "Carrito"
-msgstr "Add to cart"
+msgstr "Cart"
 
 #: core/context_processors.py:50
 msgid "Diapositiva"
@@ -34,11 +34,11 @@ msgstr "\"%(name)s\" added to cart."
 
 #: core/context_processors.py:52
 msgid "No se pudo agregar al carrito"
-msgstr "\"%(name)s\" added to cart."
+msgstr "Could not add to product cart."
 
 #: core/context_processors.py:53
 msgid "Error de conexión"
-msgstr ""
+msgstr "Connection error"
 
 #: core/context_processors.py:54 core/context_processors.py:58
 #: templates/core/admin_rail.html:21 templates/core/admin_rail.html:23
@@ -296,13 +296,13 @@ msgstr "Quotes"
 
 #: templates/core/base.html:1018
 msgid "Salir"
-msgstr "Sign Out"
+msgstr "Sign out"
 
 #: templates/core/base.html:1021 templates/core/base.html:1153
 #: templates/core/home.html:207 templates/core/login.html:159
 #: templates/core/signup.html:135
 msgid "Iniciar sesión"
-msgstr "Log in"
+msgstr "Sign in"
 
 #: templates/core/base.html:1022 templates/core/base.html:1152
 #: templates/core/home.html:206 templates/core/signup.html:130
@@ -343,7 +343,7 @@ msgstr "Contact"
 
 #: templates/core/base.html:1168
 msgid "Zona Libre de Colón"
-msgstr "Colón Free Zone"
+msgstr "Colón Free Trade Zone"
 
 #: templates/core/base.html:1169
 msgid "Panamá"
@@ -422,7 +422,7 @@ msgstr "Go to store"
 
 #: templates/core/checkout.html:7 templates/core/checkout.html:49
 msgid "Confirmar pedido"
-msgstr "Confirm Order"
+msgstr "Confirm order"
 
 #: templates/core/checkout.html:57
 msgid ""
@@ -512,7 +512,7 @@ msgstr "TradeFlow Colón — Buy, manage, export"
 #: templates/core/home.html:24 templates/core/login.html:129
 #: templates/core/signup.html:75
 msgid "Zona Libre de Colón · Panamá"
-msgstr "Colón Free Zone · Panama"
+msgstr "Colón Free Trade Zone · Panama"
 
 #: templates/core/home.html:26
 msgid ""
@@ -784,7 +784,7 @@ msgstr "Last name"
 
 #: templates/core/mi_perfil.html:260 templates/core/signup.html:108
 msgid "Correo electrónico"
-msgstr "Email"
+msgstr "Email address"
 
 #: templates/core/mi_perfil.html:265 templates/core/signup.html:116
 msgid "Teléfono"
@@ -836,7 +836,7 @@ msgstr "Active products in catalog"
 
 #: templates/core/mi_perfil.html:338
 msgid "Ver mis productos"
-msgstr "View products"
+msgstr "View my products"
 
 #: templates/core/mi_perfil.html:344
 msgid "Usuarios registrados"

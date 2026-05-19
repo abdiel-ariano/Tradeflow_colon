@@ -17,12 +17,15 @@
   }
 
   function updateCartBadge(count) {
-    var badge = document.getElementById('tf-nav-cart-badge');
     var n = parseInt(count, 10) || 0;
-    if (!badge) return;
-    badge.textContent = String(n);
-    if (n > 0) badge.classList.add('has-count');
-    else badge.classList.remove('has-count');
+    document.querySelectorAll(
+      '#tf-nav-cart-badge, .tf-cart-badge, #td-hero-cart-badge, [data-cart-badge]'
+    ).forEach(function (badge) {
+      badge.textContent = String(n);
+      badge.classList.toggle('is-empty', n < 1);
+      if (n > 0) badge.classList.add('has-count');
+      else badge.classList.remove('has-count');
+    });
     var meta = document.getElementById('tf-nav-meta');
     if (meta) meta.setAttribute('data-cart-count', String(n));
   }

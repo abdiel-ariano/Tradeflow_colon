@@ -959,34 +959,29 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   <nav class="tf-nav tf-navbar" aria-label="Principal">
     <a href="{% url 'home' %}" class="tf-nav-brand">
-      <img src="{% static 'img/logo.png' %}" width="36" height="36" alt="">
+      <img src="{% static 'img/logo-white.svg' %}" width="36" height="36" alt="TradeFlow Colón" style="height:36px;width:auto;object-fit:contain;">
       <div>
         <div class="brand-wordmark">TradeFlow</div>
-        <div class="brand-sub">Zona Libre de Colón</div>
+        <div class="brand-sub">{% trans "Zona Libre de Colón · Panamá" %}</div>
       </div>
     </a>
 
     <div class="tf-nav-links">
       <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>{% trans "Mapa" %}</a>
-      <div
-        class="tf-lang-switch"
-        id="tf-lang-root"
-        data-current-lang="{{ CURRENT_LANGUAGE }}"
-      >
-        <form action="{% url 'set_language' %}" method="post" id="language-form" style="display:inline-flex;align-items:center;gap:4px;margin:0;">
-          {% csrf_token %}
-          <input type="hidden" name="next" id="language-next" value="{{ request.path }}">
-          <button type="submit" name="language" value="es" id="btn-es"
-                  style="padding:4px 10px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:rgba(255,255,255,0.8);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;">
+      <form action="{% url 'set_language' %}" method="post" id="tf-lang-form" style="margin:0;">
+        {% csrf_token %}
+        <input type="hidden" name="next" id="tf-lang-next" value="">
+        <div style="display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:8px;padding:3px;">
+          <button type="submit" name="language" value="es" id="btn-lang-es"
+                  style="padding:4px 10px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;background:transparent;color:rgba(255,255,255,0.7);transition:all 0.2s;">
             ES
           </button>
-          <span class="tf-lang-sep">|</span>
-          <button type="submit" name="language" value="en" id="btn-en"
-                  style="padding:4px 10px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:rgba(255,255,255,0.8);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;">
+          <button type="submit" name="language" value="en" id="btn-lang-en"
+                  style="padding:4px 10px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;background:transparent;color:rgba(255,255,255,0.7);transition:all 0.2s;">
             EN
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
       {% if request.user.is_authenticated %}
         <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
           <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>{% trans "Dashboard" %}</a>
@@ -1013,7 +1008,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
         <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
           <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
-          <span class="tf-nav-user-name" style="color:rgba(255,255,255,0.8);font-size:13px;">{{ request.user.first_name|default:request.user.username }}</span>
+          <span class="tf-nav-user-name" style="color:rgba(255,255,255,0.8);font-size:13px;">{{ request.user.get_full_name|default:request.user.username }}</span>
         </a>
         <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
           <span class="material-symbols-rounded tf-ms-18">logout</span>{% trans "Salir" %}
@@ -1027,32 +1022,16 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   <script>
   (function () {
-    var lang = document.documentElement.lang || 'es';
-    var activeBtn = document.getElementById('btn-' + lang);
+    var currentLang = document.documentElement.lang || 'es';
+    var activeBtn = document.getElementById('btn-lang-' + currentLang);
     if (activeBtn) {
       activeBtn.style.background = '#F26522';
-      activeBtn.style.borderColor = '#F26522';
       activeBtn.style.color = '#fff';
     }
-    var nextInput = document.getElementById('language-next');
-    var langForm = document.getElementById('language-form');
-    function buildNextForLang(targetLang) {
-      var path = window.location.pathname.replace(/^\/(en|es)(\/|$)/, '/');
-      if (path.charAt(0) !== '/') path = '/' + path;
-      var search = window.location.search || '';
-      if (targetLang === 'en') {
-        return (path === '/' ? '/en/' : '/en' + path) + search;
-      }
-      return path + search;
-    }
-    if (nextInput && langForm) {
-      nextInput.value = buildNextForLang(lang);
-      langForm.querySelectorAll('button[name="language"]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          nextInput.value = buildNextForLang(btn.value);
-        });
-      });
-    }
+    var path = window.location.pathname.replace(/^\/(en|es)(\/|$)/, '/');
+    if (!path) path = '/';
+    var nextEl = document.getElementById('tf-lang-next');
+    if (nextEl) nextEl.value = path + (window.location.search || '');
 
     var meta = document.getElementById('tf-nav-meta');
     var navActive = meta ? (meta.getAttribute('data-nav-active') || '') : '';
@@ -1201,15 +1180,15 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           <span class="material-symbols-rounded" style="font-size:20px;">smart_toy</span>
         </div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:700;">TF Assistant</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.65);">{% trans "Asistente de TradeFlow ZLC" %}</div>
+          <div style="font-size:14px;font-weight:700;">{% trans "Asistente TradeFlow" %}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.65);">{% trans "Asistente virtual de la Zona Libre" %}</div>
         </div>
         <button type="button" id="tf-chat-close" aria-label="{% trans 'Cerrar' %}" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:0;display:flex;">
           <span class="material-symbols-rounded">close</span>
         </button>
       </div>
       <div id="tf-chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#F9FAFB;">
-        <div class="tf-msg-bot" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px 12px 12px 0;padding:10px 14px;max-width:85%;font-size:13px;color:#374151;line-height:1.55;align-self:flex-start;">
+        <div class="tf-msg-bot" id="tf-chat-welcome" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px 12px 12px 0;padding:10px 14px;max-width:85%;font-size:13px;color:#374151;line-height:1.55;align-self:flex-start;">
           {% trans "¡Hola! Soy el asistente de TradeFlow Colón. ¿En qué puedo ayudarte hoy?" %}
         </div>
       </div>
@@ -1307,6 +1286,14 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') sendChatMessage();
       });
+    }
+
+    var welcomeEl = document.getElementById('tf-chat-welcome');
+    if (welcomeEl) {
+      var pageLang = document.documentElement.lang || 'es';
+      welcomeEl.textContent = pageLang === 'en'
+        ? "Hi! I'm the TradeFlow Colón assistant. How can I help you today?"
+        : '{% trans "¡Hola! Soy el asistente de TradeFlow Colón. ¿En qué puedo ayudarte hoy?" %}';
     }
   })();
   </script>

@@ -406,6 +406,10 @@ def signup_view(request):
         signup_ctx = {
             'role_choices': [('buyer', 'Comprador'), ('seller', 'Vendedor')],
             'selected_role': role if role in ('buyer', 'seller') else 'buyer',
+            'form_first_name': request.POST.get('first_name', '').strip(),
+            'form_last_name': request.POST.get('last_name', '').strip(),
+            'form_email': email,
+            'form_phone': phone,
         }
 
         if not all([first_name, username, email, password1, password2]):
@@ -511,7 +515,11 @@ def signup_view(request):
 
     return render(request, 'core/signup.html', {
         'role_choices': [('buyer', 'Comprador'), ('seller', 'Vendedor')],
-        'selected_role': request.POST.get('role', 'buyer'),
+        'selected_role': 'buyer',
+        'form_first_name': '',
+        'form_last_name': '',
+        'form_email': '',
+        'form_phone': '',
     })
 
 
@@ -708,16 +716,36 @@ def home_view(request):
             'products': merch.resolve_section_products(section),
         })
 
+    featured_qs = merch.active_products_base().filter(is_featured=True).select_related(
+        'company', 'category',
+    ).order_by('-merchandising_priority', '-created_at')[:6]
+    if not featured_qs.exists():
+        featured_qs = merch.active_products_base().select_related(
+            'company', 'category',
+        ).order_by('-created_at')[:6]
+
+    bestsellers_list = merch.bestsellers(6)
+    if not bestsellers_list:
+        bestsellers_list = list(featured_qs[:6])
+
+    empresas_home = list(
+        Company.objects.filter(products__is_active=True)
+        .distinct()
+        .order_by('name')[:8]
+    )
+    if not empresas_home:
+        empresas_home = merch.featured_companies_carousel(8)
+
     return render(
         request,
         'core/home.html',
         {
             'stats': merch.home_stats(),
             'daily_deals': merch.daily_deals(8),
-            'bestsellers': merch.bestsellers(8),
-            'featured_products': merch.featured_products(8),
+            'bestsellers': bestsellers_list,
+            'featured_products': list(featured_qs),
             'carousel_products': merch.carousel_products(12),
-            'empresas_carousel': merch.featured_companies_carousel(10),
+            'empresas_carousel': empresas_home,
             'category_spotlights': merch.category_spotlights(4, 4),
             'promo_sections': promo_sections,
             'show_cart_actions': False,
@@ -2185,14 +2213,27 @@ def tienda(request):
     elif tab_catalogo == 'destacados':
         productos = productos.filter(is_featured=True)
 
-    if orden == 'precio_asc':
-        productos = productos.order_by('unit_price')
-    elif orden == 'precio_desc':
-        productos = productos.order_by('-unit_price')
-    elif orden == 'novedades':
-        productos = productos.order_by('-created_at')
-    else:
-        productos = productos.order_by('name')
+    from django.db.models import Case, When, DecimalField, F
+
+    productos = productos.annotate(
+        sort_price=Case(
+            When(
+                promo_price__isnull=False,
+                promo_price__lt=F('unit_price'),
+                then=F('promo_price'),
+            ),
+            default=F('unit_price'),
+            output_field=DecimalField(max_digits=12, decimal_places=2),
+        ),
+    )
+    orden_map = {
+        'precio_asc': 'sort_price',
+        'precio_desc': '-sort_price',
+        'nombre': 'name',
+        'novedades': '-created_at',
+    }
+    orden_key = orden if orden in orden_map else 'nombre'
+    productos = productos.order_by(orden_map[orden_key])
 
     promo_banner = merch.active_home_sections()
     promo_banner = next(

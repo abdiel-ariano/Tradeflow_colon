@@ -66,10 +66,16 @@ def bestsellers(limit: int = 8, days: int = 30):
 
 
 def featured_products(limit: int = 8):
-    return list(
+    """Destacados con fallback a productos activos recientes."""
+    qs = (
         active_products_base()
         .filter(is_featured=True)
         .order_by('-merchandising_priority', '-created_at')[:limit]
+    )
+    if qs.exists():
+        return list(qs)
+    return list(
+        active_products_base().order_by('-created_at')[:limit]
     )
 
 

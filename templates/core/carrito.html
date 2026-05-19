@@ -38,12 +38,26 @@
   .c-sum h2 { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8125rem; color: #6B7A88; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 1rem; }
   .c-row { display: flex; justify-content: space-between; font-size: 0.875rem; color: #374151; margin-bottom: 8px; }
   .c-total { display: flex; justify-content: space-between; border-top: 1px solid #D1D5DB; padding-top: 12px; margin-top: 12px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.05rem; color: #0F2A44; }
-  .c-checkout {
-    width: 100%; margin-top: 1rem; padding: 12px 16px; border: none; border-radius: 8px; background: #F26522; color: #fff;
-    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.9375rem; text-align: center; text-decoration: none;
-    display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease;
+  .c-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
   }
-  .c-checkout:hover { background: #FF7A3D; color: #fff; box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3); }
+  .c-checkout {
+    width: 100%; padding: 13px 20px; border: none; border-radius: 10px; background: #F26522; color: #fff;
+    font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 15px; text-align: center; text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s ease;
+    box-sizing: border-box;
+  }
+  .c-checkout:hover { background: #FF7A3D; color: #fff; }
+  .c-continue {
+    width: 100%; padding: 11px 20px; border-radius: 10px; background: transparent; color: #0F2A44;
+    font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 14px; text-align: center; text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1.5px solid #D1D5DB; transition: all 0.2s ease; box-sizing: border-box;
+  }
+  .c-continue:hover { border-color: #F26522; color: #F26522; }
   .c-empty { text-align: center; padding: 3rem 1rem; }
   .c-qty { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.8125rem; color: #6B7A88; }
   .c-qty span { font-weight: 600; color: #0F2A44; }
@@ -75,8 +89,16 @@
       <div class="c-row"><span>{% trans "Subtotal" %}</span><span>USD {{ total }}</span></div>
       <div class="c-row"><span>{% trans "Envío" %}</span><span>{% trans "Al confirmar" %}</span></div>
       <div class="c-total"><span>{% trans "Total" %}</span><span>USD {{ total }}</span></div>
-      <a href="{% url 'checkout' %}" class="c-checkout"><span class="material-symbols-rounded" style="font-size:18px;">payments</span> {% trans "Ir al checkout" %}</a>
-      <a href="{% url 'tienda' %}" class="tf-btn-secondary" style="width:100%;justify-content:center;margin-top:10px;padding:10px;">{% trans "Seguir comprando" %}</a>
+      <div class="c-actions">
+        <a href="{% url 'checkout' %}" class="c-checkout">
+          <span class="material-symbols-rounded" style="font-size:20px;" aria-hidden="true">shopping_bag</span>
+          {% trans "Confirmar pedido" %}
+        </a>
+        <a href="{% url 'tienda' %}" class="c-continue">
+          <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">arrow_back</span>
+          {% trans "Seguir comprando" %}
+        </a>
+      </div>
     </aside>
   </div>
   {% else %}
