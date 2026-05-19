@@ -54,8 +54,10 @@
       }, 280);
     }
     if (closeBtn) closeBtn.addEventListener('click', remove);
-    setTimeout(remove, 4200);
+    setTimeout(remove, 2000);
   }
+
+  window.tfCartAjaxInit = bindCartForms;
 
   function bindCartForms() {
     document.querySelectorAll('form.js-cart-add-form').forEach(function (form) {
@@ -93,7 +95,11 @@
             if (data.carrito_count !== undefined) {
               updateCartBadge(data.carrito_count);
             }
-            showToast(data.message, data.level || 'success');
+            var msg = data.message || '';
+            if (msg.length > 48) {
+              msg = (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Agregado al carrito';
+            }
+            showToast(msg, data.level || 'success');
             if (btn) {
               btn.classList.add('is-added');
               setTimeout(function () {

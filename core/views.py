@@ -2348,6 +2348,12 @@ def tienda(request):
         'spotlight_bestsellers': spotlight_bestsellers,
         'spotlight_destacados': spotlight_destacados,
     }
+    is_partial = (
+        request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        or request.GET.get('partial') == '1'
+    )
+    if is_partial:
+        return render(request, 'core/tienda_catalog_partial.html', context)
     return render(request, 'core/tienda.html', context)
 
 

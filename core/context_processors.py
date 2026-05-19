@@ -49,6 +49,7 @@ def tf_i18n(request):
         'cartTitle': _('Carrito'),
         'slide': _('Diapositiva'),
         'addedToCart': _('Producto agregado al carrito'),
+        'cartAddedShort': _('Agregado al carrito'),
         'cartError': _('No se pudo agregar al carrito'),
         'networkError': _('Error de conexión'),
         'orders': _('Órdenes'),

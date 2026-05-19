@@ -276,6 +276,21 @@ show_cart_actions, tienda_params.
   }
 
   .td-main { min-width: 0; }
+  #td-catalog-root {
+    position: relative;
+    transition: opacity 0.2s ease;
+  }
+  #td-catalog-root.is-loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  #td-catalog-root.is-loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(242, 243, 245, 0.35);
+    border-radius: 12px;
+  }
 
   .td-toolbar {
     display: flex;
@@ -620,8 +635,8 @@ show_cart_actions, tienda_params.
             <span class="material-symbols-rounded" style="font-size:14px;" aria-hidden="true">storefront</span>
             {% trans "Zona Libre de Colón" %}
           </span>
-          <h1 class="td-hero-h1">{% trans "Tu catálogo B2B en TradeFlow" %}</h1>
-          <p class="td-hero-desc">{% trans "Explora ofertas, empresas verificadas y productos destacados. Filtra por categoría o agrega al carrito en un clic." %}</p>
+          <h1 class="td-hero-h1">{% trans "Compra en la Zona Libre de Colón" %}</h1>
+          <p class="td-hero-desc">{% trans "Explora ofertas, empresas verificadas y miles de productos. Filtra por categoría o agrega al carrito en un clic." %}</p>
         </div>
         <a href="{% url 'ver_carrito' %}" class="td-hero-cart">
           <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">shopping_cart</span>
@@ -738,6 +753,13 @@ show_cart_actions, tienda_params.
       </section>
       {% endif %}
 
+      <div id="td-catalog-root"
+           data-cat-active="{{ cat_activa|escapejs }}"
+           data-empresa-active="{{ empresa_activa|escapejs }}"
+           data-orden-active="{{ orden_activo|escapejs }}"
+           data-buscar-active="{{ buscar|escapejs }}"
+           data-tab-active="{{ tab_catalogo|escapejs }}"
+           data-cur-page="{{ productos.number }}">
       <div class="td-results-hdr">
         <div>
           <h1 id="td-results-title">
@@ -768,24 +790,26 @@ show_cart_actions, tienda_params.
       {% if productos.has_other_pages %}
       <nav class="td-pag" id="td-pag" aria-label="{% trans 'Paginación' %}">
         {% if productos.has_previous %}
-        <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}">{% trans "Anterior" %}</a>
+        <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}" class="td-pag-ajax">{% trans "Anterior" %}</a>
         {% endif %}
         {% for num in productos.paginator.page_range %}
         <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ num }}"
-           class="td-pag-link"
+           class="td-pag-link td-pag-ajax"
            data-page="{{ num }}">{{ num }}</a>
         {% endfor %}
         {% if productos.has_next %}
-        <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}">{% trans "Siguiente" %}</a>
+        <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}" class="td-pag-ajax">{% trans "Siguiente" %}</a>
         {% endif %}
       </nav>
       {% endif %}
+      </div>
     </div>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/tienda_filters.js' %}"></script>
 <script>
 (function () {
   'use strict';
@@ -815,18 +839,6 @@ show_cart_actions, tienda_params.
   var inputBuscar = document.getElementById('input-buscar');
   if (inputBuscar && buscarActual) {
     inputBuscar.value = buscarActual;
-  }
-
-  var form = document.getElementById('filtros-form');
-  if (form) {
-    ['select-categoria', 'select-empresa', 'select-orden'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('change', function () {
-          form.submit();
-        });
-      }
-    });
   }
 
   var btnLimpiar = document.getElementById('btn-limpiar');

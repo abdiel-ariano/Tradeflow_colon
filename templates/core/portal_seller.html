@@ -1,125 +1,183 @@
 {% extends "core/base.html" %}
 {% load static i18n %}
 {% comment %}
-================================================================================
-templates/core/portal_seller.html — TradeFlow Colón
-Propósito: panel principal del vendedor (KPIs en cards y últimas ventas).
-Contexto: vista portal_seller; sin barra lateral duplicada; badges de estado vía JS.
-================================================================================
+portal_seller.html — Panel vendedor TradeFlow Colón (rediseño 2026).
+Contexto: company, total_productos, bajo_stock, ordenes_semana, ingresos_mes, ordenes_recientes.
 {% endcomment %}
-{% block title %}Mi panel — {{ company.name }}{% endblock %}
+{% block title %}{% trans "Mi panel" %} — {{ company.name }}{% endblock %}
 {% block extra_css %}
 <style>
-  .ps-dash-header {
+  .ps-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 48px;
+  }
+  .ps-hero {
+    background: linear-gradient(125deg, #0F2A44 0%, #1B3B63 55%, #163352 100%);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin: 24px 0 28px;
+    color: #fff;
     display: flex;
-    align-items: flex-start;
     justify-content: space-between;
+    align-items: flex-start;
     gap: 20px;
     flex-wrap: wrap;
-    margin-bottom: 32px;
   }
-  .ps-dash-greet {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 28px;
-    color: #0f2a44;
-    margin: 0 0 6px;
-    line-height: 1.2;
-  }
-  .ps-dash-company {
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    color: #6b7a88;
-    margin: 0;
-  }
-  .ps-dash-new {
+  .ps-hero-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    background: #f26522;
-    color: #ffffff;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #F26522;
+    background: rgba(242, 101, 34, 0.15);
+    border: 1px solid rgba(242, 101, 34, 0.35);
+    border-radius: 20px;
+    padding: 5px 12px;
+    margin-bottom: 10px;
+  }
+  .ps-hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    margin: 0 0 6px;
+    font-weight: 400;
+  }
+  .ps-hero-sub {
+    margin: 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .ps-hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #F26522;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
     text-decoration: none;
-    transition: background 0.2s ease, box-shadow 0.2s ease;
+    transition: background 0.2s ease;
     white-space: nowrap;
   }
-  .ps-dash-new:hover {
-    background: #ff7a3d;
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3);
-  }
-  .ps-metric-grid {
+  .ps-hero-cta:hover { background: #FF7A3D; color: #fff; }
+  .ps-kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
   }
-  @media (max-width: 991px) {
-    .ps-metric-grid { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 991px) { .ps-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 575px) { .ps-kpi-grid { grid-template-columns: 1fr; } }
+  .ps-kpi {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 4px 16px rgba(15, 42, 68, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  @media (max-width: 575px) {
-    .ps-metric-grid { grid-template-columns: 1fr; }
+  .ps-kpi:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(15, 42, 68, 0.1);
   }
-  .ps-metric-card {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #d1d5db;
-    padding: 20px 24px;
-    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
-    min-width: 0;
-  }
-  .ps-metric-top {
+  .ps-kpi-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
   }
-  .ps-metric-lbl {
+  .ps-kpi-lbl {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #6b7a88;
-    display: block;
+    color: #6B7A88;
     margin-bottom: 8px;
+    display: block;
   }
-  .ps-metric-num {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 36px;
-    color: #0f2a44;
+  .ps-kpi-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.25rem;
+    color: #0F2A44;
     line-height: 1;
-    margin: 8px 0 4px;
+    margin: 0;
   }
-  .ps-metric-num.ps-ingresos {
-    font-size: 24px;
+  .ps-kpi-val.ps-money { font-size: 1.5rem; }
+  .ps-kpi-hint { font-size: 12px; color: #6B7A88; margin-top: 6px; }
+  .ps-kpi-ico {
+    font-size: 28px;
+    color: #2E5B8A;
   }
-  .ps-metric-sub {
-    font-size: 12px;
-    color: #6b7a88;
+  .ps-kpi-ico.warn { color: #F26522; }
+  .ps-actions-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6B7A88;
+    margin: 0 0 14px;
   }
-  .ps-metric-ico {
-    font-size: 22px;
-    color: #2e5b8a;
-    font-variation-settings: 'FILL' 0, 'wght' 400;
+  .ps-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
   }
-  .ps-metric-ico.ps-ico-orange { color: #f26522; }
-  .ps-sales-wrap {
+  @media (max-width: 900px) { .ps-actions { grid-template-columns: 1fr; } }
+  .ps-action-card {
     background: #fff;
-    border-radius: 12px;
-    border: 1px solid #d1d5db;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 24px 20px;
+    text-align: center;
+    transition: all 0.22s ease;
+  }
+  .ps-action-card:hover {
+    border-color: #F26522;
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(15, 42, 68, 0.1);
+  }
+  .ps-action-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0F2A44;
+    margin: 12px 0 8px;
+  }
+  .ps-action-card p {
+    font-size: 13px;
+    color: #6B7A88;
+    margin: 0 0 16px;
+    line-height: 1.5;
+  }
+  .ps-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #fff;
+  }
+  .ps-action-btn.orange { background: #F26522; }
+  .ps-action-btn.navy { background: #0F2A44; }
+  .ps-action-btn.blue { background: #2E5B8A; }
+  .ps-sales {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
     overflow: hidden;
-    margin-bottom: 24px;
-    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
+    box-shadow: 0 4px 16px rgba(15, 42, 68, 0.06);
   }
   .ps-sales-head {
-    padding: 16px 20px;
-    border-bottom: 1px solid #d1d5db;
+    padding: 18px 22px;
+    border-bottom: 1px solid #E5E7EB;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -127,171 +185,168 @@ Contexto: vista portal_seller; sin barra lateral duplicada; badges de estado ví
     flex-wrap: wrap;
   }
   .ps-sales-head h2 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #0f2a44;
     margin: 0;
-    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #0F2A44;
   }
   .ps-sales-head a {
     font-size: 13px;
-    color: #f26522;
+    font-weight: 600;
+    color: #F26522;
     text-decoration: none;
-    font-weight: 500;
-    font-family: 'Inter', sans-serif;
   }
   .ps-sales-head a:hover { text-decoration: underline; }
-  .ps-sales-table {
+  .ps-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
   }
-  .ps-sales-table thead tr { background: #f9fafb; }
-  .ps-sales-table th {
-    padding: 10px 20px;
+  .ps-table th {
+    padding: 12px 22px;
     text-align: left;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #6b7a88;
+    letter-spacing: 0.05em;
+    color: #6B7A88;
+    background: #F9FAFB;
   }
-  .ps-sales-table td {
-    padding: 14px 20px;
-    border-bottom: 1px solid #f3f4f6;
+  .ps-table td {
+    padding: 14px 22px;
+    border-bottom: 1px solid #F3F4F6;
     vertical-align: middle;
   }
-  .ps-sales-table tbody tr:hover td { background: #fafafa; }
+  .ps-table tbody tr:hover td { background: #FAFAFA; }
   .ps-ord-link {
-    font-weight: 600;
-    color: #f26522;
-    font-size: 13px;
+    font-weight: 700;
+    color: #F26522;
     text-decoration: none;
   }
-  .ps-ord-link:hover { text-decoration: underline; color: #ff7a3d; }
-  .ps-ord-num-td { color: #0f2a44; }
-  .ps-badge-ord {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 20px;
+  .ps-empty {
+    padding: 52px 24px;
+    text-align: center;
+  }
+  .ps-empty-ico {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: #F2F3F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
   }
 </style>
 {% endblock %}
 {% block content %}
-<div class="seller-layout">
-  <div class="seller-main">
-    <header class="ps-dash-header">
-      <div>
-        <h1 class="ps-dash-greet">{% blocktrans with name=request.user.get_full_name|default:request.user.username %}Bienvenida, {{ name }}{% endblocktrans %}</h1>
-        <p class="ps-dash-company">{{ company.name }}</p>
-      </div>
-      <a href="{% url 'seller_agregar_producto' %}" class="ps-dash-new">
-        <span class="material-symbols-rounded" style="font-size:18px;">add</span>
-        Nuevo producto
-      </a>
-    </header>
-
-    <div class="ps-metric-grid">
-      <div class="ps-metric-card">
-        <div class="ps-metric-top">
-          <div>
-            <span class="ps-metric-lbl">Productos activos</span>
-            <div class="ps-metric-num">{{ total_productos }}</div>
-            <div class="ps-metric-sub">En catálogo publicado</div>
-          </div>
-          <span class="material-symbols-rounded ps-metric-ico">inventory_2</span>
-        </div>
-      </div>
-      <div class="ps-metric-card">
-        <div class="ps-metric-top">
-          <div>
-            <span class="ps-metric-lbl">Stock bajo</span>
-            <div class="ps-metric-num" id="ps-m-low" data-bajo="{{ bajo_stock }}">{{ bajo_stock }}</div>
-            <div class="ps-metric-sub">Bajo umbral configurado</div>
-          </div>
-          <span class="material-symbols-rounded ps-metric-ico">warning</span>
-        </div>
-      </div>
-      <div class="ps-metric-card">
-        <div class="ps-metric-top">
-          <div>
-            <span class="ps-metric-lbl">Órdenes 7 días</span>
-            <div class="ps-metric-num">{{ ordenes_semana }}</div>
-            <div class="ps-metric-sub">Con ítems de tu empresa</div>
-          </div>
-          <span class="material-symbols-rounded ps-metric-ico ps-ico-orange">receipt_long</span>
-        </div>
-      </div>
-      <div class="ps-metric-card">
-        <div class="ps-metric-top">
-          <div>
-            <span class="ps-metric-lbl">Ingresos del mes</span>
-            <div class="ps-metric-num ps-ingresos">USD {{ ingresos_mes }}</div>
-            <div class="ps-metric-sub">Órdenes entregadas</div>
-          </div>
-          <span class="material-symbols-rounded ps-metric-ico">payments</span>
-        </div>
-      </div>
+<div class="ps-page">
+  <header class="ps-hero">
+    <div>
+      <span class="ps-hero-badge">
+        <span class="material-symbols-rounded" style="font-size:14px;" aria-hidden="true">store</span>
+        {% trans "Panel vendedor" %}
+      </span>
+      <h1>{% blocktrans with name=request.user.get_full_name|default:request.user.username %}Hola, {{ name }}{% endblocktrans %}</h1>
+      <p class="ps-hero-sub">{{ company.name }} · {% trans "Zona Libre de Colón" %}</p>
     </div>
+    <a href="{% url 'seller_agregar_producto' %}" class="ps-hero-cta">
+      <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">add</span>
+      {% trans "Nuevo producto" %}
+    </a>
+  </header>
 
-    {% if not ordenes_recientes %}
-    <div class="ps-quick-grid" style="margin-bottom:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-      <div class="ps-quick-card" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:24px;text-align:center;transition:all 0.25s ease;">
-        <span class="material-symbols-rounded" style="font-size:40px;color:#F26522;display:block;margin:0 auto 12px;">add_circle</span>
-        <h3 style="font-size:16px;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "Agrega productos" %}</h3>
-        <p style="font-size:13px;color:#6B7A88;margin:0 0 16px;line-height:1.5;">{% trans "Publica tu catálogo en la Zona Libre de Colón" %}</p>
-        <a href="{% url 'seller_agregar_producto' %}" style="display:inline-flex;align-items:center;gap:6px;background:#F26522;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">{% trans "Nuevo producto" %}</a>
+  <div class="ps-kpi-grid">
+    <article class="ps-kpi">
+      <div class="ps-kpi-top">
+        <div>
+          <span class="ps-kpi-lbl">{% trans "Productos activos" %}</span>
+          <p class="ps-kpi-val">{{ total_productos }}</p>
+          <p class="ps-kpi-hint">{% trans "En catálogo publicado" %}</p>
+        </div>
+        <span class="material-symbols-rounded ps-kpi-ico" aria-hidden="true">inventory_2</span>
       </div>
-      <div class="ps-quick-card" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:24px;text-align:center;transition:all 0.25s ease;">
-        <span class="material-symbols-rounded" style="font-size:40px;color:#0F2A44;display:block;margin:0 auto 12px;">storefront</span>
-        <h3 style="font-size:16px;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "Tu catálogo" %}</h3>
-        <p style="font-size:13px;color:#6B7A88;margin:0 0 16px;line-height:1.5;">{% trans "Gestiona tus productos e inventario" %}</p>
-        <a href="{% url 'seller_mis_productos' %}" style="display:inline-flex;align-items:center;gap:6px;background:#0F2A44;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">{% trans "Ver productos" %}</a>
+    </article>
+    <article class="ps-kpi">
+      <div class="ps-kpi-top">
+        <div>
+          <span class="ps-kpi-lbl">{% trans "Stock bajo" %}</span>
+          <p class="ps-kpi-val" id="ps-m-low" data-bajo="{{ bajo_stock }}">{{ bajo_stock }}</p>
+          <p class="ps-kpi-hint">{% trans "Revisar inventario" %}</p>
+        </div>
+        <span class="material-symbols-rounded ps-kpi-ico warn" aria-hidden="true">warning</span>
       </div>
-      <div class="ps-quick-card" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:24px;text-align:center;transition:all 0.25s ease;">
-        <span class="material-symbols-rounded" style="font-size:40px;color:#2E5B8A;display:block;margin:0 auto 12px;">request_quote</span>
-        <h3 style="font-size:16px;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "Cotizaciones" %}</h3>
-        <p style="font-size:13px;color:#6B7A88;margin:0 0 16px;line-height:1.5;">{% trans "Responde solicitudes de compradores" %}</p>
-        <a href="{% url 'seller_cotizaciones' %}" style="display:inline-flex;align-items:center;gap:6px;background:#2E5B8A;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">{% trans "Ver cotizaciones" %}</a>
+    </article>
+    <article class="ps-kpi">
+      <div class="ps-kpi-top">
+        <div>
+          <span class="ps-kpi-lbl">{% trans "Órdenes 7 días" %}</span>
+          <p class="ps-kpi-val">{{ ordenes_semana }}</p>
+          <p class="ps-kpi-hint">{% trans "Con productos tuyos" %}</p>
+        </div>
+        <span class="material-symbols-rounded ps-kpi-ico warn" aria-hidden="true">receipt_long</span>
       </div>
+    </article>
+    <article class="ps-kpi">
+      <div class="ps-kpi-top">
+        <div>
+          <span class="ps-kpi-lbl">{% trans "Ingresos del mes" %}</span>
+          <p class="ps-kpi-val ps-money">USD {{ ingresos_mes }}</p>
+          <p class="ps-kpi-hint">{% trans "Órdenes entregadas" %}</p>
+        </div>
+        <span class="material-symbols-rounded ps-kpi-ico" aria-hidden="true">payments</span>
+      </div>
+    </article>
+  </div>
+
+  <p class="ps-actions-title">{% trans "Acciones rápidas" %}</p>
+  <div class="ps-actions">
+    <article class="ps-action-card">
+      <span class="material-symbols-rounded" style="font-size:44px;color:#F26522;" aria-hidden="true">add_circle</span>
+      <h3>{% trans "Publicar producto" %}</h3>
+      <p>{% trans "Añade artículos a tu catálogo en la Zona Libre de Colón." %}</p>
+      <a href="{% url 'seller_agregar_producto' %}" class="ps-action-btn orange">{% trans "Nuevo producto" %}</a>
+    </article>
+    <article class="ps-action-card">
+      <span class="material-symbols-rounded" style="font-size:44px;color:#0F2A44;" aria-hidden="true">storefront</span>
+      <h3>{% trans "Mi catálogo" %}</h3>
+      <p>{% trans "Edita precios, stock y fotos de tus productos." %}</p>
+      <a href="{% url 'seller_mis_productos' %}" class="ps-action-btn navy">{% trans "Ver productos" %}</a>
+    </article>
+    <article class="ps-action-card">
+      <span class="material-symbols-rounded" style="font-size:44px;color:#2E5B8A;" aria-hidden="true">request_quote</span>
+      <h3>{% trans "Cotizaciones" %}</h3>
+      <p>{% trans "Responde solicitudes de compradores interesados." %}</p>
+      <a href="{% url 'seller_cotizaciones' %}" class="ps-action-btn blue">{% trans "Ver cotizaciones" %}</a>
+    </article>
+  </div>
+
+  <section class="ps-sales" aria-labelledby="ps-sales-title">
+    <div class="ps-sales-head">
+      <h2 id="ps-sales-title">{% trans "Últimas ventas" %}</h2>
+      <a href="{% url 'seller_mis_ventas' %}">{% trans "Ver todas" %}</a>
     </div>
-    <style>
-      @media (max-width: 900px) { .ps-quick-grid { grid-template-columns: 1fr !important; } }
-      .ps-quick-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(15,42,68,0.1); border-color: #F26522 !important; }
-    </style>
-    {% endif %}
-
-    <div class="ps-sales-wrap">
-      <div class="ps-sales-head">
-        <h2>Últimas ventas</h2>
-        <a href="{% url 'seller_mis_ventas' %}">Ver todas</a>
-      </div>
-      {% if ordenes_recientes %}
-      <table class="ps-sales-table">
+    {% if ordenes_recientes %}
+    <div style="overflow-x:auto;">
+      <table class="ps-table">
         <thead>
           <tr>
-            <th>Orden</th>
-            <th>Comprador</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th style="text-align:right;">Ver</th>
+            <th>{% trans "Orden" %}</th>
+            <th>{% trans "Comprador" %}</th>
+            <th>{% trans "Fecha" %}</th>
+            <th>{% trans "Estado" %}</th>
+            <th style="text-align:right;">{% trans "Detalle" %}</th>
           </tr>
         </thead>
         <tbody>
           {% for o in ordenes_recientes %}
           <tr>
-            <td>
-              <a href="{% url 'seller_detalle_venta' o.pk %}" class="ps-ord-link">{{ o.order_number }}</a>
-            </td>
-            <td class="ps-ord-num-td">{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
-            <td style="font-size:12px;color:#6b7a88;">{{ o.created_at|date:"d/m/Y H:i" }}</td>
-            <td>
-              <span class="ps-badge-ord ps-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span>
-            </td>
+            <td><a href="{% url 'seller_detalle_venta' o.pk %}" class="ps-ord-link">{{ o.order_number }}</a></td>
+            <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
+            <td style="color:#6B7A88;font-size:12px;">{{ o.created_at|date:"d/m/Y H:i" }}</td>
+            <td><span class="ps-badge-ord ps-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span></td>
             <td style="text-align:right;">
-              <a href="{% url 'seller_detalle_venta' o.pk %}" title="Ver detalle" style="display:inline-flex;color:#6b7a88;">
+              <a href="{% url 'seller_detalle_venta' o.pk %}" aria-label="{% trans 'Ver detalle' %}" style="color:#6B7A88;">
                 <span class="material-symbols-rounded" style="font-size:20px;">visibility</span>
               </a>
             </td>
@@ -299,30 +354,30 @@ Contexto: vista portal_seller; sin barra lateral duplicada; badges de estado ví
           {% endfor %}
         </tbody>
       </table>
-      {% else %}
-      <div style="padding:48px 24px;text-align:center;">
-        <div style="width:72px;height:72px;border-radius:50%;background:#F2F3F5;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-          <span class="material-symbols-rounded" style="font-size:36px;color:#D1D5DB;" aria-hidden="true">receipt_long</span>
-        </div>
-        <h3 style="font-size:16px;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "Aún no tienes ventas" %}</h3>
-        <p style="font-size:13px;color:#6B7A88;max-width:280px;margin:0 auto 20px;line-height:1.6;">
-          {% trans "Cuando los compradores adquieran tus productos, tus ventas aparecerán aquí." %}
-        </p>
-        <a href="{% url 'seller_mis_productos' %}" style="display:inline-flex;align-items:center;gap:6px;background:#F26522;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
-          <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">inventory_2</span>
-          {% trans "Ver mis productos" %}
-        </a>
-      </div>
-      {% endif %}
     </div>
-  </div>
+    {% else %}
+    <div class="ps-empty">
+      <div class="ps-empty-ico">
+        <span class="material-symbols-rounded" style="font-size:38px;color:#D1D5DB;" aria-hidden="true">receipt_long</span>
+      </div>
+      <h3 style="font-size:17px;font-weight:700;color:#0F2A44;margin:0 0 8px;">{% trans "Aún no tienes ventas" %}</h3>
+      <p style="font-size:14px;color:#6B7A88;max-width:320px;margin:0 auto 20px;line-height:1.6;">
+        {% trans "Cuando un comprador adquiera tus productos, el detalle aparecerá aquí." %}
+      </p>
+      <a href="{% url 'seller_mis_productos' %}" class="ps-action-btn orange">
+        <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">inventory_2</span>
+        {% trans "Revisar mi catálogo" %}
+      </a>
+    </div>
+    {% endif %}
+  </section>
 </div>
 <script>
 (function () {
   var low = document.getElementById('ps-m-low');
   if (low) {
     var n = parseInt(low.getAttribute('data-bajo') || '0', 10) || 0;
-    low.style.color = n > 0 ? '#F26522' : '#065F46';
+    low.style.color = n > 0 ? '#F26522' : '#0F2A44';
   }
   var map = {
     pending:   { bg: '#FEF3C7', fg: '#92400E', label: 'Pendiente' },
@@ -333,11 +388,14 @@ Contexto: vista portal_seller; sin barra lateral duplicada; badges de estado ví
     cancelled: { bg: '#FEE2E2', fg: '#991B1B', label: 'Cancelado' }
   };
   document.querySelectorAll('.ps-ord-status').forEach(function (el) {
-    var st = el.getAttribute('data-status');
-    var row = map[st];
+    var row = map[el.getAttribute('data-status')];
     if (row) {
       el.style.background = row.bg;
       el.style.color = row.fg;
+      el.style.fontSize = '11px';
+      el.style.fontWeight = '600';
+      el.style.padding = '3px 10px';
+      el.style.borderRadius = '20px';
       el.textContent = row.label;
     }
   });

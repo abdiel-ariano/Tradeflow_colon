@@ -1,0 +1,52 @@
+{% load i18n %}
+{% comment %}Fragmento AJAX del catálogo comprador (grid + paginación).{% endcomment %}
+<div id="td-catalog-root"
+     data-cat-active="{{ cat_activa|escapejs }}"
+     data-empresa-active="{{ empresa_activa|escapejs }}"
+     data-orden-active="{{ orden_activo|escapejs }}"
+     data-buscar-active="{{ buscar|escapejs }}"
+     data-tab-active="{{ tab_catalogo|escapejs }}"
+     data-cur-page="{{ productos.number }}">
+  <div class="td-results-hdr">
+    <div>
+      <h1 id="td-results-title">
+        {% if tab_catalogo == 'ofertas' %}{% trans "Ofertas activas" %}
+        {% elif tab_catalogo == 'bestsellers' %}{% trans "Más vendidos" %}
+        {% elif tab_catalogo == 'destacados' %}{% trans "Productos destacados" %}
+        {% else %}{% trans "Catálogo completo" %}{% endif %}
+      </h1>
+      <p class="td-results-count" id="td-results-count">
+        {% blocktrans count counter=productos.paginator.count %}{{ counter }} producto encontrado{% plural %}{{ counter }} productos encontrados{% endblocktrans %}
+      </p>
+    </div>
+  </div>
+
+  <div class="td-grid" id="td-product-grid">
+    {% for producto in productos %}
+    {% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}
+    {% empty %}
+    <div class="td-empty">
+      <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
+      <h2>{% trans "No encontramos productos" %}</h2>
+      <p>{% trans "Intenta con otro término o categoría" %}</p>
+      <a href="{% url 'tienda' %}" class="td-btn-add">{% trans "Ver todos los productos" %}</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if productos.has_other_pages %}
+  <nav class="td-pag" id="td-pag" aria-label="{% trans 'Paginación' %}">
+    {% if productos.has_previous %}
+    <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}" class="td-pag-ajax">{% trans "Anterior" %}</a>
+    {% endif %}
+    {% for num in productos.paginator.page_range %}
+    <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ num }}"
+       class="td-pag-link td-pag-ajax"
+       data-page="{{ num }}">{{ num }}</a>
+    {% endfor %}
+    {% if productos.has_next %}
+    <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}" class="td-pag-ajax">{% trans "Siguiente" %}</a>
+    {% endif %}
+  </nav>
+  {% endif %}
+</div>

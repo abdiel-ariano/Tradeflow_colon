@@ -959,7 +959,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   <nav class="tf-nav tf-navbar" aria-label="Principal">
     <a href="{% url 'home' %}" class="tf-nav-brand">
-      <img src="{% static 'img/logo-white.svg' %}" width="36" height="36" alt="TradeFlow Colón" style="height:36px;width:auto;object-fit:contain;">
+      <picture>
+        <source srcset="{% static 'img/logo-white.png' %}" type="image/png">
+        <img src="{% static 'img/logo-white.svg' %}" width="36" height="36" alt="TradeFlow Colón" class="tf-nav-logo-img" style="height:36px;width:auto;object-fit:contain;">
+      </picture>
       <div>
         <div class="brand-wordmark">TradeFlow</div>
         <div class="brand-sub">{% trans "Zona Libre de Colón · Panamá" %}</div>
