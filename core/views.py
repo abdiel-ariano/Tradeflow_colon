@@ -729,8 +729,10 @@ def home_view(request):
         bestsellers_list = list(featured_qs[:6])
 
     empresas_home = list(
-        Company.objects.filter(products__is_active=True)
-        .distinct()
+        Company.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
         .order_by('name')[:8]
     )
     if not empresas_home:
