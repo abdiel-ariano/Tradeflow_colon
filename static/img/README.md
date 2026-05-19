@@ -1,10 +1,14 @@
-# Logos TradeFlow
+# Logos TradeFlow (solo PNG está bien)
 
-Coloca aquí tus archivos de marca:
+Coloca estos archivos en esta carpeta:
 
-- `logo.png` — favicon y páginas claras (login, signup)
-- `logo-white.png` — navbar oscuro (recomendado, 36–48px de alto)
-- `logo-white.svg` — respaldo si no hay PNG
-- `logo.svg` — versión color sobre fondo claro
+| Archivo | Uso |
+|---------|-----|
+| `logo-white.png` | Navbar azul (puede incluir texto “TradeFlow” en la imagen) |
+| `logo.png` | Login, signup, favicon (fondo claro) |
 
-El navbar usa `<picture>` con `logo-white.png` y fallback a `logo-white.svg`.
+No necesitas SVG. El sitio usa solo PNG.
+
+**Tamaño sugerido:** ancho ~400–500 px, alto ~80–120 px, fondo transparente.
+
+Si `logo-white.png` no existe, el navbar intenta cargar `logo.png` automáticamente.
