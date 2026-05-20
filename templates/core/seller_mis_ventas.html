@@ -1,89 +1,128 @@
 {% extends "core/base.html" %}
-{% load i18n %}
-{% load static %}
-{% comment %}
-templates/core/seller_mis_ventas.html — Listado de ventas del vendedor (empresa).
-{% endcomment %}
-{% block title %}Mis ventas — TradeFlow Colón{% endblock %}
+{% load i18n static %}
+{% block title %}{% trans "Mis ventas" %} — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/seller_dashboard.css' %}">
+{% endblock %}
 {% block content %}
-<div class="seller-layout">
-  <div class="seller-main">
-    <h1>Mis ventas</h1>
-    <p class="seller-sub">Órdenes con productos de <strong>{{ company.name }}</strong>.</p>
-    <form class="seller-filters" method="get" action="" style="margin-bottom:1rem;">
-      <select class="tf-input" name="estado" id="seller-ventas-estado" style="max-width:260px;">
-        <option value="">Todos los estados</option>
-        {% for val, label in status_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
-      </select>
-      <button type="submit" class="btn-seller-outline"><span class="material-symbols-rounded" style="font-size:18px;">filter_alt</span> Filtrar</button>
-    </form>
-    <script>
-    (function () {
-      var sel = document.getElementById("seller-ventas-estado");
-      if (!sel) return;
-      var cur = "{{ estado_actual|escapejs }}";
-      for (var i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].value === cur) { sel.selectedIndex = i; break; }
-      }
-    })();
-    </script>
-    <div class="seller-table-wrap">
-      {% if ordenes %}
-      <table class="seller-table">
-        <thead>
-          <tr>
-            <th>Orden</th>
-            <th>Fecha</th>
-            <th>Comprador</th>
-            <th>Estado</th>
-            <th>Total orden</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for o in ordenes %}
-          <tr>
-            <td><strong>{{ o.order_number }}</strong></td>
-            <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
-            <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
-            <td><span class="tf-badge seller-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span></td>
-            <td><span class="tf-price" style="font-size:0.9rem;">{{ o.total }} USD</span></td>
-            <td><a href="{% url 'seller_detalle_venta' o.pk %}" class="btn-seller-outline" style="padding:6px 10px;"><span class="material-symbols-rounded" style="font-size:18px;">visibility</span></a></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p style="padding:1.25rem;color:var(--tf-muted);margin:0;">No hay ventas registradas.</p>
-      {% endif %}
-    </div>
-    {% if ordenes.has_other_pages %}
-    <nav style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      {% if ordenes.has_previous %}
-      <a class="btn-seller-outline" href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}">Anterior</a>
-      {% endif %}
-      <span style="color:var(--tf-muted);font-size:0.88rem;">Página {{ ordenes.number }} de {{ ordenes.paginator.num_pages }}</span>
-      {% if ordenes.has_next %}
-      <a class="btn-seller-outline" href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}">Siguiente</a>
-      {% endif %}
-    </nav>
-    {% endif %}
+<div class="sd-page">
+  <header class="sd-head">
+    <h1>{% trans "Mis ventas" %}</h1>
+    <p>{{ company.name }} · {% trans "Transacciones y tendencia" %}</p>
+  </header>
+
+  <div class="sd-kpi-grid">
+    <article class="sd-kpi">
+      <span class="sd-kpi-lbl">{% trans "Ventas del mes" %}</span>
+      <p class="sd-kpi-val">{{ ventas_mes }}</p>
+    </article>
+    <article class="sd-kpi">
+      <span class="sd-kpi-lbl">{% trans "Ingresos totales (mes)" %}</span>
+      <p class="sd-kpi-val">USD {{ ingresos_mes }}</p>
+    </article>
+    <article class="sd-kpi">
+      <span class="sd-kpi-lbl">{% trans "Ticket promedio" %}</span>
+      <p class="sd-kpi-val">USD {{ ticket_promedio }}</p>
+    </article>
+    <article class="sd-kpi">
+      <span class="sd-kpi-lbl">{% trans "Período gráfico" %}</span>
+      <p class="sd-kpi-val" style="font-size:1.1rem;">30 {% trans "días" %}</p>
+    </article>
   </div>
+
+  <div class="sd-chart-card" style="margin-bottom:22px;">
+    <h3>{% trans "Tendencia de ingresos (últimos 30 días)" %}</h3>
+    <canvas id="sd-chart-line" height="90"></canvas>
+  </div>
+
+  <form class="sd-toolbar" method="get">
+    <div class="sd-filters">
+      <input class="tf-input" type="date" name="desde" value="{{ desde }}">
+      <input class="tf-input" type="date" name="hasta" value="{{ hasta }}">
+      <select class="tf-input" name="estado">
+        <option value="">{% trans "Todos los estados" %}</option>
+        {% for val, lbl in status_choices %}
+        <option value="{{ val }}" {% if estado_actual == val %}selected{% endif %}>{{ lbl }}</option>
+        {% endfor %}
+      </select>
+      <select class="tf-input" name="pago">
+        <option value="">{% trans "Pago" %}</option>
+        <option value="pagado" {% if pago_filtro == 'pagado' %}selected{% endif %}>{% trans "Pagado / en curso" %}</option>
+        <option value="pendiente" {% if pago_filtro == 'pendiente' %}selected{% endif %}>{% trans "Pendiente" %}</option>
+      </select>
+    </div>
+    <button type="submit" class="sd-btn sd-btn-outline">{% trans "Filtrar" %}</button>
+    <a href="{% url 'seller_export_ventas_csv' %}?estado={{ estado_actual }}" class="sd-btn sd-btn-primary">
+      <span class="material-symbols-rounded" style="font-size:18px;">download</span>
+      CSV
+    </a>
+  </form>
+
+  <div class="sd-table-wrap">
+    <table class="sd-table">
+      <thead>
+        <tr>
+          <th>{% trans "ID" %}</th>
+          <th>{% trans "Fecha" %}</th>
+          <th>{% trans "Cliente" %}</th>
+          <th>{% trans "Monto" %}</th>
+          <th>{% trans "Estado" %}</th>
+          <th>{% trans "Acciones" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in ordenes %}
+        <tr>
+          <td><strong>{{ o.order_number }}</strong></td>
+          <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
+          <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
+          <td>USD {{ o.total }}</td>
+          <td>
+            <span class="sd-badge sd-badge-{% if o.status == 'delivered' %}delivered{% elif o.status == 'cancelled' %}cancelled{% elif o.status == 'pending' %}pending{% else %}paid{% endif %}">
+              {{ o.get_status_display }}
+            </span>
+          </td>
+          <td><a href="{% url 'seller_detalle_venta' o.pk %}">{% trans "Ver" %}</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center;padding:40px;color:#6B7A88;">{% trans "Sin ventas en este rango." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if ordenes.has_other_pages %}
+  <nav style="margin-top:16px;display:flex;gap:8px;justify-content:center;">
+    {% if ordenes.has_previous %}<a class="sd-btn sd-btn-outline" href="?page={{ ordenes.previous_page_number }}">{% trans "Anterior" %}</a>{% endif %}
+    {% if ordenes.has_next %}<a class="sd-btn sd-btn-outline" href="?page={{ ordenes.next_page_number }}">{% trans "Siguiente" %}</a>{% endif %}
+  </nav>
+  {% endif %}
 </div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
 <script>
 (function () {
-  var map = {
-    pending: { bg: "var(--order-pending-bg)", fg: "var(--order-pending-fg)" },
-    paid: { bg: "var(--order-paid-bg)", fg: "var(--order-paid-fg)" },
-    packed: { bg: "var(--order-packed-bg)", fg: "var(--order-packed-fg)" },
-    shipped: { bg: "var(--order-shipped-bg)", fg: "var(--order-shipped-fg)" },
-    delivered: { bg: "var(--order-delivered-bg)", fg: "var(--order-delivered-fg)" },
-    cancelled: { bg: "var(--order-cancelled-bg)", fg: "var(--order-cancelled-fg)" },
-  };
-  document.querySelectorAll(".seller-ord-status").forEach(function (el) {
-    var st = el.getAttribute("data-status");
-    var t = map[st];
-    if (t) { el.style.background = t.bg; el.style.color = t.fg; }
+  var labels = {{ chart_line_labels_json|safe }};
+  var values = {{ chart_line_values_json|safe }};
+  var el = document.getElementById('sd-chart-line');
+  if (!el) return;
+  new Chart(el, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'USD',
+        data: values,
+        borderColor: '#F26522',
+        backgroundColor: 'rgba(242,101,34,0.12)',
+        fill: true,
+        tension: 0.35
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
   });
 })();
 </script>

@@ -827,8 +827,17 @@ def api_asistente(request):
 
     from .utils.ai_assistant import consultar_asistente
 
-    respuesta = consultar_asistente(mensaje, historial)
-    return JsonResponse({'ok': True, 'respuesta': respuesta})
+    historial = historial[-5:]
+    company = _get_seller_company(request.user) if request.user.is_authenticated else None
+    result = consultar_asistente(
+        mensaje,
+        historial,
+        user=request.user if request.user.is_authenticated else None,
+        company=company,
+    )
+    if isinstance(result, str):
+        result = {'respuesta': result, 'respuesta_html': result, 'confianza': 0.8}
+    return JsonResponse({'ok': True, **result})
 
 
 # ── Sal firmado para QR de visitante ZLC (pre-registro) ─────────────────────
@@ -1819,35 +1828,79 @@ def seller_productos(request):
 
 @seller_required
 def seller_mis_productos(request):
-    """Alias con mismo contenido de lista de productos, usando template alterno."""
+    """Dashboard de productos con KPIs, gráfico y tabla filtrable."""
     company, resp = _seller_company_or_response(request, 'seller_productos')
     if resp:
         return resp
+
+    from .utils.seller_analytics import seller_products_dashboard
+
     productos = (
         Product.objects.filter(company=company)
         .select_related('category', 'company')
         .defer('company__owner')
         .prefetch_related('inventory')
-        .order_by('name')
     )
-    buscar    = request.GET.get('buscar', '').strip()
+    dash = seller_products_dashboard(company)
+
+    buscar = request.GET.get('buscar', '').strip()
     categoria = request.GET.get('categoria', '').strip()
+    estado = request.GET.get('estado', '').strip()
+    stock_f = request.GET.get('stock', '').strip()
+    orden = request.GET.get('orden', 'nombre')
+
     if buscar:
         productos = productos.filter(
-            Q(name__icontains=buscar) |
-            Q(description__icontains=buscar) |
-            Q(sku__icontains=buscar)
+            Q(name__icontains=buscar)
+            | Q(description__icontains=buscar)
+            | Q(sku__icontains=buscar)
         )
     if categoria:
         productos = productos.filter(category_id=categoria)
-    paginator = Paginator(productos, 12)
-    page_obj  = paginator.get_page(request.GET.get('page', 1))
+    if estado == 'activo':
+        productos = productos.filter(is_active=True)
+    elif estado == 'inactivo':
+        productos = productos.filter(is_active=False)
+
+    vendidos_ids = set(
+        OrderItem.objects.filter(product__company=company)
+        .values_list('product_id', flat=True)
+    )
+    if stock_f == 'bajo':
+        low_ids = []
+        for inv in Inventory.objects.filter(product__company=company).select_related('product'):
+            if inv.is_low_stock:
+                low_ids.append(inv.product_id)
+        productos = productos.filter(pk__in=low_ids or [0])
+    elif stock_f == 'sin_ventas':
+        productos = productos.exclude(pk__in=vendidos_ids)
+
+    if orden == 'precio_asc':
+        productos = productos.order_by('unit_price')
+    elif orden == 'precio_desc':
+        productos = productos.order_by('-unit_price')
+    elif orden == 'stock':
+        productos = productos.order_by('inventory__stock_qty')
+    else:
+        productos = productos.order_by('name')
+
+    paginator = Paginator(productos, 15)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    import json as _json
+
     return render(request, 'core/seller_mis_productos.html', {
         'company': company,
         'productos': page_obj,
         'categorias': Category.objects.all().order_by('name'),
         'buscar': buscar,
         'cat_activa': categoria,
+        'estado_filtro': estado,
+        'stock_filtro': stock_f,
+        'orden': orden,
+        'dash': dash,
+        'chart_cat_labels_json': _json.dumps(dash['chart_cat_labels']),
+        'chart_cat_values_json': _json.dumps(dash['chart_cat_values']),
         'titulo_pagina': 'Mis productos',
         'nav_activo': 'seller_productos',
     })
@@ -1999,10 +2052,72 @@ def seller_ventas(request):
 
 @seller_required
 def seller_mis_ventas(request):
-    """Alias de listado de ventas con template alterno y nombre pedido."""
+    """Dashboard de ventas con métricas, gráfico y exportación."""
     company, resp = _seller_company_or_response(request, 'seller_ventas')
     if resp:
         return resp
+
+    from .utils.seller_analytics import seller_sales_dashboard
+
+    import json as _json
+
+    dash = seller_sales_dashboard(company, days=30)
+    ordenes = dash['ordenes_qs']
+
+    estado = request.GET.get('estado', '').strip()
+    pago = request.GET.get('pago', '').strip()
+    desde = request.GET.get('desde', '').strip()
+    hasta = request.GET.get('hasta', '').strip()
+
+    if estado:
+        ordenes = ordenes.filter(status=estado)
+    if desde:
+        try:
+            d = datetime.strptime(desde, '%Y-%m-%d').date()
+            ordenes = ordenes.filter(created_at__date__gte=d)
+        except ValueError:
+            pass
+    if hasta:
+        try:
+            d = datetime.strptime(hasta, '%Y-%m-%d').date()
+            ordenes = ordenes.filter(created_at__date__lte=d)
+        except ValueError:
+            pass
+    if pago == 'pagado':
+        ordenes = ordenes.filter(status__in=('paid', 'packed', 'shipped', 'delivered'))
+    elif pago == 'pendiente':
+        ordenes = ordenes.filter(status='pending')
+
+    paginator = Paginator(ordenes, 12)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    return render(request, 'core/seller_mis_ventas.html', {
+        'company': company,
+        'ordenes': page_obj,
+        'estado_actual': estado,
+        'pago_filtro': pago,
+        'desde': desde,
+        'hasta': hasta,
+        'status_choices': Order.STATUS_CHOICES,
+        'ventas_mes': dash['ventas_mes'],
+        'ingresos_mes': dash['ingresos_mes'],
+        'ticket_promedio': dash['ticket_promedio'],
+        'chart_line_labels_json': _json.dumps(dash['chart_line_labels']),
+        'chart_line_values_json': _json.dumps(dash['chart_line_values']),
+        'titulo_pagina': 'Mis ventas',
+        'nav_activo': 'seller_ventas',
+    })
+
+
+@seller_required
+def seller_export_ventas_csv(request):
+    """Exporta transacciones del vendedor a CSV."""
+    import csv
+
+    company, resp = _seller_company_or_response(request, 'seller_ventas')
+    if resp:
+        return resp
+
     ordenes = (
         Order.objects.filter(items__product__company=company)
         .distinct()
@@ -2012,16 +2127,27 @@ def seller_mis_ventas(request):
     estado = request.GET.get('estado', '').strip()
     if estado:
         ordenes = ordenes.filter(status=estado)
-    paginator = Paginator(ordenes, 10)
-    page_obj  = paginator.get_page(request.GET.get('page', 1))
-    return render(request, 'core/seller_mis_ventas.html', {
-        'company': company,
-        'ordenes': page_obj,
-        'estado_actual': estado,
-        'status_choices': Order.STATUS_CHOICES,
-        'titulo_pagina': 'Mis ventas',
-        'nav_activo': 'seller_ventas',
-    })
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = (
+        f'attachment; filename="ventas_{company.pk}.csv"'
+    )
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Fecha', 'Cliente', 'Monto', 'Estado', 'Tipo'])
+    for o in ordenes[:500]:
+        sub = sum(
+            li.line_total
+            for li in o.items.filter(product__company=company)
+        )
+        writer.writerow([
+            o.order_number,
+            o.created_at.strftime('%Y-%m-%d %H:%M'),
+            o.buyer.get_full_name() or o.buyer.username,
+            sub,
+            o.get_status_display(),
+            o.get_order_type_display(),
+        ])
+    return response
 
 @seller_required
 def seller_venta_detalle(request, pk):
@@ -3032,22 +3158,34 @@ def detalle_cotizacion(request, pk):
 
 @seller_required
 def seller_cotizaciones(request):
-    """
-    Lista cotizaciones recibidas por la empresa del vendedor autenticado.
-    """
+    """Pipeline Kanban + stats de cotizaciones del vendedor."""
     company, resp = _seller_company_or_response(request, 'seller_cotizaciones')
     if resp:
         return resp
 
-    lista = (
-        Cotizacion.objects.filter(empresa=company)
-        .select_related('buyer', 'order')
-        .annotate(n_items=Count('items'))
-        .order_by('-created_at')
+    from .utils.seller_analytics import (
+        cotizacion_monto_estimado,
+        seller_quotes_dashboard,
     )
+
+    dash = seller_quotes_dashboard(company)
+    lista = dash['lista'].annotate(n_items=Count('items'))
+
+    cot_rows = []
+    for cot in lista[:50]:
+        cot_rows.append({
+            'obj': cot,
+            'monto': cotizacion_monto_estimado(cot),
+        })
+
     context = {
         'company': company,
         'cotizaciones': lista,
+        'cot_rows': cot_rows,
+        'kanban': dash['kanban'],
+        'cotizaciones_mes': dash['cotizaciones_mes'],
+        'tasa_conversion': dash['tasa_conversion'],
+        'monto_cotizado': dash['monto_cotizado'],
         'titulo_pagina': 'Cotizaciones recibidas',
         'nav_activo': 'seller_cotizaciones',
     }

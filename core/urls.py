@@ -56,6 +56,7 @@ urlpatterns = [
     path('mi-tienda/productos/<int:pk>/editar/', views.seller_editar_producto, name='seller_editar_producto'),
     path('mi-tienda/productos/<int:pk>/toggle/', views.seller_toggle_producto, name='seller_toggle_producto'),
     path('mi-tienda/ventas/', views.seller_mis_ventas, name='seller_mis_ventas'),
+    path('mi-tienda/ventas/exportar.csv', views.seller_export_ventas_csv, name='seller_export_ventas_csv'),
     path('mi-tienda/ventas/<int:pk>/', views.seller_detalle_venta, name='seller_detalle_venta'),
     path('mi-tienda/cotizaciones/', views.seller_cotizaciones, name='seller_cotizaciones'),
     path('mi-tienda/cotizaciones/<int:pk>/responder/', views.seller_responder_cotizacion, name='seller_responder_cotizacion'),
