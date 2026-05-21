@@ -104,14 +104,19 @@ WSGI_APPLICATION = 'tradeflow_colon.wsgi.application'
 _db_url = config('DATABASE_URL', default=None)
 
 if _db_url:
-    DATABASES = {
-        'default': dj_database_url.parse(
-            _db_url,
-            conn_max_age=600,       # mantiene conexiones vivas 10 min (performance)
-            ssl_require=config('DB_SSL', default=not DEBUG, cast=bool),
-        )
-    }
+    _ssl_required = config('DB_SSL', default=True, cast=bool)
+    _db_cfg = dj_database_url.parse(
+        _db_url,
+        conn_max_age=600,
+        ssl_require=_ssl_required,
+    )
+    if _ssl_required:
+        _db_cfg.setdefault('OPTIONS', {})
+        _db_cfg['OPTIONS']['sslmode'] = config('DB_SSLMODE', default='require')
+    DATABASES = {'default': _db_cfg}
+    USING_SUPABASE = 'supabase' in _db_url.lower() or 'postgres' in _db_cfg.get('ENGINE', '')
 else:
+    USING_SUPABASE = False
     # Fallback SQLite solo para desarrollo inicial sin PostgreSQL
     DATABASES = {
         'default': {
@@ -119,6 +124,11 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+
+# Indicador para comandos de verificación / logs
+DATABASE_ENGINE_LABEL = (
+    DATABASES['default'].get('ENGINE', 'unknown').split('.')[-1]
+)
 
 # ── Validación de contraseñas ──────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
@@ -189,12 +199,6 @@ DASHBOARD_KPI_REVENUE_DELIVERED_ONLY = config(
     default=False,
     cast=bool,
 )
-# Para desarrollo: imprime emails en consola (sin configurar nada más)
-# Para producción: cambia a smtp y rellena las variables en .env / Railway
-EMAIL_BACKEND = config(
-    'EMAIL_BACKEND',
-    default='django.core.mail.backends.console.EmailBackend'
-)
 EMAIL_HOST         = config('EMAIL_HOST',     default='smtp.gmail.com')
 EMAIL_PORT         = config('EMAIL_PORT',     default=587, cast=int)
 EMAIL_USE_TLS      = config('EMAIL_USE_TLS',  default=True, cast=bool)
@@ -203,6 +207,26 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='TradeFlow <no-reply@tradeflow.pa>')
 # URL pública (sin / final) para enlaces en correos: ej. https://tuapp.railway.app o http://127.0.0.1:8000
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
+
+# Gmail SMTP: si hay usuario + App Password y no se forzó otro backend, usar SMTP real.
+_gmail_ready = bool(EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
+_default_email_backend = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if _gmail_ready
+    else 'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_BACKEND = config('EMAIL_BACKEND', default=_default_email_backend)
+EMAIL_USE_REAL_SMTP = 'smtp' in EMAIL_BACKEND and _gmail_ready
+
+# Revisores de solicitudes de acceso (lista separada por comas)
+APPLICATION_REVIEW_EMAILS = config(
+    'APPLICATION_REVIEW_EMAILS',
+    default='',
+    cast=Csv(),
+)
+
+# Checkout: True = flujo antiguo (pago inmediato). False = awaiting_seller (PreExpo).
+CHECKOUT_AUTO_APPROVE = config('CHECKOUT_AUTO_APPROVE', default=False, cast=bool)
 
 # ── django-axes (bloqueo por intentos fallidos de login) ──────────────────
 AXES_FAILURE_LIMIT = 5

@@ -3,6 +3,18 @@
 Plataforma de gestión de e-commerce para la Zona Libre de Colón, Panamá.
 Desarrollado para **Expo Supérate 2026**.
 
+## Supabase + Gmail (demo inversores)
+
+Configuración en **menos de 10 pasos**: [docs/SUPABASE_GMAIL.md](docs/SUPABASE_GMAIL.md)
+
+```bash
+cp .env.example .env
+# Rellena DATABASE_URL (Supabase) y EMAIL_HOST_USER / EMAIL_HOST_PASSWORD (Gmail App Password)
+python manage.py migrate
+python manage.py cargar_demo
+python manage.py verify_integrations --email tu@gmail.com
+```
+
 ---
 
 ## Estructura del Proyecto

@@ -16,6 +16,7 @@ from core.models import (
     Order,
     Payment,
     Product,
+    TransportCarrier,
     UserProfile,
 )
 
@@ -23,6 +24,8 @@ from core.models import (
 @override_settings(
     AXES_ENABLED=False,
     REQUIRE_EMAIL_VERIFICATION=False,
+    CHECKOUT_AUTO_APPROVE=True,
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
     AUTHENTICATION_BACKENDS=[
         'django.contrib.auth.backends.ModelBackend',
     ],
@@ -37,6 +40,11 @@ class TestFlujoBuyer(TestCase):
             name='Empresa Demo ZLC',
             ruc='123456',
             is_verified=True,
+        )
+        self.carrier = TransportCarrier.objects.create(
+            code='test-carrier',
+            name='Test Carrier',
+            base_shipping_cost=Decimal('5.00'),
         )
         self.cat = Category.objects.create(name='Electrónica')
         self.product = Product.objects.create(
@@ -117,7 +125,12 @@ class TestFlujoBuyer(TestCase):
         session.save()
         r = self.client.post(
             '/checkout/',
-            {'notas': 'Test', 'shipping_cost': '5.00'},
+            {
+                'notas': 'Test',
+                'transport_carrier': self.carrier.pk,
+                'buyer_latitude': '9.3667000',
+                'buyer_longitude': '-79.9000000',
+            },
         )
         self.assertEqual(r.status_code, 302)
         orden = Order.objects.filter(buyer=self.buyer).first()
@@ -139,7 +152,15 @@ class TestFlujoBuyer(TestCase):
             }
         }
         session.save()
-        self.client.post('/checkout/', {'notas': '', 'shipping_cost': '0'})
+        self.client.post(
+            '/checkout/',
+            {
+                'notas': '',
+                'transport_carrier': self.carrier.pk,
+                'buyer_latitude': '9.3667000',
+                'buyer_longitude': '-79.9000000',
+            },
+        )
         inv = Inventory.objects.get(product=self.product)
         self.assertEqual(inv.reserved_qty, 3)
 

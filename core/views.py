@@ -48,13 +48,23 @@ from .forms import SellerProductForm, SellerInventoryForm
 from .models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document,
-    Cotizacion, CotizacionItem,
+    Cotizacion, CotizacionItem, TransportCarrier, UserApplication,
 )
 from .utils.email_sender import (
     enviar_bienvenida,
     enviar_cambio_estado,
     enviar_confirmacion_orden,
     enviar_verificacion_email,
+    enviar_orden_pendiente_vendedor,
+    enviar_solicitud_recibida,
+    enviar_solicitud_a_revisores,
+    enviar_solicitud_decision,
+)
+from .utils.order_workflow import (
+    accept_seller_order,
+    reject_seller_order,
+    seller_confirm_deadline,
+    expire_pending_orders,
 )
 from .utils.pdf_generator import (
     generar_cotizacion_pdf,
@@ -2159,7 +2169,9 @@ def seller_venta_detalle(request, pk):
         return resp
 
     orden = get_object_or_404(
-        Order.objects.select_related('buyer', 'ship_address'),
+        Order.objects.select_related(
+            'buyer', 'ship_address', 'transport_carrier', 'confirming_company',
+        ),
         pk=pk,
     )
     lineas = list(
@@ -2170,16 +2182,44 @@ def seller_venta_detalle(request, pk):
     if not lineas:
         raise Http404('Orden no encontrada o sin productos de tu empresa.')
 
+    puede_confirmar = (
+        orden.status == 'awaiting_seller'
+        and orden.seller_confirmation_status == 'pending'
+        and orden.confirming_company_id == company.pk
+    )
+
+    if request.method == 'POST' and puede_confirmar:
+        accion = request.POST.get('accion', '')
+        estado_prev = orden.status
+        if accion == 'aceptar':
+            accept_seller_order(orden)
+            messages.success(request, _('Orden confirmada. El comprador fue notificado.'))
+            try:
+                enviar_cambio_estado(orden, estado_prev)
+                enviar_confirmacion_orden(orden)
+            except Exception:
+                log.exception('Email post-confirmación vendedor')
+        elif accion == 'rechazar':
+            reject_seller_order(orden)
+            messages.warning(request, _('Orden rechazada. Se liberó el inventario reservado.'))
+            try:
+                enviar_cambio_estado(orden, estado_prev)
+            except Exception:
+                log.exception('Email rechazo orden')
+        return redirect('seller_detalle_venta', pk=pk)
+
     subtotal_vendedor = sum((li.line_total for li in lineas), Decimal('0.00'))
 
     context = {
-        'company':            company,
-        'orden':              orden,
-        'lineas_vendedor':    lineas,
-        'subtotal_vendedor':  subtotal_vendedor,
-        'pago':               getattr(orden, 'payment', None),
-        'titulo_pagina':      f'Venta {orden.order_number}',
-        'nav_activo':         'seller_ventas',
+        'company': company,
+        'orden': orden,
+        'lineas_vendedor': lineas,
+        'subtotal_vendedor': subtotal_vendedor,
+        'pago': getattr(orden, 'payment', None),
+        'puede_confirmar': puede_confirmar,
+        'maps_url': orden.maps_url_buyer(),
+        'titulo_pagina': f'Venta {orden.order_number}',
+        'nav_activo': 'seller_ventas',
     }
     return render(request, 'core/seller_venta_detalle.html', context)
 
@@ -2677,17 +2717,47 @@ def checkout(request):
 
     subtotal = _calcular_total(carrito)
 
-    if request.method == 'POST':
-        notas         = request.POST.get('notas', '').strip()
-        shipping_cost = Decimal(request.POST.get('shipping_cost', '0') or '0')
+    transportistas = TransportCarrier.objects.filter(is_active=True).order_by('sort_order', 'name')
+    auto_approve = getattr(settings, 'CHECKOUT_AUTO_APPROVE', False)
 
-        # Crear la cabecera de la orden
+    if request.method == 'POST':
+        notas = request.POST.get('notas', '').strip()
+        carrier_id = request.POST.get('transport_carrier', '').strip()
+        lat_raw = request.POST.get('buyer_latitude', '').strip()
+        lng_raw = request.POST.get('buyer_longitude', '').strip()
+
+        if not carrier_id:
+            messages.error(request, _('Selecciona un transportista para continuar.'))
+            return redirect('checkout')
+
+        carrier = get_object_or_404(TransportCarrier, pk=carrier_id, is_active=True)
+
+        try:
+            buyer_lat = Decimal(lat_raw)
+            buyer_lng = Decimal(lng_raw)
+        except (InvalidOperation, ValueError):
+            messages.error(
+                request,
+                _('Confirma tu ubicación con el botón «Usar mi ubicación actual».'),
+            )
+            return redirect('checkout')
+
+        if not (-90 <= float(buyer_lat) <= 90 and -180 <= float(buyer_lng) <= 180):
+            messages.error(request, _('Coordenadas de ubicación no válidas.'))
+            return redirect('checkout')
+
+        shipping_cost = carrier.base_shipping_cost
+
         orden = Order.objects.create(
-            buyer         = request.user,
-            order_type    = 'b2c',
-            shipping_cost = shipping_cost,
-            notes         = notas,
-            status        = 'pending',
+            buyer=request.user,
+            order_type='b2c',
+            shipping_cost=shipping_cost,
+            notes=notas,
+            status='pending',
+            transport_carrier=carrier,
+            buyer_latitude=buyer_lat,
+            buyer_longitude=buyer_lng,
+            buyer_location_verified_at=timezone.now(),
         )
 
         # Crear los items y reservar inventario
@@ -2734,30 +2804,64 @@ def checkout(request):
             )
             return redirect('ver_carrito')
 
-        # Calcular totales finales
         orden.recalculate_totals()
         orden.shipping_cost = shipping_cost
         orden.total = orden.subtotal + shipping_cost
         orden.save(update_fields=['shipping_cost', 'total'])
 
-        # Registrar el pago (mock para demo)
+        first_item = orden.items.select_related('product__company').first()
+        confirming = first_item.product.company if first_item else None
+        orden.confirming_company = confirming
+        if confirming and not auto_approve:
+            orden.seller_confirm_by = seller_confirm_deadline(confirming)
+            orden.status = 'awaiting_seller'
+            orden.seller_confirmation_status = 'pending'
+            orden.save(update_fields=[
+                'confirming_company', 'seller_confirm_by', 'status',
+                'seller_confirmation_status', 'updated_at',
+            ])
+            Payment.objects.create(
+                order=orden,
+                provider='mock',
+                status='pending',
+                amount=orden.total,
+                currency='USD',
+            )
+            _save_carrito(request, {})
+            messages.success(
+                request,
+                _(
+                    'Orden %(num)s enviada. Esperando confirmación de la empresa '
+                    '(plazo hasta %(fecha)s).'
+                ) % {
+                    'num': orden.order_number,
+                    'fecha': orden.seller_confirm_by.strftime('%d/%m/%Y %H:%M'),
+                },
+            )
+            try:
+                enviar_cambio_estado(orden, 'pending')
+                enviar_orden_pendiente_vendedor(orden)
+            except Exception:
+                log.exception('Email orden pendiente vendedor')
+            return redirect('detalle_mi_orden', pk=orden.pk)
+
         Payment.objects.create(
-            order    = orden,
-            provider = 'mock',
-            status   = 'approved',
-            amount   = orden.total,
-            currency = 'USD',
+            order=orden,
+            provider='mock',
+            status='approved',
+            amount=orden.total,
+            currency='USD',
             paid_at=timezone.now(),
-            txn_ref  = f'TF-MOCK-{orden.order_number}',
+            txn_ref=f'TF-MOCK-{orden.order_number}',
         )
         orden.status = 'paid'
-        orden.save(update_fields=['status'])
+        orden.seller_confirmation_status = 'accepted'
+        orden.save(update_fields=['status', 'seller_confirmation_status'])
 
-        # Limpiar el carrito de la sesión
         _save_carrito(request, {})
         messages.success(
             request,
-            f'Orden {orden.order_number} creada exitosamente. ¡Gracias por tu compra!'
+            _('Orden %(num)s creada exitosamente.') % {'num': orden.order_number},
         )
         try:
             enviar_confirmacion_orden(orden)
@@ -2765,12 +2869,26 @@ def checkout(request):
             log.exception('No se pudo enviar email de confirmación de orden.')
         return redirect('detalle_mi_orden', pk=orden.pk)
 
+    if not transportistas.exists():
+        TransportCarrier.objects.get_or_create(
+            code='zlc-express',
+            defaults={
+                'name': 'ZLC Express',
+                'description': 'Transporte Zona Libre de Colón',
+                'sort_order': 1,
+                'base_shipping_cost': Decimal('15.00'),
+            },
+        )
+        transportistas = TransportCarrier.objects.filter(is_active=True).order_by('sort_order', 'name')
+
     context = {
-        'carrito':       carrito,
-        'subtotal':      subtotal,
+        'carrito': carrito,
+        'subtotal': subtotal,
         'carrito_count': _contar_items(carrito),
         'titulo_pagina': 'Confirmar Orden',
-        'nav_activo':    'tienda',
+        'nav_activo': 'tienda',
+        'transportistas': transportistas,
+        'checkout_auto_approve': auto_approve,
     }
     return render(request, 'core/checkout.html', context)
 
@@ -3247,3 +3365,80 @@ def seller_responder_cotizacion(request, pk):
         'nav_activo': 'seller_cotizaciones',
     }
     return render(request, 'core/seller_responder_cotizacion.html', context)
+
+
+# =============================================================================
+# SOLICITUD DE ACCESO (PreExpo / inversores)
+# =============================================================================
+
+def solicitud_acceso(request):
+    """Formulario público de solicitud de acceso a TradeFlow."""
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name', '').strip()
+        email = request.POST.get('email', '').strip().lower()
+        phone = request.POST.get('phone', '').strip()
+        role = request.POST.get('role', 'buyer')
+        company_name = request.POST.get('company_name', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not full_name or not email:
+            messages.error(request, _('Nombre y correo son obligatorios.'))
+        elif role not in ('buyer', 'seller'):
+            messages.error(request, _('Rol no válido.'))
+        else:
+            app = UserApplication.objects.create(
+                full_name=full_name,
+                email=email,
+                phone=phone,
+                role=role,
+                company_name=company_name,
+                message=message,
+            )
+            try:
+                enviar_solicitud_recibida(app)
+                enviar_solicitud_a_revisores(app)
+            except Exception:
+                log.exception('Email solicitud acceso')
+                messages.warning(
+                    request,
+                    _(
+                        'Solicitud guardada, pero el correo no pudo enviarse. '
+                        'Revisa la configuración Gmail en .env.'
+                    ),
+                )
+            else:
+                messages.success(
+                    request,
+                    _('Solicitud enviada. Revisa tu correo para confirmación.'),
+                )
+            return redirect('solicitud_acceso')
+
+    return render(request, 'core/solicitud_acceso.html', {
+        'titulo_pagina': _('Solicitud de acceso'),
+    })
+
+
+def revisar_solicitud(request, token, accion):
+    """Aprueba o rechaza solicitud desde enlace del correo."""
+    app = get_object_or_404(UserApplication, review_token=token)
+    if app.status != 'pendiente':
+        messages.info(request, _('Esta solicitud ya fue revisada.'))
+        return redirect('home')
+
+    if accion == 'aprobar':
+        app.status = 'aprobada'
+        aprobada = True
+    elif accion == 'rechazar':
+        app.status = 'rechazada'
+        aprobada = False
+    else:
+        raise Http404
+
+    app.reviewed_at = timezone.now()
+    app.save(update_fields=['status', 'reviewed_at'])
+    try:
+        enviar_solicitud_decision(app, aprobada)
+    except Exception:
+        log.exception('Email decisión solicitud')
+    messages.success(request, _('Decisión registrada y correo enviado al solicitante.'))
+    return redirect('home')

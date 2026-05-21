@@ -1,83 +1,115 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% load i18n %}
-{% comment %}
-templates/core/checkout.html — confirmación de pedido (comprador).
-{% endcomment %}
+{% load static i18n %}
 {% block title %}{% trans "Confirmar pedido" %} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/tf_animations.css' %}">
 <style>
-  .co-wrap {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 48px 24px 64px;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .co-title {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 1.75rem;
-    color: #0F2A44;
-    margin: 0 0 1.5rem;
-    text-align: center;
-  }
-  .co-stack { display: flex; flex-direction: column; gap: 1.25rem; width: 100%; }
-  .co-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.35rem; }
-  .co-sec { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8125rem; color: #6B7A88; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 1rem; }
-  .co-note { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 12px 14px; font-size: 0.875rem; color: #1E40AF; margin-bottom: 1rem; display: flex; gap: 10px; align-items: flex-start; }
-  .co-note .material-symbols-rounded { font-size: 20px; flex-shrink: 0; }
-  .co-ta { width: 100%; min-height: 88px; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.9rem; resize: vertical; }
-  .co-ta:focus { outline: none; border-color: #2E5B8A; box-shadow: 0 0 0 3px rgba(46, 91, 138, 0.15); }
-  .co-pay { border: 1px dashed #D1D5DB; border-radius: 8px; padding: 12px; margin-top: 1rem; font-size: 0.875rem; color: #374151; display: flex; align-items: center; gap: 8px; }
-  .co-pay .material-symbols-rounded { color: #2E5B8A; }
-  .co-submit { width: 100%; margin-top: 1.25rem; padding: 12px 16px; border: none; border-radius: 8px; background: #F26522; color: #fff; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; }
-  .co-submit:hover { background: #FF7A3D; box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3); }
-  .co-line { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #D1D5DB; font-size: 0.875rem; }
-  .co-line:last-of-type { border-bottom: none; }
-  .co-line img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #F2F3F5; }
-  .co-line-info { flex: 1; }
-  .co-line-name { font-weight: 600; color: #0F2A44; }
-  .co-line-q { font-size: 0.78rem; color: #6B7A88; }
-  .co-line-pr { font-weight: 700; color: #F26522; }
-  .co-tot { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid #D1D5DB; font-family: 'Inter', sans-serif; font-weight: 700; color: #0F2A44; }
+  .co-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
+  .co-title { font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.5rem; text-align: center; }
+  .co-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.35rem; margin-bottom: 1rem; }
+  .co-sec { font-weight: 600; font-size: 0.8125rem; color: #6B7A88; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 1rem; }
+  .co-carrier { display: flex; gap: 10px; padding: 12px; border: 1px solid #E5E7EB; border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+  .co-carrier:has(input:checked) { border-color: #F26522; background: #FFF7ED; }
+  .co-geo-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 8px; border: 1.5px solid #2E5B8A; background: #fff; color: #0F2A44; font-weight: 600; cursor: pointer; }
+  .co-geo-btn.is-ok { border-color: #15803d; background: #F0FDF4; }
+  .co-geo-status { font-size: 0.85rem; color: #6B7A88; margin-top: 8px; }
+  .co-submit { width: 100%; margin-top: 1rem; padding: 12px; border: none; border-radius: 8px; background: #F26522; color: #fff; font-weight: 700; cursor: pointer; }
+  .co-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
 {% endblock %}
 {% block content %}
-<div class="tf-page co-wrap" style="padding-top: 48px;">
+<div class="tf-page co-wrap">
   <h1 class="co-title">{% trans "Confirmar pedido" %}</h1>
-  <div class="co-stack">
-    <form method="post" action="{% url 'checkout' %}">
-      {% csrf_token %}
-      <div class="co-card">
-        <div class="co-sec">Dirección y notas</div>
-        <div class="co-note">
-          <span class="material-symbols-rounded">info</span>
-          <span>{% trans "Demo: el pago es simulado. La orden se crea y marca como pagada automáticamente." %}</span>
-        </div>
-        <label class="tf-label" for="id_notas">{% trans "Notas (opcional)" %}</label>
-        <textarea name="notas" id="id_notas" class="co-ta" placeholder="{% trans 'Instrucciones de entrega, referencias…' %}"></textarea>
-        <input type="hidden" name="shipping_cost" value="0">
-        <div class="co-pay"><span class="material-symbols-rounded">credit_card</span> {% trans "Método de pago: mock (desarrollo)" %}</div>
-        <button type="submit" class="co-submit"><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span> {% trans "Confirmar y pagar" %}</button>
-      </div>
-    </form>
+  <form method="post" id="co-form">
+    {% csrf_token %}
+    <input type="hidden" name="buyer_latitude" id="co-lat" value="">
+    <input type="hidden" name="buyer_longitude" id="co-lng" value="">
+
     <div class="co-card">
-      <div class="co-sec">{% trans "Resumen" %}</div>
-      {% for prod_id, item in carrito.items %}
-      <div class="co-line">
-        {% if item.imagen %}<img src="{{ item.imagen }}" alt="">{% else %}<div style="width:48px;height:48px;border-radius:8px;background:#F2F3F5;"></div>{% endif %}
-        <div class="co-line-info">
-          <div class="co-line-name">{{ item.nombre }}</div>
-          <div class="co-line-q">{% blocktrans with qty=item.cantidad %}{{ qty }} u.{% endblocktrans %}</div>
+      <div class="co-sec">{% trans "¿Quién transporta tu carga?" %}</div>
+      {% for t in transportistas %}
+      <label class="co-carrier">
+        <input type="radio" name="transport_carrier" value="{{ t.pk }}" required {% if forloop.first %}checked{% endif %}>
+        <div style="flex:1;">
+          <strong>{{ t.name }}</strong>
+          {% if t.description %}<div style="font-size:12px;color:#6B7A88;">{{ t.description }}</div>{% endif %}
         </div>
-        <div class="co-line-pr">USD {{ item.subtotal }}</div>
-      </div>
+        <span style="font-weight:700;color:#F26522;">USD {{ t.base_shipping_cost }}</span>
+      </label>
+      {% empty %}
+      <p>{% trans "No hay transportistas activos." %}</p>
       {% endfor %}
-      <div style="display:flex;justify-content:space-between;font-size:0.875rem;color:#6B7A88;margin-top:8px;"><span>{% trans "Subtotal" %}</span><span>USD {{ subtotal }}</span></div>
-      <div class="co-tot"><span>{% trans "Total" %}</span><span>USD {{ subtotal }}</span></div>
+    </div>
+
+    <div class="co-card">
+      <div class="co-sec">{% trans "Ubicación de entrega" %}</div>
+      <button type="button" class="co-geo-btn" id="co-geo-btn">
+        <span class="material-symbols-rounded">my_location</span>
+        {% trans "Usar mi ubicación actual" %}
+      </button>
+      <p class="co-geo-status" id="co-geo-status">{% trans "Debes confirmar tu ubicación para continuar." %}</p>
+    </div>
+
+    <div class="co-card">
+      <div class="co-sec">{% trans "Notas" %}</div>
+      <textarea name="notas" class="tf-input" style="width:100%;min-height:80px;" placeholder="{% trans 'Instrucciones de entrega…' %}"></textarea>
+      {% if not checkout_auto_approve %}
+      <p style="font-size:0.85rem;color:#6B7A88;margin-top:10px;">
+        {% trans "La empresa confirmará tu pedido antes del cobro (plazo habitual 48 h)." %}
+      </p>
+      {% endif %}
+      <button type="submit" class="co-submit" id="co-submit" disabled>
+        {% trans "Enviar pedido" %}
+      </button>
+    </div>
+  </form>
+
+  <div class="co-card">
+    <div class="co-sec">{% trans "Resumen" %}</div>
+    {% for prod_id, item in carrito.items %}
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:14px;">
+      <span>{{ item.nombre }} × {{ item.cantidad }}</span>
+      <span style="font-weight:700;color:#F26522;">USD {{ item.subtotal }}</span>
+    </div>
+    {% endfor %}
+    <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:10px;color:#0F2A44;">
+      <span>{% trans "Subtotal" %}</span><span>USD {{ subtotal }}</span>
     </div>
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var I = window.TF_I18N || {};
+  var lat = document.getElementById('co-lat');
+  var lng = document.getElementById('co-lng');
+  var status = document.getElementById('co-geo-status');
+  var btn = document.getElementById('co-geo-btn');
+  var submit = document.getElementById('co-submit');
+
+  function setOk() {
+    btn.classList.add('is-ok', 'tf-pulse-once');
+    submit.disabled = false;
+    status.textContent = I.geoConfirmed || '{% trans "Ubicación confirmada." %}';
+    status.style.color = '#15803d';
+  }
+
+  btn.addEventListener('click', function () {
+    if (!navigator.geolocation) {
+      status.textContent = I.geoUnsupported || '{% trans "Tu navegador no soporta geolocalización." %}';
+      return;
+    }
+    status.textContent = '{% trans "Obteniendo ubicación…" %}';
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      lat.value = pos.coords.latitude.toFixed(7);
+      lng.value = pos.coords.longitude.toFixed(7);
+      setOk();
+    }, function () {
+      status.textContent = I.geoDenied || '{% trans "Permiso de ubicación denegado." %}';
+      status.style.color = '#b91c1c';
+    }, { enableHighAccuracy: true, timeout: 12000 });
+  });
+})();
+</script>
 {% endblock %}

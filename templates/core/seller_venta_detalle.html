@@ -1,25 +1,37 @@
 {% extends "core/base.html" %}
-{% load i18n %}
-{% load static %}
+{% load i18n static %}
 {% block title %}{{ titulo_pagina }} — TradeFlow{% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/tf_animations.css' %}">
 {% endblock %}
 {% block content %}
 <div class="seller-layout">
   <div class="seller-main">
-    <p class="seller-sub"><a href="{% url 'seller_ventas' %}" class="btn-seller-outline" style="display:inline-flex;">← Volver a ventas</a></p>
-    <h1>Orden {{ orden.order_number }}</h1>
-    <p class="seller-sub">Comprador: {{ orden.buyer.get_full_name|default:orden.buyer.username }} · {{ orden.created_at|date:"d/m/Y H:i" }}</p>
+    <p class="seller-sub"><a href="{% url 'seller_mis_ventas' %}" class="btn-seller-outline" style="display:inline-flex;">← {% trans "Volver a ventas" %}</a></p>
+    <h1>{% trans "Orden" %} {{ orden.order_number }}</h1>
+    <p class="seller-sub">
+      {% trans "Comprador" %}: {{ orden.buyer.get_full_name|default:orden.buyer.username }} · {{ orden.created_at|date:"d/m/Y H:i" }}
+    </p>
+
+    {% if puede_confirmar %}
+    <div class="seller-form-card tf-pulse-once" style="margin-bottom:1.25rem;border-color:#F26522;">
+      <h2 style="font-size:1rem;margin:0 0 8px;">{% trans "Confirmar pedido" %}</h2>
+      <p style="font-size:0.88rem;color:#6B7A88;margin:0 0 12px;">
+        {% blocktrans with fecha=orden.seller_confirm_by|date:"d/m/Y H:i" %}Plazo: {{ fecha }}{% endblocktrans %}
+      </p>
+      <form method="post" style="display:flex;gap:10px;flex-wrap:wrap;">
+        {% csrf_token %}
+        <button type="submit" name="accion" value="aceptar" class="btn-seller-primary tf-confirm-pop">{% trans "Confirmar" %}</button>
+        <button type="submit" name="accion" value="rechazar" class="btn-seller-outline">{% trans "Rechazar" %}</button>
+      </form>
+    </div>
+    {% endif %}
+
     <div class="seller-table-wrap" style="margin-bottom:1.5rem;">
-      <h2>Tus líneas en esta orden</h2>
+      <h2>{% trans "Tus líneas en esta orden" %}</h2>
       <table class="seller-table">
         <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Cant.</th>
-            <th>P. unit.</th>
-            <th>Subtotal</th>
-          </tr>
+          <tr><th>{% trans "Producto" %}</th><th>{% trans "Cant." %}</th><th>{% trans "P. unit." %}</th><th>{% trans "Subtotal" %}</th></tr>
         </thead>
         <tbody>
           {% for li in lineas_vendedor %}
@@ -32,16 +44,31 @@
           {% endfor %}
         </tbody>
       </table>
-      <p style="padding:0 1.25rem 1rem;margin:0;font-size:0.95rem;color:var(--tf-dark);">
-        Subtotal (tu empresa): <strong>{{ subtotal_vendedor }} USD</strong>
+      <p style="padding:0 1.25rem 1rem;margin:0;font-size:0.95rem;">
+        {% trans "Subtotal (tu empresa)" %}: <strong>{{ subtotal_vendedor }} USD</strong>
       </p>
     </div>
+
     <div class="seller-form-card" style="max-width:100%;">
-      <h2 style="font-size:1rem;margin:0 0 0.75rem;color:var(--tf-dark);">Estado de la orden</h2>
-      <p style="margin:0;"><span class="tf-badge seller-ord-status" data-status="{{ orden.status }}">{{ orden.get_status_display }}</span></p>
+      <h2 style="font-size:1rem;margin:0 0 0.75rem;">{% trans "Logística" %}</h2>
+      <p style="margin:0 0 8px;">
+        <span class="tf-badge seller-ord-status" data-status="{{ orden.status }}">{{ orden.get_status_display }}</span>
+        · {{ orden.get_seller_confirmation_status_display }}
+      </p>
+      {% if orden.transport_carrier %}
+      <p style="font-size:0.88rem;">{% trans "Transportista" %}: <strong>{{ orden.transport_carrier.name }}</strong></p>
+      {% endif %}
+      {% if maps_url %}
+      <p style="margin-top:8px;">
+        <a href="{{ maps_url }}" target="_blank" rel="noopener" class="btn-seller-outline" style="display:inline-flex;">
+          <span class="material-symbols-rounded" style="font-size:18px;">map</span>
+          {% trans "Ver ubicación del comprador en mapa" %}
+        </a>
+      </p>
+      {% endif %}
       {% if pago %}
-      <p style="margin-top:12px;font-size:0.88rem;color:var(--tf-muted);">
-        Pago: {{ pago.get_status_display }} · {{ pago.amount }} {{ pago.currency }} · {{ pago.get_provider_display }}
+      <p style="margin-top:12px;font-size:0.88rem;color:#6B7A88;">
+        {% trans "Pago" %}: {{ pago.get_status_display }} · {{ pago.amount }} {{ pago.currency }}
       </p>
       {% endif %}
     </div>
@@ -50,16 +77,13 @@
 <script>
 (function () {
   var map = {
-    pending: { bg: "var(--order-pending-bg)", fg: "var(--order-pending-fg)" },
-    paid: { bg: "var(--order-paid-bg)", fg: "var(--order-paid-fg)" },
-    packed: { bg: "var(--order-packed-bg)", fg: "var(--order-packed-fg)" },
-    shipped: { bg: "var(--order-shipped-bg)", fg: "var(--order-shipped-fg)" },
-    delivered: { bg: "var(--order-delivered-bg)", fg: "var(--order-delivered-fg)" },
-    cancelled: { bg: "var(--order-cancelled-bg)", fg: "var(--order-cancelled-fg)" },
+    awaiting_seller: { bg: '#FEF3C7', fg: '#92400E' },
+    pending: { bg: 'var(--order-pending-bg)', fg: 'var(--order-pending-fg)' },
+    paid: { bg: 'var(--order-paid-bg)', fg: 'var(--order-paid-fg)' },
+    cancelled: { bg: 'var(--order-cancelled-bg)', fg: 'var(--order-cancelled-fg)' },
   };
-  document.querySelectorAll(".seller-ord-status").forEach(function (el) {
-    var st = el.getAttribute("data-status");
-    var t = map[st];
+  document.querySelectorAll('.seller-ord-status').forEach(function (el) {
+    var t = map[el.getAttribute('data-status')];
     if (t) { el.style.background = t.bg; el.style.color = t.fg; }
   });
 })();
