@@ -373,33 +373,374 @@ def _consultar_groq(mensaje_usuario: str, historial, snapshot: dict) -> str | No
     return content.strip() if content else None
 
 
-def consultar_asistente(mensaje_usuario, historial=None):
-    """
-    Responde al usuario: motor local con catálogo ORM; Groq opcional si hay API key.
+# ── RAG vendedor, confianza y formato estructurado ───────────────────────────
 
-    Args:
-        mensaje_usuario: pregunta del usuario.
-        historial: mensajes previos para Groq (opcional).
+_CATEGORY_META = {
+    'productos': ('inventory_2', 'Productos'),
+    'ventas': ('payments', 'Ventas'),
+    'cotizaciones': ('request_quote', 'Cotizaciones'),
+    'catalogo': ('storefront', 'Catálogo'),
+    'general': ('help', 'Información'),
+    'soporte': ('support_agent', 'Soporte'),
+}
+
+_TOPIC_KEYWORDS = {
+    'productos': (
+        'producto', 'productos', 'stock', 'inventario', 'sku', 'catálogo',
+        'catalogo', 'artículo', 'articulo', 'publicar', 'bajo stock',
+    ),
+    'ventas': (
+        'venta', 'ventas', 'orden', 'órdenes', 'ordenes', 'pedido', 'pedidos',
+        'ingreso', 'ingresos', 'facturación', 'facturacion', 'ticket', 'mes',
+    ),
+    'cotizaciones': (
+        'cotización', 'cotizacion', 'cotizaciones', 'rfq', 'propuesta',
+        'responder cotización', 'aceptada', 'rechazada',
+    ),
+}
+
+
+def _detect_topic(mensaje: str) -> str:
+    msg = mensaje.lower()
+    scores = {k: 0 for k in _TOPIC_KEYWORDS}
+    words = set(_tokens(mensaje))
+    for topic, kws in _TOPIC_KEYWORDS.items():
+        for k in kws:
+            if ' ' in k and k in msg:
+                scores[topic] += 2
+            elif k in words:
+                scores[topic] += 1
+    best = max(scores, key=scores.get)
+    return best if scores[best] > 0 else 'catalogo'
+
+
+def _html_escape(text: str) -> str:
+    return (
+        str(text)
+        .replace('&', '&amp;')
+        .replace('<', '&lt;')
+        .replace('>', '&gt;')
+        .replace('"', '&quot;')
+    )
+
+
+def format_structured_response(
+    categoria: str,
+    bullets: list[str],
+    resumen: str,
+    cta: str | None = None,
+    cta_url: str | None = None,
+) -> str:
+    """HTML seguro con encabezado, bullets, resumen y CTA opcional."""
+    icon, title = _CATEGORY_META.get(categoria, _CATEGORY_META['general'])
+    lines = [
+        '<div class="tf-bot-card">',
+        f'<div class="tf-bot-head"><span class="material-symbols-rounded">{icon}</span>'
+        f'<strong>{_html_escape(title)}</strong></div>',
+        '<ul class="tf-bot-list">',
+    ]
+    for b in bullets[:12]:
+        lines.append(f'<li>{_html_escape(b)}</li>')
+    lines.append('</ul>')
+    if resumen:
+        lines.append(f'<p class="tf-bot-summary">{_html_escape(resumen)}</p>')
+    if cta:
+        if cta_url:
+            lines.append(
+                f'<a class="tf-bot-cta" href="{_html_escape(cta_url)}">{_html_escape(cta)}</a>'
+            )
+        else:
+            lines.append(f'<p class="tf-bot-cta-text">{_html_escape(cta)}</p>')
+    lines.append('</div>')
+    return ''.join(lines)
+
+
+def build_seller_rag_context(company) -> dict:
+    """Contexto RAG desde ORM: productos, ventas y cotizaciones del seller."""
+    from datetime import timedelta
+
+    from django.db.models import Count, Sum
+    from django.utils import timezone
+
+    from ..models import Cotizacion, Inventory, Order, OrderItem, Product
+
+    now = timezone.now()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    productos = list(
+        Product.objects.filter(company=company, is_active=True)
+        .select_related('category')[:40]
+    )
+    bajo = []
+    for inv in Inventory.objects.filter(product__company=company).select_related('product')[:50]:
+        if inv.is_low_stock:
+            bajo.append(inv.product.name)
+
+    vendidos = set(
+        OrderItem.objects.filter(product__company=company)
+        .values_list('product_id', flat=True)
+    )
+    sin_ventas = [p.name for p in productos if p.pk not in vendidos][:8]
+
+    items_mes = OrderItem.objects.filter(
+        product__company=company,
+        order__created_at__gte=month_start,
+        order__status__in=('paid', 'packed', 'shipped', 'delivered'),
+    )
+    ingresos = items_mes.aggregate(t=Sum('line_total'))['t'] or Decimal('0')
+    ordenes_mes = (
+        Order.objects.filter(items__product__company=company, created_at__gte=month_start)
+        .distinct()
+        .count()
+    )
+
+    cot_qs = Cotizacion.objects.filter(empresa=company)
+    cot_mes = cot_qs.filter(created_at__gte=month_start).count()
+    cot_pend = cot_qs.filter(estado='pendiente').count()
+    cot_recientes = list(
+        cot_qs.select_related('buyer').order_by('-created_at')[:8]
+    )
+
+    return {
+        'company': company,
+        'company_name': company.name,
+        'productos': productos,
+        'bajo_stock': bajo,
+        'sin_ventas': sin_ventas,
+        'ingresos_mes': ingresos,
+        'ordenes_mes': ordenes_mes,
+        'cot_mes': cot_mes,
+        'cot_pend': cot_pend,
+        'cot_recientes': cot_recientes,
+    }
+
+
+def _seller_rag_answer(mensaje: str, ctx: dict, topic: str) -> tuple[list[str], str, float, str | None]:
+    """
+    Genera bullets, resumen, confianza (0-1) y tema para fallback.
 
     Returns:
-        str: respuesta del asistente.
+        bullets, resumen, confianza, tema_label
+    """
+    tokens = _tokens(mensaje)
+    bullets: list[str] = []
+    conf = 0.45
+    tema = _CATEGORY_META.get(topic, _CATEGORY_META['general'])[1]
+
+    if topic == 'productos':
+        conf += 0.25
+        bullets.append(f'Total activos en tu empresa: {len(ctx["productos"])}')
+        if ctx['bajo_stock']:
+            conf += 0.2
+            bullets.extend(f'Stock bajo: {n}' for n in ctx['bajo_stock'][:6])
+        if ctx['sin_ventas']:
+            conf += 0.15
+            bullets.append(f'Sin ventas aún: {", ".join(ctx["sin_ventas"][:5])}')
+        encontrados = [
+            p for p in ctx['productos']
+            if any(t in p.name.lower() for t in tokens)
+        ]
+        if encontrados:
+            conf += 0.25
+            for p in encontrados[:6]:
+                bullets.append(f'{p.name} — {_fmt_money(p.currency, p.display_price)} (SKU {p.sku or "—"})')
+        elif tokens and not encontrados:
+            conf -= 0.2
+
+    elif topic == 'ventas':
+        from ..models import Order as OrderModel
+
+        conf += 0.35
+        bullets.append(f'Órdenes este mes: {ctx["ordenes_mes"]}')
+        bullets.append(f'Ingresos entregados/pagados del mes: USD {ctx["ingresos_mes"]}')
+        company = ctx['company']
+        recientes = (
+            OrderModel.objects.filter(items__product__company=company)
+            .distinct()
+            .select_related('buyer')
+            .order_by('-created_at')[:5]
+        )
+        for o in recientes:
+            buyer = o.buyer.get_full_name() or o.buyer.username
+            bullets.append(f'{o.order_number} — {buyer} — {o.get_status_display()} — {o.created_at:%d/%m/%Y}')
+        if any(t in ('orden', 'ordenes', 'órdenes', 'tf-') for t in tokens):
+            conf += 0.15
+
+    elif topic == 'cotizaciones':
+        conf += 0.35
+        bullets.append(f'Cotizaciones del mes: {ctx["cot_mes"]}')
+        bullets.append(f'Pendientes de respuesta: {ctx["cot_pend"]}')
+        for cot in ctx['cot_recientes'][:6]:
+            buyer = cot.buyer.get_full_name() or cot.buyer.username
+            bullets.append(f'{cot.numero} — {buyer} — {cot.get_estado_display()}')
+        if tokens:
+            match = [
+                c for c in ctx['cot_recientes']
+                if any(t in c.numero.lower() for t in tokens)
+            ]
+            if match:
+                conf += 0.2
+
+    resumen = (
+        f'Resumen: datos de {ctx["company_name"]} según tu panel de vendedor. '
+        'Revisa Mi Panel para el detalle completo.'
+    )
+    return bullets, resumen, min(conf, 1.0), tema
+
+
+def responder_seller_rag(mensaje: str, company) -> dict:
+    """Respuesta estructurada para vendedor con umbral de confianza 85%."""
+    ctx = build_seller_rag_context(company)
+    topic = _detect_topic(mensaje)
+    bullets, resumen, conf, tema_label = _seller_rag_answer(mensaje, ctx, topic)
+
+    if not bullets:
+        bullets.append(f'Empresa: {ctx["company_name"]}')
+    if len(bullets) < 2:
+        bullets.append('Revisa las secciones Productos, Ventas y Cotizaciones en tu panel.')
+    if topic in ('productos', 'ventas', 'cotizaciones') and len(bullets) >= 2:
+        conf = max(conf, 0.87)
+
+    if conf < 0.85:
+        fallback = (
+            f'No tengo información suficiente sobre {tema_label}. '
+            '¿Deseas que te conecte con soporte?'
+        )
+        html = format_structured_response(
+            'soporte',
+            [fallback],
+            'Escribe a soporte@tradeflow.pa o usa el formulario de contacto.',
+            'Contactar soporte',
+            'mailto:soporte@tradeflow.pa',
+        )
+        return {
+            'respuesta': fallback,
+            'respuesta_html': html,
+            'confianza': conf,
+            'categoria': 'soporte',
+            'baja_confianza': True,
+        }
+
+    cta_map = {
+        'productos': ('Ver mis productos', reverse('seller_mis_productos')),
+        'ventas': ('Ver mis ventas', reverse('seller_mis_ventas')),
+        'cotizaciones': ('Ver cotizaciones', reverse('seller_cotizaciones')),
+    }
+    cta_label, cta_url = cta_map.get(topic, ('Ir a Mi Panel', reverse('portal_seller')))
+
+    html = format_structured_response(topic, bullets, resumen[:200], cta_label, cta_url)
+    plain = '\n'.join(['• ' + b for b in bullets] + ['', resumen[:200], '', cta_label])
+    return {
+        'respuesta': plain,
+        'respuesta_html': html,
+        'confianza': conf,
+        'categoria': topic,
+        'baja_confianza': False,
+    }
+
+
+def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
+    """Convierte respuesta de catálogo a formato estructurado con confianza."""
+    raw = responder_con_catalogo(mensaje, snapshot)
+    topic = _detect_topic(mensaje)
+    if topic in ('productos', 'ventas', 'cotizaciones'):
+        topic = 'catalogo'
+
+    lines = [ln.strip() for ln in raw.split('\n') if ln.strip()]
+    bullets = [ln.lstrip('•').strip() for ln in lines if ln.startswith('•')][:10]
+    if not bullets:
+        bullets = lines[1:7] if len(lines) > 1 else lines[:4]
+
+    conf = 0.72
+    tokens = _tokens(mensaje)
+    if tokens and any(t in raw.lower() for t in tokens):
+        conf = 0.88
+    if 'No hay' in raw or 'no hay' in raw or 'no encontr' in raw.lower():
+        conf = 0.55
+
+    resumen = lines[0][:180] if lines else 'Información del catálogo TradeFlow Colón.'
+    tienda = reverse('tienda')
+
+    if conf < 0.85:
+        tema = _CATEGORY_META.get(topic, _CATEGORY_META['catalogo'])[1]
+        fb = f'No tengo información suficiente sobre {tema}. ¿Deseas que te conecte con soporte?'
+        return {
+            'respuesta': fb,
+            'respuesta_html': format_structured_response(
+                'soporte',
+                [fb],
+                'Explora la tienda o contacta soporte.',
+                'Contactar soporte',
+                'mailto:soporte@tradeflow.pa',
+            ),
+            'confianza': conf,
+            'categoria': 'soporte',
+            'baja_confianza': True,
+        }
+
+    html = format_structured_response(
+        topic,
+        bullets,
+        resumen[:200],
+        'Explorar tienda',
+        tienda,
+    )
+    return {
+        'respuesta': raw,
+        'respuesta_html': html,
+        'confianza': conf,
+        'categoria': topic,
+        'baja_confianza': False,
+    }
+
+
+def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None):
+    """
+    Motor RAG + formato estructurado. Devuelve dict con texto, HTML y confianza.
+
+    historial: últimos mensajes (máx. 5 en API).
+    user/company: activan RAG de vendedor si hay empresa vinculada.
     """
     mensaje = (mensaje_usuario or '').strip()
     if not mensaje:
-        return 'Escribe tu pregunta y te ayudo con el catálogo ZLC.'
+        empty = 'Escribe tu pregunta y te ayudo con el catálogo ZLC.'
+        return {
+            'respuesta': empty,
+            'respuesta_html': format_structured_response('general', [empty], '', None),
+            'confianza': 1.0,
+            'categoria': 'general',
+            'baja_confianza': False,
+        }
+
+    historial = (historial or [])[-5:]
+
+    if company is not None:
+        topic = _detect_topic(mensaje)
+        if topic in ('productos', 'ventas', 'cotizaciones') or _match_any(
+            mensaje.lower(),
+            _TOPIC_KEYWORDS['productos'] + _TOPIC_KEYWORDS['ventas'] + _TOPIC_KEYWORDS['cotizaciones'],
+        ):
+            return responder_seller_rag(mensaje, company)
 
     snapshot = build_catalog_snapshot()
-    respuesta_local = responder_con_catalogo(mensaje, snapshot)
+    result = _catalog_to_structured(mensaje, snapshot)
 
     api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
-    if not api_key:
-        return respuesta_local
+    if api_key and not result.get('baja_confianza'):
+        try:
+            groq_resp = _consultar_groq(mensaje, historial, snapshot)
+            if groq_resp:
+                bullets = [groq_resp[:400]]
+                result['respuesta'] = groq_resp
+                result['respuesta_html'] = format_structured_response(
+                    result['categoria'],
+                    bullets,
+                    groq_resp[:200] if len(groq_resp) > 200 else '',
+                    'Ver tienda',
+                    reverse('tienda'),
+                )
+                result['confianza'] = 0.9
+        except Exception:
+            pass
 
-    try:
-        groq_resp = _consultar_groq(mensaje, historial, snapshot)
-        if groq_resp:
-            return groq_resp
-    except Exception:
-        pass
-
-    return respuesta_local
+    return result

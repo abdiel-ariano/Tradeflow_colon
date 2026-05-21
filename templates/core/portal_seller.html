@@ -39,11 +39,26 @@ Contexto: company, total_productos, bajo_stock, ordenes_semana, ingresos_mes, or
     padding: 5px 12px;
     margin-bottom: 10px;
   }
-  .ps-hero h1 {
+  .ps-hero h1,
+  .ps-hero-user {
     font-family: 'DM Serif Display', serif;
     font-size: clamp(1.5rem, 3vw, 2rem);
     margin: 0 0 6px;
     font-weight: 400;
+    color: #F9FAFB;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  }
+  body.tf-theme-light .ps-hero h1,
+  body.tf-theme-light .ps-hero-user {
+    color: #111827;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+  @media (prefers-color-scheme: light) {
+    body:not(.tf-theme-dark) .ps-hero h1,
+    body:not(.tf-theme-dark) .ps-hero-user {
+      color: #F9FAFB;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    }
   }
   .ps-hero-sub {
     margin: 0;
@@ -237,6 +252,68 @@ Contexto: company, total_productos, bajo_stock, ordenes_semana, ingresos_mes, or
     justify-content: center;
     margin: 0 auto 16px;
   }
+  .ps-pro-wrap { margin-bottom: 24px; max-height: 32vh; }
+  .ps-pro-card {
+    position: relative;
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #A855F7 100%);
+    border-radius: 16px;
+    padding: 24px;
+    color: #fff;
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.3);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    max-width: 100%;
+  }
+  .ps-pro-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 16px 32px -4px rgba(99, 102, 241, 0.45);
+  }
+  .ps-pro-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ps-pro-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .ps-pro-title { font-size: 1.35rem; font-weight: 800; margin: 0 0 4px; }
+  .ps-pro-sub { margin: 0 0 14px; font-size: 14px; color: rgba(255,255,255,0.85); }
+  .ps-pro-features { list-style: none; padding: 0; margin: 0 0 16px; font-size: 13px; }
+  .ps-pro-features li { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .ps-pro-price { font-size: 1.75rem; font-weight: 800; margin-bottom: 12px; }
+  .ps-pro-cta {
+    display: inline-block;
+    background: #fff;
+    color: #4F46E5;
+    font-weight: 700;
+    padding: 12px 22px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .ps-pro-note { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 10px; }
+  .ps-pro-plan { font-size: 12px; margin-top: 8px; opacity: 0.9; }
+  @media (max-width: 640px) {
+    .ps-pro-inner { display: flex; flex-direction: column; }
+  }
+  @media (min-width: 641px) {
+    .ps-pro-inner { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; }
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -247,7 +324,7 @@ Contexto: company, total_productos, bajo_stock, ordenes_semana, ingresos_mes, or
         <span class="material-symbols-rounded" style="font-size:14px;" aria-hidden="true">store</span>
         {% trans "Panel vendedor" %}
       </span>
-      <h1>{% blocktrans with name=request.user.get_full_name|default:request.user.username %}Hola, {{ name }}{% endblocktrans %}</h1>
+      <h1 class="ps-hero-user">{% blocktrans with name=request.user.get_full_name|default:request.user.username %}Hola, {{ name }}{% endblocktrans %}</h1>
       <p class="ps-hero-sub">{{ company.name }} · {% trans "Zona Libre de Colón" %}</p>
     </div>
     <a href="{% url 'seller_agregar_producto' %}" class="ps-hero-cta">
@@ -255,6 +332,34 @@ Contexto: company, total_productos, bajo_stock, ordenes_semana, ingresos_mes, or
       {% trans "Nuevo producto" %}
     </a>
   </header>
+
+  <div class="ps-pro-wrap" id="ps-pro-banner" hidden>
+    <article class="ps-pro-card">
+      <button type="button" class="ps-pro-close" id="ps-pro-close" aria-label="{% trans 'Cerrar' %}">
+        <span class="material-symbols-rounded" style="font-size:18px;">close</span>
+      </button>
+      <div class="ps-pro-inner">
+        <div>
+          <span class="ps-pro-badge">{% trans "Recomendado" %}</span>
+          <h2 class="ps-pro-title">TradeFlow Pro</h2>
+          <p class="ps-pro-sub">{% trans "Análisis avanzado para impulsar tus ventas" %}</p>
+          <ul class="ps-pro-features">
+            <li><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span>{% trans "Análisis de ventas en tiempo real" %}</li>
+            <li><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span>{% trans "Productos más vendidos" %}</li>
+            <li><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span>{% trans "Predicción de tendencias" %}</li>
+            <li><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span>{% trans "Reportes exportables" %}</li>
+            <li><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span>{% trans "Soporte prioritario" %}</li>
+          </ul>
+          <p class="ps-pro-plan">{% trans "Plan actual: Básico" %}</p>
+        </div>
+        <div style="text-align:center;">
+          <p class="ps-pro-price">$20<small style="font-size:14px;font-weight:500;">/{% trans "mes" %}</small></p>
+          <a href="#" class="ps-pro-cta" onclick="return false;">{% trans "Actualizar a Pro" %}</a>
+          <p class="ps-pro-note">{% trans "Cancela cuando quieras" %}</p>
+        </div>
+      </div>
+    </article>
+  </div>
 
   <div class="ps-kpi-grid">
     <article class="ps-kpi">
@@ -387,6 +492,22 @@ Contexto: company, total_productos, bajo_stock, ordenes_semana, ingresos_mes, or
     delivered: { bg: '#D1FAE5', fg: '#065F46', label: 'Entregado' },
     cancelled: { bg: '#FEE2E2', fg: '#991B1B', label: 'Cancelado' }
   };
+  var pro = document.getElementById('ps-pro-banner');
+  var proClose = document.getElementById('ps-pro-close');
+  try {
+    if (sessionStorage.getItem('tf_pro_dismiss') !== '1' && pro) {
+      pro.hidden = false;
+    }
+  } catch (e) {
+    if (pro) pro.hidden = false;
+  }
+  if (proClose && pro) {
+    proClose.addEventListener('click', function () {
+      pro.hidden = true;
+      try { sessionStorage.setItem('tf_pro_dismiss', '1'); } catch (err) {}
+    });
+  }
+
   document.querySelectorAll('.ps-ord-status').forEach(function (el) {
     var row = map[el.getAttribute('data-status')];
     if (row) {

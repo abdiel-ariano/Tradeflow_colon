@@ -31,30 +31,11 @@
   }
 
   function showToast(message, level) {
-    var root = document.getElementById('tf-toast-root');
-    if (!root || !message) return;
-    var row = document.createElement('div');
-    row.className = 'tf-toast tf-toast-' + (level || 'success');
-    var icon = level === 'error' ? 'error' : level === 'warning' ? 'warning' : 'check_circle';
-    row.innerHTML =
-      '<span class="material-symbols-rounded tf-toast-ico" aria-hidden="true">' + icon + '</span>' +
-      '<span class="tf-toast-msg"></span>' +
-      '<button type="button" class="tf-toast-close" aria-label="' + ((window.TF_I18N && window.TF_I18N.close) || 'Cerrar') + '">' +
-      '<span class="material-symbols-rounded" style="font-size:18px;">close</span></button>';
-    row.querySelector('.tf-toast-msg').textContent = message;
-    root.appendChild(row);
-    requestAnimationFrame(function () {
-      row.classList.add('is-visible');
-    });
-    var closeBtn = row.querySelector('.tf-toast-close');
-    function remove() {
-      row.classList.remove('is-visible');
-      setTimeout(function () {
-        if (row.parentNode) row.parentNode.removeChild(row);
-      }, 280);
+    if (!message) return;
+    if (window.tfNotify) {
+      window.tfNotify(message, level, { critical: level === 'error' });
+      return;
     }
-    if (closeBtn) closeBtn.addEventListener('click', remove);
-    setTimeout(remove, 2000);
   }
 
   window.tfCartAjaxInit = bindCartForms;

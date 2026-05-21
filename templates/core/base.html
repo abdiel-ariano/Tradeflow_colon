@@ -624,6 +624,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       pointer-events: none;
     }
     .tf-toast-root > * { pointer-events: auto; }
+    .tf-toast,
+    .tf-flash {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
     .tf-toast {
       display: flex;
       align-items: flex-start;
@@ -635,12 +639,12 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       box-shadow: 0 8px 24px rgba(15, 42, 68, 0.14);
       opacity: 0;
       transform: translateY(-8px);
-      transition: opacity 0.25s ease, transform 0.25s ease;
     }
     .tf-toast.is-visible {
       opacity: 1;
       transform: translateY(0);
     }
+    .tf-toast-critical { border-width: 2px; }
     .tf-toast-success { border-color: #BBF7D0; background: #F0FDF4; }
     .tf-toast-error { border-color: #FECACA; background: #FEF2F2; }
     .tf-toast-warning { border-color: #FDE68A; background: #FFFBEB; }
@@ -1087,25 +1091,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     </div>
     {% endfor %}
   </div>
-  <script>
-  (function () {
-    var iconFor = function (tags) {
-      var t = (tags || '').toLowerCase();
-      if (t.indexOf('success') !== -1) return 'check_circle';
-      if (t.indexOf('error') !== -1 || t.indexOf('danger') !== -1) return 'error';
-      if (t.indexOf('warning') !== -1) return 'warning';
-      if (t.indexOf('info') !== -1 || t.indexOf('debug') !== -1) return 'info';
-      return 'info';
-    };
-    document.querySelectorAll('#tf-flash-root .tf-flash').forEach(function (row) {
-      var tags = row.getAttribute('data-tf-tags') || '';
-      var ico = row.querySelector('.tf-flash-icon');
-      if (ico) ico.textContent = iconFor(tags);
-      var btn = row.querySelector('.tf-flash-close');
-      if (btn) btn.addEventListener('click', function () { row.remove(); });
-    });
-  })();
-  </script>
   {% endif %}
 
   <div id="tf-toast-root" class="tf-toast-root" aria-live="polite" aria-atomic="true"></div>
@@ -1156,7 +1141,18 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   {% endblock %}
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{% static 'js/tf_notifications.js' %}"></script>
   <script src="{% static 'js/cart_ajax.js' %}"></script>
+  <style>
+    .tf-bot-card { font-size: 13px; line-height: 1.5; }
+    .tf-bot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0F2A44; }
+    .tf-bot-head .material-symbols-rounded { font-size: 20px; color: #F26522; }
+    .tf-bot-list { margin: 0 0 10px; padding-left: 18px; }
+    .tf-bot-summary { margin: 0 0 8px; font-size: 12px; color: #6B7A88; font-style: italic; }
+    .tf-bot-cta { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; color: #F26522; text-decoration: none; }
+    .tf-chat-feedback { display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E5E7EB; font-size: 12px; }
+    .tf-chat-feedback button { border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 11px; }
+  </style>
   {{ tf_i18n|json_script:"tf-i18n-data" }}
   <script>
   (function () {
@@ -1204,6 +1200,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     var tfChatOpen = false;
     var tfChatHistory = [];
     var tfChatLoading = false;
+    var TF_CHAT_MAX_HIST = 5;
     var win = document.getElementById('tf-chat-window');
     var icon = document.getElementById('tf-chat-icon');
     var toggle = document.getElementById('tf-chat-toggle');
@@ -1228,17 +1225,43 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     if (toggle) toggle.addEventListener('click', toggleChat);
     if (closeBtn) closeBtn.addEventListener('click', toggleChat);
 
-    function appendMessage(content, isBot) {
+    function appendMessage(content, isBot, htmlContent) {
       var msgs = document.getElementById('tf-chat-messages');
       if (!msgs) return null;
       var div = document.createElement('div');
       div.style.cssText = isBot
-        ? 'background:#fff;border:1px solid #E5E7EB;border-radius:12px 12px 12px 0;padding:10px 14px;max-width:85%;font-size:13px;color:#374151;line-height:1.55;align-self:flex-start;'
+        ? 'background:#fff;border:1px solid #E5E7EB;border-radius:12px 12px 12px 0;padding:10px 14px;max-width:92%;font-size:13px;color:#374151;line-height:1.55;align-self:flex-start;'
         : 'background:#F26522;color:#fff;border-radius:12px 12px 0 12px;padding:10px 14px;max-width:85%;font-size:13px;line-height:1.55;align-self:flex-end;margin-left:auto;';
-      div.textContent = content;
+      if (isBot && htmlContent) {
+        div.innerHTML = htmlContent;
+      } else {
+        div.textContent = content;
+      }
       msgs.appendChild(div);
       msgs.scrollTop = msgs.scrollHeight;
       return div;
+    }
+
+    function appendFeedback(parentDiv) {
+      if (!parentDiv) return;
+      var fb = document.createElement('div');
+      fb.className = 'tf-chat-feedback';
+      fb.innerHTML = '<span>{% trans "¿Te fue útil?" %}</span>';
+      var yes = document.createElement('button');
+      yes.type = 'button';
+      yes.textContent = '{% trans "Sí" %}';
+      var no = document.createElement('button');
+      no.type = 'button';
+      no.textContent = '{% trans "No" %}';
+      yes.addEventListener('click', function () {
+        fb.innerHTML = '<span style="color:#15803d;">{% trans "¡Gracias por tu opinión!" %}</span>';
+      });
+      no.addEventListener('click', function () {
+        fb.innerHTML = '<span>{% trans "Lo mejoraremos. Escríbenos a soporte@tradeflow.pa" %}</span>';
+      });
+      fb.appendChild(yes);
+      fb.appendChild(no);
+      parentDiv.appendChild(fb);
     }
 
     function sendChatMessage() {
@@ -1262,15 +1285,20 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         },
         body: JSON.stringify({
           mensaje: mensaje,
-          historial: tfChatHistory.slice(-6)
+          historial: tfChatHistory.slice(-TF_CHAT_MAX_HIST)
         })
       })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
         var respuesta = data.respuesta || '{% trans "No pude procesar tu consulta." %}';
-        appendMessage(respuesta, true);
+        var html = data.respuesta_html || respuesta;
+        var botDiv = appendMessage(respuesta, true, html);
+        appendFeedback(botDiv);
         tfChatHistory.push({ role: 'assistant', content: respuesta });
+        if (tfChatHistory.length > TF_CHAT_MAX_HIST * 2) {
+          tfChatHistory = tfChatHistory.slice(-TF_CHAT_MAX_HIST * 2);
+        }
       })
       .catch(function () {
         if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
