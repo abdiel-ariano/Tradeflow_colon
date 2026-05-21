@@ -331,34 +331,33 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       flex-shrink: 0;
       color: var(--tf-white);
     }
-    .tf-nav-brand img {
+    .tf-nav-brand img,
+    .tf-nav-brand .tf-nav-logo-img {
       height: 36px;
-      width: 36px;
+      width: auto;
+      max-width: 168px;
       object-fit: contain;
-      filter: brightness(0) invert(1);
-    }
-    .tf-nav-brand .brand-wordmark {
-      font-family: var(--tf-font-body);
-      font-weight: 700;
-      font-size: 1.2rem;
-      color: var(--tf-white);
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-    }
-    .tf-nav-brand .brand-sub {
-      font-size: 0.65rem;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.55);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      filter: none;
     }
 
     .tf-nav-links {
       display: flex;
       align-items: center;
       gap: 2px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       justify-content: flex-end;
+      flex: 1;
+      min-width: 0;
+    }
+    @media (max-width: 1100px) {
+      .tf-nav-links { flex-wrap: wrap; }
+    }
+    .tf-nav-user-block {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      margin-left: 4px;
     }
     .tf-nav-group { display: none; align-items: center; gap: 2px; }
     .tf-nav-group.is-visible { display: flex; }
@@ -481,14 +480,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       background: #ffffff;
       box-shadow: 0 1px 0 #d1d5db, 0 2px 12px rgba(15, 42, 68, 0.06);
     }
-    body.tf-public .tf-nav-brand .brand-wordmark {
-      color: var(--tf-navy);
-    }
-    body.tf-public .tf-nav-brand .brand-sub {
-      color: var(--tf-muted);
-    }
-    body.tf-public .tf-nav-brand img {
+    body.tf-public .tf-nav-brand img,
+    body.tf-public .tf-nav-brand .tf-nav-logo-img {
       filter: none;
+      max-width: 168px;
     }
     body.tf-public .tf-btn-outline-sm {
       color: var(--tf-navy);
@@ -958,15 +953,13 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   {% endif %}
 
   <nav class="tf-nav tf-navbar" aria-label="Principal">
-    <a href="{% url 'home' %}" class="tf-nav-brand">
-      <picture>
-        <source srcset="{% static 'img/logo-white.png' %}" type="image/png">
-        <img src="{% static 'img/logo-white.svg' %}" width="36" height="36" alt="TradeFlow Colón" class="tf-nav-logo-img" style="height:36px;width:auto;object-fit:contain;">
-      </picture>
-      <div>
-        <div class="brand-wordmark">TradeFlow</div>
-        <div class="brand-sub">{% trans "Zona Libre de Colón · Panamá" %}</div>
-      </div>
+    <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">
+      <img src="{% static 'img/logo-white.png' %}"
+           alt="TradeFlow Colón"
+           class="tf-nav-logo-img"
+           width="160"
+           height="36"
+           onerror="this.onerror=null;this.src='{% static 'img/logo.png' %}';">
     </a>
 
     <div class="tf-nav-links">
@@ -1009,13 +1002,15 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           <a href="{% url 'seller_cotizaciones' %}" class="nav-link-tf" data-tf-nav="seller_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">request_quote</span>{% trans "Cotizaciones" %}</a>
         </div>
         <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
-        <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-          <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
-          <span class="tf-nav-user-name" style="color:rgba(255,255,255,0.8);font-size:13px;">{{ request.user.get_full_name|default:request.user.username }}</span>
-        </a>
-        <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
-          <span class="material-symbols-rounded tf-ms-18">logout</span>{% trans "Salir" %}
-        </a>
+        <div class="tf-nav-user-block">
+          <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
+            <span class="tf-nav-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+          </a>
+          <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
+            <span class="material-symbols-rounded tf-ms-18">logout</span>{% trans "Salir" %}
+          </a>
+        </div>
       {% else %}
         <a href="{% url 'login' %}" class="tf-btn-outline-sm">{% trans "Iniciar sesión" %}</a>
         <a href="{% url 'signup' %}" class="tf-btn-primary-sm">{% trans "Crear cuenta" %}</a>
