@@ -13,6 +13,9 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
 {% endcomment %}
 {% block title %}{% trans "Iniciar sesión — TradeFlow Colón" %}{% endblock %}
 {% block footer %}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
+{% endblock %}
 {% block extra_css %}
 <style>
   .auth-page {
@@ -122,12 +125,9 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
   data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
 >
   <div class="auth-card">
-    <div class="auth-logo">
-      <img src="{% static 'img/logo.png' %}" alt="TradeFlow Colón" style="height:44px;width:auto;max-width:200px;object-fit:contain;">
-      <div>
-        <div class="auth-brand">TradeFlow</div>
-        <div class="auth-brand-sub">{% trans "Zona Libre de Colón · Panamá" %}</div>
-      </div>
+    <div class="auth-logo-block">
+      {% include "core/includes/tf_logo.html" with variant="wordmark-dark" size="wordmark" eager=1 %}
+      <div class="auth-brand-sub" style="font-size:0.875rem;color:var(--tf-muted);">{% trans "Zona Libre de Colón · Panamá" %}</div>
     </div>
 
     <div class="auth-dev-banner" id="auth-dev-banner" hidden>

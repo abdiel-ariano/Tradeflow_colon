@@ -30,9 +30,11 @@
       overlay.style.cssText =
         'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;' +
         'justify-content:center;z-index:99999;animation:tfFadeIn 0.2s ease;';
+      var logoSrc = (global.TF_STATIC_LOGO || '/static/img/logo-icon-color.png');
       overlay.innerHTML =
         '<div style="background:#fff;border-radius:20px;padding:2.5rem;text-align:center;' +
         'max-width:380px;width:90%;animation:tfSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1)">' +
+        '<img src="' + logoSrc + '" alt="TradeFlow" style="height:56px;width:auto;margin:0 auto 1rem;object-fit:contain;" class="tf-pulse-once">' +
         '<p style="font-family:var(--tf-font-display,serif);font-size:1.25rem;color:var(--tf-dark,#0F2A44);' +
         'margin-bottom:.5rem">Listo</p>' +
         '<p style="color:var(--tf-muted,#6B7A88);font-size:.9rem">' + mensaje + '</p></div>';

@@ -1,8 +1,11 @@
 {% extends "core/base.html" %}
-{% load i18n %}
+{% load static i18n %}
 {% block title %}{% trans "Solicitud de acceso" %} — TradeFlow Colón{% endblock %}
 {% block content %}
 <div style="max-width:520px;margin:48px auto;padding:0 24px 64px;">
+  <div class="auth-logo-block" style="margin-bottom:1.25rem;">
+    {% include "core/includes/tf_logo.html" with variant="wordmark-dark" size="wordmark" %}
+  </div>
   <h1 style="font-size:1.6rem;color:#0F2A44;margin-bottom:8px;">{% trans "Solicitud de acceso" %}</h1>
   <p style="color:#6B7A88;font-size:14px;margin-bottom:24px;">{% trans "Para inversores y empresas ZLC. Te responderemos por correo." %}</p>
   <form method="post" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:24px;">

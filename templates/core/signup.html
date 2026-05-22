@@ -9,6 +9,9 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
 ================================================================================
 {% endcomment %}
 {% block title %}{% trans "Crear cuenta — TradeFlow Colón" %}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
+{% endblock %}
 {% block footer %}{% endblock %}
 {% block extra_css %}
 <style>
@@ -68,12 +71,9 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
 {% block content %}
 <div class="auth-page" style="min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5);">
   <div class="auth-card">
-    <div class="auth-logo">
-      <img src="{% static 'img/logo.png' %}" alt="TradeFlow Colón" style="height:44px;width:auto;max-width:200px;object-fit:contain;">
-      <div>
-        <div class="auth-brand">TradeFlow</div>
-        <div class="auth-brand-sub">{% trans "Zona Libre de Colón · Panamá" %}</div>
-      </div>
+    <div class="auth-logo-block">
+      {% include "core/includes/tf_logo.html" with variant="wordmark-dark" size="wordmark" eager=1 %}
+      <div class="auth-brand-sub" style="font-size:0.875rem;color:var(--tf-muted);">{% trans "Zona Libre de Colón · Panamá" %}</div>
     </div>
     <div class="auth-title">{% trans "Crear tu cuenta" %}</div>
     <form method="post" action="{% url 'signup' %}" novalidate>
