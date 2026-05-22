@@ -9,10 +9,12 @@
 {% endblock %}
 
 {% block seller_content %}
-<div class="sp-banner-slim" role="note">
-  <span>{% trans "Destaca productos clave para llegar a más compradores B2B en la ZLC." %}</span>
-  <a href="{% url 'seller_mis_productos' %}">{% trans "Gestionar catálogo" %} →</a>
+<div class="sp-notice-soft" role="note">
+  <span>{% trans "Gestiona confirmaciones y catálogo desde un solo panel." %}</span>
+  <a href="{% url 'seller_mis_productos' %}">{% trans "Ir a productos" %} →</a>
 </div>
+
+{% include "core/includes/seller_plan_promos.html" %}
 
 <div class="sp-kpi-grid">
   <article class="sp-kpi">
@@ -36,21 +38,28 @@
   </article>
 </div>
 
-<div class="sp-grid-2">
+<div class="sp-analytics-row">
   <section class="sp-card">
-    <div class="sp-card-head"><h2>{% trans "Rendimiento de ventas (30 días)" %}</h2></div>
-    <canvas id="sp-chart-revenue" height="100"></canvas>
+    <div class="sp-card-head"><h2>{% trans "Rendimiento (30 días)" %}</h2></div>
+    <div class="sp-chart-box sp-chart-box--line">
+      <canvas id="sp-chart-revenue"></canvas>
+    </div>
   </section>
   <section class="sp-card">
     <div class="sp-card-head"><h2>{% trans "Órdenes por semana" %}</h2></div>
-    <canvas id="sp-chart-week" height="100"></canvas>
+    <div class="sp-chart-box sp-chart-box--line">
+      <canvas id="sp-chart-week"></canvas>
+    </div>
   </section>
 </div>
 
 <div class="sp-grid-2">
   <section class="sp-card">
     <div class="sp-card-head"><h2>{% trans "Estado de órdenes" %}</h2></div>
-    <canvas id="sp-chart-status" height="110"></canvas>
+    <div class="sp-chart-box sp-chart-box--bar">
+      <canvas id="sp-chart-status"></canvas>
+    </div>
+    <div class="sp-chart-legend" id="sp-chart-status-legend"></div>
   </section>
   <section class="sp-card">
     <div class="sp-card-head">
@@ -60,14 +69,14 @@
     <p style="margin:0 0 12px;font-size:14px;color:var(--tf-muted);">
       {% blocktrans with n=cotizaciones_mes pct=tasa_conversion %}{{ n }} este mes · {{ pct }}% conversión{% endblocktrans %}
     </p>
-    <ul style="list-style:none;padding:0;margin:0;">
+    <ul class="sp-activity-feed">
       {% for c in cotizaciones_recientes %}
-      <li style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F3F4F6;">
+      <li>
         <a href="{% url 'seller_responder_cotizacion' c.pk %}" style="font-weight:600;color:var(--tf-navy);text-decoration:none;">{{ c.numero }}</a>
-        <span class="sp-status sp-status-{{ c.estado }}">{{ c.get_estado_display }}</span>
+        <span class="sp-status sp-status-{{ c.estado }}" style="margin-left:8px;">{{ c.get_estado_display }}</span>
       </li>
       {% empty %}
-      <li class="sp-empty">{% trans "Sin cotizaciones recientes" %}</li>
+      <li class="sp-empty" style="padding:16px 0;">{% trans "Sin cotizaciones recientes" %}</li>
       {% endfor %}
     </ul>
   </section>

@@ -37,13 +37,27 @@ class ApiRateLimitMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
+    SELLER_POST_LIMIT = 60
+
     def __call__(self, request):
         path = request.path
-        if path.startswith('/api/') or path.startswith('/en/api/') or path.startswith('/es/api/'):
+        is_api = (
+            path.startswith('/api/')
+            or path.startswith('/en/api/')
+            or path.startswith('/es/api/')
+        )
+        is_seller_mutation = (
+            request.method == 'POST'
+            and '/mi-tienda/productos/' in path
+            and '/toggle' in path
+        )
+        if is_api or is_seller_mutation:
             ip = self._client_ip(request)
-            key = f'tf_rl:{ip}:{int(time.time()) // self.WINDOW}'
+            bucket = 'seller' if is_seller_mutation else 'api'
+            limit = self.SELLER_POST_LIMIT if is_seller_mutation else self.LIMIT
+            key = f'tf_rl:{bucket}:{ip}:{int(time.time()) // self.WINDOW}'
             count = cache.get(key, 0)
-            if count >= self.LIMIT:
+            if count >= limit:
                 return HttpResponseForbidden('Rate limit exceeded')
             cache.set(key, count + 1, self.WINDOW + 5)
         return self.get_response(request)

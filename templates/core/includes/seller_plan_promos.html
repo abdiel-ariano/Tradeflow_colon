@@ -1,0 +1,27 @@
+{% load i18n %}
+<section class="sp-plan-strip" aria-label="{% trans 'Planes TradeFlow' %}">
+  <article class="sp-plan-card">
+    <span class="sp-plan-tag">{% trans "Plan" %}</span>
+    <h3 class="sp-plan-name">Digitalízate</h3>
+    <p class="sp-plan-desc">{% trans "Catálogo digital y presencia B2B en la ZLC." %}</p>
+    <a href="{% url 'mi_perfil' %}" class="sp-plan-cta">{% trans "Explorar" %}</a>
+  </article>
+  <article class="sp-plan-card sp-plan-card--featured">
+    <span class="sp-plan-tag">{% trans "Popular" %}</span>
+    <h3 class="sp-plan-name">Expansión</h3>
+    <p class="sp-plan-desc">{% trans "Analytics, cotizaciones y flujo de ventas optimizado." %}</p>
+    <a href="{% url 'portal_seller' %}" class="sp-plan-cta">{% trans "Ver beneficios" %}</a>
+  </article>
+  <article class="sp-plan-card">
+    <span class="sp-plan-tag">{% trans "Pro" %}</span>
+    <h3 class="sp-plan-name">Corporativo Pro</h3>
+    <p class="sp-plan-desc">{% trans "Confirmación de pedidos, exportación y operaciones avanzadas." %}</p>
+    <a href="{% url 'seller_mis_ventas' %}" class="sp-plan-cta">{% trans "Activar" %}</a>
+  </article>
+  <article class="sp-plan-card">
+    <span class="sp-plan-tag">{% trans "Enterprise" %}</span>
+    <h3 class="sp-plan-name">Ecosistema Enterprise</h3>
+    <p class="sp-plan-desc">{% trans "Logística integrada, API y soporte prioritario." %}</p>
+    <a href="{% url 'solicitud_acceso' %}" class="sp-plan-cta">{% trans "Contactar" %}</a>
+  </article>
+</section>
