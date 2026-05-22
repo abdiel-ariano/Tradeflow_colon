@@ -2067,6 +2067,10 @@ def seller_mis_ventas(request):
     if resp:
         return resp
 
+    from .utils.order_workflow import expire_pending_orders
+
+    expire_pending_orders()
+
     from .utils.seller_analytics import seller_sales_dashboard
 
     import json as _json
@@ -2513,6 +2517,7 @@ def tienda(request):
         'spotlight_ofertas': spotlight_ofertas,
         'spotlight_bestsellers': spotlight_bestsellers,
         'spotlight_destacados': spotlight_destacados,
+        'productos_promo': merch.daily_deals(8),
     }
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -2813,12 +2818,14 @@ def checkout(request):
         confirming = first_item.product.company if first_item else None
         orden.confirming_company = confirming
         if confirming and not auto_approve:
+            horas = getattr(confirming, 'order_confirm_hours', None) or 48
+            orden.tiempo_confirmacion_horas = horas
             orden.seller_confirm_by = seller_confirm_deadline(confirming)
             orden.status = 'awaiting_seller'
             orden.seller_confirmation_status = 'pending'
             orden.save(update_fields=[
-                'confirming_company', 'seller_confirm_by', 'status',
-                'seller_confirmation_status', 'updated_at',
+                'confirming_company', 'seller_confirm_by', 'tiempo_confirmacion_horas',
+                'status', 'seller_confirmation_status', 'updated_at',
             ])
             Payment.objects.create(
                 order=orden,
@@ -2843,6 +2850,9 @@ def checkout(request):
                 enviar_orden_pendiente_vendedor(orden)
             except Exception:
                 log.exception('Email orden pendiente vendedor')
+            from .models import Transportista
+            if Transportista.objects.filter(estado='aprobado', activo=True).exists():
+                return redirect('seleccionar_transportista', order_pk=orden.pk)
             return redirect('detalle_mi_orden', pk=orden.pk)
 
         Payment.objects.create(
@@ -2867,6 +2877,9 @@ def checkout(request):
             enviar_confirmacion_orden(orden)
         except Exception:
             log.exception('No se pudo enviar email de confirmación de orden.')
+        from .models import Transportista
+        if Transportista.objects.filter(estado='aprobado', activo=True).exists():
+            return redirect('seleccionar_transportista', order_pk=orden.pk)
         return redirect('detalle_mi_orden', pk=orden.pk)
 
     if not transportistas.exists():

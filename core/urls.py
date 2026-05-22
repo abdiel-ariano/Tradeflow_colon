@@ -5,6 +5,7 @@ TRADEFLOW COLÓN — core/urls.py  (v4 — Roles + Signup)
 """
 from django.urls import path
 from . import views
+from . import views_transportistas as vt
 
 urlpatterns = [
 
@@ -23,6 +24,23 @@ urlpatterns = [
         'solicitud-acceso/revisar/<str:token>/<str:accion>/',
         views.revisar_solicitud,
         name='revisar_solicitud',
+    ),
+    path('transportistas/aplicar/', vt.aplicar_transportista, name='aplicar_transportista'),
+    path(
+        'transportistas/seleccionar/<int:order_pk>/',
+        vt.seleccionar_transportista,
+        name='seleccionar_transportista',
+    ),
+    path('admin/transportistas/', vt.admin_transportistas, name='admin_transportistas'),
+    path(
+        'admin/transportistas/<int:pk>/<str:decision>/',
+        vt.admin_aprobar_transportista,
+        name='admin_aprobar_transportista',
+    ),
+    path(
+        'ordenes/<int:order_pk>/confirmar/<str:decision>/',
+        vt.confirmar_orden_empresa,
+        name='confirmar_orden_empresa',
     ),
     path('verificar-email/<str:token>/', views.verificar_email, name='verificar_email'),
     path('reenviar-verificacion/', views.reenviar_verificacion, name='reenviar_verificacion'),

@@ -333,6 +333,32 @@ Contexto: company, total_productos, bajo_stock, ordenes_semana, ingresos_mes, or
     </a>
   </header>
 
+  <div style="
+    background: linear-gradient(135deg, var(--tf-dark) 0%, var(--tf-dark2, #2d3b47) 100%);
+    border-radius: var(--tf-radius-card, 12px);
+    padding: .875rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 12px;
+  ">
+    <div style="display:flex;align-items:center;gap:.75rem;">
+      <span style="font-size:1.25rem;" aria-hidden="true">🚀</span>
+      <div>
+        <div style="color:var(--tf-white);font-weight:600;font-size:.9rem;">{% trans "Mejora tu visibilidad en TradeFlow" %}</div>
+        <div style="color:var(--tf-sand, #D9CAB3);font-size:.8rem;">{% trans "Productos destacados llegan a 3x más compradores" %}</div>
+      </div>
+    </div>
+    <a href="{% url 'seller_mis_productos' %}" style="
+      background:var(--tf-sand, #D9CAB3);color:var(--tf-dark);
+      padding:.375rem .875rem;border-radius:8px;
+      font-size:.8rem;font-weight:600;text-decoration:none;
+      white-space:nowrap;
+    ">{% trans "Ver planes" %}</a>
+  </div>
+
   <div class="ps-pro-wrap" id="ps-pro-banner" hidden>
     <article class="ps-pro-card">
       <button type="button" class="ps-pro-close" id="ps-pro-close" aria-label="{% trans 'Cerrar' %}">

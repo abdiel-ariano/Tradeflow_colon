@@ -101,7 +101,7 @@ WSGI_APPLICATION = 'tradeflow_colon.wsgi.application'
 #
 # DATABASE_URL en Railway: la provee el addon PostgreSQL automáticamente.
 #
-_db_url = config('DATABASE_URL', default=None)
+_db_url = config('DATABASE_URL', default='')
 
 if _db_url:
     _ssl_required = config('DB_SSL', default=True, cast=bool)
@@ -155,9 +155,6 @@ STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# WhiteNoise comprime y cachea los estáticos en producción automáticamente
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -208,15 +205,44 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='TradeFlow <no-reply@t
 # URL pública (sin / final) para enlaces en correos: ej. https://tuapp.railway.app o http://127.0.0.1:8000
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
-# Gmail SMTP: si hay usuario + App Password y no se forzó otro backend, usar SMTP real.
+# Gmail SMTP (App Password de Google, no la contraseña normal)
 _gmail_ready = bool(EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
-_default_email_backend = (
-    'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.smtp.EmailBackend'
     if _gmail_ready
-    else 'django.core.mail.backends.console.EmailBackend'
+    else 'django.core.mail.backends.console.EmailBackend',
 )
-EMAIL_BACKEND = config('EMAIL_BACKEND', default=_default_email_backend)
 EMAIL_USE_REAL_SMTP = 'smtp' in EMAIL_BACKEND and _gmail_ready
+
+# Supabase (opcional — Storage S3-compatible)
+SUPABASE_URL = config('SUPABASE_URL', default='')
+SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='')
+SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='')
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
+if SUPABASE_SERVICE_KEY and SUPABASE_URL:
+    if 'storages' not in INSTALLED_APPS:
+        INSTALLED_APPS.append('storages')
+    STORAGES['default'] = {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'OPTIONS': {
+            'endpoint_url': SUPABASE_URL.rstrip('/') + '/storage/v1/s3',
+            'access_key': 'service_role',
+            'secret_key': SUPABASE_SERVICE_KEY,
+            'bucket_name': config('SUPABASE_STORAGE_BUCKET', default='media'),
+            'region_name': config('AWS_S3_REGION_NAME', default='us-east-1'),
+            'default_acl': 'public-read',
+            'file_overwrite': False,
+        },
+    }
 
 # Revisores de solicitudes de acceso (lista separada por comas)
 APPLICATION_REVIEW_EMAILS = config(

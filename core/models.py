@@ -43,11 +43,12 @@ class UserProfile(models.Model):
         ('buyer',  'Comprador'),
         ('seller', 'Vendedor'),
         ('admin',  'Administrador'),
+        ('transportista', 'Transportista'),
     ]
 
     user   = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone  = models.CharField(max_length=30, blank=True, verbose_name='Teléfono')
-    role   = models.CharField(max_length=10, choices=ROLE_CHOICES, default='buyer', verbose_name='Rol')
+    role   = models.CharField(max_length=14, choices=ROLE_CHOICES, default='buyer', verbose_name='Rol')
     email_verificado = models.BooleanField(
         default=False,
         verbose_name='Email verificado',
@@ -541,6 +542,16 @@ class Order(models.Model):
         null=True, blank=True,
         verbose_name='Confirmar antes de',
     )
+    tiempo_confirmacion_horas = models.PositiveIntegerField(
+        default=24,
+        verbose_name='Horas para confirmación empresa',
+    )
+    confirmado_por_empresa = models.BooleanField(
+        null=True,
+        blank=True,
+        verbose_name='Confirmación empresa',
+        help_text='True=aceptado, False=rechazado, None=pendiente',
+    )
     created_at    = models.DateTimeField(auto_now_add=True)
     updated_at    = models.DateTimeField(auto_now=True)
 
@@ -842,3 +853,90 @@ class CotizacionItem(models.Model):
         if self.precio_ofertado is None:
             return None
         return self.precio_ofertado * self.cantidad_solicitada
+
+
+# =============================================================================
+# TRANSPORTISTAS (registro + asignación por orden)
+# =============================================================================
+
+class Transportista(models.Model):
+    """Transportista registrado; requiere aprobación admin."""
+
+    ESTADO_CHOICES = [
+        ('pendiente', _('Pendiente de revisión')),
+        ('aprobado', _('Aprobado')),
+        ('rechazado', _('Rechazado')),
+    ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='transportista',
+        null=True,
+        blank=True,
+    )
+    empresa_nombre = models.CharField(max_length=200)
+    licencia = models.CharField(max_length=100)
+    telefono = models.CharField(max_length=30)
+    email_contacto = models.EmailField(blank=True)
+    vehiculo_tipo = models.CharField(max_length=100)
+    vehiculo_placa = models.CharField(max_length=30)
+    cobertura_descripcion = models.TextField(
+        help_text=_('Ciudades o zonas que cubre'),
+    )
+    tarifa_base = models.DecimalField(max_digits=10, decimal_places=2)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
+    fecha_aplicacion = models.DateTimeField(auto_now_add=True)
+    foto_licencia = models.ImageField(upload_to='transportistas/', blank=True, null=True)
+    calificacion_promedio = models.DecimalField(
+        max_digits=3, decimal_places=2, default=Decimal('5.00'),
+    )
+    activo = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'Transportista'
+        verbose_name_plural = 'Transportistas'
+
+    def __str__(self):
+        nombre = self.user.get_full_name() if self.user_id else self.empresa_nombre
+        return f'{self.empresa_nombre} — {nombre}'
+
+
+class AsignacionTransporte(models.Model):
+    """Asignación de transportista a una orden (buyer elige en checkout o paso dedicado)."""
+
+    ESTADO_CHOICES = [
+        ('pendiente', _('Pendiente confirmación')),
+        ('confirmado', _('Transportista confirmó')),
+        ('en_camino', _('En camino')),
+        ('entregado', _('Entregado')),
+        ('cancelado', _('Cancelado')),
+    ]
+
+    order = models.OneToOneField(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='asignacion_transporte',
+    )
+    transportista = models.ForeignKey(
+        Transportista,
+        on_delete=models.PROTECT,
+        related_name='asignaciones',
+    )
+    ubicacion_pickup_lat = models.DecimalField(max_digits=10, decimal_places=7)
+    ubicacion_pickup_lng = models.DecimalField(max_digits=10, decimal_places=7)
+    ubicacion_pickup_descripcion = models.CharField(max_length=300, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
+    notas_buyer = models.TextField(blank=True)
+    costo_transporte = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal('0.00'),
+    )
+    fecha_asignacion = models.DateTimeField(auto_now_add=True)
+    fecha_confirmacion = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Asignación de transporte'
+        verbose_name_plural = 'Asignaciones de transporte'
+
+    def __str__(self):
+        return f'{self.order.order_number} — {self.transportista.empresa_nombre}'

@@ -561,6 +561,60 @@ def enviar_solicitud_a_revisores(app) -> None:
         log.exception('enviar_solicitud_a_revisores: %s', exc)
 
 
+def enviar_aplicacion_transportista_recibida(transportista) -> None:
+    """Confirma recepción de solicitud de transportista."""
+    email = (transportista.email_contacto or '').strip()
+    if not email:
+        return
+    html = render_to_string(
+        'core/emails/aplicacion_transportista_recibida.html',
+        {'transportista': transportista},
+    )
+    try:
+        send_mail(
+            subject='TradeFlow — Solicitud de transportista recibida',
+            message=strip_tags(html),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            html_message=html,
+            fail_silently=False,
+        )
+    except Exception as exc:
+        log.exception('enviar_aplicacion_transportista_recibida: %s', exc)
+        raise
+
+
+def enviar_resultado_aplicacion_transportista(transportista, aprobado: bool) -> None:
+    """Notifica aprobación o rechazo de transportista."""
+    email = (transportista.email_contacto or '').strip()
+    if not email:
+        return
+    html = render_to_string(
+        'core/emails/resultado_transportista.html',
+        {
+            'transportista': transportista,
+            'aprobado': aprobado,
+            'signup_url': _public_base_url() + reverse('signup'),
+        },
+    )
+    subject = (
+        '¡Bienvenido a TradeFlow!' if aprobado
+        else 'Actualización de tu solicitud — TradeFlow'
+    )
+    try:
+        send_mail(
+            subject=subject,
+            message=strip_tags(html),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            html_message=html,
+            fail_silently=False,
+        )
+    except Exception as exc:
+        log.exception('enviar_resultado_aplicacion_transportista: %s', exc)
+        raise
+
+
 def enviar_solicitud_decision(app, aprobada: bool) -> None:
     """Notifica al solicitante la decisión."""
     base = _public_base_url()

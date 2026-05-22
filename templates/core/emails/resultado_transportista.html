@@ -1,0 +1,7 @@
+{% if aprobado %}
+<p>Tu solicitud como transportista fue <strong>aprobada</strong>.</p>
+<p>Puedes crear tu cuenta en: <a href="{{ signup_url }}">{{ signup_url }}</a></p>
+{% else %}
+<p>En esta etapa no pudimos aprobar tu solicitud como transportista.</p>
+<p>Escríbenos a soporte@tradeflow.pa si tienes preguntas.</p>
+{% endif %}
