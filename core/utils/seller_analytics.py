@@ -144,6 +144,87 @@ def seller_quotes_dashboard(company):
     }
 
 
+def seller_portal_dashboard(company, days=30):
+    """Métricas unificadas para el panel principal del vendedor."""
+    sales = seller_sales_dashboard(company, days=days)
+    products = seller_products_dashboard(company)
+    quotes = seller_quotes_dashboard(company)
+    now = timezone.now()
+    hace_7 = now - timedelta(days=7)
+
+    ordenes_semana = (
+        Order.objects.filter(
+            items__product__company=company,
+            created_at__gte=hace_7,
+        )
+        .distinct()
+        .count()
+    )
+
+    pending_confirm = (
+        Order.objects.filter(
+            items__product__company=company,
+            status='awaiting_seller',
+            seller_confirmation_status='pending',
+        )
+        .distinct()
+        .count()
+    )
+
+    ordenes_recientes = list(sales['ordenes_qs'][:8])
+
+    order_status_rows = (
+        Order.objects.filter(
+            items__product__company=company,
+            created_at__gte=now - timedelta(days=days),
+        )
+        .distinct()
+        .values('status')
+        .annotate(n=Count('id'))
+        .order_by('-n')
+    )
+    status_map = dict(Order.STATUS_CHOICES)
+    status_labels = [str(status_map.get(r['status'], r['status'])) for r in order_status_rows]
+    status_values = [r['n'] for r in order_status_rows]
+
+    week_labels = []
+    week_orders = []
+    for i in range(6, -1, -1):
+        d = (now - timedelta(days=i)).date()
+        week_labels.append(d.strftime('%d/%m'))
+        week_orders.append(
+            Order.objects.filter(
+                items__product__company=company,
+                created_at__date=d,
+            )
+            .distinct()
+            .count()
+        )
+
+    return {
+        'ventas_mes': sales['ventas_mes'],
+        'ingresos_mes': sales['ingresos_mes'],
+        'ticket_promedio': sales['ticket_promedio'],
+        'ordenes_semana': ordenes_semana,
+        'pending_confirm': pending_confirm,
+        'total_productos': products['kpi_total'],
+        'productos_activos': products['kpi_activos'],
+        'bajo_stock': products['kpi_bajo_stock'],
+        'cotizaciones_mes': quotes['cotizaciones_mes'],
+        'tasa_conversion': quotes['tasa_conversion'],
+        'chart_revenue_labels': sales['chart_line_labels'],
+        'chart_revenue_values': sales['chart_line_values'],
+        'chart_status_labels': status_labels,
+        'chart_status_values': status_values,
+        'chart_week_labels': week_labels,
+        'chart_week_orders': week_orders,
+        'chart_cat_labels': products['chart_cat_labels'],
+        'chart_cat_values': products['chart_cat_values'],
+        'ordenes_recientes': ordenes_recientes,
+        'cotizaciones_recientes': list(quotes['lista'][:6]),
+    }
+
+
 def cotizacion_monto_estimado(cot):
     """Suma líneas con precio ofertado o precio catálogo."""
     total = Decimal('0.00')

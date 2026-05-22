@@ -1,127 +1,114 @@
-{% extends "core/buyer_layout.html" %}
+{% extends "core/base.html" %}
 {% load static i18n %}
-{% block title %}{% trans "Checkout" %} — TradeFlow{% endblock %}
-{% block buyer_page_title %}{% trans "Confirmar pedido" %}{% endblock %}
+{% block title %}{% trans "Confirmar pedido" %} — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/tf_animations.css' %}">
+<style>
+  .co-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
+  .co-title { font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.5rem; text-align: center; }
+  .co-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.35rem; margin-bottom: 1rem; }
+  .co-sec { font-weight: 600; font-size: 0.8125rem; color: #6B7A88; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 1rem; }
+  .co-carrier { display: flex; gap: 10px; padding: 12px; border: 1px solid #E5E7EB; border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+  .co-carrier:has(input:checked) { border-color: #F26522; background: #FFF7ED; }
+  .co-geo-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 8px; border: 1.5px solid #2E5B8A; background: #fff; color: #0F2A44; font-weight: 600; cursor: pointer; }
+  .co-geo-btn.is-ok { border-color: #15803d; background: #F0FDF4; }
+  .co-geo-status { font-size: 0.85rem; color: #6B7A88; margin-top: 8px; }
+  .co-submit { width: 100%; margin-top: 1rem; padding: 12px; border: none; border-radius: 8px; background: #F26522; color: #fff; font-weight: 700; cursor: pointer; }
+  .co-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="tf-page co-wrap">
+  <h1 class="co-title">{% trans "Confirmar pedido" %}</h1>
+  <form method="post" id="co-form">
+    {% csrf_token %}
+    <input type="hidden" name="buyer_latitude" id="co-lat" value="">
+    <input type="hidden" name="buyer_longitude" id="co-lng" value="">
 
-{% block buyer_content %}
-<nav class="bp-steps">
-  <div class="bp-step is-done"><span class="bp-step-dot">1</span>{% trans "Carrito" %}</div>
-  <span style="color:var(--tf-muted);">→</span>
-  <div class="bp-step is-current"><span class="bp-step-dot">2</span>{% trans "Transporte" %}</div>
-  <span style="color:var(--tf-muted);">→</span>
-  <div class="bp-step"><span class="bp-step-dot">3</span>{% trans "Confirmar" %}</div>
-</nav>
-
-<form method="post" id="co-form" class="bp-checkout-layout">
-  {% csrf_token %}
-  <input type="hidden" name="buyer_latitude" id="co-lat" value="">
-  <input type="hidden" name="buyer_longitude" id="co-lng" value="">
-
-  <div>
-    <section class="bp-card" style="margin-bottom:16px;">
-      <div class="bp-card-head"><h2>{% trans "Modo de transporte" %}</h2></div>
-      <div class="bp-transport-tabs" id="co-mode-tabs">
-        <button type="button" class="bp-transport-tab is-on" data-bp-mode="">{% trans "Todos" %}</button>
-        {% for code, label in transport_modes %}
-        <button type="button" class="bp-transport-tab" data-bp-mode="{{ code }}">{{ label }}</button>
-        {% endfor %}
-      </div>
+    <div class="co-card">
+      <div class="co-sec">{% trans "¿Quién transporta tu carga?" %}</div>
       {% for t in transportistas %}
-      <label class="bp-carrier-card" data-carrier-mode="{{ t.transport_mode }}">
+      <label class="co-carrier">
         <input type="radio" name="transport_carrier" value="{{ t.pk }}" required {% if forloop.first %}checked{% endif %}>
         <div style="flex:1;">
-          <span class="bp-carrier-mode">{{ t.get_transport_mode_display }}</span>
-          <div style="font-weight:700;color:var(--tf-navy);margin-top:4px;">{{ t.name }}</div>
-          {% if t.description %}<div style="font-size:12px;color:var(--tf-muted);">{{ t.description }}</div>{% endif %}
+          <strong>{{ t.name }}</strong>
+          {% if t.description %}<div style="font-size:12px;color:#6B7A88;">{{ t.description }}</div>{% endif %}
         </div>
-        <span style="font-family:'DM Serif Display',serif;font-weight:700;color:var(--tf-orange);">USD {{ t.base_shipping_cost }}</span>
+        <span style="font-weight:700;color:#F26522;">USD {{ t.base_shipping_cost }}</span>
       </label>
       {% empty %}
-      <p class="bp-empty">{% trans "No hay transportistas activos." %}</p>
+      <p>{% trans "No hay transportistas activos." %}</p>
       {% endfor %}
-    </section>
+    </div>
 
-    <section class="bp-card">
-      <div class="bp-card-head"><h2>{% trans "Ubicación de entrega" %}</h2></div>
-      <button type="button" class="bp-btn bp-btn-secondary" id="co-geo-btn">
-        <span class="material-symbols-rounded">my_location</span>{% trans "Usar mi ubicación actual" %}
+    <div class="co-card">
+      <div class="co-sec">{% trans "Ubicación de entrega" %}</div>
+      <button type="button" class="co-geo-btn" id="co-geo-btn">
+        <span class="material-symbols-rounded">my_location</span>
+        {% trans "Usar mi ubicación actual" %}
       </button>
-      <p id="co-geo-status" style="font-size:13px;color:var(--tf-muted);margin-top:10px;">{% trans "Confirma tu ubicación para continuar." %}</p>
-      <div id="co-map" style="height:220px;border-radius:10px;border:1px solid var(--tf-border);margin-top:12px;display:none;"></div>
-    </section>
+      <p class="co-geo-status" id="co-geo-status">{% trans "Debes confirmar tu ubicación para continuar." %}</p>
+    </div>
 
-    <section class="bp-card" style="margin-top:16px;">
-      <label class="tf-label">{% trans "Notas" %}</label>
-      <textarea name="notas" class="tf-input" rows="3" style="width:100%;" placeholder="{% trans 'Instrucciones de entrega…' %}"></textarea>
+    <div class="co-card">
+      <div class="co-sec">{% trans "Notas" %}</div>
+      <textarea name="notas" class="tf-input" style="width:100%;min-height:80px;" placeholder="{% trans 'Instrucciones de entrega…' %}"></textarea>
       {% if not checkout_auto_approve %}
-      <p style="font-size:13px;color:var(--tf-muted);margin-top:10px;">{% trans "La empresa confirmará tu pedido antes del cobro." %}</p>
+      <p style="font-size:0.85rem;color:#6B7A88;margin-top:10px;">
+        {% trans "La empresa confirmará tu pedido antes del cobro (plazo habitual 48 h)." %}
+      </p>
       {% endif %}
-    </section>
-  </div>
+      <button type="submit" class="co-submit" id="co-submit" disabled>
+        {% trans "Enviar pedido" %}
+      </button>
+    </div>
+  </form>
 
-  <aside class="bp-card bp-sticky-summary">
-    <h2 style="margin:0 0 14px;font-size:13px;font-weight:700;text-transform:uppercase;color:var(--tf-muted);">{% trans "Resumen" %}</h2>
+  <div class="co-card">
+    <div class="co-sec">{% trans "Resumen" %}</div>
     {% for prod_id, item in carrito.items %}
-    <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid #F3F4F6;">
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:14px;">
       <span>{{ item.nombre }} × {{ item.cantidad }}</span>
-      <span style="font-weight:600;">USD {{ item.subtotal }}</span>
+      <span style="font-weight:700;color:#F26522;">USD {{ item.subtotal }}</span>
     </div>
     {% endfor %}
-    <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:14px;padding-top:12px;border-top:1px solid var(--tf-border);font-family:'DM Serif Display',serif;">
+    <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:10px;color:#0F2A44;">
       <span>{% trans "Subtotal" %}</span><span>USD {{ subtotal }}</span>
     </div>
-    <button type="submit" class="bp-btn bp-btn-primary" id="co-submit" style="width:100%;margin-top:20px;" disabled>{% trans "Enviar pedido" %}</button>
-  </aside>
-</form>
+  </div>
+</div>
 {% endblock %}
-
-{% block buyer_extra_js %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% block extra_js %}
 <script>
 (function () {
-  var latIn = document.getElementById('co-lat');
-  var lngIn = document.getElementById('co-lng');
-  var btn = document.getElementById('co-geo-btn');
+  var I = window.TF_I18N || {};
+  var lat = document.getElementById('co-lat');
+  var lng = document.getElementById('co-lng');
   var status = document.getElementById('co-geo-status');
+  var btn = document.getElementById('co-geo-btn');
   var submit = document.getElementById('co-submit');
-  var mapEl = document.getElementById('co-map');
-  var map, marker;
 
-  function ok(lat, lng) {
-    latIn.value = lat;
-    lngIn.value = lng;
-    btn.classList.add('is-ok');
-    status.textContent = (window.TF_I18N && TF_I18N.geoConfirmed) || 'OK';
-    status.style.color = '#15803d';
+  function setOk() {
+    btn.classList.add('is-ok', 'tf-pulse-once');
     submit.disabled = false;
-    if (mapEl && typeof L !== 'undefined') {
-      mapEl.style.display = 'block';
-      if (!map) {
-        map = L.map('co-map').setView([lat, lng], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-      }
-      if (marker) map.removeLayer(marker);
-      marker = L.marker([lat, lng]).addTo(map);
-      map.setView([lat, lng], 14);
-    }
-    if (window.TF) TF.success(status.textContent);
+    status.textContent = I.geoConfirmed || '{% trans "Ubicación confirmada." %}';
+    status.style.color = '#15803d';
   }
 
   btn.addEventListener('click', function () {
     if (!navigator.geolocation) {
-      if (window.TF) TF.notify((TF_I18N && TF_I18N.geoUnsupported) || 'No soportado', 'error');
+      status.textContent = I.geoUnsupported || '{% trans "Tu navegador no soporta geolocalización." %}';
       return;
     }
-    navigator.geolocation.getCurrentPosition(function (p) {
-      ok(p.coords.latitude, p.coords.longitude);
+    status.textContent = '{% trans "Obteniendo ubicación…" %}';
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      lat.value = pos.coords.latitude.toFixed(7);
+      lng.value = pos.coords.longitude.toFixed(7);
+      setOk();
     }, function () {
-      if (window.TF) TF.notify((TF_I18N && TF_I18N.geoDenied) || 'Denegado', 'warning');
-    });
-  });
-
-  document.getElementById('co-form').addEventListener('submit', function () {
-    if (window.TF) TF.success('{% trans "Procesando tu pedido…" %}');
+      status.textContent = I.geoDenied || '{% trans "Permiso de ubicación denegado." %}';
+      status.style.color = '#b91c1c';
+    }, { enableHighAccuracy: true, timeout: 12000 });
   });
 })();
 </script>

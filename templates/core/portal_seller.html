@@ -1,551 +1,133 @@
-{% extends "core/base.html" %}
-{% load static i18n %}
-{% comment %}
-portal_seller.html — Panel vendedor TradeFlow Colón (rediseño 2026).
-Contexto: company, total_productos, bajo_stock, ordenes_semana, ingresos_mes, ordenes_recientes.
-{% endcomment %}
-{% block title %}{% trans "Mi panel" %} — {{ company.name }}{% endblock %}
-{% block extra_css %}
-<style>
-  .ps-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px 48px;
-  }
-  .ps-hero {
-    background: linear-gradient(125deg, #0F2A44 0%, #1B3B63 55%, #163352 100%);
-    border-radius: 16px;
-    padding: 28px 32px;
-    margin: 24px 0 28px;
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-  .ps-hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #F26522;
-    background: rgba(242, 101, 34, 0.15);
-    border: 1px solid rgba(242, 101, 34, 0.35);
-    border-radius: 20px;
-    padding: 5px 12px;
-    margin-bottom: 10px;
-  }
-  .ps-hero h1,
-  .ps-hero-user {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    margin: 0 0 6px;
-    font-weight: 400;
-    color: #F9FAFB;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-  }
-  body.tf-theme-light .ps-hero h1,
-  body.tf-theme-light .ps-hero-user {
-    color: #111827;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-  }
-  @media (prefers-color-scheme: light) {
-    body:not(.tf-theme-dark) .ps-hero h1,
-    body:not(.tf-theme-dark) .ps-hero-user {
-      color: #F9FAFB;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-    }
-  }
-  .ps-hero-sub {
-    margin: 0;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.75);
-  }
-  .ps-hero-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: #F26522;
-    color: #fff;
-    padding: 12px 22px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: background 0.2s ease;
-    white-space: nowrap;
-  }
-  .ps-hero-cta:hover { background: #FF7A3D; color: #fff; }
-  .ps-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  @media (max-width: 991px) { .ps-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 575px) { .ps-kpi-grid { grid-template-columns: 1fr; } }
-  .ps-kpi {
-    background: #fff;
-    border: 1px solid #E5E7EB;
-    border-radius: 14px;
-    padding: 20px 22px;
-    box-shadow: 0 4px 16px rgba(15, 42, 68, 0.06);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  .ps-kpi:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(15, 42, 68, 0.1);
-  }
-  .ps-kpi-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .ps-kpi-lbl {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #6B7A88;
-    margin-bottom: 8px;
-    display: block;
-  }
-  .ps-kpi-val {
-    font-family: 'DM Serif Display', serif;
-    font-size: 2.25rem;
-    color: #0F2A44;
-    line-height: 1;
-    margin: 0;
-  }
-  .ps-kpi-val.ps-money { font-size: 1.5rem; }
-  .ps-kpi-hint { font-size: 12px; color: #6B7A88; margin-top: 6px; }
-  .ps-kpi-ico {
-    font-size: 28px;
-    color: #2E5B8A;
-  }
-  .ps-kpi-ico.warn { color: #F26522; }
-  .ps-actions-title {
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #6B7A88;
-    margin: 0 0 14px;
-  }
-  .ps-actions {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 28px;
-  }
-  @media (max-width: 900px) { .ps-actions { grid-template-columns: 1fr; } }
-  .ps-action-card {
-    background: #fff;
-    border: 1px solid #E5E7EB;
-    border-radius: 14px;
-    padding: 24px 20px;
-    text-align: center;
-    transition: all 0.22s ease;
-  }
-  .ps-action-card:hover {
-    border-color: #F26522;
-    transform: translateY(-4px);
-    box-shadow: 0 14px 32px rgba(15, 42, 68, 0.1);
-  }
-  .ps-action-card h3 {
-    font-size: 16px;
-    font-weight: 700;
-    color: #0F2A44;
-    margin: 12px 0 8px;
-  }
-  .ps-action-card p {
-    font-size: 13px;
-    color: #6B7A88;
-    margin: 0 0 16px;
-    line-height: 1.5;
-  }
-  .ps-action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    color: #fff;
-  }
-  .ps-action-btn.orange { background: #F26522; }
-  .ps-action-btn.navy { background: #0F2A44; }
-  .ps-action-btn.blue { background: #2E5B8A; }
-  .ps-sales {
-    background: #fff;
-    border: 1px solid #E5E7EB;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 4px 16px rgba(15, 42, 68, 0.06);
-  }
-  .ps-sales-head {
-    padding: 18px 22px;
-    border-bottom: 1px solid #E5E7EB;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .ps-sales-head h2 {
-    margin: 0;
-    font-size: 17px;
-    font-weight: 700;
-    color: #0F2A44;
-  }
-  .ps-sales-head a {
-    font-size: 13px;
-    font-weight: 600;
-    color: #F26522;
-    text-decoration: none;
-  }
-  .ps-sales-head a:hover { text-decoration: underline; }
-  .ps-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .ps-table th {
-    padding: 12px 22px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6B7A88;
-    background: #F9FAFB;
-  }
-  .ps-table td {
-    padding: 14px 22px;
-    border-bottom: 1px solid #F3F4F6;
-    vertical-align: middle;
-  }
-  .ps-table tbody tr:hover td { background: #FAFAFA; }
-  .ps-ord-link {
-    font-weight: 700;
-    color: #F26522;
-    text-decoration: none;
-  }
-  .ps-empty {
-    padding: 52px 24px;
-    text-align: center;
-  }
-  .ps-empty-ico {
-    width: 76px;
-    height: 76px;
-    border-radius: 50%;
-    background: #F2F3F5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-  }
-  .ps-pro-wrap { margin-bottom: 24px; max-height: 32vh; }
-  .ps-pro-card {
-    position: relative;
-    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #A855F7 100%);
-    border-radius: 16px;
-    padding: 24px;
-    color: #fff;
-    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.3);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    max-width: 100%;
-  }
-  .ps-pro-card:hover {
-    transform: scale(1.02);
-    box-shadow: 0 16px 32px -4px rgba(99, 102, 241, 0.45);
-  }
-  .ps-pro-close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: #fff;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .ps-pro-badge {
-    display: inline-block;
-    background: rgba(255,255,255,0.2);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-  .ps-pro-title { font-size: 1.35rem; font-weight: 800; margin: 0 0 4px; }
-  .ps-pro-sub { margin: 0 0 14px; font-size: 14px; color: rgba(255,255,255,0.85); }
-  .ps-pro-features { list-style: none; padding: 0; margin: 0 0 16px; font-size: 13px; }
-  .ps-pro-features li { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .ps-pro-price { font-size: 1.75rem; font-weight: 800; margin-bottom: 12px; }
-  .ps-pro-cta {
-    display: inline-block;
-    background: #fff;
-    color: #4F46E5;
-    font-weight: 700;
-    padding: 12px 22px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-size: 14px;
-  }
-  .ps-pro-note { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 10px; }
-  .ps-pro-plan { font-size: 12px; margin-top: 8px; opacity: 0.9; }
-  @media (max-width: 640px) {
-    .ps-pro-inner { display: flex; flex-direction: column; }
-  }
-  @media (min-width: 641px) {
-    .ps-pro-inner { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; }
-  }
-</style>
+{% extends "core/seller_layout.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Panel vendedor" %} — {{ company.name }}{% endblock %}
+{% block seller_page_title %}{% blocktrans with name=request.user.get_full_name|default:request.user.username %}Hola, {{ name }}{% endblocktrans %}{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">{{ company.name }} · {% trans "Centro de operaciones" %}</p>{% endblock %}
+{% block seller_topbar_actions %}
+<a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-secondary">{% trans "Ventas" %}</a>
+<a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>{% trans "Producto" %}</a>
 {% endblock %}
-{% block content %}
-<div class="ps-page">
-  <header class="ps-hero">
-    <div>
-      <span class="ps-hero-badge">
-        <span class="material-symbols-rounded" style="font-size:14px;" aria-hidden="true">store</span>
-        {% trans "Panel vendedor" %}
-      </span>
-      <h1 class="ps-hero-user">{% blocktrans with name=request.user.get_full_name|default:request.user.username %}Hola, {{ name }}{% endblocktrans %}</h1>
-      <p class="ps-hero-sub">{{ company.name }} · {% trans "Zona Libre de Colón" %}</p>
-    </div>
-    <a href="{% url 'seller_agregar_producto' %}" class="ps-hero-cta">
-      <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">add</span>
-      {% trans "Nuevo producto" %}
-    </a>
-  </header>
 
-  <div style="
-    background: linear-gradient(135deg, var(--tf-dark) 0%, var(--tf-dark2, #2d3b47) 100%);
-    border-radius: var(--tf-radius-card, 12px);
-    padding: .875rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 12px;
-  ">
-    <div style="display:flex;align-items:center;gap:.75rem;">
-      <span style="font-size:1.25rem;" aria-hidden="true">🚀</span>
-      <div>
-        <div style="color:var(--tf-white);font-weight:600;font-size:.9rem;">{% trans "Mejora tu visibilidad en TradeFlow" %}</div>
-        <div style="color:var(--tf-sand, #D9CAB3);font-size:.8rem;">{% trans "Productos destacados llegan a 3x más compradores" %}</div>
-      </div>
-    </div>
-    <a href="{% url 'seller_mis_productos' %}" style="
-      background:var(--tf-sand, #D9CAB3);color:var(--tf-dark);
-      padding:.375rem .875rem;border-radius:8px;
-      font-size:.8rem;font-weight:600;text-decoration:none;
-      white-space:nowrap;
-    ">{% trans "Ver planes" %}</a>
-  </div>
+{% block seller_content %}
+<div class="sp-banner-slim" role="note">
+  <span>{% trans "Destaca productos clave para llegar a más compradores B2B en la ZLC." %}</span>
+  <a href="{% url 'seller_mis_productos' %}">{% trans "Gestionar catálogo" %} →</a>
+</div>
 
-  <div class="ps-pro-wrap" id="ps-pro-banner" hidden>
-    <article class="ps-pro-card">
-      <button type="button" class="ps-pro-close" id="ps-pro-close" aria-label="{% trans 'Cerrar' %}">
-        <span class="material-symbols-rounded" style="font-size:18px;">close</span>
-      </button>
-      <div class="ps-pro-inner">
-        <div>
-          <span class="ps-pro-badge">{% trans "Recomendado" %}</span>
-          <h2 class="ps-pro-title">TradeFlow Pro</h2>
-          <p class="ps-pro-sub">{% trans "Análisis avanzado para impulsar tus ventas" %}</p>
-          <ul class="ps-pro-features">
-            <li><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span>{% trans "Análisis de ventas en tiempo real" %}</li>
-            <li><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span>{% trans "Productos más vendidos" %}</li>
-            <li><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span>{% trans "Predicción de tendencias" %}</li>
-            <li><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span>{% trans "Reportes exportables" %}</li>
-            <li><span class="material-symbols-rounded" style="font-size:18px;">check_circle</span>{% trans "Soporte prioritario" %}</li>
-          </ul>
-          <p class="ps-pro-plan">{% trans "Plan actual: Básico" %}</p>
-        </div>
-        <div style="text-align:center;">
-          <p class="ps-pro-price">$20<small style="font-size:14px;font-weight:500;">/{% trans "mes" %}</small></p>
-          <a href="#" class="ps-pro-cta" onclick="return false;">{% trans "Actualizar a Pro" %}</a>
-          <p class="ps-pro-note">{% trans "Cancela cuando quieras" %}</p>
-        </div>
-      </div>
-    </article>
-  </div>
+<div class="sp-kpi-grid">
+  <article class="sp-kpi">
+    <span class="sp-kpi-lbl">{% trans "Ingresos del mes" %}</span>
+    <p class="sp-kpi-val" style="font-size:1.45rem;">USD {{ ingresos_mes }}</p>
+    <p class="sp-kpi-hint">{% trans "Líneas entregadas / en curso" %}</p>
+  </article>
+  <article class="sp-kpi">
+    <span class="sp-kpi-lbl">{% trans "Órdenes semana" %}</span>
+    <p class="sp-kpi-val">{{ ordenes_semana }}</p>
+  </article>
+  <article class="sp-kpi">
+    <span class="sp-kpi-lbl">{% trans "Por confirmar" %}</span>
+    <p class="sp-kpi-val {% if pending_confirm %}warn{% endif %}">{{ pending_confirm }}</p>
+    {% if pending_confirm %}<p class="sp-kpi-hint">{% trans "Requieren acción" %}</p>{% endif %}
+  </article>
+  <article class="sp-kpi">
+    <span class="sp-kpi-lbl">{% trans "Productos activos" %}</span>
+    <p class="sp-kpi-val">{{ productos_activos }}</p>
+    <p class="sp-kpi-hint">{% blocktrans with low=bajo_stock %}{{ low }} con stock bajo{% endblocktrans %}</p>
+  </article>
+</div>
 
-  <div class="ps-kpi-grid">
-    <article class="ps-kpi">
-      <div class="ps-kpi-top">
-        <div>
-          <span class="ps-kpi-lbl">{% trans "Productos activos" %}</span>
-          <p class="ps-kpi-val">{{ total_productos }}</p>
-          <p class="ps-kpi-hint">{% trans "En catálogo publicado" %}</p>
-        </div>
-        <span class="material-symbols-rounded ps-kpi-ico" aria-hidden="true">inventory_2</span>
-      </div>
-    </article>
-    <article class="ps-kpi">
-      <div class="ps-kpi-top">
-        <div>
-          <span class="ps-kpi-lbl">{% trans "Stock bajo" %}</span>
-          <p class="ps-kpi-val" id="ps-m-low" data-bajo="{{ bajo_stock }}">{{ bajo_stock }}</p>
-          <p class="ps-kpi-hint">{% trans "Revisar inventario" %}</p>
-        </div>
-        <span class="material-symbols-rounded ps-kpi-ico warn" aria-hidden="true">warning</span>
-      </div>
-    </article>
-    <article class="ps-kpi">
-      <div class="ps-kpi-top">
-        <div>
-          <span class="ps-kpi-lbl">{% trans "Órdenes 7 días" %}</span>
-          <p class="ps-kpi-val">{{ ordenes_semana }}</p>
-          <p class="ps-kpi-hint">{% trans "Con productos tuyos" %}</p>
-        </div>
-        <span class="material-symbols-rounded ps-kpi-ico warn" aria-hidden="true">receipt_long</span>
-      </div>
-    </article>
-    <article class="ps-kpi">
-      <div class="ps-kpi-top">
-        <div>
-          <span class="ps-kpi-lbl">{% trans "Ingresos del mes" %}</span>
-          <p class="ps-kpi-val ps-money">USD {{ ingresos_mes }}</p>
-          <p class="ps-kpi-hint">{% trans "Órdenes entregadas" %}</p>
-        </div>
-        <span class="material-symbols-rounded ps-kpi-ico" aria-hidden="true">payments</span>
-      </div>
-    </article>
-  </div>
-
-  <p class="ps-actions-title">{% trans "Acciones rápidas" %}</p>
-  <div class="ps-actions">
-    <article class="ps-action-card">
-      <span class="material-symbols-rounded" style="font-size:44px;color:#F26522;" aria-hidden="true">add_circle</span>
-      <h3>{% trans "Publicar producto" %}</h3>
-      <p>{% trans "Añade artículos a tu catálogo en la Zona Libre de Colón." %}</p>
-      <a href="{% url 'seller_agregar_producto' %}" class="ps-action-btn orange">{% trans "Nuevo producto" %}</a>
-    </article>
-    <article class="ps-action-card">
-      <span class="material-symbols-rounded" style="font-size:44px;color:#0F2A44;" aria-hidden="true">storefront</span>
-      <h3>{% trans "Mi catálogo" %}</h3>
-      <p>{% trans "Edita precios, stock y fotos de tus productos." %}</p>
-      <a href="{% url 'seller_mis_productos' %}" class="ps-action-btn navy">{% trans "Ver productos" %}</a>
-    </article>
-    <article class="ps-action-card">
-      <span class="material-symbols-rounded" style="font-size:44px;color:#2E5B8A;" aria-hidden="true">request_quote</span>
-      <h3>{% trans "Cotizaciones" %}</h3>
-      <p>{% trans "Responde solicitudes de compradores interesados." %}</p>
-      <a href="{% url 'seller_cotizaciones' %}" class="ps-action-btn blue">{% trans "Ver cotizaciones" %}</a>
-    </article>
-  </div>
-
-  <section class="ps-sales" aria-labelledby="ps-sales-title">
-    <div class="ps-sales-head">
-      <h2 id="ps-sales-title">{% trans "Últimas ventas" %}</h2>
-      <a href="{% url 'seller_mis_ventas' %}">{% trans "Ver todas" %}</a>
-    </div>
-    {% if ordenes_recientes %}
-    <div style="overflow-x:auto;">
-      <table class="ps-table">
-        <thead>
-          <tr>
-            <th>{% trans "Orden" %}</th>
-            <th>{% trans "Comprador" %}</th>
-            <th>{% trans "Fecha" %}</th>
-            <th>{% trans "Estado" %}</th>
-            <th style="text-align:right;">{% trans "Detalle" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for o in ordenes_recientes %}
-          <tr>
-            <td><a href="{% url 'seller_detalle_venta' o.pk %}" class="ps-ord-link">{{ o.order_number }}</a></td>
-            <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
-            <td style="color:#6B7A88;font-size:12px;">{{ o.created_at|date:"d/m/Y H:i" }}</td>
-            <td><span class="ps-badge-ord ps-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span></td>
-            <td style="text-align:right;">
-              <a href="{% url 'seller_detalle_venta' o.pk %}" aria-label="{% trans 'Ver detalle' %}" style="color:#6B7A88;">
-                <span class="material-symbols-rounded" style="font-size:20px;">visibility</span>
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div class="ps-empty">
-      <div class="ps-empty-ico">
-        <span class="material-symbols-rounded" style="font-size:38px;color:#D1D5DB;" aria-hidden="true">receipt_long</span>
-      </div>
-      <h3 style="font-size:17px;font-weight:700;color:#0F2A44;margin:0 0 8px;">{% trans "Aún no tienes ventas" %}</h3>
-      <p style="font-size:14px;color:#6B7A88;max-width:320px;margin:0 auto 20px;line-height:1.6;">
-        {% trans "Cuando un comprador adquiera tus productos, el detalle aparecerá aquí." %}
-      </p>
-      <a href="{% url 'seller_mis_productos' %}" class="ps-action-btn orange">
-        <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">inventory_2</span>
-        {% trans "Revisar mi catálogo" %}
-      </a>
-    </div>
-    {% endif %}
+<div class="sp-grid-2">
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>{% trans "Rendimiento de ventas (30 días)" %}</h2></div>
+    <canvas id="sp-chart-revenue" height="100"></canvas>
+  </section>
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>{% trans "Órdenes por semana" %}</h2></div>
+    <canvas id="sp-chart-week" height="100"></canvas>
   </section>
 </div>
-<script>
-(function () {
-  var low = document.getElementById('ps-m-low');
-  if (low) {
-    var n = parseInt(low.getAttribute('data-bajo') || '0', 10) || 0;
-    low.style.color = n > 0 ? '#F26522' : '#0F2A44';
-  }
-  var map = {
-    pending:   { bg: '#FEF3C7', fg: '#92400E', label: 'Pendiente' },
-    paid:      { bg: '#DBEAFE', fg: '#1E40AF', label: 'Pagado' },
-    packed:    { bg: '#E0E7FF', fg: '#3730A3', label: 'Empacado' },
-    shipped:   { bg: '#D1FAE5', fg: '#065F46', label: 'Enviado' },
-    delivered: { bg: '#D1FAE5', fg: '#065F46', label: 'Entregado' },
-    cancelled: { bg: '#FEE2E2', fg: '#991B1B', label: 'Cancelado' }
-  };
-  var pro = document.getElementById('ps-pro-banner');
-  var proClose = document.getElementById('ps-pro-close');
-  try {
-    if (sessionStorage.getItem('tf_pro_dismiss') !== '1' && pro) {
-      pro.hidden = false;
-    }
-  } catch (e) {
-    if (pro) pro.hidden = false;
-  }
-  if (proClose && pro) {
-    proClose.addEventListener('click', function () {
-      pro.hidden = true;
-      try { sessionStorage.setItem('tf_pro_dismiss', '1'); } catch (err) {}
-    });
-  }
 
-  document.querySelectorAll('.ps-ord-status').forEach(function (el) {
-    var row = map[el.getAttribute('data-status')];
-    if (row) {
-      el.style.background = row.bg;
-      el.style.color = row.fg;
-      el.style.fontSize = '11px';
-      el.style.fontWeight = '600';
-      el.style.padding = '3px 10px';
-      el.style.borderRadius = '20px';
-      el.textContent = row.label;
-    }
-  });
-})();
+<div class="sp-grid-2">
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>{% trans "Estado de órdenes" %}</h2></div>
+    <canvas id="sp-chart-status" height="110"></canvas>
+  </section>
+  <section class="sp-card">
+    <div class="sp-card-head">
+      <h2>{% trans "Cotizaciones" %}</h2>
+      <a href="{% url 'seller_cotizaciones' %}">{% trans "Ver todas" %}</a>
+    </div>
+    <p style="margin:0 0 12px;font-size:14px;color:var(--tf-muted);">
+      {% blocktrans with n=cotizaciones_mes pct=tasa_conversion %}{{ n }} este mes · {{ pct }}% conversión{% endblocktrans %}
+    </p>
+    <ul style="list-style:none;padding:0;margin:0;">
+      {% for c in cotizaciones_recientes %}
+      <li style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F3F4F6;">
+        <a href="{% url 'seller_responder_cotizacion' c.pk %}" style="font-weight:600;color:var(--tf-navy);text-decoration:none;">{{ c.numero }}</a>
+        <span class="sp-status sp-status-{{ c.estado }}">{{ c.get_estado_display }}</span>
+      </li>
+      {% empty %}
+      <li class="sp-empty">{% trans "Sin cotizaciones recientes" %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+<section class="sp-card">
+  <div class="sp-card-head">
+    <h2>{% trans "Actividad reciente — ventas" %}</h2>
+    <a href="{% url 'seller_mis_ventas' %}">{% trans "Ver todas" %}</a>
+  </div>
+  <div class="sp-table-wrap">
+    <table class="sp-table">
+      <thead>
+        <tr>
+          <th>{% trans "Orden" %}</th>
+          <th>{% trans "Cliente" %}</th>
+          <th>{% trans "Total" %}</th>
+          <th>{% trans "Estado" %}</th>
+          <th>{% trans "Plazo" %}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in ordenes_recientes %}
+        <tr>
+          <td><strong>{{ o.order_number }}</strong></td>
+          <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
+          <td>USD {{ o.total }}</td>
+          <td><span class="sp-status sp-status-{{ o.status }}">{{ o.get_status_display }}</span></td>
+          <td>
+            {% if o.status == 'awaiting_seller' and o.seller_confirm_by %}
+            <span class="sp-timer ok" data-sp-plazo="{{ o.seller_confirm_by.isoformat }}" data-expired="{% trans 'Expirado' %}">—</span>
+            {% else %}—{% endif %}
+          </td>
+          <td><a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">{% trans "Ver" %}</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="sp-empty">{% trans "Sin ventas recientes" %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block seller_extra_js %}
+<script>
+window.SP_PORTAL = {
+  revenueLabels: {{ chart_revenue_labels_json|safe }},
+  revenueValues: {{ chart_revenue_values_json|safe }},
+  weekLabels: {{ chart_week_labels_json|safe }},
+  weekOrders: {{ chart_week_orders_json|safe }},
+  statusLabels: {{ chart_status_labels_json|safe }},
+  statusValues: {{ chart_status_values_json|safe }},
+  catLabels: [],
+  catValues: [],
+  pollUrl: "{% url 'api_seller_dashboard' %}"
+};
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.TFSeller) TFSeller.initPortal(window.SP_PORTAL);
+});
 </script>
 {% endblock %}

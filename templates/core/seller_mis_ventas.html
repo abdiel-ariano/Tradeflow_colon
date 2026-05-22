@@ -1,80 +1,52 @@
-{% extends "core/base.html" %}
+{% extends "core/seller_layout.html" %}
 {% load i18n static %}
-{% block title %}{% trans "Mis ventas" %} — TradeFlow Colón{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/seller_dashboard.css' %}">
+{% block title %}{% trans "Mis ventas" %} — TradeFlow{% endblock %}
+{% block seller_page_title %}{% trans "Mis ventas" %}{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">{% trans "Transacciones, plazos y confirmación" %}</p>{% endblock %}
+{% block seller_topbar_actions %}
+<a href="{% url 'seller_export_ventas_csv' %}?estado={{ estado_actual }}" class="sp-btn sp-btn-secondary"><span class="material-symbols-rounded" style="font-size:18px;">download</span> CSV</a>
 {% endblock %}
-{% block content %}
-<div class="sd-page">
-  <header class="sd-head">
-    <h1>{% trans "Mis ventas" %}</h1>
-    <p>{{ company.name }} · {% trans "Transacciones y tendencia" %}</p>
-  </header>
 
-  <div class="sd-kpi-grid">
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Ventas del mes" %}</span>
-      <p class="sd-kpi-val">{{ ventas_mes }}</p>
-    </article>
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Ingresos totales (mes)" %}</span>
-      <p class="sd-kpi-val">USD {{ ingresos_mes }}</p>
-    </article>
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Ticket promedio" %}</span>
-      <p class="sd-kpi-val">USD {{ ticket_promedio }}</p>
-    </article>
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Período gráfico" %}</span>
-      <p class="sd-kpi-val" style="font-size:1.1rem;">30 {% trans "días" %}</p>
-    </article>
-  </div>
+{% block seller_content %}
+<div class="sp-kpi-grid">
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Ventas mes" %}</span><p class="sp-kpi-val">{{ ventas_mes }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Ingresos mes" %}</span><p class="sp-kpi-val" style="font-size:1.35rem;">USD {{ ingresos_mes }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Ticket promedio" %}</span><p class="sp-kpi-val" style="font-size:1.35rem;">USD {{ ticket_promedio }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Tendencia" %}</span><p class="sp-kpi-val" style="font-size:1.1rem;">30d</p></article>
+</div>
 
-  <div class="sd-chart-card" style="margin-bottom:22px;">
-    <h3>{% trans "Tendencia de ingresos (últimos 30 días)" %}</h3>
-    <canvas id="sd-chart-line" height="90"></canvas>
-  </div>
+<section class="sp-card" style="margin-bottom:20px;">
+  <canvas id="sd-chart-line" height="90"></canvas>
+</section>
 
-  <nav class="sd-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" aria-label="{% trans 'Filtro rápido' %}">
-    <a href="?{% if desde %}desde={{ desde }}&{% endif %}{% if hasta %}hasta={{ hasta }}&{% endif %}" class="sd-btn sd-btn-outline {% if not estado_actual %}sd-btn-primary{% endif %}">{% trans "Todas" %}</a>
-    <a href="?estado=awaiting_seller" class="sd-btn sd-btn-outline {% if estado_actual == 'awaiting_seller' %}sd-btn-primary{% endif %}">{% trans "Pendientes" %}</a>
-    <a href="?estado=paid" class="sd-btn sd-btn-outline {% if estado_actual == 'paid' %}sd-btn-primary{% endif %}">{% trans "En proceso" %}</a>
-    <a href="?estado=delivered" class="sd-btn sd-btn-outline {% if estado_actual == 'delivered' %}sd-btn-primary{% endif %}">{% trans "Entregadas" %}</a>
-  </nav>
+<nav class="sp-tabs">
+  <a href="?" class="sp-tab {% if not estado_actual %}is-on{% endif %}">{% trans "Todas" %}</a>
+  <a href="?estado=awaiting_seller" class="sp-tab {% if estado_actual == 'awaiting_seller' %}is-on{% endif %}">{% trans "Pendientes" %}</a>
+  <a href="?estado=paid" class="sp-tab {% if estado_actual == 'paid' %}is-on{% endif %}">{% trans "En proceso" %}</a>
+  <a href="?estado=delivered" class="sp-tab {% if estado_actual == 'delivered' %}is-on{% endif %}">{% trans "Entregadas" %}</a>
+</nav>
 
-  <form class="sd-toolbar" method="get">
-    <div class="sd-filters">
-      <input class="tf-input" type="date" name="desde" value="{{ desde }}">
-      <input class="tf-input" type="date" name="hasta" value="{{ hasta }}">
-      <select class="tf-input" name="estado">
-        <option value="">{% trans "Todos los estados" %}</option>
-        {% for val, lbl in status_choices %}
-        <option value="{{ val }}" {% if estado_actual == val %}selected{% endif %}>{{ lbl }}</option>
-        {% endfor %}
-      </select>
-      <select class="tf-input" name="pago">
-        <option value="">{% trans "Pago" %}</option>
-        <option value="pagado" {% if pago_filtro == 'pagado' %}selected{% endif %}>{% trans "Pagado / en curso" %}</option>
-        <option value="pendiente" {% if pago_filtro == 'pendiente' %}selected{% endif %}>{% trans "Pendiente" %}</option>
-      </select>
-    </div>
-    <button type="submit" class="sd-btn sd-btn-outline">{% trans "Filtrar" %}</button>
-    <a href="{% url 'seller_export_ventas_csv' %}?estado={{ estado_actual }}" class="sd-btn sd-btn-primary">
-      <span class="material-symbols-rounded" style="font-size:18px;">download</span>
-      CSV
-    </a>
-  </form>
+<form method="get" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:flex-end;">
+  <input class="tf-input" type="date" name="desde" value="{{ desde }}">
+  <input class="tf-input" type="date" name="hasta" value="{{ hasta }}">
+  <select class="tf-input" name="estado">
+    <option value="">{% trans "Estado" %}</option>
+    {% for val, lbl in status_choices %}<option value="{{ val }}" {% if estado_actual == val %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
+  </select>
+  <button type="submit" class="sp-btn sp-btn-secondary">{% trans "Filtrar" %}</button>
+</form>
 
-  <div class="sd-table-wrap">
-    <table class="sd-table">
+<section class="sp-card">
+  <div class="sp-table-wrap">
+    <table class="sp-table">
       <thead>
         <tr>
-          <th>{% trans "ID" %}</th>
+          <th>{% trans "Orden" %}</th>
           <th>{% trans "Fecha" %}</th>
           <th>{% trans "Cliente" %}</th>
-          <th>{% trans "Monto" %}</th>
+          <th>{% trans "Total" %}</th>
           <th>{% trans "Estado" %}</th>
-          <th>{% trans "Plazo confirmación" %}</th>
+          <th>{% trans "Plazo" %}</th>
           <th>{% trans "Acciones" %}</th>
         </tr>
       </thead>
@@ -85,102 +57,44 @@
           <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
           <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
           <td>USD {{ o.total }}</td>
-          <td>
-            <span class="sd-badge sd-badge-{% if o.status == 'delivered' %}delivered{% elif o.status == 'cancelled' %}cancelled{% elif o.status == 'pending' or o.status == 'awaiting_seller' %}pending{% else %}paid{% endif %}">
-              {{ o.get_status_display }}
-            </span>
-          </td>
-          <td>
-            {% if o.status == 'awaiting_seller' and o.seller_confirm_by %}
-            <span data-plazo="{{ o.seller_confirm_by.isoformat }}" style="font-size:12px;font-weight:600;">—</span>
-            {% else %}
-            <span style="color:var(--tf-muted);font-size:12px;">—</span>
-            {% endif %}
-          </td>
+          <td><span class="sp-status sp-status-{{ o.status }}">{{ o.get_status_display }}</span></td>
+          <td>{% if o.status == 'awaiting_seller' and o.seller_confirm_by %}<span class="sp-timer ok" data-sp-plazo="{{ o.seller_confirm_by.isoformat }}" data-expired="{% trans 'Expirado' %}">—</span>{% else %}—{% endif %}</td>
           <td style="white-space:nowrap;">
             {% if o.status == 'awaiting_seller' and o.seller_confirmation_status == 'pending' %}
-            <a href="{% url 'confirmar_orden_empresa' o.pk 'aceptar' %}" class="sd-btn sd-btn-primary tf-confirm-orden" style="padding:6px 10px;font-size:12px;margin-right:4px;" data-accion="aceptar" data-num="{{ o.order_number }}">{% trans "Aceptar" %}</a>
-            <a href="{% url 'confirmar_orden_empresa' o.pk 'rechazar' %}" class="sd-btn sd-btn-outline tf-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="rechazar" data-num="{{ o.order_number }}">{% trans "Rechazar" %}</a>
+            <a href="{% url 'confirmar_orden_empresa' o.pk 'aceptar' %}" class="sp-btn sp-btn-primary sp-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="aceptar" data-num="{{ o.order_number }}">{% trans "Aceptar" %}</a>
+            <a href="{% url 'confirmar_orden_empresa' o.pk 'rechazar' %}" class="sp-btn sp-btn-secondary sp-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="rechazar" data-num="{{ o.order_number }}">{% trans "Rechazar" %}</a>
             {% endif %}
-            <a href="{% url 'seller_detalle_venta' o.pk %}">{% trans "Ver" %}</a>
+            <a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">{% trans "Ver" %}</a>
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" style="text-align:center;padding:40px;color:#6B7A88;">{% trans "Sin ventas en este rango." %}</td></tr>
+        <tr><td colspan="7" class="sp-empty">{% trans "Sin ventas" %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
   {% if ordenes.has_other_pages %}
   <nav style="margin-top:16px;display:flex;gap:8px;justify-content:center;">
-    {% if ordenes.has_previous %}<a class="sd-btn sd-btn-outline" href="?page={{ ordenes.previous_page_number }}">{% trans "Anterior" %}</a>{% endif %}
-    {% if ordenes.has_next %}<a class="sd-btn sd-btn-outline" href="?page={{ ordenes.next_page_number }}">{% trans "Siguiente" %}</a>{% endif %}
+    {% if ordenes.has_previous %}<a class="sp-btn sp-btn-secondary" href="?page={{ ordenes.previous_page_number }}">{% trans "Anterior" %}</a>{% endif %}
+    {% if ordenes.has_next %}<a class="sp-btn sp-btn-secondary" href="?page={{ ordenes.next_page_number }}">{% trans "Siguiente" %}</a>{% endif %}
   </nav>
   {% endif %}
-</div>
+</section>
 {% endblock %}
-{% block extra_js %}
-<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+
+{% block seller_extra_js %}
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   var labels = {{ chart_line_labels_json|safe }};
   var values = {{ chart_line_values_json|safe }};
   var el = document.getElementById('sd-chart-line');
-  if (!el) return;
-  new Chart(el, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'USD',
-        data: values,
-        borderColor: '#F26522',
-        backgroundColor: 'rgba(242,101,34,0.12)',
-        fill: true,
-        tension: 0.35
-      }]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
-    }
-  });
-})();
-
-document.querySelectorAll('[data-plazo]').forEach(function (el) {
-  function actualizar() {
-    var plazo = new Date(el.dataset.plazo);
-    var ahora = new Date();
-    var diff = plazo - ahora;
-    if (diff <= 0) {
-      el.textContent = '{% trans "Expirado" %}';
-      el.style.color = '#c62828';
-      return;
-    }
-    var horas = Math.floor(diff / 3600000);
-    var mins = Math.floor((diff % 3600000) / 60000);
-    el.textContent = horas + 'h ' + mins + 'min {% trans "restantes" %}';
-    el.style.color = horas < 6 ? '#c62828' : '#2d7a87';
-    setTimeout(actualizar, 30000);
-  }
-  actualizar();
-});
-
-document.querySelectorAll('.tf-confirm-orden').forEach(function (link) {
-  link.addEventListener('click', function (e) {
-    e.preventDefault();
-    var href = link.getAttribute('href');
-    var accion = link.dataset.accion;
-    var num = link.dataset.num || '';
-    var esAceptar = accion === 'aceptar';
-    TF.confirm({
-      titulo: esAceptar ? '{% trans "Aceptar pedido" %}' : '{% trans "Rechazar pedido" %}',
-      mensaje: esAceptar
-        ? '{% trans "¿Confirmas que aceptas el pedido" %} ' + num + '?'
-        : '{% trans "¿Rechazas el pedido" %} ' + num + '? {% trans "Se liberará el inventario." %}',
-      onAceptar: function () { window.location.href = href; }
+  if (el && typeof Chart !== 'undefined') {
+    new Chart(el, {
+      type: 'line',
+      data: { labels: labels, datasets: [{ data: values, borderColor: '#F26522', backgroundColor: 'rgba(242,101,34,0.1)', fill: true, tension: 0.4 }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
     });
-  });
+  }
 });
 </script>
 {% endblock %}

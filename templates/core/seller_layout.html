@@ -1,0 +1,82 @@
+{% extends "core/base.html" %}
+{% load static i18n %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/colors.css' %}">
+<link rel="stylesheet" href="{% static 'css/seller_portal_premium.css' %}">
+{% block seller_extra_head %}{% endblock %}
+{% endblock %}
+{% block extra_css %}{% block seller_extra_css %}{% endblock %}{% endblock %}
+{% block content %}
+<div class="sp-shell" id="sp-shell">
+  <aside class="sp-sidebar" id="sp-sidebar" aria-label="{% trans 'Panel vendedor' %}">
+    <div class="sp-brand">
+      {{ company.name|default:"TradeFlow" }}
+      <small>{% trans "Seller Center" %}</small>
+    </div>
+    <nav class="sp-nav">
+      <a href="{% url 'portal_seller' %}" data-sp-nav="mi_tienda">
+        <span class="material-symbols-rounded">dashboard</span>{% trans "Dashboard" %}
+      </a>
+      <a href="{% url 'seller_mis_productos' %}" data-sp-nav="seller_productos">
+        <span class="material-symbols-rounded">inventory_2</span>{% trans "Productos" %}
+      </a>
+      <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas">
+        <span class="material-symbols-rounded">payments</span>{% trans "Ventas" %}
+      </a>
+      <a href="{% url 'seller_cotizaciones' %}" data-sp-nav="seller_cotizaciones">
+        <span class="material-symbols-rounded">request_quote</span>{% trans "Cotizaciones" %}
+      </a>
+      <a href="{% url 'seller_agregar_producto' %}" data-sp-nav="seller_productos">
+        <span class="material-symbols-rounded">add_circle</span>{% trans "Nuevo producto" %}
+      </a>
+      <a href="{% url 'mi_perfil' %}" data-sp-nav="perfil">
+        <span class="material-symbols-rounded">business</span>{% trans "Perfil empresa" %}
+      </a>
+    </nav>
+    <div class="sp-sidebar-foot">{% trans "Zona Libre de Colón" %}</div>
+  </aside>
+  <div class="sp-main">
+    {% block seller_topbar %}
+    <header class="sp-topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button type="button" class="sp-btn sp-btn-secondary" id="sp-menu-toggle" style="display:none;padding:8px;" aria-label="{% trans 'Menú' %}">
+          <span class="material-symbols-rounded">menu</span>
+        </button>
+        <div>
+          <h1>{% block seller_page_title %}{{ titulo_pagina|default:"Panel" }}{% endblock %}</h1>
+          {% block seller_page_sub %}{% endblock %}
+        </div>
+      </div>
+      <div class="sp-topbar-actions">
+        {% block seller_topbar_actions %}
+        <a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary">
+          <span class="material-symbols-rounded" style="font-size:18px;">add</span>{% trans "Agregar" %}
+        </a>
+        {% endblock %}
+      </div>
+    </header>
+    {% endblock %}
+    <div class="sp-content">
+      {% block seller_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+<script>document.body.classList.add('sp-mode');</script>
+<script>
+(function () {
+  var nav = '{{ nav_activo|default:""|escapejs }}';
+  document.querySelectorAll('[data-sp-nav]').forEach(function (a) {
+    if (a.getAttribute('data-sp-nav') === nav) a.classList.add('is-active');
+  });
+  var t = document.getElementById('sp-menu-toggle');
+  var s = document.getElementById('sp-sidebar');
+  if (t && s) t.addEventListener('click', function () { s.classList.toggle('is-open'); });
+  if (window.matchMedia('(max-width:900px)').matches && t) t.style.display = 'inline-flex';
+})();
+</script>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/seller_portal.js' %}"></script>
+{% block seller_extra_js %}{% endblock %}
+{% endblock %}
