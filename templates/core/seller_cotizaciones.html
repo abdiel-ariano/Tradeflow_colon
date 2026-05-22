@@ -1,77 +1,43 @@
-{% extends "core/base.html" %}
+{% extends "core/seller_layout.html" %}
 {% load i18n static %}
-{% block title %}{% trans "Cotizaciones" %} — TradeFlow Colón{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/seller_dashboard.css' %}">
-{% endblock %}
-{% block content %}
-<div class="sd-page">
-  <header class="sd-head">
-    <h1>{% trans "Cotizaciones" %}</h1>
-    <p>{{ company.name }} · {% trans "Pipeline y seguimiento comercial" %}</p>
-  </header>
+{% block title %}{% trans "Cotizaciones" %} — TradeFlow{% endblock %}
+{% block seller_page_title %}{% trans "Cotizaciones" %}{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">{% trans "Pipeline comercial" %}</p>{% endblock %}
 
-  <div class="sd-kpi-grid">
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Cotizaciones del mes" %}</span>
-      <p class="sd-kpi-val">{{ cotizaciones_mes }}</p>
-    </article>
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Tasa de conversión" %}</span>
-      <p class="sd-kpi-val">{{ tasa_conversion }}%</p>
-    </article>
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Monto total cotizado" %}</span>
-      <p class="sd-kpi-val" style="font-size:1.25rem;">USD {{ monto_cotizado }}</p>
-    </article>
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Pendientes" %}</span>
-      <p class="sd-kpi-val warn">{{ kanban.pendiente|length }}</p>
-    </article>
+{% block seller_content %}
+<div class="sp-kpi-grid">
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Del mes" %}</span><p class="sp-kpi-val">{{ cotizaciones_mes }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Conversión" %}</span><p class="sp-kpi-val">{{ tasa_conversion }}%</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Monto cotizado" %}</span><p class="sp-kpi-val" style="font-size:1.2rem;">USD {{ monto_cotizado }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Pendientes" %}</span><p class="sp-kpi-val warn">{{ kanban.pendiente|length }}</p></article>
+</div>
+
+<div class="sp-kanban" style="margin-bottom:24px;">
+  <div class="sp-kanban-col">
+    <h3>{% trans "Pendiente" %}</h3>
+    {% for cot in kanban.pendiente %}
+    <div class="sp-kanban-card"><a href="{% url 'seller_responder_cotizacion' cot.pk %}">{{ cot.numero }}</a><br>{{ cot.buyer.username }}</div>
+    {% empty %}<p style="font-size:11px;color:var(--tf-muted);">—</p>{% endfor %}
   </div>
-
-  <div class="sd-kanban" aria-label="{% trans 'Pipeline cotizaciones' %}">
-    <div class="sd-kanban-col">
-      <h4>{% trans "Pendiente" %}</h4>
-      {% for cot in kanban.pendiente %}
-      <div class="sd-kanban-card">
-        <strong>{{ cot.numero }}</strong><br>
-        {{ cot.buyer.get_full_name|default:cot.buyer.username }}<br>
-        <span style="color:#6B7A88;">{{ cot.created_at|date:"d/m/Y" }}</span>
-        <div class="sd-actions">
-          <a href="{% url 'seller_responder_cotizacion' cot.pk %}">{% trans "Responder" %}</a>
-        </div>
-      </div>
-      {% empty %}<p style="font-size:12px;color:#9CA3AF;">—</p>{% endfor %}
-    </div>
-    <div class="sd-kanban-col">
-      <h4>{% trans "Enviada" %}</h4>
-      {% for cot in kanban.enviada %}
-      <div class="sd-kanban-card">
-        <strong>{{ cot.numero }}</strong><br>
-        {{ cot.buyer.get_full_name|default:cot.buyer.username }}
-        <div class="sd-actions">
-          <a href="{% url 'seller_responder_cotizacion' cot.pk %}">{% trans "Editar" %}</a>
-        </div>
-      </div>
-      {% empty %}<p style="font-size:12px;color:#9CA3AF;">—</p>{% endfor %}
-    </div>
-    <div class="sd-kanban-col">
-      <h4>{% trans "Aceptada" %}</h4>
-      {% for cot in kanban.aceptada %}
-      <div class="sd-kanban-card"><strong>{{ cot.numero }}</strong></div>
-      {% empty %}<p style="font-size:12px;color:#9CA3AF;">—</p>{% endfor %}
-    </div>
-    <div class="sd-kanban-col">
-      <h4>{% trans "Rechazada" %}</h4>
-      {% for cot in kanban.rechazada %}
-      <div class="sd-kanban-card"><strong>{{ cot.numero }}</strong></div>
-      {% empty %}<p style="font-size:12px;color:#9CA3AF;">—</p>{% endfor %}
-    </div>
+  <div class="sp-kanban-col">
+    <h3>{% trans "Respondida" %}</h3>
+    {% for cot in kanban.enviada %}
+    <div class="sp-kanban-card"><a href="{% url 'seller_responder_cotizacion' cot.pk %}">{{ cot.numero }}</a></div>
+    {% empty %}<p style="font-size:11px;color:var(--tf-muted);">—</p>{% endfor %}
   </div>
+  <div class="sp-kanban-col">
+    <h3>{% trans "Aceptada" %}</h3>
+    {% for cot in kanban.aceptada %}<div class="sp-kanban-card">{{ cot.numero }}</div>{% empty %}<p style="font-size:11px;color:var(--tf-muted);">—</p>{% endfor %}
+  </div>
+  <div class="sp-kanban-col">
+    <h3>{% trans "Rechazada" %}</h3>
+    {% for cot in kanban.rechazada %}<div class="sp-kanban-card">{{ cot.numero }}</div>{% empty %}<p style="font-size:11px;color:var(--tf-muted);">—</p>{% endfor %}
+  </div>
+</div>
 
-  <div class="sd-table-wrap">
-    <table class="sd-table">
+<section class="sp-card">
+  <div class="sp-table-wrap">
+    <table class="sp-table">
       <thead>
         <tr>
           <th>{% trans "Número" %}</th>
@@ -79,7 +45,7 @@
           <th>{% trans "Fecha" %}</th>
           <th>{% trans "Monto est." %}</th>
           <th>{% trans "Estado" %}</th>
-          <th>{% trans "Acciones" %}</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -90,25 +56,15 @@
           <td>{{ cot.buyer.get_full_name|default:cot.buyer.username }}</td>
           <td>{{ cot.created_at|date:"d/m/Y" }}</td>
           <td>USD {{ row.monto }}</td>
-          <td>
-            <span class="sd-badge sd-badge-{% if cot.estado == 'pendiente' %}pending{% elif cot.estado == 'aceptada' %}delivered{% elif cot.estado == 'rechazada' %}cancelled{% else %}paid{% endif %}">
-              {{ cot.get_estado_display }}
-            </span>
-          </td>
-          <td class="sd-actions">
-            <a href="{% url 'seller_responder_cotizacion' cot.pk %}">{% trans "Editar" %}</a>
-            <a href="{% url 'seller_responder_cotizacion' cot.pk %}">{% trans "Duplicar" %}</a>
-            {% if cot.estado == 'pendiente' %}
-            <a href="{% url 'seller_responder_cotizacion' cot.pk %}">{% trans "Recordatorio" %}</a>
-            {% endif %}
-          </td>
+          <td><span class="sp-status sp-status-{{ cot.estado }}">{{ cot.get_estado_display }}</span></td>
+          <td><a href="{% url 'seller_responder_cotizacion' cot.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">{% trans "Responder" %}</a></td>
         </tr>
         {% endwith %}
         {% empty %}
-        <tr><td colspan="6" style="text-align:center;padding:40px;color:#6B7A88;">{% trans "No hay cotizaciones." %}</td></tr>
+        <tr><td colspan="6" class="sp-empty">{% trans "Sin cotizaciones" %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-</div>
+</section>
 {% endblock %}

@@ -1,142 +1,82 @@
-{% extends "core/base.html" %}
+{% extends "core/seller_layout.html" %}
 {% load i18n static %}
-{% block title %}{% trans "Mis productos" %} — TradeFlow Colón{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/seller_dashboard.css' %}">
-{% endblock %}
-{% block content %}
-<div class="sd-page">
-  <header class="sd-head">
-    <h1>{% trans "Mis productos" %}</h1>
-    <p>{{ company.name }} · {% trans "Gestión de catálogo e inventario" %}</p>
-  </header>
+{% block title %}{% trans "Productos" %} — TradeFlow{% endblock %}
+{% block seller_page_title %}{% trans "Mis productos" %}{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">{% trans "Catálogo e inventario" %}</p>{% endblock %}
 
-  <div class="sd-kpi-grid">
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Total productos" %}</span>
-      <p class="sd-kpi-val">{{ dash.kpi_total }}</p>
-    </article>
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Stock bajo" %}</span>
-      <p class="sd-kpi-val warn">{{ dash.kpi_bajo_stock }}</p>
-    </article>
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Sin ventas" %}</span>
-      <p class="sd-kpi-val warn">{{ dash.kpi_sin_ventas }}</p>
-    </article>
-    <article class="sd-kpi">
-      <span class="sd-kpi-lbl">{% trans "Activos" %}</span>
-      <p class="sd-kpi-val">{{ dash.kpi_activos }}</p>
-    </article>
-  </div>
-
-  <div class="sd-grid-2">
-    <div class="sd-chart-card">
-      <h3>{% trans "Distribución por categoría" %}</h3>
-      <canvas id="sd-chart-cat" height="200" aria-label="{% trans 'Gráfico categorías' %}"></canvas>
-    </div>
-    <div>
-      <form class="sd-toolbar" method="get">
-        <div class="sd-filters">
-          <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="{% trans 'Buscar nombre o SKU…' %}">
-          <select class="tf-input" name="categoria">
-            <option value="">{% trans "Todas las categorías" %}</option>
-            {% for c in categorias %}
-            <option value="{{ c.pk }}" {% if cat_activa == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
-            {% endfor %}
-          </select>
-          <select class="tf-input" name="stock">
-            <option value="">{% trans "Todo el stock" %}</option>
-            <option value="bajo" {% if stock_filtro == 'bajo' %}selected{% endif %}>{% trans "Stock bajo" %}</option>
-            <option value="sin_ventas" {% if stock_filtro == 'sin_ventas' %}selected{% endif %}>{% trans "Sin ventas" %}</option>
-          </select>
-          <select class="tf-input" name="estado">
-            <option value="">{% trans "Todos los estados" %}</option>
-            <option value="activo" {% if estado_filtro == 'activo' %}selected{% endif %}>{% trans "Activo" %}</option>
-            <option value="inactivo" {% if estado_filtro == 'inactivo' %}selected{% endif %}>{% trans "Inactivo" %}</option>
-          </select>
-          <select class="tf-input" name="orden">
-            <option value="nombre" {% if orden == 'nombre' %}selected{% endif %}>{% trans "Nombre" %}</option>
-            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>{% trans "Precio ↑" %}</option>
-            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>{% trans "Precio ↓" %}</option>
-          </select>
-        </div>
-        <button type="submit" class="sd-btn sd-btn-outline">
-          <span class="material-symbols-rounded" style="font-size:18px;">filter_alt</span>
-          {% trans "Filtrar" %}
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <div class="sd-table-wrap">
-    <table class="sd-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th>{% trans "Producto" %}</th>
-          <th>{% trans "SKU" %}</th>
-          <th>{% trans "Precio" %}</th>
-          <th>{% trans "Stock" %}</th>
-          <th>{% trans "Estado" %}</th>
-          <th>{% trans "Acciones" %}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in productos %}
-        <tr>
-          <td style="width:64px;">
-            {% if p.image %}
-            <img src="{{ p.image.url }}" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">
-            {% else %}
-            <div style="width:48px;height:48px;border-radius:8px;background:#F2F3F5;display:flex;align-items:center;justify-content:center;">
-              <span class="material-symbols-rounded" style="color:#6B7A88;">inventory_2</span>
-            </div>
-            {% endif %}
-          </td>
-          <td><strong>{{ p.name }}</strong><br><span style="font-size:12px;color:#6B7A88;">{{ p.category.name|default:"—" }}</span></td>
-          <td>{{ p.sku|default:"—" }}</td>
-          <td>{{ p.currency }} {{ p.display_price }}</td>
-          <td>{% if p.inventory %}{{ p.inventory.stock_qty }}{% else %}—{% endif %}</td>
-          <td>{% if p.is_active %}<span class="sd-badge sd-badge-delivered">{% trans "Activo" %}</span>{% else %}<span class="sd-badge sd-badge-cancelled">{% trans "Inactivo" %}</span>{% endif %}</td>
-          <td>
-            <a href="{% url 'seller_editar_producto' p.pk %}">{% trans "Editar" %}</a>
-            <span class="sd-quick">{% trans "Vista rápida" %}: {{ p.name|truncatechars:40 }}</span>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7" style="text-align:center;padding:40px;color:#6B7A88;">{% trans "No hay productos con estos filtros." %}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% if productos.has_other_pages %}
-  <nav style="margin-top:16px;display:flex;gap:8px;justify-content:center;">
-    {% if productos.has_previous %}<a class="sd-btn sd-btn-outline" href="?page={{ productos.previous_page_number }}">{% trans "Anterior" %}</a>{% endif %}
-    {% if productos.has_next %}<a class="sd-btn sd-btn-outline" href="?page={{ productos.next_page_number }}">{% trans "Siguiente" %}</a>{% endif %}
-  </nav>
-  {% endif %}
+{% block seller_content %}
+<div class="sp-kpi-grid">
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Total" %}</span><p class="sp-kpi-val">{{ dash.kpi_total }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Activos" %}</span><p class="sp-kpi-val">{{ dash.kpi_activos }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Stock bajo" %}</span><p class="sp-kpi-val warn">{{ dash.kpi_bajo_stock }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Sin ventas" %}</span><p class="sp-kpi-val warn">{{ dash.kpi_sin_ventas }}</p></article>
 </div>
-<a href="{% url 'seller_agregar_producto' %}" class="sd-fab" title="{% trans 'Agregar producto' %}">
-  <span class="material-symbols-rounded">add</span>
-</a>
+
+<div class="sp-grid-2">
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>{% trans "Por categoría" %}</h2></div>
+    <canvas id="sd-chart-cat" height="160"></canvas>
+  </section>
+  <section class="sp-card">
+    <form method="get" style="display:flex;flex-direction:column;gap:10px;">
+      <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="{% trans 'Buscar…' %}">
+      <select class="tf-input" name="categoria">
+        <option value="">{% trans "Categoría" %}</option>
+        {% for c in categorias %}<option value="{{ c.pk }}" {% if cat_activa == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+      </select>
+      <select class="tf-input" name="estado">
+        <option value="">{% trans "Estado" %}</option>
+        <option value="activo" {% if estado_filtro == 'activo' %}selected{% endif %}>{% trans "Activo" %}</option>
+        <option value="inactivo" {% if estado_filtro == 'inactivo' %}selected{% endif %}>{% trans "Inactivo" %}</option>
+      </select>
+      <button type="submit" class="sp-btn sp-btn-primary">{% trans "Filtrar" %}</button>
+    </form>
+  </section>
+</div>
+
+{% for p in productos %}
+<article class="sp-product-row">
+  {% if p.image %}<img src="{{ p.image.url }}" alt="" class="sp-product-img">{% else %}
+  <div class="sp-product-img" style="display:flex;align-items:center;justify-content:center;"><span class="material-symbols-rounded" style="color:var(--tf-muted);">inventory_2</span></div>{% endif %}
+  <div>
+    <div style="font-weight:700;color:var(--tf-navy);">{{ p.name }}</div>
+    <div style="font-size:12px;color:var(--tf-muted);">{{ p.sku|default:"—" }} · {{ p.category.name|default:"—" }}</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-top:6px;">{{ p.currency }} {{ p.display_price }}</div>
+    <div style="font-size:12px;margin-top:4px;">{% trans "Stock" %}: {% if p.inventory %}<span style="color:{% if p.inventory.is_low_stock %}#c62828{% else %}#2e7d32{% endif %};font-weight:700;">{{ p.inventory.stock_qty }}</span>{% else %}—{% endif %}</div>
+  </div>
+  <div style="text-align:right;">
+    {% if p.is_active %}<span class="sp-status sp-status-delivered">{% trans "Activo" %}</span>{% else %}<span class="sp-status sp-status-cancelled">{% trans "Inactivo" %}</span>{% endif %}
+    <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">
+      <a href="{% url 'seller_editar_producto' p.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 12px;font-size:12px;">{% trans "Editar" %}</a>
+      <a href="{% url 'seller_toggle_producto' p.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 12px;font-size:12px;">{% if p.is_active %}{% trans "Off" %}{% else %}{% trans "On" %}{% endif %}</a>
+    </div>
+  </div>
+</article>
+{% empty %}
+<div class="sp-card sp-empty">{% trans "No hay productos" %}</div>
+{% endfor %}
+
+{% if productos.has_other_pages %}
+<nav style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
+  {% if productos.has_previous %}<a class="sp-btn sp-btn-secondary" href="?page={{ productos.previous_page_number }}">{% trans "Anterior" %}</a>{% endif %}
+  {% if productos.has_next %}<a class="sp-btn sp-btn-secondary" href="?page={{ productos.next_page_number }}">{% trans "Siguiente" %}</a>{% endif %}
+</nav>
+{% endif %}
 {% endblock %}
-{% block extra_js %}
-<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+
+{% block seller_extra_js %}
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
+  var el = document.getElementById('sd-chart-cat');
   var labels = {{ chart_cat_labels_json|safe }};
   var values = {{ chart_cat_values_json|safe }};
-  var el = document.getElementById('sd-chart-cat');
-  if (!el || !labels.length) return;
-  new Chart(el, {
-    type: 'doughnut',
-    data: {
-      labels: labels,
-      datasets: [{ data: values, backgroundColor: ['#F26522','#0F2A44','#2E5B8A','#6B7A88','#FF7A3D','#94A3B8'] }]
-    },
-    options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } }, cutout: '58%' }
-  });
-})();
+  if (el && labels.length && typeof Chart !== 'undefined') {
+    new Chart(el, {
+      type: 'doughnut',
+      data: { labels: labels, datasets: [{ data: values, backgroundColor: ['#F26522','#0F2A44','#2E5B8A','#6B7A88','#FF7A3D'] }] },
+      options: { cutout: '60%' }
+    });
+  }
+});
 </script>
 {% endblock %}

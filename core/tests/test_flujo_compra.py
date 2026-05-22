@@ -182,10 +182,7 @@ class TestFlujoBuyer(TestCase):
             {'username': 'buyer_test', 'password': 'TestPass123!'},
         )
         self.assertEqual(r.status_code, 302)
-        self.assertTrue(
-        r.url.endswith('/comprador/') or r.url.endswith('/tienda/'),
-        msg=r.url,
-    )
+        self.assertTrue(r.url.endswith('/tienda/'))
 
         self.client.logout()
         r = self.client.post(

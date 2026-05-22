@@ -1,68 +1,95 @@
-{% extends "core/buyer_layout.html" %}
+{% extends "core/base.html" %}
 {% load static i18n %}
-{% block title %}{% trans "Mis órdenes" %} — TradeFlow{% endblock %}
-{% block buyer_page_title %}{% trans "Mis órdenes" %}{% endblock %}
-{% block buyer_page_sub %}<p class="bp-topbar-sub">{% trans "Historial y seguimiento logístico" %}</p>{% endblock %}
-
-{% block buyer_content %}
-<nav class="bp-transport-tabs" aria-label="{% trans 'Filtros' %}">
-  <a href="{% url 'mis_ordenes' %}" class="bp-transport-tab {% if not estado_actual %}is-on{% endif %}">{% trans "Todas" %}</a>
-  {% for valor, etiqueta in status_choices %}
-  <a href="?estado={{ valor }}" class="bp-transport-tab" data-estado-tab="{{ valor }}">{{ etiqueta }}</a>
-  {% endfor %}
-</nav>
-
-<section class="bp-card">
-  <div class="bp-table-wrap">
-    <table class="bp-table" id="mo-table">
-      <thead>
-        <tr>
-          <th>{% trans "Orden" %}</th>
-          <th>{% trans "Fecha" %}</th>
-          <th>{% trans "Resumen" %}</th>
-          <th>{% trans "Total" %}</th>
-          <th>{% trans "Estado" %}</th>
-          <th>{% trans "Plazo" %}</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for orden in ordenes %}
-        <tr>
-          <td><strong>{{ orden.order_number }}</strong></td>
-          <td>{{ orden.created_at|date:"d/m/Y H:i" }}</td>
-          <td style="color:var(--tf-muted);font-size:12px;max-width:220px;">
-            {% for item in orden.items.all|slice:":2" %}{{ item.qty }}× {{ item.product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-          </td>
-          <td style="font-family:'DM Serif Display',serif;font-weight:700;">USD {{ orden.total }}</td>
-          <td><span class="bp-status bp-status-{{ orden.status }}">{{ orden.get_status_display }}</span></td>
-          <td>
-            {% if orden.status == 'awaiting_seller' and orden.seller_confirm_by %}
-            <span class="bp-timer ok" data-bp-plazo="{{ orden.seller_confirm_by.isoformat }}" data-expired-label="{% trans 'Expirado' %}">—</span>
-            {% else %}—{% endif %}
-          </td>
-          <td><a href="{% url 'detalle_mi_orden' orden.pk %}" class="bp-btn bp-btn-secondary" style="padding:6px 12px;font-size:12px;">{% trans "Detalle" %}</a></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7"><div class="bp-empty">{% trans "Aún no tienes órdenes" %}<br><a href="{% url 'tienda' %}" class="bp-btn bp-btn-primary" style="margin-top:12px;">{% trans "Ir al catálogo" %}</a></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% if ordenes.has_other_pages %}
-  <nav style="display:flex;justify-content:center;gap:8px;margin-top:20px;">
-    {% if ordenes.has_previous %}<a href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}" class="bp-btn bp-btn-secondary">{% trans "Anterior" %}</a>{% endif %}
-    {% if ordenes.has_next %}<a href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}" class="bp-btn bp-btn-secondary">{% trans "Siguiente" %}</a>{% endif %}
-  </nav>
-  {% endif %}
-</section>
+{% block title %}{% trans "Mis órdenes" %} — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<style>
+  .mo-wrap { max-width: 1000px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1.5rem clamp(2rem, 4vw, 3rem); }
+  .mo-title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.25rem; }
+  .mo-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+  .mo-tab {
+    padding: 8px 14px; border-radius: 20px; border: 1px solid #D1D5DB; background: #fff; color: #374151;
+    font-size: 0.8125rem; font-weight: 600; text-decoration: none; transition: all 0.2s ease;
+  }
+  .mo-tab:hover { border-color: #2E5B8A; color: #0F2A44; }
+  .mo-tab.is-on { background: #0F2A44; color: #fff; border-color: #0F2A44; }
+  .mo-card {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1.15rem 1.25rem;
+    background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; margin-bottom: 10px;
+    transition: box-shadow 0.2s ease;
+  }
+  .mo-card:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08); }
+  .mo-num { font-family: 'Inter', sans-serif; font-weight: 700; color: #0F2A44; font-size: 0.95rem; min-width: 140px; }
+  .mo-date { font-size: 0.8125rem; color: #6B7A88; }
+  .mo-prev { flex: 1; min-width: 200px; font-size: 0.8125rem; color: #6B7A88; }
+  .mo-total { font-family: 'Inter', sans-serif; font-weight: 700; color: #F26522; min-width: 90px; text-align: right; }
+  .mo-link { font-size: 0.8125rem; font-weight: 600; color: #2E5B8A; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+  .mo-link:hover { text-decoration: underline; }
+  .mo-badge { font-size: 0.72rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+  .mo-empty { text-align: center; padding: 3rem 1rem; color: #6B7A88; }
+</style>
 {% endblock %}
-{% block buyer_extra_js %}
+{% block content %}
+<div class="mo-wrap">
+  <h1 class="mo-title">{% trans "Mis órdenes" %}</h1>
+  <div class="mo-tabs" id="mo-tabs" data-current="{{ estado_actual|escapejs }}">
+    <a href="{% url 'mis_ordenes' %}" class="mo-tab" data-estado="">Todas</a>
+    {% for valor, etiqueta in status_choices %}
+    <a href="?estado={{ valor }}" class="mo-tab" data-estado="{{ valor }}">{{ etiqueta }}</a>
+    {% endfor %}
+  </div>
+  {% if ordenes %}
+    {% for orden in ordenes %}
+    <div class="mo-card">
+      <div>
+        <div class="mo-num">{{ orden.order_number }}</div>
+        <div class="mo-date">{{ orden.created_at|date:"d/m/Y H:i" }}</div>
+      </div>
+      <div class="mo-prev">
+        {% for item in orden.items.all|slice:":2" %}{{ item.qty }}× {{ item.product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        {% if orden.items.count > 2 %} y {{ orden.items.count|add:"-2" }} más{% endif %}
+      </div>
+      <span class="mo-badge mo-st" data-st="{{ orden.status }}">{{ orden.get_status_display }}</span>
+      <div class="mo-total">USD {{ orden.total }}</div>
+      <a href="{% url 'detalle_mi_orden' orden.pk %}" class="mo-link">Ver detalle <span class="material-symbols-rounded" style="font-size:18px;">chevron_right</span></a>
+    </div>
+    {% endfor %}
+    {% if ordenes.has_other_pages %}
+    <div style="display:flex;justify-content:center;gap:8px;margin-top:1.5rem;flex-wrap:wrap;">
+      {% if ordenes.has_previous %}
+      <a href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">Anterior</a>
+      {% endif %}
+      {% if ordenes.has_next %}
+      <a href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">Siguiente</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  {% else %}
+  <div class="mo-empty">
+    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">Aún no tienes órdenes</p>
+    <p style="margin:0;">Explora el catálogo y realiza tu primera compra.</p>
+    <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> Ir a la tienda</a>
+  </div>
+  {% endif %}
+</div>
 <script>
 (function () {
-  var cur = '{{ estado_actual|escapejs }}';
-  document.querySelectorAll('[data-estado-tab]').forEach(function (a) {
-    if (a.getAttribute('data-estado-tab') === cur) a.classList.add('is-on');
+  var root = document.getElementById('mo-tabs');
+  if (!root) return;
+  var cur = root.getAttribute('data-current') || '';
+  root.querySelectorAll('.mo-tab').forEach(function (a) {
+    if ((a.getAttribute('data-estado') || '') === cur) a.classList.add('is-on');
+  });
+  var map = {
+    pending: { bg: '#fef8e7', fg: '#6b4a00' },
+    paid: { bg: '#e8f4f8', fg: '#1a4f65' },
+    packed: { bg: '#e8f4f8', fg: '#1a4f65' },
+    shipped: { bg: '#e0f2f1', fg: '#0d5c56' },
+    delivered: { bg: '#edf7ee', fg: '#1e5c21' },
+    cancelled: { bg: '#fdecea', fg: '#7d1a14' },
+  };
+  document.querySelectorAll('.mo-st').forEach(function (el) {
+    var t = map[el.getAttribute('data-st')];
+    if (t) { el.style.background = t.bg; el.style.color = t.fg; }
   });
 })();
 </script>

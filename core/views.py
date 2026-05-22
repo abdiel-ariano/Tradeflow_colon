@@ -314,7 +314,7 @@ def _redirect_by_role(user):
         return reverse('dashboard')
     if role == 'seller':
         return reverse('portal_seller')
-    return reverse('buyer_dashboard')
+    return reverse('tienda')
 
 
 # =============================================================================
@@ -1654,50 +1654,48 @@ def portal_buyer(request):
 
 @seller_required
 def portal_seller(request):
-    """Dashboard del vendedor en /mi-tienda/ con métricas y ventas recientes."""
+    """Dashboard premium del vendedor en /mi-tienda/."""
+    import json as _json
+
+    from .utils.order_workflow import expire_pending_orders
+    from .utils.seller_analytics import seller_portal_dashboard
+
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
 
-    now = timezone.now()
-    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    expire_pending_orders()
+    data = seller_portal_dashboard(company)
 
-    productos_qs = Product.objects.filter(company=company)
-    total_productos = productos_qs.filter(is_active=True).count()
-    bajo_stock = _seller_low_stock_count(company)
-
-    ordenes_recientes = (
-        Order.objects.filter(items__product__company=company)
-        .distinct()
-        .select_related('buyer')
-        .order_by('-created_at')[:8]
-    )
-
-    ingresos_mes_items = OrderItem.objects.filter(
-        product__company=company,
-        order__status='delivered',
-        order__created_at__gte=month_start,
-    )
-    ingresos_mes = ingresos_mes_items.aggregate(t=Sum('line_total'))['t'] or Decimal('0.00')
-
-    hace_7 = now - timedelta(days=7)
-    ordenes_semana = (
-        Order.objects.filter(items__product__company=company, created_at__gte=hace_7)
-        .distinct()
-        .count()
-    )
-
-    context = {
+    return render(request, 'core/portal_seller.html', {
         'company': company,
-        'total_productos': total_productos,
-        'bajo_stock': bajo_stock,
-        'ingresos_mes': ingresos_mes,
-        'ordenes_semana': ordenes_semana,
-        'ordenes_recientes': ordenes_recientes,
-        'titulo_pagina': 'Mi Tienda',
+        **data,
+        'chart_revenue_labels_json': _json.dumps(data['chart_revenue_labels']),
+        'chart_revenue_values_json': _json.dumps(data['chart_revenue_values']),
+        'chart_status_labels_json': _json.dumps(data['chart_status_labels']),
+        'chart_status_values_json': _json.dumps(data['chart_status_values']),
+        'chart_week_labels_json': _json.dumps(data['chart_week_labels']),
+        'chart_week_orders_json': _json.dumps(data['chart_week_orders']),
+        'titulo_pagina': _('Panel vendedor'),
         'nav_activo': 'mi_tienda',
-    }
-    return render(request, 'core/portal_seller.html', context)
+    })
+
+
+@seller_required
+@require_GET
+def api_seller_dashboard(request):
+    """Polling ligero para actualizaciones del panel seller."""
+    from .utils.seller_analytics import seller_portal_dashboard
+
+    company = _get_seller_company(request.user)
+    if not company:
+        return JsonResponse({'error': 'no_company'}, status=403)
+    data = seller_portal_dashboard(company)
+    return JsonResponse({
+        'pending_confirm': data['pending_confirm'],
+        'ordenes_semana': data['ordenes_semana'],
+        'updated': False,
+    })
 
 
 def _get_seller_company(user):
@@ -2518,7 +2516,6 @@ def tienda(request):
         'spotlight_bestsellers': spotlight_bestsellers,
         'spotlight_destacados': spotlight_destacados,
         'productos_promo': merch.daily_deals(8),
-        'buyer_layout_wide': True,
     }
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -2895,61 +2892,16 @@ def checkout(request):
         )
         transportistas = TransportCarrier.objects.filter(is_active=True).order_by('sort_order', 'name')
 
-    modes = list(TransportCarrier.MODE_CHOICES)
     context = {
         'carrito': carrito,
         'subtotal': subtotal,
         'carrito_count': _contar_items(carrito),
-        'titulo_pagina': _('Confirmar pedido'),
-        'nav_activo': 'carrito',
+        'titulo_pagina': 'Confirmar Orden',
+        'nav_activo': 'tienda',
         'transportistas': transportistas,
-        'transport_modes': modes,
         'checkout_auto_approve': auto_approve,
     }
     return render(request, 'core/checkout.html', context)
-
-
-# ---------------------------------------------------------------------------
-# BUYER DASHBOARD
-# ---------------------------------------------------------------------------
-
-@buyer_required
-def buyer_dashboard(request):
-    """Panel principal del comprador (KPIs, gráficas, actividad)."""
-    import json as _json
-
-    from . import merchandising as merch
-    from .utils.buyer_analytics import buyer_dashboard as dash
-
-    data = dash(request.user)
-    return render(request, 'core/buyer_dashboard.html', {
-        **data,
-        'productos_promo': merch.daily_deals(8),
-        'chart_line_labels_json': _json.dumps(data['chart_line_labels']),
-        'chart_line_values_json': _json.dumps(data['chart_line_values']),
-        'chart_status_labels_json': _json.dumps(data['chart_status_labels']),
-        'chart_status_values_json': _json.dumps(data['chart_status_values']),
-        'chart_company_labels_json': _json.dumps(data['chart_company_labels']),
-        'chart_company_values_json': _json.dumps(data['chart_company_values']),
-        'titulo_pagina': 'Dashboard',
-        'nav_activo': 'dashboard',
-        'carrito_count': _contar_items(_get_carrito(request)),
-    })
-
-
-@buyer_required
-@require_GET
-def api_buyer_dashboard(request):
-    """JSON ligero para polling de actualizaciones del dashboard."""
-    from .utils.buyer_analytics import buyer_dashboard as dash
-
-    data = dash(request.user)
-    pending = data['kpi_pendientes']
-    return JsonResponse({
-        'pending_orders': pending,
-        'updated': False,
-        'message': '',
-    })
 
 
 # MIS ÓRDENES — Historial del comprador
