@@ -1,0 +1,131 @@
+{% extends "core/buyer_layout.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Dashboard" %} — TradeFlow{% endblock %}
+{% block buyer_page_title %}{% trans "Centro de operaciones" %}{% endblock %}
+{% block buyer_page_sub %}<p class="bp-topbar-sub">{% blocktrans with name=user.get_full_name|default:user.username %}Bienvenido, {{ name }}{% endblocktrans %}</p>{% endblock %}
+
+{% block buyer_content %}
+<div class="bp-kpi-grid">
+  <article class="bp-kpi">
+    <span class="bp-kpi-lbl">{% trans "Órdenes totales" %}</span>
+    <p class="bp-kpi-val">{{ kpi_total_ordenes }}</p>
+  </article>
+  <article class="bp-kpi">
+    <span class="bp-kpi-lbl">{% trans "Pendientes" %}</span>
+    <p class="bp-kpi-val">{{ kpi_pendientes }}</p>
+    {% if kpi_pendientes %}<p class="bp-kpi-delta warn">{% trans "Requieren seguimiento" %}</p>{% endif %}
+  </article>
+  <article class="bp-kpi">
+    <span class="bp-kpi-lbl">{% trans "Gasto del mes" %}</span>
+    <p class="bp-kpi-val" style="font-size:1.5rem;">USD {{ kpi_gasto_mes }}</p>
+  </article>
+  <article class="bp-kpi">
+    <span class="bp-kpi-lbl">{% trans "Cotizaciones" %}</span>
+    <p class="bp-kpi-val" style="font-size:1.35rem;">{{ kpi_cot_pendientes }} / {{ kpi_cot_total }}</p>
+    <p class="bp-kpi-delta up">{{ kpi_cot_aprobadas }} {% trans "aprobadas" %}</p>
+  </article>
+</div>
+
+{% if productos_promo %}
+<section class="bp-promo-carousel" aria-label="{% trans 'Ofertas' %}">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <h2 style="margin:0;font-family:'DM Serif Display',serif;font-size:1.2rem;">{% trans "Ofertas corporativas" %}</h2>
+    <a href="{% url 'tienda' %}?tab=ofertas" style="color:var(--tf-orange-s);font-size:13px;font-weight:600;text-decoration:none;">{% trans "Ver catálogo" %} →</a>
+  </div>
+  <div class="bp-promo-track">
+    {% for p in productos_promo %}
+    <a href="{% url 'tienda' %}?producto={{ p.id }}" class="bp-promo-item">
+      <div style="font-size:11px;font-weight:700;color:var(--tf-orange-s);">-{{ p.discount_pct }}%</div>
+      <div style="font-weight:600;font-size:14px;margin:6px 0;line-height:1.3;">{{ p.name|truncatechars:42 }}</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;">${{ p.display_price }}</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<div class="bp-grid-2">
+  <section class="bp-card">
+    <div class="bp-card-head">
+      <h2>{% trans "Órdenes — últimos 7 días" %}</h2>
+    </div>
+    <canvas id="bp-chart-orders" height="100" aria-label="{% trans 'Gráfico de órdenes' %}"></canvas>
+  </section>
+  <section class="bp-card">
+    <div class="bp-card-head">
+      <h2>{% trans "Estado de operaciones" %}</h2>
+    </div>
+    <canvas id="bp-chart-status" height="100"></canvas>
+  </section>
+</div>
+
+<div class="bp-grid-2">
+  <section class="bp-card">
+    <div class="bp-card-head">
+      <h2>{% trans "Actividad reciente" %}</h2>
+      <a href="{% url 'mis_ordenes' %}">{% trans "Ver todas" %}</a>
+    </div>
+    <div class="bp-table-wrap">
+      <table class="bp-table">
+        <thead>
+          <tr>
+            <th>{% trans "Orden" %}</th>
+            <th>{% trans "Fecha" %}</th>
+            <th>{% trans "Total" %}</th>
+            <th>{% trans "Estado" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in recent_orders %}
+          <tr>
+            <td><a href="{% url 'detalle_mi_orden' o.pk %}" style="font-weight:700;color:var(--tf-navy);">{{ o.order_number }}</a></td>
+            <td>{{ o.created_at|date:"d/m/Y" }}</td>
+            <td>USD {{ o.total }}</td>
+            <td><span class="bp-status bp-status-{{ o.status }}">{{ o.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="bp-empty">{% trans "Sin órdenes aún" %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="bp-card">
+    <div class="bp-card-head">
+      <h2>{% trans "Empresas más activas" %}</h2>
+    </div>
+    <canvas id="bp-chart-companies" height="120"></canvas>
+    <div class="bp-card-head" style="margin-top:20px;">
+      <h2>{% trans "Cotizaciones recientes" %}</h2>
+      <a href="{% url 'mis_cotizaciones' %}">{% trans "Ver" %}</a>
+    </div>
+    <ul style="list-style:none;padding:0;margin:0;">
+      {% for c in recent_quotes %}
+      <li style="padding:10px 0;border-bottom:1px solid #F3F4F6;display:flex;justify-content:space-between;gap:8px;">
+        <a href="{% url 'detalle_cotizacion' c.pk %}" style="font-weight:600;color:var(--tf-navy);text-decoration:none;">{{ c.numero }}</a>
+        <span class="bp-status bp-status-{{ c.estado }}">{{ c.get_estado_display }}</span>
+      </li>
+      {% empty %}
+      <li class="bp-empty">{% trans "Sin cotizaciones" %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}
+
+{% block buyer_extra_js %}
+<script>
+window.BP_DASH = {
+  lineLabels: {{ chart_line_labels_json|safe }},
+  lineValues: {{ chart_line_values_json|safe }},
+  statusLabels: {{ chart_status_labels_json|safe }},
+  statusValues: {{ chart_status_values_json|safe }},
+  companyLabels: {{ chart_company_labels_json|safe }},
+  companyValues: {{ chart_company_values_json|safe }},
+  pollUrl: "{% url 'api_buyer_dashboard' %}"
+};
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.TFBuyer) TFBuyer.initDashboard(window.BP_DASH);
+});
+</script>
+{% endblock %}

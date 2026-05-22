@@ -232,7 +232,7 @@ class CotizacionAdmin(admin.ModelAdmin):
 
 @admin.register(TransportCarrier)
 class TransportCarrierAdmin(admin.ModelAdmin):
-    list_display = ['name', 'code', 'base_shipping_cost', 'sort_order', 'is_active']
+    list_display = ['name', 'code', 'transport_mode', 'base_shipping_cost', 'sort_order', 'is_active']
     list_editable = ['sort_order', 'is_active']
     prepopulated_fields = {'code': ('name',)}
 

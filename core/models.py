@@ -401,8 +401,22 @@ class Address(models.Model):
 
 class TransportCarrier(models.Model):
     """Transportista activo para checkout (ZLC / logística)."""
+
+    MODE_CHOICES = [
+        ('maritime', _('Marítimo')),
+        ('air', _('Aéreo')),
+        ('terrestrial', _('Terrestre')),
+        ('mixed', _('Mixto')),
+    ]
+
     name = models.CharField(max_length=120, verbose_name='Nombre')
     code = models.SlugField(max_length=40, unique=True, verbose_name='Código')
+    transport_mode = models.CharField(
+        max_length=12,
+        choices=MODE_CHOICES,
+        default='terrestrial',
+        verbose_name='Modo de transporte',
+    )
     description = models.TextField(blank=True, verbose_name='Descripción')
     sort_order = models.PositiveIntegerField(default=0, verbose_name='Orden')
     is_active = models.BooleanField(default=True, verbose_name='Activo')

@@ -1,26 +1,14 @@
 """
-=============================================================================
-ACCIÓN: REEMPLAZAR
-DESTINO: core/context_processors.py
-=============================================================================
-Context processors: carrito y cadenas i18n para JavaScript (TF_I18N).
-=============================================================================
+Context processors: carrito, i18n JS y Supabase público.
 """
-import json
+from __future__ import annotations
 
+from django.conf import settings
 from django.utils.translation import gettext as _
 
 
 def cart_badge(request):
-    """
-    Expone el conteo del carrito en todas las páginas (badge del navbar).
-
-    Args:
-        request: HttpRequest.
-
-    Returns:
-        dict: ``carrito_count`` (int).
-    """
+    """Conteo del carrito en navbar (solo compradores)."""
     if not request.user.is_authenticated:
         return {'carrito_count': 0}
     try:
@@ -35,15 +23,7 @@ def cart_badge(request):
 
 
 def tf_i18n(request):
-    """
-    Expone ``TF_I18N`` como JSON seguro para scripts (carrusel, carrito, charts).
-
-    Args:
-        request: HttpRequest.
-
-    Returns:
-        dict: ``tf_i18n_json`` cadena JSON.
-    """
+    """Cadenas i18n para scripts (TF_I18N)."""
     payload = {
         'close': _('Cerrar'),
         'cartTitle': _('Carrito'),
@@ -64,7 +44,7 @@ def tf_i18n(request):
         'chartDelivered': _('Entregado'),
         'chartCancelled': _('Cancelado'),
         'chartLoadError': _('No se pudo cargar Chart.js. Recarga la página.'),
-        'chartDataError': _('Datos de gráficos incompletos. Recarga o cambia el período (7/30/90).'),
+        'chartDataError': _('Datos de gráficos incompletos.'),
         'chartUpdateError': _('No se pudieron actualizar los gráficos.'),
         'chartInitError': _('No se pudieron inicializar los gráficos.'),
         'csvDownloaded': _('Archivo CSV descargado correctamente.'),
@@ -72,5 +52,17 @@ def tf_i18n(request):
         'geoDenied': _('Permiso de ubicación denegado.'),
         'geoUnsupported': _('Tu navegador no soporta geolocalización.'),
         'awaitingSeller': _('Esperando confirmación de empresa'),
+        'orderUpdated': _('Estado de orden actualizado'),
     }
     return {'tf_i18n': payload}
+
+
+def supabase_public(request):
+    """Claves públicas Supabase para Realtime en frontend."""
+    url = getattr(settings, 'SUPABASE_URL', '') or ''
+    anon = getattr(settings, 'SUPABASE_ANON_KEY', '') or ''
+    return {
+        'SUPABASE_PUBLIC_URL': url,
+        'SUPABASE_ANON_KEY': anon,
+        'SUPABASE_REALTIME_ENABLED': bool(url and anon),
+    }
