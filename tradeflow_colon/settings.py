@@ -61,6 +61,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'axes.middleware.AxesMiddleware',
+    'core.middleware.tf_security.SecurityHeadersMiddleware',
+    'core.middleware.tf_security.ApiRateLimitMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -81,6 +83,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.cart_badge',
                 'core.context_processors.tf_i18n',
+                'core.context_processors.supabase_public',
             ],
         },
     },

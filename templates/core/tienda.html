@@ -1,4 +1,4 @@
-{% extends "core/base.html" %}
+{% extends "core/buyer_layout.html" %}
 {% load static i18n %}
 {% comment %}
 ================================================================================
@@ -9,12 +9,12 @@ show_cart_actions, tienda_params.
 ================================================================================
 {% endcomment %}
 {% block title %}{% trans "Tienda — TradeFlow Colón" %}{% endblock %}
-{% block extra_head %}
+{% block buyer_extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/home_merchandising.css' %}">
 <link rel="stylesheet" href="{% static 'css/buyer_portal.css' %}">
 {% endblock %}
-{% block extra_css %}
+{% block buyer_extra_css %}
 <style>
   :root {
     --tf-navy: #0F2A44;
@@ -617,8 +617,13 @@ show_cart_actions, tienda_params.
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="td-page">
+{% block buyer_page_title %}{% trans "Catálogo" %}{% endblock %}
+{% block buyer_topbar_actions %}
+<a href="{% url 'buyer_dashboard' %}" class="bp-btn bp-btn-secondary"><span class="material-symbols-rounded" style="font-size:18px;">dashboard</span></a>
+<a href="{% url 'ver_carrito' %}" class="bp-btn bp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span></a>
+{% endblock %}
+{% block buyer_content %}
+<div class="td-page" style="margin:-24px -28px 0;padding:0;">
   <div id="tf-tienda-meta"
        data-cat-active="{{ cat_activa|escapejs }}"
        data-empresa-active="{{ empresa_activa|escapejs }}"
@@ -831,7 +836,7 @@ show_cart_actions, tienda_params.
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block buyer_extra_js %}
 <script src="{% static 'js/tienda_filters.js' %}"></script>
 <script>
 (function () {

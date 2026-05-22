@@ -1,0 +1,100 @@
+{% extends "core/base.html" %}
+{% load static i18n %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/colors.css' %}">
+<link rel="stylesheet" href="{% static 'css/buyer_dashboard.css' %}">
+{% block buyer_extra_head %}{% endblock %}
+{% endblock %}
+{% block extra_css %}{% block buyer_extra_css %}{% endblock %}{% endblock %}
+{% block content %}
+<div class="bp-shell {% if buyer_layout_wide %}bp-wide{% endif %}" id="bp-shell">
+  {% if not buyer_layout_wide %}
+  <aside class="bp-sidebar" id="bp-sidebar" aria-label="{% trans 'Navegación comprador' %}">
+    <div class="bp-brand">
+      TradeFlow
+      <small>{% trans "Centro de compras" %}</small>
+    </div>
+    <nav class="bp-nav">
+      <a href="{% url 'buyer_dashboard' %}" data-bp-nav="dashboard">
+        <span class="material-symbols-rounded">dashboard</span>{% trans "Dashboard" %}
+      </a>
+      <a href="{% url 'tienda' %}" data-bp-nav="tienda">
+        <span class="material-symbols-rounded">storefront</span>{% trans "Catálogo" %}
+      </a>
+      <a href="{% url 'mis_ordenes' %}" data-bp-nav="mis_ordenes">
+        <span class="material-symbols-rounded">package_2</span>{% trans "Mis órdenes" %}
+      </a>
+      <a href="{% url 'mis_cotizaciones' %}" data-bp-nav="mis_cotizaciones">
+        <span class="material-symbols-rounded">request_quote</span>{% trans "Cotizaciones" %}
+      </a>
+      <a href="{% url 'ver_carrito' %}" data-bp-nav="carrito">
+        <span class="material-symbols-rounded">shopping_cart</span>{% trans "Carrito" %}
+        {% if carrito_count %}<span class="bp-nav-badge">{{ carrito_count }}</span>{% endif %}
+      </a>
+      <a href="{% url 'mapa_zlc' %}" data-bp-nav="mapa_zlc">
+        <span class="material-symbols-rounded">map</span>{% trans "Mapa ZLC" %}
+      </a>
+      <a href="{% url 'mi_perfil' %}" data-bp-nav="perfil">
+        <span class="material-symbols-rounded">person</span>{% trans "Perfil" %}
+      </a>
+    </nav>
+    <div class="bp-sidebar-foot">{% trans "Zona Libre de Colón · Panamá" %}</div>
+  </aside>
+  {% endif %}
+  <div class="bp-main">
+    {% block buyer_topbar %}
+    <header class="bp-topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        {% if not buyer_layout_wide %}
+        <button type="button" class="bp-btn bp-btn-secondary bp-menu-toggle" id="bp-menu-toggle" style="display:none;padding:8px;" aria-label="{% trans 'Menú' %}">
+          <span class="material-symbols-rounded">menu</span>
+        </button>
+        {% endif %}
+        <div>
+          <h1>{% block buyer_page_title %}{{ titulo_pagina|default:"TradeFlow" }}{% endblock %}</h1>
+          {% block buyer_page_sub %}{% endblock %}
+        </div>
+      </div>
+      <div class="bp-topbar-actions">
+        {% block buyer_topbar_actions %}
+        <a href="{% url 'tienda' %}" class="bp-btn bp-btn-secondary">
+          <span class="material-symbols-rounded" style="font-size:18px;">storefront</span>
+        </a>
+        <a href="{% url 'ver_carrito' %}" class="bp-btn bp-btn-primary">
+          <span class="material-symbols-rounded" style="font-size:18px;">shopping_cart</span>
+          {% trans "Carrito" %}
+        </a>
+        {% endblock %}
+      </div>
+    </header>
+    {% endblock %}
+    <div class="bp-content">
+      {% block buyer_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+<script>document.body.classList.add('bp-mode');</script>
+<script>
+(function () {
+  var nav = '{{ nav_activo|default:""|escapejs }}';
+  document.querySelectorAll('[data-bp-nav]').forEach(function (a) {
+    if (a.getAttribute('data-bp-nav') === nav) a.classList.add('is-active');
+  });
+  var toggle = document.getElementById('bp-menu-toggle');
+  var sidebar = document.getElementById('bp-sidebar');
+  if (toggle && sidebar) {
+    toggle.addEventListener('click', function () { sidebar.classList.toggle('is-open'); });
+  }
+})();
+</script>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/buyer_dashboard.js' %}"></script>
+{% if SUPABASE_REALTIME_ENABLED %}
+<script>
+window.TF_SUPABASE = { url: "{{ SUPABASE_PUBLIC_URL|escapejs }}", anonKey: "{{ SUPABASE_ANON_KEY|escapejs }}" };
+</script>
+{% endif %}
+{% block buyer_extra_js %}{% endblock %}
+{% endblock %}

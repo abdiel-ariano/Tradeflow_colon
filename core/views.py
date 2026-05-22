@@ -314,7 +314,7 @@ def _redirect_by_role(user):
         return reverse('dashboard')
     if role == 'seller':
         return reverse('portal_seller')
-    return reverse('tienda')
+    return reverse('buyer_dashboard')
 
 
 # =============================================================================
@@ -2518,6 +2518,7 @@ def tienda(request):
         'spotlight_bestsellers': spotlight_bestsellers,
         'spotlight_destacados': spotlight_destacados,
         'productos_promo': merch.daily_deals(8),
+        'buyer_layout_wide': True,
     }
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -2894,19 +2895,63 @@ def checkout(request):
         )
         transportistas = TransportCarrier.objects.filter(is_active=True).order_by('sort_order', 'name')
 
+    modes = list(TransportCarrier.MODE_CHOICES)
     context = {
         'carrito': carrito,
         'subtotal': subtotal,
         'carrito_count': _contar_items(carrito),
-        'titulo_pagina': 'Confirmar Orden',
-        'nav_activo': 'tienda',
+        'titulo_pagina': _('Confirmar pedido'),
+        'nav_activo': 'carrito',
         'transportistas': transportistas,
+        'transport_modes': modes,
         'checkout_auto_approve': auto_approve,
     }
     return render(request, 'core/checkout.html', context)
 
 
 # ---------------------------------------------------------------------------
+# BUYER DASHBOARD
+# ---------------------------------------------------------------------------
+
+@buyer_required
+def buyer_dashboard(request):
+    """Panel principal del comprador (KPIs, gráficas, actividad)."""
+    import json as _json
+
+    from . import merchandising as merch
+    from .utils.buyer_analytics import buyer_dashboard as dash
+
+    data = dash(request.user)
+    return render(request, 'core/buyer_dashboard.html', {
+        **data,
+        'productos_promo': merch.daily_deals(8),
+        'chart_line_labels_json': _json.dumps(data['chart_line_labels']),
+        'chart_line_values_json': _json.dumps(data['chart_line_values']),
+        'chart_status_labels_json': _json.dumps(data['chart_status_labels']),
+        'chart_status_values_json': _json.dumps(data['chart_status_values']),
+        'chart_company_labels_json': _json.dumps(data['chart_company_labels']),
+        'chart_company_values_json': _json.dumps(data['chart_company_values']),
+        'titulo_pagina': 'Dashboard',
+        'nav_activo': 'dashboard',
+        'carrito_count': _contar_items(_get_carrito(request)),
+    })
+
+
+@buyer_required
+@require_GET
+def api_buyer_dashboard(request):
+    """JSON ligero para polling de actualizaciones del dashboard."""
+    from .utils.buyer_analytics import buyer_dashboard as dash
+
+    data = dash(request.user)
+    pending = data['kpi_pendientes']
+    return JsonResponse({
+        'pending_orders': pending,
+        'updated': False,
+        'message': '',
+    })
+
+
 # MIS ÓRDENES — Historial del comprador
 # ---------------------------------------------------------------------------
 
