@@ -1,11 +1,11 @@
 {% load static %}
-{% if variant == "wordmark-dark" %}
+{% if variant == "wordmark-white" or variant == "wordmark-dark" %}
   {% if size == "footer" %}
-    <img src="{% static 'img/logo-wordmark-dark.png' %}" alt="{{ aria_label|default:'TradeFlow Colón' }}" class="tf-logo-img tf-logo-wordmark {{ class }}" height="32" style="height:32px;width:auto;max-width:min(220px,100%);object-fit:contain;display:block;" {% if lazy %}loading="lazy" decoding="async"{% endif %}{% if eager %} fetchpriority="high"{% endif %}>
+    <img src="{% static 'img/logo-wordmark-white.png' %}" alt="{{ aria_label|default:'TradeFlow Colón' }}" class="tf-logo-img tf-logo-wordmark {{ class }}" height="32" style="height:32px;width:auto;max-width:min(220px,100%);object-fit:contain;display:block;" {% if lazy %}loading="lazy" decoding="async"{% endif %}{% if eager %} fetchpriority="high"{% endif %}>
   {% elif size == "auth" or size == "wordmark" %}
-    <img src="{% static 'img/logo-wordmark-dark.png' %}" alt="{{ aria_label|default:'TradeFlow Colón' }}" class="tf-logo-img tf-logo-wordmark {{ class }}" height="56" style="height:56px;width:auto;max-width:min(320px,100%);object-fit:contain;display:block;" {% if eager %}fetchpriority="high"{% endif %}>
+    <img src="{% static 'img/logo-wordmark-white.png' %}" alt="{{ aria_label|default:'TradeFlow Colón' }}" class="tf-logo-img tf-logo-wordmark {{ class }}" height="56" style="height:56px;width:auto;max-width:min(320px,100%);object-fit:contain;display:block;" {% if eager %}fetchpriority="high"{% endif %}>
   {% else %}
-    <img src="{% static 'img/logo-wordmark-dark.png' %}" alt="{{ aria_label|default:'TradeFlow Colón' }}" class="tf-logo-img tf-logo-wordmark {{ class }}" height="48" style="height:48px;width:auto;max-width:min(280px,100%);object-fit:contain;display:block;" {% if lazy %}loading="lazy" decoding="async"{% endif %}>
+    <img src="{% static 'img/logo-wordmark-white.png' %}" alt="{{ aria_label|default:'TradeFlow Colón' }}" class="tf-logo-img tf-logo-wordmark {{ class }}" height="48" style="height:48px;width:auto;max-width:min(280px,100%);object-fit:contain;display:block;" {% if lazy %}loading="lazy" decoding="async"{% endif %}>
   {% endif %}
 {% elif variant == "icon-white" %}
   {% if size == "sm" %}
