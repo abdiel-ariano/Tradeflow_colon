@@ -83,7 +83,7 @@ def _render_email_shell(title_inner: str, inner_html: str) -> str:
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background-color:#FFFFFF;border-radius:12px;overflow:hidden;border:1px solid #D1D5DB;">
           <tr>
             <td style="background-color:#0F2A44;padding:24px 24px;text-align:center;">
-              <img src="{settings.PUBLIC_BASE_URL.rstrip('/')}/static/img/logo-icon-white.png" alt="TradeFlow Colón" width="120" height="auto" style="display:block;margin:0 auto 12px;max-height:48px;width:auto;height:48px;object-fit:contain;">
+              <img src="{settings.PUBLIC_BASE_URL.rstrip('/')}/static/img/logo-icon-color.png" alt="TradeFlow Colón" width="120" height="auto" style="display:block;margin:0 auto 12px;max-height:48px;width:auto;height:48px;object-fit:contain;">
               <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.8);letter-spacing:0.04em;">Zona Libre de Colón · Panamá</p>
             </td>
           </tr>

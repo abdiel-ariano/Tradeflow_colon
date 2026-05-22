@@ -21,7 +21,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
   <link rel="apple-touch-icon" href="{% static 'img/logo-icon-color.png' %}">
   <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
-  <link rel="preload" href="{% static 'img/logo-icon-white.png' %}" as="image" type="image/png">
+  <link rel="preload" href="{% static 'img/logo-icon-color.png' %}" as="image" type="image/png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -957,7 +957,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   <nav class="tf-nav tf-navbar" aria-label="Principal">
     <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">
-      {% include "core/includes/tf_logo.html" with variant="icon-white" size="nav" class="tf-nav-logo-img" eager=1 %}
+      {% include "core/includes/tf_logo.html" with variant="icon-color" size="nav" class="tf-nav-logo-img" eager=1 %}
     </a>
 
     <div class="tf-nav-links">
@@ -1106,7 +1106,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     <div class="tf-footer-grid">
       <div>
         <div class="tf-footer-brand-row">
-          {% include "core/includes/tf_logo.html" with variant="wordmark-dark" size="footer" lazy=1 %}
+          {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
         </div>
         <p class="tf-footer-lead">
           {% trans "Marketplace B2B/B2C para la Zona Libre de Colón, Panamá." %}
@@ -1145,6 +1145,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   {% endblock %}
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>window.TF_STATIC_LOGO = "{% static 'img/logo-icon-color.png' %}";</script>
   <script src="{% static 'js/tf_animations.js' %}"></script>
   <script src="{% static 'js/tf_notifications.js' %}"></script>
   <script src="{% static 'js/cart_ajax.js' %}"></script>

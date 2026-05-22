@@ -35,12 +35,15 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm, mm
 from reportlab.platypus import (
     HRFlowable,
+    Image as RLImage,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
     Table,
     TableStyle,
 )
+
+from core.utils.tf_brand_assets import logo_icon_color_path
 
 # --- Paleta TradeFlow (identidad visual) ------------------------------------
 TF_NAVY = HexColor("#0F2A44")
@@ -271,6 +274,19 @@ def _orange_rule():
     )
 
 
+def _story_brand_logo(styles) -> list:
+    """
+    Cabecera con logo oficial (icono TF azul/naranja).
+    Si falta el archivo en static/img, usa título textual de respaldo.
+    """
+    path = logo_icon_color_path()
+    if path.is_file():
+        logo = RLImage(str(path), width=4.2 * cm, height=2.8 * cm, kind="proportional")
+        logo.hAlign = "CENTER"
+        return [logo, Spacer(1, 0.2 * cm)]
+    return [Paragraph("TradeFlow Colón", styles["DocTitle"])]
+
+
 def _story_doc_footer_legal(styles) -> list:
     return [
         Spacer(1, 0.4 * cm),
@@ -308,7 +324,7 @@ def generar_factura_pdf(orden) -> bytes:
     )
 
     story: list = []
-    story.append(Paragraph("TradeFlow Colón", styles["DocTitle"]))
+    story.extend(_story_brand_logo(styles))
     story.append(
         Paragraph(
             "Factura comercial — Zona Libre de Colón, República de Panamá",
@@ -444,6 +460,7 @@ def generar_packing_list_pdf(orden) -> bytes:
     )
 
     story: list = []
+    story.extend(_story_brand_logo(styles))
     story.append(Paragraph("Packing list / Lista de empaque", styles["DocTitle"]))
     story.append(
         Paragraph(
@@ -561,6 +578,7 @@ def generar_cotizacion_pdf(cotizacion) -> bytes:
     )
 
     story: list = []
+    story.extend(_story_brand_logo(styles))
     story.append(Paragraph("Cotización formal (RFQ)", styles["DocTitle"]))
     story.append(
         Paragraph(
