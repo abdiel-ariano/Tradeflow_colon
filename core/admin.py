@@ -13,6 +13,7 @@ from .models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document,
     Cotizacion, CotizacionItem, HomePromoSection,
+    TransportCarrier, UserApplication,
 )
 
 
@@ -227,6 +228,21 @@ class CotizacionAdmin(admin.ModelAdmin):
     search_fields = ['numero', 'buyer__username', 'empresa__name']
     readonly_fields = ['numero', 'created_at', 'updated_at']
     inlines = [CotizacionItemInline]
+
+
+@admin.register(TransportCarrier)
+class TransportCarrierAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code', 'base_shipping_cost', 'sort_order', 'is_active']
+    list_editable = ['sort_order', 'is_active']
+    prepopulated_fields = {'code': ('name',)}
+
+
+@admin.register(UserApplication)
+class UserApplicationAdmin(admin.ModelAdmin):
+    list_display = ['full_name', 'email', 'role', 'status', 'created_at']
+    list_filter = ['status', 'role']
+    search_fields = ['full_name', 'email', 'company_name']
+    readonly_fields = ['review_token', 'created_at', 'reviewed_at']
 
 
 # =============================================================================

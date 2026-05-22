@@ -18,6 +18,12 @@ urlpatterns = [
     path('login/',   views.login_view,  name='login'),
     path('logout/',  views.logout_view, name='logout'),
     path('signup/',  views.signup_view, name='signup'),
+    path('solicitud-acceso/', views.solicitud_acceso, name='solicitud_acceso'),
+    path(
+        'solicitud-acceso/revisar/<str:token>/<str:accion>/',
+        views.revisar_solicitud,
+        name='revisar_solicitud',
+    ),
     path('verificar-email/<str:token>/', views.verificar_email, name='verificar_email'),
     path('reenviar-verificacion/', views.reenviar_verificacion, name='reenviar_verificacion'),
     path('reenviar-verificacion-email/', views.reenviar_verificacion_public, name='reenviar_verificacion_public'),

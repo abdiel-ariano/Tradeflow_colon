@@ -29,9 +29,17 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
 
+from decimal import Decimal
+
 from core.models import (
-    UserProfile, Company, Category, Product, Inventory
+    UserProfile, Company, Category, Product, Inventory, TransportCarrier,
 )
+
+TRANSPORTISTAS = [
+    {'code': 'zlc-express', 'name': 'ZLC Express', 'cost': '18.00', 'order': 1},
+    {'code': 'colon-freight', 'name': 'Colón Freight', 'cost': '22.50', 'order': 2},
+    {'code': 'panama-logistics', 'name': 'Panamá Logistics Hub', 'cost': '15.00', 'order': 3},
+]
 
 
 # ---------------------------------------------------------------------------
@@ -226,8 +234,21 @@ class Command(BaseCommand):
             estado = 'CREADA' if created else 'ya existe'
             self.stdout.write(f'  {nombre} — {estado}')
 
-        # 2. Empresas
-        self.stdout.write('\n[2/6] Creando empresas...')
+        self.stdout.write('\n[2/7] Transportistas...')
+        for t in TRANSPORTISTAS:
+            obj, created = TransportCarrier.objects.get_or_create(
+                code=t['code'],
+                defaults={
+                    'name': t['name'],
+                    'base_shipping_cost': Decimal(t['cost']),
+                    'sort_order': t['order'],
+                    'description': 'Zona Libre de Colón — envío B2B',
+                },
+            )
+            self.stdout.write(f'  {obj.name} — {"CREADO" if created else "ya existe"}')
+
+        # 3. Empresas
+        self.stdout.write('\n[3/7] Creando empresas...')
         empresas_obj = []
         for data in EMPRESAS:
             empresa, created = Company.objects.get_or_create(
@@ -242,8 +263,8 @@ class Command(BaseCommand):
             estado = 'CREADA' if created else 'ya existe'
             self.stdout.write(f'  {empresa.name} — {estado}')
 
-        # 3. Productos con imágenes
-        self.stdout.write('\n[3/6] Creando productos e imágenes...')
+        # 4. Productos con imágenes
+        self.stdout.write('\n[4/7] Creando productos e imágenes...')
         for data in PRODUCTOS:
             if Product.objects.filter(sku=data['sku']).exists():
                 self.stdout.write(f'  {data["name"]} — ya existe, omitido')

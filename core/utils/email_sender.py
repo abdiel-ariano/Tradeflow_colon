@@ -254,7 +254,18 @@ def _mensaje_cambio_estado(orden: Order, estado_anterior: str) -> tuple[str, str
     headline = "Actualización de tu orden"
     parrafos = ""
 
-    if estado_nuevo == "paid":
+    if estado_nuevo == "awaiting_seller":
+        headline = "Esperando confirmación de la empresa"
+        plazo = ""
+        if orden.seller_confirm_by:
+            plazo = orden.seller_confirm_by.strftime("%d/%m/%Y %H:%M")
+        parrafos = (
+            f'<p style="margin:0 0 12px;">Hola {nombre},</p>'
+            f'<p style="margin:0 0 12px;">Recibimos tu orden <strong style="color:#0F2A44;">{num}</strong>. '
+            f"La empresa vendedora debe confirmarla antes del cobro."
+            f'{f" Plazo: <strong>{_h(plazo)}</strong>." if plazo else ""}</p>'
+        )
+    elif estado_nuevo == "paid":
         headline = "Tu pago fue confirmado"
         parrafos = (
             f'<p style="margin:0 0 12px;">Hola {nombre},</p>'
@@ -458,3 +469,125 @@ def enviar_cambio_estado(orden: Order, estado_anterior: str) -> None:
         )
     except Exception as exc:
         log.exception("enviar_cambio_estado falló: %s", exc)
+
+
+def enviar_orden_pendiente_vendedor(orden: Order) -> None:
+    """Avisa al vendedor que hay una orden por confirmar."""
+    company = orden.confirming_company
+    if not company or not company.owner or not company.owner.email:
+        log.info('enviar_orden_pendiente_vendedor: sin email de vendedor')
+        return
+    base = _public_base_url()
+    path = reverse('seller_detalle_venta', kwargs={'pk': orden.pk})
+    url = base + path
+    plazo = orden.seller_confirm_by.strftime('%d/%m/%Y %H:%M') if orden.seller_confirm_by else '—'
+    subject = f'TradeFlow — Nueva orden {orden.order_number} por confirmar'
+    body = (
+        f'Hola,\n\n'
+        f'Nueva orden {orden.order_number} de '
+        f'{orden.buyer.get_full_name() or orden.buyer.username}.\n'
+        f'Confirmar antes de: {plazo}\n\n'
+        f'Ver y confirmar: {url}\n'
+    )
+    inner = (
+        f'<p>Nueva orden <strong>{_h(orden.order_number)}</strong> pendiente de confirmación.</p>'
+        f'<p>Plazo: <strong>{_h(plazo)}</strong></p>'
+        f'<p><a href="{_h(url)}">Abrir en Mi Tienda</a></p>'
+    )
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[company.owner.email],
+            html_message=_render_email_shell('Nueva orden', inner),
+            fail_silently=False,
+        )
+    except Exception as exc:
+        log.exception('enviar_orden_pendiente_vendedor: %s', exc)
+
+
+def enviar_solicitud_recibida(app) -> None:
+    """Confirma al solicitante que recibimos su solicitud."""
+    from core.models import UserApplication
+
+    if not isinstance(app, UserApplication):
+        return
+    try:
+        send_mail(
+            subject='TradeFlow — Solicitud de acceso recibida',
+            message=(
+                f'Hola {app.full_name},\n\n'
+                'Recibimos tu solicitud. Te avisaremos por correo cuando sea revisada.\n'
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[app.email],
+            fail_silently=False,
+        )
+    except Exception as exc:
+        log.exception('enviar_solicitud_recibida: %s', exc)
+
+
+def enviar_solicitud_a_revisores(app) -> None:
+    """Envía a administradores enlaces para aprobar o rechazar."""
+    from core.models import UserApplication
+
+    reviewers = list(getattr(settings, 'APPLICATION_REVIEW_EMAILS', []) or [])
+    if not reviewers:
+        reviewers = [settings.EMAIL_HOST_USER] if settings.EMAIL_HOST_USER else []
+    if not reviewers:
+        log.warning('APPLICATION_REVIEW_EMAILS vacío — no se notifica revisores')
+        return
+    base = _public_base_url()
+    approve = base + reverse('revisar_solicitud', kwargs={'token': app.review_token, 'accion': 'aprobar'})
+    reject = base + reverse('revisar_solicitud', kwargs={'token': app.review_token, 'accion': 'rechazar'})
+    subject = f'TradeFlow — Nueva solicitud: {app.full_name}'
+    body = (
+        f'Solicitud de {app.full_name} ({app.email})\n'
+        f'Rol: {app.get_role_display()}\n'
+        f'Empresa: {app.company_name}\n\n'
+        f'Aprobar: {approve}\n'
+        f'Rechazar: {reject}\n'
+    )
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=reviewers,
+            fail_silently=False,
+        )
+    except Exception as exc:
+        log.exception('enviar_solicitud_a_revisores: %s', exc)
+
+
+def enviar_solicitud_decision(app, aprobada: bool) -> None:
+    """Notifica al solicitante la decisión."""
+    base = _public_base_url()
+    if aprobada:
+        link = base + reverse('signup')
+        msg = (
+            f'Hola {app.full_name},\n\n'
+            f'Tu solicitud fue aprobada. Crea tu cuenta en: {link}\n'
+        )
+        html = f'<p>Tu solicitud fue <strong>aprobada</strong>.</p><p><a href="{_h(link)}">Registrarse</a></p>'
+        subject = 'TradeFlow — Solicitud aprobada'
+    else:
+        msg = (
+            f'Hola {app.full_name},\n\n'
+            'En este momento no podemos aprobar tu solicitud. '
+            'Contacta a soporte@tradeflow.pa si tienes preguntas.\n'
+        )
+        html = '<p>Tu solicitud no fue aprobada en esta etapa.</p>'
+        subject = 'TradeFlow — Solicitud no aprobada'
+    try:
+        send_mail(
+            subject=subject,
+            message=msg,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[app.email],
+            html_message=_render_email_shell(subject, html),
+            fail_silently=False,
+        )
+    except Exception as exc:
+        log.exception('enviar_solicitud_decision: %s', exc)

@@ -111,6 +111,11 @@ class Company(models.Model):
     )
     tagline_es = models.CharField(max_length=200, blank=True, verbose_name='Eslogan (ES)')
     tagline_en = models.CharField(max_length=200, blank=True, verbose_name='Eslogan (EN)')
+    order_confirm_hours = models.PositiveIntegerField(
+        default=48,
+        verbose_name='Horas para confirmar pedido',
+        help_text='Plazo para que la empresa acepte o rechace una orden nueva.',
+    )
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -393,18 +398,86 @@ class Address(models.Model):
 # ORDEN
 # =============================================================================
 
+class TransportCarrier(models.Model):
+    """Transportista activo para checkout (ZLC / logística)."""
+    name = models.CharField(max_length=120, verbose_name='Nombre')
+    code = models.SlugField(max_length=40, unique=True, verbose_name='Código')
+    description = models.TextField(blank=True, verbose_name='Descripción')
+    sort_order = models.PositiveIntegerField(default=0, verbose_name='Orden')
+    is_active = models.BooleanField(default=True, verbose_name='Activo')
+    base_shipping_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        verbose_name='Costo base envío (USD)',
+    )
+
+    class Meta:
+        verbose_name = 'Transportista'
+        verbose_name_plural = 'Transportistas'
+        ordering = ['sort_order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class UserApplication(models.Model):
+    """Solicitud de acceso a la plataforma (PreExpo / inversores)."""
+    ROLE_CHOICES = [
+        ('buyer', _('Comprador')),
+        ('seller', _('Vendedor')),
+    ]
+    STATUS_CHOICES = [
+        ('pendiente', _('Pendiente')),
+        ('aprobada', _('Aprobada')),
+        ('rechazada', _('Rechazada')),
+    ]
+
+    full_name = models.CharField(max_length=120, verbose_name='Nombre completo')
+    email = models.EmailField(verbose_name='Correo')
+    phone = models.CharField(max_length=30, blank=True, verbose_name='Teléfono')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='buyer')
+    company_name = models.CharField(max_length=200, blank=True, verbose_name='Empresa')
+    message = models.TextField(blank=True, verbose_name='Mensaje')
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pendiente')
+    review_token = models.CharField(max_length=64, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Solicitud de acceso'
+        verbose_name_plural = 'Solicitudes de acceso'
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.review_token:
+            self.review_token = uuid.uuid4().hex
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.full_name} — {self.email} ({self.get_status_display()})'
+
+
 class Order(models.Model):
     """
     Cabecera de una orden de compra.
     Un buyer (User) hace una Order con una o más OrderItems.
     """
     STATUS_CHOICES = [
+        ('awaiting_seller', _('Esperando confirmación')),
         ('pending',   _('Pendiente')),
         ('paid',      _('Pagado')),
         ('packed',    _('Empacado')),
         ('shipped',   _('Enviado')),
         ('delivered', _('Entregado')),
         ('cancelled', _('Cancelado')),
+    ]
+
+    SELLER_CONFIRM_CHOICES = [
+        ('pending', _('Pendiente')),
+        ('accepted', _('Aceptada')),
+        ('rejected', _('Rechazada')),
+        ('expired', _('Expirada')),
     ]
 
     ORDER_TYPE_CHOICES = [
@@ -425,12 +498,49 @@ class Order(models.Model):
         max_length=30, unique=True, editable=False,
         verbose_name='Número de orden'
     )
-    status        = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pending')
+    status        = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     order_type    = models.CharField(max_length=3, choices=ORDER_TYPE_CHOICES, default='b2c')
     subtotal      = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total         = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     notes         = models.TextField(blank=True, verbose_name='Notas')
+    transport_carrier = models.ForeignKey(
+        TransportCarrier,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='orders',
+        verbose_name='Transportista',
+    )
+    buyer_latitude = models.DecimalField(
+        max_digits=10, decimal_places=7, null=True, blank=True,
+        verbose_name='Latitud comprador',
+    )
+    buyer_longitude = models.DecimalField(
+        max_digits=10, decimal_places=7, null=True, blank=True,
+        verbose_name='Longitud comprador',
+    )
+    buyer_location_verified_at = models.DateTimeField(
+        null=True, blank=True, verbose_name='Ubicación confirmada',
+    )
+    confirming_company = models.ForeignKey(
+        Company,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='orders_to_confirm',
+        verbose_name='Empresa que confirma',
+    )
+    seller_confirmation_status = models.CharField(
+        max_length=12,
+        choices=SELLER_CONFIRM_CHOICES,
+        default='pending',
+        verbose_name='Confirmación vendedor',
+    )
+    seller_confirm_by = models.DateTimeField(
+        null=True, blank=True,
+        verbose_name='Confirmar antes de',
+    )
     created_at    = models.DateTimeField(auto_now_add=True)
     updated_at    = models.DateTimeField(auto_now=True)
 
@@ -463,6 +573,7 @@ class Order(models.Model):
 
     def get_status_color(self):
         colors = {
+            'awaiting_seller': 'badge-warning',
             'pending':   'badge-warning',
             'paid':      'badge-info',
             'packed':    'badge-info',
@@ -471,6 +582,15 @@ class Order(models.Model):
             'cancelled': 'badge-danger',
         }
         return colors.get(self.status, 'badge-secondary')
+
+    def maps_url_buyer(self):
+        """Enlace a mapa con la ubicación del comprador."""
+        if self.buyer_latitude is None or self.buyer_longitude is None:
+            return ''
+        return (
+            f'https://www.google.com/maps?q={self.buyer_latitude},'
+            f'{self.buyer_longitude}'
+        )
 
 
 # =============================================================================

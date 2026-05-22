@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  var DURATION = 3000;
+  var DURATION = 4500;
   var CRITICAL_DURATION = 5000;
   var FADE_MS = 200;
 

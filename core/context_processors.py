@@ -68,5 +68,9 @@ def tf_i18n(request):
         'chartUpdateError': _('No se pudieron actualizar los gráficos.'),
         'chartInitError': _('No se pudieron inicializar los gráficos.'),
         'csvDownloaded': _('Archivo CSV descargado correctamente.'),
+        'geoConfirmed': _('Ubicación confirmada.'),
+        'geoDenied': _('Permiso de ubicación denegado.'),
+        'geoUnsupported': _('Tu navegador no soporta geolocalización.'),
+        'awaitingSeller': _('Esperando confirmación de empresa'),
     }
     return {'tf_i18n': payload}
