@@ -111,3 +111,31 @@ class FiltroOrdenForm(forms.Form):
         required=False,
         widget=forms.DateInput(attrs={'class': 'filter-input', 'type': 'date'})
     )
+
+
+class AplicacionTransportistaForm(forms.Form):
+    """Registro de nuevo transportista (revisión admin)."""
+
+    nombre_completo = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={'class': 'tf-input'}),
+    )
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'tf-input'}))
+    telefono = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'tf-input'}))
+    empresa_nombre = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class': 'tf-input'}))
+    licencia = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'tf-input'}))
+    vehiculo_tipo = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'tf-input'}))
+    vehiculo_placa = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'tf-input'}))
+    cobertura_descripcion = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'tf-input', 'rows': 3}),
+    )
+    tarifa_base = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'tf-input', 'step': '0.01', 'min': '0'}),
+    )
+    foto_licencia = forms.ImageField(required=False)
+    acepta_terminos = forms.BooleanField(
+        required=True,
+        label='Acepto los términos y condiciones de TradeFlow Colón',
+    )

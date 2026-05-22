@@ -35,6 +35,13 @@
     <canvas id="sd-chart-line" height="90"></canvas>
   </div>
 
+  <nav class="sd-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" aria-label="{% trans 'Filtro rápido' %}">
+    <a href="?{% if desde %}desde={{ desde }}&{% endif %}{% if hasta %}hasta={{ hasta }}&{% endif %}" class="sd-btn sd-btn-outline {% if not estado_actual %}sd-btn-primary{% endif %}">{% trans "Todas" %}</a>
+    <a href="?estado=awaiting_seller" class="sd-btn sd-btn-outline {% if estado_actual == 'awaiting_seller' %}sd-btn-primary{% endif %}">{% trans "Pendientes" %}</a>
+    <a href="?estado=paid" class="sd-btn sd-btn-outline {% if estado_actual == 'paid' %}sd-btn-primary{% endif %}">{% trans "En proceso" %}</a>
+    <a href="?estado=delivered" class="sd-btn sd-btn-outline {% if estado_actual == 'delivered' %}sd-btn-primary{% endif %}">{% trans "Entregadas" %}</a>
+  </nav>
+
   <form class="sd-toolbar" method="get">
     <div class="sd-filters">
       <input class="tf-input" type="date" name="desde" value="{{ desde }}">
@@ -67,6 +74,7 @@
           <th>{% trans "Cliente" %}</th>
           <th>{% trans "Monto" %}</th>
           <th>{% trans "Estado" %}</th>
+          <th>{% trans "Plazo confirmación" %}</th>
           <th>{% trans "Acciones" %}</th>
         </tr>
       </thead>
@@ -78,14 +86,27 @@
           <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
           <td>USD {{ o.total }}</td>
           <td>
-            <span class="sd-badge sd-badge-{% if o.status == 'delivered' %}delivered{% elif o.status == 'cancelled' %}cancelled{% elif o.status == 'pending' %}pending{% else %}paid{% endif %}">
+            <span class="sd-badge sd-badge-{% if o.status == 'delivered' %}delivered{% elif o.status == 'cancelled' %}cancelled{% elif o.status == 'pending' or o.status == 'awaiting_seller' %}pending{% else %}paid{% endif %}">
               {{ o.get_status_display }}
             </span>
           </td>
-          <td><a href="{% url 'seller_detalle_venta' o.pk %}">{% trans "Ver" %}</a></td>
+          <td>
+            {% if o.status == 'awaiting_seller' and o.seller_confirm_by %}
+            <span data-plazo="{{ o.seller_confirm_by.isoformat }}" style="font-size:12px;font-weight:600;">—</span>
+            {% else %}
+            <span style="color:var(--tf-muted);font-size:12px;">—</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            {% if o.status == 'awaiting_seller' and o.seller_confirmation_status == 'pending' %}
+            <a href="{% url 'confirmar_orden_empresa' o.pk 'aceptar' %}" class="sd-btn sd-btn-primary tf-confirm-orden" style="padding:6px 10px;font-size:12px;margin-right:4px;" data-accion="aceptar" data-num="{{ o.order_number }}">{% trans "Aceptar" %}</a>
+            <a href="{% url 'confirmar_orden_empresa' o.pk 'rechazar' %}" class="sd-btn sd-btn-outline tf-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="rechazar" data-num="{{ o.order_number }}">{% trans "Rechazar" %}</a>
+            {% endif %}
+            <a href="{% url 'seller_detalle_venta' o.pk %}">{% trans "Ver" %}</a>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6" style="text-align:center;padding:40px;color:#6B7A88;">{% trans "Sin ventas en este rango." %}</td></tr>
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:#6B7A88;">{% trans "Sin ventas en este rango." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -125,5 +146,41 @@
     }
   });
 })();
+
+document.querySelectorAll('[data-plazo]').forEach(function (el) {
+  function actualizar() {
+    var plazo = new Date(el.dataset.plazo);
+    var ahora = new Date();
+    var diff = plazo - ahora;
+    if (diff <= 0) {
+      el.textContent = '{% trans "Expirado" %}';
+      el.style.color = '#c62828';
+      return;
+    }
+    var horas = Math.floor(diff / 3600000);
+    var mins = Math.floor((diff % 3600000) / 60000);
+    el.textContent = horas + 'h ' + mins + 'min {% trans "restantes" %}';
+    el.style.color = horas < 6 ? '#c62828' : '#2d7a87';
+    setTimeout(actualizar, 30000);
+  }
+  actualizar();
+});
+
+document.querySelectorAll('.tf-confirm-orden').forEach(function (link) {
+  link.addEventListener('click', function (e) {
+    e.preventDefault();
+    var href = link.getAttribute('href');
+    var accion = link.dataset.accion;
+    var num = link.dataset.num || '';
+    var esAceptar = accion === 'aceptar';
+    TF.confirm({
+      titulo: esAceptar ? '{% trans "Aceptar pedido" %}' : '{% trans "Rechazar pedido" %}',
+      mensaje: esAceptar
+        ? '{% trans "¿Confirmas que aceptas el pedido" %} ' + num + '?'
+        : '{% trans "¿Rechazas el pedido" %} ' + num + '? {% trans "Se liberará el inventario." %}',
+      onAceptar: function () { window.location.href = href; }
+    });
+  });
+});
 </script>
 {% endblock %}

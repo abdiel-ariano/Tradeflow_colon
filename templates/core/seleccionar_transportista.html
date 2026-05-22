@@ -1,0 +1,98 @@
+{% extends "core/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Seleccionar transportista" %} — TradeFlow{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  #mapa-pickup { height: 350px; border-radius: var(--tf-radius-card); border: 1px solid var(--tf-border); }
+  .transportista-card {
+    border: 2px solid var(--tf-border);
+    border-radius: var(--tf-radius-card);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .transportista-card.seleccionado {
+    border-color: var(--tf-teal, var(--tf-blue));
+    background: var(--tf-dark-faint, rgba(15,42,68,0.06));
+    box-shadow: var(--tf-shadow-card-hover);
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="tf-card" style="max-width:900px;margin:2rem auto;padding:2rem;">
+  <h2 style="font-family:var(--tf-font-display);color:var(--tf-dark);">{% trans "Elige tu transportista" %}</h2>
+  <p style="color:var(--tf-muted);">{% blocktrans with num=order.order_number %}Orden {{ num }}{% endblocktrans %}</p>
+  <form method="post" id="form-transporte">
+    {% csrf_token %}
+    <input type="hidden" name="transportista_id" id="transportista-id-input">
+    <input type="hidden" name="pickup_lat" id="pickup-lat">
+    <input type="hidden" name="pickup_lng" id="pickup-lng">
+    <input type="hidden" name="pickup_descripcion" id="pickup-descripcion">
+    <h3 style="color:var(--tf-dark);">{% trans "1. Transportista" %}</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:2rem;">
+      {% for t in transportistas %}
+      <div class="transportista-card" data-tid="{{ t.id }}">
+        <div style="font-weight:700;color:var(--tf-dark);">{{ t.empresa_nombre }}</div>
+        <div style="font-size:.875rem;color:var(--tf-muted);">{{ t.vehiculo_tipo }} · {{ t.vehiculo_placa }}</div>
+        <div style="font-weight:700;color:var(--tf-teal, var(--tf-orange));margin-top:.5rem;">USD {{ t.tarifa_base }}</div>
+      </div>
+      {% empty %}
+      <p>{% trans "No hay transportistas disponibles." %}</p>
+      {% endfor %}
+    </div>
+    <h3 style="color:var(--tf-dark);">{% trans "2. Ubicación de recogida" %}</h3>
+    <button type="button" class="btn-tf btn-secondary-tf" id="btn-geo" style="margin-bottom:.75rem;">{% trans "Usar mi ubicación actual" %}</button>
+    <div id="mapa-pickup"></div>
+    <div id="ubicacion-confirmada" style="display:none;margin-top:.75rem;color:var(--tf-teal);font-size:.875rem;"></div>
+    <div class="tf-field" style="margin-top:1.5rem;">
+      <label class="tf-label">{% trans "Notas (opcional)" %}</label>
+      <textarea name="notas_buyer" class="tf-input" rows="2"></textarea>
+    </div>
+    <button type="submit" id="btn-confirmar" class="btn-tf btn-primary-tf" disabled style="width:100%;margin-top:1rem;">{% trans "Confirmar transportista" %}</button>
+  </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  var selId = null, geoOk = false;
+  var map = L.map('mapa-pickup').setView([9.3667, -79.9], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  var marker = null;
+  function marcar(lat, lng) {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lng]).addTo(map);
+    document.getElementById('pickup-lat').value = lat;
+    document.getElementById('pickup-lng').value = lng;
+    document.getElementById('pickup-descripcion').value = 'Lat ' + lat.toFixed(5) + ', Lng ' + lng.toFixed(5);
+    document.getElementById('ubicacion-confirmada').style.display = 'block';
+    document.getElementById('ubicacion-confirmada').textContent = document.getElementById('pickup-descripcion').value;
+    geoOk = true;
+    document.getElementById('btn-confirmar').disabled = !(selId && geoOk);
+  }
+  map.on('click', function (e) { marcar(e.latlng.lat, e.latlng.lng); });
+  document.querySelectorAll('.transportista-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      document.querySelectorAll('.transportista-card').forEach(function (c) { c.classList.remove('seleccionado'); });
+      card.classList.add('seleccionado');
+      selId = card.getAttribute('data-tid');
+      document.getElementById('transportista-id-input').value = selId;
+      document.getElementById('btn-confirmar').disabled = !(selId && geoOk);
+    });
+  });
+  document.getElementById('btn-geo').addEventListener('click', function () {
+    if (!navigator.geolocation) { if (window.TF) TF.notify('{% trans "Geolocalización no disponible" %}', 'error'); return; }
+    navigator.geolocation.getCurrentPosition(function (p) {
+      map.setView([p.coords.latitude, p.coords.longitude], 15);
+      marcar(p.coords.latitude, p.coords.longitude);
+      if (window.TF) TF.success('{% trans "Ubicación confirmada" %}');
+    });
+  });
+  document.getElementById('form-transporte').addEventListener('submit', function () {
+    if (window.TF) TF.success('{% trans "Transportista confirmado" %}');
+  });
+})();
+</script>
+{% endblock %}

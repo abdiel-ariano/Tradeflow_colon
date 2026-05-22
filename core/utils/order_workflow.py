@@ -19,15 +19,18 @@ def release_order_inventory(orden: Order) -> None:
     for item in orden.items.select_related('product__inventory'):
         inv = getattr(item.product, 'inventory', None)
         if inv:
-            inv.release(item.qty)
+            inv.release_reservation(item.qty)
 
 
 def accept_seller_order(orden: Order) -> None:
     """Confirma orden: pasa a pagada y aprueba el pago."""
     with transaction.atomic():
         orden.seller_confirmation_status = 'accepted'
+        orden.confirmado_por_empresa = True
         orden.status = 'paid'
-        orden.save(update_fields=['seller_confirmation_status', 'status', 'updated_at'])
+        orden.save(update_fields=[
+            'seller_confirmation_status', 'confirmado_por_empresa', 'status', 'updated_at',
+        ])
         payment = getattr(orden, 'payment', None)
         if payment:
             payment.status = 'approved'
@@ -49,8 +52,11 @@ def reject_seller_order(orden: Order) -> None:
     """Rechaza orden: cancela y libera stock."""
     with transaction.atomic():
         orden.seller_confirmation_status = 'rejected'
+        orden.confirmado_por_empresa = False
         orden.status = 'cancelled'
-        orden.save(update_fields=['seller_confirmation_status', 'status', 'updated_at'])
+        orden.save(update_fields=[
+            'seller_confirmation_status', 'confirmado_por_empresa', 'status', 'updated_at',
+        ])
         release_order_inventory(orden)
         payment = getattr(orden, 'payment', None)
         if payment and payment.status == 'pending':

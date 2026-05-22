@@ -13,7 +13,7 @@ from .models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document,
     Cotizacion, CotizacionItem, HomePromoSection,
-    TransportCarrier, UserApplication,
+    TransportCarrier, UserApplication, Transportista, AsignacionTransporte,
 )
 
 
@@ -235,6 +235,17 @@ class TransportCarrierAdmin(admin.ModelAdmin):
     list_display = ['name', 'code', 'base_shipping_cost', 'sort_order', 'is_active']
     list_editable = ['sort_order', 'is_active']
     prepopulated_fields = {'code': ('name',)}
+
+
+@admin.register(Transportista)
+class TransportistaAdmin(admin.ModelAdmin):
+    list_display = ['empresa_nombre', 'email_contacto', 'estado', 'activo', 'tarifa_base']
+    list_filter = ['estado', 'activo']
+
+
+@admin.register(AsignacionTransporte)
+class AsignacionTransporteAdmin(admin.ModelAdmin):
+    list_display = ['order', 'transportista', 'estado', 'costo_transporte']
 
 
 @admin.register(UserApplication)

@@ -1,0 +1,36 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Transportistas" %} — Admin{% endblock %}
+{% block content %}
+<div style="max-width:1000px;margin:32px auto;padding:0 24px;">
+  <h1 style="color:var(--tf-dark);">{% trans "Revisión de transportistas" %}</h1>
+  <div style="display:flex;gap:8px;margin:16px 0;">
+    <a href="?estado=pendiente" class="btn-tf btn-secondary-tf">{% trans "Pendientes" %}</a>
+    <a href="?estado=aprobado" class="btn-tf btn-secondary-tf">{% trans "Aprobados" %}</a>
+    <a href="?estado=rechazado" class="btn-tf btn-secondary-tf">{% trans "Rechazados" %}</a>
+  </div>
+  <div class="tf-table-container">
+    <table class="tf-table">
+      <thead><tr><th>{% trans "Empresa" %}</th><th>{% trans "Correo" %}</th><th>{% trans "Tarifa" %}</th><th>{% trans "Estado" %}</th><th></th></tr></thead>
+      <tbody>
+        {% for t in transportistas %}
+        <tr>
+          <td>{{ t.empresa_nombre }}</td>
+          <td>{{ t.email_contacto }}</td>
+          <td>USD {{ t.tarifa_base }}</td>
+          <td>{{ t.get_estado_display }}</td>
+          <td>
+            {% if t.estado == 'pendiente' %}
+            <a href="{% url 'admin_aprobar_transportista' t.pk 'aprobar' %}" class="btn-tf btn-primary-tf" style="padding:6px 12px;">{% trans "Aprobar" %}</a>
+            <a href="{% url 'admin_aprobar_transportista' t.pk 'rechazar' %}" class="btn-tf btn-secondary-tf" style="padding:6px 12px;">{% trans "Rechazar" %}</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">{% trans "Sin registros." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
