@@ -75,6 +75,11 @@ urlpatterns = [
     # Portal del vendedor
     path('mi-tienda/', views.portal_seller, name='portal_seller'),
     path('api/seller-dashboard/', views.api_seller_dashboard, name='api_seller_dashboard'),
+    path(
+        'api/seller/orders/<int:pk>/timeline/',
+        views.api_seller_order_timeline,
+        name='api_seller_order_timeline',
+    ),
     # Rutas solicitadas por especificación (nombres alternos)
     path('mi-tienda/productos/', views.seller_mis_productos, name='seller_mis_productos'),
     path('mi-tienda/productos/nuevo/', views.seller_agregar_producto, name='seller_agregar_producto'),

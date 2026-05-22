@@ -1,91 +1,108 @@
-{% extends "core/base.html" %}
+{% extends "core/seller_layout.html" %}
 {% load i18n static %}
 {% block title %}{{ titulo_pagina }} — TradeFlow{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/tf_animations.css' %}">
+{% block seller_page_title %}{% trans "Orden" %} {{ orden.order_number }}{% endblock %}
+{% block seller_page_sub %}
+<p class="sp-topbar-sub">
+  {{ orden.buyer.get_full_name|default:orden.buyer.username }} · {{ orden.created_at|date:"d/m/Y H:i" }}
+</p>
 {% endblock %}
-{% block content %}
-<div class="seller-layout">
-  <div class="seller-main">
-    <p class="seller-sub"><a href="{% url 'seller_mis_ventas' %}" class="btn-seller-outline" style="display:inline-flex;">← {% trans "Volver a ventas" %}</a></p>
-    <h1>{% trans "Orden" %} {{ orden.order_number }}</h1>
-    <p class="seller-sub">
-      {% trans "Comprador" %}: {{ orden.buyer.get_full_name|default:orden.buyer.username }} · {{ orden.created_at|date:"d/m/Y H:i" }}
-    </p>
+{% block seller_topbar_actions %}
+<a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-secondary">
+  <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>{% trans "Ventas" %}
+</a>
+{% endblock %}
 
-    {% if puede_confirmar %}
-    <div class="seller-form-card tf-pulse-once" style="margin-bottom:1.25rem;border-color:#F26522;">
-      <h2 style="font-size:1rem;margin:0 0 8px;">{% trans "Confirmar pedido" %}</h2>
-      <p style="font-size:0.88rem;color:#6B7A88;margin:0 0 12px;">
-        {% blocktrans with fecha=orden.seller_confirm_by|date:"d/m/Y H:i" %}Plazo: {{ fecha }}{% endblocktrans %}
+{% block seller_content %}
+{% if puede_confirmar %}
+<section class="sp-card" style="margin-bottom:24px;border-color:var(--tf-orange);">
+  <div class="sp-card-head"><h2>{% trans "Confirmar pedido" %}</h2></div>
+  <p style="font-size:13px;color:var(--tf-muted);margin:0 0 14px;">
+    {% blocktrans with fecha=orden.seller_confirm_by|date:"d/m/Y H:i" %}Plazo: {{ fecha }}{% endblocktrans %}
+  </p>
+  <form method="post" style="display:flex;gap:10px;flex-wrap:wrap;">
+    {% csrf_token %}
+    <button type="submit" name="accion" value="aceptar" class="sp-btn sp-btn-primary">{% trans "Confirmar" %}</button>
+    <button type="submit" name="accion" value="rechazar" class="sp-btn sp-btn-secondary">{% trans "Rechazar" %}</button>
+  </form>
+</section>
+{% endif %}
+
+<div class="sp-layout-split">
+  <div>
+    <section class="sp-card" style="margin-bottom:24px;">
+      <div class="sp-card-head"><h2>{% trans "Líneas de tu empresa" %}</h2></div>
+      <div class="sp-table-wrap">
+        <table class="sp-table">
+          <thead>
+            <tr><th>{% trans "Producto" %}</th><th>{% trans "Cant." %}</th><th>{% trans "P. unit." %}</th><th>{% trans "Subtotal" %}</th></tr>
+          </thead>
+          <tbody>
+            {% for li in lineas_vendedor %}
+            <tr>
+              <td>{{ li.product.name }}</td>
+              <td>{{ li.qty }}</td>
+              <td>{{ li.unit_price_snapshot }} USD</td>
+              <td><strong>{{ li.line_total }} USD</strong></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p style="margin:16px 0 0;font-size:14px;color:var(--tf-navy);">
+        {% trans "Subtotal (tu empresa)" %}: <strong>USD {{ subtotal_vendedor }}</strong>
       </p>
-      <form method="post" style="display:flex;gap:10px;flex-wrap:wrap;">
-        {% csrf_token %}
-        <button type="submit" name="accion" value="aceptar" class="btn-seller-primary tf-confirm-pop">{% trans "Confirmar" %}</button>
-        <button type="submit" name="accion" value="rechazar" class="btn-seller-outline">{% trans "Rechazar" %}</button>
-      </form>
-    </div>
-    {% endif %}
+    </section>
 
-    <div class="seller-table-wrap" style="margin-bottom:1.5rem;">
-      <h2>{% trans "Tus líneas en esta orden" %}</h2>
-      <table class="seller-table">
-        <thead>
-          <tr><th>{% trans "Producto" %}</th><th>{% trans "Cant." %}</th><th>{% trans "P. unit." %}</th><th>{% trans "Subtotal" %}</th></tr>
-        </thead>
-        <tbody>
-          {% for li in lineas_vendedor %}
-          <tr>
-            <td>{{ li.product.name }}</td>
-            <td>{{ li.qty }}</td>
-            <td>{{ li.unit_price_snapshot }} USD</td>
-            <td><strong>{{ li.line_total }} USD</strong></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <p style="padding:0 1.25rem 1rem;margin:0;font-size:0.95rem;">
-        {% trans "Subtotal (tu empresa)" %}: <strong>{{ subtotal_vendedor }} USD</strong>
-      </p>
-    </div>
-
-    <div class="seller-form-card" style="max-width:100%;">
-      <h2 style="font-size:1rem;margin:0 0 0.75rem;">{% trans "Logística" %}</h2>
-      <p style="margin:0 0 8px;">
-        <span class="tf-badge seller-ord-status" data-status="{{ orden.status }}">{{ orden.get_status_display }}</span>
-        · {{ orden.get_seller_confirmation_status_display }}
+    <section class="sp-card">
+      <div class="sp-card-head"><h2>{% trans "Detalle logístico" %}</h2></div>
+      <p style="margin:0 0 12px;">
+        <span class="sp-status sp-status-{{ orden.status }}">{{ orden.get_status_display }}</span>
+        <span style="margin-left:8px;font-size:13px;color:var(--tf-muted);">{{ orden.get_seller_confirmation_status_display }}</span>
       </p>
       {% if orden.transport_carrier %}
-      <p style="font-size:0.88rem;">{% trans "Transportista" %}: <strong>{{ orden.transport_carrier.name }}</strong></p>
+      <p style="font-size:13px;margin:0 0 8px;">{% trans "Transportista" %}: <strong>{{ orden.transport_carrier.name }}</strong></p>
       {% endif %}
       {% if maps_url %}
-      <p style="margin-top:8px;">
-        <a href="{{ maps_url }}" target="_blank" rel="noopener" class="btn-seller-outline" style="display:inline-flex;">
-          <span class="material-symbols-rounded" style="font-size:18px;">map</span>
-          {% trans "Ver ubicación del comprador en mapa" %}
-        </a>
-      </p>
+      <a href="{{ maps_url }}" target="_blank" rel="noopener noreferrer" class="sp-btn sp-btn-secondary" style="margin-top:8px;">
+        <span class="material-symbols-rounded" style="font-size:18px;">map</span>{% trans "Ubicación comprador" %}
+      </a>
       {% endif %}
       {% if pago %}
-      <p style="margin-top:12px;font-size:0.88rem;color:#6B7A88;">
+      <p style="margin-top:12px;font-size:13px;color:var(--tf-muted);">
         {% trans "Pago" %}: {{ pago.get_status_display }} · {{ pago.amount }} {{ pago.currency }}
       </p>
       {% endif %}
-    </div>
+    </section>
   </div>
+
+  <aside>
+    <section class="sp-card">
+      <div class="sp-card-head">
+        <h2>{% trans "Seguimiento" %}</h2>
+        <span id="sp-timeline-live" style="font-size:11px;color:var(--tf-muted);">{% trans "En vivo" %}</span>
+      </div>
+      <ul class="sp-timeline" id="sp-order-timeline" aria-live="polite"></ul>
+    </section>
+  </aside>
 </div>
+{% endblock %}
+
+{% block seller_extra_js %}
+{% if SUPABASE_REALTIME_ENABLED %}
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+{% endif %}
 <script>
-(function () {
-  var map = {
-    awaiting_seller: { bg: '#FEF3C7', fg: '#92400E' },
-    pending: { bg: 'var(--order-pending-bg)', fg: 'var(--order-pending-fg)' },
-    paid: { bg: 'var(--order-paid-bg)', fg: 'var(--order-paid-fg)' },
-    cancelled: { bg: 'var(--order-cancelled-bg)', fg: 'var(--order-cancelled-fg)' },
-  };
-  document.querySelectorAll('.seller-ord-status').forEach(function (el) {
-    var t = map[el.getAttribute('data-status')];
-    if (t) { el.style.background = t.bg; el.style.color = t.fg; }
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.TFSeller) return;
+  TFSeller.initOrderTimeline({
+    initial: {{ timeline_initial_json|safe }},
+    pollUrl: "{% url 'api_seller_order_timeline' orden.pk %}",
+    pollMs: 5000,
+    orderId: {{ orden.pk }},
+    supabaseUrl: "{{ SUPABASE_PUBLIC_URL|escapejs }}",
+    supabaseKey: "{{ SUPABASE_ANON_KEY|escapejs }}"
   });
-})();
+});
 </script>
 {% endblock %}

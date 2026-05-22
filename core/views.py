@@ -1698,6 +1698,24 @@ def api_seller_dashboard(request):
     })
 
 
+@seller_required
+@require_GET
+def api_seller_order_timeline(request, pk):
+    """Timeline logística JSON para polling / Supabase Realtime complemento."""
+    company = _get_seller_company(request.user)
+    if not company:
+        return JsonResponse({'error': 'no_company'}, status=403)
+    orden = get_object_or_404(
+        Order.objects.select_related('shipment'),
+        pk=pk,
+    )
+    if not orden.items.filter(product__company=company).exists():
+        raise Http404
+    from .utils.order_timeline import build_order_timeline
+
+    return JsonResponse(build_order_timeline(orden))
+
+
 def _get_seller_company(user):
     """
     Devuelve la empresa cuyo propietario es el usuario autenticado, o None.
@@ -2011,7 +2029,7 @@ def seller_editar_producto(request, pk):
 
 @seller_required
 def seller_toggle_producto(request, pk):
-    """Activa/desactiva un producto del vendedor (solo POST con CSRF)."""
+    """Activa/desactiva un producto del vendedor (POST; JSON para AJAX)."""
     if request.method != 'POST':
         return redirect('seller_mis_productos')
     company, resp = _seller_company_or_response(request, 'seller_productos')
@@ -2020,8 +2038,21 @@ def seller_toggle_producto(request, pk):
     product = get_object_or_404(Product, pk=pk, company=company)
     product.is_active = not product.is_active
     product.save(update_fields=['is_active'])
-    estado = "activo" if product.is_active else "inactivo"
-    messages.success(request, f'Producto \"{product.name}\" ahora está {estado}.')
+    estado = _('activo') if product.is_active else _('inactivo')
+    if _request_wants_json(request):
+        return JsonResponse({
+            'ok': True,
+            'id': product.pk,
+            'is_active': product.is_active,
+            'message': _('Producto "%(name)s" ahora está %(estado)s.') % {
+                'name': product.name,
+                'estado': estado,
+            },
+        })
+    messages.success(
+        request,
+        _('Producto "%(name)s" ahora está %(estado)s.') % {'name': product.name, 'estado': estado},
+    )
     return redirect('seller_mis_productos')
 
 
@@ -2212,6 +2243,8 @@ def seller_venta_detalle(request, pk):
 
     subtotal_vendedor = sum((li.line_total for li in lineas), Decimal('0.00'))
 
+    from .utils.order_timeline import build_order_timeline
+
     context = {
         'company': company,
         'orden': orden,
@@ -2222,6 +2255,7 @@ def seller_venta_detalle(request, pk):
         'maps_url': orden.maps_url_buyer(),
         'titulo_pagina': f'Venta {orden.order_number}',
         'nav_activo': 'seller_ventas',
+        'timeline_initial_json': json.dumps(build_order_timeline(orden)),
     }
     return render(request, 'core/seller_venta_detalle.html', context)
 

@@ -3,6 +3,9 @@
 {% block title %}{% trans "Productos" %} — TradeFlow{% endblock %}
 {% block seller_page_title %}{% trans "Mis productos" %}{% endblock %}
 {% block seller_page_sub %}<p class="sp-topbar-sub">{% trans "Catálogo e inventario" %}</p>{% endblock %}
+{% block seller_topbar_actions %}
+<a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>{% trans "Nuevo" %}</a>
+{% endblock %}
 
 {% block seller_content %}
 <div class="sp-kpi-grid">
@@ -15,11 +18,13 @@
 <div class="sp-grid-2">
   <section class="sp-card">
     <div class="sp-card-head"><h2>{% trans "Por categoría" %}</h2></div>
-    <canvas id="sd-chart-cat" height="160"></canvas>
+    <div class="sp-chart-box sp-chart-box--compact">
+      <canvas id="sd-chart-cat"></canvas>
+    </div>
   </section>
   <section class="sp-card">
-    <form method="get" style="display:flex;flex-direction:column;gap:10px;">
-      <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="{% trans 'Buscar…' %}">
+    <form method="get" class="sp-filter-form" style="display:flex;flex-direction:column;gap:12px;">
+      <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="{% trans 'Buscar…' %}" maxlength="120">
       <select class="tf-input" name="categoria">
         <option value="">{% trans "Categoría" %}</option>
         {% for c in categorias %}<option value="{{ c.pk }}" {% if cat_activa == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
@@ -34,9 +39,10 @@
   </section>
 </div>
 
+<div id="sp-product-list">
 {% for p in productos %}
-<article class="sp-product-row">
-  {% if p.image %}<img src="{{ p.image.url }}" alt="" class="sp-product-img">{% else %}
+<article class="sp-product-row" data-product-id="{{ p.pk }}">
+  {% if p.image %}<img src="{{ p.image.url }}" alt="" class="sp-product-img" loading="lazy">{% else %}
   <div class="sp-product-img" style="display:flex;align-items:center;justify-content:center;"><span class="material-symbols-rounded" style="color:var(--tf-muted);">inventory_2</span></div>{% endif %}
   <div>
     <div style="font-weight:700;color:var(--tf-navy);">{{ p.name }}</div>
@@ -44,20 +50,25 @@
     <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-top:6px;">{{ p.currency }} {{ p.display_price }}</div>
     <div style="font-size:12px;margin-top:4px;">{% trans "Stock" %}: {% if p.inventory %}<span style="color:{% if p.inventory.is_low_stock %}#c62828{% else %}#2e7d32{% endif %};font-weight:700;">{{ p.inventory.stock_qty }}</span>{% else %}—{% endif %}</div>
   </div>
-  <div style="text-align:right;">
-    {% if p.is_active %}<span class="sp-status sp-status-delivered">{% trans "Activo" %}</span>{% else %}<span class="sp-status sp-status-cancelled">{% trans "Inactivo" %}</span>{% endif %}
-    <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">
+  <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
+    <span class="sp-status {% if p.is_active %}sp-status-delivered{% else %}sp-status-cancelled{% endif %}" data-sp-active-badge data-label-on="{% trans 'Activo' %}" data-label-off="{% trans 'Inactivo' %}">{% if p.is_active %}{% trans "Activo" %}{% else %}{% trans "Inactivo" %}{% endif %}</span>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <label class="sp-toggle" data-sp-product-toggle data-toggle-url="{% url 'seller_toggle_producto' p.pk %}" title="{% trans 'Activar o desactivar' %}">
+        <input type="checkbox" {% if p.is_active %}checked{% endif %} aria-label="{% trans 'Estado del producto' %}">
+        <span class="sp-toggle-track"></span>
+        <span class="sp-toggle-thumb"></span>
+      </label>
       <a href="{% url 'seller_editar_producto' p.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 12px;font-size:12px;">{% trans "Editar" %}</a>
-      <a href="{% url 'seller_toggle_producto' p.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 12px;font-size:12px;">{% if p.is_active %}{% trans "Off" %}{% else %}{% trans "On" %}{% endif %}</a>
     </div>
   </div>
 </article>
 {% empty %}
 <div class="sp-card sp-empty">{% trans "No hay productos" %}</div>
 {% endfor %}
+</div>
 
 {% if productos.has_other_pages %}
-<nav style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
+<nav style="display:flex;gap:8px;justify-content:center;margin-top:20px;">
   {% if productos.has_previous %}<a class="sp-btn sp-btn-secondary" href="?page={{ productos.previous_page_number }}">{% trans "Anterior" %}</a>{% endif %}
   {% if productos.has_next %}<a class="sp-btn sp-btn-secondary" href="?page={{ productos.next_page_number }}">{% trans "Siguiente" %}</a>{% endif %}
 </nav>
@@ -66,17 +77,12 @@
 
 {% block seller_extra_js %}
 <script>
+window.SP_PRODUCTS = {
+  catLabels: {{ chart_cat_labels_json|safe }},
+  catValues: {{ chart_cat_values_json|safe }}
+};
 document.addEventListener('DOMContentLoaded', function () {
-  var el = document.getElementById('sd-chart-cat');
-  var labels = {{ chart_cat_labels_json|safe }};
-  var values = {{ chart_cat_values_json|safe }};
-  if (el && labels.length && typeof Chart !== 'undefined') {
-    new Chart(el, {
-      type: 'doughnut',
-      data: { labels: labels, datasets: [{ data: values, backgroundColor: ['#F26522','#0F2A44','#2E5B8A','#6B7A88','#FF7A3D'] }] },
-      options: { cutout: '60%' }
-    });
-  }
+  if (window.TFSeller) TFSeller.initProductsPage(window.SP_PRODUCTS);
 });
 </script>
 {% endblock %}

@@ -15,8 +15,11 @@
   <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Tendencia" %}</span><p class="sp-kpi-val" style="font-size:1.1rem;">30d</p></article>
 </div>
 
-<section class="sp-card" style="margin-bottom:20px;">
-  <canvas id="sd-chart-line" height="90"></canvas>
+<section class="sp-card" style="margin-bottom:24px;">
+  <div class="sp-card-head"><h2>{% trans "Tendencia 30 días" %}</h2></div>
+  <div class="sp-chart-box sp-chart-box--line">
+    <canvas id="sd-chart-line"></canvas>
+  </div>
 </section>
 
 <nav class="sp-tabs">
@@ -64,7 +67,7 @@
             <a href="{% url 'confirmar_orden_empresa' o.pk 'aceptar' %}" class="sp-btn sp-btn-primary sp-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="aceptar" data-num="{{ o.order_number }}">{% trans "Aceptar" %}</a>
             <a href="{% url 'confirmar_orden_empresa' o.pk 'rechazar' %}" class="sp-btn sp-btn-secondary sp-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="rechazar" data-num="{{ o.order_number }}">{% trans "Rechazar" %}</a>
             {% endif %}
-            <a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">{% trans "Ver" %}</a>
+            <a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">{% trans "Seguimiento" %}</a>
           </td>
         </tr>
         {% empty %}
