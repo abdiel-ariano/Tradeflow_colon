@@ -286,6 +286,29 @@ class ApiAuditLog(models.Model):
         verbose_name_plural = 'Auditoría API'
 
 
+class EmailDeliveryLog(models.Model):
+    """Auditoría de correos transaccionales (entregabilidad / diagnóstico)."""
+
+    STATUS_CHOICES = [
+        ('sent', _('Enviado')),
+        ('failed', _('Fallido')),
+        ('queued', _('En cola')),
+    ]
+
+    email_type = models.CharField(max_length=40, db_index=True)
+    recipient = models.EmailField()
+    subject = models.CharField(max_length=255)
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='queued')
+    error_message = models.TextField(blank=True)
+    backend = models.CharField(max_length=120, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Log de correo'
+        verbose_name_plural = 'Logs de correo'
+
+
 def generate_api_key_pair() -> tuple[str, str, str]:
     """Devuelve (raw_key, prefix, sha256_hash)."""
     import hashlib

@@ -978,6 +978,7 @@ from .enterprise_models import (  # noqa: E402, F401
     ApiKey,
     CompanyBillingUsage,
     CompanySubscription,
+    EmailDeliveryLog,
     LogisticsDispatchQueue,
     LogisticsEvent,
     LogisticsWebhookConfig,

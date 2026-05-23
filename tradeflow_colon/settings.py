@@ -281,6 +281,29 @@ if not DEBUG:
     # Railway usa un proxy inverso — esto confía en su header X-Forwarded-Proto
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# ── Logging estructurado (email, media, release) ───────────────────────────
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'tradeflow': {
+            'format': '[{levelname}] {asctime} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'tradeflow',
+        },
+    },
+    'loggers': {
+        'tradeflow.email': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'tradeflow.media': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'tradeflow.platform': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
+    },
+}
+
 # ── Campo de clave primaria ────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

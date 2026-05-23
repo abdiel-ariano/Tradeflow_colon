@@ -54,3 +54,26 @@ class CoreConfig(AppConfig):
     def ready(self):
         post_migrate.connect(_maybe_seed_demo, dispatch_uid='tradeflow_core_seed_demo_if_empty')
         from . import signals_enterprise  # noqa: F401
+        self._log_platform_warnings()
+
+    @staticmethod
+    def _log_platform_warnings():
+        if 'runserver' not in sys.argv and 'migrate' not in sys.argv:
+            return
+        if 'test' in sys.argv or 'pytest' in sys.modules:
+            return
+        try:
+            from django.conf import settings
+            from core.utils.email_delivery import validate_email_infrastructure
+
+            for msg in validate_email_infrastructure():
+                log.warning('TradeFlow email: %s', msg)
+            if not settings.DEBUG and 'FileSystemStorage' in settings.STORAGES.get(
+                'default', {},
+            ).get('BACKEND', ''):
+                log.warning(
+                    'TradeFlow storage: media en disco local; configure SUPABASE_URL + '
+                    'SUPABASE_SERVICE_KEY para persistencia cloud.',
+                )
+        except Exception as exc:
+            log.debug('platform warnings skipped: %s', exc)

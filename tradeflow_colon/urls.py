@@ -11,9 +11,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
 
+from core import views_platform
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('health/live/', views_platform.health_live, name='health_live'),
+    path('health/ready/', views_platform.health_ready, name='health_ready'),
 ]
 
 urlpatterns += i18n_patterns(
