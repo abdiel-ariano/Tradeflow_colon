@@ -33,6 +33,11 @@
       <a href="{% url 'seller_plan_consumo' %}" data-sp-nav="mi_tienda">
         <span class="material-symbols-rounded">workspace_premium</span>{% trans "Plan" %}
       </a>
+      {% if saas_snapshot.predictive_ai_enabled %}
+      <a href="{% url 'seller_predictive_insights' %}" data-sp-nav="seller_insights">
+        <span class="material-symbols-rounded">insights</span>{% trans "Insights IA" %}
+      </a>
+      {% endif %}
       <a href="{% url 'mi_perfil' %}" data-sp-nav="perfil">
         <span class="material-symbols-rounded">business</span>{% trans "Perfil empresa" %}
       </a>

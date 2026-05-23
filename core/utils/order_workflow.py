@@ -4,7 +4,9 @@ Flujo de confirmación de órdenes por el vendedor y liberación de inventario.
 from __future__ import annotations
 
 import logging
+from collections import defaultdict
 from datetime import timedelta
+from decimal import Decimal
 
 from django.db import transaction
 from django.utils import timezone
@@ -24,6 +26,17 @@ def release_order_inventory(orden: Order) -> None:
 
 def accept_seller_order(orden: Order) -> None:
     """Confirma orden: pasa a pagada y aprueba el pago."""
+    from collections import defaultdict
+
+    from core.utils.saas_billing import VolumeLimitExceeded, assert_within_volume_limit
+
+    by_company: dict = defaultdict(lambda: Decimal('0.00'))
+    for item in orden.items.select_related('product__company'):
+        by_company[item.product.company] += item.line_total
+
+    for company, amount in by_company.items():
+        assert_within_volume_limit(company, additional_usd=amount)
+
     with transaction.atomic():
         orden.seller_confirmation_status = 'accepted'
         orden.confirmado_por_empresa = True

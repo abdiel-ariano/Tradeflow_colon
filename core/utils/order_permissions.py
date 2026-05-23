@@ -26,12 +26,27 @@ def get_seller_order_actions(order, company) -> dict:
     read_only = order.status in TERMINAL_ORDER_STATUSES
     seller_st = order.seller_confirmation_status
 
-    can_confirm = (
+    can_reject = (
         not read_only
         and order.status == CONFIRM_ALLOWED_STATUS
         and seller_st == 'pending'
         and order.confirming_company_id == company.pk
     )
+    can_confirm = can_reject
+    confirm_block_reason = ''
+    if can_confirm:
+        from core.utils.saas_billing import order_company_subtotal, would_exceed_volume_limit
+
+        exceeds, exc = would_exceed_volume_limit(
+            company,
+            order_company_subtotal(order, company),
+        )
+        if exceeds and exc:
+            can_confirm = False
+            confirm_block_reason = (
+                f'Límite mensual del plan alcanzado (USD {exc.limit}). '
+                f'Esta venta añadiría USD {exc.additional}.'
+            )
 
     can_dispatch, dispatch_reason = _dispatch_permission(order, read_only, seller_st)
 
@@ -54,11 +69,12 @@ def get_seller_order_actions(order, company) -> dict:
 
     return {
         'can_confirm': can_confirm,
-        'can_reject': can_confirm,
+        'can_reject': can_reject,
         'can_dispatch': can_dispatch,
         'read_only': read_only,
         'status_hint': hint,
         'dispatch_block_reason': dispatch_reason,
+        'confirm_block_reason': confirm_block_reason,
     }
 
 

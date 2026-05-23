@@ -30,6 +30,10 @@ class SaasPlan(models.Model):
     api_access = models.BooleanField(default=False)
     logistics_webhooks = models.BooleanField(default=False)
     priority_support = models.BooleanField(default=False)
+    predictive_ai = models.BooleanField(
+        default=False,
+        verbose_name=_('IA predictiva Enterprise'),
+    )
     sort_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -102,6 +106,25 @@ class CompanyBillingUsage(models.Model):
 
     def __str__(self):
         return f'{self.company_id} {self.period_year}-{self.period_month:02d}'
+
+
+class CompanyPredictiveSnapshot(models.Model):
+    """Caché de insights predictivos (Enterprise) por empresa y período."""
+
+    company = models.ForeignKey(
+        'core.Company',
+        on_delete=models.CASCADE,
+        related_name='predictive_snapshots',
+    )
+    period_key = models.CharField(max_length=20, db_index=True)
+    payload = models.JSONField(default=dict)
+    computed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [('company', 'period_key')]
+        verbose_name = 'Snapshot predictivo'
+        verbose_name_plural = 'Snapshots predictivos'
+        ordering = ['-computed_at']
 
 
 class AdCreditAccount(models.Model):

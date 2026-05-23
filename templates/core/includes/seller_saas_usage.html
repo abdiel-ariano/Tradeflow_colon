@@ -21,7 +21,9 @@
   {% if saas_snapshot.warning == 'approaching' %}
   <p class="sp-saas-warn-soft">{% trans "Te acercas al límite mensual. Considera ampliar tu plan." %}</p>
   {% elif saas_snapshot.warning == 'limit' %}
-  <p class="sp-saas-warn-soft">{% trans "Límite alcanzado. Las operaciones continúan; te recomendamos upgrade." %}</p>
+  <p class="sp-saas-warn-soft">{% trans "Límite alcanzado. Nuevas confirmaciones de venta y productos están bloqueados hasta ampliar plan." %}
+    <a href="{% url 'seller_plan_consumo' %}#upgrade" style="color:var(--tf-blue);font-weight:600;">{% trans "Upgrade" %} →</a>
+  </p>
   {% endif %}
   {% endif %}
   <div class="sp-saas-meta">

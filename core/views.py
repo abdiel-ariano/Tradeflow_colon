@@ -60,6 +60,7 @@ from .utils.email_sender import (
     enviar_solicitud_a_revisores,
     enviar_solicitud_decision,
 )
+from .utils.saas_billing import VolumeLimitExceeded, is_volume_limit_reached
 from .utils.order_workflow import (
     accept_seller_order,
     reject_seller_order,
@@ -1810,6 +1811,36 @@ def seller_upgrade_plan(request):
     return redirect('seller_plan_consumo')
 
 
+@seller_required
+def seller_predictive_insights(request):
+    """Panel IA predictiva — solo Ecosistema Enterprise."""
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+    from .utils.saas_billing import plan_allows_feature
+    from .utils.predictive_insights import get_predictive_dashboard, optional_groq_narrative
+    import json as _json
+
+    if not plan_allows_feature(company, 'predictive_ai'):
+        return render(request, 'core/seller_insights_upgrade.html', {
+            'company': company,
+            'titulo_pagina': _('Insights predictivos'),
+            'nav_activo': 'seller_insights',
+        })
+
+    dashboard = get_predictive_dashboard(company)
+    narrative = optional_groq_narrative(dashboard)
+    return render(request, 'core/seller_insights.html', {
+        'company': company,
+        'insights': dashboard,
+        'narrative': narrative,
+        'chart_labels_json': _json.dumps(dashboard.get('daily_chart', {}).get('labels', [])),
+        'chart_values_json': _json.dumps(dashboard.get('daily_chart', {}).get('values', [])),
+        'titulo_pagina': _('Insights predictivos'),
+        'nav_activo': 'seller_insights',
+    })
+
+
 def _optimize_product_image_from_request(request, product_form, product):
     """Optimiza imagen subida antes de persistir (storage cloud-friendly)."""
     if 'image' not in request.FILES:
@@ -2049,6 +2080,15 @@ def seller_producto_nuevo(request):
     inv_form     = SellerInventoryForm()
 
     if request.method == 'POST':
+        if is_volume_limit_reached(company):
+            messages.error(
+                request,
+                _(
+                    'Has alcanzado el límite mensual de tu plan. '
+                    'Amplía tu plan antes de publicar nuevos productos.'
+                ),
+            )
+            return redirect('seller_plan_consumo')
         product_form = SellerProductForm(request.POST, request.FILES)
         inv_form     = SellerInventoryForm(request.POST)
         if product_form.is_valid() and inv_form.is_valid():
@@ -2335,7 +2375,17 @@ def seller_venta_detalle(request, pk):
         accion = request.POST.get('accion', '')
         estado_prev = orden.status
         if accion == 'aceptar':
-            accept_seller_order(orden)
+            try:
+                accept_seller_order(orden)
+            except VolumeLimitExceeded as exc:
+                messages.error(
+                    request,
+                    _(
+                        'Límite mensual de tu plan alcanzado (USD %(limit)s). '
+                        'Amplía tu plan para confirmar esta venta de USD %(add)s.'
+                    ) % {'limit': exc.limit, 'add': exc.additional},
+                )
+                return redirect('seller_plan_consumo')
             messages.success(request, _('Orden confirmada. El comprador fue notificado.'))
             try:
                 enviar_cambio_estado(orden, estado_prev)

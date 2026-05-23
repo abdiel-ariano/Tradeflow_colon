@@ -126,6 +126,7 @@ urlpatterns = [
     ),
     path('mi-tienda/plan/', views.seller_plan_consumo, name='seller_plan_consumo'),
     path('mi-tienda/plan/upgrade/', views.seller_upgrade_plan, name='seller_upgrade_plan'),
+    path('mi-tienda/insights/', views.seller_predictive_insights, name='seller_predictive_insights'),
     path('mi-tienda/ventas/<int:pk>/despachar/', views.seller_dispatch_order, name='seller_dispatch_order'),
 
     path('api/v1/health/', vapi.api_v1_health, name='api_v1_health'),
