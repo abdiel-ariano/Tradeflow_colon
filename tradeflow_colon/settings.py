@@ -61,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'axes.middleware.AxesMiddleware',
+    'core.middleware.onboarding_gate.OnboardingGateMiddleware',
     'core.middleware.tf_security.SecurityHeadersMiddleware',
     'core.middleware.tf_security.ApiRateLimitMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -190,6 +191,19 @@ MESSAGE_TAGS = {
 REQUIRE_EMAIL_VERIFICATION = config(
     'REQUIRE_EMAIL_VERIFICATION',
     default=not DEBUG,
+    cast=bool,
+)
+
+# Solicitud de acceso: en producción exige UserApplication aprobada para rutas operativas.
+REQUIRE_APPROVED_APPLICATION = config(
+    'REQUIRE_APPROVED_APPLICATION',
+    default=not DEBUG,
+    cast=bool,
+)
+# Usuarios sin solicitud previa (cuentas antiguas) pueden operar si True.
+ACCESS_GATING_GRANDFATHER_WITHOUT_APPLICATION = config(
+    'ACCESS_GATING_GRANDFATHER_WITHOUT_APPLICATION',
+    default=DEBUG,
     cast=bool,
 )
 

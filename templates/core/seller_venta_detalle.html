@@ -54,16 +54,23 @@
       </p>
     </section>
 
-    <section class="sp-card">
+    <section class="sp-card{% if order_actions.read_only %} sp-card--readonly{% endif %}">
       <div class="sp-card-head">
         <h2>{% trans "Detalle logístico" %}</h2>
+        {% if order_actions.can_dispatch %}
         <form method="post" action="{% url 'seller_dispatch_order' orden.pk %}" style="margin:0;">
           {% csrf_token %}
           <button type="submit" class="sp-btn sp-btn-primary" style="padding:8px 14px;font-size:12px;">
             <span class="material-symbols-rounded" style="font-size:16px;">rocket_launch</span>{% trans "Despachar" %}
           </button>
         </form>
+        {% elif order_actions.read_only or not order_actions.can_dispatch %}
+        <span class="sp-btn sp-btn-secondary" style="padding:8px 14px;font-size:12px;opacity:0.65;pointer-events:none;" aria-disabled="true">
+          <span class="material-symbols-rounded" style="font-size:16px;">block</span>{% trans "Despachar" %}
+        </span>
+        {% endif %}
       </div>
+      <p style="margin:0 0 8px;font-size:13px;color:var(--tf-muted);">{{ order_actions.status_hint }}</p>
       <p style="margin:0 0 12px;">
         <span class="sp-status sp-status-{{ orden.status }}">{{ orden.get_status_display }}</span>
         <span style="margin-left:8px;font-size:13px;color:var(--tf-muted);">{{ orden.get_seller_confirmation_status_display }}</span>

@@ -13,6 +13,8 @@ jobs:
       DJANGO_SETTINGS_MODULE: tradeflow_colon.settings
       SECRET_KEY: ci-test-secret-key-not-for-production
       DEBUG: 'true'
+      REQUIRE_APPROVED_APPLICATION: 'false'
+      REQUIRE_EMAIL_VERIFICATION: 'false'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,11 +28,6 @@ jobs:
       - name: Migrations check
         run: python manage.py makemigrations --check --dry-run
       - name: Release check
-        env:
-          SECRET_KEY: ci-test-secret-key-not-for-production
         run: python manage.py release_check --allow-debug
       - name: Tests
-        env:
-          DJANGO_SETTINGS_MODULE: tradeflow_colon.settings
-          SECRET_KEY: ci-test-secret-key-not-for-production
         run: python manage.py test core.tests.test_flujo_compra -v2

@@ -444,6 +444,7 @@ class UserApplication(models.Model):
     ]
     STATUS_CHOICES = [
         ('pendiente', _('Pendiente')),
+        ('en_revision', _('En revisión')),
         ('aprobada', _('Aprobada')),
         ('rechazada', _('Rechazada')),
     ]

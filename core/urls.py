@@ -7,6 +7,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
+from . import views_onboarding as onboarding
 from . import views_transportistas as vt
 from . import views_api_enterprise as vapi
 
@@ -56,6 +57,13 @@ urlpatterns = [
     path('logout/',  views.logout_view, name='logout'),
     path('signup/',  views.signup_view, name='signup'),
     path('solicitud-acceso/', views.solicitud_acceso, name='solicitud_acceso'),
+    path('onboarding/solicitud-enviada/', onboarding.onboarding_solicitud_enviada, name='onboarding_solicitud_enviada'),
+    path('onboarding/verificar-email/', onboarding.onboarding_espera_verificacion, name='onboarding_espera_verificacion'),
+    path('onboarding/espera-aprobacion/', onboarding.onboarding_espera_aprobacion, name='onboarding_espera_aprobacion'),
+    path('onboarding/acceso-requerido/', onboarding.onboarding_solicitud_requerida, name='onboarding_solicitud_requerida'),
+    path('onboarding/solicitud-rechazada/', onboarding.onboarding_aplicacion_rechazada, name='onboarding_aplicacion_rechazada'),
+    path('onboarding/reenviar-verificacion/', onboarding.onboarding_reenviar_verificacion, name='onboarding_reenviar_verificacion'),
+    path('api/onboarding/verification-status/', onboarding.api_onboarding_verification_status, name='api_onboarding_verification_status'),
     path(
         'solicitud-acceso/revisar/<str:token>/<str:accion>/',
         views.revisar_solicitud,

@@ -349,29 +349,22 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            if settings.REQUIRE_EMAIL_VERIFICATION and not (
-                user.is_superuser or user.is_staff
-            ):
-                try:
-                    profile = user.profile
-                    if not profile.email_verificado:
-                        messages.warning(
-                            request,
-                            'Debes verificar tu email antes de iniciar sesión. '
-                            'Revisa tu bandeja de entrada o solicita un nuevo email.',
-                        )
-                        return render(
-                            request,
-                            'core/login.html',
-                            _login_template_context(
-                                mostrar_reenvio=True,
-                                email_pendiente=user.email,
-                            ),
-                        )
-                except UserProfile.DoesNotExist:
-                    pass
-
             login(request, user, backend=AUTH_MODEL_BACKEND)
+            from core.utils.access_gating import onboarding_redirect_name
+
+            gate_route = onboarding_redirect_name(user)
+            if gate_route:
+                if settings.REQUIRE_EMAIL_VERIFICATION:
+                    try:
+                        if not user.profile.email_verificado:
+                            messages.info(
+                                request,
+                                'Verifica tu correo para acceder a todas las funciones.',
+                            )
+                    except UserProfile.DoesNotExist:
+                        pass
+                return redirect(gate_route)
+
             messages.success(request, f'¡Bienvenido, {user.first_name or user.username}!')
             next_url = (request.GET.get('next') or '').strip()
             if next_url.startswith('//') or '://' in next_url:
@@ -507,7 +500,8 @@ def signup_view(request):
                 f'Cuenta creada. Revisa tu email {email} '
                 f'para verificar tu cuenta antes de iniciar sesión.',
             )
-            return redirect('login')
+            login(request, user, backend=AUTH_MODEL_BACKEND)
+            return redirect('onboarding_espera_verificacion')
 
         UserProfile.objects.create(
             user=user,
@@ -558,6 +552,10 @@ def verificar_email(request, token):
                 request,
                 '¡Email verificado! Tu cuenta está activa.',
             )
+        if request.user.is_authenticated and request.user.pk == profile.user_id:
+            from core.utils.access_gating import onboarding_redirect_name
+            nxt = onboarding_redirect_name(request.user)
+            return redirect(nxt or _redirect_by_role(profile.user))
         return redirect('login')
 
     except UserProfile.DoesNotExist:
@@ -1744,9 +1742,19 @@ def seller_dispatch_order(request, pk):
     company, resp = _seller_company_or_response(request, 'seller_ventas')
     if resp:
         return resp
-    orden = get_object_or_404(Order, pk=pk)
+    orden = get_object_or_404(
+        Order.objects.select_related('shipment'),
+        pk=pk,
+    )
     if not orden.items.filter(product__company=company).exists():
         raise Http404
+    from .utils.order_permissions import assert_can_dispatch
+
+    try:
+        assert_can_dispatch(orden, company)
+    except PermissionError as exc:
+        messages.error(request, str(exc))
+        return redirect('seller_detalle_venta', pk=pk)
     from .utils.logistics_enterprise import enqueue_dispatch
     from .utils.saas_billing import plan_allows_feature
 
@@ -1779,6 +1787,15 @@ def seller_upgrade_plan(request):
     if not plan:
         messages.error(request, _('Plan no válido.'))
         return redirect('seller_plan_consumo')
+    if slug == 'ecosistema_enterprise':
+        messages.info(
+            request,
+            _(
+                'Ecosistema Enterprise requiere activación comercial. '
+                'Envía una solicitud y nuestro equipo te contactará.'
+            ),
+        )
+        return redirect('solicitud_acceso')
     sub = get_or_create_subscription(company)
     if plan.sort_order <= sub.plan.sort_order:
         messages.info(request, _('Ya tienes este plan o uno superior.'))
@@ -2305,11 +2322,14 @@ def seller_venta_detalle(request, pk):
     if not lineas:
         raise Http404('Orden no encontrada o sin productos de tu empresa.')
 
-    puede_confirmar = (
-        orden.status == 'awaiting_seller'
-        and orden.seller_confirmation_status == 'pending'
-        and orden.confirming_company_id == company.pk
-    )
+    from .utils.order_permissions import get_seller_order_actions
+
+    order_actions = get_seller_order_actions(orden, company)
+    puede_confirmar = order_actions['can_confirm']
+
+    if request.method == 'POST' and request.POST.get('accion') == 'despachar':
+        messages.error(request, _('Usa el botón de despacho en la sección logística.'))
+        return redirect('seller_detalle_venta', pk=pk)
 
     if request.method == 'POST' and puede_confirmar:
         accion = request.POST.get('accion', '')
@@ -2342,6 +2362,7 @@ def seller_venta_detalle(request, pk):
         'subtotal_vendedor': subtotal_vendedor,
         'pago': getattr(orden, 'payment', None),
         'puede_confirmar': puede_confirmar,
+        'order_actions': order_actions,
         'maps_url': orden.maps_url_buyer(),
         'titulo_pagina': f'Venta {orden.order_number}',
         'nav_activo': 'seller_ventas',
@@ -3525,6 +3546,22 @@ def solicitud_acceso(request):
         elif role not in ('buyer', 'seller'):
             messages.error(request, _('Rol no válido.'))
         else:
+            existing = UserApplication.objects.filter(
+                email__iexact=email,
+                status__in=('pendiente', 'en_revision'),
+            ).first()
+            if existing:
+                messages.info(
+                    request,
+                    _(
+                        'Ya tienes una solicitud en revisión. '
+                        'Te notificaremos por correo cuando sea aprobada.'
+                    ),
+                )
+                if request.user.is_authenticated:
+                    return redirect('onboarding_espera_aprobacion')
+                return redirect('solicitud_acceso')
+
             app = UserApplication.objects.create(
                 full_name=full_name,
                 email=email,
@@ -3550,7 +3587,9 @@ def solicitud_acceso(request):
                     request,
                     _('Solicitud enviada. Revisa tu correo para confirmación.'),
                 )
-            return redirect('solicitud_acceso')
+            if request.user.is_authenticated:
+                return redirect('onboarding_espera_aprobacion')
+            return redirect('onboarding_solicitud_enviada')
 
     return render(request, 'core/solicitud_acceso.html', {
         'titulo_pagina': _('Solicitud de acceso'),
@@ -3560,7 +3599,7 @@ def solicitud_acceso(request):
 def revisar_solicitud(request, token, accion):
     """Aprueba o rechaza solicitud desde enlace del correo."""
     app = get_object_or_404(UserApplication, review_token=token)
-    if app.status != 'pendiente':
+    if app.status not in ('pendiente', 'en_revision'):
         messages.info(request, _('Esta solicitud ya fue revisada.'))
         return redirect('home')
 
