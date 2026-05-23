@@ -218,7 +218,19 @@ def confirmar_orden_empresa(request, order_pk, decision):
 
     prev = orden.status
     if decision == 'aceptar':
-        accept_seller_order(orden)
+        from core.utils.saas_billing import VolumeLimitExceeded
+
+        try:
+            accept_seller_order(orden)
+        except VolumeLimitExceeded as exc:
+            messages.error(
+                request,
+                _(
+                    'Límite mensual de tu plan alcanzado (USD %(limit)s). '
+                    'Amplía tu plan para confirmar esta venta.'
+                ) % {'limit': exc.limit},
+            )
+            return redirect('seller_plan_consumo')
         messages.success(request, _('Pedido aceptado.'))
     elif decision == 'rechazar':
         reject_seller_order(orden)

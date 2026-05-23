@@ -21,6 +21,7 @@ from .enterprise_models import (
     ApiAuditLog,
     ApiKey,
     CompanyBillingUsage,
+    CompanyPredictiveSnapshot,
     CompanySubscription,
     EmailDeliveryLog,
     LogisticsDispatchQueue,
@@ -275,7 +276,7 @@ class UserApplicationAdmin(admin.ModelAdmin):
 
 @admin.register(SaasPlan)
 class SaasPlanAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug', 'monthly_volume_limit_usd', 'sort_order', 'is_active']
+    list_display = ['name', 'slug', 'monthly_volume_limit_usd', 'predictive_ai', 'sort_order', 'is_active']
     prepopulated_fields = {'slug': ('name',)}
 
 
@@ -288,6 +289,12 @@ class CompanySubscriptionAdmin(admin.ModelAdmin):
 @admin.register(CompanyBillingUsage)
 class CompanyBillingUsageAdmin(admin.ModelAdmin):
     list_display = ['company', 'period_year', 'period_month', 'volume_usd', 'orders_count']
+
+
+@admin.register(CompanyPredictiveSnapshot)
+class CompanyPredictiveSnapshotAdmin(admin.ModelAdmin):
+    list_display = ['company', 'period_key', 'computed_at']
+    readonly_fields = ['company', 'period_key', 'payload', 'computed_at']
 
 
 @admin.register(AdCampaign)

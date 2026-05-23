@@ -1,0 +1,108 @@
+{% extends "core/seller_layout.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Insights predictivos" %} — TradeFlow{% endblock %}
+{% block seller_page_title %}{% trans "Insights predictivos" %}{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">{% trans "Enterprise · forecast y alertas de stock" %}</p>{% endblock %}
+
+{% block seller_extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block seller_content %}
+<div class="sp-kpi-grid" style="margin-bottom:24px;">
+  <article class="sp-kpi">
+    <span class="sp-kpi-lbl">{% trans "Forecast 30 días" %}</span>
+    <p class="sp-kpi-val" style="font-size:1.35rem;">USD {{ insights.forecast_30d.forecast_total_usd }}</p>
+    <p class="sp-kpi-hint">{% trans "Tendencia" %}: {{ insights.forecast_30d.trend }} · {{ insights.forecast_30d.confidence }}</p>
+  </article>
+  <article class="sp-kpi">
+    <span class="sp-kpi-lbl">{% trans "Promedio diario proj." %}</span>
+    <p class="sp-kpi-val" style="font-size:1.25rem;">USD {{ insights.forecast_30d.forecast_daily_avg_usd }}</p>
+  </article>
+  <article class="sp-kpi">
+    <span class="sp-kpi-lbl">{% trans "Alertas stock" %}</span>
+    <p class="sp-kpi-val {% if insights.stock_alerts %}warn{% endif %}">{{ insights.stock_alerts|length }}</p>
+  </article>
+</div>
+
+{% if narrative %}
+<section class="sp-card" style="margin-bottom:24px;">
+  <div class="sp-card-head"><h2>{% trans "Resumen ejecutivo" %}</h2></div>
+  <p style="font-size:14px;color:var(--tf-navy);line-height:1.6;margin:0;">{{ narrative }}</p>
+</section>
+{% endif %}
+
+<div class="sp-layout-split">
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>{% trans "Ingresos diarios (30d)" %}</h2></div>
+    <canvas id="sp-insights-chart" height="120" aria-label="{% trans 'Gráfico ingresos' %}"></canvas>
+  </section>
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>{% trans "Top SKUs · proyección" %}</h2></div>
+    <div class="sp-table-wrap">
+      <table class="sp-table">
+        <thead>
+          <tr><th>{% trans "Producto" %}</th><th>{% trans "60d USD" %}</th><th>{% trans "30d proj." %}</th></tr>
+        </thead>
+        <tbody>
+          {% for sku in insights.top_skus %}
+          <tr>
+            <td>{{ sku.name }}<br><span style="font-size:11px;color:var(--tf-muted);">{{ sku.sku }}</span></td>
+            <td>{{ sku.revenue_60d_usd }}</td>
+            <td><strong>{{ sku.forecast_30d_usd }}</strong></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="color:var(--tf-muted);">{% trans "Sin historial de ventas suficiente." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<section class="sp-card" style="margin-top:24px;">
+  <div class="sp-card-head"><h2>{% trans "Alertas de inventario" %}</h2></div>
+  {% if insights.stock_alerts %}
+  <ul style="list-style:none;margin:0;padding:0;">
+    {% for a in insights.stock_alerts %}
+    <li style="padding:12px 0;border-bottom:1px solid var(--tf-sand);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div>
+        <strong>{{ a.name }}</strong>
+        <span style="font-size:12px;color:var(--tf-muted);margin-left:8px;">{{ a.sku }}</span>
+      </div>
+      <span class="sp-status sp-status-{% if a.severity == 'critical' %}cancelled{% else %}pending{% endif %}">{{ a.message }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p style="color:var(--tf-muted);font-size:14px;margin:0;">{% trans "Sin alertas críticas en este momento." %}</p>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block seller_extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof Chart === 'undefined') return;
+  var el = document.getElementById('sp-insights-chart');
+  if (!el) return;
+  var labels = {{ chart_labels_json|safe }};
+  var values = {{ chart_values_json|safe }};
+  new Chart(el, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'USD',
+        data: values,
+        borderColor: '#2563EB',
+        backgroundColor: 'rgba(37,99,235,0.08)',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+});
+</script>
+{% endblock %}
