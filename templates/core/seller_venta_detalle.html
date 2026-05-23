@@ -55,7 +55,15 @@
     </section>
 
     <section class="sp-card">
-      <div class="sp-card-head"><h2>{% trans "Detalle logístico" %}</h2></div>
+      <div class="sp-card-head">
+        <h2>{% trans "Detalle logístico" %}</h2>
+        <form method="post" action="{% url 'seller_dispatch_order' orden.pk %}" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" class="sp-btn sp-btn-primary" style="padding:8px 14px;font-size:12px;">
+            <span class="material-symbols-rounded" style="font-size:16px;">rocket_launch</span>{% trans "Despachar" %}
+          </button>
+        </form>
+      </div>
       <p style="margin:0 0 12px;">
         <span class="sp-status sp-status-{{ orden.status }}">{{ orden.get_status_display }}</span>
         <span style="margin-left:8px;font-size:13px;color:var(--tf-muted);">{{ orden.get_seller_confirmation_status_display }}</span>

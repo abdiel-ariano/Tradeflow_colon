@@ -1,0 +1,41 @@
+{% extends "core/seller_layout.html" %}
+{% load i18n %}
+{% block title %}{% trans "Plan y consumo" %} — TradeFlow{% endblock %}
+{% block seller_page_title %}{% trans "Plan y consumo" %}{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">{{ company.name }}</p>{% endblock %}
+
+{% block seller_content %}
+{% include "core/includes/seller_saas_usage.html" %}
+
+<div class="sp-plan-strip" style="margin-top:8px;">
+  {% for p in plans %}
+  <article class="sp-plan-card {% if saas.plan.slug == p.slug %}sp-plan-card--featured{% endif %}">
+    <span class="sp-plan-tag">{% if p.is_unlimited %}{% trans "Ilimitado" %}{% else %}USD {{ p.monthly_volume_limit_usd|floatformat:0 }}{% trans "/mes" %}{% endif %}</span>
+    <h3 class="sp-plan-name">{{ p.name }}</h3>
+    <p class="sp-plan-desc">
+      {% trans "Ads" %}: {{ p.ad_credits_monthly }}
+      {% if p.api_access %} · API{% endif %}
+      {% if p.logistics_webhooks %} · Webhooks{% endif %}
+    </p>
+    {% if saas.plan.slug != p.slug and p.sort_order > saas.plan.sort_order %}
+    <form method="post" action="{% url 'seller_upgrade_plan' %}">
+      {% csrf_token %}
+      <input type="hidden" name="plan_slug" value="{{ p.slug }}">
+      <button type="submit" class="sp-plan-cta" style="border:none;background:none;cursor:pointer;padding:0;">{% trans "Upgrade" %} →</button>
+    </form>
+    {% elif saas.plan.slug == p.slug %}
+    <span class="sp-plan-cta" style="color:var(--tf-muted);">{% trans "Plan actual" %}</span>
+    {% endif %}
+  </article>
+  {% endfor %}
+</div>
+
+<section class="sp-card" style="margin-top:24px;">
+  <div class="sp-card-head"><h2>{% trans "Métricas del período" %}</h2></div>
+  <div class="sp-kpi-grid" style="margin-bottom:0;">
+    <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Órdenes" %}</span><p class="sp-kpi-val">{{ saas.usage.orders_count }}</p></article>
+    <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Volumen USD" %}</span><p class="sp-kpi-val" style="font-size:1.25rem;">{{ saas.volume_usd }}</p></article>
+    <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Renovación" %}</span><p class="sp-kpi-val" style="font-size:1rem;">{{ saas.subscription.current_period_end|date:"d/m/Y" }}</p></article>
+  </div>
+</section>
+{% endblock %}

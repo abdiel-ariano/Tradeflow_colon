@@ -53,3 +53,4 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         post_migrate.connect(_maybe_seed_demo, dispatch_uid='tradeflow_core_seed_demo_if_empty')
+        from . import signals_enterprise  # noqa: F401

@@ -717,6 +717,20 @@ class Shipment(models.Model):
     courier_name    = models.CharField(max_length=100, blank=True, verbose_name='Mensajería / Courier')
     tracking_number = models.CharField(max_length=200, blank=True, verbose_name='Número de rastreo')
     status          = models.CharField(max_length=12, choices=STATUS_CHOICES, default='label')
+    weight_kg       = models.DecimalField(
+        max_digits=10, decimal_places=3, null=True, blank=True, verbose_name='Peso (kg)',
+    )
+    dimensions_cm   = models.CharField(
+        max_length=80, blank=True, verbose_name='Dimensiones L×A×H (cm)',
+    )
+    warehouse_code  = models.CharField(max_length=40, blank=True, verbose_name='Bodega ZLC')
+    route_code      = models.CharField(max_length=40, blank=True, verbose_name='Ruta')
+    pickup_lat      = models.DecimalField(
+        max_digits=10, decimal_places=7, null=True, blank=True,
+    )
+    pickup_lng      = models.DecimalField(
+        max_digits=10, decimal_places=7, null=True, blank=True,
+    )
     shipped_at      = models.DateTimeField(null=True, blank=True, verbose_name='Fecha de envío')
     delivered_at    = models.DateTimeField(null=True, blank=True, verbose_name='Fecha de entrega')
 
@@ -954,3 +968,19 @@ class AsignacionTransporte(models.Model):
 
     def __str__(self):
         return f'{self.order.order_number} — {self.transportista.empresa_nombre}'
+
+
+# Modelos enterprise (SaaS, ads, API, logística extendida)
+from .enterprise_models import (  # noqa: E402, F401
+    AdCampaign,
+    AdCreditAccount,
+    ApiAuditLog,
+    ApiKey,
+    CompanyBillingUsage,
+    CompanySubscription,
+    LogisticsDispatchQueue,
+    LogisticsEvent,
+    LogisticsWebhookConfig,
+    SaasPlan,
+    generate_api_key_pair,
+)

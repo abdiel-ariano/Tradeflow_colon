@@ -15,6 +15,18 @@ from .models import (
     Cotizacion, CotizacionItem, HomePromoSection,
     TransportCarrier, UserApplication, Transportista, AsignacionTransporte,
 )
+from .enterprise_models import (
+    AdCampaign,
+    AdCreditAccount,
+    ApiAuditLog,
+    ApiKey,
+    CompanyBillingUsage,
+    CompanySubscription,
+    LogisticsDispatchQueue,
+    LogisticsEvent,
+    LogisticsWebhookConfig,
+    SaasPlan,
+)
 
 
 # =============================================================================
@@ -259,6 +271,39 @@ class UserApplicationAdmin(admin.ModelAdmin):
 # =============================================================================
 # PERSONALIZACIÓN DEL PANEL
 # =============================================================================
+
+@admin.register(SaasPlan)
+class SaasPlanAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'monthly_volume_limit_usd', 'sort_order', 'is_active']
+    prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(CompanySubscription)
+class CompanySubscriptionAdmin(admin.ModelAdmin):
+    list_display = ['company', 'plan', 'status', 'current_period_end']
+    list_filter = ['status', 'plan']
+
+
+@admin.register(CompanyBillingUsage)
+class CompanyBillingUsageAdmin(admin.ModelAdmin):
+    list_display = ['company', 'period_year', 'period_month', 'volume_usd', 'orders_count']
+
+
+@admin.register(AdCampaign)
+class AdCampaignAdmin(admin.ModelAdmin):
+    list_display = ['name', 'company', 'product', 'placement', 'is_active', 'ends_at']
+
+
+@admin.register(ApiKey)
+class ApiKeyAdmin(admin.ModelAdmin):
+    list_display = ['name', 'company', 'key_prefix', 'is_active', 'last_used_at']
+    readonly_fields = ['key_hash', 'key_prefix']
+
+
+@admin.register(LogisticsWebhookConfig)
+class LogisticsWebhookAdmin(admin.ModelAdmin):
+    list_display = ['name', 'company', 'endpoint_url', 'is_active']
+
 
 admin.site.site_header = 'TradeFlow Colón — Administración'
 admin.site.site_title  = 'TradeFlow Admin'

@@ -9,6 +9,8 @@
 {% endblock %}
 
 {% block seller_content %}
+{% include "core/includes/seller_saas_usage.html" %}
+
 <div class="sp-notice-soft" role="note">
   <span>{% trans "Gestiona confirmaciones y catálogo desde un solo panel." %}</span>
   <a href="{% url 'seller_mis_productos' %}">{% trans "Ir a productos" %} →</a>
