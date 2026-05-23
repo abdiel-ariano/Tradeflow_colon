@@ -1,0 +1,40 @@
+{% extends "core/base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Verifica tu correo" %} — TradeFlow{% endblock %}
+{% block content %}
+<div style="max-width:520px;margin:48px auto;padding:0 24px;">
+  <div class="sp-card" style="padding:32px;text-align:center;">
+    <img src="{% static 'img/logo-icon-color.png' %}" alt="TradeFlow" width="56" height="56" style="margin:0 auto 20px;object-fit:contain;">
+    <h1 style="font-family:'DM Serif Display',serif;color:var(--tf-navy);margin:0 0 10px;font-size:1.5rem;">{% trans "Verifica tu correo" %}</h1>
+    <p style="color:var(--tf-muted);font-size:14px;line-height:1.6;margin:0 0 20px;">
+      {% blocktrans with email=masked_email %}Enviamos un enlace de activación a <strong>{{ email }}</strong>. Abre tu bandeja y confirma para continuar.{% endblocktrans %}
+    </p>
+    <div id="ob-verify-state" style="font-size:13px;color:var(--tf-blue);margin-bottom:20px;">{% trans "Estado: esperando confirmación" %}</div>
+    <form method="post" action="{% url 'onboarding_reenviar_verificacion' %}" style="margin-bottom:12px;">
+      {% csrf_token %}
+      <button type="submit" class="sp-btn sp-btn-primary" style="width:100%;justify-content:center;">{% trans "Reenviar correo" %}</button>
+    </form>
+    <p style="font-size:12px;color:var(--tf-muted);margin:0;">{% trans "Puedes cerrar esta ventana; al verificar, esta página se actualizará automáticamente." %}</p>
+    <p style="margin-top:20px;font-size:13px;"><a href="{% url 'logout' %}" style="color:var(--tf-blue);">{% trans "Cerrar sesión" %}</a></p>
+  </div>
+</div>
+<script>
+(function () {
+  var pollUrl = "{{ poll_url|escapejs }}";
+  var stateEl = document.getElementById('ob-verify-state');
+  function poll() {
+    fetch(pollUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.verified && data.redirect) {
+          stateEl.textContent = '{% trans "¡Correo confirmado! Redirigiendo…" %}';
+          window.location.href = data.redirect;
+        }
+      })
+      .catch(function () {});
+  }
+  setInterval(poll, 5000);
+  poll();
+})();
+</script>
+{% endblock %}

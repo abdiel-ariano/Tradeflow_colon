@@ -86,7 +86,7 @@ def enqueue_dispatch(order: Order, company, actor_user=None) -> LogisticsDispatc
         payload={'dispatch_id': dispatch.pk},
         source='seller',
     )
-    if order.status in ('paid', 'packed', 'awaiting_seller', 'pending'):
+    if order.status == 'paid':
         order.status = 'packed'
         order.save(update_fields=['status', 'updated_at'])
 

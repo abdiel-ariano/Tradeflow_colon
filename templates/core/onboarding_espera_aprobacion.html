@@ -1,0 +1,25 @@
+{% extends "core/base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Aplicación en revisión" %} — TradeFlow{% endblock %}
+{% block content %}
+<div style="max-width:560px;margin:48px auto;padding:0 24px;">
+  <div class="sp-card" style="padding:32px;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <span class="material-symbols-rounded" style="font-size:48px;color:var(--tf-orange);">hourglass_top</span>
+    </div>
+    <h1 style="font-family:'DM Serif Display',serif;color:var(--tf-navy);margin:0 0 10px;font-size:1.45rem;text-align:center;">{% trans "Aplicación en revisión" %}</h1>
+    <p style="color:var(--tf-muted);font-size:14px;line-height:1.6;margin:0 0 16px;text-align:center;">
+      {% trans "Tu solicitud de acceso empresarial está siendo evaluada por el equipo TradeFlow Colón. Te contactaremos por correo." %}
+    </p>
+    {% if application %}
+    <dl style="font-size:13px;color:var(--tf-navy);background:var(--tf-sand);border-radius:10px;padding:16px 20px;margin:0 0 20px;">
+      <dt style="font-weight:600;margin-bottom:4px;">{% trans "Estado" %}</dt>
+      <dd style="margin:0 0 12px;">{{ application_status }}</dd>
+      <dt style="font-weight:600;margin-bottom:4px;">{% trans "Correo" %}</dt>
+      <dd style="margin:0;">{{ masked_email }}</dd>
+    </dl>
+    {% endif %}
+    <p style="font-size:13px;color:var(--tf-muted);margin:0 0 16px;">{% trans "Mientras tanto, el acceso a tienda, checkout y portal seller permanece limitado por seguridad." %}</p>
+  </div>
+</div>
+{% endblock %}

@@ -17,8 +17,11 @@ USO en views.py:
 =============================================================================
 """
 from functools import wraps
-from django.shortcuts import redirect
+
 from django.contrib import messages
+from django.shortcuts import redirect
+
+from core.utils.access_gating import onboarding_redirect_name
 
 
 def _get_role(user):
@@ -29,12 +32,23 @@ def _get_role(user):
         return None
 
 
+def _enforce_onboarding(request):
+    """Redirige si email o solicitud no cumplen requisitos enterprise."""
+    route = onboarding_redirect_name(request.user)
+    if route:
+        return redirect(route)
+    return None
+
+
 def buyer_required(view_func):
     """Solo compradores. Sellers y admins son redirigidos a su portal."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
+        blocked = _enforce_onboarding(request)
+        if blocked:
+            return blocked
         role = _get_role(request.user)
         if role == 'buyer':
             return view_func(request, *args, **kwargs)
@@ -54,6 +68,9 @@ def seller_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
+        blocked = _enforce_onboarding(request)
+        if blocked:
+            return blocked
         role = _get_role(request.user)
         if role == 'seller':
             return view_func(request, *args, **kwargs)

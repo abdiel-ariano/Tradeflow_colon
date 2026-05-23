@@ -24,6 +24,7 @@ from core.models import (
 @override_settings(
     AXES_ENABLED=False,
     REQUIRE_EMAIL_VERIFICATION=False,
+    REQUIRE_APPROVED_APPLICATION=False,
     CHECKOUT_AUTO_APPROVE=True,
     EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
     AUTHENTICATION_BACKENDS=[

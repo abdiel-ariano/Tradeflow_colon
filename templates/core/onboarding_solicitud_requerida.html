@@ -1,0 +1,15 @@
+{% extends "core/base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Acceso empresarial" %} — TradeFlow{% endblock %}
+{% block content %}
+<div style="max-width:560px;margin:48px auto;padding:0 24px;">
+  <div class="sp-card" style="padding:32px;">
+    <h1 style="font-family:'DM Serif Display',serif;color:var(--tf-navy);margin:0 0 10px;">{% trans "Activa tu acceso empresarial" %}</h1>
+    <p style="color:var(--tf-muted);font-size:14px;line-height:1.6;margin:0 0 20px;">
+      {% trans "TradeFlow opera con revisión de empresas en la Zona Libre de Colón. Completa una solicitud para habilitar compras, ventas y operaciones logísticas." %}
+    </p>
+    <a href="{% url 'solicitud_acceso' %}" class="sp-btn sp-btn-primary" style="width:100%;justify-content:center;margin-bottom:12px;">{% trans "Enviar solicitud de acceso" %}</a>
+    <a href="{% url 'logout' %}" class="sp-btn sp-btn-secondary" style="width:100%;justify-content:center;">{% trans "Cerrar sesión" %}</a>
+  </div>
+</div>
+{% endblock %}
