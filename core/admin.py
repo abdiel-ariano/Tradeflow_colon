@@ -22,6 +22,7 @@ from .enterprise_models import (
     ApiKey,
     CompanyBillingUsage,
     CompanySubscription,
+    EmailDeliveryLog,
     LogisticsDispatchQueue,
     LogisticsEvent,
     LogisticsWebhookConfig,
@@ -303,6 +304,21 @@ class ApiKeyAdmin(admin.ModelAdmin):
 @admin.register(LogisticsWebhookConfig)
 class LogisticsWebhookAdmin(admin.ModelAdmin):
     list_display = ['name', 'company', 'endpoint_url', 'is_active']
+
+
+@admin.register(EmailDeliveryLog)
+class EmailDeliveryLogAdmin(admin.ModelAdmin):
+    list_display = ['created_at', 'email_type', 'recipient', 'subject', 'status']
+    list_filter = ['status', 'email_type']
+    search_fields = ['recipient', 'subject', 'error_message']
+    readonly_fields = [
+        'email_type', 'recipient', 'subject', 'status',
+        'error_message', 'backend', 'created_at',
+    ]
+    date_hierarchy = 'created_at'
+
+    def has_add_permission(self, request):
+        return False
 
 
 admin.site.site_header = 'TradeFlow Colón — Administración'

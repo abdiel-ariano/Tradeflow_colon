@@ -151,7 +151,10 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
         <input type="text" name="username" id="id_username" class="tf-input" placeholder="{% trans 'tu_usuario' %}" autocomplete="username" autofocus required>
       </div>
       <div class="auth-field">
-        <label class="tf-label" for="id_password">{% trans "Contraseña" %}</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <label class="tf-label" for="id_password" style="margin:0;">{% trans "Contraseña" %}</label>
+          <a href="{% url 'password_reset' %}" style="font-size:0.8125rem;color:var(--tf-blue);text-decoration:none;white-space:nowrap;">{% trans "¿Olvidaste tu contraseña?" %}</a>
+        </div>
         <span class="field-ico"><span class="material-symbols-rounded">lock</span></span>
         <input type="password" name="password" id="id_password" class="tf-input" placeholder="{% trans 'Contraseña' %}" autocomplete="current-password" required>
       </div>

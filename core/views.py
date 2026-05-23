@@ -1793,6 +1793,16 @@ def seller_upgrade_plan(request):
     return redirect('seller_plan_consumo')
 
 
+def _optimize_product_image_from_request(request, product_form, product):
+    """Optimiza imagen subida antes de persistir (storage cloud-friendly)."""
+    if 'image' not in request.FILES:
+        return product
+    from .utils.media_storage import optimize_uploaded_image
+
+    product.image = optimize_uploaded_image(request.FILES['image'])
+    return product
+
+
 def _get_seller_company(user):
     """
     Devuelve la empresa cuyo propietario es el usuario autenticado, o None.
@@ -2028,6 +2038,7 @@ def seller_producto_nuevo(request):
             with transaction.atomic():
                 product = product_form.save(commit=False)
                 product.company = company
+                product = _optimize_product_image_from_request(request, product_form, product)
                 product.save()
                 inv = inv_form.save(commit=False)
                 inv.product = product
@@ -2082,7 +2093,9 @@ def seller_producto_editar(request, pk):
     if request.method == 'POST':
         if product_form.is_valid() and inv_form.is_valid():
             with transaction.atomic():
-                product_form.save()
+                product = product_form.save(commit=False)
+                product = _optimize_product_image_from_request(request, product_form, product)
+                product.save()
                 inv_form.save()
             messages.success(request, 'Cambios guardados.')
             return redirect('seller_productos')

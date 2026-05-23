@@ -1,6 +1,5 @@
 {% extends "core/base.html" %}
-{% load i18n %}
-{% load static %}
+{% load i18n static tf_media %}
 
 {#
   detalle_mi_orden.html — Detalle de una orden del comprador
@@ -81,11 +80,7 @@
         <div class="detalle-card-title">Productos ({{ orden.items.count }})</div>
         {% for item in orden.items.all %}
         <div class="item-row">
-          {% if item.product.image %}
-            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-img">
-          {% else %}
-            <div class="item-img" style="display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--tf-sand2);">P</div>
-          {% endif %}
+            <img src="{{ item.product|product_image_src }}" alt="{{ item.product.name }}" class="item-img" loading="lazy" decoding="async">
           <div class="item-info">
             <div class="item-nombre">{{ item.product.name }}</div>
             <div class="item-empresa">{{ item.product.company.name }}</div>

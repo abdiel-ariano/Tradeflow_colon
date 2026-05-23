@@ -18,7 +18,7 @@ import uuid
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
+from core.utils.email_delivery import deliver_mail as send_mail
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import strip_tags

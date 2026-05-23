@@ -1,4 +1,4 @@
-{% load static i18n %}
+{% load static i18n tf_media %}
 {% comment %}
 ================================================================================
 ACCIÓN: CREAR
@@ -11,13 +11,7 @@ Variables: product, show_cart_actions (bool), card_extra_class (opcional)
 {% endcomment %}
 <article class="tf-product-card {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
   <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-product-card-media">
-    {% if product.image %}
-    <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" width="400" height="300">
-    {% else %}
-    <div class="tf-product-card-ph">
-      <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
-    </div>
-    {% endif %}
+    <img src="{{ product|product_image_src }}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300" style="object-fit:cover;">
     {% if product.is_on_promo_now %}
     <span class="tf-product-badge tf-product-badge-promo">-{{ product.discount_pct }}%</span>
     {% elif product.is_bestseller %}
