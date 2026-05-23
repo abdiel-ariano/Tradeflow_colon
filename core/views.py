@@ -1706,7 +1706,7 @@ def api_seller_order_timeline(request, pk):
     if not company:
         return JsonResponse({'error': 'no_company'}, status=403)
     orden = get_object_or_404(
-        Order.objects.select_related('shipment'),
+        Order.objects.select_related('shipment').prefetch_related('logistics_events'),
         pk=pk,
     )
     if not orden.items.filter(product__company=company).exists():
@@ -1714,6 +1714,83 @@ def api_seller_order_timeline(request, pk):
     from .utils.order_timeline import build_order_timeline
 
     return JsonResponse(build_order_timeline(orden))
+
+
+@seller_required
+def seller_plan_consumo(request):
+    """Dashboard de consumo SaaS y planes."""
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+    from .utils.saas_billing import ensure_default_plans, subscription_usage_snapshot
+
+    ensure_default_plans()
+    snap = subscription_usage_snapshot(company)
+    from .enterprise_models import SaasPlan
+
+    return render(request, 'core/seller_plan_consumo.html', {
+        'company': company,
+        'saas': snap,
+        'plans': SaasPlan.objects.filter(is_active=True).order_by('sort_order'),
+        'titulo_pagina': _('Plan y consumo'),
+        'nav_activo': 'mi_tienda',
+    })
+
+
+@seller_required
+@require_POST
+def seller_dispatch_order(request, pk):
+    """Despacho logístico 1-clic (webhook + timeline)."""
+    company, resp = _seller_company_or_response(request, 'seller_ventas')
+    if resp:
+        return resp
+    orden = get_object_or_404(Order, pk=pk)
+    if not orden.items.filter(product__company=company).exists():
+        raise Http404
+    from .utils.logistics_enterprise import enqueue_dispatch
+    from .utils.saas_billing import plan_allows_feature
+
+    if not plan_allows_feature(company, 'webhooks'):
+        messages.info(
+            request,
+            _('Despacho registrado internamente. Activa Corporativo Pro para webhooks a aliados.'),
+        )
+    enqueue_dispatch(orden, company, request.user)
+    messages.success(request, _('Despacho iniciado. Seguimiento actualizado.'))
+    if _request_wants_json(request):
+        from .utils.order_timeline import build_order_timeline
+
+        return JsonResponse({'ok': True, 'timeline': build_order_timeline(orden)})
+    return redirect('seller_detalle_venta', pk=pk)
+
+
+@seller_required
+@require_POST
+def seller_upgrade_plan(request):
+    """Solicitud de upgrade (soft; admin confirma en Django admin)."""
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+    slug = request.POST.get('plan_slug', '').strip()
+    from .enterprise_models import SaasPlan
+    from .utils.saas_billing import get_or_create_subscription
+
+    plan = SaasPlan.objects.filter(slug=slug, is_active=True).first()
+    if not plan:
+        messages.error(request, _('Plan no válido.'))
+        return redirect('seller_plan_consumo')
+    sub = get_or_create_subscription(company)
+    if plan.sort_order <= sub.plan.sort_order:
+        messages.info(request, _('Ya tienes este plan o uno superior.'))
+        return redirect('seller_plan_consumo')
+    sub.plan = plan
+    sub.upgraded_at = timezone.now()
+    sub.save(update_fields=['plan', 'upgraded_at'])
+    from .utils.ads_ranking import ensure_ad_credits
+
+    ensure_ad_credits(company, plan.ad_credits_monthly)
+    messages.success(request, _('Plan actualizado a %(name)s.') % {'name': plan.name})
+    return redirect('seller_plan_consumo')
 
 
 def _get_seller_company(user):
@@ -2203,8 +2280,8 @@ def seller_venta_detalle(request, pk):
 
     orden = get_object_or_404(
         Order.objects.select_related(
-            'buyer', 'ship_address', 'transport_carrier', 'confirming_company',
-        ),
+            'buyer', 'ship_address', 'transport_carrier', 'confirming_company', 'shipment',
+        ).prefetch_related('logistics_events'),
         pk=pk,
     )
     lineas = list(
@@ -2437,7 +2514,12 @@ def tienda(request):
         'novedades': '-created_at',
     }
     orden_key = orden if orden in orden_map else 'nombre'
-    productos = productos.order_by(orden_map[orden_key])
+    if orden_key == 'nombre':
+        from .utils.ads_ranking import annotate_sponsored_score
+
+        productos = annotate_sponsored_score(productos).order_by('-sponsored_score', 'name')
+    else:
+        productos = productos.order_by(orden_map[orden_key])
 
     promo_banner = merch.active_home_sections()
     promo_banner = next(

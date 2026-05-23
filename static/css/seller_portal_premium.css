@@ -568,3 +568,65 @@ body.sp-mode main.tf-main { padding: 0; max-width: none; }
   text-decoration: none;
   font-size: 12px;
 }
+
+/* SaaS usage meter */
+.sp-saas-usage {
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
+}
+.sp-saas-usage-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.sp-saas-plan-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tf-muted);
+}
+.sp-saas-plan-name {
+  margin: 4px 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--tf-navy);
+}
+.sp-saas-meter {
+  height: 8px;
+  background: var(--tf-light);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.sp-saas-meter-fill {
+  height: 100%;
+  background: var(--tf-blue);
+  border-radius: 8px;
+  transition: width 0.35s ease;
+}
+.sp-saas-meter-fill.is-approaching { background: var(--tf-orange); }
+.sp-saas-meter-fill.is-limit { background: #c62828; }
+.sp-saas-hint { font-size: 13px; color: var(--tf-muted); margin: 0; }
+.sp-saas-warn-soft {
+  font-size: 12px;
+  color: var(--tf-navy);
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  background: rgba(242, 101, 34, 0.08);
+  border-radius: 8px;
+}
+.sp-saas-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--tf-muted);
+}

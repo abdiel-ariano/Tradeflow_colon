@@ -84,6 +84,7 @@ TEMPLATES = [
                 'core.context_processors.cart_badge',
                 'core.context_processors.tf_i18n',
                 'core.context_processors.supabase_public',
+                'core.context_processors.enterprise_saas',
             ],
         },
     },

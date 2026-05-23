@@ -45,6 +45,7 @@ class ApiRateLimitMiddleware:
             path.startswith('/api/')
             or path.startswith('/en/api/')
             or path.startswith('/es/api/')
+            or '/api/v1/' in path
         )
         is_seller_mutation = (
             request.method == 'POST'

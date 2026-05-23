@@ -57,6 +57,29 @@ def tf_i18n(request):
     return {'tf_i18n': payload}
 
 
+def enterprise_saas(request):
+    """Plan SaaS, uso mensual y créditos ads para portal seller."""
+    if not request.user.is_authenticated:
+        return {}
+    try:
+        role = request.user.profile.role
+    except Exception:
+        return {}
+    if role not in ('seller', 'admin') and not request.user.is_superuser:
+        return {}
+    from core.models import Company
+
+    company = Company.objects.filter(owner=request.user).first()
+    if not company:
+        return {'saas_snapshot': None}
+    try:
+        from core.utils.saas_billing import subscription_usage_snapshot
+
+        return {'saas_snapshot': subscription_usage_snapshot(company), 'saas_company': company}
+    except Exception:
+        return {'saas_snapshot': None}
+
+
 def supabase_public(request):
     """Claves públicas Supabase para Realtime en frontend."""
     url = getattr(settings, 'SUPABASE_URL', '') or ''

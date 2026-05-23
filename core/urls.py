@@ -6,6 +6,7 @@ TRADEFLOW COLÓN — core/urls.py  (v4 — Roles + Signup)
 from django.urls import path
 from . import views
 from . import views_transportistas as vt
+from . import views_api_enterprise as vapi
 
 urlpatterns = [
 
@@ -80,6 +81,13 @@ urlpatterns = [
         views.api_seller_order_timeline,
         name='api_seller_order_timeline',
     ),
+    path('mi-tienda/plan/', views.seller_plan_consumo, name='seller_plan_consumo'),
+    path('mi-tienda/plan/upgrade/', views.seller_upgrade_plan, name='seller_upgrade_plan'),
+    path('mi-tienda/ventas/<int:pk>/despachar/', views.seller_dispatch_order, name='seller_dispatch_order'),
+
+    path('api/v1/health/', vapi.api_v1_health, name='api_v1_health'),
+    path('api/v1/inventory/', vapi.api_v1_inventory, name='api_v1_inventory'),
+    path('api/v1/pricing/sync/', vapi.api_v1_pricing_sync, name='api_v1_pricing_sync'),
     # Rutas solicitadas por especificación (nombres alternos)
     path('mi-tienda/productos/', views.seller_mis_productos, name='seller_mis_productos'),
     path('mi-tienda/productos/nuevo/', views.seller_agregar_producto, name='seller_agregar_producto'),

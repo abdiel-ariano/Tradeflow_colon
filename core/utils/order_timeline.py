@@ -11,29 +11,33 @@ TIMELINE_STEPS = (
     ('received', _('Pedido recibido'), 'inbox'),
     ('processing', _('Procesando'), 'sync'),
     ('preparing', _('Preparando envío'), 'inventory_2'),
-    ('in_transit', _('En camino'), 'local_shipping'),
+    ('dispatched', _('Despachado'), 'local_shipping'),
+    ('in_transit', _('En tránsito'), 'delivery_truck_speed'),
     ('hub', _('En centro logístico'), 'warehouse'),
     ('delivered', _('Entregado'), 'check_circle'),
+    ('incident', _('Incidencia'), 'warning'),
     ('cancelled', _('Cancelado'), 'cancel'),
 )
 
 
-def _step_index(status: str, shipment_status: str | None, cancelled: bool) -> int:
+def _step_index(status: str, shipment_status: str | None, cancelled: bool, has_dispatch: bool) -> int:
     if cancelled or status == 'cancelled':
-        return 6
+        return 8
     mapping = {
         'awaiting_seller': 0,
         'pending': 1,
         'paid': 2,
-        'packed': 2,
-        'shipped': 3,
-        'delivered': 5,
+        'packed': 3,
+        'shipped': 5,
+        'delivered': 7,
     }
     idx = mapping.get(status, 1)
-    if status == 'shipped' and shipment_status == 'in_transit':
+    if status == 'packed' and has_dispatch:
         idx = 4
+    if status == 'shipped' and shipment_status == 'in_transit':
+        idx = 5
     if status == 'shipped' and shipment_status == 'label':
-        idx = 3
+        idx = 4
     return idx
 
 
@@ -42,14 +46,20 @@ def build_order_timeline(orden) -> dict:
     shipment = getattr(orden, 'shipment', None)
     ship_st = shipment.status if shipment else None
     cancelled = orden.status == 'cancelled'
-    active_idx = _step_index(orden.status, ship_st, cancelled)
+    has_dispatch = orden.logistics_events.filter(event_type='dispatched').exists()
+    has_incident = orden.logistics_events.filter(event_type='incident').exists()
+    active_idx = _step_index(orden.status, ship_st, cancelled, has_dispatch)
 
     steps = []
     for i, (key, label, icon) in enumerate(TIMELINE_STEPS):
         if key == 'cancelled' and not cancelled:
             continue
+        if key == 'incident' and not has_incident:
+            continue
         if key == 'cancelled':
             state = 'active' if cancelled else 'upcoming'
+        elif key == 'incident' and has_incident:
+            state = 'active'
         elif i < active_idx:
             state = 'done'
         elif i == active_idx:
@@ -63,10 +73,20 @@ def build_order_timeline(orden) -> dict:
             'state': state,
         })
 
+    extra_events = []
+    for ev in orden.logistics_events.order_by('created_at')[:20]:
+        extra_events.append({
+            'type': ev.event_type,
+            'label': ev.label,
+            'at': ev.created_at.isoformat(),
+            'source': ev.source,
+        })
+
     return {
         'order_id': orden.pk,
         'order_number': orden.order_number,
         'status': orden.status,
         'updated_at': orden.updated_at.isoformat() if orden.updated_at else None,
         'steps': steps,
+        'events': extra_events,
     }
