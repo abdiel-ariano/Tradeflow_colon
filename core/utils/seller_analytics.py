@@ -144,6 +144,27 @@ def seller_quotes_dashboard(company):
     }
 
 
+def seller_revenue_chart_14d(company) -> list[dict]:
+    """Ingresos USD por día (últimos 14 días) para Chart.js."""
+    now = timezone.now()
+    rows = []
+    for i in range(13, -1, -1):
+        d = (now - timedelta(days=i)).date()
+        day_start = timezone.make_aware(datetime.combine(d, datetime.min.time()))
+        day_end = day_start + timedelta(days=1)
+        total_dia = OrderItem.objects.filter(
+            product__company=company,
+            order__created_at__gte=day_start,
+            order__created_at__lt=day_end,
+            order__status__in=('paid', 'packed', 'shipped', 'delivered'),
+        ).aggregate(t=Sum('line_total'))['t'] or Decimal('0')
+        rows.append({
+            'fecha': d.isoformat(),
+            'total': float(total_dia),
+        })
+    return rows
+
+
 def seller_portal_dashboard(company, days=30):
     """Métricas unificadas para el panel principal del vendedor."""
     sales = seller_sales_dashboard(company, days=days)
@@ -222,6 +243,7 @@ def seller_portal_dashboard(company, days=30):
         'chart_cat_values': products['chart_cat_values'],
         'ordenes_recientes': ordenes_recientes,
         'cotizaciones_recientes': list(quotes['lista'][:6]),
+        'ventas_chart': seller_revenue_chart_14d(company),
     }
 
 

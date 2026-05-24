@@ -1,62 +1,191 @@
 {% extends "core/base.html" %}
-{% load i18n %}
-{% load static %}
-{% block title %}Panel — {{ company.name }} — TradeFlow{% endblock %}
-{% block extra_css %}
-{% endblock %}
+{% load i18n static %}
+{% block title %}{% trans "Panel" %} — {{ company.name }} — TradeFlow{% endblock %}
 {% block content %}
-<div class="seller-layout">
-  <div class="seller-main">
-    <h1>Resumen</h1>
-    <p class="seller-sub">Indicadores de tu catálogo y pedidos recientes.</p>
-    <div class="seller-stats">
-      <div class="seller-stat"><div class="label">Productos</div><div class="value">{{ total_productos }}</div></div>
-      <div class="seller-stat"><div class="label">Activos</div><div class="value">{{ productos_activos }}</div></div>
-      <div class="seller-stat accent"><div class="label">Stock bajo</div><div class="value">{{ bajo_stock }}</div></div>
-      <div class="seller-stat"><div class="label">Órdenes (7 días)</div><div class="value">{{ ordenes_semana }}</div></div>
-      <div class="seller-stat"><div class="label">Ventas líneas (7 días)</div><div class="value">{{ ventas_semana }} USD</div></div>
+<div class="container py-4" style="max-width:1200px;">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1" style="color:var(--tf-navy);font-family:'DM Serif Display',serif;">{% trans "Panel de vendedor" %}</h1>
+      <p class="text-muted mb-0 small">{{ company.name }} · {% trans "Centro de operaciones" %}</p>
     </div>
-    <div class="seller-table-wrap">
-      <h2>Órdenes recientes</h2>
-      {% if ordenes_recientes %}
-      <table class="seller-table">
-        <thead><tr><th>Orden</th><th>Comprador</th><th>Estado</th><th>Total</th></tr></thead>
-        <tbody>
-          {% for o in ordenes_recientes %}
-          <tr>
-            <td><a href="{% url 'seller_venta_detalle' o.pk %}">{{ o.order_number }}</a></td>
-            <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
-            <td><span class="tf-badge seller-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span></td>
-            <td>{{ o.total }} USD</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p style="padding:1.25rem;color:var(--tf-muted);margin:0;">Aún no hay órdenes con tus productos.</p>
-      {% endif %}
+    <a href="{% url 'portal_seller' %}" class="btn btn-sm btn-outline-secondary">{% trans "Dashboard nuevo" %} →</a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100" style="background:var(--tf-white);">
+        <div class="card-body">
+          <div class="small text-muted text-uppercase" style="letter-spacing:0.04em;">{% trans "Ventas del mes" %}</div>
+          <div class="h4 mb-0 mt-1" style="color:var(--tf-navy);">USD {{ ventas_mes_usd }}</div>
+        </div>
+      </div>
     </div>
-    <div class="seller-form-actions" style="margin-top:1.25rem;">
-      <a href="{% url 'seller_producto_nuevo' %}" class="btn-seller-primary">Nuevo producto</a>
-      <a href="{% url 'seller_ventas' %}" class="btn-seller-outline">Ver todas las ventas</a>
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="small text-muted text-uppercase">{% trans "Por confirmar" %}</div>
+          <div class="h4 mb-0 mt-1 {% if ordenes_pendientes %}text-warning{% endif %}" style="color:var(--tf-navy);">{{ ordenes_pendientes }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="small text-muted text-uppercase">{% trans "Productos activos" %}</div>
+          <div class="h4 mb-0 mt-1" style="color:var(--tf-navy);">{{ productos_activos }}</div>
+          <div class="small text-muted">{{ total_productos }} {% trans "en catálogo" %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="small text-muted text-uppercase">{% trans "Stock bajo" %}</div>
+          <div class="h4 mb-0 mt-1 {% if bajo_stock %}text-danger{% endif %}" style="color:var(--tf-navy);">{{ bajo_stock }}</div>
+        </div>
+      </div>
     </div>
   </div>
+
+  {% if plan_info and plan_info.show_meter %}
+  <div class="card border-0 shadow-sm mb-4" style="border-left:4px solid var(--tf-teal) !important;">
+    <div class="card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <strong style="color:var(--tf-navy);">{% trans "Plan" %}: {{ plan_info.plan_name }}</strong>
+        <span class="small text-muted">USD {{ plan_info.volume_usd }} / {{ plan_info.limit_usd }}</span>
+      </div>
+      <div class="progress" style="height:10px;background:var(--tf-sand);">
+        <div class="progress-bar {% if plan_info.warning == 'limit' or plan_info.usage_pct >= 80 %}bg-warning{% endif %}"
+             role="progressbar"
+             style="width:{% if plan_info.usage_pct %}{{ plan_info.usage_pct|floatformat:0 }}%{% else %}0%{% endif %};{% if plan_info.warning != 'limit' and plan_info.usage_pct < 80 %}background:var(--tf-teal);{% endif %}"
+             aria-valuenow="{{ plan_info.usage_pct|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+      {% if plan_info.usage_pct >= 80 %}
+      <p class="small mb-0 mt-2" style="color:var(--tf-orange);">{% trans "Estás cerca del límite de tu plan." %}
+        <a href="{% url 'seller_plan_consumo' %}#upgrade">{% trans "Ver upgrade" %} →</a>
+      </p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 mb-3" style="color:var(--tf-navy);">{% trans "Ingresos últimos 14 días" %}</h2>
+      <div id="sd-chart-empty" class="text-center text-muted py-5 d-none">{% trans "Sin ventas en los últimos 14 días" %}</div>
+      <div style="position:relative;height:260px;">
+        <canvas id="sd-sales-chart" aria-label="{% trans 'Gráfico de ventas' %}"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-0">
+      <h2 class="h6 px-3 pt-3 mb-0" style="color:var(--tf-navy);">{% trans "Órdenes recientes" %}</h2>
+      {% if ordenes_recientes_rows %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead style="background:var(--tf-sand);">
+            <tr>
+              <th class="ps-3">{% trans "Orden" %}</th>
+              <th>{% trans "Comprador" %}</th>
+              <th>{% trans "Estado" %}</th>
+              <th class="text-end pe-3">{% trans "Total" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in ordenes_recientes_rows %}
+            <tr style="cursor:pointer;" onclick="window.location='{% url 'seller_venta_detalle' row.orden.pk %}';">
+              <td class="ps-3 fw-semibold" style="color:var(--tf-teal);">{{ row.orden.order_number }}</td>
+              <td>{{ row.orden.buyer.get_full_name|default:row.orden.buyer.username }}</td>
+              <td>
+                {% with st=row.orden.status %}
+                <span class="badge {% if st == 'awaiting_seller' or st == 'pending' %}badge-pending{% else %}badge-{{ st }}{% endif %}">{{ row.orden.get_status_display }}</span>
+                {% endwith %}
+              </td>
+              <td class="text-end pe-3 fw-semibold">USD {{ row.subtotal_usd|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted px-3 py-4 mb-0">{% trans "Aún no hay órdenes con tus productos." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{% url 'seller_producto_nuevo' %}" class="btn btn-primary" style="background:var(--tf-orange);border-color:var(--tf-orange);">
+      {% trans "Nuevo producto" %}
+    </a>
+    <a href="{% url 'seller_ventas' %}" class="btn btn-outline-secondary">{% trans "Ver todas las ventas" %}</a>
+    <a href="{% url 'seller_cotizaciones' %}" class="btn btn-outline-secondary">{% trans "Mis cotizaciones" %}</a>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 (function () {
-  var map = {
-    pending: { bg: "var(--order-pending-bg)", fg: "var(--order-pending-fg)" },
-    paid: { bg: "var(--order-paid-bg)", fg: "var(--order-paid-fg)" },
-    packed: { bg: "var(--order-packed-bg)", fg: "var(--order-packed-fg)" },
-    shipped: { bg: "var(--order-shipped-bg)", fg: "var(--order-shipped-fg)" },
-    delivered: { bg: "var(--order-delivered-bg)", fg: "var(--order-delivered-fg)" },
-    cancelled: { bg: "var(--order-cancelled-bg)", fg: "var(--order-cancelled-fg)" },
-  };
-  document.querySelectorAll(".seller-ord-status").forEach(function (el) {
-    var st = el.getAttribute("data-status");
-    var t = map[st];
-    if (t) { el.style.background = t.bg; el.style.color = t.fg; }
-  });
+  var apiUrl = "{% url 'api_seller_dashboard' %}";
+  var canvas = document.getElementById('sd-sales-chart');
+  var emptyEl = document.getElementById('sd-chart-empty');
+  if (!canvas) return;
+
+  function renderChart(labels, values) {
+    var hasData = values.some(function (v) { return v > 0; });
+    if (!hasData) {
+      canvas.parentElement.classList.add('d-none');
+      emptyEl.classList.remove('d-none');
+      return;
+    }
+    new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'USD',
+          data: values,
+          borderColor: '#62929a',
+          backgroundColor: 'rgba(98, 146, 154, 0.12)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#62929a',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: function (v) { return 'USD ' + v; } } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  fetch(apiUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var chart = data.ventas_chart || [];
+      var labels = chart.map(function (p) {
+        var parts = p.fecha.split('-');
+        return parts[2] + '/' + parts[1];
+      });
+      var values = chart.map(function (p) { return p.total; });
+      renderChart(labels, values);
+    })
+    .catch(function () {
+      emptyEl.textContent = '{% trans "No se pudo cargar el gráfico." %}';
+      emptyEl.classList.remove('d-none');
+      canvas.parentElement.classList.add('d-none');
+    });
 })();
 </script>
 {% endblock %}

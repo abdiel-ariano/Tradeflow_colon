@@ -1693,6 +1693,7 @@ def api_seller_dashboard(request):
     return JsonResponse({
         'pending_confirm': data['pending_confirm'],
         'ordenes_semana': data['ordenes_semana'],
+        'ventas_chart': data.get('ventas_chart', []),
         'updated': False,
     })
 
@@ -1900,47 +1901,82 @@ def seller_dashboard(request):
     if resp:
         return resp
 
-    hoy         = timezone.now()
-    hace_7_dias = hoy - timedelta(days=7)
+    from .utils.saas_billing import BILLABLE_ORDER_STATUSES, subscription_usage_snapshot
+    from .utils.seller_analytics import seller_revenue_chart_14d
+
+    hoy = timezone.now()
+    month_start = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     productos_qs = Product.objects.filter(company=company)
-    total_productos  = productos_qs.count()
-    activos          = productos_qs.filter(is_active=True).count()
-    bajo_stock       = _seller_low_stock_count(company)
+    total_productos = productos_qs.count()
+    activos = productos_qs.filter(is_active=True).count()
+    bajo_stock = _seller_low_stock_count(company)
 
-    ordenes_recientes = (
-        Order.objects.filter(items__product__company=company)
-        .distinct()
-        .select_related('buyer')
-        .order_by('-created_at')[:6]
+    ventas_mes = (
+        OrderItem.objects.filter(
+            product__company=company,
+            order__created_at__gte=month_start,
+            order__status__in=BILLABLE_ORDER_STATUSES,
+        ).aggregate(t=Sum('line_total'))['t']
+        or Decimal('0.00')
     )
 
-    ordenes_semana = (
+    ordenes_pendientes = (
         Order.objects.filter(
             items__product__company=company,
-            created_at__gte=hace_7_dias,
+            status__in=('awaiting_seller', 'pending'),
         )
         .distinct()
         .count()
     )
 
-    ventas_items = OrderItem.objects.filter(
-        product__company=company,
-        order__status__in=('paid', 'packed', 'shipped', 'delivered'),
-        order__created_at__gte=hace_7_dias,
+    ordenes_recientes = list(
+        Order.objects.filter(items__product__company=company)
+        .distinct()
+        .select_related('buyer')
+        .prefetch_related('items__product')
+        .order_by('-created_at')[:8]
     )
-    ventas_semana = ventas_items.aggregate(t=Sum('line_total'))['t'] or Decimal('0.00')
+    ordenes_recientes_rows = []
+    for orden in ordenes_recientes:
+        subtotal = sum(
+            li.line_total
+            for li in orden.items.all()
+            if li.product.company_id == company.pk
+        )
+        ordenes_recientes_rows.append({
+            'orden': orden,
+            'subtotal_usd': subtotal.quantize(Decimal('0.01')),
+        })
+
+    plan_info = None
+    try:
+        sub = company.subscription
+        snap = subscription_usage_snapshot(company)
+        limit = snap.get('limit_usd')
+        pct = snap.get('usage_pct')
+        plan_info = {
+            'plan_name': sub.plan.name,
+            'limit_usd': limit,
+            'volume_usd': snap.get('volume_usd'),
+            'usage_pct': pct,
+            'warning': snap.get('warning'),
+            'show_meter': limit is not None and limit > 0,
+        }
+    except Exception:
+        plan_info = None
 
     context = {
-        'company':           company,
-        'total_productos':   total_productos,
+        'company': company,
+        'total_productos': total_productos,
         'productos_activos': activos,
-        'bajo_stock':        bajo_stock,
-        'ordenes_semana':    ordenes_semana,
-        'ventas_semana':     ventas_semana,
-        'ordenes_recientes': ordenes_recientes,
-        'titulo_pagina':     'Panel de vendedor',
-        'nav_activo':        'mi_tienda',
+        'bajo_stock': bajo_stock,
+        'ventas_mes_usd': ventas_mes.quantize(Decimal('0.01')),
+        'ordenes_pendientes': ordenes_pendientes,
+        'ordenes_recientes_rows': ordenes_recientes_rows,
+        'plan_info': plan_info,
+        'titulo_pagina': 'Panel de vendedor',
+        'nav_activo': 'mi_tienda',
     }
     return render(request, 'core/seller_dashboard.html', context)
 
