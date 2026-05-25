@@ -1,27 +1,21 @@
 {% load i18n %}
-<section class="sp-plan-strip" aria-label="{% trans 'Planes TradeFlow' %}">
+<section class="sp-plan-strip sp-plan-strip--compact" aria-label="{% trans 'Crecimiento TradeFlow' %}">
   <article class="sp-plan-card">
-    <span class="sp-plan-tag">{% trans "Self-service" %}</span>
-    <h3 class="sp-plan-name">Digitalízate · Expansión</h3>
-    <p class="sp-plan-desc">{% trans "Upgrade inmediato desde Plan y consumo. Sin revisión manual." %}</p>
-    <a href="{% url 'seller_plan_consumo' %}" class="sp-plan-cta">{% trans "Ver planes SaaS" %}</a>
+    <span class="sp-plan-tag">{% trans "Ecosistema" %}</span>
+    <h3 class="sp-plan-name">{% trans "Escala con TradeFlow" %}</h3>
+    <p class="sp-plan-desc">{% trans "Planes diseñados para digitalizar, automatizar y expandir tu operación en la ZLC." %}</p>
+    <a href="{% url 'seller_plan_consumo' %}" class="sp-plan-cta">{% trans "Ver planes" %} →</a>
   </article>
   <article class="sp-plan-card sp-plan-card--featured">
-    <span class="sp-plan-tag">{% trans "Upgrade" %}</span>
-    <h3 class="sp-plan-name">Corporativo Pro</h3>
-    <p class="sp-plan-desc">{% trans "Webhooks logísticos, exportación y operaciones avanzadas." %}</p>
-    <a href="{% url 'seller_plan_consumo' %}#upgrade" class="sp-plan-cta">{% trans "Upgrade ahora" %}</a>
+    <span class="sp-plan-tag">{% trans "Recomendado" %}</span>
+    <h3 class="sp-plan-name">{% trans "Expansión" %}</h3>
+    <p class="sp-plan-desc">{% trans "Ads, despacho 1-clic y automatización logística." %}</p>
+    <a href="{% url 'seller_plan_consumo' %}#upgrade" class="sp-plan-cta">{% trans "Conocer Expansión" %}</a>
   </article>
   <article class="sp-plan-card">
-    <span class="sp-plan-tag">{% trans "Comercial" %}</span>
-    <h3 class="sp-plan-name">Ecosistema Enterprise</h3>
-    <p class="sp-plan-desc">{% trans "API dedicada, soporte prioritario y activación con tu ejecutivo." %}</p>
-    <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-plan-cta sp-plan-cta--outline">{% trans "Solicitud Enterprise" %}</a>
-  </article>
-  <article class="sp-plan-card">
-    <span class="sp-plan-tag">{% trans "Ayuda" %}</span>
-    <h3 class="sp-plan-name">{% trans "Contacto comercial" %}</h3>
-    <p class="sp-plan-desc">{% trans "Dudas sobre facturación, volumen o integraciones." %}</p>
-    <a href="mailto:soporte@tradeflow.pa" class="sp-plan-cta sp-plan-cta--muted">{% trans "Contactar soporte" %}</a>
+    <span class="sp-plan-tag">{% trans "Enterprise" %}</span>
+    <h3 class="sp-plan-name">{% trans "Alianza corporativa" %}</h3>
+    <p class="sp-plan-desc">{% trans "IA predictiva, API dedicada y activación consultiva." %}</p>
+    <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-plan-cta sp-plan-cta--outline">{% trans "Hablar con ventas" %}</a>
   </article>
 </section>

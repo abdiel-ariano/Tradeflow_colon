@@ -21,9 +21,11 @@ from .enterprise_models import (
     ApiAuditLog,
     ApiKey,
     CompanyBillingUsage,
+    CompanyPlanCommercialRequest,
     CompanyPredictiveSnapshot,
     CompanySubscription,
     EmailDeliveryLog,
+    SubscriptionUpgradeLog,
     LogisticsDispatchQueue,
     LogisticsEvent,
     LogisticsWebhookConfig,
@@ -289,6 +291,20 @@ class CompanySubscriptionAdmin(admin.ModelAdmin):
 @admin.register(CompanyBillingUsage)
 class CompanyBillingUsageAdmin(admin.ModelAdmin):
     list_display = ['company', 'period_year', 'period_month', 'volume_usd', 'orders_count']
+
+
+@admin.register(SubscriptionUpgradeLog)
+class SubscriptionUpgradeLogAdmin(admin.ModelAdmin):
+    list_display = ['company', 'from_plan', 'to_plan', 'source', 'activated_at']
+    list_filter = ['source']
+    readonly_fields = ['company', 'from_plan', 'to_plan', 'source', 'activated_at', 'notes']
+
+
+@admin.register(CompanyPlanCommercialRequest)
+class CompanyPlanCommercialRequestAdmin(admin.ModelAdmin):
+    list_display = ['company', 'requested_plan', 'status', 'contact_email', 'created_at']
+    list_filter = ['status', 'requested_plan']
+    search_fields = ['contact_email', 'contact_name', 'company__name']
 
 
 @admin.register(CompanyPredictiveSnapshot)

@@ -455,6 +455,11 @@ class UserApplication(models.Model):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='buyer')
     company_name = models.CharField(max_length=200, blank=True, verbose_name='Empresa')
     message = models.TextField(blank=True, verbose_name='Mensaje')
+    requested_plan_slug = models.CharField(
+        max_length=40,
+        blank=True,
+        help_text='Plan SaaS solicitado (ej. ecosistema_enterprise)',
+    )
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pendiente')
     review_token = models.CharField(max_length=64, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -978,8 +983,10 @@ from .enterprise_models import (  # noqa: E402, F401
     ApiAuditLog,
     ApiKey,
     CompanyBillingUsage,
+    CompanyPlanCommercialRequest,
     CompanyPredictiveSnapshot,
     CompanySubscription,
+    SubscriptionUpgradeLog,
     EmailDeliveryLog,
     LogisticsDispatchQueue,
     LogisticsEvent,

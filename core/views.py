@@ -1721,19 +1721,16 @@ def seller_plan_consumo(request):
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
-    from .utils.saas_billing import ensure_default_plans, subscription_usage_snapshot
+    from .utils.saas_billing import build_plan_page_context, ensure_default_plans
 
     ensure_default_plans()
-    snap = subscription_usage_snapshot(company)
-    from .enterprise_models import SaasPlan
-
-    return render(request, 'core/seller_plan_consumo.html', {
+    ctx = build_plan_page_context(company)
+    ctx.update({
         'company': company,
-        'saas': snap,
-        'plans': SaasPlan.objects.filter(is_active=True).order_by('sort_order'),
-        'titulo_pagina': _('Plan y consumo'),
+        'titulo_pagina': _('Crecimiento TradeFlow'),
         'nav_activo': 'mi_tienda',
     })
+    return render(request, 'core/seller_plan_consumo.html', ctx)
 
 
 @seller_required
@@ -1776,38 +1773,46 @@ def seller_dispatch_order(request, pk):
 @seller_required
 @require_POST
 def seller_upgrade_plan(request):
-    """Solicitud de upgrade (soft; admin confirma en Django admin)."""
+    """Activación inmediata de plan (persistida en Supabase)."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
     slug = request.POST.get('plan_slug', '').strip()
-    from .enterprise_models import SaasPlan
-    from .utils.saas_billing import get_or_create_subscription
+    from .utils.saas_billing import activate_company_plan, get_or_create_subscription
 
-    plan = SaasPlan.objects.filter(slug=slug, is_active=True).first()
-    if not plan:
+    if slug == 'ecosistema_enterprise':
+        return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
+
+    from .enterprise_models import SaasPlan
+
+    plan_obj = SaasPlan.objects.filter(slug=slug, is_active=True).first()
+    if not plan_obj:
         messages.error(request, _('Plan no válido.'))
         return redirect('seller_plan_consumo')
-    if slug == 'ecosistema_enterprise':
-        messages.info(
-            request,
-            _(
-                'Ecosistema Enterprise requiere activación comercial. '
-                'Envía una solicitud y nuestro equipo te contactará.'
-            ),
-        )
-        return redirect('solicitud_acceso')
-    sub = get_or_create_subscription(company)
-    if plan.sort_order <= sub.plan.sort_order:
-        messages.info(request, _('Ya tienes este plan o uno superior.'))
-        return redirect('seller_plan_consumo')
-    sub.plan = plan
-    sub.upgraded_at = timezone.now()
-    sub.save(update_fields=['plan', 'upgraded_at'])
-    from .utils.ads_ranking import ensure_ad_credits
 
-    ensure_ad_credits(company, plan.ad_credits_monthly)
-    messages.success(request, _('Plan actualizado a %(name)s.') % {'name': plan.name})
+    sub = get_or_create_subscription(company)
+    if sub.plan.slug == slug:
+        messages.info(request, _('Ya tienes este plan activo.'))
+        return redirect('seller_plan_consumo')
+
+    try:
+        activate_company_plan(
+            company,
+            slug,
+            source='self_serve',
+            notes='seller_upgrade_plan',
+        )
+    except ValueError as exc:
+        if 'commercial' in str(exc):
+            return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
+        messages.error(request, _('No se pudo activar el plan.'))
+        return redirect('seller_plan_consumo')
+
+    messages.success(
+        request,
+        _('Plan %(name)s activado. Tu suscripción quedó registrada en la plataforma.')
+        % {'name': plan_obj.name},
+    )
     return redirect('seller_plan_consumo')
 
 
@@ -3583,6 +3588,10 @@ def seller_responder_cotizacion(request, pk):
 
 def solicitud_acceso(request):
     """Formulario público de solicitud de acceso a TradeFlow."""
+    plan_intent = request.GET.get('plan', '').strip().lower()
+    if plan_intent == 'enterprise':
+        plan_intent = 'ecosistema_enterprise'
+
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
         email = request.POST.get('email', '').strip().lower()
@@ -3590,6 +3599,7 @@ def solicitud_acceso(request):
         role = request.POST.get('role', 'buyer')
         company_name = request.POST.get('company_name', '').strip()
         message = request.POST.get('message', '').strip()
+        req_plan = request.POST.get('requested_plan_slug', '').strip() or plan_intent
 
         if not full_name or not email:
             messages.error(request, _('Nombre y correo son obligatorios.'))
@@ -3619,7 +3629,19 @@ def solicitud_acceso(request):
                 role=role,
                 company_name=company_name,
                 message=message,
+                requested_plan_slug=req_plan[:40],
             )
+            company_owner = _get_seller_company(request.user) if request.user.is_authenticated else None
+            if req_plan == 'ecosistema_enterprise' and company_owner:
+                from .utils.saas_billing import create_enterprise_commercial_request
+
+                create_enterprise_commercial_request(
+                    company_owner,
+                    contact_name=full_name,
+                    contact_email=email,
+                    message=message,
+                    user_application=app,
+                )
             try:
                 enviar_solicitud_recibida(app)
                 enviar_solicitud_a_revisores(app)
@@ -3643,6 +3665,8 @@ def solicitud_acceso(request):
 
     return render(request, 'core/solicitud_acceso.html', {
         'titulo_pagina': _('Solicitud de acceso'),
+        'plan_intent': plan_intent,
+        'is_enterprise_intent': plan_intent == 'ecosistema_enterprise',
     })
 
 
@@ -3664,6 +3688,32 @@ def revisar_solicitud(request, token, accion):
 
     app.reviewed_at = timezone.now()
     app.save(update_fields=['status', 'reviewed_at'])
+
+    if aprobada and app.requested_plan_slug == 'ecosistema_enterprise':
+        from .models import Company
+        from .utils.saas_billing import approve_commercial_request
+
+        company = Company.objects.filter(owner__email__iexact=app.email).first()
+        if company:
+            pending = company.plan_commercial_requests.filter(
+                status__in=('pending', 'en_revision'),
+                requested_plan__slug='ecosistema_enterprise',
+            ).order_by('-created_at').first()
+            if pending:
+                approve_commercial_request(pending)
+            else:
+                from .utils.saas_billing import activate_company_plan
+
+                try:
+                    activate_company_plan(
+                        company,
+                        'ecosistema_enterprise',
+                        source='commercial',
+                        notes=f'user_application:{app.pk}',
+                    )
+                except ValueError:
+                    log.exception('Enterprise activation on approve')
+
     try:
         enviar_solicitud_decision(app, aprobada)
     except Exception:
