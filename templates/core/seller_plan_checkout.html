@@ -93,7 +93,7 @@
 
 {% block seller_content %}
 <div class="sp-checkout-page">
-  {% include "core/includes/seller_saas_usage.html" with saas_snapshot=saas %}
+  {% if saas %}{% include "core/includes/seller_saas_usage.html" with saas_snapshot=saas %}{% endif %}
 
   <nav class="sp-checkout-steps" aria-label="{% trans 'Pasos de activación' %}">
     <div class="sp-checkout-step is-done">1. {% trans "Plan" %}</div>

@@ -59,6 +59,10 @@ def tf_i18n(request):
 
 def enterprise_saas(request):
     """Plan SaaS, uso mensual y créditos ads para portal seller."""
+    import logging
+
+    log = logging.getLogger('tradeflow.saas')
+
     if not request.user.is_authenticated:
         return {}
     try:
@@ -75,9 +79,17 @@ def enterprise_saas(request):
     try:
         from core.utils.saas_billing import subscription_usage_snapshot
 
-        return {'saas_snapshot': subscription_usage_snapshot(company), 'saas_company': company}
-    except Exception:
-        return {'saas_snapshot': None}
+        snap = subscription_usage_snapshot(company)
+        return {'saas_snapshot': snap, 'saas_company': company}
+    except Exception as exc:
+        log.warning(
+            'enterprise_saas_context_failed user_id=%s company_id=%s: %s',
+            request.user.pk,
+            company.pk,
+            exc,
+            exc_info=True,
+        )
+        return {'saas_snapshot': None, 'saas_company': company}
 
 
 def supabase_public(request):

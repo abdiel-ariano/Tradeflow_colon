@@ -4,18 +4,16 @@ Sembrar planes SaaS, webhooks demo y suscripciones para empresas existentes.
 from django.core.management.base import BaseCommand
 
 from core.models import Company
-from core.utils.saas_billing import ensure_default_plans, get_or_create_subscription
-from core.utils.ads_ranking import ensure_ad_credits
+from core.utils.saas_platform import bootstrap_saas_datastore
 
 
 class Command(BaseCommand):
     help = 'Inicializa planes enterprise y suscripciones por empresa'
 
     def handle(self, *args, **options):
-        ensure_default_plans()
-        count = 0
-        for company in Company.objects.filter(owner__isnull=False).distinct():
-            sub = get_or_create_subscription(company)
-            ensure_ad_credits(company, sub.plan.ad_credits_monthly)
-            count += 1
+        health = bootstrap_saas_datastore(seed_subscriptions=True)
+        count = health.get('companies_seeded', 0)
+        if not health.get('ok'):
+            self.stdout.write(self.style.ERROR(f'SaaS seed incompleto: {health.get("issues")}'))
+            raise SystemExit(1)
         self.stdout.write(self.style.SUCCESS(f'Enterprise seed: {count} empresas con suscripción.'))

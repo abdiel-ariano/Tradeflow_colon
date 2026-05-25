@@ -104,12 +104,49 @@
 }
 .sp-plan-history { margin-top: 28px; }
 .sp-plan-history h3 { font-size: 1rem; color: var(--tf-navy); margin: 0 0 12px; }
+.sp-saas-empty {
+  text-align: center;
+  padding: 48px 32px;
+  margin-bottom: 24px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.sp-saas-empty-icon { font-size: 48px; color: var(--tf-orange); display: block; margin: 0 auto 16px; }
+.sp-saas-empty h2 { font-family: 'DM Serif Display', serif; color: var(--tf-navy); margin: 0 0 10px; font-size: 1.25rem; }
+.sp-saas-empty p { color: var(--tf-muted); font-size: 14px; line-height: 1.55; margin: 0 0 16px; }
+.sp-saas-empty-hint { font-size: 12px; color: var(--tf-muted); }
 </style>
 {% endblock %}
 
 {% block seller_content %}
 <div class="sp-plans-page">
-  {% include "core/includes/seller_saas_usage.html" %}
+  {% if saas %}
+  {% include "core/includes/seller_saas_usage.html" with saas_snapshot=saas %}
+  {% endif %}
+
+  {% if saas_page_error == 'database_schema' %}
+  <section class="sp-card sp-saas-empty" role="alert">
+    <span class="material-symbols-rounded sp-saas-empty-icon">cloud_off</span>
+    <h2>{% trans "Configuración SaaS pendiente" %}</h2>
+    <p>{% trans "La base de datos aún no tiene las tablas de planes. Un administrador debe ejecutar las migraciones en Supabase." %}</p>
+    <p class="sp-saas-empty-hint"><code>python manage.py migrate</code> · <code>python manage.py verify_saas --seed</code></p>
+  </section>
+  {% elif saas_degraded %}
+  <section class="sp-card sp-saas-empty" role="alert">
+    <span class="material-symbols-rounded sp-saas-empty-icon">warning</span>
+    <h2>{% trans "No pudimos cargar tu ecosistema" %}</h2>
+    <p>{% trans "Reintenta en unos segundos. Si el problema continúa, contacta soporte TradeFlow." %}</p>
+    <a href="{% url 'seller_plan_consumo' %}" class="sp-btn sp-btn-primary">{% trans "Reintentar" %}</a>
+  </section>
+  {% elif not plans_available %}
+  <section class="sp-card sp-saas-empty">
+    <span class="material-symbols-rounded sp-saas-empty-icon">layers</span>
+    <h2>{% trans "Inicializando planes" %}</h2>
+    <p>{% trans "Estamos preparando el catálogo de crecimiento para tu empresa. Actualiza la página en un momento." %}</p>
+    <a href="{% url 'seller_plan_consumo' %}" class="sp-btn sp-btn-secondary">{% trans "Actualizar" %}</a>
+  </section>
+  {% else %}
 
   <div class="sp-plans-hero">
     <h2>{% trans "Elige cómo crece tu empresa" %}</h2>
@@ -196,6 +233,7 @@
   </section>
   {% endif %}
 
+  {% if saas %}
   <section class="sp-card" style="margin-top:24px;">
     <div class="sp-kpi-grid" style="margin-bottom:0;">
       <article class="sp-kpi">
@@ -212,5 +250,8 @@
       </article>
     </div>
   </section>
+  {% endif %}
+
+  {% endif %}
 </div>
 {% endblock %}

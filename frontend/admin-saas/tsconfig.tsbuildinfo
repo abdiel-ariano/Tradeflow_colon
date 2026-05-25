@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/components/KpiCard.tsx","./src/components/ui/badge.tsx","./src/components/ui/button.tsx","./src/components/ui/card.tsx","./src/components/ui/progress.tsx","./src/components/ui/table.tsx","./src/components/ui/tabs.tsx","./src/lib/utils.ts","./src/routes/AdminSaasDashboard.tsx"],"version":"5.8.3"}
