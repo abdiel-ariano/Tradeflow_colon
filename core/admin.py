@@ -301,6 +301,13 @@ class SubscriptionUpgradeLogAdmin(admin.ModelAdmin):
     readonly_fields = ['company', 'from_plan', 'to_plan', 'source', 'activated_at', 'notes']
 
 
+@admin.register(CompanyPlanCheckout)
+class CompanyPlanCheckoutAdmin(admin.ModelAdmin):
+    list_display = ['company', 'target_plan', 'amount_usd', 'status', 'provider', 'created_at', 'paid_at']
+    list_filter = ['status', 'provider', 'target_plan']
+    search_fields = ['company__name', 'txn_ref']
+
+
 @admin.register(CompanyPlanCommercialRequest)
 class CompanyPlanCommercialRequestAdmin(admin.ModelAdmin):
     list_display = ['company', 'requested_plan', 'status', 'contact_email', 'created_at']
