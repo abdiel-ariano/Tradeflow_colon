@@ -202,7 +202,7 @@ def activate_company_plan(
     plan = SaasPlan.objects.filter(slug=plan_slug, is_active=True).first()
     if not plan:
         raise ValueError(f'plan_not_found:{plan_slug}')
-    if marketing_for_plan(plan).get('cta') == 'commercial':
+    if marketing_for_plan(plan).get('cta') == 'commercial' and source != 'commercial':
         raise ValueError('plan_requires_commercial_activation')
 
     with transaction.atomic():
@@ -249,6 +249,14 @@ def create_enterprise_commercial_request(
         message=message,
         user_application=user_application,
     )
+
+
+def reject_commercial_request(req: CompanyPlanCommercialRequest, *, notes: str = '') -> CompanyPlanCommercialRequest:
+    """Rechaza solicitud comercial (persistente en Supabase)."""
+    req.status = 'rejected'
+    req.reviewed_at = timezone.now()
+    req.save(update_fields=['status', 'reviewed_at'])
+    return req
 
 
 def approve_commercial_request(req: CompanyPlanCommercialRequest) -> CompanySubscription:

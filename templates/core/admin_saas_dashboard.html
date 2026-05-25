@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Planes SaaS" %} — TradeFlow Admin{% endblock %}
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+{% block extra_css %}
+{% include "core/includes/static_css_bundle.html" %}
+<style>
+  .adm-main { padding: 0; background: #f8fafc; min-height: 100vh; }
+  .adm-saas-wrap { margin-left: 0; }
+  #admin-saas-root { min-height: calc(100vh - 48px); font-family: Inter, system-ui, sans-serif; }
+  @media (min-width: 900px) {
+    .adm-saas-wrap { margin-left: var(--adm-rail-width, 220px); }
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="adm-shell">
+  {% include "core/admin_rail.html" %}
+  <div class="adm-main adm-saas-wrap">
+    <div
+      id="admin-saas-root"
+      data-api-url="{% url 'api_admin_saas_stats' %}"
+    ></div>
+  </div>
+</div>
+<link rel="stylesheet" href="{% static 'admin-saas/admin-saas.css' %}">
+<script type="module" src="{% static 'admin-saas/admin-saas.js' %}"></script>
+{% endblock %}
