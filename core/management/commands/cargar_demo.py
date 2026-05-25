@@ -380,6 +380,10 @@ class Command(BaseCommand):
                     email_verificado=True,
                     token_verificacion=None,
                 )
+            from core.utils.admin_permissions import sync_user_admin_access
+
+            sync_user_admin_access(adm)
+            self.stdout.write(self.style.SUCCESS('  demo_admin → permisos Django Admin (core.*)'))
                 self.stdout.write(self.style.SUCCESS('  demo_admin → perfil admin creado'))
             else:
                 self.stdout.write('  demo_admin — rol admin OK')

@@ -32,6 +32,34 @@ from .enterprise_models import (
     LogisticsWebhookConfig,
     SaasPlan,
 )
+from .utils.admin_permissions import user_is_tradeflow_admin
+
+
+class TradeFlowModelAdmin(admin.ModelAdmin):
+    """
+    Permisos del Django Admin para operadores con rol ``admin`` + ``is_staff``.
+
+    El panel custom (/dashboard/) usa UserProfile.role; el sitio /admin/ de Django
+    exige permisos de modelo (view/change) — este admin los alinea.
+    """
+
+    def _tradeflow_admin_access(self, request):
+        return user_is_tradeflow_admin(request.user)
+
+    def has_module_permission(self, request):
+        return self._tradeflow_admin_access(request)
+
+    def has_view_permission(self, request, obj=None):
+        return self._tradeflow_admin_access(request)
+
+    def has_add_permission(self, request):
+        return self._tradeflow_admin_access(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self._tradeflow_admin_access(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 
 # =============================================================================
@@ -59,7 +87,7 @@ admin.site.register(User, UserAdmin)
 # =============================================================================
 
 @admin.register(Company)
-class CompanyAdmin(admin.ModelAdmin):
+class CompanyAdmin(TradeFlowModelAdmin):
     """
     Administración de empresas; incluye propietario vendedor para el portal Mi Tienda.
     """
