@@ -3,15 +3,20 @@
 {% block title %}{% trans "Planes SaaS" %} — TradeFlow Admin{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'admin-saas/admin-saas.css' %}">
 {% endblock %}
 {% block extra_css %}
 {% include "core/includes/static_css_bundle.html" %}
 <style>
-  .adm-main { padding: 0; background: #f8fafc; min-height: 100vh; }
-  .adm-saas-wrap { margin-left: 0; }
-  #admin-saas-root { min-height: calc(100vh - 48px); font-family: Inter, system-ui, sans-serif; }
-  @media (min-width: 900px) {
-    .adm-saas-wrap { margin-left: var(--adm-rail-width, 220px); }
+  .adm-shell .adm-main.adm-saas-wrap {
+    padding: 0;
+    background: #f8fafc;
+    min-height: calc(100vh - 64px);
+  }
+  #admin-saas-root {
+    min-height: calc(100vh - 64px);
+    width: 100%;
+    font-family: Inter, system-ui, sans-serif;
   }
 </style>
 {% endblock %}
@@ -22,9 +27,12 @@
     <div
       id="admin-saas-root"
       data-api-url="{% url 'api_admin_saas_stats' %}"
-    ></div>
+    >
+      <p style="padding:1.5rem;color:#6b7a88;">Cargando panel SaaS…</p>
+    </div>
   </div>
 </div>
-<link rel="stylesheet" href="{% static 'admin-saas/admin-saas.css' %}">
+{% endblock %}
+{% block extra_js %}
 <script type="module" src="{% static 'admin-saas/admin-saas.js' %}"></script>
 {% endblock %}
