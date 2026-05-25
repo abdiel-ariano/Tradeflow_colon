@@ -13,6 +13,7 @@ from django.utils import timezone
 from core.enterprise_models import (
     AdCreditAccount,
     CompanyBillingUsage,
+    CompanyPlanCheckout,
     CompanyPlanCommercialRequest,
     CompanySubscription,
     SaasPlan,
@@ -48,6 +49,18 @@ PLAN_LIMITS = {
     'corporativo_pro': None,
     'ecosistema_enterprise': None,
 }
+
+# Precio mensual público (checkout; Stripe futuro)
+PLAN_MRR_USD = {
+    'digitalizate': Decimal('40'),
+    'expansion': Decimal('200'),
+    'corporativo_pro': Decimal('800'),
+    'ecosistema_enterprise': Decimal('2500'),
+}
+
+
+def plan_monthly_price(slug: str) -> Decimal:
+    return PLAN_MRR_USD.get(slug, Decimal('0'))
 
 
 def _period_bounds(now=None):
@@ -161,6 +174,23 @@ def subscription_usage_snapshot(company: Company) -> dict:
         growth_signal = 'expand'
         growth_message = 'Potencia tu plan para seguir escalando sin fricción operativa.'
 
+    pending_checkout = (
+        CompanyPlanCheckout.objects.filter(company=company, status='pending')
+        .select_related('target_plan', 'from_plan')
+        .order_by('-created_at')
+        .first()
+    )
+
+    activity_pct = min(pct or 0, 100) if pct is not None else (35 if not plan.is_unlimited else 100)
+    flow_steps = _build_seller_flow_steps(
+        plan=plan,
+        next_plan=next_plan,
+        activity_pct=activity_pct,
+        warning=warning,
+        pending_checkout=pending_checkout,
+    )
+    journey_pct = flow_steps[-1]['cumulative_pct'] if flow_steps else 0
+
     return {
         'subscription': sub,
         'plan': plan,
@@ -180,7 +210,98 @@ def subscription_usage_snapshot(company: Company) -> dict:
         'growth_message': growth_message,
         'meter_width_pct': min(pct or 0, 100) if pct is not None else None,
         'show_public_meter': not plan.is_unlimited and pct is not None,
+        'pending_checkout': pending_checkout,
+        'flow_steps': flow_steps,
+        'journey_pct': journey_pct,
+        'activity_label': _activity_label(activity_pct, warning),
     }
+
+
+def _activity_label(pct: float, warning: str | None) -> str:
+    if warning == 'limit':
+        return 'Capacidad del período al máximo'
+    if warning == 'approaching':
+        return 'Actividad comercial en crecimiento'
+    if pct >= 50:
+        return 'Ritmo comercial saludable'
+    return 'Espacio para acelerar ventas'
+
+
+def _build_seller_flow_steps(
+    *,
+    plan: SaasPlan,
+    next_plan: SaasPlan | None,
+    activity_pct: float,
+    warning: str | None,
+    pending_checkout: CompanyPlanCheckout | None,
+) -> list[dict]:
+    """Pasos visibles del recorrido seller (barras segmentadas)."""
+    if pending_checkout:
+        return [
+            {
+                'key': 'plan',
+                'label': 'Plan elegido',
+                'detail': pending_checkout.target_plan.name,
+                'status': 'done',
+                'pct': 100,
+                'cumulative_pct': 33,
+            },
+            {
+                'key': 'pay',
+                'label': 'Pago',
+                'detail': 'Completa el checkout',
+                'status': 'current',
+                'pct': 45,
+                'cumulative_pct': 66,
+            },
+            {
+                'key': 'live',
+                'label': 'Activación',
+                'detail': 'Plan en vivo',
+                'status': 'upcoming',
+                'pct': 0,
+                'cumulative_pct': 100,
+            },
+        ]
+
+    steps = [
+        {
+            'key': 'operate',
+            'label': 'Operación',
+            'detail': plan.name,
+            'status': 'done',
+            'pct': 100,
+            'cumulative_pct': 25,
+        },
+        {
+            'key': 'activity',
+            'label': 'Actividad',
+            'detail': _activity_label(activity_pct, warning),
+            'status': 'current' if warning != 'limit' else 'current',
+            'pct': round(activity_pct, 1),
+            'cumulative_pct': 25 + round(activity_pct * 0.45, 1),
+        },
+    ]
+    if next_plan:
+        upgrade_ready = warning in ('approaching', 'limit')
+        steps.append({
+            'key': 'grow',
+            'label': 'Siguiente nivel',
+            'detail': next_plan.name,
+            'status': 'current' if upgrade_ready else 'upcoming',
+            'pct': 100 if upgrade_ready else max(15, int(activity_pct * 0.5)),
+            'cumulative_pct': 100,
+        })
+    else:
+        steps.append({
+            'key': 'grow',
+            'label': 'Ecosistema',
+            'detail': 'Máximo nivel operativo',
+            'status': 'done',
+            'pct': 100,
+            'cumulative_pct': 100,
+        })
+    return steps
 
 
 def activate_company_plan(
@@ -226,6 +347,96 @@ def activate_company_plan(
         ensure_ad_credits(company, plan.ad_credits_monthly)
         refresh_billing_usage(company)
     return sub
+
+
+def create_plan_checkout(company: Company, plan_slug: str) -> CompanyPlanCheckout:
+    """Inicia checkout persistente para upgrade de plan."""
+    from datetime import timedelta
+
+    ensure_default_plans()
+    from core.utils.saas_plan_catalog import marketing_for_plan
+
+    plan = SaasPlan.objects.filter(slug=plan_slug, is_active=True).first()
+    if not plan:
+        raise ValueError('plan_not_found')
+    if marketing_for_plan(plan).get('cta') == 'commercial':
+        raise ValueError('plan_requires_commercial')
+
+    sub = get_or_create_subscription(company)
+    if sub.plan.slug == plan_slug:
+        raise ValueError('already_on_plan')
+
+    CompanyPlanCheckout.objects.filter(company=company, status='pending').update(
+        status='cancelled',
+    )
+
+    amount = plan_monthly_price(plan_slug)
+    now = timezone.now()
+    return CompanyPlanCheckout.objects.create(
+        company=company,
+        from_plan=sub.plan,
+        target_plan=plan,
+        amount_usd=amount,
+        status='pending',
+        expires_at=now + timedelta(hours=48),
+    )
+
+
+def get_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
+    return (
+        CompanyPlanCheckout.objects.filter(company=company, status='pending')
+        .select_related('target_plan', 'from_plan')
+        .order_by('-created_at')
+        .first()
+    )
+
+
+def complete_plan_checkout(
+    checkout: CompanyPlanCheckout,
+    *,
+    provider: str = 'mock',
+    txn_ref: str = '',
+) -> CompanySubscription:
+    """Marca pago y activa plan (Supabase)."""
+    from django.db import transaction
+
+    if checkout.status != 'pending':
+        raise ValueError('checkout_not_pending')
+
+    with transaction.atomic():
+        checkout.status = 'paid'
+        checkout.provider = provider
+        checkout.txn_ref = (txn_ref or f'TF-{checkout.pk}-{timezone.now().strftime("%Y%m%d%H%M")}')[:120]
+        checkout.paid_at = timezone.now()
+        checkout.save(update_fields=['status', 'provider', 'txn_ref', 'paid_at'])
+        return activate_company_plan(
+            checkout.company,
+            checkout.target_plan.slug,
+            source='self_serve',
+            notes=f'checkout:{checkout.pk}',
+        )
+
+
+def build_checkout_context(company: Company, plan_slug: str) -> dict:
+    """Contexto para pantalla de pago del plan."""
+    from core.utils.saas_plan_catalog import marketing_for_plan
+
+    ensure_default_plans()
+    plan = SaasPlan.objects.get(slug=plan_slug, is_active=True)
+    sub = get_or_create_subscription(company)
+    marketing = marketing_for_plan(plan)
+    checkout = get_pending_checkout(company)
+    if not checkout or checkout.target_plan_id != plan.pk:
+        checkout = create_plan_checkout(company, plan_slug)
+
+    return {
+        'checkout': checkout,
+        'target_plan': plan,
+        'from_plan': sub.plan,
+        'marketing': marketing,
+        'amount': checkout.amount_usd,
+        'saas': subscription_usage_snapshot(company),
+    }
 
 
 def create_enterprise_commercial_request(
@@ -286,6 +497,7 @@ def build_plan_page_context(company: Company) -> dict:
         m = marketing_for_plan(plan)
         m['is_current'] = plan.slug == current_slug
         m['can_upgrade'] = plan.sort_order > snap['plan'].sort_order
+        m['monthly_price_usd'] = float(plan_monthly_price(plan.slug))
         cards.append(m)
 
     pending_enterprise = CompanyPlanCommercialRequest.objects.filter(

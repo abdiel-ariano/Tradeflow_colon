@@ -113,6 +113,7 @@ class SubscriptionUpgradeLog(models.Model):
 
     SOURCE_CHOICES = [
         ('self_serve', _('Activación seller')),
+        ('checkout', _('Pago checkout')),
         ('commercial', _('Aprobación comercial')),
         ('admin', _('Administrador')),
     ]
@@ -142,6 +143,57 @@ class SubscriptionUpgradeLog(models.Model):
         ordering = ['-activated_at']
         verbose_name = 'Historial upgrade plan'
         verbose_name_plural = 'Historial upgrades plan'
+
+
+class CompanyPlanCheckout(models.Model):
+    """Checkout de suscripción SaaS (pago simulado o proveedor futuro)."""
+
+    STATUS_CHOICES = [
+        ('pending', _('Pendiente de pago')),
+        ('paid', _('Pagado')),
+        ('cancelled', _('Cancelado')),
+        ('expired', _('Expirado')),
+    ]
+    PROVIDER_CHOICES = [
+        ('mock', _('Tarjeta (demo)')),
+        ('stripe', 'Stripe'),
+        ('bank', _('Transferencia')),
+    ]
+
+    company = models.ForeignKey(
+        'core.Company',
+        on_delete=models.CASCADE,
+        related_name='plan_checkouts',
+    )
+    from_plan = models.ForeignKey(
+        SaasPlan,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='checkouts_from',
+    )
+    target_plan = models.ForeignKey(
+        SaasPlan,
+        on_delete=models.PROTECT,
+        related_name='checkouts_to',
+    )
+    amount_usd = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default='USD')
+    billing_label = models.CharField(max_length=40, default='Mensual')
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pending')
+    provider = models.CharField(max_length=12, choices=PROVIDER_CHOICES, default='mock')
+    txn_ref = models.CharField(max_length=120, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Checkout plan SaaS'
+        verbose_name_plural = 'Checkouts plan SaaS'
+
+    def __str__(self):
+        return f'{self.company.name} → {self.target_plan.slug} [{self.status}]'
 
 
 class CompanyPlanCommercialRequest(models.Model):

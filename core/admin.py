@@ -21,6 +21,7 @@ from .enterprise_models import (
     ApiAuditLog,
     ApiKey,
     CompanyBillingUsage,
+    CompanyPlanCheckout,
     CompanyPlanCommercialRequest,
     CompanyPredictiveSnapshot,
     CompanySubscription,
@@ -298,6 +299,13 @@ class SubscriptionUpgradeLogAdmin(admin.ModelAdmin):
     list_display = ['company', 'from_plan', 'to_plan', 'source', 'activated_at']
     list_filter = ['source']
     readonly_fields = ['company', 'from_plan', 'to_plan', 'source', 'activated_at', 'notes']
+
+
+@admin.register(CompanyPlanCheckout)
+class CompanyPlanCheckoutAdmin(admin.ModelAdmin):
+    list_display = ['company', 'target_plan', 'amount_usd', 'status', 'provider', 'created_at', 'paid_at']
+    list_filter = ['status', 'provider', 'target_plan']
+    search_fields = ['company__name', 'txn_ref']
 
 
 @admin.register(CompanyPlanCommercialRequest)

@@ -1771,49 +1771,108 @@ def seller_dispatch_order(request, pk):
 
 
 @seller_required
+def seller_plan_checkout(request, plan_slug: str):
+    """Pantalla de pago antes de activar un plan nuevo."""
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+
+    if plan_slug == 'ecosistema_enterprise':
+        return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
+
+    from .utils.saas_billing import build_checkout_context, get_or_create_subscription
+
+    sub = get_or_create_subscription(company)
+    from .enterprise_models import SaasPlan
+
+    target = SaasPlan.objects.filter(slug=plan_slug, is_active=True).first()
+    if not target:
+        messages.error(request, _('Plan no válido.'))
+        return redirect('seller_plan_consumo')
+    if sub.plan.slug == plan_slug:
+        messages.info(request, _('Ya tienes este plan activo.'))
+        return redirect('seller_plan_consumo')
+    if target.sort_order <= sub.plan.sort_order:
+        messages.info(request, _('Selecciona un plan superior al actual.'))
+        return redirect('seller_plan_consumo')
+
+    try:
+        ctx = build_checkout_context(company, plan_slug)
+    except ValueError as exc:
+        if 'commercial' in str(exc):
+            return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
+        messages.error(request, _('No se pudo iniciar el checkout.'))
+        return redirect('seller_plan_consumo')
+
+    ctx.update({
+        'company': company,
+        'titulo_pagina': _('Pago del plan'),
+        'nav_activo': 'mi_tienda',
+    })
+    return render(request, 'core/seller_plan_checkout.html', ctx)
+
+
+@seller_required
+def seller_plan_checkout_resume(request):
+    """Retoma un checkout pendiente."""
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+    from .utils.saas_billing import get_pending_checkout
+
+    pending = get_pending_checkout(company)
+    if not pending:
+        messages.info(request, _('No tienes pagos pendientes.'))
+        return redirect('seller_plan_consumo')
+    return redirect('seller_plan_checkout', plan_slug=pending.target_plan.slug)
+
+
+@seller_required
+@require_POST
+def seller_plan_checkout_pay(request, plan_slug: str):
+    """Confirma pago y activa plan en Supabase."""
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+
+    from .utils.saas_billing import complete_plan_checkout, get_pending_checkout
+
+    checkout = get_pending_checkout(company)
+    if not checkout or checkout.target_plan.slug != plan_slug:
+        messages.error(request, _('Sesión de pago no válida. Elige el plan de nuevo.'))
+        return redirect('seller_plan_consumo')
+
+    provider = request.POST.get('payment_method', 'mock').strip() or 'mock'
+    card_name = request.POST.get('card_name', '').strip()
+    txn_ref = ''
+    if provider == 'mock' and card_name:
+        txn_ref = f'MOCK-{checkout.pk}'
+
+    try:
+        complete_plan_checkout(checkout, provider=provider, txn_ref=txn_ref)
+    except ValueError:
+        messages.error(request, _('No se pudo completar el pago.'))
+        return redirect('seller_plan_checkout', plan_slug=plan_slug)
+
+    messages.success(
+        request,
+        _('Pago confirmado. Plan %(name)s activo en tu cuenta.')
+        % {'name': checkout.target_plan.name},
+    )
+    return redirect('seller_plan_consumo')
+
+
+@seller_required
 @require_POST
 def seller_upgrade_plan(request):
-    """Activación inmediata de plan (persistida en Supabase)."""
+    """Redirige al checkout (compatibilidad con formularios antiguos)."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
     slug = request.POST.get('plan_slug', '').strip()
-    from .utils.saas_billing import activate_company_plan, get_or_create_subscription
-
-    if slug == 'ecosistema_enterprise':
-        return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
-
-    from .enterprise_models import SaasPlan
-
-    plan_obj = SaasPlan.objects.filter(slug=slug, is_active=True).first()
-    if not plan_obj:
-        messages.error(request, _('Plan no válido.'))
+    if not slug:
         return redirect('seller_plan_consumo')
-
-    sub = get_or_create_subscription(company)
-    if sub.plan.slug == slug:
-        messages.info(request, _('Ya tienes este plan activo.'))
-        return redirect('seller_plan_consumo')
-
-    try:
-        activate_company_plan(
-            company,
-            slug,
-            source='self_serve',
-            notes='seller_upgrade_plan',
-        )
-    except ValueError as exc:
-        if 'commercial' in str(exc):
-            return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
-        messages.error(request, _('No se pudo activar el plan.'))
-        return redirect('seller_plan_consumo')
-
-    messages.success(
-        request,
-        _('Plan %(name)s activado. Tu suscripción quedó registrada en la plataforma.')
-        % {'name': plan_obj.name},
-    )
-    return redirect('seller_plan_consumo')
+    return redirect('seller_plan_checkout', plan_slug=slug)
 
 
 @seller_required
