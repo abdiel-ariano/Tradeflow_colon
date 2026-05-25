@@ -21,6 +21,7 @@ from .enterprise_models import (
     ApiAuditLog,
     ApiKey,
     CompanyBillingUsage,
+    CompanyPlanCheckout,
     CompanyPlanCommercialRequest,
     CompanyPredictiveSnapshot,
     CompanySubscription,

@@ -126,6 +126,13 @@ urlpatterns = [
         name='api_seller_order_timeline',
     ),
     path('mi-tienda/plan/', views.seller_plan_consumo, name='seller_plan_consumo'),
+    path('mi-tienda/plan/pago/<slug:plan_slug>/', views.seller_plan_checkout, name='seller_plan_checkout'),
+    path(
+        'mi-tienda/plan/pago/<slug:plan_slug>/confirmar/',
+        views.seller_plan_checkout_pay,
+        name='seller_plan_checkout_pay',
+    ),
+    path('mi-tienda/plan/pago/pendiente/', views.seller_plan_checkout_resume, name='seller_plan_checkout_resume'),
     path('mi-tienda/plan/upgrade/', views.seller_upgrade_plan, name='seller_upgrade_plan'),
     path('mi-tienda/insights/', views.seller_predictive_insights, name='seller_predictive_insights'),
     path('mi-tienda/ventas/<int:pk>/despachar/', views.seller_dispatch_order, name='seller_dispatch_order'),

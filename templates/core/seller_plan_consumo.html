@@ -130,6 +130,11 @@
       </div>
       <span class="sp-plan-tier">{{ card.tier_label }}</span>
       <h3 class="sp-plan-title-v2">{{ card.name }}</h3>
+      {% if card.monthly_price_usd and card.cta != 'commercial' %}
+      <p style="font-size:1.1rem;font-weight:700;color:var(--tf-navy);margin:0 0 4px;">
+        USD {{ card.monthly_price_usd|floatformat:0 }}<span style="font-size:11px;font-weight:500;color:var(--tf-muted);"> / {% trans "mes" %}</span>
+      </p>
+      {% endif %}
       <p class="sp-plan-tagline-v2">{{ card.tagline }}</p>
       <ul class="sp-plan-benefits">
         {% for b in card.benefits %}
@@ -145,14 +150,10 @@
       <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-btn sp-btn-secondary sp-plan-activate-btn">{% trans "Solicitud comercial" %}</a>
       {% endif %}
       {% elif card.can_upgrade %}
-      <form method="post" action="{% url 'seller_upgrade_plan' %}" class="sp-plan-activate-form">
-        {% csrf_token %}
-        <input type="hidden" name="plan_slug" value="{{ card.slug }}">
-        <button type="submit" class="sp-btn sp-btn-primary sp-plan-activate-btn">
-          {% trans "Activar plan" %}
-        </button>
-      </form>
-      <p style="font-size:10px;color:var(--tf-muted);text-align:center;margin:8px 0 0;">{% trans "Facturación integrada próximamente" %}</p>
+      <a href="{% url 'seller_plan_checkout' card.slug %}" class="sp-btn sp-btn-primary sp-plan-activate-btn">
+        {% trans "Continuar al pago" %}
+      </a>
+      <p style="font-size:10px;color:var(--tf-muted);text-align:center;margin:8px 0 0;">{% trans "Checkout seguro · renovación mensual" %}</p>
       {% else %}
       <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="font-size:12px;opacity:0.65;">{% trans "Incluido en tu nivel" %}</span>
       {% endif %}
