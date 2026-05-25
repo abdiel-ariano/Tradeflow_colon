@@ -315,6 +315,7 @@ LOGGING = {
         'tradeflow.email': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
         'tradeflow.media': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
         'tradeflow.platform': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
+        'tradeflow.saas': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
     },
 }
 

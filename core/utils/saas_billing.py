@@ -3,12 +3,16 @@ Facturación SaaS por empresa: planes, límites y uso mensual.
 """
 from __future__ import annotations
 
+import logging
 from calendar import monthrange
 from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.db.models import Sum
+from django.db.utils import DatabaseError, OperationalError, ProgrammingError
 from django.utils import timezone
+
+log = logging.getLogger('tradeflow.saas')
 
 from core.enterprise_models import (
     AdCreditAccount,
@@ -71,8 +75,26 @@ def _period_bounds(now=None):
     return start, end
 
 
-def ensure_default_plans():
-    """Crea planes oficiales si no existen."""
+def _safe_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
+    """Checkout pendiente; tolera migración 0017 no aplicada."""
+    try:
+        return (
+            CompanyPlanCheckout.objects.filter(company=company, status='pending')
+            .select_related('target_plan', 'from_plan')
+            .order_by('-created_at')
+            .first()
+        )
+    except (OperationalError, ProgrammingError) as exc:
+        log.warning(
+            'saas_checkout_table_unavailable company_id=%s: %s',
+            company.pk,
+            exc,
+        )
+        return None
+
+
+def ensure_default_plans() -> int:
+    """Crea planes oficiales si no existen. Retorna cantidad de planes activos."""
     defaults = [
         ('digitalizate', 'Digitalízate', Decimal('15000'), 50, False, False, False, 1),
         ('expansion', 'Expansión', Decimal('50000'), 200, True, False, False, 2),
@@ -94,6 +116,9 @@ def ensure_default_plans():
                 'is_active': True,
             },
         )
+    count = SaasPlan.objects.filter(is_active=True).count()
+    log.info('saas_ensure_default_plans active_plans=%s', count)
+    return count
 
 
 def get_or_create_subscription(company: Company) -> CompanySubscription:
@@ -174,12 +199,7 @@ def subscription_usage_snapshot(company: Company) -> dict:
         growth_signal = 'expand'
         growth_message = 'Potencia tu plan para seguir escalando sin fricción operativa.'
 
-    pending_checkout = (
-        CompanyPlanCheckout.objects.filter(company=company, status='pending')
-        .select_related('target_plan', 'from_plan')
-        .order_by('-created_at')
-        .first()
-    )
+    pending_checkout = _safe_pending_checkout(company)
 
     activity_pct = min(pct or 0, 100) if pct is not None else (35 if not plan.is_unlimited else 100)
     flow_steps = _build_seller_flow_steps(
@@ -366,29 +386,32 @@ def create_plan_checkout(company: Company, plan_slug: str) -> CompanyPlanCheckou
     if sub.plan.slug == plan_slug:
         raise ValueError('already_on_plan')
 
-    CompanyPlanCheckout.objects.filter(company=company, status='pending').update(
-        status='cancelled',
-    )
+    try:
+        CompanyPlanCheckout.objects.filter(company=company, status='pending').update(
+            status='cancelled',
+        )
+    except (OperationalError, ProgrammingError) as exc:
+        log.warning('saas_checkout_cancel_pending_failed: %s', exc)
+        raise ValueError('checkout_table_unavailable') from exc
 
     amount = plan_monthly_price(plan_slug)
     now = timezone.now()
-    return CompanyPlanCheckout.objects.create(
-        company=company,
-        from_plan=sub.plan,
-        target_plan=plan,
-        amount_usd=amount,
-        status='pending',
-        expires_at=now + timedelta(hours=48),
-    )
+    try:
+        return CompanyPlanCheckout.objects.create(
+            company=company,
+            from_plan=sub.plan,
+            target_plan=plan,
+            amount_usd=amount,
+            status='pending',
+            expires_at=now + timedelta(hours=48),
+        )
+    except (OperationalError, ProgrammingError) as exc:
+        log.warning('saas_checkout_create_failed: %s', exc)
+        raise ValueError('checkout_table_unavailable') from exc
 
 
 def get_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
-    return (
-        CompanyPlanCheckout.objects.filter(company=company, status='pending')
-        .select_related('target_plan', 'from_plan')
-        .order_by('-created_at')
-        .first()
-    )
+    return _safe_pending_checkout(company)
 
 
 def complete_plan_checkout(
@@ -490,6 +513,7 @@ def build_plan_page_context(company: Company) -> dict:
     """Contexto completo para página de planes (marketing sin topes USD)."""
     from core.utils.saas_plan_catalog import marketing_for_plan
 
+    ensure_default_plans()
     snap = subscription_usage_snapshot(company)
     current_slug = snap['plan'].slug
     cards = []
@@ -500,23 +524,69 @@ def build_plan_page_context(company: Company) -> dict:
         m['monthly_price_usd'] = float(plan_monthly_price(plan.slug))
         cards.append(m)
 
-    pending_enterprise = CompanyPlanCommercialRequest.objects.filter(
-        company=company,
-        requested_plan__slug='ecosistema_enterprise',
-        status__in=('pending', 'en_revision'),
-    ).first()
+    try:
+        pending_enterprise = CompanyPlanCommercialRequest.objects.filter(
+            company=company,
+            requested_plan__slug='ecosistema_enterprise',
+            status__in=('pending', 'en_revision'),
+        ).first()
+    except (OperationalError, ProgrammingError) as exc:
+        log.warning('saas_commercial_request_query_failed: %s', exc)
+        pending_enterprise = None
 
-    upgrade_history = list(
-        SubscriptionUpgradeLog.objects.filter(company=company)
-        .select_related('from_plan', 'to_plan')[:8]
-    )
+    try:
+        upgrade_history = list(
+            SubscriptionUpgradeLog.objects.filter(company=company)
+            .select_related('from_plan', 'to_plan')[:8]
+        )
+    except (OperationalError, ProgrammingError) as exc:
+        log.warning('saas_upgrade_history_query_failed: %s', exc)
+        upgrade_history = []
 
     return {
         'saas': snap,
+        'saas_snapshot': snap,
         'plan_cards': cards,
+        'plans_available': len(cards) > 0,
         'pending_enterprise': pending_enterprise,
         'upgrade_history': upgrade_history,
     }
+
+
+def build_plan_page_context_safe(company: Company) -> tuple[dict, str | None]:
+    """
+    Construye contexto de planes; retorna (contexto, mensaje_error|None).
+    Nunca deja la vista sin contexto mínimo.
+    """
+    try:
+        return build_plan_page_context(company), None
+    except (OperationalError, ProgrammingError, DatabaseError) as exc:
+        log.error(
+            'saas_plan_page_db_error company_id=%s: %s',
+            company.pk,
+            exc,
+            exc_info=True,
+        )
+        err = 'database_schema'
+    except Exception as exc:
+        log.error(
+            'saas_plan_page_unexpected company_id=%s: %s',
+            company.pk,
+            exc,
+            exc_info=True,
+        )
+        err = 'unexpected'
+
+    ensure_default_plans()
+    return {
+        'saas': None,
+        'saas_snapshot': None,
+        'plan_cards': [],
+        'plans_available': False,
+        'pending_enterprise': None,
+        'upgrade_history': [],
+        'saas_degraded': True,
+    }, err
 
 
 def assert_within_volume_limit(company: Company, additional_usd: Decimal = Decimal('0')) -> None:

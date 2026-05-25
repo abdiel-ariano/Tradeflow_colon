@@ -1718,18 +1718,42 @@ def api_seller_order_timeline(request, pk):
 @seller_required
 def seller_plan_consumo(request):
     """Dashboard de consumo SaaS y planes."""
+    import logging
+
+    saas_log = logging.getLogger('tradeflow.saas')
+
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
-    from .utils.saas_billing import build_plan_page_context, ensure_default_plans
 
-    ensure_default_plans()
-    ctx = build_plan_page_context(company)
+    from .utils.saas_billing import build_plan_page_context_safe
+    from .utils.saas_platform import bootstrap_saas_for_company, get_saas_health
+
+    health = bootstrap_saas_for_company(company)
+    saas_log.info(
+        'seller_plan_consumo company_id=%s plans=%s health_ok=%s issues=%s',
+        company.pk,
+        health.get('plans_count'),
+        health.get('ok'),
+        health.get('issues'),
+    )
+
+    ctx, page_error = build_plan_page_context_safe(company)
     ctx.update({
         'company': company,
         'titulo_pagina': _('Crecimiento TradeFlow'),
         'nav_activo': 'mi_tienda',
+        'saas_health': health,
+        'saas_page_error': page_error,
     })
+
+    if not ctx.get('plans_available') and not page_error:
+        saas_log.warning(
+            'seller_plan_consumo empty_plan_cards company_id=%s plans_in_db=%s',
+            company.pk,
+            health.get('plans_count'),
+        )
+
     return render(request, 'core/seller_plan_consumo.html', ctx)
 
 
