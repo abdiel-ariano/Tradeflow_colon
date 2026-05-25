@@ -13,8 +13,10 @@ from django.utils import timezone
 from core.enterprise_models import (
     AdCreditAccount,
     CompanyBillingUsage,
+    CompanyPlanCommercialRequest,
     CompanySubscription,
     SaasPlan,
+    SubscriptionUpgradeLog,
 )
 from core.models import Company, OrderItem
 
@@ -150,6 +152,15 @@ def subscription_usage_snapshot(company: Company) -> dict:
     except AdCreditAccount.DoesNotExist:
         ad_balance = plan.ad_credits_monthly
 
+    growth_signal = 'optimal'
+    growth_message = 'Tu operación avanza dentro del ecosistema TradeFlow.'
+    if warning == 'approaching':
+        growth_signal = 'accelerating'
+        growth_message = 'Tu volumen comercial está acelerando — considera ampliar capacidades.'
+    elif warning == 'limit':
+        growth_signal = 'expand'
+        growth_message = 'Potencia tu plan para seguir escalando sin fricción operativa.'
+
     return {
         'subscription': sub,
         'plan': plan,
@@ -165,6 +176,126 @@ def subscription_usage_snapshot(company: Company) -> dict:
         'webhooks_enabled': plan.logistics_webhooks,
         'predictive_ai_enabled': plan.predictive_ai,
         'volume_blocked': warning == 'limit',
+        'growth_signal': growth_signal,
+        'growth_message': growth_message,
+        'meter_width_pct': min(pct or 0, 100) if pct is not None else None,
+        'show_public_meter': not plan.is_unlimited and pct is not None,
+    }
+
+
+def activate_company_plan(
+    company: Company,
+    plan_slug: str,
+    *,
+    source: str = 'self_serve',
+    notes: str = '',
+) -> CompanySubscription:
+    """
+    Activa o actualiza plan en Supabase (CompanySubscription + historial + créditos ads).
+    """
+    from django.db import transaction
+
+    from core.utils.ads_ranking import ensure_ad_credits
+    from core.utils.saas_plan_catalog import marketing_for_plan
+
+    ensure_default_plans()
+    plan = SaasPlan.objects.filter(slug=plan_slug, is_active=True).first()
+    if not plan:
+        raise ValueError(f'plan_not_found:{plan_slug}')
+    if marketing_for_plan(plan).get('cta') == 'commercial':
+        raise ValueError('plan_requires_commercial_activation')
+
+    with transaction.atomic():
+        sub = get_or_create_subscription(company)
+        from_plan = sub.plan
+        if from_plan.pk == plan.pk:
+            return sub
+        sub.plan = plan
+        sub.status = 'active'
+        sub.upgraded_at = timezone.now()
+        start, _ = _period_bounds()
+        sub.current_period_start = start
+        sub.save(update_fields=['plan', 'status', 'upgraded_at', 'current_period_start'])
+        SubscriptionUpgradeLog.objects.create(
+            company=company,
+            from_plan=from_plan,
+            to_plan=plan,
+            source=source,
+            notes=notes[:255],
+        )
+        ensure_ad_credits(company, plan.ad_credits_monthly)
+        refresh_billing_usage(company)
+    return sub
+
+
+def create_enterprise_commercial_request(
+    company: Company,
+    *,
+    contact_name: str,
+    contact_email: str,
+    message: str = '',
+    user_application=None,
+) -> CompanyPlanCommercialRequest:
+    """Registra solicitud Enterprise en Supabase."""
+    ensure_default_plans()
+    plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
+    return CompanyPlanCommercialRequest.objects.create(
+        company=company,
+        requested_plan=plan,
+        status='pending',
+        contact_name=contact_name[:120],
+        contact_email=contact_email,
+        company_legal_name=company.name[:200],
+        message=message,
+        user_application=user_application,
+    )
+
+
+def approve_commercial_request(req: CompanyPlanCommercialRequest) -> CompanySubscription:
+    """Aprueba solicitud comercial y activa plan Enterprise en Supabase."""
+    from django.db import transaction
+
+    with transaction.atomic():
+        req.status = 'approved'
+        req.reviewed_at = timezone.now()
+        req.save(update_fields=['status', 'reviewed_at'])
+        return activate_company_plan(
+            req.company,
+            req.requested_plan.slug,
+            source='commercial',
+            notes=f'commercial_request:{req.pk}',
+        )
+
+
+def build_plan_page_context(company: Company) -> dict:
+    """Contexto completo para página de planes (marketing sin topes USD)."""
+    from core.utils.saas_plan_catalog import marketing_for_plan
+
+    snap = subscription_usage_snapshot(company)
+    current_slug = snap['plan'].slug
+    cards = []
+    for plan in SaasPlan.objects.filter(is_active=True).order_by('sort_order'):
+        m = marketing_for_plan(plan)
+        m['is_current'] = plan.slug == current_slug
+        m['can_upgrade'] = plan.sort_order > snap['plan'].sort_order
+        cards.append(m)
+
+    pending_enterprise = CompanyPlanCommercialRequest.objects.filter(
+        company=company,
+        requested_plan__slug='ecosistema_enterprise',
+        status__in=('pending', 'en_revision'),
+    ).first()
+
+    upgrade_history = list(
+        SubscriptionUpgradeLog.objects.filter(company=company)
+        .select_related('from_plan', 'to_plan')[:8]
+    )
+
+    return {
+        'saas': snap,
+        'plan_cards': cards,
+        'pending_enterprise': pending_enterprise,
+        'upgrade_history': upgrade_history,
     }
 
 

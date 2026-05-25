@@ -1,59 +1,215 @@
 {% extends "core/seller_layout.html" %}
 {% load i18n %}
-{% block title %}{% trans "Plan y consumo" %} — TradeFlow{% endblock %}
-{% block seller_page_title %}{% trans "Plan y consumo" %}{% endblock %}
-{% block seller_page_sub %}<p class="sp-topbar-sub">{{ company.name }}</p>{% endblock %}
+{% block title %}{% trans "Crecimiento TradeFlow" %} — {{ company.name }}{% endblock %}
+{% block seller_page_title %}{% trans "Ecosistema de crecimiento" %}{% endblock %}
+{% block seller_page_sub %}
+<p class="sp-topbar-sub">{% trans "Escala tu operación en la Zona Libre de Colón con herramientas enterprise" %}</p>
+{% endblock %}
+
+{% block seller_extra_css %}
+<style>
+.sp-plans-page { padding: 0 8px 32px; max-width: 1180px; margin: 0 auto; }
+.sp-plans-hero { margin-bottom: 28px; }
+.sp-plans-hero h2 { font-family: 'DM Serif Display', serif; color: var(--tf-navy); margin: 0 0 8px; font-size: 1.35rem; }
+.sp-plans-hero p { color: var(--tf-muted); margin: 0; font-size: 14px; line-height: 1.55; max-width: 640px; }
+.sp-plans-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+@media (max-width: 1100px) { .sp-plans-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .sp-plans-grid { grid-template-columns: 1fr; } }
+.sp-plan-card-v2 {
+  background: var(--tf-white);
+  border: 1px solid var(--tf-sand2);
+  border-radius: 16px;
+  padding: 24px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+.sp-plan-card-v2:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(15, 42, 68, 0.08); }
+.sp-plan-card-v2.is-featured {
+  border-color: var(--tf-orange);
+  box-shadow: 0 8px 28px rgba(242, 101, 34, 0.12);
+}
+.sp-plan-card-v2.is-current { border-color: var(--tf-teal); background: linear-gradient(180deg, rgba(46,91,138,0.04) 0%, var(--tf-white) 48%); }
+.sp-plan-badge-top {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(242, 101, 34, 0.12);
+  color: var(--tf-orange);
+}
+.sp-plan-badge-current {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--tf-teal);
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+.sp-plan-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--tf-sand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  color: var(--tf-navy);
+}
+.sp-plan-card-v2.is-featured .sp-plan-icon { background: rgba(242, 101, 34, 0.1); color: var(--tf-orange); }
+.sp-plan-tier { font-size: 11px; font-weight: 600; color: var(--tf-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.sp-plan-title-v2 { font-family: 'DM Serif Display', serif; font-size: 1.25rem; color: var(--tf-navy); margin: 4px 0 6px; }
+.sp-plan-tagline-v2 { font-size: 13px; color: var(--tf-muted); line-height: 1.45; margin: 0 0 16px; min-height: 2.9em; }
+.sp-plan-benefits { list-style: none; margin: 0 0 20px; padding: 0; flex: 1; }
+.sp-plan-benefits li {
+  font-size: 12px;
+  color: var(--tf-navy);
+  padding: 6px 0 6px 22px;
+  position: relative;
+  line-height: 1.4;
+}
+.sp-plan-benefits li::before {
+  content: 'check_circle';
+  font-family: 'Material Symbols Rounded';
+  position: absolute;
+  left: 0;
+  top: 5px;
+  font-size: 14px;
+  color: var(--tf-teal);
+}
+.sp-plan-activate-btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: auto;
+}
+.sp-plan-enterprise-note {
+  margin-top: 28px;
+  padding: 22px 24px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--tf-navy) 0%, #1a3d5c 100%);
+  color: #fff;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.sp-plan-history { margin-top: 28px; }
+.sp-plan-history h3 { font-size: 1rem; color: var(--tf-navy); margin: 0 0 12px; }
+</style>
+{% endblock %}
 
 {% block seller_content %}
-{% include "core/includes/seller_saas_usage.html" %}
+<div class="sp-plans-page">
+  {% include "core/includes/seller_saas_usage.html" %}
 
-<section id="upgrade" class="sp-card" style="margin-top:8px;">
-  <div class="sp-card-head">
-    <h2>{% trans "Upgrade SaaS inmediato" %}</h2>
-    <p style="font-size:13px;color:var(--tf-muted);margin:0;">{% trans "Cambio de plan al instante en tu cuenta. Al superar el techo mensual, las confirmaciones de venta se bloquean hasta upgrade." %}</p>
+  <div class="sp-plans-hero">
+    <h2>{% trans "Elige cómo crece tu empresa" %}</h2>
+    <p>{% trans "Cada nivel desbloquea automatización, visibilidad e inteligencia operativa. La activación queda registrada de forma permanente en tu cuenta empresarial." %}</p>
   </div>
-  <div class="sp-plan-strip" style="margin:0;">
-    {% for p in plans %}
-    <article class="sp-plan-card {% if saas.plan.slug == p.slug %}sp-plan-card--featured{% endif %}">
-      <span class="sp-plan-tag">{% if p.is_unlimited %}{% trans "Ilimitado" %}{% else %}USD {{ p.monthly_volume_limit_usd|floatformat:0 }}{% trans "/mes" %}{% endif %}</span>
-      <h3 class="sp-plan-name">{{ p.name }}</h3>
-      <p class="sp-plan-desc">
-        {% trans "Ads" %}: {{ p.ad_credits_monthly }}
-        {% if p.api_access %} · API{% endif %}
-        {% if p.logistics_webhooks %} · Webhooks{% endif %}
-      </p>
-      {% if saas.plan.slug == p.slug %}
-      <span class="sp-plan-cta" style="color:var(--tf-muted);">{% trans "Plan actual" %}</span>
-      {% elif p.slug == 'ecosistema_enterprise' %}
-      <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-plan-cta sp-plan-cta--outline">{% trans "Solicitud Enterprise" %}</a>
-      {% elif p.sort_order > saas.plan.sort_order %}
-      <form method="post" action="{% url 'seller_upgrade_plan' %}">
-        {% csrf_token %}
-        <input type="hidden" name="plan_slug" value="{{ p.slug }}">
-        <button type="submit" class="sp-plan-cta" style="border:none;background:none;cursor:pointer;padding:0;width:100%;text-align:left;">{% trans "Upgrade ahora" %} →</button>
-      </form>
+
+  <div class="sp-plans-grid" id="upgrade">
+    {% for card in plan_cards %}
+    <article class="sp-plan-card-v2 {% if card.featured %}is-featured{% endif %} {% if card.is_current %}is-current{% endif %}">
+      {% if card.badge and not card.is_current %}
+      <span class="sp-plan-badge-top">{{ card.badge }}</span>
+      {% endif %}
+      {% if card.is_current %}
+      <span class="sp-plan-badge-current">{% trans "Plan activo" %}</span>
+      {% endif %}
+      <div class="sp-plan-icon">
+        <span class="material-symbols-rounded">{{ card.icon }}</span>
+      </div>
+      <span class="sp-plan-tier">{{ card.tier_label }}</span>
+      <h3 class="sp-plan-title-v2">{{ card.name }}</h3>
+      <p class="sp-plan-tagline-v2">{{ card.tagline }}</p>
+      <ul class="sp-plan-benefits">
+        {% for b in card.benefits %}
+        <li>{{ b }}</li>
+        {% endfor %}
+      </ul>
+      {% if card.is_current %}
+      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.85;pointer-events:none;">{% trans "Activo" %}</span>
+      {% elif card.cta == 'commercial' %}
+      {% if pending_enterprise %}
+      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.8;">{% trans "Solicitud en revisión" %}</span>
       {% else %}
-      <span class="sp-plan-cta" style="color:var(--tf-muted);font-size:12px;">{% trans "Incluido en tu nivel" %}</span>
+      <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-btn sp-btn-secondary sp-plan-activate-btn">{% trans "Solicitud comercial" %}</a>
+      {% endif %}
+      {% elif card.can_upgrade %}
+      <form method="post" action="{% url 'seller_upgrade_plan' %}" class="sp-plan-activate-form">
+        {% csrf_token %}
+        <input type="hidden" name="plan_slug" value="{{ card.slug }}">
+        <button type="submit" class="sp-btn sp-btn-primary sp-plan-activate-btn">
+          {% trans "Activar plan" %}
+        </button>
+      </form>
+      <p style="font-size:10px;color:var(--tf-muted);text-align:center;margin:8px 0 0;">{% trans "Facturación integrada próximamente" %}</p>
+      {% else %}
+      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="font-size:12px;opacity:0.65;">{% trans "Incluido en tu nivel" %}</span>
       {% endif %}
     </article>
     {% endfor %}
   </div>
-</section>
 
-<section class="sp-card" style="margin-top:24px;border-color:var(--tf-sand2);">
-  <div class="sp-card-head"><h2>{% trans "Activación Enterprise" %}</h2></div>
-  <p style="font-size:14px;color:var(--tf-muted);margin:0 0 16px;line-height:1.5;">
-    {% trans "Ecosistema Enterprise no se activa con un clic: requiere revisión comercial, SLA y configuración de API/logística." %}
-  </p>
-  <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-btn sp-btn-secondary">{% trans "Iniciar solicitud comercial" %}</a>
-</section>
-
-<section class="sp-card" style="margin-top:24px;">
-  <div class="sp-card-head"><h2>{% trans "Métricas del período" %}</h2></div>
-  <div class="sp-kpi-grid" style="margin-bottom:0;">
-    <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Órdenes" %}</span><p class="sp-kpi-val">{{ saas.usage.orders_count }}</p></article>
-    <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Volumen USD" %}</span><p class="sp-kpi-val" style="font-size:1.25rem;">{{ saas.volume_usd }}</p></article>
-    <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Renovación" %}</span><p class="sp-kpi-val" style="font-size:1rem;">{{ saas.subscription.current_period_end|date:"d/m/Y" }}</p></article>
+  <div class="sp-plan-enterprise-note">
+    <div>
+      <strong style="font-size:1.05rem;">{% trans "Ecosistema Enterprise" %}</strong>
+      <p style="margin:8px 0 0;font-size:13px;opacity:0.9;max-width:520px;line-height:1.5;">
+        {% trans "Activación consultiva con ejecutivo dedicado, SLA y configuración de API. No es un clic: es una alianza estratégica para escalar en Panamá y la región." %}
+      </p>
+    </div>
+    <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-btn sp-btn-primary" style="background:var(--tf-orange);border-color:var(--tf-orange);white-space:nowrap;">
+      {% trans "Iniciar conversación enterprise" %}
+    </a>
   </div>
-</section>
+
+  {% if upgrade_history %}
+  <section class="sp-card sp-plan-history">
+    <h3>{% trans "Historial de evolución de plan" %}</h3>
+    <div class="sp-table-wrap">
+      <table class="sp-table">
+        <thead>
+          <tr><th>{% trans "Fecha" %}</th><th>{% trans "De" %}</th><th>{% trans "A" %}</th><th>{% trans "Origen" %}</th></tr>
+        </thead>
+        <tbody>
+          {% for log in upgrade_history %}
+          <tr>
+            <td>{{ log.activated_at|date:"d/m/Y H:i" }}</td>
+            <td>{{ log.from_plan.name|default:"—" }}</td>
+            <td><strong>{{ log.to_plan.name }}</strong></td>
+            <td>{{ log.get_source_display }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="sp-card" style="margin-top:24px;">
+    <div class="sp-kpi-grid" style="margin-bottom:0;">
+      <article class="sp-kpi">
+        <span class="sp-kpi-lbl">{% trans "Órdenes del período" %}</span>
+        <p class="sp-kpi-val">{{ saas.usage.orders_count }}</p>
+      </article>
+      <article class="sp-kpi">
+        <span class="sp-kpi-lbl">{% trans "Renovación ciclo" %}</span>
+        <p class="sp-kpi-val" style="font-size:1rem;">{{ saas.subscription.current_period_end|date:"d/m/Y" }}</p>
+      </article>
+      <article class="sp-kpi">
+        <span class="sp-kpi-lbl">{% trans "Créditos TradeFlow Ads" %}</span>
+        <p class="sp-kpi-val">{{ saas.ad_credits_balance }}</p>
+      </article>
+    </div>
+  </section>
+</div>
 {% endblock %}

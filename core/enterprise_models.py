@@ -108,6 +108,83 @@ class CompanyBillingUsage(models.Model):
         return f'{self.company_id} {self.period_year}-{self.period_month:02d}'
 
 
+class SubscriptionUpgradeLog(models.Model):
+    """Historial persistente de cambios de plan (Supabase / PostgreSQL)."""
+
+    SOURCE_CHOICES = [
+        ('self_serve', _('Activación seller')),
+        ('commercial', _('Aprobación comercial')),
+        ('admin', _('Administrador')),
+    ]
+
+    company = models.ForeignKey(
+        'core.Company',
+        on_delete=models.CASCADE,
+        related_name='subscription_upgrades',
+    )
+    from_plan = models.ForeignKey(
+        SaasPlan,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='upgrades_from',
+    )
+    to_plan = models.ForeignKey(
+        SaasPlan,
+        on_delete=models.PROTECT,
+        related_name='upgrades_to',
+    )
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='self_serve')
+    activated_at = models.DateTimeField(default=timezone.now)
+    notes = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ['-activated_at']
+        verbose_name = 'Historial upgrade plan'
+        verbose_name_plural = 'Historial upgrades plan'
+
+
+class CompanyPlanCommercialRequest(models.Model):
+    """Solicitud comercial Enterprise vinculada a empresa (persistente en Supabase)."""
+
+    STATUS_CHOICES = [
+        ('pending', _('Pendiente')),
+        ('en_revision', _('En revisión')),
+        ('approved', _('Aprobada')),
+        ('rejected', _('Rechazada')),
+    ]
+
+    company = models.ForeignKey(
+        'core.Company',
+        on_delete=models.CASCADE,
+        related_name='plan_commercial_requests',
+    )
+    requested_plan = models.ForeignKey(
+        SaasPlan,
+        on_delete=models.PROTECT,
+        related_name='commercial_requests',
+    )
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='pending')
+    contact_name = models.CharField(max_length=120)
+    contact_email = models.EmailField()
+    company_legal_name = models.CharField(max_length=200, blank=True)
+    message = models.TextField(blank=True)
+    user_application = models.ForeignKey(
+        'core.UserApplication',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='plan_commercial_requests',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Solicitud plan comercial'
+        verbose_name_plural = 'Solicitudes plan comercial'
+
+
 class CompanyPredictiveSnapshot(models.Model):
     """Caché de insights predictivos (Enterprise) por empresa y período."""
 
