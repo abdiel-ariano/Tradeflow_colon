@@ -3,8 +3,16 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import { AdminSaasDashboard } from './routes/AdminSaasDashboard';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AdminSaasDashboard />
-  </StrictMode>,
-);
+const mountEl =
+  document.getElementById('admin-saas-root') ?? document.getElementById('root');
+
+if (!mountEl) {
+  console.error('[admin-saas] No se encontró #admin-saas-root');
+} else {
+  mountEl.classList.add('is-react-ready');
+  createRoot(mountEl).render(
+    <StrictMode>
+      <AdminSaasDashboard />
+    </StrictMode>,
+  );
+}

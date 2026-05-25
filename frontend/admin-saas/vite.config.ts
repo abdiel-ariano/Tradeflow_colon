@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/static/admin-saas/',
+  base: './',
   build: {
     outDir: path.resolve(__dirname, '../../static/admin-saas'),
     emptyOutDir: true,

@@ -3,16 +3,54 @@
 {% block title %}{% trans "Planes SaaS" %} — TradeFlow Admin{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'admin-saas/admin-saas.css' %}">
 {% endblock %}
 {% block extra_css %}
 {% include "core/includes/static_css_bundle.html" %}
 <style>
-  .adm-main { padding: 0; background: #f8fafc; min-height: 100vh; }
-  .adm-saas-wrap { margin-left: 0; }
-  #admin-saas-root { min-height: calc(100vh - 48px); font-family: Inter, system-ui, sans-serif; }
-  @media (min-width: 900px) {
-    .adm-saas-wrap { margin-left: var(--adm-rail-width, 220px); }
+  .adm-shell .adm-main.adm-saas-wrap {
+    padding: 0;
+    background: #f8fafc;
+    min-height: calc(100vh - 64px);
   }
+  #admin-saas-root {
+    min-height: calc(100vh - 64px);
+    width: 100%;
+    font-family: Inter, system-ui, sans-serif;
+  }
+  .adm-saas-fallback {
+    padding: 28px clamp(20px, 4vw, 40px) 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .adm-saas-fallback h2 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    color: var(--tf-navy, #0f2a44);
+    margin: 0 0 8px;
+  }
+  .adm-saas-fallback-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .adm-saas-fallback-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .adm-saas-fallback-card strong { display: block; font-size: 1.5rem; color: #0f2a44; }
+  .adm-saas-fallback-hint {
+    font-size: 13px;
+    color: #6b7a88;
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: #fff7ed;
+    border-radius: 8px;
+    border: 1px solid rgba(242, 101, 34, 0.2);
+  }
+  #admin-saas-root.is-react-ready .adm-saas-fallback { display: none; }
 </style>
 {% endblock %}
 {% block content %}
@@ -21,10 +59,85 @@
   <div class="adm-main adm-saas-wrap">
     <div
       id="admin-saas-root"
-      data-api-url="{% url 'api_admin_saas_stats' %}"
-    ></div>
+      data-api-url="{{ api_admin_saas_stats_url }}"
+      data-static-js="{% static 'admin-saas/admin-saas.js' %}"
+      data-static-css="{% static 'admin-saas/admin-saas.css' %}"
+    >
+      <div id="admin-saas-fallback" class="adm-saas-fallback" aria-live="polite">
+        <h2>{% trans "Panel SaaS — TradeFlow" %}</h2>
+        <p style="color:#6b7a88;margin:0 0 8px;">{% trans "Cargando experiencia interactiva…" %}</p>
+        {% if saas_preview %}
+        <div class="adm-saas-fallback-grid">
+          <div class="adm-saas-fallback-card">
+            <span style="font-size:12px;color:#6b7a88;">{% trans "Empresas activas" %}</span>
+            <strong>{{ saas_preview.kpis.companies_active }}</strong>
+          </div>
+          <div class="adm-saas-fallback-card">
+            <span style="font-size:12px;color:#6b7a88;">{% trans "Ingreso mensual (MRR)" %}</span>
+            <strong>USD {{ saas_preview.kpis.monthly_revenue_usd|floatformat:0 }}</strong>
+          </div>
+          <div class="adm-saas-fallback-card">
+            <span style="font-size:12px;color:#6b7a88;">{% trans "Solicitudes pendientes" %}</span>
+            <strong>{{ saas_preview.kpis.pending_requests }}</strong>
+          </div>
+          <div class="adm-saas-fallback-card">
+            <span style="font-size:12px;color:#6b7a88;">{% trans "Planes en catálogo" %}</span>
+            <strong>{{ saas_plans_count }}</strong>
+          </div>
+        </div>
+        {% if saas_preview.plan_usage %}
+        <p style="font-size:13px;color:#374151;"><strong>{% trans "Distribución por plan" %}:</strong>
+          {% for p in saas_preview.plan_usage %}{{ p.name }} ({{ p.count }}){% if not forloop.last %} · {% endif %}{% endfor %}
+        </p>
+        {% endif %}
+        {% else %}
+        <p class="adm-saas-fallback-hint">
+          {% trans "Inicializando datos desde Supabase. Si persiste, ejecute:" %}
+          <code>python manage.py migrate</code> · <code>python manage.py verify_saas --seed</code>
+        </p>
+        {% endif %}
+        <p class="adm-saas-fallback-hint" id="admin-saas-boot-status">
+          {% trans "Estado del panel interactivo:" %} {% trans "iniciando" %}…
+        </p>
+      </div>
+    </div>
   </div>
 </div>
-<link rel="stylesheet" href="{% static 'admin-saas/admin-saas.css' %}">
-<script type="module" src="{% static 'admin-saas/admin-saas.js' %}"></script>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var root = document.getElementById('admin-saas-root');
+  var status = document.getElementById('admin-saas-boot-status');
+  if (!root) return;
+
+  function setStatus(msg, isError) {
+    if (status) {
+      status.textContent = '{% trans "Estado del panel interactivo:" %} ' + msg;
+      status.style.color = isError ? '#b91c1c' : '#15803d';
+    }
+  }
+
+  var scriptUrl = root.dataset.staticJs;
+  if (!scriptUrl) {
+    setStatus('{% trans "URL del script no configurada" %}', true);
+    return;
+  }
+
+  var s = document.createElement('script');
+  s.type = 'module';
+  s.src = scriptUrl;
+  s.onload = function () {
+    setTimeout(function () {
+      if (!root.classList.contains('is-react-ready')) {
+        setStatus('{% trans "Script cargado; verifique la consola del navegador (F12)" %}', true);
+      }
+    }, 2500);
+  };
+  s.onerror = function () {
+    setStatus('{% trans "No se pudo cargar" %} ' + scriptUrl + ' — {% trans "ejecute npm run build en frontend/admin-saas o collectstatic" %}', true);
+  };
+  document.body.appendChild(s);
+})();
+</script>
 {% endblock %}
