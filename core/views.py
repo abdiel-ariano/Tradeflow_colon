@@ -3808,11 +3808,32 @@ def revisar_solicitud(request, token, accion):
 @admin_required
 def admin_saas_dashboard(request):
     """Panel React de planes SaaS, empresas e IA predictiva (admin)."""
-    return render(
-        request,
-        'core/admin_saas_dashboard.html',
-        {'nav_activo': 'saas'},
+    import logging
+
+    log = logging.getLogger('tradeflow.saas')
+    ctx = {'nav_activo': 'saas', 'saas_preview': None, 'saas_plans_count': 0}
+    ctx['api_admin_saas_stats_url'] = reverse('api_admin_saas_stats')
+
+    try:
+        from core.enterprise_models import SaasPlan
+        from core.utils.saas_admin_metrics import build_saas_admin_payload
+        from core.utils.saas_platform import bootstrap_saas_datastore
+
+        health = bootstrap_saas_datastore(seed_subscriptions=False)
+        ctx['saas_plans_count'] = health.get('plans_count', 0)
+        if health.get('ok'):
+            ctx['saas_preview'] = build_saas_admin_payload()
+        else:
+            log.warning('admin_saas_dashboard health issues: %s', health.get('issues'))
+    except Exception as exc:
+        log.error('admin_saas_dashboard preview_failed: %s', exc, exc_info=True)
+
+    log.info(
+        'admin_saas_dashboard render plans=%s preview=%s',
+        ctx['saas_plans_count'],
+        bool(ctx['saas_preview']),
     )
+    return render(request, 'core/admin_saas_dashboard.html', ctx)
 
 
 @admin_required
