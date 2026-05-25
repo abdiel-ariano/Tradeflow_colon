@@ -94,6 +94,7 @@ urlpatterns = [
     # ── Dashboard (admin) ─────────────────────────────────────────────────
     path('', views.home_view, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('saas/', views.admin_saas_dashboard, name='admin_saas_dashboard'),
 
     # ── Portales de rol ───────────────────────────────────────────────────
 
@@ -168,6 +169,12 @@ urlpatterns = [
 
     # ── Dashboard API (Chart.js, sin recarga) ─────────────────────────────
     path('api/dashboard-stats/', views.api_dashboard_stats, name='api_dashboard_stats'),
+    path('api/admin/saas-stats/', views.api_admin_saas_stats, name='api_admin_saas_stats'),
+    path(
+        'api/admin/saas-requests/<int:pk>/',
+        views.api_admin_saas_request_action,
+        name='api_admin_saas_request_action',
+    ),
 
     # ── API JSON ──────────────────────────────────────────────────────────
     path('api/productos/', views.api_productos, name='api_productos'),

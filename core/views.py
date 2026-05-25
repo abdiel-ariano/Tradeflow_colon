@@ -3720,3 +3720,64 @@ def revisar_solicitud(request, token, accion):
         log.exception('Email decisión solicitud')
     messages.success(request, _('Decisión registrada y correo enviado al solicitante.'))
     return redirect('home')
+
+
+@admin_required
+def admin_saas_dashboard(request):
+    """Panel React de planes SaaS, empresas e IA predictiva (admin)."""
+    return render(
+        request,
+        'core/admin_saas_dashboard.html',
+        {'nav_activo': 'saas'},
+    )
+
+
+@admin_required
+def api_admin_saas_stats(request):
+    """JSON agregado desde Supabase/ORM para el dashboard admin SaaS."""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    from .utils.saas_admin_metrics import build_saas_admin_payload
+
+    return JsonResponse(build_saas_admin_payload(), encoder=DjangoJSONEncoder)
+
+
+@admin_required
+def api_admin_saas_request_action(request, pk: int):
+    """Aprueba o rechaza solicitud comercial de plan (POST)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    import json
+
+    from .enterprise_models import CompanyPlanCommercialRequest
+    from .utils.saas_billing import approve_commercial_request, reject_commercial_request
+
+    try:
+        body = json.loads(request.body.decode() or '{}')
+    except json.JSONDecodeError:
+        body = {}
+    action = (body.get('action') or request.POST.get('action') or '').strip().lower()
+
+    req = CompanyPlanCommercialRequest.objects.filter(pk=pk).select_related(
+        'company', 'requested_plan'
+    ).first()
+    if not req:
+        return JsonResponse({'error': 'Solicitud no encontrada'}, status=404)
+    if req.status not in ('pending', 'en_revision'):
+        return JsonResponse({'error': 'La solicitud ya fue procesada'}, status=400)
+
+    if action == 'approve':
+        approve_commercial_request(req)
+        return JsonResponse({
+            'ok': True,
+            'status': 'approved',
+            'message': f'Plan {req.requested_plan.name} activado para {req.company.name}.',
+        })
+    if action == 'reject':
+        reject_commercial_request(req)
+        return JsonResponse({
+            'ok': True,
+            'status': 'rejected',
+            'message': f'Solicitud de {req.company.name} rechazada.',
+        })
+    return JsonResponse({'error': 'Acción inválida'}, status=400)

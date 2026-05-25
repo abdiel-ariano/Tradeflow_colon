@@ -23,6 +23,16 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/admin-saas/package-lock.json
+      - name: Build admin SaaS dashboard
+        run: |
+          cd frontend/admin-saas
+          npm ci
+          npm run build
       - name: Django check
         run: python manage.py check
       - name: Migrations check

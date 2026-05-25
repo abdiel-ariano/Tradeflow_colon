@@ -1,7 +1,7 @@
 {% load i18n %}
 {% comment %}
 Rail lateral compartido del panel administrativo (TradeFlow Colón).
-Contexto: nav_activo — dashboard | ordenes | productos | empresas
+Contexto: nav_activo — dashboard | saas | ordenes | productos | empresas
 {% endcomment %}
 <aside class="adm-side" id="admRail" data-nav-active="{{ nav_activo|default:'dashboard' }}" aria-label="{% trans 'Menú administración' %}">
   <div class="adm-rail-brand">
@@ -29,6 +29,10 @@ Contexto: nav_activo — dashboard | ordenes | productos | empresas
     <a href="{% url 'lista_empresas' %}" data-adm-nav="empresas" title="{% trans 'Empresas' %}">
       <span class="material-symbols-rounded" aria-hidden="true">business</span>
       <span class="adm-rail-label">{% trans "Empresas" %}</span>
+    </a>
+    <a href="{% url 'admin_saas_dashboard' %}" data-adm-nav="saas" title="{% trans 'Planes SaaS' %}">
+      <span class="material-symbols-rounded" aria-hidden="true">workspace_premium</span>
+      <span class="adm-rail-label">{% trans "Planes SaaS" %}</span>
     </a>
   </nav>
   <div class="adm-rail-footer">

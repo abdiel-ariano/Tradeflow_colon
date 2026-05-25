@@ -6,3 +6,7 @@ db.sqlite3
 media/
 staticfiles/
 .idea/
+frontend/admin-saas/node_modules/
+frontend/admin-saas/.vite/
+frontend/admin-saas/tsconfig.tsbuildinfofrontend/admin-saas/node_modules/
+frontend/admin-saas/.vite/
