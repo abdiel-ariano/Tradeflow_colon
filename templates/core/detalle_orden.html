@@ -79,7 +79,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for item in orden.items.all %}
+              {% for item in orden_items %}
               <tr>
                 <td>{{ item.product.name }}</td>
                 <td style="text-align:right;">{{ item.qty }}</td>
@@ -186,6 +186,7 @@
 <script>
 (function () {
   var stMap = {
+    awaiting_seller: { bg: '#fff7ed', fg: '#9a3412' },
     pending: { bg: '#fef8e7', fg: '#6b4a00' },
     paid: { bg: '#e8f4f8', fg: '#1a4f65' },
     packed: { bg: '#e8f4f8', fg: '#1a4f65' },

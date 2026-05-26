@@ -107,6 +107,12 @@ def deliver_mail(
         error_message=last_error[:2000],
         backend=backend[:120],
     )
+    log.error(
+        'email_delivery_failed type=%s to=%s error=%s',
+        email_type,
+        recipient,
+        last_error,
+    )
     if not fail_silently:
         raise RuntimeError(last_error or 'email_delivery_failed')
     return False

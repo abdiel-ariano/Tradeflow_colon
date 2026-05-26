@@ -218,13 +218,49 @@ show_cart_actions, tienda_params.
     margin: 0 auto;
     padding: 0 40px;
     display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 24px;
+    grid-template-columns: minmax(280px, 340px) 1fr;
+    gap: 28px;
     align-items: start;
   }
   @media (max-width: 991px) {
     .td-wrap { grid-template-columns: 1fr; padding: 0 20px; }
   }
+  .td-filter-primary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 14px;
+    padding: 0 16px 12px;
+  }
+  @media (max-width: 1199px) {
+    .td-filter-primary { grid-template-columns: 1fr; }
+  }
+  .td-filter-primary .td-span-2 { grid-column: 1 / -1; }
+  .td-cat-scroll {
+    max-height: 200px;
+    overflow-y: auto;
+    margin: 0 0 8px;
+    border-top: 1px solid #F3F4F6;
+    padding-top: 8px;
+  }
+  .td-btn-filter-apply {
+    width: calc(100% - 32px);
+    margin: 12px 16px 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    background: var(--tf-orange);
+    color: var(--tf-white);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--tf-font-body);
+    box-sizing: border-box;
+  }
+  .td-btn-filter-apply:hover { background: var(--tf-orange-h); }
 
   .td-sidebar {
     position: sticky;
@@ -286,16 +322,6 @@ show_cart_actions, tienda_params.
     color: #374151;
     background: #fff;
     box-sizing: border-box;
-  }
-  .td-filter-apply {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
   }
 
   .td-main { min-width: 0; }
@@ -600,9 +626,10 @@ show_cart_actions, tienda_params.
     margin-top: 40px;
     flex-wrap: wrap;
   }
-  .td-pag a, .td-pag span {
-    width: 36px;
+  .td-pag a, .td-pag span.td-pag-ellipsis {
+    min-width: 36px;
     height: 36px;
+    padding: 0 6px;
     border-radius: 8px;
     border: 1.5px solid #E5E7EB;
     background: var(--tf-white);
@@ -615,6 +642,19 @@ show_cart_actions, tienda_params.
     text-decoration: none;
     transition: all 0.18s ease;
     box-sizing: border-box;
+  }
+  .td-pag span.td-pag-ellipsis {
+    border: none;
+    background: transparent;
+    color: var(--tf-muted);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    pointer-events: none;
+    min-width: 28px;
+  }
+  .td-pag-nav .material-symbols-rounded {
+    font-size: 22px;
+    line-height: 1;
   }
   .td-pag a:hover {
     border-color: var(--tf-orange);
@@ -694,54 +734,64 @@ show_cart_actions, tienda_params.
           {% if tab_catalogo and tab_catalogo != 'todos' %}
           <input type="hidden" name="tab" value="{{ tab_catalogo }}">
           {% endif %}
-          <ul class="td-cat-list" aria-label="{% trans 'Categorías rápidas' %}">
-            <li>
-              <a href="{% url 'tienda' %}" class="td-cat-link tf-cat-link" data-categoria-id="" data-active="{% if not cat_activa %}true{% else %}false{% endif %}">
-                <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">apps</span>
-                {% trans "Todas" %}
-              </a>
-            </li>
-            {% for cat in categorias %}
-            <li>
-              <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="td-cat-link tf-cat-link" data-categoria-id="{{ cat.id }}" data-active="{% if cat_activa == cat.pk|stringformat:'s' %}true{% else %}false{% endif %}">
-                <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">category</span>
-                {{ cat.name }}
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-          <div style="position:relative;margin:0 16px 16px;">
+          <div style="position:relative;margin:0 16px 12px;" class="td-span-2">
             <span class="material-symbols-rounded" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tf-muted);font-size:18px;pointer-events:none;">search</span>
             <input type="text" name="buscar" id="input-buscar" placeholder="{% trans 'Buscar productos, SKU...' %}" value="{{ buscar }}" class="td-search-input" style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-family:var(--tf-font-body);box-sizing:border-box;">
           </div>
-          <div style="padding:0 16px;margin-top:16px;">
-            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Categoría" %}</label>
-            <select name="categoria" id="select-categoria" class="td-filter-select">
-              <option value="">{% trans "Todas las categorías" %}</option>
-              {% for cat in categorias %}
-              <option value="{{ cat.id }}">{{ cat.name }}</option>
-              {% endfor %}
-            </select>
+          <div class="td-filter-primary">
+            <div>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Categoría" %}</label>
+              <select name="categoria" id="select-categoria" class="td-filter-select">
+                <option value="">{% trans "Todas las categorías" %}</option>
+                {% for cat in categorias %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Empresa" %}</label>
+              <select name="empresa" id="select-empresa" class="td-filter-select">
+                <option value="">{% trans "Todas las empresas" %}</option>
+                {% for empresa in empresas %}
+                <option value="{{ empresa.id }}">{{ empresa.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="td-span-2">
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Ordenar por" %}</label>
+              <select name="orden" id="select-orden" class="td-filter-select">
+                <option value="nombre">{% trans "Nombre A-Z" %}</option>
+                <option value="precio_asc">{% trans "Precio: menor a mayor" %}</option>
+                <option value="precio_desc">{% trans "Precio: mayor a menor" %}</option>
+                <option value="novedades">{% trans "Más recientes" %}</option>
+              </select>
+            </div>
           </div>
-          <div style="padding:0 16px;margin-top:16px;">
-            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Empresa" %}</label>
-            <select name="empresa" id="select-empresa" class="td-filter-select">
-              <option value="">{% trans "Todas las empresas" %}</option>
-              {% for empresa in empresas %}
-              <option value="{{ empresa.id }}">{{ empresa.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div style="padding:0 16px;margin-top:16px;">
-            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Ordenar por" %}</label>
-            <select name="orden" id="select-orden" class="td-filter-select">
-              <option value="nombre">{% trans "Nombre A-Z" %}</option>
-              <option value="precio_asc">{% trans "Precio: menor a mayor" %}</option>
-              <option value="precio_desc">{% trans "Precio: mayor a menor" %}</option>
-              <option value="novedades">{% trans "Más recientes" %}</option>
-            </select>
-          </div>
-          <button type="submit" class="td-filter-apply">{% trans "Aplicar filtros" %}</button>
+          <button type="submit" class="td-btn-filter-apply">
+            <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">check_circle</span>
+            {% trans "Aplicar filtros" %}
+          </button>
+          <details class="td-filter-more" style="margin:4px 16px 0;border-radius:10px;border:1px solid #E5E7EB;background:#FAFAFA;">
+            <summary style="cursor:pointer;padding:10px 12px;font-size:13px;font-weight:600;color:var(--tf-navy);list-style:none;">{% trans "Categorías rápidas" %}</summary>
+            <div class="td-cat-scroll">
+              <ul class="td-cat-list" style="padding-top:0;" aria-label="{% trans 'Categorías rápidas' %}">
+                <li>
+                  <a href="{% url 'tienda' %}" class="td-cat-link tf-cat-link" data-categoria-id="" data-active="{% if not cat_activa %}true{% else %}false{% endif %}">
+                    <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">apps</span>
+                    {% trans "Todas" %}
+                  </a>
+                </li>
+                {% for cat in categorias %}
+                <li>
+                  <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="td-cat-link tf-cat-link" data-categoria-id="{{ cat.id }}" data-active="{% if cat_activa == cat.pk|stringformat:'s' %}true{% else %}false{% endif %}">
+                    <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">category</span>
+                    {{ cat.name }}
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </details>
           <a href="{% url 'tienda' %}" id="btn-limpiar" style="display:none;margin:12px 16px 8px;text-align:center;font-size:13px;color:var(--tf-muted);text-decoration:none;padding:8px;border-radius:8px;border:1px solid #E5E7EB;">
             <span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">filter_alt_off</span>
             {% trans "Limpiar filtros" %}
@@ -846,15 +896,28 @@ show_cart_actions, tienda_params.
       {% if productos.has_other_pages %}
       <nav class="td-pag" id="td-pag" aria-label="{% trans 'Paginación' %}">
         {% if productos.has_previous %}
-        <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}" class="td-pag-ajax">{% trans "Anterior" %}</a>
+        <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}"
+           class="td-pag-ajax td-pag-nav"
+           aria-label="{% trans 'Página anterior' %}">
+          <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+        </a>
         {% endif %}
-        {% for num in productos.paginator.page_range %}
-        <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ num }}"
-           class="td-pag-link td-pag-ajax"
-           data-page="{{ num }}">{{ num }}</a>
+        {% for slot in tienda_pagination_slots %}
+          {% if slot.type == 'ellipsis' %}
+          <span class="td-pag-ellipsis" aria-hidden="true">…</span>
+          {% else %}
+          <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ slot.num }}"
+             class="td-pag-link td-pag-ajax"
+             data-page="{{ slot.num }}"
+             {% if slot.num == productos.number %}aria-current="page"{% endif %}>{{ slot.num }}</a>
+          {% endif %}
         {% endfor %}
         {% if productos.has_next %}
-        <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}" class="td-pag-ajax">{% trans "Siguiente" %}</a>
+        <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}"
+           class="td-pag-ajax td-pag-nav"
+           aria-label="{% trans 'Página siguiente' %}">
+          <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+        </a>
         {% endif %}
       </nav>
       {% endif %}

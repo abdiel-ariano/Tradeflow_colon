@@ -98,7 +98,13 @@
 
   function markPagination(curPage) {
     document.querySelectorAll('.td-pag-link').forEach(function (link) {
-      link.toggleAttribute('data-active', link.getAttribute('data-page') === String(curPage));
+      var isCur = link.getAttribute('data-page') === String(curPage);
+      link.toggleAttribute('data-active', isCur);
+      if (isCur) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
     });
   }
 
@@ -289,4 +295,6 @@
 
   window.tfTiendaLoadCatalog = loadCatalog;
   bindCartForms();
+  markPagination(catalogRoot.getAttribute('data-cur-page') || '1');
+  markTabs(meta ? meta.getAttribute('data-tab-active') || 'todos' : 'todos');
 })();

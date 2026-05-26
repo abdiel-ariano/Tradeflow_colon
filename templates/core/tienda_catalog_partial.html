@@ -37,15 +37,28 @@
   {% if productos.has_other_pages %}
   <nav class="td-pag" id="td-pag" aria-label="{% trans 'Paginación' %}">
     {% if productos.has_previous %}
-    <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}" class="td-pag-ajax">{% trans "Anterior" %}</a>
+    <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}"
+       class="td-pag-ajax td-pag-nav"
+       aria-label="{% trans 'Página anterior' %}">
+      <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+    </a>
     {% endif %}
-    {% for num in productos.paginator.page_range %}
-    <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ num }}"
-       class="td-pag-link td-pag-ajax"
-       data-page="{{ num }}">{{ num }}</a>
+    {% for slot in tienda_pagination_slots %}
+      {% if slot.type == 'ellipsis' %}
+      <span class="td-pag-ellipsis" aria-hidden="true">…</span>
+      {% else %}
+      <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ slot.num }}"
+         class="td-pag-link td-pag-ajax"
+         data-page="{{ slot.num }}"
+         {% if slot.num == productos.number %}aria-current="page"{% endif %}>{{ slot.num }}</a>
+      {% endif %}
     {% endfor %}
     {% if productos.has_next %}
-    <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}" class="td-pag-ajax">{% trans "Siguiente" %}</a>
+    <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}"
+       class="td-pag-ajax td-pag-nav"
+       aria-label="{% trans 'Página siguiente' %}">
+      <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+    </a>
     {% endif %}
   </nav>
   {% endif %}

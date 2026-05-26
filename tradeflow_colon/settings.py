@@ -247,13 +247,18 @@ else:
 # Forzar SMTP real (evita consola en staging si credenciales vienen por otro canal)
 EMAIL_FORCE_SMTP = config('EMAIL_FORCE_SMTP', default=False, cast=bool)
 
-EMAIL_BACKEND = config(
-    'EMAIL_BACKEND',
-    default='django.core.mail.backends.smtp.EmailBackend'
-    if (_smtp_ready or EMAIL_FORCE_SMTP)
-    else 'django.core.mail.backends.console.EmailBackend',
-)
-EMAIL_USE_REAL_SMTP = 'smtp' in EMAIL_BACKEND and _smtp_ready
+# Con DEBUG=True el valor por defecto es consola (enlaces en terminal) aunque existan
+# credenciales Gmail en .env; para enviar correo real en local, define EMAIL_BACKEND
+# apuntando a SMTP o pon EMAIL_FORCE_SMTP=true.
+if DEBUG and not EMAIL_FORCE_SMTP:
+    _default_email_backend = 'django.core.mail.backends.console.EmailBackend'
+elif _smtp_ready or EMAIL_FORCE_SMTP:
+    _default_email_backend = 'django.core.mail.backends.smtp.EmailBackend'
+else:
+    _default_email_backend = 'django.core.mail.backends.console.EmailBackend'
+
+EMAIL_BACKEND = config('EMAIL_BACKEND', default=_default_email_backend)
+EMAIL_USE_REAL_SMTP = 'smtp' in EMAIL_BACKEND.lower() and _smtp_ready
 
 # Supabase (opcional — Storage S3-compatible)
 SUPABASE_URL = config('SUPABASE_URL', default='')
