@@ -32,12 +32,13 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   .hm-hero {
     background: linear-gradient(135deg, var(--tf-navy) 0%, var(--tf-mid) 40%, var(--tf-navy) 100%);
     background-attachment: fixed;
-    min-height: 100vh;
+    min-height: 0;
+    max-height: 75vh;
     position: relative;
     overflow: hidden;
     display: flex;
     align-items: center;
-    padding: 88px 0 0;
+    padding: 72px 0 48px;
   }
   .hm-particle {
     position: absolute;
@@ -252,10 +253,14 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   }
   .hm-stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    max-width: 700px;
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 960px;
     margin: 0 auto;
     padding: 0 24px;
+    gap: 8px;
+  }
+  @media (max-width: 768px) {
+    .hm-stats-grid { grid-template-columns: repeat(2, 1fr); }
   }
   .hm-stat {
     text-align: center;
@@ -264,9 +269,9 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   }
   .hm-stat:last-child { border-right: none; }
   .hm-stat-num {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(3rem, 6vw, 4.5rem);
-    font-weight: 400;
+    font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    font-weight: 700;
     color: #FFFFFF !important;
     line-height: 1;
     display: block;
@@ -810,20 +815,19 @@ stats, featured_products, empresas_carousel, show_cart_actions.
           </div>
           <div class="hm-metrics">
             <div class="hm-metric">
-              <div class="hm-metric-val">128</div>
-              <div class="hm-metric-lbl">{% trans "Órdenes activas" %}</div>
-              <span class="hm-metric-badge">+12%</span>
+              <div class="hm-metric-val">{{ stats.ordenes|default:0 }}</div>
+              <div class="hm-metric-lbl">{% trans "Órdenes en plataforma" %}</div>
             </div>
             <div class="hm-metric">
-              <div class="hm-metric-val green">94%</div>
-              <div class="hm-metric-lbl">Fulfillment</div>
+              <div class="hm-metric-val green">{{ stats.empresas|default:0 }}</div>
+              <div class="hm-metric-lbl">{% trans "Empresas ZLC" %}</div>
             </div>
             <div class="hm-metric">
-              <div class="hm-metric-val orange">$18,450</div>
-              <div class="hm-metric-lbl">{% trans "Ingresos mes" %}</div>
+              <div class="hm-metric-val orange">${{ stats.gmv_30d|default:0 }}</div>
+              <div class="hm-metric-lbl">{% trans "Volumen 30 días (USD)" %}</div>
             </div>
             <div class="hm-metric">
-              <div class="hm-metric-val">{{ stats.productos|default:142 }}</div>
+              <div class="hm-metric-val">{{ stats.productos|default:0 }}</div>
               <div class="hm-metric-lbl">{% trans "Productos activos" %}</div>
             </div>
           </div>
@@ -843,16 +847,20 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   <section class="hm-stats-band" id="hm-stats-band" aria-label="{% trans 'Estadísticas de la Zona Libre de Colón' %}">
     <div class="hm-stats-grid">
       <div class="hm-stat reveal">
-        <div class="hm-stat-num" data-count="2600" data-suffix="+">0</div>
-        <div class="hm-stat-lbl">{% trans "Empresas en la Zona Libre de Colón" %}</div>
+        <div class="hm-stat-num" data-count="{{ stats.empresas|default:0 }}">0</div>
+        <div class="hm-stat-lbl">{% trans "Empresas en la ZLC" %}</div>
       </div>
       <div class="hm-stat reveal stagger-2">
-        <div class="hm-stat-num" data-count="33" data-prefix="$" data-suffix="B">0</div>
-        <div class="hm-stat-lbl">{% trans "Transacciones anuales" %}</div>
+        <div class="hm-stat-num" data-count="{{ stats.productos|default:0 }}">0</div>
+        <div class="hm-stat-lbl">{% trans "Productos activos" %}</div>
       </div>
       <div class="hm-stat reveal stagger-3">
-        <div class="hm-stat-num" data-count="180" data-suffix="+">0</div>
-        <div class="hm-stat-lbl">{% trans "Países compradores" %}</div>
+        <div class="hm-stat-num" data-count="{{ stats.ordenes|default:0 }}">0</div>
+        <div class="hm-stat-lbl">{% trans "Órdenes registradas" %}</div>
+      </div>
+      <div class="hm-stat reveal stagger-4">
+        <div class="hm-stat-num" data-count="{{ stats.categorias|default:0 }}">0</div>
+        <div class="hm-stat-lbl">{% trans "Categorías" %}</div>
       </div>
     </div>
   </section>

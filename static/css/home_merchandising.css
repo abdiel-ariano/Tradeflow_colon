@@ -41,7 +41,11 @@
 .lp-features article { background: var(--tf-white, #fff); border: 1px solid var(--tf-border, #D1D5DB); border-radius: 12px; padding: 20px; }
 .lp-features .material-symbols-rounded { color: var(--tf-blue, #2E5B8A); font-size: 32px; }
 .lp-cta-final { text-align: center; }
-.tf-product-card { background: var(--tf-white, #fff); border: 1px solid var(--tf-border, #D1D5DB); border-radius: 12px; overflow: hidden; transition: transform 0.22s ease, box-shadow 0.22s ease; }
+.tf-product-badge-stock { background: #FEF3C7; color: #92400E; }
+.tf-product-badge-out { background: #FEE2E2; color: #991B1B; }
+.tf-product-card-company a { color: inherit; text-decoration: none; }
+.tf-product-card-company a:hover { color: var(--tf-orange, #F26522); text-decoration: underline; }
+.tf-product-card { background: var(--tf-white, #fff); border: 1px solid var(--tf-border, #D1D5DB); border-radius: var(--tf-radius-btn, 8px); overflow: hidden; transition: transform 0.22s ease, box-shadow 0.22s ease; box-shadow: var(--tf-shadow-card, 0 2px 8px rgba(15,42,68,0.08)); }
 .tf-product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(15,42,68,0.12); }
 .tf-product-card-media { display: block; position: relative; aspect-ratio: 4/3; background: var(--tf-light, #F2F3F5); overflow: hidden; }
 .tf-product-card-media img { width: 100%; height: 100%; object-fit: cover; }

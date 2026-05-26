@@ -35,8 +35,8 @@ show_cart_actions, tienda_params.
   }
   .td-hero-band {
     background: linear-gradient(120deg, var(--tf-navy) 0%, var(--tf-mid) 55%, #163352 100%);
-    padding: 28px 0 32px;
-    margin-bottom: 28px;
+    padding: 20px 0 24px;
+    margin-bottom: 20px;
   }
   .td-hero-inner {
     max-width: 1320px;
@@ -117,8 +117,9 @@ show_cart_actions, tienda_params.
     text-align: center;
   }
   .td-stat-val {
-    font-family: 'DM Serif Display', serif;
+    font-family: var(--tf-font-body, 'Montserrat', sans-serif);
     font-size: 1.55rem;
+    font-weight: 700;
     color: var(--tf-white);
     display: block;
     line-height: 1.1;
@@ -217,8 +218,8 @@ show_cart_actions, tienda_params.
     margin: 0 auto;
     padding: 0 40px;
     display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 28px;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
     align-items: start;
   }
   @media (max-width: 991px) {
@@ -274,6 +275,27 @@ show_cart_actions, tienda_params.
     color: var(--tf-orange);
     font-weight: 600;
     border-left-color: var(--tf-orange);
+  }
+  .td-filter-select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: var(--tf-radius-btn, 8px);
+    font-size: 14px;
+    font-family: var(--tf-font-body);
+    color: #374151;
+    background: #fff;
+    box-sizing: border-box;
+  }
+  .td-filter-apply {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
   }
 
   .td-main { min-width: 0; }
@@ -636,14 +658,9 @@ show_cart_actions, tienda_params.
             <span class="material-symbols-rounded" style="font-size:14px;" aria-hidden="true">storefront</span>
             {% trans "Zona Libre de Colón" %}
           </span>
-          <h1 class="td-hero-h1">{% trans "Compra en la Zona Libre de Colón" %}</h1>
+          <h1 class="td-hero-h1 tf-serif">{% trans "Compra en la Zona Libre de Colón" %}</h1>
           <p class="td-hero-desc">{% trans "Explora ofertas, empresas verificadas y miles de productos. Filtra por categoría o agrega al carrito en un clic." %}</p>
         </div>
-        <a href="{% url 'ver_carrito' %}" class="td-hero-cart">
-          <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">shopping_cart</span>
-          {% trans "Carrito" %}
-          <span class="td-cart-badge" id="td-hero-cart-badge" data-count="{{ carrito_count|default:0 }}">{{ carrito_count|default:0 }}</span>
-        </a>
       </div>
       <div class="td-stats" role="list">
         <div class="td-stat" role="listitem">
@@ -677,13 +694,29 @@ show_cart_actions, tienda_params.
           {% if tab_catalogo and tab_catalogo != 'todos' %}
           <input type="hidden" name="tab" value="{{ tab_catalogo }}">
           {% endif %}
+          <ul class="td-cat-list" aria-label="{% trans 'Categorías rápidas' %}">
+            <li>
+              <a href="{% url 'tienda' %}" class="td-cat-link tf-cat-link" data-categoria-id="" data-active="{% if not cat_activa %}true{% else %}false{% endif %}">
+                <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">apps</span>
+                {% trans "Todas" %}
+              </a>
+            </li>
+            {% for cat in categorias %}
+            <li>
+              <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="td-cat-link tf-cat-link" data-categoria-id="{{ cat.id }}" data-active="{% if cat_activa == cat.pk|stringformat:'s' %}true{% else %}false{% endif %}">
+                <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">category</span>
+                {{ cat.name }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
           <div style="position:relative;margin:0 16px 16px;">
             <span class="material-symbols-rounded" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tf-muted);font-size:18px;pointer-events:none;">search</span>
             <input type="text" name="buscar" id="input-buscar" placeholder="{% trans 'Buscar productos, SKU...' %}" value="{{ buscar }}" class="td-search-input" style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-family:var(--tf-font-body);box-sizing:border-box;">
           </div>
           <div style="padding:0 16px;margin-top:16px;">
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Categoría" %}</label>
-            <select name="categoria" id="select-categoria" style="width:100%;padding:9px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:14px;font-family:var(--tf-font-body);color:#374151;background:#fff;">
+            <select name="categoria" id="select-categoria" class="td-filter-select">
               <option value="">{% trans "Todas las categorías" %}</option>
               {% for cat in categorias %}
               <option value="{{ cat.id }}">{{ cat.name }}</option>
@@ -692,7 +725,7 @@ show_cart_actions, tienda_params.
           </div>
           <div style="padding:0 16px;margin-top:16px;">
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Empresa" %}</label>
-            <select name="empresa" id="select-empresa" style="width:100%;padding:9px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:14px;font-family:var(--tf-font-body);color:#374151;background:#fff;">
+            <select name="empresa" id="select-empresa" class="td-filter-select">
               <option value="">{% trans "Todas las empresas" %}</option>
               {% for empresa in empresas %}
               <option value="{{ empresa.id }}">{{ empresa.name }}</option>
@@ -701,14 +734,14 @@ show_cart_actions, tienda_params.
           </div>
           <div style="padding:0 16px;margin-top:16px;">
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">{% trans "Ordenar por" %}</label>
-            <select name="orden" id="select-orden" style="width:100%;padding:9px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:14px;font-family:var(--tf-font-body);color:#374151;background:#fff;">
+            <select name="orden" id="select-orden" class="td-filter-select">
               <option value="nombre">{% trans "Nombre A-Z" %}</option>
               <option value="precio_asc">{% trans "Precio: menor a mayor" %}</option>
               <option value="precio_desc">{% trans "Precio: mayor a menor" %}</option>
               <option value="novedades">{% trans "Más recientes" %}</option>
             </select>
           </div>
-          <button type="submit" class="td-btn-search" style="display:block;width:calc(100% - 32px);margin:16px 16px 0;background:var(--tf-navy);color:#fff;padding:10px;border:none;border-radius:10px;font-weight:600;font-family:var(--tf-font-body);cursor:pointer;">{% trans "Aplicar" %}</button>
+          <button type="submit" class="td-filter-apply">{% trans "Aplicar filtros" %}</button>
           <a href="{% url 'tienda' %}" id="btn-limpiar" style="display:none;margin:12px 16px 8px;text-align:center;font-size:13px;color:var(--tf-muted);text-decoration:none;padding:8px;border-radius:8px;border:1px solid #E5E7EB;">
             <span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">filter_alt_off</span>
             {% trans "Limpiar filtros" %}
@@ -832,67 +865,5 @@ show_cart_actions, tienda_params.
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/tienda_filters.js' %}"></script>
-<script>
-(function () {
-  'use strict';
-  var meta = document.getElementById('tf-tienda-meta');
-  var catActiva = meta ? (meta.getAttribute('data-cat-active') || '') : '';
-  var empresaActiva = meta ? (meta.getAttribute('data-empresa-active') || '') : '';
-  var ordenActivo = meta ? (meta.getAttribute('data-orden-active') || 'nombre') : 'nombre';
-  var buscarActual = meta ? (meta.getAttribute('data-buscar-active') || '') : '';
-  var tabActiva = meta ? (meta.getAttribute('data-tab-active') || 'todos') : 'todos';
-  var curPage = meta ? (meta.getAttribute('data-cur-page') || '1') : '1';
-
-  function markSelect(sel, value) {
-    if (!sel || !value) return;
-    var i;
-    for (i = 0; i < sel.options.length; i += 1) {
-      if (sel.options[i].value === value) {
-        sel.selectedIndex = i;
-        break;
-      }
-    }
-  }
-
-  markSelect(document.getElementById('select-categoria'), catActiva);
-  markSelect(document.getElementById('select-empresa'), empresaActiva);
-  markSelect(document.getElementById('select-orden'), ordenActivo);
-
-  var inputBuscar = document.getElementById('input-buscar');
-  if (inputBuscar && buscarActual) {
-    inputBuscar.value = buscarActual;
-  }
-
-  var btnLimpiar = document.getElementById('btn-limpiar');
-  if (btnLimpiar) {
-    var hayFiltros = !!(catActiva || empresaActiva || buscarActual || ordenActivo !== 'nombre');
-    btnLimpiar.style.display = hayFiltros ? 'block' : 'none';
-  }
-
-  document.querySelectorAll('.td-pag-link').forEach(function (link) {
-    if (link.getAttribute('data-page') === curPage) {
-      link.setAttribute('data-active', 'true');
-    }
-  });
-
-  document.querySelectorAll('.td-tab[data-tab]').forEach(function (tab) {
-    if (tab.getAttribute('data-tab') === tabActiva) {
-      tab.setAttribute('data-active', 'true');
-    }
-  });
-
-  var badge = document.getElementById('td-hero-cart-badge');
-  var navBadge = document.getElementById('tf-nav-cart-badge');
-  if (badge) {
-    var n = parseInt(badge.getAttribute('data-count'), 10) || 0;
-    if (navBadge) {
-      var nn = parseInt(navBadge.textContent, 10);
-      if (!isNaN(nn)) n = nn;
-    }
-    badge.textContent = String(n);
-    badge.classList.toggle('is-empty', n < 1);
-  }
-})();
-</script>
+<script src="{% static 'js/tienda_catalog.js' %}"></script>
 {% endblock %}
