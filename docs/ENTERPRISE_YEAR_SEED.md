@@ -19,17 +19,34 @@ Persiste en **PostgreSQL / Supabase** mediante el ORM de Django (sin datos mock 
 - **standard**: volumen representativo (miles de productos en conjunto con stress).
 - **stress**: muchas empresas, miles de productos y miles de líneas de pedido.
 
+## Requisito previo
+
+```bash
+python manage.py migrate
+```
+
+Si ejecuta el seed **antes** de `migrate`, verá `no such table: core_order`. El comando ahora lo detecta y muestra este mensaje.
+
+## Imágenes
+
+Por defecto **no** se descargan miles de fotos de internet (evita bloqueos SSL y horas de espera en `--scale=standard`).
+
+```bash
+# Recomendado (rápido)
+python manage.py seed_enterprise_year --clear --scale=standard
+
+# Opcional: hasta ~48 placeholders en standard
+python manage.py seed_enterprise_year --clear --scale=standard --with-images
+```
+
 ## Ejemplos
 
 ```bash
 # Producción / staging con Supabase (recomendado borrar simulación previa)
 python manage.py seed_enterprise_year --clear --scale=standard
 
-# Sin descarga de imágenes (más rápido)
-python manage.py seed_enterprise_year --clear --scale=standard --skip-images
-
 # Semilla fija para demos reproducibles
-python manage.py seed_enterprise_year --clear --scale=demo --seed=7 --skip-images
+python manage.py seed_enterprise_year --clear --scale=demo --seed=7
 ```
 
 ## Requisitos
