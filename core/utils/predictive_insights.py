@@ -139,7 +139,7 @@ def _stock_alerts(company: Company) -> list[dict]:
         product = inv.product
         if not product.is_active:
             continue
-        available = inv.available_qty
+        available = inv.available
         if available <= 0:
             alerts.append({
                 'product_id': product.pk,

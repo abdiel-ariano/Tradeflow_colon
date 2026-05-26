@@ -66,10 +66,11 @@ class Command(BaseCommand):
 
         if not getattr(settings, 'EMAIL_USE_REAL_SMTP', False):
             self.stdout.write(self.style.WARNING(
-                '\nSMTP no activo. Para Gmail real configura:\n'
-                '  EMAIL_HOST_USER=tu@gmail.com\n'
-                '  EMAIL_HOST_PASSWORD=xxxx xxxx xxxx xxxx  (App Password)\n'
-                '  EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend'
+                '\nSMTP no activo. Configure uno de:\n'
+                '  EMAIL_RESEND_API_KEY=re_...  (Resend, recomendado)\n'
+                '  EMAIL_SENDGRID_API_KEY=SG... (SendGrid)\n'
+                '  EMAIL_HOST_USER + EMAIL_HOST_PASSWORD (Gmail App Password)\n'
+                '  Ver docs/ENTERPRISE_EMAIL.md'
             ))
             return
 

@@ -223,15 +223,37 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='TradeFlow <no-reply@t
 # URL pública (sin / final) para enlaces en correos: ej. https://tuapp.railway.app o http://127.0.0.1:8000
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
-# Gmail SMTP (App Password de Google, no la contraseña normal)
-_gmail_ready = bool(EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
+# Proveedores SMTP enterprise (prioridad: Resend > SendGrid > Gmail explícito)
+EMAIL_RESEND_API_KEY = config('EMAIL_RESEND_API_KEY', default='')
+EMAIL_SENDGRID_API_KEY = config('EMAIL_SENDGRID_API_KEY', default='')
+
+if EMAIL_RESEND_API_KEY:
+    EMAIL_HOST = 'smtp.resend.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'resend'
+    EMAIL_HOST_PASSWORD = EMAIL_RESEND_API_KEY
+    _smtp_ready = True
+elif EMAIL_SENDGRID_API_KEY:
+    EMAIL_HOST = 'smtp.sendgrid.net'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'apikey'
+    EMAIL_HOST_PASSWORD = EMAIL_SENDGRID_API_KEY
+    _smtp_ready = True
+else:
+    _smtp_ready = bool(EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
+
+# Forzar SMTP real (evita consola en staging si credenciales vienen por otro canal)
+EMAIL_FORCE_SMTP = config('EMAIL_FORCE_SMTP', default=False, cast=bool)
+
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default='django.core.mail.backends.smtp.EmailBackend'
-    if _gmail_ready
+    if (_smtp_ready or EMAIL_FORCE_SMTP)
     else 'django.core.mail.backends.console.EmailBackend',
 )
-EMAIL_USE_REAL_SMTP = 'smtp' in EMAIL_BACKEND and _gmail_ready
+EMAIL_USE_REAL_SMTP = 'smtp' in EMAIL_BACKEND and _smtp_ready
 
 # Supabase (opcional — Storage S3-compatible)
 SUPABASE_URL = config('SUPABASE_URL', default='')

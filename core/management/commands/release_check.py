@@ -37,6 +37,17 @@ class Command(BaseCommand):
             if not getattr(settings, key, None):
                 errors.append(f'Falta {key}')
 
+        backend = getattr(settings, 'EMAIL_BACKEND', '') or ''
+        if not settings.DEBUG and 'console' in backend.lower():
+            errors.append(
+                'EMAIL_BACKEND no puede ser consola en producción. '
+                'Configure EMAIL_RESEND_API_KEY, EMAIL_SENDGRID_API_KEY o Gmail SMTP.'
+            )
+        if not settings.DEBUG and not getattr(settings, 'EMAIL_USE_REAL_SMTP', False):
+            errors.append(
+                'SMTP no activo (EMAIL_USE_REAL_SMTP=False). Configure credenciales reales.'
+            )
+
         payload = platform_health_payload()
         if not payload['database']['ok']:
             errors.append(f"DB: {payload['database']['detail']}")
