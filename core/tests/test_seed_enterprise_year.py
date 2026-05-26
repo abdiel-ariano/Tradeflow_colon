@@ -7,10 +7,14 @@ from core.utils.enterprise_year_simulator import (
     ORDER_NUM_PREFIX,
     SIM_RUC_PREFIX,
     clear_enterprise_year_simulation,
+    ensure_database_schema_ready,
 )
 
 
 class SeedEnterpriseYearTests(TestCase):
+    def test_schema_ready_after_migrate(self):
+        ensure_database_schema_ready()
+
     def test_demo_seed_and_clear(self):
         clear_enterprise_year_simulation()
         call_command(

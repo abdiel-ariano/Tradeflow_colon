@@ -21,8 +21,9 @@ import urllib.request
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db import transaction
+from django.db import connection, transaction
 from django.db.models import Sum
+from django.db.utils import OperationalError, ProgrammingError
 from django.utils import timezone
 
 from core.enterprise_models import (
@@ -53,6 +54,50 @@ from core.utils.saas_billing import get_or_create_subscription, refresh_billing_
 from core.utils.saas_platform import bootstrap_saas_datastore
 
 log = logging.getLogger('tradeflow.platform')
+
+# Tablas mínimas antes de sembrar (evita "no such table: core_order" sin migrate).
+REQUIRED_TABLES = (
+    'core_order',
+    'core_product',
+    'core_company',
+    'core_userprofile',
+    'core_inventory',
+    'core_saasplan',
+    'core_companysubscription',
+)
+
+# Tope de descargas HTTPS por ejecución (standard/stress generan miles de SKUs).
+MAX_IMAGE_DOWNLOADS: dict[str, int] = {
+    'demo': 30,
+    'standard': 48,
+    'stress': 0,
+}
+
+
+class DatabaseSchemaNotReadyError(RuntimeError):
+    """La base no tiene migraciones aplicadas."""
+
+
+def ensure_database_schema_ready() -> None:
+    """
+    Comprueba que existan tablas core. Si no, indica ejecutar migrate primero.
+    """
+    try:
+        tables = set(connection.introspection.table_names())
+    except (OperationalError, ProgrammingError) as exc:
+        raise DatabaseSchemaNotReadyError(
+            'No se pudo inspeccionar la base de datos. '
+            'Ejecute: python manage.py migrate'
+        ) from exc
+
+    missing = [t for t in REQUIRED_TABLES if t not in tables]
+    if missing:
+        raise DatabaseSchemaNotReadyError(
+            'Faltan tablas en la base de datos (migraciones pendientes): '
+            f'{", ".join(missing)}. '
+            'Ejecute primero: python manage.py migrate'
+        )
+
 
 SIM_RUC_PREFIX = '8-1Y-SIM-'
 ORDER_NUM_PREFIX = 'TF-1YSIM-'
@@ -284,6 +329,7 @@ PRODUCT_TEMPLATES: dict[int, list[tuple[str, str, float, float]]] = {
 
 def clear_enterprise_year_simulation() -> dict[str, int]:
     """Elimina filas generadas por esta simulación (orden seguro FK/PROTECT)."""
+    ensure_database_schema_ready()
     deleted: dict[str, int] = {}
 
     order_qs = Order.objects.filter(order_number__startswith=ORDER_NUM_PREFIX)
@@ -349,7 +395,7 @@ def _download_product_image(rel_path: str, seed: int, pic_id: int) -> str | None
     url = f'https://picsum.photos/seed/tradeflow{seed}{pic_id}/800/600.jpg'
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'TradeFlowSeed/1.0'})
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=6) as resp:
             data = resp.read()
         with open(dest, 'wb') as f:
             f.write(data)
@@ -418,7 +464,7 @@ def run_enterprise_year_seed(
     *,
     scale: str = 'standard',
     seed: int = 42,
-    skip_images: bool = False,
+    skip_images: bool = True,
     clear: bool = False,
     stdout_write: Callable[[str], None] | None = None,
 ) -> dict:
@@ -440,6 +486,26 @@ def run_enterprise_year_seed(
 
     cfg = SCALES[scale]
     rng = random.Random(seed)
+
+    try:
+        ensure_database_schema_ready()
+    except DatabaseSchemaNotReadyError as exc:
+        out['ok'] = False
+        out['errors'].append(str(exc))
+        logmsg(str(exc))
+        return out
+
+    image_budget = 0 if skip_images else MAX_IMAGE_DOWNLOADS.get(scale, 0)
+    if not skip_images and image_budget == 0:
+        skip_images = True
+        logmsg(
+            '[imágenes] Escala stress sin descargas por defecto; use --scale=demo --with-images.'
+        )
+    elif skip_images:
+        logmsg('[imágenes] Omitidas (rápido). Use --with-images para hasta '
+               f'{MAX_IMAGE_DOWNLOADS.get(scale, 0)} placeholders.')
+    else:
+        logmsg(f'[imágenes] Máximo {image_budget} descargas (picsum.photos).')
 
     if clear:
         d = clear_enterprise_year_simulation()
@@ -536,7 +602,7 @@ def run_enterprise_year_seed(
                     promo_price = (price * Decimal('0.88')).quantize(Decimal('0.01'))
                 image_name = f'eyear_{seed}_{co.id}_{p_idx}.jpg'
                 rel_image = ''
-                if not skip_images:
+                if not skip_images and pic_counter < image_budget:
                     rel = _download_product_image(image_name, seed, pic_counter)
                     pic_counter += 1
                     rel_image = rel or ''
