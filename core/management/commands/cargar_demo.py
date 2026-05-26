@@ -380,18 +380,20 @@ class Command(BaseCommand):
                     email_verificado=True,
                     token_verificacion=None,
                 )
+                self.stdout.write(self.style.SUCCESS('  demo_admin → perfil admin creado'))
+            else:
+                self.stdout.write('  demo_admin — rol admin OK')
+
             from core.utils.admin_permissions import sync_user_admin_access
 
             sync_user_admin_access(adm)
             self.stdout.write(self.style.SUCCESS('  demo_admin → permisos Django Admin (core.*)'))
-                self.stdout.write(self.style.SUCCESS('  demo_admin → perfil admin creado'))
-            else:
-                self.stdout.write('  demo_admin — rol admin OK')
-            if prof:
-                if not prof.email_verificado or prof.token_verificacion:
-                    prof.email_verificado = True
-                    prof.token_verificacion = None
-                    prof.save(update_fields=['email_verificado', 'token_verificacion'])
+
+            prof = getattr(adm, 'profile', None)
+            if prof and (not prof.email_verificado or prof.token_verificacion):
+                prof.email_verificado = True
+                prof.token_verificacion = None
+                prof.save(update_fields=['email_verificado', 'token_verificacion'])
         else:
             self.stdout.write(self.style.WARNING('  demo_admin no existe; ejecuta de nuevo o crea el usuario en admin.'))
 
