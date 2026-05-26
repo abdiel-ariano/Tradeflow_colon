@@ -183,14 +183,25 @@ def category_spotlights(limit_per_cat: int = 4, max_cats: int = 4):
 
 
 def home_stats():
-    """Estadísticas para hero CountUp."""
+    """Estadísticas para hero CountUp (datos reales ORM)."""
     from .models import Order
 
+    since = timezone.now() - timedelta(days=30)
+    gmv = (
+        OrderItem.objects.filter(
+            order__created_at__gte=since,
+            order__status__in=('paid', 'packed', 'shipped', 'delivered'),
+        ).aggregate(total=Sum('line_total'))['total']
+        or 0
+    )
+    gmv_int = int(gmv)
+
     return {
-        'empresas': Company.objects.count(),
+        'empresas': Company.objects.filter(is_verified=True).count() or Company.objects.count(),
         'productos': Product.objects.filter(is_active=True).count(),
         'ordenes': Order.objects.exclude(status='cancelled').count(),
         'categorias': Category.objects.count(),
+        'gmv_30d': gmv_int,
     }
 
 

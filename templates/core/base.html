@@ -15,6 +15,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}{% trans 'Marketplace B2B y B2C de la Zona Libre de Colón — empresas verificadas, catálogo, logística y compras seguras.' %}{% endblock %}">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
   {% block extra_head %}{% endblock %}
   <link rel="icon" type="image/png" href="{% static 'img/logo-icon-color.png' %}" sizes="32x32">
@@ -196,8 +197,14 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-alert-info { background: #EFF6FF; border: 1px solid #93C5FD; color: #1E40AF; }
 
     :root {
-      --tf-teal: #2E5B8A;
-      --tf-sand: #FFA15A;
+      /* Paleta ZLC oficial (gradual en comprador/landing) */
+      --tf-zlc-dark: #404b57;
+      --tf-zlc-teal: #62929a;
+      --tf-zlc-sand: #d9cab3;
+      --tf-teal: #62929a;
+      --tf-teal-brand: #2E5B8A;
+      --tf-sand: #d9cab3;
+      --tf-dark: #404b57;
       --tf-dark-faint: rgba(15, 42, 68, 0.08);
       --tf-mid: #1B3B63;
       --tf-radius: 12px;
