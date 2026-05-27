@@ -22,6 +22,7 @@ from core.utils.access_gating import (
     onboarding_context,
     onboarding_redirect_name,
 )
+from core.utils.email_config import smtp_configured
 from core.utils.email_sender import enviar_verificacion_email
 from core.utils.email_verification import verify_email_code
 
@@ -46,7 +47,7 @@ def onboarding_espera_verificacion(request):
     ctx = onboarding_context(request.user)
     ctx['titulo_pagina'] = _('Verifica tu correo')
     ctx['poll_url'] = reverse('api_onboarding_verification_status')
-    ctx['smtp_configured'] = getattr(settings, 'EMAIL_USE_REAL_SMTP', False)
+    ctx['smtp_configured'] = smtp_configured()
     last = request.session.get('verify_resend_at', 0)
     ctx['resend_cooldown_sec'] = max(0, int(60 - (time.time() - last)))
     return render(request, 'core/onboarding_espera_verificacion.html', ctx)
@@ -133,7 +134,7 @@ def onboarding_reenviar_verificacion(request):
         messages.warning(request, _('Espera %(sec)s s antes de reenviar.') % {'sec': wait})
         return redirect('onboarding_espera_verificacion')
 
-    if not getattr(settings, 'EMAIL_USE_REAL_SMTP', False):
+    if not smtp_configured():
         messages.warning(
             request,
             _(

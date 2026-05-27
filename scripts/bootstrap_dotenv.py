@@ -31,7 +31,7 @@ def _django_secret_key() -> str:
 
 
 def build_env_content(*, secret_key: str, app_password: str) -> str:
-    pw = app_password.strip()
+    pw = app_password.strip().replace('"', '')
     user = os.environ.get('GMAIL_USER', DEFAULT_GMAIL_USER).strip() or DEFAULT_GMAIL_USER
     return f"""# Generado por scripts/bootstrap_dotenv.py — NO subir a git
 SECRET_KEY={secret_key}
@@ -46,8 +46,9 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USE_TLS=true
 EMAIL_HOST_USER={user}
-EMAIL_HOST_PASSWORD={pw}
+EMAIL_HOST_PASSWORD="{pw}"
 EMAIL_FORCE_SMTP=false
+# No definir EMAIL_BACKEND=consola si hay Gmail (rompe el aviso y el envío).
 
 DEFAULT_FROM_EMAIL=TradeFlow Colon <{user}>
 PUBLIC_BASE_URL=http://127.0.0.1:8000

@@ -11,8 +11,14 @@
     </p>
 
     {% if not smtp_configured %}
-    <p role="alert" style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:12px 14px;font-size:13px;color:#92400E;margin:0 0 16px;">
-      {% trans "El servidor no tiene correo SMTP configurado. Un administrador debe definir EMAIL_HOST_USER y EMAIL_HOST_PASSWORD (App Password de Google) en el entorno." %}
+    <p role="alert" style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:12px 14px;font-size:13px;color:#92400E;margin:0 0 16px;line-height:1.5;">
+      {% trans "El servidor no detecta Gmail en el archivo .env de la raíz del proyecto. Ejecuta desde la carpeta Tradeflow_colon:" %}
+      <code style="display:block;margin:8px 0;padding:8px;background:rgba(0,0,0,0.06);border-radius:6px;font-size:12px;">python scripts/bootstrap_dotenv.py --force --app-password "TU_APP_PASSWORD"</code>
+      {% trans "Reinicia runserver. No uses EMAIL_BACKEND=consola si tienes credenciales Gmail." %}
+    </p>
+    {% else %}
+    <p style="font-size:12px;color:var(--tf-muted);margin:0 0 16px;text-align:center;">
+      {% trans "Correo activo vía Gmail (tradeflowcolon@gmail.com). Revisa bandeja y spam." %}
     </p>
     {% endif %}
 
