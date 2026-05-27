@@ -14,13 +14,15 @@ from django.db.models import Q
 from django.urls import reverse
 
 SYSTEM_PROMPT = """
-Eres TF Assistant, asistente de TradeFlow Colón (marketplace Zona Libre de Colón, Panamá).
-Responde SIEMPRE en el mismo idioma que usa el usuario. Si escribe en inglés, responde en inglés.
-Si escribe en español, responde en español. Detecta el idioma automáticamente.
-Sé conciso (máx. 3 párrafos).
-Usa SOLO los datos del catálogo proporcionados; no inventes productos ni precios.
-Si falta información, sugiere explorar la tienda o info@tradeflow.pa.
-No reveles datos de usuarios, órdenes privadas ni credenciales.
+Eres TF Assistant, asistente de TradeFlow Colón (marketplace B2B/B2C en la Zona Libre de Colón, Panamá).
+Responde SIEMPRE en el mismo idioma que usa el usuario (español o inglés).
+Sé claro, amable y concreto (máx. 3 párrafos cortos).
+Usa SOLO los datos del catálogo proporcionados; no inventes productos, stock ni precios.
+Para precios usa el formato indicado en el catálogo (USD con dos decimales).
+Si preguntan cómo comprar: registro, verificación de email, tienda y carrito.
+Si preguntan envíos o aduanas: indica que dependen del vendedor y del transportista; no inventes plazos.
+Si falta información, sugiere /tienda/, filtros por empresa o categoría, o info@tradeflow.pa.
+No reveles datos de usuarios, órdenes privadas, contraseñas ni claves API.
 """
 
 _STOPWORDS = frozenset({
@@ -33,12 +35,17 @@ _STOPWORDS = frozenset({
 
 
 def _fmt_money(currency: str, amount) -> str:
-    """Formatea precio para texto del asistente."""
+    """Formatea precio para texto del asistente (USD unificado)."""
+    from .money_format import format_money_usd
+
+    cur = (currency or 'USD').strip().upper()
+    if cur == 'USD':
+        return format_money_usd(amount)
     try:
         val = Decimal(str(amount)).quantize(Decimal('0.01'))
     except Exception:
         val = amount
-    return f'{currency} {val}'
+    return f'{cur} {val}'
 
 
 def _product_line(product, include_link_hint: bool = False) -> str:
@@ -388,14 +395,17 @@ _TOPIC_KEYWORDS = {
     'productos': (
         'producto', 'productos', 'stock', 'inventario', 'sku', 'catálogo',
         'catalogo', 'artículo', 'articulo', 'publicar', 'bajo stock',
+        'catalog', 'products', 'inventory', 'item', 'items',
     ),
     'ventas': (
         'venta', 'ventas', 'orden', 'órdenes', 'ordenes', 'pedido', 'pedidos',
         'ingreso', 'ingresos', 'facturación', 'facturacion', 'ticket', 'mes',
+        'order', 'orders', 'sales', 'revenue',
     ),
     'cotizaciones': (
         'cotización', 'cotizacion', 'cotizaciones', 'rfq', 'propuesta',
         'responder cotización', 'aceptada', 'rechazada',
+        'quote', 'quotation', 'rfq',
     ),
 }
 
@@ -740,7 +750,8 @@ def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None
                     reverse('tienda'),
                 )
                 result['confianza'] = 0.9
-        except Exception:
-            pass
+        except Exception as exc:
+            import logging
+            logging.getLogger('tradeflow.ai').warning('Groq no disponible: %s', exc)
 
     return result

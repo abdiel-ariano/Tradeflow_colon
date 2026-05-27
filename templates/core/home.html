@@ -33,12 +33,12 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     background: linear-gradient(135deg, var(--tf-navy) 0%, var(--tf-mid) 40%, var(--tf-navy) 100%);
     background-attachment: fixed;
     min-height: 0;
-    max-height: 75vh;
+    max-height: none;
     position: relative;
     overflow: hidden;
     display: flex;
     align-items: center;
-    padding: 72px 0 48px;
+    padding: 72px 0 5rem;
   }
   .hm-particle {
     position: absolute;
@@ -63,19 +63,35 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 
   .hm-hero-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
     max-width: 1160px;
     margin: 0 auto;
     padding: 0 40px;
-    gap: 60px;
+    gap: 48px;
     align-items: center;
     width: 100%;
     position: relative;
     z-index: 1;
   }
+  .hm-hero-copy {
+    max-width: 540px;
+    min-width: 0;
+  }
+  .hm-hero-mockup {
+    min-width: 0;
+    justify-self: end;
+    max-width: 100%;
+  }
+  @media (max-width: 1100px) {
+    .hm-hero-h1 {
+      font-size: clamp(1.75rem, 4.2vw, 2.65rem);
+    }
+    .hm-hero-grid { gap: 32px; }
+  }
   @media (max-width: 991px) {
     .hm-hero-grid { grid-template-columns: 1fr; gap: 40px; }
-    .hm-hero-mockup { justify-self: center; }
+    .hm-hero-mockup { justify-self: center; max-width: 420px; width: 100%; }
+    .hm-hero-copy { max-width: 100%; }
   }
 
   .hm-hero-badge {
@@ -96,10 +112,11 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 
   .hm-hero-h1 {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(2.5rem, 5vw, 3.8rem);
+    font-size: clamp(2rem, 4.5vw, 3.25rem);
     color: var(--tf-white) !important;
-    line-height: 1.15;
+    line-height: 1.12;
     margin: 20px 0 24px;
+    max-width: 100%;
   }
   .hm-hero-h1 .hm-accent { color: var(--tf-orange); }
 
@@ -115,6 +132,8 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     display: flex;
     gap: 14px;
     flex-wrap: wrap;
+    margin-bottom: 8px;
+    padding-bottom: 12px;
   }
   .hm-btn-primary {
     background: var(--tf-orange);
