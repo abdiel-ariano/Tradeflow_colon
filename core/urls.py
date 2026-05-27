@@ -63,6 +63,7 @@ urlpatterns = [
     path('onboarding/acceso-requerido/', onboarding.onboarding_solicitud_requerida, name='onboarding_solicitud_requerida'),
     path('onboarding/solicitud-rechazada/', onboarding.onboarding_aplicacion_rechazada, name='onboarding_aplicacion_rechazada'),
     path('onboarding/reenviar-verificacion/', onboarding.onboarding_reenviar_verificacion, name='onboarding_reenviar_verificacion'),
+    path('onboarding/verificar-codigo/', onboarding.onboarding_verificar_codigo, name='onboarding_verificar_codigo'),
     path('api/onboarding/verification-status/', onboarding.api_onboarding_verification_status, name='api_onboarding_verification_status'),
     path(
         'solicitud-acceso/revisar/<str:token>/<str:accion>/',

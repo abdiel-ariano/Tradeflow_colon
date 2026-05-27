@@ -5,7 +5,7 @@
   'use strict';
 
   var form = document.getElementById('filtros-form');
-  var catalogRoot = document.getElementById('td-catalog-root');
+  var catalogRoot = document.getElementById('t-prod-section');
   if (!form || !catalogRoot) return;
 
   var meta = document.getElementById('tf-tienda-meta');
@@ -43,7 +43,7 @@
       y = parseInt(sessionStorage.getItem(SCROLL_KEY), 10);
       if (isNaN(y)) y = 0;
     } catch (e) { /* ignore */ }
-    var anchor = document.getElementById('td-catalog-root');
+    var anchor = document.getElementById('t-prod-section');
     if (anchor && y < 80) {
       var top = anchor.getBoundingClientRect().top + window.scrollY - 88;
       window.scrollTo({ top: Math.max(0, top), behavior: 'instant' in window ? 'instant' : 'auto' });
@@ -140,7 +140,7 @@
       })
       .then(function (html) {
         var doc = new DOMParser().parseFromString(html, 'text/html');
-        var fresh = doc.getElementById('td-catalog-root');
+        var fresh = doc.getElementById('t-prod-section');
         if (!fresh) throw new Error('partial');
         ['data-cat-active', 'data-empresa-active', 'data-orden-active',
           'data-buscar-active', 'data-tab-active', 'data-cur-page'].forEach(function (attr) {

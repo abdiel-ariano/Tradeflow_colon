@@ -71,6 +71,16 @@
     return bag[key] || fallback;
   }
 
+  function formatUsd(value) {
+    var n = Number(value);
+    if (isNaN(n)) n = 0;
+    var abs = Math.abs(n);
+    var sign = n < 0 ? '-' : '';
+    var parts = abs.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return sign + 'USD ' + parts.join('.');
+  }
+
   function boot() {
     if (typeof Chart === 'undefined') {
       showChartsError(i18n('chartLoadError', 'No se pudo cargar Chart.js. Recarga la página.'));
@@ -212,14 +222,23 @@
               }],
             },
             options: Object.assign({}, chartBaseOptions(), {
-              plugins: { legend: { display: false } },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: function (ctx) {
+                      return formatUsd(ctx.parsed.y);
+                    },
+                  },
+                },
+              },
               scales: {
                 x: { ticks: { color: '#6B7A88', maxRotation: 45 } },
                 y: {
                   beginAtZero: true,
                   ticks: {
                     color: '#6B7A88',
-                    callback: function (v) { return 'US$' + Number(v).toFixed(0); },
+                    callback: function (v) { return formatUsd(v); },
                   },
                 },
               },
@@ -288,7 +307,21 @@
           options: Object.assign({}, chartBaseOptions(), {
             indexAxis: 'y',
             plugins: { legend: { display: false } },
-            scales: { x: { beginAtZero: true, ticks: { callback: function (v) { return 'US$' + v; } } } },
+            scales: {
+              x: {
+                beginAtZero: true,
+                ticks: { callback: function (v) { return formatUsd(v); } },
+              },
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function (ctx) {
+                    return formatUsd(ctx.parsed.x);
+                  },
+                },
+              },
+            },
           }),
         });
       }

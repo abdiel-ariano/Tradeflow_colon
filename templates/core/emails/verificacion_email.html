@@ -33,8 +33,13 @@ Contexto: enviar_verificacion_email; enlace con token de 24 h.
                 de comercio en la Zona Libre de Colón.
               </p>
               <p style="margin:0 0 24px;">
-                Para activar tu cuenta, confirma tu correo electrónico con el botón siguiente:
+                Para activar tu cuenta, confirma tu correo con el botón siguiente o ingresa este código en la plataforma:
               </p>
+              {% if verification_code %}
+              <p style="margin:0 0 20px;text-align:center;font-size:28px;font-weight:700;letter-spacing:0.35em;color:#0F2A44;font-variant-numeric:tabular-nums;">
+                {{ verification_code }}
+              </p>
+              {% endif %}
               <p style="margin:0 0 28px;text-align:center;">
                 <a href="{{ link }}"
                    style="display:inline-block;padding:14px 32px;background-color:#F26522;color:#FFFFFF;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">

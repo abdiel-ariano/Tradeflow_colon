@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static i18n %}
+{% load static i18n tf_money %}
 {% comment %}
 ================================================================================
 templates/core/tienda.html — TradeFlow Colón
@@ -155,6 +155,56 @@ show_cart_actions, tienda_params.
     margin: 0;
     font-size: 13px;
     color: var(--tf-muted);
+  }
+  .bp-promo-scroll {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .bp-promo-scroll::-webkit-scrollbar { display: none; }
+  .bp-promo-card {
+    min-width: 180px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 1rem;
+    text-decoration: none;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .bp-promo-badge {
+    background: var(--tf-teal, var(--tf-blue));
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+  .bp-promo-name {
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-clamp: 2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .bp-promo-price {
+    color: var(--tf-sand, #d9cab3);
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+  }
+  .bp-promo-was {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.75rem;
+    text-decoration: line-through;
   }
   .td-tabs {
     display: flex;
@@ -325,15 +375,15 @@ show_cart_actions, tienda_params.
   }
 
   .td-main { min-width: 0; }
-  #td-catalog-root {
+  #t-prod-section {
     position: relative;
     transition: opacity 0.2s ease;
   }
-  #td-catalog-root.is-loading {
+  #t-prod-section.is-loading {
     opacity: 0.5;
     pointer-events: none;
   }
-  #td-catalog-root.is-loading::after {
+  #t-prod-section.is-loading::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -811,13 +861,13 @@ show_cart_actions, tienda_params.
           </div>
           <a href="{{ tab_urls.ofertas }}" style="color:var(--tf-sand, #D9CAB3);font-size:.85rem;text-decoration:none;border-bottom:1px solid currentColor;">{% trans "Ver todas" %} →</a>
         </div>
-        <div style="display:flex;gap:1rem;overflow-x:auto;padding-bottom:.5rem;">
+        <div class="bp-promo-scroll" role="list">
           {% for producto in productos_promo %}
-          <a href="{% url 'tienda' %}?producto={{ producto.id }}" style="min-width:180px;background:rgba(255,255,255,0.07);border-radius:10px;padding:1rem;text-decoration:none;flex-shrink:0;border:1px solid rgba(255,255,255,0.1);">
-            <span style="background:var(--tf-teal, var(--tf-blue));color:#fff;font-size:.7rem;font-weight:700;padding:.2rem .5rem;border-radius:4px;display:inline-block;margin-bottom:.5rem;">-{{ producto.discount_pct }}%</span>
-            <div style="color:#fff;font-size:.875rem;font-weight:600;line-clamp:2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ producto.name }}</div>
-            <div style="color:var(--tf-sand, #D9CAB3);font-family:'DM Serif Display',serif;font-size:1.1rem;margin-top:.5rem;">${{ producto.display_price }}</div>
-            <div style="color:rgba(255,255,255,0.4);font-size:.75rem;text-decoration:line-through;">${{ producto.unit_price }}</div>
+          <a href="{% url 'tienda' %}?producto={{ producto.id }}" class="bp-promo-card" role="listitem">
+            <span class="bp-promo-badge">-{{ producto.discount_pct }}%</span>
+            <div class="bp-promo-name">{{ producto.name }}</div>
+            <div class="bp-promo-price">{{ producto.display_price|money_usd }}</div>
+            <div class="bp-promo-was">{{ producto.unit_price|money_usd }}</div>
           </a>
           {% endfor %}
         </div>
@@ -859,7 +909,8 @@ show_cart_actions, tienda_params.
       </section>
       {% endif %}
 
-      <div id="td-catalog-root"
+      <div id="t-prod-section"
+           class="td-catalog-anchor"
            data-cat-active="{{ cat_activa|escapejs }}"
            data-empresa-active="{{ empresa_activa|escapejs }}"
            data-orden-active="{{ orden_activo|escapejs }}"

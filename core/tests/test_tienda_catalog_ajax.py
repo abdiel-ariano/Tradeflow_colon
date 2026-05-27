@@ -33,5 +33,5 @@ class TiendaCatalogAjaxTests(TestCase):
         self.assertEqual(response.status_code, 200)
         content = response.content.decode()
         self.assertIn('id="td-product-grid"', content)
-        self.assertIn('td-catalog-root', content)
+        self.assertIn('t-prod-section', content)
         self.assertNotIn('<!DOCTYPE html>', content)

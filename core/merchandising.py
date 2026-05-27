@@ -194,7 +194,10 @@ def home_stats():
         ).aggregate(total=Sum('line_total'))['total']
         or 0
     )
-    gmv_int = int(gmv)
+    from .utils.money_format import format_money_usd, quantize_money
+
+    gmv_dec = quantize_money(gmv)
+    gmv_int = int(gmv_dec)
 
     return {
         'empresas': Company.objects.filter(is_verified=True).count() or Company.objects.count(),
@@ -202,6 +205,7 @@ def home_stats():
         'ordenes': Order.objects.exclude(status='cancelled').count(),
         'categorias': Category.objects.count(),
         'gmv_30d': gmv_int,
+        'gmv_30d_fmt': format_money_usd(gmv_dec),
     }
 
 

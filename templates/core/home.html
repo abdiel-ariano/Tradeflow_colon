@@ -187,21 +187,40 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   .hm-mockup-title { font-size: 12px; color: rgba(255, 255, 255, 0.5); margin: 0; }
   .hm-metrics {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
     margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
   }
   .hm-metric {
     background: rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     padding: 14px 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 0;
+    overflow: hidden;
   }
   .hm-metric-val {
-    font-size: 24px;
+    font-size: clamp(1rem, 3.8vw, 1.5rem);
     font-weight: 700;
     color: var(--tf-white);
-    line-height: 1.1;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hm-mockup-card {
+    position: relative;
+    z-index: 0;
+    overflow: hidden;
+  }
+  @media (max-width: 480px) {
+    .hm-mockup-card { animation: none !important; transform: none !important; }
+    .hm-metric-val { font-size: 1.05rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hm-mockup-card { animation: none !important; transform: none !important; }
   }
   .hm-metric-val.green { color: #4ECB71; }
   .hm-metric-val.orange { color: var(--tf-orange); }
@@ -823,7 +842,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
               <div class="hm-metric-lbl">{% trans "Empresas ZLC" %}</div>
             </div>
             <div class="hm-metric">
-              <div class="hm-metric-val orange">${{ stats.gmv_30d|default:0 }}</div>
+              <div class="hm-metric-val orange">{{ stats.gmv_30d_fmt|default:"USD 0.00" }}</div>
               <div class="hm-metric-lbl">{% trans "Volumen 30 días (USD)" %}</div>
             </div>
             <div class="hm-metric">
@@ -832,7 +851,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
             </div>
           </div>
           <div class="hm-bar-wrap">
-            <div class="hm-bar-lbl">Fulfillment rate</div>
+            <div class="hm-bar-lbl">{% trans "Tasa de cumplimiento" %}</div>
             <div class="hm-bar-track"><div class="hm-bar-fill orange" data-w="94"></div></div>
           </div>
           <div class="hm-bar-wrap">
