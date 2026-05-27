@@ -336,18 +336,20 @@ def enviar_verificacion_email(user: User, request) -> None:
     """
     Envía email de verificación al registrarse.
 
-    Genera token único UUID y lo guarda en el perfil. El enlace expira
-    conceptualmente en 24 horas (el token se invalida al verificar).
+    Genera código OTP de 6 dígitos y token UUID para enlace. El código expira
+    en 24 horas (``codigo_verificacion_expira``).
 
     Args:
         user: Instancia de User recién creado.
         request: HttpRequest para construir URL absoluta.
     """
+    from core.utils.email_verification import assign_email_verification_code
+
     profile = user.profile
+    verification_code = assign_email_verification_code(profile, hours=24)
     token = str(uuid.uuid4()).replace('-', '')
     profile.token_verificacion = token
-    profile.email_verificado = False
-    profile.save(update_fields=['token_verificacion', 'email_verificado'])
+    profile.save(update_fields=['token_verificacion'])
 
     link = request.build_absolute_uri(
         reverse('verificar_email', kwargs={'token': token})
@@ -358,6 +360,7 @@ def enviar_verificacion_email(user: User, request) -> None:
         {
             'user': user,
             'link': link,
+            'verification_code': verification_code,
             'expiracion': '24 horas',
             'public_base_url': getattr(settings, 'PUBLIC_BASE_URL', '').rstrip('/'),
         },

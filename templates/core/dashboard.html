@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static i18n %}
+{% load static i18n tf_money %}
 {% comment %}
 ================================================================================
 ACCIÓN: REEMPLAZAR
@@ -226,14 +226,14 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
           >{{ kpi_ingresos_label }}</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">payments</span>
         </div>
-        <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">USD {{ ingresos_semana }}</div>
+        <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">{{ ingresos_semana|money_usd }}</div>
         <div class="adm-kpi-delta">vs. período anterior: {{ ingresos_delta_label }}</div>
         <div
           class="adm-kpi-sub"
           id="adm-kpi-ingresos-sub"
-          data-sub-pruebas="{% trans 'Acumulado activo (no canceladas): USD' %}"
-          data-sub-prod="{% trans 'Acumulado entregado: USD' %}"
-        >{{ kpi_ingresos_sub }}: USD {{ ingresos_total }}</div>
+          data-sub-pruebas="{% trans 'Acumulado activo (no canceladas)' %}"
+          data-sub-prod="{% trans 'Acumulado entregado' %}"
+        >{{ kpi_ingresos_sub }}: {{ ingresos_total|money_usd }}</div>
       </div>
       <div class="adm-kpi adm-kpi-in">
         <div class="adm-kpi-top">
@@ -373,7 +373,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
             <td>{{ orden.buyer.get_full_name|default:orden.buyer.username }}</td>
             <td>{{ orden.created_at|date:"d/m/Y H:i" }}</td>
             <td><span class="adm-badge adm-ord-st" data-st="{{ orden.status }}">{{ orden.get_status_display }}</span></td>
-            <td>USD {{ orden.total }}</td>
+            <td>{{ orden.total|money_usd }}</td>
           </tr>
           {% empty %}
           <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--tf-muted);">No hay órdenes registradas.</td></tr>

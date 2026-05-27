@@ -85,18 +85,22 @@ def seller_sales_dashboard(company, days=30):
     # Tendencia últimos N días
     labels = []
     values = []
+    from .chart_labels import chart_axis_label
+
     for i in range(days - 1, -1, -1):
         d = (now - timedelta(days=i)).date()
-        labels.append(d.strftime('%d/%m'))
+        labels.append(chart_axis_label(d, dias=min(days, 7) if days <= 7 else 30))
         day_start = timezone.make_aware(datetime.combine(d, datetime.min.time()))
         day_end = day_start + timedelta(days=1)
+        from .money_format import money_to_chart_float
+
         total_dia = OrderItem.objects.filter(
             product__company=company,
             order__created_at__gte=day_start,
             order__created_at__lt=day_end,
             order__status__in=('paid', 'packed', 'shipped', 'delivered'),
         ).aggregate(t=Sum('line_total'))['t'] or Decimal('0')
-        values.append(float(total_dia))
+        values.append(money_to_chart_float(total_dia))
 
     return {
         'ventas_mes': ventas_mes,
@@ -189,9 +193,11 @@ def seller_portal_dashboard(company, days=30):
 
     week_labels = []
     week_orders = []
+    from .chart_labels import chart_weekday_label
+
     for i in range(6, -1, -1):
         d = (now - timedelta(days=i)).date()
-        week_labels.append(d.strftime('%d/%m'))
+        week_labels.append(chart_weekday_label(d))
         week_orders.append(
             Order.objects.filter(
                 items__product__company=company,

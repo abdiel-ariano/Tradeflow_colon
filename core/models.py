@@ -59,6 +59,16 @@ class UserProfile(models.Model):
         null=True,
         help_text='Token UUID para verificación de email',
     )
+    codigo_verificacion_email = models.CharField(
+        max_length=6,
+        blank=True,
+        verbose_name='Código verificación email',
+    )
+    codigo_verificacion_expira = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Expiración código email',
+    )
 
     class Meta:
         verbose_name        = 'Perfil de usuario'

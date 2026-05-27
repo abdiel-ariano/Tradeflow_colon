@@ -1,4 +1,4 @@
-{% load static i18n tf_media %}
+{% load static i18n tf_media tf_money %}
 {% comment %}
 ================================================================================
 ACCIÓN: CREAR
@@ -33,10 +33,10 @@ Variables: product, show_cart_actions (bool), card_extra_class (opcional)
     </h3>
     <div class="tf-product-card-price">
       {% if product.is_on_promo_now %}
-      <span class="tf-price-old">{{ product.currency }} {{ product.unit_price }}</span>
-      <span class="tf-price-now">{{ product.currency }} {{ product.display_price }}</span>
+      <span class="tf-price-old">{{ product.unit_price|money_usd }}</span>
+      <span class="tf-price-now">{{ product.display_price|money_usd }}</span>
       {% else %}
-      <span class="tf-price-now">{{ product.currency }} {{ product.display_price }}</span>
+      <span class="tf-price-now">{{ product.display_price|money_usd }}</span>
       {% endif %}
     </div>
     {% if show_cart_actions %}

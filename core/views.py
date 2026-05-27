@@ -127,7 +127,8 @@ def _dashboard_calendar_days(dias, now=None):
     dias = _normalize_dashboard_dias(dias)
     local_date = timezone.localtime(now).date()
     tzinfo = timezone.get_current_timezone()
-    weekday_es = ('Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom')
+    from .utils.chart_labels import chart_axis_label
+
     days = []
     for i in range(dias):
         day_date = local_date - timedelta(days=dias - 1 - i)
@@ -135,10 +136,7 @@ def _dashboard_calendar_days(dias, now=None):
             datetime.combine(day_date, time.min), tzinfo
         )
         day_end = day_start + timedelta(days=1)
-        if dias == 7:
-            label = weekday_es[day_date.weekday()]
-        else:
-            label = day_date.strftime('%d/%m')
+        label = chart_axis_label(day_date, dias=dias)
         days.append((day_start, day_end, label))
     return days
 
@@ -155,6 +153,8 @@ def _build_dashboard_charts_payload(dias, now=None):
     """
     if now is None:
         now = timezone.now()
+
+    from .utils.money_format import money_to_chart_float, quantize_money
 
     dias = _normalize_dashboard_dias(dias)
     calendar_days = _dashboard_calendar_days(dias, now=now)
@@ -178,7 +178,7 @@ def _build_dashboard_charts_payload(dias, now=None):
             .aggregate(t=Sum('total'))['t']
             or Decimal('0')
         )
-        ingresos_por_dia.append(float(ing))
+        ingresos_por_dia.append(money_to_chart_float(ing))
 
     window_start = calendar_days[0][0] if calendar_days else timezone.localtime(now)
     qs = Order.objects.filter(created_at__gte=window_start)
@@ -205,14 +205,15 @@ def _build_dashboard_charts_payload(dias, now=None):
         .annotate(total=Sum('line_total'))
         .order_by('-total')[:6]
     )
-    cat_grand = float(
+    cat_grand = quantize_money(
         items_period.aggregate(t=Sum('line_total'))['t'] or 0
     )
+    cat_grand_f = float(cat_grand)
     ventas_por_categoria = []
     for row in cat_rows:
         label = row['product__category__name'] or 'General'
-        total_f = float(row['total'] or 0)
-        pct = round(100.0 * total_f / cat_grand, 1) if cat_grand > 0 else 0.0
+        total_f = money_to_chart_float(row['total'] or 0)
+        pct = round(100.0 * total_f / cat_grand_f, 1) if cat_grand_f > 0 else 0.0
         ventas_por_categoria.append({
             'label': label,
             'total': total_f,
@@ -227,7 +228,7 @@ def _build_dashboard_charts_payload(dias, now=None):
     ventas_por_empresa = [
         {
             'label': row['product__company__name'] or 'Sin empresa',
-            'total': float(row['total'] or 0),
+            'total': money_to_chart_float(row['total'] or 0),
         }
         for row in emp_rows
     ]
@@ -554,7 +555,16 @@ def verificar_email(request, token):
         else:
             profile.email_verificado = True
             profile.token_verificacion = None
-            profile.save(update_fields=['email_verificado', 'token_verificacion'])
+            profile.codigo_verificacion_email = ''
+            profile.codigo_verificacion_expira = None
+            profile.save(
+                update_fields=[
+                    'email_verificado',
+                    'token_verificacion',
+                    'codigo_verificacion_email',
+                    'codigo_verificacion_expira',
+                ]
+            )
             enviar_bienvenida(profile.user)
             messages.success(
                 request,
@@ -1158,6 +1168,11 @@ def dashboard(request):
     tasa_periodo_prev = round(Decimal(100) * del_prev / tot_prev, 1) if tot_prev else Decimal('0')
     tasa_delta_pp = tasa_periodo - tasa_periodo_prev
 
+    from .utils.money_format import format_money_usd as _fmt_usd, quantize_money as _q_money
+
+    ingresos_total = _q_money(ingresos_total)
+    ingresos_semana = _q_money(ingresos_semana)
+
     charts = _build_dashboard_charts_payload(dias, now=hoy)
     chart_labels = charts['chart_labels']
     ordenes_por_dia = charts['ordenes_por_dia']
@@ -1242,6 +1257,8 @@ def dashboard(request):
         'ordenes_activas_periodo': ordenes_activas_periodo,
         'ordenes_entregadas_periodo': ordenes_entregadas_periodo,
         'pct_entregadas_periodo': pct_entregadas_periodo,
+        'ingresos_semana_fmt': _fmt_usd(ingresos_semana),
+        'ingresos_total_fmt': _fmt_usd(ingresos_total),
     }
     return render(request, 'core/dashboard.html', context)
 
