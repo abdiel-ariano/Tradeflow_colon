@@ -144,6 +144,22 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
   }
   .adm-pruebas-banner.is-visible { display: block; }
   .adm-pruebas-banner strong { color: var(--tf-orange, #F26522); }
+  .adm-period-hint {
+    margin: 10px 0 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--tf-navy, #0F2A44);
+  }
+  .adm-quick-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+    align-items: start;
+  }
+  @media (max-width: 991px) {
+    .adm-quick-grid { grid-template-columns: 1fr; }
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -151,6 +167,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
   {% include "core/admin_rail.html" %}
   <div class="adm-main">
     <div class="adm-head">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;width:100%;">
       <div>
         <h1>{% trans "Panel de ventas ZLC" %}</h1>
         <p>
@@ -172,6 +189,8 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         <button type="button" class="adm-pill js-dias-pill" data-dias="30">30 días</button>
         <button type="button" class="adm-pill js-dias-pill" data-dias="90">90 días</button>
       </div>
+      </div>
+      <p id="adm-period-label" class="adm-period-hint">{{ periodo_label }}</p>
     </div>
 
     <div
@@ -240,6 +259,53 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
       {% trans "No se pudo cargar Chart.js. Revisa la conexión." %}
     </p>
 
+    <div class="adm-quick-grid">
+      <div class="adm-chart-card">
+        <div class="adm-chart-title">{% trans "Actividad reciente" %}</div>
+        <p class="adm-chart-lead">{% trans "Últimas órdenes y altas de usuario." %}</p>
+        <div class="adm-act-list">
+          {% for item in actividad_reciente %}
+          <div class="adm-act-row">
+            <span class="material-symbols-rounded adm-act-ico">{{ item.icon }}</span>
+            <div class="adm-act-body">
+              <strong>{{ item.titulo }}</strong>
+              <span>{{ item.detalle }}</span>
+              <span class="adm-act-time">{{ item.ts|date:"d/m/Y H:i" }}</span>
+            </div>
+          </div>
+          {% empty %}
+          <p style="padding:1rem;color:var(--tf-muted);font-size:0.875rem;margin:0;">{% trans "Sin actividad reciente." %}</p>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="adm-meta-strip" style="flex-direction:column;gap:12px;margin:0;">
+        <div class="adm-meta-card">
+          <span class="material-symbols-rounded">public</span>
+          <div>
+            <h3>B2B / B2C ({% trans "período" %})</h3>
+            <p>
+              <strong id="adm-meta-b2b">{{ ordenes_b2b }}</strong> B2B ·
+              <strong id="adm-meta-b2c">{{ ordenes_b2c }}</strong> B2C
+            </p>
+          </div>
+        </div>
+        <div class="adm-meta-card">
+          <span class="material-symbols-rounded">group</span>
+          <div>
+            <h3>{% trans "Usuarios" %}</h3>
+            <p><strong>{{ usuarios_plataforma }}</strong> {% trans "activos" %} · <strong>{{ usuarios_login_periodo }}</strong> {% trans "con login en período." %}</p>
+          </div>
+        </div>
+        <div class="adm-meta-card">
+          <span class="material-symbols-rounded">inventory_2</span>
+          <div>
+            <h3>{% trans "Catálogo ZLC" %}</h3>
+            <p><strong>{{ total_productos }}</strong> {% trans "productos" %} · <strong>{{ total_empresas }}</strong> {% trans "empresas" %}.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="adm-charts-row">
       <div class="adm-chart-card">
         <div class="adm-chart-title">Órdenes por día</div>
@@ -274,58 +340,13 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
       </div>
     </div>
 
-    <div class="adm-charts-row">
-      <div class="adm-chart-card">
-        <div class="adm-chart-title">Distribución por estado</div>
-        <p class="adm-chart-lead">Órdenes del período por estado operativo.</p>
+    <div class="adm-charts-row" style="margin-bottom:24px;">
+      <div class="adm-chart-card" style="max-width:520px;margin:0 auto;width:100%;">
+        <div class="adm-chart-title">{% trans "Distribución por estado" %}</div>
+        <p class="adm-chart-lead">{% trans "Órdenes del período por estado operativo (incluye esperando empresa en «Pendiente»)." %}</p>
         <p class="adm-chart-empty" id="adm-doughnut-empty">{% trans "Sin órdenes en este período" %}</p>
         <div class="adm-chart-canvas-wrap adm-chart-tall" style="max-width:400px;margin:0 auto;">
           <canvas id="admDoughnutChart" aria-label="Estados de órdenes"></canvas>
-        </div>
-      </div>
-      <div class="adm-chart-card">
-        <div class="adm-chart-title">Actividad reciente</div>
-        <p class="adm-chart-lead">Últimas órdenes y altas de usuario.</p>
-        <div class="adm-act-list">
-          {% for item in actividad_reciente %}
-          <div class="adm-act-row">
-            <span class="material-symbols-rounded adm-act-ico">{{ item.icon }}</span>
-            <div class="adm-act-body">
-              <strong>{{ item.titulo }}</strong>
-              <span>{{ item.detalle }}</span>
-              <span class="adm-act-time">{{ item.ts|date:"d/m/Y H:i" }}</span>
-            </div>
-          </div>
-          {% empty %}
-          <p style="padding:1rem;color:var(--tf-muted);font-size:0.875rem;margin:0;">Sin actividad reciente.</p>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-    <div class="adm-meta-strip">
-      <div class="adm-meta-card">
-        <span class="material-symbols-rounded">public</span>
-        <div>
-          <h3>B2B / B2C (período)</h3>
-          <p>
-            <strong id="adm-meta-b2b">{{ ordenes_b2b }}</strong> B2B ·
-            <strong id="adm-meta-b2c">{{ ordenes_b2c }}</strong> B2C
-          </p>
-        </div>
-      </div>
-      <div class="adm-meta-card">
-        <span class="material-symbols-rounded">group</span>
-        <div>
-          <h3>Usuarios</h3>
-          <p><strong>{{ usuarios_plataforma }}</strong> activos · <strong>{{ usuarios_login_periodo }}</strong> con login en período.</p>
-        </div>
-      </div>
-      <div class="adm-meta-card">
-        <span class="material-symbols-rounded">inventory_2</span>
-        <div>
-          <h3>Catálogo ZLC</h3>
-          <p><strong>{{ total_productos }}</strong> productos · <strong>{{ total_empresas }}</strong> empresas.</p>
         </div>
       </div>
     </div>
@@ -372,6 +393,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 <script>
 (function () {
   var stMap = {
+    awaiting_seller: { bg: '#fff7ed', fg: '#9a3412' },
     pending: { bg: '#fef8e7', fg: '#6b4a00' },
     paid: { bg: '#e8f4f8', fg: '#1a4f65' },
     packed: { bg: '#e8f4f8', fg: '#1a4f65' },

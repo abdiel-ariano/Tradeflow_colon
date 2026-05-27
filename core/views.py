@@ -183,8 +183,12 @@ def _build_dashboard_charts_payload(dias, now=None):
     window_start = calendar_days[0][0] if calendar_days else timezone.localtime(now)
     qs = Order.objects.filter(created_at__gte=window_start)
     by_status = {row['status']: row['c'] for row in qs.values('status').annotate(c=Count('id'))}
+    # awaiting_seller se agrupa con pendiente en la dona para no perder volumen del período.
     estados_data = {
-        'pending':   by_status.get('pending', 0),
+        'pending': (
+            by_status.get('pending', 0)
+            + by_status.get('awaiting_seller', 0)
+        ),
         'paid':      by_status.get('paid', 0) + by_status.get('packed', 0),
         'shipped':   by_status.get('shipped', 0),
         'delivered': by_status.get('delivered', 0),
@@ -246,6 +250,8 @@ def _build_dashboard_charts_payload(dias, now=None):
         'b2c': qs.filter(order_type='b2c').count(),
     }
 
+    period_label = _('Últimos %(n)s días') % {'n': dias}
+
     return {
         'chart_labels':         chart_labels,
         'ordenes_por_dia':      ordenes_por_dia,
@@ -256,6 +262,7 @@ def _build_dashboard_charts_payload(dias, now=None):
         'productos_top':        productos_top,
         'ordenes_por_tipo':     ordenes_por_tipo,
         'dias':                 dias,
+        'period_label':         period_label,
     }
 
 
@@ -1226,6 +1233,7 @@ def dashboard(request):
         'tasa_delta_pp_fmt':    f'{tasa_delta_pp:+.1f}',
         'periodo_activo':       dias,
         'dias_activo':          dias,
+        'periodo_label':        charts.get('period_label', ''),
         'titulo_pagina':        'Dashboard',
         'nav_activo':           'dashboard',
         'dashboard_modo_pruebas': dashboard_modo_pruebas,
@@ -1246,7 +1254,7 @@ def dashboard(request):
 def lista_ordenes(request):
     ordenes = (
         Order.objects.select_related('buyer')
-        .annotate(item_count=Count('items'))
+        .annotate(item_count=Count('items', distinct=True))
         .order_by('-created_at')
     )
     buscar  = request.GET.get('buscar', '')
@@ -1297,10 +1305,20 @@ def lista_ordenes(request):
 @admin_required
 def detalle_orden(request, pk):
     orden = get_object_or_404(
-        Order.objects.select_related('buyer', 'ship_address')
-                     .prefetch_related('items__product', 'documents'),
-        pk=pk
+        Order.objects.select_related('buyer', 'ship_address').prefetch_related(
+            Prefetch(
+                'items',
+                queryset=OrderItem.objects.select_related(
+                    'product', 'product__company', 'product__category'
+                ).order_by('id'),
+            ),
+            'documents',
+        ),
+        pk=pk,
     )
+    # Materializar líneas en una lista para evitar inconsistencias con prefetch
+    # o caché de relación inversa en plantillas con órdenes muy grandes (simulación anual).
+    orden_items = list(orden.items.all())
     otros_estados = [(v, lbl) for v, lbl in Order.STATUS_CHOICES if v != orden.status]
     try:
         pago = Payment.objects.get(order=orden)
@@ -1312,6 +1330,7 @@ def detalle_orden(request, pk):
         envio = None
     context = {
         'orden':           orden,
+        'orden_items':     orden_items,
         'pago':            pago,
         'envio':           envio,
         'otros_estados':   otros_estados,
@@ -2597,6 +2616,26 @@ def _request_wants_json(request):
 # TIENDA — Catálogo principal del comprador
 # ---------------------------------------------------------------------------
 
+def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
+    """
+    Construye la lista de entradas para la paginación elidida del catálogo.
+
+    Cada elemento es ``{'type': 'page', 'num': int}`` o ``{'type': 'ellipsis'}``.
+    """
+    if not page_obj.has_other_pages():
+        return []
+    paginator = page_obj.paginator
+    slots = []
+    for entry in paginator.get_elided_page_range(
+        page_obj.number, on_each_side=on_each_side, on_ends=on_ends
+    ):
+        if isinstance(entry, int):
+            slots.append({'type': 'page', 'num': entry})
+        else:
+            slots.append({'type': 'ellipsis'})
+    return slots
+
+
 @buyer_required
 def tienda(request):
     """
@@ -2804,6 +2843,7 @@ def tienda(request):
         'spotlight_bestsellers': spotlight_bestsellers,
         'spotlight_destacados': spotlight_destacados,
         'productos_promo': merch.daily_deals(8),
+        'tienda_pagination_slots': _tienda_pagination_slots(page_obj),
     }
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'

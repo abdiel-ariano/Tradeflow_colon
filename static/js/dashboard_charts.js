@@ -31,6 +31,7 @@
       ventas_por_empresa: [],
       productos_top: [],
       ordenes_por_tipo: { b2b: 0, b2c: 0 },
+      period_label: '',
     };
   }
 
@@ -355,6 +356,10 @@
                 return;
               }
               hideChartsError();
+              var pl = document.getElementById('adm-period-label');
+              if (pl && data.period_label) {
+                pl.textContent = data.period_label;
+              }
               createCharts(data);
             })
             .catch(function () {

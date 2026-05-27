@@ -14,6 +14,7 @@ from core.models import (
     Company,
     Inventory,
     Order,
+    OrderItem,
     Payment,
     Product,
     TransportCarrier,
@@ -22,6 +23,10 @@ from core.models import (
 
 
 @override_settings(
+    DEBUG=True,
+    SECURE_SSL_REDIRECT=False,
+    SESSION_COOKIE_SECURE=False,
+    CSRF_COOKIE_SECURE=False,
     AXES_ENABLED=False,
     REQUIRE_EMAIL_VERIFICATION=False,
     REQUIRE_APPROVED_APPLICATION=False,
@@ -175,6 +180,28 @@ class TestFlujoBuyer(TestCase):
         self.client.login(username='buyer_test', password='TestPass123!')
         r = self.client.get(f'/mis-ordenes/{orden_otra.pk}/')
         self.assertEqual(r.status_code, 404)
+
+    def test_admin_detalle_orden_lista_todas_las_lineas(self):
+        """El detalle admin muestra todas las líneas OrderItem (órdenes grandes / seed)."""
+        orden = Order.objects.create(
+            buyer=self.buyer,
+            shipping_cost=Decimal('0'),
+            status='paid',
+        )
+        n = 5
+        for _ in range(n):
+            OrderItem.objects.create(
+                order=orden,
+                product=self.product,
+                qty=1,
+                unit_price_snapshot=self.product.unit_price,
+            )
+        orden.recalculate_totals()
+        orden.save()
+        self.client.login(username='admin_test', password='TestPass123!')
+        r = self.client.get(f'/ordenes/{orden.pk}/')
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, self.product.name, count=n)
 
     def test_login_redirige_por_rol(self):
         """buyer→/tienda/, seller→/mi-tienda/, admin→/dashboard/"""

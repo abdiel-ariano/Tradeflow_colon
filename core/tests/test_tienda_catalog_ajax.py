@@ -6,6 +6,10 @@ from core.models import UserProfile
 
 
 @override_settings(
+    DEBUG=True,
+    SECURE_SSL_REDIRECT=False,
+    SESSION_COOKIE_SECURE=False,
+    CSRF_COOKIE_SECURE=False,
     AXES_ENABLED=False,
     REQUIRE_EMAIL_VERIFICATION=False,
     REQUIRE_APPROVED_APPLICATION=False,
