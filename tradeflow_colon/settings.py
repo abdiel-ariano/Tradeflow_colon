@@ -20,19 +20,19 @@ DEPLOY RAILWAY:
 from pathlib import Path
 
 import dj_database_url
-from decouple import Config, Csv, RepositoryEnv
+from decouple import Config, Csv, RepositoryEmpty, RepositoryEnv
 
 from django.utils.translation import gettext_lazy as _
 
 # ── Rutas ─────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Siempre leer .env desde la raíz del repo (no depende del cwd en Windows/PyCharm).
+# .env en la raíz del repo (Windows/PyCharm); en CI sin .env → variables de entorno.
 _ENV_FILE = BASE_DIR / '.env'
 if _ENV_FILE.is_file():
     config = Config(RepositoryEnv(str(_ENV_FILE)))
 else:
-    config = Config()
+    config = Config(RepositoryEmpty())
 
 # ── Seguridad ─────────────────────────────────────────────────────────────
 # NUNCA hardcodear esto. Viene del archivo .env o de Railway → Variables.
