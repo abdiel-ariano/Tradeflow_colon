@@ -499,16 +499,15 @@ def signup_view(request):
                 log.exception('No se pudo enviar email de verificación: %s', exc)
                 messages.warning(
                     request,
-                    'Cuenta creada, pero no pudimos enviar el correo de verificación. '
-                    'Contacta a soporte@tradeflow.pa.',
+                    'Cuenta creada. No pudimos enviar el correo ahora; configura Gmail en .env '
+                    'o usa «Reenviar correo» en la pantalla siguiente. '
+                    'Sin SMTP, revisa también la consola del servidor.',
                 )
-                return redirect('login')
-
-            messages.success(
-                request,
-                f'Cuenta creada. Revisa tu email {email} '
-                f'para verificar tu cuenta antes de iniciar sesión.',
-            )
+            else:
+                messages.success(
+                    request,
+                    f'Cuenta creada. Revisa tu email {email} (y spam) para el código y el enlace.',
+                )
             login(request, user, backend=AUTH_MODEL_BACKEND)
             return redirect('onboarding_espera_verificacion')
 
@@ -731,6 +730,11 @@ def home_view(request):
     Usuarios autenticados redirigen a su panel; invitados ven la landing completa.
     """
     if request.user.is_authenticated:
+        from core.utils.access_gating import onboarding_redirect_name
+
+        gate_route = onboarding_redirect_name(request.user)
+        if gate_route:
+            return redirect(gate_route)
         return redirect(_redirect_by_role(request.user))
 
     from . import merchandising as merch

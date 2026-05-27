@@ -87,6 +87,10 @@
       return;
     }
 
+    if (typeof ChartDataLabels !== 'undefined') {
+      Chart.register(ChartDataLabels);
+    }
+
     var pillsRoot = document.getElementById('adm-dias-pills');
     var parsed = parseInitialPayload(pillsRoot);
     if (!parsed.ok) {
@@ -136,14 +140,15 @@
     var lineChart = null;
     var doughnutChart = null;
     var catChart = null;
+    var tipoChart = null;
     var empChart = null;
     var prodChart = null;
 
     function destroyCharts() {
-      [barChart, lineChart, doughnutChart, catChart, empChart, prodChart].forEach(function (c) {
+      [barChart, lineChart, doughnutChart, catChart, tipoChart, empChart, prodChart].forEach(function (c) {
         if (c) c.destroy();
       });
-      barChart = lineChart = doughnutChart = catChart = empChart = prodChart = null;
+      barChart = lineChart = doughnutChart = catChart = tipoChart = empChart = prodChart = null;
     }
 
     function updateMetaTipo(tipo) {
@@ -160,6 +165,78 @@
         maintainAspectRatio: false,
         animation: { duration: animDuration },
       };
+    }
+
+    function hasDataLabels() {
+      return typeof ChartDataLabels !== 'undefined';
+    }
+
+    function pluginsCountLabels() {
+      if (!hasDataLabels()) {
+        return { legend: { display: false } };
+      }
+      return {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end',
+          align: 'end',
+          offset: 4,
+          color: '#0F2A44',
+          font: { weight: '600', size: 11 },
+          formatter: function (v) {
+            var n = Number(v);
+            return n > 0 ? String(Math.round(n)) : '';
+          },
+        },
+      };
+    }
+
+    function pluginsUsdHBar() {
+      var base = { legend: { display: false } };
+      if (!hasDataLabels()) {
+        return base;
+      }
+      return Object.assign({}, base, {
+        datalabels: {
+          anchor: 'end',
+          align: 'end',
+          offset: 4,
+          color: '#0F2A44',
+          font: { weight: '600', size: 10 },
+          formatter: function (v) {
+            var n = Number(v);
+            return n > 0 ? formatUsd(n) : '';
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              return formatUsd(ctx.parsed.x);
+            },
+          },
+        },
+      });
+    }
+
+    function pluginsPctDoughnut() {
+      var base = { legend: { position: 'bottom', labels: { font: { size: 10 } } } };
+      if (!hasDataLabels()) {
+        return base;
+      }
+      return Object.assign({}, base, {
+        datalabels: {
+          color: '#fff',
+          font: { weight: '700', size: 11 },
+          formatter: function (v, ctx) {
+            var n = Number(v);
+            if (!n) return '';
+            var data = ctx.chart.data.datasets[0].data;
+            var sum = data.reduce(function (s, x) { return s + Number(x || 0); }, 0);
+            if (!sum) return '';
+            return Math.round((100 * n) / sum) + '%';
+          },
+        },
+      });
     }
 
     function createCharts(payload) {
@@ -185,7 +262,7 @@
               }],
             },
             options: Object.assign({}, chartBaseOptions(), {
-              plugins: { legend: { display: false } },
+              plugins: pluginsCountLabels(),
               scales: {
                 x: { grid: { display: false }, ticks: { color: '#6B7A88', maxRotation: 45 } },
                 y: {
@@ -261,10 +338,45 @@
           type: 'doughnut',
           data: {
             labels: estadoLabels,
-            datasets: [{ data: estVals, backgroundColor: estadoColors, borderWidth: 2, borderColor: '#fff' }],
+            datasets: [{
+              label: i18n('chartOrders', 'Órdenes'),
+              data: estVals,
+              backgroundColor: estadoColors,
+              borderWidth: 2,
+              borderColor: '#fff',
+            }],
           },
           options: Object.assign({}, chartBaseOptions(), {
-            plugins: { legend: { position: 'bottom', labels: { color: '#374151', font: { size: 11 } } } },
+            plugins: pluginsPctDoughnut(),
+          }),
+        });
+      }
+
+      var tipo = payload.ordenes_por_tipo || {};
+      var tipoB2b = Number(tipo.b2b || 0);
+      var tipoB2c = Number(tipo.b2c || 0);
+      var tipoTotal = tipoB2b + tipoB2c;
+      var tipoCtx = document.getElementById('admTipoDoughnut');
+      toggleEmpty(
+        document.getElementById('adm-tipo-empty'),
+        tipoCtx ? tipoCtx.parentElement : null,
+        tipoTotal === 0
+      );
+      if (tipoCtx && tipoTotal > 0) {
+        tipoChart = new Chart(tipoCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['B2B', 'B2C'],
+            datasets: [{
+              label: i18n('chartOrders', 'Órdenes'),
+              data: [tipoB2b, tipoB2c],
+              backgroundColor: ['#2E5B8A', '#F26522'],
+              borderWidth: 2,
+              borderColor: '#fff',
+            }],
+          },
+          options: Object.assign({}, chartBaseOptions(), {
+            plugins: pluginsPctDoughnut(),
           }),
         });
       }
@@ -278,6 +390,7 @@
           data: {
             labels: cats.map(function (c) { return c.label; }),
             datasets: [{
+              label: '%',
               data: cats.map(function (c) { return Number(c.pct || 0); }),
               backgroundColor: catColors.slice(0, cats.length),
               borderWidth: 2,
@@ -285,7 +398,7 @@
             }],
           },
           options: Object.assign({}, chartBaseOptions(), {
-            plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
+            plugins: pluginsPctDoughnut(),
           }),
         });
       }
@@ -299,6 +412,7 @@
           data: {
             labels: emps.map(function (e) { return e.label; }),
             datasets: [{
+              label: i18n('chartUsd', 'USD'),
               data: emps.map(function (e) { return Number(e.total || 0); }),
               backgroundColor: '#2E5B8A',
               borderRadius: 4,
@@ -306,20 +420,11 @@
           },
           options: Object.assign({}, chartBaseOptions(), {
             indexAxis: 'y',
-            plugins: { legend: { display: false } },
+            plugins: pluginsUsdHBar(),
             scales: {
               x: {
                 beginAtZero: true,
                 ticks: { callback: function (v) { return formatUsd(v); } },
-              },
-            },
-            plugins: {
-              tooltip: {
-                callbacks: {
-                  label: function (ctx) {
-                    return formatUsd(ctx.parsed.x);
-                  },
-                },
               },
             },
           }),
@@ -335,6 +440,7 @@
           data: {
             labels: prods.map(function (p) { return p.label; }),
             datasets: [{
+              label: i18n('chartUnits', 'Unidades'),
               data: prods.map(function (p) { return Number(p.units || 0); }),
               backgroundColor: '#F26522',
               borderRadius: 4,
@@ -342,7 +448,7 @@
           },
           options: Object.assign({}, chartBaseOptions(), {
             indexAxis: 'y',
-            plugins: { legend: { display: false } },
+            plugins: pluginsCountLabels(),
             scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
           }),
         });
@@ -351,7 +457,7 @@
       updateMetaTipo(payload.ordenes_por_tipo);
 
       requestAnimationFrame(function () {
-        [barChart, lineChart, doughnutChart, catChart, empChart, prodChart].forEach(function (c) {
+        [barChart, lineChart, doughnutChart, catChart, tipoChart, empChart, prodChart].forEach(function (c) {
           if (c && typeof c.resize === 'function') c.resize();
         });
       });

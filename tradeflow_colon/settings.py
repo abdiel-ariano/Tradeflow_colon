@@ -184,13 +184,11 @@ MESSAGE_TAGS = {
 }
 
 # ── Email ──────────────────────────────────────────────────────────────────
-# REQUIRE_EMAIL_VERIFICATION: en DEBUG por defecto False (login sin bloqueo);
-# en producción por defecto True. Forzar con .env en cualquier entorno.
-# Con EMAIL_BACKEND consola los enlaces de verificación se imprimen en la
-# terminal del runserver (no llegan a Gmail).
+# Verificación de email activa por defecto (demo/local y producción).
+# Desactivar solo en CI o desarrollo ágil: REQUIRE_EMAIL_VERIFICATION=false en .env
 REQUIRE_EMAIL_VERIFICATION = config(
     'REQUIRE_EMAIL_VERIFICATION',
-    default=not DEBUG,
+    default=True,
     cast=bool,
 )
 
@@ -262,6 +260,26 @@ EMAIL_BACKEND = config('EMAIL_BACKEND', default=_default_email_backend)
 EMAIL_USE_REAL_SMTP = (
     'smtp' in EMAIL_BACKEND.lower() and (_smtp_ready or EMAIL_FORCE_SMTP)
 )
+
+import logging as _logging
+
+_boot_log = _logging.getLogger('tradeflow.boot')
+if DEBUG:
+    if REQUIRE_EMAIL_VERIFICATION:
+        _boot_log.info(
+            'REQUIRE_EMAIL_VERIFICATION=True — compradores deben verificar email antes de la tienda.'
+        )
+    else:
+        _boot_log.warning(
+            'REQUIRE_EMAIL_VERIFICATION=False — solo para CI/desarrollo ágil (.env).'
+        )
+    if not EMAIL_USE_REAL_SMTP:
+        _boot_log.warning(
+            'EMAIL_USE_REAL_SMTP=False — correos en consola del servidor. '
+            'Añade EMAIL_HOST_USER y EMAIL_HOST_PASSWORD (App Password Gmail) en .env.'
+        )
+    else:
+        _boot_log.info('EMAIL_USE_REAL_SMTP=True — envío por SMTP activo.')
 
 # Supabase (opcional — Storage S3-compatible)
 SUPABASE_URL = config('SUPABASE_URL', default='')

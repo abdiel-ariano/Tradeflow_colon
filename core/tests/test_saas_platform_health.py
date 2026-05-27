@@ -12,6 +12,8 @@ from core.utils.saas_platform import bootstrap_saas_datastore, get_saas_health
 
 
 @override_settings(
+    REQUIRE_EMAIL_VERIFICATION=False,
+    REQUIRE_APPROVED_APPLICATION=False,
     STORAGES={
         'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
         'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},

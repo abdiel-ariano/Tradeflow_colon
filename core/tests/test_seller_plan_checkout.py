@@ -9,6 +9,8 @@ from core.utils.saas_billing import ensure_default_plans, get_or_create_subscrip
 
 
 @override_settings(
+    REQUIRE_EMAIL_VERIFICATION=False,
+    REQUIRE_APPROVED_APPLICATION=False,
     STORAGES={
         'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
         'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},

@@ -150,12 +150,29 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     font-weight: 600;
     color: var(--tf-navy, #0F2A44);
   }
+  .adm-donuts-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+    align-items: stretch;
+  }
+  .adm-rankings-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
   .adm-quick-grid {
     display: grid;
-    grid-template-columns: 1.35fr 1fr;
+    grid-template-columns: 1fr 2fr;
     gap: 20px;
     margin-bottom: 24px;
     align-items: start;
+  }
+  @media (max-width: 1100px) {
+    .adm-donuts-row { grid-template-columns: 1fr; }
+    .adm-rankings-row { grid-template-columns: 1fr; }
   }
   @media (max-width: 991px) {
     .adm-quick-grid { grid-template-columns: 1fr; }
@@ -259,6 +276,19 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
       {% trans "No se pudo cargar Chart.js. Revisa la conexión." %}
     </p>
 
+    <div class="adm-charts-row">
+      <div class="adm-chart-card">
+        <div class="adm-chart-title">{% trans "Órdenes por día" %}</div>
+        <p class="adm-chart-lead">{% trans "Órdenes creadas por día en el rango seleccionado." %}</p>
+        <div class="adm-chart-canvas-wrap"><canvas id="admBarChart" aria-label="{% trans 'Órdenes por día' %}"></canvas></div>
+      </div>
+      <div class="adm-chart-card">
+        <div class="adm-chart-title">{% trans "Ingresos por día (USD)" %}</div>
+        <p class="adm-chart-lead">{% trans "Suma de totales por día (excluye canceladas)." %}</p>
+        <div class="adm-chart-canvas-wrap"><canvas id="admLineChart" aria-label="{% trans 'Ingresos por día' %}"></canvas></div>
+      </div>
+    </div>
+
     <div class="adm-quick-grid">
       <div class="adm-chart-card">
         <div class="adm-chart-title">{% trans "Actividad reciente" %}</div>
@@ -306,48 +336,39 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
       </div>
     </div>
 
-    <div class="adm-charts-row">
+    <div class="adm-donuts-row">
       <div class="adm-chart-card">
-        <div class="adm-chart-title">Órdenes por día</div>
-        <p class="adm-chart-lead">Órdenes creadas por día en el rango seleccionado.</p>
-        <div class="adm-chart-canvas-wrap"><canvas id="admBarChart" aria-label="Órdenes por día"></canvas></div>
-      </div>
-      <div class="adm-chart-card">
-        <div class="adm-chart-title">Ingresos por día (USD)</div>
-        <p class="adm-chart-lead">Suma de totales por día (excluye canceladas).</p>
-        <div class="adm-chart-canvas-wrap"><canvas id="admLineChart" aria-label="Ingresos por día"></canvas></div>
-      </div>
-    </div>
-
-    <div class="adm-analytics-grid">
-      <div class="adm-chart-card">
-        <div class="adm-chart-title">Ventas por categoría (%)</div>
-        <p class="adm-chart-lead">Participación por categoría en el período.</p>
-        <p class="adm-chart-empty" id="adm-cat-empty">Sin datos en este período</p>
+        <div class="adm-chart-title">{% trans "Ventas por categoría (%)" %}</div>
+        <p class="adm-chart-lead">{% trans "Participación por categoría en el período." %}</p>
+        <p class="adm-chart-empty" id="adm-cat-empty">{% trans "Sin datos en este período" %}</p>
         <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admCatDoughnut"></canvas></div>
       </div>
       <div class="adm-chart-card">
-        <div class="adm-chart-title">Top empresas (USD)</div>
-        <p class="adm-chart-lead">Ingresos por empresa vendedora.</p>
-        <p class="adm-chart-empty" id="adm-emp-empty">Sin datos en este período</p>
-        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admEmpChart"></canvas></div>
+        <div class="adm-chart-title">{% trans "Distribución por estado" %}</div>
+        <p class="adm-chart-lead">{% trans "Órdenes del período por estado operativo." %}</p>
+        <p class="adm-chart-empty" id="adm-doughnut-empty">{% trans "Sin órdenes en este período" %}</p>
+        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admDoughnutChart" aria-label="{% trans 'Estados de órdenes' %}"></canvas></div>
       </div>
       <div class="adm-chart-card">
-        <div class="adm-chart-title">Unidades por producto</div>
-        <p class="adm-chart-lead">Productos más vendidos por cantidad.</p>
-        <p class="adm-chart-empty" id="adm-prod-empty">Sin datos en este período</p>
-        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admProdChart"></canvas></div>
+        <div class="adm-chart-title">{% trans "Órdenes B2B / B2C" %}</div>
+        <p class="adm-chart-lead">{% trans "Distribución por tipo de orden en el período." %}</p>
+        <p class="adm-chart-empty" id="adm-tipo-empty">{% trans "Sin órdenes en este período" %}</p>
+        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admTipoDoughnut"></canvas></div>
       </div>
     </div>
 
-    <div class="adm-charts-row" style="margin-bottom:24px;">
-      <div class="adm-chart-card" style="max-width:520px;margin:0 auto;width:100%;">
-        <div class="adm-chart-title">{% trans "Distribución por estado" %}</div>
-        <p class="adm-chart-lead">{% trans "Órdenes del período por estado operativo (incluye esperando empresa en «Pendiente»)." %}</p>
-        <p class="adm-chart-empty" id="adm-doughnut-empty">{% trans "Sin órdenes en este período" %}</p>
-        <div class="adm-chart-canvas-wrap adm-chart-tall" style="max-width:400px;margin:0 auto;">
-          <canvas id="admDoughnutChart" aria-label="Estados de órdenes"></canvas>
-        </div>
+    <div class="adm-rankings-row">
+      <div class="adm-chart-card">
+        <div class="adm-chart-title">{% trans "Top empresas (USD)" %}</div>
+        <p class="adm-chart-lead">{% trans "Ingresos por empresa vendedora." %}</p>
+        <p class="adm-chart-empty" id="adm-emp-empty">{% trans "Sin datos en este período" %}</p>
+        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admEmpChart"></canvas></div>
+      </div>
+      <div class="adm-chart-card">
+        <div class="adm-chart-title">{% trans "Unidades por producto" %}</div>
+        <p class="adm-chart-lead">{% trans "Productos más vendidos por cantidad." %}</p>
+        <p class="adm-chart-empty" id="adm-prod-empty">{% trans "Sin datos en este período" %}</p>
+        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admProdChart"></canvas></div>
       </div>
     </div>
 
@@ -388,6 +409,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script src="{% static 'vendor/chartjs/chartjs-plugin-datalabels.min.js' %}"></script>
 <script src="{% static 'js/admin_rail.js' %}"></script>
 <script src="{% static 'js/dashboard_charts.js' %}"></script>
 <script>
