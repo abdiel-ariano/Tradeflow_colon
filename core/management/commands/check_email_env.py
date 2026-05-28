@@ -18,11 +18,18 @@ class Command(BaseCommand):
         self.stdout.write(f'EMAIL_BACKEND: {settings.EMAIL_BACKEND}')
         self.stdout.write(f'EMAIL_SMTP_CONFIGURED: {getattr(settings, "EMAIL_SMTP_CONFIGURED", False)}')
         self.stdout.write(f'smtp_configured(): {smtp_configured()}')
+        from core.utils.email_delivery import _resolve_mail_backend
+
+        mail_backend, channel = _resolve_mail_backend()
+        self.stdout.write(f'Próximo envío usará: {channel} ({mail_backend})')
         if smtp_configured():
-            self.stdout.write(self.style.SUCCESS('OK — la pantalla de verificación NO debe mostrar aviso amarillo.'))
+            self.stdout.write(self.style.SUCCESS(
+                'OK — los correos saldrán por Gmail, no solo en la terminal.'
+            ))
         else:
             self.stdout.write(
                 self.style.ERROR(
-                    'Falta Gmail en .env. Ejecuta: python scripts/bootstrap_dotenv.py --force --app-password "..."'
+                    'Falta Gmail en .env. Los correos solo aparecen en la consola de runserver.\n'
+                    'Ejecuta: python scripts/bootstrap_dotenv.py --force --app-password "..."'
                 )
             )

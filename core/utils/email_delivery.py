@@ -10,8 +10,37 @@ from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
 
 from core.enterprise_models import EmailDeliveryLog
+from core.utils.email_config import smtp_configured
 
 log = logging.getLogger('tradeflow.email')
+
+SMTP_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+CONSOLE_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+def _resolve_mail_backend() -> tuple[str, str]:
+    """(backend_path, channel_label) — smtp si hay credenciales en .env."""
+    if smtp_configured():
+        return SMTP_BACKEND, 'smtp'
+    configured = getattr(settings, 'EMAIL_BACKEND', CONSOLE_BACKEND) or CONSOLE_BACKEND
+    if 'smtp' in configured.lower():
+        return configured, 'smtp'
+    return configured, 'console'
+
+
+def _get_mail_connection(mail_backend: str, channel: str):
+    """Conexión SMTP con credenciales explícitas (evita fallos en Windows/PyCharm)."""
+    if channel == 'smtp':
+        return get_connection(
+            backend=mail_backend,
+            host=settings.EMAIL_HOST,
+            port=settings.EMAIL_PORT,
+            username=settings.EMAIL_HOST_USER,
+            password=settings.EMAIL_HOST_PASSWORD,
+            use_tls=getattr(settings, 'EMAIL_USE_TLS', True),
+            fail_silently=False,
+        )
+    return get_connection(backend=mail_backend, fail_silently=False)
 
 
 def validate_email_infrastructure() -> list[str]:
@@ -45,18 +74,10 @@ def deliver_mail(
     Returns:
         bool: True si el envío fue exitoso.
     """
-    backend = getattr(settings, 'EMAIL_BACKEND', '')
+    settings_backend = getattr(settings, 'EMAIL_BACKEND', '')
+    mail_backend, channel = _resolve_mail_backend()
     recipient = recipient_list[0] if recipient_list else ''
     last_error = ''
-
-    if getattr(settings, 'EMAIL_USE_REAL_SMTP', False):
-        mail_backend = 'django.core.mail.backends.smtp.EmailBackend'
-    else:
-        mail_backend = getattr(
-            settings,
-            'EMAIL_BACKEND',
-            'django.core.mail.backends.console.EmailBackend',
-        )
 
     for attempt in range(1, max_attempts + 1):
         try:
@@ -75,7 +96,7 @@ def deliver_mail(
                     from_email=from_email,
                     to=recipient_list,
                 )
-            connection = get_connection(backend=mail_backend, fail_silently=False)
+            connection = _get_mail_connection(mail_backend, channel)
             msg.connection = connection
             msg.send(fail_silently=False)
             EmailDeliveryLog.objects.create(
@@ -83,9 +104,17 @@ def deliver_mail(
                 recipient=recipient,
                 subject=subject[:255],
                 status='sent',
-                backend=backend[:120],
+                backend=f'{channel}:{mail_backend[:100]}',
             )
-            log.info('email_sent type=%s to=%s', email_type, recipient)
+            if channel == 'console':
+                log.warning(
+                    'email_sent CONSOLA (no Gmail) type=%s to=%s — '
+                    'revisa la terminal de runserver o configura .env con bootstrap_dotenv.py',
+                    email_type,
+                    recipient,
+                )
+            else:
+                log.info('email_sent via=smtp type=%s to=%s', email_type, recipient)
             return True
         except Exception as exc:
             last_error = str(exc)
@@ -105,7 +134,7 @@ def deliver_mail(
         subject=subject[:255],
         status='failed',
         error_message=last_error[:2000],
-        backend=backend[:120],
+        backend=f'{channel}:{settings_backend[:80]}',
     )
     log.error(
         'email_delivery_failed type=%s to=%s error=%s',

@@ -12,14 +12,30 @@
 
     {% if not smtp_configured %}
     <p role="alert" style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:12px 14px;font-size:13px;color:#92400E;margin:0 0 16px;line-height:1.5;">
-      {% trans "El servidor no detecta Gmail en el archivo .env de la raíz del proyecto. Ejecuta desde la carpeta Tradeflow_colon:" %}
+      {% trans "Gmail no está activo: el correo solo se imprime en la terminal de runserver, no llega al buzón." %}
+      {% if not env_file_exists %}
+      <strong style="display:block;margin:8px 0;">{% trans "No se encontró .env en:" %} {{ env_file_path }}</strong>
+      {% endif %}
+      {% trans "En la carpeta del proyecto (donde está manage.py), ejecuta:" %}
       <code style="display:block;margin:8px 0;padding:8px;background:rgba(0,0,0,0.06);border-radius:6px;font-size:12px;">python scripts/bootstrap_dotenv.py --force --app-password "TU_APP_PASSWORD"</code>
-      {% trans "Reinicia runserver. No uses EMAIL_BACKEND=consola si tienes credenciales Gmail." %}
+      {% trans "Luego:" %} <code style="font-size:12px;">python manage.py check_email_env</code>
+      {% trans "y reinicia runserver. Si ya enviaste registro, mira la consola: ahí está el código y el enlace." %}
     </p>
     {% else %}
     <p style="font-size:12px;color:var(--tf-muted);margin:0 0 16px;text-align:center;">
-      {% trans "Correo activo vía Gmail (tradeflowcolon@gmail.com). Revisa bandeja y spam." %}
+      {% trans "Correo activo vía Gmail. Revisa bandeja y spam del email con el que te registraste." %}
     </p>
+    {% endif %}
+
+    {% if dev_show_otp %}
+    <div role="region" aria-label="{% trans 'Código de desarrollo' %}" style="background:#EFF6FF;border:1px solid #3B82F6;border-radius:10px;padding:16px;margin:0 0 16px;text-align:center;">
+      <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#1E40AF;">{% trans "Modo desarrollo — Gmail no detectado" %}</p>
+      <p style="margin:0 0 6px;font-size:12px;color:#374151;">{% trans "Tu código de verificación:" %}</p>
+      <p style="margin:0 0 12px;font-size:1.75rem;font-weight:700;letter-spacing:0.35em;font-variant-numeric:tabular-nums;color:#0F2A44;">{{ dev_otp }}</p>
+      {% if dev_verify_link %}
+      <p style="margin:0;font-size:12px;word-break:break-all;"><a href="{{ dev_verify_link }}" style="color:#2E5B8A;">{% trans "O abre este enlace de verificación" %}</a></p>
+      {% endif %}
+    </div>
     {% endif %}
 
     <form method="post" action="{% url 'onboarding_verificar_codigo' %}" style="margin-bottom:16px;">
