@@ -334,36 +334,23 @@ def _cambio_estado_plain(orden: Order, estado_anterior: str, headline: str) -> s
 
 def enviar_verificacion_email(user: User, request) -> dict:
     """
-    Envía código OTP de 6 dígitos vía Resend (django-anymail).
+    Envía código OTP vía Supabase (email_service) con fallback Django.
 
     Returns:
         dict: code, link, channel, recipient.
     """
+    from core.email_service import enviar_codigo_verificacion
     from core.models import EmailVerification
-    from core.utils.email_config import smtp_configured
 
     verification = EmailVerification.generate_for(user)
     verify_url = request.build_absolute_uri(reverse('verificar_codigo'))
-    body = (
-        f'Hola {user.get_full_name() or user.username},\n\n'
-        f'Tu código de verificación es: {verification.code}\n\n'
-        f'Ingresa el código en: {verify_url}\n\n'
-        'Válido por 15 minutos.\n\n'
-        '— TradeFlow Colón'
-    )
-    send_mail(
-        subject='Verifica tu cuenta en TradeFlow Colón',
-        message=body,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=False,
-        email_type='email_verification',
-    )
-    channel = 'resend' if smtp_configured() else 'console'
+    result = enviar_codigo_verificacion(user.email, verification.code)
+    if not result.ok:
+        raise RuntimeError(result.detail or 'email_send_failed')
     return {
         'code': verification.code,
         'link': verify_url,
-        'channel': channel,
+        'channel': result.channel,
         'recipient': user.email,
     }
 

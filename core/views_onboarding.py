@@ -39,8 +39,8 @@ def onboarding_verificar_codigo(request):
 @require_POST
 def onboarding_reenviar_verificacion(request):
     """Compatibilidad: delega reenvío Resend."""
-    from core.views import enviar_codigo_verificacion
-    return enviar_codigo_verificacion(request)
+    from core.views import enviar_codigo
+    return enviar_codigo(request)
 
 
 @login_required

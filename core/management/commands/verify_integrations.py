@@ -64,11 +64,11 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('\nVerificación parcial: OK'))
             return
 
-        if not getattr(settings, 'EMAIL_USE_REAL_SMTP', False):
+        if not getattr(settings, 'EMAIL_USE_REAL_SMTP', False) and not getattr(
+            settings, 'SUPABASE_CONFIGURED', False
+        ):
             self.stdout.write(self.style.WARNING(
-                '\nResend no activo. Configure en .env:\n'
-                '  RESEND_API_KEY=re_...\n'
-                '  Ver https://resend.com/api-keys'
+                '\nEmail no configurado. Añade SUPABASE_* o EMAIL_BACKEND SMTP en .env'
             ))
             return
 
