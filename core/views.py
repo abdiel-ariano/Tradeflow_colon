@@ -27,7 +27,6 @@ import json
 import logging
 import re
 
-from django.core.mail import send_mail
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import escape
 from django.utils.translation import gettext as _
@@ -46,6 +45,7 @@ from django.core import signing
 
 from .decorators import admin_required, buyer_required, seller_required
 from .forms import SellerProductForm, SellerInventoryForm
+from .email_service import enviar_codigo_verificacion as enviar_codigo_email
 from .models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document,
@@ -499,7 +499,7 @@ def signup_view(request):
                 request,
                 f'Cuenta creada. Te enviaremos un código de 6 dígitos a {email}.',
             )
-            return redirect('enviar_codigo_verificacion')
+            return redirect('enviar_codigo')
 
         UserProfile.objects.create(
             user=user,
@@ -525,70 +525,79 @@ def signup_view(request):
     })
 
 
+def _redirect_after_email_verified(user):
+    """Redirección post-verificación por rol (sin alterar login_view)."""
+    try:
+        role = user.profile.role
+    except UserProfile.DoesNotExist:
+        return redirect('tienda')
+    if user.is_superuser or role == 'admin':
+        return redirect('dashboard')
+    if role == 'seller':
+        return redirect('portal_seller')
+    return redirect('tienda')
+
+
 @login_required
-def enviar_codigo_verificacion(request):
-    """Genera código OTP, lo envía por Resend y redirige al formulario de verificación."""
+def enviar_codigo(request):
+    """Genera OTP, envía por Supabase (o fallback Django) y redirige al formulario."""
     if not settings.REQUIRE_EMAIL_VERIFICATION:
         messages.info(request, 'Verificación de email desactivada en este entorno.')
         return redirect('tienda')
 
     try:
         profile = request.user.profile
-        if profile.email_verificado:
+        if profile.email_verified:
             messages.info(request, 'Tu correo ya está verificado.')
             return redirect('tienda')
     except UserProfile.DoesNotExist:
         messages.error(request, 'Perfil no encontrado.')
         return redirect('signup')
 
+    if not request.user.email:
+        messages.error(request, 'Tu cuenta no tiene correo electrónico.')
+        return redirect('verificar_codigo')
+
     verification = EmailVerification.generate_for(request.user)
-    body = (
-        f'Hola {request.user.get_full_name() or request.user.username},\n\n'
-        f'Tu código de verificación en TradeFlow Colón es: {verification.code}\n\n'
-        'Válido por 15 minutos.\n\n'
-        '— TradeFlow Colón · Zona Libre de Colón, Panamá'
-    )
-    try:
-        send_mail(
-            subject='Código de verificación — TradeFlow Colón',
-            message=body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[request.user.email],
-            fail_silently=False,
-        )
+    result = enviar_codigo_email(request.user.email, verification.code)
+    if result.ok:
         messages.success(
             request,
             f'Enviamos un código de 6 dígitos a {request.user.email}. Revisa bandeja y spam.',
         )
-    except Exception as exc:
-        log.exception('enviar_codigo_verificacion: %s', exc)
+    else:
         messages.error(
             request,
-            'No pudimos enviar el correo. Revisa RESEND_API_KEY en .env e intenta de nuevo.',
+            'No pudimos enviar el correo. Revisa Supabase o EMAIL_BACKEND en .env.',
         )
     return redirect('verificar_codigo')
 
 
+# Alias legacy (rutas / onboarding anteriores)
+enviar_codigo_verificacion = enviar_codigo
+
+
 @login_required
 def verificar_codigo(request):
-    """Valida el código POST de 6 dígitos y activa email_verificado en el perfil."""
+    """GET: formulario OTP. POST: valida código y marca email_verified."""
     if not settings.REQUIRE_EMAIL_VERIFICATION:
         return redirect('tienda')
 
     try:
         profile = request.user.profile
-        if profile.email_verificado:
-            messages.info(request, 'Tu correo ya está verificado.')
-            return redirect('tienda')
     except UserProfile.DoesNotExist:
         messages.error(request, 'Perfil no encontrado.')
         return redirect('signup')
+
+    if profile.email_verified:
+        messages.info(request, 'Tu correo ya está verificado.')
+        return redirect('tienda')
 
     if request.method == 'POST':
         raw = (request.POST.get('codigo') or '').strip()
         if not re.fullmatch(r'\d{6}', raw):
             messages.error(request, 'Ingresa un código de 6 dígitos.')
-            return redirect('verificar_codigo')
+            return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
 
         verification = (
             EmailVerification.objects.filter(
@@ -601,11 +610,11 @@ def verificar_codigo(request):
         )
         if not verification or not verification.is_valid():
             messages.error(request, 'Código inválido o expirado. Solicita uno nuevo.')
-            return redirect('verificar_codigo')
+            return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
 
         verification.is_used = True
         verification.save(update_fields=['is_used'])
-        profile.email_verificado = True
+        profile.email_verified = True
         profile.token_verificacion = None
         profile.codigo_verificacion_email = ''
         profile.codigo_verificacion_expira = None
@@ -621,19 +630,23 @@ def verificar_codigo(request):
             enviar_bienvenida(request.user)
         except Exception:
             log.exception('bienvenida tras verificar_codigo')
-        messages.success(request, '¡Correo verificado! Ya puedes usar la tienda.')
+        messages.success(request, '¡Correo verificado! Ya puedes continuar.')
         from core.utils.access_gating import onboarding_redirect_name
         nxt = onboarding_redirect_name(request.user)
-        return redirect(nxt or 'tienda')
+        if nxt:
+            return redirect(nxt)
+        return _redirect_after_email_verified(request.user)
 
+    return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
+
+
+def _verificar_codigo_context(request):
     masked = request.user.email or ''
     if '@' in masked:
         local, domain = masked.split('@', 1)
         if len(local) > 2:
             masked = f'{local[0]}***{local[-1]}@{domain}'
-    return render(request, 'core/verificar_codigo.html', {
-        'masked_email': masked,
-    })
+    return {'masked_email': masked}
 
 
 def verificar_email(request, token):
@@ -698,7 +711,7 @@ def reenviar_verificacion(request):
 
     profile = request.user.profile
     if not profile.email_verificado:
-        return redirect('enviar_codigo_verificacion')
+        return redirect('enviar_codigo')
     return redirect('mi_perfil')
 
 

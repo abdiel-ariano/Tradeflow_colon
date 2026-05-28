@@ -35,8 +35,8 @@ folium>=0.16.0
 # ── Códigos QR (pre-registro visitantes ZLC) ─────────────────────────────
 qrcode[pil]>=7.4
 
-# ── Email (Resend vía Anymail) ─────────────────────────────────────────────
-django-anymail[resend]>=10.2
+# ── Supabase (Postgres remoto, Storage, Edge Functions) ───────────────────
+supabase>=2.4
 
 # ── Rate limiting login ────────────────────────────────────────────────────
 django-axes>=6.3,<7.0

@@ -78,37 +78,14 @@ class UserProfile(models.Model):
     def __str__(self):
         return f'{self.user.get_full_name() or self.user.username} [{self.get_role_display()}]'
 
+    @property
+    def email_verified(self) -> bool:
+        """Alias en inglés (API / vistas); persiste en ``email_verificado``."""
+        return self.email_verificado
 
-class EmailVerification(models.Model):
-    """Código OTP de 6 dígitos para verificar correo (Resend / anymail)."""
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='email_verifications',
-    )
-    code = models.CharField(max_length=6)
-    is_used = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = 'Verificación de email'
-        verbose_name_plural = 'Verificaciones de email'
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f'{self.user_id} · {self.code} · used={self.is_used}'
-
-    def is_valid(self) -> bool:
-        if self.is_used:
-            return False
-        return timezone.now() <= self.created_at + timezone.timedelta(minutes=15)
-
-    @classmethod
-    def generate_for(cls, user: User) -> 'EmailVerification':
-        cls.objects.filter(user=user).delete()
-        code = f'{random.randint(0, 999999):06d}'
-        return cls.objects.create(user=user, code=code)
+    @email_verified.setter
+    def email_verified(self, value: bool) -> None:
+        self.email_verificado = value
 
 
 # =============================================================================
@@ -1017,6 +994,42 @@ class AsignacionTransporte(models.Model):
 
     def __str__(self):
         return f'{self.order.order_number} — {self.transportista.empresa_nombre}'
+
+
+# =============================================================================
+# VERIFICACIÓN DE EMAIL (OTP 6 dígitos — Supabase + fallback Django)
+# =============================================================================
+
+class EmailVerification(models.Model):
+    """Código OTP de 6 dígitos; expira a los 15 minutos."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='email_verifications',
+    )
+    code = models.CharField(max_length=6)
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Verificación de email'
+        verbose_name_plural = 'Verificaciones de email'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.user_id} · {self.code} · used={self.is_used}'
+
+    def is_valid(self) -> bool:
+        if self.is_used:
+            return False
+        return timezone.now() <= self.created_at + timezone.timedelta(minutes=15)
+
+    @classmethod
+    def generate_for(cls, user: User) -> 'EmailVerification':
+        cls.objects.filter(user=user).delete()
+        code = f'{random.randint(0, 999999):06d}'
+        return cls.objects.create(user=user, code=code)
 
 
 # Modelos enterprise (SaaS, ads, API, logística extendida)

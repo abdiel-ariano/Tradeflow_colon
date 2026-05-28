@@ -20,7 +20,20 @@ DEPLOY RAILWAY:
 from pathlib import Path
 
 import dj_database_url
-from decouple import Config, Csv, RepositoryEmpty, RepositoryEnv
+from decouple import Config, Csv, RepositoryEmpty
+
+try:
+    from decouple import RepositoryDict
+except ImportError:
+    class RepositoryDict:  # noqa: D106 — compat decouple antiguo
+        def __init__(self, mapping):
+            self._data = dict(mapping)
+
+        def __contains__(self, key):
+            return key in self._data
+
+        def __getitem__(self, key):
+            return self._data[key]
 
 from django.utils.translation import gettext_lazy as _
 
@@ -28,11 +41,31 @@ from django.utils.translation import gettext_lazy as _
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # .env en la raíz del repo (Windows/PyCharm); en CI sin .env → variables de entorno.
+# utf-8-sig: evita que PowerShell Set-Content -Encoding utf8 rompa SECRET_KEY (BOM).
+
+
+def _parse_dotenv(path: Path) -> dict[str, str]:
+    data: dict[str, str] = {}
+    if not path.is_file():
+        return data
+    for line in path.read_text(encoding='utf-8-sig').splitlines():
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        key, sep, value = line.partition('=')
+        if not sep:
+            continue
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in '"\'':
+            value = value[1:-1]
+        data[key] = value
+    return data
+
+
 _ENV_FILE = BASE_DIR / '.env'
-if _ENV_FILE.is_file():
-    config = Config(RepositoryEnv(str(_ENV_FILE)))
-else:
-    config = Config(RepositoryEmpty())
+_env_vars = _parse_dotenv(_ENV_FILE)
+config = Config(RepositoryDict(_env_vars)) if _env_vars else Config(RepositoryEmpty())
 
 # ── Seguridad ─────────────────────────────────────────────────────────────
 # NUNCA hardcodear esto. Viene del archivo .env o de Railway → Variables.
@@ -55,7 +88,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'axes',
-    'anymail',
     'core',
 ]
 
@@ -221,21 +253,28 @@ DASHBOARD_KPI_REVENUE_DELIVERED_ONLY = config(
     default=False,
     cast=bool,
 )
-# Resend (django-anymail) — verificación y correos transaccionales
-EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
-ANYMAIL = {
-    'RESEND_API_KEY': config('RESEND_API_KEY', default=''),
-}
+# Correo (fallback Django cuando Supabase Edge Function no está disponible)
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend',
+)
 DEFAULT_FROM_EMAIL = config(
     'DEFAULT_FROM_EMAIL',
-    default='TradeFlow <onboarding@resend.dev>',
+    default='TradeFlow <noreply@tradeflow.pa>',
 )
-# URL pública (sin / final) para enlaces en correos
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
-
-RESEND_API_KEY = (ANYMAIL.get('RESEND_API_KEY') or '').strip()
-EMAIL_USE_REAL_SMTP = bool(RESEND_API_KEY)
+EMAIL_USE_REAL_SMTP = 'console' not in (EMAIL_BACKEND or '').lower()
 EMAIL_SMTP_CONFIGURED = EMAIL_USE_REAL_SMTP
+
+# Supabase — Postgres (DATABASE_URL), Storage, Edge Functions (email transaccional)
+SUPABASE_URL = config('SUPABASE_URL', default='').strip()
+SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='').strip()
+SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='').strip()
+SUPABASE_EMAIL_FUNCTION = config(
+    'SUPABASE_EMAIL_FUNCTION',
+    default='send-transactional-email',
+)
+SUPABASE_CONFIGURED = bool(SUPABASE_URL and SUPABASE_SERVICE_KEY)
 
 import logging as _logging
 
@@ -249,17 +288,12 @@ if DEBUG:
         _boot_log.warning(
             'REQUIRE_EMAIL_VERIFICATION=False — solo para CI/desarrollo ágil (.env).'
         )
-    if not EMAIL_USE_REAL_SMTP:
-        _boot_log.warning(
-            'RESEND_API_KEY vacía — configura Resend en .env para envío real.'
-        )
+    if SUPABASE_CONFIGURED:
+        _boot_log.info('Supabase configurado (URL + service key).')
     else:
-        _boot_log.info('Resend activo — correos vía anymail.backends.resend.')
-
-# Supabase (opcional — Storage S3-compatible)
-SUPABASE_URL = config('SUPABASE_URL', default='')
-SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='')
-SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='')
+        _boot_log.warning(
+            'Supabase incompleto — correos de verificación usarán solo Django EMAIL_BACKEND.'
+        )
 
 STORAGES = {
     'default': {

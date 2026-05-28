@@ -39,13 +39,10 @@ class Command(BaseCommand):
 
         backend = getattr(settings, 'EMAIL_BACKEND', '') or ''
         if not settings.DEBUG and not getattr(settings, 'EMAIL_USE_REAL_SMTP', False):
-            errors.append(
-                'RESEND_API_KEY no configurada. Configure Resend en variables de entorno.'
-            )
-        if not settings.DEBUG and 'resend' not in backend.lower():
-            errors.append(
-                'EMAIL_BACKEND debe ser anymail.backends.resend.EmailBackend en producción.'
-            )
+            if not getattr(settings, 'SUPABASE_CONFIGURED', False):
+                errors.append(
+                    'Configure SUPABASE_SERVICE_KEY o EMAIL_BACKEND SMTP en producción.'
+                )
 
         payload = platform_health_payload()
         if not payload['database']['ok']:

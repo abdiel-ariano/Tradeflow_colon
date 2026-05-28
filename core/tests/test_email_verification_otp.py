@@ -45,6 +45,8 @@ class EmailVerificationOtpTests(TestCase):
             follow=False,
         )
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/tienda', resp['Location'])
+        self.assertTrue(
+            '/tienda' in resp['Location'] or resp['Location'].endswith('/tienda/'),
+        )
         self.profile.refresh_from_db()
-        self.assertTrue(self.profile.email_verificado)
+        self.assertTrue(self.profile.email_verified)
