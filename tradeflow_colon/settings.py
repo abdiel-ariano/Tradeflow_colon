@@ -20,7 +20,7 @@ DEPLOY RAILWAY:
 from pathlib import Path
 
 import dj_database_url
-from decouple import Config, Csv, RepositoryEmpty, RepositoryEnv
+from decouple import Config, Csv, RepositoryDict, RepositoryEmpty
 
 from django.utils.translation import gettext_lazy as _
 
@@ -28,11 +28,31 @@ from django.utils.translation import gettext_lazy as _
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # .env en la raíz del repo (Windows/PyCharm); en CI sin .env → variables de entorno.
+# utf-8-sig: evita que PowerShell Set-Content -Encoding utf8 rompa SECRET_KEY (BOM).
+
+
+def _parse_dotenv(path: Path) -> dict[str, str]:
+    data: dict[str, str] = {}
+    if not path.is_file():
+        return data
+    for line in path.read_text(encoding='utf-8-sig').splitlines():
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        key, sep, value = line.partition('=')
+        if not sep:
+            continue
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in '"\'':
+            value = value[1:-1]
+        data[key] = value
+    return data
+
+
 _ENV_FILE = BASE_DIR / '.env'
-if _ENV_FILE.is_file():
-    config = Config(RepositoryEnv(str(_ENV_FILE)))
-else:
-    config = Config(RepositoryEmpty())
+_env_vars = _parse_dotenv(_ENV_FILE)
+config = Config(RepositoryDict(_env_vars)) if _env_vars else Config(RepositoryEmpty())
 
 # ── Seguridad ─────────────────────────────────────────────────────────────
 # NUNCA hardcodear esto. Viene del archivo .env o de Railway → Variables.
