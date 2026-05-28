@@ -1,5 +1,5 @@
 """
-Capa enterprise de entrega de correo: logging, validación y reintentos controlados.
+Capa de entrega de correo: logging, validación y reintentos (backend Django / Resend).
 """
 from __future__ import annotations
 
@@ -10,37 +10,8 @@ from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
 
 from core.enterprise_models import EmailDeliveryLog
-from core.utils.email_config import smtp_configured
 
 log = logging.getLogger('tradeflow.email')
-
-SMTP_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-CONSOLE_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-
-def _resolve_mail_backend() -> tuple[str, str]:
-    """(backend_path, channel_label) — smtp si hay credenciales en .env."""
-    if smtp_configured():
-        return SMTP_BACKEND, 'smtp'
-    configured = getattr(settings, 'EMAIL_BACKEND', CONSOLE_BACKEND) or CONSOLE_BACKEND
-    if 'smtp' in configured.lower():
-        return configured, 'smtp'
-    return configured, 'console'
-
-
-def _get_mail_connection(mail_backend: str, channel: str):
-    """Conexión SMTP con credenciales explícitas (evita fallos en Windows/PyCharm)."""
-    if channel == 'smtp':
-        return get_connection(
-            backend=mail_backend,
-            host=settings.EMAIL_HOST,
-            port=settings.EMAIL_PORT,
-            username=settings.EMAIL_HOST_USER,
-            password=settings.EMAIL_HOST_PASSWORD,
-            use_tls=getattr(settings, 'EMAIL_USE_TLS', True),
-            fail_silently=False,
-        )
-    return get_connection(backend=mail_backend, fail_silently=False)
 
 
 def validate_email_infrastructure() -> list[str]:
@@ -50,7 +21,7 @@ def validate_email_infrastructure() -> list[str]:
     if not base or base.startswith('http://127.0.0.1') and not settings.DEBUG:
         warnings.append('PUBLIC_BASE_URL debe ser la URL pública HTTPS de producción.')
     if not getattr(settings, 'EMAIL_USE_REAL_SMTP', False) and not settings.DEBUG:
-        warnings.append('SMTP no configurado; los correos no saldrán en producción.')
+        warnings.append('RESEND_API_KEY no configurada; los correos no saldrán en producción.')
     if not getattr(settings, 'DEFAULT_FROM_EMAIL', ''):
         warnings.append('DEFAULT_FROM_EMAIL no está definido.')
     return warnings
@@ -71,11 +42,10 @@ def deliver_mail(
     """
     Envía correo con registro en ``EmailDeliveryLog`` y un reintento opcional.
 
-    Returns:
-        bool: True si el envío fue exitoso.
+    Usa ``EMAIL_BACKEND`` de Django (anymail Resend en producción).
     """
-    settings_backend = getattr(settings, 'EMAIL_BACKEND', '')
-    mail_backend, channel = _resolve_mail_backend()
+    backend = getattr(settings, 'EMAIL_BACKEND', '') or ''
+    channel = 'resend' if 'resend' in backend.lower() or 'anymail' in backend.lower() else 'django'
     recipient = recipient_list[0] if recipient_list else ''
     last_error = ''
 
@@ -96,25 +66,16 @@ def deliver_mail(
                     from_email=from_email,
                     to=recipient_list,
                 )
-            connection = _get_mail_connection(mail_backend, channel)
-            msg.connection = connection
+            msg.connection = get_connection(fail_silently=False)
             msg.send(fail_silently=False)
             EmailDeliveryLog.objects.create(
                 email_type=email_type[:40],
                 recipient=recipient,
                 subject=subject[:255],
                 status='sent',
-                backend=f'{channel}:{mail_backend[:100]}',
+                backend=f'{channel}:{backend[:100]}',
             )
-            if channel == 'console':
-                log.warning(
-                    'email_sent CONSOLA (no Gmail) type=%s to=%s — '
-                    'revisa la terminal de runserver o configura .env con bootstrap_dotenv.py',
-                    email_type,
-                    recipient,
-                )
-            else:
-                log.info('email_sent via=smtp type=%s to=%s', email_type, recipient)
+            log.info('email_sent via=%s type=%s to=%s', channel, email_type, recipient)
             return True
         except Exception as exc:
             last_error = str(exc)
@@ -134,7 +95,7 @@ def deliver_mail(
         subject=subject[:255],
         status='failed',
         error_message=last_error[:2000],
-        backend=f'{channel}:{settings_backend[:80]}',
+        backend=backend[:80],
     )
     log.error(
         'email_delivery_failed type=%s to=%s error=%s',

@@ -1,4 +1,4 @@
-"""Diagnóstico rápido de .env / Gmail (sin imprimir contraseñas)."""
+"""Diagnóstico de correo Resend (sin mostrar la API key)."""
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -6,30 +6,23 @@ from core.utils.email_config import smtp_configured
 
 
 class Command(BaseCommand):
-    help = 'Muestra si Django detecta SMTP Gmail desde .env'
+    help = 'Comprueba configuración Resend / django-anymail'
 
     def handle(self, *args, **options):
-        env_file = settings.BASE_DIR / '.env'
-        self.stdout.write(f'.env existe: {env_file.is_file()} ({env_file})')
-        self.stdout.write(f'EMAIL_HOST_USER: {settings.EMAIL_HOST_USER or "(vacío)"}')
+        env_path = settings.BASE_DIR / '.env'
+        self.stdout.write(f'.env existe: {env_path.is_file()} ({env_path})')
+        key = (getattr(settings, 'ANYMAIL', {}) or {}).get('RESEND_API_KEY', '')
         self.stdout.write(
-            f'EMAIL_HOST_PASSWORD: {"(configurada)" if settings.EMAIL_HOST_PASSWORD else "(vacía)"}'
+            f'RESEND_API_KEY: {"(configurada)" if (key or "").strip() else "(vacía)"}'
         )
         self.stdout.write(f'EMAIL_BACKEND: {settings.EMAIL_BACKEND}')
-        self.stdout.write(f'EMAIL_SMTP_CONFIGURED: {getattr(settings, "EMAIL_SMTP_CONFIGURED", False)}')
+        self.stdout.write(f'DEFAULT_FROM_EMAIL: {settings.DEFAULT_FROM_EMAIL}')
         self.stdout.write(f'smtp_configured(): {smtp_configured()}')
-        from core.utils.email_delivery import _resolve_mail_backend
-
-        mail_backend, channel = _resolve_mail_backend()
-        self.stdout.write(f'Próximo envío usará: {channel} ({mail_backend})')
         if smtp_configured():
             self.stdout.write(self.style.SUCCESS(
-                'OK — los correos saldrán por Gmail, no solo en la terminal.'
+                'OK — los correos saldrán por Resend (anymail).'
             ))
         else:
-            self.stdout.write(
-                self.style.ERROR(
-                    'Falta Gmail en .env. Los correos solo aparecen en la consola de runserver.\n'
-                    'Ejecuta: python scripts/bootstrap_dotenv.py --force --app-password "..."'
-                )
-            )
+            self.stdout.write(self.style.WARNING(
+                'Añade RESEND_API_KEY=re_... en .env y reinicia runserver.'
+            ))

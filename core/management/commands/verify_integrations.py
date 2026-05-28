@@ -66,17 +66,15 @@ class Command(BaseCommand):
 
         if not getattr(settings, 'EMAIL_USE_REAL_SMTP', False):
             self.stdout.write(self.style.WARNING(
-                '\nSMTP no activo. Configure uno de:\n'
-                '  EMAIL_RESEND_API_KEY=re_...  (Resend, recomendado)\n'
-                '  EMAIL_SENDGRID_API_KEY=SG... (SendGrid)\n'
-                '  EMAIL_HOST_USER + EMAIL_HOST_PASSWORD (Gmail App Password)\n'
-                '  Ver docs/ENTERPRISE_EMAIL.md'
+                '\nResend no activo. Configure en .env:\n'
+                '  RESEND_API_KEY=re_...\n'
+                '  Ver https://resend.com/api-keys'
             ))
             return
 
-        to_addr = options['email'] or settings.EMAIL_HOST_USER
+        to_addr = options['email'] or settings.DEFAULT_FROM_EMAIL
         if not to_addr:
-            self.stdout.write(self.style.ERROR('  Sin EMAIL_HOST_USER ni --email'))
+            self.stdout.write(self.style.ERROR('  Indica --email'))
             raise SystemExit(1)
 
         base = settings.PUBLIC_BASE_URL.rstrip('/')
@@ -87,8 +85,8 @@ class Command(BaseCommand):
         )
         try:
             deliver_mail(
-                subject='TradeFlow — prueba SMTP',
-                message='Si lees esto, Gmail SMTP está configurado correctamente.',
+                subject='TradeFlow — prueba Resend',
+                message='Si lees esto, Resend / django-anymail está configurado correctamente.',
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[to_addr],
                 html_message=html,

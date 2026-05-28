@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'axes',
+    'anymail',
     'core',
 ]
 
@@ -220,58 +221,21 @@ DASHBOARD_KPI_REVENUE_DELIVERED_ONLY = config(
     default=False,
     cast=bool,
 )
-EMAIL_HOST         = config('EMAIL_HOST',     default='smtp.gmail.com')
-EMAIL_PORT         = config('EMAIL_PORT',     default=587, cast=int)
-EMAIL_USE_TLS      = config('EMAIL_USE_TLS',  default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='').strip()
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='').strip()
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='TradeFlow <no-reply@tradeflow.pa>')
-# URL pública (sin / final) para enlaces en correos: ej. https://tuapp.railway.app o http://127.0.0.1:8000
+# Resend (django-anymail) — verificación y correos transaccionales
+EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
+ANYMAIL = {
+    'RESEND_API_KEY': config('RESEND_API_KEY', default=''),
+}
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default='TradeFlow <onboarding@resend.dev>',
+)
+# URL pública (sin / final) para enlaces en correos
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
-# Proveedores SMTP enterprise (prioridad: Resend > SendGrid > Gmail explícito)
-EMAIL_RESEND_API_KEY = config('EMAIL_RESEND_API_KEY', default='')
-EMAIL_SENDGRID_API_KEY = config('EMAIL_SENDGRID_API_KEY', default='')
-
-if EMAIL_RESEND_API_KEY:
-    EMAIL_HOST = 'smtp.resend.com'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = 'resend'
-    EMAIL_HOST_PASSWORD = EMAIL_RESEND_API_KEY
-    _smtp_ready = True
-elif EMAIL_SENDGRID_API_KEY:
-    EMAIL_HOST = 'smtp.sendgrid.net'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = 'apikey'
-    EMAIL_HOST_PASSWORD = EMAIL_SENDGRID_API_KEY
-    _smtp_ready = True
-else:
-    _smtp_ready = bool(EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
-
-# Forzar SMTP real (evita consola en staging si credenciales vienen por otro canal)
-EMAIL_FORCE_SMTP = config('EMAIL_FORCE_SMTP', default=False, cast=bool)
-
-# REGLA AGRESIVA (para que \"ya funcione\" con Gmail):
-# - Si hay credenciales SMTP (_smtp_ready), usamos SIEMPRE SMTP (local o producción).
-# - Si no hay credenciales pero EMAIL_FORCE_SMTP=true, intentamos SMTP igualmente.
-# - Solo caemos a consola cuando no hay credenciales y no se ha forzado SMTP.
-if _smtp_ready:
-    _default_email_backend = 'django.core.mail.backends.smtp.EmailBackend'
-elif EMAIL_FORCE_SMTP:
-    _default_email_backend = 'django.core.mail.backends.smtp.EmailBackend'
-else:
-    _default_email_backend = 'django.core.mail.backends.console.EmailBackend'
-
-EMAIL_BACKEND = config('EMAIL_BACKEND', default=_default_email_backend)
-# Si hay credenciales pero .env dejó EMAIL_BACKEND=consola, forzar SMTP.
-if _smtp_ready and 'console' in (EMAIL_BACKEND or '').lower():
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-# UI y deliver_mail: credenciales presentes = SMTP configurado (sin falsos negativos).
-EMAIL_SMTP_CONFIGURED = _smtp_ready
-EMAIL_USE_REAL_SMTP = bool(_smtp_ready)
+RESEND_API_KEY = (ANYMAIL.get('RESEND_API_KEY') or '').strip()
+EMAIL_USE_REAL_SMTP = bool(RESEND_API_KEY)
+EMAIL_SMTP_CONFIGURED = EMAIL_USE_REAL_SMTP
 
 import logging as _logging
 
@@ -287,11 +251,10 @@ if DEBUG:
         )
     if not EMAIL_USE_REAL_SMTP:
         _boot_log.warning(
-            'EMAIL_USE_REAL_SMTP=False — correos en consola del servidor. '
-            'Añade EMAIL_HOST_USER y EMAIL_HOST_PASSWORD (App Password Gmail) en .env.'
+            'RESEND_API_KEY vacía — configura Resend en .env para envío real.'
         )
     else:
-        _boot_log.info('EMAIL_USE_REAL_SMTP=True — envío por SMTP activo.')
+        _boot_log.info('Resend activo — correos vía anymail.backends.resend.')
 
 # Supabase (opcional — Storage S3-compatible)
 SUPABASE_URL = config('SUPABASE_URL', default='')

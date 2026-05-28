@@ -15,6 +15,7 @@ PUBLIC_PATH_PREFIXES = (
     '/logout',
     '/solicitud-acceso',
     '/onboarding/',
+    '/verificar/',
     '/verificar-email/',
     '/reenviar-verificacion',
     '/recuperar-clave',
@@ -139,7 +140,7 @@ def onboarding_redirect_name(user) -> str | None:
         return None
 
     if email_verification_required(user):
-        return 'onboarding_espera_verificacion'
+        return 'verificar_codigo'
 
     gate = application_gate_status(user.email or '')
     if gate == 'required':
