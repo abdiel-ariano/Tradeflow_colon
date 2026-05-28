@@ -366,11 +366,14 @@ def enviar_verificacion_email(user: User, request) -> None:
         },
     )
 
-    backend = getattr(settings, 'EMAIL_BACKEND', '')
-    if 'console' in backend:
-        log.info(
-            'TradeFlow verificación (consola) — usuario=%s — URL: %s',
+    from core.utils.email_config import smtp_configured
+
+    if not smtp_configured():
+        log.warning(
+            'Verificación SIN Gmail (consola): usuario=%s email=%s código=%s URL=%s',
             user.username,
+            user.email,
+            verification_code,
             link,
         )
 

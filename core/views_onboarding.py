@@ -48,6 +48,8 @@ def onboarding_espera_verificacion(request):
     ctx['titulo_pagina'] = _('Verifica tu correo')
     ctx['poll_url'] = reverse('api_onboarding_verification_status')
     ctx['smtp_configured'] = smtp_configured()
+    ctx['env_file_path'] = str(settings.BASE_DIR / '.env')
+    ctx['env_file_exists'] = (settings.BASE_DIR / '.env').is_file()
     last = request.session.get('verify_resend_at', 0)
     ctx['resend_cooldown_sec'] = max(0, int(60 - (time.time() - last)))
     return render(request, 'core/onboarding_espera_verificacion.html', ctx)
