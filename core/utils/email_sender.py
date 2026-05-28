@@ -332,12 +332,15 @@ def _cambio_estado_plain(orden: Order, estado_anterior: str, headline: str) -> s
     return "\n".join(lines)
 
 
-def enviar_verificacion_email(user: User, request) -> None:
+def enviar_verificacion_email(user: User, request) -> dict:
     """
     Envía email de verificación al registrarse.
 
     Genera código OTP de 6 dígitos y token UUID para enlace. El código expira
     en 24 horas (``codigo_verificacion_expira``).
+
+    Returns:
+        dict: code, link, channel ('smtp'|'console'), recipient.
 
     Args:
         user: Instancia de User recién creado.
@@ -367,15 +370,7 @@ def enviar_verificacion_email(user: User, request) -> None:
     )
 
     from core.utils.email_config import smtp_configured
-
-    if not smtp_configured():
-        log.warning(
-            'Verificación SIN Gmail (consola): usuario=%s email=%s código=%s URL=%s',
-            user.username,
-            user.email,
-            verification_code,
-            link,
-        )
+    from core.utils.email_delivery import _resolve_mail_backend
 
     try:
         send_mail(
@@ -389,10 +384,28 @@ def enviar_verificacion_email(user: User, request) -> None:
             recipient_list=[user.email],
             html_message=html_message,
             fail_silently=False,
+            email_type='email_verification',
         )
     except Exception as exc:
         log.exception('enviar_verificacion_email falló: %s', exc)
         raise
+
+    _, channel = _resolve_mail_backend()
+    if channel != 'smtp':
+        log.warning(
+            'Verificación SIN Gmail (consola): usuario=%s email=%s código=%s URL=%s',
+            user.username,
+            user.email,
+            verification_code,
+            link,
+        )
+
+    return {
+        'code': verification_code,
+        'link': link,
+        'channel': channel,
+        'recipient': user.email,
+    }
 
 
 def enviar_bienvenida(user: User) -> None:

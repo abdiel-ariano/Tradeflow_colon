@@ -52,6 +52,23 @@ def onboarding_espera_verificacion(request):
     ctx['env_file_exists'] = (settings.BASE_DIR / '.env').is_file()
     last = request.session.get('verify_resend_at', 0)
     ctx['resend_cooldown_sec'] = max(0, int(60 - (time.time() - last)))
+
+    ctx['dev_show_otp'] = False
+    ctx['dev_otp'] = ''
+    ctx['dev_verify_link'] = ''
+    if settings.DEBUG and not smtp_configured():
+        try:
+            prof = UserProfile.objects.get(user=request.user)
+            if prof.codigo_verificacion_email:
+                ctx['dev_show_otp'] = True
+                ctx['dev_otp'] = prof.codigo_verificacion_email
+                if prof.token_verificacion:
+                    ctx['dev_verify_link'] = request.build_absolute_uri(
+                        reverse('verificar_email', kwargs={'token': prof.token_verificacion})
+                    )
+        except UserProfile.DoesNotExist:
+            pass
+
     return render(request, 'core/onboarding_espera_verificacion.html', ctx)
 
 
@@ -136,20 +153,19 @@ def onboarding_reenviar_verificacion(request):
         messages.warning(request, _('Espera %(sec)s s antes de reenviar.') % {'sec': wait})
         return redirect('onboarding_espera_verificacion')
 
-    if not smtp_configured():
-        messages.warning(
-            request,
-            _(
-                'El servidor no tiene correo SMTP configurado. '
-                'Revisa EMAIL_HOST_USER y EMAIL_HOST_PASSWORD en el entorno.'
-            ),
-        )
-        return redirect('onboarding_espera_verificacion')
-
     try:
-        enviar_verificacion_email(request.user, request)
+        result = enviar_verificacion_email(request.user, request)
         request.session['verify_resend_at'] = now
-        messages.success(request, _('Correo de verificación reenviado. Revisa bandeja y spam.'))
+        if result.get('channel') == 'smtp':
+            messages.success(request, _('Correo de verificación reenviado. Revisa bandeja y spam.'))
+        else:
+            messages.warning(
+                request,
+                _(
+                    'Sin Gmail activo: el correo solo está en la consola del servidor. '
+                    'Usa el código mostrado en esta página o configura .env con bootstrap_dotenv.py.'
+                ),
+            )
     except Exception:
         messages.error(
             request,

@@ -494,7 +494,7 @@ def signup_view(request):
                 email_verificado=False,
             )
             try:
-                enviar_verificacion_email(user, request)
+                mail_result = enviar_verificacion_email(user, request)
             except Exception as exc:
                 log.exception('No se pudo enviar email de verificación: %s', exc)
                 messages.warning(
@@ -504,10 +504,17 @@ def signup_view(request):
                     'Sin SMTP, revisa también la consola del servidor.',
                 )
             else:
-                messages.success(
-                    request,
-                    f'Cuenta creada. Revisa tu email {email} (y spam) para el código y el enlace.',
-                )
+                if mail_result.get('channel') == 'smtp':
+                    messages.success(
+                        request,
+                        f'Cuenta creada. Revisa tu email {email} (y spam) para el código y el enlace.',
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        'Cuenta creada. Gmail no está activo en este servidor: en la siguiente pantalla '
+                        'verás tu código de verificación (solo desarrollo).',
+                    )
             login(request, user, backend=AUTH_MODEL_BACKEND)
             return redirect('onboarding_espera_verificacion')
 

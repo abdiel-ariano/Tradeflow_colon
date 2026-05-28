@@ -28,6 +28,21 @@ def _resolve_mail_backend() -> tuple[str, str]:
     return configured, 'console'
 
 
+def _get_mail_connection(mail_backend: str, channel: str):
+    """Conexión SMTP con credenciales explícitas (evita fallos en Windows/PyCharm)."""
+    if channel == 'smtp':
+        return get_connection(
+            backend=mail_backend,
+            host=settings.EMAIL_HOST,
+            port=settings.EMAIL_PORT,
+            username=settings.EMAIL_HOST_USER,
+            password=settings.EMAIL_HOST_PASSWORD,
+            use_tls=getattr(settings, 'EMAIL_USE_TLS', True),
+            fail_silently=False,
+        )
+    return get_connection(backend=mail_backend, fail_silently=False)
+
+
 def validate_email_infrastructure() -> list[str]:
     """Devuelve lista de advertencias de configuración (vacía = OK)."""
     warnings = []
@@ -81,7 +96,7 @@ def deliver_mail(
                     from_email=from_email,
                     to=recipient_list,
                 )
-            connection = get_connection(backend=mail_backend, fail_silently=False)
+            connection = _get_mail_connection(mail_backend, channel)
             msg.connection = connection
             msg.send(fail_silently=False)
             EmailDeliveryLog.objects.create(
