@@ -18,13 +18,21 @@ DEPLOY RAILWAY:
 =============================================================================
 """
 from pathlib import Path
-from decouple import config, Csv
+
 import dj_database_url
+from decouple import Config, Csv, RepositoryEmpty, RepositoryEnv
 
 from django.utils.translation import gettext_lazy as _
 
 # ── Rutas ─────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# .env en la raíz del repo (Windows/PyCharm); en CI sin .env → variables de entorno.
+_ENV_FILE = BASE_DIR / '.env'
+if _ENV_FILE.is_file():
+    config = Config(RepositoryEnv(str(_ENV_FILE)))
+else:
+    config = Config(RepositoryEmpty())
 
 # ── Seguridad ─────────────────────────────────────────────────────────────
 # NUNCA hardcodear esto. Viene del archivo .env o de Railway → Variables.
@@ -215,8 +223,8 @@ DASHBOARD_KPI_REVENUE_DELIVERED_ONLY = config(
 EMAIL_HOST         = config('EMAIL_HOST',     default='smtp.gmail.com')
 EMAIL_PORT         = config('EMAIL_PORT',     default=587, cast=int)
 EMAIL_USE_TLS      = config('EMAIL_USE_TLS',  default=True, cast=bool)
-EMAIL_HOST_USER    = config('EMAIL_HOST_USER',    default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='').strip()
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='').strip()
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='TradeFlow <no-reply@tradeflow.pa>')
 # URL pública (sin / final) para enlaces en correos: ej. https://tuapp.railway.app o http://127.0.0.1:8000
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
@@ -257,9 +265,13 @@ else:
     _default_email_backend = 'django.core.mail.backends.console.EmailBackend'
 
 EMAIL_BACKEND = config('EMAIL_BACKEND', default=_default_email_backend)
-EMAIL_USE_REAL_SMTP = (
-    'smtp' in EMAIL_BACKEND.lower() and (_smtp_ready or EMAIL_FORCE_SMTP)
-)
+# Si hay credenciales pero .env dejó EMAIL_BACKEND=consola, forzar SMTP.
+if _smtp_ready and 'console' in (EMAIL_BACKEND or '').lower():
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# UI y deliver_mail: credenciales presentes = SMTP configurado (sin falsos negativos).
+EMAIL_SMTP_CONFIGURED = _smtp_ready
+EMAIL_USE_REAL_SMTP = bool(_smtp_ready)
 
 import logging as _logging
 

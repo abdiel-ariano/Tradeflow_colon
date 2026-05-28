@@ -20,6 +20,22 @@ Si falla SSL en Windows local con `DEBUG=True`, prueba `DB_SSL=false` o añade `
 
 ## Gmail (SMTP real)
 
+### Opción rápida (recomendada en Windows)
+
+Cuenta del proyecto: `tradeflowcolon@gmail.com` (2FA + App Password en Google).
+
+```powershell
+cd Tradeflow_colon-master
+python scripts/bootstrap_dotenv.py --force --app-password "TU_APP_PASSWORD_16_CHARS"
+python manage.py migrate
+python manage.py verify_integrations --email tradeflowcolon@gmail.com
+python manage.py runserver
+```
+
+El script genera `SECRET_KEY`, `DEBUG=True`, `DB_SSL=False`, verificación de email activa y SMTP Gmail. **No subas `.env` a git.**
+
+### Manual
+
 1. Activa **verificación en 2 pasos** en tu cuenta Google.
 2. Crea una **Contraseña de aplicación**: [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
 3. En `.env`:
