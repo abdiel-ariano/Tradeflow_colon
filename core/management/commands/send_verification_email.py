@@ -4,12 +4,11 @@ from django.core.management.base import BaseCommand, CommandError
 from django.test import RequestFactory
 
 from core.utils.email_config import smtp_configured
-from core.utils.email_delivery import _resolve_mail_backend
 from core.utils.email_sender import enviar_verificacion_email
 
 
 class Command(BaseCommand):
-    help = 'Envía email de verificación a un usuario (prueba SMTP/Gmail)'
+    help = 'Envía email de verificación a un usuario (prueba Resend)'
 
     def add_arguments(self, parser):
         parser.add_argument('--email', type=str, help='Email del usuario en BD')
@@ -30,8 +29,7 @@ class Command(BaseCommand):
         if not user:
             raise CommandError('Usuario no encontrado')
 
-        _, channel = _resolve_mail_backend()
-        self.stdout.write(f'smtp_configured={smtp_configured()} channel={channel}')
+        self.stdout.write(f'smtp_configured={smtp_configured()}')
         self.stdout.write(f'Enviando a: {user.email}')
 
         request = RequestFactory().get('/')
@@ -47,10 +45,9 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"OK channel={result['channel']} code={result['code']} to={result['recipient']}"
         ))
-        if result['channel'] != 'smtp':
+        if result['channel'] != 'resend':
             self.stdout.write(self.style.WARNING(
-                'No salió por Gmail. Ejecuta: python scripts/bootstrap_dotenv.py --force '
-                '--app-password "..." y python manage.py check_email_env'
+                'Configura RESEND_API_KEY=re_... en .env'
             ))
         else:
-            self.stdout.write(f"Link: {result['link']}")
+            self.stdout.write(f"URL: {result['link']}")

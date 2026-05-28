@@ -334,75 +334,35 @@ def _cambio_estado_plain(orden: Order, estado_anterior: str, headline: str) -> s
 
 def enviar_verificacion_email(user: User, request) -> dict:
     """
-    Envía email de verificación al registrarse.
-
-    Genera código OTP de 6 dígitos y token UUID para enlace. El código expira
-    en 24 horas (``codigo_verificacion_expira``).
+    Envía código OTP de 6 dígitos vía Resend (django-anymail).
 
     Returns:
-        dict: code, link, channel ('smtp'|'console'), recipient.
-
-    Args:
-        user: Instancia de User recién creado.
-        request: HttpRequest para construir URL absoluta.
+        dict: code, link, channel, recipient.
     """
-    from core.utils.email_verification import assign_email_verification_code
-
-    profile = user.profile
-    verification_code = assign_email_verification_code(profile, hours=24)
-    token = str(uuid.uuid4()).replace('-', '')
-    profile.token_verificacion = token
-    profile.save(update_fields=['token_verificacion'])
-
-    link = request.build_absolute_uri(
-        reverse('verificar_email', kwargs={'token': token})
-    )
-
-    html_message = render_to_string(
-        'core/emails/verificacion_email.html',
-        {
-            'user': user,
-            'link': link,
-            'verification_code': verification_code,
-            'expiracion': '24 horas',
-            'public_base_url': getattr(settings, 'PUBLIC_BASE_URL', '').rstrip('/'),
-        },
-    )
-
+    from core.models import EmailVerification
     from core.utils.email_config import smtp_configured
-    from core.utils.email_delivery import _resolve_mail_backend
 
-    try:
-        send_mail(
-            subject='Verifica tu cuenta en TradeFlow Colón',
-            message=strip_tags(html_message),
-            from_email=getattr(
-                settings,
-                'DEFAULT_FROM_EMAIL',
-                'TradeFlow <no-reply@tradeflow.pa>',
-            ),
-            recipient_list=[user.email],
-            html_message=html_message,
-            fail_silently=False,
-            email_type='email_verification',
-        )
-    except Exception as exc:
-        log.exception('enviar_verificacion_email falló: %s', exc)
-        raise
-
-    _, channel = _resolve_mail_backend()
-    if channel != 'smtp':
-        log.warning(
-            'Verificación SIN Gmail (consola): usuario=%s email=%s código=%s URL=%s',
-            user.username,
-            user.email,
-            verification_code,
-            link,
-        )
-
+    verification = EmailVerification.generate_for(user)
+    verify_url = request.build_absolute_uri(reverse('verificar_codigo'))
+    body = (
+        f'Hola {user.get_full_name() or user.username},\n\n'
+        f'Tu código de verificación es: {verification.code}\n\n'
+        f'Ingresa el código en: {verify_url}\n\n'
+        'Válido por 15 minutos.\n\n'
+        '— TradeFlow Colón'
+    )
+    send_mail(
+        subject='Verifica tu cuenta en TradeFlow Colón',
+        message=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+        email_type='email_verification',
+    )
+    channel = 'resend' if smtp_configured() else 'console'
     return {
-        'code': verification_code,
-        'link': link,
+        'code': verification.code,
+        'link': verify_url,
         'channel': channel,
         'recipient': user.email,
     }
@@ -553,8 +513,8 @@ def enviar_solicitud_a_revisores(app) -> None:
     from core.models import UserApplication
 
     reviewers = list(getattr(settings, 'APPLICATION_REVIEW_EMAILS', []) or [])
-    if not reviewers:
-        reviewers = [settings.EMAIL_HOST_USER] if settings.EMAIL_HOST_USER else []
+    if not reviewers and settings.DEFAULT_FROM_EMAIL:
+        reviewers = [settings.DEFAULT_FROM_EMAIL]
     if not reviewers:
         log.warning('APPLICATION_REVIEW_EMAILS vacío — no se notifica revisores')
         return

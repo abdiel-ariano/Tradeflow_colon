@@ -3,9 +3,6 @@ Pantallas premium de onboarding: verificación y aprobación empresarial.
 """
 from __future__ import annotations
 
-import time
-
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -22,78 +19,28 @@ from core.utils.access_gating import (
     onboarding_context,
     onboarding_redirect_name,
 )
-from core.utils.email_config import smtp_configured
-from core.utils.email_sender import enviar_verificacion_email
-from core.utils.email_verification import verify_email_code
-
-
-def _verification_error_message(key: str) -> str:
-    messages_map = {
-        'invalid_format': _('Ingresa un código de 6 dígitos.'),
-        'no_code': _('No hay código activo. Reenvía el correo de verificación.'),
-        'expired': _('El código expiró. Solicita uno nuevo.'),
-        'wrong_code': _('Código incorrecto. Revisa tu correo e intenta de nuevo.'),
-    }
-    return str(messages_map.get(key, _('No se pudo verificar el código.')))
 
 
 @login_required
 def onboarding_espera_verificacion(request):
-    """Pantalla de espera hasta verificar correo (enlace o código OTP)."""
-    if not email_verification_required(request.user):
-        nxt = onboarding_redirect_name(request.user)
-        return redirect(nxt or 'tienda')
-
-    ctx = onboarding_context(request.user)
-    ctx['titulo_pagina'] = _('Verifica tu correo')
-    ctx['poll_url'] = reverse('api_onboarding_verification_status')
-    ctx['smtp_configured'] = smtp_configured()
-    ctx['env_file_path'] = str(settings.BASE_DIR / '.env')
-    ctx['env_file_exists'] = (settings.BASE_DIR / '.env').is_file()
-    last = request.session.get('verify_resend_at', 0)
-    ctx['resend_cooldown_sec'] = max(0, int(60 - (time.time() - last)))
-
-    ctx['dev_show_otp'] = False
-    ctx['dev_otp'] = ''
-    ctx['dev_verify_link'] = ''
-    if settings.DEBUG and not smtp_configured():
-        try:
-            prof = UserProfile.objects.get(user=request.user)
-            if prof.codigo_verificacion_email:
-                ctx['dev_show_otp'] = True
-                ctx['dev_otp'] = prof.codigo_verificacion_email
-                if prof.token_verificacion:
-                    ctx['dev_verify_link'] = request.build_absolute_uri(
-                        reverse('verificar_email', kwargs={'token': prof.token_verificacion})
-                    )
-        except UserProfile.DoesNotExist:
-            pass
-
-    return render(request, 'core/onboarding_espera_verificacion.html', ctx)
+    """Compatibilidad: redirige al flujo Resend / código de 6 dígitos."""
+    return redirect('verificar_codigo')
 
 
 @login_required
 @require_POST
 def onboarding_verificar_codigo(request):
-    """Valida el código de 6 dígitos enviado por correo."""
-    if not email_verification_required(request.user):
-        messages.info(request, _('Tu correo ya está verificado.'))
-        return redirect('tienda')
+    """Compatibilidad: delega al flujo /verificar/."""
+    from core.views import verificar_codigo
+    return verificar_codigo(request)
 
-    raw = (request.POST.get('codigo') or '').strip()
-    try:
-        profile = UserProfile.objects.get(user=request.user)
-    except UserProfile.DoesNotExist:
-        messages.error(request, _('Perfil no encontrado.'))
-        return redirect('onboarding_espera_verificacion')
 
-    ok, err_key = verify_email_code(profile, raw)
-    if ok:
-        messages.success(request, _('¡Correo verificado! Ya puedes usar la tienda.'))
-        return redirect('tienda')
-
-    messages.error(request, _verification_error_message(err_key))
-    return redirect('onboarding_espera_verificacion')
+@login_required
+@require_POST
+def onboarding_reenviar_verificacion(request):
+    """Compatibilidad: delega reenvío Resend."""
+    from core.views import enviar_codigo_verificacion
+    return enviar_codigo_verificacion(request)
 
 
 @login_required
@@ -136,42 +83,6 @@ def onboarding_aplicacion_rechazada(request):
     ctx = onboarding_context(request.user)
     ctx['titulo_pagina'] = _('Solicitud no aprobada')
     return render(request, 'core/onboarding_aplicacion_rechazada.html', ctx)
-
-
-@login_required
-@require_POST
-def onboarding_reenviar_verificacion(request):
-    """Reenvío con cooldown anti-spam (sesión)."""
-    if not email_verification_required(request.user):
-        messages.info(request, _('Tu correo ya está verificado.'))
-        return redirect('tienda')
-
-    last = request.session.get('verify_resend_at', 0)
-    now = time.time()
-    if now - last < 60:
-        wait = int(60 - (now - last))
-        messages.warning(request, _('Espera %(sec)s s antes de reenviar.') % {'sec': wait})
-        return redirect('onboarding_espera_verificacion')
-
-    try:
-        result = enviar_verificacion_email(request.user, request)
-        request.session['verify_resend_at'] = now
-        if result.get('channel') == 'smtp':
-            messages.success(request, _('Correo de verificación reenviado. Revisa bandeja y spam.'))
-        else:
-            messages.warning(
-                request,
-                _(
-                    'Sin Gmail activo: el correo solo está en la consola del servidor. '
-                    'Usa el código mostrado en esta página o configura .env con bootstrap_dotenv.py.'
-                ),
-            )
-    except Exception:
-        messages.error(
-            request,
-            _('No pudimos enviar el correo. Revisa la configuración SMTP o intenta más tarde.'),
-        )
-    return redirect('onboarding_espera_verificacion')
 
 
 @login_required

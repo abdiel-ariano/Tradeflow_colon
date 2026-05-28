@@ -1,0 +1,117 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Verificar correo" %} — TradeFlow Colón{% endblock %}
+
+{% block extra_head %}
+<style>
+  .tf-verify-wrap {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+    background: linear-gradient(160deg, #f8f6f2 0%, #e8ece9 50%, #d9cab3 100%);
+  }
+  .tf-verify-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(64, 75, 87, 0.12);
+    padding: 40px 32px;
+    border: 1px solid rgba(98, 146, 154, 0.25);
+  }
+  .tf-verify-card h1 {
+    font-family: var(--tf-font-display, 'DM Serif Display', serif);
+    font-size: 1.75rem;
+    color: #404b57;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .tf-verify-card .tf-sub {
+    text-align: center;
+    color: #62929a;
+    font-size: 0.95rem;
+    margin-bottom: 28px;
+  }
+  .tf-code-input {
+    letter-spacing: 0.45em;
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #404b57;
+    border: 2px solid #d9cab3;
+    border-radius: 12px;
+    padding: 14px 12px;
+    max-width: 220px;
+    margin: 0 auto 24px;
+    display: block;
+  }
+  .tf-code-input:focus {
+    border-color: #62929a;
+    box-shadow: 0 0 0 3px rgba(98, 146, 154, 0.2);
+    outline: none;
+  }
+  .btn-tf-verify {
+    background: #404b57;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-weight: 600;
+    width: 100%;
+    transition: background 0.2s;
+  }
+  .btn-tf-verify:hover {
+    background: #62929a;
+    color: #fff;
+  }
+  .tf-resend {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+  }
+  .tf-resend a {
+    color: #62929a;
+    font-weight: 500;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tf-verify-wrap">
+  <div class="tf-verify-card">
+    <h1>{% trans "Verifica tu correo" %}</h1>
+    <p class="tf-sub">
+      {% blocktrans %}Ingresa el código de 6 dígitos enviado a {{ masked_email }}{% endblocktrans %}
+    </p>
+
+    <form method="post" action="{% url 'verificar_codigo' %}">
+      {% csrf_token %}
+      <input
+        type="text"
+        name="codigo"
+        class="form-control tf-code-input"
+        inputmode="numeric"
+        pattern="[0-9]{6}"
+        maxlength="6"
+        minlength="6"
+        placeholder="000000"
+        autocomplete="one-time-code"
+        required
+        autofocus
+        aria-label="{% trans 'Código de verificación' %}"
+      />
+      <button type="submit" class="btn btn-tf-verify">
+        {% trans "Verificar" %}
+      </button>
+    </form>
+
+    <p class="tf-resend">
+      {% trans "¿No recibiste el código?" %}
+      <a href="{% url 'enviar_codigo_verificacion' %}">{% trans "Reenviar correo" %}</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

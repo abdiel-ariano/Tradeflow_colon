@@ -3,10 +3,10 @@
 Genera .env local para TradeFlow (no commitear .env).
 
 Uso (Windows PowerShell):
-  python scripts/bootstrap_dotenv.py --app-password "xxxx xxxx xxxx xxxx"
+  python scripts/bootstrap_dotenv.py --resend-key "re_xxxxxxxx"
 
-O con variable de entorno (no deja la clave en el historial del script):
-  $env:GMAIL_APP_PASSWORD="xxxx xxxx xxxx xxxx"
+O con variable de entorno:
+  $env:RESEND_API_KEY="re_xxxxxxxx"
   python scripts/bootstrap_dotenv.py
 """
 from __future__ import annotations
@@ -19,8 +19,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ENV_PATH = ROOT / '.env'
 
-DEFAULT_GMAIL_USER = 'tradeflowcolon@gmail.com'
-
 
 def _django_secret_key() -> str:
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tradeflow_colon.settings')
@@ -30,9 +28,9 @@ def _django_secret_key() -> str:
     return get_random_secret_key()
 
 
-def build_env_content(*, secret_key: str, app_password: str) -> str:
-    pw = app_password.strip().replace('"', '')
-    user = os.environ.get('GMAIL_USER', DEFAULT_GMAIL_USER).strip() or DEFAULT_GMAIL_USER
+def build_env_content(*, secret_key: str, resend_key: str) -> str:
+    key = resend_key.strip().replace('"', '')
+    review = os.environ.get('APPLICATION_REVIEW_EMAIL', 'onboarding@resend.dev').strip()
     return f"""# Generado por scripts/bootstrap_dotenv.py — NO subir a git
 SECRET_KEY={secret_key}
 DEBUG=True
@@ -42,18 +40,13 @@ DATABASE_URL=
 DB_SSL=False
 DB_SSLMODE=require
 
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=true
-EMAIL_HOST_USER={user}
-EMAIL_HOST_PASSWORD="{pw}"
-EMAIL_FORCE_SMTP=false
-# No definir EMAIL_BACKEND=consola si hay Gmail (rompe el aviso y el envío).
+# Resend (https://resend.com/api-keys)
+RESEND_API_KEY={key}
 
-DEFAULT_FROM_EMAIL=TradeFlow Colon <{user}>
+DEFAULT_FROM_EMAIL=TradeFlow <onboarding@resend.dev>
 PUBLIC_BASE_URL=http://127.0.0.1:8000
 
-APPLICATION_REVIEW_EMAILS={user}
+APPLICATION_REVIEW_EMAILS={review}
 
 REQUIRE_EMAIL_VERIFICATION=true
 REQUIRE_APPROVED_APPLICATION=false
@@ -68,11 +61,11 @@ GROQ_API_KEY=
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description='Crea .env local con Gmail y SECRET_KEY.')
+    parser = argparse.ArgumentParser(description='Crea .env local con Resend y SECRET_KEY.')
     parser.add_argument(
-        '--app-password',
-        default=os.environ.get('GMAIL_APP_PASSWORD', ''),
-        help='App Password de Google (16 caracteres). O variable GMAIL_APP_PASSWORD.',
+        '--resend-key',
+        default=os.environ.get('RESEND_API_KEY', ''),
+        help='API key de Resend (re_...). O variable RESEND_API_KEY.',
     )
     parser.add_argument(
         '--force',
@@ -85,22 +78,21 @@ def main() -> int:
         print(f'Ya existe {ENV_PATH}. Usa --force para regenerar.')
         return 1
 
-    if not args.app_password:
+    if not args.resend_key:
         print(
-            'Falta App Password. Ejemplo:\n'
-            '  python scripts/bootstrap_dotenv.py --app-password "xxxx xxxx xxxx xxxx"'
+            'Falta RESEND_API_KEY. Ejemplo:\n'
+            '  python scripts/bootstrap_dotenv.py --resend-key "re_xxxxxxxx"'
         )
         return 1
 
     key = _django_secret_key()
     ENV_PATH.write_text(
-        build_env_content(secret_key=key, app_password=args.app_password),
+        build_env_content(secret_key=key, resend_key=args.resend_key),
         encoding='utf-8',
     )
     print(f'Listo: {ENV_PATH}')
     print(f'SECRET_KEY={key[:20]}...')
-    print(f'EMAIL_HOST_USER={DEFAULT_GMAIL_USER}')
-    print('Reinicia runserver y ejecuta: python manage.py verify_integrations --email', DEFAULT_GMAIL_USER)
+    print('Reinicia runserver y ejecuta: python manage.py check_email_env')
     return 0
 
 

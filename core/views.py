@@ -27,6 +27,7 @@ import json
 import logging
 import re
 
+from django.core.mail import send_mail
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import escape
 from django.utils.translation import gettext as _
@@ -49,12 +50,12 @@ from .models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document,
     Cotizacion, CotizacionItem, TransportCarrier, UserApplication,
+    EmailVerification,
 )
 from .utils.email_sender import (
     enviar_bienvenida,
     enviar_cambio_estado,
     enviar_confirmacion_orden,
-    enviar_verificacion_email,
     enviar_orden_pendiente_vendedor,
     enviar_solicitud_recibida,
     enviar_solicitud_a_revisores,
@@ -493,30 +494,12 @@ def signup_view(request):
                 phone=phone,
                 email_verificado=False,
             )
-            try:
-                mail_result = enviar_verificacion_email(user, request)
-            except Exception as exc:
-                log.exception('No se pudo enviar email de verificación: %s', exc)
-                messages.warning(
-                    request,
-                    'Cuenta creada. No pudimos enviar el correo ahora; configura Gmail en .env '
-                    'o usa «Reenviar correo» en la pantalla siguiente. '
-                    'Sin SMTP, revisa también la consola del servidor.',
-                )
-            else:
-                if mail_result.get('channel') == 'smtp':
-                    messages.success(
-                        request,
-                        f'Cuenta creada. Revisa tu email {email} (y spam) para el código y el enlace.',
-                    )
-                else:
-                    messages.warning(
-                        request,
-                        'Cuenta creada. Gmail no está activo en este servidor: en la siguiente pantalla '
-                        'verás tu código de verificación (solo desarrollo).',
-                    )
             login(request, user, backend=AUTH_MODEL_BACKEND)
-            return redirect('onboarding_espera_verificacion')
+            messages.success(
+                request,
+                f'Cuenta creada. Te enviaremos un código de 6 dígitos a {email}.',
+            )
+            return redirect('enviar_codigo_verificacion')
 
         UserProfile.objects.create(
             user=user,
@@ -539,6 +522,117 @@ def signup_view(request):
         'form_last_name': '',
         'form_email': '',
         'form_phone': '',
+    })
+
+
+@login_required
+def enviar_codigo_verificacion(request):
+    """Genera código OTP, lo envía por Resend y redirige al formulario de verificación."""
+    if not settings.REQUIRE_EMAIL_VERIFICATION:
+        messages.info(request, 'Verificación de email desactivada en este entorno.')
+        return redirect('tienda')
+
+    try:
+        profile = request.user.profile
+        if profile.email_verificado:
+            messages.info(request, 'Tu correo ya está verificado.')
+            return redirect('tienda')
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'Perfil no encontrado.')
+        return redirect('signup')
+
+    verification = EmailVerification.generate_for(request.user)
+    body = (
+        f'Hola {request.user.get_full_name() or request.user.username},\n\n'
+        f'Tu código de verificación en TradeFlow Colón es: {verification.code}\n\n'
+        'Válido por 15 minutos.\n\n'
+        '— TradeFlow Colón · Zona Libre de Colón, Panamá'
+    )
+    try:
+        send_mail(
+            subject='Código de verificación — TradeFlow Colón',
+            message=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[request.user.email],
+            fail_silently=False,
+        )
+        messages.success(
+            request,
+            f'Enviamos un código de 6 dígitos a {request.user.email}. Revisa bandeja y spam.',
+        )
+    except Exception as exc:
+        log.exception('enviar_codigo_verificacion: %s', exc)
+        messages.error(
+            request,
+            'No pudimos enviar el correo. Revisa RESEND_API_KEY en .env e intenta de nuevo.',
+        )
+    return redirect('verificar_codigo')
+
+
+@login_required
+def verificar_codigo(request):
+    """Valida el código POST de 6 dígitos y activa email_verificado en el perfil."""
+    if not settings.REQUIRE_EMAIL_VERIFICATION:
+        return redirect('tienda')
+
+    try:
+        profile = request.user.profile
+        if profile.email_verificado:
+            messages.info(request, 'Tu correo ya está verificado.')
+            return redirect('tienda')
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'Perfil no encontrado.')
+        return redirect('signup')
+
+    if request.method == 'POST':
+        raw = (request.POST.get('codigo') or '').strip()
+        if not re.fullmatch(r'\d{6}', raw):
+            messages.error(request, 'Ingresa un código de 6 dígitos.')
+            return redirect('verificar_codigo')
+
+        verification = (
+            EmailVerification.objects.filter(
+                user=request.user,
+                code=raw,
+                is_used=False,
+            )
+            .order_by('-created_at')
+            .first()
+        )
+        if not verification or not verification.is_valid():
+            messages.error(request, 'Código inválido o expirado. Solicita uno nuevo.')
+            return redirect('verificar_codigo')
+
+        verification.is_used = True
+        verification.save(update_fields=['is_used'])
+        profile.email_verificado = True
+        profile.token_verificacion = None
+        profile.codigo_verificacion_email = ''
+        profile.codigo_verificacion_expira = None
+        profile.save(
+            update_fields=[
+                'email_verificado',
+                'token_verificacion',
+                'codigo_verificacion_email',
+                'codigo_verificacion_expira',
+            ],
+        )
+        try:
+            enviar_bienvenida(request.user)
+        except Exception:
+            log.exception('bienvenida tras verificar_codigo')
+        messages.success(request, '¡Correo verificado! Ya puedes usar la tienda.')
+        from core.utils.access_gating import onboarding_redirect_name
+        nxt = onboarding_redirect_name(request.user)
+        return redirect(nxt or 'tienda')
+
+    masked = request.user.email or ''
+    if '@' in masked:
+        local, domain = masked.split('@', 1)
+        if len(local) > 2:
+            masked = f'{local[0]}***{local[-1]}@{domain}'
+    return render(request, 'core/verificar_codigo.html', {
+        'masked_email': masked,
     })
 
 
@@ -604,18 +698,7 @@ def reenviar_verificacion(request):
 
     profile = request.user.profile
     if not profile.email_verificado:
-        try:
-            enviar_verificacion_email(request.user, request)
-            messages.success(
-                request,
-                'Email de verificación reenviado. Revisa tu bandeja de entrada.',
-            )
-        except Exception as exc:
-            log.exception('reenviar_verificacion: %s', exc)
-            messages.error(
-                request,
-                'No pudimos reenviar el correo. Intenta más tarde.',
-            )
+        return redirect('enviar_codigo_verificacion')
     return redirect('mi_perfil')
 
 
@@ -637,10 +720,9 @@ def reenviar_verificacion_public(request):
             try:
                 profile = user.profile
                 if not profile.email_verificado:
-                    enviar_verificacion_email(user, request)
-                    messages.success(
+                    messages.info(
                         request,
-                        'Email de verificación reenviado. Revisa tu bandeja de entrada.',
+                        'Inicia sesión y usa «Reenviar código» en la pantalla de verificación.',
                     )
                 else:
                     messages.info(request, 'Esa cuenta ya está verificada. Puedes iniciar sesión.')
@@ -3802,7 +3884,7 @@ def solicitud_acceso(request):
                     request,
                     _(
                         'Solicitud guardada, pero el correo no pudo enviarse. '
-                        'Revisa la configuración Gmail en .env.'
+                        'Revisa RESEND_API_KEY en .env.'
                     ),
                 )
             else:
