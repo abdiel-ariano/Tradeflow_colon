@@ -1,42 +1,42 @@
 {% extends "core/seller_layout.html" %}
-{% load i18n static %}
-{% block title %}{% trans "Mis ventas" %} — TradeFlow{% endblock %}
-{% block seller_page_title %}{% trans "Mis ventas" %}{% endblock %}
-{% block seller_page_sub %}<p class="sp-topbar-sub">{% trans "Transacciones, plazos y confirmación" %}</p>{% endblock %}
+{% load static %}
+{% block title %}My sales — TradeFlow{% endblock %}
+{% block seller_page_title %}My sales{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Transactions, timelines, and confirmation</p>{% endblock %}
 {% block seller_topbar_actions %}
 <a href="{% url 'seller_export_ventas_csv' %}?estado={{ estado_actual }}" class="sp-btn sp-btn-secondary"><span class="material-symbols-rounded" style="font-size:18px;">download</span> CSV</a>
 {% endblock %}
 
 {% block seller_content %}
 <div class="sp-kpi-grid">
-  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Ventas mes" %}</span><p class="sp-kpi-val">{{ ventas_mes }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Ingresos mes" %}</span><p class="sp-kpi-val" style="font-size:1.35rem;">USD {{ ingresos_mes }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Ticket promedio" %}</span><p class="sp-kpi-val" style="font-size:1.35rem;">USD {{ ticket_promedio }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">{% trans "Tendencia" %}</span><p class="sp-kpi-val" style="font-size:1.1rem;">30d</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Ventas mes</span><p class="sp-kpi-val">{{ ventas_mes }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Ingresos mes</span><p class="sp-kpi-val" style="font-size:1.35rem;">USD {{ ingresos_mes }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Ticket promedio</span><p class="sp-kpi-val" style="font-size:1.35rem;">USD {{ ticket_promedio }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Tendencia</span><p class="sp-kpi-val" style="font-size:1.1rem;">30d</p></article>
 </div>
 
 <section class="sp-card" style="margin-bottom:24px;">
-  <div class="sp-card-head"><h2>{% trans "Tendencia 30 días" %}</h2></div>
+  <div class="sp-card-head"><h2>30-day trend</h2></div>
   <div class="sp-chart-box sp-chart-box--line">
     <canvas id="sd-chart-line"></canvas>
   </div>
 </section>
 
 <nav class="sp-tabs">
-  <a href="?" class="sp-tab {% if not estado_actual %}is-on{% endif %}">{% trans "Todas" %}</a>
-  <a href="?estado=awaiting_seller" class="sp-tab {% if estado_actual == 'awaiting_seller' %}is-on{% endif %}">{% trans "Pendientes" %}</a>
-  <a href="?estado=paid" class="sp-tab {% if estado_actual == 'paid' %}is-on{% endif %}">{% trans "En proceso" %}</a>
-  <a href="?estado=delivered" class="sp-tab {% if estado_actual == 'delivered' %}is-on{% endif %}">{% trans "Entregadas" %}</a>
+  <a href="?" class="sp-tab {% if not estado_actual %}is-on{% endif %}">All</a>
+  <a href="?estado=awaiting_seller" class="sp-tab {% if estado_actual == 'awaiting_seller' %}is-on{% endif %}">Pendings</a>
+  <a href="?estado=paid" class="sp-tab {% if estado_actual == 'paid' %}is-on{% endif %}">En proceso</a>
+  <a href="?estado=delivered" class="sp-tab {% if estado_actual == 'delivered' %}is-on{% endif %}">Entregadas</a>
 </nav>
 
 <form method="get" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:flex-end;">
   <input class="tf-input" type="date" name="desde" value="{{ desde }}">
   <input class="tf-input" type="date" name="hasta" value="{{ hasta }}">
   <select class="tf-input" name="estado">
-    <option value="">{% trans "Estado" %}</option>
+    <option value="">Estado</option>
     {% for val, lbl in status_choices %}<option value="{{ val }}" {% if estado_actual == val %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
   </select>
-  <button type="submit" class="sp-btn sp-btn-secondary">{% trans "Filtrar" %}</button>
+  <button type="submit" class="sp-btn sp-btn-secondary">Filtrar</button>
 </form>
 
 <section class="sp-card">
@@ -44,13 +44,13 @@
     <table class="sp-table">
       <thead>
         <tr>
-          <th>{% trans "Orden" %}</th>
-          <th>{% trans "Fecha" %}</th>
-          <th>{% trans "Cliente" %}</th>
-          <th>{% trans "Total" %}</th>
-          <th>{% trans "Estado" %}</th>
-          <th>{% trans "Plazo" %}</th>
-          <th>{% trans "Acciones" %}</th>
+          <th>Orden</th>
+          <th>Fecha</th>
+          <th>Customer</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Plazo</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -61,25 +61,25 @@
           <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
           <td>USD {{ o.total }}</td>
           <td><span class="sp-status sp-status-{{ o.status }}">{{ o.get_status_display }}</span></td>
-          <td>{% if o.status == 'awaiting_seller' and o.seller_confirm_by %}<span class="sp-timer ok" data-sp-plazo="{{ o.seller_confirm_by.isoformat }}" data-expired="{% trans 'Expirado' %}">—</span>{% else %}—{% endif %}</td>
+          <td>{% if o.status == 'awaiting_seller' and o.seller_confirm_by %}<span class="sp-timer ok" data-sp-plazo="{{ o.seller_confirm_by.isoformat }}" data-expired="Expirado">—</span>{% else %}—{% endif %}</td>
           <td style="white-space:nowrap;">
             {% if o.status == 'awaiting_seller' and o.seller_confirmation_status == 'pending' %}
-            <a href="{% url 'confirmar_orden_empresa' o.pk 'aceptar' %}" class="sp-btn sp-btn-primary sp-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="aceptar" data-num="{{ o.order_number }}">{% trans "Aceptar" %}</a>
-            <a href="{% url 'confirmar_orden_empresa' o.pk 'rechazar' %}" class="sp-btn sp-btn-secondary sp-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="rechazar" data-num="{{ o.order_number }}">{% trans "Rechazar" %}</a>
+            <a href="{% url 'confirmar_orden_empresa' o.pk 'aceptar' %}" class="sp-btn sp-btn-primary sp-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="aceptar" data-num="{{ o.order_number }}">Aceptar</a>
+            <a href="{% url 'confirmar_orden_empresa' o.pk 'rechazar' %}" class="sp-btn sp-btn-secondary sp-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="rechazar" data-num="{{ o.order_number }}">Rechazar</a>
             {% endif %}
-            <a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">{% trans "Seguimiento" %}</a>
+            <a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">Seguimiento</a>
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="sp-empty">{% trans "Sin ventas" %}</td></tr>
+        <tr><td colspan="7" class="sp-empty">Sin ventas</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
   {% if ordenes.has_other_pages %}
   <nav style="margin-top:16px;display:flex;gap:8px;justify-content:center;">
-    {% if ordenes.has_previous %}<a class="sp-btn sp-btn-secondary" href="?page={{ ordenes.previous_page_number }}">{% trans "Anterior" %}</a>{% endif %}
-    {% if ordenes.has_next %}<a class="sp-btn sp-btn-secondary" href="?page={{ ordenes.next_page_number }}">{% trans "Siguiente" %}</a>{% endif %}
+    {% if ordenes.has_previous %}<a class="sp-btn sp-btn-secondary" href="?page={{ ordenes.previous_page_number }}">Previous</a>{% endif %}
+    {% if ordenes.has_next %}<a class="sp-btn sp-btn-secondary" href="?page={{ ordenes.next_page_number }}">Next</a>{% endif %}
   </nav>
   {% endif %}
 </section>

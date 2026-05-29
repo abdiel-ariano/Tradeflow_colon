@@ -1,9 +1,9 @@
 {% extends "core/base.html" %}
-{% load static i18n %}
+{% load static %}
 {% comment %}
 Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views.py
 {% endcomment %}
-{% block title %}{% trans "Órdenes" %} — TradeFlow Colón{% endblock %}
+{% block title %}Orders — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 {% endblock %}
 {% block content %}
@@ -12,13 +12,13 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
   <div class="adm-main">
     <header class="adm-head">
       <div>
-        <h1>{% trans "Gestión de órdenes" %}</h1>
-        <p>{% trans "Filtra por cliente o número TF, revisa estado y abre el detalle para actualizar el flujo operativo." %}</p>
+        <h1>Order management</h1>
+        <p>Filter by customer or TF number, review status, and open details to update the operational workflow.</p>
       </div>
       <div class="adm-head-actions">
         <a href="{% url 'nueva_orden_paso1' %}" class="adm-btn adm-btn--primary">
           <span class="material-symbols-rounded" aria-hidden="true">add</span>
-          {% trans "Nueva orden" %}
+          New order
         </a>
       </div>
     </header>
@@ -27,7 +27,7 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
       <div class="adm-filter-grid">
         <div class="adm-field adm-field--grow">
           <label for="adm-orden-buscar">Buscar</label>
-          <input id="adm-orden-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Número TF, usuario o nombre del comprador" autocomplete="off">
+          <input id="adm-orden-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="TF number, username, or buyer name" autocomplete="off">
         </div>
         <div class="adm-field">
           <label for="adm-orden-estado">Estado</label>
@@ -45,7 +45,7 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
     </form>
 
     <p class="adm-result-hint">
-      Mostrando {{ ordenes.start_index }}–{{ ordenes.end_index }} de {{ ordenes.paginator.count }} órdenes
+      Showing {{ ordenes.start_index }}–{{ ordenes.end_index }} of {{ ordenes.paginator.count }} orders
     </p>
 
     <div class="adm-table-card">
@@ -55,14 +55,14 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
       <table class="adm-table">
         <thead>
           <tr>
-            <th>Número</th>
-            <th>Comprador</th>
+            <th>Number</th>
+            <th>Buyer</th>
             <th>Tipo</th>
             <th>Fecha</th>
-            <th>Líneas</th>
+            <th>Lines</th>
             <th>Estado</th>
             <th style="text-align:right;">Total</th>
-            <th style="text-align:right;">Acción</th>
+            <th style="text-align:right;">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -83,7 +83,7 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
           </tr>
           {% empty %}
           <tr>
-            <td colspan="8" class="adm-empty">No hay órdenes que coincidan con los filtros.</td>
+            <td colspan="8" class="adm-empty">No orders match the filters.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -91,13 +91,13 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
 
       {% if ordenes.has_other_pages %}
       <div class="adm-pagination">
-        <span>Página {{ ordenes.number }} de {{ ordenes.paginator.num_pages }}</span>
+        <span>Page {{ ordenes.number }} of {{ ordenes.paginator.num_pages }}</span>
         <div class="adm-pagination-nums">
           {% if ordenes.has_previous %}
-          <a class="adm-page-link" href="?{% if orden_filtros_query %}{{ orden_filtros_query }}&amp;{% endif %}page={{ ordenes.previous_page_number }}">Anterior</a>
+          <a class="adm-page-link" href="?{% if orden_filtros_query %}{{ orden_filtros_query }}&amp;{% endif %}page={{ ordenes.previous_page_number }}">Previous</a>
           {% endif %}
           {% if ordenes.has_next %}
-          <a class="adm-page-link" href="?{% if orden_filtros_query %}{{ orden_filtros_query }}&amp;{% endif %}page={{ ordenes.next_page_number }}">Siguiente</a>
+          <a class="adm-page-link" href="?{% if orden_filtros_query %}{{ orden_filtros_query }}&amp;{% endif %}page={{ ordenes.next_page_number }}">Next</a>
           {% endif %}
         </div>
       </div>

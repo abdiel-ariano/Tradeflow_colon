@@ -1,5 +1,4 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% block title %}Mis productos — TradeFlow{% endblock %}
 {% block extra_css %}
@@ -7,14 +6,14 @@
 {% block content %}
 <div class="seller-layout">
   <div class="seller-main">
-    <h1>Productos</h1>
-    <p class="seller-sub">Gestiona el catálogo de {{ company.name }}.</p>
+    <h1>Products</h1>
+    <p class="seller-sub">Manage the catalog for {{ company.name }}.</p>
     <div class="seller-toolbar">
       <a href="{% url 'seller_producto_nuevo' %}" class="btn-seller-primary">Nuevo producto</a>
       <form class="seller-filters" method="get" action="">
         <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Buscar nombre o SKU…">
         <select class="tf-input" name="categoria" style="max-width:220px;">
-          <option value="">Todas las categorías</option>
+          <option value="">All categories</option>
           {% for c in categorias %}
           <option value="{{ c.pk }}">{{ c.name }}</option>
           {% endfor %}
@@ -75,17 +74,17 @@
         </tbody>
       </table>
       {% else %}
-      <p style="padding:1.25rem;color:var(--tf-muted);">No hay productos con estos filtros.</p>
+      <p style="padding:1.25rem;color:var(--tf-muted);">No products match these filters.</p>
       {% endif %}
     </div>
     {% if productos.has_other_pages %}
     <nav style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
       {% if productos.has_previous %}
-      <a class="btn-seller-outline" href="?page={{ productos.previous_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Anterior</a>
+      <a class="btn-seller-outline" href="?page={{ productos.previous_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Previous</a>
       {% endif %}
-      <span style="align-self:center;color:var(--tf-muted);font-size:0.88rem;">Página {{ productos.number }} de {{ productos.paginator.num_pages }}</span>
+      <span style="align-self:center;color:var(--tf-muted);font-size:0.88rem;">Page {{ productos.number }} of {{ productos.paginator.num_pages }}</span>
       {% if productos.has_next %}
-      <a class="btn-seller-outline" href="?page={{ productos.next_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Siguiente</a>
+      <a class="btn-seller-outline" href="?page={{ productos.next_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Next</a>
       {% endif %}
     </nav>
     {% endif %}

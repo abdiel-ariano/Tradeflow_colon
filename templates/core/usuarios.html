@@ -1,26 +1,25 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
-{% block title %}Usuarios{% endblock %}
+{% block title %}Usernames{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h2>Usuarios del Sistema</h2>
-  <p class="text-muted">Personal con acceso a TradeFlow Colón</p>
+  <h2>Usernames del Sistema</h2>
+  <p class="text-muted">Staff with access to TradeFlow Colón</p>
 </div>
 
 <div class="table-card">
   <div class="table-card-header">
     <span>{{ usuarios|length }} usuario{{ usuarios|length|pluralize }}</span>
-    <a href="/admin/auth/user/add/" class="btn btn-primary" style="padding:5px 12px;font-size:.8rem;">+ Nuevo Usuario</a>
+    <a href="/admin/auth/user/add/" class="btn btn-primary" style="padding:5px 12px;font-size:.8rem;">+ Nuevo Username</a>
   </div>
   <table class="data-table">
     <thead>
       <tr>
-        <th>Usuario</th>
-        <th>Nombre completo</th>
+        <th>Username</th>
+        <th>First name completo</th>
         <th>Email</th>
         <th>Rol</th>
-        <th>Último acceso</th>
+        <th>Last access</th>
         <th>Estado</th>
       </tr>
     </thead>
@@ -54,7 +53,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--color-muted);">No hay usuarios.</td></tr>
+      <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--color-muted);">No users.</td></tr>
       {% endfor %}
     </tbody>
   </table>

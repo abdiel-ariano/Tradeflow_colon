@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 {% load static %}
-{% load i18n %}
 {% comment %}
 ================================================================================
 templates/core/base.html — TradeFlow Colón
@@ -10,12 +9,11 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 (sin <link> a /static/css/*.css) para evitar regresiones por estáticos ausentes.
 ================================================================================
 {% endcomment %}
-{% get_current_language as CURRENT_LANGUAGE %}
-<html lang="{{ CURRENT_LANGUAGE }}">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="{% block meta_description %}{% trans 'Marketplace B2B y B2C de la Zona Libre de Colón — empresas verificadas, catálogo, logística y compras seguras.' %}{% endblock %}">
+  <meta name="description" content="{% block meta_description %}B2B and B2C marketplace in the Colón Free Zone — verified companies, catalog, logistics, and secure purchasing.{% endblock %}">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
   {% block extra_head %}{% endblock %}
   <link rel="icon" type="image/png" href="{% static 'img/logo-icon-color.png' %}" sizes="32x32">
@@ -968,7 +966,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     </a>
 
     <div class="tf-nav-links">
-      <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>{% trans "Mapa" %}</a>
+      <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>Map</a>
       <form action="{% url 'set_language' %}" method="post" id="tf-lang-form" style="margin:0;">
         {% csrf_token %}
         <input type="hidden" name="next" id="tf-lang-next" value="">
@@ -985,26 +983,26 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       </form>
       {% if request.user.is_authenticated %}
         <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
-          <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>{% trans "Dashboard" %}</a>
-          <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>{% trans "Órdenes" %}</a>
-          <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>{% trans "Productos" %}</a>
-          <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>{% trans "Empresas" %}</a>
+          <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
+          <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>Orders</a>
+          <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
+          <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>Companies</a>
         </div>
         <div class="tf-nav-group" id="tf-nav-buyer" data-tf-nav-group="buyer">
-          <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>{% trans "Tienda" %}</a>
-          <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>{% trans "Mis órdenes" %}</a>
-          <a href="{% url 'mis_cotizaciones' %}" class="nav-link-tf" data-tf-nav="mis_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">description</span>{% trans "Mis cotizaciones" %}</a>
-          <a href="{% url 'mi_qr' %}" class="nav-link-tf" data-tf-nav="mi_qr"><span class="material-symbols-rounded tf-ms-nav">qr_code_2</span>{% trans "Mi QR" %}</a>
-          <a href="{% url 'ver_carrito' %}" class="tf-nav-cart" id="tf-nav-cart-link" title="{% trans 'Carrito' %}" data-tf-nav="carrito">
+          <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Store</a>
+          <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>My orders</a>
+          <a href="{% url 'mis_cotizaciones' %}" class="nav-link-tf" data-tf-nav="mis_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">description</span>My quotes</a>
+          <a href="{% url 'mi_qr' %}" class="nav-link-tf" data-tf-nav="mi_qr"><span class="material-symbols-rounded tf-ms-nav">qr_code_2</span>My QR</a>
+          <a href="{% url 'ver_carrito' %}" class="tf-nav-cart" id="tf-nav-cart-link" title="Cart" data-tf-nav="carrito">
             <span class="material-symbols-rounded">shopping_cart</span>
             <span class="tf-nav-cart-badge" id="tf-nav-cart-badge">0</span>
           </a>
         </div>
         <div class="tf-nav-group" id="tf-nav-seller" data-tf-nav-group="seller">
-          <a href="{% url 'portal_seller' %}" class="nav-link-tf" data-tf-nav="mi_tienda"><span class="material-symbols-rounded tf-ms-nav">store</span>{% trans "Mi Panel" %}</a>
-          <a href="{% url 'seller_mis_productos' %}" class="nav-link-tf" data-tf-nav="seller_productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>{% trans "Productos" %}</a>
-          <a href="{% url 'seller_mis_ventas' %}" class="nav-link-tf" data-tf-nav="seller_ventas"><span class="material-symbols-rounded tf-ms-nav">payments</span>{% trans "Mis ventas" %}</a>
-          <a href="{% url 'seller_cotizaciones' %}" class="nav-link-tf" data-tf-nav="seller_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">request_quote</span>{% trans "Cotizaciones" %}</a>
+          <a href="{% url 'portal_seller' %}" class="nav-link-tf" data-tf-nav="mi_tienda"><span class="material-symbols-rounded tf-ms-nav">store</span>My Dashboard</a>
+          <a href="{% url 'seller_mis_productos' %}" class="nav-link-tf" data-tf-nav="seller_productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
+          <a href="{% url 'seller_mis_ventas' %}" class="nav-link-tf" data-tf-nav="seller_ventas"><span class="material-symbols-rounded tf-ms-nav">payments</span>My sales</a>
+          <a href="{% url 'seller_cotizaciones' %}" class="nav-link-tf" data-tf-nav="seller_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">request_quote</span>Quotes</a>
         </div>
         <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
         <div class="tf-nav-user-block">
@@ -1013,12 +1011,12 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
             <span class="tf-nav-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
           </a>
           <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
-            <span class="material-symbols-rounded tf-ms-18">logout</span>{% trans "Salir" %}
+            <span class="material-symbols-rounded tf-ms-18">logout</span>Sign out
           </a>
         </div>
       {% else %}
-        <a href="{% url 'login' %}" class="tf-btn-outline-sm">{% trans "Iniciar sesión" %}</a>
-        <a href="{% url 'signup' %}" class="tf-btn-primary-sm">{% trans "Crear cuenta" %}</a>
+        <a href="{% url 'login' %}" class="tf-btn-outline-sm">Sign in</a>
+        <a href="{% url 'signup' %}" class="tf-btn-primary-sm">Create account</a>
       {% endif %}
     </div>
   </nav>
@@ -1116,37 +1114,37 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
         </div>
         <p class="tf-footer-lead">
-          {% trans "Marketplace B2B/B2C para la Zona Libre de Colón, Panamá." %}
+          B2B/B2C marketplace for the Colón Free Zone, Panama.
         </p>
       </div>
       <div>
-        <div class="tf-footer-col-title">{% trans "Plataforma" %}</div>
+        <div class="tf-footer-col-title">Platform</div>
         <div class="tf-footer-links">
-          <a href="{% url 'home' %}">{% trans "Inicio" %}</a>
-          <a href="{% url 'signup' %}">{% trans "Crear cuenta" %}</a>
-          <a href="{% url 'login' %}">{% trans "Iniciar sesión" %}</a>
+          <a href="{% url 'home' %}">Home</a>
+          <a href="{% url 'signup' %}">Create account</a>
+          <a href="{% url 'login' %}">Sign in</a>
         </div>
       </div>
       <div>
-        <div class="tf-footer-col-title">{% trans "Legal" %}</div>
+        <div class="tf-footer-col-title">Legal</div>
         <div class="tf-footer-links">
-          <a href="#">{% trans "Términos de uso" %}</a>
-          <a href="#">{% trans "Privacidad" %}</a>
-          <a href="#">{% trans "Cookies" %}</a>
+          <a href="#">Terms of use</a>
+          <a href="#">Privacy</a>
+          <a href="#">Cookies</a>
         </div>
       </div>
       <div>
-        <div class="tf-footer-col-title">{% trans "Contacto" %}</div>
+        <div class="tf-footer-col-title">Contact</div>
         <div class="tf-footer-links">
           <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a>
-          <a href="#">{% trans "Zona Libre de Colón" %}</a>
-          <a href="#">{% trans "Panamá" %}</a>
+          <a href="#">Colón Free Zone</a>
+          <a href="#">Panama</a>
         </div>
       </div>
     </div>
     <div class="tf-footer-bottom">
-      <span>{% trans "2026 TradeFlow Colón. Todos los derechos reservados." %}</span>
-      <span>{% trans "Centro Supérate · Fundación Alberto Motta" %}</span>
+      <span>2026 TradeFlow Colón. All rights reserved.</span>
+      <span>Centro Supérate · Alberto Motta Foundation</span>
     </div>
   </footer>
   {% endblock %}
@@ -1178,7 +1176,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   <!-- TF Assistant Widget -->
   <div id="tf-assistant" style="position:fixed;bottom:28px;right:28px;z-index:9999;font-family:var(--tf-font-body);">
-    <button type="button" id="tf-chat-toggle" aria-label="{% trans 'Abrir asistente' %}" style="width:56px;height:56px;border-radius:50%;border:none;background:var(--tf-orange);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(242,101,34,0.4);display:flex;align-items:center;justify-content:center;transition:all 0.25s ease;">
+    <button type="button" id="tf-chat-toggle" aria-label="Abrir asistente" style="width:56px;height:56px;border-radius:50%;border:none;background:var(--tf-orange);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(242,101,34,0.4);display:flex;align-items:center;justify-content:center;transition:all 0.25s ease;">
       <span class="material-symbols-rounded" id="tf-chat-icon" style="font-size:26px;">smart_toy</span>
     </button>
     <div id="tf-chat-window" style="display:none;position:absolute;bottom:68px;right:0;width:340px;height:460px;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(15,42,68,0.2);border:1px solid var(--tf-border);flex-direction:column;overflow:hidden;">
@@ -1187,20 +1185,20 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           <span class="material-symbols-rounded" style="font-size:20px;">smart_toy</span>
         </div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:700;">{% trans "Asistente TradeFlow" %}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.65);">{% trans "Asistente virtual de la Zona Libre" %}</div>
+          <div style="font-size:14px;font-weight:700;">Asistente TradeFlow</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.65);">Asistente virtual de la Zona Libre</div>
         </div>
-        <button type="button" id="tf-chat-close" aria-label="{% trans 'Cerrar' %}" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:0;display:flex;">
+        <button type="button" id="tf-chat-close" aria-label="Close" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:0;display:flex;">
           <span class="material-symbols-rounded">close</span>
         </button>
       </div>
       <div id="tf-chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#F9FAFB;">
         <div class="tf-msg-bot" id="tf-chat-welcome" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px 12px 12px 0;padding:10px 14px;max-width:85%;font-size:13px;color:#374151;line-height:1.55;align-self:flex-start;">
-          {% trans "¡Hola! Soy el asistente de TradeFlow Colón. ¿En qué puedo ayudarte hoy?" %}
+          Hi! I'm the TradeFlow Colón assistant. How can I help you today?
         </div>
       </div>
       <div style="padding:12px 14px;border-top:1px solid var(--tf-border);background:#fff;display:flex;gap:8px;">
-        <input type="text" id="tf-chat-input" placeholder="{% trans 'Escribe tu pregunta...' %}" style="flex:1;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 12px;font-size:13px;outline:none;font-family:var(--tf-font-body);">
+        <input type="text" id="tf-chat-input" placeholder="Escribe tu pregunta..." style="flex:1;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 12px;font-size:13px;outline:none;font-family:var(--tf-font-body);">
         <button type="button" id="tf-chat-send" style="background:var(--tf-orange);color:#fff;border:none;border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <span class="material-symbols-rounded" style="font-size:18px;">send</span>
         </button>
@@ -1259,18 +1257,18 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       if (!parentDiv) return;
       var fb = document.createElement('div');
       fb.className = 'tf-chat-feedback';
-      fb.innerHTML = '<span>{% trans "¿Te fue útil?" %}</span>';
+      fb.innerHTML = '<span>Was this helpful?</span>';
       var yes = document.createElement('button');
       yes.type = 'button';
-      yes.textContent = '{% trans "Sí" %}';
+      yes.textContent = 'Yes';
       var no = document.createElement('button');
       no.type = 'button';
-      no.textContent = '{% trans "No" %}';
+      no.textContent = 'No';
       yes.addEventListener('click', function () {
-        fb.innerHTML = '<span style="color:#15803d;">{% trans "¡Gracias por tu opinión!" %}</span>';
+        fb.innerHTML = '<span style="color:#15803d;">Thanks for your feedback!</span>';
       });
       no.addEventListener('click', function () {
-        fb.innerHTML = '<span>{% trans "Lo mejoraremos. Escríbenos a soporte@tradeflow.pa" %}</span>';
+        fb.innerHTML = '<span>We'll improve it. Email us at soporte@tradeflow.pa</span>';
       });
       fb.appendChild(yes);
       fb.appendChild(no);
@@ -1285,7 +1283,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       tfChatLoading = true;
       appendMessage(mensaje, false);
       tfChatHistory.push({ role: 'user', content: mensaje });
-      var loadingDiv = appendMessage('{% trans "Escribiendo..." %}', true);
+      var loadingDiv = appendMessage('Escribiendo...', true);
       if (loadingDiv) {
         loadingDiv.style.color = '#6B7A88';
         loadingDiv.style.fontStyle = 'italic';
@@ -1304,7 +1302,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
-        var respuesta = data.respuesta || '{% trans "No pude procesar tu consulta." %}';
+        var respuesta = data.respuesta || 'No pude procesar tu consulta.';
         var html = data.respuesta_html || respuesta;
         var botDiv = appendMessage(respuesta, true, html);
         appendFeedback(botDiv);
@@ -1315,7 +1313,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       })
       .catch(function () {
         if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
-        appendMessage('{% trans "Error de conexión. Intenta más tarde." %}', true);
+        appendMessage('Connection error. Try again later.', true);
       })
       .finally(function () { tfChatLoading = false; });
     }
@@ -1332,7 +1330,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       var pageLang = document.documentElement.lang || 'es';
       welcomeEl.textContent = pageLang === 'en'
         ? "Hi! I'm the TradeFlow Colón assistant. How can I help you today?"
-        : '{% trans "¡Hola! Soy el asistente de TradeFlow Colón. ¿En qué puedo ayudarte hoy?" %}';
+        : 'Hi! I'm the TradeFlow Colón assistant. How can I help you today?';
     }
   })();
   </script>

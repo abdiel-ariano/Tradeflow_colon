@@ -1,17 +1,16 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% load i18n %}
 {% comment %}
 ================================================================================
 ACCIÓN: REEMPLAZAR
 DESTINO: templates/core/login.html
 ================================================================================
-TradeFlow Colón — Inicio de sesión.
+TradeFlow Colón — Home de sesión.
 Contexto: login_view; require_email_verification, mostrar_reenvio, email_pendiente.
 Sin comparaciones == en tags; pills/toggles con JavaScript.
 ================================================================================
 {% endcomment %}
-{% block title %}{% trans "Iniciar sesión — TradeFlow Colón" %}{% endblock %}
+{% block title %}Log in — TradeFlow Colón{% endblock %}
 {% block footer %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
@@ -127,53 +126,53 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
   <div class="auth-card">
     <div class="auth-logo-block">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" eager=1 %}
-      <div class="auth-brand-sub" style="font-size:0.875rem;color:var(--tf-muted);">{% trans "Zona Libre de Colón · Panamá" %}</div>
+      <div class="auth-brand-sub" style="font-size:0.875rem;color:var(--tf-muted);">Colón Free Zone · Panama</div>
     </div>
 
     <div class="auth-dev-banner" id="auth-dev-banner" hidden>
-      {% trans "Verificación de email desactivada para pruebas locales." %}
+      Email verification disabled for local testing.
     </div>
 
-    <div class="auth-title">{% trans "Bienvenido de vuelta" %}</div>
-    <div class="auth-toggle" id="auth-login-toggle" role="group" aria-label="{% trans 'Tipo de cuenta' %}">
+    <div class="auth-title">Welcome back</div>
+    <div class="auth-toggle" id="auth-login-toggle" role="group" aria-label="Account type">
       <button type="button" id="auth-toggle-customer" class="is-on">
-        <span class="material-symbols-rounded">person</span> {% trans "Cliente" %}
+        <span class="material-symbols-rounded">person</span> Customer
       </button>
       <button type="button" id="auth-toggle-business">
-        <span class="material-symbols-rounded">store</span> {% trans "Empresa" %}
+        <span class="material-symbols-rounded">store</span> Business
       </button>
     </div>
     <form method="post" action="{% url 'login' %}" novalidate>
       {% csrf_token %}
       <div class="auth-field">
-        <label class="tf-label" for="id_username">{% trans "Usuario" %}</label>
+        <label class="tf-label" for="id_username">Username</label>
         <span class="field-ico"><span class="material-symbols-rounded">person</span></span>
-        <input type="text" name="username" id="id_username" class="tf-input" placeholder="{% trans 'tu_usuario' %}" autocomplete="username" autofocus required>
+        <input type="text" name="username" id="id_username" class="tf-input" placeholder="your_username" autocomplete="username" autofocus required>
       </div>
       <div class="auth-field">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-          <label class="tf-label" for="id_password" style="margin:0;">{% trans "Contraseña" %}</label>
-          <a href="{% url 'password_reset' %}" style="font-size:0.8125rem;color:var(--tf-blue);text-decoration:none;white-space:nowrap;">{% trans "¿Olvidaste tu contraseña?" %}</a>
+          <label class="tf-label" for="id_password" style="margin:0;">Password</label>
+          <a href="{% url 'password_reset' %}" style="font-size:0.8125rem;color:var(--tf-blue);text-decoration:none;white-space:nowrap;">Forgot your password?</a>
         </div>
         <span class="field-ico"><span class="material-symbols-rounded">lock</span></span>
-        <input type="password" name="password" id="id_password" class="tf-input" placeholder="{% trans 'Contraseña' %}" autocomplete="current-password" required>
+        <input type="password" name="password" id="id_password" class="tf-input" placeholder="Password" autocomplete="current-password" required>
       </div>
       <button type="submit" class="auth-submit">
-        <span class="material-symbols-rounded" style="font-size:18px;">login</span> {% trans "Iniciar sesión" %}
+        <span class="material-symbols-rounded" style="font-size:18px;">login</span> Sign in
       </button>
     </form>
-    <div class="auth-divider">{% trans "o" %}</div>
+    <div class="auth-divider">or</div>
     <div class="auth-footer">
-      {% trans "¿No tienes cuenta?" %} <a href="{% url 'signup' %}">{% trans "Regístrate gratis" %}</a>
+      Don’t have an account? <a href="{% url 'signup' %}">Sign up for free</a>
     </div>
 
     <div class="auth-verify-banner" id="auth-verify-resend" hidden>
-      <p style="margin:0 0 10px;">{% trans "¿No recibiste el correo de verificación?" %}</p>
+      <p style="margin:0 0 10px;">Didn't receive the verification email?</p>
       <form method="post" action="{% url 'reenviar_verificacion_public' %}">
         {% csrf_token %}
         <input type="hidden" name="email" id="auth-pending-email" value="{{ email_pendiente|default:'' }}">
         <button type="submit" class="auth-submit" style="margin-top:0;font-size:0.8125rem;padding:10px 14px;">
-          {% trans "Reenviar email de verificación" %}
+          Resend verification email
         </button>
       </form>
     </div>

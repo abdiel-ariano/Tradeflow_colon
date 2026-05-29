@@ -6,11 +6,11 @@ Contexto: enviar_verificacion_email; enlace con token de 24 h.
 ================================================================================
 {% endcomment %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verifica tu cuenta — TradeFlow Colón</title>
+  <title>Verify your account — TradeFlow Colón</title>
 </head>
 <body style="margin:0;padding:0;background-color:#F2F3F5;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#F2F3F5;padding:32px 12px;">
@@ -20,7 +20,7 @@ Contexto: enviar_verificacion_email; enlace con token de 24 h.
           <tr>
             <td style="background-color:#0F2A44;padding:28px 32px;text-align:center;">
               <img src="{{ public_base_url }}/static/img/logo-icon-color.png" alt="TradeFlow Colón" style="display:block;margin:0 auto 14px;height:48px;width:auto;max-width:160px;object-fit:contain;">
-              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.8);">Zona Libre de Colón · Panamá</p>
+              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.8);">Colón Free Zone · Panama</p>
             </td>
           </tr>
           <tr>
@@ -29,11 +29,11 @@ Contexto: enviar_verificacion_email; enlace con token de 24 h.
                 Hola {{ user.first_name|default:user.username }}
               </p>
               <p style="margin:0 0 20px;">
-                Gracias por registrarte en <strong>TradeFlow Colón</strong>, la plataforma digital
-                de comercio en la Zona Libre de Colón.
+                Thank you for signing up on <strong>TradeFlow Colón</strong>, the digital platform
+                for trade in the Colón Free Zone.
               </p>
               <p style="margin:0 0 24px;">
-                Para activar tu cuenta, confirma tu correo con el botón siguiente o ingresa este código en la plataforma:
+                To activate your account, confirm your email with the button below or enter this code on the platform:
               </p>
               {% if verification_code %}
               <p style="margin:0 0 20px;text-align:center;font-size:28px;font-weight:700;letter-spacing:0.35em;color:#0F2A44;font-variant-numeric:tabular-nums;">
@@ -43,24 +43,24 @@ Contexto: enviar_verificacion_email; enlace con token de 24 h.
               <p style="margin:0 0 28px;text-align:center;">
                 <a href="{{ link }}"
                    style="display:inline-block;padding:14px 32px;background-color:#F26522;color:#FFFFFF;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
-                  Verificar mi cuenta
+                  Verify my account
                 </a>
               </p>
               <p style="margin:0 0 8px;font-size:13px;color:#6B7A88;">
-                O copia este enlace en tu navegador:
+                Or copy this link in your browser:
               </p>
               <p style="margin:0 0 20px;font-size:12px;color:#2E5B8A;word-break:break-all;">
                 {{ link }}
               </p>
               <p style="margin:0;font-size:12px;color:#6B7A88;">
-                Este enlace expira en {{ expiracion }}.
+                This link expires in {{ expiracion }}.
               </p>
             </td>
           </tr>
           <tr>
             <td style="padding:20px 28px;border-top:1px solid #E5E7EB;font-size:12px;color:#6B7A88;line-height:1.5;">
               <p style="margin:0;">
-                Si no creaste esta cuenta, ignora este correo. Nadie podrá acceder sin confirmar el enlace.
+                If you did not create this account, ignore this email. No one can access it without confirming the link.
               </p>
               <p style="margin:12px 0 0;">TradeFlow Colón · info@tradeflow.pa</p>
             </td>

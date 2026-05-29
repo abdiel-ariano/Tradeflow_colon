@@ -1,5 +1,4 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% comment %}
 Formulario para crear un nuevo producto.
@@ -15,9 +14,9 @@ Vista: nuevo_producto_view()
   <div class="page-header-row">
     <div>
       <h2>Nuevo Producto</h2>
-      <p class="text-muted">Agrega un artículo al catálogo</p>
+      <p class="text-muted">Add an item to the catalog</p>
     </div>
-    <a href="{% url 'productos' %}" class="btn btn-secondary">← Volver al catálogo</a>
+    <a href="{% url 'productos' %}" class="btn btn-secondary">← Back to catalog</a>
   </div>
 </div>
 
@@ -27,13 +26,13 @@ Vista: nuevo_producto_view()
 
     <div class="form-grid">
       <div class="form-group full">
-        <label>Nombre del producto *</label>
+        <label>First name del producto *</label>
         {{ form.nombre }}
         {% if form.nombre.errors %}<span style="color:var(--color-danger);font-size:.75rem;">{{ form.nombre.errors.0 }}</span>{% endif %}
       </div>
 
       <div class="form-group">
-        <label>Categoría</label>
+        <label>Category</label>
         {{ form.categoria }}
       </div>
 
@@ -54,13 +53,13 @@ Vista: nuevo_producto_view()
       </div>
 
       <div class="form-group full">
-        <label>Descripción</label>
+        <label>Description</label>
         {{ form.descripcion }}
       </div>
 
       <div class="form-group" style="flex-direction:row;align-items:center;gap:8px;">
         {{ form.activo }}
-        <label style="text-transform:none;margin-bottom:0;font-size:.9rem;font-weight:400;">Disponible para venta</label>
+        <label style="text-transform:none;margin-bottom:0;font-size:.9rem;font-weight:400;">Available for sale</label>
       </div>
     </div>
 

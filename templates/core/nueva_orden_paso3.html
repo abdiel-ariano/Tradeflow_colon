@@ -1,5 +1,4 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 
 {% block extra_css %}
@@ -26,8 +25,8 @@
 {% block content %}
 <div class="tf-centered-page">
 <div class="wizard-steps">
-  <div class="wizard-step done">1. Comprador</div>
-  <div class="wizard-step done">2. Productos</div>
+  <div class="wizard-step done">1. Buyer</div>
+  <div class="wizard-step done">2. Products</div>
   <div class="wizard-step active">3. Confirmar</div>
 </div>
 
@@ -38,9 +37,9 @@
   <!-- Panel izquierdo: formulario -->
   <div>
 
-    <!-- Comprador -->
+    <!-- Buyer -->
     <div class="form-card" style="margin-bottom:16px;">
-      <h4 style="margin-bottom:10px;">Comprador</h4>
+      <h4 style="margin-bottom:10px;">Buyer</h4>
       <div style="font-weight:600;">{% if buyer.get_full_name %}{{ buyer.get_full_name }}{% else %}{{ buyer.username }}{% endif %}</div>
       <div style="font-size:.82rem;color:#888;">{{ buyer.email }}</div>
       <div style="font-size:.82rem;margin-top:4px;">
@@ -48,34 +47,34 @@
       </div>
     </div>
 
-    <!-- Dirección de envío -->
+    <!-- Shipping address -->
     <div class="form-card" style="margin-bottom:16px;">
-      <h4 style="margin-bottom:10px;">Dirección de envío</h4>
+      <h4 style="margin-bottom:10px;">Shipping address</h4>
       {% if direcciones %}
         {% for dir in direcciones %}
         <label class="pago-option">
           <input type="radio" name="address_id" value="{{ dir.pk }}" {% if dir.is_default %}checked{% endif %}>
           <div>
-            <div style="font-weight:600;">{{ dir.label|default:"Dirección" }}</div>
+            <div style="font-weight:600;">{{ dir.label|default:"Address" }}</div>
             <div style="font-size:.8rem;color:#888;">{{ dir.line1 }}{% if dir.line2 %}, {{ dir.line2 }}{% endif %} — {{ dir.city }}, {{ dir.country }}</div>
           </div>
         </label>
         {% endfor %}
         <label class="pago-option">
           <input type="radio" name="address_id" value="">
-          <div style="color:#888;font-size:.85rem;">Sin dirección (retiro en tienda)</div>
+          <div style="color:#888;font-size:.85rem;">No address (in-store pickup)</div>
         </label>
       {% else %}
         <p style="color:#aaa;font-size:.85rem;">Este usuario no tiene direcciones registradas.
-          <a href="/admin/core/address/add/" target="_blank">Agregar desde el admin →</a>
+          <a href="/admin/core/address/add/" target="_blank">Add desde el admin →</a>
         </p>
         <input type="hidden" name="address_id" value="">
       {% endif %}
     </div>
 
-    <!-- Costo de envío -->
+    <!-- Shipping cost -->
     <div class="form-card" style="margin-bottom:16px;">
-      <h4 style="margin-bottom:10px;">Costo de envío</h4>
+      <h4 style="margin-bottom:10px;">Shipping cost</h4>
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-weight:600;">$</span>
         <input type="number" name="shipping_cost" value="0" min="0" step="0.01"
@@ -84,15 +83,15 @@
       </div>
     </div>
 
-    <!-- Método de pago -->
+    <!-- Payment method -->
     <div class="form-card" style="margin-bottom:16px;">
-      <h4 style="margin-bottom:10px;">Método de pago</h4>
+      <h4 style="margin-bottom:10px;">Payment method</h4>
       {% for val, label in metodos_pago %}
       <label class="pago-option">
         <input type="radio" name="metodo_pago" value="{{ val }}" {% if val == 'mock' %}checked{% endif %}>
         <div>
           <div style="font-weight:600;">{{ label }}</div>
-          {% if val == 'mock' %}<div style="font-size:.75rem;color:#1D9E75;">Aprobado automáticamente (desarrollo)</div>{% endif %}
+          {% if val == 'mock' %}<div style="font-size:.75rem;color:#1D9E75;">Auto-approved (development)</div>{% endif %}
         </div>
       </label>
       {% endfor %}
@@ -110,7 +109,7 @@
   <!-- Panel derecho: resumen -->
   <div>
     <div class="resumen-card" style="position:sticky;top:20px;">
-      <h4 style="margin-bottom:14px;">Resumen de la orden</h4>
+      <h4 style="margin-bottom:14px;">Summary de la orden</h4>
 
       {% for item in items %}
       <div class="resumen-item">
@@ -124,7 +123,7 @@
         <span>${{ subtotal|floatformat:2 }}</span>
       </div>
       <div class="resumen-item">
-        <span>Envío</span>
+        <span>Shipping</span>
         <span id="envioDisplay">$0.00</span>
       </div>
       <div class="resumen-total">

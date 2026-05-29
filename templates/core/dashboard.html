@@ -1,15 +1,15 @@
 {% extends "core/base.html" %}
-{% load static i18n tf_money %}
+{% load static tf_money %}
 {% comment %}
 ================================================================================
 ACCIÓN: REEMPLAZAR
 DESTINO: templates/core/dashboard.html
 ================================================================================
-TradeFlow Colón — Panel de ventas ZLC (admin): KPIs, filtros 7/30/90, Chart.js.
+TradeFlow Colón — CFZ sales dashboard (admin): KPIs, filtros 7/30/90, Chart.js.
 Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 ================================================================================
 {% endcomment %}
-{% block title %}{% trans "Panel de ventas" %} — TradeFlow Colón{% endblock %}
+{% block title %}Sales dashboard — TradeFlow Colón{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 {% endblock %}
@@ -186,9 +186,9 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     <div class="adm-head">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;width:100%;">
       <div>
-        <h1>{% trans "Panel de ventas ZLC" %}</h1>
+        <h1>CFZ sales dashboard</h1>
         <p>
-          Resumen operativo · <strong>{{ total_ordenes }}</strong> órdenes históricas ·
+          Operational summary · <strong>{{ total_ordenes }}</strong> historical orders ·
           <strong>{{ total_empresas }}</strong> empresas ·
           <strong>{{ total_productos }}</strong> productos activos
         </p>
@@ -197,14 +197,14 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         class="adm-pills"
         id="adm-dias-pills"
         role="group"
-        aria-label="{% trans 'Período de análisis' %}"
+        aria-label="Analysis period"
         data-dias-activo="{{ dias_activo }}"
         data-api-url="{{ api_dashboard_stats_url }}"
         data-dashboard-modo="{% if dashboard_modo_pruebas %}pruebas{% else %}produccion{% endif %}"
       >
-        <button type="button" class="adm-pill js-dias-pill" data-dias="7">7 días</button>
-        <button type="button" class="adm-pill js-dias-pill" data-dias="30">30 días</button>
-        <button type="button" class="adm-pill js-dias-pill" data-dias="90">90 días</button>
+        <button type="button" class="adm-pill js-dias-pill" data-dias="7">7 days</button>
+        <button type="button" class="adm-pill js-dias-pill" data-dias="30">30 days</button>
+        <button type="button" class="adm-pill js-dias-pill" data-dias="90">90 days</button>
       </div>
       </div>
       <p id="adm-period-label" class="adm-period-hint">{{ periodo_label }}</p>
@@ -215,9 +215,9 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
       id="adm-pruebas-banner"
       data-show-pruebas="{% if dashboard_modo_pruebas %}1{% else %}0{% endif %}"
     >
-      <strong>{% trans "Modo pruebas (PreExpo)" %}</strong> —
-      {% trans "Los gráficos usan órdenes creadas en el período (pending, paid, enviado, etc.). No necesitas marcar entregado para ver barras, línea y dona." %}
-      {% trans "Entregadas en el período:" %}
+      <strong>Test mode (PreExpo)</strong> —
+      Charts use orders created in the period (pending, paid, shipped, etc.). You do not need to mark delivered to see bar, line, and doughnut charts.
+      Delivered in period:
       <strong id="adm-pct-entregadas">{{ pct_entregadas_periodo }}%</strong>
       (<span id="adm-ord-entregadas">{{ ordenes_entregadas_periodo }}</span> /
       <span id="adm-ord-activas">{{ ordenes_activas_periodo }}</span>).
@@ -226,73 +226,73 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     <div class="adm-kpi-grid">
       <div class="adm-kpi adm-kpi-in">
         <div class="adm-kpi-top">
-          <span class="adm-kpi-lbl">Órdenes (período)</span>
+          <span class="adm-kpi-lbl">Orders (period)</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">receipt_long</span>
         </div>
         <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">{{ ordenes_semana }}</div>
-        <div class="adm-kpi-delta">vs. período anterior: {{ ordenes_delta_label }}</div>
-        <div class="adm-kpi-sub">Histórico: {{ total_ordenes }}</div>
+        <div class="adm-kpi-delta">vs. previous period: {{ ordenes_delta_label }}</div>
+        <div class="adm-kpi-sub">Historical: {{ total_ordenes }}</div>
       </div>
       <div class="adm-kpi adm-kpi-in">
         <div class="adm-kpi-top">
           <span
             class="adm-kpi-lbl"
             id="adm-kpi-ingresos-lbl"
-            data-lbl-pruebas="{% trans 'Ingresos del período (órdenes activas)' %}"
-            data-lbl-prod="{% trans 'Ingresos entregados (período)' %}"
+            data-lbl-pruebas="Period revenue (active orders)"
+            data-lbl-prod="Delivered revenue (period)"
           >{{ kpi_ingresos_label }}</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">payments</span>
         </div>
         <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">{{ ingresos_semana|money_usd }}</div>
-        <div class="adm-kpi-delta">vs. período anterior: {{ ingresos_delta_label }}</div>
+        <div class="adm-kpi-delta">vs. previous period: {{ ingresos_delta_label }}</div>
         <div
           class="adm-kpi-sub"
           id="adm-kpi-ingresos-sub"
-          data-sub-pruebas="{% trans 'Acumulado activo (no canceladas)' %}"
-          data-sub-prod="{% trans 'Acumulado entregado' %}"
+          data-sub-pruebas="Acumulado activo (no canceladas)"
+          data-sub-prod="Acumulado entregado"
         >{{ kpi_ingresos_sub }}: {{ ingresos_total|money_usd }}</div>
       </div>
       <div class="adm-kpi adm-kpi-in">
         <div class="adm-kpi-top">
-          <span class="adm-kpi-lbl">Compradores únicos (período)</span>
+          <span class="adm-kpi-lbl">Unique buyers (period)</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">groups</span>
         </div>
         <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">{{ clientes_periodo }}</div>
-        <div class="adm-kpi-delta">vs. período anterior: {{ clientes_delta_label }}</div>
-        <div class="adm-kpi-sub">Histórico con orden: {{ clientes_activos }}</div>
+        <div class="adm-kpi-delta">vs. previous period: {{ clientes_delta_label }}</div>
+        <div class="adm-kpi-sub">Historical with order: {{ clientes_activos }}</div>
       </div>
       <div class="adm-kpi adm-kpi-in">
         <div class="adm-kpi-top">
-          <span class="adm-kpi-lbl">Tasa conversión (período)</span>
+          <span class="adm-kpi-lbl">Conversion rate (period)</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">trending_up</span>
         </div>
         <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">{{ tasa_periodo }}%</div>
         <div class="adm-kpi-delta">Δ vs. anterior: {{ tasa_delta_pp_fmt }} pp</div>
-        <div class="adm-kpi-sub">Global: {{ tasa_conversion }}% entregadas</div>
+        <div class="adm-kpi-sub">Global: {{ tasa_conversion }}% delivered</div>
       </div>
     </div>
 
     <p id="adm-charts-error" class="adm-charts-error" role="alert">
-      {% trans "No se pudo cargar Chart.js. Revisa la conexión." %}
+      Chart.js could not be loaded. Check your connection.
     </p>
 
     <div class="adm-charts-row">
       <div class="adm-chart-card">
-        <div class="adm-chart-title">{% trans "Órdenes por día" %}</div>
-        <p class="adm-chart-lead">{% trans "Órdenes creadas por día en el rango seleccionado." %}</p>
-        <div class="adm-chart-canvas-wrap"><canvas id="admBarChart" aria-label="{% trans 'Órdenes por día' %}"></canvas></div>
+        <div class="adm-chart-title">Orders per day</div>
+        <p class="adm-chart-lead">Orders created per day in the selected range.</p>
+        <div class="adm-chart-canvas-wrap"><canvas id="admBarChart" aria-label="Orders per day"></canvas></div>
       </div>
       <div class="adm-chart-card">
-        <div class="adm-chart-title">{% trans "Ingresos por día (USD)" %}</div>
-        <p class="adm-chart-lead">{% trans "Suma de totales por día (excluye canceladas)." %}</p>
-        <div class="adm-chart-canvas-wrap"><canvas id="admLineChart" aria-label="{% trans 'Ingresos por día' %}"></canvas></div>
+        <div class="adm-chart-title">Revenue per day (USD)</div>
+        <p class="adm-chart-lead">Sum of daily totals (excludes cancelled).</p>
+        <div class="adm-chart-canvas-wrap"><canvas id="admLineChart" aria-label="Revenue per day"></canvas></div>
       </div>
     </div>
 
     <div class="adm-quick-grid">
       <div class="adm-chart-card">
-        <div class="adm-chart-title">{% trans "Actividad reciente" %}</div>
-        <p class="adm-chart-lead">{% trans "Últimas órdenes y altas de usuario." %}</p>
+        <div class="adm-chart-title">Recent activity</div>
+        <p class="adm-chart-lead">Latest orders and user sign-ups.</p>
         <div class="adm-act-list">
           {% for item in actividad_reciente %}
           <div class="adm-act-row">
@@ -304,7 +304,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
             </div>
           </div>
           {% empty %}
-          <p style="padding:1rem;color:var(--tf-muted);font-size:0.875rem;margin:0;">{% trans "Sin actividad reciente." %}</p>
+          <p style="padding:1rem;color:var(--tf-muted);font-size:0.875rem;margin:0;">No recent activity.</p>
           {% endfor %}
         </div>
       </div>
@@ -312,7 +312,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         <div class="adm-meta-card">
           <span class="material-symbols-rounded">public</span>
           <div>
-            <h3>B2B / B2C ({% trans "período" %})</h3>
+            <h3>B2B / B2C (period)</h3>
             <p>
               <strong id="adm-meta-b2b">{{ ordenes_b2b }}</strong> B2B ·
               <strong id="adm-meta-b2c">{{ ordenes_b2c }}</strong> B2C
@@ -322,15 +322,15 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         <div class="adm-meta-card">
           <span class="material-symbols-rounded">group</span>
           <div>
-            <h3>{% trans "Usuarios" %}</h3>
-            <p><strong>{{ usuarios_plataforma }}</strong> {% trans "activos" %} · <strong>{{ usuarios_login_periodo }}</strong> {% trans "con login en período." %}</p>
+            <h3>Users</h3>
+            <p><strong>{{ usuarios_plataforma }}</strong> active · <strong>{{ usuarios_login_periodo }}</strong> logged in during period.</p>
           </div>
         </div>
         <div class="adm-meta-card">
           <span class="material-symbols-rounded">inventory_2</span>
           <div>
-            <h3>{% trans "Catálogo ZLC" %}</h3>
-            <p><strong>{{ total_productos }}</strong> {% trans "productos" %} · <strong>{{ total_empresas }}</strong> {% trans "empresas" %}.</p>
+            <h3>CFZ catalog</h3>
+            <p><strong>{{ total_productos }}</strong> products · <strong>{{ total_empresas }}</strong> companies.</p>
           </div>
         </div>
       </div>
@@ -338,50 +338,50 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 
     <div class="adm-donuts-row">
       <div class="adm-chart-card">
-        <div class="adm-chart-title">{% trans "Ventas por categoría (%)" %}</div>
-        <p class="adm-chart-lead">{% trans "Participación por categoría en el período." %}</p>
-        <p class="adm-chart-empty" id="adm-cat-empty">{% trans "Sin datos en este período" %}</p>
+        <div class="adm-chart-title">Sales by category (%)</div>
+        <p class="adm-chart-lead">Share by category in the period.</p>
+        <p class="adm-chart-empty" id="adm-cat-empty">No data in this period</p>
         <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admCatDoughnut"></canvas></div>
       </div>
       <div class="adm-chart-card">
-        <div class="adm-chart-title">{% trans "Distribución por estado" %}</div>
-        <p class="adm-chart-lead">{% trans "Órdenes del período por estado operativo." %}</p>
-        <p class="adm-chart-empty" id="adm-doughnut-empty">{% trans "Sin órdenes en este período" %}</p>
-        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admDoughnutChart" aria-label="{% trans 'Estados de órdenes' %}"></canvas></div>
+        <div class="adm-chart-title">Distribution by status</div>
+        <p class="adm-chart-lead">Orders in period by operational status.</p>
+        <p class="adm-chart-empty" id="adm-doughnut-empty">No orders in this period</p>
+        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admDoughnutChart" aria-label="Order statuses"></canvas></div>
       </div>
       <div class="adm-chart-card">
-        <div class="adm-chart-title">{% trans "Órdenes B2B / B2C" %}</div>
-        <p class="adm-chart-lead">{% trans "Distribución por tipo de orden en el período." %}</p>
-        <p class="adm-chart-empty" id="adm-tipo-empty">{% trans "Sin órdenes en este período" %}</p>
+        <div class="adm-chart-title">Orders B2B / B2C</div>
+        <p class="adm-chart-lead">Distribution by order type in the period.</p>
+        <p class="adm-chart-empty" id="adm-tipo-empty">No orders in this period</p>
         <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admTipoDoughnut"></canvas></div>
       </div>
     </div>
 
     <div class="adm-rankings-row">
       <div class="adm-chart-card">
-        <div class="adm-chart-title">{% trans "Top empresas (USD)" %}</div>
-        <p class="adm-chart-lead">{% trans "Ingresos por empresa vendedora." %}</p>
-        <p class="adm-chart-empty" id="adm-emp-empty">{% trans "Sin datos en este período" %}</p>
+        <div class="adm-chart-title">Top companies (USD)</div>
+        <p class="adm-chart-lead">Revenue by selling company.</p>
+        <p class="adm-chart-empty" id="adm-emp-empty">No data in this period</p>
         <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admEmpChart"></canvas></div>
       </div>
       <div class="adm-chart-card">
-        <div class="adm-chart-title">{% trans "Unidades por producto" %}</div>
-        <p class="adm-chart-lead">{% trans "Productos más vendidos por cantidad." %}</p>
-        <p class="adm-chart-empty" id="adm-prod-empty">{% trans "Sin datos en este período" %}</p>
+        <div class="adm-chart-title">Units by product</div>
+        <p class="adm-chart-lead">Best-selling products by quantity.</p>
+        <p class="adm-chart-empty" id="adm-prod-empty">No data in this period</p>
         <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admProdChart"></canvas></div>
       </div>
     </div>
 
     <div class="adm-table-card">
       <div class="adm-table-head">
-        <span>Últimas órdenes</span>
+        <span>Latest orders</span>
         <a href="{% url 'lista_ordenes' %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8125rem;">Ver todas</a>
       </div>
       <table class="adm-table">
         <thead>
           <tr>
-            <th>Número</th>
-            <th>Cliente</th>
+            <th>Number</th>
+            <th>Customer</th>
             <th>Fecha</th>
             <th>Estado</th>
             <th>Total</th>
@@ -397,7 +397,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
             <td>{{ orden.total|money_usd }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--tf-muted);">No hay órdenes registradas.</td></tr>
+          <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--tf-muted);">No orders registered.</td></tr>
           {% endfor %}
         </tbody>
       </table>

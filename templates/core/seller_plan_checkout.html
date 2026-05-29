@@ -1,9 +1,8 @@
 {% extends "core/seller_layout.html" %}
-{% load i18n %}
-{% block title %}{% trans "Pago del plan" %} — {{ target_plan.name }}{% endblock %}
-{% block seller_page_title %}{% trans "Activar" %} {{ target_plan.name }}{% endblock %}
+{% block title %}Pago del plan — {{ target_plan.name }}{% endblock %}
+{% block seller_page_title %}Activar {{ target_plan.name }}{% endblock %}
 {% block seller_page_sub %}
-<p class="sp-topbar-sub">{% trans "Checkout seguro TradeFlow · tu plan se activa al confirmar el pago" %}</p>
+<p class="sp-topbar-sub">Checkout seguro TradeFlow · tu plan se activa al confirmar el pago</p>
 {% endblock %}
 
 {% block seller_extra_css %}
@@ -95,41 +94,41 @@
 <div class="sp-checkout-page">
   {% if saas %}{% include "core/includes/seller_saas_usage.html" with saas_snapshot=saas %}{% endif %}
 
-  <nav class="sp-checkout-steps" aria-label="{% trans 'Pasos de activación' %}">
-    <div class="sp-checkout-step is-done">1. {% trans "Plan" %}</div>
-    <div class="sp-checkout-step is-current">2. {% trans "Pago" %}</div>
-    <div class="sp-checkout-step">3. {% trans "Activación" %}</div>
+  <nav class="sp-checkout-steps" aria-label="Activation steps">
+    <div class="sp-checkout-step is-done">1. Plan</div>
+    <div class="sp-checkout-step is-current">2. Pago</div>
+    <div class="sp-checkout-step">3. Activation</div>
   </nav>
 
   <div class="sp-checkout-grid">
     <div class="sp-checkout-card">
-      <h3>{% trans "Método de pago" %}</h3>
+      <h3>Payment method</h3>
       <form method="post" action="{% url 'seller_plan_checkout_pay' target_plan.slug %}" id="sp-checkout-form">
         {% csrf_token %}
         <label class="sp-pay-method">
           <input type="radio" name="payment_method" value="mock" checked>
           <span class="material-symbols-rounded" style="color:var(--tf-navy);">credit_card</span>
           <span>
-            <strong>{% trans "Tarjeta de crédito o débito" %}</strong>
-            <span style="display:block;font-size:11px;color:var(--tf-muted);">{% trans "Procesamiento demo (sin cargo real)" %}</span>
+            <strong>Credit or debit card</strong>
+            <span style="display:block;font-size:11px;color:var(--tf-muted);">Demo processing (no real charge)</span>
           </span>
         </label>
         <label class="sp-pay-method">
           <input type="radio" name="payment_method" value="bank">
           <span class="material-symbols-rounded" style="color:var(--tf-navy);">account_balance</span>
           <span>
-            <strong>{% trans "Transferencia bancaria" %}</strong>
-            <span style="display:block;font-size:11px;color:var(--tf-muted);">{% trans "Confirmación en 24 h" %}</span>
+            <strong>Bank transfer</strong>
+            <span style="display:block;font-size:11px;color:var(--tf-muted);">Confirmation within 24 h</span>
           </span>
         </label>
         <div class="sp-pay-fields" id="sp-card-fields">
           <div>
-            <label for="card_name">{% trans "Nombre en la tarjeta" %}</label>
-            <input type="text" id="card_name" name="card_name" placeholder="{% trans 'Como aparece en la tarjeta' %}" autocomplete="cc-name">
+            <label for="card_name">Name on card</label>
+            <input type="text" id="card_name" name="card_name" placeholder="As shown on card" autocomplete="cc-name">
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
-              <label for="card_exp">{% trans "Vencimiento" %}</label>
+              <label for="card_exp">Expiry</label>
               <input type="text" id="card_exp" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp">
             </div>
             <div>
@@ -139,30 +138,30 @@
           </div>
         </div>
         <button type="submit" class="sp-btn sp-btn-primary" style="width:100%;margin-top:20px;justify-content:center;padding:14px;">
-          {% trans "Pagar y activar plan" %}
+          Pay and activate plan
         </button>
         <p class="sp-secure-badge">
           <span class="material-symbols-rounded" style="font-size:18px;">lock</span>
-          {% trans "Transacción cifrada · registro permanente en tu cuenta empresarial" %}
+          Encrypted transaction · permanent record on your business account
         </p>
       </form>
       <p style="margin-top:16px;font-size:12px;">
-        <a href="{% url 'seller_plan_consumo' %}" style="color:var(--tf-muted);">← {% trans "Volver a planes" %}</a>
+        <a href="{% url 'seller_plan_consumo' %}" style="color:var(--tf-muted);">← Back to plans</a>
       </p>
     </div>
 
     <aside class="sp-checkout-card">
-      <h3>{% trans "Resumen" %}</h3>
+      <h3>Summary</h3>
       <div class="sp-checkout-summary-row">
-        <span>{% trans "Plan actual" %}</span>
+        <span>Current plan</span>
         <span>{{ from_plan.name }}</span>
       </div>
       <div class="sp-checkout-summary-row">
-        <span>{% trans "Nuevo plan" %}</span>
+        <span>New plan</span>
         <strong>{{ target_plan.name }}</strong>
       </div>
       <div class="sp-checkout-summary-row">
-        <span>{% trans "Facturación" %}</span>
+        <span>Billing</span>
         <span>{{ checkout.billing_label }}</span>
       </div>
       <ul style="list-style:none;padding:0;margin:16px 0;font-size:12px;color:var(--tf-navy);">
@@ -174,11 +173,11 @@
         {% endfor %}
       </ul>
       <div class="sp-checkout-total">
-        <span>{% trans "Total hoy" %}</span>
+        <span>Total today</span>
         <span class="amount">USD {{ amount }}</span>
       </div>
       <p style="font-size:11px;color:var(--tf-muted);margin:12px 0 0;line-height:1.45;">
-        {% trans "Al confirmar, tu suscripción se actualiza de inmediato en la plataforma. Renovación automática al cierre del período." %}
+        When you confirm, your subscription updates immediately on the platform. Auto-renews at period end.
       </p>
     </aside>
   </div>

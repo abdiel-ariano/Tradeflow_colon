@@ -1,11 +1,10 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% comment %}
 ACCIÓN: CREAR — templates/core/mi_qr.html
 Contexto: verify_url, qr_data_uri, generated_at, profile, titulo_pagina, nav_activo.
 {% endcomment %}
-{% block title %}Mi código QR — TradeFlow Colón{% endblock %}
+{% block title %}My QR code — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .qr-page { max-width: 640px; margin: 0 auto; padding: 2rem 1rem 3rem; }
@@ -27,9 +26,9 @@ Contexto: verify_url, qr_data_uri, generated_at, profile, titulo_pagina, nav_act
 <div class="qr-page">
   <div class="qr-card">
     <h1>Tu QR de pre-registro ZLC</h1>
-    <p class="lead">Presenta este código en puntos de control o mesas de la Zona Libre de Colón para agilizar la validación de tu identidad vinculada a TradeFlow.</p>
+    <p class="lead">Present this code at checkpoints or desks in the Colón Free Zone to speed up validation of your TradeFlow-linked identity.</p>
     <div class="qr-img-wrap">
-      <img src="{{ qr_data_uri }}" width="280" height="280" alt="Código QR TradeFlow ZLC">
+      <img src="{{ qr_data_uri }}" width="280" height="280" alt="TradeFlow CFZ QR code">
     </div>
     <div class="qr-actions">
       <a href="{% url 'descargar_qr' %}" class="qr-btn qr-btn-primary">
@@ -38,16 +37,16 @@ Contexto: verify_url, qr_data_uri, generated_at, profile, titulo_pagina, nav_act
       </a>
     </div>
     <dl class="qr-meta">
-      <dt>URL de verificación (contenido del QR)</dt>
+      <dt>Verification URL (QR content)</dt>
       <dd class="qr-url">{{ verify_url }}</dd>
       <dt>Generado</dt>
       <dd>{{ generated_at|date:"d/m/Y H:i" }}</dd>
-      <dt>Usuario</dt>
+      <dt>Username</dt>
       <dd>{{ user.username }} — {{ user.get_full_name|default:user.username }}</dd>
       <dt>Correo</dt>
       <dd>{{ user.email|default:"—" }}</dd>
       {% if profile.phone %}
-      <dt>Teléfono</dt>
+      <dt>Phone</dt>
       <dd>{{ profile.phone }}</dd>
       {% endif %}
     </dl>

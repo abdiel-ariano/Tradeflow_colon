@@ -1,8 +1,8 @@
 {% extends "core/seller_layout.html" %}
-{% load i18n static %}
-{% block title %}{% trans "Insights predictivos" %} — TradeFlow{% endblock %}
-{% block seller_page_title %}{% trans "Insights predictivos" %}{% endblock %}
-{% block seller_page_sub %}<p class="sp-topbar-sub">{% trans "Enterprise · forecast y alertas de stock" %}</p>{% endblock %}
+{% load static %}
+{% block title %}Insights predictivos — TradeFlow{% endblock %}
+{% block seller_page_title %}Insights predictivos{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Enterprise · forecast y alertas de stock</p>{% endblock %}
 
 {% block seller_extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" defer></script>
@@ -11,38 +11,38 @@
 {% block seller_content %}
 <div class="sp-kpi-grid" style="margin-bottom:24px;">
   <article class="sp-kpi">
-    <span class="sp-kpi-lbl">{% trans "Forecast 30 días" %}</span>
+    <span class="sp-kpi-lbl">30-day forecast</span>
     <p class="sp-kpi-val" style="font-size:1.35rem;">USD {{ insights.forecast_30d.forecast_total_usd }}</p>
-    <p class="sp-kpi-hint">{% trans "Tendencia" %}: {{ insights.forecast_30d.trend }} · {{ insights.forecast_30d.confidence }}</p>
+    <p class="sp-kpi-hint">Tendencia: {{ insights.forecast_30d.trend }} · {{ insights.forecast_30d.confidence }}</p>
   </article>
   <article class="sp-kpi">
-    <span class="sp-kpi-lbl">{% trans "Promedio diario proj." %}</span>
+    <span class="sp-kpi-lbl">Promedio diario proj.</span>
     <p class="sp-kpi-val" style="font-size:1.25rem;">USD {{ insights.forecast_30d.forecast_daily_avg_usd }}</p>
   </article>
   <article class="sp-kpi">
-    <span class="sp-kpi-lbl">{% trans "Alertas stock" %}</span>
+    <span class="sp-kpi-lbl">Alertas stock</span>
     <p class="sp-kpi-val {% if insights.stock_alerts %}warn{% endif %}">{{ insights.stock_alerts|length }}</p>
   </article>
 </div>
 
 {% if narrative %}
 <section class="sp-card" style="margin-bottom:24px;">
-  <div class="sp-card-head"><h2>{% trans "Resumen ejecutivo" %}</h2></div>
+  <div class="sp-card-head"><h2>Summary ejecutivo</h2></div>
   <p style="font-size:14px;color:var(--tf-navy);line-height:1.6;margin:0;">{{ narrative }}</p>
 </section>
 {% endif %}
 
 <div class="sp-layout-split">
   <section class="sp-card">
-    <div class="sp-card-head"><h2>{% trans "Ingresos diarios (30d)" %}</h2></div>
-    <canvas id="sp-insights-chart" height="120" aria-label="{% trans 'Gráfico ingresos' %}"></canvas>
+    <div class="sp-card-head"><h2>Ingresos diarios (30d)</h2></div>
+    <canvas id="sp-insights-chart" height="120" aria-label="Revenue chart"></canvas>
   </section>
   <section class="sp-card">
-    <div class="sp-card-head"><h2>{% trans "Top SKUs · proyección" %}</h2></div>
+    <div class="sp-card-head"><h2>Top SKUs · projection</h2></div>
     <div class="sp-table-wrap">
       <table class="sp-table">
         <thead>
-          <tr><th>{% trans "Producto" %}</th><th>{% trans "60d USD" %}</th><th>{% trans "30d proj." %}</th></tr>
+          <tr><th>Producto</th><th>60d USD</th><th>30d proj.</th></tr>
         </thead>
         <tbody>
           {% for sku in insights.top_skus %}
@@ -52,7 +52,7 @@
             <td><strong>{{ sku.forecast_30d_usd }}</strong></td>
           </tr>
           {% empty %}
-          <tr><td colspan="3" style="color:var(--tf-muted);">{% trans "Sin historial de ventas suficiente." %}</td></tr>
+          <tr><td colspan="3" style="color:var(--tf-muted);">Sin historial de ventas suficiente.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -61,7 +61,7 @@
 </div>
 
 <section class="sp-card" style="margin-top:24px;">
-  <div class="sp-card-head"><h2>{% trans "Alertas de inventario" %}</h2></div>
+  <div class="sp-card-head"><h2>Alertas de inventario</h2></div>
   {% if insights.stock_alerts %}
   <ul style="list-style:none;margin:0;padding:0;">
     {% for a in insights.stock_alerts %}
@@ -75,7 +75,7 @@
     {% endfor %}
   </ul>
   {% else %}
-  <p style="color:var(--tf-muted);font-size:14px;margin:0;">{% trans "Sin alertas críticas en este momento." %}</p>
+  <p style="color:var(--tf-muted);font-size:14px;margin:0;">No critical alerts at this time.</p>
   {% endif %}
 </section>
 {% endblock %}

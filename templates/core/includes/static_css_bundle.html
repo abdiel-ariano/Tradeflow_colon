@@ -17,7 +17,7 @@ ESTRUCTURA
   2. Paleta admin     --color-*       → style.css, navbar.css, dashboard.css
   3. Alertas          --alert-*       → banners de notificación (tf-alert-*)
   4. Estado (tags)    --status-*      → badges de administración (bootstrap-style)
-  5. Órdenes          --order-*       → chips de estado de órdenes
+  5. Orders          --order-*       → chips de estado de órdenes
   6. Stock            --stock-*       → indicadores de nivel de inventario
   7. Componentes UI   --ui-*          → tokens de componentes específicos
 
@@ -198,7 +198,7 @@ CONVENCIÓN DE SUFIJOS
   /* ════════════════════════════════════════════════════════
      7. COMPONENTES UI  --ui-*
         Tokens puntuales para componentes específicos.
-        Agregar aquí cualquier color que no encaje en los grupos anteriores.
+        Add aquí cualquier color que no encaje en los grupos anteriores.
      ════════════════════════════════════════════════════════ */
 
   --ui-card-sand-bg:      #faf8f5;   /* fondo cálido de .tf-card-sand */
@@ -1187,7 +1187,7 @@ CONVENCIÓN DE SUFIJOS
 
 /**
  * Layout seller: una sola columna. La navegación vive en base.html (navbar por rol);
- * se retiró la barra lateral "Mi Tienda / …" para evitar duplicar enlaces.
+ * se retiró la barra lateral "Mi Store / …" para evitar duplicar enlaces.
  */
 .seller-layout {
   display: block;
@@ -1562,7 +1562,7 @@ Estilos del wizard multi-step de Nueva Orden.
 .wizard-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; }
 .wizard-main, .wizard-sidebar { }
 
-/* Carrito */
+/* Cart */
 .cart-card { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 18px; position: sticky; top: calc(var(--topbar-height) + 16px); }
 .cart-title { font-size: 0.875rem; font-weight: 700; margin-bottom: 14px; color: var(--color-text); }
 .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 0.8rem; }
@@ -1624,7 +1624,7 @@ Estilos del wizard multi-step de Nueva Orden.
 .payment-icon { font-size: 1.4rem; margin-bottom: 5px; }
 .payment-label { font-weight: 600; color: var(--color-text); }
 
-/* Resumen de confirmación */
+/* Summary de confirmación */
 .confirm-section { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 14px; }
 .confirm-title { font-size: 0.875rem; font-weight: 700; margin-bottom: 12px; color: var(--color-text); border-bottom: 1px solid var(--color-border); padding-bottom: 10px; }
 

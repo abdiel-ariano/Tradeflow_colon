@@ -1,6 +1,5 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% load i18n %}
 {% comment %}
 ================================================================================
 templates/core/mi_perfil.html — TradeFlow Colón
@@ -8,7 +7,7 @@ Propósito: perfil del usuario autenticado (datos, contraseña, actividad por ro
 Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
 ================================================================================
 {% endcomment %}
-{% block title %}{% trans "Mi Perfil" %} — TradeFlow Colón{% endblock %}
+{% block title %}My Profile — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .perfil-wrap {
@@ -213,11 +212,11 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
 <div class="tf-page perfil-wrap" id="perfil-root" data-role="{{ role_key }}" style="padding-top: 48px;">
   {% if not profile.email_verificado %}
   <div style="margin-bottom:20px;padding:14px 18px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;font-size:14px;color:#92400E;">
-    <p style="margin:0 0 10px;">{% trans "Tu correo aún no está verificado." %}</p>
+    <p style="margin:0 0 10px;">Your email is not verified yet.</p>
     <form method="post" action="{% url 'reenviar_verificacion' %}">
       {% csrf_token %}
       <button type="submit" class="perfil-btn-primary" style="font-size:13px;">
-        {% trans "Reenviar email de verificación" %}
+        Resend verification email
       </button>
     </form>
   </div>
@@ -229,7 +228,7 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
       <p class="perfil-email">{{ request.user.email }}</p>
       <span class="perfil-badge" id="perfil-role-badge"></span>
       <p class="perfil-since">
-        {% trans "Miembro desde" %} {{ request.user.date_joined|date:"F Y" }}
+        Member since {{ request.user.date_joined|date:"F Y" }}
       </p>
     </div>
   </div>
@@ -239,36 +238,36 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
       <div class="perfil-card">
         <h2 class="perfil-card-title">
           <span class="material-symbols-rounded">person</span>
-          {% trans "Información personal" %}
+          Personal information
         </h2>
         <form method="post" action="{% url 'mi_perfil' %}">
           {% csrf_token %}
           <input type="hidden" name="action" value="update_info">
           <div class="perfil-row-2">
             <div class="perfil-field">
-              <label class="tf-label" for="pf_first_name">{% trans "Nombre" %}</label>
+              <label class="tf-label" for="pf_first_name">First name</label>
               <input type="text" name="first_name" id="pf_first_name" class="tf-input"
                      value="{{ request.user.first_name }}">
             </div>
             <div class="perfil-field">
-              <label class="tf-label" for="pf_last_name">{% trans "Apellido" %}</label>
+              <label class="tf-label" for="pf_last_name">Last name</label>
               <input type="text" name="last_name" id="pf_last_name" class="tf-input"
                      value="{{ request.user.last_name }}">
             </div>
           </div>
           <div class="perfil-field">
-            <label class="tf-label" for="pf_email">{% trans "Correo electrónico" %}</label>
+            <label class="tf-label" for="pf_email">Email address</label>
             <input type="email" name="email" id="pf_email" class="tf-input"
                    value="{{ request.user.email }}">
           </div>
           <div class="perfil-field">
-            <label class="tf-label" for="pf_phone">{% trans "Teléfono" %}</label>
+            <label class="tf-label" for="pf_phone">Phone</label>
             <input type="tel" name="phone" id="pf_phone" class="tf-input"
                    value="{{ profile.phone }}">
           </div>
           <button type="submit" class="perfil-btn-primary">
             <span class="material-symbols-rounded" style="font-size:18px;">save</span>
-            {% trans "Guardar cambios" %}
+            Save changes
           </button>
         </form>
       </div>
@@ -276,17 +275,17 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
       <div class="perfil-card">
         <h2 class="perfil-card-title">
           <span class="material-symbols-rounded">lock</span>
-          {% trans "Seguridad" %}
+          Security
         </h2>
         <form method="post" action="{% url 'mi_perfil' %}">
           {% csrf_token %}
           <input type="hidden" name="action" value="change_password">
           <div class="perfil-field">
-            <label class="tf-label" for="pf_current">{% trans "Contraseña actual" %}</label>
+            <label class="tf-label" for="pf_current">Password</label>
             <input type="password" name="current_password" id="pf_current" class="tf-input" required>
           </div>
           <div class="perfil-field">
-            <label class="tf-label" for="pf_new">{% trans "Nueva contraseña" %}</label>
+            <label class="tf-label" for="pf_new">Password</label>
             <input type="password" name="new_password" id="pf_new" class="tf-input" required
                    autocomplete="new-password">
             <div class="perfil-strength" aria-hidden="true">
@@ -294,13 +293,13 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
             </div>
           </div>
           <div class="perfil-field">
-            <label class="tf-label" for="pf_confirm">{% trans "Confirmar nueva contraseña" %}</label>
+            <label class="tf-label" for="pf_confirm">Confirm new password</label>
             <input type="password" name="confirm_password" id="pf_confirm" class="tf-input" required
                    autocomplete="new-password">
           </div>
           <button type="submit" class="perfil-btn-outline">
             <span class="material-symbols-rounded" style="font-size:18px;">key</span>
-            {% trans "Cambiar contraseña" %}
+            Password
           </button>
         </form>
       </div>
@@ -310,15 +309,15 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
       <div class="perfil-card">
         <h2 class="perfil-card-title">
           <span class="material-symbols-rounded">bar_chart</span>
-          {% trans "Tu actividad" %}
+          Your activity
         </h2>
 
         <div class="perfil-role-panel" id="perfil-panel-buyer" data-panel="buyer">
           <div class="perfil-stat">{{ actividad.total_ordenes|default:0 }}</div>
-          <div class="perfil-stat-label">{% trans "Órdenes realizadas" %}</div>
+          <div class="perfil-stat-label">Orders placed</div>
           {% if actividad.ultima_orden %}
           <p style="margin-top:16px;font-size:14px;color:var(--tf-muted);">
-            {% trans "Última orden" %}:
+            Last order:
             <strong style="color:var(--tf-navy);">{{ actividad.ultima_orden.order_number }}</strong>
             <span class="perfil-status-badge" id="perfil-ultima-estado"
                   data-status="{{ actividad.ultima_orden.status }}"></span>
@@ -326,46 +325,46 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
           {% endif %}
           <a href="{% url 'mis_ordenes' %}" class="perfil-link">
             <span class="material-symbols-rounded">receipt_long</span>
-            {% trans "Ver mis órdenes" %}
+            My orders
           </a>
         </div>
 
         <div class="perfil-role-panel" id="perfil-panel-seller" data-panel="seller">
           <div class="perfil-stat">{{ actividad.total_productos|default:0 }}</div>
-          <div class="perfil-stat-label">{% trans "Productos activos en catálogo" %}</div>
+          <div class="perfil-stat-label">Active products in catalog</div>
           <a href="{% url 'seller_mis_productos' %}" class="perfil-link">
             <span class="material-symbols-rounded">inventory_2</span>
-            {% trans "Ver mis productos" %}
+            View my products
           </a>
         </div>
 
         <div class="perfil-role-panel" id="perfil-panel-admin" data-panel="admin">
           <div class="perfil-stat">{{ actividad.total_usuarios|default:0 }}</div>
-          <div class="perfil-stat-label">{% trans "Usuarios registrados" %}</div>
+          <div class="perfil-stat-label">Registered users</div>
           <div class="perfil-stat" style="margin-top:20px;">{{ actividad.total_ordenes|default:0 }}</div>
-          <div class="perfil-stat-label">{% trans "Órdenes del sistema" %}</div>
+          <div class="perfil-stat-label">Orders in period</div>
         </div>
       </div>
 
       <div class="perfil-card">
         <h2 class="perfil-card-title">
           <span class="material-symbols-rounded">apps</span>
-          {% trans "Accesos rápidos" %}
+          Role-based access
         </h2>
         <div class="perfil-quick perfil-role-panel" id="perfil-quick-buyer" data-panel="buyer">
-          <a href="{% url 'tienda' %}"><span class="material-symbols-rounded">storefront</span>{% trans "Ir a la tienda" %}</a>
-          <a href="{% url 'mis_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>{% trans "Mis órdenes" %}</a>
-          <a href="{% url 'mi_qr' %}"><span class="material-symbols-rounded">qr_code_scanner</span>{% trans "Mi QR de visitante" %}</a>
+          <a href="{% url 'tienda' %}"><span class="material-symbols-rounded">storefront</span>Go to store</a>
+          <a href="{% url 'mis_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>My orders</a>
+          <a href="{% url 'mi_qr' %}"><span class="material-symbols-rounded">qr_code_scanner</span>Visitor QR</a>
         </div>
         <div class="perfil-quick perfil-role-panel" id="perfil-quick-seller" data-panel="seller">
-          <a href="{% url 'portal_seller' %}"><span class="material-symbols-rounded">dashboard</span>{% trans "Mi Panel" %}</a>
-          <a href="{% url 'seller_mis_productos' %}"><span class="material-symbols-rounded">inventory_2</span>{% trans "Productos" %}</a>
-          <a href="{% url 'seller_mis_ventas' %}"><span class="material-symbols-rounded">payments</span>{% trans "Mis ventas" %}</a>
+          <a href="{% url 'portal_seller' %}"><span class="material-symbols-rounded">dashboard</span>My Dashboard</a>
+          <a href="{% url 'seller_mis_productos' %}"><span class="material-symbols-rounded">inventory_2</span>Products</a>
+          <a href="{% url 'seller_mis_ventas' %}"><span class="material-symbols-rounded">payments</span>My sales</a>
         </div>
         <div class="perfil-quick perfil-role-panel" id="perfil-quick-admin" data-panel="admin">
-          <a href="{% url 'dashboard' %}"><span class="material-symbols-rounded">dashboard</span>{% trans "Dashboard" %}</a>
-          <a href="{% url 'lista_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>{% trans "Gestionar órdenes" %}</a>
-          <a href="{% url 'lista_productos' %}"><span class="material-symbols-rounded">inventory_2</span>{% trans "Gestionar productos" %}</a>
+          <a href="{% url 'dashboard' %}"><span class="material-symbols-rounded">dashboard</span>Dashboard</a>
+          <a href="{% url 'lista_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>My orders</a>
+          <a href="{% url 'lista_productos' %}"><span class="material-symbols-rounded">inventory_2</span>View products</a>
         </div>
       </div>
     </div>
@@ -379,9 +378,9 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
   var role = root.getAttribute('data-role') || 'buyer';
 
   var labels = {
-    buyer: '{% trans "Comprador"|escapejs %}',
-    seller: '{% trans "Vendedor"|escapejs %}',
-    admin: '{% trans "Administrador"|escapejs %}'
+    buyer: 'Buyer',
+    seller: 'Seller',
+    admin: 'Administrator'
   };
   var badge = document.getElementById('perfil-role-badge');
   if (badge) {
@@ -401,12 +400,12 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
   });
 
   var statusLabels = {
-    pending: '{% trans "Pendiente"|escapejs %}',
-    paid: '{% trans "Pagado"|escapejs %}',
-    packed: '{% trans "Empacado"|escapejs %}',
-    shipped: '{% trans "Enviado"|escapejs %}',
-    delivered: '{% trans "Entregado"|escapejs %}',
-    cancelled: '{% trans "Cancelado"|escapejs %}'
+    pending: 'Pending',
+    paid: 'Paid',
+    packed: 'Packed',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled'
   };
   var stEl = document.getElementById('perfil-ultima-estado');
   if (stEl) {

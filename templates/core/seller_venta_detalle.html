@@ -1,7 +1,7 @@
 {% extends "core/seller_layout.html" %}
-{% load i18n static %}
+{% load static %}
 {% block title %}{{ titulo_pagina }} — TradeFlow{% endblock %}
-{% block seller_page_title %}{% trans "Orden" %} {{ orden.order_number }}{% endblock %}
+{% block seller_page_title %}Orden {{ orden.order_number }}{% endblock %}
 {% block seller_page_sub %}
 <p class="sp-topbar-sub">
   {{ orden.buyer.get_full_name|default:orden.buyer.username }} · {{ orden.created_at|date:"d/m/Y H:i" }}
@@ -9,34 +9,34 @@
 {% endblock %}
 {% block seller_topbar_actions %}
 <a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-secondary">
-  <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>{% trans "Ventas" %}
+  <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>Ventas
 </a>
 {% endblock %}
 
 {% block seller_content %}
 {% if puede_confirmar %}
 <section class="sp-card" style="margin-bottom:24px;border-color:var(--tf-orange);">
-  <div class="sp-card-head"><h2>{% trans "Confirmar pedido" %}</h2></div>
+  <div class="sp-card-head"><h2>Confirm order</h2></div>
   <p style="font-size:13px;color:var(--tf-muted);margin:0 0 14px;">
-    {% blocktrans with fecha=orden.seller_confirm_by|date:"d/m/Y H:i" %}Plazo: {{ fecha }}{% endblocktrans %}
+    Deadline: {{ fecha }}
   </p>
   <form method="post" style="display:flex;gap:10px;flex-wrap:wrap;">
     {% csrf_token %}
-    <button type="submit" name="accion" value="aceptar" class="sp-btn sp-btn-primary">{% trans "Confirmar" %}</button>
-    <button type="submit" name="accion" value="rechazar" class="sp-btn sp-btn-secondary">{% trans "Rechazar" %}</button>
+    <button type="submit" name="accion" value="aceptar" class="sp-btn sp-btn-primary">Confirmar</button>
+    <button type="submit" name="accion" value="rechazar" class="sp-btn sp-btn-secondary">Rechazar</button>
   </form>
 </section>
 {% elif order_actions.can_reject %}
 <section class="sp-card" style="margin-bottom:24px;border-color:var(--tf-sand2);">
-  <div class="sp-card-head"><h2>{% trans "Confirmar pedido" %}</h2></div>
+  <div class="sp-card-head"><h2>Confirm order</h2></div>
   {% if order_actions.confirm_block_reason %}
   <p style="font-size:13px;color:var(--tf-orange);margin:0 0 14px;">{{ order_actions.confirm_block_reason }}
-    <a href="{% url 'seller_plan_consumo' %}#upgrade" style="color:var(--tf-blue);font-weight:600;">{% trans "Ver planes" %} →</a>
+    <a href="{% url 'seller_plan_consumo' %}#upgrade" style="color:var(--tf-blue);font-weight:600;">View plans →</a>
   </p>
   {% endif %}
   <form method="post" style="display:flex;gap:10px;flex-wrap:wrap;">
     {% csrf_token %}
-    <button type="submit" name="accion" value="rechazar" class="sp-btn sp-btn-secondary">{% trans "Rechazar" %}</button>
+    <button type="submit" name="accion" value="rechazar" class="sp-btn sp-btn-secondary">Rechazar</button>
   </form>
 </section>
 {% endif %}
@@ -44,11 +44,11 @@
 <div class="sp-layout-split">
   <div>
     <section class="sp-card" style="margin-bottom:24px;">
-      <div class="sp-card-head"><h2>{% trans "Líneas de tu empresa" %}</h2></div>
+      <div class="sp-card-head"><h2>Your company lines</h2></div>
       <div class="sp-table-wrap">
         <table class="sp-table">
           <thead>
-            <tr><th>{% trans "Producto" %}</th><th>{% trans "Cant." %}</th><th>{% trans "P. unit." %}</th><th>{% trans "Subtotal" %}</th></tr>
+            <tr><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Subtotal</th></tr>
           </thead>
           <tbody>
             {% for li in lineas_vendedor %}
@@ -63,23 +63,23 @@
         </table>
       </div>
       <p style="margin:16px 0 0;font-size:14px;color:var(--tf-navy);">
-        {% trans "Subtotal (tu empresa)" %}: <strong>USD {{ subtotal_vendedor }}</strong>
+        Subtotal (tu empresa): <strong>USD {{ subtotal_vendedor }}</strong>
       </p>
     </section>
 
     <section class="sp-card{% if order_actions.read_only %} sp-card--readonly{% endif %}">
       <div class="sp-card-head">
-        <h2>{% trans "Detalle logístico" %}</h2>
+        <h2>Logistics detail</h2>
         {% if order_actions.can_dispatch %}
         <form method="post" action="{% url 'seller_dispatch_order' orden.pk %}" style="margin:0;">
           {% csrf_token %}
           <button type="submit" class="sp-btn sp-btn-primary" style="padding:8px 14px;font-size:12px;">
-            <span class="material-symbols-rounded" style="font-size:16px;">rocket_launch</span>{% trans "Despachar" %}
+            <span class="material-symbols-rounded" style="font-size:16px;">rocket_launch</span>Despachar
           </button>
         </form>
         {% elif order_actions.read_only or not order_actions.can_dispatch %}
         <span class="sp-btn sp-btn-secondary" style="padding:8px 14px;font-size:12px;opacity:0.65;pointer-events:none;" aria-disabled="true">
-          <span class="material-symbols-rounded" style="font-size:16px;">block</span>{% trans "Despachar" %}
+          <span class="material-symbols-rounded" style="font-size:16px;">block</span>Despachar
         </span>
         {% endif %}
       </div>
@@ -89,16 +89,16 @@
         <span style="margin-left:8px;font-size:13px;color:var(--tf-muted);">{{ orden.get_seller_confirmation_status_display }}</span>
       </p>
       {% if orden.transport_carrier %}
-      <p style="font-size:13px;margin:0 0 8px;">{% trans "Transportista" %}: <strong>{{ orden.transport_carrier.name }}</strong></p>
+      <p style="font-size:13px;margin:0 0 8px;">Transportista: <strong>{{ orden.transport_carrier.name }}</strong></p>
       {% endif %}
       {% if maps_url %}
       <a href="{{ maps_url }}" target="_blank" rel="noopener noreferrer" class="sp-btn sp-btn-secondary" style="margin-top:8px;">
-        <span class="material-symbols-rounded" style="font-size:18px;">map</span>{% trans "Ubicación comprador" %}
+        <span class="material-symbols-rounded" style="font-size:18px;">map</span>Buyer location
       </a>
       {% endif %}
       {% if pago %}
       <p style="margin-top:12px;font-size:13px;color:var(--tf-muted);">
-        {% trans "Pago" %}: {{ pago.get_status_display }} · {{ pago.amount }} {{ pago.currency }}
+        Pago: {{ pago.get_status_display }} · {{ pago.amount }} {{ pago.currency }}
       </p>
       {% endif %}
     </section>
@@ -107,8 +107,8 @@
   <aside>
     <section class="sp-card">
       <div class="sp-card-head">
-        <h2>{% trans "Seguimiento" %}</h2>
-        <span id="sp-timeline-live" style="font-size:11px;color:var(--tf-muted);">{% trans "En vivo" %}</span>
+        <h2>Seguimiento</h2>
+        <span id="sp-timeline-live" style="font-size:11px;color:var(--tf-muted);">En vivo</span>
       </div>
       <ul class="sp-timeline" id="sp-order-timeline" aria-live="polite"></ul>
     </section>

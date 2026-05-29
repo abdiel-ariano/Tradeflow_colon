@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static i18n %}
+{% load static %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/colors.css' %}">
 <link rel="stylesheet" href="{% static 'css/seller_portal_premium.css' %}">
@@ -9,46 +9,46 @@
 {% block extra_css %}{% block seller_extra_css %}{% endblock %}{% endblock %}
 {% block content %}
 <div class="sp-shell" id="sp-shell">
-  <aside class="sp-sidebar" id="sp-sidebar" aria-label="{% trans 'Panel vendedor' %}">
+  <aside class="sp-sidebar" id="sp-sidebar" aria-label="Panel vendedor">
     <a href="{% url 'portal_seller' %}" class="sp-brand-logo" style="text-decoration:none;">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="sidebar" class="sp-logo-wordmark" %}
       <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);">{{ company.name|default:"TradeFlow" }}</span>
     </a>
     <nav class="sp-nav">
       <a href="{% url 'portal_seller' %}" data-sp-nav="mi_tienda">
-        <span class="material-symbols-rounded">dashboard</span>{% trans "Dashboard" %}
+        <span class="material-symbols-rounded">dashboard</span>Dashboard
       </a>
       <a href="{% url 'seller_mis_productos' %}" data-sp-nav="seller_productos">
-        <span class="material-symbols-rounded">inventory_2</span>{% trans "Productos" %}
+        <span class="material-symbols-rounded">inventory_2</span>Products
       </a>
       <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas">
-        <span class="material-symbols-rounded">payments</span>{% trans "Ventas" %}
+        <span class="material-symbols-rounded">payments</span>Ventas
       </a>
       <a href="{% url 'seller_cotizaciones' %}" data-sp-nav="seller_cotizaciones">
-        <span class="material-symbols-rounded">request_quote</span>{% trans "Cotizaciones" %}
+        <span class="material-symbols-rounded">request_quote</span>Quotes
       </a>
       <a href="{% url 'seller_agregar_producto' %}" data-sp-nav="seller_productos">
-        <span class="material-symbols-rounded">add_circle</span>{% trans "Nuevo producto" %}
+        <span class="material-symbols-rounded">add_circle</span>Nuevo producto
       </a>
       <a href="{% url 'seller_plan_consumo' %}" data-sp-nav="mi_tienda">
-        <span class="material-symbols-rounded">workspace_premium</span>{% trans "Plan" %}
+        <span class="material-symbols-rounded">workspace_premium</span>Plan
       </a>
       {% if saas_snapshot and saas_snapshot.predictive_ai_enabled %}
       <a href="{% url 'seller_predictive_insights' %}" data-sp-nav="seller_insights">
-        <span class="material-symbols-rounded">insights</span>{% trans "Insights IA" %}
+        <span class="material-symbols-rounded">insights</span>Insights IA
       </a>
       {% endif %}
       <a href="{% url 'mi_perfil' %}" data-sp-nav="perfil">
-        <span class="material-symbols-rounded">business</span>{% trans "Perfil empresa" %}
+        <span class="material-symbols-rounded">business</span>Perfil empresa
       </a>
     </nav>
-    <div class="sp-sidebar-foot">{% trans "Zona Libre de Colón" %}</div>
+    <div class="sp-sidebar-foot">Colón Free Zone</div>
   </aside>
   <div class="sp-main">
     {% block seller_topbar %}
     <header class="sp-topbar">
       <div style="display:flex;align-items:center;gap:12px;">
-        <button type="button" class="sp-btn sp-btn-secondary" id="sp-menu-toggle" style="display:none;padding:8px;" aria-label="{% trans 'Menú' %}">
+        <button type="button" class="sp-btn sp-btn-secondary" id="sp-menu-toggle" style="display:none;padding:8px;" aria-label="Menu">
           <span class="material-symbols-rounded">menu</span>
         </button>
         <div style="display:flex;align-items:center;gap:12px;">
@@ -62,7 +62,7 @@
       <div class="sp-topbar-actions">
         {% block seller_topbar_actions %}
         <a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary">
-          <span class="material-symbols-rounded" style="font-size:18px;">add</span>{% trans "Agregar" %}
+          <span class="material-symbols-rounded" style="font-size:18px;">add</span>Add
         </a>
         {% endblock %}
       </div>

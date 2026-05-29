@@ -1,4 +1,4 @@
-{% load static i18n tf_media tf_money %}
+{% load static tf_media tf_money %}
 {% comment %}
 ================================================================================
 ACCIÓN: CREAR
@@ -13,15 +13,15 @@ Variables: product, show_cart_actions (bool), card_extra_class (opcional)
   <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-product-card-media">
     <img src="{{ product|product_image_src }}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300" style="object-fit:cover;">
     {% if not product.available_qty %}
-    <span class="tf-product-badge tf-product-badge-out">{% trans "Sin stock" %}</span>
+    <span class="tf-product-badge tf-product-badge-out">Sin stock</span>
     {% elif product.available_qty <= 5 %}
-    <span class="tf-product-badge tf-product-badge-stock">{% trans "Stock bajo" %}</span>
+    <span class="tf-product-badge tf-product-badge-stock">Stock bajo</span>
     {% elif product.is_on_promo_now %}
     <span class="tf-product-badge tf-product-badge-promo">-{{ product.discount_pct }}%</span>
     {% elif product.is_bestseller %}
-    <span class="tf-product-badge tf-product-badge-top">{% trans "Top ZLC" %}</span>
+    <span class="tf-product-badge tf-product-badge-top">Top CFZ</span>
     {% elif product.is_featured %}
-    <span class="tf-product-badge tf-product-badge-feat">{% trans "Destacado" %}</span>
+    <span class="tf-product-badge tf-product-badge-feat">Featured</span>
     {% endif %}
   </a>
   <div class="tf-product-card-body">
@@ -46,16 +46,16 @@ Variables: product, show_cart_actions (bool), card_extra_class (opcional)
       <input type="hidden" name="cantidad" value="1">
       <button type="submit" class="tf-btn-primary tf-product-card-btn">
         <span class="material-symbols-rounded" aria-hidden="true">add_shopping_cart</span>
-        {% trans "Agregar" %}
+        Add
       </button>
     </form>
       {% else %}
-    <span class="tf-product-card-btn tf-product-card-btn-disabled">{% trans "Sin stock" %}</span>
+    <span class="tf-product-card-btn tf-product-card-btn-disabled">Sin stock</span>
       {% endif %}
     {% else %}
     <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="tf-btn-secondary tf-product-card-btn">
       <span class="material-symbols-rounded" aria-hidden="true">login</span>
-      {% trans "Iniciar sesión para comprar" %}
+      Log in to buy
     </a>
     {% endif %}
   </div>

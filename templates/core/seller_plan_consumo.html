@@ -1,9 +1,8 @@
 {% extends "core/seller_layout.html" %}
-{% load i18n %}
-{% block title %}{% trans "Crecimiento TradeFlow" %} — {{ company.name }}{% endblock %}
-{% block seller_page_title %}{% trans "Ecosistema de crecimiento" %}{% endblock %}
+{% block title %}TradeFlow growth — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Growth ecosystem{% endblock %}
 {% block seller_page_sub %}
-<p class="sp-topbar-sub">{% trans "Escala tu operación en la Zona Libre de Colón con herramientas enterprise" %}</p>
+<p class="sp-topbar-sub">Scale your operation in the Colón Free Zone with enterprise tools</p>
 {% endblock %}
 
 {% block seller_extra_css %}
@@ -128,29 +127,29 @@
   {% if saas_page_error == 'database_schema' %}
   <section class="sp-card sp-saas-empty" role="alert">
     <span class="material-symbols-rounded sp-saas-empty-icon">cloud_off</span>
-    <h2>{% trans "Configuración SaaS pendiente" %}</h2>
-    <p>{% trans "La base de datos aún no tiene las tablas de planes. Un administrador debe ejecutar las migraciones en Supabase." %}</p>
+    <h2>Pending SaaS configuration</h2>
+    <p>The database does not yet have plan tables. An administrator must run migrations in Supabase.</p>
     <p class="sp-saas-empty-hint"><code>python manage.py migrate</code> · <code>python manage.py verify_saas --seed</code></p>
   </section>
   {% elif saas_degraded %}
   <section class="sp-card sp-saas-empty" role="alert">
     <span class="material-symbols-rounded sp-saas-empty-icon">warning</span>
-    <h2>{% trans "No pudimos cargar tu ecosistema" %}</h2>
-    <p>{% trans "Reintenta en unos segundos. Si el problema continúa, contacta soporte TradeFlow." %}</p>
-    <a href="{% url 'seller_plan_consumo' %}" class="sp-btn sp-btn-primary">{% trans "Reintentar" %}</a>
+    <h2>No pudimos cargar tu ecosistema</h2>
+    <p>Retry in a few seconds. If the problem persists, contact TradeFlow support.</p>
+    <a href="{% url 'seller_plan_consumo' %}" class="sp-btn sp-btn-primary">Retry</a>
   </section>
   {% elif not plans_available %}
   <section class="sp-card sp-saas-empty">
     <span class="material-symbols-rounded sp-saas-empty-icon">layers</span>
-    <h2>{% trans "Inicializando planes" %}</h2>
-    <p>{% trans "Estamos preparando el catálogo de crecimiento para tu empresa. Actualiza la página en un momento." %}</p>
-    <a href="{% url 'seller_plan_consumo' %}" class="sp-btn sp-btn-secondary">{% trans "Actualizar" %}</a>
+    <h2>Initializing plans</h2>
+    <p>We are preparing the growth catalog for your company. Refresh the page in a moment.</p>
+    <a href="{% url 'seller_plan_consumo' %}" class="sp-btn sp-btn-secondary">Refresh</a>
   </section>
   {% else %}
 
   <div class="sp-plans-hero">
-    <h2>{% trans "Elige cómo crece tu empresa" %}</h2>
-    <p>{% trans "Cada nivel desbloquea automatización, visibilidad e inteligencia operativa. La activación queda registrada de forma permanente en tu cuenta empresarial." %}</p>
+    <h2>Choose how your company grows</h2>
+    <p>Each tier unlocks automation, visibility, and operational intelligence. Activation is permanently recorded on your business account.</p>
   </div>
 
   <div class="sp-plans-grid" id="upgrade">
@@ -160,7 +159,7 @@
       <span class="sp-plan-badge-top">{{ card.badge }}</span>
       {% endif %}
       {% if card.is_current %}
-      <span class="sp-plan-badge-current">{% trans "Plan activo" %}</span>
+      <span class="sp-plan-badge-current">Plan activo</span>
       {% endif %}
       <div class="sp-plan-icon">
         <span class="material-symbols-rounded">{{ card.icon }}</span>
@@ -169,7 +168,7 @@
       <h3 class="sp-plan-title-v2">{{ card.name }}</h3>
       {% if card.monthly_price_usd and card.cta != 'commercial' %}
       <p style="font-size:1.1rem;font-weight:700;color:var(--tf-navy);margin:0 0 4px;">
-        USD {{ card.monthly_price_usd|floatformat:0 }}<span style="font-size:11px;font-weight:500;color:var(--tf-muted);"> / {% trans "mes" %}</span>
+        USD {{ card.monthly_price_usd|floatformat:0 }}<span style="font-size:11px;font-weight:500;color:var(--tf-muted);"> / mes</span>
       </p>
       {% endif %}
       <p class="sp-plan-tagline-v2">{{ card.tagline }}</p>
@@ -179,20 +178,20 @@
         {% endfor %}
       </ul>
       {% if card.is_current %}
-      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.85;pointer-events:none;">{% trans "Activo" %}</span>
+      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.85;pointer-events:none;">Activo</span>
       {% elif card.cta == 'commercial' %}
       {% if pending_enterprise %}
-      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.8;">{% trans "Solicitud en revisión" %}</span>
+      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.8;">Request under review</span>
       {% else %}
-      <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-btn sp-btn-secondary sp-plan-activate-btn">{% trans "Solicitud comercial" %}</a>
+      <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-btn sp-btn-secondary sp-plan-activate-btn">Commercial application</a>
       {% endif %}
       {% elif card.can_upgrade %}
       <a href="{% url 'seller_plan_checkout' card.slug %}" class="sp-btn sp-btn-primary sp-plan-activate-btn">
-        {% trans "Continuar al pago" %}
+        Continuar al pago
       </a>
-      <p style="font-size:10px;color:var(--tf-muted);text-align:center;margin:8px 0 0;">{% trans "Checkout seguro · renovación mensual" %}</p>
+      <p style="font-size:10px;color:var(--tf-muted);text-align:center;margin:8px 0 0;">Secure checkout · monthly renewal</p>
       {% else %}
-      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="font-size:12px;opacity:0.65;">{% trans "Incluido en tu nivel" %}</span>
+      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="font-size:12px;opacity:0.65;">Incluido en tu nivel</span>
       {% endif %}
     </article>
     {% endfor %}
@@ -200,23 +199,23 @@
 
   <div class="sp-plan-enterprise-note">
     <div>
-      <strong style="font-size:1.05rem;">{% trans "Ecosistema Enterprise" %}</strong>
+      <strong style="font-size:1.05rem;">Enterprise ecosystem</strong>
       <p style="margin:8px 0 0;font-size:13px;opacity:0.9;max-width:520px;line-height:1.5;">
-        {% trans "Activación consultiva con ejecutivo dedicado, SLA y configuración de API. No es un clic: es una alianza estratégica para escalar en Panamá y la región." %}
+        Consultative activation with a dedicated executive, SLA, and API setup. Not a click: a strategic partnership to scale in Panama and the region.
       </p>
     </div>
     <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-btn sp-btn-primary" style="background:var(--tf-orange);border-color:var(--tf-orange);white-space:nowrap;">
-      {% trans "Iniciar conversación enterprise" %}
+      Start enterprise conversation
     </a>
   </div>
 
   {% if upgrade_history %}
   <section class="sp-card sp-plan-history">
-    <h3>{% trans "Historial de evolución de plan" %}</h3>
+    <h3>Plan change history</h3>
     <div class="sp-table-wrap">
       <table class="sp-table">
         <thead>
-          <tr><th>{% trans "Fecha" %}</th><th>{% trans "De" %}</th><th>{% trans "A" %}</th><th>{% trans "Origen" %}</th></tr>
+          <tr><th>Fecha</th><th>De</th><th>A</th><th>Origen</th></tr>
         </thead>
         <tbody>
           {% for log in upgrade_history %}
@@ -237,15 +236,15 @@
   <section class="sp-card" style="margin-top:24px;">
     <div class="sp-kpi-grid" style="margin-bottom:0;">
       <article class="sp-kpi">
-        <span class="sp-kpi-lbl">{% trans "Órdenes del período" %}</span>
+        <span class="sp-kpi-lbl">Orders in period</span>
         <p class="sp-kpi-val">{{ saas.usage.orders_count }}</p>
       </article>
       <article class="sp-kpi">
-        <span class="sp-kpi-lbl">{% trans "Renovación ciclo" %}</span>
+        <span class="sp-kpi-lbl">Cycle renewal</span>
         <p class="sp-kpi-val" style="font-size:1rem;">{{ saas.subscription.current_period_end|date:"d/m/Y" }}</p>
       </article>
       <article class="sp-kpi">
-        <span class="sp-kpi-lbl">{% trans "Créditos TradeFlow Ads" %}</span>
+        <span class="sp-kpi-lbl">TradeFlow Ads credits</span>
         <p class="sp-kpi-val">{{ saas.ad_credits_balance }}</p>
       </article>
     </div>

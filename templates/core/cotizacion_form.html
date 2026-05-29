@@ -1,5 +1,4 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% comment %}
 ================================================================================
@@ -8,7 +7,7 @@ Propósito: formulario para solicitar cotización RFQ a una empresa (productos +
 Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones == en tags.
 ================================================================================
 {% endcomment %}
-{% block title %}Nueva cotización — TradeFlow Colón{% endblock %}
+{% block title %}New quote — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .cot-form-page { max-width: 920px; margin: 0 auto; padding: 48px 24px 64px; }
@@ -33,12 +32,12 @@ Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones
 {% block content %}
 <div class="tf-page cot-form-page" style="padding-top: 48px;">
   <div class="cot-form-card">
-    <h1>Solicitar cotización</h1>
-    <p class="cot-form-lead">Elige una empresa y las cantidades por producto. Recibirás una respuesta formal con precios.</p>
+    <h1>Request quote</h1>
+    <p class="cot-form-lead">Choose a company and quantities per product. You will receive a formal response with prices.</p>
 
     <form method="get" action="{% url 'solicitar_cotizacion' %}" class="t-filters" style="margin-bottom:1.5rem;">
       <label class="w-100" style="max-width:360px;">
-        <span style="display:block;font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;margin-bottom:6px;">Empresa destino</span>
+        <span style="display:block;font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;margin-bottom:6px;">Business destino</span>
         <select name="empresa" class="tf-input" style="width:100%;" onchange="this.form.submit()">
           <option value="">Seleccionar empresa…</option>
           {% for e in empresas %}
@@ -53,14 +52,14 @@ Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones
       {% csrf_token %}
       <input type="hidden" name="empresa_id" value="{{ empresa_obj.id }}">
       <div class="mb-3">
-        <label class="form-label" style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;">Validez solicitada (días)</label>
+        <label class="form-label" style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;">Requested validity (days)</label>
         <input type="number" name="validez_dias" class="tf-input" value="30" min="1" max="365" style="max-width:160px;">
       </div>
       <div class="mb-3">
         <label class="form-label" style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;">Notas / especificaciones</label>
         <textarea name="notas_buyer" class="tf-input" rows="3" placeholder="Requisitos, incoterm, embalaje…"></textarea>
       </div>
-      <h2 style="font-size:1rem;font-weight:700;color:var(--tf-navy);margin:1.5rem 0 12px;">Productos — {{ empresa_obj.name }}</h2>
+      <h2 style="font-size:1rem;font-weight:700;color:var(--tf-navy);margin:1.5rem 0 12px;">Products — {{ empresa_obj.name }}</h2>
       <div class="table-responsive">
         <table class="table align-middle" style="font-size:0.9rem;">
           <thead style="background:#f9fafb;font-size:11px;text-transform:uppercase;color:#6b7a88;">
@@ -87,13 +86,13 @@ Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones
       <div class="cot-form-actions">
         <button type="submit" class="tf-btn-primary">
           <span class="material-symbols-rounded" style="font-size:18px;">send</span>
-          Enviar cotización
+          Submit quote
         </button>
         <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">Cancelar</a>
       </div>
     </form>
     {% else %}
-    <p style="color:var(--tf-muted);margin:0;">Selecciona una empresa arriba para ver sus productos.</p>
+    <p style="color:var(--tf-muted);margin:0;">Select a company above to view its products.</p>
     <div style="margin-top:1rem;">
       <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">Volver a mis cotizaciones</a>
     </div>

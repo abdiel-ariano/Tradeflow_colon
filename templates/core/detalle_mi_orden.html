@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load i18n static tf_media %}
+{% load static tf_media %}
 
 {#
   detalle_mi_orden.html — Detalle de una orden del comprador
@@ -9,7 +9,7 @@
     pago   → Payment instance o None
 #}
 
-{% block title %}Orden {{ orden.order_number }} — TradeFlow Colón{% endblock %}
+{% block title %}Order {{ orden.order_number }} — TradeFlow Colón{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -65,7 +65,7 @@
 
   {# Navegación de migas de pan #}
   <div class="detalle-nav">
-    <a href="{% url 'mis_ordenes' %}">Mis Órdenes</a>
+    <a href="{% url 'mis_ordenes' %}">My Orders</a>
     <span>/</span>
     <span>{{ orden.order_number }}</span>
   </div>
@@ -77,7 +77,7 @@
     {# ── Columna izquierda: items y notas ── #}
     <div>
       <div class="detalle-card">
-        <div class="detalle-card-title">Productos ({{ orden.items.count }})</div>
+        <div class="detalle-card-title">Products ({{ orden.items.count }})</div>
         {% for item in orden.items.all %}
         <div class="item-row">
             <img src="{{ item.product|product_image_src }}" alt="{{ item.product.name }}" class="item-img" loading="lazy" decoding="async">
@@ -107,19 +107,19 @@
       </div>
 
       <div class="detalle-card">
-        <div class="detalle-card-title">Resumen de pago</div>
+        <div class="detalle-card-title">Summary de pago</div>
         <div class="resumen-fila"><span>Subtotal</span><span>USD {{ orden.subtotal }}</span></div>
-        <div class="resumen-fila"><span>Envío</span><span>USD {{ orden.shipping_cost }}</span></div>
+        <div class="resumen-fila"><span>Shipping</span><span>USD {{ orden.shipping_cost }}</span></div>
         <div class="resumen-total-final"><span>Total</span><span>USD {{ orden.total }}</span></div>
       </div>
 
       {% if pago %}
       <div class="detalle-card">
-        <div class="detalle-card-title">Información de pago</div>
-        <div class="info-fila"><span class="lbl">Método</span><span class="val">{{ pago.get_provider_display }}</span></div>
+        <div class="detalle-card-title">Payment information</div>
+        <div class="info-fila"><span class="lbl">Method</span><span class="val">{{ pago.get_provider_display }}</span></div>
         <div class="info-fila"><span class="lbl">Estado</span><span class="val">{{ pago.get_status_display }}</span></div>
         {% if pago.paid_at %}
-        <div class="info-fila"><span class="lbl">Pagado el</span><span class="val">{{ pago.paid_at|date:"d/m/Y H:i" }}</span></div>
+        <div class="info-fila"><span class="lbl">Paid el</span><span class="val">{{ pago.paid_at|date:"d/m/Y H:i" }}</span></div>
         {% endif %}
         {% if pago.txn_ref %}
         <div class="info-fila"><span class="lbl">Referencia</span><span class="val" style="font-size:0.78rem;">{{ pago.txn_ref }}</span></div>
@@ -139,7 +139,7 @@
 
       <a href="{% url 'tienda' %}" class="btn-tf btn-tf-teal"
          style="width:100%;justify-content:center;margin-top:4px;">
-        Seguir comprando
+        Continue shopping
       </a>
     </div>
   </div>

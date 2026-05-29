@@ -1,7 +1,6 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
-{% block title %}Detalle de venta — TradeFlow Colón{% endblock %}
+{% block title %}Sale detail — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 {% endblock %}
 {% block content %}
@@ -13,9 +12,9 @@
       </a>
     </p>
     <h1>Orden {{ orden.order_number }}</h1>
-    <p class="seller-sub">Comprador: {{ orden.buyer.get_full_name|default:orden.buyer.username }} · {{ orden.created_at|date:"d/m/Y H:i" }}</p>
+    <p class="seller-sub">Buyer: {{ orden.buyer.get_full_name|default:orden.buyer.username }} · {{ orden.created_at|date:"d/m/Y H:i" }}</p>
     <div class="seller-table-wrap" style="margin-bottom:1.5rem;">
-      <h2>Tus líneas en esta orden</h2>
+      <h2>Your lines in this order</h2>
       <table class="seller-table">
         <thead>
           <tr>

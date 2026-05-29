@@ -1,17 +1,16 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
-{% block title %}Mis ventas — TradeFlow{% endblock %}
+{% block title %}My sales — TradeFlow{% endblock %}
 {% block extra_css %}
 {% endblock %}
 {% block content %}
 <div class="seller-layout">
   <div class="seller-main">
     <h1>Ventas</h1>
-    <p class="seller-sub">Órdenes que incluyen productos de {{ company.name }}.</p>
+    <p class="seller-sub">Orders that include products from {{ company.name }}.</p>
     <form class="seller-filters" method="get" action="" style="margin-bottom:1rem;">
       <select class="tf-input" name="estado" id="seller-ventas-estado" style="max-width:260px;">
-        <option value="">Todos los estados</option>
+        <option value="">All los estados</option>
         {% for val, label in status_choices %}
         <option value="{{ val }}">{{ label }}</option>
         {% endfor %}
@@ -35,7 +34,7 @@
           <tr>
             <th>Orden</th>
             <th>Fecha</th>
-            <th>Comprador</th>
+            <th>Buyer</th>
             <th>Estado</th>
             <th>Total orden</th>
             <th></th>
@@ -55,17 +54,17 @@
         </tbody>
       </table>
       {% else %}
-      <p style="padding:1.25rem;color:var(--tf-muted);">No hay ventas registradas.</p>
+      <p style="padding:1.25rem;color:var(--tf-muted);">No sales recorded.</p>
       {% endif %}
     </div>
     {% if ordenes.has_other_pages %}
     <nav style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
       {% if ordenes.has_previous %}
-      <a class="btn-seller-outline" href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}">Anterior</a>
+      <a class="btn-seller-outline" href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}">Previous</a>
       {% endif %}
-      <span style="align-self:center;color:var(--tf-muted);font-size:0.88rem;">Página {{ ordenes.number }} de {{ ordenes.paginator.num_pages }}</span>
+      <span style="align-self:center;color:var(--tf-muted);font-size:0.88rem;">Page {{ ordenes.number }} of {{ ordenes.paginator.num_pages }}</span>
       {% if ordenes.has_next %}
-      <a class="btn-seller-outline" href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}">Siguiente</a>
+      <a class="btn-seller-outline" href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}">Next</a>
       {% endif %}
     </nav>
     {% endif %}

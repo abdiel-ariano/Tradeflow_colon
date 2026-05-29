@@ -1,5 +1,4 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% comment %}
 ================================================================================
@@ -8,7 +7,7 @@ Propósito: documento visual de cotización RFQ y acciones (convertir, rechazar)
 Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaScript.
 ================================================================================
 {% endcomment %}
-{% block title %}Cotización {{ cot.numero }} — TradeFlow Colón{% endblock %}
+{% block title %}Quote {{ cot.numero }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .cot-doc { max-width: 900px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1rem clamp(2.5rem, 5vw, 4rem); font-family: 'Inter', sans-serif; }
@@ -69,7 +68,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
         {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" %}
       </div>
       <div class="cot-doc-title">
-        <h1>COTIZACIÓN</h1>
+        <h1>QUOTE</h1>
         <div class="cot-doc-num">{{ cot.numero }}</div>
       </div>
     </header>
@@ -77,15 +76,15 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
     <div class="cot-doc-grid2">
       <div class="cot-doc-box">
         <h3>De</h3>
-        <p><strong>{{ cot.empresa.name }}</strong><br>{{ cot.empresa.address_text|default:"Zona Libre de Colón" }}</p>
+        <p><strong>{{ cot.empresa.name }}</strong><br>{{ cot.empresa.address_text|default:"Colón Free Zone" }}</p>
       </div>
       <div class="cot-doc-box">
         <h3>Para</h3>
         <p>
           <strong>{{ cot.buyer.get_full_name|default:cot.buyer.username }}</strong><br>
-          Fecha de emisión: {{ cot.created_at|date:"d/m/Y" }}<br>
-          Válido hasta: {{ valida_hasta|date:"d/m/Y" }}<br>
-          Cliente ID: {{ cot.buyer.id }}
+          Issue date: {{ cot.created_at|date:"d/m/Y" }}<br>
+          Valid until: {{ valida_hasta|date:"d/m/Y" }}<br>
+          Customer ID: {{ cot.buyer.id }}
         </p>
       </div>
     </div>
@@ -93,7 +92,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
     <table class="cot-doc-table">
       <thead>
         <tr>
-          <th>Descripción</th>
+          <th>Description</th>
           <th style="width:90px;">Cantidad</th>
           <th style="width:120px;">Precio unit.</th>
           <th style="width:110px;text-align:right;">Total</th>
@@ -123,7 +122,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
     <div class="cot-doc-total">Total general: USD <span id="cot-doc-total-val">{{ total_ofertado }}</span></div>
 
     <div class="cot-doc-notes">
-      <strong>Términos:</strong> Válido por {{ cot.validez_dias }} días desde la emisión. Sujeto a disponibilidad de stock.
+      <strong>Terms:</strong> Valid for {{ cot.validez_dias }} days from issue. Subject to stock availability.
     </div>
     {% if cot.notas_buyer %}
     <div class="cot-doc-notes"><strong>Notas del comprador:</strong><br>{{ cot.notas_buyer }}</div>
@@ -135,7 +134,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
     <div class="cot-doc-actions" id="cot-doc-actions">
       <a href="{% url 'descargar_cotizacion_pdf' pk=cot.pk %}" class="btn-tf btn-secondary-tf" style="margin-right:8px;">
         <span class="material-symbols-rounded" style="font-size:18px;">download</span>
-        Descargar Cotización PDF
+        Download Quote PDF
       </a>
       <span class="cot-doc-badge" id="cot-badge-pend" style="background:#FEF3C7;color:#92400E;">Esperando respuesta</span>
       <span class="cot-doc-badge cot-hidden" id="cot-badge-resp" style="background:#D1FAE5;color:#065F46;">Respondida</span>
@@ -153,13 +152,13 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
       <form method="post" class="cot-hidden" id="cot-form-reject" style="display:inline;">
         {% csrf_token %}
         <input type="hidden" name="accion" value="rechazar">
-        <button type="submit" class="tf-btn-secondary">Rechazar cotización</button>
+        <button type="submit" class="tf-btn-secondary">Reject quote</button>
       </form>
       <a href="#" class="tf-btn-secondary cot-hidden" id="cot-link-ver-orden">Ver orden</a>
     </div>
 
     <footer class="cot-doc-foot">
-      TradeFlow Colón — Zona Libre de Colón, Panamá · info@tradeflow.pa
+      TradeFlow Colón — Colón Free Zone, Panama · info@tradeflow.pa
     </footer>
   </div>
   <div style="margin-top:1rem;">
