@@ -252,7 +252,7 @@ def _build_dashboard_charts_payload(dias, now=None):
         'b2c': qs.filter(order_type='b2c').count(),
     }
 
-    period_label = _'Last %(n)s days' % {'n': dias}
+    period_label = _('Last %(n)s days') % {'n': dias}
 
     return {
         'chart_labels':         chart_labels,
@@ -1014,11 +1014,11 @@ def mapa_zlc(request):
             '<div style="min-width:220px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.45;">'
             f'<strong style="color:#0F2A44;">{nombre}</strong><br>'
             f'<span style="color:#6B7A88;">{_('Productos activos:')}</span> {c.n_activos}<br>'
-            f'<span style="color:#6B7A88;">{_'Categories:'}</span> {cat_txt_e}<br>'
+            f'<span style="color:#6B7A88;">{_('Categories:')}</span> {cat_txt_e}<br>'
             f'<a href="{catalog_url_e}" target="_blank" rel="noopener noreferrer" '
             'style="display:inline-block;margin-top:10px;padding:8px 14px;background:#F26522;'
             'color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.85rem;">'
-            f'{_"View catalog"}</a></div>'
+            f'{_('View catalog')}</a></div>'
         )
         icon_color = 'orange' if c.is_verified else 'gray'
         folium.Marker(
@@ -1953,7 +1953,7 @@ def seller_plan_checkout(request, plan_slug: str):
 
     target = SaasPlan.objects.filter(slug=plan_slug, is_active=True).first()
     if not target:
-        messages.error(request, _'Invalid plan.')
+        messages.error(request, _('Invalid plan.'))
         return redirect('seller_plan_consumo')
     if sub.plan.slug == plan_slug:
         messages.info(request, _('Ya tienes este plan activo.'))
@@ -2005,7 +2005,7 @@ def seller_plan_checkout_pay(request, plan_slug: str):
 
     checkout = get_pending_checkout(company)
     if not checkout or checkout.target_plan.slug != plan_slug:
-        messages.error(request, _'Invalid checkout session. Choose the plan again.')
+        messages.error(request, _('Invalid checkout session. Choose the plan again.'))
         return redirect('seller_plan_consumo')
 
     provider = request.POST.get('payment_method', 'mock').strip() or 'mock'
@@ -2421,14 +2421,14 @@ def seller_toggle_producto(request, pk):
             'ok': True,
             'id': product.pk,
             'is_active': product.is_active,
-            'message': _'Product "%(name)s" is now %(estado)s.' % {
+            'message': _('Product "%(name)s" is now %(estado)s.') % {
                 'name': product.name,
                 'estado': estado,
             },
         })
     messages.success(
         request,
-        _'Product "%(name)s" is now %(estado)s.' % {'name': product.name, 'estado': estado},
+        _('Product "%(name)s" is now %(estado)s.') % {'name': product.name, 'estado': estado},
     )
     return redirect('seller_mis_productos')
 
@@ -2598,7 +2598,7 @@ def seller_venta_detalle(request, pk):
     puede_confirmar = order_actions['can_confirm']
 
     if request.method == 'POST' and request.POST.get('accion') == 'despachar':
-        messages.error(request, _'Use the dispatch button in the logistics section.')
+        messages.error(request, _('Use the dispatch button in the logistics section.'))
         return redirect('seller_detalle_venta', pk=pk)
 
     if request.method == 'POST' and puede_confirmar:
@@ -2624,7 +2624,7 @@ def seller_venta_detalle(request, pk):
                 log.exception('seller post-confirmation email')
         elif accion == 'rechazar':
             reject_seller_order(orden)
-            messages.warning(request, _'Order rejected. Reserved inventory was released.')
+            messages.warning(request, _('Order rejected. Reserved inventory was released.'))
             try:
                 enviar_cambio_estado(orden, estado_prev)
             except Exception:
@@ -3197,7 +3197,7 @@ def checkout(request):
             return redirect('checkout')
 
         if not (-90 <= float(buyer_lat) <= 90 and -180 <= float(buyer_lng) <= 180):
-            messages.error(request, _'Invalid location coordinates.')
+            messages.error(request, _('Invalid location coordinates.'))
             return redirect('checkout')
 
         shipping_cost = carrier.base_shipping_cost
@@ -3547,10 +3547,10 @@ def solicitar_cotizacion(request):
         lines = []
         seen = set()
         for key, raw in request.POST.items():
-            if not key.startswith('qty_'):
+            if not key.startswith('qty_('):
                 continue
             try:
-                pid = int(key.replace('qty_', '', 1))
+                pid = int(key.replace(')qty_(', ')', 1))
             except ValueError:
                 continue
             try:
@@ -3850,7 +3850,7 @@ def solicitud_acceso(request):
         if not full_name or not email:
             messages.error(request, _('Nombre y correo son obligatorios.'))
         elif role not in ('buyer', 'seller'):
-            messages.error(request, _'Invalid role.')
+            messages.error(request, _('Invalid role.'))
         else:
             existing = UserApplication.objects.filter(
                 email__iexact=email,
@@ -3964,7 +3964,7 @@ def revisar_solicitud(request, token, accion):
         enviar_solicitud_decision(app, aprobada)
     except Exception:
         log.exception('application decision email')
-    messages.success(request, _'Decision recorded and email sent to the applicant.')
+    messages.success(request, _('Decision recorded and email sent to the applicant.'))
     return redirect('home')
 
 
