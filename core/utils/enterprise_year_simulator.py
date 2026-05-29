@@ -25,6 +25,7 @@ from django.db import connection, transaction
 from django.db.models import Sum
 from django.db.utils import OperationalError, ProgrammingError
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 from core.enterprise_models import (
     AdCampaign,
@@ -533,7 +534,7 @@ def run_enterprise_year_seed(
             su = User.objects.create_user(
                 username=f'{USER_PREFIX}seller_{i}',
                 email=f'{USER_PREFIX}seller_{i}@seed.tradeflow.pa',
-                password=User.objects.make_random_password(length=20),
+                password=get_random_string(20),
                 first_name='Vendedor',
                 last_name=f'ZLC {i + 1}',
             )
@@ -563,7 +564,7 @@ def run_enterprise_year_seed(
             bu = User.objects.create_user(
                 username=f'{USER_PREFIX}buyer_{j}',
                 email=f'{USER_PREFIX}buyer_{j}@seed.tradeflow.pa',
-                password=User.objects.make_random_password(length=20),
+                password=get_random_string(20),
                 first_name=rng.choice(['María', 'Luis', 'Andrea', 'Carlos', 'Sofía', 'Diego', 'Valentina', 'Jorge']),
                 last_name=rng.choice(['Pérez', 'González', 'Herrera', 'Castillo', 'Vargas', 'Mendoza', 'Rojas', 'Silva']),
             )

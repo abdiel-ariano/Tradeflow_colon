@@ -14,6 +14,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
 
 from .decorators import admin_required, buyer_required, seller_required
@@ -119,7 +120,7 @@ def admin_aprobar_transportista(request, pk, decision):
         user = User.objects.create_user(
             username=username,
             email=t.email_contacto,
-            password=User.objects.make_random_password(length=14),
+            password=get_random_string(14),
             first_name=t.empresa_nombre[:30],
         )
         UserProfile.objects.create(user=user, role='transportista', phone=t.telefono)
