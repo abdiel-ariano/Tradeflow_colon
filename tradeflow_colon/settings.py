@@ -286,13 +286,13 @@ if DEBUG:
         )
     else:
         _boot_log.warning(
-            'REQUIRE_EMAIL_VERIFICATION=False — solo para CI/desarrollo ágil (.env).'
+            'REQUIRE_EMAIL_VERIFICATION=False — CI/agile dev only (.env).'
         )
     if SUPABASE_CONFIGURED:
         _boot_log.info('Supabase configurado (URL + service key).')
     else:
         _boot_log.warning(
-            'Supabase incompleto — correos de verificación usarán solo Django EMAIL_BACKEND.'
+            'Supabase incomplete — verification emails will use Django EMAIL_BACKEND only.'
         )
 
 STORAGES = {
