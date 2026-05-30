@@ -1,5 +1,4 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% comment %}
 ================================================================================
@@ -8,7 +7,7 @@ Propósito: formulario para que el vendedor indique precios unitarios por ítem.
 Contexto: vista seller_responder_cotizacion; POST con precio por línea.
 ================================================================================
 {% endcomment %}
-{% block title %}Responder {{ cot.numero }} — TradeFlow Colón{% endblock %}
+{% block title %}Respond to {{ cot.numero }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .cot-rsp-card { background:#fff;border:1px solid var(--tf-border);border-radius:12px;padding:1.5rem;max-width:800px; }
@@ -20,7 +19,7 @@ Contexto: vista seller_responder_cotizacion; POST con precio por línea.
 {% block content %}
 <div class="seller-layout">
   <div class="seller-main">
-    <h1>Responder cotización</h1>
+    <h1>Respond to quote</h1>
     <p class="seller-sub">{{ cot.numero }} · {{ cot.buyer.get_full_name|default:cot.buyer.username }}</p>
     <div class="cot-rsp-card">
       <form method="post">
@@ -46,13 +45,13 @@ Contexto: vista seller_responder_cotizacion; POST con precio por línea.
           </tbody>
         </table>
         <div style="margin-top:1.25rem;">
-          <label style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;display:block;margin-bottom:6px;">Notas para el comprador</label>
+          <label style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;display:block;margin-bottom:6px;">Notes for the buyer</label>
           <textarea name="notas_seller" class="tf-input" rows="3" placeholder="Condiciones comerciales, plazo de entrega…">{{ cot.notas_seller }}</textarea>
         </div>
         <div style="margin-top:1.25rem;display:flex;gap:12px;flex-wrap:wrap;">
           <button type="submit" class="btn-seller-primary">
             <span class="material-symbols-rounded" style="font-size:18px;">send</span>
-            Enviar cotización
+            Submit quote
           </button>
           <a href="{% url 'seller_cotizaciones' %}" class="btn-seller-outline">Volver</a>
         </div>

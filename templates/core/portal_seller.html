@@ -1,54 +1,54 @@
 {% extends "core/seller_layout.html" %}
-{% load i18n static %}
-{% block title %}{% trans "Panel vendedor" %} — {{ company.name }}{% endblock %}
-{% block seller_page_title %}{% blocktrans with name=request.user.get_full_name|default:request.user.username %}Hola, {{ name }}{% endblocktrans %}{% endblock %}
-{% block seller_page_sub %}<p class="sp-topbar-sub">{{ company.name }} · {% trans "Centro de operaciones" %}</p>{% endblock %}
+{% load static %}
+{% block title %}Panel vendedor — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Hello, {{ name }}{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">{{ company.name }} · Centro de operaciones</p>{% endblock %}
 {% block seller_topbar_actions %}
-<a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-secondary">{% trans "Ventas" %}</a>
-<a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>{% trans "Producto" %}</a>
+<a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-secondary">Ventas</a>
+<a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>Producto</a>
 {% endblock %}
 
 {% block seller_content %}
 {% include "core/includes/seller_saas_usage.html" %}
 
 <div class="sp-notice-soft" role="note">
-  <span>{% trans "Gestiona confirmaciones y catálogo desde un solo panel." %}</span>
-  <a href="{% url 'seller_mis_productos' %}">{% trans "Ir a productos" %} →</a>
+  <span>Manage confirmations and catalog from one panel.</span>
+  <a href="{% url 'seller_mis_productos' %}">Ir a productos →</a>
 </div>
 
 {% include "core/includes/seller_plan_promos.html" %}
 
 <div class="sp-kpi-grid">
   <article class="sp-kpi">
-    <span class="sp-kpi-lbl">{% trans "Ingresos del mes" %}</span>
+    <span class="sp-kpi-lbl">Ingresos del mes</span>
     <p class="sp-kpi-val" style="font-size:1.45rem;">USD {{ ingresos_mes }}</p>
-    <p class="sp-kpi-hint">{% trans "Líneas entregadas / en curso" %}</p>
+    <p class="sp-kpi-hint">Lines delivered / in progress</p>
   </article>
   <article class="sp-kpi">
-    <span class="sp-kpi-lbl">{% trans "Órdenes semana" %}</span>
+    <span class="sp-kpi-lbl">Orders semana</span>
     <p class="sp-kpi-val">{{ ordenes_semana }}</p>
   </article>
   <article class="sp-kpi">
-    <span class="sp-kpi-lbl">{% trans "Por confirmar" %}</span>
+    <span class="sp-kpi-lbl">Por confirmar</span>
     <p class="sp-kpi-val {% if pending_confirm %}warn{% endif %}">{{ pending_confirm }}</p>
-    {% if pending_confirm %}<p class="sp-kpi-hint">{% trans "Requieren acción" %}</p>{% endif %}
+    {% if pending_confirm %}<p class="sp-kpi-hint">Require action</p>{% endif %}
   </article>
   <article class="sp-kpi">
-    <span class="sp-kpi-lbl">{% trans "Productos activos" %}</span>
+    <span class="sp-kpi-lbl">Active products</span>
     <p class="sp-kpi-val">{{ productos_activos }}</p>
-    <p class="sp-kpi-hint">{% blocktrans with low=bajo_stock %}{{ low }} con stock bajo{% endblocktrans %}</p>
+    <p class="sp-kpi-hint">{{ low }} with low stock</p>
   </article>
 </div>
 
 <div class="sp-analytics-row">
   <section class="sp-card">
-    <div class="sp-card-head"><h2>{% trans "Rendimiento (30 días)" %}</h2></div>
+    <div class="sp-card-head"><h2>Rendimiento (30 days)</h2></div>
     <div class="sp-chart-box sp-chart-box--line">
       <canvas id="sp-chart-revenue"></canvas>
     </div>
   </section>
   <section class="sp-card">
-    <div class="sp-card-head"><h2>{% trans "Órdenes por semana" %}</h2></div>
+    <div class="sp-card-head"><h2>Orders por semana</h2></div>
     <div class="sp-chart-box sp-chart-box--line">
       <canvas id="sp-chart-week"></canvas>
     </div>
@@ -57,7 +57,7 @@
 
 <div class="sp-grid-2">
   <section class="sp-card">
-    <div class="sp-card-head"><h2>{% trans "Estado de órdenes" %}</h2></div>
+    <div class="sp-card-head"><h2>Order status</h2></div>
     <div class="sp-chart-box sp-chart-box--bar">
       <canvas id="sp-chart-status"></canvas>
     </div>
@@ -65,11 +65,11 @@
   </section>
   <section class="sp-card">
     <div class="sp-card-head">
-      <h2>{% trans "Cotizaciones" %}</h2>
-      <a href="{% url 'seller_cotizaciones' %}">{% trans "Ver todas" %}</a>
+      <h2>Quotes</h2>
+      <a href="{% url 'seller_cotizaciones' %}">Ver todas</a>
     </div>
     <p style="margin:0 0 12px;font-size:14px;color:var(--tf-muted);">
-      {% blocktrans with n=cotizaciones_mes pct=tasa_conversion %}{{ n }} este mes · {{ pct }}% conversión{% endblocktrans %}
+      {{ n }} this month · {{ pct }}% conversion
     </p>
     <ul class="sp-activity-feed">
       {% for c in cotizaciones_recientes %}
@@ -78,7 +78,7 @@
         <span class="sp-status sp-status-{{ c.estado }}" style="margin-left:8px;">{{ c.get_estado_display }}</span>
       </li>
       {% empty %}
-      <li class="sp-empty" style="padding:16px 0;">{% trans "Sin cotizaciones recientes" %}</li>
+      <li class="sp-empty" style="padding:16px 0;">Sin cotizaciones recientes</li>
       {% endfor %}
     </ul>
   </section>
@@ -86,18 +86,18 @@
 
 <section class="sp-card">
   <div class="sp-card-head">
-    <h2>{% trans "Actividad reciente — ventas" %}</h2>
-    <a href="{% url 'seller_mis_ventas' %}">{% trans "Ver todas" %}</a>
+    <h2>Actividad reciente — ventas</h2>
+    <a href="{% url 'seller_mis_ventas' %}">Ver todas</a>
   </div>
   <div class="sp-table-wrap">
     <table class="sp-table">
       <thead>
         <tr>
-          <th>{% trans "Orden" %}</th>
-          <th>{% trans "Cliente" %}</th>
-          <th>{% trans "Total" %}</th>
-          <th>{% trans "Estado" %}</th>
-          <th>{% trans "Plazo" %}</th>
+          <th>Orden</th>
+          <th>Customer</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Plazo</th>
           <th></th>
         </tr>
       </thead>
@@ -110,13 +110,13 @@
           <td><span class="sp-status sp-status-{{ o.status }}">{{ o.get_status_display }}</span></td>
           <td>
             {% if o.status == 'awaiting_seller' and o.seller_confirm_by %}
-            <span class="sp-timer ok" data-sp-plazo="{{ o.seller_confirm_by.isoformat }}" data-expired="{% trans 'Expirado' %}">—</span>
+            <span class="sp-timer ok" data-sp-plazo="{{ o.seller_confirm_by.isoformat }}" data-expired="Expirado">—</span>
             {% else %}—{% endif %}
           </td>
-          <td><a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">{% trans "Ver" %}</a></td>
+          <td><a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">Ver</a></td>
         </tr>
         {% empty %}
-        <tr><td colspan="6" class="sp-empty">{% trans "Sin ventas recientes" %}</td></tr>
+        <tr><td colspan="6" class="sp-empty">Sin ventas recientes</td></tr>
         {% endfor %}
       </tbody>
     </table>

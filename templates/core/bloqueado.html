@@ -1,11 +1,10 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% comment %}
 ACCIÓN: CREAR — templates/core/bloqueado.html
 Plantilla django-axes para bloqueo por intentos de login.
 {% endcomment %}
-{% block title %}Cuenta bloqueada — TradeFlow Colón{% endblock %}
+{% block title %}Account blocked — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .blk-wrap { min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5); }
@@ -20,10 +19,10 @@ Plantilla django-axes para bloqueo por intentos de login.
 <div class="blk-wrap">
   <div class="blk-card">
     <span class="material-symbols-rounded blk-icon" aria-hidden="true">lock</span>
-    <h1>Cuenta bloqueada</h1>
-    <p>Demasiados intentos de inicio de sesión fallidos. Por seguridad, el acceso está bloqueado temporalmente (aproximadamente 1 hora) para esta cuenta o dirección.</p>
-    <p>Intenta de nuevo más tarde o contacta a <a href="mailto:soporte@tradeflow.pa">soporte@tradeflow.pa</a>.</p>
-    <a href="{% url 'login' %}" class="tf-btn-primary-sm" style="display:inline-block;margin-top:8px;">Volver al inicio de sesión</a>
+    <h1>Account blocked</h1>
+    <p>Too many failed sign-in attempts. For security, access is temporarily blocked (approximately 1 hour) for this account or address.</p>
+    <p>Try again later or contact <a href="mailto:soporte@tradeflow.pa">soporte@tradeflow.pa</a>.</p>
+    <a href="{% url 'login' %}" class="tf-btn-primary-sm" style="display:inline-block;margin-top:8px;">Back to sign in</a>
   </div>
 </div>
 {% endblock %}

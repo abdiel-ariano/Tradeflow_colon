@@ -1,5 +1,4 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% block title %}{{ titulo_pagina }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
@@ -17,18 +16,18 @@
   <div class="seller-main">
     <div class="tf-centered-form-wide">
     <h1 id="spf-title">{% if es_edicion %}Editar producto{% else %}Nuevo producto{% endif %}</h1>
-    <p class="seller-sub">Los cambios se reflejan en la tienda cuando el producto está activo.</p>
+    <p class="seller-sub">Changes appear in the store when the product is active.</p>
     <div class="seller-form-card">
       <form method="post" enctype="multipart/form-data" novalidate class="spf-grid" id="spf-form">
         {% csrf_token %}
         <div>
           <div class="tf-field">
-            <label class="tf-label" for="id_name">Nombre</label>
+            <label class="tf-label" for="id_name">First name</label>
             {{ product_form.name }}
             {% if product_form.name.errors %}<div style="color:#EF4444;font-size:0.8rem;margin-top:4px;">{{ product_form.name.errors.0 }}</div>{% endif %}
           </div>
           <div class="tf-field">
-            <label class="tf-label" for="id_category">Categoría</label>
+            <label class="tf-label" for="id_category">Category</label>
             {{ product_form.category }}
           </div>
           <div class="tf-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -47,7 +46,7 @@
             {% if product_form.unit_price.errors %}<div style="color:#EF4444;font-size:0.8rem;margin-top:4px;">{{ product_form.unit_price.errors.0 }}</div>{% endif %}
           </div>
           <div class="tf-field">
-            <label class="tf-label" for="id_description">Descripción</label>
+            <label class="tf-label" for="id_description">Description</label>
             {{ product_form.description }}
           </div>
           <div class="tf-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">

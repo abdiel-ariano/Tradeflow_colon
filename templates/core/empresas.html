@@ -1,10 +1,9 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% comment %}
 Admin — empresas registradas. Contexto: lista_empresas en core/views.py
 {% endcomment %}
-{% block title %}Empresas — TradeFlow Colón{% endblock %}
+{% block title %}Companies — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 {% endblock %}
 {% block content %}
@@ -13,8 +12,8 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
   <div class="adm-main">
     <header class="adm-head">
       <div>
-        <h1>Empresas</h1>
-        <p>Directorio de vendedores en la plataforma: verificación, RUC y volumen de catálogo.</p>
+        <h1>Companies</h1>
+        <p>Directory of sellers on the platform: verification, tax ID, and catalog volume.</p>
       </div>
       <div class="adm-head-actions">
         <a href="/admin/core/company/add/" class="adm-btn adm-btn--primary" target="_blank" rel="noopener noreferrer">
@@ -36,10 +35,10 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
         <thead>
           <tr>
             <th>#</th>
-            <th>Empresa</th>
+            <th>Business</th>
             <th>RUC</th>
-            <th>Verificación</th>
-            <th style="text-align:right;">Productos</th>
+            <th>Verification</th>
+            <th style="text-align:right;">Products</th>
             <th>Alta</th>
             <th style="text-align:right;">Acciones</th>
           </tr>
@@ -54,19 +53,19 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
               {% if empresa.is_verified %}
               <span class="adm-badge adm-emp-ver" data-verified="1">Verificada</span>
               {% else %}
-              <span class="adm-badge adm-emp-ver" data-verified="0">Pendiente</span>
+              <span class="adm-badge adm-emp-ver" data-verified="0">Pending</span>
               {% endif %}
             </td>
             <td style="text-align:right;">{{ empresa.total_productos }}</td>
             <td>{{ empresa.created_at|date:"d/m/Y" }}</td>
             <td style="text-align:right;">
               <a href="/admin/core/company/{{ empresa.pk }}/change/" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 12px;font-size:0.78rem;">Editar</a>
-              <a href="{% url 'lista_productos' %}?buscar={{ empresa.name|urlencode }}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Productos</a>
+              <a href="{% url 'lista_productos' %}?buscar={{ empresa.name|urlencode }}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Products</a>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7" class="adm-empty">No hay empresas registradas.</td>
+            <td colspan="7" class="adm-empty">No companies registered.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -74,13 +73,13 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
 
       {% if empresas.has_other_pages %}
       <div class="adm-pagination">
-        <span>Página {{ empresas.number }} de {{ empresas.paginator.num_pages }}</span>
+        <span>Page {{ empresas.number }} of {{ empresas.paginator.num_pages }}</span>
         <div class="adm-pagination-nums">
           {% if empresas.has_previous %}
-          <a class="adm-page-link" href="?page={{ empresas.previous_page_number }}">Anterior</a>
+          <a class="adm-page-link" href="?page={{ empresas.previous_page_number }}">Previous</a>
           {% endif %}
           {% if empresas.has_next %}
-          <a class="adm-page-link" href="?page={{ empresas.next_page_number }}">Siguiente</a>
+          <a class="adm-page-link" href="?page={{ empresas.next_page_number }}">Next</a>
           {% endif %}
         </div>
       </div>

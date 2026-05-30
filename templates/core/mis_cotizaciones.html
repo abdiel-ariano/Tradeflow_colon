@@ -1,5 +1,4 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% comment %}
 ================================================================================
@@ -8,7 +7,7 @@ Propósito: listado de cotizaciones del comprador con estado y acceso a detalle.
 Contexto: vista mis_cotizaciones; badges de estado aplicados por JavaScript.
 ================================================================================
 {% endcomment %}
-{% block title %}Mis cotizaciones — TradeFlow Colón{% endblock %}
+{% block title %}My quotes — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .cot-list-page { max-width: 1000px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1rem clamp(2.5rem, 5vw, 4rem); }
@@ -40,22 +39,22 @@ Contexto: vista mis_cotizaciones; badges de estado aplicados por JavaScript.
 {% block content %}
 <div class="cot-list-page">
   <div class="cot-list-hdr">
-    <h1>Mis cotizaciones</h1>
+    <h1>My quotes</h1>
     <a href="{% url 'solicitar_cotizacion' %}" class="tf-btn-primary">
       <span class="material-symbols-rounded" style="font-size:18px;">add</span>
-      Nueva cotización
+      New quote
     </a>
   </div>
   <div class="cot-table-wrap">
     <table class="cot-table">
       <thead>
         <tr>
-          <th>Número</th>
-          <th>Empresa</th>
+          <th>Number</th>
+          <th>Business</th>
           <th>Estado</th>
           <th>Fecha</th>
           <th>Validez</th>
-          <th style="text-align:right;">Acción</th>
+          <th style="text-align:right;">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -65,14 +64,14 @@ Contexto: vista mis_cotizaciones; badges de estado aplicados por JavaScript.
           <td>{{ c.empresa.name }}</td>
           <td><span class="tf-badge cot-est-badge" data-cot-est="{{ c.estado }}">{{ c.get_estado_display }}</span></td>
           <td>{{ c.created_at|date:"d/m/Y" }}</td>
-          <td>{{ c.validez_dias }} días</td>
+          <td>{{ c.validez_dias }} days</td>
           <td style="text-align:right;">
             <a href="{% url 'detalle_cotizacion' c.pk %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8rem;">Ver detalle</a>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="6" style="padding:2rem;text-align:center;color:var(--tf-muted);">Aún no tienes cotizaciones. Crea la primera desde el botón superior.</td>
+          <td colspan="6" style="padding:2rem;text-align:center;color:var(--tf-muted);">You have no quotes yet. Create your first one using the button above.</td>
         </tr>
         {% endfor %}
       </tbody>

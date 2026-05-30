@@ -1,10 +1,9 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% comment %}
 Admin — catálogo de productos. Contexto: lista_productos en core/views.py
 {% endcomment %}
-{% block title %}Productos — TradeFlow Colón{% endblock %}
+{% block title %}Products — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .adm-prod-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
@@ -17,8 +16,8 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
   <div class="adm-main">
     <header class="adm-head">
       <div>
-        <h1>Catálogo de productos</h1>
-        <p>Vista global del inventario publicado en la ZLC: empresa, categoría, precio y disponibilidad.</p>
+        <h1>Product catalog</h1>
+        <p>Global view of inventory published in the CFZ: company, category, price, and availability.</p>
       </div>
       <div class="adm-head-actions">
         <a href="/admin/core/product/add/" class="adm-btn adm-btn--primary" target="_blank" rel="noopener noreferrer">
@@ -32,12 +31,12 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
       <div class="adm-filter-grid">
         <div class="adm-field adm-field--grow">
           <label for="adm-prod-buscar">Buscar</label>
-          <input id="adm-prod-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Nombre, SKU o descripción" autocomplete="off">
+          <input id="adm-prod-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Name, SKU, or description" autocomplete="off">
         </div>
         <div class="adm-field">
-          <label for="adm-prod-cat">Categoría</label>
+          <label for="adm-prod-cat">Category</label>
           <select id="adm-prod-cat" name="categoria">
-            <option value="">Todas</option>
+            <option value="">All</option>
             {% for row in categorias_opciones %}
             <option value="{{ row.id }}" {% if row.selected %}selected{% endif %}>{{ row.name }}</option>
             {% endfor %}
@@ -74,7 +73,7 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
             {% if p.category %}
             <span class="adm-chip">{{ p.category.name }}</span>
             {% else %}
-            <span class="adm-chip">Sin categoría</span>
+            <span class="adm-chip">Uncategorized</span>
             {% endif %}
             {% if p.sku %}
             <span class="adm-chip">SKU {{ p.sku }}</span>
@@ -93,20 +92,20 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
         </div>
       </article>
       {% empty %}
-      <div class="adm-empty" style="grid-column: 1 / -1;">No hay productos con los filtros actuales.</div>
+      <div class="adm-empty" style="grid-column: 1 / -1;">No products match the current filters.</div>
       {% endfor %}
     </div>
 
     {% if productos.has_other_pages %}
     <div class="adm-table-card" style="margin-top:1.25rem;">
       <div class="adm-pagination" style="border-top:none;">
-        <span>Página {{ productos.number }} de {{ productos.paginator.num_pages }}</span>
+        <span>Page {{ productos.number }} of {{ productos.paginator.num_pages }}</span>
         <div class="adm-pagination-nums">
           {% if productos.has_previous %}
-          <a class="adm-page-link" href="?{% if producto_filtros_query %}{{ producto_filtros_query }}&amp;{% endif %}page={{ productos.previous_page_number }}">Anterior</a>
+          <a class="adm-page-link" href="?{% if producto_filtros_query %}{{ producto_filtros_query }}&amp;{% endif %}page={{ productos.previous_page_number }}">Previous</a>
           {% endif %}
           {% if productos.has_next %}
-          <a class="adm-page-link" href="?{% if producto_filtros_query %}{{ producto_filtros_query }}&amp;{% endif %}page={{ productos.next_page_number }}">Siguiente</a>
+          <a class="adm-page-link" href="?{% if producto_filtros_query %}{{ producto_filtros_query }}&amp;{% endif %}page={{ productos.next_page_number }}">Next</a>
           {% endif %}
         </div>
       </div>

@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
-{% load static i18n %}
-{% block title %}{% trans "Confirmar pedido" %} — TradeFlow Colón{% endblock %}
+{% load static %}
+{% block title %}Confirm order — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/tf_animations.css' %}">
 <style>
@@ -19,14 +19,14 @@
 {% endblock %}
 {% block content %}
 <div class="tf-page co-wrap">
-  <h1 class="co-title">{% trans "Confirmar pedido" %}</h1>
+  <h1 class="co-title">Confirm order</h1>
   <form method="post" id="co-form">
     {% csrf_token %}
     <input type="hidden" name="buyer_latitude" id="co-lat" value="">
     <input type="hidden" name="buyer_longitude" id="co-lng" value="">
 
     <div class="co-card">
-      <div class="co-sec">{% trans "¿Quién transporta tu carga?" %}</div>
+      <div class="co-sec">Who transports your cargo?</div>
       {% for t in transportistas %}
       <label class="co-carrier">
         <input type="radio" name="transport_carrier" value="{{ t.pk }}" required {% if forloop.first %}checked{% endif %}>
@@ -37,35 +37,35 @@
         <span style="font-weight:700;color:#F26522;">USD {{ t.base_shipping_cost }}</span>
       </label>
       {% empty %}
-      <p>{% trans "No hay transportistas activos." %}</p>
+      <p>No active carriers.</p>
       {% endfor %}
     </div>
 
     <div class="co-card">
-      <div class="co-sec">{% trans "Ubicación de entrega" %}</div>
+      <div class="co-sec">Delivery location</div>
       <button type="button" class="co-geo-btn" id="co-geo-btn">
         <span class="material-symbols-rounded">my_location</span>
-        {% trans "Usar mi ubicación actual" %}
+        Use my current location
       </button>
-      <p class="co-geo-status" id="co-geo-status">{% trans "Debes confirmar tu ubicación para continuar." %}</p>
+      <p class="co-geo-status" id="co-geo-status">You must confirm your location to continue.</p>
     </div>
 
     <div class="co-card">
-      <div class="co-sec">{% trans "Notas" %}</div>
-      <textarea name="notas" class="tf-input" style="width:100%;min-height:80px;" placeholder="{% trans 'Instrucciones de entrega…' %}"></textarea>
+      <div class="co-sec">Notas</div>
+      <textarea name="notas" class="tf-input" style="width:100%;min-height:80px;" placeholder="Instrucciones de entrega…"></textarea>
       {% if not checkout_auto_approve %}
       <p style="font-size:0.85rem;color:#6B7A88;margin-top:10px;">
-        {% trans "La empresa confirmará tu pedido antes del cobro (plazo habitual 48 h)." %}
+        The company will confirm your order before charging (typical 48 h window).
       </p>
       {% endif %}
       <button type="submit" class="co-submit" id="co-submit" disabled>
-        {% trans "Enviar pedido" %}
+        Enviar pedido
       </button>
     </div>
   </form>
 
   <div class="co-card">
-    <div class="co-sec">{% trans "Resumen" %}</div>
+    <div class="co-sec">Summary</div>
     {% for prod_id, item in carrito.items %}
     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:14px;">
       <span>{{ item.nombre }} × {{ item.cantidad }}</span>
@@ -73,7 +73,7 @@
     </div>
     {% endfor %}
     <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:10px;color:#0F2A44;">
-      <span>{% trans "Subtotal" %}</span><span>USD {{ subtotal }}</span>
+      <span>Subtotal</span><span>USD {{ subtotal }}</span>
     </div>
   </div>
 </div>
@@ -91,22 +91,22 @@
   function setOk() {
     btn.classList.add('is-ok', 'tf-pulse-once');
     submit.disabled = false;
-    status.textContent = I.geoConfirmed || '{% trans "Ubicación confirmada." %}';
+    status.textContent = I.geoConfirmed || 'Location confirmed.';
     status.style.color = '#15803d';
   }
 
   btn.addEventListener('click', function () {
     if (!navigator.geolocation) {
-      status.textContent = I.geoUnsupported || '{% trans "Tu navegador no soporta geolocalización." %}';
+      status.textContent = I.geoUnsupported || 'Your browser does not support geolocation.';
       return;
     }
-    status.textContent = '{% trans "Obteniendo ubicación…" %}';
+    status.textContent = 'Getting location…';
     navigator.geolocation.getCurrentPosition(function (pos) {
       lat.value = pos.coords.latitude.toFixed(7);
       lng.value = pos.coords.longitude.toFixed(7);
       setOk();
     }, function () {
-      status.textContent = I.geoDenied || '{% trans "Permiso de ubicación denegado." %}';
+      status.textContent = I.geoDenied || 'Location permission denied.';
       status.style.color = '#b91c1c';
     }, { enableHighAccuracy: true, timeout: 12000 });
   });

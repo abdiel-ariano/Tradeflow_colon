@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
-{% load static i18n %}
-{% block title %}{% trans "Mis órdenes" %} — TradeFlow Colón{% endblock %}
+{% load static %}
+{% block title %}My orders — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .mo-wrap { max-width: 1000px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1.5rem clamp(2rem, 4vw, 3rem); }
@@ -30,9 +30,9 @@
 {% endblock %}
 {% block content %}
 <div class="mo-wrap">
-  <h1 class="mo-title">{% trans "Mis órdenes" %}</h1>
+  <h1 class="mo-title">My orders</h1>
   <div class="mo-tabs" id="mo-tabs" data-current="{{ estado_actual|escapejs }}">
-    <a href="{% url 'mis_ordenes' %}" class="mo-tab" data-estado="">Todas</a>
+    <a href="{% url 'mis_ordenes' %}" class="mo-tab" data-estado="">All</a>
     {% for valor, etiqueta in status_choices %}
     <a href="?estado={{ valor }}" class="mo-tab" data-estado="{{ valor }}">{{ etiqueta }}</a>
     {% endfor %}
@@ -46,7 +46,7 @@
       </div>
       <div class="mo-prev">
         {% for item in orden.items.all|slice:":2" %}{{ item.qty }}× {{ item.product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-        {% if orden.items.count > 2 %} y {{ orden.items.count|add:"-2" }} más{% endif %}
+        {% if orden.items.count > 2 %} and {{ orden.items.count|add:"-2" }} more{% endif %}
       </div>
       <span class="mo-badge mo-st" data-st="{{ orden.status }}">{{ orden.get_status_display }}</span>
       <div class="mo-total">USD {{ orden.total }}</div>
@@ -56,18 +56,18 @@
     {% if ordenes.has_other_pages %}
     <div style="display:flex;justify-content:center;gap:8px;margin-top:1.5rem;flex-wrap:wrap;">
       {% if ordenes.has_previous %}
-      <a href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">Anterior</a>
+      <a href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">Previous</a>
       {% endif %}
       {% if ordenes.has_next %}
-      <a href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">Siguiente</a>
+      <a href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">Next</a>
       {% endif %}
     </div>
     {% endif %}
   {% else %}
   <div class="mo-empty">
-    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">Aún no tienes órdenes</p>
-    <p style="margin:0;">Explora el catálogo y realiza tu primera compra.</p>
-    <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> Ir a la tienda</a>
+    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">You have no orders yet</p>
+    <p style="margin:0;">Browse the catalog and place your first order.</p>
+    <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> Go to store</a>
   </div>
   {% endif %}
 </div>

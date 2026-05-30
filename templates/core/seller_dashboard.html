@@ -1,5 +1,4 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% block title %}Panel — {{ company.name }} — TradeFlow{% endblock %}
 {% block extra_css %}
@@ -7,20 +6,20 @@
 {% block content %}
 <div class="seller-layout">
   <div class="seller-main">
-    <h1>Resumen</h1>
-    <p class="seller-sub">Indicadores de tu catálogo y pedidos recientes.</p>
+    <h1>Summary</h1>
+    <p class="seller-sub">Indicators for your catalog and recent orders.</p>
     <div class="seller-stats">
-      <div class="seller-stat"><div class="label">Productos</div><div class="value">{{ total_productos }}</div></div>
+      <div class="seller-stat"><div class="label">Products</div><div class="value">{{ total_productos }}</div></div>
       <div class="seller-stat"><div class="label">Activos</div><div class="value">{{ productos_activos }}</div></div>
       <div class="seller-stat accent"><div class="label">Stock bajo</div><div class="value">{{ bajo_stock }}</div></div>
-      <div class="seller-stat"><div class="label">Órdenes (7 días)</div><div class="value">{{ ordenes_semana }}</div></div>
-      <div class="seller-stat"><div class="label">Ventas líneas (7 días)</div><div class="value">{{ ventas_semana }} USD</div></div>
+      <div class="seller-stat"><div class="label">Orders (7 days)</div><div class="value">{{ ordenes_semana }}</div></div>
+      <div class="seller-stat"><div class="label">Line sales (7 days)</div><div class="value">{{ ventas_semana }} USD</div></div>
     </div>
     <div class="seller-table-wrap">
-      <h2>Órdenes recientes</h2>
+      <h2>Recent orders</h2>
       {% if ordenes_recientes %}
       <table class="seller-table">
-        <thead><tr><th>Orden</th><th>Comprador</th><th>Estado</th><th>Total</th></tr></thead>
+        <thead><tr><th>Orden</th><th>Buyer</th><th>Estado</th><th>Total</th></tr></thead>
         <tbody>
           {% for o in ordenes_recientes %}
           <tr>
@@ -33,7 +32,7 @@
         </tbody>
       </table>
       {% else %}
-      <p style="padding:1.25rem;color:var(--tf-muted);margin:0;">Aún no hay órdenes con tus productos.</p>
+      <p style="padding:1.25rem;color:var(--tf-muted);margin:0;">No orders with your products yet.</p>
       {% endif %}
     </div>
     <div class="seller-form-actions" style="margin-top:1.25rem;">

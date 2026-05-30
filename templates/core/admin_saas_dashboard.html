@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
-{% load static i18n %}
-{% block title %}{% trans "Planes SaaS" %} — TradeFlow Admin{% endblock %}
+{% load static %}
+{% block title %}Planes SaaS — TradeFlow Admin{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'admin-saas/admin-saas.css' %}">
@@ -64,40 +64,40 @@
       data-static-css="{% static 'admin-saas/admin-saas.css' %}"
     >
       <div id="admin-saas-fallback" class="adm-saas-fallback" aria-live="polite">
-        <h2>{% trans "Panel SaaS — TradeFlow" %}</h2>
-        <p style="color:#6b7a88;margin:0 0 8px;">{% trans "Cargando experiencia interactiva…" %}</p>
+        <h2>Panel SaaS — TradeFlow</h2>
+        <p style="color:#6b7a88;margin:0 0 8px;">Loading interactive experience…</p>
         {% if saas_preview %}
         <div class="adm-saas-fallback-grid">
           <div class="adm-saas-fallback-card">
-            <span style="font-size:12px;color:#6b7a88;">{% trans "Empresas activas" %}</span>
+            <span style="font-size:12px;color:#6b7a88;">Active companies</span>
             <strong>{{ saas_preview.kpis.companies_active }}</strong>
           </div>
           <div class="adm-saas-fallback-card">
-            <span style="font-size:12px;color:#6b7a88;">{% trans "Ingreso mensual (MRR)" %}</span>
+            <span style="font-size:12px;color:#6b7a88;">Monthly revenue (MRR)</span>
             <strong>USD {{ saas_preview.kpis.monthly_revenue_usd|floatformat:0 }}</strong>
           </div>
           <div class="adm-saas-fallback-card">
-            <span style="font-size:12px;color:#6b7a88;">{% trans "Solicitudes pendientes" %}</span>
+            <span style="font-size:12px;color:#6b7a88;">Pending requests</span>
             <strong>{{ saas_preview.kpis.pending_requests }}</strong>
           </div>
           <div class="adm-saas-fallback-card">
-            <span style="font-size:12px;color:#6b7a88;">{% trans "Planes en catálogo" %}</span>
+            <span style="font-size:12px;color:#6b7a88;">Plans in catalog</span>
             <strong>{{ saas_plans_count }}</strong>
           </div>
         </div>
         {% if saas_preview.plan_usage %}
-        <p style="font-size:13px;color:#374151;"><strong>{% trans "Distribución por plan" %}:</strong>
+        <p style="font-size:13px;color:#374151;"><strong>Distribution by plan:</strong>
           {% for p in saas_preview.plan_usage %}{{ p.name }} ({{ p.count }}){% if not forloop.last %} · {% endif %}{% endfor %}
         </p>
         {% endif %}
         {% else %}
         <p class="adm-saas-fallback-hint">
-          {% trans "Inicializando datos desde Supabase. Si persiste, ejecute:" %}
+          Initializing data from Supabase. If it persists, run:
           <code>python manage.py migrate</code> · <code>python manage.py verify_saas --seed</code>
         </p>
         {% endif %}
         <p class="adm-saas-fallback-hint" id="admin-saas-boot-status">
-          {% trans "Estado del panel interactivo:" %} {% trans "iniciando" %}…
+          Estado del panel interactivo: iniciando…
         </p>
       </div>
     </div>
@@ -113,14 +113,14 @@
 
   function setStatus(msg, isError) {
     if (status) {
-      status.textContent = '{% trans "Estado del panel interactivo:" %} ' + msg;
+      status.textContent = 'Estado del panel interactivo: ' + msg;
       status.style.color = isError ? '#b91c1c' : '#15803d';
     }
   }
 
   var scriptUrl = root.dataset.staticJs;
   if (!scriptUrl) {
-    setStatus('{% trans "URL del script no configurada" %}', true);
+    setStatus('URL del script no configurada', true);
     return;
   }
 
@@ -130,12 +130,12 @@
   s.onload = function () {
     setTimeout(function () {
       if (!root.classList.contains('is-react-ready')) {
-        setStatus('{% trans "Script cargado; verifique la consola del navegador (F12)" %}', true);
+        setStatus('Script cargado; verifique la consola del navegador (F12)', true);
       }
     }, 2500);
   };
   s.onerror = function () {
-    setStatus('{% trans "No se pudo cargar" %} ' + scriptUrl + ' — {% trans "ejecute npm run build en frontend/admin-saas o collectstatic" %}', true);
+    setStatus('No se pudo cargar ' + scriptUrl + ' — ejecute npm run build en frontend/admin-saas o collectstatic', true);
   };
   document.body.appendChild(s);
 })();

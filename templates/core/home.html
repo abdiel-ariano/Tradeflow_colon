@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static i18n tf_media %}
+{% load static tf_media %}
 {% comment %}
 ================================================================================
 templates/core/home.html — TradeFlow Colón
@@ -7,7 +7,7 @@ Propósito: landing pública PreExpo 2026 (inversores). Contexto home_view:
 stats, featured_products, empresas_carousel, show_cart_actions.
 ================================================================================
 {% endcomment %}
-{% block title %}{% trans "TradeFlow Colón — Compra en la Zona Libre de Colón" %}{% endblock %}
+{% block title %}TradeFlow Colón — Shop the Colón Free Zone{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 {% endblock %}
@@ -823,22 +823,22 @@ stats, featured_products, empresas_carousel, show_cart_actions.
       <div class="hm-hero-copy">
         <p class="hm-hero-badge hero-badge hm-hero-animate">
           <span class="material-symbols-rounded" aria-hidden="true">location_on</span>
-          {% trans "Zona Libre de Colón · Panamá" %}
+          Colón Free Zone · Panama
         </p>
         <h1 class="hm-hero-h1 hero-h1 hm-hero-animate" id="hm-hero-heading">
-          {% trans "Compra en la Zona Libre de Colón desde cualquier lugar del" %} <span class="hm-accent">{% trans "mundo" %}</span>
+          Shop the Colón Free Zone from anywhere in the <span class="hm-accent">world</span>
         </h1>
         <p class="hm-hero-desc hero-desc hm-hero-animate">
-          {% trans "Marketplace B2B y B2C con empresas verificadas, inventario en tiempo real y documentación lista para exportar desde la Zona Libre de Colón." %}
+          B2B and B2C marketplace with verified companies, real-time inventory, and export-ready documentation from the Colón Free Zone.
         </p>
         <div class="hm-hero-ctas hero-ctas hm-hero-animate">
           <a href="{% url 'signup' %}" class="hm-btn-primary hm-btn-ripple" id="hm-cta-signup">
             <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">rocket_launch</span>
-            {% trans "Crear cuenta gratis" %}
+            Create free account
           </a>
           <button type="button" class="hm-btn-secondary" id="hm-scroll-how">
             <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">play_circle</span>
-            {% trans "Cómo funciona" %}
+            How it works
           </button>
         </div>
       </div>
@@ -854,27 +854,27 @@ stats, featured_products, empresas_carousel, show_cart_actions.
           <div class="hm-metrics">
             <div class="hm-metric">
               <div class="hm-metric-val">{{ stats.ordenes|default:0 }}</div>
-              <div class="hm-metric-lbl">{% trans "Órdenes en plataforma" %}</div>
+              <div class="hm-metric-lbl">Orders on platform</div>
             </div>
             <div class="hm-metric">
               <div class="hm-metric-val green">{{ stats.empresas|default:0 }}</div>
-              <div class="hm-metric-lbl">{% trans "Empresas ZLC" %}</div>
+              <div class="hm-metric-lbl">CFZ companies</div>
             </div>
             <div class="hm-metric">
               <div class="hm-metric-val orange">{{ stats.gmv_30d_fmt|default:"USD 0.00" }}</div>
-              <div class="hm-metric-lbl">{% trans "Volumen 30 días (USD)" %}</div>
+              <div class="hm-metric-lbl">30-day volume (USD)</div>
             </div>
             <div class="hm-metric">
               <div class="hm-metric-val">{{ stats.productos|default:0 }}</div>
-              <div class="hm-metric-lbl">{% trans "Productos activos" %}</div>
+              <div class="hm-metric-lbl">Active products</div>
             </div>
           </div>
           <div class="hm-bar-wrap">
-            <div class="hm-bar-lbl">{% trans "Tasa de cumplimiento" %}</div>
+            <div class="hm-bar-lbl">Fulfillment rate</div>
             <div class="hm-bar-track"><div class="hm-bar-fill orange" data-w="94"></div></div>
           </div>
           <div class="hm-bar-wrap">
-            <div class="hm-bar-lbl">{% trans "Envíos completados" %}</div>
+            <div class="hm-bar-lbl">Completed shipments</div>
             <div class="hm-bar-track"><div class="hm-bar-fill teal" data-w="87"></div></div>
           </div>
         </div>
@@ -882,32 +882,32 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     </div>
   </section>
 
-  <section class="hm-stats-band" id="hm-stats-band" aria-label="{% trans 'Estadísticas de la Zona Libre de Colón' %}">
+  <section class="hm-stats-band" id="hm-stats-band" aria-label="Colón Free Zone statistics">
     <div class="hm-stats-grid">
       <div class="hm-stat reveal">
         <div class="hm-stat-num" data-count="{{ stats.empresas|default:0 }}">0</div>
-        <div class="hm-stat-lbl">{% trans "Empresas en la ZLC" %}</div>
+        <div class="hm-stat-lbl">Companies in the CFZ</div>
       </div>
       <div class="hm-stat reveal stagger-2">
         <div class="hm-stat-num" data-count="{{ stats.productos|default:0 }}">0</div>
-        <div class="hm-stat-lbl">{% trans "Productos activos" %}</div>
+        <div class="hm-stat-lbl">Active products</div>
       </div>
       <div class="hm-stat reveal stagger-3">
         <div class="hm-stat-num" data-count="{{ stats.ordenes|default:0 }}">0</div>
-        <div class="hm-stat-lbl">{% trans "Órdenes registradas" %}</div>
+        <div class="hm-stat-lbl">Registered orders</div>
       </div>
       <div class="hm-stat reveal stagger-4">
         <div class="hm-stat-num" data-count="{{ stats.categorias|default:0 }}">0</div>
-        <div class="hm-stat-lbl">{% trans "Categorías" %}</div>
+        <div class="hm-stat-lbl">Categories</div>
       </div>
     </div>
   </section>
 
   <section class="hm-products" id="hm-products">
     <div class="hm-container">
-      <p class="hm-sec-label reveal">{% trans "Catálogo" %}</p>
-      <h2 class="hm-sec-title reveal stagger-1">{% trans "Productos destacados de la Zona Libre" %}</h2>
-      <p class="hm-sec-sub reveal stagger-2">{% trans "Selección curada de proveedores verificados listos para compra o cotización." %}</p>
+      <p class="hm-sec-label reveal">Catalog</p>
+      <h2 class="hm-sec-title reveal stagger-1">Featured products from the Free Zone</h2>
+      <p class="hm-sec-sub reveal stagger-2">Curated selection of verified suppliers ready for purchase or quote.</p>
       <div class="hm-product-grid" id="hm-product-grid">
         {% for product in featured_products|slice:":6" %}
         <article class="hm-pcard reveal stagger-{{ forloop.counter }}" data-product-id="{{ product.pk }}">
@@ -935,20 +935,20 @@ stats, featured_products, empresas_carousel, show_cart_actions.
                 <input type="hidden" name="cantidad" value="1">
                 <button type="submit" class="hm-pcard-add">
                   <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">add_shopping_cart</span>
-                  {% trans "Agregar" %}
+                  Add
                 </button>
               </form>
               {% else %}
               <a href="{% url 'login' %}?next={% url 'tienda' %}" class="hm-pcard-add">
                 <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">add_shopping_cart</span>
-                {% trans "Agregar" %}
+                Add
               </a>
               {% endif %}
             </div>
           </div>
         </article>
         {% empty %}
-        <p class="hm-empty reveal">{% trans "Sin productos destacados por ahora. Explora el catálogo completo." %}</p>
+        <p class="hm-empty reveal">No featured products for now. Browse the full catalog.</p>
         {% endfor %}
       </div>
     </div>
@@ -956,8 +956,8 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 
   <section class="hm-companies" id="hm-companies">
     <div class="hm-container">
-      <p class="hm-sec-label reveal">{% trans "Empresas de la Zona Libre de Colón" %}</p>
-      <h2 class="hm-sec-title reveal stagger-1">{% trans "Conectamos compradores con las mejores empresas de la Zona Libre" %}</h2>
+      <p class="hm-sec-label reveal">Companies in the Colón Free Zone</p>
+      <h2 class="hm-sec-title reveal stagger-1">We connect buyers with the best companies in the Free Zone</h2>
       <div class="hm-carousel-wrap reveal stagger-2" id="hm-emp-carousel">
         <div class="hm-carousel-track" id="hm-emp-track">
           {% for emp in empresas_carousel %}
@@ -968,18 +968,18 @@ stats, featured_products, empresas_carousel, show_cart_actions.
               {% if emp.is_verified %}
               <span class="hm-emp-verified">
                 <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-                {% trans "Verificada" %}
+                Verified
               </span>
               {% endif %}
-              <p class="hm-emp-count">{% blocktrans count counter=emp.num_productos %}{{ counter }} producto{% plural %}{{ counter }} productos{% endblocktrans %}</p>
-              <a href="{% url 'tienda' %}?empresa={{ emp.pk }}" class="hm-emp-btn">{% trans "Ver catálogo" %}</a>
+              <p class="hm-emp-count">{% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}</p>
+              <a href="{% url 'tienda' %}?empresa={{ emp.pk }}" class="hm-emp-btn">View catalog</a>
             </article>
           </div>
           {% empty %}
-          <p class="hm-empty" style="flex:1;text-align:center;padding:2rem;">{% trans "Próximamente más empresas en el carrusel." %}</p>
+          <p class="hm-empty" style="flex:1;text-align:center;padding:2rem;">More companies coming soon to the carousel.</p>
           {% endfor %}
         </div>
-        <div class="hm-carousel-dots" id="hm-emp-dots" role="tablist" aria-label="{% trans 'Empresas' %}"></div>
+        <div class="hm-carousel-dots" id="hm-emp-dots" role="tablist" aria-label="Companies"></div>
       </div>
     </div>
   </section>
@@ -987,39 +987,39 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   <section class="hm-features" id="hm-features">
     <div class="hm-container">
       <div class="hm-features-head">
-        <p class="hm-sec-label reveal">{% trans "Por qué TradeFlow" %}</p>
-        <h2 class="hm-sec-title reveal stagger-1">{% trans "Todo lo que necesitas para comerciar en la Zona Libre" %}</h2>
+        <p class="hm-sec-label reveal">Why TradeFlow</p>
+        <h2 class="hm-sec-title reveal stagger-1">Everything you need to trade in the Free Zone</h2>
       </div>
       <div class="hm-feature-grid">
         <article class="hm-feat reveal stagger-1">
           <div class="hm-feat-ico" style="background:rgba(15,42,68,0.08);"><span class="material-symbols-rounded" style="color:var(--tf-navy);">travel_explore</span></div>
-          <h3>{% trans "Compra sin viajar" %}</h3>
-          <p>{% trans "Accede al catálogo de la Zona Libre de Colón desde cualquier país sin mover mercancía hasta confirmar." %}</p>
+          <h3>Shop without traveling</h3>
+          <p>Access the Colón Free Zone catalog from any country without moving goods until confirmed.</p>
         </article>
         <article class="hm-feat reveal stagger-2">
           <div class="hm-feat-ico" style="background:rgba(242,101,34,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-orange);">inventory_2</span></div>
-          <h3>{% trans "Inventario en tiempo real" %}</h3>
-          <p>{% trans "Stock actualizado por vendedor para decisiones de compra confiables." %}</p>
+          <h3>Real-time inventory</h3>
+          <p>Stock updated by each seller for reliable purchasing decisions.</p>
         </article>
         <article class="hm-feat reveal stagger-3">
           <div class="hm-feat-ico" style="background:rgba(46,91,138,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-blue);">description</span></div>
-          <h3>{% trans "Documentos aduaneros" %}</h3>
-          <p>{% trans "Factura y packing list listos para trámites de exportación." %}</p>
+          <h3>Customs documents</h3>
+          <p>Invoice and packing list ready for export procedures.</p>
         </article>
         <article class="hm-feat reveal stagger-4">
           <div class="hm-feat-ico" style="background:rgba(78,203,113,0.1);"><span class="material-symbols-rounded" style="color:#1a7a3c;">lock</span></div>
-          <h3>{% trans "Pago seguro" %}</h3>
-          <p>{% trans "Flujo de checkout y estados de orden transparentes para comprador y vendedor." %}</p>
+          <h3>Secure payment</h3>
+          <p>Transparent checkout flow and order statuses for buyers and sellers.</p>
         </article>
         <article class="hm-feat reveal stagger-5">
           <div class="hm-feat-ico" style="background:rgba(242,101,34,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-orange);">qr_code_scanner</span></div>
-          <h3>{% trans "Pre-registro QR" %}</h3>
-          <p>{% trans "Visitantes de la Zona Libre de Colón con verificación rápida para networking PreExpo." %}</p>
+          <h3>Pre-registro QR</h3>
+          <p>Colón Free Zone visitors with quick verification for PreExpo networking.</p>
         </article>
         <article class="hm-feat reveal stagger-6">
           <div class="hm-feat-ico" style="background:rgba(15,42,68,0.08);"><span class="material-symbols-rounded" style="color:var(--tf-navy);">analytics</span></div>
-          <h3>{% trans "Analítica avanzada" %}</h3>
-          <p>{% trans "Panel admin con KPIs y gráficos para operación e inversores." %}</p>
+          <h3>Advanced analytics</h3>
+          <p>Admin panel with KPIs and charts for operations and investors.</p>
         </article>
       </div>
     </div>
@@ -1028,33 +1028,33 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   <section class="hm-how" id="como-funciona">
     <div class="hm-container">
       <div class="hm-how-head">
-        <h2 class="hm-sec-title reveal">{% trans "¿Cómo funciona?" %}</h2>
+        <h2 class="hm-sec-title reveal">How it works</h2>
       </div>
       <div class="hm-timeline reveal" id="hm-timeline">
         <div class="hm-timeline-line" aria-hidden="true"><div class="hm-timeline-line-fill"></div></div>
         <div class="hm-step reveal stagger-1">
           <div class="hm-step-num">1</div>
           <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">person_add</span>
-          <h3>{% trans "Crea tu cuenta" %}</h3>
-          <p>{% trans "Regístrate como comprador o empresa en 2 minutos" %}</p>
+          <h3>Create your account</h3>
+          <p>Sign up as a buyer or company in 2 minutes</p>
         </div>
         <div class="hm-step reveal stagger-2">
           <div class="hm-step-num">2</div>
           <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">search</span>
-          <h3>{% trans "Explora el catálogo" %}</h3>
-          <p>{% trans "Miles de productos de empresas verificadas de la Zona Libre de Colón" %}</p>
+          <h3>Browse the catalog</h3>
+          <p>Thousands of products from verified Colón Free Zone companies</p>
         </div>
         <div class="hm-step reveal stagger-3">
           <div class="hm-step-num">3</div>
           <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">shopping_cart</span>
-          <h3>{% trans "Realiza tu pedido" %}</h3>
-          <p>{% trans "Agrega al carrito y paga de forma segura" %}</p>
+          <h3>Place your order</h3>
+          <p>Add to cart and pay securely</p>
         </div>
         <div class="hm-step reveal stagger-4">
           <div class="hm-step-num">4</div>
           <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">local_shipping</span>
-          <h3>{% trans "Recibe tu mercancía" %}</h3>
-          <p>{% trans "Seguimiento en tiempo real hasta tu destino" %}</p>
+          <h3>Receive your goods</h3>
+          <p>Real-time tracking to your destination</p>
         </div>
       </div>
     </div>
@@ -1063,12 +1063,12 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   <section class="hm-cta" id="hm-cta">
     <div class="hm-container">
       <h2 class="hm-cta-title reveal" id="hm-cta-title">
-        {% trans "Empieza hoy en la" %} <span class="hm-accent">{% trans "Zona Libre de Colón" %}</span>
+        Start today in the <span class="hm-accent">Colón Free Zone</span>
       </h2>
-      <p class="hm-cta-desc reveal stagger-1">{% trans "Únete a TradeFlow Colón — la plataforma lista para PreExpo 2026 e inversores internacionales." %}</p>
+      <p class="hm-cta-desc reveal stagger-1">Join TradeFlow Colón — the platform ready for PreExpo 2026 and international investors.</p>
       <div class="hm-cta-btns reveal stagger-2">
-        <a href="{% url 'signup' %}" class="hm-btn-primary hm-btn-shine">{% trans "Comenzar ahora" %}</a>
-        <a href="{% url 'login' %}" class="hm-btn-secondary">{% trans "Ya tengo cuenta" %}</a>
+        <a href="{% url 'signup' %}" class="hm-btn-primary hm-btn-shine">Get started now</a>
+        <a href="{% url 'login' %}" class="hm-btn-secondary">I already have an account</a>
       </div>
     </div>
   </section>
@@ -1231,7 +1231,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
       b.type = 'button';
       b.className = 'hm-carousel-dot' + (i === 0 ? ' is-on' : '');
       b.setAttribute('data-idx', String(i));
-      b.setAttribute('aria-label', ((window.TF_I18N && window.TF_I18N.slide) || 'Diapositiva') + ' ' + (i + 1));
+      b.setAttribute('aria-label', ((window.TF_I18N && window.TF_I18N.slide) || 'Slide') + ' ' + (i + 1));
       b.addEventListener('click', function () {
         idx = parseInt(this.getAttribute('data-idx'), 10) || 0;
         update();

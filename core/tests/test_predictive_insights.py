@@ -34,7 +34,7 @@ class TestPredictiveInsightsAccess(TestCase):
         get_or_create_subscription(self.company)
         resp = self.client.get(reverse('seller_predictive_insights'))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'Ecosistema Enterprise')
+        self.assertContains(resp, 'Enterprise ecosystem')
 
     def test_enterprise_sees_insights_panel(self):
         sub = get_or_create_subscription(self.company)
@@ -42,4 +42,4 @@ class TestPredictiveInsightsAccess(TestCase):
         sub.save(update_fields=['plan'])
         resp = self.client.get(reverse('seller_predictive_insights'))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'Forecast 30')
+        self.assertContains(resp, '30-day forecast')

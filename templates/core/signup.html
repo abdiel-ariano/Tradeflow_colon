@@ -1,6 +1,5 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% load i18n %}
 {% comment %}
 ================================================================================
 templates/core/signup.html — TradeFlow Colón
@@ -8,7 +7,7 @@ Propósito: registro de compradores y vendedores con selector de rol.
 Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
 ================================================================================
 {% endcomment %}
-{% block title %}{% trans "Crear cuenta — TradeFlow Colón" %}{% endblock %}
+{% block title %}Store — TradeFlow Colón{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 {% endblock %}
@@ -73,68 +72,68 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
   <div class="auth-card">
     <div class="auth-logo-block">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" eager=1 %}
-      <div class="auth-brand-sub" style="font-size:0.875rem;color:var(--tf-muted);">{% trans "Zona Libre de Colón · Panamá" %}</div>
+      <div class="auth-brand-sub" style="font-size:0.875rem;color:var(--tf-muted);">Colón Free Zone · Panama</div>
     </div>
-    <div class="auth-title">{% trans "Crear tu cuenta" %}</div>
+    <div class="auth-title">Create account</div>
     <form method="post" action="{% url 'signup' %}" novalidate>
       {% csrf_token %}
-      <div class="auth-toggle" role="radiogroup" aria-label="{% trans 'Tipo de cuenta' %}">
+      <div class="auth-toggle" role="radiogroup" aria-label="Account type">
         <div class="auth-toggle-cell">
           <input type="radio" name="role" id="r_buyer" value="buyer" checked>
           <label for="r_buyer">
             <span class="material-symbols-rounded">shopping_bag</span>
-            {% trans "Comprador" %}
+            Buyer
           </label>
         </div>
         <div class="auth-toggle-cell">
           <input type="radio" name="role" id="r_seller" value="seller">
           <label for="r_seller">
             <span class="material-symbols-rounded">store</span>
-            {% trans "Vendedor" %}
+            Seller
           </label>
         </div>
       </div>
       <div class="row-2">
         <div class="tf-field">
-          <label class="tf-label" for="id_first_name">{% trans "Nombre" %} <span class="req">*</span></label>
-          <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="{% trans 'Nombre' %}" value="{{ form_first_name|default:'' }}" required>
-          <p style="font-size:12px; color:#6B7A88; margin-top:4px;">{% trans "Solo letras y espacios (sin números ni símbolos)." %}</p>
+          <label class="tf-label" for="id_first_name">First name <span class="req">*</span></label>
+          <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="First name" value="{{ form_first_name|default:'' }}" required>
+          <p style="font-size:12px; color:#6B7A88; margin-top:4px;">Letters and spaces only (no numbers or symbols).</p>
         </div>
         <div class="tf-field">
-          <label class="tf-label" for="id_last_name">{% trans "Apellido" %}</label>
-          <input type="text" name="last_name" id="id_last_name" class="tf-input" placeholder="{% trans 'Apellido' %}" value="{{ form_last_name|default:'' }}">
+          <label class="tf-label" for="id_last_name">Last name</label>
+          <input type="text" name="last_name" id="id_last_name" class="tf-input" placeholder="Last name" value="{{ form_last_name|default:'' }}">
         </div>
       </div>
       <div class="tf-field">
-        <label class="tf-label" for="id_email">{% trans "Correo electrónico" %} <span class="req">*</span></label>
+        <label class="tf-label" for="id_email">Email address <span class="req">*</span></label>
         <input type="email" name="email" id="id_email" class="tf-input" placeholder="correo@ejemplo.com" value="{{ form_email|default:'' }}" required>
       </div>
       <div class="tf-field">
-        <label class="tf-label" for="id_username">{% trans "Usuario" %} <span class="req">*</span></label>
-        <input type="text" name="username" id="id_username" class="tf-input" placeholder="{% trans 'Usuario' %}" autocomplete="username" required>
-        <p style="font-size:12px; color:#6B7A88; margin-top:4px;">{% trans "Solo letras, números, puntos y guiones bajos. Debe comenzar con una letra (3-30 caracteres)." %}</p>
+        <label class="tf-label" for="id_username">Username <span class="req">*</span></label>
+        <input type="text" name="username" id="id_username" class="tf-input" placeholder="Username" autocomplete="username" required>
+        <p style="font-size:12px; color:#6B7A88; margin-top:4px;">Letters, numbers, dots, and underscores only. Must start with a letter (3–30 characters).</p>
       </div>
       <div class="tf-field">
-        <label class="tf-label" for="id_phone">{% trans "Teléfono" %}</label>
+        <label class="tf-label" for="id_phone">Phone</label>
         <input type="tel" name="phone" id="id_phone" class="tf-input" placeholder="+507 6000-0000" value="{{ form_phone|default:'' }}">
       </div>
       <div class="row-2">
         <div class="tf-field">
-          <label class="tf-label" for="id_password1">{% trans "Contraseña" %} <span class="req">*</span></label>
-          <input type="password" name="password1" id="id_password1" class="tf-input" placeholder="{% trans 'Mín. 8 caracteres' %}" required>
+          <label class="tf-label" for="id_password1">Password <span class="req">*</span></label>
+          <input type="password" name="password1" id="id_password1" class="tf-input" placeholder="Min. 8 characters" required>
         </div>
         <div class="tf-field">
-          <label class="tf-label" for="id_password2">{% trans "Confirmar contraseña" %} <span class="req">*</span></label>
-          <input type="password" name="password2" id="id_password2" class="tf-input" placeholder="{% trans 'Confirmar contraseña' %}" required>
+          <label class="tf-label" for="id_password2">Password <span class="req">*</span></label>
+          <input type="password" name="password2" id="id_password2" class="tf-input" placeholder="Password" required>
         </div>
       </div>
       <button type="submit" class="auth-submit">
-        <span class="material-symbols-rounded" style="font-size:18px;">person_add</span> {% trans "Crear cuenta" %}
+        <span class="material-symbols-rounded" style="font-size:18px;">person_add</span> Create account
       </button>
     </form>
-    <div class="auth-divider">{% trans "o" %}</div>
+    <div class="auth-divider">or</div>
     <div class="auth-footer">
-      {% trans "¿Ya tienes cuenta?" %} <a href="{% url 'login' %}">{% trans "Iniciar sesión" %}</a>
+      Don’t have an account? <a href="{% url 'login' %}">Sign in</a>
     </div>
   </div>
 </div>

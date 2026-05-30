@@ -1,46 +1,46 @@
 {% extends "core/base.html" %}
-{% load i18n static %}
-{% block title %}{% trans "Verifica tu correo" %} — TradeFlow{% endblock %}
+{% load static %}
+{% block title %}Verify your email — TradeFlow{% endblock %}
 {% block content %}
 <div style="max-width:520px;margin:48px auto;padding:0 24px;">
   <div class="sp-card" style="padding:32px;">
     <img src="{% static 'img/logo-icon-color.png' %}" alt="TradeFlow" width="56" height="56" style="display:block;margin:0 auto 20px;object-fit:contain;">
-    <h1 style="font-family:'DM Serif Display',serif;color:var(--tf-navy);margin:0 0 10px;font-size:1.5rem;text-align:center;">{% trans "Verifica tu correo" %}</h1>
+    <h1 style="font-family:'DM Serif Display',serif;color:var(--tf-navy);margin:0 0 10px;font-size:1.5rem;text-align:center;">Verify your email</h1>
     <p style="color:var(--tf-muted);font-size:14px;line-height:1.6;margin:0 0 16px;text-align:center;">
-      {% blocktrans with email=masked_email %}Enviamos un enlace y un código de 6 dígitos a <strong>{{ email }}</strong>. Revisa tu bandeja y la carpeta de spam.{% endblocktrans %}
+      We sent a link and a 6-digit code to <strong>{{ email }}</strong>. Check your inbox and spam folder.
     </p>
 
     {% if not smtp_configured %}
     <p role="alert" style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:12px 14px;font-size:13px;color:#92400E;margin:0 0 16px;line-height:1.5;">
-      {% trans "Gmail no está activo: el correo solo se imprime en la terminal de runserver, no llega al buzón." %}
+      Gmail is not active: email is only printed in the runserver terminal, not delivered to your inbox.
       {% if not env_file_exists %}
-      <strong style="display:block;margin:8px 0;">{% trans "No se encontró .env en:" %} {{ env_file_path }}</strong>
+      <strong style="display:block;margin:8px 0;">.env not found at: {{ env_file_path }}</strong>
       {% endif %}
-      {% trans "En la carpeta del proyecto (donde está manage.py), ejecuta:" %}
+      In the project folder (where manage.py is), run:
       <code style="display:block;margin:8px 0;padding:8px;background:rgba(0,0,0,0.06);border-radius:6px;font-size:12px;">python scripts/bootstrap_dotenv.py --force --app-password "TU_APP_PASSWORD"</code>
-      {% trans "Luego:" %} <code style="font-size:12px;">python manage.py check_email_env</code>
-      {% trans "y reinicia runserver. Si ya enviaste registro, mira la consola: ahí está el código y el enlace." %}
+      Then: <code style="font-size:12px;">python manage.py check_email_env</code>
+      and restart runserver. If you already submitted registration, check the console: the code and link are there.
     </p>
     {% else %}
     <p style="font-size:12px;color:var(--tf-muted);margin:0 0 16px;text-align:center;">
-      {% trans "Correo activo vía Gmail. Revisa bandeja y spam del email con el que te registraste." %}
+      Email active via Gmail. Check inbox and spam for the email you registered with.
     </p>
     {% endif %}
 
     {% if dev_show_otp %}
-    <div role="region" aria-label="{% trans 'Código de desarrollo' %}" style="background:#EFF6FF;border:1px solid #3B82F6;border-radius:10px;padding:16px;margin:0 0 16px;text-align:center;">
-      <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#1E40AF;">{% trans "Modo desarrollo — Gmail no detectado" %}</p>
-      <p style="margin:0 0 6px;font-size:12px;color:#374151;">{% trans "Tu código de verificación:" %}</p>
+    <div role="region" aria-label="Development code" style="background:#EFF6FF;border:1px solid #3B82F6;border-radius:10px;padding:16px;margin:0 0 16px;text-align:center;">
+      <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#1E40AF;">Development mode — Gmail not detected</p>
+      <p style="margin:0 0 6px;font-size:12px;color:#374151;">Your verification code:</p>
       <p style="margin:0 0 12px;font-size:1.75rem;font-weight:700;letter-spacing:0.35em;font-variant-numeric:tabular-nums;color:#0F2A44;">{{ dev_otp }}</p>
       {% if dev_verify_link %}
-      <p style="margin:0;font-size:12px;word-break:break-all;"><a href="{{ dev_verify_link }}" style="color:#2E5B8A;">{% trans "O abre este enlace de verificación" %}</a></p>
+      <p style="margin:0;font-size:12px;word-break:break-all;"><a href="{{ dev_verify_link }}" style="color:#2E5B8A;">Or open this verification link</a></p>
       {% endif %}
     </div>
     {% endif %}
 
     <form method="post" action="{% url 'onboarding_verificar_codigo' %}" style="margin-bottom:16px;">
       {% csrf_token %}
-      <label for="ob-codigo" style="display:block;font-size:13px;font-weight:600;color:var(--tf-navy);margin-bottom:8px;">{% trans "Código de verificación" %}</label>
+      <label for="ob-codigo" style="display:block;font-size:13px;font-weight:600;color:var(--tf-navy);margin-bottom:8px;">Verification code</label>
       <input
         type="text"
         id="ob-codigo"
@@ -50,25 +50,25 @@
         maxlength="6"
         autocomplete="one-time-code"
         placeholder="000000"
-        aria-label="{% trans 'Código de 6 dígitos' %}"
+        aria-label="6-digit code"
         style="width:100%;letter-spacing:0.35em;text-align:center;font-size:1.35rem;padding:12px;border:1px solid var(--tf-border);border-radius:8px;font-variant-numeric:tabular-nums;"
         required
       >
-      <button type="submit" class="sp-btn sp-btn-primary" style="width:100%;justify-content:center;margin-top:14px;">{% trans "Verificar código" %}</button>
+      <button type="submit" class="sp-btn sp-btn-primary" style="width:100%;justify-content:center;margin-top:14px;">Verify code</button>
     </form>
 
-    <div id="ob-verify-state" style="font-size:13px;color:var(--tf-blue);margin-bottom:16px;text-align:center;">{% trans "Estado: esperando confirmación" %}</div>
+    <div id="ob-verify-state" style="font-size:13px;color:var(--tf-blue);margin-bottom:16px;text-align:center;">Status: awaiting confirmation</div>
 
     <form method="post" action="{% url 'onboarding_reenviar_verificacion' %}" id="ob-resend-form">
       {% csrf_token %}
       <button type="submit" class="sp-btn sp-btn-secondary" id="ob-resend-btn" style="width:100%;justify-content:center;" {% if resend_cooldown_sec %}disabled{% endif %}>
-        {% trans "Reenviar correo" %}
+        Resend email
         <span id="ob-resend-timer"{% if not resend_cooldown_sec %} hidden{% endif %}> ({{ resend_cooldown_sec }}s)</span>
       </button>
     </form>
 
-    <p style="font-size:12px;color:var(--tf-muted);margin:16px 0 0;text-align:center;">{% trans "También puedes usar el enlace del correo. Al verificar, esta página se actualizará sola." %}</p>
-    <p style="margin-top:20px;font-size:13px;text-align:center;"><a href="{% url 'logout' %}" style="color:var(--tf-blue);">{% trans "Cerrar sesión" %}</a></p>
+    <p style="font-size:12px;color:var(--tf-muted);margin:16px 0 0;text-align:center;">You can also use the link in the email. Once verified, this page will refresh automatically.</p>
+    <p style="margin-top:20px;font-size:13px;text-align:center;"><a href="{% url 'logout' %}" style="color:var(--tf-blue);">Sign out</a></p>
   </div>
 </div>
 <script>
@@ -84,7 +84,7 @@
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (data.verified && data.redirect) {
-          stateEl.textContent = '{% trans "¡Correo confirmado! Redirigiendo…" %}';
+          stateEl.textContent = 'Email confirmed! Redirecting…';
           window.location.href = data.redirect;
         }
       })

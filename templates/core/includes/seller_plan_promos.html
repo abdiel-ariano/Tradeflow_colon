@@ -1,21 +1,20 @@
-{% load i18n %}
-<section class="sp-plan-strip sp-plan-strip--compact" aria-label="{% trans 'Crecimiento TradeFlow' %}">
+<section class="sp-plan-strip sp-plan-strip--compact" aria-label="TradeFlow growth">
   <article class="sp-plan-card">
-    <span class="sp-plan-tag">{% trans "Ecosistema" %}</span>
-    <h3 class="sp-plan-name">{% trans "Escala con TradeFlow" %}</h3>
-    <p class="sp-plan-desc">{% trans "Planes diseñados para digitalizar, automatizar y expandir tu operación en la ZLC." %}</p>
-    <a href="{% url 'seller_plan_consumo' %}" class="sp-plan-cta">{% trans "Ver planes" %} →</a>
+    <span class="sp-plan-tag">Ecosystem</span>
+    <h3 class="sp-plan-name">Scale with TradeFlow</h3>
+    <p class="sp-plan-desc">Plans designed to digitize, automate, and expand your operation in the CFZ.</p>
+    <a href="{% url 'seller_plan_consumo' %}" class="sp-plan-cta">View plans →</a>
   </article>
   <article class="sp-plan-card sp-plan-card--featured">
-    <span class="sp-plan-tag">{% trans "Recomendado" %}</span>
-    <h3 class="sp-plan-name">{% trans "Expansión" %}</h3>
-    <p class="sp-plan-desc">{% trans "Ads, despacho 1-clic y automatización logística." %}</p>
-    <a href="{% url 'seller_plan_consumo' %}#upgrade" class="sp-plan-cta">{% trans "Conocer Expansión" %}</a>
+    <span class="sp-plan-tag">Recommended</span>
+    <h3 class="sp-plan-name">Expansion</h3>
+    <p class="sp-plan-desc">Ads, one-click dispatch, and logistics automation.</p>
+    <a href="{% url 'seller_plan_consumo' %}#upgrade" class="sp-plan-cta">Learn about Expansion</a>
   </article>
   <article class="sp-plan-card">
-    <span class="sp-plan-tag">{% trans "Enterprise" %}</span>
-    <h3 class="sp-plan-name">{% trans "Alianza corporativa" %}</h3>
-    <p class="sp-plan-desc">{% trans "IA predictiva, API dedicada y activación consultiva." %}</p>
-    <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-plan-cta sp-plan-cta--outline">{% trans "Hablar con ventas" %}</a>
+    <span class="sp-plan-tag">Enterprise</span>
+    <h3 class="sp-plan-name">Corporate partnership</h3>
+    <p class="sp-plan-desc">Predictive AI, dedicated API, and consultative activation.</p>
+    <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-plan-cta sp-plan-cta--outline">Talk to sales</a>
   </article>
 </section>

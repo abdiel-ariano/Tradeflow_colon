@@ -1,6 +1,6 @@
 """
 =============================================================================
-TRADEFLOW COLÓN — core/views.py  (v5 — Portal vendedor + Roles)
+TRADEFLOW COLÓN — core/views.py  (v5 — Seller portal + Roles)
 =============================================================================
 Incluye: autenticación, admin, portal comprador (tienda, carrito, checkout),
 portal vendedor (panel, productos, ventas) y API JSON de productos.
@@ -228,7 +228,7 @@ def _build_dashboard_charts_payload(dias, now=None):
     )
     ventas_por_empresa = [
         {
-            'label': row['product__company__name'] or 'Sin empresa',
+            'label': row['product__company__name'] or 'No company',
             'total': money_to_chart_float(row['total'] or 0),
         }
         for row in emp_rows
@@ -252,7 +252,7 @@ def _build_dashboard_charts_payload(dias, now=None):
         'b2c': qs.filter(order_type='b2c').count(),
     }
 
-    period_label = _('Últimos %(n)s días') % {'n': dias}
+    period_label = _('Last %(n)s days') % {'n': dias}
 
     return {
         'chart_labels':         chart_labels,
@@ -375,7 +375,7 @@ def login_view(request):
                         pass
                 return redirect(gate_route)
 
-            messages.success(request, f'¡Bienvenido, {user.first_name or user.username}!')
+            messages.success(request, f'Welcome, {user.first_name or user.username}!')
             next_url = (request.GET.get('next') or '').strip()
             if next_url.startswith('//') or '://' in next_url:
                 next_url = ''
@@ -389,14 +389,14 @@ def login_view(request):
             dest = next_url if next_url else _redirect_by_role(user)
             return redirect(dest)
         else:
-            messages.error(request, 'Usuario o contraseña incorrectos.')
+            messages.error(request, 'Incorrect username or password.')
 
     return render(request, 'core/login.html', _login_template_context())
 
 
 def logout_view(request):
     logout(request)
-    messages.info(request, 'Sesión cerrada correctamente.')
+    messages.info(request, 'You have been signed out.')
     return redirect('login')
 
 
@@ -426,43 +426,43 @@ def signup_view(request):
         }
 
         if not all([first_name, username, email, password1, password2]):
-            errores.append('Todos los campos marcados con * son obligatorios.')
+            errores.append('All fields marked with * are required.')
 
         if not NOMBRE_REGEX.match(first_name):
             errores.append(
-                'El nombre solo puede contener letras y espacios '
-                '(mínimo 2 caracteres, máximo 50).'
+                'First name may only contain letters and spaces '
+                '(minimum 2 characters, maximum 50).'
             )
 
         if last_name and not NOMBRE_REGEX.match(last_name):
-            errores.append('El apellido solo puede contener letras y espacios.')
+            errores.append('Last name may only contain letters and spaces.')
 
         if not USERNAME_REGEX.match(username):
             errores.append(
-                'El usuario debe comenzar con una letra y solo '
-                'puede contener letras, números, puntos y '
-                'guiones bajos (3-30 caracteres).'
+                'Username must start with a letter and may only '
+                'contain letters, numbers, dots and '
+                'underscores (3-30 characters).'
             )
 
         if not EMAIL_REGEX.match(email):
-            errores.append('Ingresa un correo electrónico válido.')
+            errores.append('Enter a valid email address.')
 
         if len(password1) < 8:
-            errores.append('La contraseña debe tener al menos 8 caracteres.')
+            errores.append('Password must be at least 8 characters.')
 
         if password1.isdigit():
-            errores.append('La contraseña no puede ser solo números.')
+            errores.append('Password cannot be numbers only.')
 
         if password1.lower() in [
             'password', '12345678', 'qwerty123',
             'tradeflow', username.lower(),
         ]:
             errores.append(
-                'La contraseña es demasiado común. Elige una más segura.'
+                'Password is too common. Choose a stronger one.'
             )
 
         if password1 != password2:
-            errores.append('Las contraseñas no coinciden.')
+            errores.append('Passwords do not match.')
 
         if errores:
             for error in errores:
@@ -470,13 +470,13 @@ def signup_view(request):
             return render(request, 'core/signup.html', signup_ctx)
 
         if User.objects.filter(username=username).exists():
-            messages.error(request, f'El usuario "{username}" ya existe. Elige otro.')
+            messages.error(request, f'Username "{username}" already exists. Choose another.')
             return render(request, 'core/signup.html', signup_ctx)
         if User.objects.filter(email=email).exists():
-            messages.error(request, 'Ya existe una cuenta con ese correo.')
+            messages.error(request, 'An account with that email already exists.')
             return render(request, 'core/signup.html', signup_ctx)
         if role not in ('buyer', 'seller'):
-            messages.error(request, 'Tipo de cuenta no válido.')
+            messages.error(request, 'Invalid account type.')
             return render(request, 'core/signup.html', signup_ctx)
 
         # Crear usuario
@@ -497,7 +497,7 @@ def signup_view(request):
             login(request, user, backend=AUTH_MODEL_BACKEND)
             messages.success(
                 request,
-                f'Cuenta creada. Te enviaremos un código de 6 dígitos a {email}.',
+                f'Account created. We will send a 6-digit code to {email}.',
             )
             return redirect('enviar_codigo')
 
@@ -511,7 +511,7 @@ def signup_view(request):
         login(request, user, backend=AUTH_MODEL_BACKEND)
         messages.success(
             request,
-            f'¡Bienvenido a TradeFlow, {first_name}! Tu cuenta ha sido creada.',
+            f'Welcome to TradeFlow, {first_name}! Your account has been created.',
         )
         return redirect(_redirect_by_role(user))
 
@@ -542,20 +542,20 @@ def _redirect_after_email_verified(user):
 def enviar_codigo(request):
     """Genera OTP, envía por Supabase (o fallback Django) y redirige al formulario."""
     if not settings.REQUIRE_EMAIL_VERIFICATION:
-        messages.info(request, 'Verificación de email desactivada en este entorno.')
+        messages.info(request, 'Email verification is disabled in this environment.')
         return redirect('tienda')
 
     try:
         profile = request.user.profile
         if profile.email_verified:
-            messages.info(request, 'Tu correo ya está verificado.')
+            messages.info(request, 'Your email is already verified.')
             return redirect('tienda')
     except UserProfile.DoesNotExist:
-        messages.error(request, 'Perfil no encontrado.')
+        messages.error(request, 'Profile not found.')
         return redirect('signup')
 
     if not request.user.email:
-        messages.error(request, 'Tu cuenta no tiene correo electrónico.')
+        messages.error(request, 'Your account has no email address.')
         return redirect('verificar_codigo')
 
     verification = EmailVerification.generate_for(request.user)
@@ -563,7 +563,7 @@ def enviar_codigo(request):
     if result.ok:
         messages.success(
             request,
-            f'Enviamos un código de 6 dígitos a {request.user.email}. Revisa bandeja y spam.',
+            f'We sent a 6-digit code to {request.user.email}. Check your inbox and spam.',
         )
     else:
         messages.error(
@@ -586,17 +586,17 @@ def verificar_codigo(request):
     try:
         profile = request.user.profile
     except UserProfile.DoesNotExist:
-        messages.error(request, 'Perfil no encontrado.')
+        messages.error(request, 'Profile not found.')
         return redirect('signup')
 
     if profile.email_verified:
-        messages.info(request, 'Tu correo ya está verificado.')
+        messages.info(request, 'Your email is already verified.')
         return redirect('tienda')
 
     if request.method == 'POST':
         raw = (request.POST.get('codigo') or '').strip()
         if not re.fullmatch(r'\d{6}', raw):
-            messages.error(request, 'Ingresa un código de 6 dígitos.')
+            messages.error(request, 'Enter a 6-digit code.')
             return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
 
         verification = (
@@ -609,7 +609,7 @@ def verificar_codigo(request):
             .first()
         )
         if not verification or not verification.is_valid():
-            messages.error(request, 'Código inválido o expirado. Solicita uno nuevo.')
+            messages.error(request, 'Invalid or expired code. Request a new one.')
             return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
 
         verification.is_used = True
@@ -630,7 +630,7 @@ def verificar_codigo(request):
             enviar_bienvenida(request.user)
         except Exception:
             log.exception('bienvenida tras verificar_codigo')
-        messages.success(request, '¡Correo verificado! Ya puedes continuar.')
+        messages.success(request, 'Email verified! You can continue.')
         from core.utils.access_gating import onboarding_redirect_name
         nxt = onboarding_redirect_name(request.user)
         if nxt:
@@ -663,7 +663,7 @@ def verificar_email(request, token):
         if profile.email_verificado:
             messages.info(
                 request,
-                'Tu email ya estaba verificado. Puedes iniciar sesión.',
+                'Your email was already verified. You can sign in.',
             )
         else:
             profile.email_verificado = True
@@ -681,7 +681,7 @@ def verificar_email(request, token):
             enviar_bienvenida(profile.user)
             messages.success(
                 request,
-                '¡Email verificado! Tu cuenta está activa.',
+                'Email verified! Your account is active.',
             )
         if request.user.is_authenticated and request.user.pk == profile.user_id:
             from core.utils.access_gating import onboarding_redirect_name
@@ -692,7 +692,7 @@ def verificar_email(request, token):
     except UserProfile.DoesNotExist:
         messages.error(
             request,
-            'El link de verificación es inválido o ya fue usado.',
+            'Verification link is invalid or was already used.',
         )
         return redirect('login')
 
@@ -705,7 +705,7 @@ def reenviar_verificacion(request):
     if not settings.REQUIRE_EMAIL_VERIFICATION:
         messages.info(
             request,
-            'Verificación de email desactivada en este entorno.',
+            'Email verification is disabled in this environment.',
         )
         return redirect('mi_perfil')
 
@@ -722,7 +722,7 @@ def reenviar_verificacion_public(request):
     if not settings.REQUIRE_EMAIL_VERIFICATION:
         messages.info(
             request,
-            'Verificación de email desactivada en este entorno.',
+            'Email verification is disabled in this environment.',
         )
         return redirect('login')
 
@@ -735,14 +735,14 @@ def reenviar_verificacion_public(request):
                 if not profile.email_verificado:
                     messages.info(
                         request,
-                        'Inicia sesión y usa «Reenviar código» en la pantalla de verificación.',
+                        'Sign in and use Resend code on the verification screen.',
                     )
                 else:
-                    messages.info(request, 'Esa cuenta ya está verificada. Puedes iniciar sesión.')
+                    messages.info(request, 'That account is already verified. You can sign in.')
             except UserProfile.DoesNotExist:
                 pass
         else:
-            messages.warning(request, 'No encontramos una cuenta con ese correo.')
+            messages.warning(request, 'We could not find an account with that email.')
     return redirect('login')
 
 
@@ -771,7 +771,7 @@ def mi_perfil(request):
             profile.phone = request.POST.get('phone', '').strip()
             request.user.save()
             profile.save()
-            messages.success(request, 'Perfil actualizado correctamente.')
+            messages.success(request, 'Profile updated successfully.')
 
         elif action == 'change_password':
             current = request.POST.get('current_password')
@@ -779,16 +779,16 @@ def mi_perfil(request):
             confirm = request.POST.get('confirm_password')
 
             if not request.user.check_password(current):
-                messages.error(request, 'La contraseña actual es incorrecta.')
+                messages.error(request, 'Current password is incorrect.')
             elif new_pass != confirm:
-                messages.error(request, 'Las contraseñas nuevas no coinciden.')
+                messages.error(request, 'New passwords do not match.')
             elif len(new_pass or '') < 8:
-                messages.error(request, 'La contraseña debe tener mínimo 8 caracteres.')
+                messages.error(request, 'Password must be at least 8 characters.')
             else:
                 request.user.set_password(new_pass)
                 request.user.save()
                 update_session_auth_hash(request, request.user)
-                messages.success(request, 'Contraseña cambiada exitosamente.')
+                messages.success(request, 'Password changed successfully.')
 
         return redirect('mi_perfil')
 
@@ -816,7 +816,7 @@ def mi_perfil(request):
     return render(request, 'core/mi_perfil.html', {
         'profile': profile,
         'actividad': actividad,
-        'titulo_pagina': 'Mi Perfil',
+        'titulo_pagina': 'My Profile',
         'nav_activo': 'perfil',
         'show_buyer': show_buyer,
         'show_seller': show_seller,
@@ -1014,11 +1014,11 @@ def mapa_zlc(request):
             '<div style="min-width:220px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.45;">'
             f'<strong style="color:#0F2A44;">{nombre}</strong><br>'
             f'<span style="color:#6B7A88;">{_('Productos activos:')}</span> {c.n_activos}<br>'
-            f'<span style="color:#6B7A88;">{_('Categorías:')}</span> {cat_txt_e}<br>'
+            f'<span style="color:#6B7A88;">{_('Categories:')}</span> {cat_txt_e}<br>'
             f'<a href="{catalog_url_e}" target="_blank" rel="noopener noreferrer" '
             'style="display:inline-block;margin-top:10px;padding:8px 14px;background:#F26522;'
             'color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.85rem;">'
-            f'{_("Ver catálogo")}</a></div>'
+            f'{_('View catalog')}</a></div>'
         )
         icon_color = 'orange' if c.is_verified else 'gray'
         folium.Marker(
@@ -1031,7 +1031,7 @@ def mapa_zlc(request):
     map_html = m._repr_html_()
     return render(request, 'core/mapa_zlc.html', {
         'map_html':       map_html,
-        'titulo_pagina':  'Mapa ZLC',
+        'titulo_pagina':  'CFZ Map',
         'nav_activo':     'mapa_zlc',
     })
 
@@ -1054,7 +1054,7 @@ def visitante_zlc_verificacion(request):
         return render(
             request,
             'core/visitante_zlc_verificacion.html',
-            {'error': 'Enlace incompleto o no válido.'},
+            {'error': 'Incomplete or invalid link.'},
             status=400,
         )
     try:
@@ -1072,7 +1072,7 @@ def visitante_zlc_verificacion(request):
         return render(
             request,
             'core/visitante_zlc_verificacion.html',
-            {'error': 'Código expirado o alterado. Solicita un nuevo QR en TradeFlow.'},
+            {'error': 'Code expired or altered. Request a new QR in TradeFlow.'},
             status=404,
         )
 
@@ -1127,7 +1127,7 @@ def mi_qr(request):
         'qr_data_uri':    'data:image/png;base64,' + b64,
         'generated_at':   timezone.now(),
         'profile':        profile,
-        'titulo_pagina':  'Mi código QR ZLC',
+        'titulo_pagina':  'My CFZ QR code',
         'nav_activo':     'mi_qr',
     })
 
@@ -1169,7 +1169,7 @@ def api_dashboard_stats(request):
         JsonResponse: payload de :func:`_build_dashboard_charts_payload`.
     """
     if request.method != 'GET':
-        return JsonResponse({'error': 'Método no permitido'}, status=405)
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
     dias = _normalize_dashboard_dias(request.GET.get('dias'))
     payload = _build_dashboard_charts_payload(dias)
     return JsonResponse(payload, encoder=DjangoJSONEncoder)
@@ -1232,11 +1232,11 @@ def dashboard(request):
 
     dashboard_modo_pruebas = not settings.DASHBOARD_KPI_REVENUE_DELIVERED_ONLY
     if dashboard_modo_pruebas:
-        kpi_ingresos_label = 'Ingresos del período (órdenes activas)'
+        kpi_ingresos_label = 'Period revenue (active orders)'
         kpi_ingresos_sub = 'Todas las no canceladas; no hace falta marcar entregado'
     else:
-        kpi_ingresos_label = 'Ingresos entregados (período)'
-        kpi_ingresos_sub = 'Solo órdenes con estado Entregado'
+        kpi_ingresos_label = 'Delivered revenue (period)'
+        kpi_ingresos_sub = 'Delivered orders only'
 
     total_productos = Product.objects.filter(is_active=True).count()
     total_empresas = Company.objects.count()
@@ -1419,7 +1419,7 @@ def lista_ordenes(request):
         'estado_actual':       estado,
         'estado_opciones':     estado_opciones,
         'orden_filtros_query': orden_filtros_query,
-        'titulo_pagina':       'Gestión de Órdenes',
+        'titulo_pagina':       'Order management',
         'nav_activo':          'ordenes',
     }
     return render(request, 'core/ordenes.html', context)
@@ -1478,13 +1478,13 @@ def cambiar_estado_orden(request, pk, estado):
                 pago.status  = 'approved'
                 pago.paid_at = timezone.now()
                 pago.save(update_fields=['status', 'paid_at'])
-        messages.success(request, f'Orden actualizada a "{orden.get_status_display()}".')
+        messages.success(request, f'Order updated to "{orden.get_status_display()}".')
         try:
             enviar_cambio_estado(orden, estado_anterior)
         except Exception:
             log.exception('No se pudo enviar email de cambio de estado.')
     else:
-        messages.error(request, 'Estado no válido.')
+        messages.error(request, 'Invalid status.')
 
     return redirect('detalle_orden', pk=pk)
 
@@ -1552,7 +1552,7 @@ def nueva_orden_paso2(request):
                     pk=producto_id, is_active=True
                 )
             except Product.DoesNotExist:
-                messages.error(request, 'Producto no encontrado.')
+                messages.error(request, 'Product not found.')
                 return redirect('nueva_orden_paso2')
 
             disponible = producto.available_qty
@@ -1623,7 +1623,7 @@ def nueva_orden_paso3(request):
     items      = request.session.get('wizard_items', [])
 
     if not buyer_id or not items:
-        messages.error(request, 'Sesión expirada. Inicia la orden de nuevo.')
+        messages.error(request, 'Session expired. Start the order again.')
         return redirect('nueva_orden_paso1')
 
     buyer       = get_object_or_404(User, pk=buyer_id)
@@ -1690,7 +1690,7 @@ def nueva_orden_paso3(request):
         for key in ('wizard_buyer_id', 'wizard_order_type', 'wizard_items'):
             request.session.pop(key, None)
 
-        messages.success(request, f'¡Orden {orden.order_number} creada exitosamente!')
+        messages.success(request, f'Order {orden.order_number} created successfully!')
         return redirect('detalle_orden', pk=orden.pk)
 
     return render(request, 'core/nueva_orden_paso3.html', {
@@ -1757,7 +1757,7 @@ def lista_productos(request):
         'buscar':                 buscar,
         'cat_activa':             categoria,
         'producto_filtros_query': producto_filtros_query,
-        'titulo_pagina':          'Catálogo de Productos',
+        'titulo_pagina':          'Product catalog',
         'nav_activo':             'productos',
     })
 
@@ -1953,7 +1953,7 @@ def seller_plan_checkout(request, plan_slug: str):
 
     target = SaasPlan.objects.filter(slug=plan_slug, is_active=True).first()
     if not target:
-        messages.error(request, _('Plan no válido.'))
+        messages.error(request, _('Invalid plan.'))
         return redirect('seller_plan_consumo')
     if sub.plan.slug == plan_slug:
         messages.info(request, _('Ya tienes este plan activo.'))
@@ -2005,7 +2005,7 @@ def seller_plan_checkout_pay(request, plan_slug: str):
 
     checkout = get_pending_checkout(company)
     if not checkout or checkout.target_plan.slug != plan_slug:
-        messages.error(request, _('Sesión de pago no válida. Elige el plan de nuevo.'))
+        messages.error(request, _('Invalid checkout session. Choose the plan again.'))
         return redirect('seller_plan_consumo')
 
     provider = request.POST.get('payment_method', 'mock').strip() or 'mock'
@@ -2314,8 +2314,8 @@ def seller_producto_nuevo(request):
             messages.error(
                 request,
                 _(
-                    'Has alcanzado el límite mensual de tu plan. '
-                    'Amplía tu plan antes de publicar nuevos productos.'
+                    'You have reached your plan\'s monthly limit. '
+                    'Upgrade your plan before publishing new products.'
                 ),
             )
             return redirect('seller_plan_consumo')
@@ -2421,14 +2421,14 @@ def seller_toggle_producto(request, pk):
             'ok': True,
             'id': product.pk,
             'is_active': product.is_active,
-            'message': _('Producto "%(name)s" ahora está %(estado)s.') % {
+            'message': _('Product "%(name)s" is now %(estado)s.') % {
                 'name': product.name,
                 'estado': estado,
             },
         })
     messages.success(
         request,
-        _('Producto "%(name)s" ahora está %(estado)s.') % {'name': product.name, 'estado': estado},
+        _('Product "%(name)s" is now %(estado)s.') % {'name': product.name, 'estado': estado},
     )
     return redirect('seller_mis_productos')
 
@@ -2598,7 +2598,7 @@ def seller_venta_detalle(request, pk):
     puede_confirmar = order_actions['can_confirm']
 
     if request.method == 'POST' and request.POST.get('accion') == 'despachar':
-        messages.error(request, _('Usa el botón de despacho en la sección logística.'))
+        messages.error(request, _('Use the dispatch button in the logistics section.'))
         return redirect('seller_detalle_venta', pk=pk)
 
     if request.method == 'POST' and puede_confirmar:
@@ -2611,24 +2611,24 @@ def seller_venta_detalle(request, pk):
                 messages.error(
                     request,
                     _(
-                        'Límite mensual de tu plan alcanzado (USD %(limit)s). '
-                        'Amplía tu plan para confirmar esta venta de USD %(add)s.'
+                        'Monthly plan limit reached (USD %(limit)s). '
+                        'Upgrade your plan to confirm this USD %(add)s sale.'
                     ) % {'limit': exc.limit, 'add': exc.additional},
                 )
                 return redirect('seller_plan_consumo')
-            messages.success(request, _('Orden confirmada. El comprador fue notificado.'))
+            messages.success(request, _('Order confirmed. The buyer was notified.'))
             try:
                 enviar_cambio_estado(orden, estado_prev)
                 enviar_confirmacion_orden(orden)
             except Exception:
-                log.exception('Email post-confirmación vendedor')
+                log.exception('seller post-confirmation email')
         elif accion == 'rechazar':
             reject_seller_order(orden)
-            messages.warning(request, _('Orden rechazada. Se liberó el inventario reservado.'))
+            messages.warning(request, _('Order rejected. Reserved inventory was released.'))
             try:
                 enviar_cambio_estado(orden, estado_prev)
             except Exception:
-                log.exception('Email rechazo orden')
+                log.exception('order rejection email')
         return redirect('seller_detalle_venta', pk=pk)
 
     subtotal_vendedor = sum((li.line_total for li in lineas), Decimal('0.00'))
@@ -2678,7 +2678,7 @@ def api_productos(request):
             'precio':    str(p.unit_price),
             'currency':  p.currency,
             'stock':     p.available_qty,
-            'categoria': p.category.name if p.category else 'Sin categoría',
+            'categoria': p.category.name if p.category else 'Uncategorized',
             'empresa':   p.company.name,
         }
         for p in productos[:20]
@@ -2736,7 +2736,7 @@ def _request_wants_json(request):
 
 
 # ---------------------------------------------------------------------------
-# TIENDA — Catálogo principal del comprador
+# TIENDA — Catalog principal del comprador
 # ---------------------------------------------------------------------------
 
 def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
@@ -3053,7 +3053,7 @@ def agregar_al_carrito(request, producto_id):
             if not _request_wants_json(request):
                 messages.warning(
                     request,
-                    _('Solo hay %(qty)s unidades disponibles. Se ajustó la cantidad.') % {
+                    _('Only %(qty)s units available. Quantity was adjusted.') % {
                         'qty': disponible,
                     },
                 )
@@ -3166,7 +3166,7 @@ def checkout(request):
 
     # Redirigir si el carrito está vacío
     if not carrito:
-        messages.warning(request, 'Tu carrito está vacío.')
+        messages.warning(request, 'Your cart is empty.')
         return redirect('tienda')
 
     subtotal = _calcular_total(carrito)
@@ -3192,12 +3192,12 @@ def checkout(request):
         except (InvalidOperation, ValueError):
             messages.error(
                 request,
-                _('Confirma tu ubicación con el botón «Usar mi ubicación actual».'),
+                _('Confirm your location with the Use my current location button.'),
             )
             return redirect('checkout')
 
         if not (-90 <= float(buyer_lat) <= 90 and -180 <= float(buyer_lng) <= 180):
-            messages.error(request, _('Coordenadas de ubicación no válidas.'))
+            messages.error(request, _('Invalid location coordinates.'))
             return redirect('checkout')
 
         shipping_cost = carrier.base_shipping_cost
@@ -3246,7 +3246,7 @@ def checkout(request):
                 # El producto fue desactivado entre que se agregó y el checkout
                 messages.warning(
                     request,
-                    f'Un producto ya no está disponible y fue omitido.'
+                    f'A product is no longer available and was omitted.'
                 )
 
         if items_creados == 0:
@@ -3287,8 +3287,8 @@ def checkout(request):
             messages.success(
                 request,
                 _(
-                    'Orden %(num)s enviada. Esperando confirmación de la empresa '
-                    '(plazo hasta %(fecha)s).'
+                    'Order %(num)s submitted. Awaiting company confirmation '
+                    '(deadline until %(fecha)s).'
                 ) % {
                     'num': orden.order_number,
                     'fecha': orden.seller_confirm_by.strftime('%d/%m/%Y %H:%M'),
@@ -3298,7 +3298,7 @@ def checkout(request):
                 enviar_cambio_estado(orden, 'pending')
                 enviar_orden_pendiente_vendedor(orden)
             except Exception:
-                log.exception('Email orden pendiente vendedor')
+                log.exception('pending order seller email')
             from .models import Transportista
             if Transportista.objects.filter(estado='aprobado', activo=True).exists():
                 return redirect('seleccionar_transportista', order_pk=orden.pk)
@@ -3320,12 +3320,12 @@ def checkout(request):
         _save_carrito(request, {})
         messages.success(
             request,
-            _('Orden %(num)s creada exitosamente.') % {'num': orden.order_number},
+            _('Order %(num)s created successfully.') % {'num': orden.order_number},
         )
         try:
             enviar_confirmacion_orden(orden)
         except Exception:
-            log.exception('No se pudo enviar email de confirmación de orden.')
+            log.exception('order confirmation email send failed')
         from .models import Transportista
         if Transportista.objects.filter(estado='aprobado', activo=True).exists():
             return redirect('seleccionar_transportista', order_pk=orden.pk)
@@ -3336,7 +3336,7 @@ def checkout(request):
             code='zlc-express',
             defaults={
                 'name': 'ZLC Express',
-                'description': 'Transporte Zona Libre de Colón',
+                'description': 'Colón Free Zone transport',
                 'sort_order': 1,
                 'base_shipping_cost': Decimal('15.00'),
             },
@@ -3547,10 +3547,10 @@ def solicitar_cotizacion(request):
         lines = []
         seen = set()
         for key, raw in request.POST.items():
-            if not key.startswith('qty_'):
+            if not key.startswith('qty_('):
                 continue
             try:
-                pid = int(key.replace('qty_', '', 1))
+                pid = int(key.replace(')qty_(', ')', 1))
             except ValueError:
                 continue
             try:
@@ -3584,7 +3584,7 @@ def solicitar_cotizacion(request):
                     cantidad_solicitada=qty,
                 )
 
-        messages.success(request, f'Cotización {cot.numero} enviada a {empresa_dest.name}.')
+        messages.success(request, f'Quote {cot.numero} sent to {empresa_dest.name}.')
         return redirect('detalle_cotizacion', pk=cot.pk)
 
     context = {
@@ -3593,7 +3593,7 @@ def solicitar_cotizacion(request):
         'empresa_id': empresa_id,
         'productos_emp': productos_emp,
         'carrito_count': _contar_items(_get_carrito(request)),
-        'titulo_pagina': 'Nueva cotización',
+        'titulo_pagina': 'New quote',
         'nav_activo': 'mis_cotizaciones',
     }
     return render(request, 'core/cotizacion_form.html', context)
@@ -3644,13 +3644,13 @@ def detalle_cotizacion(request, pk):
         if accion == 'rechazar' and cot.estado in ('pendiente', 'respondida'):
             cot.estado = 'rechazada'
             cot.save(update_fields=['estado', 'updated_at'])
-            messages.info(request, 'Cotización marcada como rechazada.')
+            messages.info(request, 'Quote marked as rejected.')
             return redirect('detalle_cotizacion', pk=cot.pk)
 
         if accion == 'convertir' and cot.estado == 'respondida' and not cot.order_id:
             items = list(cot.items.all())
             if not items or any(it.precio_ofertado is None for it in items):
-                messages.error(request, 'La cotización no tiene precios completos para generar la orden.')
+                messages.error(request, 'Quote does not have complete pricing to create an order.')
                 return redirect('detalle_cotizacion', pk=cot.pk)
 
             addr = Address.objects.filter(user=request.user).order_by('-is_default', 'id').first()
@@ -3661,7 +3661,7 @@ def detalle_cotizacion(request, pk):
                     ship_address=addr,
                     order_type='b2c',
                     shipping_cost=Decimal('0.00'),
-                    notes=f'Generada desde cotización {cot.numero}',
+                    notes=f'Generated from quote {cot.numero}',
                     status='pending',
                 )
                 items_ok = 0
@@ -3672,7 +3672,7 @@ def detalle_cotizacion(request, pk):
                         orden.delete()
                         messages.error(
                             request,
-                            f'Stock insuficiente para "{prod.name}". No se creó la orden.',
+                            f'Insufficient stock for "{prod.name}". Order was not created.',
                         )
                         return redirect('detalle_cotizacion', pk=cot.pk)
                     OrderItem.objects.create(
@@ -3707,7 +3707,7 @@ def detalle_cotizacion(request, pk):
                 cot.estado = 'aceptada'
                 cot.save(update_fields=['order', 'estado', 'updated_at'])
 
-            messages.success(request, f'Orden {orden.order_number} creada desde la cotización.')
+            messages.success(request, f'Order {orden.order_number} created from quote.')
             return redirect('detalle_mi_orden', pk=orden.pk)
 
         return redirect('detalle_cotizacion', pk=cot.pk)
@@ -3729,7 +3729,7 @@ def detalle_cotizacion(request, pk):
         'valida_hasta': valida_hasta,
         'orden_detail_url': orden_detail_url,
         'carrito_count': _contar_items(_get_carrito(request)),
-        'titulo_pagina': f'Cotización {cot.numero}',
+        'titulo_pagina': f'Quote {cot.numero}',
         'nav_activo': 'mis_cotizaciones',
     }
     return render(request, 'core/detalle_cotizacion.html', context)
@@ -3795,7 +3795,7 @@ def seller_responder_cotizacion(request, pk):
 
     if request.method == 'POST':
         if cot.estado not in ('pendiente', 'respondida'):
-            messages.warning(request, 'Esta cotización ya no admite cambios.')
+            messages.warning(request, 'This quote no longer accepts changes.')
             return redirect('seller_cotizaciones')
 
         notas_seller = request.POST.get('notas_seller', '').strip()
@@ -3808,7 +3808,7 @@ def seller_responder_cotizacion(request, pk):
                     try:
                         it.precio_ofertado = Decimal(raw)
                     except (InvalidOperation, ValueError):
-                        messages.error(request, f'Precio inválido en línea: {it.product.name}')
+                        messages.error(request, f'Invalid price on line: {it.product.name}')
                         return redirect('seller_responder_cotizacion', pk=cot.pk)
                     it.save(update_fields=['precio_ofertado'])
             cot.notas_seller = notas_seller
@@ -3816,7 +3816,7 @@ def seller_responder_cotizacion(request, pk):
                 cot.estado = 'respondida'
             cot.save(update_fields=['notas_seller', 'estado', 'updated_at'])
 
-        messages.success(request, 'Cotización actualizada.')
+        messages.success(request, 'Quote updated.')
         return redirect('seller_cotizaciones')
 
     context = {
@@ -3850,7 +3850,7 @@ def solicitud_acceso(request):
         if not full_name or not email:
             messages.error(request, _('Nombre y correo son obligatorios.'))
         elif role not in ('buyer', 'seller'):
-            messages.error(request, _('Rol no válido.'))
+            messages.error(request, _('Invalid role.'))
         else:
             existing = UserApplication.objects.filter(
                 email__iexact=email,
@@ -3860,7 +3860,7 @@ def solicitud_acceso(request):
                 messages.info(
                     request,
                     _(
-                        'Ya tienes una solicitud en revisión. '
+                        'You already have an application under review. '
                         'Te notificaremos por correo cuando sea aprobada.'
                     ),
                 )
@@ -3903,7 +3903,7 @@ def solicitud_acceso(request):
             else:
                 messages.success(
                     request,
-                    _('Solicitud enviada. Revisa tu correo para confirmación.'),
+                    _('Application submitted. Check your email for confirmation.'),
                 )
             if request.user.is_authenticated:
                 return redirect('onboarding_espera_aprobacion')
@@ -3963,8 +3963,8 @@ def revisar_solicitud(request, token, accion):
     try:
         enviar_solicitud_decision(app, aprobada)
     except Exception:
-        log.exception('Email decisión solicitud')
-    messages.success(request, _('Decisión registrada y correo enviado al solicitante.'))
+        log.exception('application decision email')
+    messages.success(request, _('Decision recorded and email sent to the applicant.'))
     return redirect('home')
 
 
@@ -4003,7 +4003,7 @@ def admin_saas_dashboard(request):
 def api_admin_saas_stats(request):
     """JSON agregado desde Supabase/ORM para el dashboard admin SaaS."""
     if request.method != 'GET':
-        return JsonResponse({'error': 'Método no permitido'}, status=405)
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
     from .utils.saas_admin_metrics import build_saas_admin_payload
 
     return JsonResponse(build_saas_admin_payload(), encoder=DjangoJSONEncoder)
@@ -4013,7 +4013,7 @@ def api_admin_saas_stats(request):
 def api_admin_saas_request_action(request, pk: int):
     """Aprueba o rechaza solicitud comercial de plan (POST)."""
     if request.method != 'POST':
-        return JsonResponse({'error': 'Método no permitido'}, status=405)
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
     import json
 
     from .enterprise_models import CompanyPlanCommercialRequest
@@ -4047,4 +4047,4 @@ def api_admin_saas_request_action(request, pk: int):
             'status': 'rejected',
             'message': f'Solicitud de {req.company.name} rechazada.',
         })
-    return JsonResponse({'error': 'Acción inválida'}, status=400)
+    return JsonResponse({'error': 'Invalid action'}, status=400)

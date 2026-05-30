@@ -12,7 +12,7 @@ class CompanyForm(forms.ModelForm):
         model  = Company
         fields = ['name', 'ruc', 'address_text', 'is_verified']
         widgets = {
-            'name':         forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de la empresa'}),
+            'name':         forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Company name'}),
             'ruc':          forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'RUC'}),
             'address_text': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'is_verified':  forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -46,9 +46,9 @@ class SellerProductForm(forms.ModelForm):
         fields = ['category', 'name', 'description', 'sku', 'unit_price', 'currency', 'image', 'is_active']
         widgets = {
             'category':    forms.Select(attrs={'class': 'tf-input'}),
-            'name':        forms.TextInput(attrs={'class': 'tf-input', 'placeholder': 'Nombre del producto'}),
-            'description': forms.Textarea(attrs={'class': 'tf-input', 'rows': 4, 'placeholder': 'Descripción'}),
-            'sku':         forms.TextInput(attrs={'class': 'tf-input', 'placeholder': 'SKU (opcional)'}),
+            'name':        forms.TextInput(attrs={'class': 'tf-input', 'placeholder': 'Product name'}),
+            'description': forms.Textarea(attrs={'class': 'tf-input', 'rows': 4, 'placeholder': 'Description'}),
+            'sku':         forms.TextInput(attrs={'class': 'tf-input', 'placeholder': 'SKU (optional)'}),
             'unit_price':  forms.NumberInput(attrs={'class': 'tf-input', 'step': '0.01', 'min': '0'}),
             'currency':    forms.Select(attrs={'class': 'tf-input'}),
             'image':       forms.ClearableFileInput(attrs={'class': 'tf-input'}),
@@ -96,11 +96,11 @@ class OrderForm(forms.ModelForm):
 class FiltroOrdenForm(forms.Form):
     buscar = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'class': 'filter-input', 'placeholder': 'Buscar por número o comprador...'})
+        widget=forms.TextInput(attrs={'class': 'filter-input', 'placeholder': 'Search by number or buyer...'})
     )
     estado = forms.ChoiceField(
         required=False,
-        choices=[('', 'Estado: Todos')] + Order.STATUS_CHOICES,
+        choices=[('', 'Status: All')] + Order.STATUS_CHOICES,
         widget=forms.Select(attrs={'class': 'filter-input'})
     )
     fecha_desde = forms.DateField(
@@ -137,5 +137,5 @@ class AplicacionTransportistaForm(forms.Form):
     foto_licencia = forms.ImageField(required=False)
     acepta_terminos = forms.BooleanField(
         required=True,
-        label='Acepto los términos y condiciones de TradeFlow Colón',
+        label='I accept the terms and conditions of TradeFlow Colón',
     )

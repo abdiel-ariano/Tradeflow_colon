@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static i18n %}
+{% load static %}
 {% block title %}{{ orden.order_number }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
@@ -59,7 +59,7 @@
     <div class="adm-det-top">
       <a href="{% url 'lista_ordenes' %}">
         <span class="material-symbols-rounded" style="font-size:20px;">arrow_back</span>
-        Volver a órdenes
+        Back to orders
       </a>
       <h1 class="adm-det-title">{{ orden.order_number }}</h1>
       <span class="adm-badge adm-ord-st" data-st="{{ orden.status }}">{{ orden.get_status_display }}</span>
@@ -68,7 +68,7 @@
     <div class="adm-det-grid">
       <div>
         <div class="adm-info-card">
-          <h3>Líneas de la orden</h3>
+          <h3>Order lines</h3>
           <table class="adm-table" style="border-radius:0;border:none;">
             <thead>
               <tr>
@@ -94,7 +94,7 @@
                 <td style="text-align:right;font-weight:600;">USD {{ orden.subtotal }}</td>
               </tr>
               <tr>
-                <td colspan="3" style="text-align:right;">Envío</td>
+                <td colspan="3" style="text-align:right;">Shipping</td>
                 <td style="text-align:right;">USD {{ orden.shipping_cost }}</td>
               </tr>
               <tr>
@@ -120,7 +120,7 @@
 
         {% if envio %}
         <div class="adm-info-card">
-          <h3>Envío</h3>
+          <h3>Shipping</h3>
           <div class="adm-info-row"><span class="adm-info-lbl">Courier</span><span>{{ envio.courier_name|default:"—" }}</span></div>
           <div class="adm-info-row"><span class="adm-info-lbl">Tracking</span><span>{{ envio.tracking_number|default:"—" }}</span></div>
           <div class="adm-info-row"><span class="adm-info-lbl">Estado</span><span>{{ envio.get_status_display }}</span></div>
@@ -144,15 +144,15 @@
 
       <div>
         <div class="adm-info-card">
-          <h3>Comprador</h3>
-          <div class="adm-info-row"><span class="adm-info-lbl">Nombre</span><span>{{ orden.buyer.get_full_name|default:orden.buyer.username }}</span></div>
+          <h3>Buyer</h3>
+          <div class="adm-info-row"><span class="adm-info-lbl">First name</span><span>{{ orden.buyer.get_full_name|default:orden.buyer.username }}</span></div>
           <div class="adm-info-row"><span class="adm-info-lbl">Email</span><span>{{ orden.buyer.email }}</span></div>
           <div class="adm-info-row"><span class="adm-info-lbl">Tipo</span><span>{{ orden.get_order_type_display }}</span></div>
         </div>
 
         {% if orden.ship_address %}
         <div class="adm-info-card">
-          <h3>Dirección de envío</h3>
+          <h3>Shipping address</h3>
           <p style="margin:0;font-size:0.875rem;line-height:1.55;color:#374151 !important;">
             {{ orden.ship_address.line1 }}<br>
             {% if orden.ship_address.line2 %}{{ orden.ship_address.line2 }}<br>{% endif %}

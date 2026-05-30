@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
-{% load static i18n %}
-{% block title %}{% trans "Mi carrito" %} — TradeFlow Colón{% endblock %}
+{% load static %}
+{% block title %}My Cart — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .c-wrap { max-width: 1040px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1.5rem clamp(2rem, 4vw, 3rem); }
@@ -65,7 +65,7 @@
 {% endblock %}
 {% block content %}
 <div class="c-wrap">
-  <h1 class="c-title">{% trans "Mi carrito" %}{% if carrito_count %} <span>{% blocktrans count counter=carrito_count %}{{ counter }} artículo{% plural %}{{ counter }} artículos{% endblocktrans %}</span>{% endif %}</h1>
+  <h1 class="c-title">My Cart{% if carrito_count %} <span>{% if carrito_count == 1 %}{{ carrito_count }} item{% else %}{{ carrito_count }} items{% endif %}</span>{% endif %}</h1>
   {% if carrito %}
   <div class="c-grid">
     <div class="c-list">
@@ -74,38 +74,38 @@
         {% if item.imagen %}<img src="{{ item.imagen }}" alt="" class="c-img">{% else %}<div class="c-ph"><span class="material-symbols-rounded" style="color:#D1D5DB;">inventory_2</span></div>{% endif %}
         <div class="c-info">
           <div class="c-name">{{ item.nombre }}</div>
-          <div class="c-meta">{% blocktrans with price=item.precio %}USD {{ price }} c/u{% endblocktrans %}</div>
-          <div class="c-qty"><span class="material-symbols-rounded" style="font-size:18px;">numbers</span> {% trans "Cantidad:" %} <span>{{ item.cantidad }}</span></div>
+          <div class="c-meta">USD {{ item.precio }} each</div>
+          <div class="c-qty"><span class="material-symbols-rounded" style="font-size:18px;">numbers</span> Quantity: <span>{{ item.cantidad }}</span></div>
         </div>
         <div class="c-sub">USD {{ item.subtotal }}</div>
         <form method="post" action="{% url 'quitar_del_carrito' prod_id %}">{% csrf_token %}
-          <button type="submit" class="c-remove" title="{% trans 'Quitar' %}" aria-label="{% trans 'Quitar' %}"><span class="material-symbols-rounded">delete</span></button>
+          <button type="submit" class="c-remove" title="Remove" aria-label="Remove"><span class="material-symbols-rounded">delete</span></button>
         </form>
       </div>
       {% endfor %}
     </div>
     <aside class="c-sum">
-      <h2>{% trans "Resumen" %}</h2>
-      <div class="c-row"><span>{% trans "Subtotal" %}</span><span>USD {{ total }}</span></div>
-      <div class="c-row"><span>{% trans "Envío" %}</span><span>{% trans "Al confirmar" %}</span></div>
-      <div class="c-total"><span>{% trans "Total" %}</span><span>USD {{ total }}</span></div>
+      <h2>Summary</h2>
+      <div class="c-row"><span>Subtotal</span><span>USD {{ total }}</span></div>
+      <div class="c-row"><span>Shipping</span><span>On confirmation</span></div>
+      <div class="c-total"><span>Total</span><span>USD {{ total }}</span></div>
       <div class="c-actions">
         <a href="{% url 'checkout' %}" class="c-checkout">
           <span class="material-symbols-rounded" style="font-size:20px;" aria-hidden="true">shopping_bag</span>
-          {% trans "Confirmar pedido" %}
+          Confirm order
         </a>
         <a href="{% url 'tienda' %}" class="c-continue">
           <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">arrow_back</span>
-          {% trans "Seguir comprando" %}
+          Continue shopping
         </a>
       </div>
     </aside>
   </div>
   {% else %}
   <div class="c-empty">
-    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "Tu carrito está vacío" %}</p>
-    <p style="color:#6B7A88;margin:0;">{% trans "Explora la tienda y agrega productos." %}</p>
-    <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> {% trans "Ir a la tienda" %}</a>
+    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">Your cart is empty</p>
+    <p style="color:#6B7A88;margin:0;">Browse the store and add products.</p>
+    <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> Go to store</a>
   </div>
   {% endif %}
 </div>

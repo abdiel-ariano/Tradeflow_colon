@@ -30,7 +30,7 @@ class SellerPlanCheckoutTests(TestCase):
         url = reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'})
         r = self.client.get(url)
         self.assertEqual(r.status_code, 200)
-        self.assertContains(r, 'Pagar y activar')
+        self.assertContains(r, 'Pay and activate')
         self.assertTrue(
             CompanyPlanCheckout.objects.filter(
                 company=self.company,

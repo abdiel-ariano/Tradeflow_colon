@@ -1,7 +1,5 @@
 {% extends "core/base.html" %}
-{% load i18n %}
-
-{% block title %}{% trans "Verificar correo" %} — TradeFlow Colón{% endblock %}
+{% block title %}Verify email — TradeFlow Colón{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -103,9 +101,9 @@
 {% block content %}
 <div class="tf-verify-wrap">
   <div class="tf-verify-card">
-    <h1>{% trans "Verifica tu correo" %}</h1>
+    <h1>Verify your email</h1>
     <p class="tf-sub">
-      {% blocktrans %}Código enviado a {{ masked_email }}{% endblocktrans %}
+      Code sent to {{ masked_email }}
     </p>
 
     {% if messages %}
@@ -132,13 +130,13 @@
         autocomplete="one-time-code"
         required
         autofocus
-        aria-label="{% trans 'Código de 6 dígitos' %}"
+        aria-label="6-digit code"
       />
-      <button type="submit" class="btn btn-tf-verify">{% trans "Verificar" %}</button>
+      <button type="submit" class="btn btn-tf-verify">Verify</button>
     </form>
 
     <p class="tf-resend">
-      <a href="{% url 'enviar_codigo' %}">{% trans "Reenviar código" %}</a>
+      <a href="{% url 'enviar_codigo' %}">Resend code</a>
     </p>
   </div>
 </div>

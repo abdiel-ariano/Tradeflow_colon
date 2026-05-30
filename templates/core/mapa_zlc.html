@@ -1,11 +1,10 @@
 {% extends "core/base.html" %}
-{% load i18n %}
 {% load static %}
 {% comment %}
 ACCIÓN: CREAR — templates/core/mapa_zlc.html
-Mapa Folium embebido; contexto: map_html, titulo_pagina, nav_activo.
+Map Folium embebido; contexto: map_html, titulo_pagina, nav_activo.
 {% endcomment %}
-{% block title %}{% trans "Mapa — Zona Libre de Colón" %} — TradeFlow Colón{% endblock %}
+{% block title %}Map — Colón Free Zone — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
   .map-zlc-wrap { max-width: 1160px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1rem clamp(2.5rem, 5vw, 4rem); }
@@ -18,8 +17,8 @@ Mapa Folium embebido; contexto: map_html, titulo_pagina, nav_activo.
 {% block content %}
 <div class="map-zlc-wrap">
   <header class="map-zlc-head">
-    <h1>{% trans "Empresas en la Zona Libre de Colón" %}</h1>
-    <p>{% trans "Explora vendedores verificados y su catálogo. Marcadores naranja: empresa verificada; gris: pendiente de verificación." %}</p>
+    <h1>Companies in the Colón Free Zone</h1>
+    <p>Browse verified sellers and their catalog. Orange markers: verified company; gray: pending verification.</p>
   </header>
   <div class="map-zlc-frame">
     {{ map_html|safe }}
