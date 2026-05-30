@@ -64,6 +64,10 @@ class SellerInventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
         fields = ['stock_qty', 'low_stock_alert']
+        labels = {
+            'stock_qty': 'Total stock',
+            'low_stock_alert': 'Low stock alert',
+        }
         widgets = {
             'stock_qty':       forms.NumberInput(attrs={'class': 'tf-input', 'min': '0'}),
             'low_stock_alert': forms.NumberInput(attrs={'class': 'tf-input', 'min': '0'}),

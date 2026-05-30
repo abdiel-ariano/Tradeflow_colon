@@ -1,6 +1,6 @@
 """
-Reglas centralizadas de acciones operacionales sobre órdenes (seller).
-Evita desincronía UI/backend y acciones inválidas.
+Centralized operational rules for orders (seller).
+Prevents UI/backend drift and invalid actions.
 """
 from __future__ import annotations
 
@@ -13,15 +13,15 @@ CONFIRM_ALLOWED_STATUS = 'awaiting_seller'
 
 def get_seller_order_actions(order, company) -> dict:
     """
-    Devuelve flags de UI y mensajes para el portal seller.
+    Returns UI flags and messages for the seller portal.
 
     Args:
-        order: instancia Order
-        company: Company del vendedor autenticado
+        order: Order instance
+        company: authenticated seller's Company
     """
     has_lines = order.items.filter(product__company=company).exists()
     if not has_lines:
-        return _actions_false(_('Esta orden no incluye productos de tu empresa.'))
+        return _actions_false(_('This order does not include products from your company.'))
 
     read_only = order.status in TERMINAL_ORDER_STATUSES
     seller_st = order.seller_confirmation_status
@@ -44,28 +44,28 @@ def get_seller_order_actions(order, company) -> dict:
         if exceeds and exc:
             can_confirm = False
             confirm_block_reason = (
-                f'Límite mensual del plan alcanzado (USD {exc.limit}). '
-                f'Esta venta añadiría USD {exc.additional}.'
+                f'Monthly plan limit reached (USD {exc.limit}). '
+                f'This sale would add USD {exc.additional}.'
             )
 
     can_dispatch, dispatch_reason = _dispatch_permission(order, read_only, seller_st)
 
     if read_only:
-        hint = _('Orden en solo lectura (%(status)s).') % {
+        hint = _('Order is read-only (%(status)s).') % {
             'status': order.get_status_display(),
         }
     elif can_confirm:
-        hint = _('Confirma o rechaza antes de despachar.')
+        hint = _('Confirm or reject before shipping.')
     elif can_dispatch:
-        hint = _('Lista para despacho logístico.')
+        hint = _('Ready for logistics dispatch.')
     elif order.status == 'packed':
-        hint = _('Despacho ya registrado. Seguimiento en timeline.')
+        hint = _('Dispatch already recorded. See timeline for tracking.')
     elif seller_st == 'rejected':
-        hint = _('Orden rechazada por tu empresa.')
+        hint = _('Order rejected by your company.')
     elif seller_st == 'expired':
-        hint = _('Plazo de confirmación expirado.')
+        hint = _('Confirmation deadline expired.')
     else:
-        hint = dispatch_reason or _('Sin acciones disponibles para este estado.')
+        hint = dispatch_reason or _('No actions available for this status.')
 
     return {
         'can_confirm': can_confirm,
@@ -80,29 +80,29 @@ def get_seller_order_actions(order, company) -> dict:
 
 def _dispatch_permission(order, read_only: bool, seller_st: str) -> tuple[bool, str]:
     if read_only:
-        return False, _('La orden está cerrada o cancelada.')
+        return False, _('The order is closed or cancelled.')
     if seller_st in ('rejected', 'expired'):
-        return False, _('No se puede despachar una orden rechazada o expirada.')
+        return False, _('Cannot ship a rejected or expired order.')
     if seller_st == 'pending':
-        return False, _('Debes confirmar el pedido antes de despachar.')
+        return False, _('You must confirm the order before shipping.')
     if seller_st != 'accepted':
-        return False, _('Confirmación del vendedor pendiente.')
+        return False, _('Seller confirmation still pending.')
     if order.status not in DISPATCH_ALLOWED_STATUSES:
         if order.status == 'packed':
-            return False, _('El despacho ya fue iniciado.')
+            return False, _('Dispatch has already been started.')
         if order.status == 'awaiting_seller':
-            return False, _('La orden aún espera confirmación.')
-        return False, _('Estado %(status)s no permite despacho.') % {
+            return False, _('The order is still awaiting confirmation.')
+        return False, _('Status %(status)s does not allow dispatch.') % {
             'status': order.get_status_display(),
         }
     shipment = getattr(order, 'shipment', None)
     if shipment and shipment.status == 'in_transit':
-        return False, _('El envío ya está en tránsito.')
+        return False, _('Shipment is already in transit.')
     return True, ''
 
 
 def assert_can_dispatch(order, company) -> None:
-    """Validación backend; lanza PermissionError si la acción no es válida."""
+    """Backend validation; raises PermissionError if the action is invalid."""
     actions = get_seller_order_actions(order, company)
     if not actions['can_dispatch']:
         raise PermissionError(actions['dispatch_block_reason'] or 'dispatch_not_allowed')

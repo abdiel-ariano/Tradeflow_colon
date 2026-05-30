@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Panel — {{ company.name }} — TradeFlow{% endblock %}
+{% block title %}My Panel — {{ company.name }} — TradeFlow{% endblock %}
 {% block extra_css %}
 {% endblock %}
 {% block content %}
@@ -10,8 +10,8 @@
     <p class="seller-sub">Indicators for your catalog and recent orders.</p>
     <div class="seller-stats">
       <div class="seller-stat"><div class="label">Products</div><div class="value">{{ total_productos }}</div></div>
-      <div class="seller-stat"><div class="label">Activos</div><div class="value">{{ productos_activos }}</div></div>
-      <div class="seller-stat accent"><div class="label">Stock bajo</div><div class="value">{{ bajo_stock }}</div></div>
+      <div class="seller-stat"><div class="label">Active</div><div class="value">{{ productos_activos }}</div></div>
+      <div class="seller-stat accent"><div class="label">Low stock</div><div class="value">{{ bajo_stock }}</div></div>
       <div class="seller-stat"><div class="label">Orders (7 days)</div><div class="value">{{ ordenes_semana }}</div></div>
       <div class="seller-stat"><div class="label">Line sales (7 days)</div><div class="value">{{ ventas_semana }} USD</div></div>
     </div>
@@ -19,7 +19,7 @@
       <h2>Recent orders</h2>
       {% if ordenes_recientes %}
       <table class="seller-table">
-        <thead><tr><th>Orden</th><th>Buyer</th><th>Estado</th><th>Total</th></tr></thead>
+        <thead><tr><th>Order</th><th>Buyer</th><th>Status</th><th>Total</th></tr></thead>
         <tbody>
           {% for o in ordenes_recientes %}
           <tr>
@@ -36,8 +36,8 @@
       {% endif %}
     </div>
     <div class="seller-form-actions" style="margin-top:1.25rem;">
-      <a href="{% url 'seller_producto_nuevo' %}" class="btn-seller-primary">Nuevo producto</a>
-      <a href="{% url 'seller_ventas' %}" class="btn-seller-outline">Ver todas las ventas</a>
+      <a href="{% url 'seller_producto_nuevo' %}" class="btn-seller-primary">Add product</a>
+      <a href="{% url 'seller_ventas' %}" class="btn-seller-outline">View all sales</a>
     </div>
   </div>
 </div>

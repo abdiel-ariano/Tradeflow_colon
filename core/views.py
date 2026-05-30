@@ -1817,7 +1817,7 @@ def portal_seller(request):
         'chart_status_values_json': _json.dumps(data['chart_status_values']),
         'chart_week_labels_json': _json.dumps(data['chart_week_labels']),
         'chart_week_orders_json': _json.dumps(data['chart_week_orders']),
-        'titulo_pagina': _('Panel vendedor'),
+        'titulo_pagina': _('Seller panel'),
         'nav_activo': 'mi_tienda',
     })
 
@@ -1883,7 +1883,7 @@ def seller_plan_consumo(request):
     ctx, page_error = build_plan_page_context_safe(company)
     ctx.update({
         'company': company,
-        'titulo_pagina': _('Crecimiento TradeFlow'),
+        'titulo_pagina': _('TradeFlow growth'),
         'nav_activo': 'mi_tienda',
         'saas_health': health,
         'saas_page_error': page_error,
@@ -1925,10 +1925,10 @@ def seller_dispatch_order(request, pk):
     if not plan_allows_feature(company, 'webhooks'):
         messages.info(
             request,
-            _('Despacho registrado internamente. Activa Corporativo Pro para webhooks a aliados.'),
+            _('Dispatch recorded internally. Enable Corporate Pro for partner webhooks.'),
         )
     enqueue_dispatch(orden, company, request.user)
-    messages.success(request, _('Despacho iniciado. Seguimiento actualizado.'))
+    messages.success(request, _('Dispatch started. Tracking updated.'))
     if _request_wants_json(request):
         from .utils.order_timeline import build_order_timeline
 
@@ -1956,10 +1956,10 @@ def seller_plan_checkout(request, plan_slug: str):
         messages.error(request, _('Invalid plan.'))
         return redirect('seller_plan_consumo')
     if sub.plan.slug == plan_slug:
-        messages.info(request, _('Ya tienes este plan activo.'))
+        messages.info(request, _('You already have this plan active.'))
         return redirect('seller_plan_consumo')
     if target.sort_order <= sub.plan.sort_order:
-        messages.info(request, _('Selecciona un plan superior al actual.'))
+        messages.info(request, _('Select a plan above your current tier.'))
         return redirect('seller_plan_consumo')
 
     try:
@@ -1967,12 +1967,12 @@ def seller_plan_checkout(request, plan_slug: str):
     except ValueError as exc:
         if 'commercial' in str(exc):
             return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
-        messages.error(request, _('No se pudo iniciar el checkout.'))
+        messages.error(request, _('Could not start checkout.'))
         return redirect('seller_plan_consumo')
 
     ctx.update({
         'company': company,
-        'titulo_pagina': _('Pago del plan'),
+        'titulo_pagina': _('Plan payment'),
         'nav_activo': 'mi_tienda',
     })
     return render(request, 'core/seller_plan_checkout.html', ctx)
@@ -1988,7 +1988,7 @@ def seller_plan_checkout_resume(request):
 
     pending = get_pending_checkout(company)
     if not pending:
-        messages.info(request, _('No tienes pagos pendientes.'))
+        messages.info(request, _('You have no pending payments.'))
         return redirect('seller_plan_consumo')
     return redirect('seller_plan_checkout', plan_slug=pending.target_plan.slug)
 
@@ -2017,12 +2017,12 @@ def seller_plan_checkout_pay(request, plan_slug: str):
     try:
         complete_plan_checkout(checkout, provider=provider, txn_ref=txn_ref)
     except ValueError:
-        messages.error(request, _('No se pudo completar el pago.'))
+        messages.error(request, _('Could not complete payment.'))
         return redirect('seller_plan_checkout', plan_slug=plan_slug)
 
     messages.success(
         request,
-        _('Pago confirmado. Plan %(name)s activo en tu cuenta.')
+        _('Payment confirmed. Plan %(name)s is active on your account.')
         % {'name': checkout.target_plan.name},
     )
     return redirect('seller_plan_consumo')
@@ -2054,7 +2054,7 @@ def seller_predictive_insights(request):
     if not plan_allows_feature(company, 'predictive_ai'):
         return render(request, 'core/seller_insights_upgrade.html', {
             'company': company,
-            'titulo_pagina': _('Insights predictivos'),
+            'titulo_pagina': _('Predictive insights'),
             'nav_activo': 'seller_insights',
         })
 
@@ -2066,7 +2066,7 @@ def seller_predictive_insights(request):
         'narrative': narrative,
         'chart_labels_json': _json.dumps(dashboard.get('daily_chart', {}).get('labels', [])),
         'chart_values_json': _json.dumps(dashboard.get('daily_chart', {}).get('values', [])),
-        'titulo_pagina': _('Insights predictivos'),
+        'titulo_pagina': _('Predictive insights'),
         'nav_activo': 'seller_insights',
     })
 
@@ -2100,10 +2100,10 @@ def _seller_company_or_response(request, nav_activo='mi_tienda'):
         return company, None
     messages.warning(
         request,
-        'Tu cuenta no tiene una empresa vinculada. Contacta al administrador para asignarte una empresa en el sistema.',
+        'Your account is not linked to a company. Contact an administrator to assign your business in the system.',
     )
     ctx = {
-        'titulo_pagina': 'Mi Tienda',
+        'titulo_pagina': 'My Store',
         'nav_activo':    nav_activo,
     }
     return None, render(request, 'core/seller_sin_empresa.html', ctx)
@@ -2169,7 +2169,7 @@ def seller_dashboard(request):
         'ordenes_semana':    ordenes_semana,
         'ventas_semana':     ventas_semana,
         'ordenes_recientes': ordenes_recientes,
-        'titulo_pagina':     'Panel de vendedor',
+        'titulo_pagina':     'Seller panel',
         'nav_activo':        'mi_tienda',
     }
     return render(request, 'core/seller_dashboard.html', context)
@@ -2212,7 +2212,7 @@ def seller_productos(request):
         'categorias':    Category.objects.all().order_by('name'),
         'buscar':        buscar,
         'cat_activa':    categoria,
-        'titulo_pagina': 'Mis productos',
+        'titulo_pagina': 'My Products',
         'nav_activo':    'seller_productos',
     }
     return render(request, 'core/seller_productos.html', context)
@@ -2292,7 +2292,7 @@ def seller_mis_productos(request):
         'dash': dash,
         'chart_cat_labels_json': _json.dumps(dash['chart_cat_labels']),
         'chart_cat_values_json': _json.dumps(dash['chart_cat_values']),
-        'titulo_pagina': 'Mis productos',
+        'titulo_pagina': 'My Products',
         'nav_activo': 'seller_productos',
     })
 
@@ -2331,15 +2331,15 @@ def seller_producto_nuevo(request):
                 inv.product = product
                 inv.reserved_qty = 0
                 inv.save()
-            messages.success(request, f'Producto "{product.name}" creado correctamente.')
+            messages.success(request, f'Product "{product.name}" created successfully.')
             return redirect('seller_productos')
-        messages.error(request, 'Revisa los datos del formulario.')
+        messages.error(request, 'Please review the form data.')
 
     context = {
         'company':        company,
         'product_form':   product_form,
         'inv_form':       inv_form,
-        'titulo_pagina':  'Nuevo producto',
+        'titulo_pagina':  'Add product',
         'nav_activo':     'seller_productos',
         'es_edicion':     False,
     }
@@ -2384,16 +2384,16 @@ def seller_producto_editar(request, pk):
                 product = _optimize_product_image_from_request(request, product_form, product)
                 product.save()
                 inv_form.save()
-            messages.success(request, 'Cambios guardados.')
+            messages.success(request, 'Changes saved.')
             return redirect('seller_productos')
-        messages.error(request, 'Revisa los datos del formulario.')
+        messages.error(request, 'Please review the form data.')
 
     context = {
         'company':        company,
         'product':        product,
         'product_form':   product_form,
         'inv_form':       inv_form,
-        'titulo_pagina':  f'Editar: {product.name}',
+        'titulo_pagina':  f'Edit: {product.name}',
         'nav_activo':     'seller_productos',
         'es_edicion':     True,
     }
@@ -2415,7 +2415,7 @@ def seller_toggle_producto(request, pk):
     product = get_object_or_404(Product, pk=pk, company=company)
     product.is_active = not product.is_active
     product.save(update_fields=['is_active'])
-    estado = _('activo') if product.is_active else _('inactivo')
+    estado = _('active') if product.is_active else _('inactive')
     if _request_wants_json(request):
         return JsonResponse({
             'ok': True,
@@ -2461,7 +2461,7 @@ def seller_ventas(request):
         'ordenes':        page_obj,
         'estado_actual':  estado,
         'status_choices': Order.STATUS_CHOICES,
-        'titulo_pagina':  'Mis ventas',
+        'titulo_pagina':  'My Sales',
         'nav_activo':     'seller_ventas',
     }
     return render(request, 'core/seller_ventas.html', context)
@@ -2524,7 +2524,7 @@ def seller_mis_ventas(request):
         'ticket_promedio': dash['ticket_promedio'],
         'chart_line_labels_json': _json.dumps(dash['chart_line_labels']),
         'chart_line_values_json': _json.dumps(dash['chart_line_values']),
-        'titulo_pagina': 'Mis ventas',
+        'titulo_pagina': 'My Sales',
         'nav_activo': 'seller_ventas',
     })
 
@@ -2553,7 +2553,7 @@ def seller_export_ventas_csv(request):
         f'attachment; filename="ventas_{company.pk}.csv"'
     )
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Fecha', 'Cliente', 'Monto', 'Estado', 'Tipo'])
+    writer.writerow(['ID', 'Date', 'Customer', 'Amount', 'Status', 'Type'])
     for o in ordenes[:500]:
         sub = sum(
             li.line_total
@@ -2590,7 +2590,7 @@ def seller_venta_detalle(request, pk):
         .order_by('id')
     )
     if not lineas:
-        raise Http404('Orden no encontrada o sin productos de tu empresa.')
+        raise Http404('Order not found or has no products from your company.')
 
     from .utils.order_permissions import get_seller_order_actions
 
@@ -2644,7 +2644,7 @@ def seller_venta_detalle(request, pk):
         'puede_confirmar': puede_confirmar,
         'order_actions': order_actions,
         'maps_url': orden.maps_url_buyer(),
-        'titulo_pagina': f'Venta {orden.order_number}',
+        'titulo_pagina': f'Sale {orden.order_number}',
         'nav_activo': 'seller_ventas',
         'timeline_initial_json': json.dumps(build_order_timeline(orden)),
     }
@@ -3765,7 +3765,7 @@ def seller_cotizaciones(request):
         'cotizaciones_mes': dash['cotizaciones_mes'],
         'tasa_conversion': dash['tasa_conversion'],
         'monto_cotizado': dash['monto_cotizado'],
-        'titulo_pagina': 'Cotizaciones recibidas',
+        'titulo_pagina': 'Quotes received',
         'nav_activo': 'seller_cotizaciones',
     }
     return render(request, 'core/seller_cotizaciones.html', context)
@@ -3822,7 +3822,7 @@ def seller_responder_cotizacion(request, pk):
     context = {
         'company': company,
         'cot': cot,
-        'titulo_pagina': f'Responder {cot.numero}',
+        'titulo_pagina': f'Reply to {cot.numero}',
         'nav_activo': 'seller_cotizaciones',
     }
     return render(request, 'core/seller_responder_cotizacion.html', context)

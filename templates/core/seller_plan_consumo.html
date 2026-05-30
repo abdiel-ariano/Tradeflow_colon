@@ -134,7 +134,7 @@
   {% elif saas_degraded %}
   <section class="sp-card sp-saas-empty" role="alert">
     <span class="material-symbols-rounded sp-saas-empty-icon">warning</span>
-    <h2>No pudimos cargar tu ecosistema</h2>
+    <h2>We couldn't load your ecosystem</h2>
     <p>Retry in a few seconds. If the problem persists, contact TradeFlow support.</p>
     <a href="{% url 'seller_plan_consumo' %}" class="sp-btn sp-btn-primary">Retry</a>
   </section>
@@ -159,7 +159,7 @@
       <span class="sp-plan-badge-top">{{ card.badge }}</span>
       {% endif %}
       {% if card.is_current %}
-      <span class="sp-plan-badge-current">Plan activo</span>
+      <span class="sp-plan-badge-current">Active plan</span>
       {% endif %}
       <div class="sp-plan-icon">
         <span class="material-symbols-rounded">{{ card.icon }}</span>
@@ -168,7 +168,7 @@
       <h3 class="sp-plan-title-v2">{{ card.name }}</h3>
       {% if card.monthly_price_usd and card.cta != 'commercial' %}
       <p style="font-size:1.1rem;font-weight:700;color:var(--tf-navy);margin:0 0 4px;">
-        USD {{ card.monthly_price_usd|floatformat:0 }}<span style="font-size:11px;font-weight:500;color:var(--tf-muted);"> / mes</span>
+        USD {{ card.monthly_price_usd|floatformat:0 }}<span style="font-size:11px;font-weight:500;color:var(--tf-muted);"> / month</span>
       </p>
       {% endif %}
       <p class="sp-plan-tagline-v2">{{ card.tagline }}</p>
@@ -178,7 +178,7 @@
         {% endfor %}
       </ul>
       {% if card.is_current %}
-      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.85;pointer-events:none;">Activo</span>
+      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.85;pointer-events:none;">Active</span>
       {% elif card.cta == 'commercial' %}
       {% if pending_enterprise %}
       <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.8;">Request under review</span>
@@ -187,11 +187,11 @@
       {% endif %}
       {% elif card.can_upgrade %}
       <a href="{% url 'seller_plan_checkout' card.slug %}" class="sp-btn sp-btn-primary sp-plan-activate-btn">
-        Continuar al pago
+        Continue to payment
       </a>
       <p style="font-size:10px;color:var(--tf-muted);text-align:center;margin:8px 0 0;">Secure checkout · monthly renewal</p>
       {% else %}
-      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="font-size:12px;opacity:0.65;">Incluido en tu nivel</span>
+      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="font-size:12px;opacity:0.65;">Included in your tier</span>
       {% endif %}
     </article>
     {% endfor %}
@@ -215,7 +215,7 @@
     <div class="sp-table-wrap">
       <table class="sp-table">
         <thead>
-          <tr><th>Fecha</th><th>De</th><th>A</th><th>Origen</th></tr>
+          <tr><th>Date</th><th>From</th><th>To</th><th>Source</th></tr>
         </thead>
         <tbody>
           {% for log in upgrade_history %}

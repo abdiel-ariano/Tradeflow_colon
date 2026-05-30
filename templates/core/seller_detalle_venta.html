@@ -8,19 +8,19 @@
   <div class="seller-main">
     <p class="seller-sub" style="margin-bottom:0.75rem;">
       <a href="{% url 'seller_mis_ventas' %}" class="btn-seller-outline" style="display:inline-flex;">
-        <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span> Volver a ventas
+        <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span> Back to sales
       </a>
     </p>
-    <h1>Orden {{ orden.order_number }}</h1>
+    <h1>Order {{ orden.order_number }}</h1>
     <p class="seller-sub">Buyer: {{ orden.buyer.get_full_name|default:orden.buyer.username }} · {{ orden.created_at|date:"d/m/Y H:i" }}</p>
     <div class="seller-table-wrap" style="margin-bottom:1.5rem;">
       <h2>Your lines in this order</h2>
       <table class="seller-table">
         <thead>
           <tr>
-            <th>Producto</th>
-            <th>Cant.</th>
-            <th>P. unit.</th>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Unit price</th>
             <th>Subtotal</th>
           </tr>
         </thead>
@@ -36,11 +36,11 @@
         </tbody>
       </table>
       <p style="padding:0 1.25rem 1rem;margin:0;font-size:0.95rem;color:var(--tf-navy);">
-        Subtotal (tu empresa): <strong class="tf-price">{{ subtotal_vendedor }} USD</strong>
+        Subtotal (your company): <strong class="tf-price">{{ subtotal_vendedor }} USD</strong>
       </p>
     </div>
     <div class="seller-form-card" style="max-width:100%;">
-      <h2 style="font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;margin:0 0 0.75rem;color:var(--tf-navy);">Estado de la orden</h2>
+      <h2 style="font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;margin:0 0 0.75rem;color:var(--tf-navy);">Order status</h2>
       <p style="margin:0;"><span class="tf-badge seller-ord-status" data-status="{{ orden.status }}">{{ orden.get_status_display }}</span></p>
       {% if pago %}
       <p style="margin-top:12px;font-size:0.88rem;color:var(--tf-muted);">

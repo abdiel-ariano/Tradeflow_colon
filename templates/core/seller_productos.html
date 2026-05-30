@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Mis productos — TradeFlow{% endblock %}
+{% block title %}My Products — TradeFlow{% endblock %}
 {% block extra_css %}
 {% endblock %}
 {% block content %}
@@ -9,16 +9,16 @@
     <h1>Products</h1>
     <p class="seller-sub">Manage the catalog for {{ company.name }}.</p>
     <div class="seller-toolbar">
-      <a href="{% url 'seller_producto_nuevo' %}" class="btn-seller-primary">Nuevo producto</a>
+      <a href="{% url 'seller_producto_nuevo' %}" class="btn-seller-primary">Add product</a>
       <form class="seller-filters" method="get" action="">
-        <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Buscar nombre o SKU…">
+        <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Search name or SKU…">
         <select class="tf-input" name="categoria" style="max-width:220px;">
           <option value="">All categories</option>
           {% for c in categorias %}
           <option value="{{ c.pk }}">{{ c.name }}</option>
           {% endfor %}
         </select>
-        <button type="submit" class="btn-seller-outline">Filtrar</button>
+        <button type="submit" class="btn-seller-outline">Filter</button>
       </form>
     </div>
     <script>
@@ -37,11 +37,11 @@
         <thead>
           <tr>
             <th></th>
-            <th>Producto</th>
+            <th>Product</th>
             <th>SKU</th>
-            <th>Precio</th>
+            <th>Price</th>
             <th>Stock</th>
-            <th>Estado</th>
+            <th>Status</th>
             <th></th>
           </tr>
         </thead>
@@ -61,14 +61,14 @@
             <td>
               {% if p.inventory %}
                 {% with av=p.inventory.available %}
-                <span class="seller-stock-pill {% if not av %}seller-stock-out{% elif p.inventory.is_low_stock %}seller-stock-low{% else %}seller-stock-ok{% endif %}">{{ av }} disp.</span>
+                <span class="seller-stock-pill {% if not av %}seller-stock-out{% elif p.inventory.is_low_stock %}seller-stock-low{% else %}seller-stock-ok{% endif %}">{{ av }} avail.</span>
                 {% endwith %}
               {% else %}
                 <span class="seller-stock-pill seller-stock-out">0</span>
               {% endif %}
             </td>
-            <td>{% if p.is_active %}<span class="tf-badge tf-badge-teal">Activo</span>{% else %}<span class="tf-badge tf-badge-warn">Inactivo</span>{% endif %}</td>
-            <td><a href="{% url 'seller_producto_editar' p.pk %}">Editar</a></td>
+            <td>{% if p.is_active %}<span class="tf-badge tf-badge-teal">Active</span>{% else %}<span class="tf-badge tf-badge-warn">Inactive</span>{% endif %}</td>
+            <td><a href="{% url 'seller_producto_editar' p.pk %}">Edit</a></td>
           </tr>
           {% endfor %}
         </tbody>

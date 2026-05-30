@@ -1,18 +1,18 @@
 {% extends "core/seller_layout.html" %}
 {% load static %}
 {% block title %}Products — TradeFlow{% endblock %}
-{% block seller_page_title %}Mis productos{% endblock %}
+{% block seller_page_title %}My Products{% endblock %}
 {% block seller_page_sub %}<p class="sp-topbar-sub">Catalog and inventory</p>{% endblock %}
 {% block seller_topbar_actions %}
-<a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>Nuevo</a>
+<a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>New</a>
 {% endblock %}
 
 {% block seller_content %}
 <div class="sp-kpi-grid">
   <article class="sp-kpi"><span class="sp-kpi-lbl">Total</span><p class="sp-kpi-val">{{ dash.kpi_total }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Activos</span><p class="sp-kpi-val">{{ dash.kpi_activos }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Stock bajo</span><p class="sp-kpi-val warn">{{ dash.kpi_bajo_stock }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Sin ventas</span><p class="sp-kpi-val warn">{{ dash.kpi_sin_ventas }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Active</span><p class="sp-kpi-val">{{ dash.kpi_activos }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Low stock</span><p class="sp-kpi-val warn">{{ dash.kpi_bajo_stock }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">No sales yet</span><p class="sp-kpi-val warn">{{ dash.kpi_sin_ventas }}</p></article>
 </div>
 
 <div class="sp-grid-2">
@@ -24,17 +24,17 @@
   </section>
   <section class="sp-card">
     <form method="get" class="sp-filter-form" style="display:flex;flex-direction:column;gap:12px;">
-      <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Buscar…" maxlength="120">
+      <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Search…" maxlength="120">
       <select class="tf-input" name="categoria">
         <option value="">Category</option>
         {% for c in categorias %}<option value="{{ c.pk }}" {% if cat_activa == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
       </select>
       <select class="tf-input" name="estado">
-        <option value="">Estado</option>
-        <option value="activo" {% if estado_filtro == 'activo' %}selected{% endif %}>Activo</option>
-        <option value="inactivo" {% if estado_filtro == 'inactivo' %}selected{% endif %}>Inactivo</option>
+        <option value="">Status</option>
+        <option value="activo" {% if estado_filtro == 'activo' %}selected{% endif %}>Active</option>
+        <option value="inactivo" {% if estado_filtro == 'inactivo' %}selected{% endif %}>Inactive</option>
       </select>
-      <button type="submit" class="sp-btn sp-btn-primary">Filtrar</button>
+      <button type="submit" class="sp-btn sp-btn-primary">Filter</button>
     </form>
   </section>
 </div>
@@ -51,19 +51,19 @@
     <div style="font-size:12px;margin-top:4px;">Stock: {% if p.inventory %}<span style="color:{% if p.inventory.is_low_stock %}#c62828{% else %}#2e7d32{% endif %};font-weight:700;">{{ p.inventory.stock_qty }}</span>{% else %}—{% endif %}</div>
   </div>
   <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
-    <span class="sp-status {% if p.is_active %}sp-status-delivered{% else %}sp-status-cancelled{% endif %}" data-sp-active-badge data-label-on="Activo" data-label-off="Inactivo">{% if p.is_active %}Activo{% else %}Inactivo{% endif %}</span>
+    <span class="sp-status {% if p.is_active %}sp-status-delivered{% else %}sp-status-cancelled{% endif %}" data-sp-active-badge data-label-on="Active" data-label-off="Inactive">{% if p.is_active %}Active{% else %}Inactive{% endif %}</span>
     <div style="display:flex;align-items:center;gap:12px;">
-      <label class="sp-toggle" data-sp-product-toggle data-toggle-url="{% url 'seller_toggle_producto' p.pk %}" title="Activar o desactivar">
-        <input type="checkbox" {% if p.is_active %}checked{% endif %} aria-label="Estado del producto">
+      <label class="sp-toggle" data-sp-product-toggle data-toggle-url="{% url 'seller_toggle_producto' p.pk %}" title="Activate or deactivate">
+        <input type="checkbox" {% if p.is_active %}checked{% endif %} aria-label="Product status">
         <span class="sp-toggle-track"></span>
         <span class="sp-toggle-thumb"></span>
       </label>
-      <a href="{% url 'seller_editar_producto' p.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 12px;font-size:12px;">Editar</a>
+      <a href="{% url 'seller_editar_producto' p.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 12px;font-size:12px;">Edit</a>
     </div>
   </div>
 </article>
 {% empty %}
-<div class="sp-card sp-empty">No products</div>
+<div class="sp-card sp-empty">No products yet</div>
 {% endfor %}
 </div>
 

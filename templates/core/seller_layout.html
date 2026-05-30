@@ -9,7 +9,7 @@
 {% block extra_css %}{% block seller_extra_css %}{% endblock %}{% endblock %}
 {% block content %}
 <div class="sp-shell" id="sp-shell">
-  <aside class="sp-sidebar" id="sp-sidebar" aria-label="Panel vendedor">
+  <aside class="sp-sidebar" id="sp-sidebar" aria-label="Seller panel">
     <a href="{% url 'portal_seller' %}" class="sp-brand-logo" style="text-decoration:none;">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="sidebar" class="sp-logo-wordmark" %}
       <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);">{{ company.name|default:"TradeFlow" }}</span>
@@ -22,24 +22,24 @@
         <span class="material-symbols-rounded">inventory_2</span>Products
       </a>
       <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas">
-        <span class="material-symbols-rounded">payments</span>Ventas
+        <span class="material-symbols-rounded">payments</span>My Sales
       </a>
       <a href="{% url 'seller_cotizaciones' %}" data-sp-nav="seller_cotizaciones">
         <span class="material-symbols-rounded">request_quote</span>Quotes
       </a>
       <a href="{% url 'seller_agregar_producto' %}" data-sp-nav="seller_productos">
-        <span class="material-symbols-rounded">add_circle</span>Nuevo producto
+        <span class="material-symbols-rounded">add_circle</span>Add product
       </a>
       <a href="{% url 'seller_plan_consumo' %}" data-sp-nav="mi_tienda">
         <span class="material-symbols-rounded">workspace_premium</span>Plan
       </a>
       {% if saas_snapshot and saas_snapshot.predictive_ai_enabled %}
       <a href="{% url 'seller_predictive_insights' %}" data-sp-nav="seller_insights">
-        <span class="material-symbols-rounded">insights</span>Insights IA
+        <span class="material-symbols-rounded">insights</span>AI Insights
       </a>
       {% endif %}
       <a href="{% url 'mi_perfil' %}" data-sp-nav="perfil">
-        <span class="material-symbols-rounded">business</span>Perfil empresa
+        <span class="material-symbols-rounded">business</span>Company profile
       </a>
     </nav>
     <div class="sp-sidebar-foot">Colón Free Zone</div>
@@ -54,7 +54,7 @@
         <div style="display:flex;align-items:center;gap:12px;">
           {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="sp-topbar-logo" lazy=1 %}
           <div>
-            <h1>{% block seller_page_title %}{{ titulo_pagina|default:"Panel" }}{% endblock %}</h1>
+            <h1>{% block seller_page_title %}{{ titulo_pagina|default:"My Panel" }}{% endblock %}</h1>
             {% block seller_page_sub %}{% endblock %}
           </div>
         </div>
