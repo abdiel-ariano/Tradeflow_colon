@@ -53,10 +53,14 @@ def _send_via_supabase(email: str, subject: str, html: str, text: str) -> EmailS
         'text': text,
         'type': 'verification_code',
     }
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {settings.SUPABASE_SERVICE_KEY}',
+    }
     try:
         response = client.functions.invoke(
             function_name,
-            invoke_options={'body': payload},
+            invoke_options={'body': payload, 'headers': headers},
         )
         status = getattr(response, 'status', None) or getattr(response, 'status_code', 200)
         if status and int(status) >= 400:
