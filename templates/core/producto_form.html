@@ -4,7 +4,7 @@
 Formulario para crear un nuevo producto.
 Vista: nuevo_producto_view()
 {% endcomment %}
-{% block title %}Nuevo Producto{% endblock %}
+{% block title %}New Product{% endblock %}
 {% block extra_css %}
 {% endblock %}
 
@@ -13,7 +13,7 @@ Vista: nuevo_producto_view()
 <div class="page-header">
   <div class="page-header-row">
     <div>
-      <h2>Nuevo Producto</h2>
+      <h2>New Product</h2>
       <p class="text-muted">Add an item to the catalog</p>
     </div>
     <a href="{% url 'productos' %}" class="btn btn-secondary">← Back to catalog</a>
@@ -26,7 +26,7 @@ Vista: nuevo_producto_view()
 
     <div class="form-grid">
       <div class="form-group full">
-        <label>First name del producto *</label>
+        <label>Product name *</label>
         {{ form.nombre }}
         {% if form.nombre.errors %}<span style="color:var(--color-danger);font-size:.75rem;">{{ form.nombre.errors.0 }}</span>{% endif %}
       </div>
@@ -37,18 +37,18 @@ Vista: nuevo_producto_view()
       </div>
 
       <div class="form-group">
-        <label>Precio (USD) *</label>
+        <label>Price (USD) *</label>
         {{ form.precio }}
         {% if form.precio.errors %}<span style="color:var(--color-danger);font-size:.75rem;">{{ form.precio.errors.0 }}</span>{% endif %}
       </div>
 
       <div class="form-group">
-        <label>Stock disponible</label>
+        <label>Available stock</label>
         {{ form.stock }}
       </div>
 
       <div class="form-group">
-        <label>Imagen (opcional)</label>
+        <label>Image (optional)</label>
         {{ form.imagen }}
       </div>
 
@@ -64,8 +64,8 @@ Vista: nuevo_producto_view()
     </div>
 
     <div style="display:flex;gap:10px;margin-top:20px;">
-      <a href="{% url 'productos' %}" class="btn btn-secondary" style="flex:1;justify-content:center;">Cancelar</a>
-      <button type="submit" class="btn btn-primary" style="flex:2;justify-content:center;">Guardar producto</button>
+      <a href="{% url 'productos' %}" class="btn btn-secondary" style="flex:1;justify-content:center;">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="flex:2;justify-content:center;">Save product</button>
     </div>
   </form>
 </div>

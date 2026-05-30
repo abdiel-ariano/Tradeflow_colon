@@ -72,9 +72,9 @@
           <table class="adm-table" style="border-radius:0;border:none;">
             <thead>
               <tr>
-                <th>Producto</th>
-                <th style="text-align:right;">Cant.</th>
-                <th style="text-align:right;">P. unit.</th>
+                <th>Product</th>
+                <th style="text-align:right;">Qty.</th>
+                <th style="text-align:right;">Unit price</th>
                 <th style="text-align:right;">Subtotal</th>
               </tr>
             </thead>
@@ -107,13 +107,13 @@
 
         {% if pago %}
         <div class="adm-info-card">
-          <h3>Pago</h3>
-          <div class="adm-info-row"><span class="adm-info-lbl">Proveedor</span><span>{{ pago.get_provider_display }}</span></div>
-          <div class="adm-info-row"><span class="adm-info-lbl">Estado</span><span>{{ pago.get_status_display }}</span></div>
-          <div class="adm-info-row"><span class="adm-info-lbl">Monto</span><span>USD {{ pago.amount }} {{ pago.currency }}</span></div>
-          <div class="adm-info-row"><span class="adm-info-lbl">Referencia</span><span>{{ pago.txn_ref|default:"—" }}</span></div>
+          <h3>Payment</h3>
+          <div class="adm-info-row"><span class="adm-info-lbl">Provider</span><span>{{ pago.get_provider_display }}</span></div>
+          <div class="adm-info-row"><span class="adm-info-lbl">Status</span><span>{{ pago.get_status_display }}</span></div>
+          <div class="adm-info-row"><span class="adm-info-lbl">Amount</span><span>USD {{ pago.amount }} {{ pago.currency }}</span></div>
+          <div class="adm-info-row"><span class="adm-info-lbl">Reference</span><span>{{ pago.txn_ref|default:"—" }}</span></div>
           {% if pago.paid_at %}
-          <div class="adm-info-row"><span class="adm-info-lbl">Fecha de pago</span><span>{{ pago.paid_at|date:"d/m/Y H:i" }}</span></div>
+          <div class="adm-info-row"><span class="adm-info-lbl">Payment date</span><span>{{ pago.paid_at|date:"d/m/Y H:i" }}</span></div>
           {% endif %}
         </div>
         {% endif %}
@@ -123,18 +123,18 @@
           <h3>Shipping</h3>
           <div class="adm-info-row"><span class="adm-info-lbl">Courier</span><span>{{ envio.courier_name|default:"—" }}</span></div>
           <div class="adm-info-row"><span class="adm-info-lbl">Tracking</span><span>{{ envio.tracking_number|default:"—" }}</span></div>
-          <div class="adm-info-row"><span class="adm-info-lbl">Estado</span><span>{{ envio.get_status_display }}</span></div>
+          <div class="adm-info-row"><span class="adm-info-lbl">Status</span><span>{{ envio.get_status_display }}</span></div>
         </div>
         {% endif %}
 
         {% if orden.documents.all %}
         <div class="adm-info-card">
-          <h3>Documentos</h3>
+          <h3>Documents</h3>
           {% for doc in orden.documents.all %}
           <div class="adm-info-row">
             <span>{{ doc.get_doc_type_display }} {{ doc.doc_number }}</span>
             {% if doc.file_path %}
-            <a href="{{ doc.file_path.url }}" target="_blank" rel="noopener noreferrer" class="adm-btn adm-btn--secondary" style="padding:4px 10px;font-size:0.75rem;">Descargar</a>
+            <a href="{{ doc.file_path.url }}" target="_blank" rel="noopener noreferrer" class="adm-btn adm-btn--secondary" style="padding:4px 10px;font-size:0.75rem;">Download</a>
             {% endif %}
           </div>
           {% endfor %}
@@ -145,9 +145,9 @@
       <div>
         <div class="adm-info-card">
           <h3>Buyer</h3>
-          <div class="adm-info-row"><span class="adm-info-lbl">First name</span><span>{{ orden.buyer.get_full_name|default:orden.buyer.username }}</span></div>
+          <div class="adm-info-row"><span class="adm-info-lbl">Full name</span><span>{{ orden.buyer.get_full_name|default:orden.buyer.username }}</span></div>
           <div class="adm-info-row"><span class="adm-info-lbl">Email</span><span>{{ orden.buyer.email }}</span></div>
-          <div class="adm-info-row"><span class="adm-info-lbl">Tipo</span><span>{{ orden.get_order_type_display }}</span></div>
+          <div class="adm-info-row"><span class="adm-info-lbl">Type</span><span>{{ orden.get_order_type_display }}</span></div>
         </div>
 
         {% if orden.ship_address %}
@@ -163,7 +163,7 @@
         {% endif %}
 
         <div class="adm-info-card">
-          <h3>Cambiar estado</h3>
+          <h3>Change status</h3>
           <div class="adm-estado-wrap">
             {% for val, label in otros_estados %}
             <a href="{% url 'cambiar_estado_orden' orden.pk val %}">{{ label }}</a>
@@ -173,12 +173,12 @@
 
         {% if orden.notes %}
         <div class="adm-info-card">
-          <h3>Notas</h3>
+          <h3>Notes</h3>
           <p style="margin:0;font-size:0.875rem;color:#374151 !important;line-height:1.5;">{{ orden.notes }}</p>
         </div>
         {% endif %}
 
-        <p class="adm-det-meta">Creada {{ orden.created_at|date:"d/m/Y H:i" }} · Actualizada {{ orden.updated_at|date:"d/m/Y H:i" }}</p>
+        <p class="adm-det-meta">Created {{ orden.created_at|date:"d/m/Y H:i" }} · Updated {{ orden.updated_at|date:"d/m/Y H:i" }}</p>
       </div>
     </div>
   </div>

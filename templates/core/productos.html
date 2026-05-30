@@ -22,7 +22,7 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
       <div class="adm-head-actions">
         <a href="/admin/core/product/add/" class="adm-btn adm-btn--primary" target="_blank" rel="noopener noreferrer">
           <span class="material-symbols-rounded" aria-hidden="true">add</span>
-          Nuevo en Django Admin
+          New in Django Admin
         </a>
       </div>
     </header>
@@ -30,7 +30,7 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
     <form class="adm-filter-card" method="get" action="">
       <div class="adm-filter-grid">
         <div class="adm-field adm-field--grow">
-          <label for="adm-prod-buscar">Buscar</label>
+          <label for="adm-prod-buscar">Search</label>
           <input id="adm-prod-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Name, SKU, or description" autocomplete="off">
         </div>
         <div class="adm-field">
@@ -43,14 +43,14 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
           </select>
         </div>
         <div class="adm-filter-actions">
-          <button type="submit" class="adm-btn adm-btn--primary">Aplicar</button>
-          <a href="{% url 'lista_productos' %}" class="adm-btn adm-btn--secondary">Limpiar</a>
+          <button type="submit" class="adm-btn adm-btn--primary">Apply</button>
+          <a href="{% url 'lista_productos' %}" class="adm-btn adm-btn--secondary">Clear</a>
         </div>
       </div>
     </form>
 
     <p class="adm-result-hint">
-      Mostrando {{ productos.start_index }}–{{ productos.end_index }} de {{ productos.paginator.count }} productos
+      Showing {{ productos.start_index }}–{{ productos.end_index }} of {{ productos.paginator.count }} products
     </p>
 
     <div class="adm-prod-grid">
@@ -86,8 +86,8 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
             </span>
           </div>
           <div class="adm-prod-actions">
-            <a href="/admin/core/product/{{ p.pk }}/change/" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 10px;">Editar</a>
-            <a href="{% url 'tienda' %}?buscar={{ p.name|urlencode }}" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 10px;">Ver en tienda</a>
+            <a href="/admin/core/product/{{ p.pk }}/change/" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 10px;">Edit</a>
+            <a href="{% url 'tienda' %}?buscar={{ p.name|urlencode }}" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 10px;">View in store</a>
           </div>
         </div>
       </article>
@@ -121,13 +121,13 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
     if (isNaN(low)) low = 5;
     el.classList.remove('adm-prod-stock--ok', 'adm-prod-stock--low', 'adm-prod-stock--out');
     if (isNaN(qty) || qty <= 0) {
-      el.textContent = 'Sin stock';
+      el.textContent = 'Out of stock';
       el.classList.add('adm-prod-stock--out');
     } else if (qty <= low) {
-      el.textContent = qty + ' uds · bajo';
+      el.textContent = qty + ' units · low';
       el.classList.add('adm-prod-stock--low');
     } else {
-      el.textContent = qty + ' uds disponibles';
+      el.textContent = qty + ' units available';
       el.classList.add('adm-prod-stock--ok');
     }
   });

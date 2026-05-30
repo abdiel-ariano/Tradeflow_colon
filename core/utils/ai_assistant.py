@@ -14,15 +14,15 @@ from django.db.models import Q
 from django.urls import reverse
 
 SYSTEM_PROMPT = """
-Eres TF Assistant, asistente de TradeFlow Colón (marketplace B2B/B2C en la Zona Libre de Colón, Panamá).
-Responde SIEMPRE en el mismo idioma que usa el usuario (español o inglés).
-Sé claro, amable y concreto (máx. 3 párrafos cortos).
-Usa SOLO los datos del catálogo proporcionados; no inventes productos, stock ni precios.
-Para precios usa el formato indicado en el catálogo (USD con dos decimales).
-Si preguntan cómo comprar: registro, verificación de email, tienda y carrito.
-Si preguntan envíos o aduanas: indica que dependen del vendedor y del transportista; no inventes plazos.
-Si falta información, sugiere /tienda/, filtros por empresa o categoría, o info@tradeflow.pa.
-No reveles datos de usuarios, órdenes privadas, contraseñas ni claves API.
+You are TF Assistant, assistant for TradeFlow Colón (B2B/B2C marketplace in the Colón Free Zone, Panama).
+Always respond in the same language the user uses (Spanish or English).
+Be clear, friendly, and concise (max. 3 short paragraphs).
+Use ONLY the catalog data provided; do not invent products, stock, or prices.
+For prices use the format indicated in the catalog (USD with two decimals).
+If they ask how to buy: registration, email verification, store, and cart.
+If they ask about shipping or customs: indicate it depends on the seller and carrier; do not invent timelines.
+If information is missing, suggest /tienda/, filters by company or category, or info@tradeflow.pa.
+Do not reveal user data, private orders, passwords, or API keys.
 """
 
 _STOPWORDS = frozenset({
@@ -66,16 +66,16 @@ def _product_line(product, include_link_hint: bool = False) -> str:
         parts.append(f'| {product.category.name}')
     if product.is_on_promo_now:
         parts.append(
-            f'| Oferta -{product.discount_pct}% '
-            f'(antes {_fmt_money(product.currency, product.unit_price)})'
+            f'| Offer -{product.discount_pct}% '
+            f'(was {_fmt_money(product.currency, product.unit_price)})'
         )
     elif product.is_bestseller:
-        parts.append('| Más vendido')
+        parts.append('| Bestseller')
     elif product.is_featured:
-        parts.append('| Destacado')
+        parts.append('| Featured')
     line = ' '.join(parts)
     if include_link_hint:
-        line += f'\n  Ver en tienda: /tienda/?buscar={product.name[:40]}'
+        line += f'\n  View in store: /tienda/?buscar={product.name[:40]}'
     return line
 
 
@@ -120,18 +120,18 @@ def build_catalog_snapshot(limit_products: int = 80) -> dict:
     )
 
     lines = [
-        f'Productos activos: {total_productos}',
-        f'Empresas con catálogo: {empresas_count}',
-        f'Categorías: {", ".join(categorias[:12]) or "—"}',
+        f'Active products: {total_productos}',
+        f'Companies with catalog: {empresas_count}',
+        f'Categories: {", ".join(categorias[:12]) or "—"}',
     ]
     if ofertas:
-        lines.append('Ofertas del día:')
+        lines.append("Today's deals:")
         lines.extend(_product_line(p) for p in ofertas[:6])
     if bestsellers:
-        lines.append('Más vendidos:')
+        lines.append('Bestsellers:')
         lines.extend(_product_line(p) for p in bestsellers[:5])
     if destacados:
-        lines.append('Destacados:')
+        lines.append('Featured:')
         lines.extend(_product_line(p) for p in destacados[:5])
 
     return {
@@ -210,20 +210,20 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
 
     if _match_any(msg, ('hola', 'buenas', 'hello', 'hi', 'saludos', 'hey')):
         return (
-            '¡Hola! Soy TF Assistant de TradeFlow Colón. '
-            f'En este momento hay {snapshot["total_productos"]} productos activos '
-            f'de {snapshot["empresas_count"]} empresas en la ZLC. '
-            'Puedo ayudarte con ofertas, empresas, categorías y recomendaciones de precio. '
-            f'Explora el catálogo en {tienda} o crea cuenta en {signup}.'
+            'Hello! I am TF Assistant from TradeFlow Colón. '
+            f'Right now there are {snapshot["total_productos"]} active products '
+            f'from {snapshot["empresas_count"]} companies in the ZLC. '
+            'I can help you with deals, companies, categories, and price recommendations. '
+            f'Browse the catalog at {tienda} or create an account at {signup}.'
         )
 
     if _match_any(msg, ('zona libre', 'zlc', 'colón', 'colon', 'panamá', 'panama')):
         return (
-            'TradeFlow conecta compradores con empresas de la Zona Libre de Colón (ZLC), '
-            'uno de los principales hubs comerciales del mundo. '
-            f'Hoy listamos {snapshot["total_productos"]} productos de '
-            f'{snapshot["empresas_count"]} empresas verificadas. '
-            f'Visita {tienda} para ver el catálogo completo.'
+            'TradeFlow connects buyers with companies in the Colón Free Zone (ZLC), '
+            'one of the world\'s main commercial hubs. '
+            f'Today we list {snapshot["total_productos"]} products from '
+            f'{snapshot["empresas_count"]} verified companies. '
+            f'Visit {tienda} to see the full catalog.'
         )
 
     if _match_any(msg, (
@@ -231,10 +231,10 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
         'carrito', 'checkout', 'pedido', 'cuenta',
     )):
         return (
-            'Para comprar en TradeFlow: 1) Crea una cuenta comprador. '
-            f'2) Explora {tienda} y filtra por categoría o empresa. '
-            '3) Agrega productos al carrito y confirma el pedido. '
-            f'Regístrate en {signup}. Si ya tienes cuenta, inicia sesión y entra a la tienda.'
+            'To buy on TradeFlow: 1) Create a buyer account. '
+            f'2) Browse {tienda} and filter by category or company. '
+            '3) Add products to the cart and confirm your order. '
+            f'Sign up at {signup}. If you already have an account, log in and go to the store.'
         )
 
     if _match_any(msg, (
@@ -244,12 +244,12 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
         ofertas = snapshot.get('ofertas') or []
         if not ofertas:
             return (
-                'No hay ofertas con promoción vigente en este momento. '
-                f'Revisa {tienda}?tab=ofertas más tarde o explora el catálogo completo.'
+                'There are no active promotional deals right now. '
+                f'Check {tienda}?tab=ofertas later or browse the full catalog.'
             )
-        lines = ['Estas son las ofertas activas ahora:']
+        lines = ['These are the active deals right now:']
         lines.extend(_product_line(p) for p in ofertas[:8])
-        lines.append(f'\nVer todas: {tienda}?tab=ofertas')
+        lines.append(f'\nView all: {tienda}?tab=ofertas')
         return '\n'.join(lines)
 
     if _match_any(msg, (
@@ -258,32 +258,32 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
         best = snapshot.get('bestsellers') or []
         if not best:
             return (
-                'Aún no hay ranking de más vendidos con datos suficientes. '
-                f'Explora destacados en {tienda}?tab=bestsellers.'
+                'We do not have enough data for a bestseller ranking yet. '
+                f'Browse featured items at {tienda}?tab=bestsellers.'
             )
-        lines = ['Productos más vendidos recientemente:']
+        lines = ['Top-selling products recently:']
         lines.extend(_product_line(p) for p in best[:8])
-        lines.append(f'\nVer más: {tienda}?tab=bestsellers')
+        lines.append(f'\nView more: {tienda}?tab=bestsellers')
         return '\n'.join(lines)
 
     if _match_any(msg, ('empresa', 'empresas', 'proveedor', 'proveedores', 'vendedor')):
         nombres = snapshot.get('empresas_nombres') or []
         if not nombres:
-            return f'No hay empresas con productos activos. Consulta {tienda}.'
+            return f'There are no companies with active products. Check {tienda}.'
         lista = '\n'.join(f'• {n}' for n in nombres[:12])
         return (
-            f'Empresas con productos en TradeFlow ({len(nombres)} en muestra):\n'
-            f'{lista}\n\nFiltra por empresa en {tienda} (selector Empresa).'
+            f'Companies with products on TradeFlow ({len(nombres)} in sample):\n'
+            f'{lista}\n\nFilter by company at {tienda} (Company selector).'
         )
 
     if _match_any(msg, ('categoría', 'categoria', 'categorías', 'categorias')):
         cats = snapshot.get('categorias') or []
         if not cats:
-            return f'No hay categorías con productos activos. Visita {tienda}.'
+            return f'There are no categories with active products. Visit {tienda}.'
         lista = '\n'.join(f'• {c}' for c in cats[:15])
         return (
-            f'Categorías disponibles:\n{lista}\n\n'
-            f'Usa el filtro de categoría en {tienda}.'
+            f'Available categories:\n{lista}\n\n'
+            f'Use the category filter at {tienda}.'
         )
 
     if _match_any(msg, (
@@ -296,10 +296,10 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
             merch.active_products_base().order_by('unit_price')[:8]
         )
         if not prods:
-            return f'No hay productos listados. Visita {tienda}.'
-        lines = ['Opciones con precio más accesible (lista):']
+            return f'There are no products listed. Visit {tienda}.'
+        lines = ['Most affordable options (listed):']
         lines.extend(_product_line(p) for p in prods)
-        lines.append(f'\nOrdenar en tienda: {tienda}?orden=precio_asc')
+        lines.append(f'\nSort in store: {tienda}?orden=precio_asc')
         return '\n'.join(lines)
 
     if _match_any(msg, ('destacado', 'destacados', 'recomend', 'suger')):
@@ -308,7 +308,7 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
             from .. import merchandising as merch
             dest = list(merch.featured_products(6))
         if dest:
-            lines = ['Te recomiendo estos productos destacados:']
+            lines = ['I recommend these featured products:']
             lines.extend(_product_line(p, include_link_hint=True) for p in dest[:6])
             lines.append(f'\n{tienda}?tab=destacados')
             return '\n'.join(lines)
@@ -317,32 +317,32 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
     if tokens:
         encontrados = _buscar_productos(tokens, limit=8)
         if encontrados:
-            lines = [f'Encontré {len(encontrados)} producto(s) relacionado(s):']
+            lines = [f'I found {len(encontrados)} related product(s):']
             lines.extend(_product_line(p, include_link_hint=True) for p in encontrados)
             q = '+'.join(tokens[:3])
-            lines.append(f'\nVer más en {tienda}?buscar={q}')
+            lines.append(f'\nSee more at {tienda}?buscar={q}')
             return '\n'.join(lines)
 
     # Resumen general
     if snapshot['total_productos'] == 0:
         return (
-            'El catálogo aún no tiene productos activos. '
-            'Cuando haya inventario publicado, podré recomendarte ofertas y precios. '
-            f'Mientras tanto escríbenos a info@tradeflow.pa.'
+            'The catalog does not have active products yet. '
+            'When inventory is published, I can recommend deals and prices. '
+            f'In the meantime, email us at info@tradeflow.pa.'
         )
 
     muestra = snapshot.get('productos_muestra') or []
     lines = [
-        'Puedo ayudarte con productos, empresas, ofertas y precios de la ZLC. '
-        f'Catálogo actual: {snapshot["total_productos"]} productos, '
-        f'{snapshot["empresas_count"]} empresas.',
+        'I can help you with products, companies, deals, and prices in the ZLC. '
+        f'Current catalog: {snapshot["total_productos"]} products, '
+        f'{snapshot["empresas_count"]} companies.',
         '',
-        'Algunos productos disponibles:',
+        'Some available products:',
     ]
     lines.extend(_product_line(p) for p in muestra[:6])
     lines.append(
-        f'\nExplora todo en {tienda}. Prueba: "ofertas", "empresas", '
-        f'"categorías" o el nombre de un producto.'
+        f'\nBrowse everything at {tienda}. Try: "deals", "companies", '
+        f'"categories", or a product name.'
     )
     return '\n'.join(lines)
 
@@ -360,7 +360,7 @@ def _consultar_groq(mensaje_usuario: str, historial, snapshot: dict) -> str | No
     catalogo = snapshot.get('texto', '')[:6000]
     system = (
         f'{SYSTEM_PROMPT}\n\n'
-        f'--- Catálogo actual (usa solo esto) ---\n{catalogo}\n---'
+        f'--- Current catalog (use only this) ---\n{catalogo}\n---'
     )
     messages = [{'role': 'system', 'content': system}]
     if historial:
@@ -383,12 +383,12 @@ def _consultar_groq(mensaje_usuario: str, historial, snapshot: dict) -> str | No
 # ── RAG vendedor, confianza y formato estructurado ───────────────────────────
 
 _CATEGORY_META = {
-    'productos': ('inventory_2', 'Productos'),
-    'ventas': ('payments', 'Ventas'),
-    'cotizaciones': ('request_quote', 'Cotizaciones'),
-    'catalogo': ('storefront', 'Catálogo'),
-    'general': ('help', 'Información'),
-    'soporte': ('support_agent', 'Soporte'),
+    'productos': ('inventory_2', 'Products'),
+    'ventas': ('payments', 'Sales'),
+    'cotizaciones': ('request_quote', 'Quotes'),
+    'catalogo': ('storefront', 'Catalog'),
+    'general': ('help', 'Information'),
+    'soporte': ('support_agent', 'Support'),
 }
 
 _TOPIC_KEYWORDS = {
@@ -539,13 +539,13 @@ def _seller_rag_answer(mensaje: str, ctx: dict, topic: str) -> tuple[list[str], 
 
     if topic == 'productos':
         conf += 0.25
-        bullets.append(f'Total activos en tu empresa: {len(ctx["productos"])}')
+        bullets.append(f'Total active in your company: {len(ctx["productos"])}')
         if ctx['bajo_stock']:
             conf += 0.2
-            bullets.extend(f'Stock bajo: {n}' for n in ctx['bajo_stock'][:6])
+            bullets.extend(f'Low stock: {n}' for n in ctx['bajo_stock'][:6])
         if ctx['sin_ventas']:
             conf += 0.15
-            bullets.append(f'Sin ventas aún: {", ".join(ctx["sin_ventas"][:5])}')
+            bullets.append(f'No sales yet: {", ".join(ctx["sin_ventas"][:5])}')
         encontrados = [
             p for p in ctx['productos']
             if any(t in p.name.lower() for t in tokens)
@@ -561,8 +561,8 @@ def _seller_rag_answer(mensaje: str, ctx: dict, topic: str) -> tuple[list[str], 
         from ..models import Order as OrderModel
 
         conf += 0.35
-        bullets.append(f'Órdenes este mes: {ctx["ordenes_mes"]}')
-        bullets.append(f'Ingresos entregados/pagados del mes: USD {ctx["ingresos_mes"]}')
+        bullets.append(f'Orders this month: {ctx["ordenes_mes"]}')
+        bullets.append(f'Delivered/paid revenue this month: USD {ctx["ingresos_mes"]}')
         company = ctx['company']
         recientes = (
             OrderModel.objects.filter(items__product__company=company)
@@ -578,8 +578,8 @@ def _seller_rag_answer(mensaje: str, ctx: dict, topic: str) -> tuple[list[str], 
 
     elif topic == 'cotizaciones':
         conf += 0.35
-        bullets.append(f'Cotizaciones del mes: {ctx["cot_mes"]}')
-        bullets.append(f'Pendientes de respuesta: {ctx["cot_pend"]}')
+        bullets.append(f'Quotes this month: {ctx["cot_mes"]}')
+        bullets.append(f'Awaiting response: {ctx["cot_pend"]}')
         for cot in ctx['cot_recientes'][:6]:
             buyer = cot.buyer.get_full_name() or cot.buyer.username
             bullets.append(f'{cot.numero} — {buyer} — {cot.get_estado_display()}')
@@ -592,8 +592,8 @@ def _seller_rag_answer(mensaje: str, ctx: dict, topic: str) -> tuple[list[str], 
                 conf += 0.2
 
     resumen = (
-        f'Resumen: datos de {ctx["company_name"]} según tu panel de vendedor. '
-        'Revisa Mi Panel para el detalle completo.'
+        f'Summary: data for {ctx["company_name"]} from your seller dashboard. '
+        'See My Dashboard for full details.'
     )
     return bullets, resumen, min(conf, 1.0), tema
 
@@ -605,22 +605,22 @@ def responder_seller_rag(mensaje: str, company) -> dict:
     bullets, resumen, conf, tema_label = _seller_rag_answer(mensaje, ctx, topic)
 
     if not bullets:
-        bullets.append(f'Empresa: {ctx["company_name"]}')
+        bullets.append(f'Company: {ctx["company_name"]}')
     if len(bullets) < 2:
-        bullets.append('Revisa las secciones Productos, Ventas y Cotizaciones en tu panel.')
+        bullets.append('Review the Products, Sales, and Quotes sections in your dashboard.')
     if topic in ('productos', 'ventas', 'cotizaciones') and len(bullets) >= 2:
         conf = max(conf, 0.87)
 
     if conf < 0.85:
         fallback = (
-            f'No tengo información suficiente sobre {tema_label}. '
-            '¿Deseas que te conecte con soporte?'
+            f'I do not have enough information about {tema_label}. '
+            'Would you like me to connect you with support?'
         )
         html = format_structured_response(
             'soporte',
             [fallback],
-            'Escribe a soporte@tradeflow.pa o usa el formulario de contacto.',
-            'Contactar soporte',
+            'Email soporte@tradeflow.pa or use the contact form.',
+            'Contact support',
             'mailto:soporte@tradeflow.pa',
         )
         return {
@@ -632,11 +632,11 @@ def responder_seller_rag(mensaje: str, company) -> dict:
         }
 
     cta_map = {
-        'productos': ('Ver mis productos', reverse('seller_mis_productos')),
-        'ventas': ('Ver mis ventas', reverse('seller_mis_ventas')),
-        'cotizaciones': ('Ver cotizaciones', reverse('seller_cotizaciones')),
+        'productos': ('View my products', reverse('seller_mis_productos')),
+        'ventas': ('View my sales', reverse('seller_mis_ventas')),
+        'cotizaciones': ('View quotes', reverse('seller_cotizaciones')),
     }
-    cta_label, cta_url = cta_map.get(topic, ('Ir a Mi Panel', reverse('portal_seller')))
+    cta_label, cta_url = cta_map.get(topic, ('Go to My Dashboard', reverse('portal_seller')))
 
     html = format_structured_response(topic, bullets, resumen[:200], cta_label, cta_url)
     plain = '\n'.join(['• ' + b for b in bullets] + ['', resumen[:200], '', cta_label])
@@ -665,22 +665,26 @@ def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
     tokens = _tokens(mensaje)
     if tokens and any(t in raw.lower() for t in tokens):
         conf = 0.88
-    if 'No hay' in raw or 'no hay' in raw or 'no encontr' in raw.lower():
+    if (
+        'There are no' in raw or 'there are no' in raw
+        or 'We do not have' in raw or 'The catalog does not have' in raw
+        or 'not found' in raw.lower()
+    ):
         conf = 0.55
 
-    resumen = lines[0][:180] if lines else 'Información del catálogo TradeFlow Colón.'
+    resumen = lines[0][:180] if lines else 'TradeFlow Colón catalog information.'
     tienda = reverse('tienda')
 
     if conf < 0.85:
         tema = _CATEGORY_META.get(topic, _CATEGORY_META['catalogo'])[1]
-        fb = f'No tengo información suficiente sobre {tema}. ¿Deseas que te conecte con soporte?'
+        fb = f'I do not have enough information about {tema}. Would you like me to connect you with support?'
         return {
             'respuesta': fb,
             'respuesta_html': format_structured_response(
                 'soporte',
                 [fb],
-                'Explora la tienda o contacta soporte.',
-                'Contactar soporte',
+                'Browse the store or contact support.',
+                'Contact support',
                 'mailto:soporte@tradeflow.pa',
             ),
             'confianza': conf,
@@ -692,7 +696,7 @@ def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
         topic,
         bullets,
         resumen[:200],
-        'Explorar tienda',
+        'Browse store',
         tienda,
     )
     return {
@@ -713,7 +717,7 @@ def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None
     """
     mensaje = (mensaje_usuario or '').strip()
     if not mensaje:
-        empty = 'Escribe tu pregunta y te ayudo con el catálogo ZLC.'
+        empty = 'Type your question and I will help you with the ZLC catalog.'
         return {
             'respuesta': empty,
             'respuesta_html': format_structured_response('general', [empty], '', None),
@@ -746,7 +750,7 @@ def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None
                     result['categoria'],
                     bullets,
                     groq_resp[:200] if len(groq_resp) > 200 else '',
-                    'Ver tienda',
+                    'View store',
                     reverse('tienda'),
                 )
                 result['confianza'] = 0.9

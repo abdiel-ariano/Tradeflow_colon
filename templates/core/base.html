@@ -1176,7 +1176,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   <!-- TF Assistant Widget -->
   <div id="tf-assistant" style="position:fixed;bottom:28px;right:28px;z-index:9999;font-family:var(--tf-font-body);">
-    <button type="button" id="tf-chat-toggle" aria-label="Abrir asistente" style="width:56px;height:56px;border-radius:50%;border:none;background:var(--tf-orange);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(242,101,34,0.4);display:flex;align-items:center;justify-content:center;transition:all 0.25s ease;">
+    <button type="button" id="tf-chat-toggle" aria-label="Open assistant" style="width:56px;height:56px;border-radius:50%;border:none;background:var(--tf-orange);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(242,101,34,0.4);display:flex;align-items:center;justify-content:center;transition:all 0.25s ease;">
       <span class="material-symbols-rounded" id="tf-chat-icon" style="font-size:26px;">smart_toy</span>
     </button>
     <div id="tf-chat-window" style="display:none;position:absolute;bottom:68px;right:0;width:340px;height:460px;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(15,42,68,0.2);border:1px solid var(--tf-border);flex-direction:column;overflow:hidden;">
@@ -1185,8 +1185,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           <span class="material-symbols-rounded" style="font-size:20px;">smart_toy</span>
         </div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:700;">Asistente TradeFlow</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.65);">Asistente virtual de la Zona Libre</div>
+          <div style="font-size:14px;font-weight:700;">TradeFlow Assistant</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.65);">Free Zone virtual assistant</div>
         </div>
         <button type="button" id="tf-chat-close" aria-label="Close" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:0;display:flex;">
           <span class="material-symbols-rounded">close</span>
@@ -1198,7 +1198,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         </div>
       </div>
       <div style="padding:12px 14px;border-top:1px solid var(--tf-border);background:#fff;display:flex;gap:8px;">
-        <input type="text" id="tf-chat-input" placeholder="Escribe tu pregunta..." style="flex:1;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 12px;font-size:13px;outline:none;font-family:var(--tf-font-body);">
+        <input type="text" id="tf-chat-input" placeholder="Type your question..." style="flex:1;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 12px;font-size:13px;outline:none;font-family:var(--tf-font-body);">
         <button type="button" id="tf-chat-send" style="background:var(--tf-orange);color:#fff;border:none;border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <span class="material-symbols-rounded" style="font-size:18px;">send</span>
         </button>
@@ -1283,7 +1283,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       tfChatLoading = true;
       appendMessage(mensaje, false);
       tfChatHistory.push({ role: 'user', content: mensaje });
-      var loadingDiv = appendMessage('Escribiendo...', true);
+      var loadingDiv = appendMessage('Typing...', true);
       if (loadingDiv) {
         loadingDiv.style.color = '#6B7A88';
         loadingDiv.style.fontStyle = 'italic';
@@ -1302,7 +1302,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
-        var respuesta = data.respuesta || 'No pude procesar tu consulta.';
+        var respuesta = data.respuesta || 'I could not process your request.';
         var html = data.respuesta_html || respuesta;
         var botDiv = appendMessage(respuesta, true, html);
         appendFeedback(botDiv);

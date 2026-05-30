@@ -22,7 +22,7 @@
 <div class="wizard-steps">
   <div class="wizard-step active">1. Buyer</div>
   <div class="wizard-step">2. Products</div>
-  <div class="wizard-step">3. Confirmar</div>
+  <div class="wizard-step">3. Confirm</div>
 </div>
 
 <div class="form-card tf-centered-form" style="max-width:700px;">
@@ -32,7 +32,7 @@
     {% csrf_token %}
 
     <div style="margin-bottom:20px;">
-      <label style="font-weight:600;display:block;margin-bottom:6px;">Tipo de orden</label>
+      <label style="font-weight:600;display:block;margin-bottom:6px;">Order type</label>
       <div style="display:flex;gap:12px;">
         {% for val, label in order_types %}
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 16px;border:2px solid #ddd;border-radius:8px;">
@@ -45,7 +45,7 @@
     </div>
 
     <label style="font-weight:600;display:block;margin-bottom:8px;">Buyer</label>
-    <input type="text" id="buscarBuyer" placeholder="Filtrar por nombre o usuario..."
+    <input type="text" id="buscarBuyer" placeholder="Filter by name or username..."
            class="form-control" style="margin-bottom:12px;"
            onkeyup="filtrarBuyeres(this.value)">
 

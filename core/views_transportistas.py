@@ -49,7 +49,7 @@ def aplicar_transportista(request):
     if request.method == 'POST' and form.is_valid():
         email = form.cleaned_data['email'].strip().lower()
         if Transportista.objects.filter(email_contacto=email, estado='pendiente').exists():
-            messages.warning(request, _('Ya existe una solicitud pendiente con este correo.'))
+            messages.warning(request, _('A pending application already exists with this email.'))
             return redirect('aplicar_transportista')
 
         t = Transportista.objects.create(
@@ -71,18 +71,18 @@ def aplicar_transportista(request):
             log.exception('Email aplicación transportista')
             messages.warning(
                 request,
-                _('Solicitud guardada. Configure Gmail en .env para recibir confirmación por correo.'),
+                _('Application saved. Configure Gmail in .env to receive email confirmation.'),
             )
         else:
             messages.success(
                 request,
-                _('Solicitud enviada. Te contactaremos por correo cuando sea revisada.'),
+                _('Application submitted. We will contact you by email once it is reviewed.'),
             )
         return redirect('aplicar_transportista')
 
     return render(request, 'core/aplicar_transportista.html', {
         'form': form,
-        'titulo_pagina': _('Aplicar como transportista'),
+        'titulo_pagina': _('Apply as carrier'),
     })
 
 
@@ -96,7 +96,7 @@ def admin_transportistas(request):
     return render(request, 'core/admin_transportistas.html', {
         'transportistas': qs,
         'estado_filtro': estado,
-        'titulo_pagina': _('Transportistas'),
+        'titulo_pagina': _('Carriers'),
         'nav_activo': 'admin',
     })
 
@@ -106,7 +106,7 @@ def admin_aprobar_transportista(request, pk, decision):
     """Aprueba o rechaza transportista; crea usuario si se aprueba."""
     t = get_object_or_404(Transportista, pk=pk)
     if t.estado != 'pendiente':
-        messages.info(request, _('Esta solicitud ya fue revisada.'))
+        messages.info(request, _('This application has already been reviewed.'))
         return redirect('admin_transportistas')
 
     aprobado = decision == 'aprobar'
@@ -137,7 +137,7 @@ def admin_aprobar_transportista(request, pk, decision):
     except Exception:
         log.exception('Email resultado transportista')
 
-    messages.success(request, _('Decisión registrada.'))
+    messages.success(request, _('Decision recorded.'))
     return redirect('admin_transportistas')
 
 
@@ -154,14 +154,14 @@ def seleccionar_transportista(request, order_pk):
         lat = request.POST.get('pickup_lat', '').strip()
         lng = request.POST.get('pickup_lng', '').strip()
         if not tid or not lat or not lng:
-            messages.error(request, _('Selecciona transportista y marca tu ubicación.'))
+            messages.error(request, _('Select a carrier and mark your location.'))
             return redirect('seleccionar_transportista', order_pk=order_pk)
         try:
             t_obj = get_object_or_404(Transportista, pk=int(tid), activo=True, estado='aprobado')
             lat_d = Decimal(lat)
             lng_d = Decimal(lng)
         except (ValueError, InvalidOperation):
-            messages.error(request, _('Datos inválidos.'))
+            messages.error(request, _('Invalid data.'))
             return redirect('seleccionar_transportista', order_pk=order_pk)
 
         desc = request.POST.get('pickup_descripcion', '').strip() or f'{lat},{lng}'
@@ -181,13 +181,13 @@ def seleccionar_transportista(request, order_pk):
         orden.recalculate_totals()
         orden.total = orden.subtotal + costo
         orden.save(update_fields=['shipping_cost', 'total', 'updated_at'])
-        messages.success(request, _('Transportista asignado correctamente.'))
+        messages.success(request, _('Carrier assigned successfully.'))
         return redirect('detalle_mi_orden', pk=orden.pk)
 
     return render(request, 'core/seleccionar_transportista.html', {
         'order': orden,
         'transportistas': transportistas,
-        'titulo_pagina': _('Seleccionar transportista'),
+        'titulo_pagina': _('Select carrier'),
         'nav_activo': 'tienda',
     })
 
@@ -200,7 +200,7 @@ def confirmar_orden_empresa(request, order_pk, decision):
     company = _get_seller_company(request.user)
     orden = get_object_or_404(Order, pk=order_pk)
     if not company:
-        messages.error(request, _('Sin empresa vinculada.'))
+        messages.error(request, _('No linked company.'))
         return redirect('seller_mis_ventas')
 
     lineas = orden.items.filter(product__company=company).exists()
@@ -210,11 +210,11 @@ def confirmar_orden_empresa(request, order_pk, decision):
     expire_pending_orders()
     if orden.seller_confirm_by and timezone.now() > orden.seller_confirm_by:
         reject_seller_order(orden)
-        messages.error(request, _('El plazo de confirmación expiró. La orden fue cancelada.'))
+        messages.error(request, _('Confirmation deadline expired. The order was cancelled.'))
         return redirect('seller_mis_ventas')
 
     if orden.status != 'awaiting_seller' or orden.seller_confirmation_status != 'pending':
-        messages.warning(request, _('Esta orden ya no admite confirmación.'))
+        messages.warning(request, _('This order can no longer be confirmed.'))
         return redirect('seller_detalle_venta', pk=order_pk)
 
     prev = orden.status
@@ -227,15 +227,15 @@ def confirmar_orden_empresa(request, order_pk, decision):
             messages.error(
                 request,
                 _(
-                    'Límite mensual de tu plan alcanzado (USD %(limit)s). '
-                    'Amplía tu plan para confirmar esta venta.'
+                    'Monthly plan limit reached (USD %(limit)s). '
+                    'Upgrade your plan to confirm this sale.'
                 ) % {'limit': exc.limit},
             )
             return redirect('seller_plan_consumo')
-        messages.success(request, _('Pedido aceptado.'))
+        messages.success(request, _('Order accepted.'))
     elif decision == 'rechazar':
         reject_seller_order(orden)
-        messages.warning(request, _('Pedido rechazado.'))
+        messages.warning(request, _('Order rejected.'))
     else:
         raise Http404
 

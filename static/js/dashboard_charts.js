@@ -83,7 +83,7 @@
 
   function boot() {
     if (typeof Chart === 'undefined') {
-      showChartsError(i18n('chartLoadError', 'No se pudo cargar Chart.js. Recarga la página.'));
+      showChartsError(i18n('chartLoadError', 'Could not load Chart.js. Reload the page.'));
       return;
     }
 
@@ -94,7 +94,7 @@
     var pillsRoot = document.getElementById('adm-dias-pills');
     var parsed = parseInitialPayload(pillsRoot);
     if (!parsed.ok) {
-      showChartsError(i18n('chartDataError', 'Datos de gráficos incompletos. Recarga o cambia el período (7/30/90).'));
+      showChartsError(i18n('chartDataError', 'Chart data is incomplete. Reload or change the period (7/30/90).'));
     } else {
       hideChartsError();
     }
@@ -104,11 +104,11 @@
 
     var catColors = ['#F26522', '#2E5B8A', '#1B3B63', '#FF7A3D', '#6B7A88', '#FFA15A'];
     var estadoLabels = [
-      i18n('chartPending', 'Pendiente'),
-      i18n('chartPaid', 'Pagado'),
-      i18n('chartShipped', 'Enviado'),
-      i18n('chartDelivered', 'Entregado'),
-      i18n('chartCancelled', 'Cancelado'),
+      i18n('chartPending', 'Pending'),
+      i18n('chartPaid', 'Paid'),
+      i18n('chartShipped', 'Shipped'),
+      i18n('chartDelivered', 'Delivered'),
+      i18n('chartCancelled', 'Cancelled'),
     ];
     var estadoColors = ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#065F46', '#FEE2E2'];
     var estadoKeys = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
@@ -255,7 +255,7 @@
             data: {
               labels: labels,
               datasets: [{
-                label: i18n('chartOrders', 'Órdenes'),
+                label: i18n('chartOrders', 'Orders'),
                 data: ordenesDia,
                 backgroundColor: '#F26522',
                 borderRadius: 6,
@@ -274,7 +274,7 @@
             }),
           });
         } catch (e) {
-          showChartsError('Error al dibujar gráfico de órdenes: ' + e.message);
+          showChartsError('Error drawing orders chart: ' + e.message);
         }
       }
 
@@ -322,7 +322,7 @@
             }),
           });
         } catch (e) {
-          showChartsError('Error al dibujar gráfico de ingresos: ' + e.message);
+          showChartsError('Error drawing revenue chart: ' + e.message);
         }
       }
 
@@ -339,7 +339,7 @@
           data: {
             labels: estadoLabels,
             datasets: [{
-              label: i18n('chartOrders', 'Órdenes'),
+              label: i18n('chartOrders', 'Orders'),
               data: estVals,
               backgroundColor: estadoColors,
               borderWidth: 2,
@@ -368,7 +368,7 @@
           data: {
             labels: ['B2B', 'B2C'],
             datasets: [{
-              label: i18n('chartOrders', 'Órdenes'),
+              label: i18n('chartOrders', 'Orders'),
               data: [tipoB2b, tipoB2c],
               backgroundColor: ['#2E5B8A', '#F26522'],
               borderWidth: 2,
@@ -440,7 +440,7 @@
           data: {
             labels: prods.map(function (p) { return p.label; }),
             datasets: [{
-              label: i18n('chartUnits', 'Unidades'),
+              label: i18n('chartUnits', 'Units'),
               data: prods.map(function (p) { return Number(p.units || 0); }),
               backgroundColor: '#F26522',
               borderRadius: 4,
@@ -466,7 +466,7 @@
     try {
       createCharts(parsed.payload);
     } catch (e) {
-      showChartsError(i18n('chartInitError', 'No se pudieron inicializar los gráficos.') + ' ' + e.message);
+      showChartsError(i18n('chartInitError', 'Could not initialize charts.') + ' ' + e.message);
       return;
     }
 
@@ -491,7 +491,7 @@
             })
             .then(function (data) {
               if (!payloadLooksValid(data)) {
-                showChartsError('La API devolvió datos incompletos.');
+                showChartsError('The API returned incomplete data.');
                 return;
               }
               hideChartsError();
@@ -502,7 +502,7 @@
               createCharts(data);
             })
             .catch(function () {
-              showChartsError(i18n('chartUpdateError', 'No se pudieron actualizar los gráficos.'));
+              showChartsError(i18n('chartUpdateError', 'Could not update charts.'));
             });
         });
       });

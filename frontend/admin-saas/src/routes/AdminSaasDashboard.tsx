@@ -41,12 +41,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { currencyUsd, formatUsdK } from '@/lib/utils';
 
-export const MONTHS_ES = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+export const MONTHS_EN = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
-/** Datos de respaldo si la API aún no responde (desarrollo). */
+/** Fallback data when the API is unavailable (development). */
 export const historicalSales = [42000, 45500, 49800, 52300, 56100, 61200, 64900, 70400, 74800];
 
 type PlanUsageRow = {
@@ -61,10 +61,10 @@ type PlanUsageRow = {
 };
 
 export const planUsageFallback: PlanUsageRow[] = [
-  { slug: 'digitalizate', name: 'Digitalízate', count: 0, limit: 200, monthly_income_usd: 0, color: 'oklch(0.7 0.15 200)', occupancy_pct: 0 },
-  { slug: 'expansion', name: 'Expansión', count: 0, limit: 150, monthly_income_usd: 0, color: 'oklch(0.65 0.18 260)', occupancy_pct: 0 },
-  { slug: 'corporativo_pro', name: 'Corporativo Pro', count: 0, limit: 50, monthly_income_usd: 0, color: 'oklch(0.6 0.2 30)', occupancy_pct: 0 },
-  { slug: 'ecosistema_enterprise', name: 'Ecosistema Enterprise', count: 0, limit: 20, monthly_income_usd: 0, color: 'oklch(0.65 0.18 145)', occupancy_pct: 0 },
+  { slug: 'digitalizate', name: 'Digitalize', count: 0, limit: 200, monthly_income_usd: 0, color: 'oklch(0.7 0.15 200)', occupancy_pct: 0 },
+  { slug: 'expansion', name: 'Expansion', count: 0, limit: 150, monthly_income_usd: 0, color: 'oklch(0.65 0.18 260)', occupancy_pct: 0 },
+  { slug: 'corporativo_pro', name: 'Corporate Pro', count: 0, limit: 50, monthly_income_usd: 0, color: 'oklch(0.6 0.2 30)', occupancy_pct: 0 },
+  { slug: 'ecosistema_enterprise', name: 'Enterprise Ecosystem', count: 0, limit: 20, monthly_income_usd: 0, color: 'oklch(0.65 0.18 145)', occupancy_pct: 0 },
 ];
 
 export type PlanRequest = {
@@ -154,7 +154,7 @@ export function AdminSaasDashboard() {
         })),
       );
     } catch {
-      toast.error('No se pudieron cargar las métricas. Mostrando datos de respaldo.');
+      toast.error('Could not load metrics. Showing fallback data.');
       setData(null);
       setRequests([]);
     } finally {
@@ -181,7 +181,7 @@ export function AdminSaasDashboard() {
   const predictive = data?.predictive;
   const salesTrend = data?.sales_trend?.length
     ? data.sales_trend
-    : historicalSales.map((v, i) => ({ month: MONTHS_ES[i], revenue_usd: v }));
+    : historicalSales.map((v, i) => ({ month: MONTHS_EN[i], revenue_usd: v }));
 
   const areaChartData = useMemo(() => {
     if (predictive?.chart?.length) {
@@ -193,7 +193,7 @@ export function AdminSaasDashboard() {
       }));
     }
     const hist = historicalSales.map((v, i) => ({
-      month: MONTHS_ES[i],
+      month: MONTHS_EN[i],
       real: v,
       predicted: undefined as number | undefined,
     }));
@@ -201,7 +201,7 @@ export function AdminSaasDashboard() {
     return [
       ...hist,
       ...slope.map((v, i) => ({
-        month: MONTHS_ES[(9 + i) % 12],
+        month: MONTHS_EN[(9 + i) % 12],
         real: undefined as number | undefined,
         predicted: v,
         boundary: i === 0,
@@ -210,7 +210,7 @@ export function AdminSaasDashboard() {
   }, [predictive]);
 
   const predictedAmount = predictive?.predicted_amount_usd ?? linearRegressionForecast(historicalSales, 1)[0];
-  const nextMonth = predictive?.next_month_label ?? MONTHS_ES[new Date().getMonth() % 12];
+  const nextMonth = predictive?.next_month_label ?? MONTHS_EN[new Date().getMonth() % 12];
   const confidence = predictive?.confidence_pct ?? 78;
   const trendPct = predictive?.monthly_trend_pct ?? 8.4;
 
@@ -237,7 +237,7 @@ export function AdminSaasDashboard() {
             : r,
         ),
       );
-      toast.success(body.message || (action === 'approve' ? 'Solicitud aprobada' : 'Solicitud rechazada'));
+      toast.success(body.message || (action === 'approve' ? 'Request approved' : 'Request rejected'));
       loadStats();
     } catch {
       setRequests((prev) =>
@@ -249,8 +249,8 @@ export function AdminSaasDashboard() {
       );
       toast.success(
         action === 'approve'
-          ? `${req.company}: plan activado (modo demo).`
-          : `${req.company}: solicitud rechazada (modo demo).`,
+          ? `${req.company}: plan activated (demo mode).`
+          : `${req.company}: request rejected (demo mode).`,
       );
     }
   };
@@ -266,7 +266,7 @@ export function AdminSaasDashboard() {
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
-        Cargando panel SaaS…
+        Loading SaaS dashboard…
       </div>
     );
   }
@@ -281,36 +281,36 @@ export function AdminSaasDashboard() {
             <Building2 className="h-6 w-6" />
           </span>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Panel de Administración</h1>
-            <p className="text-sm text-muted-foreground">Gestión de empresas y planes</p>
+            <h1 className="text-xl font-bold tracking-tight">Administration Panel</h1>
+            <p className="text-sm text-muted-foreground">Company and plan management</p>
           </div>
         </div>
         <Badge variant="default" className="gap-1.5 px-3 py-1">
           <Sparkles className="h-3.5 w-3.5" />
-          IA Predictiva activa
+          Predictive AI active
         </Badge>
       </header>
 
       <Card className="mb-8 overflow-hidden">
         <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-4 pb-0">
           <div>
-            <Badge variant="secondary" className="mb-2">Análisis Predictivo</Badge>
+            <Badge variant="secondary" className="mb-2">Predictive analysis</Badge>
             <CardTitle className="text-lg font-normal text-muted-foreground">
-              Ventas esperadas para{' '}
-              <span className="text-foreground font-semibold">{nextMonth}</span> son de{' '}
+              Expected sales for{' '}
+              <span className="text-foreground font-semibold">{nextMonth}</span> are{' '}
               <span className="text-primary text-3xl font-bold">
                 {currencyUsd.format(predictedAmount)}
               </span>
             </CardTitle>
             <CardDescription className="mt-2">
-              Confianza {confidence}% · tendencia mensual{' '}
+              Confidence {confidence}% · monthly trend{' '}
               {trendPct >= 0 ? '+' : ''}
-              {trendPct}% en USD (plataforma)
+              {trendPct}% in USD (platform)
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 text-emerald font-medium text-sm">
             <TrendingUp className="h-5 w-5" />
-            {predictive?.trend_label ?? 'Tendencia positiva'}
+            {predictive?.trend_label ?? 'Positive trend'}
           </div>
         </CardHeader>
         <CardContent className="pt-6 h-[280px]">
@@ -334,12 +334,12 @@ export function AdminSaasDashboard() {
                 x={areaChartData.find((d) => 'boundary' in d && d.boundary)?.month}
                 stroke="oklch(0.5 0.05 250)"
                 strokeDasharray="4 4"
-                label={{ value: 'Hoy', position: 'top', fontSize: 11 }}
+                label={{ value: 'Today', position: 'top', fontSize: 11 }}
               />
               <Area
                 type="monotone"
                 dataKey="real"
-                name="Ventas reales"
+                name="Actual sales"
                 stroke="oklch(0.5 0.14 250)"
                 fill="url(#realFill)"
                 strokeWidth={2}
@@ -348,7 +348,7 @@ export function AdminSaasDashboard() {
               <Area
                 type="monotone"
                 dataKey="predicted"
-                name="Proyección"
+                name="Forecast"
                 stroke="oklch(0.55 0.15 155)"
                 fill="url(#predFill)"
                 strokeWidth={2}
@@ -362,49 +362,49 @@ export function AdminSaasDashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
         <KpiCard
-          title="Empresas activas"
+          title="Active companies"
           value={String(kpis.companies_active)}
-          delta={`+${kpis.companies_active_delta} este mes`}
+          delta={`+${kpis.companies_active_delta} this month`}
           icon={Building2}
         />
         <KpiCard
-          title="Ingreso mensual"
+          title="Monthly revenue"
           value={currencyUsd.format(kpis.monthly_revenue_usd)}
-          delta={`+${kpis.monthly_revenue_delta_pct}% vs mes anterior`}
+          delta={`+${kpis.monthly_revenue_delta_pct}% vs previous month`}
           icon={DollarSign}
         />
         <KpiCard
-          title="Capacidad usada"
+          title="Capacity used"
           value={`${Math.round(kpis.capacity_used_pct)}%`}
           delta={`${kpis.capacity_active}/${kpis.capacity_total}`}
           icon={Users}
         />
         <KpiCard
-          title="Solicitudes pendientes"
+          title="Pending requests"
           value={String(pendingCount || kpis.pending_requests)}
-          delta="Requieren revisión"
+          delta="Requires review"
           icon={ArrowUpRight}
         />
       </div>
 
       <Tabs defaultValue="planes" className="w-full">
         <TabsList className="flex flex-wrap h-auto gap-1">
-          <TabsTrigger value="planes">Uso de planes</TabsTrigger>
+          <TabsTrigger value="planes">Plan usage</TabsTrigger>
           <TabsTrigger value="solicitudes" className="gap-2">
-            Solicitudes
+            Requests
             {(pendingCount || kpis.pending_requests) > 0 && (
               <Badge variant="secondary" className="ml-1 h-5 min-w-5 justify-center px-1.5">
                 {pendingCount || kpis.pending_requests}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="ingresos">Distribución de ingresos</TabsTrigger>
+          <TabsTrigger value="ingresos">Revenue distribution</TabsTrigger>
         </TabsList>
 
         <TabsContent value="planes">
           <div className="grid lg:grid-cols-2 gap-6">
             <Card className="p-4">
-              <CardTitle className="text-base mb-4 px-2">Empresas por plan</CardTitle>
+              <CardTitle className="text-base mb-4 px-2">Companies by plan</CardTitle>
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={planUsage} layout="vertical" margin={{ left: 8, right: 16 }}>
@@ -412,7 +412,7 @@ export function AdminSaasDashboard() {
                     <XAxis type="number" />
                     <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
                     <Tooltip content={<ChartTooltipCard />} />
-                    <Bar dataKey="count" name="Empresas" radius={[0, 6, 6, 0]}>
+                    <Bar dataKey="count" name="Companies" radius={[0, 6, 6, 0]}>
                       {planUsage.map((p) => (
                         <Cell key={p.slug} fill={p.color} />
                       ))}
@@ -438,13 +438,13 @@ export function AdminSaasDashboard() {
                   </div>
                   <Progress value={plan.occupancy_pct} className="h-2 mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    Ingreso mensual:{' '}
+                    Monthly revenue:{' '}
                     <strong className="text-foreground">
                       {currencyUsd.format(plan.monthly_income_usd)}
                     </strong>
                     {plan.volume_usd != null && plan.volume_usd > 0 && (
                       <span className="ml-2">
-                        · GMV período: {currencyUsd.format(plan.volume_usd)}
+                        · Period GMV: {currencyUsd.format(plan.volume_usd)}
                       </span>
                     )}
                   </p>
@@ -460,19 +460,19 @@ export function AdminSaasDashboard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Actual → Solicitado</TableHead>
-                  <TableHead>Motivo</TableHead>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Acciones</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Current → Requested</TableHead>
+                  <TableHead>Reason</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {requests.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                      No hay solicitudes pendientes
+                      No pending requests
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -491,31 +491,31 @@ export function AdminSaasDashboard() {
                         {req.reason}
                       </TableCell>
                       <TableCell className="text-sm whitespace-nowrap">
-                        {new Date(req.date).toLocaleDateString('es-PA')}
+                        {new Date(req.date).toLocaleDateString('en-US')}
                       </TableCell>
                       <TableCell>
                         {req.status === 'pending' && (
-                          <Badge variant="secondary">Pendiente</Badge>
+                          <Badge variant="secondary">Pending</Badge>
                         )}
                         {req.status === 'approved' && (
-                          <Badge variant="emerald">Aprobado</Badge>
+                          <Badge variant="emerald">Approved</Badge>
                         )}
                         {req.status === 'rejected' && (
-                          <Badge variant="destructive">Rechazado</Badge>
+                          <Badge variant="destructive">Rejected</Badge>
                         )}
                       </TableCell>
                       <TableCell>
                         {req.status === 'pending' && (
                           <div className="flex gap-2">
                             <Button size="sm" onClick={() => handleRequestAction(req, 'approve')}>
-                              Aprobar
+                              Approve
                             </Button>
                             <Button
                               size="sm"
                               variant="destructive"
                               onClick={() => handleRequestAction(req, 'reject')}
                             >
-                              Rechazar
+                              Reject
                             </Button>
                           </div>
                         )}
@@ -531,7 +531,7 @@ export function AdminSaasDashboard() {
         <TabsContent value="ingresos">
           <div className="grid lg:grid-cols-2 gap-6">
             <Card className="p-4">
-              <CardTitle className="text-base mb-4 px-2">Participación por plan</CardTitle>
+              <CardTitle className="text-base mb-4 px-2">Share by plan</CardTitle>
               <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -553,7 +553,7 @@ export function AdminSaasDashboard() {
               </div>
             </Card>
             <Card className="p-4">
-              <CardTitle className="text-base mb-4 px-2">Tendencia de ventas (9 meses)</CardTitle>
+              <CardTitle className="text-base mb-4 px-2">Sales trend (9 months)</CardTitle>
               <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={salesTrend}>
@@ -564,7 +564,7 @@ export function AdminSaasDashboard() {
                     <Line
                       type="monotone"
                       dataKey="revenue_usd"
-                      name="Ventas"
+                      name="Sales"
                       stroke="oklch(0.5 0.14 250)"
                       strokeWidth={2}
                       dot={{ r: 3 }}
@@ -596,5 +596,5 @@ function linearRegressionForecast(values: number[], count: number): number[] {
   );
 }
 
-/** Export para TanStack Router */
+/** Export for TanStack Router */
 export const Route = AdminSaasDashboard;

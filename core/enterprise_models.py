@@ -1,6 +1,6 @@
 """
-Modelos enterprise: planes SaaS, ads, logística API y API keys.
-Extienden la arquitectura existente sin reemplazar modelos core.
+Enterprise models: SaaS plans, ads, logistics API, and API keys.
+Extends the existing architecture without replacing core models.
 """
 from __future__ import annotations
 
@@ -11,11 +11,10 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 
 
 class SaasPlan(models.Model):
-    """Plan comercial TradeFlow (Digitalízate → Enterprise)."""
+    """Commercial TradeFlow plan (Digitalize → Enterprise)."""
 
     slug = models.SlugField(max_length=40, unique=True)
     name = models.CharField(max_length=120)
@@ -24,7 +23,7 @@ class SaasPlan(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        help_text=_('Null = volumen ilimitado'),
+        help_text='Null = unlimited volume',
     )
     ad_credits_monthly = models.PositiveIntegerField(default=0)
     api_access = models.BooleanField(default=False)
@@ -32,15 +31,15 @@ class SaasPlan(models.Model):
     priority_support = models.BooleanField(default=False)
     predictive_ai = models.BooleanField(
         default=False,
-        verbose_name=_('IA predictiva Enterprise'),
+        verbose_name='Enterprise predictive AI',
     )
     sort_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['sort_order', 'slug']
-        verbose_name = 'Plan SaaS'
-        verbose_name_plural = 'Planes SaaS'
+        verbose_name = 'SaaS plan'
+        verbose_name_plural = 'SaaS plans'
 
     def __str__(self):
         return self.name
@@ -51,13 +50,13 @@ class SaasPlan(models.Model):
 
 
 class CompanySubscription(models.Model):
-    """Suscripción activa de una empresa vendedora."""
+    """Active subscription for a seller company."""
 
     STATUS_CHOICES = [
-        ('trialing', _('Prueba')),
-        ('active', _('Activa')),
-        ('past_due', _('Pago pendiente')),
-        ('cancelled', _('Cancelada')),
+        ('trialing', 'Trial'),
+        ('active', 'Active'),
+        ('past_due', 'Payment past due'),
+        ('cancelled', 'Cancelled'),
     ]
 
     company = models.OneToOneField(
@@ -78,15 +77,15 @@ class CompanySubscription(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Suscripción empresa'
-        verbose_name_plural = 'Suscripciones empresa'
+        verbose_name = 'Company subscription'
+        verbose_name_plural = 'Company subscriptions'
 
     def __str__(self):
         return f'{self.company.name} — {self.plan.name}'
 
 
 class CompanyBillingUsage(models.Model):
-    """Volumen facturable agregado por empresa y mes."""
+    """Billable volume aggregated by company and month."""
 
     company = models.ForeignKey(
         'core.Company',
@@ -101,21 +100,21 @@ class CompanyBillingUsage(models.Model):
 
     class Meta:
         unique_together = [('company', 'period_year', 'period_month')]
-        verbose_name = 'Uso facturación mensual'
-        verbose_name_plural = 'Uso facturación mensual'
+        verbose_name = 'Monthly billing usage'
+        verbose_name_plural = 'Monthly billing usage'
 
     def __str__(self):
         return f'{self.company_id} {self.period_year}-{self.period_month:02d}'
 
 
 class SubscriptionUpgradeLog(models.Model):
-    """Historial persistente de cambios de plan (Supabase / PostgreSQL)."""
+    """Persistent plan change history (Supabase / PostgreSQL)."""
 
     SOURCE_CHOICES = [
-        ('self_serve', _('Activación seller')),
-        ('checkout', _('Pago checkout')),
-        ('commercial', _('Aprobación comercial')),
-        ('admin', _('Administrador')),
+        ('self_serve', 'Seller activation'),
+        ('checkout', 'Checkout payment'),
+        ('commercial', 'Commercial approval'),
+        ('admin', 'Administrator'),
     ]
 
     company = models.ForeignKey(
@@ -141,23 +140,23 @@ class SubscriptionUpgradeLog(models.Model):
 
     class Meta:
         ordering = ['-activated_at']
-        verbose_name = 'Historial upgrade plan'
-        verbose_name_plural = 'Historial upgrades plan'
+        verbose_name = 'Plan upgrade history'
+        verbose_name_plural = 'Plan upgrade history'
 
 
 class CompanyPlanCheckout(models.Model):
-    """Checkout de suscripción SaaS (pago simulado o proveedor futuro)."""
+    """SaaS subscription checkout (simulated payment or future provider)."""
 
     STATUS_CHOICES = [
-        ('pending', _('Pendiente de pago')),
-        ('paid', _('Pagado')),
-        ('cancelled', _('Cancelado')),
-        ('expired', _('Expirado')),
+        ('pending', 'Payment pending'),
+        ('paid', 'Paid'),
+        ('cancelled', 'Cancelled'),
+        ('expired', 'Expired'),
     ]
     PROVIDER_CHOICES = [
-        ('mock', _('Tarjeta (demo)')),
+        ('mock', 'Card (demo)'),
         ('stripe', 'Stripe'),
-        ('bank', _('Transferencia')),
+        ('bank', 'Bank transfer'),
     ]
 
     company = models.ForeignKey(
@@ -179,7 +178,7 @@ class CompanyPlanCheckout(models.Model):
     )
     amount_usd = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='USD')
-    billing_label = models.CharField(max_length=40, default='Mensual')
+    billing_label = models.CharField(max_length=40, default='Monthly')
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pending')
     provider = models.CharField(max_length=12, choices=PROVIDER_CHOICES, default='mock')
     txn_ref = models.CharField(max_length=120, blank=True)
@@ -189,21 +188,21 @@ class CompanyPlanCheckout(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = 'Checkout plan SaaS'
-        verbose_name_plural = 'Checkouts plan SaaS'
+        verbose_name = 'SaaS plan checkout'
+        verbose_name_plural = 'SaaS plan checkouts'
 
     def __str__(self):
         return f'{self.company.name} → {self.target_plan.slug} [{self.status}]'
 
 
 class CompanyPlanCommercialRequest(models.Model):
-    """Solicitud comercial Enterprise vinculada a empresa (persistente en Supabase)."""
+    """Enterprise commercial request linked to a company (persistent in Supabase)."""
 
     STATUS_CHOICES = [
-        ('pending', _('Pendiente')),
-        ('en_revision', _('En revisión')),
-        ('approved', _('Aprobada')),
-        ('rejected', _('Rechazada')),
+        ('pending', 'Pending'),
+        ('en_revision', 'Under review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
     ]
 
     company = models.ForeignKey(
@@ -233,12 +232,12 @@ class CompanyPlanCommercialRequest(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = 'Solicitud plan comercial'
-        verbose_name_plural = 'Solicitudes plan comercial'
+        verbose_name = 'Commercial plan request'
+        verbose_name_plural = 'Commercial plan requests'
 
 
 class CompanyPredictiveSnapshot(models.Model):
-    """Caché de insights predictivos (Enterprise) por empresa y período."""
+    """Predictive insights cache (Enterprise) by company and period."""
 
     company = models.ForeignKey(
         'core.Company',
@@ -251,8 +250,8 @@ class CompanyPredictiveSnapshot(models.Model):
 
     class Meta:
         unique_together = [('company', 'period_key')]
-        verbose_name = 'Snapshot predictivo'
-        verbose_name_plural = 'Snapshots predictivos'
+        verbose_name = 'Predictive snapshot'
+        verbose_name_plural = 'Predictive snapshots'
         ordering = ['-computed_at']
 
 
@@ -267,15 +266,15 @@ class AdCreditAccount(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'Cuenta créditos ads'
-        verbose_name_plural = 'Cuentas créditos ads'
+        verbose_name = 'Ad credits account'
+        verbose_name_plural = 'Ad credits accounts'
 
 
 class AdCampaign(models.Model):
     PLACEMENT_CHOICES = [
-        ('search', _('Búsqueda')),
-        ('home', _('Home')),
-        ('category', _('Categoría')),
+        ('search', 'Search'),
+        ('home', 'Home'),
+        ('category', 'Category'),
     ]
 
     company = models.ForeignKey(
@@ -303,8 +302,8 @@ class AdCampaign(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Campaña publicitaria'
-        verbose_name_plural = 'Campañas publicitarias'
+        verbose_name = 'Ad campaign'
+        verbose_name_plural = 'Ad campaigns'
 
     def __str__(self):
         return self.name
@@ -318,7 +317,7 @@ class LogisticsWebhookConfig(models.Model):
         null=True,
         blank=True,
     )
-    name = models.CharField(max_length=120, default='Aliado logístico')
+    name = models.CharField(max_length=120, default='Logistics partner')
     endpoint_url = models.URLField(max_length=500)
     signing_secret = models.CharField(max_length=128)
     events = models.JSONField(default=list, blank=True)
@@ -326,12 +325,12 @@ class LogisticsWebhookConfig(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Webhook logístico'
-        verbose_name_plural = 'Webhooks logísticos'
+        verbose_name = 'Logistics webhook'
+        verbose_name_plural = 'Logistics webhooks'
 
 
 class LogisticsEvent(models.Model):
-    """Eventos de timeline / auditoría logística."""
+    """Timeline / logistics audit events."""
 
     order = models.ForeignKey(
         'core.Order',
@@ -346,15 +345,15 @@ class LogisticsEvent(models.Model):
 
     class Meta:
         ordering = ['created_at']
-        verbose_name = 'Evento logístico'
-        verbose_name_plural = 'Eventos logísticos'
+        verbose_name = 'Logistics event'
+        verbose_name_plural = 'Logistics events'
 
 
 class LogisticsDispatchQueue(models.Model):
     STATUS_CHOICES = [
-        ('pending', _('Pendiente')),
-        ('sent', _('Enviado')),
-        ('failed', _('Fallido')),
+        ('pending', 'Pending'),
+        ('sent', 'Sent'),
+        ('failed', 'Failed'),
     ]
 
     order = models.ForeignKey(
@@ -376,8 +375,8 @@ class LogisticsDispatchQueue(models.Model):
     sent_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Cola despacho logístico'
-        verbose_name_plural = 'Cola despacho logístico'
+        verbose_name = 'Logistics dispatch queue'
+        verbose_name_plural = 'Logistics dispatch queue'
 
 
 class ApiKey(models.Model):
@@ -391,7 +390,7 @@ class ApiKey(models.Model):
     key_hash = models.CharField(max_length=64, editable=False)
     scopes = models.JSONField(
         default=list,
-        help_text=_('inventory.read, pricing.write, webhooks.receive'),
+        help_text='inventory.read, pricing.write, webhooks.receive',
     )
     is_active = models.BooleanField(default=True)
     rate_limit_per_minute = models.PositiveIntegerField(default=60)
@@ -434,17 +433,17 @@ class ApiAuditLog(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = 'Auditoría API'
-        verbose_name_plural = 'Auditoría API'
+        verbose_name = 'API audit log'
+        verbose_name_plural = 'API audit logs'
 
 
 class EmailDeliveryLog(models.Model):
-    """Auditoría de correos transaccionales (entregabilidad / diagnóstico)."""
+    """Transactional email audit (deliverability / diagnostics)."""
 
     STATUS_CHOICES = [
-        ('sent', _('Enviado')),
-        ('failed', _('Fallido')),
-        ('queued', _('En cola')),
+        ('sent', 'Sent'),
+        ('failed', 'Failed'),
+        ('queued', 'Queued'),
     ]
 
     email_type = models.CharField(max_length=40, db_index=True)
@@ -457,12 +456,12 @@ class EmailDeliveryLog(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = 'Log de correo'
-        verbose_name_plural = 'Logs de correo'
+        verbose_name = 'Email log'
+        verbose_name_plural = 'Email logs'
 
 
 def generate_api_key_pair() -> tuple[str, str, str]:
-    """Devuelve (raw_key, prefix, sha256_hash)."""
+    """Returns (raw_key, prefix, sha256_hash)."""
     import hashlib
 
     raw = f'tf_live_{secrets.token_urlsafe(32)}'
