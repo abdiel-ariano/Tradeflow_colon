@@ -7,25 +7,25 @@
     {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" %}
   </div>
   <h1 style="font-size:1.6rem;color:#0F2A44;margin-bottom:8px;">Access request</h1>
-  <p style="color:#6B7A88;font-size:14px;margin-bottom:24px;">Para inversores y empresas ZLC. Te responderemos por correo.</p>
+  <p style="color:#6B7A88;font-size:14px;margin-bottom:24px;">For investors and CFZ companies. We will reply by email.</p>
   <form method="post" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:24px;">
     {% csrf_token %}
-    <label class="tf-label">First name completo</label>
+    <label class="tf-label">Full name</label>
     <input class="tf-input" name="full_name" required style="width:100%;margin-bottom:12px;">
-    <label class="tf-label">Correo</label>
+    <label class="tf-label">Email</label>
     <input class="tf-input" type="email" name="email" required style="width:100%;margin-bottom:12px;">
     <label class="tf-label">Phone</label>
     <input class="tf-input" name="phone" style="width:100%;margin-bottom:12px;">
-    <label class="tf-label">Rol</label>
+    <label class="tf-label">Role</label>
     <select class="tf-input" name="role" style="width:100%;margin-bottom:12px;">
-      <option value="buyer">Buyer / coordinador</option>
-      <option value="seller">Seller / empresa ZLC</option>
+      <option value="buyer">Buyer / coordinator</option>
+      <option value="seller">Seller / CFZ company</option>
     </select>
     <label class="tf-label">Business</label>
     <input class="tf-input" name="company_name" style="width:100%;margin-bottom:12px;">
-    <label class="tf-label">Mensaje</label>
+    <label class="tf-label">Message</label>
     <textarea class="tf-input" name="message" style="width:100%;min-height:88px;margin-bottom:16px;"></textarea>
-    <button type="submit" class="btn-tf btn-primary-tf" style="width:100%;justify-content:center;">Enviar solicitud</button>
+    <button type="submit" class="btn-tf btn-primary-tf" style="width:100%;justify-content:center;">Submit application</button>
   </form>
   <p style="text-align:center;margin-top:16px;font-size:13px;">
     <a href="{% url 'login' %}">Already have an account? Sign in</a>

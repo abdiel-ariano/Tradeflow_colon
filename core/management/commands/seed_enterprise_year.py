@@ -75,7 +75,7 @@ class Command(BaseCommand):
             raise SystemExit(1)
         self.stdout.write(
             self.style.SUCCESS(
-                f'Listo: empresas={result.get("companies")} productos={result.get("products")} '
-                f'órdenes={result.get("orders")} compradores={result.get("buyers")}'
+                f'Done: companies={result.get("companies")} products={result.get("products")} '
+                f'orders={result.get("orders")} buyers={result.get("buyers")}'
             )
         )

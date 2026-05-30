@@ -41,7 +41,7 @@ def seller_products_dashboard(company):
         .annotate(n=Count('id'))
         .order_by('-n')[:12]
     )
-    cat_labels = [r['category__name'] or 'Sin categoría' for r in cat_rows]
+    cat_labels = [r['category__name'] or 'Uncategorized' for r in cat_rows]
     cat_values = [r['n'] for r in cat_rows]
 
     return {

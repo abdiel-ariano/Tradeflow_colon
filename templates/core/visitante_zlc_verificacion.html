@@ -19,17 +19,17 @@ Contexto: error (str opcional), subject (User), profile (UserProfile).
 <div class="vz-page">
   <div class="vz-card">
     {% if error %}
-    <h1>No se pudo verificar</h1>
+    <h1>Could not verify</h1>
     <p class="vz-err">{{ error }}</p>
     {% else %}
     <h1>Pre-registro TradeFlow — ZLC</h1>
     <p style="color:#6B7A88;font-size:0.9rem;">Data associated with the code. Operational use in the Colón Free Zone.</p>
     <dl class="vz-dl">
-      <dt>First name</dt>
+      <dt>Full name</dt>
       <dd>{{ subject.get_full_name|default:subject.username }}</dd>
       <dt>Username</dt>
       <dd>{{ subject.username }}</dd>
-      <dt>Correo</dt>
+      <dt>Email</dt>
       <dd>{{ subject.email|default:"—" }}</dd>
       {% if profile.phone %}
       <dt>Phone</dt>

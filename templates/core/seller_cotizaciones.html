@@ -2,14 +2,14 @@
 {% load static %}
 {% block title %}Quotes — TradeFlow{% endblock %}
 {% block seller_page_title %}Quotes{% endblock %}
-{% block seller_page_sub %}<p class="sp-topbar-sub">Pipeline comercial</p>{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Sales pipeline</p>{% endblock %}
 
 {% block seller_content %}
 <div class="sp-kpi-grid">
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Del mes</span><p class="sp-kpi-val">{{ cotizaciones_mes }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">This month</span><p class="sp-kpi-val">{{ cotizaciones_mes }}</p></article>
   <article class="sp-kpi"><span class="sp-kpi-lbl">Conversion</span><p class="sp-kpi-val">{{ tasa_conversion }}%</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Monto cotizado</span><p class="sp-kpi-val" style="font-size:1.2rem;">USD {{ monto_cotizado }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Pendings</span><p class="sp-kpi-val warn">{{ kanban.pendiente|length }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Quoted amount</span><p class="sp-kpi-val" style="font-size:1.2rem;">USD {{ monto_cotizado }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Pending</span><p class="sp-kpi-val warn">{{ kanban.pendiente|length }}</p></article>
 </div>
 
 <div class="sp-kanban" style="margin-bottom:24px;">
@@ -20,17 +20,17 @@
     {% empty %}<p style="font-size:11px;color:var(--tf-muted);">—</p>{% endfor %}
   </div>
   <div class="sp-kanban-col">
-    <h3>Respondida</h3>
+    <h3>Responded</h3>
     {% for cot in kanban.enviada %}
     <div class="sp-kanban-card"><a href="{% url 'seller_responder_cotizacion' cot.pk %}">{{ cot.numero }}</a></div>
     {% empty %}<p style="font-size:11px;color:var(--tf-muted);">—</p>{% endfor %}
   </div>
   <div class="sp-kanban-col">
-    <h3>Aceptada</h3>
+    <h3>Accepted</h3>
     {% for cot in kanban.aceptada %}<div class="sp-kanban-card">{{ cot.numero }}</div>{% empty %}<p style="font-size:11px;color:var(--tf-muted);">—</p>{% endfor %}
   </div>
   <div class="sp-kanban-col">
-    <h3>Rechazada</h3>
+    <h3>Rejected</h3>
     {% for cot in kanban.rechazada %}<div class="sp-kanban-card">{{ cot.numero }}</div>{% empty %}<p style="font-size:11px;color:var(--tf-muted);">—</p>{% endfor %}
   </div>
 </div>
@@ -42,9 +42,9 @@
         <tr>
           <th>Number</th>
           <th>Customer</th>
-          <th>Fecha</th>
-          <th>Monto est.</th>
-          <th>Estado</th>
+          <th>Date</th>
+          <th>Est. amount</th>
+          <th>Status</th>
           <th></th>
         </tr>
       </thead>
@@ -61,7 +61,7 @@
         </tr>
         {% endwith %}
         {% empty %}
-        <tr><td colspan="6" class="sp-empty">Sin cotizaciones</td></tr>
+        <tr><td colspan="6" class="sp-empty">No quotes yet</td></tr>
         {% endfor %}
       </tbody>
     </table>

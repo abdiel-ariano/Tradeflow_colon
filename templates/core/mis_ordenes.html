@@ -50,7 +50,7 @@
       </div>
       <span class="mo-badge mo-st" data-st="{{ orden.status }}">{{ orden.get_status_display }}</span>
       <div class="mo-total">USD {{ orden.total }}</div>
-      <a href="{% url 'detalle_mi_orden' orden.pk %}" class="mo-link">Ver detalle <span class="material-symbols-rounded" style="font-size:18px;">chevron_right</span></a>
+      <a href="{% url 'detalle_mi_orden' orden.pk %}" class="mo-link">View details <span class="material-symbols-rounded" style="font-size:18px;">chevron_right</span></a>
     </div>
     {% endfor %}
     {% if ordenes.has_other_pages %}

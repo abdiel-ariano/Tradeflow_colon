@@ -96,10 +96,10 @@ def _safe_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
 def ensure_default_plans() -> int:
     """Crea planes oficiales si no existen. Retorna cantidad de planes activos."""
     defaults = [
-        ('digitalizate', 'Digitalízate', Decimal('15000'), 50, False, False, False, 1),
-        ('expansion', 'Expansión', Decimal('50000'), 200, True, False, False, 2),
-        ('corporativo_pro', 'Corporativo Pro', None, 500, True, True, False, 3),
-        ('ecosistema_enterprise', 'Ecosistema Enterprise', None, 2000, True, True, True, 4),
+        ('digitalizate', 'Digitalize', Decimal('15000'), 50, False, False, False, 1),
+        ('expansion', 'Expansion', Decimal('50000'), 200, True, False, False, 2),
+        ('corporativo_pro', 'Corporate Pro', None, 500, True, True, False, 3),
+        ('ecosistema_enterprise', 'Enterprise Ecosystem', None, 2000, True, True, True, 4),
     ]
     for slug, name, limit, credits, api, webhooks, predictive, order in defaults:
         SaasPlan.objects.update_or_create(
@@ -191,13 +191,13 @@ def subscription_usage_snapshot(company: Company) -> dict:
         ad_balance = plan.ad_credits_monthly
 
     growth_signal = 'optimal'
-    growth_message = 'Tu operación avanza dentro del ecosistema TradeFlow.'
+    growth_message = 'Your operation is progressing within the TradeFlow ecosystem.'
     if warning == 'approaching':
         growth_signal = 'accelerating'
-        growth_message = 'Tu volumen comercial está acelerando — considera ampliar capacidades.'
+        growth_message = 'Your commercial volume is accelerating — consider expanding capacity.'
     elif warning == 'limit':
         growth_signal = 'expand'
-        growth_message = 'Potencia tu plan para seguir escalando sin fricción operativa.'
+        growth_message = 'Upgrade your plan to keep scaling without operational friction.'
 
     pending_checkout = _safe_pending_checkout(company)
 
@@ -239,12 +239,12 @@ def subscription_usage_snapshot(company: Company) -> dict:
 
 def _activity_label(pct: float, warning: str | None) -> str:
     if warning == 'limit':
-        return 'Capacidad del período al máximo'
+        return 'Period capacity at maximum'
     if warning == 'approaching':
-        return 'Actividad comercial en crecimiento'
+        return 'Commercial activity growing'
     if pct >= 50:
-        return 'Ritmo comercial saludable'
-    return 'Espacio para acelerar ventas'
+        return 'Healthy commercial pace'
+    return 'Room to accelerate sales'
 
 
 def _build_seller_flow_steps(
@@ -260,7 +260,7 @@ def _build_seller_flow_steps(
         return [
             {
                 'key': 'plan',
-                'label': 'Plan elegido',
+                'label': 'Plan selected',
                 'detail': pending_checkout.target_plan.name,
                 'status': 'done',
                 'pct': 100,
@@ -268,16 +268,16 @@ def _build_seller_flow_steps(
             },
             {
                 'key': 'pay',
-                'label': 'Pago',
-                'detail': 'Completa el checkout',
+                'label': 'Payment',
+                'detail': 'Complete checkout',
                 'status': 'current',
                 'pct': 45,
                 'cumulative_pct': 66,
             },
             {
                 'key': 'live',
-                'label': 'Activación',
-                'detail': 'Plan en vivo',
+                'label': 'Activation',
+                'detail': 'Plan live',
                 'status': 'upcoming',
                 'pct': 0,
                 'cumulative_pct': 100,
@@ -287,7 +287,7 @@ def _build_seller_flow_steps(
     steps = [
         {
             'key': 'operate',
-            'label': 'Operación',
+            'label': 'Operation',
             'detail': plan.name,
             'status': 'done',
             'pct': 100,
@@ -295,7 +295,7 @@ def _build_seller_flow_steps(
         },
         {
             'key': 'activity',
-            'label': 'Actividad',
+            'label': 'Activity',
             'detail': _activity_label(activity_pct, warning),
             'status': 'current' if warning != 'limit' else 'current',
             'pct': round(activity_pct, 1),
@@ -306,7 +306,7 @@ def _build_seller_flow_steps(
         upgrade_ready = warning in ('approaching', 'limit')
         steps.append({
             'key': 'grow',
-            'label': 'Siguiente nivel',
+            'label': 'Next tier',
             'detail': next_plan.name,
             'status': 'current' if upgrade_ready else 'upcoming',
             'pct': 100 if upgrade_ready else max(15, int(activity_pct * 0.5)),
@@ -315,8 +315,8 @@ def _build_seller_flow_steps(
     else:
         steps.append({
             'key': 'grow',
-            'label': 'Ecosistema',
-            'detail': 'Máximo nivel operativo',
+            'label': 'Ecosystem',
+            'detail': 'Maximum operational tier',
             'status': 'done',
             'pct': 100,
             'cumulative_pct': 100,

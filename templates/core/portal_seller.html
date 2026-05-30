@@ -1,11 +1,11 @@
 {% extends "core/seller_layout.html" %}
 {% load static %}
-{% block title %}Panel vendedor — {{ company.name }}{% endblock %}
+{% block title %}Seller panel — {{ company.name }}{% endblock %}
 {% block seller_page_title %}Hello, {{ name }}{% endblock %}
-{% block seller_page_sub %}<p class="sp-topbar-sub">{{ company.name }} · Centro de operaciones</p>{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">{{ company.name }} · Operations center</p>{% endblock %}
 {% block seller_topbar_actions %}
-<a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-secondary">Ventas</a>
-<a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>Producto</a>
+<a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-secondary">My Sales</a>
+<a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>Product</a>
 {% endblock %}
 
 {% block seller_content %}
@@ -13,23 +13,23 @@
 
 <div class="sp-notice-soft" role="note">
   <span>Manage confirmations and catalog from one panel.</span>
-  <a href="{% url 'seller_mis_productos' %}">Ir a productos →</a>
+  <a href="{% url 'seller_mis_productos' %}">Go to products →</a>
 </div>
 
 {% include "core/includes/seller_plan_promos.html" %}
 
 <div class="sp-kpi-grid">
   <article class="sp-kpi">
-    <span class="sp-kpi-lbl">Ingresos del mes</span>
+    <span class="sp-kpi-lbl">Monthly revenue</span>
     <p class="sp-kpi-val" style="font-size:1.45rem;">USD {{ ingresos_mes }}</p>
     <p class="sp-kpi-hint">Lines delivered / in progress</p>
   </article>
   <article class="sp-kpi">
-    <span class="sp-kpi-lbl">Orders semana</span>
+    <span class="sp-kpi-lbl">Weekly orders</span>
     <p class="sp-kpi-val">{{ ordenes_semana }}</p>
   </article>
   <article class="sp-kpi">
-    <span class="sp-kpi-lbl">Por confirmar</span>
+    <span class="sp-kpi-lbl">To confirm</span>
     <p class="sp-kpi-val {% if pending_confirm %}warn{% endif %}">{{ pending_confirm }}</p>
     {% if pending_confirm %}<p class="sp-kpi-hint">Require action</p>{% endif %}
   </article>
@@ -42,13 +42,13 @@
 
 <div class="sp-analytics-row">
   <section class="sp-card">
-    <div class="sp-card-head"><h2>Rendimiento (30 days)</h2></div>
+    <div class="sp-card-head"><h2>Performance (30 days)</h2></div>
     <div class="sp-chart-box sp-chart-box--line">
       <canvas id="sp-chart-revenue"></canvas>
     </div>
   </section>
   <section class="sp-card">
-    <div class="sp-card-head"><h2>Orders por semana</h2></div>
+    <div class="sp-card-head"><h2>Orders per week</h2></div>
     <div class="sp-chart-box sp-chart-box--line">
       <canvas id="sp-chart-week"></canvas>
     </div>
@@ -66,7 +66,7 @@
   <section class="sp-card">
     <div class="sp-card-head">
       <h2>Quotes</h2>
-      <a href="{% url 'seller_cotizaciones' %}">Ver todas</a>
+      <a href="{% url 'seller_cotizaciones' %}">View all</a>
     </div>
     <p style="margin:0 0 12px;font-size:14px;color:var(--tf-muted);">
       {{ n }} this month · {{ pct }}% conversion
@@ -78,7 +78,7 @@
         <span class="sp-status sp-status-{{ c.estado }}" style="margin-left:8px;">{{ c.get_estado_display }}</span>
       </li>
       {% empty %}
-      <li class="sp-empty" style="padding:16px 0;">Sin cotizaciones recientes</li>
+      <li class="sp-empty" style="padding:16px 0;">No recent quotes</li>
       {% endfor %}
     </ul>
   </section>
@@ -86,18 +86,18 @@
 
 <section class="sp-card">
   <div class="sp-card-head">
-    <h2>Actividad reciente — ventas</h2>
-    <a href="{% url 'seller_mis_ventas' %}">Ver todas</a>
+    <h2>Recent activity — sales</h2>
+    <a href="{% url 'seller_mis_ventas' %}">View all</a>
   </div>
   <div class="sp-table-wrap">
     <table class="sp-table">
       <thead>
         <tr>
-          <th>Orden</th>
+          <th>Order</th>
           <th>Customer</th>
           <th>Total</th>
-          <th>Estado</th>
-          <th>Plazo</th>
+          <th>Status</th>
+          <th>Deadline</th>
           <th></th>
         </tr>
       </thead>
@@ -110,13 +110,13 @@
           <td><span class="sp-status sp-status-{{ o.status }}">{{ o.get_status_display }}</span></td>
           <td>
             {% if o.status == 'awaiting_seller' and o.seller_confirm_by %}
-            <span class="sp-timer ok" data-sp-plazo="{{ o.seller_confirm_by.isoformat }}" data-expired="Expirado">—</span>
+            <span class="sp-timer ok" data-sp-plazo="{{ o.seller_confirm_by.isoformat }}" data-expired="Expired">—</span>
             {% else %}—{% endif %}
           </td>
-          <td><a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">Ver</a></td>
+          <td><a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">View</a></td>
         </tr>
         {% empty %}
-        <tr><td colspan="6" class="sp-empty">Sin ventas recientes</td></tr>
+        <tr><td colspan="6" class="sp-empty">No recent sales</td></tr>
         {% endfor %}
       </tbody>
     </table>

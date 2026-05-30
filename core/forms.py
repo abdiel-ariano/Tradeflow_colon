@@ -64,6 +64,10 @@ class SellerInventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
         fields = ['stock_qty', 'low_stock_alert']
+        labels = {
+            'stock_qty': 'Total stock',
+            'low_stock_alert': 'Low stock alert',
+        }
         widgets = {
             'stock_qty':       forms.NumberInput(attrs={'class': 'tf-input', 'min': '0'}),
             'low_stock_alert': forms.NumberInput(attrs={'class': 'tf-input', 'min': '0'}),
@@ -118,20 +122,46 @@ class AplicacionTransportistaForm(forms.Form):
 
     nombre_completo = forms.CharField(
         max_length=200,
+        label='Full name',
         widget=forms.TextInput(attrs={'class': 'tf-input'}),
     )
-    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'tf-input'}))
-    telefono = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'tf-input'}))
-    empresa_nombre = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class': 'tf-input'}))
-    licencia = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'tf-input'}))
-    vehiculo_tipo = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'tf-input'}))
-    vehiculo_placa = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'tf-input'}))
+    email = forms.EmailField(
+        label='Email',
+        widget=forms.EmailInput(attrs={'class': 'tf-input'}),
+    )
+    telefono = forms.CharField(
+        max_length=30,
+        label='Phone',
+        widget=forms.TextInput(attrs={'class': 'tf-input'}),
+    )
+    empresa_nombre = forms.CharField(
+        max_length=200,
+        label='Company name',
+        widget=forms.TextInput(attrs={'class': 'tf-input'}),
+    )
+    licencia = forms.CharField(
+        max_length=100,
+        label='License',
+        widget=forms.TextInput(attrs={'class': 'tf-input'}),
+    )
+    vehiculo_tipo = forms.CharField(
+        max_length=100,
+        label='Vehicle type',
+        widget=forms.TextInput(attrs={'class': 'tf-input'}),
+    )
+    vehiculo_placa = forms.CharField(
+        max_length=30,
+        label='License plate',
+        widget=forms.TextInput(attrs={'class': 'tf-input'}),
+    )
     cobertura_descripcion = forms.CharField(
+        label='Coverage description',
         widget=forms.Textarea(attrs={'class': 'tf-input', 'rows': 3}),
     )
     tarifa_base = forms.DecimalField(
         max_digits=10,
         decimal_places=2,
+        label='Base rate',
         widget=forms.NumberInput(attrs={'class': 'tf-input', 'step': '0.01', 'min': '0'}),
     )
     foto_licencia = forms.ImageField(required=False)

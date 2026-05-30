@@ -18,18 +18,18 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
       <div class="adm-head-actions">
         <a href="/admin/core/company/add/" class="adm-btn adm-btn--primary" target="_blank" rel="noopener noreferrer">
           <span class="material-symbols-rounded" aria-hidden="true">add</span>
-          Nueva en Django Admin
+          New in Django Admin
         </a>
       </div>
     </header>
 
     <p class="adm-result-hint">
-      Mostrando {{ empresas.start_index }}–{{ empresas.end_index }} de {{ empresas.paginator.count }} empresas
+      Showing {{ empresas.start_index }}–{{ empresas.end_index }} of {{ empresas.paginator.count }} companies
     </p>
 
     <div class="adm-table-card">
       <div class="adm-table-head">
-        <span>Directorio</span>
+        <span>Directory</span>
       </div>
       <table class="adm-table">
         <thead>
@@ -39,8 +39,8 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
             <th>RUC</th>
             <th>Verification</th>
             <th style="text-align:right;">Products</th>
-            <th>Alta</th>
-            <th style="text-align:right;">Acciones</th>
+            <th>Created</th>
+            <th style="text-align:right;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -51,7 +51,7 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
             <td>{{ empresa.ruc|default:"—" }}</td>
             <td>
               {% if empresa.is_verified %}
-              <span class="adm-badge adm-emp-ver" data-verified="1">Verificada</span>
+              <span class="adm-badge adm-emp-ver" data-verified="1">Verified</span>
               {% else %}
               <span class="adm-badge adm-emp-ver" data-verified="0">Pending</span>
               {% endif %}
@@ -59,7 +59,7 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
             <td style="text-align:right;">{{ empresa.total_productos }}</td>
             <td>{{ empresa.created_at|date:"d/m/Y" }}</td>
             <td style="text-align:right;">
-              <a href="/admin/core/company/{{ empresa.pk }}/change/" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 12px;font-size:0.78rem;">Editar</a>
+              <a href="/admin/core/company/{{ empresa.pk }}/change/" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 12px;font-size:0.78rem;">Edit</a>
               <a href="{% url 'lista_productos' %}?buscar={{ empresa.name|urlencode }}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Products</a>
             </td>
           </tr>

@@ -6,16 +6,16 @@
 {% block content %}
 <div class="seller-layout">
   <div class="seller-main">
-    <h1>Ventas</h1>
+    <h1>My Sales</h1>
     <p class="seller-sub">Orders that include products from {{ company.name }}.</p>
     <form class="seller-filters" method="get" action="" style="margin-bottom:1rem;">
       <select class="tf-input" name="estado" id="seller-ventas-estado" style="max-width:260px;">
-        <option value="">All los estados</option>
+        <option value="">All statuses</option>
         {% for val, label in status_choices %}
         <option value="{{ val }}">{{ label }}</option>
         {% endfor %}
       </select>
-      <button type="submit" class="btn-seller-outline">Filtrar</button>
+      <button type="submit" class="btn-seller-outline">Filter</button>
     </form>
     <script>
     (function () {
@@ -32,11 +32,11 @@
       <table class="seller-table">
         <thead>
           <tr>
-            <th>Orden</th>
-            <th>Fecha</th>
+            <th>Order</th>
+            <th>Date</th>
             <th>Buyer</th>
-            <th>Estado</th>
-            <th>Total orden</th>
+            <th>Status</th>
+            <th>Order total</th>
             <th></th>
           </tr>
         </thead>
@@ -48,7 +48,7 @@
             <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
             <td><span class="tf-badge seller-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span></td>
             <td>{{ o.total }} USD</td>
-            <td><a href="{% url 'seller_venta_detalle' o.pk %}">Ver</a></td>
+            <td><a href="{% url 'seller_venta_detalle' o.pk %}">View</a></td>
           </tr>
           {% endfor %}
         </tbody>

@@ -87,16 +87,16 @@ def ensure_database_schema_ready() -> None:
         tables = set(connection.introspection.table_names())
     except (OperationalError, ProgrammingError) as exc:
         raise DatabaseSchemaNotReadyError(
-            'No se pudo inspeccionar la base de datos. '
-            'Ejecute: python manage.py migrate'
+            'Could not inspect the database. '
+            'Run: python manage.py migrate'
         ) from exc
 
     missing = [t for t in REQUIRED_TABLES if t not in tables]
     if missing:
         raise DatabaseSchemaNotReadyError(
-            'Faltan tablas en la base de datos (migraciones pendientes): '
+            'Missing database tables (pending migrations): '
             f'{", ".join(missing)}. '
-            'Ejecute primero: python manage.py migrate'
+            'Run first: python manage.py migrate'
         )
 
 
@@ -135,195 +135,195 @@ SCALES: dict[str, ScaleConfig] = {
 # Empresas ficticias creíbles (ZLC / importación) — nombres genéricos, no marcas registradas ajenas.
 COMPANY_BLUEPRINTS: list[dict] = [
     {
-        'name': 'CaribeTech Distribución ZLC',
-        'tagline_es': 'Componentes y periféricos para retail corporativo',
+        'name': 'CaribeTech Distribution ZLC',
+        'tagline_es': 'Components and peripherals for corporate retail',
         'tier': 1,
         'cats': (0, 4),
     },
     {
         'name': 'MetroOffice Supply Colón',
-        'tagline_es': 'Mobiliario y equipos de oficina B2B',
+        'tagline_es': 'B2B office furniture and equipment',
         'tier': 2,
         'cats': (0, 6),
     },
     {
         'name': 'Atlantic Textiles Wholesale',
-        'tagline_es': 'Uniformes, denim y línea hotelera',
+        'tagline_es': 'Uniforms, denim, and hospitality linens',
         'tier': 2,
         'cats': (1,),
     },
     {
         'name': 'ZLC Gaming Imports',
-        'tagline_es': 'Periféricos gaming y estaciones de trabajo',
+        'tagline_es': 'Gaming peripherals and workstations',
         'tier': 1,
         'cats': (4, 0),
     },
     {
-        'name': 'HogarPro Caribe',
-        'tagline_es': 'Electrodomésticos y línea blanca',
+        'name': 'HomePro Caribe',
+        'tagline_es': 'Appliances and white goods',
         'tier': 2,
         'cats': (3,),
     },
     {
-        'name': 'Logística Express Free Zone',
-        'tagline_es': 'Embalaje, pallets y consumibles logísticos',
+        'name': 'Logistics Express Free Zone',
+        'tagline_es': 'Packaging, pallets, and logistics consumables',
         'tier': 3,
         'cats': (5,),
     },
     {
         'name': 'Roosevelt Accessories Group',
-        'tagline_es': 'Marroquinería, maletas y accesorios premium',
+        'tagline_es': 'Leather goods, luggage, and premium accessories',
         'tier': 2,
         'cats': (2, 1),
     },
     {
         'name': 'Panamax Electronics B2B',
-        'tagline_es': 'Audio, video y redes para integradores',
+        'tagline_es': 'Audio, video, and networking for integrators',
         'tier': 1,
         'cats': (0,),
     },
     {
         'name': 'Coco del Mar Imports',
-        'tagline_es': 'Retail mixto y temporada escolar',
+        'tagline_es': 'Mixed retail and back-to-school season',
         'tier': 3,
         'cats': (6, 1, 2),
     },
     {
         'name': 'Fort Sherman Trading',
-        'tagline_es': 'Importación general y surtido mayorista',
+        'tagline_es': 'General imports and wholesale assortment',
         'tier': 3,
         'cats': (6,),
     },
     {
         'name': 'Isla Margarita Wholesale',
-        'tagline_es': 'Textiles y ropa de trabajo industrial',
+        'tagline_es': 'Textiles and industrial workwear',
         'tier': 2,
         'cats': (1,),
     },
     {
         'name': 'Cristóbal Tech Hub',
-        'tagline_es': 'Servidores edge, UPS y cableado estructurado',
+        'tagline_es': 'Edge servers, UPS, and structured cabling',
         'tier': 1,
         'cats': (0, 6),
     },
     {
-        'name': 'Bahía Cativá Home & Living',
-        'tagline_es': 'Decoración, iluminación y menaje',
+        'name': 'Bay Cativá Home & Living',
+        'tagline_es': 'Decor, lighting, and housewares',
         'tier': 2,
         'cats': (3, 2),
     },
     {
         'name': 'Colón Norte Industrial Supply',
-        'tagline_es': 'EPP, herramientas y suministros industriales',
+        'tagline_es': 'PPE, tools, and industrial supplies',
         'tier': 2,
         'cats': (6, 5),
     },
     {
         'name': 'Silver Anchor Merchandising',
-        'tagline_es': 'Promocionales y punto de venta',
+        'tagline_es': 'Promotional items and point-of-sale',
         'tier': 3,
         'cats': (2, 6),
     },
     {
         'name': 'Diablo Heights Distribution',
-        'tagline_es': 'Electrónica de consumo y accesorios móviles',
+        'tagline_es': 'Consumer electronics and mobile accessories',
         'tier': 1,
         'cats': (0, 2),
     },
     {
-        'name': 'Escudo de Veraguas Imports',
-        'tagline_es': 'Línea escolar y papelería institucional',
+        'name': 'Veraguas Shield Imports',
+        'tagline_es': 'School supplies and institutional stationery',
         'tier': 3,
         'cats': (6, 1),
     },
     {
-        'name': 'Muelle 6 Global Trade',
-        'tagline_es': 'Cross-docking y surtido multicanal',
+        'name': 'Pier 6 Global Trade',
+        'tagline_es': 'Cross-docking and multichannel assortment',
         'tier': 2,
         'cats': (6, 5),
     },
     {
-        'name': 'Puerto Libre Digital',
-        'tagline_es': 'Tablets, lectores y hardware educativo',
+        'name': 'Free Port Digital',
+        'tagline_es': 'Tablets, readers, and educational hardware',
         'tier': 2,
         'cats': (0, 4),
     },
     {
-        'name': 'Zona Franca Retail Partners',
-        'tagline_es': 'Catálogo amplio para cadenas regionales',
+        'name': 'Free Zone Retail Partners',
+        'tagline_es': 'Broad catalog for regional chains',
         'tier': 1,
         'cats': (6, 1, 3),
     },
     {
         'name': 'Barú Peak Logistics',
-        'tagline_es': 'Kitting, etiquetado y despacho ZLC',
+        'tagline_es': 'Kitting, labeling, and ZLC dispatch',
         'tier': 3,
         'cats': (5,),
     },
     {
         'name': 'Canal Side Accessories',
-        'tagline_es': 'Cables, hubs y soluciones de conectividad',
+        'tagline_es': 'Cables, hubs, and connectivity solutions',
         'tier': 2,
         'cats': (0, 2),
     },
     {
         'name': 'TradeWind Colón Wholesale',
-        'tagline_es': 'Operador multimarca con foco B2B',
+        'tagline_es': 'Multi-brand operator with B2B focus',
         'tier': 1,
         'cats': (6, 0, 1),
     },
 ]
 
 CATEGORY_NAMES = [
-    'Electrónica y Oficina',
-    'Textiles y Uniformes',
-    'Accesorios y Marroquinería',
-    'Hogar y Electrodomésticos',
-    'Gaming y Periféricos',
-    'Logística y Embalaje',
-    'Importación General',
+    'Electronics & Office',
+    'Textiles & Uniforms',
+    'Accessories & Leather Goods',
+    'Home & Appliances',
+    'Gaming & Peripherals',
+    'Logistics & Packaging',
+    'General Imports',
 ]
 
 # Plantillas de producto: (nombre base, descripción corta, precio_min, precio_max)
 PRODUCT_TEMPLATES: dict[int, list[tuple[str, str, float, float]]] = {
     0: [
-        ('Monitor LED 27" QHD comercial', 'Panel IPS, marco fino, garantía B2B.', 189.0, 429.0),
-        ('Hub USB-C 11 en 1 aluminio', 'HDMI, RJ45, PD 100W, lector SD.', 45.0, 119.0),
-        ('UPS interactivo 1500VA', 'Regulación automática, software de monitoreo.', 220.0, 520.0),
-        ('Kit de cableado Cat6', '305m certificado CCA para instalaciones.', 95.0, 185.0),
-        ('Docking station universal', 'Dual display, carga rápida laptop.', 129.0, 279.0),
+        ('Commercial 27" QHD LED Monitor', 'IPS panel, thin bezel, B2B warranty.', 189.0, 429.0),
+        ('Aluminum 11-in-1 USB-C Hub', 'HDMI, RJ45, 100W PD, SD reader.', 45.0, 119.0),
+        ('1500VA Interactive UPS', 'Automatic voltage regulation, monitoring software.', 220.0, 520.0),
+        ('Cat6 Wiring Kit', '305m CCA-certified for installations.', 95.0, 185.0),
+        ('Universal Docking Station', 'Dual display, fast laptop charging.', 129.0, 279.0),
     ],
     1: [
-        ('Pantalón cargo industrial', 'Tela reforzada, tallas 28-44.', 24.0, 48.0),
-        ('Polo dry-fit corporativo', 'Bordado incluido pedidos +200 uds.', 12.0, 28.0),
-        ('Chaqueta impermeable staff', 'Capucha oculta, reflectivos.', 38.0, 79.0),
-        ('Set hotelería 300 hilos', 'Sábanas queen, blanco óptico.', 55.0, 110.0),
+        ('Industrial Cargo Pants', 'Reinforced fabric, sizes 28-44.', 24.0, 48.0),
+        ('Corporate Dry-Fit Polo', 'Embroidery included on orders of 200+ units.', 12.0, 28.0),
+        ('Staff Waterproof Jacket', 'Hidden hood, reflective accents.', 38.0, 79.0),
+        ('300-Thread Hospitality Set', 'Queen sheets, optical white.', 55.0, 110.0),
     ],
     2: [
-        ('Maletín ejecutivo rígido', 'Compartimento TSA, ruedas silenciosas.', 89.0, 189.0),
-        ('Cinturón cuero grano superior', 'Hebilla minimalista, negro/café.', 28.0, 65.0),
-        ('Set organizadores de viaje', '6 piezas, material reciclado.', 18.0, 42.0),
+        ('Rigid Executive Briefcase', 'TSA compartment, silent wheels.', 89.0, 189.0),
+        ('Top-Grain Leather Belt', 'Minimalist buckle, black/brown.', 28.0, 65.0),
+        ('Travel Organizer Set', '6 pieces, recycled material.', 18.0, 42.0),
     ],
     3: [
-        ('Licuadora industrial 2L', 'Motor cobre, cuchillas acero.', 79.0, 159.0),
-        ('Freidora de aire 8L digital', '12 programas, certificación retail.', 95.0, 185.0),
-        ('Lámpara de pie LED regulable', 'Temperatura de color ajustable.', 45.0, 120.0),
+        ('2L Industrial Blender', 'Copper motor, steel blades.', 79.0, 159.0),
+        ('8L Digital Air Fryer', '12 programs, retail certification.', 95.0, 185.0),
+        ('Adjustable LED Floor Lamp', 'Adjustable color temperature.', 45.0, 120.0),
     ],
     4: [
-        ('Teclado mecánico hot-swap', 'Switches lineales, RGB por software.', 65.0, 149.0),
-        ('Mouse ergonómico vertical', '2400 DPI, receptor USB-A/C.', 32.0, 72.0),
-        ('Micrófono condensador USB', 'Cardioide, soporte antivibración.', 48.0, 129.0),
-        ('Pad XL stitched edge', 'Superficie híbrida 900x400mm.', 22.0, 55.0),
+        ('Hot-Swap Mechanical Keyboard', 'Linear switches, software RGB.', 65.0, 149.0),
+        ('Vertical Ergonomic Mouse', '2400 DPI, USB-A/C receiver.', 32.0, 72.0),
+        ('USB Condenser Microphone', 'Cardioid, anti-vibration mount.', 48.0, 129.0),
+        ('XL Stitched Edge Pad', 'Hybrid surface 900x400mm.', 22.0, 55.0),
     ],
     5: [
-        ('Cinta PP transparente 48mm x 150m', 'Pack 36 rollos pallet.', 0.85, 1.4),
-        ('Stretch film 20" manual', 'Calibre 80, alta elongación.', 18.0, 32.0),
-        ('Esquineros de cartón L', 'Caja 500 uds, protección pallet.', 0.12, 0.22),
+        ('48mm x 150m Clear PP Tape', 'Pack of 36 pallet rolls.', 0.85, 1.4),
+        ('20" Manual Stretch Film', '80 gauge, high elongation.', 18.0, 32.0),
+        ('L-Shaped Cardboard Corner Protectors', 'Box of 500 units, pallet protection.', 0.12, 0.22),
     ],
     6: [
-        ('Kit surtido retail Q4', 'Mix promocional según temporada.', 120.0, 450.0),
-        ('Display punto de venta modular', '3 niveles, acrílico + metal.', 65.0, 140.0),
-        ('Caja master assorted SKU', 'Surtido controlado por categoría.', 200.0, 900.0),
+        ('Q4 Retail Assortment Kit', 'Promotional mix by season.', 120.0, 450.0),
+        ('Modular Point-of-Sale Display', '3 tiers, acrylic + metal.', 65.0, 140.0),
+        ('Assorted SKU Master Carton', 'Category-controlled assortment.', 200.0, 900.0),
     ],
 }
 
@@ -369,7 +369,7 @@ def _ensure_transport_carriers() -> list[TransportCarrier]:
                 'name': t['name'],
                 'base_shipping_cost': Decimal(t['cost']),
                 'sort_order': t['order'],
-                'description': 'Zona Libre de Colón — logística B2B',
+                'description': 'Colón Free Zone — B2B logistics',
             },
         )
         out.append(obj)
@@ -500,17 +500,17 @@ def run_enterprise_year_seed(
     if not skip_images and image_budget == 0:
         skip_images = True
         logmsg(
-            '[imágenes] Escala stress sin descargas por defecto; use --scale=demo --with-images.'
+            '[images] Stress scale has no downloads by default; use --scale=demo --with-images.'
         )
     elif skip_images:
-        logmsg('[imágenes] Omitidas (rápido). Use --with-images para hasta '
+        logmsg('[images] Skipped (fast). Use --with-images for up to '
                f'{MAX_IMAGE_DOWNLOADS.get(scale, 0)} placeholders.')
     else:
-        logmsg(f'[imágenes] Máximo {image_budget} descargas (picsum.photos).')
+        logmsg(f'[images] Up to {image_budget} downloads (picsum.photos).')
 
     if clear:
         d = clear_enterprise_year_simulation()
-        logmsg(f'[clear] eliminado: {d}')
+        logmsg(f'[clear] removed: {d}')
 
     carriers = _ensure_transport_carriers()
     categories = _ensure_categories()
@@ -535,7 +535,7 @@ def run_enterprise_year_seed(
                 username=f'{USER_PREFIX}seller_{i}',
                 email=f'{USER_PREFIX}seller_{i}@seed.tradeflow.pa',
                 password=get_random_string(20),
-                first_name='Vendedor',
+                first_name='Seller',
                 last_name=f'ZLC {i + 1}',
             )
             UserProfile.objects.create(user=su, role='seller', email_verificado=True)
@@ -546,7 +546,7 @@ def run_enterprise_year_seed(
             co = Company.objects.create(
                 name=bp['name'],
                 ruc=f'{SIM_RUC_PREFIX}{i + 1:04d}',
-                address_text=f'Zona Libre de Colón — {bp["name"]} — Edificio {rng.randint(1, 40)}, Local {rng.randint(1, 120)}',
+                address_text=f'Colón Free Zone — {bp["name"]} — Building {rng.randint(1, 40)}, Unit {rng.randint(1, 120)}',
                 is_verified=True,
                 owner=su,
                 latitud=lat_j,
@@ -572,10 +572,10 @@ def run_enterprise_year_seed(
             buyers.append(bu)
             addr = Address.objects.create(
                 user=bu,
-                label='Principal',
+                label='Primary',
                 country='Panamá',
                 city=rng.choice(['Ciudad de Panamá', 'Colón', 'David', 'Chitré', 'Santiago']),
-                line1=f'Urbanización {rng.choice(["Brisas", "Costa Verde", "Los Pinos", "Centro"])} Calle {rng.randint(1, 80)}',
+                line1=f'{rng.choice(["Brisas", "Costa Verde", "Los Pinos", "Centro"])} Residential Area, Street {rng.randint(1, 80)}',
                 line2='',
                 postal_code='',
                 is_default=True,
@@ -595,7 +595,7 @@ def run_enterprise_year_seed(
                 cat = categories[rng.choice(cat_ixs)]
                 templates = PRODUCT_TEMPLATES.get(cat_ixs[0], PRODUCT_TEMPLATES[6])
                 base, desc, pmin, pmax = rng.choice(templates)
-                name = f'{base} — lote {rng.randint(100, 999)}'
+                name = f'{base} — lot {rng.randint(100, 999)}'
                 sku = f'1Y-{co.id:04d}-{p_idx:04d}'
                 price = Decimal(str(round(rng.uniform(pmin, pmax), 2)))
                 promo_price = None
@@ -612,7 +612,7 @@ def run_enterprise_year_seed(
                     company=co,
                     category=cat,
                     name=name[:200],
-                    description=(desc + ' Importación ZLC. Empaque master disponible.')[:2000],
+                    description=(desc + ' ZLC import. Master pack available.')[:2000],
                     sku=sku[:100],
                     unit_price=price,
                     currency='USD',
@@ -642,7 +642,7 @@ def run_enterprise_year_seed(
             sub = get_or_create_subscription(co)
             ensure_ad_credits(co, sub.plan.ad_credits_monthly)
             seeded_subs += 1
-        logmsg(f'[saas] suscripciones aseguradas para {seeded_subs} empresas simuladas')
+        logmsg(f'[saas] subscriptions ensured for {seeded_subs} simulated companies')
 
         # Upgrades históricos (solo empresas grandes)
         plans = {p.slug: p for p in SaasPlan.objects.filter(is_active=True)}
@@ -664,7 +664,7 @@ def run_enterprise_year_seed(
                     to_plan=plans['expansion'],
                     source='commercial',
                     activated_at=year_start + timedelta(days=rng.randint(30, 150)),
-                    notes='Upgrade simulado año operativo',
+                    notes='Simulated operating-year upgrade',
                 )
 
         # Órdenes
@@ -811,7 +811,7 @@ def run_enterprise_year_seed(
                     LogisticsEvent(
                         order_id=oid,
                         event_type='order.received',
-                        label='Pedido recibido en ZLC',
+                        label='Order received at ZLC',
                         payload={'source': 'seed'},
                         source='seed',
                         created_at=t0,
@@ -822,7 +822,7 @@ def run_enterprise_year_seed(
                     LogisticsEvent(
                         order_id=oid,
                         event_type='payment.captured',
-                        label='Pago confirmado',
+                        label='Payment confirmed',
                         payload={},
                         source='seed',
                         created_at=t0 + timedelta(hours=rng.randint(2, 24)),
@@ -833,7 +833,7 @@ def run_enterprise_year_seed(
                     LogisticsEvent(
                         order_id=oid,
                         event_type='warehouse.packed',
-                        label='Bodega ZLC — empacado',
+                        label='ZLC warehouse — packed',
                         payload={},
                         source='seed',
                         created_at=t0 + timedelta(hours=rng.randint(8, 48)),
@@ -844,7 +844,7 @@ def run_enterprise_year_seed(
                     LogisticsEvent(
                         order_id=oid,
                         event_type='carrier.pickup',
-                        label='Despacho transportista',
+                        label='Carrier dispatch',
                         payload={},
                         source='seed',
                         created_at=t0 + timedelta(hours=rng.randint(20, 72)),
@@ -896,7 +896,7 @@ def run_enterprise_year_seed(
                     AdCampaign(
                         company=co,
                         product=pr,
-                        name=f'Patrocinio {pr.name[:40]}',
+                        name=f'Sponsorship {pr.name[:40]}',
                         placement=rng.choice(['search', 'home', 'category']),
                         boost_weight=Decimal(str(round(rng.uniform(1.2, 2.4), 2))),
                         credits_budget=rng.randint(200, 2000),
@@ -918,9 +918,9 @@ def run_enterprise_year_seed(
                 slug=f'{PROMO_SLUG_PREFIX}bestsellers',
                 defaults={
                     'section_type': 'bestsellers',
-                    'title_es': 'Lo más vendido en ZLC (empresas verificadas)',
+                    'title_es': 'ZLC bestsellers — verified sellers',
                     'title_en': 'ZLC bestsellers — verified sellers',
-                    'subtitle_es': 'Selección por volumen comercial simulado 12 meses',
+                    'subtitle_es': 'Curated from 12-month simulated commercial volume',
                     'subtitle_en': 'Curated from 12-month commercial volume',
                     'is_active': True,
                     'sort_order': 2,
@@ -951,7 +951,7 @@ def run_enterprise_year_seed(
     out['orders'] = Order.objects.filter(order_number__startswith=ORDER_NUM_PREFIX).count()
     out['buyers'] = User.objects.filter(username__startswith=f'{USER_PREFIX}buyer_').count()
     logmsg(
-        f'[ok] empresas={out["companies"]} productos={out["products"]} '
-        f'órdenes={out["orders"]} compradores={out["buyers"]}'
+        f'[ok] companies={out["companies"]} products={out["products"]} '
+        f'orders={out["orders"]} buyers={out["buyers"]}'
     )
     return out

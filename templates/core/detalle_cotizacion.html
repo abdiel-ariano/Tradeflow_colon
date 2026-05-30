@@ -75,11 +75,11 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
 
     <div class="cot-doc-grid2">
       <div class="cot-doc-box">
-        <h3>De</h3>
+        <h3>From</h3>
         <p><strong>{{ cot.empresa.name }}</strong><br>{{ cot.empresa.address_text|default:"Colón Free Zone" }}</p>
       </div>
       <div class="cot-doc-box">
-        <h3>Para</h3>
+        <h3>To</h3>
         <p>
           <strong>{{ cot.buyer.get_full_name|default:cot.buyer.username }}</strong><br>
           Issue date: {{ cot.created_at|date:"d/m/Y" }}<br>
@@ -93,8 +93,8 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
       <thead>
         <tr>
           <th>Description</th>
-          <th style="width:90px;">Cantidad</th>
-          <th style="width:120px;">Precio unit.</th>
+          <th style="width:90px;">Quantity</th>
+          <th style="width:120px;">Unit price</th>
           <th style="width:110px;text-align:right;">Total</th>
         </tr>
       </thead>
@@ -106,7 +106,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
           <td>
             <span class="cot-precio-cell" data-has-precio="{{ it.precio_ofertado|yesno:'1,0' }}">
               <span class="cot-precio-val cot-precio">{{ it.precio_ofertado }}</span>
-              <span class="cot-pendiente cot-pendiente-lbl">Por confirmar</span>
+              <span class="cot-pendiente cot-pendiente-lbl">Pending confirmation</span>
             </span>
           </td>
           <td style="text-align:right;">
@@ -119,16 +119,16 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
         {% endfor %}
       </tbody>
     </table>
-    <div class="cot-doc-total">Total general: USD <span id="cot-doc-total-val">{{ total_ofertado }}</span></div>
+    <div class="cot-doc-total">Grand total: USD <span id="cot-doc-total-val">{{ total_ofertado }}</span></div>
 
     <div class="cot-doc-notes">
       <strong>Terms:</strong> Valid for {{ cot.validez_dias }} days from issue. Subject to stock availability.
     </div>
     {% if cot.notas_buyer %}
-    <div class="cot-doc-notes"><strong>Notas del comprador:</strong><br>{{ cot.notas_buyer }}</div>
+    <div class="cot-doc-notes"><strong>Buyer notes:</strong><br>{{ cot.notas_buyer }}</div>
     {% endif %}
     {% if cot.notas_seller %}
-    <div class="cot-doc-notes"><strong>Notas del vendedor:</strong><br>{{ cot.notas_seller }}</div>
+    <div class="cot-doc-notes"><strong>Seller notes:</strong><br>{{ cot.notas_seller }}</div>
     {% endif %}
 
     <div class="cot-doc-actions" id="cot-doc-actions">
@@ -136,17 +136,17 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
         <span class="material-symbols-rounded" style="font-size:18px;">download</span>
         Download Quote PDF
       </a>
-      <span class="cot-doc-badge" id="cot-badge-pend" style="background:#FEF3C7;color:#92400E;">Esperando respuesta</span>
-      <span class="cot-doc-badge cot-hidden" id="cot-badge-resp" style="background:#D1FAE5;color:#065F46;">Respondida</span>
-      <span class="cot-doc-badge cot-hidden" id="cot-badge-acep" style="background:#DBEAFE;color:#1E40AF;">Aceptada</span>
-      <span class="cot-doc-badge cot-hidden" id="cot-badge-rec" style="background:#FEE2E2;color:#991B1B;">Rechazada</span>
+      <span class="cot-doc-badge" id="cot-badge-pend" style="background:#FEF3C7;color:#92400E;">Awaiting response</span>
+      <span class="cot-doc-badge cot-hidden" id="cot-badge-resp" style="background:#D1FAE5;color:#065F46;">Responded</span>
+      <span class="cot-doc-badge cot-hidden" id="cot-badge-acep" style="background:#DBEAFE;color:#1E40AF;">Accepted</span>
+      <span class="cot-doc-badge cot-hidden" id="cot-badge-rec" style="background:#FEE2E2;color:#991B1B;">Rejected</span>
 
       <form method="post" class="cot-hidden" id="cot-form-convert" style="display:inline;">
         {% csrf_token %}
         <input type="hidden" name="accion" value="convertir">
         <button type="submit" class="tf-btn-primary">
           <span class="material-symbols-rounded" style="font-size:18px;">shopping_bag</span>
-          Convertir en orden
+          Convert to order
         </button>
       </form>
       <form method="post" class="cot-hidden" id="cot-form-reject" style="display:inline;">
@@ -154,7 +154,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
         <input type="hidden" name="accion" value="rechazar">
         <button type="submit" class="tf-btn-secondary">Reject quote</button>
       </form>
-      <a href="#" class="tf-btn-secondary cot-hidden" id="cot-link-ver-orden">Ver orden</a>
+      <a href="#" class="tf-btn-secondary cot-hidden" id="cot-link-ver-orden">View order</a>
     </div>
 
     <footer class="cot-doc-foot">
@@ -164,7 +164,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
   <div style="margin-top:1rem;">
     <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">
       <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
-      Volver
+      Back
     </a>
   </div>
 </div>

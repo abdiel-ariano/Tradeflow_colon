@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Seleccionar transportista — TradeFlow{% endblock %}
+{% block title %}Select carrier — TradeFlow{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
@@ -21,7 +21,7 @@
 {% endblock %}
 {% block content %}
 <div class="tf-card" style="max-width:900px;margin:2rem auto;padding:2rem;">
-  <h2 style="font-family:var(--tf-font-display);color:var(--tf-dark);">Elige tu transportista</h2>
+  <h2 style="font-family:var(--tf-font-display);color:var(--tf-dark);">Choose your carrier</h2>
   <p style="color:var(--tf-muted);">Order {{ num }}</p>
   <form method="post" id="form-transporte">
     {% csrf_token %}
@@ -29,7 +29,7 @@
     <input type="hidden" name="pickup_lat" id="pickup-lat">
     <input type="hidden" name="pickup_lng" id="pickup-lng">
     <input type="hidden" name="pickup_descripcion" id="pickup-descripcion">
-    <h3 style="color:var(--tf-dark);">1. Transportista</h3>
+    <h3 style="color:var(--tf-dark);">1. Carrier</h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:2rem;">
       {% for t in transportistas %}
       <div class="transportista-card" data-tid="{{ t.id }}">
@@ -49,7 +49,7 @@
       <label class="tf-label">Notes (optional)</label>
       <textarea name="notas_buyer" class="tf-input" rows="2"></textarea>
     </div>
-    <button type="submit" id="btn-confirmar" class="btn-tf btn-primary-tf" disabled style="width:100%;margin-top:1rem;">Confirmar transportista</button>
+    <button type="submit" id="btn-confirmar" class="btn-tf btn-primary-tf" disabled style="width:100%;margin-top:1rem;">Confirm carrier</button>
   </form>
 </div>
 {% endblock %}
@@ -91,7 +91,7 @@
     });
   });
   document.getElementById('form-transporte').addEventListener('submit', function () {
-    if (window.TF) TF.success('Transportista confirmado');
+    if (window.TF) TF.success('Carrier confirmed');
   });
 })();
 </script>

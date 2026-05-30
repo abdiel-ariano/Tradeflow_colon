@@ -37,9 +37,9 @@ Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones
 
     <form method="get" action="{% url 'solicitar_cotizacion' %}" class="t-filters" style="margin-bottom:1.5rem;">
       <label class="w-100" style="max-width:360px;">
-        <span style="display:block;font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;margin-bottom:6px;">Business destino</span>
+        <span style="display:block;font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;margin-bottom:6px;">Target company</span>
         <select name="empresa" class="tf-input" style="width:100%;" onchange="this.form.submit()">
-          <option value="">Seleccionar empresa…</option>
+          <option value="">Select company…</option>
           {% for e in empresas %}
           <option value="{{ e.id }}" id="cot-opt-emp-{{ e.id }}">{{ e.name }}</option>
           {% endfor %}
@@ -56,16 +56,16 @@ Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones
         <input type="number" name="validez_dias" class="tf-input" value="30" min="1" max="365" style="max-width:160px;">
       </div>
       <div class="mb-3">
-        <label class="form-label" style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;">Notas / especificaciones</label>
-        <textarea name="notas_buyer" class="tf-input" rows="3" placeholder="Requisitos, incoterm, embalaje…"></textarea>
+        <label class="form-label" style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;">Notes / specifications</label>
+        <textarea name="notas_buyer" class="tf-input" rows="3" placeholder="Requirements, incoterm, packaging…"></textarea>
       </div>
       <h2 style="font-size:1rem;font-weight:700;color:var(--tf-navy);margin:1.5rem 0 12px;">Products — {{ empresa_obj.name }}</h2>
       <div class="table-responsive">
         <table class="table align-middle" style="font-size:0.9rem;">
           <thead style="background:#f9fafb;font-size:11px;text-transform:uppercase;color:#6b7a88;">
             <tr>
-              <th>Producto</th>
-              <th style="width:120px;">Cantidad</th>
+              <th>Product</th>
+              <th style="width:120px;">Quantity</th>
             </tr>
           </thead>
           <tbody>
@@ -88,13 +88,13 @@ Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones
           <span class="material-symbols-rounded" style="font-size:18px;">send</span>
           Submit quote
         </button>
-        <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">Cancelar</a>
+        <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">Cancel</a>
       </div>
     </form>
     {% else %}
     <p style="color:var(--tf-muted);margin:0;">Select a company above to view its products.</p>
     <div style="margin-top:1rem;">
-      <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">Volver a mis cotizaciones</a>
+      <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">Back to my quotes</a>
     </div>
     {% endif %}
   </div>

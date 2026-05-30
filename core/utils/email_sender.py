@@ -70,7 +70,7 @@ def _render_email_shell(title_inner: str, inner_html: str) -> str:
         str: Documento HTML completo del correo.
     """
     return f"""<!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -84,7 +84,7 @@ def _render_email_shell(title_inner: str, inner_html: str) -> str:
           <tr>
             <td style="background-color:#0F2A44;padding:24px 24px;text-align:center;">
               <img src="{settings.PUBLIC_BASE_URL.rstrip('/')}/static/img/logo-icon-color.png" alt="TradeFlow Colón" width="120" height="auto" style="display:block;margin:0 auto 12px;max-height:48px;width:auto;height:48px;object-fit:contain;">
-              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.8);letter-spacing:0.04em;">Zona Libre de Colón · Panamá</p>
+              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.8);letter-spacing:0.04em;">Colón Free Zone · Panama</p>
             </td>
           </tr>
           <tr>
@@ -95,8 +95,8 @@ def _render_email_shell(title_inner: str, inner_html: str) -> str:
           </tr>
           <tr>
             <td style="padding:16px 24px 24px;border-top:1px solid #E5E7EB;font-size:12px;color:#6B7A88;">
-              <p style="margin:0;">¿Necesitas ayuda? Escríbenos a soporte@tradeflow.pa</p>
-              <p style="margin:8px 0 0;">Este mensaje fue generado automáticamente; no respondas directamente a este remitente.</p>
+              <p style="margin:0;">Need help? Write to us at soporte@tradeflow.pa</p>
+              <p style="margin:8px 0 0;">This message was generated automatically; do not reply directly to this sender.</p>
             </td>
           </tr>
         </table>
@@ -136,9 +136,9 @@ def _confirmacion_html(orden: Order, items: list, ver_orden_url: str) -> str:
     table_html = (
         '<table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:14px;margin:16px 0;">'
         "<thead><tr>"
-        '<th align="left" style="padding:8px;border-bottom:2px solid #0F2A44;color:#0F2A44;">Producto</th>'
-        '<th align="right" style="padding:8px;border-bottom:2px solid #0F2A44;color:#0F2A44;">Cant.</th>'
-        '<th align="right" style="padding:8px;border-bottom:2px solid #0F2A44;color:#0F2A44;">P. unit.</th>'
+        '<th align="left" style="padding:8px;border-bottom:2px solid #0F2A44;color:#0F2A44;">Product</th>'
+        '<th align="right" style="padding:8px;border-bottom:2px solid #0F2A44;color:#0F2A44;">Qty.</th>'
+        '<th align="right" style="padding:8px;border-bottom:2px solid #0F2A44;color:#0F2A44;">Unit price</th>'
         '<th align="right" style="padding:8px;border-bottom:2px solid #0F2A44;color:#0F2A44;">Subtotal</th>'
         "</tr></thead><tbody>"
         + "".join(rows)
@@ -146,17 +146,17 @@ def _confirmacion_html(orden: Order, items: list, ver_orden_url: str) -> str:
     )
     totals = (
         f'<p style="margin:12px 0 4px;text-align:right;color:#374151;">Subtotal: <strong>USD {_h(orden.subtotal)}</strong></p>'
-        f'<p style="margin:0 0 4px;text-align:right;color:#374151;">Envío: <strong>USD {_h(orden.shipping_cost)}</strong></p>'
+        f'<p style="margin:0 0 4px;text-align:right;color:#374151;">Shipping: <strong>USD {_h(orden.shipping_cost)}</strong></p>'
         f'<p style="margin:0;text-align:right;font-size:18px;color:#F26522;"><strong>Total USD {_h(orden.total)}</strong></p>'
     )
     cta = (
         f'<p style="margin:24px 0 16px;text-align:center;">'
         f'<a href="{_h(ver_orden_url)}" style="display:inline-block;padding:12px 24px;background-color:#F26522;'
-        f'color:#FFFFFF;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Ver mi orden</a>'
+        f'color:#FFFFFF;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">View my order</a>'
         f"</p>"
     )
-    title = f"<p style=\"margin:0 0 8px;font-size:16px;font-weight:600;color:#0F2A44;\">Hola {nombre}</p>"
-    lead = f'<p style="margin:0 0 16px;">Tu orden <strong style="color:#0F2A44;">{num}</strong> fue registrada correctamente.</p>'
+    title = f"<p style=\"margin:0 0 8px;font-size:16px;font-weight:600;color:#0F2A44;\">Hello {nombre}</p>"
+    lead = f'<p style="margin:0 0 16px;">Your order <strong style="color:#0F2A44;">{num}</strong> was successfully registered.</p>'
     inner = lead + table_html + totals + cta
     return _render_email_shell(title, inner)
 
@@ -165,9 +165,9 @@ def _confirmacion_plain(orden: Order, items: list, ver_orden_url: str) -> str:
     """Versión texto plano del correo de confirmación (multipart/alternative)."""
     buyer = orden.buyer
     lines = [
-        f"Hola {buyer.get_full_name() or buyer.username},",
+        f"Hello {buyer.get_full_name() or buyer.username},",
         "",
-        f"Tu orden {orden.order_number} fue registrada correctamente.",
+        f"Your order {orden.order_number} was successfully registered.",
         "",
     ]
     for it in items:
@@ -176,12 +176,12 @@ def _confirmacion_plain(orden: Order, items: list, ver_orden_url: str) -> str:
         [
             "",
             f"Subtotal: USD {orden.subtotal}",
-            f"Envío: USD {orden.shipping_cost}",
+            f"Shipping: USD {orden.shipping_cost}",
             f"Total: USD {orden.total}",
             "",
-            f"Ver mi orden: {ver_orden_url}",
+            f"View my order: {ver_orden_url}",
             "",
-            "TradeFlow Colón — Zona Libre de Colón, Panamá",
+            "TradeFlow Colón — Colón Free Zone, Panama",
         ]
     )
     return "\n".join(lines)
@@ -213,7 +213,7 @@ def enviar_confirmacion_orden(orden: Order) -> None:
     ver_url = _order_detail_absolute_url(orden)
     html_body = _confirmacion_html(orden, items, ver_url)
     plain_body = _confirmacion_plain(orden, items, ver_url)
-    subject = f"TradeFlow Colón — Confirmación de orden {orden.order_number}"
+    subject = f"TradeFlow Colón — Order confirmation {orden.order_number}"
 
     try:
         send_mail(
@@ -251,60 +251,60 @@ def _mensaje_cambio_estado(orden: Order, estado_anterior: str) -> tuple[str, str
     if estado_anterior == estado_nuevo:
         return ("", "")
 
-    headline = "Actualización de tu orden"
+    headline = "Order update"
     parrafos = ""
 
     if estado_nuevo == "awaiting_seller":
-        headline = "Esperando confirmación de la empresa"
+        headline = "Awaiting company confirmation"
         plazo = ""
         if orden.seller_confirm_by:
             plazo = orden.seller_confirm_by.strftime("%d/%m/%Y %H:%M")
         parrafos = (
-            f'<p style="margin:0 0 12px;">Hola {nombre},</p>'
-            f'<p style="margin:0 0 12px;">Recibimos tu orden <strong style="color:#0F2A44;">{num}</strong>. '
-            f"La empresa vendedora debe confirmarla antes del cobro."
-            f'{f" Plazo: <strong>{_h(plazo)}</strong>." if plazo else ""}</p>'
+            f'<p style="margin:0 0 12px;">Hello {nombre},</p>'
+            f'<p style="margin:0 0 12px;">We received your order <strong style="color:#0F2A44;">{num}</strong>. '
+            f"The selling company must confirm it before payment is collected."
+            f'{f" Deadline: <strong>{_h(plazo)}</strong>." if plazo else ""}</p>'
         )
     elif estado_nuevo == "paid":
-        headline = "Tu pago fue confirmado"
+        headline = "Your payment was confirmed"
         parrafos = (
-            f'<p style="margin:0 0 12px;">Hola {nombre},</p>'
-            f'<p style="margin:0 0 12px;">Confirmamos el pago de tu orden <strong style="color:#0F2A44;">{num}</strong>. '
-            f"Prepararemos tu pedido para envío.</p>"
+            f'<p style="margin:0 0 12px;">Hello {nombre},</p>'
+            f'<p style="margin:0 0 12px;">We confirmed payment for your order <strong style="color:#0F2A44;">{num}</strong>. '
+            f"We will prepare your order for shipping.</p>"
         )
     elif estado_nuevo == "shipped":
-        headline = "Tu pedido está en camino"
+        headline = "Your order is on its way"
         parrafos = (
-            f'<p style="margin:0 0 12px;">Hola {nombre},</p>'
-            f'<p style="margin:0 0 12px;">Tu orden <strong style="color:#0F2A44;">{num}</strong> ya fue despachada. '
-            f"Pronto recibirás el pedido en la dirección indicada.</p>"
+            f'<p style="margin:0 0 12px;">Hello {nombre},</p>'
+            f'<p style="margin:0 0 12px;">Your order <strong style="color:#0F2A44;">{num}</strong> has been shipped. '
+            f"You will receive it soon at the address provided.</p>"
         )
     elif estado_nuevo == "delivered":
-        headline = "Tu pedido fue entregado"
+        headline = "Your order was delivered"
         parrafos = (
-            f'<p style="margin:0 0 12px;">Hola {nombre},</p>'
-            f'<p style="margin:0 0 12px;">Tu orden <strong style="color:#0F2A44;">{num}</strong> figura como entregada. '
-            f"Gracias por confiar en TradeFlow Colón.</p>"
+            f'<p style="margin:0 0 12px;">Hello {nombre},</p>'
+            f'<p style="margin:0 0 12px;">Your order <strong style="color:#0F2A44;">{num}</strong> is marked as delivered. '
+            f"Thank you for trusting TradeFlow Colón.</p>"
         )
     else:
         prev_label = dict(Order.STATUS_CHOICES).get(estado_anterior, estado_anterior)
         new_label = orden.get_status_display()
         parrafos = (
-            f'<p style="margin:0 0 12px;">Hola {nombre},</p>'
-            f'<p style="margin:0 0 12px;">El estado de tu orden <strong style="color:#0F2A44;">{num}</strong> ha cambiado '
-            f"de <strong>{_h(prev_label)}</strong> a <strong>{_h(new_label)}</strong>.</p>"
+            f'<p style="margin:0 0 12px;">Hello {nombre},</p>'
+            f'<p style="margin:0 0 12px;">The status of your order <strong style="color:#0F2A44;">{num}</strong> has changed '
+            f"from <strong>{_h(prev_label)}</strong> to <strong>{_h(new_label)}</strong>.</p>"
         )
 
     ver_url = _order_detail_absolute_url(orden)
     cta = (
         f'<p style="margin:20px 0 0;text-align:center;">'
         f'<a href="{_h(ver_url)}" style="display:inline-block;padding:10px 20px;background-color:#F26522;'
-        f'color:#FFFFFF;text-decoration:none;border-radius:8px;font-weight:600;font-size:13px;">Ver mi orden</a></p>'
+        f'color:#FFFFFF;text-decoration:none;border-radius:8px;font-weight:600;font-size:13px;">View my order</a></p>'
     )
     inner = (
         f'<p style="margin:0 0 8px;font-size:18px;font-weight:700;color:#0F2A44;">{_h(headline)}</p>'
         + parrafos
-        + f'<p style="margin:12px 0 0;color:#374151;">Total de la orden: <strong>USD {_h(orden.total)}</strong></p>'
+        + f'<p style="margin:12px 0 0;color:#374151;">Order total: <strong>USD {_h(orden.total)}</strong></p>'
         + cta
     )
     subject = f"TradeFlow Colón — {headline} ({orden.order_number})"
@@ -316,18 +316,18 @@ def _cambio_estado_plain(orden: Order, estado_anterior: str, headline: str) -> s
     buyer = orden.buyer
     prev_label = dict(Order.STATUS_CHOICES).get(estado_anterior, estado_anterior)
     lines = [
-        f"Hola {buyer.get_full_name() or buyer.username},",
+        f"Hello {buyer.get_full_name() or buyer.username},",
         "",
         headline,
         "",
-        f"Orden: {orden.order_number}",
-        f"Estado anterior: {prev_label}",
-        f"Estado actual: {orden.get_status_display()}",
+        f"Order: {orden.order_number}",
+        f"Previous status: {prev_label}",
+        f"Current status: {orden.get_status_display()}",
         f"Total: USD {orden.total}",
         "",
-        f"Ver pedido: {_order_detail_absolute_url(orden)}",
+        f"View order: {_order_detail_absolute_url(orden)}",
         "",
-        "TradeFlow Colón — Zona Libre de Colón, Panamá",
+        "TradeFlow Colón — Colón Free Zone, Panama",
     ]
     return "\n".join(lines)
 
@@ -378,7 +378,7 @@ def enviar_bienvenida(user: User) -> None:
     )
     try:
         send_mail(
-            subject='¡Bienvenido a TradeFlow Colón!',
+            subject='Welcome to TradeFlow Colón!',
             message=strip_tags(html_message),
             from_email=getattr(
                 settings,
@@ -448,18 +448,18 @@ def enviar_orden_pendiente_vendedor(orden: Order) -> None:
     path = reverse('seller_detalle_venta', kwargs={'pk': orden.pk})
     url = base + path
     plazo = orden.seller_confirm_by.strftime('%d/%m/%Y %H:%M') if orden.seller_confirm_by else '—'
-    subject = f'TradeFlow — Nueva orden {orden.order_number} por confirmar'
+    subject = f'TradeFlow — New order {orden.order_number} pending confirmation'
     body = (
-        f'Hola,\n\n'
-        f'Nueva orden {orden.order_number} de '
+        f'Hello,\n\n'
+        f'New order {orden.order_number} from '
         f'{orden.buyer.get_full_name() or orden.buyer.username}.\n'
-        f'Confirmar antes de: {plazo}\n\n'
-        f'Ver y confirmar: {url}\n'
+        f'Confirm before: {plazo}\n\n'
+        f'View and confirm: {url}\n'
     )
     inner = (
-        f'<p>Nueva orden <strong>{_h(orden.order_number)}</strong> pendiente de confirmación.</p>'
-        f'<p>Plazo: <strong>{_h(plazo)}</strong></p>'
-        f'<p><a href="{_h(url)}">Abrir en Mi Tienda</a></p>'
+        f'<p>New order <strong>{_h(orden.order_number)}</strong> pending confirmation.</p>'
+        f'<p>Deadline: <strong>{_h(plazo)}</strong></p>'
+        f'<p><a href="{_h(url)}">Open in My Store</a></p>'
     )
     try:
         send_mail(
@@ -467,7 +467,7 @@ def enviar_orden_pendiente_vendedor(orden: Order) -> None:
             message=body,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[company.owner.email],
-            html_message=_render_email_shell('Nueva orden', inner),
+            html_message=_render_email_shell('New order', inner),
             fail_silently=False,
         )
     except Exception as exc:
@@ -482,10 +482,10 @@ def enviar_solicitud_recibida(app) -> None:
         return
     try:
         send_mail(
-            subject='TradeFlow — Solicitud de acceso recibida',
+            subject='TradeFlow — Access request received',
             message=(
-                f'Hola {app.full_name},\n\n'
-                'Recibimos tu solicitud. Te avisaremos por correo cuando sea revisada.\n'
+                f'Hello {app.full_name},\n\n'
+                'We received your request. We will notify you by email when it has been reviewed.\n'
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[app.email],
@@ -508,13 +508,13 @@ def enviar_solicitud_a_revisores(app) -> None:
     base = _public_base_url()
     approve = base + reverse('revisar_solicitud', kwargs={'token': app.review_token, 'accion': 'aprobar'})
     reject = base + reverse('revisar_solicitud', kwargs={'token': app.review_token, 'accion': 'rechazar'})
-    subject = f'TradeFlow — Nueva solicitud: {app.full_name}'
+    subject = f'TradeFlow — New application: {app.full_name}'
     body = (
-        f'Solicitud de {app.full_name} ({app.email})\n'
-        f'Rol: {app.get_role_display()}\n'
-        f'Empresa: {app.company_name}\n\n'
-        f'Aprobar: {approve}\n'
-        f'Rechazar: {reject}\n'
+        f'Application from {app.full_name} ({app.email})\n'
+        f'Role: {app.get_role_display()}\n'
+        f'Company: {app.company_name}\n\n'
+        f'Approve: {approve}\n'
+        f'Reject: {reject}\n'
     )
     try:
         send_mail(
@@ -539,7 +539,7 @@ def enviar_aplicacion_transportista_recibida(transportista) -> None:
     )
     try:
         send_mail(
-            subject='TradeFlow — Solicitud de transportista recibida',
+            subject='TradeFlow — Carrier application received',
             message=strip_tags(html),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
@@ -565,8 +565,8 @@ def enviar_resultado_aplicacion_transportista(transportista, aprobado: bool) -> 
         },
     )
     subject = (
-        '¡Bienvenido a TradeFlow!' if aprobado
-        else 'Actualización de tu solicitud — TradeFlow'
+        'Welcome to TradeFlow!' if aprobado
+        else 'Application update — TradeFlow'
     )
     try:
         send_mail(
@@ -588,19 +588,19 @@ def enviar_solicitud_decision(app, aprobada: bool) -> None:
     if aprobada:
         link = base + reverse('signup')
         msg = (
-            f'Hola {app.full_name},\n\n'
-            f'Tu solicitud fue aprobada. Crea tu cuenta en: {link}\n'
+            f'Hello {app.full_name},\n\n'
+            f'Your application was approved. Create your account at: {link}\n'
         )
-        html = f'<p>Tu solicitud fue <strong>aprobada</strong>.</p><p><a href="{_h(link)}">Registrarse</a></p>'
-        subject = 'TradeFlow — Solicitud aprobada'
+        html = f'<p>Your application was <strong>approved</strong>.</p><p><a href="{_h(link)}">Sign up</a></p>'
+        subject = 'TradeFlow — Application approved'
     else:
         msg = (
-            f'Hola {app.full_name},\n\n'
-            'En este momento no podemos aprobar tu solicitud. '
-            'Contacta a soporte@tradeflow.pa si tienes preguntas.\n'
+            f'Hello {app.full_name},\n\n'
+            'We cannot approve your application at this time. '
+            'Contact soporte@tradeflow.pa if you have questions.\n'
         )
-        html = '<p>Tu solicitud no fue aprobada en esta etapa.</p>'
-        subject = 'TradeFlow — Solicitud no aprobada'
+        html = '<p>Your application was not approved at this stage.</p>'
+        subject = 'TradeFlow — Application not approved'
     try:
         send_mail(
             subject=subject,

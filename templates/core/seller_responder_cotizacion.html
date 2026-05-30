@@ -27,9 +27,9 @@ Contexto: vista seller_responder_cotizacion; POST con precio por línea.
         <table class="cot-rsp-table">
           <thead>
             <tr>
-              <th>Producto</th>
-              <th style="width:100px;">Cantidad</th>
-              <th style="width:160px;">Precio unitario (USD)</th>
+              <th>Product</th>
+              <th style="width:100px;">Quantity</th>
+              <th style="width:160px;">Unit price (USD)</th>
             </tr>
           </thead>
           <tbody>
@@ -46,14 +46,14 @@ Contexto: vista seller_responder_cotizacion; POST con precio por línea.
         </table>
         <div style="margin-top:1.25rem;">
           <label style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;display:block;margin-bottom:6px;">Notes for the buyer</label>
-          <textarea name="notas_seller" class="tf-input" rows="3" placeholder="Condiciones comerciales, plazo de entrega…">{{ cot.notas_seller }}</textarea>
+          <textarea name="notas_seller" class="tf-input" rows="3" placeholder="Commercial terms, delivery timeline…">{{ cot.notas_seller }}</textarea>
         </div>
         <div style="margin-top:1.25rem;display:flex;gap:12px;flex-wrap:wrap;">
           <button type="submit" class="btn-seller-primary">
             <span class="material-symbols-rounded" style="font-size:18px;">send</span>
             Submit quote
           </button>
-          <a href="{% url 'seller_cotizaciones' %}" class="btn-seller-outline">Volver</a>
+          <a href="{% url 'seller_cotizaciones' %}" class="btn-seller-outline">Back</a>
         </div>
       </form>
     </div>

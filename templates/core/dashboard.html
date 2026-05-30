@@ -189,8 +189,8 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         <h1>CFZ sales dashboard</h1>
         <p>
           Operational summary · <strong>{{ total_ordenes }}</strong> historical orders ·
-          <strong>{{ total_empresas }}</strong> empresas ·
-          <strong>{{ total_productos }}</strong> productos activos
+          <strong>{{ total_empresas }}</strong> companies ·
+          <strong>{{ total_productos }}</strong> active products
         </p>
       </div>
       <div
@@ -248,8 +248,8 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         <div
           class="adm-kpi-sub"
           id="adm-kpi-ingresos-sub"
-          data-sub-pruebas="Acumulado activo (no canceladas)"
-          data-sub-prod="Acumulado entregado"
+          data-sub-pruebas="Active total (non-cancelled)"
+          data-sub-prod="Delivered total"
         >{{ kpi_ingresos_sub }}: {{ ingresos_total|money_usd }}</div>
       </div>
       <div class="adm-kpi adm-kpi-in">
@@ -267,7 +267,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">trending_up</span>
         </div>
         <div class="adm-kpi-val" style="font-family:'DM Serif Display',Georgia,serif;">{{ tasa_periodo }}%</div>
-        <div class="adm-kpi-delta">Δ vs. anterior: {{ tasa_delta_pp_fmt }} pp</div>
+        <div class="adm-kpi-delta">Δ vs. previous: {{ tasa_delta_pp_fmt }} pp</div>
         <div class="adm-kpi-sub">Global: {{ tasa_conversion }}% delivered</div>
       </div>
     </div>
@@ -375,15 +375,15 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     <div class="adm-table-card">
       <div class="adm-table-head">
         <span>Latest orders</span>
-        <a href="{% url 'lista_ordenes' %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8125rem;">Ver todas</a>
+        <a href="{% url 'lista_ordenes' %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8125rem;">View all</a>
       </div>
       <table class="adm-table">
         <thead>
           <tr>
             <th>Number</th>
             <th>Customer</th>
-            <th>Fecha</th>
-            <th>Estado</th>
+            <th>Date</th>
+            <th>Status</th>
             <th>Total</th>
           </tr>
         </thead>

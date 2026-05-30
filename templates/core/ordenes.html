@@ -26,11 +26,11 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
     <form class="adm-filter-card" method="get" action="">
       <div class="adm-filter-grid">
         <div class="adm-field adm-field--grow">
-          <label for="adm-orden-buscar">Buscar</label>
+          <label for="adm-orden-buscar">Search</label>
           <input id="adm-orden-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="TF number, username, or buyer name" autocomplete="off">
         </div>
         <div class="adm-field">
-          <label for="adm-orden-estado">Estado</label>
+          <label for="adm-orden-estado">Status</label>
           <select id="adm-orden-estado" name="estado">
             {% for opt in estado_opciones %}
             <option value="{{ opt.value }}" {% if opt.selected %}selected{% endif %}>{{ opt.label }}</option>
@@ -38,8 +38,8 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
           </select>
         </div>
         <div class="adm-filter-actions">
-          <button type="submit" class="adm-btn adm-btn--primary">Aplicar</button>
-          <a href="{% url 'lista_ordenes' %}" class="adm-btn adm-btn--secondary">Limpiar</a>
+          <button type="submit" class="adm-btn adm-btn--primary">Apply</button>
+          <a href="{% url 'lista_ordenes' %}" class="adm-btn adm-btn--secondary">Clear</a>
         </div>
       </div>
     </form>
@@ -50,17 +50,17 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
 
     <div class="adm-table-card">
       <div class="adm-table-head">
-        <span>Listado</span>
+        <span>Listing</span>
       </div>
       <table class="adm-table">
         <thead>
           <tr>
             <th>Number</th>
             <th>Buyer</th>
-            <th>Tipo</th>
-            <th>Fecha</th>
+            <th>Type</th>
+            <th>Date</th>
             <th>Lines</th>
-            <th>Estado</th>
+            <th>Status</th>
             <th style="text-align:right;">Total</th>
             <th style="text-align:right;">Action</th>
           </tr>
@@ -78,7 +78,7 @@ Admin — listado de órdenes (ORM Order). Contexto: lista_ordenes en core/views
             <td><span class="adm-badge adm-ord-st" data-st="{{ orden.status }}">{{ orden.get_status_display }}</span></td>
             <td style="text-align:right;">USD {{ orden.total }}</td>
             <td style="text-align:right;">
-              <a href="{% url 'detalle_orden' orden.pk %}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Ver</a>
+              <a href="{% url 'detalle_orden' orden.pk %}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">View</a>
             </td>
           </tr>
           {% empty %}

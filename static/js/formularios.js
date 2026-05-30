@@ -74,8 +74,8 @@ function initClienteSelector() {
       formNuevo.style.display = modoNuevo ? 'block' : 'none';
       seccionExistente.style.display = modoNuevo ? 'none' : 'block';
       toggleBtn.textContent = modoNuevo
-        ? '← Volver a clientes existentes'
-        : '+ Crear nuevo cliente';
+        ? '← Back to existing customers'
+        : '+ Create new customer';
     });
   }
 }
@@ -187,10 +187,10 @@ function validateForm(form) {
 
   form.querySelectorAll('[required]').forEach(function (input) {
     if (!input.value.trim()) {
-      showFieldError(input, 'Este campo es obligatorio.');
+      showFieldError(input, 'This field is required.');
       valid = false;
     } else if (input.type === 'email' && !isValidEmail(input.value)) {
-      showFieldError(input, 'Ingresa un email válido.');
+      showFieldError(input, 'Enter a valid email address.');
       valid = false;
     }
   });

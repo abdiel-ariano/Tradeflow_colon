@@ -8,15 +8,15 @@ from django.utils.translation import gettext as _
 
 
 TIMELINE_STEPS = (
-    ('received', _('Pedido recibido'), 'inbox'),
-    ('processing', _('Procesando'), 'sync'),
-    ('preparing', _('Preparando envío'), 'inventory_2'),
-    ('dispatched', _('Despachado'), 'local_shipping'),
-    ('in_transit', _('En tránsito'), 'delivery_truck_speed'),
-    ('hub', _('En centro logístico'), 'warehouse'),
-    ('delivered', _('Entregado'), 'check_circle'),
-    ('incident', _('Incidencia'), 'warning'),
-    ('cancelled', _('Cancelado'), 'cancel'),
+    ('received', _('Order received'), 'inbox'),
+    ('processing', _('Processing'), 'sync'),
+    ('preparing', _('Preparing shipment'), 'inventory_2'),
+    ('dispatched', _('Shipped'), 'local_shipping'),
+    ('in_transit', _('In transit'), 'delivery_truck_speed'),
+    ('hub', _('At logistics hub'), 'warehouse'),
+    ('delivered', _('Delivered'), 'check_circle'),
+    ('incident', _('Incident'), 'warning'),
+    ('cancelled', _('Cancelled'), 'cancel'),
 )
 
 

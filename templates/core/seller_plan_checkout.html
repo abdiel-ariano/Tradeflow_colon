@@ -1,8 +1,8 @@
 {% extends "core/seller_layout.html" %}
-{% block title %}Pago del plan — {{ target_plan.name }}{% endblock %}
-{% block seller_page_title %}Activar {{ target_plan.name }}{% endblock %}
+{% block title %}Plan payment — {{ target_plan.name }}{% endblock %}
+{% block seller_page_title %}Activate {{ target_plan.name }}{% endblock %}
 {% block seller_page_sub %}
-<p class="sp-topbar-sub">Checkout seguro TradeFlow · tu plan se activa al confirmar el pago</p>
+<p class="sp-topbar-sub">Secure TradeFlow checkout · your plan activates when payment is confirmed</p>
 {% endblock %}
 
 {% block seller_extra_css %}
@@ -96,7 +96,7 @@
 
   <nav class="sp-checkout-steps" aria-label="Activation steps">
     <div class="sp-checkout-step is-done">1. Plan</div>
-    <div class="sp-checkout-step is-current">2. Pago</div>
+    <div class="sp-checkout-step is-current">2. Payment</div>
     <div class="sp-checkout-step">3. Activation</div>
   </nav>
 
@@ -129,7 +129,7 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
               <label for="card_exp">Expiry</label>
-              <input type="text" id="card_exp" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp">
+              <input type="text" id="card_exp" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp">
             </div>
             <div>
               <label for="card_cvc">CVC</label>

@@ -369,7 +369,7 @@ def login_view(request):
                         if not user.profile.email_verificado:
                             messages.info(
                                 request,
-                                'Verifica tu correo para acceder a todas las funciones.',
+                                'Verify your email to access all features.',
                             )
                     except UserProfile.DoesNotExist:
                         pass
@@ -417,7 +417,7 @@ def signup_view(request):
 
         errores = []
         signup_ctx = {
-            'role_choices': [('buyer', 'Comprador'), ('seller', 'Vendedor')],
+            'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
             'selected_role': role if role in ('buyer', 'seller') else 'buyer',
             'form_first_name': request.POST.get('first_name', '').strip(),
             'form_last_name': request.POST.get('last_name', '').strip(),
@@ -516,7 +516,7 @@ def signup_view(request):
         return redirect(_redirect_by_role(user))
 
     return render(request, 'core/signup.html', {
-        'role_choices': [('buyer', 'Comprador'), ('seller', 'Vendedor')],
+        'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
         'selected_role': 'buyer',
         'form_first_name': '',
         'form_last_name': '',
@@ -568,7 +568,7 @@ def enviar_codigo(request):
     else:
         messages.error(
             request,
-            'No pudimos enviar el correo. Revisa Supabase o EMAIL_BACKEND en .env.',
+            'We could not send the email. Check Supabase or EMAIL_BACKEND in .env.',
         )
     return redirect('verificar_codigo')
 
@@ -938,7 +938,7 @@ def api_asistente(request):
         data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse(
-            {'ok': False, 'respuesta': 'Error de formato.'},
+            {'ok': False, 'respuesta': 'Invalid format.'},
             status=400,
         )
 
@@ -947,13 +947,13 @@ def api_asistente(request):
 
     if not mensaje:
         return JsonResponse(
-            {'ok': False, 'respuesta': 'Escribe un mensaje.'},
+            {'ok': False, 'respuesta': 'Enter a message.'},
             status=400,
         )
 
     if len(mensaje) > 500:
         return JsonResponse(
-            {'ok': False, 'respuesta': 'Mensaje demasiado largo.'},
+            {'ok': False, 'respuesta': 'Message is too long.'},
             status=400,
         )
 
@@ -992,7 +992,7 @@ def mapa_zlc(request):
         HttpResponse: Plantilla con HTML del mapa embebido.
     """
     m = folium.Map(location=[9.3667, -79.9000], zoom_start=13, tiles='OpenStreetMap')
-    cluster = MarkerCluster(name='Empresas ZLC').add_to(m)
+    cluster = MarkerCluster(name='CFZ Companies').add_to(m)
     empresas = Company.objects.annotate(
         n_activos=Count('products', filter=Q(products__is_active=True))
     ).order_by('name')
@@ -1013,7 +1013,7 @@ def mapa_zlc(request):
         html_popup = (
             '<div style="min-width:220px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.45;">'
             f'<strong style="color:#0F2A44;">{nombre}</strong><br>'
-            f'<span style="color:#6B7A88;">{_('Productos activos:')}</span> {c.n_activos}<br>'
+            f'<span style="color:#6B7A88;">{_('Active products:')}</span> {c.n_activos}<br>'
             f'<span style="color:#6B7A88;">{_('Categories:')}</span> {cat_txt_e}<br>'
             f'<a href="{catalog_url_e}" target="_blank" rel="noopener noreferrer" '
             'style="display:inline-block;margin-top:10px;padding:8px 14px;background:#F26522;'
@@ -1301,7 +1301,7 @@ def dashboard(request):
             {
                 'ts': o.created_at,
                 'icon': 'receipt_long',
-                'titulo': f'Orden {o.order_number}',
+                'titulo': f'Order {o.order_number}',
                 'detalle': (o.buyer.get_full_name() or o.buyer.username) + ' · ' + o.get_status_display(),
             }
         )
@@ -1310,7 +1310,7 @@ def dashboard(request):
             {
                 'ts': u.date_joined,
                 'icon': 'person_add',
-                'titulo': f'Usuario {u.username}',
+                'titulo': f'User {u.username}',
                 'detalle': u.email or '—',
             }
         )
@@ -1405,7 +1405,7 @@ def lista_ordenes(request):
         filtros_q['estado'] = estado
     orden_filtros_query = urlencode(filtros_q)
 
-    estado_opciones = [{'value': '', 'label': 'Todos los estados', 'selected': not bool(estado)}]
+    estado_opciones = [{'value': '', 'label': 'All statuses', 'selected': not bool(estado)}]
     for val, label in Order.STATUS_CHOICES:
         estado_opciones.append({
             'value':    val,
@@ -1457,7 +1457,7 @@ def detalle_orden(request, pk):
         'pago':            pago,
         'envio':           envio,
         'otros_estados':   otros_estados,
-        'titulo_pagina':   f'Orden {orden.order_number}',
+        'titulo_pagina':   f'Order {orden.order_number}',
         'nav_activo':      'ordenes',
     }
     return render(request, 'core/detalle_orden.html', context)
@@ -1505,7 +1505,7 @@ def nueva_orden_paso1(request):
         buyer_id   = request.POST.get('buyer_id')
         order_type = request.POST.get('order_type', 'b2c')
         if not buyer_id:
-            messages.error(request, 'Debes seleccionar un comprador.')
+            messages.error(request, 'You must select a buyer.')
         else:
             request.session['wizard_buyer_id']   = int(buyer_id)
             request.session['wizard_order_type'] = order_type
@@ -1514,7 +1514,7 @@ def nueva_orden_paso1(request):
     return render(request, 'core/nueva_orden_paso1.html', {
         'compradores':   compradores,
         'order_types':   Order.ORDER_TYPE_CHOICES,
-        'titulo_pagina': 'Nueva Orden — Paso 1',
+        'titulo_pagina': 'New Order — Step 1',
         'nav_activo':    'ordenes',
         'paso_actual':   1,
     })
@@ -1523,7 +1523,7 @@ def nueva_orden_paso1(request):
 @admin_required
 def nueva_orden_paso2(request):
     if not request.session.get('wizard_buyer_id'):
-        messages.error(request, 'Debes completar el paso 1 primero.')
+        messages.error(request, 'Complete step 1 first.')
         return redirect('nueva_orden_paso1')
 
     productos  = (
@@ -1557,9 +1557,9 @@ def nueva_orden_paso2(request):
 
             disponible = producto.available_qty
             if cantidad < 1:
-                messages.error(request, 'La cantidad debe ser al menos 1.')
+                messages.error(request, 'Quantity must be at least 1.')
             elif cantidad > disponible:
-                messages.error(request, f'Stock insuficiente. Disponible: {disponible}.')
+                messages.error(request, f'Insufficient stock. Available: {disponible}.')
             else:
                 items = request.session.get('wizard_items', [])
                 encontrado = False
@@ -1580,7 +1580,7 @@ def nueva_orden_paso2(request):
                     })
                 request.session['wizard_items'] = items
                 request.session.modified = True
-                messages.success(request, f'"{producto.name}" agregado.')
+                messages.success(request, f'"{producto.name}" added.')
 
         elif action == 'quitar':
             producto_id = int(request.POST.get('producto_id'))
@@ -1593,7 +1593,7 @@ def nueva_orden_paso2(request):
 
         elif action == 'continuar':
             if not request.session.get('wizard_items'):
-                messages.error(request, 'Agrega al menos un producto.')
+                messages.error(request, 'Add at least one product.')
             else:
                 return redirect('nueva_orden_paso3')
 
@@ -1609,7 +1609,7 @@ def nueva_orden_paso2(request):
         'cat_activa':    categoria,
         'items_carrito': items_sesion,
         'total_carrito': total_carrito,
-        'titulo_pagina': 'Nueva Orden — Paso 2',
+        'titulo_pagina': 'New Order — Step 2',
         'nav_activo':    'ordenes',
         'paso_actual':   2,
     })
@@ -1666,7 +1666,7 @@ def nueva_orden_paso3(request):
                 else:
                     messages.warning(
                         request,
-                        f'Stock insuficiente para "{producto.name}", item omitido.'
+                        f'Insufficient stock for "{producto.name}", item skipped.'
                     )
             except Product.DoesNotExist:
                 pass
@@ -1700,7 +1700,7 @@ def nueva_orden_paso3(request):
         'subtotal':      subtotal,
         'direcciones':   direcciones,
         'metodos_pago':  Payment.PROVIDER_CHOICES,
-        'titulo_pagina': 'Nueva Orden — Paso 3',
+        'titulo_pagina': 'New Order — Step 3',
         'nav_activo':    'ordenes',
         'paso_actual':   3,
     })
@@ -1776,7 +1776,7 @@ def lista_empresas(request):
 
     return render(request, 'core/empresas.html', {
         'empresas':      page_obj,
-        'titulo_pagina': 'Empresas',
+        'titulo_pagina': 'Companies',
         'nav_activo':    'empresas',
     })
 
@@ -1789,7 +1789,7 @@ def lista_empresas(request):
 def portal_buyer(request):
     """Portal del comprador — se completa el Lunes 14."""
     return render(request, 'core/portal_buyer_temp.html', {
-        'titulo_pagina': 'Tienda TradeFlow',
+        'titulo_pagina': 'TradeFlow Store',
     })
 
 
@@ -1817,7 +1817,7 @@ def portal_seller(request):
         'chart_status_values_json': _json.dumps(data['chart_status_values']),
         'chart_week_labels_json': _json.dumps(data['chart_week_labels']),
         'chart_week_orders_json': _json.dumps(data['chart_week_orders']),
-        'titulo_pagina': _('Panel vendedor'),
+        'titulo_pagina': _('Seller panel'),
         'nav_activo': 'mi_tienda',
     })
 
@@ -1883,7 +1883,7 @@ def seller_plan_consumo(request):
     ctx, page_error = build_plan_page_context_safe(company)
     ctx.update({
         'company': company,
-        'titulo_pagina': _('Crecimiento TradeFlow'),
+        'titulo_pagina': _('TradeFlow growth'),
         'nav_activo': 'mi_tienda',
         'saas_health': health,
         'saas_page_error': page_error,
@@ -1925,10 +1925,10 @@ def seller_dispatch_order(request, pk):
     if not plan_allows_feature(company, 'webhooks'):
         messages.info(
             request,
-            _('Despacho registrado internamente. Activa Corporativo Pro para webhooks a aliados.'),
+            _('Dispatch recorded internally. Enable Corporate Pro for partner webhooks.'),
         )
     enqueue_dispatch(orden, company, request.user)
-    messages.success(request, _('Despacho iniciado. Seguimiento actualizado.'))
+    messages.success(request, _('Dispatch started. Tracking updated.'))
     if _request_wants_json(request):
         from .utils.order_timeline import build_order_timeline
 
@@ -1956,10 +1956,10 @@ def seller_plan_checkout(request, plan_slug: str):
         messages.error(request, _('Invalid plan.'))
         return redirect('seller_plan_consumo')
     if sub.plan.slug == plan_slug:
-        messages.info(request, _('Ya tienes este plan activo.'))
+        messages.info(request, _('You already have this plan active.'))
         return redirect('seller_plan_consumo')
     if target.sort_order <= sub.plan.sort_order:
-        messages.info(request, _('Selecciona un plan superior al actual.'))
+        messages.info(request, _('Select a plan above your current tier.'))
         return redirect('seller_plan_consumo')
 
     try:
@@ -1967,12 +1967,12 @@ def seller_plan_checkout(request, plan_slug: str):
     except ValueError as exc:
         if 'commercial' in str(exc):
             return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
-        messages.error(request, _('No se pudo iniciar el checkout.'))
+        messages.error(request, _('Could not start checkout.'))
         return redirect('seller_plan_consumo')
 
     ctx.update({
         'company': company,
-        'titulo_pagina': _('Pago del plan'),
+        'titulo_pagina': _('Plan payment'),
         'nav_activo': 'mi_tienda',
     })
     return render(request, 'core/seller_plan_checkout.html', ctx)
@@ -1988,7 +1988,7 @@ def seller_plan_checkout_resume(request):
 
     pending = get_pending_checkout(company)
     if not pending:
-        messages.info(request, _('No tienes pagos pendientes.'))
+        messages.info(request, _('You have no pending payments.'))
         return redirect('seller_plan_consumo')
     return redirect('seller_plan_checkout', plan_slug=pending.target_plan.slug)
 
@@ -2017,12 +2017,12 @@ def seller_plan_checkout_pay(request, plan_slug: str):
     try:
         complete_plan_checkout(checkout, provider=provider, txn_ref=txn_ref)
     except ValueError:
-        messages.error(request, _('No se pudo completar el pago.'))
+        messages.error(request, _('Could not complete payment.'))
         return redirect('seller_plan_checkout', plan_slug=plan_slug)
 
     messages.success(
         request,
-        _('Pago confirmado. Plan %(name)s activo en tu cuenta.')
+        _('Payment confirmed. Plan %(name)s is active on your account.')
         % {'name': checkout.target_plan.name},
     )
     return redirect('seller_plan_consumo')
@@ -2054,7 +2054,7 @@ def seller_predictive_insights(request):
     if not plan_allows_feature(company, 'predictive_ai'):
         return render(request, 'core/seller_insights_upgrade.html', {
             'company': company,
-            'titulo_pagina': _('Insights predictivos'),
+            'titulo_pagina': _('Predictive insights'),
             'nav_activo': 'seller_insights',
         })
 
@@ -2066,7 +2066,7 @@ def seller_predictive_insights(request):
         'narrative': narrative,
         'chart_labels_json': _json.dumps(dashboard.get('daily_chart', {}).get('labels', [])),
         'chart_values_json': _json.dumps(dashboard.get('daily_chart', {}).get('values', [])),
-        'titulo_pagina': _('Insights predictivos'),
+        'titulo_pagina': _('Predictive insights'),
         'nav_activo': 'seller_insights',
     })
 
@@ -2100,10 +2100,10 @@ def _seller_company_or_response(request, nav_activo='mi_tienda'):
         return company, None
     messages.warning(
         request,
-        'Tu cuenta no tiene una empresa vinculada. Contacta al administrador para asignarte una empresa en el sistema.',
+        'Your account is not linked to a company. Contact an administrator to assign your business in the system.',
     )
     ctx = {
-        'titulo_pagina': 'Mi Tienda',
+        'titulo_pagina': 'My Store',
         'nav_activo':    nav_activo,
     }
     return None, render(request, 'core/seller_sin_empresa.html', ctx)
@@ -2169,7 +2169,7 @@ def seller_dashboard(request):
         'ordenes_semana':    ordenes_semana,
         'ventas_semana':     ventas_semana,
         'ordenes_recientes': ordenes_recientes,
-        'titulo_pagina':     'Panel de vendedor',
+        'titulo_pagina':     'Seller panel',
         'nav_activo':        'mi_tienda',
     }
     return render(request, 'core/seller_dashboard.html', context)
@@ -2212,7 +2212,7 @@ def seller_productos(request):
         'categorias':    Category.objects.all().order_by('name'),
         'buscar':        buscar,
         'cat_activa':    categoria,
-        'titulo_pagina': 'Mis productos',
+        'titulo_pagina': 'My Products',
         'nav_activo':    'seller_productos',
     }
     return render(request, 'core/seller_productos.html', context)
@@ -2292,7 +2292,7 @@ def seller_mis_productos(request):
         'dash': dash,
         'chart_cat_labels_json': _json.dumps(dash['chart_cat_labels']),
         'chart_cat_values_json': _json.dumps(dash['chart_cat_values']),
-        'titulo_pagina': 'Mis productos',
+        'titulo_pagina': 'My Products',
         'nav_activo': 'seller_productos',
     })
 
@@ -2331,15 +2331,15 @@ def seller_producto_nuevo(request):
                 inv.product = product
                 inv.reserved_qty = 0
                 inv.save()
-            messages.success(request, f'Producto "{product.name}" creado correctamente.')
+            messages.success(request, f'Product "{product.name}" created successfully.')
             return redirect('seller_productos')
-        messages.error(request, 'Revisa los datos del formulario.')
+        messages.error(request, 'Please review the form data.')
 
     context = {
         'company':        company,
         'product_form':   product_form,
         'inv_form':       inv_form,
-        'titulo_pagina':  'Nuevo producto',
+        'titulo_pagina':  'Add product',
         'nav_activo':     'seller_productos',
         'es_edicion':     False,
     }
@@ -2384,16 +2384,16 @@ def seller_producto_editar(request, pk):
                 product = _optimize_product_image_from_request(request, product_form, product)
                 product.save()
                 inv_form.save()
-            messages.success(request, 'Cambios guardados.')
+            messages.success(request, 'Changes saved.')
             return redirect('seller_productos')
-        messages.error(request, 'Revisa los datos del formulario.')
+        messages.error(request, 'Please review the form data.')
 
     context = {
         'company':        company,
         'product':        product,
         'product_form':   product_form,
         'inv_form':       inv_form,
-        'titulo_pagina':  f'Editar: {product.name}',
+        'titulo_pagina':  f'Edit: {product.name}',
         'nav_activo':     'seller_productos',
         'es_edicion':     True,
     }
@@ -2415,7 +2415,7 @@ def seller_toggle_producto(request, pk):
     product = get_object_or_404(Product, pk=pk, company=company)
     product.is_active = not product.is_active
     product.save(update_fields=['is_active'])
-    estado = _('activo') if product.is_active else _('inactivo')
+    estado = _('active') if product.is_active else _('inactive')
     if _request_wants_json(request):
         return JsonResponse({
             'ok': True,
@@ -2461,7 +2461,7 @@ def seller_ventas(request):
         'ordenes':        page_obj,
         'estado_actual':  estado,
         'status_choices': Order.STATUS_CHOICES,
-        'titulo_pagina':  'Mis ventas',
+        'titulo_pagina':  'My Sales',
         'nav_activo':     'seller_ventas',
     }
     return render(request, 'core/seller_ventas.html', context)
@@ -2524,7 +2524,7 @@ def seller_mis_ventas(request):
         'ticket_promedio': dash['ticket_promedio'],
         'chart_line_labels_json': _json.dumps(dash['chart_line_labels']),
         'chart_line_values_json': _json.dumps(dash['chart_line_values']),
-        'titulo_pagina': 'Mis ventas',
+        'titulo_pagina': 'My Sales',
         'nav_activo': 'seller_ventas',
     })
 
@@ -2553,7 +2553,7 @@ def seller_export_ventas_csv(request):
         f'attachment; filename="ventas_{company.pk}.csv"'
     )
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Fecha', 'Cliente', 'Monto', 'Estado', 'Tipo'])
+    writer.writerow(['ID', 'Date', 'Customer', 'Amount', 'Status', 'Type'])
     for o in ordenes[:500]:
         sub = sum(
             li.line_total
@@ -2590,7 +2590,7 @@ def seller_venta_detalle(request, pk):
         .order_by('id')
     )
     if not lineas:
-        raise Http404('Orden no encontrada o sin productos de tu empresa.')
+        raise Http404('Order not found or has no products from your company.')
 
     from .utils.order_permissions import get_seller_order_actions
 
@@ -2644,7 +2644,7 @@ def seller_venta_detalle(request, pk):
         'puede_confirmar': puede_confirmar,
         'order_actions': order_actions,
         'maps_url': orden.maps_url_buyer(),
-        'titulo_pagina': f'Venta {orden.order_number}',
+        'titulo_pagina': f'Sale {orden.order_number}',
         'nav_activo': 'seller_ventas',
         'timeline_initial_json': json.dumps(build_order_timeline(orden)),
     }
@@ -2948,7 +2948,7 @@ def tienda(request):
         'url_tab_categoria': url_tab_categoria,
         'url_tab_empresa': url_tab_empresa,
         'carrito_count': _contar_items(carrito),
-        'titulo_pagina': 'Tienda TradeFlow',
+        'titulo_pagina': 'TradeFlow Store',
         'nav_activo': 'tienda',
         'tab_catalogo': tab_catalogo,
         'orden_activo': orden,
@@ -3012,14 +3012,14 @@ def agregar_al_carrito(request, producto_id):
 
     # Validar cantidad
     if cantidad < 1:
-        msg = _('La cantidad debe ser al menos 1.')
+        msg = _('Quantity must be at least 1.')
         if _request_wants_json(request):
             return JsonResponse({'ok': False, 'message': msg}, status=400)
         messages.error(request, msg)
         return redirect('tienda')
 
     if disponible == 0:
-        msg = _('"%(name)s" no tiene stock disponible.') % {'name': producto.name}
+        msg = _('"%(name)s" is out of stock.') % {'name': producto.name}
         if _request_wants_json(request):
             return JsonResponse({'ok': False, 'message': msg}, status=400)
         messages.error(request, msg)
@@ -3033,7 +3033,7 @@ def agregar_al_carrito(request, producto_id):
         # El producto ya está en el carrito — sumar cantidades
         nueva_cantidad = carrito[producto_key]['cantidad'] + cantidad
         if nueva_cantidad > disponible:
-            warn_msg = _('Solo hay %(qty)s unidades disponibles de "%(name)s".') % {
+            warn_msg = _('Only %(qty)s units available for "%(name)s".') % {
                 'qty': disponible,
                 'name': producto.name,
             }
@@ -3066,7 +3066,7 @@ def agregar_al_carrito(request, producto_id):
         }
 
     _save_carrito(request, carrito)
-    ok_msg = _('"%(name)s" agregado al carrito.') % {'name': producto.name}
+    ok_msg = _('"%(name)s" added to cart.') % {'name': producto.name}
     if _request_wants_json(request):
         return JsonResponse({
             'ok': True,
@@ -3097,7 +3097,7 @@ def quitar_del_carrito(request, producto_id):
         nombre = carrito[producto_key]['nombre']
         del carrito[producto_key]
         _save_carrito(request, carrito)
-        ok_msg = _('"%(name)s" eliminado del carrito.') % {'name': nombre}
+        ok_msg = _('"%(name)s" removed from cart.') % {'name': nombre}
         if _request_wants_json(request):
             return JsonResponse({
                 'ok': True,
@@ -3131,7 +3131,7 @@ def ver_carrito(request):
         'carrito':       carrito,
         'total':         total,
         'carrito_count': _contar_items(carrito),
-        'titulo_pagina': 'Mi Carrito',
+        'titulo_pagina': 'My Cart',
         'nav_activo':    'tienda',
     }
     return render(request, 'core/carrito.html', context)
@@ -3181,7 +3181,7 @@ def checkout(request):
         lng_raw = request.POST.get('buyer_longitude', '').strip()
 
         if not carrier_id:
-            messages.error(request, _('Selecciona un transportista para continuar.'))
+            messages.error(request, _('Select a carrier to continue.'))
             return redirect('checkout')
 
         carrier = get_object_or_404(TransportCarrier, pk=carrier_id, is_active=True)
@@ -3239,7 +3239,7 @@ def checkout(request):
                 else:
                     messages.warning(
                         request,
-                        f'Stock insuficiente para "{producto.name}" — item omitido.'
+                        f'Insufficient stock for "{producto.name}" — item skipped.'
                     )
 
             except Product.DoesNotExist:
@@ -3254,7 +3254,7 @@ def checkout(request):
             orden.delete()
             messages.error(
                 request,
-                'No se pudo completar la orden. Verifica el stock de los productos.'
+                'Could not complete the order. Check product stock.'
             )
             return redirect('ver_carrito')
 
@@ -3347,7 +3347,7 @@ def checkout(request):
         'carrito': carrito,
         'subtotal': subtotal,
         'carrito_count': _contar_items(carrito),
-        'titulo_pagina': 'Confirmar Orden',
+        'titulo_pagina': 'Confirm Order',
         'nav_activo': 'tienda',
         'transportistas': transportistas,
         'checkout_auto_approve': auto_approve,
@@ -3392,7 +3392,7 @@ def mis_ordenes(request):
         'estado_actual':  estado,
         'status_choices': Order.STATUS_CHOICES,
         'carrito_count':  _contar_items(_get_carrito(request)),
-        'titulo_pagina':  'Mis Órdenes',
+        'titulo_pagina':  'My Orders',
         'nav_activo':     'mis_ordenes',
     }
     return render(request, 'core/mis_ordenes.html', context)
@@ -3424,7 +3424,7 @@ def detalle_mi_orden(request, pk):
         'orden':         orden,
         'pago':          getattr(orden, 'payment', None),
         'carrito_count': _contar_items(_get_carrito(request)),
-        'titulo_pagina': f'Orden {orden.order_number}',
+        'titulo_pagina': f'Order {orden.order_number}',
         'nav_activo':    'mis_ordenes',
     }
     return render(request, 'core/detalle_mi_orden.html', context)
@@ -3533,7 +3533,7 @@ def solicitar_cotizacion(request):
     if request.method == 'POST':
         eid = request.POST.get('empresa_id', '').strip()
         if not eid:
-            messages.error(request, 'Selecciona una empresa.')
+            messages.error(request, 'Select a company.')
             return redirect('solicitar_cotizacion')
         empresa_dest = get_object_or_404(Company, pk=int(eid))
         try:
@@ -3567,7 +3567,7 @@ def solicitar_cotizacion(request):
                 lines.append((prod, qty))
 
         if not lines:
-            messages.error(request, 'Indica al menos un producto con cantidad mayor a cero.')
+            messages.error(request, 'Add at least one product with a quantity greater than zero.')
             return redirect(f"{reverse('solicitar_cotizacion')}?empresa={empresa_dest.pk}")
 
         with transaction.atomic():
@@ -3613,7 +3613,7 @@ def mis_cotizaciones(request):
     context = {
         'cotizaciones': lista,
         'carrito_count': _contar_items(_get_carrito(request)),
-        'titulo_pagina': 'Mis cotizaciones',
+        'titulo_pagina': 'My quotes',
         'nav_activo': 'mis_cotizaciones',
     }
     return render(request, 'core/mis_cotizaciones.html', context)
@@ -3687,7 +3687,7 @@ def detalle_cotizacion(request, pk):
 
                 if items_ok == 0:
                     orden.delete()
-                    messages.error(request, 'No se pudo crear la orden.')
+                    messages.error(request, 'Could not create the order.')
                     return redirect('detalle_cotizacion', pk=cot.pk)
 
                 orden.recalculate_totals()
@@ -3765,7 +3765,7 @@ def seller_cotizaciones(request):
         'cotizaciones_mes': dash['cotizaciones_mes'],
         'tasa_conversion': dash['tasa_conversion'],
         'monto_cotizado': dash['monto_cotizado'],
-        'titulo_pagina': 'Cotizaciones recibidas',
+        'titulo_pagina': 'Quotes received',
         'nav_activo': 'seller_cotizaciones',
     }
     return render(request, 'core/seller_cotizaciones.html', context)
@@ -3822,7 +3822,7 @@ def seller_responder_cotizacion(request, pk):
     context = {
         'company': company,
         'cot': cot,
-        'titulo_pagina': f'Responder {cot.numero}',
+        'titulo_pagina': f'Reply to {cot.numero}',
         'nav_activo': 'seller_cotizaciones',
     }
     return render(request, 'core/seller_responder_cotizacion.html', context)
@@ -3848,7 +3848,7 @@ def solicitud_acceso(request):
         req_plan = request.POST.get('requested_plan_slug', '').strip() or plan_intent
 
         if not full_name or not email:
-            messages.error(request, _('Nombre y correo son obligatorios.'))
+            messages.error(request, _('Full name and email are required.'))
         elif role not in ('buyer', 'seller'):
             messages.error(request, _('Invalid role.'))
         else:
@@ -3861,7 +3861,7 @@ def solicitud_acceso(request):
                     request,
                     _(
                         'You already have an application under review. '
-                        'Te notificaremos por correo cuando sea aprobada.'
+                        'We will notify you by email when it is approved.'
                     ),
                 )
                 if request.user.is_authenticated:
@@ -3896,8 +3896,8 @@ def solicitud_acceso(request):
                 messages.warning(
                     request,
                     _(
-                        'Solicitud guardada, pero el correo no pudo enviarse. '
-                        'Revisa RESEND_API_KEY en .env.'
+                        'Application saved, but the email could not be sent. '
+                        'Check RESEND_API_KEY in .env.'
                     ),
                 )
             else:
@@ -3910,7 +3910,7 @@ def solicitud_acceso(request):
             return redirect('onboarding_solicitud_enviada')
 
     return render(request, 'core/solicitud_acceso.html', {
-        'titulo_pagina': _('Solicitud de acceso'),
+        'titulo_pagina': _('Access request'),
         'plan_intent': plan_intent,
         'is_enterprise_intent': plan_intent == 'ecosistema_enterprise',
     })
@@ -3920,7 +3920,7 @@ def revisar_solicitud(request, token, accion):
     """Aprueba o rechaza solicitud desde enlace del correo."""
     app = get_object_or_404(UserApplication, review_token=token)
     if app.status not in ('pendiente', 'en_revision'):
-        messages.info(request, _('Esta solicitud ya fue revisada.'))
+        messages.info(request, _('This application has already been reviewed.'))
         return redirect('home')
 
     if accion == 'aprobar':
@@ -4029,22 +4029,22 @@ def api_admin_saas_request_action(request, pk: int):
         'company', 'requested_plan'
     ).first()
     if not req:
-        return JsonResponse({'error': 'Solicitud no encontrada'}, status=404)
+        return JsonResponse({'error': 'Request not found'}, status=404)
     if req.status not in ('pending', 'en_revision'):
-        return JsonResponse({'error': 'La solicitud ya fue procesada'}, status=400)
+        return JsonResponse({'error': 'The request has already been processed'}, status=400)
 
     if action == 'approve':
         approve_commercial_request(req)
         return JsonResponse({
             'ok': True,
             'status': 'approved',
-            'message': f'Plan {req.requested_plan.name} activado para {req.company.name}.',
+            'message': f'Plan {req.requested_plan.name} activated for {req.company.name}.',
         })
     if action == 'reject':
         reject_commercial_request(req)
         return JsonResponse({
             'ok': True,
             'status': 'rejected',
-            'message': f'Solicitud de {req.company.name} rechazada.',
+            'message': f'Request from {req.company.name} rejected.',
         })
     return JsonResponse({'error': 'Invalid action'}, status=400)

@@ -1,7 +1,7 @@
 {% extends "core/seller_layout.html" %}
 {% load static %}
 {% block title %}{{ titulo_pagina }} — TradeFlow{% endblock %}
-{% block seller_page_title %}Orden {{ orden.order_number }}{% endblock %}
+{% block seller_page_title %}Order {{ orden.order_number }}{% endblock %}
 {% block seller_page_sub %}
 <p class="sp-topbar-sub">
   {{ orden.buyer.get_full_name|default:orden.buyer.username }} · {{ orden.created_at|date:"d/m/Y H:i" }}
@@ -9,7 +9,7 @@
 {% endblock %}
 {% block seller_topbar_actions %}
 <a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-secondary">
-  <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>Ventas
+  <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>My Sales
 </a>
 {% endblock %}
 
@@ -22,8 +22,8 @@
   </p>
   <form method="post" style="display:flex;gap:10px;flex-wrap:wrap;">
     {% csrf_token %}
-    <button type="submit" name="accion" value="aceptar" class="sp-btn sp-btn-primary">Confirmar</button>
-    <button type="submit" name="accion" value="rechazar" class="sp-btn sp-btn-secondary">Rechazar</button>
+    <button type="submit" name="accion" value="aceptar" class="sp-btn sp-btn-primary">Confirm order</button>
+    <button type="submit" name="accion" value="rechazar" class="sp-btn sp-btn-secondary">Reject</button>
   </form>
 </section>
 {% elif order_actions.can_reject %}
@@ -36,7 +36,7 @@
   {% endif %}
   <form method="post" style="display:flex;gap:10px;flex-wrap:wrap;">
     {% csrf_token %}
-    <button type="submit" name="accion" value="rechazar" class="sp-btn sp-btn-secondary">Rechazar</button>
+    <button type="submit" name="accion" value="rechazar" class="sp-btn sp-btn-secondary">Reject</button>
   </form>
 </section>
 {% endif %}
@@ -48,7 +48,7 @@
       <div class="sp-table-wrap">
         <table class="sp-table">
           <thead>
-            <tr><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Subtotal</th></tr>
+            <tr><th>Product</th><th>Qty</th><th>Unit price</th><th>Subtotal</th></tr>
           </thead>
           <tbody>
             {% for li in lineas_vendedor %}
@@ -63,7 +63,7 @@
         </table>
       </div>
       <p style="margin:16px 0 0;font-size:14px;color:var(--tf-navy);">
-        Subtotal (tu empresa): <strong>USD {{ subtotal_vendedor }}</strong>
+        Subtotal (your company): <strong>USD {{ subtotal_vendedor }}</strong>
       </p>
     </section>
 
@@ -74,12 +74,12 @@
         <form method="post" action="{% url 'seller_dispatch_order' orden.pk %}" style="margin:0;">
           {% csrf_token %}
           <button type="submit" class="sp-btn sp-btn-primary" style="padding:8px 14px;font-size:12px;">
-            <span class="material-symbols-rounded" style="font-size:16px;">rocket_launch</span>Despachar
+            <span class="material-symbols-rounded" style="font-size:16px;">rocket_launch</span>Ship
           </button>
         </form>
         {% elif order_actions.read_only or not order_actions.can_dispatch %}
         <span class="sp-btn sp-btn-secondary" style="padding:8px 14px;font-size:12px;opacity:0.65;pointer-events:none;" aria-disabled="true">
-          <span class="material-symbols-rounded" style="font-size:16px;">block</span>Despachar
+          <span class="material-symbols-rounded" style="font-size:16px;">block</span>Ship
         </span>
         {% endif %}
       </div>
@@ -89,7 +89,7 @@
         <span style="margin-left:8px;font-size:13px;color:var(--tf-muted);">{{ orden.get_seller_confirmation_status_display }}</span>
       </p>
       {% if orden.transport_carrier %}
-      <p style="font-size:13px;margin:0 0 8px;">Transportista: <strong>{{ orden.transport_carrier.name }}</strong></p>
+      <p style="font-size:13px;margin:0 0 8px;">Carrier: <strong>{{ orden.transport_carrier.name }}</strong></p>
       {% endif %}
       {% if maps_url %}
       <a href="{{ maps_url }}" target="_blank" rel="noopener noreferrer" class="sp-btn sp-btn-secondary" style="margin-top:8px;">
@@ -98,7 +98,7 @@
       {% endif %}
       {% if pago %}
       <p style="margin-top:12px;font-size:13px;color:var(--tf-muted);">
-        Pago: {{ pago.get_status_display }} · {{ pago.amount }} {{ pago.currency }}
+        Payment: {{ pago.get_status_display }} · {{ pago.amount }} {{ pago.currency }}
       </p>
       {% endif %}
     </section>
@@ -107,8 +107,8 @@
   <aside>
     <section class="sp-card">
       <div class="sp-card-head">
-        <h2>Seguimiento</h2>
-        <span id="sp-timeline-live" style="font-size:11px;color:var(--tf-muted);">En vivo</span>
+        <h2>Tracking</h2>
+        <span id="sp-timeline-live" style="font-size:11px;color:var(--tf-muted);">Live</span>
       </div>
       <ul class="sp-timeline" id="sp-order-timeline" aria-live="polite"></ul>
     </section>

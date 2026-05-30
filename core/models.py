@@ -41,10 +41,10 @@ class UserProfile(models.Model):
     Relación 1-a-1 con User (se crea automáticamente al crear un User desde admin).
     """
     ROLE_CHOICES = [
-        ('buyer',  'Comprador'),
-        ('seller', 'Vendedor'),
-        ('admin',  'Administrador'),
-        ('transportista', 'Transportista'),
+        ('buyer',  _('Buyer')),
+        ('seller', _('Seller')),
+        ('admin',  _('Administrator')),
+        ('transportista', _('Carrier')),
     ]
 
     user   = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -58,7 +58,7 @@ class UserProfile(models.Model):
         max_length=64,
         blank=True,
         null=True,
-        help_text='Token UUID para verificación de email',
+        help_text='UUID token for email verification',
     )
     codigo_verificacion_email = models.CharField(
         max_length=6,
@@ -99,7 +99,7 @@ class Company(models.Model):
     El campo owner identifica al usuario vendedor responsable del portal Mi Tienda.
     """
     name         = models.CharField(max_length=200, verbose_name='Company name')
-    ruc          = models.CharField(max_length=50, blank=True, verbose_name='RUC / Registro')
+    ruc          = models.CharField(max_length=50, blank=True, verbose_name='RUC / Registration')
     address_text = models.TextField(blank=True, verbose_name='Address')
     is_verified  = models.BooleanField(default=False, verbose_name='Verified?')
     owner        = models.ForeignKey(
@@ -128,20 +128,20 @@ class Company(models.Model):
     )
     carousel_priority = models.IntegerField(
         default=0,
-        verbose_name='Prioridad carrusel',
+        verbose_name='Carousel priority',
     )
-    tagline_es = models.CharField(max_length=200, blank=True, verbose_name='Eslogan (ES)')
-    tagline_en = models.CharField(max_length=200, blank=True, verbose_name='Eslogan (EN)')
+    tagline_es = models.CharField(max_length=200, blank=True, verbose_name='Tagline (ES)')
+    tagline_en = models.CharField(max_length=200, blank=True, verbose_name='Tagline (EN)')
     order_confirm_hours = models.PositiveIntegerField(
         default=48,
-        verbose_name='Horas para confirmar pedido',
-        help_text='Plazo para que la empresa acepte o rechace una orden nueva.',
+        verbose_name='Hours to confirm order',
+        help_text='Deadline for the company to accept or reject a new order.',
     )
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name        = 'Empresa'
-        verbose_name_plural = 'Empresas'
+        verbose_name        = 'Company'
+        verbose_name_plural = 'Companies'
         ordering            = ['name']
 
     def __str__(self):
@@ -154,11 +154,11 @@ class Company(models.Model):
 
 class Category(models.Model):
     """Categoría de productos."""
-    name = models.CharField(max_length=100, unique=True, verbose_name='Nombre')
+    name = models.CharField(max_length=100, unique=True, verbose_name='Name')
 
     class Meta:
-        verbose_name        = 'Categoría'
-        verbose_name_plural = 'Categorías'
+        verbose_name        = 'Category'
+        verbose_name_plural = 'Categories'
         ordering            = ['name']
 
     def __str__(self):
@@ -177,7 +177,7 @@ class HomePromoSection(models.Model):
         ('product_carousel', _('View products')),
         ('category_spotlight', _('By category')),
         ('company_spotlight', _('By company')),
-        ('seasonal_banner', _('Banner de temporada')),
+        ('seasonal_banner', _('Seasonal banner')),
         ('bestsellers', _('Bestsellers')),
         ('daily_deals', _('Daily deals')),
     ]
@@ -198,13 +198,13 @@ class HomePromoSection(models.Model):
         'Product',
         blank=True,
         related_name='promo_sections',
-        verbose_name='Productos',
+        verbose_name='Products',
     )
     companies = models.ManyToManyField(
         'Company',
         blank=True,
         related_name='promo_sections',
-        verbose_name='Empresas',
+        verbose_name='Companies',
     )
     categories = models.ManyToManyField(
         'Category',
@@ -216,8 +216,8 @@ class HomePromoSection(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = _('Sección promocional home')
-        verbose_name_plural = _('Secciones promocionales home')
+        verbose_name = _('Home promotional section')
+        verbose_name_plural = _('Home promotional sections')
         ordering = ['sort_order', 'slug']
 
     def __str__(self):
@@ -245,13 +245,13 @@ class Product(models.Model):
     Tiene un Inventory relacionado (1-a-1).
     """
     CURRENCY_CHOICES = [
-        ('USD', 'Dólar estadounidense (USD)'),
-        ('PAB', 'Balboa panameño (PAB)'),
+        ('USD', _('US Dollar (USD)')),
+        ('PAB', _('Panamanian Balboa (PAB)')),
     ]
 
     company     = models.ForeignKey(
         Company, on_delete=models.PROTECT,
-        related_name='products', verbose_name='Empresa'
+        related_name='products', verbose_name='Company'
     )
     category    = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
@@ -261,11 +261,11 @@ class Product(models.Model):
     name        = models.CharField(max_length=200, verbose_name='Product name')
     description = models.TextField(blank=True, verbose_name='Description')
     sku         = models.CharField(max_length=100, blank=True, verbose_name='SKU')
-    unit_price  = models.DecimalField(max_digits=12, decimal_places=2, verbose_name='Precio unitario')
+    unit_price  = models.DecimalField(max_digits=12, decimal_places=2, verbose_name='Unit price')
     currency    = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD')
-    image       = models.ImageField(upload_to='products/', blank=True, null=True, verbose_name='Imagen')
-    is_active   = models.BooleanField(default=True, verbose_name='¿Activo?')
-    is_featured = models.BooleanField(default=False, verbose_name='Destacado')
+    image       = models.ImageField(upload_to='products/', blank=True, null=True, verbose_name='Image')
+    is_active   = models.BooleanField(default=True, verbose_name='Active?')
+    is_featured = models.BooleanField(default=False, verbose_name='Featured')
     is_bestseller = models.BooleanField(
         default=False,
         verbose_name='Bestseller (manual or recalculated)',
@@ -275,16 +275,16 @@ class Product(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name='Precio promocional',
+        verbose_name='Promotional price',
     )
     promo_starts_at = models.DateTimeField(null=True, blank=True)
     promo_ends_at = models.DateTimeField(null=True, blank=True)
-    merchandising_priority = models.IntegerField(default=0, verbose_name='Prioridad merchandising')
+    merchandising_priority = models.IntegerField(default=0, verbose_name='Merchandising priority')
     created_at  = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name        = 'Producto'
-        verbose_name_plural = 'Productos'
+        verbose_name        = 'Product'
+        verbose_name_plural = 'Products'
         ordering            = ['-merchandising_priority', 'name']
 
     def __str__(self):
@@ -341,16 +341,16 @@ class Inventory(models.Model):
     """
     product         = models.OneToOneField(
         Product, on_delete=models.CASCADE,
-        related_name='inventory', verbose_name='Producto'
+        related_name='inventory', verbose_name='Product'
     )
     stock_qty       = models.PositiveIntegerField(default=0, verbose_name='Stock total')
-    reserved_qty    = models.PositiveIntegerField(default=0, verbose_name='Cantidad reservada')
-    low_stock_alert = models.PositiveIntegerField(default=5, verbose_name='Alerta de stock bajo')
+    reserved_qty    = models.PositiveIntegerField(default=0, verbose_name='Reserved quantity')
+    low_stock_alert = models.PositiveIntegerField(default=5, verbose_name='Low stock alert')
     updated_at      = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name        = 'Inventario'
-        verbose_name_plural = 'Inventarios'
+        verbose_name        = 'Inventory'
+        verbose_name_plural = 'Inventories'
 
     def __str__(self):
         return f'Inventario: {self.product.name} | Stock: {self.stock_qty}'
@@ -391,19 +391,19 @@ class Address(models.Model):
     """Address de envío de un comprador."""
     user        = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name='addresses', verbose_name='Usuario'
+        related_name='addresses', verbose_name='User'
     )
-    label       = models.CharField(max_length=100, blank=True, verbose_name='Etiqueta (ej: Casa, Oficina)')
+    label       = models.CharField(max_length=100, blank=True, verbose_name='Label (e.g. Home, Office)')
     country     = models.CharField(max_length=100, default='Panamá', verbose_name='Country')
     city        = models.CharField(max_length=100, verbose_name='City')
     line1       = models.CharField(max_length=255, verbose_name='Address line 1')
     line2       = models.CharField(max_length=255, blank=True, verbose_name='Address line 2')
     postal_code = models.CharField(max_length=20, blank=True, verbose_name='Postal code')
-    is_default  = models.BooleanField(default=False, verbose_name='¿Predeterminada?')
+    is_default  = models.BooleanField(default=False, verbose_name='Default?')
 
     class Meta:
         verbose_name        = 'Address'
-        verbose_name_plural = 'Direcciones'
+        verbose_name_plural = 'Addresses'
 
     def __str__(self):
         return f'{self.label or "Address"} — {self.city}, {self.country}'
@@ -423,23 +423,23 @@ class TransportCarrier(models.Model):
     """Transportista activo para checkout (ZLC / logística)."""
 
     MODE_CHOICES = [
-        ('maritime', _('Marítimo')),
-        ('air', _('Aéreo')),
-        ('terrestrial', _('Terrestre')),
-        ('mixed', _('Mixto')),
+        ('maritime', _('Maritime')),
+        ('air', _('Air')),
+        ('terrestrial', _('Terrestrial')),
+        ('mixed', _('Mixed')),
     ]
 
-    name = models.CharField(max_length=120, verbose_name='Nombre')
+    name = models.CharField(max_length=120, verbose_name='Name')
     code = models.SlugField(max_length=40, unique=True, verbose_name='Code')
     transport_mode = models.CharField(
         max_length=12,
         choices=MODE_CHOICES,
         default='terrestrial',
-        verbose_name='Modo de transporte',
+        verbose_name='Transport mode',
     )
     description = models.TextField(blank=True, verbose_name='Description')
-    sort_order = models.PositiveIntegerField(default=0, verbose_name='Orden')
-    is_active = models.BooleanField(default=True, verbose_name='Activo')
+    sort_order = models.PositiveIntegerField(default=0, verbose_name='Sort order')
+    is_active = models.BooleanField(default=True, verbose_name='Active')
     base_shipping_cost = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -448,8 +448,8 @@ class TransportCarrier(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Transportista'
-        verbose_name_plural = 'Transportistas'
+        verbose_name = 'Transport carrier'
+        verbose_name_plural = 'Transport carriers'
         ordering = ['sort_order', 'name']
 
     def __str__(self):
@@ -464,21 +464,21 @@ class UserApplication(models.Model):
     ]
     STATUS_CHOICES = [
         ('pendiente', _('Pending')),
-        ('en_revision', _('En revisión')),
-        ('aprobada', _('Aprobada')),
-        ('rechazada', _('Rechazada')),
+        ('en_revision', _('Under review')),
+        ('aprobada', _('Approved')),
+        ('rechazada', _('Rejected')),
     ]
 
-    full_name = models.CharField(max_length=120, verbose_name='Nombre completo')
-    email = models.EmailField(verbose_name='Correo')
+    full_name = models.CharField(max_length=120, verbose_name='Full name')
+    email = models.EmailField(verbose_name='Email')
     phone = models.CharField(max_length=30, blank=True, verbose_name='Phone')
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='buyer')
-    company_name = models.CharField(max_length=200, blank=True, verbose_name='Empresa')
-    message = models.TextField(blank=True, verbose_name='Mensaje')
+    company_name = models.CharField(max_length=200, blank=True, verbose_name='Company')
+    message = models.TextField(blank=True, verbose_name='Message')
     requested_plan_slug = models.CharField(
         max_length=40,
         blank=True,
-        help_text='Plan SaaS solicitado (ej. ecosistema_enterprise)',
+        help_text='Requested SaaS plan (e.g. ecosistema_enterprise)',
     )
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pendiente')
     review_token = models.CharField(max_length=64, unique=True, editable=False)
@@ -486,8 +486,8 @@ class UserApplication(models.Model):
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Solicitud de acceso'
-        verbose_name_plural = 'Solicitudes de acceso'
+        verbose_name = 'Access request'
+        verbose_name_plural = 'Access requests'
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
@@ -505,7 +505,7 @@ class Order(models.Model):
     Un buyer (User) hace una Order con una o más OrderItems.
     """
     STATUS_CHOICES = [
-        ('awaiting_seller', _('Esperando confirmación')),
+        ('awaiting_seller', _('Awaiting confirmation')),
         ('pending',   _('Pending')),
         ('paid',      _('Paid')),
         ('packed',    _('Packed')),
@@ -516,9 +516,9 @@ class Order(models.Model):
 
     SELLER_CONFIRM_CHOICES = [
         ('pending', _('Pending')),
-        ('accepted', _('Aceptada')),
-        ('rejected', _('Rechazada')),
-        ('expired', _('Expirada')),
+        ('accepted', _('Accepted')),
+        ('rejected', _('Rejected')),
+        ('expired', _('Expired')),
     ]
 
     ORDER_TYPE_CHOICES = [
@@ -528,7 +528,7 @@ class Order(models.Model):
 
     buyer        = models.ForeignKey(
         User, on_delete=models.PROTECT,
-        related_name='orders', verbose_name='Comprador'
+        related_name='orders', verbose_name='Buyer'
     )
     ship_address = models.ForeignKey(
         Address, on_delete=models.SET_NULL,
@@ -544,22 +544,22 @@ class Order(models.Model):
     subtotal      = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total         = models.DecimalField(max_digits=14, decimal_places=2, default=0)
-    notes         = models.TextField(blank=True, verbose_name='Notas')
+    notes         = models.TextField(blank=True, verbose_name='Notes')
     transport_carrier = models.ForeignKey(
         TransportCarrier,
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name='orders',
-        verbose_name='Transportista',
+        verbose_name='Transport carrier',
     )
     buyer_latitude = models.DecimalField(
         max_digits=10, decimal_places=7, null=True, blank=True,
-        verbose_name='Latitud comprador',
+        verbose_name='Buyer latitude',
     )
     buyer_longitude = models.DecimalField(
         max_digits=10, decimal_places=7, null=True, blank=True,
-        verbose_name='Longitud comprador',
+        verbose_name='Buyer longitude',
     )
     buyer_location_verified_at = models.DateTimeField(
         null=True, blank=True, verbose_name='Confirmed location',
@@ -570,7 +570,7 @@ class Order(models.Model):
         null=True,
         blank=True,
         related_name='orders_to_confirm',
-        verbose_name='Empresa que confirma',
+        verbose_name='Confirming company',
     )
     seller_confirmation_status = models.CharField(
         max_length=12,
@@ -580,7 +580,7 @@ class Order(models.Model):
     )
     seller_confirm_by = models.DateTimeField(
         null=True, blank=True,
-        verbose_name='Confirmar antes de',
+        verbose_name='Confirm by',
     )
     tiempo_confirmacion_horas = models.PositiveIntegerField(
         default=24,
@@ -590,14 +590,14 @@ class Order(models.Model):
         null=True,
         blank=True,
         verbose_name='Company confirmation',
-        help_text='True=aceptado, False=rechazado, None=pendiente',
+        help_text='True=accepted, False=rejected, None=pending',
     )
     created_at    = models.DateTimeField(auto_now_add=True)
     updated_at    = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name        = 'Orden'
-        verbose_name_plural = 'Órdenes'
+        verbose_name        = 'Order'
+        verbose_name_plural = 'Orders'
         ordering            = ['-created_at']
 
     def save(self, *args, **kwargs):
@@ -656,22 +656,22 @@ class OrderItem(models.Model):
     """
     order              = models.ForeignKey(
         Order, on_delete=models.CASCADE,
-        related_name='items', verbose_name='Orden'
+        related_name='items', verbose_name='Order'
     )
     product            = models.ForeignKey(
         Product, on_delete=models.PROTECT,
-        verbose_name='Producto'
+        verbose_name='Product'
     )
-    qty                = models.PositiveIntegerField(default=1, verbose_name='Cantidad')
+    qty                = models.PositiveIntegerField(default=1, verbose_name='Quantity')
     unit_price_snapshot = models.DecimalField(
         max_digits=12, decimal_places=2,
-        verbose_name='Precio unitario (al momento de la venta)'
+        verbose_name='Unit price (at time of sale)'
     )
     line_total         = models.DecimalField(max_digits=14, decimal_places=2, default=0)
 
     class Meta:
-        verbose_name        = 'Item de orden'
-        verbose_name_plural = 'Items de orden'
+        verbose_name        = 'Order item'
+        verbose_name_plural = 'Order items'
 
     def save(self, *args, **kwargs):
         self.line_total = self.unit_price_snapshot * self.qty
@@ -691,22 +691,22 @@ class Payment(models.Model):
     Relación 1-a-1 con Order (una orden tiene un solo pago).
     """
     PROVIDER_CHOICES = [
-        ('mock', _('Simulado (desarrollo)')),
+        ('mock', _('Mock (development)')),
         ('stripe', 'Stripe'),
         ('paypal', 'PayPal'),
-        ('bank', _('Transferencia bancaria')),
+        ('bank', _('Bank transfer')),
     ]
 
     STATUS_CHOICES = [
         ('pending', _('Pending')),
-        ('approved', _('Aprobado')),
-        ('rejected', _('Rechazado')),
-        ('refunded', _('Reembolsado')),
+        ('approved', _('Approved')),
+        ('rejected', _('Rejected')),
+        ('refunded', _('Refunded')),
     ]
 
     order    = models.OneToOneField(
         Order, on_delete=models.CASCADE,
-        related_name='payment', verbose_name='Orden'
+        related_name='payment', verbose_name='Order'
     )
     provider = models.CharField(max_length=10, choices=PROVIDER_CHOICES, default='mock')
     status   = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
@@ -716,8 +716,8 @@ class Payment(models.Model):
     txn_ref  = models.CharField(max_length=200, blank=True, verbose_name='Transaction reference')
 
     class Meta:
-        verbose_name        = 'Pago'
-        verbose_name_plural = 'Pagos'
+        verbose_name        = 'Payment'
+        verbose_name_plural = 'Payments'
 
     def __str__(self):
         return f'Pago [{self.get_status_display()}] — {self.order.order_number}'
@@ -730,27 +730,27 @@ class Payment(models.Model):
 class Shipment(models.Model):
     """Registro del envío físico de una orden."""
     STATUS_CHOICES = [
-        ('label', _('Etiqueta generada')),
-        ('in_transit', _('En tránsito')),
+        ('label', _('Label generated')),
+        ('in_transit', _('In transit')),
         ('delivered', _('Delivered')),
-        ('returned', _('Devuelto')),
+        ('returned', _('Returned')),
     ]
 
     order           = models.OneToOneField(
         Order, on_delete=models.CASCADE,
-        related_name='shipment', verbose_name='Orden'
+        related_name='shipment', verbose_name='Order'
     )
     courier_name    = models.CharField(max_length=100, blank=True, verbose_name='Courier')
     tracking_number = models.CharField(max_length=200, blank=True, verbose_name='Tracking number')
     status          = models.CharField(max_length=12, choices=STATUS_CHOICES, default='label')
     weight_kg       = models.DecimalField(
-        max_digits=10, decimal_places=3, null=True, blank=True, verbose_name='Peso (kg)',
+        max_digits=10, decimal_places=3, null=True, blank=True, verbose_name='Weight (kg)',
     )
     dimensions_cm   = models.CharField(
-        max_length=80, blank=True, verbose_name='Dimensiones L×A×H (cm)',
+        max_length=80, blank=True, verbose_name='Dimensions L×W×H (cm)',
     )
     warehouse_code  = models.CharField(max_length=40, blank=True, verbose_name='Bodega ZLC')
-    route_code      = models.CharField(max_length=40, blank=True, verbose_name='Ruta')
+    route_code      = models.CharField(max_length=40, blank=True, verbose_name='Route')
     pickup_lat      = models.DecimalField(
         max_digits=10, decimal_places=7, null=True, blank=True,
     )
@@ -758,14 +758,14 @@ class Shipment(models.Model):
         max_digits=10, decimal_places=7, null=True, blank=True,
     )
     shipped_at      = models.DateTimeField(null=True, blank=True, verbose_name='Ship date')
-    delivered_at    = models.DateTimeField(null=True, blank=True, verbose_name='Fecha de entrega')
+    delivered_at    = models.DateTimeField(null=True, blank=True, verbose_name='Delivery date')
 
     class Meta:
-        verbose_name        = 'Envío'
-        verbose_name_plural = 'Envíos'
+        verbose_name        = 'Shipment'
+        verbose_name_plural = 'Shipments'
 
     def __str__(self):
-        return f'Envío [{self.get_status_display()}] — {self.order.order_number}'
+        return f'Shipment [{self.get_status_display()}] — {self.order.order_number}'
 
 
 # =============================================================================
@@ -778,23 +778,23 @@ class Document(models.Model):
     Una orden puede tener múltiples documentos.
     """
     DOC_TYPE_CHOICES = [
-        ('invoice',      'Factura'),
-        ('packing_list', 'Packing List'),
-        ('other',        'Otro'),
+        ('invoice',      _('Invoice')),
+        ('packing_list', _('Packing List')),
+        ('other',        _('Other')),
     ]
 
     order      = models.ForeignKey(
         Order, on_delete=models.CASCADE,
-        related_name='documents', verbose_name='Orden'
+        related_name='documents', verbose_name='Order'
     )
     doc_type   = models.CharField(max_length=15, choices=DOC_TYPE_CHOICES, default='invoice')
     doc_number = models.CharField(max_length=100, blank=True, verbose_name='Document number')
-    file_path  = models.FileField(upload_to='documents/', blank=True, null=True, verbose_name='Archivo')
+    file_path  = models.FileField(upload_to='documents/', blank=True, null=True, verbose_name='File')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name        = 'Documento'
-        verbose_name_plural = 'Documentos'
+        verbose_name        = 'Document'
+        verbose_name_plural = 'Documents'
 
     def __str__(self):
         return f'{self.get_doc_type_display()} {self.doc_number} — {self.order.order_number}'
@@ -811,9 +811,9 @@ class Cotizacion(models.Model):
     """
     ESTADO_CHOICES = [
         ('pendiente', _('Pending')),
-        ('respondida', _('Respondida')),
-        ('aceptada', _('Aceptada')),
-        ('rechazada', _('Rechazada')),
+        ('respondida', _('Responded')),
+        ('aceptada', _('Accepted')),
+        ('rechazada', _('Rejected')),
     ]
 
     numero = models.CharField(max_length=30, unique=True, editable=False, verbose_name='Number')
@@ -821,22 +821,22 @@ class Cotizacion(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='cotizaciones',
-        verbose_name='Comprador',
+        verbose_name='Buyer',
     )
     empresa = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
         related_name='cotizaciones',
-        verbose_name='Empresa',
+        verbose_name='Company',
     )
     estado = models.CharField(
         max_length=20,
         choices=ESTADO_CHOICES,
         default='pendiente',
-        verbose_name='Estado',
+        verbose_name='Status',
     )
-    notas_buyer = models.TextField(blank=True, verbose_name='Notas del comprador')
-    notas_seller = models.TextField(blank=True, verbose_name='Notas del vendedor')
+    notas_buyer = models.TextField(blank=True, verbose_name='Buyer notes')
+    notas_seller = models.TextField(blank=True, verbose_name='Seller notes')
     validez_dias = models.PositiveIntegerField(default=30, verbose_name='Validity (days)')
     order = models.ForeignKey(
         Order,
@@ -844,14 +844,14 @@ class Cotizacion(models.Model):
         null=True,
         blank=True,
         related_name='cotizacion_origen',
-        verbose_name='Orden generada',
+        verbose_name='Generated order',
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'Cotización'
-        verbose_name_plural = 'Cotizaciones'
+        verbose_name = 'Quote'
+        verbose_name_plural = 'Quotes'
         ordering = ['-created_at']
 
     @staticmethod
@@ -882,21 +882,21 @@ class CotizacionItem(models.Model):
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
-        verbose_name='Producto',
+        verbose_name='Product',
     )
-    cantidad_solicitada = models.PositiveIntegerField(verbose_name='Cantidad solicitada')
+    cantidad_solicitada = models.PositiveIntegerField(verbose_name='Requested quantity')
     precio_ofertado = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name='Precio ofertado (unitario)',
+        verbose_name='Offered price (unit)',
     )
     notas = models.TextField(blank=True, verbose_name='Line notes')
 
     class Meta:
-        verbose_name = 'Ítem de cotización'
-        verbose_name_plural = 'Ítems de cotización'
+        verbose_name = 'Quote item'
+        verbose_name_plural = 'Quote items'
 
     def __str__(self):
         return f'{self.cantidad_solicitada}× {self.product.name} ({self.cotizacion.numero})'
@@ -917,9 +917,9 @@ class Transportista(models.Model):
     """Transportista registrado; requiere aprobación admin."""
 
     ESTADO_CHOICES = [
-        ('pendiente', _('Pendiente de revisión')),
-        ('aprobado', _('Aprobado')),
-        ('rechazado', _('Rechazado')),
+        ('pendiente', _('Pending review')),
+        ('aprobado', _('Approved')),
+        ('rechazado', _('Rejected')),
     ]
 
     user = models.OneToOneField(
@@ -936,7 +936,7 @@ class Transportista(models.Model):
     vehiculo_tipo = models.CharField(max_length=100)
     vehiculo_placa = models.CharField(max_length=30)
     cobertura_descripcion = models.TextField(
-        help_text=_('Cityes o zonas que cubre'),
+        help_text=_('Cities or areas covered'),
     )
     tarifa_base = models.DecimalField(max_digits=10, decimal_places=2)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
@@ -948,8 +948,8 @@ class Transportista(models.Model):
     activo = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name = 'Transportista'
-        verbose_name_plural = 'Transportistas'
+        verbose_name = 'Carrier'
+        verbose_name_plural = 'Carriers'
 
     def __str__(self):
         nombre = self.user.get_full_name() if self.user_id else self.empresa_nombre
@@ -960,9 +960,9 @@ class AsignacionTransporte(models.Model):
     """Asignación de transportista a una orden (buyer elige en checkout o paso dedicado)."""
 
     ESTADO_CHOICES = [
-        ('pendiente', _('Pendiente confirmación')),
-        ('confirmado', _('Transportista confirmó')),
-        ('en_camino', _('En camino')),
+        ('pendiente', _('Pending confirmation')),
+        ('confirmado', _('Carrier confirmed')),
+        ('en_camino', _('On the way')),
         ('entregado', _('Delivered')),
         ('cancelado', _('Cancelled')),
     ]
@@ -989,8 +989,8 @@ class AsignacionTransporte(models.Model):
     fecha_confirmacion = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Asignación de transporte'
-        verbose_name_plural = 'Asignaciones de transporte'
+        verbose_name = 'Transport assignment'
+        verbose_name_plural = 'Transport assignments'
 
     def __str__(self):
         return f'{self.order.order_number} — {self.transportista.empresa_nombre}'

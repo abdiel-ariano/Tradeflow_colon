@@ -112,7 +112,7 @@
         var end = new Date(el.getAttribute('data-sp-plazo'));
         var diff = end - new Date();
         if (diff <= 0) {
-          el.textContent = el.getAttribute('data-expired') || 'Expirado';
+          el.textContent = el.getAttribute('data-expired') || 'Expired';
           el.classList.add('warn');
           return;
         }
@@ -139,8 +139,8 @@
           return;
         }
         TF.confirm({
-          titulo: accion === 'aceptar' ? 'Aceptar pedido' : 'Rechazar pedido',
-          mensaje: (accion === 'aceptar' ? '¿Aceptas ' : '¿Rechazas ') + num + '?',
+          titulo: accion === 'aceptar' ? 'Accept order' : 'Reject order',
+          mensaje: (accion === 'aceptar' ? 'Accept ' : 'Reject ') + num + '?',
           onAceptar: function () { window.location.href = href; },
         });
       });
@@ -186,11 +186,11 @@
                 badge.className = 'sp-status ' + (data.is_active ? 'sp-status-delivered' : 'sp-status-cancelled');
               }
             }
-            notify(data.message || 'Actualizado', 'success');
+            notify(data.message || 'Updated', 'success');
           })
           .catch(function () {
             input.checked = prev;
-            notify('No se pudo actualizar el producto', 'error');
+            notify('Could not update the product', 'error');
           })
           .finally(function () {
             wrap.classList.remove('is-busy');
@@ -222,7 +222,7 @@
     function apply(data) {
       renderTimeline(listEl, data);
       if (data.updated_at && data.updated_at !== lastUpdated && global.TF && TF.notify) {
-        TF.notify('Estado logístico actualizado', 'info');
+        TF.notify('Logistics status updated', 'info');
       }
       lastUpdated = data.updated_at;
     }
@@ -268,7 +268,7 @@
       fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
         .then(function (r) { return r.json(); })
         .then(function (d) {
-          if (d.updated && global.TF && TF.notify) TF.notify('Panel actualizado', 'info');
+          if (d.updated && global.TF && TF.notify) TF.notify('Panel updated', 'info');
         })
         .catch(function () {});
     }, 90000);
