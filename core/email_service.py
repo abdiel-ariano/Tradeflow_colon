@@ -23,16 +23,16 @@ class EmailSendResult:
 
 def _verification_html(code: str) -> str:
     return f"""<!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:24px;background:#404b57;font-family:Montserrat,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;">
     <tr>
       <td style="background:#404b57;border-radius:16px;padding:32px;text-align:center;border:2px solid #62929a;">
         <p style="color:#d9cab3;font-size:14px;margin:0 0 8px;">TradeFlow Colón</p>
-        <h1 style="color:#ffffff;font-size:22px;margin:0 0 24px;">Tu código de verificación</h1>
+        <h1 style="color:#ffffff;font-size:22px;margin:0 0 24px;">Your verification code</h1>
         <p style="color:#ffffff;font-size:42px;font-weight:700;letter-spacing:8px;margin:0 0 16px;">{code}</p>
-        <p style="color:#d9cab3;font-size:13px;margin:0;">Válido por 15 minutos</p>
+        <p style="color:#d9cab3;font-size:13px;margin:0;">Valid for 15 minutes</p>
       </td>
     </tr>
   </table>
@@ -94,11 +94,11 @@ def enviar_codigo_verificacion(email: str, code: str) -> EmailSendResult:
 
     Intenta Supabase (Edge Function); si falla, usa ``send_mail`` de Django.
     """
-    subject = 'Tu código de verificación — TradeFlow Colón'
+    subject = 'Your verification code — TradeFlow Colón'
     text = (
-        f'Tu código de verificación en TradeFlow Colón es: {code}\n\n'
-        'Válido por 15 minutos.\n\n'
-        '— Zona Libre de Colón, Panamá'
+        f'Your TradeFlow Colón verification code is: {code}\n\n'
+        'Valid for 15 minutes.\n\n'
+        '— Colón Free Zone, Panama'
     )
     html = _verification_html(code)
 

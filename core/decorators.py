@@ -53,11 +53,11 @@ def buyer_required(view_func):
         if role == 'buyer':
             return view_func(request, *args, **kwargs)
         if role == 'seller':
-            messages.info(request, 'Accede a tu portal de vendedor.')
+            messages.info(request, 'Go to your seller portal.')
             return redirect('/mi-tienda/')
         if role == 'admin' or request.user.is_superuser:
             return view_func(request, *args, **kwargs)
-        messages.error(request, 'No tienes permiso para acceder a esta sección.')
+        messages.error(request, 'You do not have permission to access this section.')
         return redirect('/')
     return wrapper
 
@@ -76,7 +76,7 @@ def seller_required(view_func):
             return view_func(request, *args, **kwargs)
         if role == 'admin' or request.user.is_superuser:
             return view_func(request, *args, **kwargs)
-        messages.error(request, 'Esta sección es solo para vendedores.')
+        messages.error(request, 'This section is for sellers only.')
         return redirect('/tienda/')
     return wrapper
 
@@ -90,6 +90,6 @@ def admin_required(view_func):
         role = _get_role(request.user)
         if role == 'admin' or request.user.is_superuser:
             return view_func(request, *args, **kwargs)
-        messages.error(request, 'Acceso restringido a administradores.')
+        messages.error(request, 'Access restricted to administrators.')
         return redirect('/')
     return wrapper

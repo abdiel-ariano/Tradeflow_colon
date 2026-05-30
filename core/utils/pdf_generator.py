@@ -292,12 +292,12 @@ def _story_doc_footer_legal(styles) -> list:
         Spacer(1, 0.4 * cm),
         _orange_rule(),
         Paragraph(
-            "Ley 76 (Zona Libre de Colón) y normativa aplicable. Sobre ITBMS: "
-            "en operaciones de ZLC la tributación depende del hecho imponible y "
-            "del tipo de operación; este documento es comercial y deberá "
-            "coordinarse con asesor fiscal. Documento de soporte para trámites "
-            "ante ANA / declaraciones DUA; no reemplaza guías oficiales ni "
-            "dictámenes de la autoridad aduanera.",
+            "Law 76 (Colón Free Zone) and applicable regulations. On ITBMS: "
+            "in ZLC operations taxation depends on the taxable event and "
+            "the type of operation; this document is commercial and should "
+            "be coordinated with tax counsel. Supporting document for "
+            "ANA / DUA filings; does not replace official guides or "
+            "rulings from the customs authority.",
             styles["Legal"],
         ),
     ]
@@ -320,14 +320,14 @@ def generar_factura_pdf(orden) -> bytes:
         rightMargin=2 * cm,
         topMargin=1.4 * cm,
         bottomMargin=1.4 * cm,
-        title=f"Factura {orden.order_number}",
+        title=f"Invoice {orden.order_number}",
     )
 
     story: list = []
     story.extend(_story_brand_logo(styles))
     story.append(
         Paragraph(
-            "Factura comercial — Zona Libre de Colón, República de Panamá",
+            "Commercial invoice — Colón Free Zone, Republic of Panama",
             styles["DocSubtitle"],
         )
     )
@@ -346,12 +346,12 @@ def generar_factura_pdf(orden) -> bytes:
     story.append(
         _meta_row_table(
             [
-                ("Número", escape(str(orden.order_number))),
-                ("Fecha de emisión", escape(_format_dt(orden.created_at))),
-                ("Tipo de orden", escape(str(orden.get_order_type_display()))),
-                ("Comprador", buyer_name),
-                ("Correo", buyer_email),
-                ("Expedidor(es) ZLC", expedidor_txt),
+                ("Number", escape(str(orden.order_number))),
+                ("Issue date", escape(_format_dt(orden.created_at))),
+                ("Order type", escape(str(orden.get_order_type_display()))),
+                ("Buyer", buyer_name),
+                ("Email", buyer_email),
+                ("ZLC shipper(s)", expedidor_txt),
             ],
             styles,
         )
@@ -364,17 +364,17 @@ def generar_factura_pdf(orden) -> bytes:
         if a.line2:
             addr_html += escape(f", {a.line2}")
         addr_html += escape(f"<br/>{a.city}, {a.country} {a.postal_code or ''}".strip())
-        story.append(Paragraph(f"<b>Dirección de envío</b><br/>{addr_html}", styles["BodySmall"]))
+        story.append(Paragraph(f"<b>Shipping address</b><br/>{addr_html}", styles["BodySmall"]))
         story.append(Spacer(1, 0.25 * cm))
 
-    story.append(Paragraph("Detalle de líneas", styles["SectionTitle"]))
+    story.append(Paragraph("Line items", styles["SectionTitle"]))
 
     table_data = [
         [
-            _table_header_cell(styles, "Producto / proveedor ZLC", align_center=False),
-            _table_header_cell(styles, "Cant."),
-            _table_header_cell(styles, "P. unit.<br/>USD"),
-            _table_header_cell(styles, "Total línea<br/>USD"),
+            _table_header_cell(styles, "Product / ZLC supplier", align_center=False),
+            _table_header_cell(styles, "Qty."),
+            _table_header_cell(styles, "Unit price<br/>USD"),
+            _table_header_cell(styles, "Line total<br/>USD"),
         ]
     ]
     for item in orden.items.all():
@@ -408,7 +408,7 @@ def generar_factura_pdf(orden) -> bytes:
         [
             [Paragraph("Subtotal", styles["TotalLabel"]), Paragraph(_usd_cell(orden.subtotal), styles["TotalValue"])],
             [
-                Paragraph("Envío", styles["TotalLabel"]),
+                Paragraph("Shipping", styles["TotalLabel"]),
                 Paragraph(_usd_cell(orden.shipping_cost), styles["TotalValue"]),
             ],
             [
@@ -461,10 +461,10 @@ def generar_packing_list_pdf(orden) -> bytes:
 
     story: list = []
     story.extend(_story_brand_logo(styles))
-    story.append(Paragraph("Packing list / Lista de empaque", styles["DocTitle"]))
+    story.append(Paragraph("Packing list", styles["DocTitle"]))
     story.append(
         Paragraph(
-            "Documento de empaque — referencia para autoridad aduanera (ANA) y DUA — ZLC",
+            "Packing document — reference for customs authority (ANA) and DUA — ZLC",
             styles["DocSubtitle"],
         )
     )
@@ -482,11 +482,11 @@ def generar_packing_list_pdf(orden) -> bytes:
     story.append(
         _meta_row_table(
             [
-                ("Referencia orden", escape(str(orden.order_number))),
-                ("Fecha", escape(_format_dt(orden.created_at))),
-                ("Tipo", escape(str(orden.get_order_type_display()))),
-                ("Expedidor(es) ZLC", expedidor_txt),
-                ("Consignatario", buyer_name),
+                ("Order reference", escape(str(orden.order_number))),
+                ("Date", escape(_format_dt(orden.created_at))),
+                ("Type", escape(str(orden.get_order_type_display()))),
+                ("ZLC shipper(s)", expedidor_txt),
+                ("Consignee", buyer_name),
             ],
             styles,
         )
@@ -497,22 +497,22 @@ def generar_packing_list_pdf(orden) -> bytes:
         a = orden.ship_address
         addr_html = escape(f"{a.line1}, {a.line2 or ''}<br/>{a.city}, {a.country} {a.postal_code or ''}")
         story.append(
-            Paragraph(f"<b>Lugar de entrega / consignatario (detalle)</b><br/>{addr_html}", styles["BodySmall"])
+            Paragraph(f"<b>Delivery location / consignee (detail)</b><br/>{addr_html}", styles["BodySmall"])
         )
         story.append(Spacer(1, 0.3 * cm))
 
-    story.append(Paragraph("Mercancía detallada", styles["SectionTitle"]))
+    story.append(Paragraph("Detailed merchandise", styles["SectionTitle"]))
 
     pl_data = [
         [
             _table_header_cell(styles, "#"),
             _table_header_cell(styles, "SKU"),
-            _table_header_cell(styles, "Descripción", align_center=False),
-            _table_header_cell(styles, "Proveedor ZLC", align_center=False),
-            _table_header_cell(styles, "Cant."),
-            _table_header_cell(styles, "U.M."),
-            _table_header_cell(styles, "Peso neto<br/>(kg)"),
-            _table_header_cell(styles, "Peso bruto<br/>(kg)"),
+            _table_header_cell(styles, "Description", align_center=False),
+            _table_header_cell(styles, "ZLC supplier", align_center=False),
+            _table_header_cell(styles, "Qty."),
+            _table_header_cell(styles, "UOM"),
+            _table_header_cell(styles, "Net weight<br/>(kg)"),
+            _table_header_cell(styles, "Gross weight<br/>(kg)"),
         ]
     ]
     total_qty = 0
@@ -526,7 +526,7 @@ def generar_packing_list_pdf(orden) -> bytes:
                 Paragraph(escape(item.product.name), styles["TableCellProduct"]),
                 Paragraph(escape(item.product.company.name), styles["TableCellProduct"]),
                 str(item.qty),
-                "und.",
+                "pcs.",
                 "—",
                 "—",
             ]
@@ -547,9 +547,9 @@ def generar_packing_list_pdf(orden) -> bytes:
     story.append(Spacer(1, 0.35 * cm))
     story.append(
         Paragraph(
-            f"<b>Total piezas declaradas (unidades):</b> {total_qty}. "
-            f"Los pesos neto/bruto deben completarse conforme al despacho físico y "
-            f"coincidir con la declaración DUA ante ANA.",
+            f"<b>Total declared pieces (units):</b> {total_qty}. "
+            f"Net/gross weights must be completed according to the physical shipment and "
+            f"match the DUA declaration filed with ANA.",
             styles["LabelGray"],
         )
     )
@@ -574,15 +574,15 @@ def generar_cotizacion_pdf(cotizacion) -> bytes:
         rightMargin=2 * cm,
         topMargin=1.4 * cm,
         bottomMargin=1.4 * cm,
-        title=f"Cotización {cotizacion.numero}",
+        title=f"Quote {cotizacion.numero}",
     )
 
     story: list = []
     story.extend(_story_brand_logo(styles))
-    story.append(Paragraph("Cotización formal (RFQ)", styles["DocTitle"]))
+    story.append(Paragraph("Formal quote (RFQ)", styles["DocTitle"]))
     story.append(
         Paragraph(
-            "TradeFlow Colón — propuesta de precios en marco ZLC; validez según plazo indicado",
+            "TradeFlow Colón — price proposal under ZLC framework; validity per stated period",
             styles["DocSubtitle"],
         )
     )
@@ -594,12 +594,12 @@ def generar_cotizacion_pdf(cotizacion) -> bytes:
     ruc = escape(empresa.ruc or "—")
 
     header_rows = [
-        ["Número:", escape(str(cotizacion.numero))],
-        ["Fecha:", _format_dt(cotizacion.created_at)],
-        ["Empresa ofertante:", escape(empresa.name)],
-        ["RUC / registro:", ruc],
-        ["Comprador:", buyer_name],
-        ["Validez de la oferta:", f"{cotizacion.validez_dias} días"],
+        ["Number:", escape(str(cotizacion.numero))],
+        ["Date:", _format_dt(cotizacion.created_at)],
+        ["Offering company:", escape(empresa.name)],
+        ["RUC / registration:", ruc],
+        ["Buyer:", buyer_name],
+        ["Offer validity:", f"{cotizacion.validez_dias} days"],
     ]
     ht = Table(header_rows, colWidths=[4.5 * cm, 12.5 * cm])
     ht.setStyle(
@@ -617,14 +617,14 @@ def generar_cotizacion_pdf(cotizacion) -> bytes:
     story.append(ht)
     story.append(Spacer(1, 0.35 * cm))
 
-    story.append(Paragraph("Líneas cotizadas", styles["SectionTitle"]))
+    story.append(Paragraph("Quoted lines", styles["SectionTitle"]))
 
     rows = [
         [
-            _table_header_cell(styles, "Producto", align_center=False),
-            _table_header_cell(styles, "Cant.<br/>solicitada"),
-            _table_header_cell(styles, "Precio ofertado<br/>(unit. USD)"),
-            _table_header_cell(styles, "Notas de línea", align_center=False),
+            _table_header_cell(styles, "Product", align_center=False),
+            _table_header_cell(styles, "Qty.<br/>requested"),
+            _table_header_cell(styles, "Offered price<br/>(unit USD)"),
+            _table_header_cell(styles, "Line notes", align_center=False),
         ]
     ]
 
@@ -637,7 +637,7 @@ def generar_cotizacion_pdf(cotizacion) -> bytes:
             subtotal += it.precio_ofertado * it.cantidad_solicitada
             has_amounts = True
         else:
-            precio_txt = "Pendiente"
+            precio_txt = "Pending"
         notas_cell = escape(it.notas) if it.notas else "—"
         rows.append(
             [
@@ -659,7 +659,7 @@ def generar_cotizacion_pdf(cotizacion) -> bytes:
         tot = Table(
             [
                 [
-                    Paragraph("Subtotal estimado (USD)", styles["TotalLabel"]),
+                    Paragraph("Estimated subtotal (USD)", styles["TotalLabel"]),
                     Paragraph(_usd_cell(subtotal), styles["TotalValue"]),
                 ],
             ],
@@ -676,11 +676,11 @@ def generar_cotizacion_pdf(cotizacion) -> bytes:
         story.append(tot)
 
     story.append(Spacer(1, 0.4 * cm))
-    story.append(Paragraph("Notas del comprador", styles["SectionTitle"]))
+    story.append(Paragraph("Buyer notes", styles["SectionTitle"]))
     nb = cotizacion.notas_buyer.strip() if cotizacion.notas_buyer else "—"
     story.append(Paragraph(escape(nb), styles["BodySmall"]))
 
-    story.append(Paragraph("Notas del vendedor", styles["SectionTitle"]))
+    story.append(Paragraph("Seller notes", styles["SectionTitle"]))
     ns = cotizacion.notas_seller.strip() if cotizacion.notas_seller else "—"
     story.append(Paragraph(escape(ns), styles["BodySmall"]))
 

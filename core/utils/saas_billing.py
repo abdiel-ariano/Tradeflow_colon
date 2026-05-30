@@ -96,10 +96,10 @@ def _safe_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
 def ensure_default_plans() -> int:
     """Crea planes oficiales si no existen. Retorna cantidad de planes activos."""
     defaults = [
-        ('digitalizate', 'Digitalízate', Decimal('15000'), 50, False, False, False, 1),
-        ('expansion', 'Expansión', Decimal('50000'), 200, True, False, False, 2),
-        ('corporativo_pro', 'Corporativo Pro', None, 500, True, True, False, 3),
-        ('ecosistema_enterprise', 'Ecosistema Enterprise', None, 2000, True, True, True, 4),
+        ('digitalizate', 'Digitalize', Decimal('15000'), 50, False, False, False, 1),
+        ('expansion', 'Expansion', Decimal('50000'), 200, True, False, False, 2),
+        ('corporativo_pro', 'Corporate Pro', None, 500, True, True, False, 3),
+        ('ecosistema_enterprise', 'Enterprise Ecosystem', None, 2000, True, True, True, 4),
     ]
     for slug, name, limit, credits, api, webhooks, predictive, order in defaults:
         SaasPlan.objects.update_or_create(

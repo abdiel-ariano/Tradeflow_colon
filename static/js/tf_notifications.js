@@ -64,7 +64,7 @@
       iconFor(lvl) +
       '</span>' +
       '<span class="tf-toast-msg"></span>' +
-      '<button type="button" class="tf-toast-close" aria-label="Cerrar">' +
+      '<button type="button" class="tf-toast-close" aria-label="Close">' +
       '<span class="material-symbols-rounded" style="font-size:18px;">close</span></button>';
     row.querySelector('.tf-toast-msg').textContent = message;
     if (options.dismissKey) {
@@ -72,7 +72,7 @@
       wrap.className = 'tf-notif-dismiss-check';
       wrap.style.cssText = 'display:block;font-size:11px;margin-top:6px;cursor:pointer;';
       wrap.innerHTML =
-        '<input type="checkbox" style="margin-right:4px;"> No volver a mostrar';
+        '<input type="checkbox" style="margin-right:4px;"> Do not show again';
       wrap.querySelector('input').addEventListener('change', function (ev) {
         if (ev.target.checked) {
           try { localStorage.setItem('tf_hide_' + options.dismissKey, '1'); } catch (e) {}

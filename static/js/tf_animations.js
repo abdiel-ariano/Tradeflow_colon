@@ -36,7 +36,7 @@
         'max-width:380px;width:90%;animation:tfSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1)">' +
         '<img src="' + logoSrc + '" alt="TradeFlow" style="height:56px;width:auto;margin:0 auto 1rem;object-fit:contain;" class="tf-pulse-once">' +
         '<p style="font-family:var(--tf-font-display,serif);font-size:1.25rem;color:var(--tf-dark,#0F2A44);' +
-        'margin-bottom:.5rem">Listo</p>' +
+        'margin-bottom:.5rem">Done</p>' +
         '<p style="color:var(--tf-muted,#6B7A88);font-size:.9rem">' + mensaje + '</p></div>';
       document.body.appendChild(overlay);
       setTimeout(function () {
@@ -88,11 +88,11 @@
       overlay.innerHTML =
         '<div style="background:#fff;border-radius:20px;padding:2rem;max-width:400px;width:90%">' +
         '<h3 style="font-family:var(--tf-font-display,serif);color:var(--tf-dark,#0F2A44);margin:0 0 .75rem">' +
-        (o.titulo || 'Confirmar acción') + '</h3>' +
-        '<p style="color:var(--tf-muted);margin-bottom:1.5rem">' + (o.mensaje || '¿Estás seguro?') + '</p>' +
+        (o.titulo || 'Confirm action') + '</h3>' +
+        '<p style="color:var(--tf-muted);margin-bottom:1.5rem">' + (o.mensaje || 'Are you sure?') + '</p>' +
         '<div style="display:flex;gap:.75rem;justify-content:flex-end">' +
-        '<button type="button" id="tf-cancel-btn" class="btn-tf btn-secondary-tf">Cancelar</button>' +
-        '<button type="button" id="tf-confirm-btn" class="btn-tf btn-primary-tf">Confirmar</button>' +
+        '<button type="button" id="tf-cancel-btn" class="btn-tf btn-secondary-tf">Cancel</button>' +
+        '<button type="button" id="tf-confirm-btn" class="btn-tf btn-primary-tf">Confirm</button>' +
         '</div></div>';
       document.body.appendChild(overlay);
       overlay.querySelector('#tf-cancel-btn').onclick = function () {

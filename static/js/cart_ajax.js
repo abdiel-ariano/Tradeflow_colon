@@ -70,7 +70,7 @@
           .then(function (res) {
             var data = res.data || {};
             if (!res.ok || data.ok === false) {
-              showToast(data.message || (window.TF_I18N && window.TF_I18N.cartError) || 'No se pudo agregar al carrito.', 'error');
+              showToast(data.message || (window.TF_I18N && window.TF_I18N.cartError) || 'Could not add to cart.', 'error');
               return;
             }
             if (data.carrito_count !== undefined) {
@@ -78,7 +78,7 @@
             }
             var msg = data.message || '';
             if (msg.length > 48) {
-              msg = (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Agregado al carrito';
+              msg = (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Added to cart';
             }
             showToast(msg, data.level || 'success');
             if (btn) {
@@ -89,7 +89,7 @@
             }
           })
           .catch(function () {
-            showToast((window.TF_I18N && window.TF_I18N.networkError) || 'Error de conexión. Intenta de nuevo.', 'error');
+            showToast((window.TF_I18N && window.TF_I18N.networkError) || 'Connection error. Please try again.', 'error');
           })
           .finally(function () {
             if (btn) {

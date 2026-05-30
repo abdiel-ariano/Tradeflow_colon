@@ -8,7 +8,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
 from core.models import UserProfile
@@ -52,7 +51,7 @@ def onboarding_espera_aprobacion(request):
         return redirect(nxt or 'home')
 
     ctx = onboarding_context(request.user)
-    ctx['titulo_pagina'] = _('Aplicación en revisión')
+    ctx['titulo_pagina'] = 'Application under review'
     return render(request, 'core/onboarding_espera_aprobacion.html', ctx)
 
 
@@ -69,7 +68,7 @@ def onboarding_solicitud_requerida(request):
         return redirect('onboarding_aplicacion_rechazada')
 
     ctx = onboarding_context(request.user)
-    ctx['titulo_pagina'] = _('Acceso empresarial')
+    ctx['titulo_pagina'] = 'Business access'
     return render(request, 'core/onboarding_solicitud_requerida.html', ctx)
 
 
@@ -81,7 +80,7 @@ def onboarding_aplicacion_rechazada(request):
         return redirect(nxt or 'home')
 
     ctx = onboarding_context(request.user)
-    ctx['titulo_pagina'] = _('Solicitud no aprobada')
+    ctx['titulo_pagina'] = 'Application not approved'
     return render(request, 'core/onboarding_aplicacion_rechazada.html', ctx)
 
 
@@ -103,5 +102,5 @@ def api_onboarding_verification_status(request):
 def onboarding_solicitud_enviada(request):
     """Confirmación pública tras enviar solicitud de acceso."""
     return render(request, 'core/onboarding_solicitud_enviada.html', {
-        'titulo_pagina': _('Solicitud recibida'),
+        'titulo_pagina': 'Application received',
     })
