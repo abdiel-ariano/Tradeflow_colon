@@ -51,9 +51,9 @@ Contexto: vista mis_cotizaciones; badges de estado aplicados por JavaScript.
         <tr>
           <th>Number</th>
           <th>Business</th>
-          <th>Estado</th>
-          <th>Fecha</th>
-          <th>Validez</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Validity</th>
           <th style="text-align:right;">Action</th>
         </tr>
       </thead>
@@ -66,7 +66,7 @@ Contexto: vista mis_cotizaciones; badges de estado aplicados por JavaScript.
           <td>{{ c.created_at|date:"d/m/Y" }}</td>
           <td>{{ c.validez_dias }} days</td>
           <td style="text-align:right;">
-            <a href="{% url 'detalle_cotizacion' c.pk %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8rem;">Ver detalle</a>
+            <a href="{% url 'detalle_cotizacion' c.pk %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8rem;">View details</a>
           </td>
         </tr>
         {% empty %}

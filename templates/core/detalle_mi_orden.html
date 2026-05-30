@@ -71,7 +71,7 @@
   </div>
 
   <div class="detalle-num">{{ orden.order_number }}</div>
-  <div class="detalle-fecha">Realizada el {{ orden.created_at|date:"d \d\e F \d\e Y, H:i" }}</div>
+  <div class="detalle-fecha">Placed on {{ orden.created_at|date:"F j, Y, H:i" }}</div>
 
   <div class="detalle-grid">
     {# ── Columna izquierda: items y notas ── #}
@@ -84,7 +84,7 @@
           <div class="item-info">
             <div class="item-nombre">{{ item.product.name }}</div>
             <div class="item-empresa">{{ item.product.company.name }}</div>
-            <div class="item-qty">{{ item.qty }} unidad{{ item.qty|pluralize }} × USD {{ item.unit_price_snapshot }}</div>
+            <div class="item-qty">{{ item.qty }} unit{{ item.qty|pluralize }} × USD {{ item.unit_price_snapshot }}</div>
           </div>
           <div class="item-precio">USD {{ item.line_total }}</div>
         </div>
@@ -93,7 +93,7 @@
 
       {% if orden.notes %}
       <div class="detalle-card">
-        <div class="detalle-card-title">Notas de la orden</div>
+        <div class="detalle-card-title">Order notes</div>
         <p style="font-size:0.88rem;color:var(--tf-muted);line-height:1.6;margin:0;">{{ orden.notes }}</p>
       </div>
       {% endif %}
@@ -102,12 +102,12 @@
     {# ── Columna derecha: resumen, estado y pago ── #}
     <div>
       <div class="detalle-card">
-        <div class="detalle-card-title">Estado</div>
+        <div class="detalle-card-title">Status</div>
         <span class="badge-estado estado-{{ orden.status }}">{{ orden.get_status_display }}</span>
       </div>
 
       <div class="detalle-card">
-        <div class="detalle-card-title">Summary de pago</div>
+        <div class="detalle-card-title">Payment summary</div>
         <div class="resumen-fila"><span>Subtotal</span><span>USD {{ orden.subtotal }}</span></div>
         <div class="resumen-fila"><span>Shipping</span><span>USD {{ orden.shipping_cost }}</span></div>
         <div class="resumen-total-final"><span>Total</span><span>USD {{ orden.total }}</span></div>
@@ -117,19 +117,19 @@
       <div class="detalle-card">
         <div class="detalle-card-title">Payment information</div>
         <div class="info-fila"><span class="lbl">Method</span><span class="val">{{ pago.get_provider_display }}</span></div>
-        <div class="info-fila"><span class="lbl">Estado</span><span class="val">{{ pago.get_status_display }}</span></div>
+        <div class="info-fila"><span class="lbl">Status</span><span class="val">{{ pago.get_status_display }}</span></div>
         {% if pago.paid_at %}
-        <div class="info-fila"><span class="lbl">Paid el</span><span class="val">{{ pago.paid_at|date:"d/m/Y H:i" }}</span></div>
+        <div class="info-fila"><span class="lbl">Paid on</span><span class="val">{{ pago.paid_at|date:"d/m/Y H:i" }}</span></div>
         {% endif %}
         {% if pago.txn_ref %}
-        <div class="info-fila"><span class="lbl">Referencia</span><span class="val" style="font-size:0.78rem;">{{ pago.txn_ref }}</span></div>
+        <div class="info-fila"><span class="lbl">Reference</span><span class="val" style="font-size:0.78rem;">{{ pago.txn_ref }}</span></div>
         {% endif %}
       </div>
       {% endif %}
 
       <a href="{% url 'descargar_factura' orden_pk=orden.pk %}" class="btn-tf btn-primary-tf" style="width:100%;justify-content:center;margin-bottom:8px;">
         <span class="material-symbols-rounded" style="font-size:20px;">description</span>
-        Descargar Factura PDF
+        Download Invoice PDF
       </a>
 
       <a href="{% url 'descargar_packing_list' orden_pk=orden.pk %}" class="btn-tf btn-secondary-tf" style="width:100%;justify-content:center;margin-bottom:12px;">

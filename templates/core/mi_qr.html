@@ -25,7 +25,7 @@ Contexto: verify_url, qr_data_uri, generated_at, profile, titulo_pagina, nav_act
 {% block content %}
 <div class="qr-page">
   <div class="qr-card">
-    <h1>Tu QR de pre-registro ZLC</h1>
+    <h1>Your ZLC pre-registration QR</h1>
     <p class="lead">Present this code at checkpoints or desks in the Colón Free Zone to speed up validation of your TradeFlow-linked identity.</p>
     <div class="qr-img-wrap">
       <img src="{{ qr_data_uri }}" width="280" height="280" alt="TradeFlow CFZ QR code">
@@ -33,17 +33,17 @@ Contexto: verify_url, qr_data_uri, generated_at, profile, titulo_pagina, nav_act
     <div class="qr-actions">
       <a href="{% url 'descargar_qr' %}" class="qr-btn qr-btn-primary">
         <span class="material-symbols-rounded">download</span>
-        Descargar PNG
+        Download PNG
       </a>
     </div>
     <dl class="qr-meta">
       <dt>Verification URL (QR content)</dt>
       <dd class="qr-url">{{ verify_url }}</dd>
-      <dt>Generado</dt>
+      <dt>Generated</dt>
       <dd>{{ generated_at|date:"d/m/Y H:i" }}</dd>
       <dt>Username</dt>
       <dd>{{ user.username }} — {{ user.get_full_name|default:user.username }}</dd>
-      <dt>Correo</dt>
+      <dt>Email</dt>
       <dd>{{ user.email|default:"—" }}</dd>
       {% if profile.phone %}
       <dt>Phone</dt>

@@ -778,7 +778,7 @@ show_cart_actions, tienda_params.
       <div class="td-side-card">
         <div class="td-side-head">
           <span class="material-symbols-rounded" aria-hidden="true">filter_list</span>
-          Filtros
+          Filters
         </div>
         <form method="get" action="{% url 'tienda' %}" id="filtros-form" style="padding:8px 0 12px;">
           {% if tab_catalogo and tab_catalogo != 'todos' %}
@@ -786,7 +786,7 @@ show_cart_actions, tienda_params.
           {% endif %}
           <div style="position:relative;margin:0 16px 12px;" class="td-span-2">
             <span class="material-symbols-rounded" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tf-muted);font-size:18px;pointer-events:none;">search</span>
-            <input type="text" name="buscar" id="input-buscar" placeholder="Buscar productos, SKU..." value="{{ buscar }}" class="td-search-input" style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-family:var(--tf-font-body);box-sizing:border-box;">
+            <input type="text" name="buscar" id="input-buscar" placeholder="Search products, SKU..." value="{{ buscar }}" class="td-search-input" style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-family:var(--tf-font-body);box-sizing:border-box;">
           </div>
           <div class="td-filter-primary">
             <div>
@@ -808,9 +808,9 @@ show_cart_actions, tienda_params.
               </select>
             </div>
             <div class="td-span-2">
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">Ordenar por</label>
+              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">Sort by</label>
               <select name="orden" id="select-orden" class="td-filter-select">
-                <option value="nombre">First name A-Z</option>
+                <option value="nombre">Name A-Z</option>
                 <option value="precio_asc">Price: low to high</option>
                 <option value="precio_desc">Price: high to low</option>
                 <option value="novedades">Most recent</option>
@@ -844,7 +844,7 @@ show_cart_actions, tienda_params.
           </details>
           <a href="{% url 'tienda' %}" id="btn-limpiar" style="display:none;margin:12px 16px 8px;text-align:center;font-size:13px;color:var(--tf-muted);text-decoration:none;padding:8px;border-radius:8px;border:1px solid #E5E7EB;">
             <span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">filter_alt_off</span>
-            Limpiar filtros
+            Clear filters
           </a>
         </form>
       </div>
@@ -879,7 +879,7 @@ show_cart_actions, tienda_params.
           <h2 id="td-promo-title">{{ promo_banner.title_es }}</h2>
           {% if promo_banner.subtitle_es %}<p>{{ promo_banner.subtitle_es }}</p>{% endif %}
         </div>
-        <a href="{{ tab_urls.ofertas }}" class="td-tab" style="flex-shrink:0;">Ver ofertas</a>
+        <a href="{{ tab_urls.ofertas }}" class="td-tab" style="flex-shrink:0;">View deals</a>
       </section>
       {% endif %}
 
@@ -922,7 +922,7 @@ show_cart_actions, tienda_params.
           <h1 id="td-results-title">
             {% if tab_catalogo == 'ofertas' %}Active deals
             {% elif tab_catalogo == 'bestsellers' %}Bestsellers
-            {% elif tab_catalogo == 'destacados' %}Products destacados
+            {% elif tab_catalogo == 'destacados' %}Featured products
             {% else %}Full catalog{% endif %}
           </h1>
           <p class="td-results-count" id="td-results-count">
@@ -937,9 +937,9 @@ show_cart_actions, tienda_params.
         {% empty %}
         <div class="td-empty">
           <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
-          <h2>No encontramos productos</h2>
+          <h2>No products found</h2>
           <p>Try another term or category</p>
-          <a href="{% url 'tienda' %}" class="td-btn-add">View alls los productos</a>
+          <a href="{% url 'tienda' %}" class="td-btn-add">View all products</a>
         </div>
         {% endfor %}
       </div>
