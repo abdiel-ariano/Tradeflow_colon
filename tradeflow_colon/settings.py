@@ -198,6 +198,7 @@ LOCALE_PATHS = [BASE_DIR / 'locale']
 # ── Archivos estáticos ─────────────────────────────────────────────────────
 STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
