@@ -396,7 +396,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    messages.info(request, 'You have been signed out.')
+    request.session.flush()
     return redirect('login')
 
 
@@ -404,6 +404,16 @@ def signup_view(request):
     """Registro público: crea User + UserProfile."""
     if request.user.is_authenticated:
         return redirect(_redirect_by_role(request.user))
+
+    if request.method == 'GET':
+        return render(request, 'core/signup.html', {
+            'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
+            'selected_role': 'buyer',
+            'form_first_name': '',
+            'form_last_name': '',
+            'form_email': '',
+            'form_phone': '',
+        })
 
     if request.method == 'POST':
         first_name = escape(request.POST.get('first_name', '').strip())
@@ -430,22 +440,22 @@ def signup_view(request):
 
         if not NOMBRE_REGEX.match(first_name):
             errores.append(
-                'First name may only contain letters and spaces '
-                '(minimum 2 characters, maximum 50).'
+                'First name can only contain letters and spaces '
+                '(min 2, max 50 characters).'
             )
 
         if last_name and not NOMBRE_REGEX.match(last_name):
-            errores.append('Last name may only contain letters and spaces.')
+            errores.append('Last name can only contain letters and spaces.')
 
         if not USERNAME_REGEX.match(username):
             errores.append(
-                'Username must start with a letter and may only '
+                'Username must start with a letter and can only '
                 'contain letters, numbers, dots and '
                 'underscores (3-30 characters).'
             )
 
         if not EMAIL_REGEX.match(email):
-            errores.append('Enter a valid email address.')
+            errores.append('Please enter a valid email address.')
 
         if len(password1) < 8:
             errores.append('Password must be at least 8 characters.')
@@ -458,7 +468,7 @@ def signup_view(request):
             'tradeflow', username.lower(),
         ]:
             errores.append(
-                'Password is too common. Choose a stronger one.'
+                'Password is too common. Please choose a stronger one.'
             )
 
         if password1 != password2:
@@ -470,10 +480,10 @@ def signup_view(request):
             return render(request, 'core/signup.html', signup_ctx)
 
         if User.objects.filter(username=username).exists():
-            messages.error(request, f'Username "{username}" already exists. Choose another.')
+            messages.error(request, f'Username "{username}" is already taken. Please choose another.')
             return render(request, 'core/signup.html', signup_ctx)
         if User.objects.filter(email=email).exists():
-            messages.error(request, 'An account with that email already exists.')
+            messages.error(request, 'An account with this email already exists.')
             return render(request, 'core/signup.html', signup_ctx)
         if role not in ('buyer', 'seller'):
             messages.error(request, 'Invalid account type.')
@@ -515,14 +525,7 @@ def signup_view(request):
         )
         return redirect(_redirect_by_role(user))
 
-    return render(request, 'core/signup.html', {
-        'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
-        'selected_role': 'buyer',
-        'form_first_name': '',
-        'form_last_name': '',
-        'form_email': '',
-        'form_phone': '',
-    })
+    return redirect('signup')
 
 
 def _redirect_after_email_verified(user):
@@ -596,7 +599,7 @@ def verificar_codigo(request):
     if request.method == 'POST':
         raw = (request.POST.get('codigo') or '').strip()
         if not re.fullmatch(r'\d{6}', raw):
-            messages.error(request, 'Enter a 6-digit code.')
+            messages.error(request, 'Please enter a 6-digit code.')
             return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
 
         verification = (
@@ -609,7 +612,7 @@ def verificar_codigo(request):
             .first()
         )
         if not verification or not verification.is_valid():
-            messages.error(request, 'Invalid or expired code. Request a new one.')
+            messages.error(request, 'Invalid or expired code. Please request a new one.')
             return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
 
         verification.is_used = True
@@ -630,7 +633,7 @@ def verificar_codigo(request):
             enviar_bienvenida(request.user)
         except Exception:
             log.exception('bienvenida tras verificar_codigo')
-        messages.success(request, 'Email verified! You can continue.')
+        messages.success(request, 'Email verified! You can now continue.')
         from core.utils.access_gating import onboarding_redirect_name
         nxt = onboarding_redirect_name(request.user)
         if nxt:
@@ -742,7 +745,7 @@ def reenviar_verificacion_public(request):
             except UserProfile.DoesNotExist:
                 pass
         else:
-            messages.warning(request, 'We could not find an account with that email.')
+            messages.warning(request, 'No account found with that email address.')
     return redirect('login')
 
 
@@ -1623,7 +1626,7 @@ def nueva_orden_paso3(request):
     items      = request.session.get('wizard_items', [])
 
     if not buyer_id or not items:
-        messages.error(request, 'Session expired. Start the order again.')
+        messages.error(request, 'Session expired. Please start your order again.')
         return redirect('nueva_orden_paso1')
 
     buyer       = get_object_or_404(User, pk=buyer_id)
@@ -3816,7 +3819,7 @@ def seller_responder_cotizacion(request, pk):
                 cot.estado = 'respondida'
             cot.save(update_fields=['notas_seller', 'estado', 'updated_at'])
 
-        messages.success(request, 'Quote updated.')
+        messages.success(request, 'Quote updated successfully.')
         return redirect('seller_cotizaciones')
 
     context = {
