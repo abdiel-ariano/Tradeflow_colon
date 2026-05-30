@@ -1,18 +1,214 @@
-{% load static %}
 <!DOCTYPE html>
-<html lang="es">
+{% load static %}
+{% comment %}
+================================================================================
+templates/core/base.html — TradeFlow Colón
+Propósito: plantilla maestra (navbar, footer, flash, sistema de diseño global).
+Contexto: Django 4.2 + Bootstrap 5 CDN + Inter + Material Symbols Rounded.
+CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle.html
+(sin <link> a /static/css/*.css) para evitar regresiones por estáticos ausentes.
+================================================================================
+{% endcomment %}
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}B2B and B2C marketplace in the Colón Free Zone — verified companies, catalog, logistics, and secure purchasing.{% endblock %}">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
-  <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+  {% block extra_head %}{% endblock %}
+  <link rel="icon" type="image/png" href="{% static 'img/logo-icon-color.png' %}" sizes="32x32">
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/logo-icon-color.png' %}">
+  <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
+  <link rel="preload" href="{% static 'img/logo-icon-color.png' %}" as="image" type="image/png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Serif+Display&family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
   <style>
+    /* ═══════════════════════════════════════════════════════════════════════════
+       BLINDAJE — utilidades críticas (evita regresión de estilos)
+       ═══════════════════════════════════════════════════════════════════════════ */
+
+    .tf-breadcrumb-secondary { display: none !important; }
+
+    body > p:first-of-type a[href*="mi-tienda"],
+    body > p:first-of-type a[href*="dashboard"] {
+      display: none !important;
+    }
+
+    .btn-tf {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: var(--tf-radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: var(--tf-font-body);
+      border: none;
+      cursor: pointer;
+      text-decoration: none !important;
+      transition: all 0.2s;
+      white-space: nowrap;
+      position: relative;
+      z-index: 1;
+    }
+    .btn-tf + .btn-tf { margin-left: 8px; }
+    .btn-primary-tf {
+      background: var(--tf-orange);
+      color: #fff !important;
+    }
+    .btn-primary-tf:hover {
+      background: var(--tf-orange-h);
+      color: #fff !important;
+      transform: translateY(-1px);
+    }
+    .btn-secondary-tf {
+      background: transparent;
+      color: var(--tf-navy) !important;
+      border: 1.5px solid var(--tf-border);
+    }
+    .btn-secondary-tf:hover {
+      background: var(--tf-light);
+      border-color: var(--tf-navy);
+    }
+
+    .tf-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 991px) { .tf-metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 575px) { .tf-metrics-grid { grid-template-columns: 1fr; } }
+
+    .tf-metric-card {
+      background: var(--tf-white);
+      border-radius: var(--tf-radius);
+      border: 1px solid var(--tf-border);
+      padding: 20px 24px;
+      box-shadow: var(--tf-shadow);
+    }
+    .tf-metric-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--tf-muted);
+      margin-bottom: 8px;
+    }
+    .tf-metric-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--tf-navy);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .tf-metric-sub { font-size: 12px; color: var(--tf-muted); }
+
+    .tf-table-container {
+      background: var(--tf-white);
+      border-radius: var(--tf-radius);
+      border: 1px solid var(--tf-border);
+      overflow: hidden;
+    }
+    .tf-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .tf-table thead th {
+      background: #F9FAFB;
+      padding: 12px 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--tf-muted);
+      text-align: left;
+      border-bottom: 1px solid var(--tf-border);
+    }
+    .tf-table tbody td {
+      padding: 14px 20px;
+      border-bottom: 1px solid #F3F4F6;
+      font-size: 13px;
+      color: #374151;
+      vertical-align: middle;
+    }
+    .tf-table tbody tr:last-child td { border-bottom: none; }
+    .tf-table tbody tr:hover { background: #FAFAFA; }
+    .tf-table-img {
+      width: 56px !important;
+      height: 56px !important;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .badge-pending   { background: #FEF3C7; color: #92400E; }
+    .badge-paid      { background: #DBEAFE; color: #1E40AF; }
+    .badge-packed    { background: #E0E7FF; color: #3730A3; }
+    .badge-shipped   { background: #D1FAE5; color: #065F46; }
+    .badge-delivered { background: #D1FAE5; color: #065F46; }
+    .badge-cancelled { background: #FEE2E2; color: #991B1B; }
+    .badge-active    { background: #D1FAE5; color: #065F46; }
+    .badge-inactive  { background: #FEE2E2; color: #991B1B; }
+
+    .tf-page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    .tf-page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .tf-page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--tf-navy);
+      margin: 0;
+      line-height: 1.2;
+    }
+    .tf-page-subtitle {
+      font-size: 14px;
+      color: var(--tf-muted);
+      margin: 4px 0 0;
+    }
+
+    .tf-alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: var(--tf-radius-sm);
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .tf-alert-success { background: #ECFDF5; border: 1px solid #6EE7B7; color: #065F46; }
+    .tf-alert-danger { background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; }
+    .tf-alert-info { background: #EFF6FF; border: 1px solid #93C5FD; color: #1E40AF; }
+
     :root {
+      /* Paleta ZLC oficial (gradual en comprador/landing) */
+      --tf-zlc-dark: #404b57;
+      --tf-zlc-teal: #62929a;
+      --tf-zlc-sand: #d9cab3;
+      --tf-teal: #62929a;
+      --tf-teal-brand: #2E5B8A;
+      --tf-sand: #d9cab3;
+      --tf-dark: #404b57;
+      --tf-dark-faint: rgba(15, 42, 68, 0.08);
+      --tf-mid: #1B3B63;
+      --tf-radius: 12px;
+      --tf-radius-sm: 8px;
+      --tf-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
+      --tf-shadow-lg: 0 8px 24px rgba(15, 42, 68, 0.15);
       --tf-navy: #0F2A44;
       --tf-navy-mid: #1B3B63;
       --tf-blue: #2E5B8A;
@@ -23,6 +219,8 @@
       --tf-border: #D1D5DB;
       --tf-muted: #6B7A88;
       --tf-white: #FFFFFF;
+      --tf-font-body: 'Montserrat', sans-serif;
+      --tf-font-display: 'DM Serif Display', serif;
       --tf-body: #374151;
       --tf-title: #0F2A44;
       --tf-subtitle: #1B3B63;
@@ -32,9 +230,31 @@
       --tf-radius-input: 8px;
       --tf-radius-badge: 20px;
       --tf-radius-modal: 16px;
-      --tf-shadow-card-hover: 0 8px 24px rgba(15, 42, 68, 0.12);
+      --tf-shadow-card: 0 2px 8px rgba(15, 42, 68, 0.08);
+      --tf-shadow-card-hover: 0 8px 24px rgba(15, 42, 68, 0.15);
       --tf-shadow-nav: 0 1px 0 #D1D5DB;
       --tf-shadow-btn-primary: 0 4px 12px rgba(242, 101, 34, 0.3);
+      --tf-motion-fast: 0.18s;
+      --tf-motion-med: 0.28s;
+      --tf-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes tf-soft-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Fondos oscuros (landing hero): título legible frente a reglas globales de h1. */
+    .lp-hero h1,
+    .lp-hero .lp-hero-title,
+    section.lp-hero h1 {
+      color: #ffffff !important;
     }
 
     .material-symbols-rounded {
@@ -61,7 +281,7 @@
     *, *::before, *::after { box-sizing: border-box; }
 
     body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: var(--tf-font-body);
       font-weight: 400;
       color: var(--tf-body);
       background: var(--tf-light);
@@ -72,20 +292,20 @@
     }
 
     h1, .tf-page-title {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--tf-font-body);
       font-weight: 700;
       font-size: 1.75rem;
       color: var(--tf-title);
       margin: 0 0 0.5rem;
     }
     h2, .tf-subtitle {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--tf-font-body);
       font-weight: 600;
       color: var(--tf-subtitle);
       margin: 0 0 0.75rem;
     }
     .tf-label {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--tf-font-body);
       font-weight: 500;
       font-size: 0.8125rem;
       color: var(--tf-muted);
@@ -93,22 +313,25 @@
       display: block;
     }
     .tf-price {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--tf-font-body);
       font-weight: 700;
       color: var(--tf-orange);
     }
 
-    /* ----- Navbar ----- */
+    /* ----- Navbar (.tf-nav + .tf-navbar): blindaje + padding lateral responsive ----- */
+    .tf-nav.tf-navbar,
+    .tf-navbar.tf-nav,
     .tf-nav {
-      background: var(--tf-navy);
+      background: var(--tf-navy) !important;
       height: 64px;
-      padding: 0 1.5rem;
+      padding: 0 clamp(1rem, 4vw, 2.5rem);
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 2000;
+      isolation: isolate;
       box-shadow: var(--tf-shadow-nav);
       gap: 1rem;
     }
@@ -120,34 +343,33 @@
       flex-shrink: 0;
       color: var(--tf-white);
     }
-    .tf-nav-brand img {
+    .tf-nav-brand img,
+    .tf-nav-brand .tf-nav-logo-img {
       height: 36px;
-      width: 36px;
+      width: auto;
+      max-width: 168px;
       object-fit: contain;
-      filter: brightness(0) invert(1);
-    }
-    .tf-nav-brand .brand-wordmark {
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      font-size: 1.2rem;
-      color: var(--tf-white);
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-    }
-    .tf-nav-brand .brand-sub {
-      font-size: 0.65rem;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.55);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      filter: none;
     }
 
     .tf-nav-links {
       display: flex;
       align-items: center;
       gap: 2px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       justify-content: flex-end;
+      flex: 1;
+      min-width: 0;
+    }
+    @media (max-width: 1100px) {
+      .tf-nav-links { flex-wrap: wrap; }
+    }
+    .tf-nav-user-block {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      margin-left: 4px;
     }
     .tf-nav-group { display: none; align-items: center; gap: 2px; }
     .tf-nav-group.is-visible { display: flex; }
@@ -157,23 +379,53 @@
       align-items: center;
       font-size: 0.875rem;
       font-weight: 500;
-      color: rgba(255, 255, 255, 0.75);
-      padding: 8px 12px;
+      color: rgba(255, 255, 255, 0.85) !important;
+      padding: 8px 12px 10px;
       border-radius: var(--tf-radius-btn);
-      text-decoration: none;
-      transition: color 0.2s ease, background 0.2s ease;
+      text-decoration: none !important;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
       white-space: nowrap;
     }
     .tf-nav-links a.nav-link-tf:hover {
-      color: var(--tf-white);
+      color: var(--tf-white) !important;
       background: rgba(255, 255, 255, 0.06);
     }
     .tf-nav-links a.nav-link-tf.active {
-      color: var(--tf-white);
-      text-decoration: underline;
-      text-decoration-color: var(--tf-orange);
-      text-decoration-thickness: 2px;
-      text-underline-offset: 6px;
+      color: #ffffff !important;
+      border-bottom-color: var(--tf-orange);
+    }
+
+    .tf-lang-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 6px;
+    }
+    .tf-lang-switch button {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.88);
+      border-radius: 6px;
+      padding: 4px 9px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .tf-lang-switch button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .tf-lang-switch button.is-active {
+      border-color: var(--tf-orange);
+      color: #fff;
+      background: rgba(242, 101, 34, 0.22);
+    }
+    .tf-lang-sep {
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 0.72rem;
+      user-select: none;
     }
 
     .tf-nav-divider {
@@ -235,6 +487,27 @@
     }
     .tf-nav-cart-badge.has-count { display: block; }
 
+    /* ----- Navbar modo público (visitante): fondo claro, marca y enlaces oscuros ----- */
+    body.tf-public .tf-nav {
+      background: #ffffff;
+      box-shadow: 0 1px 0 #d1d5db, 0 2px 12px rgba(15, 42, 68, 0.06);
+    }
+    body.tf-public .tf-nav-brand img,
+    body.tf-public .tf-nav-brand .tf-nav-logo-img {
+      filter: none;
+      max-width: 168px;
+    }
+    body.tf-public .tf-btn-outline-sm {
+      color: var(--tf-navy);
+      border-color: var(--tf-border);
+      background: #ffffff;
+    }
+    body.tf-public .tf-btn-outline-sm:hover {
+      color: var(--tf-navy);
+      background: var(--tf-light);
+      border-color: var(--tf-muted);
+    }
+
     .tf-btn-ghost-nav {
       display: inline-flex;
       align-items: center;
@@ -291,15 +564,18 @@
       color: var(--tf-white);
     }
 
-    /* ----- Flash messages ----- */
+    /* ----- Flash messages (esquina superior derecha; nunca invadir la zona del logo) ----- */
     .tf-flash-stack {
       position: fixed;
-      top: 72px;
-      right: 16px;
-      left: 16px;
-      z-index: 1050;
-      max-width: 420px;
-      margin-left: auto;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 11000;
+      width: min(420px, calc(100vw - 32px));
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
       pointer-events: none;
     }
     .tf-flash-stack > * { pointer-events: auto; }
@@ -309,13 +585,14 @@
       align-items: flex-start;
       gap: 10px;
       padding: 14px 16px;
-      margin-bottom: 10px;
       border-radius: var(--tf-radius-card);
       border: 1px solid var(--tf-border);
       background: var(--tf-white);
       box-shadow: var(--tf-shadow-card-hover);
       font-size: 0.875rem;
       line-height: 1.45;
+      width: 100%;
+      box-sizing: border-box;
     }
     .tf-flash .material-symbols-rounded {
       flex-shrink: 0;
@@ -338,6 +615,56 @@
     .tf-flash-warning { border-color: #FDE68A; background: #FFFBEB; }
     .tf-flash-info, .tf-flash-debug { border-color: #BFDBFE; background: #EFF6FF; }
 
+    .tf-toast-root {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 11000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: min(380px, calc(100vw - 32px));
+      pointer-events: none;
+    }
+    .tf-toast-root > * { pointer-events: auto; }
+    .tf-toast,
+    .tf-flash {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .tf-toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--tf-border);
+      background: var(--tf-white);
+      box-shadow: 0 8px 24px rgba(15, 42, 68, 0.14);
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    .tf-toast.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .tf-toast-critical { border-width: 2px; }
+    .tf-toast-success { border-color: #BBF7D0; background: #F0FDF4; }
+    .tf-toast-error { border-color: #FECACA; background: #FEF2F2; }
+    .tf-toast-warning { border-color: #FDE68A; background: #FFFBEB; }
+    .tf-toast-ico { font-size: 22px; flex-shrink: 0; color: var(--tf-blue); }
+    .tf-toast-success .tf-toast-ico { color: #15803d; }
+    .tf-toast-error .tf-toast-ico { color: #b91c1c; }
+    .tf-toast-msg { flex: 1; font-size: 0.875rem; color: var(--tf-body); line-height: 1.4; }
+    .tf-toast-close {
+      border: none;
+      background: transparent;
+      padding: 2px;
+      cursor: pointer;
+      color: var(--tf-muted);
+      line-height: 1;
+    }
+
     /* ----- Buttons (global) ----- */
     .tf-btn {
       display: inline-flex;
@@ -345,14 +672,20 @@
       justify-content: center;
       gap: 6px;
       padding: 10px 20px;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--tf-font-body);
       font-size: 0.875rem;
       font-weight: 600;
       border-radius: var(--tf-radius-btn);
       border: none;
       cursor: pointer;
       text-decoration: none;
-      transition: all 0.2s ease;
+      transition:
+        background var(--tf-motion-med) ease,
+        color var(--tf-motion-med) ease,
+        border-color var(--tf-motion-med) ease,
+        box-shadow var(--tf-motion-med) ease,
+        transform var(--tf-motion-fast) var(--tf-motion-ease),
+        filter var(--tf-motion-fast) ease;
     }
     .tf-btn-primary {
       background: var(--tf-orange);
@@ -366,7 +699,7 @@
     .tf-btn-secondary {
       background: transparent;
       color: var(--tf-navy);
-      border: 1px solid var(--tf-border);
+      border: 1.5px solid var(--tf-border);
     }
     .tf-btn-secondary:hover {
       background: var(--tf-white);
@@ -385,18 +718,21 @@
     .tf-input {
       width: 100%;
       padding: 10px 14px;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--tf-font-body);
       font-size: 0.9375rem;
       color: var(--tf-body);
       background: var(--tf-white);
-      border: 1px solid var(--tf-border);
+      border: 1.5px solid var(--tf-border);
       border-radius: var(--tf-radius-input);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition:
+        border-color var(--tf-motion-med) ease,
+        box-shadow var(--tf-motion-med) ease,
+        background var(--tf-motion-fast) ease;
       outline: none;
     }
     .tf-input:focus {
-      border-color: var(--tf-blue);
-      box-shadow: 0 0 0 3px rgba(46, 91, 138, 0.15);
+      border-color: var(--tf-orange);
+      box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.15);
     }
     .tf-input::placeholder { color: var(--tf-muted); }
 
@@ -406,11 +742,36 @@
       border: 1px solid var(--tf-border);
       border-radius: var(--tf-radius-card);
       padding: 1.5rem;
-      transition: box-shadow 0.2s ease;
+      box-shadow: var(--tf-shadow-card);
+      transition:
+        box-shadow var(--tf-motion-med) var(--tf-motion-ease),
+        transform var(--tf-motion-med) var(--tf-motion-ease),
+        border-color var(--tf-motion-fast) ease;
     }
-    .tf-card:hover { box-shadow: var(--tf-shadow-card-hover); }
+    .tf-card:hover {
+      box-shadow: var(--tf-shadow-card-hover);
+    }
 
-    /* ----- Badges ----- */
+    main.tf-main .form-control {
+      transition:
+        border-color var(--tf-motion-med) ease,
+        box-shadow var(--tf-motion-med) ease,
+        background-color var(--tf-motion-fast) ease;
+    }
+
+    .form-card {
+      background: var(--tf-white);
+      border: 1px solid var(--tf-border);
+      border-radius: var(--tf-radius-card);
+      padding: clamp(1.35rem, 3.5vw, 1.85rem);
+      box-shadow: var(--tf-shadow-card);
+      transition:
+        box-shadow var(--tf-motion-med) var(--tf-motion-ease),
+        transform var(--tf-motion-med) var(--tf-motion-ease),
+        border-color var(--tf-motion-fast) ease;
+    }
+
+    /* ----- Badges (estado de orden — paleta oficial) ----- */
     .tf-badge {
       display: inline-flex;
       align-items: center;
@@ -419,18 +780,25 @@
       font-size: 0.75rem;
       font-weight: 600;
       border-radius: var(--tf-radius-badge);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--tf-font-body);
     }
     .tf-badge-neutral { background: var(--tf-light); color: var(--tf-muted); }
     .tf-badge-orange { background: rgba(242, 101, 34, 0.12); color: var(--tf-orange); }
     .tf-badge-navy { background: rgba(15, 42, 68, 0.08); color: var(--tf-navy); }
+    .tf-badge-st-pending { background: #fef3c7; color: #92400e; }
+    .tf-badge-st-paid { background: #dbeafe; color: #1e40af; }
+    .tf-badge-st-packed { background: #e0e7ff; color: #3730a3; }
+    .tf-badge-st-shipped { background: #d1fae5; color: #065f46; }
+    .tf-badge-st-delivered { background: #d1fae5; color: #065f46; }
+    .tf-badge-st-cancelled { background: #fee2e2; color: #991b1b; }
 
-    /* ----- Footer ----- */
+    /* ----- Footer (tema oscuro marca) ----- */
     .tf-footer {
       background: var(--tf-navy);
       color: rgba(255, 255, 255, 0.65);
-      padding: 3rem 1.5rem 1.5rem;
+      padding: 40px 32px 24px;
       margin-top: auto;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
     .tf-footer-grid {
       max-width: 1160px;
@@ -446,24 +814,30 @@
       .tf-footer-grid { grid-template-columns: 1fr; }
     }
     .tf-footer-brand {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--tf-font-body);
       font-weight: 700;
       font-size: 1.15rem;
-      color: var(--tf-white);
+      color: #ffffff;
+    }
+    .tf-footer-lead {
+      font-size: 0.875rem;
+      margin-top: 10px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.65);
     }
     .tf-footer a {
-      color: rgba(255, 255, 255, 0.55);
+      color: rgba(255, 255, 255, 0.78);
       text-decoration: none;
       font-size: 0.8125rem;
       transition: color 0.2s ease;
     }
-    .tf-footer a:hover { color: var(--tf-white); }
+    .tf-footer a:hover { color: var(--tf-orange); }
     .tf-footer-col-title {
       font-size: 0.6875rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.5);
       margin-bottom: 10px;
     }
     .tf-footer-links { display: flex; flex-direction: column; gap: 8px; }
@@ -471,21 +845,113 @@
       max-width: 1160px;
       margin: 1.5rem auto 0;
       padding-top: 1rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
       font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.45);
+      color: rgba(255, 255, 255, 0.55);
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 8px;
     }
 
-    main.tf-main { flex: 1; width: 100%; }
+    main.tf-main {
+      flex: 1;
+      width: 100%;
+      min-width: 0;
+      color: var(--tf-body);
+    }
+
+    /* Formularios y bloques centrados — más aire respecto al navbar (sticky 64px) */
+    .tf-centered-page {
+      max-width: 1100px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: clamp(2.35rem, 6.5vw, 4rem) clamp(1.25rem, 4vw, 2rem) clamp(2.5rem, 5vw, 4rem);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .tf-centered-form {
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .tf-centered-form-wide {
+      max-width: 960px;
+      margin-left: auto;
+      margin-right: auto;
+      width: 100%;
+      box-sizing: border-box;
+      padding-top: clamp(2rem, 5vw, 3.25rem);
+      padding-bottom: clamp(2rem, 5vw, 4rem);
+    }
+
+    /* Dentro del portal vendedor el seller-main ya aporta aire superior */
+    .seller-main .tf-centered-form-wide {
+      padding-top: 0;
+      padding-bottom: clamp(1rem, 3vw, 2rem);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .tf-centered-page,
+      .seller-layout .seller-main,
+      .cot-form-page,
+      main.tf-main > .tf-centered-form-wide,
+      main.tf-main > .cot-list-page,
+      main.tf-main > .cot-doc,
+      main.tf-main > .map-zlc-wrap,
+      main.tf-main > .mo-wrap,
+      main.tf-main > .c-wrap,
+      main.tf-main > .co-wrap {
+        animation: tf-soft-in 0.44s var(--tf-motion-ease) both;
+      }
+
+      .auth-page .auth-card {
+        animation: tf-soft-in 0.46s var(--tf-motion-ease) both;
+      }
+
+      .tf-card:hover,
+      .form-card:hover {
+        transform: translateY(-3px);
+      }
+
+      .tf-btn:active {
+        transform: scale(0.985);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tf-centered-page,
+      .seller-layout .seller-main,
+      .cot-form-page,
+      main.tf-main > .tf-centered-form-wide,
+      main.tf-main > .cot-list-page,
+      main.tf-main > .cot-doc,
+      main.tf-main > .map-zlc-wrap,
+      main.tf-main > .mo-wrap,
+      main.tf-main > .c-wrap,
+      main.tf-main > .co-wrap,
+      .auth-page .auth-card {
+        animation: none !important;
+      }
+
+      .tf-card:hover,
+      .form-card:hover {
+        transform: none;
+      }
+
+      .tf-btn:active {
+        transform: none;
+      }
+    }
+
+    {% include "core/includes/static_css_bundle.html" %}
 
     {% block extra_css %}{% endblock %}
   </style>
 </head>
-<body>
+<body class="{% if not request.user.is_authenticated %}tf-public{% endif %}">
   {% if request.user.is_authenticated %}
   <div id="tf-nav-meta" class="d-none"
        data-role="{{ request.user.profile.role }}"
@@ -494,56 +960,93 @@
        data-cart-count="{% firstof carrito_count 0 %}"></div>
   {% endif %}
 
-  <nav class="tf-nav" aria-label="Principal">
-    <a href="{% url 'home' %}" class="tf-nav-brand">
-      <img src="{% static 'img/logo.png' %}" width="36" height="36" alt="">
-      <div>
-        <div class="brand-wordmark">TradeFlow</div>
-        <div class="brand-sub">Zona Libre de Colón</div>
-      </div>
+  <nav class="tf-nav tf-navbar" aria-label="Principal">
+    <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">
+      {% include "core/includes/tf_logo.html" with variant="icon-color" size="nav" class="tf-nav-logo-img" eager=1 %}
     </a>
 
     <div class="tf-nav-links">
+      <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>Map</a>
+      <form action="{% url 'set_language' %}" method="post" id="tf-lang-form" style="margin:0;">
+        {% csrf_token %}
+        <input type="hidden" name="next" id="tf-lang-next" value="">
+        <div style="display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:8px;padding:3px;">
+          <button type="submit" name="language" value="es" id="btn-lang-es"
+                  style="padding:4px 10px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;background:transparent;color:rgba(255,255,255,0.7);transition:all 0.2s;">
+            ES
+          </button>
+          <button type="submit" name="language" value="en" id="btn-lang-en"
+                  style="padding:4px 10px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;background:transparent;color:rgba(255,255,255,0.7);transition:all 0.2s;">
+            EN
+          </button>
+        </div>
+      </form>
       {% if request.user.is_authenticated %}
         <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
           <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
-          <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>Órdenes</a>
-          <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Productos</a>
-          <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>Empresas</a>
+          <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>Orders</a>
+          <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
+          <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>Companies</a>
         </div>
         <div class="tf-nav-group" id="tf-nav-buyer" data-tf-nav-group="buyer">
-          <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Tienda</a>
-          <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>Mis órdenes</a>
-          <a href="{% url 'ver_carrito' %}" class="tf-nav-cart" id="tf-nav-cart-link" title="Carrito" data-tf-nav="carrito">
+          <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Store</a>
+          <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>My orders</a>
+          <a href="{% url 'mis_cotizaciones' %}" class="nav-link-tf" data-tf-nav="mis_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">description</span>My quotes</a>
+          <a href="{% url 'mi_qr' %}" class="nav-link-tf" data-tf-nav="mi_qr"><span class="material-symbols-rounded tf-ms-nav">qr_code_2</span>My QR</a>
+          <a href="{% url 'ver_carrito' %}" class="tf-nav-cart" id="tf-nav-cart-link" title="Cart" data-tf-nav="carrito">
             <span class="material-symbols-rounded">shopping_cart</span>
             <span class="tf-nav-cart-badge" id="tf-nav-cart-badge">0</span>
           </a>
         </div>
         <div class="tf-nav-group" id="tf-nav-seller" data-tf-nav-group="seller">
-          <a href="{% url 'portal_seller' %}" class="nav-link-tf" data-tf-nav="mi_tienda"><span class="material-symbols-rounded tf-ms-nav">store</span>Mi panel</a>
-          <a href="{% url 'seller_mis_productos' %}" class="nav-link-tf" data-tf-nav="seller_productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Productos</a>
-          <a href="{% url 'seller_mis_ventas' %}" class="nav-link-tf" data-tf-nav="seller_ventas"><span class="material-symbols-rounded tf-ms-nav">payments</span>Mis ventas</a>
+          <a href="{% url 'portal_seller' %}" class="nav-link-tf" data-tf-nav="mi_tienda"><span class="material-symbols-rounded tf-ms-nav">store</span>My Dashboard</a>
+          <a href="{% url 'seller_mis_productos' %}" class="nav-link-tf" data-tf-nav="seller_productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
+          <a href="{% url 'seller_mis_ventas' %}" class="nav-link-tf" data-tf-nav="seller_ventas"><span class="material-symbols-rounded tf-ms-nav">payments</span>My sales</a>
+          <a href="{% url 'seller_cotizaciones' %}" class="nav-link-tf" data-tf-nav="seller_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">request_quote</span>Quotes</a>
         </div>
         <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
-        <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
-        <span class="tf-nav-user-name">{{ request.user.first_name|default:request.user.username }}</span>
-        <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
-          <span class="material-symbols-rounded tf-ms-18">logout</span>Salir
-        </a>
+        <div class="tf-nav-user-block">
+          <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
+            <span class="tf-nav-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+          </a>
+          <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
+            <span class="material-symbols-rounded tf-ms-18">logout</span>Sign out
+          </a>
+        </div>
       {% else %}
-        <a href="{% url 'login' %}" class="tf-btn-outline-sm">Iniciar sesión</a>
-        <a href="{% url 'signup' %}" class="tf-btn-primary-sm">Crear cuenta</a>
+        <a href="{% url 'login' %}" class="tf-btn-outline-sm">Sign in</a>
+        <a href="{% url 'signup' %}" class="tf-btn-primary-sm">Create account</a>
       {% endif %}
     </div>
   </nav>
 
   <script>
   (function () {
+    var currentLang = document.documentElement.lang || 'es';
+    var activeBtn = document.getElementById('btn-lang-' + currentLang);
+    if (activeBtn) {
+      activeBtn.style.background = '#F26522';
+      activeBtn.style.color = '#fff';
+    }
+    var path = window.location.pathname.replace(/^\/(en|es)(\/|$)/, '/');
+    if (!path) path = '/';
+    var nextEl = document.getElementById('tf-lang-next');
+    if (nextEl) nextEl.value = path + (window.location.search || '');
+
     var meta = document.getElementById('tf-nav-meta');
+    var navActive = meta ? (meta.getAttribute('data-nav-active') || '') : '';
+
+    document.querySelectorAll('.nav-link-tf[data-tf-nav]').forEach(function (a) {
+      if (a.getAttribute('data-tf-nav') === navActive) a.classList.add('active');
+    });
+    var cartLink = document.getElementById('tf-nav-cart-link');
+    if (cartLink && navActive === 'carrito') cartLink.classList.add('active');
+
     if (!meta) return;
+
     var role = meta.getAttribute('data-role') || '';
     var isSuper = meta.getAttribute('data-superuser') === '1';
-    var navActive = meta.getAttribute('data-nav-active') || '';
     var cartCount = parseInt(meta.getAttribute('data-cart-count') || '0', 10) || 0;
 
     function showGroup(id) {
@@ -557,12 +1060,6 @@
     } else if (role === 'seller') {
       showGroup('tf-nav-seller');
     }
-
-    document.querySelectorAll('.nav-link-tf[data-tf-nav]').forEach(function (a) {
-      if (a.getAttribute('data-tf-nav') === navActive) a.classList.add('active');
-    });
-    var cartLink = document.getElementById('tf-nav-cart-link');
-    if (cartLink && navActive === 'carrito') cartLink.classList.add('active');
 
     var u = document.querySelector('.tf-nav-user-name');
     var initials = '';
@@ -582,39 +1079,30 @@
   </script>
 
   {% if messages %}
-  <div class="tf-flash-stack" id="tf-flash-root" aria-live="polite">
-    {% for message in messages %}
-    <div class="tf-flash tf-flash-{{ message.tags }}" data-tf-tags="{{ message.tags }}">
-      <span class="material-symbols-rounded tf-flash-icon" aria-hidden="true">info</span>
-      <span class="tf-flash-msg">{{ message }}</span>
-      <button type="button" class="tf-flash-close" aria-label="Cerrar">
-        <span class="material-symbols-rounded tf-ms-18">close</span>
-      </button>
-    </div>
-    {% endfor %}
-  </div>
   <script>
-  (function () {
-    var iconFor = function (tags) {
-      var t = (tags || '').toLowerCase();
-      if (t.indexOf('success') !== -1) return 'check_circle';
-      if (t.indexOf('error') !== -1 || t.indexOf('danger') !== -1) return 'error';
-      if (t.indexOf('warning') !== -1) return 'warning';
-      if (t.indexOf('info') !== -1 || t.indexOf('debug') !== -1) return 'info';
-      return 'info';
-    };
-    document.querySelectorAll('#tf-flash-root .tf-flash').forEach(function (row) {
-      var tags = row.getAttribute('data-tf-tags') || '';
-      var ico = row.querySelector('.tf-flash-icon');
-      if (ico) ico.textContent = iconFor(tags);
-      var btn = row.querySelector('.tf-flash-close');
-      if (btn) btn.addEventListener('click', function () { row.remove(); });
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof TF === 'undefined') return;
+    var messages = [
+      {% for message in messages %}
+      { texto: "{{ message|escapejs }}", tipo: "{{ message.tags }}" }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ];
+    messages.forEach(function (msg, i) {
+      setTimeout(function () {
+        var tipo = 'info';
+        if (msg.tipo.indexOf('success') !== -1) tipo = 'success';
+        else if (msg.tipo.indexOf('error') !== -1 || msg.tipo.indexOf('danger') !== -1) tipo = 'error';
+        else if (msg.tipo.indexOf('warning') !== -1) tipo = 'warning';
+        TF.notify(msg.texto, tipo);
+      }, i * 500);
     });
-  })();
+  });
   </script>
   {% endif %}
 
-  <main class="tf-main">
+  <div id="tf-toast-root" class="tf-toast-root" aria-live="polite" aria-atomic="true"></div>
+
+  <main class="tf-main" style="flex: 1;">
     {% block content %}{% endblock %}
   </main>
 
@@ -622,44 +1110,229 @@
   <footer class="tf-footer">
     <div class="tf-footer-grid">
       <div>
-        <div class="tf-footer-brand">TradeFlow Colón</div>
-        <p style="font-size:0.875rem;margin-top:10px;line-height:1.6;color:rgba(255,255,255,0.55);">
-          Marketplace B2B/B2C para la Zona Libre de Colón, Panamá.
+        <div class="tf-footer-brand-row">
+          {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
+        </div>
+        <p class="tf-footer-lead">
+          B2B/B2C marketplace for the Colón Free Zone, Panama.
         </p>
       </div>
       <div>
-        <div class="tf-footer-col-title">Plataforma</div>
+        <div class="tf-footer-col-title">Platform</div>
         <div class="tf-footer-links">
-          <a href="{% url 'home' %}">Inicio</a>
-          <a href="{% url 'signup' %}">Crear cuenta</a>
-          <a href="{% url 'login' %}">Iniciar sesión</a>
+          <a href="{% url 'home' %}">Home</a>
+          <a href="{% url 'signup' %}">Create account</a>
+          <a href="{% url 'login' %}">Sign in</a>
         </div>
       </div>
       <div>
         <div class="tf-footer-col-title">Legal</div>
         <div class="tf-footer-links">
-          <a href="#">Términos de uso</a>
-          <a href="#">Privacidad</a>
+          <a href="#">Terms of use</a>
+          <a href="#">Privacy</a>
           <a href="#">Cookies</a>
         </div>
       </div>
       <div>
-        <div class="tf-footer-col-title">Contacto</div>
+        <div class="tf-footer-col-title">Contact</div>
         <div class="tf-footer-links">
           <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a>
-          <a href="#">Zona Libre de Colón</a>
-          <a href="#">Panamá</a>
+          <a href="#">Colón Free Zone</a>
+          <a href="#">Panama</a>
         </div>
       </div>
     </div>
     <div class="tf-footer-bottom">
-      <span>2026 TradeFlow Colón. Todos los derechos reservados.</span>
-      <span>Centro Supérate · Fundación Alberto Motta</span>
+      <span>2026 TradeFlow Colón. All rights reserved.</span>
+      <span>Centro Supérate · Alberto Motta Foundation</span>
     </div>
   </footer>
   {% endblock %}
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>window.TF_STATIC_LOGO = "{% static 'img/logo-icon-color.png' %}";</script>
+  <script src="{% static 'js/tf_animations.js' %}"></script>
+  <script src="{% static 'js/tf_notifications.js' %}"></script>
+  <script src="{% static 'js/cart_ajax.js' %}"></script>
+  <style>
+    .tf-bot-card { font-size: 13px; line-height: 1.5; }
+    .tf-bot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0F2A44; }
+    .tf-bot-head .material-symbols-rounded { font-size: 20px; color: #F26522; }
+    .tf-bot-list { margin: 0 0 10px; padding-left: 18px; }
+    .tf-bot-summary { margin: 0 0 8px; font-size: 12px; color: #6B7A88; font-style: italic; }
+    .tf-bot-cta { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; color: #F26522; text-decoration: none; }
+    .tf-chat-feedback { display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E5E7EB; font-size: 12px; }
+    .tf-chat-feedback button { border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 11px; }
+  </style>
+  {{ tf_i18n|json_script:"tf-i18n-data" }}
+  <script>
+  (function () {
+    var el = document.getElementById('tf-i18n-data');
+    if (!el) { window.TF_I18N = window.TF_I18N || {}; return; }
+    try { window.TF_I18N = JSON.parse(el.textContent); } catch (e) { window.TF_I18N = {}; }
+  })();
+  </script>
   {% block extra_js %}{% endblock %}
+
+  <!-- TF Assistant Widget -->
+  <div id="tf-assistant" style="position:fixed;bottom:28px;right:28px;z-index:9999;font-family:var(--tf-font-body);">
+    <button type="button" id="tf-chat-toggle" aria-label="Abrir asistente" style="width:56px;height:56px;border-radius:50%;border:none;background:var(--tf-orange);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(242,101,34,0.4);display:flex;align-items:center;justify-content:center;transition:all 0.25s ease;">
+      <span class="material-symbols-rounded" id="tf-chat-icon" style="font-size:26px;">smart_toy</span>
+    </button>
+    <div id="tf-chat-window" style="display:none;position:absolute;bottom:68px;right:0;width:340px;height:460px;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(15,42,68,0.2);border:1px solid var(--tf-border);flex-direction:column;overflow:hidden;">
+      <div style="background:var(--tf-navy);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--tf-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <span class="material-symbols-rounded" style="font-size:20px;">smart_toy</span>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;">Asistente TradeFlow</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.65);">Asistente virtual de la Zona Libre</div>
+        </div>
+        <button type="button" id="tf-chat-close" aria-label="Close" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:0;display:flex;">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+      <div id="tf-chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#F9FAFB;">
+        <div class="tf-msg-bot" id="tf-chat-welcome" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px 12px 12px 0;padding:10px 14px;max-width:85%;font-size:13px;color:#374151;line-height:1.55;align-self:flex-start;">
+          Hi! I'm the TradeFlow Colón assistant. How can I help you today?
+        </div>
+      </div>
+      <div style="padding:12px 14px;border-top:1px solid var(--tf-border);background:#fff;display:flex;gap:8px;">
+        <input type="text" id="tf-chat-input" placeholder="Escribe tu pregunta..." style="flex:1;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 12px;font-size:13px;outline:none;font-family:var(--tf-font-body);">
+        <button type="button" id="tf-chat-send" style="background:var(--tf-orange);color:#fff;border:none;border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <span class="material-symbols-rounded" style="font-size:18px;">send</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <script>
+  (function () {
+    'use strict';
+    var tfChatOpen = false;
+    var tfChatHistory = [];
+    var tfChatLoading = false;
+    var TF_CHAT_MAX_HIST = 5;
+    var win = document.getElementById('tf-chat-window');
+    var icon = document.getElementById('tf-chat-icon');
+    var toggle = document.getElementById('tf-chat-toggle');
+    var closeBtn = document.getElementById('tf-chat-close');
+    var sendBtn = document.getElementById('tf-chat-send');
+    var input = document.getElementById('tf-chat-input');
+    var csrfToken = '{{ csrf_token }}';
+
+    function toggleChat() {
+      tfChatOpen = !tfChatOpen;
+      if (!win || !icon) return;
+      if (tfChatOpen) {
+        win.style.display = 'flex';
+        icon.textContent = 'close';
+        if (input) input.focus();
+      } else {
+        win.style.display = 'none';
+        icon.textContent = 'smart_toy';
+      }
+    }
+
+    if (toggle) toggle.addEventListener('click', toggleChat);
+    if (closeBtn) closeBtn.addEventListener('click', toggleChat);
+
+    function appendMessage(content, isBot, htmlContent) {
+      var msgs = document.getElementById('tf-chat-messages');
+      if (!msgs) return null;
+      var div = document.createElement('div');
+      div.style.cssText = isBot
+        ? 'background:#fff;border:1px solid #E5E7EB;border-radius:12px 12px 12px 0;padding:10px 14px;max-width:92%;font-size:13px;color:#374151;line-height:1.55;align-self:flex-start;'
+        : 'background:#F26522;color:#fff;border-radius:12px 12px 0 12px;padding:10px 14px;max-width:85%;font-size:13px;line-height:1.55;align-self:flex-end;margin-left:auto;';
+      if (isBot && htmlContent) {
+        div.innerHTML = htmlContent;
+      } else {
+        div.textContent = content;
+      }
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+      return div;
+    }
+
+    function appendFeedback(parentDiv) {
+      if (!parentDiv) return;
+      var fb = document.createElement('div');
+      fb.className = 'tf-chat-feedback';
+      fb.innerHTML = '<span>Was this helpful?</span>';
+      var yes = document.createElement('button');
+      yes.type = 'button';
+      yes.textContent = 'Yes';
+      var no = document.createElement('button');
+      no.type = 'button';
+      no.textContent = 'No';
+      yes.addEventListener('click', function () {
+        fb.innerHTML = '<span style="color:#15803d;">Thanks for your feedback!</span>';
+      });
+      no.addEventListener('click', function () {
+        fb.innerHTML = '<span>We'll improve it. Email us at soporte@tradeflow.pa</span>';
+      });
+      fb.appendChild(yes);
+      fb.appendChild(no);
+      parentDiv.appendChild(fb);
+    }
+
+    function sendChatMessage() {
+      if (tfChatLoading || !input) return;
+      var mensaje = input.value.trim();
+      if (!mensaje) return;
+      input.value = '';
+      tfChatLoading = true;
+      appendMessage(mensaje, false);
+      tfChatHistory.push({ role: 'user', content: mensaje });
+      var loadingDiv = appendMessage('Escribiendo...', true);
+      if (loadingDiv) {
+        loadingDiv.style.color = '#6B7A88';
+        loadingDiv.style.fontStyle = 'italic';
+      }
+      fetch('{% url "api_asistente" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+          mensaje: mensaje,
+          historial: tfChatHistory.slice(-TF_CHAT_MAX_HIST)
+        })
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
+        var respuesta = data.respuesta || 'No pude procesar tu consulta.';
+        var html = data.respuesta_html || respuesta;
+        var botDiv = appendMessage(respuesta, true, html);
+        appendFeedback(botDiv);
+        tfChatHistory.push({ role: 'assistant', content: respuesta });
+        if (tfChatHistory.length > TF_CHAT_MAX_HIST * 2) {
+          tfChatHistory = tfChatHistory.slice(-TF_CHAT_MAX_HIST * 2);
+        }
+      })
+      .catch(function () {
+        if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
+        appendMessage('Connection error. Try again later.', true);
+      })
+      .finally(function () { tfChatLoading = false; });
+    }
+
+    if (sendBtn) sendBtn.addEventListener('click', sendChatMessage);
+    if (input) {
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') sendChatMessage();
+      });
+    }
+
+    var welcomeEl = document.getElementById('tf-chat-welcome');
+    if (welcomeEl) {
+      var pageLang = document.documentElement.lang || 'es';
+      welcomeEl.textContent = pageLang === 'en'
+        ? "Hi! I'm the TradeFlow Colón assistant. How can I help you today?"
+        : 'Hi! I'm the TradeFlow Colón assistant. How can I help you today?';
+    }
+  })();
+  </script>
 </body>
 </html>

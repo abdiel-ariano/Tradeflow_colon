@@ -1,0 +1,16 @@
+@media (prefers-reduced-motion: no-preference) {
+  .tf-pulse-once {
+    animation: tfPulseOnce 0.6s ease;
+  }
+  .tf-confirm-pop {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .tf-confirm-pop:active {
+    transform: scale(0.98);
+  }
+}
+@keyframes tfPulseOnce {
+  0% { box-shadow: 0 0 0 0 rgba(242, 101, 34, 0.45); }
+  70% { box-shadow: 0 0 0 12px rgba(242, 101, 34, 0); }
+  100% { box-shadow: none; }
+}

@@ -1,0 +1,55 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+ACCIÓN: CREAR — templates/core/mi_qr.html
+Contexto: verify_url, qr_data_uri, generated_at, profile, titulo_pagina, nav_activo.
+{% endcomment %}
+{% block title %}My QR code — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<style>
+  .qr-page { max-width: 640px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+  .qr-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.75rem; box-shadow: 0 8px 24px rgba(15,42,68,0.08); }
+  .qr-card h1 { font-size: 1.35rem; font-weight: 700; color: #0F2A44; margin: 0 0 0.75rem; }
+  .qr-card .lead { color: #6B7A88; font-size: 0.9rem; line-height: 1.55; margin-bottom: 1.25rem; }
+  .qr-img-wrap { text-align: center; padding: 1rem; background: #F2F3F5; border-radius: 12px; margin-bottom: 1.25rem; }
+  .qr-img-wrap img { max-width: 280px; width: 100%; height: auto; }
+  .qr-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 1.25rem; }
+  .qr-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.875rem; text-decoration: none; border: none; cursor: pointer; }
+  .qr-btn-primary { background: #F26522; color: #fff; }
+  .qr-btn-primary:hover { background: #FF7A3D; color: #fff; }
+  .qr-meta { font-size: 0.8125rem; color: #374151; line-height: 1.5; }
+  .qr-meta dt { font-weight: 600; color: #6B7A88; margin-top: 8px; }
+  .qr-url { word-break: break-all; font-size: 0.75rem; color: #2E5B8A; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="qr-page">
+  <div class="qr-card">
+    <h1>Tu QR de pre-registro ZLC</h1>
+    <p class="lead">Present this code at checkpoints or desks in the Colón Free Zone to speed up validation of your TradeFlow-linked identity.</p>
+    <div class="qr-img-wrap">
+      <img src="{{ qr_data_uri }}" width="280" height="280" alt="TradeFlow CFZ QR code">
+    </div>
+    <div class="qr-actions">
+      <a href="{% url 'descargar_qr' %}" class="qr-btn qr-btn-primary">
+        <span class="material-symbols-rounded">download</span>
+        Descargar PNG
+      </a>
+    </div>
+    <dl class="qr-meta">
+      <dt>Verification URL (QR content)</dt>
+      <dd class="qr-url">{{ verify_url }}</dd>
+      <dt>Generado</dt>
+      <dd>{{ generated_at|date:"d/m/Y H:i" }}</dd>
+      <dt>Username</dt>
+      <dd>{{ user.username }} — {{ user.get_full_name|default:user.username }}</dd>
+      <dt>Correo</dt>
+      <dd>{{ user.email|default:"—" }}</dd>
+      {% if profile.phone %}
+      <dt>Phone</dt>
+      <dd>{{ profile.phone }}</dd>
+      {% endif %}
+    </dl>
+  </div>
+</div>
+{% endblock %}

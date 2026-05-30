@@ -1,0 +1,15 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Application received — TradeFlow{% endblock %}
+{% block content %}
+<div style="max-width:520px;margin:48px auto;padding:0 24px;">
+  <div class="sp-card" style="padding:32px;text-align:center;">
+    <span class="material-symbols-rounded" style="font-size:48px;color:var(--tf-blue);">mark_email_read</span>
+    <h1 style="font-family:'DM Serif Display',serif;color:var(--tf-navy);margin:16px 0 10px;">Application received</h1>
+    <p style="color:var(--tf-muted);font-size:14px;line-height:1.6;margin:0 0 20px;">
+      Check your email. When your access is approved, you can register or sign in with the same email.
+    </p>
+    <a href="{% url 'login' %}" class="sp-btn sp-btn-primary" style="justify-content:center;">Go to sign in</a>
+  </div>
+</div>
+{% endblock %}

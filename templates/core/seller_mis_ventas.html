@@ -1,92 +1,103 @@
-{% extends "core/base.html" %}
+{% extends "core/seller_layout.html" %}
 {% load static %}
-{% block title %}Mis ventas — TradeFlow{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
+{% block title %}My sales — TradeFlow{% endblock %}
+{% block seller_page_title %}My sales{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Transactions, timelines, and confirmation</p>{% endblock %}
+{% block seller_topbar_actions %}
+<a href="{% url 'seller_export_ventas_csv' %}?estado={{ estado_actual }}" class="sp-btn sp-btn-secondary"><span class="material-symbols-rounded" style="font-size:18px;">download</span> CSV</a>
 {% endblock %}
-{% block content %}
-<div class="seller-layout">
-  {% include "core/seller_sidebar.html" %}
-  <div class="seller-main">
-    <h1>Mis ventas</h1>
-    <p class="seller-sub">Órdenes que incluyen productos de {{ company.name }}.</p>
-    <form class="seller-filters" method="get" action="" style="margin-bottom:1rem;">
-      <select class="tf-input" name="estado" id="seller-ventas-estado" style="max-width:260px;">
-        <option value="">Todos los estados</option>
-        {% for val, label in status_choices %}
-        <option value="{{ val }}">{{ label }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="btn-seller-outline">Filtrar</button>
-    </form>
-    <script>
-    (function () {
-      var sel = document.getElementById("seller-ventas-estado");
-      if (!sel) return;
-      var cur = "{{ estado_actual|escapejs }}";
-      for (var i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].value === cur) { sel.selectedIndex = i; break; }
-      }
-    })();
-    </script>
-    <div class="seller-table-wrap">
-      {% if ordenes %}
-      <table class="seller-table">
-        <thead>
-          <tr>
-            <th>Orden</th>
-            <th>Fecha</th>
-            <th>Comprador</th>
-            <th>Estado</th>
-            <th>Total orden</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for o in ordenes %}
-          <tr>
-            <td><strong>{{ o.order_number }}</strong></td>
-            <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
-            <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
-            <td><span class="tf-badge seller-ord-status" data-status="{{ o.status }}">{{ o.get_status_display }}</span></td>
-            <td>{{ o.total }} USD</td>
-            <td><a href="{% url 'seller_detalle_venta' o.pk %}">Ver</a></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p style="padding:1.25rem;color:var(--tf-muted);">No hay ventas registradas.</p>
-      {% endif %}
-    </div>
-    {% if ordenes.has_other_pages %}
-    <nav style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
-      {% if ordenes.has_previous %}
-      <a class="btn-seller-outline" href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}">Anterior</a>
-      {% endif %}
-      <span style="align-self:center;color:var(--tf-muted);font-size:0.88rem;">Página {{ ordenes.number }} de {{ ordenes.paginator.num_pages }}</span>
-      {% if ordenes.has_next %}
-      <a class="btn-seller-outline" href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}">Siguiente</a>
-      {% endif %}
-    </nav>
-    {% endif %}
-  </div>
+
+{% block seller_content %}
+<div class="sp-kpi-grid">
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Sales this month</span><p class="sp-kpi-val">{{ ventas_mes }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Revenue this month</span><p class="sp-kpi-val" style="font-size:1.35rem;">USD {{ ingresos_mes }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Average ticket</span><p class="sp-kpi-val" style="font-size:1.35rem;">USD {{ ticket_promedio }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Trend</span><p class="sp-kpi-val" style="font-size:1.1rem;">30d</p></article>
 </div>
+
+<section class="sp-card" style="margin-bottom:24px;">
+  <div class="sp-card-head"><h2>30-day trend</h2></div>
+  <div class="sp-chart-box sp-chart-box--line">
+    <canvas id="sd-chart-line"></canvas>
+  </div>
+</section>
+
+<nav class="sp-tabs">
+  <a href="?" class="sp-tab {% if not estado_actual %}is-on{% endif %}">All</a>
+  <a href="?estado=awaiting_seller" class="sp-tab {% if estado_actual == 'awaiting_seller' %}is-on{% endif %}">Pending</a>
+  <a href="?estado=paid" class="sp-tab {% if estado_actual == 'paid' %}is-on{% endif %}">In progress</a>
+  <a href="?estado=delivered" class="sp-tab {% if estado_actual == 'delivered' %}is-on{% endif %}">Delivered</a>
+</nav>
+
+<form method="get" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:flex-end;">
+  <input class="tf-input" type="date" name="desde" value="{{ desde }}">
+  <input class="tf-input" type="date" name="hasta" value="{{ hasta }}">
+  <select class="tf-input" name="estado">
+    <option value="">Status</option>
+    {% for val, lbl in status_choices %}<option value="{{ val }}" {% if estado_actual == val %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
+  </select>
+  <button type="submit" class="sp-btn sp-btn-secondary">Filter</button>
+</form>
+
+<section class="sp-card">
+  <div class="sp-table-wrap">
+    <table class="sp-table">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Date</th>
+          <th>Customer</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Deadline</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in ordenes %}
+        <tr>
+          <td><strong>{{ o.order_number }}</strong></td>
+          <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
+          <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
+          <td>USD {{ o.total }}</td>
+          <td><span class="sp-status sp-status-{{ o.status }}">{{ o.get_status_display }}</span></td>
+          <td>{% if o.status == 'awaiting_seller' and o.seller_confirm_by %}<span class="sp-timer ok" data-sp-plazo="{{ o.seller_confirm_by.isoformat }}" data-expired="Expired">—</span>{% else %}—{% endif %}</td>
+          <td style="white-space:nowrap;">
+            {% if o.status == 'awaiting_seller' and o.seller_confirmation_status == 'pending' %}
+            <a href="{% url 'confirmar_orden_empresa' o.pk 'aceptar' %}" class="sp-btn sp-btn-primary sp-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="aceptar" data-num="{{ o.order_number }}">Confirm order</a>
+            <a href="{% url 'confirmar_orden_empresa' o.pk 'rechazar' %}" class="sp-btn sp-btn-secondary sp-confirm-orden" style="padding:6px 10px;font-size:12px;" data-accion="rechazar" data-num="{{ o.order_number }}">Reject</a>
+            {% endif %}
+            <a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 10px;font-size:12px;">Tracking</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="sp-empty">No sales yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if ordenes.has_other_pages %}
+  <nav style="margin-top:16px;display:flex;gap:8px;justify-content:center;">
+    {% if ordenes.has_previous %}<a class="sp-btn sp-btn-secondary" href="?page={{ ordenes.previous_page_number }}">Previous</a>{% endif %}
+    {% if ordenes.has_next %}<a class="sp-btn sp-btn-secondary" href="?page={{ ordenes.next_page_number }}">Next</a>{% endif %}
+  </nav>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block seller_extra_js %}
 <script>
-(function () {
-  var map = {
-    pending: { bg: "var(--order-pending-bg)", fg: "var(--order-pending-fg)" },
-    paid: { bg: "var(--order-paid-bg)", fg: "var(--order-paid-fg)" },
-    packed: { bg: "var(--order-packed-bg)", fg: "var(--order-packed-fg)" },
-    shipped: { bg: "var(--order-shipped-bg)", fg: "var(--order-shipped-fg)" },
-    delivered: { bg: "var(--order-delivered-bg)", fg: "var(--order-delivered-fg)" },
-    cancelled: { bg: "var(--order-cancelled-bg)", fg: "var(--order-cancelled-fg)" },
-  };
-  document.querySelectorAll(".seller-ord-status").forEach(function (el) {
-    var st = el.getAttribute("data-status");
-    var t = map[st];
-    if (t) { el.style.background = t.bg; el.style.color = t.fg; }
-  });
-})();
+document.addEventListener('DOMContentLoaded', function () {
+  var labels = {{ chart_line_labels_json|safe }};
+  var values = {{ chart_line_values_json|safe }};
+  var el = document.getElementById('sd-chart-line');
+  if (el && typeof Chart !== 'undefined') {
+    new Chart(el, {
+      type: 'line',
+      data: { labels: labels, datasets: [{ data: values, borderColor: '#F26522', backgroundColor: 'rgba(242,101,34,0.1)', fill: true, tension: 0.4 }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+  }
+});
 </script>
 {% endblock %}

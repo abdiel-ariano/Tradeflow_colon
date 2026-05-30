@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/formularios.css' %}">
 <style>
 .wizard-steps { display:flex; gap:0; margin-bottom:28px; }
 .wizard-step { flex:1; padding:12px 16px; background:var(--color-bg,#f0f0f0); text-align:center; font-size:.82rem; color:#888; border-bottom:3px solid transparent; }
@@ -19,14 +18,15 @@
 {% endblock %}
 
 {% block content %}
+<div class="tf-centered-page">
 <div class="wizard-steps">
-  <div class="wizard-step active">1. Comprador</div>
-  <div class="wizard-step">2. Productos</div>
+  <div class="wizard-step active">1. Buyer</div>
+  <div class="wizard-step">2. Products</div>
   <div class="wizard-step">3. Confirmar</div>
 </div>
 
-<div class="form-card" style="max-width:700px;">
-  <h3 style="margin-bottom:18px;">Selecciona el comprador</h3>
+<div class="form-card tf-centered-form" style="max-width:700px;">
+  <h3 style="margin-bottom:18px;">Select the buyer</h3>
 
   <form method="post">
     {% csrf_token %}
@@ -44,10 +44,10 @@
       </div>
     </div>
 
-    <label style="font-weight:600;display:block;margin-bottom:8px;">Comprador</label>
-    <input type="text" id="buscarComprador" placeholder="Filtrar por nombre o usuario..."
+    <label style="font-weight:600;display:block;margin-bottom:8px;">Buyer</label>
+    <input type="text" id="buscarBuyer" placeholder="Filtrar por nombre o usuario..."
            class="form-control" style="margin-bottom:12px;"
-           onkeyup="filtrarCompradores(this.value)">
+           onkeyup="filtrarBuyeres(this.value)">
 
     <div class="buyer-grid" id="buyerGrid">
       {% for user in compradores %}
@@ -59,7 +59,7 @@
         <div class="buyer-email">{{ user.email|default:user.username }}</div>
       </label>
       {% empty %}
-      <p style="color:#888;">No hay usuarios registrados. Crea uno desde el <a href="/admin/auth/user/add/" target="_blank">admin</a>.</p>
+      <p style="color:#888;">No registered users. Create one from the <a href="/admin/auth/user/add/" target="_blank">admin</a>.</p>
       {% endfor %}
     </div>
 
@@ -67,10 +67,11 @@
 
     <div style="margin-top:24px;display:flex;justify-content:flex-end;">
       <button type="submit" class="btn btn-primary">
-        Siguiente: Productos <i data-feather="arrow-right" width="14" height="14"></i>
+        Next: Products <i data-feather="arrow-right" width="14" height="14"></i>
       </button>
     </div>
   </form>
+</div>
 </div>
 
 <script>
@@ -81,7 +82,7 @@ function selectBuyer(card, id) {
   card.querySelector('input[type=radio]').checked = true;
 }
 
-function filtrarCompradores(q) {
+function filtrarBuyeres(q) {
   q = q.toLowerCase();
   document.querySelectorAll('.buyer-card').forEach(card => {
     const text = card.innerText.toLowerCase();

@@ -11,8 +11,55 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import (
     UserProfile, Company, Category, Product, Inventory,
-    Address, Order, OrderItem, Payment, Shipment, Document
+    Address, Order, OrderItem, Payment, Shipment, Document,
+    Cotizacion, CotizacionItem, HomePromoSection,
+    TransportCarrier, UserApplication, Transportista, AsignacionTransporte,
 )
+from .enterprise_models import (
+    AdCampaign,
+    AdCreditAccount,
+    ApiAuditLog,
+    ApiKey,
+    CompanyBillingUsage,
+    CompanyPlanCheckout,
+    CompanyPlanCommercialRequest,
+    CompanyPredictiveSnapshot,
+    CompanySubscription,
+    EmailDeliveryLog,
+    SubscriptionUpgradeLog,
+    LogisticsDispatchQueue,
+    LogisticsEvent,
+    LogisticsWebhookConfig,
+    SaasPlan,
+)
+from .utils.admin_permissions import user_is_tradeflow_admin
+
+
+class TradeFlowModelAdmin(admin.ModelAdmin):
+    """
+    Permisos del Django Admin para operadores con rol ``admin`` + ``is_staff``.
+
+    El panel custom (/dashboard/) usa UserProfile.role; el sitio /admin/ de Django
+    exige permisos de modelo (view/change) — este admin los alinea.
+    """
+
+    def _tradeflow_admin_access(self, request):
+        return user_is_tradeflow_admin(request.user)
+
+    def has_module_permission(self, request):
+        return self._tradeflow_admin_access(request)
+
+    def has_view_permission(self, request, obj=None):
+        return self._tradeflow_admin_access(request)
+
+    def has_add_permission(self, request):
+        return self._tradeflow_admin_access(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self._tradeflow_admin_access(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 
 # =============================================================================
@@ -40,12 +87,12 @@ admin.site.register(User, UserAdmin)
 # =============================================================================
 
 @admin.register(Company)
-class CompanyAdmin(admin.ModelAdmin):
+class CompanyAdmin(TradeFlowModelAdmin):
     """
     Administración de empresas; incluye propietario vendedor para el portal Mi Tienda.
     """
-    list_display   = ['name', 'ruc', 'owner', 'is_verified', 'created_at']
-    list_filter    = ['is_verified']
+    list_display   = ['name', 'ruc', 'owner', 'is_verified', 'is_featured', 'created_at']
+    list_filter    = ['is_verified', 'is_featured']
     search_fields  = ['name', 'ruc', 'owner__username', 'owner__email']
     list_editable  = ['is_verified']
     raw_id_fields  = ['owner']
@@ -85,12 +132,24 @@ class InventoryInline(admin.StackedInline):
         return True
 
 
+@admin.register(HomePromoSection)
+class HomePromoSectionAdmin(admin.ModelAdmin):
+    list_display = ['slug', 'section_type', 'title_es', 'is_active', 'sort_order', 'starts_at', 'ends_at']
+    list_filter = ['section_type', 'is_active']
+    search_fields = ['slug', 'title_es', 'title_en']
+    filter_horizontal = ['products', 'companies', 'categories']
+    ordering = ['sort_order']
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display   = ['name', 'company', 'category', 'unit_price', 'currency', 'is_active', 'stock_display']
-    list_filter    = ['company', 'category', 'currency', 'is_active']
+    list_display   = [
+        'name', 'company', 'unit_price', 'promo_price', 'currency',
+        'is_active', 'is_featured', 'is_bestseller', 'stock_display',
+    ]
+    list_filter    = ['company', 'category', 'currency', 'is_active', 'is_featured', 'is_bestseller']
     search_fields  = ['name', 'sku']
-    list_editable  = ['unit_price', 'is_active']
+    list_editable  = ['unit_price', 'is_active', 'is_featured']
     inlines        = [InventoryInline]
     list_per_page  = 25
 
@@ -198,9 +257,128 @@ class DocumentAdmin(admin.ModelAdmin):
     search_fields = ['order__order_number', 'doc_number']
 
 
+class CotizacionItemInline(admin.TabularInline):
+    model = CotizacionItem
+    extra = 0
+    raw_id_fields = ['product']
+
+
+@admin.register(Cotizacion)
+class CotizacionAdmin(admin.ModelAdmin):
+    """
+    Administración de cotizaciones RFQ entre compradores y empresas.
+    """
+    list_display = ['numero', 'buyer', 'empresa', 'estado', 'created_at', 'order']
+    list_filter = ['estado', 'created_at']
+    search_fields = ['numero', 'buyer__username', 'empresa__name']
+    readonly_fields = ['numero', 'created_at', 'updated_at']
+    inlines = [CotizacionItemInline]
+
+
+@admin.register(TransportCarrier)
+class TransportCarrierAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code', 'transport_mode', 'base_shipping_cost', 'sort_order', 'is_active']
+    list_editable = ['sort_order', 'is_active']
+    prepopulated_fields = {'code': ('name',)}
+
+
+@admin.register(Transportista)
+class TransportistaAdmin(admin.ModelAdmin):
+    list_display = ['empresa_nombre', 'email_contacto', 'estado', 'activo', 'tarifa_base']
+    list_filter = ['estado', 'activo']
+
+
+@admin.register(AsignacionTransporte)
+class AsignacionTransporteAdmin(admin.ModelAdmin):
+    list_display = ['order', 'transportista', 'estado', 'costo_transporte']
+
+
+@admin.register(UserApplication)
+class UserApplicationAdmin(admin.ModelAdmin):
+    list_display = ['full_name', 'email', 'role', 'status', 'created_at']
+    list_filter = ['status', 'role']
+    search_fields = ['full_name', 'email', 'company_name']
+    readonly_fields = ['review_token', 'created_at', 'reviewed_at']
+
+
 # =============================================================================
 # PERSONALIZACIÓN DEL PANEL
 # =============================================================================
+
+@admin.register(SaasPlan)
+class SaasPlanAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'monthly_volume_limit_usd', 'predictive_ai', 'sort_order', 'is_active']
+    prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(CompanySubscription)
+class CompanySubscriptionAdmin(admin.ModelAdmin):
+    list_display = ['company', 'plan', 'status', 'current_period_end']
+    list_filter = ['status', 'plan']
+
+
+@admin.register(CompanyBillingUsage)
+class CompanyBillingUsageAdmin(admin.ModelAdmin):
+    list_display = ['company', 'period_year', 'period_month', 'volume_usd', 'orders_count']
+
+
+@admin.register(SubscriptionUpgradeLog)
+class SubscriptionUpgradeLogAdmin(admin.ModelAdmin):
+    list_display = ['company', 'from_plan', 'to_plan', 'source', 'activated_at']
+    list_filter = ['source']
+    readonly_fields = ['company', 'from_plan', 'to_plan', 'source', 'activated_at', 'notes']
+
+
+@admin.register(CompanyPlanCheckout)
+class CompanyPlanCheckoutAdmin(admin.ModelAdmin):
+    list_display = ['company', 'target_plan', 'amount_usd', 'status', 'provider', 'created_at', 'paid_at']
+    list_filter = ['status', 'provider', 'target_plan']
+    search_fields = ['company__name', 'txn_ref']
+
+
+@admin.register(CompanyPlanCommercialRequest)
+class CompanyPlanCommercialRequestAdmin(admin.ModelAdmin):
+    list_display = ['company', 'requested_plan', 'status', 'contact_email', 'created_at']
+    list_filter = ['status', 'requested_plan']
+    search_fields = ['contact_email', 'contact_name', 'company__name']
+
+
+@admin.register(CompanyPredictiveSnapshot)
+class CompanyPredictiveSnapshotAdmin(admin.ModelAdmin):
+    list_display = ['company', 'period_key', 'computed_at']
+    readonly_fields = ['company', 'period_key', 'payload', 'computed_at']
+
+
+@admin.register(AdCampaign)
+class AdCampaignAdmin(admin.ModelAdmin):
+    list_display = ['name', 'company', 'product', 'placement', 'is_active', 'ends_at']
+
+
+@admin.register(ApiKey)
+class ApiKeyAdmin(admin.ModelAdmin):
+    list_display = ['name', 'company', 'key_prefix', 'is_active', 'last_used_at']
+    readonly_fields = ['key_hash', 'key_prefix']
+
+
+@admin.register(LogisticsWebhookConfig)
+class LogisticsWebhookAdmin(admin.ModelAdmin):
+    list_display = ['name', 'company', 'endpoint_url', 'is_active']
+
+
+@admin.register(EmailDeliveryLog)
+class EmailDeliveryLogAdmin(admin.ModelAdmin):
+    list_display = ['created_at', 'email_type', 'recipient', 'subject', 'status']
+    list_filter = ['status', 'email_type']
+    search_fields = ['recipient', 'subject', 'error_message']
+    readonly_fields = [
+        'email_type', 'recipient', 'subject', 'status',
+        'error_message', 'backend', 'created_at',
+    ]
+    date_hierarchy = 'created_at'
+
+    def has_add_permission(self, request):
+        return False
+
 
 admin.site.site_header = 'TradeFlow Colón — Administración'
 admin.site.site_title  = 'TradeFlow Admin'

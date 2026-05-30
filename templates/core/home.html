@@ -1,0 +1,1278 @@
+{% extends "core/base.html" %}
+{% load static tf_media %}
+{% comment %}
+================================================================================
+templates/core/home.html — TradeFlow Colón
+Propósito: landing pública PreExpo 2026 (inversores). Contexto home_view:
+stats, featured_products, empresas_carousel, show_cart_actions.
+================================================================================
+{% endcomment %}
+{% block title %}TradeFlow Colón — Shop the Colón Free Zone{% endblock %}
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+{% endblock %}
+{% block extra_css %}
+<style>
+  :root {
+    --tf-navy: #0F2A44;
+    --tf-mid: #1B3B63;
+    --tf-blue: #2E5B8A;
+    --tf-orange: #F26522;
+    --tf-orange-h: #FF7A3D;
+    --tf-light: #F2F3F5;
+    --tf-border: #D1D5DB;
+    --tf-muted: #6B7A88;
+    --tf-white: #FFFFFF;
+    --tf-shadow-card-hover: 0 20px 48px rgba(15, 42, 68, 0.14);
+  }
+
+  .hm-root { overflow-x: hidden; }
+
+  /* ── Hero ── */
+  .hm-hero {
+    background: linear-gradient(135deg, var(--tf-navy) 0%, var(--tf-mid) 40%, var(--tf-navy) 100%);
+    background-attachment: fixed;
+    min-height: 0;
+    max-height: none;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 72px 0 5rem;
+  }
+  .hm-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--tf-white);
+    pointer-events: none;
+    animation: hmFloatParticle ease-in-out infinite;
+  }
+  .hm-p1 { width: 10px; height: 10px; left: 8%; top: 18%; opacity: 0.08; animation-duration: 15s; }
+  .hm-p2 { width: 14px; height: 14px; left: 82%; top: 12%; opacity: 0.06; animation-duration: 18s; }
+  .hm-p3 { width: 8px; height: 8px; left: 72%; top: 68%; opacity: 0.1; animation-duration: 22s; }
+  .hm-p4 { width: 12px; height: 12px; left: 15%; top: 72%; opacity: 0.07; animation-duration: 25s; }
+  .hm-p5 { width: 6px; height: 6px; left: 48%; top: 8%; opacity: 0.12; animation-duration: 19s; }
+  .hm-p6 { width: 11px; height: 11px; left: 92%; top: 48%; opacity: 0.06; animation-duration: 28s; }
+  .hm-p7 { width: 9px; height: 9px; left: 28%; top: 42%; opacity: 0.09; animation-duration: 16s; }
+  .hm-p8 { width: 13px; height: 13px; left: 58%; top: 82%; opacity: 0.08; animation-duration: 21s; }
+  @keyframes hmFloatParticle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    33% { transform: translateY(-20px) rotate(120deg); }
+    66% { transform: translateY(10px) rotate(240deg); }
+  }
+
+  .hm-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 40px;
+    gap: 48px;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+  .hm-hero-copy {
+    max-width: 540px;
+    min-width: 0;
+  }
+  .hm-hero-mockup {
+    min-width: 0;
+    justify-self: end;
+    max-width: 100%;
+  }
+  @media (max-width: 1100px) {
+    .hm-hero-h1 {
+      font-size: clamp(1.75rem, 4.2vw, 2.65rem);
+    }
+    .hm-hero-grid { gap: 32px; }
+  }
+  @media (max-width: 991px) {
+    .hm-hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .hm-hero-mockup { justify-self: center; max-width: 420px; width: 100%; }
+    .hm-hero-copy { max-width: 100%; }
+  }
+
+  .hm-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(242, 101, 34, 0.15);
+    border: 1px solid rgba(242, 101, 34, 0.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tf-orange);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .hm-hero-badge .material-symbols-rounded { font-size: 14px; }
+
+  .hm-hero-h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4.5vw, 3.25rem);
+    color: var(--tf-white) !important;
+    line-height: 1.12;
+    margin: 20px 0 24px;
+    max-width: 100%;
+  }
+  .hm-hero-h1 .hm-accent { color: var(--tf-orange); }
+
+  .hm-hero-desc {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.75;
+    max-width: 480px;
+    margin-bottom: 36px;
+  }
+
+  .hm-hero-ctas {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    padding-bottom: 12px;
+  }
+  .hm-btn-primary {
+    background: var(--tf-orange);
+    color: var(--tf-white);
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .hm-btn-primary:hover {
+    background: var(--tf-orange-h);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(242, 101, 34, 0.4);
+    color: var(--tf-white);
+  }
+  .hm-btn-secondary {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    padding: 13px 24px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  .hm-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: var(--tf-white);
+  }
+
+  .hm-mockup-card {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 28px;
+    max-width: 420px;
+    width: 100%;
+    animation: hmFloatCard 5s ease-in-out infinite;
+  }
+  @keyframes hmFloatCard {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+  .hm-mockup-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .hm-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .hm-dot-r { background: #E05252; }
+  .hm-dot-y { background: #F5C842; }
+  .hm-dot-g { background: #4ECB71; }
+  .hm-mockup-title { font-size: 12px; color: rgba(255, 255, 255, 0.5); margin: 0; }
+  .hm-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .hm-metric {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 0;
+    overflow: hidden;
+  }
+  .hm-metric-val {
+    font-size: clamp(1rem, 3.8vw, 1.5rem);
+    font-weight: 700;
+    color: var(--tf-white);
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hm-mockup-card {
+    position: relative;
+    z-index: 0;
+    overflow: hidden;
+  }
+  @media (max-width: 480px) {
+    .hm-mockup-card { animation: none !important; transform: none !important; }
+    .hm-metric-val { font-size: 1.05rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hm-mockup-card { animation: none !important; transform: none !important; }
+  }
+  .hm-metric-val.green { color: #4ECB71; }
+  .hm-metric-val.orange { color: var(--tf-orange); }
+  .hm-metric-lbl { font-size: 11px; color: rgba(255, 255, 255, 0.55); margin-top: 4px; }
+  .hm-metric-badge {
+    display: inline-block;
+    background: rgba(242, 101, 34, 0.2);
+    color: var(--tf-orange);
+    font-size: 10px;
+    border-radius: 10px;
+    padding: 2px 7px;
+    margin-top: 6px;
+  }
+  .hm-bar-wrap { margin-bottom: 14px; }
+  .hm-bar-lbl { font-size: 11px; color: rgba(255, 255, 255, 0.55); margin-bottom: 6px; }
+  .hm-bar-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .hm-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    width: 0;
+    transition: width 1.5s ease-out 1.2s;
+  }
+  .hm-bar-fill.orange { background: var(--tf-orange); }
+  .hm-bar-fill.teal { background: #62929a; }
+  .hm-bars-ready .hm-bar-fill[data-w="94"] { width: 94%; }
+  .hm-bars-ready .hm-bar-fill[data-w="87"] { width: 87%; }
+
+  .hm-hero-animate {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .hm-hero-mockup.hm-hero-animate { transform: translateX(28px); }
+  .hm-hero-visible {
+    opacity: 1 !important;
+    transform: translate(0, 0) !important;
+  }
+
+  /* ── Stats band ── */
+  .hm-stats-band {
+    background: var(--tf-navy);
+    padding: 40px 0 60px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .hm-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+    gap: 8px;
+  }
+  @media (max-width: 768px) {
+    .hm-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .hm-stat {
+    text-align: center;
+    padding: 0 48px;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .hm-stat:last-child { border-right: none; }
+  .hm-stat-num {
+    font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    font-weight: 700;
+    color: #FFFFFF !important;
+    line-height: 1;
+    display: block;
+  }
+  .hm-stat-num .hm-stat-suffix {
+    color: #F26522;
+  }
+  .hm-stat-lbl {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: 8px;
+    font-weight: 500;
+  }
+  @media (max-width: 575px) {
+    .hm-stats-grid { grid-template-columns: 1fr; gap: 24px; }
+    .hm-stat { border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 20px; }
+    .hm-stat:last-child { border-bottom: none; }
+  }
+
+  /* ── Products ── */
+  .hm-products {
+    background: var(--tf-white);
+    padding: 80px 0;
+  }
+  .hm-container {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .hm-sec-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--tf-orange);
+    margin-bottom: 10px;
+  }
+  .hm-sec-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    color: var(--tf-navy);
+    margin-bottom: 12px;
+  }
+  .hm-sec-sub {
+    font-size: 1rem;
+    color: var(--tf-muted);
+    max-width: 520px;
+    margin-bottom: 40px;
+  }
+  .hm-product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 991px) { .hm-product-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 575px) { .hm-product-grid { grid-template-columns: 1fr; } }
+
+  .hm-pcard {
+    background: var(--tf-white);
+    border-radius: 14px;
+    border: 1px solid #E5E7EB;
+    overflow: hidden;
+    transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .hm-pcard:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--tf-shadow-card-hover);
+    border-color: transparent;
+  }
+  .hm-pcard-media {
+    position: relative;
+    padding-top: 75%;
+    overflow: hidden;
+    background: var(--tf-light);
+  }
+  .hm-pcard-media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .hm-pcard:hover .hm-pcard-media img { transform: scale(1.06); }
+  .hm-pcard-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 42, 68, 0.15);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .hm-pcard:hover .hm-pcard-overlay { opacity: 1; }
+  .hm-pcard-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(15, 42, 68, 0.85);
+    backdrop-filter: blur(8px);
+    color: var(--tf-white);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    z-index: 2;
+  }
+  .hm-pcard-body { padding: 16px 18px 18px; }
+  .hm-pcard-cat {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tf-orange);
+    margin-bottom: 6px;
+  }
+  .hm-pcard-name {
+    font-size: 0.97rem;
+    font-weight: 600;
+    color: var(--tf-navy);
+    line-height: 1.35;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .hm-pcard-co {
+    font-size: 12px;
+    color: var(--tf-muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .hm-pcard-co .material-symbols-rounded { font-size: 12px; }
+  .hm-pcard-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #F3F4F6;
+    padding-top: 12px;
+  }
+  .hm-pcard-price {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    color: var(--tf-navy);
+  }
+  .hm-pcard-price small { font-size: 13px; font-weight: 500; font-family: var(--tf-font-body); }
+  .hm-pcard-add {
+    background: var(--tf-orange);
+    color: var(--tf-white);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+  }
+  .hm-pcard-add:hover {
+    background: var(--tf-orange-h);
+    transform: scale(1.04);
+    color: var(--tf-white);
+  }
+  .hm-empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--tf-muted);
+    grid-column: 1 / -1;
+  }
+
+  /* ── Companies carousel ── */
+  .hm-companies {
+    background: var(--tf-light);
+    padding: 70px 0;
+  }
+  .hm-carousel-wrap { position: relative; overflow: hidden; margin-top: 32px; }
+  .hm-carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+  .hm-carousel-slide {
+    flex: 0 0 calc(33.333% - 16px);
+    margin-right: 24px;
+    min-width: 0;
+  }
+  @media (max-width: 991px) {
+    .hm-carousel-slide { flex: 0 0 calc(50% - 12px); }
+  }
+  @media (max-width: 575px) {
+    .hm-carousel-slide { flex: 0 0 100%; margin-right: 0; }
+  }
+  .hm-emp-card {
+    background: var(--tf-white);
+    border-radius: 14px;
+    border: 1px solid #E5E7EB;
+    padding: 28px 24px;
+    text-align: center;
+    transition: all 0.25s ease;
+    height: 100%;
+    box-sizing: border-box;
+  }
+  .hm-emp-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15, 42, 68, 0.1);
+    border-color: var(--tf-orange);
+  }
+  .hm-emp-av {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--tf-navy);
+    color: var(--tf-white);
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .hm-emp-name {
+    font-size: 0.97rem;
+    font-weight: 700;
+    color: var(--tf-navy);
+    margin-bottom: 6px;
+  }
+  .hm-emp-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(78, 203, 113, 0.12);
+    color: #1a7a3c;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+  }
+  .hm-emp-verified .material-symbols-rounded { font-size: 12px; }
+  .hm-emp-count { font-size: 13px; color: var(--tf-muted); }
+  .hm-emp-btn {
+    margin-top: 16px;
+    width: 100%;
+    background: transparent;
+    color: var(--tf-orange);
+    border: 1.5px solid var(--tf-orange);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+    text-decoration: none;
+    box-sizing: border-box;
+  }
+  .hm-emp-btn:hover {
+    background: var(--tf-orange);
+    color: var(--tf-white);
+  }
+  .hm-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .hm-carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: var(--tf-border);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .hm-carousel-dot.is-on {
+    background: var(--tf-orange);
+    transform: scale(1.2);
+  }
+
+  /* ── Features ── */
+  .hm-features {
+    background: var(--tf-white);
+    padding: 80px 0;
+  }
+  .hm-features-head { text-align: center; max-width: 640px; margin: 0 auto 48px; }
+  .hm-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 991px) { .hm-feature-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 575px) { .hm-feature-grid { grid-template-columns: 1fr; } }
+  .hm-feat {
+    background: var(--tf-white);
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 28px 24px;
+    transition: all 0.28s ease;
+  }
+  .hm-feat:hover {
+    border-color: var(--tf-orange);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15, 42, 68, 0.1);
+  }
+  .hm-feat:hover .hm-feat-ico { transform: scale(1.1); }
+  .hm-feat-ico {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    transition: transform 0.25s ease;
+  }
+  .hm-feat-ico .material-symbols-rounded { font-size: 26px; }
+  .hm-feat h3 { font-size: 1rem; font-weight: 700; color: var(--tf-navy); margin: 0; }
+  .hm-feat p { font-size: 13px; color: var(--tf-muted); line-height: 1.65; margin: 8px 0 0; }
+
+  /* ── Timeline ── */
+  .hm-how {
+    background: var(--tf-light);
+    padding: 80px 0;
+  }
+  .hm-how-head { text-align: center; margin-bottom: 48px; }
+  .hm-timeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    position: relative;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  @media (max-width: 991px) {
+    .hm-timeline { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 575px) {
+    .hm-timeline { grid-template-columns: 1fr; }
+  }
+  .hm-timeline-line {
+    position: absolute;
+    top: 26px;
+    left: 12%;
+    right: 12%;
+    height: 2px;
+    background: #E5E7EB;
+    z-index: 0;
+  }
+  .hm-timeline-line-fill {
+    height: 100%;
+    width: 0;
+    background: var(--tf-orange);
+    transition: width 1.2s ease 0.4s;
+  }
+  .hm-timeline.hm-line-ready .hm-timeline-line-fill { width: 100%; }
+  .hm-step { text-align: center; position: relative; z-index: 1; }
+  .hm-step-num {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--tf-navy);
+    color: var(--tf-white);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--tf-light);
+    transform: scale(0);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .hm-step.visible .hm-step-num { transform: scale(1); }
+  .hm-step-ico {
+    font-size: 28px;
+    color: var(--tf-orange);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .hm-step h3 { font-size: 1rem; font-weight: 700; color: var(--tf-navy); margin: 0 0 8px; }
+  .hm-step p {
+    font-size: 13px;
+    color: var(--tf-muted);
+    max-width: 180px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* ── CTA ── */
+  .hm-cta {
+    background: var(--tf-navy);
+    padding: 80px 0;
+    text-align: center;
+  }
+  .hm-cta-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    color: var(--tf-white);
+    margin: 0;
+    position: relative;
+    display: inline-block;
+  }
+  .hm-cta-title .hm-accent { color: var(--tf-orange); }
+  .hm-cta-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    height: 3px;
+    width: 0;
+    background: var(--tf-orange);
+    transition: width 1s ease 0.5s;
+  }
+  .hm-cta-title.visible::after { width: 100%; }
+  .hm-cta-desc {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 1.05rem;
+    max-width: 540px;
+    margin: 20px auto 36px;
+  }
+  .hm-cta-btns {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .hm-btn-shine {
+    overflow: hidden;
+    position: relative;
+  }
+  .hm-btn-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+  .hm-btn-shine:hover::before { transform: translateX(100%); }
+
+  /* ── Scroll reveal ── */
+  .reveal, .stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5, .stagger-6 {
+    opacity: 0;
+    transform: translateY(36px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .reveal-left {
+    opacity: 0;
+    transform: translateX(-36px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .reveal-right {
+    opacity: 0;
+    transform: translateX(36px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .stagger-1 { transition-delay: 0.08s; }
+  .stagger-2 { transition-delay: 0.16s; }
+  .stagger-3 { transition-delay: 0.24s; }
+  .stagger-4 { transition-delay: 0.32s; }
+  .stagger-5 { transition-delay: 0.40s; }
+  .stagger-6 { transition-delay: 0.48s; }
+  .visible {
+    opacity: 1 !important;
+    transform: translate(0, 0) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hm-particle, .hm-mockup-card { animation: none !important; }
+    .hm-hero-animate, .reveal, .reveal-left, .reveal-right,
+    .stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5, .stagger-6,
+    .hm-step-num, .hm-bar-fill, .hm-timeline-line-fill {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+      animation: none !important;
+      width: auto !important;
+    }
+    .hm-bar-fill[data-w="94"] { width: 94% !important; }
+    .hm-bar-fill[data-w="87"] { width: 87% !important; }
+    .hm-carousel-track { transition: none !important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="hm-root" id="hm-root">
+  <section class="hm-hero" id="hm-hero" aria-labelledby="hm-hero-heading">
+    <span class="hm-particle hm-p1" aria-hidden="true"></span>
+    <span class="hm-particle hm-p2" aria-hidden="true"></span>
+    <span class="hm-particle hm-p3" aria-hidden="true"></span>
+    <span class="hm-particle hm-p4" aria-hidden="true"></span>
+    <span class="hm-particle hm-p5" aria-hidden="true"></span>
+    <span class="hm-particle hm-p6" aria-hidden="true"></span>
+    <span class="hm-particle hm-p7" aria-hidden="true"></span>
+    <span class="hm-particle hm-p8" aria-hidden="true"></span>
+
+    <div class="hm-hero-grid">
+      <div class="hm-hero-copy">
+        <p class="hm-hero-badge hero-badge hm-hero-animate">
+          <span class="material-symbols-rounded" aria-hidden="true">location_on</span>
+          Colón Free Zone · Panama
+        </p>
+        <h1 class="hm-hero-h1 hero-h1 hm-hero-animate" id="hm-hero-heading">
+          Shop the Colón Free Zone from anywhere in the <span class="hm-accent">world</span>
+        </h1>
+        <p class="hm-hero-desc hero-desc hm-hero-animate">
+          B2B and B2C marketplace with verified companies, real-time inventory, and export-ready documentation from the Colón Free Zone.
+        </p>
+        <div class="hm-hero-ctas hero-ctas hm-hero-animate">
+          <a href="{% url 'signup' %}" class="hm-btn-primary hm-btn-ripple" id="hm-cta-signup">
+            <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">rocket_launch</span>
+            Create free account
+          </a>
+          <button type="button" class="hm-btn-secondary" id="hm-scroll-how">
+            <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">play_circle</span>
+            How it works
+          </button>
+        </div>
+      </div>
+
+      <div class="hm-hero-mockup hero-mockup hm-hero-animate">
+        <div class="hm-mockup-card" id="hm-mockup-card">
+          <div class="hm-mockup-head">
+            <span class="hm-dot hm-dot-r" aria-hidden="true"></span>
+            <span class="hm-dot hm-dot-y" aria-hidden="true"></span>
+            <span class="hm-dot hm-dot-g" aria-hidden="true"></span>
+            <p class="hm-mockup-title">Dashboard TradeFlow</p>
+          </div>
+          <div class="hm-metrics">
+            <div class="hm-metric">
+              <div class="hm-metric-val">{{ stats.ordenes|default:0 }}</div>
+              <div class="hm-metric-lbl">Orders on platform</div>
+            </div>
+            <div class="hm-metric">
+              <div class="hm-metric-val green">{{ stats.empresas|default:0 }}</div>
+              <div class="hm-metric-lbl">CFZ companies</div>
+            </div>
+            <div class="hm-metric">
+              <div class="hm-metric-val orange">{{ stats.gmv_30d_fmt|default:"USD 0.00" }}</div>
+              <div class="hm-metric-lbl">30-day volume (USD)</div>
+            </div>
+            <div class="hm-metric">
+              <div class="hm-metric-val">{{ stats.productos|default:0 }}</div>
+              <div class="hm-metric-lbl">Active products</div>
+            </div>
+          </div>
+          <div class="hm-bar-wrap">
+            <div class="hm-bar-lbl">Fulfillment rate</div>
+            <div class="hm-bar-track"><div class="hm-bar-fill orange" data-w="94"></div></div>
+          </div>
+          <div class="hm-bar-wrap">
+            <div class="hm-bar-lbl">Completed shipments</div>
+            <div class="hm-bar-track"><div class="hm-bar-fill teal" data-w="87"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hm-stats-band" id="hm-stats-band" aria-label="Colón Free Zone statistics">
+    <div class="hm-stats-grid">
+      <div class="hm-stat reveal">
+        <div class="hm-stat-num" data-count="{{ stats.empresas|default:0 }}">0</div>
+        <div class="hm-stat-lbl">Companies in the CFZ</div>
+      </div>
+      <div class="hm-stat reveal stagger-2">
+        <div class="hm-stat-num" data-count="{{ stats.productos|default:0 }}">0</div>
+        <div class="hm-stat-lbl">Active products</div>
+      </div>
+      <div class="hm-stat reveal stagger-3">
+        <div class="hm-stat-num" data-count="{{ stats.ordenes|default:0 }}">0</div>
+        <div class="hm-stat-lbl">Registered orders</div>
+      </div>
+      <div class="hm-stat reveal stagger-4">
+        <div class="hm-stat-num" data-count="{{ stats.categorias|default:0 }}">0</div>
+        <div class="hm-stat-lbl">Categories</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hm-products" id="hm-products">
+    <div class="hm-container">
+      <p class="hm-sec-label reveal">Catalog</p>
+      <h2 class="hm-sec-title reveal stagger-1">Featured products from the Free Zone</h2>
+      <p class="hm-sec-sub reveal stagger-2">Curated selection of verified suppliers ready for purchase or quote.</p>
+      <div class="hm-product-grid" id="hm-product-grid">
+        {% for product in featured_products|slice:":6" %}
+        <article class="hm-pcard reveal stagger-{{ forloop.counter }}" data-product-id="{{ product.pk }}">
+          <div class="hm-pcard-media">
+            <img src="{{ product|product_image_src }}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300" style="object-fit:cover;">
+            <span class="hm-pcard-overlay" aria-hidden="true"></span>
+            <span class="hm-pcard-badge">{{ product.company.name }}</span>
+          </div>
+          <div class="hm-pcard-body">
+            {% if product.category %}
+            <p class="hm-pcard-cat">{{ product.category.name }}</p>
+            {% endif %}
+            <h3 class="hm-pcard-name">{{ product.name }}</h3>
+            <p class="hm-pcard-co">
+              <span class="material-symbols-rounded" aria-hidden="true">business</span>
+              {{ product.company.name }}
+            </p>
+            <div class="hm-pcard-foot">
+              <div class="hm-pcard-price">
+                <small>{{ product.currency }}</small> {{ product.display_price }}
+              </div>
+              {% if show_cart_actions %}
+              <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form">
+                {% csrf_token %}
+                <input type="hidden" name="cantidad" value="1">
+                <button type="submit" class="hm-pcard-add">
+                  <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">add_shopping_cart</span>
+                  Add
+                </button>
+              </form>
+              {% else %}
+              <a href="{% url 'login' %}?next={% url 'tienda' %}" class="hm-pcard-add">
+                <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">add_shopping_cart</span>
+                Add
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+        {% empty %}
+        <p class="hm-empty reveal">No featured products for now. Browse the full catalog.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="hm-companies" id="hm-companies">
+    <div class="hm-container">
+      <p class="hm-sec-label reveal">Companies in the Colón Free Zone</p>
+      <h2 class="hm-sec-title reveal stagger-1">We connect buyers with the best companies in the Free Zone</h2>
+      <div class="hm-carousel-wrap reveal stagger-2" id="hm-emp-carousel">
+        <div class="hm-carousel-track" id="hm-emp-track">
+          {% for emp in empresas_carousel %}
+          <div class="hm-carousel-slide">
+            <article class="hm-emp-card">
+              <div class="hm-emp-av">{{ emp.name|slice:":1"|upper }}</div>
+              <h3 class="hm-emp-name">{{ emp.name }}</h3>
+              {% if emp.is_verified %}
+              <span class="hm-emp-verified">
+                <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+                Verified
+              </span>
+              {% endif %}
+              <p class="hm-emp-count">{% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}</p>
+              <a href="{% url 'tienda' %}?empresa={{ emp.pk }}" class="hm-emp-btn">View catalog</a>
+            </article>
+          </div>
+          {% empty %}
+          <p class="hm-empty" style="flex:1;text-align:center;padding:2rem;">More companies coming soon to the carousel.</p>
+          {% endfor %}
+        </div>
+        <div class="hm-carousel-dots" id="hm-emp-dots" role="tablist" aria-label="Companies"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hm-features" id="hm-features">
+    <div class="hm-container">
+      <div class="hm-features-head">
+        <p class="hm-sec-label reveal">Why TradeFlow</p>
+        <h2 class="hm-sec-title reveal stagger-1">Everything you need to trade in the Free Zone</h2>
+      </div>
+      <div class="hm-feature-grid">
+        <article class="hm-feat reveal stagger-1">
+          <div class="hm-feat-ico" style="background:rgba(15,42,68,0.08);"><span class="material-symbols-rounded" style="color:var(--tf-navy);">travel_explore</span></div>
+          <h3>Shop without traveling</h3>
+          <p>Access the Colón Free Zone catalog from any country without moving goods until confirmed.</p>
+        </article>
+        <article class="hm-feat reveal stagger-2">
+          <div class="hm-feat-ico" style="background:rgba(242,101,34,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-orange);">inventory_2</span></div>
+          <h3>Real-time inventory</h3>
+          <p>Stock updated by each seller for reliable purchasing decisions.</p>
+        </article>
+        <article class="hm-feat reveal stagger-3">
+          <div class="hm-feat-ico" style="background:rgba(46,91,138,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-blue);">description</span></div>
+          <h3>Customs documents</h3>
+          <p>Invoice and packing list ready for export procedures.</p>
+        </article>
+        <article class="hm-feat reveal stagger-4">
+          <div class="hm-feat-ico" style="background:rgba(78,203,113,0.1);"><span class="material-symbols-rounded" style="color:#1a7a3c;">lock</span></div>
+          <h3>Secure payment</h3>
+          <p>Transparent checkout flow and order statuses for buyers and sellers.</p>
+        </article>
+        <article class="hm-feat reveal stagger-5">
+          <div class="hm-feat-ico" style="background:rgba(242,101,34,0.1);"><span class="material-symbols-rounded" style="color:var(--tf-orange);">qr_code_scanner</span></div>
+          <h3>Pre-registro QR</h3>
+          <p>Colón Free Zone visitors with quick verification for PreExpo networking.</p>
+        </article>
+        <article class="hm-feat reveal stagger-6">
+          <div class="hm-feat-ico" style="background:rgba(15,42,68,0.08);"><span class="material-symbols-rounded" style="color:var(--tf-navy);">analytics</span></div>
+          <h3>Advanced analytics</h3>
+          <p>Admin panel with KPIs and charts for operations and investors.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="hm-how" id="como-funciona">
+    <div class="hm-container">
+      <div class="hm-how-head">
+        <h2 class="hm-sec-title reveal">How it works</h2>
+      </div>
+      <div class="hm-timeline reveal" id="hm-timeline">
+        <div class="hm-timeline-line" aria-hidden="true"><div class="hm-timeline-line-fill"></div></div>
+        <div class="hm-step reveal stagger-1">
+          <div class="hm-step-num">1</div>
+          <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">person_add</span>
+          <h3>Create your account</h3>
+          <p>Sign up as a buyer or company in 2 minutes</p>
+        </div>
+        <div class="hm-step reveal stagger-2">
+          <div class="hm-step-num">2</div>
+          <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">search</span>
+          <h3>Browse the catalog</h3>
+          <p>Thousands of products from verified Colón Free Zone companies</p>
+        </div>
+        <div class="hm-step reveal stagger-3">
+          <div class="hm-step-num">3</div>
+          <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">shopping_cart</span>
+          <h3>Place your order</h3>
+          <p>Add to cart and pay securely</p>
+        </div>
+        <div class="hm-step reveal stagger-4">
+          <div class="hm-step-num">4</div>
+          <span class="material-symbols-rounded hm-step-ico" aria-hidden="true">local_shipping</span>
+          <h3>Receive your goods</h3>
+          <p>Real-time tracking to your destination</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hm-cta" id="hm-cta">
+    <div class="hm-container">
+      <h2 class="hm-cta-title reveal" id="hm-cta-title">
+        Start today in the <span class="hm-accent">Colón Free Zone</span>
+      </h2>
+      <p class="hm-cta-desc reveal stagger-1">Join TradeFlow Colón — the platform ready for PreExpo 2026 and international investors.</p>
+      <div class="hm-cta-btns reveal stagger-2">
+        <a href="{% url 'signup' %}" class="hm-btn-primary hm-btn-shine">Get started now</a>
+        <a href="{% url 'login' %}" class="hm-btn-secondary">I already have an account</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="hm-page-meta"
+     data-emp-slides="{{ empresas_carousel|length }}"
+     hidden></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function heroEnter() {
+    var items = [
+      { sel: '.hero-badge', delay: 100 },
+      { sel: '.hero-h1', delay: 300 },
+      { sel: '.hero-desc', delay: 500 },
+      { sel: '.hero-ctas', delay: 700 },
+      { sel: '.hero-mockup', delay: 400 }
+    ];
+    items.forEach(function (item) {
+      setTimeout(function () {
+        var el = document.querySelector(item.sel);
+        if (el) el.classList.add('hm-hero-visible');
+      }, reduced ? 0 : item.delay);
+    });
+    setTimeout(function () {
+      var card = document.getElementById('hm-mockup-card');
+      if (card) card.classList.add('hm-bars-ready');
+    }, reduced ? 0 : 900);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', heroEnter);
+  } else {
+    heroEnter();
+  }
+
+  var howBtn = document.getElementById('hm-scroll-how');
+  if (howBtn) {
+    howBtn.addEventListener('click', function () {
+      var t = document.getElementById('como-funciona');
+      if (t) t.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    });
+  }
+
+  document.querySelectorAll('.hm-btn-ripple').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      var rect = btn.getBoundingClientRect();
+      var ripple = document.createElement('span');
+      ripple.style.cssText = 'position:absolute;border-radius:50%;background:rgba(255,255,255,0.35);transform:scale(0);animation:hmRipple 0.5s ease-out;pointer-events:none;width:80px;height:80px;left:' + (e.clientX - rect.left - 40) + 'px;top:' + (e.clientY - rect.top - 40) + 'px;';
+      btn.appendChild(ripple);
+      setTimeout(function () { if (ripple.parentNode) ripple.parentNode.removeChild(ripple); }, 520);
+    });
+  });
+
+  var style = document.createElement('style');
+  style.textContent = '@keyframes hmRipple{to{transform:scale(2.5);opacity:0;}}';
+  document.head.appendChild(style);
+
+  function countUp(el, target, duration, prefix, suffix) {
+    if (reduced) {
+      var suf0 = suffix || '';
+      if (suf0) {
+        el.innerHTML = (prefix || '') + target.toLocaleString() +
+          '<span class="hm-stat-suffix">' + suf0 + '</span>';
+      } else {
+        el.textContent = (prefix || '') + target.toLocaleString();
+      }
+      return;
+    }
+    var start = 0;
+    var step = target / (duration / 16);
+    var timer = setInterval(function () {
+      start += step;
+      if (start >= target) {
+        start = target;
+        clearInterval(timer);
+      }
+      var num = Math.floor(start).toLocaleString();
+      var suf = suffix || '';
+      if (suf) {
+        el.innerHTML = (prefix || '') + num + '<span class="hm-stat-suffix">' + suf + '</span>';
+      } else {
+        el.textContent = (prefix || '') + num;
+      }
+    }, 16);
+  }
+
+  var statsObs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      entry.target.querySelectorAll('[data-count]').forEach(function (el) {
+        var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+        countUp(el, target, 1800, el.getAttribute('data-prefix') || '', el.getAttribute('data-suffix') || '');
+      });
+      statsObs.unobserve(entry.target);
+    });
+  }, { threshold: 0.3 });
+  var statsBand = document.getElementById('hm-stats-band');
+  if (statsBand) statsObs.observe(statsBand);
+
+  var revealObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('visible');
+      if (entry.target.id === 'hm-timeline') {
+        entry.target.classList.add('hm-line-ready');
+        entry.target.querySelectorAll('.hm-step').forEach(function (s) { s.classList.add('visible'); });
+      }
+      if (entry.target.id === 'hm-cta-title') {
+        entry.target.classList.add('visible');
+      }
+      revealObserver.unobserve(entry.target);
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll(
+    '.reveal, .reveal-left, .reveal-right, .stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5, .stagger-6, #hm-timeline, #hm-cta-title'
+  ).forEach(function (el) {
+    if (reduced) el.classList.add('visible');
+    else revealObserver.observe(el);
+  });
+
+  var meta = document.getElementById('hm-page-meta');
+  var slideCount = meta ? parseInt(meta.getAttribute('data-emp-slides'), 10) : 0;
+  var track = document.getElementById('hm-emp-track');
+  var dotsRoot = document.getElementById('hm-emp-dots');
+  if (!track || slideCount < 1) return;
+
+  var slides = track.querySelectorAll('.hm-carousel-slide');
+  var idx = 0;
+  var perView = 3;
+  var timer = null;
+  var paused = false;
+
+  function perViewNow() {
+    if (window.innerWidth < 576) return 1;
+    if (window.innerWidth < 992) return 2;
+    return 3;
+  }
+
+  function maxIdx() {
+    perView = perViewNow();
+    return Math.max(0, slides.length - perView);
+  }
+
+  function buildDots() {
+    if (!dotsRoot) return;
+    dotsRoot.innerHTML = '';
+    var pages = maxIdx() + 1;
+    var i;
+    for (i = 0; i < pages; i += 1) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'hm-carousel-dot' + (i === 0 ? ' is-on' : '');
+      b.setAttribute('data-idx', String(i));
+      b.setAttribute('aria-label', ((window.TF_I18N && window.TF_I18N.slide) || 'Slide') + ' ' + (i + 1));
+      b.addEventListener('click', function () {
+        idx = parseInt(this.getAttribute('data-idx'), 10) || 0;
+        update();
+        resetAuto();
+      });
+      dotsRoot.appendChild(b);
+    }
+  }
+
+  function update() {
+    perView = perViewNow();
+    if (idx > maxIdx()) idx = 0;
+    var slideW = slides[0] ? slides[0].offsetWidth + 24 : 0;
+    track.style.transform = 'translateX(-' + (idx * slideW) + 'px)';
+    if (dotsRoot) {
+      dotsRoot.querySelectorAll('.hm-carousel-dot').forEach(function (d, i) {
+        d.classList.toggle('is-on', i === idx);
+      });
+    }
+  }
+
+  function resetAuto() {
+    if (timer) clearInterval(timer);
+    if (reduced || slides.length <= perViewNow()) return;
+    timer = setInterval(function () {
+      if (paused) return;
+      idx = idx >= maxIdx() ? 0 : idx + 1;
+      update();
+    }, 4500);
+  }
+
+  var wrap = document.getElementById('hm-emp-carousel');
+  if (wrap) {
+    wrap.addEventListener('mouseenter', function () { paused = true; });
+    wrap.addEventListener('mouseleave', function () { paused = false; });
+  }
+
+  buildDots();
+  update();
+  resetAuto();
+  window.addEventListener('resize', function () { buildDots(); update(); });
+})();
+</script>
+{% endblock %}

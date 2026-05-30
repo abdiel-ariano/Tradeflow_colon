@@ -1,0 +1,59 @@
+"""
+Autenticación y auditoría API enterprise (API Keys + scopes).
+"""
+from __future__ import annotations
+
+import hashlib
+import hmac
+import time
+
+from django.core.cache import cache
+from django.http import JsonResponse
+
+from core.enterprise_models import ApiAuditLog, ApiKey
+
+
+SCOPE_INVENTORY_READ = 'inventory.read'
+SCOPE_PRICING_WRITE = 'pricing.write'
+SCOPE_WEBHOOKS = 'webhooks.receive'
+
+
+def hash_api_key(raw: str) -> str:
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def authenticate_api_key(request) -> tuple[ApiKey | None, JsonResponse | None]:
+    auth = request.headers.get('Authorization', '')
+    if not auth.startswith('Bearer '):
+        return None, JsonResponse({'error': 'missing_token'}, status=401)
+    raw = auth[7:].strip()
+    if not raw.startswith('tf_live_') or len(raw) < 20:
+        return None, JsonResponse({'error': 'invalid_token'}, status=401)
+    digest = hash_api_key(raw)
+    key = ApiKey.objects.filter(key_hash=digest, is_active=True).select_related('company').first()
+    if not key:
+        return None, JsonResponse({'error': 'invalid_token'}, status=401)
+
+    rl_key = f'tf_api_rl:{key.pk}:{int(time.time()) // 60}'
+    count = cache.get(rl_key, 0)
+    if count >= key.rate_limit_per_minute:
+        return None, JsonResponse({'error': 'rate_limit'}, status=429)
+    cache.set(rl_key, count + 1, 65)
+
+    return key, None
+
+
+def require_scope(key: ApiKey, scope: str) -> bool:
+    scopes = key.scopes or []
+    return scope in scopes or '*' in scopes
+
+
+def audit_api_call(key: ApiKey | None, company, request, status_code: int):
+    ApiAuditLog.objects.create(
+        api_key=key,
+        company=company,
+        method=request.method[:10],
+        path=request.path[:255],
+        status_code=status_code,
+        ip_address=request.META.get('REMOTE_ADDR'),
+    )

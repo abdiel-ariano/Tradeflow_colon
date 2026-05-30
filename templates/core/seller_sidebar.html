@@ -1,19 +1,8 @@
-{% load static %}
-<aside class="seller-side" id="seller-side-nav" data-seller-nav="{{ nav_activo|default:''|escapejs }}">
-  <div class="seller-side-brand">Mi Tienda<small>{{ company.name }}</small></div>
-  <nav>
-    <a href="{% url 'seller_dashboard' %}" data-seller-nav="mi_tienda">Panel</a>
-    <a href="{% url 'seller_productos' %}" data-seller-nav="seller_productos">Productos</a>
-    <a href="{% url 'seller_ventas' %}" data-seller-nav="seller_ventas">Ventas</a>
-  </nav>
-</aside>
-<script>
-(function () {
-  var nav = document.getElementById("seller-side-nav");
-  if (!nav) return;
-  var cur = nav.getAttribute("data-seller-nav") || "";
-  nav.querySelectorAll("a[data-seller-nav]").forEach(function (a) {
-    if (a.getAttribute("data-seller-nav") === cur) a.classList.add("active");
-  });
-})();
-</script>
+{% comment %}
+================================================================================
+templates/core/seller_sidebar.html — TradeFlow Colón (deprecado)
+Propósito: antes contenía la barra lateral "Mi Store" + enlaces de sección.
+Contexto: se dejó de incluir para evitar duplicar la navegación del navbar
+(base.html, grupo tf-nav-seller). No uses {% include %} de este archivo.
+================================================================================
+{% endcomment %}

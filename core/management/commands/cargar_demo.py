@@ -14,6 +14,7 @@ RESULTADO:
     - 9 productos con imágenes descargadas automáticamente
     - 1 usuario buyer de demo  (usuario: demo_buyer  / clave: Demo1234!)
     - 1 usuario seller de demo (usuario: demo_seller / clave: Demo1234!)
+    - 1 usuario admin de demo  (usuario: demo_admin  / clave: Demo1234!) → /dashboard/
 
 NOTAS:
     - Requiere conexión a internet para descargar las imágenes.
@@ -28,9 +29,17 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
 
+from decimal import Decimal
+
 from core.models import (
-    UserProfile, Company, Category, Product, Inventory
+    UserProfile, Company, Category, Product, Inventory, TransportCarrier,
 )
+
+TRANSPORTISTAS = [
+    {'code': 'zlc-express', 'name': 'ZLC Express', 'cost': '18.00', 'order': 1},
+    {'code': 'colon-freight', 'name': 'Colón Freight', 'cost': '22.50', 'order': 2},
+    {'code': 'panama-logistics', 'name': 'Panamá Logistics Hub', 'cost': '15.00', 'order': 3},
+]
 
 
 # ---------------------------------------------------------------------------
@@ -187,6 +196,16 @@ USUARIOS_DEMO = [
         'role':       'seller',
         'phone':      '+507 6500-0002',
     },
+    {
+        'username':   'demo_admin',
+        'first_name': 'Patricia',
+        'last_name':  'Vásquez',
+        'email':      'demo.admin@tradeflow.pa',
+        'password':   'Demo1234!',
+        'role':       'admin',
+        'phone':      '+507 6500-0003',
+        'is_staff':   True,
+    },
 ]
 
 
@@ -207,7 +226,7 @@ class Command(BaseCommand):
         os.makedirs(media_products, exist_ok=True)
 
         # 1. Categorías
-        self.stdout.write('\n[1/5] Creando categorías...')
+        self.stdout.write('\n[1/6] Creando categorías...')
         categorias_obj = []
         for nombre in CATEGORIAS:
             cat, created = Category.objects.get_or_create(name=nombre)
@@ -215,8 +234,21 @@ class Command(BaseCommand):
             estado = 'CREADA' if created else 'ya existe'
             self.stdout.write(f'  {nombre} — {estado}')
 
-        # 2. Empresas
-        self.stdout.write('\n[2/5] Creando empresas...')
+        self.stdout.write('\n[2/7] Transportistas...')
+        for t in TRANSPORTISTAS:
+            obj, created = TransportCarrier.objects.get_or_create(
+                code=t['code'],
+                defaults={
+                    'name': t['name'],
+                    'base_shipping_cost': Decimal(t['cost']),
+                    'sort_order': t['order'],
+                    'description': 'Zona Libre de Colón — envío B2B',
+                },
+            )
+            self.stdout.write(f'  {obj.name} — {"CREADO" if created else "ya existe"}')
+
+        # 3. Empresas
+        self.stdout.write('\n[3/7] Creando empresas...')
         empresas_obj = []
         for data in EMPRESAS:
             empresa, created = Company.objects.get_or_create(
@@ -231,8 +263,8 @@ class Command(BaseCommand):
             estado = 'CREADA' if created else 'ya existe'
             self.stdout.write(f'  {empresa.name} — {estado}')
 
-        # 3. Productos con imágenes
-        self.stdout.write('\n[3/5] Creando productos e imágenes...')
+        # 4. Productos con imágenes
+        self.stdout.write('\n[4/7] Creando productos e imágenes...')
         for data in PRODUCTOS:
             if Product.objects.filter(sku=data['sku']).exists():
                 self.stdout.write(f'  {data["name"]} — ya existe, omitido')
@@ -278,7 +310,7 @@ class Command(BaseCommand):
             )
 
         # 4. Usuarios de demo
-        self.stdout.write('\n[4/5] Creando usuarios de demo...')
+        self.stdout.write('\n[4/6] Creando usuarios de demo...')
         for data in USUARIOS_DEMO:
             if User.objects.filter(username=data['username']).exists():
                 self.stdout.write(f'  {data["username"]} — ya existe, omitido')
@@ -291,10 +323,15 @@ class Command(BaseCommand):
                 email      = data['email'],
                 password   = data['password'],
             )
+            if data.get('is_staff'):
+                user.is_staff = True
+                user.save(update_fields=['is_staff'])
             UserProfile.objects.create(
-                user  = user,
-                role  = data['role'],
-                phone = data['phone'],
+                user=user,
+                role=data['role'],
+                phone=data['phone'],
+                email_verificado=True,
+                token_verificacion=None,
             )
             self.stdout.write(
                 self.style.SUCCESS(
@@ -303,7 +340,7 @@ class Command(BaseCommand):
             )
 
         # 5. Asociar vendedor demo a empresa TechZone (portal Mi Tienda)
-        self.stdout.write('\n[5/5] Vinculando vendedor demo a empresa...')
+        self.stdout.write('\n[5/6] Vinculando vendedor demo a empresa...')
         demo_seller = User.objects.filter(username='demo_seller').first()
         techzone = Company.objects.filter(name='TechZone Colón S.A.').first()
         if demo_seller and techzone:
@@ -322,6 +359,54 @@ class Command(BaseCommand):
                 self.style.WARNING('  No se pudo vincular demo_seller (usuario o empresa ausente).')
             )
 
+        # 6. Asegurar rol admin en demo_admin si el usuario ya existía con otro rol
+        self.stdout.write('\n[6/6] Ajustando cuenta demo_admin (rol admin)...')
+        adm = User.objects.filter(username='demo_admin').first()
+        if adm:
+            if not adm.is_staff:
+                adm.is_staff = True
+                adm.save(update_fields=['is_staff'])
+                self.stdout.write(self.style.SUCCESS('  demo_admin → is_staff activado (panel Django /admin/)'))
+            prof = getattr(adm, 'profile', None)
+            if prof and prof.role != 'admin':
+                prof.role = 'admin'
+                prof.save(update_fields=['role'])
+                self.stdout.write(self.style.SUCCESS('  demo_admin → rol actualizado a admin'))
+            elif not prof:
+                UserProfile.objects.create(
+                    user=adm,
+                    role='admin',
+                    phone='+507 6500-0003',
+                    email_verificado=True,
+                    token_verificacion=None,
+                )
+                self.stdout.write(self.style.SUCCESS('  demo_admin → perfil admin creado'))
+            else:
+                self.stdout.write('  demo_admin — rol admin OK')
+
+            from core.utils.admin_permissions import sync_user_admin_access
+
+            sync_user_admin_access(adm)
+            self.stdout.write(self.style.SUCCESS('  demo_admin → permisos Django Admin (core.*)'))
+
+            prof = getattr(adm, 'profile', None)
+            if prof and (not prof.email_verificado or prof.token_verificacion):
+                prof.email_verificado = True
+                prof.token_verificacion = None
+                prof.save(update_fields=['email_verificado', 'token_verificacion'])
+        else:
+            self.stdout.write(self.style.WARNING('  demo_admin no existe; ejecuta de nuevo o crea el usuario en admin.'))
+
+        for uname in ('demo_buyer', 'demo_seller', 'demo_admin'):
+            u = User.objects.filter(username=uname).first()
+            if not u:
+                continue
+            prof = getattr(u, 'profile', None)
+            if prof and (not prof.email_verificado or prof.token_verificacion):
+                prof.email_verificado = True
+                prof.token_verificacion = None
+                prof.save(update_fields=['email_verificado', 'token_verificacion'])
+
         # Resumen final
         self.stdout.write('\n' + '=' * 60)
         self.stdout.write(self.style.SUCCESS('Datos de demo cargados correctamente.'))
@@ -331,4 +416,19 @@ class Command(BaseCommand):
         self.stdout.write('\nAccesos de prueba:')
         self.stdout.write('  Buyer:  demo_buyer  / Demo1234!')
         self.stdout.write('  Seller: demo_seller / Demo1234! (Mi Tienda → TechZone Colón S.A.)')
+        self.stdout.write('  Admin:  demo_admin  / Demo1234! — /dashboard/ (app) y /admin/ (Django, requiere is_staff)')
+        if getattr(settings, 'REQUIRE_EMAIL_VERIFICATION', False):
+            self.stdout.write(
+                self.style.WARNING(
+                    '\nREQUIRE_EMAIL_VERIFICATION está activo: las cuentas nuevas '
+                    'deben verificar email. Las demo quedan con email_verificado=True.'
+                )
+            )
+        backend = getattr(settings, 'EMAIL_BACKEND', '')
+        if 'console' in backend:
+            self.stdout.write(
+                self.style.NOTICE(
+                    'Los correos de prueba se imprimen en esta terminal (EMAIL_BACKEND consola).'
+                )
+            )
         self.stdout.write('=' * 60)

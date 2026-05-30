@@ -1,0 +1,185 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Plan payment — {{ target_plan.name }}{% endblock %}
+{% block seller_page_title %}Activate {{ target_plan.name }}{% endblock %}
+{% block seller_page_sub %}
+<p class="sp-topbar-sub">Secure TradeFlow checkout · your plan activates when payment is confirmed</p>
+{% endblock %}
+
+{% block seller_extra_css %}
+<style>
+.sp-checkout-page { max-width: 920px; margin: 0 auto; padding: 0 8px 40px; }
+.sp-checkout-steps {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.sp-checkout-step {
+  flex: 1;
+  min-width: 120px;
+  text-align: center;
+  padding: 12px 10px;
+  border-radius: 10px;
+  background: var(--tf-sand);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-muted);
+  border: 1px solid var(--tf-sand2);
+}
+.sp-checkout-step.is-done { background: rgba(46, 91, 138, 0.08); color: var(--tf-teal); border-color: rgba(46, 91, 138, 0.2); }
+.sp-checkout-step.is-current { background: rgba(242, 101, 34, 0.1); color: var(--tf-orange); border-color: var(--tf-orange); }
+.sp-checkout-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+@media (max-width: 860px) { .sp-checkout-grid { grid-template-columns: 1fr; } }
+.sp-checkout-card {
+  background: var(--tf-white);
+  border: 1px solid var(--tf-sand2);
+  border-radius: 14px;
+  padding: 24px;
+}
+.sp-checkout-card h3 { margin: 0 0 16px; font-size: 1rem; color: var(--tf-navy); }
+.sp-pay-method {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--tf-sand2);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.sp-pay-method:has(input:checked) {
+  border-color: var(--tf-orange);
+  background: rgba(242, 101, 34, 0.06);
+}
+.sp-pay-fields { display: grid; gap: 12px; margin-top: 16px; }
+.sp-pay-fields label { font-size: 12px; font-weight: 600; color: var(--tf-muted); display: block; margin-bottom: 4px; }
+.sp-pay-fields input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--tf-sand2);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.sp-checkout-summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 14px;
+  border-bottom: 1px solid var(--tf-sand);
+}
+.sp-checkout-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px solid var(--tf-navy);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--tf-navy);
+}
+.sp-checkout-total .amount { color: var(--tf-orange); }
+.sp-secure-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--tf-muted);
+  margin-top: 16px;
+}
+</style>
+{% endblock %}
+
+{% block seller_content %}
+<div class="sp-checkout-page">
+  {% if saas %}{% include "core/includes/seller_saas_usage.html" with saas_snapshot=saas %}{% endif %}
+
+  <nav class="sp-checkout-steps" aria-label="Activation steps">
+    <div class="sp-checkout-step is-done">1. Plan</div>
+    <div class="sp-checkout-step is-current">2. Payment</div>
+    <div class="sp-checkout-step">3. Activation</div>
+  </nav>
+
+  <div class="sp-checkout-grid">
+    <div class="sp-checkout-card">
+      <h3>Payment method</h3>
+      <form method="post" action="{% url 'seller_plan_checkout_pay' target_plan.slug %}" id="sp-checkout-form">
+        {% csrf_token %}
+        <label class="sp-pay-method">
+          <input type="radio" name="payment_method" value="mock" checked>
+          <span class="material-symbols-rounded" style="color:var(--tf-navy);">credit_card</span>
+          <span>
+            <strong>Credit or debit card</strong>
+            <span style="display:block;font-size:11px;color:var(--tf-muted);">Demo processing (no real charge)</span>
+          </span>
+        </label>
+        <label class="sp-pay-method">
+          <input type="radio" name="payment_method" value="bank">
+          <span class="material-symbols-rounded" style="color:var(--tf-navy);">account_balance</span>
+          <span>
+            <strong>Bank transfer</strong>
+            <span style="display:block;font-size:11px;color:var(--tf-muted);">Confirmation within 24 h</span>
+          </span>
+        </label>
+        <div class="sp-pay-fields" id="sp-card-fields">
+          <div>
+            <label for="card_name">Name on card</label>
+            <input type="text" id="card_name" name="card_name" placeholder="As shown on card" autocomplete="cc-name">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label for="card_exp">Expiry</label>
+              <input type="text" id="card_exp" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp">
+            </div>
+            <div>
+              <label for="card_cvc">CVC</label>
+              <input type="text" id="card_cvc" placeholder="•••" maxlength="4" autocomplete="cc-csc">
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="sp-btn sp-btn-primary" style="width:100%;margin-top:20px;justify-content:center;padding:14px;">
+          Pay and activate plan
+        </button>
+        <p class="sp-secure-badge">
+          <span class="material-symbols-rounded" style="font-size:18px;">lock</span>
+          Encrypted transaction · permanent record on your business account
+        </p>
+      </form>
+      <p style="margin-top:16px;font-size:12px;">
+        <a href="{% url 'seller_plan_consumo' %}" style="color:var(--tf-muted);">← Back to plans</a>
+      </p>
+    </div>
+
+    <aside class="sp-checkout-card">
+      <h3>Summary</h3>
+      <div class="sp-checkout-summary-row">
+        <span>Current plan</span>
+        <span>{{ from_plan.name }}</span>
+      </div>
+      <div class="sp-checkout-summary-row">
+        <span>New plan</span>
+        <strong>{{ target_plan.name }}</strong>
+      </div>
+      <div class="sp-checkout-summary-row">
+        <span>Billing</span>
+        <span>{{ checkout.billing_label }}</span>
+      </div>
+      <ul style="list-style:none;padding:0;margin:16px 0;font-size:12px;color:var(--tf-navy);">
+        {% for b in marketing.benefits %}
+        <li style="padding:4px 0 4px 20px;position:relative;">
+          <span class="material-symbols-rounded" style="position:absolute;left:0;top:2px;font-size:14px;color:var(--tf-teal);">check_circle</span>
+          {{ b }}
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="sp-checkout-total">
+        <span>Total today</span>
+        <span class="amount">USD {{ amount }}</span>
+      </div>
+      <p style="font-size:11px;color:var(--tf-muted);margin:12px 0 0;line-height:1.45;">
+        When you confirm, your subscription updates immediately on the platform. Auto-renews at period end.
+      </p>
+    </aside>
+  </div>
+</div>
+{% endblock %}

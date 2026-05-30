@@ -1,0 +1,62 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+================================================================================
+templates/core/seller_responder_cotizacion.html — TradeFlow Colón
+Propósito: formulario para que el vendedor indique precios unitarios por ítem.
+Contexto: vista seller_responder_cotizacion; POST con precio por línea.
+================================================================================
+{% endcomment %}
+{% block title %}Respond to {{ cot.numero }} — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<style>
+  .cot-rsp-card { background:#fff;border:1px solid var(--tf-border);border-radius:12px;padding:1.5rem;max-width:800px; }
+  .cot-rsp-table { width:100%;border-collapse:collapse;font-size:0.9rem;margin-top:1rem; }
+  .cot-rsp-table th { background:#f9fafb;text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;color:#6b7a88; }
+  .cot-rsp-table td { padding:12px;border-top:1px solid #f3f4f6; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="seller-layout">
+  <div class="seller-main">
+    <h1>Respond to quote</h1>
+    <p class="seller-sub">{{ cot.numero }} · {{ cot.buyer.get_full_name|default:cot.buyer.username }}</p>
+    <div class="cot-rsp-card">
+      <form method="post">
+        {% csrf_token %}
+        <table class="cot-rsp-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th style="width:100px;">Quantity</th>
+              <th style="width:160px;">Unit price (USD)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for it in cot.items.all %}
+            <tr>
+              <td>{{ it.product.name }}</td>
+              <td>{{ it.cantidad_solicitada }}</td>
+              <td>
+                <input type="text" class="tf-input" name="precio_{{ it.id }}" value="{{ it.precio_ofertado }}" placeholder="0.00" inputmode="decimal">
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div style="margin-top:1.25rem;">
+          <label style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;display:block;margin-bottom:6px;">Notes for the buyer</label>
+          <textarea name="notas_seller" class="tf-input" rows="3" placeholder="Commercial terms, delivery timeline…">{{ cot.notas_seller }}</textarea>
+        </div>
+        <div style="margin-top:1.25rem;display:flex;gap:12px;flex-wrap:wrap;">
+          <button type="submit" class="btn-seller-primary">
+            <span class="material-symbols-rounded" style="font-size:18px;">send</span>
+            Submit quote
+          </button>
+          <a href="{% url 'seller_cotizaciones' %}" class="btn-seller-outline">Back</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

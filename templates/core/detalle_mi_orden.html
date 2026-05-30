@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load static tf_media %}
 
 {#
   detalle_mi_orden.html — Detalle de una orden del comprador
@@ -9,9 +9,10 @@
     pago   → Payment instance o None
 #}
 
-{% block title %}Orden {{ orden.order_number }} — TradeFlow Colón{% endblock %}
+{% block title %}Order {{ orden.order_number }} — TradeFlow Colón{% endblock %}
 
 {% block extra_css %}
+<style>
 .detalle-wrap { max-width: 820px; margin: 0 auto; padding: 2rem 1.5rem; }
 .detalle-nav {
   display: flex; align-items: center; gap: 8px;
@@ -48,6 +49,15 @@
 .info-fila { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px; }
 .info-fila .lbl { color: var(--tf-muted); }
 .info-fila .val { color: var(--tf-dark); font-weight: 500; text-align: right; }
+.detalle-factura-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; margin-top: 10px; padding: 10px 16px; border-radius: 8px;
+  font-size: 0.875rem; font-weight: 600; text-decoration: none;
+  background: #fff; color: #0F2A44; border: 1.5px solid #D1D5DB;
+  transition: all 0.2s ease;
+}
+.detalle-factura-btn:hover { background: #F2F3F5; border-color: #2E5B8A; color: #0F2A44; }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -55,7 +65,7 @@
 
   {# Navegación de migas de pan #}
   <div class="detalle-nav">
-    <a href="{% url 'mis_ordenes' %}">Mis Órdenes</a>
+    <a href="{% url 'mis_ordenes' %}">My Orders</a>
     <span>/</span>
     <span>{{ orden.order_number }}</span>
   </div>
@@ -67,14 +77,10 @@
     {# ── Columna izquierda: items y notas ── #}
     <div>
       <div class="detalle-card">
-        <div class="detalle-card-title">Productos ({{ orden.items.count }})</div>
+        <div class="detalle-card-title">Products ({{ orden.items.count }})</div>
         {% for item in orden.items.all %}
         <div class="item-row">
-          {% if item.product.image %}
-            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-img">
-          {% else %}
-            <div class="item-img" style="display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--tf-sand2);">P</div>
-          {% endif %}
+            <img src="{{ item.product|product_image_src }}" alt="{{ item.product.name }}" class="item-img" loading="lazy" decoding="async">
           <div class="item-info">
             <div class="item-nombre">{{ item.product.name }}</div>
             <div class="item-empresa">{{ item.product.company.name }}</div>
@@ -101,19 +107,19 @@
       </div>
 
       <div class="detalle-card">
-        <div class="detalle-card-title">Resumen de pago</div>
+        <div class="detalle-card-title">Summary de pago</div>
         <div class="resumen-fila"><span>Subtotal</span><span>USD {{ orden.subtotal }}</span></div>
-        <div class="resumen-fila"><span>Envío</span><span>USD {{ orden.shipping_cost }}</span></div>
+        <div class="resumen-fila"><span>Shipping</span><span>USD {{ orden.shipping_cost }}</span></div>
         <div class="resumen-total-final"><span>Total</span><span>USD {{ orden.total }}</span></div>
       </div>
 
       {% if pago %}
       <div class="detalle-card">
-        <div class="detalle-card-title">Información de pago</div>
-        <div class="info-fila"><span class="lbl">Método</span><span class="val">{{ pago.get_provider_display }}</span></div>
+        <div class="detalle-card-title">Payment information</div>
+        <div class="info-fila"><span class="lbl">Method</span><span class="val">{{ pago.get_provider_display }}</span></div>
         <div class="info-fila"><span class="lbl">Estado</span><span class="val">{{ pago.get_status_display }}</span></div>
         {% if pago.paid_at %}
-        <div class="info-fila"><span class="lbl">Pagado el</span><span class="val">{{ pago.paid_at|date:"d/m/Y H:i" }}</span></div>
+        <div class="info-fila"><span class="lbl">Paid el</span><span class="val">{{ pago.paid_at|date:"d/m/Y H:i" }}</span></div>
         {% endif %}
         {% if pago.txn_ref %}
         <div class="info-fila"><span class="lbl">Referencia</span><span class="val" style="font-size:0.78rem;">{{ pago.txn_ref }}</span></div>
@@ -121,9 +127,19 @@
       </div>
       {% endif %}
 
+      <a href="{% url 'descargar_factura' orden_pk=orden.pk %}" class="btn-tf btn-primary-tf" style="width:100%;justify-content:center;margin-bottom:8px;">
+        <span class="material-symbols-rounded" style="font-size:20px;">description</span>
+        Descargar Factura PDF
+      </a>
+
+      <a href="{% url 'descargar_packing_list' orden_pk=orden.pk %}" class="btn-tf btn-secondary-tf" style="width:100%;justify-content:center;margin-bottom:12px;">
+        <span class="material-symbols-rounded" style="font-size:20px;">inventory</span>
+        Packing List PDF
+      </a>
+
       <a href="{% url 'tienda' %}" class="btn-tf btn-tf-teal"
          style="width:100%;justify-content:center;margin-top:4px;">
-        Seguir comprando
+        Continue shopping
       </a>
     </div>
   </div>

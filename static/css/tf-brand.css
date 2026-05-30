@@ -1,0 +1,94 @@
+/**
+ * TradeFlow — reglas de branding (logos oficiales)
+ */
+.tf-logo-img {
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.tf-nav-brand .tf-logo-img {
+  height: 36px;
+  width: auto;
+  max-width: 168px;
+}
+
+.sp-brand-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px 16px;
+  border-bottom: 1px solid var(--tf-border, #D1D5DB);
+  margin-bottom: 8px;
+}
+
+.sp-brand-logo .tf-logo-wordmark {
+  height: 36px;
+  max-width: 200px;
+}
+
+.sp-brand-logo .tf-logo-icon {
+  height: 36px;
+}
+
+.auth-logo-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.auth-logo-block .tf-logo-wordmark {
+  height: 56px;
+  max-width: min(320px, 90vw);
+}
+
+.tf-loader-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+.tf-loader-brand .tf-logo-icon {
+  animation: tfLogoPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes tfLogoPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(0.98); }
+}
+
+.tf-footer-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tf-footer-brand-row .tf-logo-wordmark {
+  height: 32px;
+  opacity: 0.95;
+}
+
+.tf-empty-brand {
+  opacity: 0.12;
+  pointer-events: none;
+  margin: 0 auto 1rem;
+  max-width: 180px;
+}
+
+.tf-watermark {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  opacity: 0.04;
+  height: 120px;
+  width: auto;
+  pointer-events: none;
+}

@@ -1,0 +1,110 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+================================================================================
+templates/core/cotizacion_form.html — TradeFlow Colón
+Propósito: formulario para solicitar cotización RFQ a una empresa (productos + cantidades).
+Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones == en tags.
+================================================================================
+{% endcomment %}
+{% block title %}New quote — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<style>
+  .cot-form-page { max-width: 920px; margin: 0 auto; padding: 48px 24px 64px; }
+  .cot-form-card {
+    background: #fff;
+    border: 1px solid var(--tf-border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    box-shadow: var(--tf-shadow-card, 0 2px 8px rgba(15,42,68,0.08));
+  }
+  .cot-form-card h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: var(--tf-navy);
+    margin: 0 0 8px;
+  }
+  .cot-form-lead { color: var(--tf-muted); font-size: 0.9rem; margin: 0 0 1.5rem; }
+  .cot-form-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 1.5rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="tf-page cot-form-page" style="padding-top: 48px;">
+  <div class="cot-form-card">
+    <h1>Request quote</h1>
+    <p class="cot-form-lead">Choose a company and quantities per product. You will receive a formal response with prices.</p>
+
+    <form method="get" action="{% url 'solicitar_cotizacion' %}" class="t-filters" style="margin-bottom:1.5rem;">
+      <label class="w-100" style="max-width:360px;">
+        <span style="display:block;font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;margin-bottom:6px;">Business destino</span>
+        <select name="empresa" class="tf-input" style="width:100%;" onchange="this.form.submit()">
+          <option value="">Seleccionar empresa…</option>
+          {% for e in empresas %}
+          <option value="{{ e.id }}" id="cot-opt-emp-{{ e.id }}">{{ e.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </form>
+
+    {% if empresa_obj %}
+    <form method="post" action="{% url 'solicitar_cotizacion' %}">
+      {% csrf_token %}
+      <input type="hidden" name="empresa_id" value="{{ empresa_obj.id }}">
+      <div class="mb-3">
+        <label class="form-label" style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;">Requested validity (days)</label>
+        <input type="number" name="validez_dias" class="tf-input" value="30" min="1" max="365" style="max-width:160px;">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" style="font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;">Notas / especificaciones</label>
+        <textarea name="notas_buyer" class="tf-input" rows="3" placeholder="Requisitos, incoterm, embalaje…"></textarea>
+      </div>
+      <h2 style="font-size:1rem;font-weight:700;color:var(--tf-navy);margin:1.5rem 0 12px;">Products — {{ empresa_obj.name }}</h2>
+      <div class="table-responsive">
+        <table class="table align-middle" style="font-size:0.9rem;">
+          <thead style="background:#f9fafb;font-size:11px;text-transform:uppercase;color:#6b7a88;">
+            <tr>
+              <th>Producto</th>
+              <th style="width:120px;">Cantidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in productos_emp %}
+            <tr>
+              <td>
+                <strong style="color:var(--tf-navy);">{{ p.name }}</strong>
+                <div style="font-size:0.8rem;color:var(--tf-muted);">USD {{ p.unit_price }} · Stock {{ p.available_qty }}</div>
+              </td>
+              <td>
+                <input type="number" class="tf-input" name="qty_{{ p.id }}" value="0" min="0" max="{{ p.available_qty }}" style="width:100%;">
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="cot-form-actions">
+        <button type="submit" class="tf-btn-primary">
+          <span class="material-symbols-rounded" style="font-size:18px;">send</span>
+          Submit quote
+        </button>
+        <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">Cancelar</a>
+      </div>
+    </form>
+    {% else %}
+    <p style="color:var(--tf-muted);margin:0;">Select a company above to view its products.</p>
+    <div style="margin-top:1rem;">
+      <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">Volver a mis cotizaciones</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+<script>
+(function () {
+  var id = "{{ empresa_id|escapejs }}";
+  if (!id) return;
+  var opt = document.getElementById("cot-opt-emp-" + id);
+  if (opt) opt.selected = true;
+})();
+</script>
+{% endblock %}

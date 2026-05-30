@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="TradeFlow">
+  <rect width="64" height="64" rx="12" fill="none"/>
+  <path fill="#FFFFFF" d="M14 14h22c6 0 10 4 10 10s-4 10-10 10H22v16H14V14zm8 8v12h8c2.2 0 4-1.8 4-4s-1.8-4-4-4h-8z"/>
+  <path fill="#F26522" d="M36 30h14v6H42v4h6c4 0 6 2 6 6s-2 6-6 6H36V30zm8 8v4h2c1.1 0 2-.9 2-2s-.9-2-2-2h-2z"/>
+</svg>

@@ -1,0 +1,94 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/colors.css' %}">
+<link rel="stylesheet" href="{% static 'css/seller_portal_premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
+{% block seller_extra_head %}{% endblock %}
+{% endblock %}
+{% block extra_css %}{% block seller_extra_css %}{% endblock %}{% endblock %}
+{% block content %}
+<div class="sp-shell" id="sp-shell">
+  <aside class="sp-sidebar" id="sp-sidebar" aria-label="Seller panel">
+    <a href="{% url 'portal_seller' %}" class="sp-brand-logo" style="text-decoration:none;">
+      {% include "core/includes/tf_logo.html" with variant="icon-color" size="sidebar" class="sp-logo-wordmark" %}
+      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);">{{ company.name|default:"TradeFlow" }}</span>
+    </a>
+    <nav class="sp-nav">
+      <a href="{% url 'portal_seller' %}" data-sp-nav="mi_tienda">
+        <span class="material-symbols-rounded">dashboard</span>Dashboard
+      </a>
+      <a href="{% url 'seller_mis_productos' %}" data-sp-nav="seller_productos">
+        <span class="material-symbols-rounded">inventory_2</span>Products
+      </a>
+      <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas">
+        <span class="material-symbols-rounded">payments</span>My Sales
+      </a>
+      <a href="{% url 'seller_cotizaciones' %}" data-sp-nav="seller_cotizaciones">
+        <span class="material-symbols-rounded">request_quote</span>Quotes
+      </a>
+      <a href="{% url 'seller_agregar_producto' %}" data-sp-nav="seller_productos">
+        <span class="material-symbols-rounded">add_circle</span>Add product
+      </a>
+      <a href="{% url 'seller_plan_consumo' %}" data-sp-nav="mi_tienda">
+        <span class="material-symbols-rounded">workspace_premium</span>Plan
+      </a>
+      {% if saas_snapshot and saas_snapshot.predictive_ai_enabled %}
+      <a href="{% url 'seller_predictive_insights' %}" data-sp-nav="seller_insights">
+        <span class="material-symbols-rounded">insights</span>AI Insights
+      </a>
+      {% endif %}
+      <a href="{% url 'mi_perfil' %}" data-sp-nav="perfil">
+        <span class="material-symbols-rounded">business</span>Company profile
+      </a>
+    </nav>
+    <div class="sp-sidebar-foot">Colón Free Zone</div>
+  </aside>
+  <div class="sp-main">
+    {% block seller_topbar %}
+    <header class="sp-topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button type="button" class="sp-btn sp-btn-secondary" id="sp-menu-toggle" style="display:none;padding:8px;" aria-label="Menu">
+          <span class="material-symbols-rounded">menu</span>
+        </button>
+        <div style="display:flex;align-items:center;gap:12px;">
+          {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="sp-topbar-logo" lazy=1 %}
+          <div>
+            <h1>{% block seller_page_title %}{{ titulo_pagina|default:"My Panel" }}{% endblock %}</h1>
+            {% block seller_page_sub %}{% endblock %}
+          </div>
+        </div>
+      </div>
+      <div class="sp-topbar-actions">
+        {% block seller_topbar_actions %}
+        <a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary">
+          <span class="material-symbols-rounded" style="font-size:18px;">add</span>Add
+        </a>
+        {% endblock %}
+      </div>
+    </header>
+    {% endblock %}
+    <div class="sp-content">
+      {% block seller_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+<script>document.body.classList.add('sp-mode');</script>
+<script>
+(function () {
+  var nav = '{{ nav_activo|default:""|escapejs }}';
+  document.querySelectorAll('[data-sp-nav]').forEach(function (a) {
+    if (a.getAttribute('data-sp-nav') === nav) a.classList.add('is-active');
+  });
+  var t = document.getElementById('sp-menu-toggle');
+  var s = document.getElementById('sp-sidebar');
+  if (t && s) t.addEventListener('click', function () { s.classList.toggle('is-open'); });
+  if (window.matchMedia('(max-width:900px)').matches && t) t.style.display = 'inline-flex';
+})();
+</script>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/seller_portal.js' %}"></script>
+{% block seller_extra_js %}{% endblock %}
+{% endblock %}

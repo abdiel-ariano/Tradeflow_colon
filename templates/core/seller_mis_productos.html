@@ -1,98 +1,88 @@
-{% extends "core/base.html" %}
+{% extends "core/seller_layout.html" %}
 {% load static %}
-{% block title %}Mis productos — TradeFlow{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/seller_portal.css' %}">
+{% block title %}Products — TradeFlow{% endblock %}
+{% block seller_page_title %}My Products{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Catalog and inventory</p>{% endblock %}
+{% block seller_topbar_actions %}
+<a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>New</a>
 {% endblock %}
-{% block content %}
-<div class="seller-layout">
-  {% include "core/seller_sidebar.html" %}
-  <div class="seller-main">
-    <h1>Mis productos</h1>
-    <p class="seller-sub">Gestiona el catálogo de {{ company.name }}.</p>
-    <div class="seller-toolbar">
-      <a href="{% url 'seller_agregar_producto' %}" class="btn-seller-primary">Nuevo producto</a>
-      <form class="seller-filters" method="get" action="">
-        <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Buscar nombre o SKU…">
-        <select class="tf-input" name="categoria" style="max-width:220px;">
-          <option value="">Todas las categorías</option>
-          {% for c in categorias %}
-          <option value="{{ c.pk }}">{{ c.name }}</option>
-          {% endfor %}
-        </select>
-        <button type="submit" class="btn-seller-outline">Filtrar</button>
-      </form>
-    </div>
-    <script>
-    (function () {
-      var sel = document.querySelector("select[name=categoria]");
-      if (!sel) return;
-      var wanted = "{{ cat_activa|escapejs }}";
-      for (var i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].value === wanted) { sel.selectedIndex = i; break; }
-      }
-    })();
-    </script>
-    <div class="seller-table-wrap">
-      {% if productos %}
-      <table class="seller-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Producto</th>
-            <th>SKU</th>
-            <th>Precio</th>
-            <th>Stock</th>
-            <th>Estado</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in productos %}
-          <tr>
-            <td style="width:56px;">
-              {% if p.image %}
-              <img class="seller-product-thumb" src="{{ p.image.url }}" alt="">
-              {% else %}
-              <div class="seller-product-thumb"></div>
-              {% endif %}
-            </td>
-            <td><strong>{{ p.name }}</strong>{% if p.category %}<br><span style="color:var(--tf-muted);font-size:0.82rem;">{{ p.category.name }}</span>{% endif %}</td>
-            <td>{{ p.sku|default:"—" }}</td>
-            <td>{{ p.unit_price }} {{ p.currency }}</td>
-            <td>
-              {% if p.inventory %}
-                {% with av=p.inventory.available %}
-                <span class="seller-stock-pill {% if not av %}seller-stock-out{% elif p.inventory.is_low_stock %}seller-stock-low{% else %}seller-stock-ok{% endif %}">{{ av }} disp.</span>
-                {% endwith %}
-              {% else %}
-                <span class="seller-stock-pill seller-stock-out">0</span>
-              {% endif %}
-            </td>
-            <td>{% if p.is_active %}<span class="tf-badge tf-badge-teal">Activo</span>{% else %}<span class="tf-badge tf-badge-warn">Inactivo</span>{% endif %}</td>
-            <td style="white-space:nowrap;">
-              <a href="{% url 'seller_editar_producto' p.pk %}">Editar</a> ·
-              <a href="{% url 'seller_toggle_producto' p.pk %}">Toggle</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p style="padding:1.25rem;color:var(--tf-muted);">No hay productos con estos filtros.</p>
-      {% endif %}
-    </div>
-    {% if productos.has_other_pages %}
-    <nav style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap;">
-      {% if productos.has_previous %}
-      <a class="btn-seller-outline" href="?page={{ productos.previous_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Anterior</a>
-      {% endif %}
-      <span style="align-self:center;color:var(--tf-muted);font-size:0.88rem;">Página {{ productos.number }} de {{ productos.paginator.num_pages }}</span>
-      {% if productos.has_next %}
-      <a class="btn-seller-outline" href="?page={{ productos.next_page_number }}&buscar={{ buscar|urlencode }}&categoria={{ cat_activa|urlencode }}">Siguiente</a>
-      {% endif %}
-    </nav>
-    {% endif %}
-  </div>
+
+{% block seller_content %}
+<div class="sp-kpi-grid">
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Total</span><p class="sp-kpi-val">{{ dash.kpi_total }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Active</span><p class="sp-kpi-val">{{ dash.kpi_activos }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Low stock</span><p class="sp-kpi-val warn">{{ dash.kpi_bajo_stock }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">No sales yet</span><p class="sp-kpi-val warn">{{ dash.kpi_sin_ventas }}</p></article>
 </div>
+
+<div class="sp-grid-2">
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>By category</h2></div>
+    <div class="sp-chart-box sp-chart-box--compact">
+      <canvas id="sd-chart-cat"></canvas>
+    </div>
+  </section>
+  <section class="sp-card">
+    <form method="get" class="sp-filter-form" style="display:flex;flex-direction:column;gap:12px;">
+      <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Search…" maxlength="120">
+      <select class="tf-input" name="categoria">
+        <option value="">Category</option>
+        {% for c in categorias %}<option value="{{ c.pk }}" {% if cat_activa == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+      </select>
+      <select class="tf-input" name="estado">
+        <option value="">Status</option>
+        <option value="activo" {% if estado_filtro == 'activo' %}selected{% endif %}>Active</option>
+        <option value="inactivo" {% if estado_filtro == 'inactivo' %}selected{% endif %}>Inactive</option>
+      </select>
+      <button type="submit" class="sp-btn sp-btn-primary">Filter</button>
+    </form>
+  </section>
+</div>
+
+<div id="sp-product-list">
+{% for p in productos %}
+<article class="sp-product-row" data-product-id="{{ p.pk }}">
+  {% if p.image %}<img src="{{ p.image.url }}" alt="" class="sp-product-img" loading="lazy">{% else %}
+  <div class="sp-product-img" style="display:flex;align-items:center;justify-content:center;"><span class="material-symbols-rounded" style="color:var(--tf-muted);">inventory_2</span></div>{% endif %}
+  <div>
+    <div style="font-weight:700;color:var(--tf-navy);">{{ p.name }}</div>
+    <div style="font-size:12px;color:var(--tf-muted);">{{ p.sku|default:"—" }} · {{ p.category.name|default:"—" }}</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-top:6px;">{{ p.currency }} {{ p.display_price }}</div>
+    <div style="font-size:12px;margin-top:4px;">Stock: {% if p.inventory %}<span style="color:{% if p.inventory.is_low_stock %}#c62828{% else %}#2e7d32{% endif %};font-weight:700;">{{ p.inventory.stock_qty }}</span>{% else %}—{% endif %}</div>
+  </div>
+  <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
+    <span class="sp-status {% if p.is_active %}sp-status-delivered{% else %}sp-status-cancelled{% endif %}" data-sp-active-badge data-label-on="Active" data-label-off="Inactive">{% if p.is_active %}Active{% else %}Inactive{% endif %}</span>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <label class="sp-toggle" data-sp-product-toggle data-toggle-url="{% url 'seller_toggle_producto' p.pk %}" title="Activate or deactivate">
+        <input type="checkbox" {% if p.is_active %}checked{% endif %} aria-label="Product status">
+        <span class="sp-toggle-track"></span>
+        <span class="sp-toggle-thumb"></span>
+      </label>
+      <a href="{% url 'seller_editar_producto' p.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 12px;font-size:12px;">Edit</a>
+    </div>
+  </div>
+</article>
+{% empty %}
+<div class="sp-card sp-empty">No products yet</div>
+{% endfor %}
+</div>
+
+{% if productos.has_other_pages %}
+<nav style="display:flex;gap:8px;justify-content:center;margin-top:20px;">
+  {% if productos.has_previous %}<a class="sp-btn sp-btn-secondary" href="?page={{ productos.previous_page_number }}">Previous</a>{% endif %}
+  {% if productos.has_next %}<a class="sp-btn sp-btn-secondary" href="?page={{ productos.next_page_number }}">Next</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block seller_extra_js %}
+<script>
+window.SP_PRODUCTS = {
+  catLabels: {{ chart_cat_labels_json|safe }},
+  catValues: {{ chart_cat_values_json|safe }}
+};
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.TFSeller) TFSeller.initProductsPage(window.SP_PRODUCTS);
+});
+</script>
 {% endblock %}

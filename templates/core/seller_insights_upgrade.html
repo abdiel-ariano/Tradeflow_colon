@@ -1,0 +1,15 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Predictive insights — TradeFlow{% endblock %}
+{% block seller_page_title %}Enterprise predictive insights{% endblock %}
+
+{% block seller_content %}
+<section class="sp-card" style="max-width:560px;margin:24px auto;padding:32px;text-align:center;">
+  <span class="material-symbols-rounded" style="font-size:48px;color:var(--tf-orange);">lock</span>
+  <h2 style="font-family:'DM Serif Display',serif;color:var(--tf-navy);margin:16px 0 10px;">Available on Enterprise ecosystem</h2>
+  <p style="font-size:14px;color:var(--tf-muted);line-height:1.6;margin:0 0 20px;">
+    Sales forecast, stock alerts, and AI narrative on your operational data. Activate Enterprise with commercial review.
+  </p>
+  <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-btn sp-btn-primary" style="justify-content:center;margin-bottom:10px;">Enterprise application</a>
+  <a href="{% url 'seller_plan_consumo' %}#upgrade" class="sp-btn sp-btn-secondary" style="justify-content:center;">View SaaS plans</a>
+</section>
+{% endblock %}

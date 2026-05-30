@@ -2,8 +2,6 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/formularios.css' %}">
-<link rel="stylesheet" href="{% static 'css/productos.css' %}">
 <style>
 .wizard-steps { display:flex; gap:0; margin-bottom:28px; }
 .wizard-step { flex:1; padding:12px 16px; background:var(--color-bg,#f0f0f0); text-align:center; font-size:.82rem; color:#888; border-bottom:3px solid transparent; }
@@ -34,9 +32,10 @@
 {% endblock %}
 
 {% block content %}
+<div class="tf-centered-page">
 <div class="wizard-steps">
-  <div class="wizard-step done">1. Comprador</div>
-  <div class="wizard-step active">2. Productos</div>
+  <div class="wizard-step done">1. Buyer</div>
+  <div class="wizard-step active">2. Products</div>
   <div class="wizard-step">3. Confirmar</div>
 </div>
 
@@ -48,7 +47,7 @@
       <input type="text" name="buscar" value="{{ buscar }}" class="form-control"
              placeholder="Buscar producto o SKU..." style="flex:1;min-width:180px;">
       <select name="categoria" class="form-control" style="width:180px;">
-        <option value="">Todas las categorías</option>
+        <option value="">All categories</option>
         {% for cat in categorias %}
         <option value="{{ cat.pk }}" {% if cat_activa == cat.pk|stringformat:'s' %}selected{% endif %}>
           {{ cat.name }}
@@ -81,7 +80,7 @@
           <input type="hidden" name="producto_id" value="{{ p.pk }}">
           <input type="number" name="cantidad" value="1" min="1" max="{{ p.available_qty }}">
           <button type="submit" class="btn btn-primary" style="flex:1;padding:5px 10px;font-size:.8rem;">
-            <i data-feather="plus" width="12" height="12"></i> Agregar
+            <i data-feather="plus" width="12" height="12"></i> Add
           </button>
         </form>
         {% else %}
@@ -89,14 +88,14 @@
         {% endif %}
       </div>
       {% empty %}
-      <p style="color:#888;grid-column:1/-1;">No se encontraron productos activos.</p>
+      <p style="color:#888;grid-column:1/-1;">No products found activos.</p>
       {% endfor %}
     </div>
   </div>
 
   <!-- Panel derecho: carrito -->
   <div class="carrito-card">
-    <h4 style="margin-bottom:12px;">Carrito</h4>
+    <h4 style="margin-bottom:12px;">Cart</h4>
 
     {% if items_carrito %}
       {% for item in items_carrito %}
@@ -134,7 +133,7 @@
 
     {% else %}
       <p style="color:#aaa;font-size:.85rem;text-align:center;padding:20px 0;">
-        Agrega productos desde el catálogo.
+        Add products from the catalog.
       </p>
     {% endif %}
 
@@ -143,5 +142,6 @@
     </a>
   </div>
 
+</div>
 </div>
 {% endblock %}

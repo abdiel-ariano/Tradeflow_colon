@@ -1,0 +1,7 @@
+/* TradeFlow buyer portal */
+.bp-page { max-width: 1280px; margin: 0 auto; padding: 24px; }
+.bp-promo-band { background: linear-gradient(135deg, var(--tf-dark2) 0%, var(--tf-dark) 100%); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; color: var(--tf-white); }
+.bp-checkout-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; }
+@media (max-width: 900px) { .bp-checkout-grid { grid-template-columns: 1fr; } }
+.bp-sticky { position: sticky; top: 88px; }
+.bp-status-awaiting { background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 20px; font-size: 11px; }

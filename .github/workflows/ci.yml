@@ -1,0 +1,43 @@
+name: TradeFlow CI
+
+on:
+  push:
+    branches: [master, 'cursor/**']
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: tradeflow_colon.settings
+      SECRET_KEY: ci-test-secret-key-not-for-production
+      DEBUG: 'true'
+      REQUIRE_APPROVED_APPLICATION: 'false'
+      REQUIRE_EMAIL_VERIFICATION: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/admin-saas/package-lock.json
+      - name: Build admin SaaS dashboard
+        run: |
+          cd frontend/admin-saas
+          npm ci
+          npm run build
+      - name: Django check
+        run: python manage.py check
+      - name: Migrations check
+        run: python manage.py makemigrations --check --dry-run
+      - name: Release check
+        run: python manage.py release_check --allow-debug
+      - name: Tests
+        run: python manage.py test core.tests.test_flujo_compra -v2

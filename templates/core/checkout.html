@@ -1,104 +1,115 @@
 {% extends "core/base.html" %}
 {% load static %}
-
-{#
-  checkout.html — Formulario de confirmación de compra
-
-  Contexto esperado:
-    carrito   → dict de sesión con los items
-    subtotal  → Decimal
-#}
-
-{% block title %}Confirmar Pedido — TradeFlow Colón{% endblock %}
-
+{% block title %}Confirm order — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-.checkout-wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
-.checkout-titulo { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--tf-dark); margin-bottom: 1.75rem; }
-.checkout-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; }
-.checkout-form-card { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: var(--radius); padding: 1.5rem; }
-.checkout-section-title { font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--tf-muted); margin-bottom: 1rem; }
-.checkout-textarea {
-  width: 100%; border: 1.5px solid var(--tf-border); border-radius: var(--radius-sm);
-  padding: 10px 13px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
-  color: var(--tf-text); resize: vertical; min-height: 80px; transition: border-color .18s;
-}
-.checkout-textarea:focus { outline: none; border-color: var(--tf-teal); }
-.info-box {
-  background: #e8f4f8; border: 1px solid #9fcfe0; border-radius: var(--radius-sm);
-  padding: 12px 14px; font-size: 0.85rem; color: #1a4f65; line-height: 1.5;
-  margin-bottom: 1rem;
-}
-.resumen-item {
-  display: flex; gap: 10px; align-items: center;
-  margin-bottom: 10px; padding-bottom: 10px;
-  border-bottom: 1px solid var(--tf-border);
-}
-.resumen-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.resumen-item img { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: #f0ede8; }
-.resumen-item-info { flex: 1; }
-.resumen-item-nombre { font-size: 0.85rem; font-weight: 500; color: var(--tf-dark); }
-.resumen-item-qty { font-size: 0.78rem; color: var(--tf-muted); }
-.resumen-item-price { font-size: 0.9rem; font-weight: 600; color: var(--tf-dark); }
-.total-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem; color: var(--tf-muted); }
-.total-final { display: flex; justify-content: space-between; border-top: 1px solid var(--tf-border); padding-top: 10px; margin-top: 10px; font-weight: 600; color: var(--tf-dark); }
-.total-final span:last-child { font-family: 'DM Serif Display', serif; font-size: 1.15rem; }
-.btn-confirmar {
-  width: 100%; padding: 12px; background: var(--tf-teal); color: #fff;
-  border: none; border-radius: var(--radius-sm);
-  font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
-  cursor: pointer; margin-top: 1rem; transition: background .18s;
-}
-.btn-confirmar:hover { background: var(--tf-teal2); }
+<link rel="stylesheet" href="{% static 'css/tf_animations.css' %}">
+<style>
+  .co-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
+  .co-title { font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.5rem; text-align: center; }
+  .co-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.35rem; margin-bottom: 1rem; }
+  .co-sec { font-weight: 600; font-size: 0.8125rem; color: #6B7A88; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 1rem; }
+  .co-carrier { display: flex; gap: 10px; padding: 12px; border: 1px solid #E5E7EB; border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+  .co-carrier:has(input:checked) { border-color: #F26522; background: #FFF7ED; }
+  .co-geo-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 8px; border: 1.5px solid #2E5B8A; background: #fff; color: #0F2A44; font-weight: 600; cursor: pointer; }
+  .co-geo-btn.is-ok { border-color: #15803d; background: #F0FDF4; }
+  .co-geo-status { font-size: 0.85rem; color: #6B7A88; margin-top: 8px; }
+  .co-submit { width: 100%; margin-top: 1rem; padding: 12px; border: none; border-radius: 8px; background: #F26522; color: #fff; font-weight: 700; cursor: pointer; }
+  .co-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
 {% endblock %}
-
 {% block content %}
-<div class="checkout-wrap">
-  <h1 class="checkout-titulo">Confirmar pedido</h1>
-  <div class="checkout-grid">
+<div class="tf-page co-wrap">
+  <h1 class="co-title">Confirm order</h1>
+  <form method="post" id="co-form">
+    {% csrf_token %}
+    <input type="hidden" name="buyer_latitude" id="co-lat" value="">
+    <input type="hidden" name="buyer_longitude" id="co-lng" value="">
 
-    {# ── Formulario ── #}
-    <form method="post" action="{% url 'checkout' %}">
-      {% csrf_token %}
-      <div class="checkout-form-card">
-        <div class="checkout-section-title">Información de envío</div>
-        <div class="info-box">
-          Este es un pago de demostración. No se realizará ningún cargo real.
-          Tu orden será creada y marcada como pagada automáticamente.
+    <div class="co-card">
+      <div class="co-sec">Who transports your cargo?</div>
+      {% for t in transportistas %}
+      <label class="co-carrier">
+        <input type="radio" name="transport_carrier" value="{{ t.pk }}" required {% if forloop.first %}checked{% endif %}>
+        <div style="flex:1;">
+          <strong>{{ t.name }}</strong>
+          {% if t.description %}<div style="font-size:12px;color:#6B7A88;">{{ t.description }}</div>{% endif %}
         </div>
-        <div class="tf-field">
-          <label class="tf-label">Notas adicionales (opcional)</label>
-          <textarea name="notas" class="checkout-textarea"
-                    placeholder="Instrucciones especiales de entrega, referencias, etc."></textarea>
-        </div>
-        <input type="hidden" name="shipping_cost" value="0">
-        <button type="submit" class="btn-confirmar">Confirmar y pagar</button>
-      </div>
-    </form>
-
-    {# ── Resumen ── #}
-    <div>
-      <div class="checkout-form-card">
-        <div class="checkout-section-title">Tu pedido</div>
-        {% for prod_id, item in carrito.items %}
-        <div class="resumen-item">
-          {% if item.imagen %}
-            <img src="{{ item.imagen }}" alt="{{ item.nombre }}">
-          {% else %}
-            <div style="width:48px;height:48px;border-radius:6px;background:#f0ede8;flex-shrink:0;"></div>
-          {% endif %}
-          <div class="resumen-item-info">
-            <div class="resumen-item-nombre">{{ item.nombre }}</div>
-            <div class="resumen-item-qty">{{ item.cantidad }} unidad{{ item.cantidad|pluralize }}</div>
-          </div>
-          <div class="resumen-item-price">USD {{ item.subtotal }}</div>
-        </div>
-        {% endfor %}
-        <div class="total-row"><span>Subtotal</span><span>USD {{ subtotal }}</span></div>
-        <div class="total-row"><span>Envío</span><span>Por confirmar</span></div>
-        <div class="total-final"><span>Total</span><span>USD {{ subtotal }}</span></div>
-      </div>
+        <span style="font-weight:700;color:#F26522;">USD {{ t.base_shipping_cost }}</span>
+      </label>
+      {% empty %}
+      <p>No active carriers.</p>
+      {% endfor %}
     </div>
 
+    <div class="co-card">
+      <div class="co-sec">Delivery location</div>
+      <button type="button" class="co-geo-btn" id="co-geo-btn">
+        <span class="material-symbols-rounded">my_location</span>
+        Use my current location
+      </button>
+      <p class="co-geo-status" id="co-geo-status">You must confirm your location to continue.</p>
+    </div>
+
+    <div class="co-card">
+      <div class="co-sec">Notas</div>
+      <textarea name="notas" class="tf-input" style="width:100%;min-height:80px;" placeholder="Instrucciones de entrega…"></textarea>
+      {% if not checkout_auto_approve %}
+      <p style="font-size:0.85rem;color:#6B7A88;margin-top:10px;">
+        The company will confirm your order before charging (typical 48 h window).
+      </p>
+      {% endif %}
+      <button type="submit" class="co-submit" id="co-submit" disabled>
+        Enviar pedido
+      </button>
+    </div>
+  </form>
+
+  <div class="co-card">
+    <div class="co-sec">Summary</div>
+    {% for prod_id, item in carrito.items %}
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:14px;">
+      <span>{{ item.nombre }} × {{ item.cantidad }}</span>
+      <span style="font-weight:700;color:#F26522;">USD {{ item.subtotal }}</span>
+    </div>
+    {% endfor %}
+    <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:10px;color:#0F2A44;">
+      <span>Subtotal</span><span>USD {{ subtotal }}</span>
+    </div>
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var I = window.TF_I18N || {};
+  var lat = document.getElementById('co-lat');
+  var lng = document.getElementById('co-lng');
+  var status = document.getElementById('co-geo-status');
+  var btn = document.getElementById('co-geo-btn');
+  var submit = document.getElementById('co-submit');
+
+  function setOk() {
+    btn.classList.add('is-ok', 'tf-pulse-once');
+    submit.disabled = false;
+    status.textContent = I.geoConfirmed || 'Location confirmed.';
+    status.style.color = '#15803d';
+  }
+
+  btn.addEventListener('click', function () {
+    if (!navigator.geolocation) {
+      status.textContent = I.geoUnsupported || 'Your browser does not support geolocation.';
+      return;
+    }
+    status.textContent = 'Getting location…';
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      lat.value = pos.coords.latitude.toFixed(7);
+      lng.value = pos.coords.longitude.toFixed(7);
+      setOk();
+    }, function () {
+      status.textContent = I.geoDenied || 'Location permission denied.';
+      status.style.color = '#b91c1c';
+    }, { enableHighAccuracy: true, timeout: 12000 });
+  });
+})();
+</script>
 {% endblock %}

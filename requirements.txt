@@ -27,18 +27,23 @@ Pillow>=10.0                # procesamiento de imágenes para ImageField
 gunicorn>=21.2              # servidor WSGI para Railway/Heroku (reemplaza runserver)
 
 # ── Generación de PDFs (facturas y packing lists) ─────────────────────────
-# Descomenta cuando implementes el generador de documentos (Semana 3)
-# WeasyPrint>=60.0
+reportlab>=4.0
 
-# ── Seguridad extra ────────────────────────────────────────────────────────
-# django-axes bloquea IPs tras X intentos de login fallidos
-# Descomenta cuando tengas tiempo de configurarlo (añade migration + middleware)
-# django-axes>=6.3
+# ── Mapas interactivos ZLC ─────────────────────────────────────────────────
+folium>=0.16.0
 
-# ── Códigos QR (pre-registro ZLC) ─────────────────────────────────────────
-# Descomenta para el feature de QR de visitantes
-# qrcode[pil]>=7.4
+# ── Códigos QR (pre-registro visitantes ZLC) ─────────────────────────────
+qrcode[pil]>=7.4
 
-# ── HTMX (interactividad sin JavaScript pesado) ───────────────────────────
-# Descomenta si decides usar HTMX para el carrito o filtros dinámicos
-# django-htmx>=1.17
+# ── Supabase (Postgres remoto, Storage, Edge Functions) ───────────────────
+supabase>=2.4
+
+# ── Rate limiting login ────────────────────────────────────────────────────
+django-axes>=6.3,<7.0
+
+# ── Asistente IA (Groq API) ────────────────────────────────────────────────
+groq>=0.9.0
+
+# ── Supabase Storage (opcional, media en bucket S3-compatible) ─────────────
+django-storages>=1.14
+boto3>=1.34

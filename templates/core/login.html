@@ -1,104 +1,206 @@
 {% extends "core/base.html" %}
 {% load static %}
-
-{% block title %}Iniciar sesión — TradeFlow Colón{% endblock %}
-
-{% block extra_css %}
-body { background: var(--tf-light); }
-.login-wrap {
-  min-height: calc(100vh - 64px);
-  display: flex; align-items: center; justify-content: center;
-  padding: 2rem 1rem;
-}
-.login-card {
-  background: #fff;
-  border: 1px solid var(--tf-border);
-  border-radius: 16px;
-  width: 100%; max-width: 420px;
-  padding: 2.25rem 2rem;
-}
-.login-logo {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 1.75rem;
-}
-.login-logo img { height: 40px; width: 40px; object-fit: contain; }
-.login-logo .wordmark {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.4rem; color: var(--tf-dark);
-}
-.login-logo .wordmark span { color: var(--tf-teal); }
-.login-logo .sub { font-size: 0.72rem; color: var(--tf-muted); }
-.login-title { font-size: 1.05rem; font-weight: 600; color: var(--tf-dark); margin-bottom: 1.5rem; }
-.btn-login {
-  width: 100%; padding: 11px;
-  background: var(--tf-dark); color: #fff;
-  border: none; border-radius: var(--radius-sm);
-  font-size: 0.95rem; font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
-  cursor: pointer; margin-top: 6px;
-  transition: background .18s;
-}
-.btn-login:hover { background: var(--tf-dark2); }
-.divider {
-  text-align: center; color: var(--tf-muted); font-size: 0.82rem;
-  margin: 1rem 0; display: flex; align-items: center; gap: 10px;
-}
-.divider::before, .divider::after {
-  content: ''; flex: 1; height: 1px; background: var(--tf-border);
-}
-.signup-link { text-align: center; font-size: 0.88rem; color: var(--tf-muted); }
-.signup-link a { color: var(--tf-teal); font-weight: 600; text-decoration: none; }
-.signup-link a:hover { text-decoration: underline; }
-{% endblock %}
-
+{% comment %}
+================================================================================
+ACCIÓN: REEMPLAZAR
+DESTINO: templates/core/login.html
+================================================================================
+TradeFlow Colón — Home de sesión.
+Contexto: login_view; require_email_verification, mostrar_reenvio, email_pendiente.
+Sin comparaciones == en tags; pills/toggles con JavaScript.
+================================================================================
+{% endcomment %}
+{% block title %}Log in — TradeFlow Colón{% endblock %}
 {% block footer %}{% endblock %}
-
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
+{% endblock %}
+{% block extra_css %}
+<style>
+  .auth-page {
+    min-height: calc(100vh - 64px);
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--tf-light, #F2F3F5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+    background: var(--tf-white, #fff);
+    border: 1px solid var(--tf-border, #D1D5DB);
+    border-radius: 12px;
+    padding: 2.25rem 2rem;
+    box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08);
+  }
+  .auth-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+  .auth-logo img { width: 48px; height: 48px; object-fit: contain; }
+  .auth-brand { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.35rem; color: var(--tf-navy, #0F2A44); }
+  .auth-brand-sub { font-size: 0.75rem; color: var(--tf-muted, #6B7A88); font-weight: 500; margin-top: 2px; }
+  .auth-title { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1rem; color: var(--tf-mid, #1B3B63); margin-bottom: 1.25rem; }
+  .auth-dev-banner {
+    margin-bottom: 1rem;
+    padding: 10px 12px;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    color: #166534;
+    line-height: 1.45;
+  }
+  .auth-verify-banner {
+    margin-top: 1.25rem;
+    padding: 14px;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #1E40AF;
+  }
+  .auth-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 1.5rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--tf-border, #D1D5DB); }
+  .auth-toggle button {
+    padding: 10px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: none;
+    background: var(--tf-light, #F2F3F5);
+    color: var(--tf-muted, #6B7A88);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .auth-toggle button.is-on { background: var(--tf-navy, #0F2A44); color: #fff; }
+  .auth-toggle button .material-symbols-rounded { font-size: 18px; }
+  .auth-field { margin-bottom: 1rem; position: relative; }
+  .auth-field .tf-input { padding-left: 42px; }
+  .auth-field .field-ico {
+    position: absolute;
+    left: 12px;
+    top: 34px;
+    color: var(--tf-muted, #6B7A88);
+    pointer-events: none;
+  }
+  .auth-field .field-ico .material-symbols-rounded { font-size: 20px; }
+  .auth-submit {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: #fff;
+    background: var(--tf-orange, #F26522);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .auth-submit:hover { background: var(--tf-orange-h, #FF7A3D); box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3); }
+  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 1.25rem 0; color: var(--tf-muted, #6B7A88); font-size: 0.8125rem; }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--tf-border, #D1D5DB); }
+  .auth-footer { text-align: center; font-size: 0.875rem; color: var(--tf-muted, #6B7A88); }
+  .auth-footer a { color: var(--tf-orange, #F26522); font-weight: 700; text-decoration: none; }
+  .auth-footer a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
 {% block content %}
-<div class="login-wrap">
-  <div class="login-card">
-
-    <div class="login-logo">
-      <img src="{% static 'img/logo.png' %}" alt="TradeFlow">
-      <div>
-        <div class="wordmark">Trade<span>Flow</span></div>
-        <div class="sub">Zona Libre de Colón · Panamá</div>
-      </div>
+<div
+  class="auth-page"
+  style="min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5);"
+  id="auth-login-root"
+  data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
+>
+  <div class="auth-card">
+    <div class="auth-logo-block">
+      {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" eager=1 %}
+      <div class="auth-brand-sub" style="font-size:0.875rem;color:var(--tf-muted);">Colón Free Zone · Panama</div>
     </div>
 
-    <div class="login-title">Bienvenido de vuelta</div>
+    <div class="auth-dev-banner" id="auth-dev-banner" hidden>
+      Email verification disabled for local testing.
+    </div>
 
-    {% if messages %}
-      {% for message in messages %}
-      <div class="tf-alert tf-alert-{{ message.tags }}" style="margin-bottom:1.25rem;">
-        <span class="tf-alert-icon">
-          {% if message.tags == 'success' %}✓{% elif message.tags == 'danger' %}✕{% else %}!{% endif %}
-        </span>
-        <span class="tf-alert-msg">{{ message }}</span>
-        <button class="tf-alert-close" onclick="this.closest('.tf-alert').remove()">✕</button>
-      </div>
-      {% endfor %}
-    {% endif %}
-
-    <form method="post" novalidate>
+    <div class="auth-title">Welcome back</div>
+    <div class="auth-toggle" id="auth-login-toggle" role="group" aria-label="Account type">
+      <button type="button" id="auth-toggle-customer" class="is-on">
+        <span class="material-symbols-rounded">person</span> Customer
+      </button>
+      <button type="button" id="auth-toggle-business">
+        <span class="material-symbols-rounded">store</span> Business
+      </button>
+    </div>
+    <form method="post" action="{% url 'login' %}" novalidate>
       {% csrf_token %}
-      <div class="tf-field">
-        <label class="tf-label">Usuario</label>
-        <input type="text" name="username" class="tf-input"
-               placeholder="tu_usuario" autofocus required>
+      <div class="auth-field">
+        <label class="tf-label" for="id_username">Username</label>
+        <span class="field-ico"><span class="material-symbols-rounded">person</span></span>
+        <input type="text" name="username" id="id_username" class="tf-input" placeholder="your_username" autocomplete="username" autofocus required>
       </div>
-      <div class="tf-field">
-        <label class="tf-label">Contraseña</label>
-        <input type="password" name="password" class="tf-input"
-               placeholder="••••••••" required>
+      <div class="auth-field">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <label class="tf-label" for="id_password" style="margin:0;">Password</label>
+          <a href="{% url 'password_reset' %}" style="font-size:0.8125rem;color:var(--tf-blue);text-decoration:none;white-space:nowrap;">Forgot your password?</a>
+        </div>
+        <span class="field-ico"><span class="material-symbols-rounded">lock</span></span>
+        <input type="password" name="password" id="id_password" class="tf-input" placeholder="Password" autocomplete="current-password" required>
       </div>
-      <button type="submit" class="btn-login">Iniciar sesión</button>
+      <button type="submit" class="auth-submit">
+        <span class="material-symbols-rounded" style="font-size:18px;">login</span> Sign in
+      </button>
     </form>
-
-    <div class="divider">o</div>
-    <div class="signup-link">
-      ¿No tienes cuenta? <a href="{% url 'signup' %}">Regístrate gratis</a>
+    <div class="auth-divider">or</div>
+    <div class="auth-footer">
+      Don’t have an account? <a href="{% url 'signup' %}">Sign up for free</a>
     </div>
 
+    <div class="auth-verify-banner" id="auth-verify-resend" hidden>
+      <p style="margin:0 0 10px;">Didn't receive the verification email?</p>
+      <form method="post" action="{% url 'reenviar_verificacion_public' %}">
+        {% csrf_token %}
+        <input type="hidden" name="email" id="auth-pending-email" value="{{ email_pendiente|default:'' }}">
+        <button type="submit" class="auth-submit" style="margin-top:0;font-size:0.8125rem;padding:10px 14px;">
+          Resend verification email
+        </button>
+      </form>
+    </div>
   </div>
 </div>
+<script>
+(function () {
+  var root = document.getElementById('auth-login-root');
+  var requireVer = root && root.getAttribute('data-require-verification') === '1';
+  var devBanner = document.getElementById('auth-dev-banner');
+  if (devBanner && !requireVer) {
+    devBanner.hidden = false;
+  }
+  var resend = document.getElementById('auth-verify-resend');
+  var pendingEmail = '{{ email_pendiente|default:""|escapejs }}';
+  var showResend = requireVer && pendingEmail.length > 0;
+  if (resend && showResend) {
+    resend.hidden = false;
+    var em = document.getElementById('auth-pending-email');
+    if (em) em.value = pendingEmail;
+  }
+
+  var a = document.getElementById('auth-toggle-customer');
+  var b = document.getElementById('auth-toggle-business');
+  if (a && b) {
+    a.addEventListener('click', function () { a.classList.add('is-on'); b.classList.remove('is-on'); });
+    b.addEventListener('click', function () { b.classList.add('is-on'); a.classList.remove('is-on'); });
+  }
+})();
+</script>
 {% endblock %}

@@ -1,0 +1,65 @@
+{% comment %}Fragmento AJAX del catálogo comprador (grid + paginación).{% endcomment %}
+<div id="t-prod-section"
+     class="td-catalog-anchor"
+     data-cat-active="{{ cat_activa|escapejs }}"
+     data-empresa-active="{{ empresa_activa|escapejs }}"
+     data-orden-active="{{ orden_activo|escapejs }}"
+     data-buscar-active="{{ buscar|escapejs }}"
+     data-tab-active="{{ tab_catalogo|escapejs }}"
+     data-cur-page="{{ productos.number }}">
+  <div class="td-results-hdr">
+    <div>
+      <h1 id="td-results-title">
+        {% if tab_catalogo == 'ofertas' %}Active deals
+        {% elif tab_catalogo == 'bestsellers' %}Bestsellers
+        {% elif tab_catalogo == 'destacados' %}Featured products
+        {% else %}Full catalog{% endif %}
+      </h1>
+      <p class="td-results-count" id="td-results-count">
+        {% if productos.paginator.count == 1 %}{{ productos.paginator.count }} product found{% else %}{{ productos.paginator.count }} products found{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="td-grid" id="td-product-grid">
+    {% for producto in productos %}
+    {% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}
+    {% empty %}
+    <div class="td-empty">
+      <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
+      <h2>No products found</h2>
+      <p>Try another term or category</p>
+      <a href="{% url 'tienda' %}" class="td-btn-add">View alls los productos</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if productos.has_other_pages %}
+  <nav class="td-pag" id="td-pag" aria-label="Pagination">
+    {% if productos.has_previous %}
+    <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}"
+       class="td-pag-ajax td-pag-nav"
+       aria-label="Previous page">
+      <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+    </a>
+    {% endif %}
+    {% for slot in tienda_pagination_slots %}
+      {% if slot.type == 'ellipsis' %}
+      <span class="td-pag-ellipsis" aria-hidden="true">…</span>
+      {% else %}
+      <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ slot.num }}"
+         class="td-pag-link td-pag-ajax"
+         data-page="{{ slot.num }}"
+         {% if slot.num == productos.number %}aria-current="page"{% endif %}>{{ slot.num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if productos.has_next %}
+    <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}"
+       class="td-pag-ajax td-pag-nav"
+       aria-label="Next page">
+      <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+    </a>
+    {% endif %}
+  </nav>
+  {% endif %}
+</div>

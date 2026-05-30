@@ -1,0 +1,67 @@
+{% if saas_snapshot %}
+<section class="sp-saas-usage sp-saas-usage--growth" aria-label="Your growth on TradeFlow">
+  <div class="sp-saas-usage-head">
+    <div>
+      <span class="sp-saas-plan-tag">Your ecosystem</span>
+      <h3 class="sp-saas-plan-name">{{ saas_snapshot.plan.name }}</h3>
+      <p class="sp-saas-growth-msg">{{ saas_snapshot.growth_message }}</p>
+    </div>
+    {% if saas_snapshot.pending_checkout %}
+    <a href="{% url 'seller_plan_checkout_resume' %}" class="sp-btn sp-btn-primary" style="white-space:nowrap;font-size:12px;">
+      Continue payment →
+    </a>
+    {% else %}
+    <a href="{% url 'seller_plan_consumo' %}#upgrade" class="sp-plan-cta">Explore plans →</a>
+    {% endif %}
+  </div>
+
+  {% if saas_snapshot.flow_steps %}
+  <div class="sp-flow-journey" aria-label="Your journey progress">
+    <div class="sp-flow-journey-track">
+      <div class="sp-flow-journey-fill" style="width:{{ saas_snapshot.journey_pct|floatformat:0 }}%;"></div>
+    </div>
+    <ol class="sp-flow-steps">
+      {% for step in saas_snapshot.flow_steps %}
+      <li class="sp-flow-step is-{{ step.status }}">
+        <span class="sp-flow-step-dot" aria-hidden="true"></span>
+        <div class="sp-flow-step-body">
+          <span class="sp-flow-step-label">{{ step.label }}</span>
+          <span class="sp-flow-step-detail">{{ step.detail }}</span>
+          {% if step.status == 'current' and step.pct > 0 and step.key == 'activity' %}
+          <div class="sp-flow-step-meter" role="progressbar" aria-valuenow="{{ step.pct }}" aria-valuemin="0" aria-valuemax="100">
+            <div class="sp-flow-step-meter-fill {% if saas_snapshot.warning %}is-{{ saas_snapshot.warning }}{% endif %}" style="width:{{ step.pct }}%;"></div>
+          </div>
+          {% elif step.status == 'current' and step.key == 'pay' %}
+          <div class="sp-flow-step-meter" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">
+            <div class="sp-flow-step-meter-fill is-approaching" style="width:45%;"></div>
+          </div>
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+  {% elif saas_snapshot.show_public_meter %}
+  <div class="sp-saas-meter" role="progressbar" aria-valuenow="{{ saas_snapshot.meter_width_pct|default:0 }}" aria-valuemin="0" aria-valuemax="100" aria-label="Commercial activity level">
+    <div class="sp-saas-meter-fill {% if saas_snapshot.warning %}is-{{ saas_snapshot.warning }}{% endif %}" style="width:{{ saas_snapshot.meter_width_pct|floatformat:0 }}%;"></div>
+  </div>
+  {% elif saas_snapshot.is_unlimited %}
+  <p class="sp-saas-hint">Enterprise capacity · unlimited commercial operation</p>
+  {% endif %}
+
+  {% if saas_snapshot.warning == 'limit' %}
+  <p class="sp-saas-warn-soft">
+    {{ saas_snapshot.growth_message }}
+    <a href="{% url 'seller_plan_consumo' %}#upgrade" style="color:var(--tf-blue);font-weight:600;">Expand capabilities →</a>
+  </p>
+  {% elif saas_snapshot.warning == 'approaching' %}
+  <p class="sp-saas-warn-soft">Your operation is growing fast. A higher plan gives you more automation.</p>
+  {% endif %}
+  <div class="sp-saas-meta">
+    <span>TradeFlow Ads: {{ saas_snapshot.ad_credits_balance }} credits</span>
+    {% if saas_snapshot.api_enabled %}<span>Integrated API</span>{% endif %}
+    {% if saas_snapshot.webhooks_enabled %}<span>Connected logistics</span>{% endif %}
+    {% if saas_snapshot.predictive_ai_enabled %}<span>Predictive AI</span>{% endif %}
+  </div>
+</section>
+{% endif %}

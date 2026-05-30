@@ -1,190 +1,155 @@
 {% extends "core/base.html" %}
 {% load static %}
-
-{% block title %}Crear cuenta — TradeFlow Colón{% endblock %}
-
-{% block extra_css %}
-body { background: var(--tf-light); }
-.signup-wrap {
-  min-height: calc(100vh - 64px);
-  display: flex; align-items: center; justify-content: center;
-  padding: 2rem 1rem;
-}
-.signup-card {
-  background: #fff;
-  border: 1px solid var(--tf-border);
-  border-radius: 16px;
-  width: 100%; max-width: 480px;
-  padding: 2.25rem 2rem;
-}
-.signup-logo {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 1.5rem;
-}
-.signup-logo img { height: 40px; width: 40px; object-fit: contain; }
-.signup-logo .wordmark {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.4rem; color: var(--tf-dark);
-}
-.signup-logo .wordmark span { color: var(--tf-teal); }
-.signup-logo .sub { font-size: 0.72rem; color: var(--tf-muted); }
-.signup-title { font-size: 1.05rem; font-weight: 600; color: var(--tf-dark); margin-bottom: 1.5rem; }
-.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px; }
-.role-opt input[type="radio"] { display: none; }
-.role-opt label {
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  padding: 14px 10px;
-  border: 2px solid var(--tf-border);
-  border-radius: 10px; cursor: pointer;
-  text-align: center; font-size: 0.83rem;
-  color: var(--tf-muted); font-weight: 500;
-  transition: all .18s;
-}
-.role-opt label .ri { font-size: 1.4rem; }
-.role-opt label small { font-weight: 400; font-size: 0.75rem; color: #aab; }
-.role-opt input:checked + label {
-  border-color: var(--tf-teal);
-  background: rgba(98,146,154,.07);
-  color: var(--tf-teal);
-}
-.btn-signup {
-  width: 100%; padding: 11px;
-  background: var(--tf-dark); color: #fff;
-  border: none; border-radius: var(--radius-sm);
-  font-size: 0.95rem; font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
-  cursor: pointer; margin-top: 6px;
-  transition: background .18s;
-}
-.btn-signup:hover { background: var(--tf-dark2); }
-.divider {
-  text-align: center; color: var(--tf-muted); font-size: 0.82rem;
-  margin: 1rem 0; display: flex; align-items: center; gap: 10px;
-}
-.divider::before, .divider::after {
-  content: ''; flex: 1; height: 1px; background: var(--tf-border);
-}
-.login-link { text-align: center; font-size: 0.88rem; color: var(--tf-muted); }
-.login-link a { color: var(--tf-teal); font-weight: 600; text-decoration: none; }
-.login-link a:hover { text-decoration: underline; }
-.req { color: #e05a52; }
+{% comment %}
+================================================================================
+templates/core/signup.html — TradeFlow Colón
+Propósito: registro de compradores y vendedores con selector de rol.
+Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
+================================================================================
+{% endcomment %}
+{% block title %}Store — TradeFlow Colón{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 {% endblock %}
-
 {% block footer %}{% endblock %}
-
+{% block extra_css %}
+<style>
+  .auth-page {
+    min-height: calc(100vh - 64px);
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--tf-light, #F2F3F5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #fff; border: 1px solid #D1D5DB;
+    border-radius: 12px; padding: 2.25rem 2rem;
+    box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08);
+  }
+  .auth-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 1.25rem; }
+  .auth-logo img { width: 44px; height: 44px; object-fit: contain; }
+  .auth-brand { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.25rem; color: #0F2A44; }
+  .auth-brand-sub { font-size: 0.72rem; color: #6B7A88; font-weight: 500; margin-top: 2px; }
+  .auth-title { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1rem; color: #1B3B63; margin-bottom: 1rem; }
+  .auth-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 1.25rem; border-radius: 8px; overflow: hidden; border: 1px solid #D1D5DB; }
+  .auth-toggle label {
+    display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 10px;
+    cursor: pointer; font-size: 0.8125rem; font-weight: 600; color: #6B7A88; text-align: center;
+    background: #F2F3F5; transition: all 0.2s ease; margin: 0;
+  }
+  .auth-toggle label .material-symbols-rounded { font-size: 22px; }
+  .auth-toggle label small { font-weight: 400; font-size: 0.72rem; color: #6B7A88; }
+  .auth-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+  .auth-toggle .auth-toggle-cell { position: relative; }
+  .auth-toggle input:focus-visible + label { outline: 2px solid #2E5B8A; outline-offset: 2px; }
+  .auth-toggle input:checked + label { background: #0F2A44; color: #fff; border-color: #0F2A44; }
+  .auth-toggle input:checked + label small { color: rgba(255,255,255,0.75); }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .req { color: #EF4444; }
+  .auth-submit {
+    width: 100%; margin-top: 0.5rem; padding: 12px 16px; border: none; border-radius: 8px;
+    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.9375rem; color: #fff;
+    background: #F26522; cursor: pointer; transition: all 0.2s ease;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .auth-submit:hover { background: #FF7A3D; box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3); }
+  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 1.25rem 0; color: #6B7A88; font-size: 0.8125rem; }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: #D1D5DB; }
+  .auth-footer { text-align: center; font-size: 0.875rem; color: #6B7A88; }
+  .auth-footer a { color: #F26522; font-weight: 700; text-decoration: none; }
+  .auth-footer a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
 {% block content %}
-<div class="signup-wrap">
-  <div class="signup-card">
-
-    <div class="signup-logo">
-      <img src="{% static 'img/logo.png' %}" alt="TradeFlow">
-      <div>
-        <div class="wordmark">Trade<span>Flow</span></div>
-        <div class="sub">Zona Libre de Colón · Panamá</div>
-      </div>
+<div class="auth-page" style="min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5);">
+  <div class="auth-card">
+    <div class="auth-logo-block">
+      {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" eager=1 %}
+      <div class="auth-brand-sub" style="font-size:0.875rem;color:var(--tf-muted);">Colón Free Zone · Panama</div>
     </div>
-
-    <div class="signup-title">Crea tu cuenta</div>
-
-    {% if messages %}
-      {% for message in messages %}
-      <div class="tf-alert tf-alert-{{ message.tags }}" style="margin-bottom:1.25rem;">
-        <span class="tf-alert-icon">
-          {% if message.tags == 'success' %}✓{% elif message.tags == 'danger' %}✕{% else %}!{% endif %}
-        </span>
-        <span class="tf-alert-msg">{{ message }}</span>
-        <button class="tf-alert-close" onclick="this.closest('.tf-alert').remove()">✕</button>
-      </div>
-      {% endfor %}
-    {% endif %}
-
-    <form method="post" novalidate>
+    <div class="auth-title">Create account</div>
+    <form method="post" action="{% url 'signup' %}" novalidate>
       {% csrf_token %}
-
-      <div class="row-2" style="margin-bottom:1rem;">
-        <div class="tf-field">
-          <label class="tf-label">Nombre <span class="req">*</span></label>
-          <input type="text" name="first_name" class="tf-input"
-                 placeholder="Juan" value="{{ request.POST.first_name }}" required>
+      <div class="auth-toggle" role="radiogroup" aria-label="Account type">
+        <div class="auth-toggle-cell">
+          <input type="radio" name="role" id="r_buyer" value="buyer" checked>
+          <label for="r_buyer">
+            <span class="material-symbols-rounded">shopping_bag</span>
+            Buyer
+          </label>
         </div>
-        <div class="tf-field">
-          <label class="tf-label">Apellido</label>
-          <input type="text" name="last_name" class="tf-input"
-                 placeholder="Pérez" value="{{ request.POST.last_name }}">
+        <div class="auth-toggle-cell">
+          <input type="radio" name="role" id="r_seller" value="seller">
+          <label for="r_seller">
+            <span class="material-symbols-rounded">store</span>
+            Seller
+          </label>
         </div>
       </div>
-
-      <div class="tf-field">
-        <label class="tf-label">Usuario <span class="req">*</span></label>
-        <input type="text" name="username" class="tf-input"
-               placeholder="juanperez" value="{{ request.POST.username }}" required>
-      </div>
-
-      <div class="tf-field">
-        <label class="tf-label">Correo electrónico <span class="req">*</span></label>
-        <input type="email" name="email" class="tf-input"
-               placeholder="juan@correo.com" value="{{ request.POST.email }}" required>
-      </div>
-
-      <div class="tf-field">
-        <label class="tf-label">Teléfono</label>
-        <input type="tel" name="phone" class="tf-input"
-               placeholder="+507 6000-0000" value="{{ request.POST.phone }}">
-      </div>
-
-      <div class="tf-field">
-        <label class="tf-label">Tipo de cuenta <span class="req">*</span></label>
-        <div class="role-grid">
-          <div class="role-opt">
-            <input type="radio" name="role" id="r_buyer" value="buyer" checked>
-            <label for="r_buyer">
-              <span class="ri">🛒</span>
-              Comprador
-              <small>Compra en la ZLC</small>
-            </label>
-          </div>
-          <div class="role-opt">
-            <input type="radio" name="role" id="r_seller" value="seller">
-            <label for="r_seller">
-              <span class="ri">🏪</span>
-              Vendedor
-              <small>Vende tu empresa</small>
-            </label>
-          </div>
-        </div>
-
-        <script>
-          document.addEventListener('DOMContentLoaded', function() {
-            var role = "{{ selected_role }}";
-            if (role === 'seller') {
-              document.getElementById('r_seller').checked = true;
-            }
-          });
-        </script>
-      </div>
-
-      <div class="row-2" style="margin-bottom:1rem;">
+      <div class="row-2">
         <div class="tf-field">
-          <label class="tf-label">Contraseña <span class="req">*</span></label>
-          <input type="password" name="password1" class="tf-input"
-                 placeholder="Mín. 8 caracteres" required>
+          <label class="tf-label" for="id_first_name">First name <span class="req">*</span></label>
+          <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="First name" value="{{ form_first_name|default:'' }}" required>
+          <p style="font-size:12px; color:#6B7A88; margin-top:4px;">Letters and spaces only (no numbers or symbols).</p>
         </div>
         <div class="tf-field">
-          <label class="tf-label">Confirmar contraseña <span class="req">*</span></label>
-          <input type="password" name="password2" class="tf-input"
-                 placeholder="Repite la clave" required>
+          <label class="tf-label" for="id_last_name">Last name</label>
+          <input type="text" name="last_name" id="id_last_name" class="tf-input" placeholder="Last name" value="{{ form_last_name|default:'' }}">
         </div>
       </div>
-
-      <button type="submit" class="btn-signup">Crear cuenta</button>
+      <div class="tf-field">
+        <label class="tf-label" for="id_email">Email address <span class="req">*</span></label>
+        <input type="email" name="email" id="id_email" class="tf-input" placeholder="correo@ejemplo.com" value="{{ form_email|default:'' }}" required>
+      </div>
+      <div class="tf-field">
+        <label class="tf-label" for="id_username">Username <span class="req">*</span></label>
+        <input type="text" name="username" id="id_username" class="tf-input" placeholder="Username" autocomplete="username" required>
+        <p style="font-size:12px; color:#6B7A88; margin-top:4px;">Letters, numbers, dots, and underscores only. Must start with a letter (3–30 characters).</p>
+      </div>
+      <div class="tf-field">
+        <label class="tf-label" for="id_phone">Phone</label>
+        <input type="tel" name="phone" id="id_phone" class="tf-input" placeholder="+507 6000-0000" value="{{ form_phone|default:'' }}">
+      </div>
+      <div class="row-2">
+        <div class="tf-field">
+          <label class="tf-label" for="id_password1">Password <span class="req">*</span></label>
+          <input type="password" name="password1" id="id_password1" class="tf-input" placeholder="Min. 8 characters" required>
+        </div>
+        <div class="tf-field">
+          <label class="tf-label" for="id_password2">Password <span class="req">*</span></label>
+          <input type="password" name="password2" id="id_password2" class="tf-input" placeholder="Password" required>
+        </div>
+      </div>
+      <button type="submit" class="auth-submit">
+        <span class="material-symbols-rounded" style="font-size:18px;">person_add</span> Create account
+      </button>
     </form>
-
-    <div class="divider">o</div>
-    <div class="login-link">
-      ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
+    <div class="auth-divider">or</div>
+    <div class="auth-footer">
+      Don’t have an account? <a href="{% url 'login' %}">Sign in</a>
     </div>
-
   </div>
 </div>
+<script>
+(function () {
+  var role = "{{ selected_role|escapejs }}";
+  var seller = document.getElementById('r_seller');
+  if (seller && role === "seller") seller.checked = true;
+  if (window.performance &&
+      window.performance.navigation &&
+      window.performance.navigation.type ===
+      window.performance.navigation.TYPE_BACK_FORWARD) {
+    document.querySelectorAll(
+      'input[type="text"], input[type="email"], input[type="password"], input[type="tel"]'
+    ).forEach(function (el) { el.value = ''; });
+  }
+})();
+</script>
 {% endblock %}

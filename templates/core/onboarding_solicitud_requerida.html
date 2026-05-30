@@ -1,0 +1,15 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Acceso empresarial — TradeFlow{% endblock %}
+{% block content %}
+<div style="max-width:560px;margin:48px auto;padding:0 24px;">
+  <div class="sp-card" style="padding:32px;">
+    <h1 style="font-family:'DM Serif Display',serif;color:var(--tf-navy);margin:0 0 10px;">Activa tu acceso empresarial</h1>
+    <p style="color:var(--tf-muted);font-size:14px;line-height:1.6;margin:0 0 20px;">
+      TradeFlow operates with company review in the Colón Free Zone. Complete an application to enable purchases, sales, and logistics operations.
+    </p>
+    <a href="{% url 'solicitud_acceso' %}" class="sp-btn sp-btn-primary" style="width:100%;justify-content:center;margin-bottom:12px;">Enviar solicitud de acceso</a>
+    <a href="{% url 'logout' %}" class="sp-btn sp-btn-secondary" style="width:100%;justify-content:center;">Sign out</a>
+  </div>
+</div>
+{% endblock %}

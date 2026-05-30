@@ -125,6 +125,7 @@ function initExportCSV() {
     link.click();
     URL.revokeObjectURL(url);
 
-    showToast('Archivo CSV descargado correctamente.', 'success');
+    var msg = (window.TF_I18N && window.TF_I18N.csvDownloaded) || 'Archivo CSV descargado correctamente.';
+    if (typeof showToast === 'function') showToast(msg, 'success');
   });
 }
