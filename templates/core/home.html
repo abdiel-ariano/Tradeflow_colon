@@ -509,6 +509,47 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   @media (max-width: 575px) {
     .hm-carousel-slide { flex: 0 0 100%; margin-right: 0; }
   }
+  @media (max-width: 768px) {
+    .lp-companies-slider,
+    .companies-carousel,
+    [class*="carousel"],
+    [class*="slider"] {
+      overflow: hidden !important;
+      width: 100% !important;
+    }
+    .lp-companies-slider .company-card,
+    .companies-carousel .company-card,
+    [class*="carousel"] > *,
+    [class*="slider"] > * {
+      min-width: calc(100vw - 48px) !important;
+      max-width: calc(100vw - 48px) !important;
+      scroll-snap-align: start;
+    }
+    .lp-companies-slider,
+    .companies-carousel {
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .hm-carousel-wrap {
+      overflow: hidden !important;
+      width: 100% !important;
+    }
+    .hm-carousel-track {
+      width: 100% !important;
+    }
+    .hm-carousel-slide {
+      flex: 0 0 calc(100vw - 48px) !important;
+      min-width: calc(100vw - 48px) !important;
+      max-width: calc(100vw - 48px) !important;
+      margin-right: 16px;
+      scroll-snap-align: start;
+    }
+    .hm-companies .hm-container {
+      overflow-x: hidden;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+  }
   .hm-emp-card {
     background: var(--tf-white);
     border-radius: 14px;
