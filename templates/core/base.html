@@ -38,6 +38,101 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       background: #F2F3F5;
     }
 
+    .tf-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 8px;
+      background: none;
+      border: none;
+      margin-left: auto;
+    }
+    .tf-hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+      .tf-nav-links { display: none !important; }
+      .tf-nav-links.mobile-open {
+        display: flex !important;
+        flex-direction: column;
+        position: fixed;
+        top: 64px;
+        left: 0;
+        right: 0;
+        background: var(--tf-navy);
+        padding: 16px;
+        gap: 4px;
+        z-index: 1999;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      }
+      .tf-nav-links.mobile-open .tf-nav-group.is-visible {
+        display: flex !important;
+        flex-direction: column;
+        width: 100%;
+      }
+      .tf-nav-links.mobile-open .nav-link-tf {
+        padding: 12px 16px;
+        border-radius: 8px;
+        width: 100%;
+      }
+      .tf-nav-links.mobile-open .tf-nav-divider { display: none; }
+      .tf-nav-links.mobile-open .tf-nav-user-block {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        gap: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,0.15);
+      }
+      .tf-hamburger { display: flex !important; }
+
+      body { overflow-x: hidden; }
+      .tf-page, .tf-centered-page, .tf-centered-form-wide {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+      }
+      .tf-metrics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+      .tf-table-container {
+        overflow-x: auto !important;
+      }
+      .tf-table {
+        min-width: 600px;
+      }
+
+      .seller-layout {
+        flex-direction: column !important;
+      }
+      .seller-sidebar {
+        width: 100% !important;
+        min-width: unset !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--tf-border);
+      }
+      .seller-main {
+        width: 100% !important;
+        padding: 16px !important;
+      }
+      .seller-nav-item {
+        display: inline-flex !important;
+        width: auto !important;
+      }
+      .seller-sidebar nav {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        padding: 12px !important;
+      }
+    }
+
     .tf-breadcrumb-secondary { display: none !important; }
 
     body > p:first-of-type a[href*="mi-tienda"],
@@ -369,9 +464,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       flex: 1;
       min-width: 0;
     }
-    @media (max-width: 1100px) {
-      .tf-nav-links { flex-wrap: wrap; }
-    }
     .tf-nav-user-block {
       display: inline-flex;
       align-items: center;
@@ -402,38 +494,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-nav-links a.nav-link-tf.active {
       color: #ffffff !important;
       border-bottom-color: var(--tf-orange);
-    }
-
-    .tf-lang-switch {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      margin-right: 6px;
-    }
-    .tf-lang-switch button {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      color: rgba(255, 255, 255, 0.88);
-      border-radius: 6px;
-      padding: 4px 9px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-    }
-    .tf-lang-switch button:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-    }
-    .tf-lang-switch button.is-active {
-      border-color: var(--tf-orange);
-      color: #fff;
-      background: rgba(242, 101, 34, 0.22);
-    }
-    .tf-lang-sep {
-      color: rgba(255, 255, 255, 0.35);
-      font-size: 0.72rem;
-      user-select: none;
     }
 
     .tf-nav-divider {
@@ -973,22 +1033,14 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="nav" class="tf-nav-logo-img" eager=1 %}
     </a>
 
+    <button class="tf-hamburger" id="tf-hamburger" aria-label="Menu" type="button">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
     <div class="tf-nav-links">
       <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>Map</a>
-      <form action="{% url 'set_language' %}" method="post" id="tf-lang-form" style="margin:0;">
-        {% csrf_token %}
-        <input type="hidden" name="next" id="tf-lang-next" value="">
-        <div style="display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.1);border-radius:8px;padding:3px;">
-          <button type="submit" name="language" value="es" id="btn-lang-es"
-                  style="padding:4px 10px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;background:transparent;color:rgba(255,255,255,0.7);transition:all 0.2s;">
-            ES
-          </button>
-          <button type="submit" name="language" value="en" id="btn-lang-en"
-                  style="padding:4px 10px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;background:transparent;color:rgba(255,255,255,0.7);transition:all 0.2s;">
-            EN
-          </button>
-        </div>
-      </form>
       {% if request.user.is_authenticated %}
         <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
           <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
@@ -1031,17 +1083,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   <script>
   (function () {
-    var currentLang = document.documentElement.lang || 'es';
-    var activeBtn = document.getElementById('btn-lang-' + currentLang);
-    if (activeBtn) {
-      activeBtn.style.background = '#F26522';
-      activeBtn.style.color = '#fff';
-    }
-    var path = window.location.pathname.replace(/^\/(en|es)(\/|$)/, '/');
-    if (!path) path = '/';
-    var nextEl = document.getElementById('tf-lang-next');
-    if (nextEl) nextEl.value = path + (window.location.search || '');
-
     var meta = document.getElementById('tf-nav-meta');
     var navActive = meta ? (meta.getAttribute('data-nav-active') || '') : '';
 
@@ -1333,13 +1374,21 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       });
     }
 
-    var welcomeEl = document.getElementById('tf-chat-welcome');
-    if (welcomeEl) {
-      var pageLang = document.documentElement.lang || 'es';
-      welcomeEl.textContent = pageLang === 'en'
-        ? "Hi! I'm the TradeFlow Colón assistant. How can I help you today?"
-        : 'Hi! I'm the TradeFlow Colón assistant. How can I help you today?';
-    }
+  })();
+  </script>
+  <script>
+  (function() {
+    var btn = document.getElementById('tf-hamburger');
+    var links = document.querySelector('.tf-nav-links');
+    if (!btn || !links) return;
+    btn.addEventListener('click', function() {
+      links.classList.toggle('mobile-open');
+    });
+    document.addEventListener('click', function(e) {
+      if (!btn.contains(e.target) && !links.contains(e.target)) {
+        links.classList.remove('mobile-open');
+      }
+    });
   })();
   </script>
 </body>
