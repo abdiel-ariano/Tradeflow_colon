@@ -1,4 +1,4 @@
-{% load static tf_media tf_money %}
+{% load static tf_money %}
 {% comment %}
 ================================================================================
 ACCIÓN: CREAR
@@ -11,7 +11,19 @@ Variables: product, show_cart_actions (bool), card_extra_class (opcional)
 {% endcomment %}
 <article class="tf-product-card {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
   <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-product-card-media">
-    <img src="{{ product|product_image_src }}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300" style="object-fit:cover;">
+    {% if product.image %}
+    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-img" loading="lazy" decoding="async" width="400" height="300">
+    {% else %}
+    {% with seed=product.id|add:product.category_id|default:0 %}
+    <img src="https://picsum.photos/seed/{{ product.id }}{{ product.category_id }}/400/300"
+         alt="{{ product.name }}"
+         class="product-card-img"
+         loading="lazy"
+         decoding="async"
+         width="400"
+         height="300">
+    {% endwith %}
+    {% endif %}
     {% if not product.available_qty %}
     <span class="tf-product-badge tf-product-badge-out">Out of stock</span>
     {% elif product.available_qty <= 5 %}

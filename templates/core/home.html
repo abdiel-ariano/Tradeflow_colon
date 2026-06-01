@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static tf_media %}
+{% load static %}
 {% comment %}
 ================================================================================
 templates/core/home.html — TradeFlow Colón
@@ -912,7 +912,19 @@ stats, featured_products, empresas_carousel, show_cart_actions.
         {% for product in featured_products|slice:":6" %}
         <article class="hm-pcard reveal stagger-{{ forloop.counter }}" data-product-id="{{ product.pk }}">
           <div class="hm-pcard-media">
-            <img src="{{ product|product_image_src }}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300" style="object-fit:cover;">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-img" loading="lazy" decoding="async" width="400" height="300">
+            {% else %}
+            {% with seed=product.id|add:product.category_id|default:0 %}
+            <img src="https://picsum.photos/seed/{{ product.id }}{{ product.category_id }}/400/300"
+                 alt="{{ product.name }}"
+                 class="product-card-img"
+                 loading="lazy"
+                 decoding="async"
+                 width="400"
+                 height="300">
+            {% endwith %}
+            {% endif %}
             <span class="hm-pcard-overlay" aria-hidden="true"></span>
             <span class="hm-pcard-badge">{{ product.company.name }}</span>
           </div>
