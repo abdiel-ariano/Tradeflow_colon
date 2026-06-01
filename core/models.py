@@ -24,6 +24,7 @@ Tablas implementadas (mapeadas exactamente al ERD del PDF):
 from decimal import Decimal
 import random
 
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -469,6 +470,14 @@ class UserApplication(models.Model):
         ('rechazada', _('Rejected')),
     ]
 
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='access_applications',
+        null=True,
+        blank=True,
+        verbose_name='User account',
+    )
     full_name = models.CharField(max_length=120, verbose_name='Full name')
     email = models.EmailField(verbose_name='Email')
     phone = models.CharField(max_length=30, blank=True, verbose_name='Phone')
