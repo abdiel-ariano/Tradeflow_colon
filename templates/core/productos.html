@@ -58,9 +58,14 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
       <article class="adm-prod-card {% if not p.is_active %}is-inactive{% endif %}">
         <div class="adm-prod-img">
           {% if p.image %}
-          <img src="{{ p.image.url }}" alt="">
+          <img src="{{ p.image.url }}" alt="{{ p.name }}" class="product-img">
           {% else %}
-          <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+          {% with seed=p.id|add:p.category_id|default:0 %}
+          <img src="https://picsum.photos/seed/{{ p.id }}{{ p.category_id }}/400/300"
+               alt="{{ p.name }}"
+               class="product-img"
+               loading="lazy">
+          {% endwith %}
           {% endif %}
         </div>
         <div class="adm-prod-body">

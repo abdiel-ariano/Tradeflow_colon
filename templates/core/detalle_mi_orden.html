@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static tf_media %}
+{% load static %}
 
 {#
   detalle_mi_orden.html — Detalle de una orden del comprador
@@ -80,7 +80,17 @@
         <div class="detalle-card-title">Products ({{ orden.items.count }})</div>
         {% for item in orden.items.all %}
         <div class="item-row">
-            <img src="{{ item.product|product_image_src }}" alt="{{ item.product.name }}" class="item-img" loading="lazy" decoding="async">
+            {% if item.product.image %}
+            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-img product-img" loading="lazy" decoding="async">
+            {% else %}
+            {% with seed=item.product.id|add:item.product.category_id|default:0 %}
+            <img src="https://picsum.photos/seed/{{ item.product.id }}{{ item.product.category_id }}/400/300"
+                 alt="{{ item.product.name }}"
+                 class="item-img product-img"
+                 loading="lazy"
+                 decoding="async">
+            {% endwith %}
+            {% endif %}
           <div class="item-info">
             <div class="item-nombre">{{ item.product.name }}</div>
             <div class="item-empresa">{{ item.product.company.name }}</div>
