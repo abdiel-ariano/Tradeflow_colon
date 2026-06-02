@@ -1047,6 +1047,12 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>Orders</a>
           <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
           <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>Companies</a>
+          <a href="{% url 'admin_applications' %}" class="nav-link-tf" data-tf-nav="admin_applications">
+            <span class="material-symbols-rounded tf-ms-nav">assignment_ind</span>Applications
+            {% if pending_applications_count %}
+            <span style="background:var(--tf-orange);color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px;">{{ pending_applications_count }}</span>
+            {% endif %}
+          </a>
         </div>
         <div class="tf-nav-group" id="tf-nav-buyer" data-tf-nav-group="buyer">
           <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Store</a>

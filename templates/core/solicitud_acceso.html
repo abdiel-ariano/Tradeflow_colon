@@ -1,34 +1,139 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Access request — TradeFlow Colón{% endblock %}
+{% block title %}Apply for access — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<style>
+  .sa-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 3rem) 24px 4rem;
+    font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+  }
+  .sa-header { text-align: center; margin-bottom: 2rem; }
+  .sa-header h1 {
+    font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--tf-navy);
+    margin: 1rem 0 0.5rem;
+  }
+  .sa-header p {
+    color: var(--tf-muted);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .sa-card {
+    background: var(--tf-white);
+    border: 1px solid var(--tf-border);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: var(--tf-shadow-sm, 0 2px 8px rgba(15, 42, 68, 0.08));
+  }
+  .sa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .sa-grid-full { grid-column: 1 / -1; }
+  .sa-field { margin-bottom: 0; }
+  .sa-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tf-navy);
+    margin-bottom: 6px;
+  }
+  .sa-hint {
+    font-size: 12px;
+    color: var(--tf-muted);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .sa-submit {
+    width: 100%;
+    margin-top: 8px;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 8px;
+    background: var(--tf-orange);
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .sa-submit:hover { background: var(--tf-orange-h, #FF7A3D); }
+  .sa-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--tf-muted);
+  }
+  .sa-footer a { color: var(--tf-orange); font-weight: 600; text-decoration: none; }
+  .sa-footer a:hover { text-decoration: underline; }
+  @media (max-width: 768px) {
+    .sa-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
 {% block content %}
-<div style="max-width:520px;margin:48px auto;padding:0 24px 64px;">
-  <div class="auth-logo-block" style="margin-bottom:1.25rem;">
+<div class="sa-page">
+  <header class="sa-header">
     {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" %}
+    <h1>Apply for access</h1>
+    <p>For ZLC companies and investors. Our team reviews every application within 1-2 business days.</p>
+  </header>
+
+  <div class="sa-card">
+    <form method="post" action="">
+      {% csrf_token %}
+      <div class="sa-grid">
+        <div class="sa-field">
+          <label class="sa-label" for="sa-full-name">Full name <span style="color:var(--tf-orange);">*</span></label>
+          <input class="tf-input" type="text" id="sa-full-name" name="full_name" required maxlength="120" style="width:100%;">
+        </div>
+        <div class="sa-field">
+          <label class="sa-label" for="sa-phone">Phone <span style="color:var(--tf-orange);">*</span></label>
+          <input class="tf-input" type="tel" id="sa-phone" name="phone" required placeholder="+507 6000-0000" style="width:100%;">
+        </div>
+        <div class="sa-field">
+          <label class="sa-label" for="sa-email">Corporate email <span style="color:var(--tf-orange);">*</span></label>
+          <input class="tf-input" type="email" id="sa-email" name="corporate_email" required style="width:100%;">
+          <p class="sa-hint">Use your company email, not Gmail</p>
+        </div>
+        <div class="sa-field">
+          <label class="sa-label" for="sa-ruc">RUC <span style="color:var(--tf-orange);">*</span></label>
+          <input class="tf-input" type="text" id="sa-ruc" name="ruc" required style="width:100%;">
+          <p class="sa-hint">Panama tax registration number</p>
+        </div>
+        <div class="sa-field">
+          <label class="sa-label" for="sa-company">Company name <span style="color:var(--tf-orange);">*</span></label>
+          <input class="tf-input" type="text" id="sa-company" name="company_name" required maxlength="200" style="width:100%;">
+        </div>
+        <div class="sa-field">
+          <label class="sa-label" for="sa-role">Role <span style="color:var(--tf-orange);">*</span></label>
+          <select class="tf-input" id="sa-role" name="role" required style="width:100%;">
+            <option value="buyer">Buyer / Purchasing coordinator</option>
+            <option value="seller">Seller / ZLC company</option>
+          </select>
+        </div>
+        <div class="sa-field sa-grid-full">
+          <label class="sa-label" for="sa-message">Message</label>
+          <textarea class="tf-input" id="sa-message" name="message" rows="4" placeholder="Tell us about your company" style="width:100%;min-height:100px;"></textarea>
+        </div>
+        {% if is_enterprise_intent %}
+        <input type="hidden" name="requested_plan_slug" value="ecosistema_enterprise">
+        {% endif %}
+      </div>
+      <button type="submit" class="sa-submit">Submit application →</button>
+    </form>
   </div>
-  <h1 style="font-size:1.6rem;color:#0F2A44;margin-bottom:8px;">Access request</h1>
-  <p style="color:#6B7A88;font-size:14px;margin-bottom:24px;">For investors and CFZ companies. We will reply by email.</p>
-  <form method="post" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:24px;">
-    {% csrf_token %}
-    <label class="tf-label">Full name</label>
-    <input class="tf-input" name="full_name" required style="width:100%;margin-bottom:12px;">
-    <label class="tf-label">Email</label>
-    <input class="tf-input" type="email" name="email" required style="width:100%;margin-bottom:12px;">
-    <label class="tf-label">Phone</label>
-    <input class="tf-input" name="phone" style="width:100%;margin-bottom:12px;">
-    <label class="tf-label">Role</label>
-    <select class="tf-input" name="role" style="width:100%;margin-bottom:12px;">
-      <option value="buyer">Buyer / coordinator</option>
-      <option value="seller">Seller / CFZ company</option>
-    </select>
-    <label class="tf-label">Business</label>
-    <input class="tf-input" name="company_name" style="width:100%;margin-bottom:12px;">
-    <label class="tf-label">Message</label>
-    <textarea class="tf-input" name="message" style="width:100%;min-height:88px;margin-bottom:16px;"></textarea>
-    <button type="submit" class="btn-tf btn-primary-tf" style="width:100%;justify-content:center;">Submit application</button>
-  </form>
-  <p style="text-align:center;margin-top:16px;font-size:13px;">
-    <a href="{% url 'login' %}">Already have an account? Sign in</a>
-  </p>
+
+  <p class="sa-footer">Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
 </div>
 {% endblock %}

@@ -6,6 +6,24 @@ from __future__ import annotations
 from django.conf import settings
 
 
+def pending_applications_badge(request):
+    """Pending access applications count for admin navbar."""
+    if not request.user.is_authenticated:
+        return {'pending_applications_count': 0}
+    if not (request.user.is_superuser or getattr(request.user, 'is_staff', False)):
+        try:
+            if request.user.profile.role != 'admin':
+                return {'pending_applications_count': 0}
+        except Exception:
+            return {'pending_applications_count': 0}
+    from core.models import UserApplication
+
+    count = UserApplication.objects.filter(
+        status__in=('pendiente', 'en_revision'),
+    ).count()
+    return {'pending_applications_count': count}
+
+
 def cart_badge(request):
     """Cart count for navbar (buyers only)."""
     if not request.user.is_authenticated:
