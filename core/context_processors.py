@@ -18,9 +18,7 @@ def pending_applications_badge(request):
             return {'pending_applications_count': 0}
     from core.models import UserApplication
 
-    count = UserApplication.objects.filter(
-        status__in=('pendiente', 'en_revision'),
-    ).count()
+    count = UserApplication.objects.filter(status='pending').count()
     return {'pending_applications_count': count}
 
 

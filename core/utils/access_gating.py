@@ -111,13 +111,11 @@ def application_gate_status(email: str) -> str | None:
             return None
         return 'required'
 
-    if app.status == 'aprobada':
+    if app.status == 'approved':
         return None
-    if app.status == 'rechazada':
+    if app.status == 'rejected':
         return 'rejected'
-    if app.status == 'en_revision':
-        return 'under_review'
-    if app.status == 'pendiente':
+    if app.status == 'pending':
         return 'pending'
     return 'pending'
 

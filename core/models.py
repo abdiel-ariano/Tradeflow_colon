@@ -464,10 +464,9 @@ class UserApplication(models.Model):
         ('seller', _('Seller')),
     ]
     STATUS_CHOICES = [
-        ('pendiente', _('Pending')),
-        ('en_revision', _('Under review')),
-        ('aprobada', _('Approved')),
-        ('rechazada', _('Rejected')),
+        ('pending', _('Pending')),
+        ('approved', _('Approved')),
+        ('rejected', _('Rejected')),
     ]
 
     user = models.ForeignKey(
@@ -489,7 +488,7 @@ class UserApplication(models.Model):
         blank=True,
         help_text='Requested SaaS plan (e.g. ecosistema_enterprise)',
     )
-    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pendiente')
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pending')
     review_token = models.CharField(max_length=64, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)

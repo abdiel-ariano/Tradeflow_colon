@@ -497,6 +497,32 @@ def signup_view(request):
             first_name=first_name,
             last_name=last_name,
         )
+        if settings.REQUIRE_APPROVED_APPLICATION:
+            user.is_active = False
+            user.save(update_fields=['is_active'])
+            full_name = f'{first_name} {last_name}'.strip() or username
+            UserProfile.objects.create(
+                user=user,
+                role=role,
+                phone=phone,
+                email_verificado=False,
+            )
+            UserApplication.objects.create(
+                user=user,
+                full_name=full_name,
+                email=email,
+                phone=phone,
+                role=role,
+                company_name='',
+                message='',
+                status='pending',
+            )
+            messages.success(
+                request,
+                'Your application was submitted. Our team will review it within 1-2 business days.',
+            )
+            return redirect('pending_approval')
+
         if settings.REQUIRE_EMAIL_VERIFICATION:
             UserProfile.objects.create(
                 user=user,
@@ -3864,7 +3890,7 @@ def solicitud_acceso(request):
         else:
             existing = UserApplication.objects.filter(
                 email__iexact=email,
-                status__in=('pendiente', 'en_revision'),
+                status='pending',
             ).first()
             if existing:
                 messages.info(
@@ -3929,15 +3955,15 @@ def solicitud_acceso(request):
 def revisar_solicitud(request, token, accion):
     """Aprueba o rechaza solicitud desde enlace del correo."""
     app = get_object_or_404(UserApplication, review_token=token)
-    if app.status not in ('pendiente', 'en_revision'):
-        messages.info(request, _('Esta solicitud ya fue revisada.'))
+    if app.status not in ('pending',):
+        messages.info(request, _('This application has already been reviewed.'))
         return redirect('home')
 
     if accion == 'aprobar':
-        app.status = 'aprobada'
+        app.status = 'approved'
         aprobada = True
     elif accion == 'rechazar':
-        app.status = 'rechazada'
+        app.status = 'rejected'
         aprobada = False
     else:
         raise Http404
@@ -4057,7 +4083,8 @@ def api_admin_saas_request_action(request, pk: int):
             'status': 'rejected',
             'message': f'Solicitud de {req.company.name} rechazada.',
         })
-    return JsonResponse({'error': 'Acción inválida'}, status=400)
+    return JsonResponse({'error': 'Invalid action'}, status=400)
+
 
 # ── Application approval views ────────────────────────────────────────────────
 

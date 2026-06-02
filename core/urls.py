@@ -192,8 +192,11 @@ urlpatterns = [
     path('api/asistente/', views.api_asistente, name='api_asistente'),
 
     # ── Applications (admin approval) ────────────────────────────────────
-    path('admin/applications/', views.admin_applications_view, name='admin_applications'),
-    path('admin/applications/<int:pk>/approve/', views.approve_application_view, name='approve_application'),
-    path('admin/applications/<int:pk>/reject/', views.reject_application_view, name='reject_application'),
+    path('panel/applications/', views.admin_applications_view, name='admin_applications'),
+    path('panel/applications/<int:pk>/approve/', views.approve_application_view, name='approve_application'),
+    path('panel/applications/<int:pk>/reject/', views.reject_application_view, name='reject_application'),
+    path('admin/applications/', views.admin_applications_view),
+    path('admin/applications/<int:pk>/approve/', views.approve_application_view),
+    path('admin/applications/<int:pk>/reject/', views.reject_application_view),
     path('pending-approval/', views.pending_approval_view, name='pending_approval'),
 ]
