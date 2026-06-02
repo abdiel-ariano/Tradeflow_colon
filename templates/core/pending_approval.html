@@ -1,65 +1,31 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Application under review — TradeFlow Colón{% endblock %}
-{% block footer %}{% endblock %}
-{% block extra_css %}
-<style>
-  .tf-pending-wrap {
-    min-height: calc(100vh - 64px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 16px;
-    background: linear-gradient(165deg, var(--tf-navy) 0%, var(--tf-navy-mid, #1B3B63) 55%, #0a1a2a 100%);
-    font-family: var(--tf-font-body, 'Montserrat', sans-serif);
-  }
-  .tf-pending-card {
-    width: 100%;
-    max-width: 440px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 16px;
-    padding: 40px 32px;
-    text-align: center;
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
-  }
-  .tf-pending-icon {
-    font-size: 56px;
-    color: var(--tf-orange);
-    margin-bottom: 16px;
-    display: block;
-  }
-  .tf-pending-card h1 {
-    color: #fff;
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0 0 12px;
-  }
-  .tf-pending-card p {
-    color: rgba(255, 255, 255, 0.82);
-    font-size: 14px;
-    line-height: 1.65;
-    margin: 0 0 24px;
-  }
-  .tf-pending-home {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--tf-orange);
-    font-weight: 600;
-    font-size: 14px;
-    text-decoration: none;
-  }
-  .tf-pending-home:hover { text-decoration: underline; color: #fff; }
-</style>
-{% endblock %}
+{% block title %}Application Under Review — TradeFlow Colón{% endblock %}
 {% block content %}
-<div class="tf-pending-wrap">
-  <div class="tf-pending-card">
-    <span class="material-symbols-rounded tf-pending-icon" aria-hidden="true">schedule</span>
-    <h1>Application under review</h1>
-    <p>Our team will review your information and activate your account within 1-2 business days. You'll receive a confirmation once approved.</p>
-    <a href="{% url 'home' %}" class="tf-pending-home">
+<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+  <div style="max-width:480px;width:100%;text-align:center;">
+    <div style="width:80px;height:80px;border-radius:50%;background:rgba(242,101,34,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
+      <span class="material-symbols-rounded" style="font-size:40px;color:var(--tf-orange);">hourglass_top</span>
+    </div>
+    <h1 style="font-size:1.75rem;font-weight:700;color:var(--tf-navy);margin:0 0 12px;">Application under review</h1>
+    <p style="font-size:15px;color:var(--tf-muted);line-height:1.6;margin:0 0 8px;">
+      Our team will review your information and activate your account
+      within <strong style="color:var(--tf-navy);">1–2 business days</strong>.
+    </p>
+    <p style="font-size:14px;color:var(--tf-muted);margin:0 0 32px;">
+      You'll receive a confirmation once your account is approved.
+    </p>
+    <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:16px;margin-bottom:32px;text-align:left;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span class="material-symbols-rounded" style="font-size:18px;color:#15803d;">check_circle</span>
+        <span style="font-size:13px;font-weight:600;color:#15803d;">Application submitted</span>
+      </div>
+      <p style="font-size:13px;color:#166534;margin:0;">
+        We've received your application. Our team reviews each request
+        to ensure the quality and security of the TradeFlow Colón marketplace.
+      </p>
+    </div>
+    <a href="{% url 'home' %}" style="display:inline-flex;align-items:center;gap:6px;color:var(--tf-blue);font-size:14px;font-weight:500;text-decoration:none;">
       <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
       Back to home
     </a>
