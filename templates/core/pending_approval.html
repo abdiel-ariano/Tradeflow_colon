@@ -1,0 +1,68 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Application under review — TradeFlow Colón{% endblock %}
+{% block footer %}{% endblock %}
+{% block extra_css %}
+<style>
+  .tf-pending-wrap {
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+    background: linear-gradient(165deg, var(--tf-navy) 0%, var(--tf-navy-mid, #1B3B63) 55%, #0a1a2a 100%);
+    font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+  }
+  .tf-pending-card {
+    width: 100%;
+    max-width: 440px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 40px 32px;
+    text-align: center;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+  }
+  .tf-pending-icon {
+    font-size: 56px;
+    color: var(--tf-orange);
+    margin-bottom: 16px;
+    display: block;
+  }
+  .tf-pending-card h1 {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 12px;
+  }
+  .tf-pending-card p {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 14px;
+    line-height: 1.65;
+    margin: 0 0 24px;
+  }
+  .tf-pending-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--tf-orange);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .tf-pending-home:hover { text-decoration: underline; color: #fff; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="tf-pending-wrap">
+  <div class="tf-pending-card">
+    <span class="material-symbols-rounded tf-pending-icon" aria-hidden="true">schedule</span>
+    <h1>Application under review</h1>
+    <p>Our team will review your information and activate your account within 1-2 business days. You'll receive a confirmation once approved.</p>
+    <a href="{% url 'home' %}" class="tf-pending-home">
+      <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+      Back to home
+    </a>
+  </div>
+</div>
+{% endblock %}

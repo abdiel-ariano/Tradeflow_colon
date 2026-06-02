@@ -124,6 +124,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.cart_badge',
+                'core.context_processors.pending_applications_badge',
                 'core.context_processors.tf_i18n',
                 'core.context_processors.supabase_public',
                 'core.context_processors.enterprise_saas',
@@ -228,14 +229,14 @@ MESSAGE_TAGS = {
 # Desactivar solo en CI o desarrollo ágil: REQUIRE_EMAIL_VERIFICATION=false en .env
 REQUIRE_EMAIL_VERIFICATION = config(
     'REQUIRE_EMAIL_VERIFICATION',
-    default=True,
+    default=False,
     cast=bool,
 )
 
 # Solicitud de acceso: en producción exige UserApplication aprobada para rutas operativas.
 REQUIRE_APPROVED_APPLICATION = config(
     'REQUIRE_APPROVED_APPLICATION',
-    default=not DEBUG,
+    default=True,
     cast=bool,
 )
 # Usuarios sin solicitud previa (cuentas antiguas) pueden operar si True.

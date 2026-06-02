@@ -14,6 +14,7 @@ PUBLIC_PATH_PREFIXES = (
     '/signup',
     '/logout',
     '/solicitud-acceso',
+    '/pending-approval',
     '/onboarding/',
     '/verificar/',
     '/verificar-email/',
@@ -139,6 +140,9 @@ def onboarding_redirect_name(user) -> str | None:
     if not user.is_authenticated or user_is_platform_exempt(user):
         return None
 
+    if not user.is_active:
+        return 'pending_approval'
+
     if email_verification_required(user):
         return 'verificar_codigo'
 
@@ -146,7 +150,7 @@ def onboarding_redirect_name(user) -> str | None:
     if gate == 'required':
         return 'onboarding_solicitud_requerida'
     if gate in ('pending', 'under_review'):
-        return 'onboarding_espera_aprobacion'
+        return 'pending_approval'
     if gate == 'rejected':
         return 'onboarding_aplicacion_rechazada'
     return None

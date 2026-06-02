@@ -497,6 +497,33 @@ def signup_view(request):
             first_name=first_name,
             last_name=last_name,
         )
+
+        if settings.REQUIRE_APPROVED_APPLICATION:
+            user.is_active = False
+            user.save(update_fields=['is_active'])
+            full_name = f'{first_name} {last_name}'.strip() or username
+            UserProfile.objects.create(
+                user=user,
+                role=role,
+                phone=phone,
+                email_verificado=False,
+            )
+            UserApplication.objects.create(
+                user=user,
+                full_name=full_name,
+                email=email,
+                phone=phone,
+                role=role,
+                company_name='',
+                message='',
+                status='pendiente',
+            )
+            messages.success(
+                request,
+                'Your application was submitted. Our team will review it within 1-2 business days.',
+            )
+            return redirect('pending_approval')
+
         if settings.REQUIRE_EMAIL_VERIFICATION:
             UserProfile.objects.create(
                 user=user,
@@ -3843,17 +3870,25 @@ def solicitud_acceso(request):
 
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
-        email = request.POST.get('email', '').strip().lower()
+        email = (
+            request.POST.get('corporate_email', '').strip()
+            or request.POST.get('email', '').strip()
+        ).lower()
         phone = request.POST.get('phone', '').strip()
+        ruc = request.POST.get('ruc', '').strip()
         role = request.POST.get('role', 'buyer')
         company_name = request.POST.get('company_name', '').strip()
         message = request.POST.get('message', '').strip()
         req_plan = request.POST.get('requested_plan_slug', '').strip() or plan_intent
 
-        if not full_name or not email:
-            messages.error(request, _('Full name and email are required.'))
+        if ruc:
+            ruc_line = f'RUC: {ruc}'
+            message = f'{ruc_line}\n{message}'.strip() if message else ruc_line
+
+        if not all([full_name, email, phone, ruc, company_name]):
+            messages.error(request, 'Please complete all required fields.')
         elif role not in ('buyer', 'seller'):
-            messages.error(request, _('Invalid role.'))
+            messages.error(request, 'Invalid role.')
         else:
             existing = UserApplication.objects.filter(
                 email__iexact=email,
@@ -3862,14 +3897,12 @@ def solicitud_acceso(request):
             if existing:
                 messages.info(
                     request,
-                    _(
-                        'You already have an application under review. '
-                        'We will notify you by email when it is approved.'
-                    ),
+                    'You already have an application under review. '
+                    'We will notify you when it is approved.',
                 )
                 if request.user.is_authenticated:
                     return redirect('onboarding_espera_aprobacion')
-                return redirect('solicitud_acceso')
+                return redirect('pending_approval')
 
             app = UserApplication.objects.create(
                 full_name=full_name,
@@ -3891,32 +3924,113 @@ def solicitud_acceso(request):
                     message=message,
                     user_application=app,
                 )
-            try:
-                enviar_solicitud_recibida(app)
-                enviar_solicitud_a_revisores(app)
-            except Exception:
-                log.exception('Email solicitud acceso')
-                messages.warning(
-                    request,
-                    _(
-                        'Application saved, but the email could not be sent. '
-                        'Check RESEND_API_KEY in .env.'
-                    ),
-                )
-            else:
-                messages.success(
-                    request,
-                    _('Application submitted. Check your email for confirmation.'),
-                )
+            messages.success(
+                request,
+                'Application submitted. Our team will review it within 1-2 business days.',
+            )
             if request.user.is_authenticated:
                 return redirect('onboarding_espera_aprobacion')
-            return redirect('onboarding_solicitud_enviada')
+            return redirect('pending_approval')
 
     return render(request, 'core/solicitud_acceso.html', {
-        'titulo_pagina': _('Access request'),
+        'titulo_pagina': 'Apply for access',
         'plan_intent': plan_intent,
         'is_enterprise_intent': plan_intent == 'ecosistema_enterprise',
     })
+
+
+def pending_approval_view(request):
+    """Pantalla pública tras registro: cuenta pendiente de aprobación admin."""
+    return render(request, 'core/pending_approval.html')
+
+
+def _application_status_filter(param: str) -> tuple[str | None, list[str] | None]:
+    """Map query ?status= to model status values."""
+    mapping = {
+        'pending': ['pendiente', 'en_revision'],
+        'approved': ['aprobada'],
+        'rejected': ['rechazada'],
+    }
+    key = (param or '').strip().lower()
+    if key in mapping:
+        return key, mapping[key]
+    return None, None
+
+
+@admin_required
+def admin_applications_view(request):
+    """Panel admin: solicitudes de acceso pendientes y histórico."""
+    current_filter, status_values = _application_status_filter(request.GET.get('status'))
+    qs = UserApplication.objects.select_related('user').order_by('-created_at')
+    if status_values:
+        qs = qs.filter(status__in=status_values)
+    pending_count = UserApplication.objects.filter(
+        status__in=('pendiente', 'en_revision'),
+    ).count()
+    return render(
+        request,
+        'core/admin_applications.html',
+        {
+            'applications': qs,
+            'pending_count': pending_count,
+            'current_filter': current_filter,
+            'nav_activo': 'admin_applications',
+        },
+    )
+
+
+@admin_required
+def approve_application_view(request, pk):
+    if request.method != 'POST':
+        return redirect('admin_applications')
+    app = get_object_or_404(UserApplication.objects.select_related('user'), pk=pk)
+    if app.status not in ('pendiente', 'en_revision'):
+        messages.info(request, 'This application has already been reviewed.')
+        return redirect('admin_applications')
+
+    app.status = 'aprobada'
+    app.reviewed_at = timezone.now()
+    app.save(update_fields=['status', 'reviewed_at'])
+
+    if app.user_id:
+        app.user.is_active = True
+        app.user.save(update_fields=['is_active'])
+        try:
+            profile = app.user.profile
+            profile.email_verificado = True
+            profile.token_verificacion = None
+            profile.save(update_fields=['email_verificado', 'token_verificacion'])
+        except UserProfile.DoesNotExist:
+            UserProfile.objects.create(
+                user=app.user,
+                role=app.role,
+                phone=app.phone,
+                email_verificado=True,
+            )
+
+    messages.success(request, 'Account approved successfully.')
+    return redirect('admin_applications')
+
+
+@admin_required
+def reject_application_view(request, pk):
+    if request.method != 'POST':
+        return redirect('admin_applications')
+    app = get_object_or_404(UserApplication.objects.select_related('user'), pk=pk)
+    if app.status not in ('pendiente', 'en_revision'):
+        messages.info(request, 'This application has already been reviewed.')
+        return redirect('admin_applications')
+
+    app.status = 'rechazada'
+    app.reviewed_at = timezone.now()
+    app.save(update_fields=['status', 'reviewed_at'])
+
+    if app.user_id:
+        app.user.is_active = False
+        app.user.save(update_fields=['is_active'])
+
+    messages.success(request, 'Account rejected.')
+    return redirect('admin_applications')
 
 
 def revisar_solicitud(request, token, accion):
