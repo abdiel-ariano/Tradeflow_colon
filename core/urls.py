@@ -7,6 +7,12 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
+from .views import (
+    admin_applications_view,
+    approve_application_view,
+    pending_approval_view,
+    reject_application_view,
+)
 from . import views_onboarding as onboarding
 from . import views_transportistas as vt
 from . import views_api_enterprise as vapi
@@ -57,7 +63,6 @@ urlpatterns = [
     path('logout/',  views.logout_view, name='logout'),
     path('signup/',  views.signup_view, name='signup'),
     path('solicitud-acceso/', views.solicitud_acceso, name='solicitud_acceso'),
-    path('pending-approval/', views.pending_approval_view, name='pending_approval'),
     path('onboarding/solicitud-enviada/', onboarding.onboarding_solicitud_enviada, name='onboarding_solicitud_enviada'),
     path('onboarding/verificar-email/', onboarding.onboarding_espera_verificacion, name='onboarding_espera_verificacion'),
     path('onboarding/espera-aprobacion/', onboarding.onboarding_espera_aprobacion, name='onboarding_espera_aprobacion'),
@@ -98,17 +103,6 @@ urlpatterns = [
     # ── Dashboard (admin) ─────────────────────────────────────────────────
     path('', views.home_view, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
-    path('admin/applications/', views.admin_applications_view, name='admin_applications'),
-    path(
-        'admin/applications/<int:pk>/approve/',
-        views.approve_application_view,
-        name='approve_application',
-    ),
-    path(
-        'admin/applications/<int:pk>/reject/',
-        views.reject_application_view,
-        name='reject_application',
-    ),
     path('saas/', views.admin_saas_dashboard, name='admin_saas_dashboard'),
 
     # ── Portales de rol ───────────────────────────────────────────────────
@@ -202,4 +196,9 @@ urlpatterns = [
     path('api/productos/', views.api_productos, name='api_productos'),
     path('api/home-merchandising/', views.api_home_merchandising, name='api_home_merchandising'),
     path('api/asistente/', views.api_asistente, name='api_asistente'),
+
+    path('admin/applications/', admin_applications_view, name='admin_applications'),
+    path('admin/applications/<int:pk>/approve/', approve_application_view, name='approve_application'),
+    path('admin/applications/<int:pk>/reject/', reject_application_view, name='reject_application'),
+    path('pending-approval/', pending_approval_view, name='pending_approval'),
 ]
