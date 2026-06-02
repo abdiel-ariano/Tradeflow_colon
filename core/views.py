@@ -389,7 +389,17 @@ def login_view(request):
             dest = next_url if next_url else _redirect_by_role(user)
             return redirect(dest)
         else:
-            messages.error(request, 'Incorrect username or password.')
+            inactive = User.objects.filter(
+                username=username,
+                is_active=False,
+            ).first()
+            if inactive and inactive.check_password(password):
+                messages.info(
+                    request,
+                    'Your account is pending approval. You will be notified once activated.',
+                )
+            else:
+                messages.error(request, 'Incorrect username or password.')
 
     return render(request, 'core/login.html', _login_template_context())
 
