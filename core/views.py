@@ -516,7 +516,7 @@ def signup_view(request):
                 role=role,
                 company_name='',
                 message='',
-                status='pendiente',
+                status='pending',
             )
             messages.success(
                 request,
@@ -3899,7 +3899,7 @@ def solicitud_acceso(request):
         else:
             existing = UserApplication.objects.filter(
                 email__iexact=email,
-                status__in=('pendiente', 'en_revision'),
+                status='pending',
             ).first()
             if existing:
                 messages.info(
@@ -3946,112 +3946,18 @@ def solicitud_acceso(request):
     })
 
 
-def pending_approval_view(request):
-    """Pantalla pública tras registro: cuenta pendiente de aprobación admin."""
-    return render(request, 'core/pending_approval.html')
-
-
-def _application_status_filter(param: str) -> tuple[str | None, list[str] | None]:
-    """Map query ?status= to model status values."""
-    mapping = {
-        'pending': ['pendiente', 'en_revision'],
-        'approved': ['aprobada'],
-        'rejected': ['rechazada'],
-    }
-    key = (param or '').strip().lower()
-    if key in mapping:
-        return key, mapping[key]
-    return None, None
-
-
-@admin_required
-def admin_applications_view(request):
-    """Panel admin: solicitudes de acceso pendientes y histórico."""
-    current_filter, status_values = _application_status_filter(request.GET.get('status'))
-    qs = UserApplication.objects.select_related('user').order_by('-created_at')
-    if status_values:
-        qs = qs.filter(status__in=status_values)
-    pending_count = UserApplication.objects.filter(
-        status__in=('pendiente', 'en_revision'),
-    ).count()
-    return render(
-        request,
-        'core/admin_applications.html',
-        {
-            'applications': qs,
-            'pending_count': pending_count,
-            'current_filter': current_filter,
-            'nav_activo': 'admin_applications',
-        },
-    )
-
-
-@admin_required
-def approve_application_view(request, pk):
-    if request.method != 'POST':
-        return redirect('admin_applications')
-    app = get_object_or_404(UserApplication.objects.select_related('user'), pk=pk)
-    if app.status not in ('pendiente', 'en_revision'):
-        messages.info(request, 'This application has already been reviewed.')
-        return redirect('admin_applications')
-
-    app.status = 'aprobada'
-    app.reviewed_at = timezone.now()
-    app.save(update_fields=['status', 'reviewed_at'])
-
-    if app.user_id:
-        app.user.is_active = True
-        app.user.save(update_fields=['is_active'])
-        try:
-            profile = app.user.profile
-            profile.email_verificado = True
-            profile.token_verificacion = None
-            profile.save(update_fields=['email_verificado', 'token_verificacion'])
-        except UserProfile.DoesNotExist:
-            UserProfile.objects.create(
-                user=app.user,
-                role=app.role,
-                phone=app.phone,
-                email_verificado=True,
-            )
-
-    messages.success(request, 'Account approved successfully.')
-    return redirect('admin_applications')
-
-
-@admin_required
-def reject_application_view(request, pk):
-    if request.method != 'POST':
-        return redirect('admin_applications')
-    app = get_object_or_404(UserApplication.objects.select_related('user'), pk=pk)
-    if app.status not in ('pendiente', 'en_revision'):
-        messages.info(request, 'This application has already been reviewed.')
-        return redirect('admin_applications')
-
-    app.status = 'rechazada'
-    app.reviewed_at = timezone.now()
-    app.save(update_fields=['status', 'reviewed_at'])
-
-    if app.user_id:
-        app.user.is_active = False
-        app.user.save(update_fields=['is_active'])
-
-    messages.success(request, 'Account rejected.')
-    return redirect('admin_applications')
-
-
 def revisar_solicitud(request, token, accion):
     """Aprueba o rechaza solicitud desde enlace del correo."""
     app = get_object_or_404(UserApplication, review_token=token)
-    if app.status not in ('pendiente', 'en_revision'):
+    if app.status not in ('pending',):
         messages.info(request, _('This application has already been reviewed.'))
         return redirect('home')
 
     if accion == 'aprobar':
-        app.status = 'aprobada'
+        app.status = 'approved'
         aprobada = True
     elif accion == 'rechazar':
-        app.status = 'rechazada'
+        app.status = 'rejected'
         aprobada = False
     else:
         raise Http404
@@ -4172,3 +4078,59 @@ def api_admin_saas_request_action(request, pk: int):
             'message': f'Request from {req.company.name} rejected.',
         })
     return JsonResponse({'error': 'Invalid action'}, status=400)
+
+
+def pending_approval_view(request):
+    return render(request, 'core/pending_approval.html')
+
+
+@login_required
+def admin_applications_view(request):
+    from .models import UserApplication
+    status_filter = request.GET.get('status', '')
+    applications = UserApplication.objects.all().order_by('-created_at')
+    if status_filter:
+        applications = applications.filter(status=status_filter)
+    pending_count = UserApplication.objects.filter(status='pending').count()
+    return render(request, 'core/admin_applications.html', {
+        'applications': applications,
+        'pending_count': pending_count,
+        'current_filter': status_filter,
+    })
+
+
+@login_required
+def approve_application_view(request, pk):
+    from .models import UserApplication
+    if request.method == 'POST':
+        try:
+            app = UserApplication.objects.get(pk=pk)
+            app.status = 'approved'
+            app.save()
+            if app.user:
+                app.user.is_active = True
+                app.user.save()
+                if hasattr(app.user, 'profile'):
+                    app.user.profile.email_verificado = True
+                    app.user.profile.save()
+            messages.success(request, 'Account approved successfully.')
+        except UserApplication.DoesNotExist:
+            messages.error(request, 'Application not found.')
+    return redirect('admin_applications')
+
+
+@login_required
+def reject_application_view(request, pk):
+    from .models import UserApplication
+    if request.method == 'POST':
+        try:
+            app = UserApplication.objects.get(pk=pk)
+            app.status = 'rejected'
+            app.save()
+            if app.user:
+                app.user.is_active = False
+                app.user.save()
+            messages.success(request, 'Account rejected.')
+        except UserApplication.DoesNotExist:
+            messages.error(request, 'Application not found.')
+    return redirect('admin_applications')
