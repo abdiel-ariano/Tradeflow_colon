@@ -7,12 +7,6 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
-from .views import (
-    admin_applications_view,
-    approve_application_view,
-    pending_approval_view,
-    reject_application_view,
-)
 from . import views_onboarding as onboarding
 from . import views_transportistas as vt
 from . import views_api_enterprise as vapi
@@ -197,8 +191,9 @@ urlpatterns = [
     path('api/home-merchandising/', views.api_home_merchandising, name='api_home_merchandising'),
     path('api/asistente/', views.api_asistente, name='api_asistente'),
 
-    path('admin/applications/', admin_applications_view, name='admin_applications'),
-    path('admin/applications/<int:pk>/approve/', approve_application_view, name='approve_application'),
-    path('admin/applications/<int:pk>/reject/', reject_application_view, name='reject_application'),
-    path('pending-approval/', pending_approval_view, name='pending_approval'),
+    # ── Applications (admin approval) ────────────────────────────────────
+    path('admin/applications/', views.admin_applications_view, name='admin_applications'),
+    path('admin/applications/<int:pk>/approve/', views.approve_application_view, name='approve_application'),
+    path('admin/applications/<int:pk>/reject/', views.reject_application_view, name='reject_application'),
+    path('pending-approval/', views.pending_approval_view, name='pending_approval'),
 ]
