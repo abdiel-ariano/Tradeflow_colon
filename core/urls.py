@@ -103,17 +103,6 @@ urlpatterns = [
     # ── Dashboard (admin) ─────────────────────────────────────────────────
     path('', views.home_view, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
-    path('admin/applications/', views.admin_applications_view, name='admin_applications'),
-    path(
-        'admin/applications/<int:pk>/approve/',
-        views.approve_application_view,
-        name='approve_application',
-    ),
-    path(
-        'admin/applications/<int:pk>/reject/',
-        views.reject_application_view,
-        name='reject_application',
-    ),
     path('saas/', views.admin_saas_dashboard, name='admin_saas_dashboard'),
 
     # ── Portales de rol ───────────────────────────────────────────────────
@@ -207,4 +196,9 @@ urlpatterns = [
     path('api/productos/', views.api_productos, name='api_productos'),
     path('api/home-merchandising/', views.api_home_merchandising, name='api_home_merchandising'),
     path('api/asistente/', views.api_asistente, name='api_asistente'),
+
+    path('admin/applications/', admin_applications_view, name='admin_applications'),
+    path('admin/applications/<int:pk>/approve/', approve_application_view, name='approve_application'),
+    path('admin/applications/<int:pk>/reject/', reject_application_view, name='reject_application'),
+    path('pending-approval/', pending_approval_view, name='pending_approval'),
 ]
