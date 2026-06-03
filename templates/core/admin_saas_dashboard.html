@@ -8,15 +8,42 @@
 {% block extra_css %}
 {% include "core/includes/static_css_bundle.html" %}
 <style>
+  /* TradeFlow brand — SaaS admin shell */
+  .adm-shell .adm-side {
+    background: linear-gradient(180deg, var(--tf-navy, #0F2A44) 0%, #0a1f33 100%) !important;
+  }
+  .adm-shell .adm-side a[data-adm-nav]:hover {
+    background: rgba(242, 101, 34, 0.12) !important;
+    color: #ffffff !important;
+  }
+  .adm-shell .adm-side a[data-adm-nav].is-active {
+    border-left-color: var(--tf-orange, #F26522) !important;
+    background: rgba(242, 101, 34, 0.18) !important;
+    color: #ffffff !important;
+  }
+  .adm-shell .adm-rail-brand-mark .material-symbols-rounded {
+    color: var(--tf-orange, #F26522) !important;
+  }
   .adm-shell .adm-main.adm-saas-wrap {
     padding: 0;
-    background: #f8fafc;
+    background: #F2F3F5;
     min-height: calc(100vh - 64px);
   }
   #admin-saas-root {
     min-height: calc(100vh - 64px);
     width: 100%;
     font-family: Inter, system-ui, sans-serif;
+    --color-background: #F2F3F5;
+    --color-border: #D1D5DB;
+    --color-muted-foreground: #6B7A88;
+    --color-primary: #2E5B8A;
+    --color-emerald: #F26522;
+  }
+  #admin-saas-root [class*="bg-primary"] {
+    background-color: #2E5B8A !important;
+  }
+  #admin-saas-root .text-emerald {
+    color: #F26522 !important;
   }
   .adm-saas-fallback {
     padding: 28px clamp(20px, 4vw, 40px) 48px;
