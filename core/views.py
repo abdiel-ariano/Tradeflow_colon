@@ -497,59 +497,28 @@ def signup_view(request):
             first_name=first_name,
             last_name=last_name,
         )
-        if settings.REQUIRE_APPROVED_APPLICATION:
-            user.is_active = False
-            user.save(update_fields=['is_active'])
-            full_name = f'{first_name} {last_name}'.strip() or username
-            UserProfile.objects.create(
-                user=user,
-                role=role,
-                phone=phone,
-                email_verificado=False,
-            )
-            UserApplication.objects.create(
-                user=user,
-                full_name=full_name,
-                email=email,
-                phone=phone,
-                role=role,
-                company_name='',
-                message='',
-                status='pending',
-            )
-            messages.success(
-                request,
-                'Your application was submitted. Our team will review it within 1-2 business days.',
-            )
-            return redirect('pending_approval')
 
-        if settings.REQUIRE_EMAIL_VERIFICATION:
-            UserProfile.objects.create(
-                user=user,
-                role=role,
-                phone=phone,
-                email_verificado=False,
-            )
-            login(request, user, backend=AUTH_MODEL_BACKEND)
-            messages.success(
-                request,
-                f'Cuenta creada. Te enviaremos un código de 6 dígitos a {email}.',
-            )
-            return redirect('enviar_codigo')
+        # Deactivate user until admin approves
+        user.is_active = False
+        user.save()
 
-        UserProfile.objects.create(
+        # Create application record
+        from .models import UserApplication
+        UserApplication.objects.get_or_create(
             user=user,
-            role=role,
-            phone=phone,
-            email_verificado=True,
-            token_verificacion=None,
+            defaults={
+                'full_name': f"{first_name} {last_name}".strip(),
+                'email': email,
+                'phone': phone,
+                'role': role,
+                'company_name': '',
+                'message': '',
+                'status': 'pending',
+            }
         )
-        login(request, user, backend=AUTH_MODEL_BACKEND)
-        messages.success(
-            request,
-            f'¡Bienvenido a TradeFlow, {first_name}! Tu cuenta ha sido creada.',
-        )
-        return redirect(_redirect_by_role(user))
+
+        # Redirect to pending approval page
+        return redirect('pending_approval')
 
     return render(request, 'core/signup.html', {
         'role_choices': [('buyer', 'Comprador'), ('seller', 'Vendedor')],
