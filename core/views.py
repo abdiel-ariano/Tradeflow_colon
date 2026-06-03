@@ -525,6 +525,17 @@ def signup_view(request):
             last_name=last_name,
         )
 
+        from .models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'role': role,
+                'email_verificado': False,
+            }
+        )
+        profile.role = role
+        profile.save()
+
         # Deactivate user until admin approves
         user.is_active = False
         user.save()
@@ -2132,7 +2143,7 @@ def _seller_company_or_response(request, nav_activo='mi_tienda'):
         return company, None
     messages.warning(
         request,
-        'Tu cuenta no tiene una empresa vinculada. Contacta al administrador para asignarte una empresa en el sistema.',
+        'Your account is not linked to a company yet. Please contact the administrator to assign your company.',
     )
     ctx = {
         'titulo_pagina': 'Mi Tienda',
