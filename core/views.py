@@ -1034,7 +1034,7 @@ def mapa_zlc(request):
     Returns:
         HttpResponse: Plantilla con HTML del mapa embebido.
     """
-    m = folium.Map(location=[9.3667, -79.9000], zoom_start=13, tiles='OpenStreetMap')
+    m = folium.Map(location=[9.3667, -79.9000], zoom_start=13, tiles='OpenStreetMap', width='100%', height='520px')
     cluster = MarkerCluster(name='Empresas ZLC').add_to(m)
     empresas = Company.objects.annotate(
         n_activos=Count('products', filter=Q(products__is_active=True))
@@ -1056,12 +1056,12 @@ def mapa_zlc(request):
         html_popup = (
             '<div style="min-width:220px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.45;">'
             f'<strong style="color:#0F2A44;">{nombre}</strong><br>'
-            f'<span style="color:#6B7A88;">{_('Productos activos:')}</span> {c.n_activos}<br>'
-            f'<span style="color:#6B7A88;">{_('Categorías:')}</span> {cat_txt_e}<br>'
+            f'<span style="color:#6B7A88;">Active products:</span> {c.n_activos}<br>'
+            f'<span style="color:#6B7A88;">Categories:</span> {cat_txt_e}<br>'
             f'<a href="{catalog_url_e}" target="_blank" rel="noopener noreferrer" '
             'style="display:inline-block;margin-top:10px;padding:8px 14px;background:#F26522;'
             'color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.85rem;">'
-            f'{_("Ver catálogo")}</a></div>'
+            f'View catalog</a></div>'
         )
         icon_color = 'orange' if c.is_verified else 'gray'
         folium.Marker(
@@ -1071,7 +1071,12 @@ def mapa_zlc(request):
             icon=folium.Icon(color=icon_color),
         ).add_to(cluster)
 
+    import re
     map_html = m._repr_html_()
+    map_html = re.sub(r'width:\s*[\d.]+px', 'width:100%', map_html)
+    map_html = re.sub(r'height:\s*[\d.]+px', 'height:520px', map_html)
+    map_html = re.sub(r'width="[\d.]+"', 'width="100%"', map_html)
+    map_html = re.sub(r'height="[\d.]+"', 'height="520"', map_html)
     return render(request, 'core/mapa_zlc.html', {
         'map_html':       map_html,
         'titulo_pagina':  'Mapa ZLC',
