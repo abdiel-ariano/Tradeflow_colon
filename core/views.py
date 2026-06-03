@@ -1071,7 +1071,12 @@ def mapa_zlc(request):
             icon=folium.Icon(color=icon_color),
         ).add_to(cluster)
 
-    map_html = m.get_root().render()
+    map_html = io.BytesIO()
+    m.save(map_html, close_file=False)
+    map_html = map_html.getvalue().decode('utf-8')
+    body_match = re.search(r'<body[^>]*>(.*?)</body>', map_html, re.DOTALL)
+    if body_match:
+        map_html = body_match.group(1)
     return render(request, 'core/mapa_zlc.html', {
         'map_html':       map_html,
         'titulo_pagina':  'Mapa ZLC',
