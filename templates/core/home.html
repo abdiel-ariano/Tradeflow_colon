@@ -549,6 +549,28 @@ stats, featured_products, empresas_carousel, show_cart_actions.
       padding-left: 16px;
       padding-right: 16px;
     }
+
+    .hm-carousel-track,
+    [class*="carousel-track"],
+    [class*="slider-track"],
+    [class*="companies-track"] {
+      display: flex !important;
+      flex-direction: row !important;
+    }
+
+    .hm-emp-card,
+    .hm-carousel-slide,
+    [class*="company-card"],
+    [class*="carousel-card"] {
+      display: flex !important;
+      flex-direction: column !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      background: white !important;
+      border-radius: 16px !important;
+      padding: 24px !important;
+      box-shadow: 0 2px 12px rgba(15, 42, 68, 0.1) !important;
+    }
   }
   .hm-emp-card {
     background: var(--tf-white);
@@ -1251,6 +1273,40 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     else revealObserver.observe(el);
   });
 
+  function initCarousel() {
+    var track = document.querySelector(
+      '.hm-carousel-track, [class*="carousel-track"], [class*="slider-track"], [class*="companies-track"]'
+    );
+    var cards = document.querySelectorAll(
+      '.hm-carousel-slide, .hm-emp-card, [class*="company-card"], [class*="carousel-card"]'
+    );
+
+    if (!track || !cards.length) return;
+
+    cards.forEach(function (card) {
+      card.style.display = 'flex';
+      card.style.flexDirection = 'column';
+      card.style.opacity = '1';
+      card.style.visibility = 'visible';
+    });
+
+    var isMobile = window.innerWidth <= 768;
+    var cardWidth = isMobile ? window.innerWidth - 48 : 0;
+    cards.forEach(function (card) {
+      if (!card.classList.contains('hm-carousel-slide')) return;
+      if (isMobile) {
+        card.style.minWidth = cardWidth + 'px';
+        card.style.maxWidth = cardWidth + 'px';
+      } else {
+        card.style.minWidth = '';
+        card.style.maxWidth = '';
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initCarousel);
+  window.addEventListener('resize', initCarousel);
+
   var meta = document.getElementById('hm-page-meta');
   var slideCount = meta ? parseInt(meta.getAttribute('data-emp-slides'), 10) : 0;
   var track = document.getElementById('hm-emp-track');
@@ -1323,9 +1379,14 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   }
 
   buildDots();
+  initCarousel();
   update();
   resetAuto();
-  window.addEventListener('resize', function () { buildDots(); update(); });
+  window.addEventListener('resize', function () {
+    initCarousel();
+    buildDots();
+    update();
+  });
 })();
 </script>
 {% endblock %}

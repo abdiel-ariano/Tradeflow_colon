@@ -506,8 +506,60 @@ show_cart_actions, tienda_params.
   @media (max-width: 900px) {
     .td-grid, .td-grid-spot { grid-template-columns: repeat(2, 1fr); }
   }
-  @media (max-width: 560px) {
-    .td-grid, .td-grid-spot { grid-template-columns: 1fr; }
+  @media (max-width: 768px) {
+    .productos-grid,
+    .product-grid,
+    .td-grid,
+    .td-grid-spot,
+    [class*="product"][class*="grid"],
+    [class*="productos"][class*="grid"] {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 12px !important;
+      padding: 0 12px !important;
+    }
+
+    .producto-card,
+    .product-card,
+    .tf-product-card,
+    [class*="product-card"],
+    [class*="producto-card"] {
+      border-radius: 10px !important;
+    }
+
+    .producto-card img,
+    .product-card img,
+    .tf-product-card img,
+    .product-card-img,
+    [class*="product-card"] img {
+      height: 120px !important;
+      object-fit: cover !important;
+    }
+
+    .producto-card .product-name,
+    .product-card h3,
+    .tf-product-card-title,
+    [class*="product-card"] h3,
+    [class*="product-card"] .name {
+      font-size: 12px !important;
+      line-height: 1.3 !important;
+    }
+
+    .producto-card .price,
+    .product-card .price,
+    .tf-product-card-price,
+    [class*="product-card"] .price {
+      font-size: 13px !important;
+    }
+
+    .producto-card .btn-primary-tf,
+    .product-card .btn-primary-tf,
+    .tf-product-card .tf-btn-primary,
+    .tf-product-card .tf-product-card-btn,
+    [class*="product-card"] .btn-primary-tf {
+      padding: 6px 10px !important;
+      font-size: 11px !important;
+    }
   }
   .tf-product-card-btn-disabled {
     display: flex;
