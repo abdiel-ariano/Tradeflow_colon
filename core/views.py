@@ -4096,17 +4096,21 @@ def pending_approval_view(request):
 @login_required
 def admin_applications_view(request):
     """Admin panel to review company access applications."""
-    from .models import UserApplication
-    status_filter = request.GET.get('status', '')
-    applications = UserApplication.objects.all().order_by('-created_at')
-    if status_filter:
-        applications = applications.filter(status=status_filter)
-    pending_count = UserApplication.objects.filter(status='pending').count()
-    return render(request, 'core/admin_applications.html', {
-        'applications': applications,
-        'pending_count': pending_count,
-        'current_filter': status_filter,
-    })
+    try:
+        from .models import UserApplication
+        status_filter = request.GET.get('status', '')
+        applications = UserApplication.objects.all().order_by('-created_at')
+        if status_filter:
+            applications = applications.filter(status=status_filter)
+        pending_count = UserApplication.objects.filter(status='pending').count()
+        return render(request, 'core/admin_applications.html', {
+            'applications': applications,
+            'pending_count': pending_count,
+            'current_filter': status_filter,
+        })
+    except Exception as e:
+        log.exception('Error in admin_applications_view: %s', e)
+        raise
 
 
 @login_required
