@@ -13,11 +13,9 @@ from . import views_api_enterprise as vapi
 
 urlpatterns = [
 
-    # ── Mapa ZLC + QR visitante ─────────────────────────────────────────────
+    # ── Mapa ZLC + verificación visitante ───────────────────────────────────
     path('mapa/', views.mapa_zlc, name='mapa_zlc'),
     path('visitante/zlc/', views.visitante_zlc_verificacion, name='visitante_zlc_verificacion'),
-    path('mi-qr/', views.mi_qr, name='mi_qr'),
-    path('mi-qr/descargar/', views.generar_qr_visitante, name='descargar_qr'),
 
     # ── Autenticación ─────────────────────────────────────────────────────
     path('login/',   views.login_view,  name='login'),
@@ -122,6 +120,8 @@ urlpatterns = [
 
     # Portal del vendedor
     path('mi-tienda/', views.portal_seller, name='portal_seller'),
+    path('mi-tienda/qr/', views.seller_company_qr, name='seller_company_qr'),
+    path('mi-tienda/qr/descargar/', views.seller_download_qr, name='seller_download_qr'),
     path('api/seller-dashboard/', views.api_seller_dashboard, name='api_seller_dashboard'),
     path(
         'api/seller/orders/<int:pk>/timeline/',

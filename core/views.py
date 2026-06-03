@@ -1837,6 +1837,59 @@ def portal_buyer(request):
 
 
 @seller_required
+def seller_company_qr(request):
+    """QR code linking to the seller company catalog in the public store."""
+    try:
+        company = Company.objects.get(owner=request.user)
+    except Company.DoesNotExist:
+        messages.error(request, 'No company linked to your account.')
+        return redirect('portal_seller')
+
+    catalog_url = request.build_absolute_uri(
+        reverse('tienda') + f'?empresa={company.pk}'
+    )
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(catalog_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color='#0F2A44', back_color='white')
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+
+    return render(request, 'core/seller_qr.html', {
+        'company': company,
+        'qr_base64': qr_base64,
+        'catalog_url': catalog_url,
+        'titulo_pagina': 'Company QR',
+        'nav_activo': 'seller_qr',
+    })
+
+
+@seller_required
+def seller_download_qr(request):
+    """Download PNG QR for the seller company catalog URL."""
+    try:
+        company = Company.objects.get(owner=request.user)
+    except Company.DoesNotExist:
+        return redirect('portal_seller')
+
+    catalog_url = request.build_absolute_uri(
+        reverse('tienda') + f'?empresa={company.pk}'
+    )
+    qr = qrcode.QRCode(version=1, box_size=15, border=4)
+    qr.add_data(catalog_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color='#0F2A44', back_color='white')
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    buffer.seek(0)
+    safe_name = re.sub(r'[^\w\-]+', '-', company.name).strip('-') or 'company'
+    response = HttpResponse(buffer.getvalue(), content_type='image/png')
+    response['Content-Disposition'] = f'attachment; filename="qr-{safe_name}.png"'
+    return response
+
+
+@seller_required
 def portal_seller(request):
     """Dashboard premium del vendedor en /mi-tienda/."""
     import json as _json
