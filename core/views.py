@@ -1012,8 +1012,6 @@ def api_asistente(request):
     Returns:
         JsonResponse: ``ok``, ``respuesta`` y ``respuesta_html``.
     """
-    from decouple import config
-
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
@@ -1040,9 +1038,7 @@ def api_asistente(request):
             status=400,
         )
 
-    groq_api_key = config('GROQ_API_KEY', default='').strip()
-    if not groq_api_key:
-        groq_api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
+    groq_api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
 
     if not groq_api_key:
         logging.getLogger('tradeflow.ai').warning('api_asistente: GROQ_API_KEY not configured')
