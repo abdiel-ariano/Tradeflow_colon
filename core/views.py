@@ -360,6 +360,33 @@ def login_view(request):
 
         if user is not None:
             login(request, user, backend=AUTH_MODEL_BACKEND)
+
+            try:
+                profile = user.profile
+                if user.is_active and profile.email_verificado and profile.role:
+                    messages.success(
+                        request,
+                        f'Welcome, {user.first_name or user.username}!',
+                    )
+                    next_url = (request.GET.get('next') or '').strip()
+                    if next_url.startswith('//') or '://' in next_url:
+                        next_url = ''
+                    elif next_url.startswith('/'):
+                        home_path = reverse('home')
+                        login_path = reverse('login')
+                        if (
+                            next_url in (home_path, '/')
+                            or next_url == login_path
+                            or next_url.startswith(login_path + '?')
+                        ):
+                            next_url = ''
+                    else:
+                        next_url = ''
+                    dest = next_url if next_url else _redirect_by_role(user)
+                    return redirect(dest)
+            except UserProfile.DoesNotExist:
+                pass
+
             from core.utils.access_gating import onboarding_redirect_name
 
             gate_route = onboarding_redirect_name(user)

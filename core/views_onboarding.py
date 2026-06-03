@@ -20,9 +20,28 @@ from core.utils.access_gating import (
 )
 
 
+def _redirect_active_verified_user(request):
+    """Skip onboarding gates for approved, verified accounts."""
+    try:
+        profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        return None
+    if (
+        request.user.is_active
+        and profile.email_verificado
+        and profile.role
+    ):
+        from core.views import _redirect_by_role
+        return redirect(_redirect_by_role(request.user))
+    return None
+
+
 @login_required
 def onboarding_espera_verificacion(request):
     """Compatibilidad: redirige al flujo Resend / código de 6 dígitos."""
+    bypass = _redirect_active_verified_user(request)
+    if bypass:
+        return bypass
     return redirect('verificar_codigo')
 
 
@@ -45,6 +64,9 @@ def onboarding_reenviar_verificacion(request):
 @login_required
 def onboarding_espera_aprobacion(request):
     """Solicitud en revisión — acceso limitado."""
+    bypass = _redirect_active_verified_user(request)
+    if bypass:
+        return bypass
     gate = application_gate_status(request.user.email or '')
     if gate not in ('pending', 'under_review'):
         nxt = onboarding_redirect_name(request.user)
@@ -58,6 +80,9 @@ def onboarding_espera_aprobacion(request):
 @login_required
 def onboarding_solicitud_requerida(request):
     """Debe completar solicitud de acceso empresarial."""
+    bypass = _redirect_active_verified_user(request)
+    if bypass:
+        return bypass
     gate = application_gate_status(request.user.email or '')
     if gate is None:
         nxt = onboarding_redirect_name(request.user)
@@ -74,6 +99,9 @@ def onboarding_solicitud_requerida(request):
 
 @login_required
 def onboarding_aplicacion_rechazada(request):
+    bypass = _redirect_active_verified_user(request)
+    if bypass:
+        return bypass
     gate = application_gate_status(request.user.email or '')
     if gate != 'rejected':
         nxt = onboarding_redirect_name(request.user)

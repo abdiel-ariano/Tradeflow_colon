@@ -138,6 +138,13 @@ def onboarding_redirect_name(user) -> str | None:
     if not user.is_authenticated or user_is_platform_exempt(user):
         return None
 
+    try:
+        profile = user.profile
+        if user.is_active and profile.email_verificado and profile.role:
+            return None
+    except UserProfile.DoesNotExist:
+        pass
+
     if not user.is_active:
         return 'pending_approval'
 
