@@ -1071,12 +1071,7 @@ def mapa_zlc(request):
             icon=folium.Icon(color=icon_color),
         ).add_to(cluster)
 
-    import re
-    map_html = m._repr_html_()
-    map_html = re.sub(r'width:\s*[\d.]+px', 'width:100%', map_html)
-    map_html = re.sub(r'height:\s*[\d.]+px', 'height:520px', map_html)
-    map_html = re.sub(r'width="[\d.]+"', 'width="100%"', map_html)
-    map_html = re.sub(r'height="[\d.]+"', 'height="520"', map_html)
+    map_html = m.get_root().render()
     return render(request, 'core/mapa_zlc.html', {
         'map_html':       map_html,
         'titulo_pagina':  'Mapa ZLC',

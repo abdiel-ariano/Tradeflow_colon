@@ -70,8 +70,11 @@ Map Folium embebido; contexto: map_html, titulo_pagina, nav_activo.
     <h1>Companies in the Colón Free Zone</h1>
     <p>Browse verified sellers and their catalog. Orange markers: verified company; gray: pending verification.</p>
   </header>
-  <div class="map-zlc-frame">
-    {{ map_html|safe }}
+  <div class="map-zlc-frame" style="width:100%;height:520px;border-radius:12px;overflow:hidden;border:1px solid #D1D5DB;box-shadow:0 8px 24px rgba(15,42,68,0.08);">
+    <iframe srcdoc="{{ map_html|escapejs }}"
+            style="width:100%;height:100%;border:none;"
+            title="Colón Free Zone Map">
+    </iframe>
   </div>
 </div>
 {% endblock %}
