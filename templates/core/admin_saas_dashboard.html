@@ -12,6 +12,9 @@
   .adm-shell .adm-side {
     background: linear-gradient(180deg, var(--tf-navy, #0F2A44) 0%, #0a1f33 100%) !important;
   }
+  .adm-shell .adm-side a[data-adm-nav] {
+    color: rgba(255, 255, 255, 0.75) !important;
+  }
   .adm-shell .adm-side a[data-adm-nav]:hover {
     background: rgba(242, 101, 34, 0.12) !important;
     color: #ffffff !important;
@@ -44,6 +47,31 @@
   }
   #admin-saas-root .text-emerald {
     color: #F26522 !important;
+  }
+  /* Tabs: Plan usage | Requests | Revenue distribution */
+  #admin-saas-root [role="tablist"] {
+    background: #F2F3F5 !important;
+    border: 1px solid #D1D5DB;
+    border-radius: 10px;
+    padding: 4px !important;
+    gap: 4px;
+  }
+  #admin-saas-root [role="tab"] {
+    background: transparent !important;
+    color: #6B7A88 !important;
+    box-shadow: none !important;
+    border-radius: 8px 8px 0 0 !important;
+    border-bottom: 2px solid transparent !important;
+  }
+  #admin-saas-root [role="tab"][data-state="active"] {
+    background: #ffffff !important;
+    color: #0F2A44 !important;
+    border-bottom-color: #F26522 !important;
+    box-shadow: 0 1px 3px rgba(15, 42, 68, 0.08) !important;
+  }
+  #admin-saas-root [role="tab"]:hover:not([data-state="active"]) {
+    color: #0F2A44 !important;
+    background: rgba(255, 255, 255, 0.6) !important;
   }
   .adm-saas-fallback {
     padding: 28px clamp(20px, 4vw, 40px) 48px;
@@ -134,6 +162,19 @@
 {% block extra_js %}
 <script>
 (function () {
+  /** English month labels for charts (API may still send Spanish abbreviations). */
+  window.TF_MONTHS_EN = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+  window.TF_MONTH_ES_TO_EN = {
+    Ene: 'Jan', Abr: 'Apr', Ago: 'Aug', Dic: 'Dec'
+  };
+  window.tfMonthEn = function (label) {
+    if (!label) return label;
+    return window.TF_MONTH_ES_TO_EN[label] || label;
+  };
+
   var root = document.getElementById('admin-saas-root');
   var status = document.getElementById('admin-saas-boot-status');
   if (!root) return;

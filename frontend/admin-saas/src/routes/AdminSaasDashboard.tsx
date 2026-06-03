@@ -39,7 +39,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { currencyUsd, formatUsdK } from '@/lib/utils';
+import { currencyUsd, formatUsdK, monthLabelEn } from '@/lib/utils';
 
 export const MONTHS_EN = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -215,13 +215,16 @@ export function AdminSaasDashboard() {
   }, [data]);
   const predictive = data?.predictive;
   const salesTrend = data?.sales_trend?.length
-    ? data.sales_trend
+    ? data.sales_trend.map((r) => ({
+        ...r,
+        month: monthLabelEn(r.month),
+      }))
     : historicalSales.map((v, i) => ({ month: MONTHS_EN[i], revenue_usd: v }));
 
   const areaChartData = useMemo(() => {
     if (predictive?.chart?.length) {
       return predictive.chart.map((c) => ({
-        month: c.month,
+        month: monthLabelEn(c.month),
         real: c.real ?? undefined,
         predicted: c.predicted ?? undefined,
         boundary: c.is_today_boundary,
@@ -245,7 +248,9 @@ export function AdminSaasDashboard() {
   }, [predictive]);
 
   const predictedAmount = predictive?.predicted_amount_usd ?? linearRegressionForecast(historicalSales, 1)[0];
-  const nextMonth = predictive?.next_month_label ?? MONTHS_EN[new Date().getMonth() % 12];
+  const nextMonth = monthLabelEn(
+    predictive?.next_month_label ?? MONTHS_EN[new Date().getMonth() % 12],
+  );
   const confidence = predictive?.confidence_pct ?? 78;
   const trendPct = predictive?.monthly_trend_pct ?? 8.4;
 

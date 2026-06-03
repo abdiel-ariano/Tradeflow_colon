@@ -5,10 +5,23 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const MONTHS_ES = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+export const MONTHS_EN = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
+
+const MONTH_ES_TO_EN: Record<string, string> = {
+  Ene: 'Jan',
+  Abr: 'Apr',
+  Ago: 'Aug',
+  Dic: 'Dec',
+};
+
+/** Normalize API month abbreviations to English. */
+export function monthLabelEn(label: string | undefined): string {
+  if (!label) return '';
+  return MONTH_ES_TO_EN[label] ?? label;
+}
 
 export const currencyUsd = new Intl.NumberFormat('es-CO', {
   style: 'currency',
