@@ -7,11 +7,61 @@ Map Folium embebido; contexto: map_html, titulo_pagina, nav_activo.
 {% block title %}Map — Colón Free Zone — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style>
-  .map-zlc-wrap { max-width: 1160px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1rem clamp(2.5rem, 5vw, 4rem); }
-  .map-zlc-head h1 { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.5rem; color: #0F2A44; margin: 0 0 0.5rem; }
-  .map-zlc-head p { color: #6B7A88; font-size: 0.9rem; margin: 0 0 1.25rem; max-width: 60ch; }
-  .map-zlc-frame { border: 1px solid #D1D5DB; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 8px 24px rgba(15,42,68,0.08); }
-  .map-zlc-frame iframe, .map-zlc-frame .folium-map { width: 100% !important; min-height: 480px; }
+  .map-zlc-wrap {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: clamp(2.35rem, 6vw, 3.75rem) 1rem clamp(2.5rem, 5vw, 4rem);
+  }
+  .map-zlc-head h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #0F2A44;
+    margin: 0 0 0.5rem;
+  }
+  .map-zlc-head p {
+    color: #6B7A88;
+    font-size: 0.9rem;
+    margin: 0 0 1.25rem;
+    max-width: 60ch;
+  }
+  .map-zlc-frame {
+    border: 1px solid #D1D5DB;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15,42,68,0.08);
+    width: 100%;
+    position: relative;
+  }
+  .map-zlc-frame iframe,
+  .map-zlc-frame .folium-map,
+  .map-zlc-frame > div {
+    width: 100% !important;
+    min-height: 520px;
+    height: 60vh !important;
+    display: block !important;
+  }
+  @media (max-width: 768px) {
+    .map-zlc-wrap {
+      padding: 1.5rem 0.75rem;
+    }
+    .map-zlc-frame iframe,
+    .map-zlc-frame .folium-map,
+    .map-zlc-frame > div {
+      min-height: 380px;
+      height: 55vw !important;
+    }
+  }
+
+  /* Force Folium generated content to fill container */
+  .map-zlc-frame > div > div {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .folium-map {
+    width: 100% !important;
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -24,4 +74,28 @@ Map Folium embebido; contexto: map_html, titulo_pagina, nav_activo.
     {{ map_html|safe }}
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  // Force map iframe to fill its container
+  var frame = document.querySelector('.map-zlc-frame');
+  if (!frame) return;
+  var iframes = frame.querySelectorAll('iframe');
+  iframes.forEach(function(iframe) {
+    iframe.style.width = '100%';
+    iframe.style.minHeight = '520px';
+    iframe.removeAttribute('height');
+    iframe.removeAttribute('width');
+  });
+  // Also fix any direct divs from Folium
+  var divs = frame.querySelectorAll('div');
+  divs.forEach(function(div) {
+    if (div.style.width && div.style.width !== '100%') {
+      div.style.width = '100%';
+    }
+  });
+})();
+</script>
 {% endblock %}
