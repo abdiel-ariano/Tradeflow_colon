@@ -1034,7 +1034,7 @@ def mapa_zlc(request):
     Returns:
         HttpResponse: Plantilla con HTML del mapa embebido.
     """
-    m = folium.Map(location=[9.3667, -79.9000], zoom_start=13, tiles='OpenStreetMap', width='100%', height='520px')
+    m = folium.Map(location=[9.3667, -79.9000], zoom_start=13, tiles='OpenStreetMap')
     cluster = MarkerCluster(name='Empresas ZLC').add_to(m)
     empresas = Company.objects.annotate(
         n_activos=Count('products', filter=Q(products__is_active=True))
@@ -1071,16 +1071,11 @@ def mapa_zlc(request):
             icon=folium.Icon(color=icon_color),
         ).add_to(cluster)
 
-    map_html = io.BytesIO()
-    m.save(map_html, close_file=False)
-    map_html = map_html.getvalue().decode('utf-8')
-    body_match = re.search(r'<body[^>]*>(.*?)</body>', map_html, re.DOTALL)
-    if body_match:
-        map_html = body_match.group(1)
+    map_html = m._repr_html_()
     return render(request, 'core/mapa_zlc.html', {
-        'map_html':       map_html,
-        'titulo_pagina':  'Mapa ZLC',
-        'nav_activo':     'mapa_zlc',
+        'map_html': map_html,
+        'titulo_pagina': 'Mapa ZLC',
+        'nav_activo': 'mapa_zlc',
     })
 
 
