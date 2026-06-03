@@ -327,11 +327,8 @@ export function AdminSaasDashboard() {
 
       <header className="sticky top-0 z-20 -mx-6 md:-mx-10 lg:-mx-12 px-6 md:px-10 lg:px-12 py-4 mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center gap-4">
-          <span
-            className="flex h-12 w-12 items-center justify-center rounded-xl text-primary-foreground"
-            style={{ background: TF_NAVY }}
-          >
-            <Building2 className="h-6 w-6" />
+          <span className="adm-saas-header-icon flex h-12 w-12 items-center justify-center">
+            <Building2 className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
             <h1 className="text-xl font-bold tracking-tight">Administration Panel</h1>
@@ -347,7 +344,9 @@ export function AdminSaasDashboard() {
       <Card className="mb-8 overflow-hidden">
         <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-4 pb-0">
           <div>
-            <Badge variant="secondary" className="mb-2">Predictive analysis</Badge>
+            <Badge variant="outline" className="adm-saas-predictive-badge mb-2">
+              Predictive analysis
+            </Badge>
             <CardTitle className="text-lg font-normal text-muted-foreground">
               Expected sales for{' '}
               <span className="text-foreground font-semibold">{nextMonth}</span> are{' '}
