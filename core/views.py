@@ -965,6 +965,41 @@ def api_home_merchandising(request):
     return JsonResponse(data)
 
 
+_ASSISTANT_SYSTEM_PROMPT = (
+    "You are TradeFlow Colón's virtual assistant. TradeFlow Colón is a B2B/B2C "
+    "marketplace for the Colón Free Zone in Panama — the world's second largest "
+    "free trade zone. Help users with questions about: how to register, how to "
+    "buy products, how to become a seller, what is the Colón Free Zone, shipping "
+    "and logistics, and general platform navigation. Be concise, professional, "
+    "and always respond in the same language the user writes in."
+)
+
+_ASSISTANT_FALLBACK = (
+    "I'm sorry, the assistant is temporarily unavailable. Please try again in a "
+    "moment, browse the store, or contact info@tradeflow.pa for help."
+)
+
+
+def _asistente_respuesta_html(text: str) -> str:
+    safe = escape(text).replace('\n', '<br>')
+    return (
+        '<div class="tf-bot-card">'
+        f'<p style="margin:0;line-height:1.55;">{safe}</p>'
+        '</div>'
+    )
+
+
+def _asistente_json_payload(respuesta: str, *, ok: bool = True, status: int = 200):
+    return JsonResponse(
+        {
+            'ok': ok,
+            'respuesta': respuesta,
+            'respuesta_html': _asistente_respuesta_html(respuesta),
+        },
+        status=status,
+    )
+
+
 @require_POST
 def api_asistente(request):
     """
@@ -975,13 +1010,16 @@ def api_asistente(request):
         historial: Mensajes anteriores (opcional).
 
     Returns:
-        JsonResponse: ``ok`` y ``respuesta``.
+        JsonResponse: ``ok``, ``respuesta`` y ``respuesta_html``.
     """
+    from decouple import config
+
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse(
-            {'ok': False, 'respuesta': 'Error de formato.'},
+        return _asistente_json_payload(
+            'Invalid request format.',
+            ok=False,
             status=400,
         )
 
@@ -989,30 +1027,64 @@ def api_asistente(request):
     historial = data.get('historial') or []
 
     if not mensaje:
-        return JsonResponse(
-            {'ok': False, 'respuesta': 'Escribe un mensaje.'},
+        return _asistente_json_payload(
+            'Please enter a message.',
+            ok=False,
             status=400,
         )
 
     if len(mensaje) > 500:
-        return JsonResponse(
-            {'ok': False, 'respuesta': 'Mensaje demasiado largo.'},
+        return _asistente_json_payload(
+            'Message is too long (max 500 characters).',
+            ok=False,
             status=400,
         )
 
-    from .utils.ai_assistant import consultar_asistente
+    groq_api_key = config('GROQ_API_KEY', default='').strip()
+    if not groq_api_key:
+        groq_api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
 
-    historial = historial[-5:]
-    company = _get_seller_company(request.user) if request.user.is_authenticated else None
-    result = consultar_asistente(
-        mensaje,
-        historial,
-        user=request.user if request.user.is_authenticated else None,
-        company=company,
-    )
-    if isinstance(result, str):
-        result = {'respuesta': result, 'respuesta_html': result, 'confianza': 0.8}
-    return JsonResponse({'ok': True, **result})
+    if not groq_api_key:
+        logging.getLogger('tradeflow.ai').warning('api_asistente: GROQ_API_KEY not configured')
+        return _asistente_json_payload(_ASSISTANT_FALLBACK)
+
+    messages = [{'role': 'system', 'content': _ASSISTANT_SYSTEM_PROMPT}]
+    if isinstance(historial, list):
+        for item in historial[-6:]:
+            if not isinstance(item, dict):
+                continue
+            role = item.get('role')
+            content = (item.get('content') or '').strip()
+            if role in ('user', 'assistant') and content:
+                messages.append({'role': role, 'content': content[:500]})
+
+    if (
+        not messages
+        or messages[-1].get('role') != 'user'
+        or messages[-1].get('content') != mensaje
+    ):
+        messages.append({'role': 'user', 'content': mensaje[:500]})
+
+    try:
+        from groq import Groq
+
+        client = Groq(api_key=groq_api_key)
+        model = getattr(settings, 'GROQ_MODEL', 'llama-3.1-8b-instant')
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            max_tokens=512,
+            temperature=0.5,
+        )
+        text = (response.choices[0].message.content or '').strip()
+        if not text:
+            raise ValueError('empty Groq response')
+        return _asistente_json_payload(text)
+    except Exception as exc:
+        logging.getLogger('tradeflow.ai').warning(
+            'api_asistente groq failed: %s', exc, exc_info=True,
+        )
+        return _asistente_json_payload(_ASSISTANT_FALLBACK)
 
 
 # ── Sal firmado para QR de visitante ZLC (pre-registro) ─────────────────────

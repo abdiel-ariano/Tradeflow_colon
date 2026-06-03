@@ -1347,16 +1347,24 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       }
       fetch('{% url "api_asistente" %}', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({
           mensaje: mensaje,
-          historial: tfChatHistory.slice(-TF_CHAT_MAX_HIST)
+          historial: tfChatHistory.slice(0, -1).slice(-TF_CHAT_MAX_HIST)
         })
       })
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        return r.json().then(function (data) {
+          if (!r.ok || data.ok === false) {
+            throw new Error(data.respuesta || 'Request failed.');
+          }
+          return data;
+        });
+      })
       .then(function (data) {
         if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
         var respuesta = data.respuesta || 'I could not process your request.';
@@ -1368,9 +1376,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           tfChatHistory = tfChatHistory.slice(-TF_CHAT_MAX_HIST * 2);
         }
       })
-      .catch(function () {
+      .catch(function (err) {
         if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
-        appendMessage('Connection error. Try again later.', true);
+        var msg = (err && err.message) ? err.message : 'Connection error. Try again later.';
+        appendMessage(msg, true);
       })
       .finally(function () { tfChatLoading = false; });
     }
