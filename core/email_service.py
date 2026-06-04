@@ -1,17 +1,23 @@
 """
-Transactional email: Supabase Edge Function → Django send_mail fallback.
+Transactional email: Supabase Edge Function → Django SMTP fallback (Resend/Gmail).
 """
 from __future__ import annotations
 
 import logging
 import json as _json
+import urllib.error
 import urllib.request
 from dataclasses import dataclass
 
 from django.conf import settings
-from django.core.mail import send_mail
 
 log = logging.getLogger('tradeflow.email')
+
+# Edge functions that only accept a narrow ``type`` list (e.g. bright-handler).
+_LEGACY_SUPABASE_TYPES = frozenset({
+    'verification_code',
+    'transactional',
+})
 
 
 @dataclass
@@ -40,6 +46,76 @@ def _verification_html(code: str) -> str:
 </html>"""
 
 
+def _supabase_type_for_edge(tipo: str) -> str:
+    """Map app email kinds to types accepted by older Edge Functions."""
+    if tipo in _LEGACY_SUPABASE_TYPES:
+        return tipo
+    if tipo == 'verification_code':
+        return tipo
+    return 'transactional'
+
+
+def _build_supabase_payload(
+    email: str,
+    subject: str,
+    html: str,
+    text: str,
+    tipo: str,
+) -> dict:
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', '') or ''
+    return {
+        'to': email,
+        'recipient': email,
+        'subject': subject,
+        'html': html,
+        'text': text,
+        'type': tipo,
+        'email_type': tipo,
+        'from': from_email,
+        'from_email': from_email,
+    }
+
+
+def _invoke_supabase_function(payload: dict) -> tuple[bool, str]:
+    supabase_url = getattr(settings, 'SUPABASE_URL', '') or ''
+    service_key = getattr(settings, 'SUPABASE_SERVICE_KEY', '') or ''
+    function_name = getattr(settings, 'SUPABASE_EMAIL_FUNCTION', 'send-transactional-email')
+
+    if not supabase_url or not service_key:
+        return False, 'client_not_configured'
+
+    url = f'{supabase_url.rstrip("/")}/functions/v1/{function_name}'
+    body = _json.dumps(payload).encode('utf-8')
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {service_key}',
+        'apikey': service_key,
+    }
+    req = urllib.request.Request(url, data=body, headers=headers, method='POST')
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            if resp.status >= 400:
+                return False, f'function_status_{resp.status}'
+            return True, ''
+    except urllib.error.HTTPError as exc:
+        detail = f'HTTP Error {exc.code}: {exc.reason}'
+        try:
+            err_body = exc.read().decode('utf-8', errors='replace')[:800]
+            if err_body:
+                detail = f'{detail} — {err_body}'
+        except Exception:
+            pass
+        log.warning(
+            'Supabase Edge Function failed (%s): %s',
+            function_name,
+            detail,
+        )
+        return False, detail
+    except Exception as exc:
+        log.warning('Supabase Edge Function failed (%s): %s', function_name, exc)
+        return False, str(exc)[:500]
+
+
 def _send_via_supabase(
     email: str,
     subject: str,
@@ -47,60 +123,57 @@ def _send_via_supabase(
     text: str,
     tipo: str = 'transactional',
 ) -> EmailSendResult:
-    supabase_url  = getattr(settings, 'SUPABASE_URL', '') or ''
-    service_key   = getattr(settings, 'SUPABASE_SERVICE_KEY', '') or ''
-    function_name = getattr(settings, 'SUPABASE_EMAIL_FUNCTION', 'send-transactional-email')
+    edge_type = _supabase_type_for_edge(tipo)
+    payload = _build_supabase_payload(email, subject, html, text, edge_type)
+    ok, detail = _invoke_supabase_function(payload)
+    if ok:
+        return EmailSendResult(ok=True, channel='supabase')
 
-    if not supabase_url or not service_key:
-        return EmailSendResult(ok=False, channel='supabase', detail='client_not_configured')
-
-    url = f'{supabase_url.rstrip("/")}/functions/v1/{function_name}'
-    payload = _json.dumps({
-        'to': email,
-        'subject': subject,
-        'html': html,
-        'text': text,
-        'type': tipo,
-    }).encode('utf-8')
-
-    req = urllib.request.Request(
-        url,
-        data=payload,
-        headers={
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {service_key}',
-        },
-        method='POST',
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            status = resp.status
-            if status >= 400:
-                return EmailSendResult(
-                    ok=False,
-                    channel='supabase',
-                    detail=f'function_status_{status}',
-                )
+    # Retry with generic type when Edge Function rejects unknown ``type`` (HTTP 400).
+    if edge_type != tipo and edge_type != 'transactional':
+        payload_retry = _build_supabase_payload(email, subject, html, text, 'transactional')
+        ok_retry, detail_retry = _invoke_supabase_function(payload_retry)
+        if ok_retry:
             return EmailSendResult(ok=True, channel='supabase')
-    except Exception as exc:
-        log.warning('Supabase Edge Function failed (%s): %s', function_name, exc)
-        return EmailSendResult(ok=False, channel='supabase', detail=str(exc)[:500])
+        detail = detail_retry or detail
+
+    return EmailSendResult(ok=False, channel='supabase', detail=detail or 'supabase_failed')
 
 
-def _send_via_django(email: str, subject: str, html: str, text: str) -> EmailSendResult:
+def _send_via_django(
+    email: str,
+    subject: str,
+    html: str,
+    text: str,
+    *,
+    email_type: str = 'transactional',
+) -> EmailSendResult:
+    from core.utils.email_delivery import deliver_mail
+
+    if not getattr(settings, 'EMAIL_SMTP_CONFIGURED', False):
+        return EmailSendResult(
+            ok=False,
+            channel='django',
+            detail=(
+                'smtp_not_configured: set RESEND_API_KEY or EMAIL_HOST_USER/PASSWORD '
+                'on Railway (localhost SMTP is not available in production).'
+            ),
+        )
+
     try:
-        send_mail(
+        deliver_mail(
             subject=subject,
             message=text,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
             html_message=html,
+            email_type=email_type,
             fail_silently=False,
         )
         backend = getattr(settings, 'EMAIL_BACKEND', 'django')
         return EmailSendResult(ok=True, channel=f'django:{backend.split(".")[-1]}')
     except Exception as exc:
-        log.exception('Django send_mail failed: %s', exc)
+        log.exception('Django email fallback failed: %s', exc)
         return EmailSendResult(ok=False, channel='django', detail=str(exc)[:500])
 
 
@@ -113,8 +186,7 @@ def enviar_email_transaccional(
 ) -> EmailSendResult:
     """
     Send any transactional email through the Supabase Edge Function first,
-    falling back to Django's EMAIL_BACKEND. This lets confirmations work
-    without configuring Resend/SMTP, reusing the same channel as OTP codes.
+    falling back to Django SMTP (Resend/Gmail) when configured.
     """
     if not (email or '').strip():
         return EmailSendResult(ok=False, channel='none', detail='empty_recipient')
@@ -130,17 +202,14 @@ def enviar_email_transaccional(
         supabase_result.detail,
         email,
     )
-    django_result = _send_via_django(email, subject, html, text)
+    django_result = _send_via_django(email, subject, html, text, email_type=tipo)
     if django_result.ok:
         log.info('email sent via=django fallback type=%s to=%s', tipo, email)
     return django_result
 
 
 def enviar_codigo_verificacion(email: str, code: str) -> EmailSendResult:
-    """
-    Send OTP code to the given email.
-    Tries Supabase Edge Function first; falls back to Django send_mail.
-    """
+    """Send OTP code (Supabase first, then Django SMTP)."""
     subject = 'Your verification code — TradeFlow Colón'
     text = (
         f'Your TradeFlow Colón verification code is: {code}\n\n'

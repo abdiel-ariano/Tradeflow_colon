@@ -263,6 +263,28 @@ DEFAULT_FROM_EMAIL = config(
     default='TradeFlow <noreply@tradeflow.pa>',
 )
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
+
+# Resend (SMTP) o Gmail — activan backend real en Railway si no hay Edge Function
+RESEND_API_KEY = (
+    config('RESEND_API_KEY', default='').strip()
+    or config('EMAIL_RESEND_API_KEY', default='').strip()
+)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='').strip()
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='').strip()
+if RESEND_API_KEY:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.resend.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'resend'
+    EMAIL_HOST_PASSWORD = RESEND_API_KEY
+elif EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    if 'console' in (EMAIL_BACKEND or '').lower():
+        EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+
 EMAIL_USE_REAL_SMTP = 'console' not in (EMAIL_BACKEND or '').lower()
 EMAIL_SMTP_CONFIGURED = EMAIL_USE_REAL_SMTP
 
@@ -293,6 +315,11 @@ if DEBUG:
     else:
         _boot_log.warning(
             'Supabase incomplete — verification emails will use Django EMAIL_BACKEND only.'
+        )
+    if not DEBUG and not EMAIL_SMTP_CONFIGURED:
+        _boot_log.warning(
+            'Producción sin SMTP (RESEND_API_KEY o Gmail): el fallback de correo '
+            'fallará si la Edge Function de Supabase no responde.'
         )
 
 STORAGES = {

@@ -20,8 +20,20 @@ def validate_email_infrastructure() -> list[str]:
     base = (getattr(settings, 'PUBLIC_BASE_URL', '') or '').strip().rstrip('/')
     if not base or base.startswith('http://127.0.0.1') and not settings.DEBUG:
         warnings.append('PUBLIC_BASE_URL debe ser la URL pública HTTPS de producción.')
-    if not getattr(settings, 'EMAIL_USE_REAL_SMTP', False) and not settings.DEBUG:
-        warnings.append('RESEND_API_KEY no configurada; los correos no saldrán en producción.')
+    if (
+        not getattr(settings, 'EMAIL_USE_REAL_SMTP', False)
+        and not getattr(settings, 'SUPABASE_CONFIGURED', False)
+        and not settings.DEBUG
+    ):
+        warnings.append(
+            'Sin RESEND_API_KEY/EMAIL_HOST_* ni Supabase completo; '
+            'los correos fallarán en producción.'
+        )
+    elif not getattr(settings, 'EMAIL_USE_REAL_SMTP', False) and not settings.DEBUG:
+        warnings.append(
+            'RESEND_API_KEY o EMAIL_HOST_* no configurada; '
+            'el fallback Django no podrá enviar si Supabase falla.'
+        )
     if not getattr(settings, 'DEFAULT_FROM_EMAIL', ''):
         warnings.append('DEFAULT_FROM_EMAIL no está definido.')
     return warnings
