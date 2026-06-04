@@ -615,12 +615,15 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 
     #hm-emp-carousel,
     #hm-emp-carousel .hm-carousel-wrap,
-    #hm-emp-track,
     #hm-emp-track .hm-carousel-slide,
     #hm-emp-track .hm-emp-card {
       opacity: 1 !important;
       visibility: visible !important;
-      transform: translateX(0) !important;
+      transform: none !important;
+    }
+    #hm-emp-track {
+      opacity: 1 !important;
+      visibility: visible !important;
     }
   }
   .hm-emp-card {
@@ -1398,20 +1401,20 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 
   function maxIdx() {
     perView = perViewNow();
+    if (window.innerWidth <= 768) return slides.length - 1;
     return Math.max(0, slides.length - perView);
   }
 
   function buildDots() {
     if (!dotsRoot) return;
     dotsRoot.innerHTML = '';
-    var pages = maxIdx() + 1;
-    var i;
-    for (i = 0; i < pages; i += 1) {
+    var pages = window.innerWidth <= 768 ? slides.length : maxIdx() + 1;
+    for (var i = 0; i < pages; i += 1) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'hm-carousel-dot' + (i === 0 ? ' is-on' : '');
       b.setAttribute('data-idx', String(i));
-      b.setAttribute('aria-label', ((window.TF_I18N && window.TF_I18N.slide) || 'Slide') + ' ' + (i + 1));
+      b.setAttribute('aria-label', 'Slide ' + (i + 1));
       b.addEventListener('click', function () {
         idx = parseInt(this.getAttribute('data-idx'), 10) || 0;
         update();
@@ -1424,8 +1427,18 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   function update() {
     perView = perViewNow();
     if (idx > maxIdx()) idx = 0;
-    var slideW = slides[0] ? slides[0].offsetWidth + 24 : 0;
+
+    // Recalculate slide width dynamically
+    var slide = slides[0];
+    if (!slide) return;
+    var slideRect = slide.getBoundingClientRect();
+    var slideW = slideRect.width > 0 ? slideRect.width + 24 : (window.innerWidth - 48) + 24;
+    if (window.innerWidth <= 768) {
+      slideW = window.innerWidth - 32;
+    }
+
     track.style.transform = 'translateX(-' + (idx * slideW) + 'px)';
+
     if (dotsRoot) {
       dotsRoot.querySelectorAll('.hm-carousel-dot').forEach(function (d, i) {
         d.classList.toggle('is-on', i === idx);
@@ -1435,7 +1448,12 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 
   function resetAuto() {
     if (timer) clearInterval(timer);
-    if (reduced || slides.length <= perViewNow()) return;
+    if (reduced) return;
+    if (window.innerWidth <= 768) {
+      if (slides.length <= 1) return;
+    } else if (slides.length <= perViewNow()) {
+      return;
+    }
     timer = setInterval(function () {
       if (paused) return;
       idx = idx >= maxIdx() ? 0 : idx + 1;
