@@ -275,9 +275,8 @@ if LEGACY_GMAIL_ACCOUNT in _default_from.lower():
         TRADEFLOW_GMAIL_ACCOUNT,
     )
 DEFAULT_FROM_EMAIL = _default_from
-TRADEFLOW_CONTACT_EMAIL = normalize_project_gmail(
-    config('TRADEFLOW_CONTACT_EMAIL', default=TRADEFLOW_GMAIL_ACCOUNT).strip()
-    or TRADEFLOW_GMAIL_ACCOUNT
+TRADEFLOW_CONTACT_EMAIL = normalize_contact_email(
+    config('TRADEFLOW_CONTACT_EMAIL', default=TRADEFLOW_GMAIL_ACCOUNT)
 )
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
