@@ -539,9 +539,12 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     .hm-carousel-slide { flex: 0 0 100%; margin-right: 0; }
   }
   @media (max-width: 768px) {
+    .hm-companies {
+      overflow-x: hidden;
+    }
     .lp-companies-slider,
     .companies-carousel,
-    [class*="carousel"],
+    [class*="carousel"]:not(#hm-emp-carousel),
     [class*="slider"] {
       overflow: hidden !important;
       width: 100% !important;
@@ -559,11 +562,11 @@ stats, featured_products, empresas_carousel, show_cart_actions.
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
     }
-    .hm-carousel-wrap {
+    .hm-carousel-wrap:not(#hm-emp-carousel) {
       overflow: hidden !important;
       width: 100% !important;
     }
-    .hm-carousel-track {
+    .hm-carousel-track:not(#hm-emp-track) {
       width: 100% !important;
     }
     .hm-carousel-slide {
@@ -627,18 +630,12 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     }
 
     /* Replace JS carousel with native CSS scroll on mobile */
-    #hm-emp-carousel .hm-carousel-wrap {
-      overflow-x: auto !important;
-      overflow-y: hidden !important;
-      -webkit-overflow-scrolling: touch !important;
-      scroll-snap-type: x mandatory !important;
-      padding-bottom: 12px !important;
-    }
     #hm-emp-carousel {
       overflow-x: auto !important;
       overflow-y: hidden !important;
       -webkit-overflow-scrolling: touch !important;
       scroll-snap-type: x mandatory !important;
+      width: 100% !important;
       padding-bottom: 12px !important;
     }
     #hm-emp-track {
@@ -646,11 +643,12 @@ stats, featured_products, empresas_carousel, show_cart_actions.
       transform: none !important;
       transition: none !important;
       width: max-content !important;
+      gap: 0 !important;
     }
     #hm-emp-track .hm-carousel-slide {
-      flex: 0 0 calc(100vw - 48px) !important;
-      min-width: calc(100vw - 48px) !important;
-      max-width: calc(100vw - 48px) !important;
+      flex: 0 0 calc(100vw - 32px) !important;
+      min-width: calc(100vw - 32px) !important;
+      max-width: calc(100vw - 32px) !important;
       margin-right: 16px !important;
       scroll-snap-align: start !important;
       opacity: 1 !important;
