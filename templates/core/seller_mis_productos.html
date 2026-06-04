@@ -8,9 +8,9 @@
 {% endblock %}
 
 {% block seller_content %}
-<div class="sp-kpi-grid">
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Total</span><p class="sp-kpi-val">{{ dash.kpi_total }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Active</span><p class="sp-kpi-val">{{ dash.kpi_activos }}</p></article>
+<div class="sp-kpi-grid" id="sp-product-kpis" data-filter-estado="{{ estado_filtro }}">
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Total</span><p class="sp-kpi-val" data-sp-kpi="total">{{ dash.kpi_total }}</p></article>
+  <article class="sp-kpi"><span class="sp-kpi-lbl">Active</span><p class="sp-kpi-val" data-sp-kpi="activos">{{ dash.kpi_activos }}</p></article>
   <article class="sp-kpi"><span class="sp-kpi-lbl">Low stock</span><p class="sp-kpi-val warn">{{ dash.kpi_bajo_stock }}</p></article>
   <article class="sp-kpi"><span class="sp-kpi-lbl">No sales yet</span><p class="sp-kpi-val warn">{{ dash.kpi_sin_ventas }}</p></article>
 </div>
@@ -30,9 +30,9 @@
         {% for c in categorias %}<option value="{{ c.pk }}" {% if cat_activa == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
       </select>
       <select class="tf-input" name="estado">
-        <option value="">Status</option>
         <option value="activo" {% if estado_filtro == 'activo' %}selected{% endif %}>Active</option>
         <option value="inactivo" {% if estado_filtro == 'inactivo' %}selected{% endif %}>Inactive</option>
+        <option value="todos" {% if estado_filtro == 'todos' %}selected{% endif %}>All</option>
       </select>
       <button type="submit" class="sp-btn sp-btn-primary">Filter</button>
     </form>

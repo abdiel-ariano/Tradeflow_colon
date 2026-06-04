@@ -2351,7 +2351,7 @@ def seller_productos(request):
         return resp
 
     productos = (
-        Product.objects.filter(company=company)
+        Product.objects.filter(company=company, is_active=True)
         .select_related('category', 'company')
         .defer('company__owner')
         .prefetch_related('inventory')
@@ -2402,7 +2402,7 @@ def seller_mis_productos(request):
 
     buscar = request.GET.get('buscar', '').strip()
     categoria = request.GET.get('categoria', '').strip()
-    estado = request.GET.get('estado', '').strip()
+    estado = request.GET.get('estado', 'activo').strip() or 'activo'
     stock_f = request.GET.get('stock', '').strip()
     orden = request.GET.get('orden', 'nombre')
 
@@ -2418,6 +2418,9 @@ def seller_mis_productos(request):
         productos = productos.filter(is_active=True)
     elif estado == 'inactivo':
         productos = productos.filter(is_active=False)
+    elif estado != 'todos':
+        productos = productos.filter(is_active=True)
+        estado = 'activo'
 
     vendidos_ids = set(
         OrderItem.objects.filter(product__company=company)
@@ -2583,10 +2586,15 @@ def seller_toggle_producto(request, pk):
     product.save(update_fields=['is_active'])
     estado = _('activo') if product.is_active else _('inactivo')
     if _request_wants_json(request):
+        from .utils.seller_analytics import seller_product_kpis
+
+        kpis = seller_product_kpis(company)
         return JsonResponse({
             'ok': True,
             'id': product.pk,
             'is_active': product.is_active,
+            'kpi_total': kpis['kpi_total'],
+            'kpi_activos': kpis['kpi_activos'],
             'message': _('Producto "%(name)s" ahora está %(estado)s.') % {
                 'name': product.name,
                 'estado': estado,

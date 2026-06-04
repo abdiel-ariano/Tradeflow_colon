@@ -17,14 +17,28 @@ def _month_start(now=None):
     return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
+def seller_product_kpis(company) -> dict:
+    """Conteos en vivo para KPIs del catálogo (total / activos)."""
+    productos_qs = Product.objects.filter(company=company)
+    return {
+        'kpi_total': productos_qs.count(),
+        'kpi_activos': productos_qs.filter(is_active=True).count(),
+    }
+
+
 def seller_products_dashboard(company):
     """KPIs, categorías y listado base para página de productos."""
     productos_qs = Product.objects.filter(company=company).select_related('category')
-    total = productos_qs.count()
-    activos = productos_qs.filter(is_active=True).count()
+    kpis = seller_product_kpis(company)
+    total = kpis['kpi_total']
+    activos = kpis['kpi_activos']
+    activos_qs = productos_qs.filter(is_active=True)
 
     bajo_stock = 0
-    for inv in Inventory.objects.filter(product__company=company).select_related('product'):
+    for inv in Inventory.objects.filter(
+        product__company=company,
+        product__is_active=True,
+    ).select_related('product'):
         if inv.is_low_stock:
             bajo_stock += 1
 
@@ -33,10 +47,10 @@ def seller_products_dashboard(company):
         .values_list('product_id', flat=True)
         .distinct()
     )
-    sin_ventas = productos_qs.exclude(pk__in=vendidos_ids).count()
+    sin_ventas = activos_qs.exclude(pk__in=vendidos_ids).count()
 
     cat_rows = (
-        productos_qs.exclude(category__isnull=True)
+        activos_qs.exclude(category__isnull=True)
         .values('category__name')
         .annotate(n=Count('id'))
         .order_by('-n')[:12]
