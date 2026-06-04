@@ -1,0 +1,108 @@
+{% extends "core/base.html" %}
+{% load static tf_money %}
+{% comment %}
+================================================================================
+templates/core/comparar_cotizaciones.html — TradeFlow Colón
+Propósito: comparativa de cotizaciones automáticas de un mismo lote (todas las
+empresas que venden el producto), ordenadas por precio total.
+Contexto: vista comparar_cotizaciones.
+================================================================================
+{% endcomment %}
+{% block title %}Compare quotes — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<style>
+  .cmp-page { max-width: 1080px; margin: 0 auto; padding: clamp(2rem, 6vw, 3.5rem) 1rem clamp(2.5rem, 5vw, 4rem); }
+  .cmp-hdr { margin-bottom: 1.5rem; }
+  .cmp-hdr h1 { font-size: 1.5rem; font-weight: 700; color: var(--tf-navy); margin: 0 0 6px; }
+  .cmp-sub { color: var(--tf-muted); font-size: 0.95rem; margin: 0; }
+  .cmp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .cmp-card {
+    background: #fff; border: 1px solid var(--tf-border); border-radius: 14px;
+    padding: 20px; box-shadow: 0 2px 8px rgba(15,42,68,0.06);
+    display: flex; flex-direction: column; gap: 12px; position: relative;
+  }
+  .cmp-card.is-best { border-color: #10B981; box-shadow: 0 6px 20px rgba(16,185,129,0.18); }
+  .cmp-best-badge {
+    position: absolute; top: -11px; left: 20px; background: #10B981; color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .cmp-company { font-weight: 700; color: var(--tf-navy); font-size: 1.05rem; margin: 0; }
+  .cmp-prod { color: var(--tf-muted); font-size: 0.85rem; margin: 0; }
+  .cmp-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: #374151; }
+  .cmp-total { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed #e5e7eb; padding-top: 10px; }
+  .cmp-total .lbl { font-size: 0.8rem; color: var(--tf-muted); text-transform: uppercase; letter-spacing: .04em; }
+  .cmp-total .val { font-size: 1.35rem; font-weight: 800; color: #f26522; }
+  .cmp-stock-ok { color: #065F46; }
+  .cmp-stock-no { color: #991B1B; }
+  .cmp-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+  .cmp-actions .tf-btn-primary, .cmp-actions .tf-btn-secondary { flex: 1; justify-content: center; padding: 9px 12px; font-size: 0.85rem; }
+  .cmp-empty { text-align: center; color: var(--tf-muted); padding: 2rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="cmp-page">
+  <div class="cmp-hdr">
+    <h1>Automatic quotes for "{{ producto_nombre }}"</h1>
+    <p class="cmp-sub">
+      {{ total_empresas }} compan{{ total_empresas|pluralize:"y,ies" }} responded automatically ·
+      requested quantity: {{ cantidad }} · sorted by total price.
+    </p>
+  </div>
+
+  <div class="cmp-grid">
+    {% for fila in filas %}
+    <article class="cmp-card {% if fila.mejor_precio %}is-best{% endif %}">
+      {% if fila.mejor_precio %}<span class="cmp-best-badge">Best price</span>{% endif %}
+      <h2 class="cmp-company">{{ fila.cot.empresa.name }}</h2>
+      {% for it in fila.items %}
+      <div>
+        <p class="cmp-prod">{{ it.product.name }}</p>
+        <div class="cmp-row">
+          <span>Unit price</span>
+          <strong>{{ it.precio_ofertado|money_usd }}</strong>
+        </div>
+        <div class="cmp-row">
+          <span>Quantity</span>
+          <span>{{ it.cantidad_solicitada }}</span>
+        </div>
+        <div class="cmp-row">
+          <span>Availability</span>
+          {% if it.product.available_qty >= it.cantidad_solicitada %}
+          <span class="cmp-stock-ok">In stock</span>
+          {% else %}
+          <span class="cmp-stock-no">Limited stock</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      <div class="cmp-total">
+        <span class="lbl">Total</span>
+        <span class="val">{{ fila.total|money_usd }}</span>
+      </div>
+      <div class="cmp-actions">
+        <a href="{% url 'detalle_cotizacion' fila.cot.pk %}" class="tf-btn-secondary">View details</a>
+        {% if not fila.cot.order_id %}
+        <form method="post" action="{% url 'detalle_cotizacion' fila.cot.pk %}" style="flex:1;">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="convertir">
+          <button type="submit" class="tf-btn-primary" style="width:100%;justify-content:center;">Buy from this company</button>
+        </form>
+        {% else %}
+        <a href="{% url 'detalle_mi_orden' fila.cot.order_id %}" class="tf-btn-primary" style="justify-content:center;">View order</a>
+        {% endif %}
+      </div>
+    </article>
+    {% empty %}
+    <p class="cmp-empty">No quotes were generated for this request.</p>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top:1.75rem;">
+    <a href="{% url 'mis_cotizaciones' %}" class="tf-btn-secondary">
+      <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+      Back to my quotes
+    </a>
+  </div>
+</div>
+{% endblock %}

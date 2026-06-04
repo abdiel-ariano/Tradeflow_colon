@@ -115,6 +115,8 @@ urlpatterns = [
 
     path('cotizaciones/', views.mis_cotizaciones, name='mis_cotizaciones'),
     path('cotizaciones/nueva/', views.solicitar_cotizacion, name='solicitar_cotizacion'),
+    path('cotizaciones/automatica/<int:producto_id>/', views.solicitar_cotizacion_automatica, name='solicitar_cotizacion_automatica'),
+    path('cotizaciones/comparar/<str:lote>/', views.comparar_cotizaciones, name='comparar_cotizaciones'),
     path('cotizaciones/<int:pk>/', views.detalle_cotizacion, name='detalle_cotizacion'),
     path('cotizaciones/<int:pk>/pdf/', views.descargar_cotizacion_pdf, name='descargar_cotizacion_pdf'),
 

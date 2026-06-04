@@ -34,6 +34,11 @@ Contexto: vista mis_cotizaciones; badges de estado aplicados por JavaScript.
   .cot-table td { padding: 14px 16px; border-top: 1px solid #f3f4f6; vertical-align: middle; }
   .cot-table tr:hover td { background: #fafafa; }
   .cot-num { font-weight: 600; color: #f26522; }
+  .cot-auto-tag {
+    display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em; color: #1E40AF;
+    background: #DBEAFE; padding: 2px 7px; border-radius: 999px; vertical-align: middle;
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -60,12 +65,18 @@ Contexto: vista mis_cotizaciones; badges de estado aplicados por JavaScript.
       <tbody>
         {% for c in cotizaciones %}
         <tr>
-          <td><span class="cot-num">{{ c.numero }}</span></td>
+          <td>
+            <span class="cot-num">{{ c.numero }}</span>
+            {% if c.es_automatica %}<span class="cot-auto-tag">Auto</span>{% endif %}
+          </td>
           <td>{{ c.empresa.name }}</td>
           <td><span class="tf-badge cot-est-badge" data-cot-est="{{ c.estado }}">{{ c.get_estado_display }}</span></td>
           <td>{{ c.created_at|date:"d/m/Y" }}</td>
           <td>{{ c.validez_dias }} days</td>
-          <td style="text-align:right;">
+          <td style="text-align:right;white-space:nowrap;">
+            {% if c.es_automatica and c.lote %}
+            <a href="{% url 'comparar_cotizaciones' c.lote %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8rem;">Compare</a>
+            {% endif %}
             <a href="{% url 'detalle_cotizacion' c.pk %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8rem;">View details</a>
           </td>
         </tr>

@@ -846,6 +846,18 @@ class Cotizacion(models.Model):
     notas_buyer = models.TextField(blank=True, verbose_name='Buyer notes')
     notas_seller = models.TextField(blank=True, verbose_name='Seller notes')
     validez_dias = models.PositiveIntegerField(default=30, verbose_name='Validity (days)')
+    es_automatica = models.BooleanField(
+        default=False,
+        verbose_name='Automatic quote',
+        help_text=_('Generated automatically with catalog pricing (no manual seller reply).'),
+    )
+    lote = models.CharField(
+        max_length=40,
+        blank=True,
+        db_index=True,
+        verbose_name='Broadcast batch',
+        help_text=_('Groups quotes created together from one automatic request.'),
+    )
     order = models.ForeignKey(
         Order,
         on_delete=models.SET_NULL,

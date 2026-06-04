@@ -70,6 +70,9 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
       <div class="cot-doc-title">
         <h1>QUOTE</h1>
         <div class="cot-doc-num">{{ cot.numero }}</div>
+        {% if cot.es_automatica %}
+        <div style="margin-top:6px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#1E40AF;background:#DBEAFE;display:inline-block;padding:3px 9px;border-radius:999px;">Automatic quote</div>
+        {% endif %}
       </div>
     </header>
 

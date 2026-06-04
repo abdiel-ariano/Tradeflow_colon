@@ -268,9 +268,9 @@ class CotizacionAdmin(admin.ModelAdmin):
     """
     Administración de cotizaciones RFQ entre compradores y empresas.
     """
-    list_display = ['numero', 'buyer', 'empresa', 'estado', 'created_at', 'order']
-    list_filter = ['estado', 'created_at']
-    search_fields = ['numero', 'buyer__username', 'empresa__name']
+    list_display = ['numero', 'buyer', 'empresa', 'estado', 'es_automatica', 'created_at', 'order']
+    list_filter = ['estado', 'es_automatica', 'created_at']
+    search_fields = ['numero', 'buyer__username', 'empresa__name', 'lote']
     readonly_fields = ['numero', 'created_at', 'updated_at']
     inlines = [CotizacionItemInline]
 

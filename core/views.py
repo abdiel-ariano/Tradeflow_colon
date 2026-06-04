@@ -26,6 +26,8 @@ import io
 import json
 import logging
 import re
+import unicodedata
+import uuid
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import escape
@@ -3761,6 +3763,168 @@ def solicitar_cotizacion(request):
         'nav_activo': 'mis_cotizaciones',
     }
     return render(request, 'core/cotizacion_form.html', context)
+
+
+def _normalizar_nombre(texto):
+    """Normaliza un nombre para comparar 'el mismo producto' entre empresas.
+
+    Minúsculas, sin acentos y con espacios colapsados, de modo que
+    'Café Premium' y 'cafe  premium' se consideren equivalentes.
+    """
+    base = (texto or '').strip().lower()
+    base = ''.join(
+        c for c in unicodedata.normalize('NFKD', base)
+        if not unicodedata.combining(c)
+    )
+    return ' '.join(base.split())
+
+
+def _empresas_con_producto(base_product, limite=25):
+    """Devuelve [(company, product)] de empresas que venden el mismo producto.
+
+    Como cada Product pertenece a una sola Company y no hay catálogo
+    compartido, "el mismo producto" se determina por nombre normalizado o
+    por SKU exacto. Se elige, por empresa, el producto activo más barato.
+    """
+    nombre_norm = _normalizar_nombre(base_product.name)
+    sku_norm = (base_product.sku or '').strip().lower()
+
+    filtro = Q(name__iexact=(base_product.name or '').strip())
+    if sku_norm:
+        filtro |= Q(sku__iexact=(base_product.sku or '').strip())
+    palabras = [p for p in nombre_norm.split() if len(p) >= 3]
+    if palabras:
+        filtro |= Q(name__icontains=palabras[0])
+
+    candidatos = (
+        Product.objects.filter(is_active=True)
+        .filter(filtro)
+        .select_related('company', 'inventory')
+    )
+
+    mejor_por_empresa = {}
+    for prod in candidatos:
+        if not prod.company_id:
+            continue
+        coincide_nombre = _normalizar_nombre(prod.name) == nombre_norm
+        coincide_sku = bool(sku_norm) and (prod.sku or '').strip().lower() == sku_norm
+        if not (coincide_nombre or coincide_sku):
+            continue
+        actual = mejor_por_empresa.get(prod.company_id)
+        if actual is None or prod.display_price < actual.display_price:
+            mejor_por_empresa[prod.company_id] = prod
+
+    resultado = [(p.company, p) for p in mejor_por_empresa.values()]
+    resultado.sort(key=lambda par: (par[1].display_price, par[0].name.lower()))
+    return resultado[:limite]
+
+
+@buyer_required
+@require_POST
+def solicitar_cotizacion_automatica(request, producto_id):
+    """Cotización automática: toda empresa que venda el producto responde sola.
+
+    A partir de un producto base, busca el mismo producto en todas las
+    empresas y crea una cotización ya respondida (estado='respondida') por
+    cada empresa, con el precio de catálogo vigente. El comprador las compara
+    al instante en lugar de esperar respuestas manuales.
+    """
+    base = get_object_or_404(
+        Product.objects.select_related('company'),
+        pk=producto_id,
+        is_active=True,
+    )
+
+    try:
+        qty = int(request.POST.get('cantidad', '1') or '1')
+    except (TypeError, ValueError):
+        qty = 1
+    if qty < 1:
+        qty = 1
+    notas_buyer = request.POST.get('notas_buyer', '').strip()
+
+    matches = _empresas_con_producto(base)
+    if not matches:
+        messages.error(
+            request,
+            'No encontramos empresas con este producto para cotizar.',
+        )
+        return redirect('tienda')
+
+    lote = uuid.uuid4().hex[:12]
+    nota_auto = 'Cotización automática generada con el precio de catálogo vigente.'
+    creadas = 0
+    with transaction.atomic():
+        for company, prod in matches:
+            cot = Cotizacion.objects.create(
+                buyer=request.user,
+                empresa=company,
+                estado='respondida',
+                es_automatica=True,
+                lote=lote,
+                notas_buyer=notas_buyer,
+                notas_seller=nota_auto,
+                validez_dias=30,
+            )
+            CotizacionItem.objects.create(
+                cotizacion=cot,
+                product=prod,
+                cantidad_solicitada=qty,
+                precio_ofertado=prod.display_price,
+            )
+            creadas += 1
+
+    messages.success(
+        request,
+        f'Generamos {creadas} cotización(es) automática(s) para "{base.name}". '
+        f'Compáralas y elige la mejor.',
+    )
+    return redirect('comparar_cotizaciones', lote=lote)
+
+
+@buyer_required
+def comparar_cotizaciones(request, lote):
+    """Comparativa de las cotizaciones automáticas creadas en un mismo lote."""
+    cots = (
+        Cotizacion.objects.filter(buyer=request.user, lote=lote)
+        .select_related('empresa', 'order')
+        .prefetch_related(
+            Prefetch(
+                'items',
+                queryset=CotizacionItem.objects.select_related('product'),
+            )
+        )
+        .order_by('created_at')
+    )
+    cots = list(cots)
+    if not cots:
+        messages.warning(request, 'No encontramos esa comparativa de cotizaciones.')
+        return redirect('mis_cotizaciones')
+
+    filas = []
+    for c in cots:
+        items = list(c.items.all())
+        total = sum((it.linea_total or Decimal('0.00')) for it in items)
+        filas.append({'cot': c, 'items': items, 'total': total})
+    filas.sort(key=lambda f: f['total'])
+    for i, fila in enumerate(filas):
+        fila['mejor_precio'] = (i == 0)
+
+    primer_item = filas[0]['items'][0] if filas[0]['items'] else None
+    producto_nombre = primer_item.product.name if primer_item else 'producto'
+    cantidad = primer_item.cantidad_solicitada if primer_item else 1
+
+    context = {
+        'filas': filas,
+        'lote': lote,
+        'producto_nombre': producto_nombre,
+        'cantidad': cantidad,
+        'total_empresas': len(filas),
+        'carrito_count': _contar_items(_get_carrito(request)),
+        'titulo_pagina': f'Comparar cotizaciones — {producto_nombre}',
+        'nav_activo': 'mis_cotizaciones',
+    }
+    return render(request, 'core/comparar_cotizaciones.html', context)
 
 
 @buyer_required

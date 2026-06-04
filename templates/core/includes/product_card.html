@@ -64,6 +64,14 @@ Variables: product, show_cart_actions (bool), card_extra_class (opcional)
       {% else %}
     <span class="tf-product-card-btn tf-product-card-btn-disabled">Out of stock</span>
       {% endif %}
+    <form method="post" action="{% url 'solicitar_cotizacion_automatica' product.pk %}" class="tf-product-card-form" style="margin-top:8px;">
+      {% csrf_token %}
+      <input type="hidden" name="cantidad" value="1">
+      <button type="submit" class="tf-btn-secondary tf-product-card-btn" title="Get automatic quotes from every company that sells this product">
+        <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
+        Auto quote
+      </button>
+    </form>
     {% else %}
     <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="tf-btn-secondary tf-product-card-btn">
       <span class="material-symbols-rounded" aria-hidden="true">login</span>
