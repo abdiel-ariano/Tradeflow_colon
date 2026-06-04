@@ -264,23 +264,12 @@ DEFAULT_FROM_EMAIL = config(
 )
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
-# Resend (SMTP) o Gmail — activan backend real en Railway si no hay Edge Function
-RESEND_API_KEY = (
-    config('RESEND_API_KEY', default='').strip()
-    or config('EMAIL_RESEND_API_KEY', default='').strip()
-)
+# Gmail SMTP opcional (fallback cuando la Edge Function de Supabase no envía)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='').strip()
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='').strip()
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
 
-if RESEND_API_KEY:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'smtp.resend.com'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = 'resend'
-    EMAIL_HOST_PASSWORD = RESEND_API_KEY
-elif EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     if 'console' in (EMAIL_BACKEND or '').lower():
         EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
@@ -298,6 +287,7 @@ SUPABASE_EMAIL_FUNCTION = config(
     'SUPABASE_EMAIL_FUNCTION',
     default='send-transactional-email',
 )
+SUPABASE_EMAIL_ENABLED = config('SUPABASE_EMAIL_ENABLED', default=False, cast=bool)
 SUPABASE_CONFIGURED = bool(SUPABASE_URL and SUPABASE_SERVICE_KEY)
 
 import logging as _logging
@@ -318,10 +308,12 @@ if DEBUG:
         _boot_log.warning(
             'Supabase incomplete — verification emails will use Django EMAIL_BACKEND only.'
         )
-    if not DEBUG and not EMAIL_SMTP_CONFIGURED:
+    if not DEBUG and not EMAIL_SMTP_CONFIGURED and not (
+        SUPABASE_CONFIGURED and SUPABASE_EMAIL_ENABLED
+    ):
         _boot_log.warning(
-            'Producción sin SMTP (RESEND_API_KEY o Gmail): el fallback de correo '
-            'fallará si la Edge Function de Supabase no responde.'
+            'Producción sin correo: activa SUPABASE_EMAIL_ENABLED + Supabase '
+            'o EMAIL_HOST_USER/PASSWORD (Gmail App Password).'
         )
 
 STORAGES = {

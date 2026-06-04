@@ -346,7 +346,7 @@ class UserApplicationAdmin(admin.ModelAdmin):
                     email_fail += 1
         msg = f'{count} application(s) approved.'
         if email_fail:
-            msg += f' {email_fail} without email (check Resend domain).'
+            msg += f' {email_fail} without email (check Gmail or Supabase).'
         self.message_user(request, msg)
 
     @admin.action(description='Reject selected applications (email)')
@@ -363,7 +363,7 @@ class UserApplicationAdmin(admin.ModelAdmin):
                     email_fail += 1
         msg = f'{count} application(s) rejected.'
         if email_fail:
-            msg += f' {email_fail} without email (check Resend domain).'
+            msg += f' {email_fail} without email (check Gmail or Supabase).'
         self.message_user(request, msg)
 
 

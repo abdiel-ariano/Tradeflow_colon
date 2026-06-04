@@ -38,7 +38,7 @@ def _redirect_active_verified_user(request):
 
 @login_required
 def onboarding_espera_verificacion(request):
-    """Compatibilidad: redirige al flujo Resend / código de 6 dígitos."""
+    """Compatibilidad: redirige al flujo de código de 6 dígitos."""
     bypass = _redirect_active_verified_user(request)
     if bypass:
         return bypass
@@ -56,7 +56,7 @@ def onboarding_verificar_codigo(request):
 @login_required
 @require_POST
 def onboarding_reenviar_verificacion(request):
-    """Compatibilidad: delega reenvío Resend."""
+    """Compatibilidad: delega reenvío de código por correo."""
     from core.views import enviar_codigo
     return enviar_codigo(request)
 

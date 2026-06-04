@@ -49,13 +49,14 @@ def mensaje_fallo_correo(email_result) -> str:
     detail = (getattr(email_result, 'detail', '') or '').lower()
     if 'only send testing emails' in detail or 'verify a domain' in detail:
         return (
-            'La solicitud se procesó y la cuenta quedó activa, pero el correo NO se envió: '
-            'Resend está en modo prueba y solo permite enviar a tu correo de cuenta Resend. '
-            'Verifica un dominio en resend.com/domains y usa DEFAULT_FROM_EMAIL con ese dominio.'
+            'La solicitud se procesó y la cuenta quedó activa, pero el correo NO se envió. '
+            'Desactiva SUPABASE_EMAIL_ENABLED en Railway y configura Gmail '
+            '(EMAIL_HOST_USER + App Password), o corrige la Edge Function en Supabase.'
         )
     return (
         'La solicitud se procesó, pero no se pudo enviar el correo al solicitante. '
-        'Revisa RESEND_API_KEY / dominio verificado en Railway.'
+        'Configura Gmail en Railway (EMAIL_HOST_USER / EMAIL_HOST_PASSWORD) '
+        'o revisa SUPABASE_URL y la Edge Function.'
     )
 
 

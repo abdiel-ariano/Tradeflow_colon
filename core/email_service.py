@@ -1,5 +1,5 @@
 """
-Transactional email: Supabase Edge Function → Django SMTP fallback (Resend/Gmail).
+Transactional email: Supabase Edge Function (opcional) → Gmail SMTP → consola.
 """
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ from django.conf import settings
 
 log = logging.getLogger('tradeflow.email')
 
-# Edge functions that only accept a narrow ``type`` list (e.g. bright-handler).
 _LEGACY_SUPABASE_TYPES = frozenset({
     'verification_code',
     'transactional',
@@ -46,8 +45,15 @@ def _verification_html(code: str) -> str:
 </html>"""
 
 
+def _supabase_email_enabled() -> bool:
+    return bool(
+        getattr(settings, 'SUPABASE_EMAIL_ENABLED', True)
+        and getattr(settings, 'SUPABASE_CONFIGURED', False)
+    )
+
+
 def _is_non_retryable_delivery_error(detail: str) -> bool:
-    """Resend sandbox / domain errors will fail on every channel — do not retry SMTP."""
+    """Errores de política del proveedor en Edge Function — no reintentar SMTP."""
     d = (detail or '').lower()
     return (
         'validation_error' in d
@@ -59,10 +65,7 @@ def _is_non_retryable_delivery_error(detail: str) -> bool:
 
 
 def _supabase_type_for_edge(tipo: str) -> str:
-    """Map app email kinds to types accepted by older Edge Functions."""
     if tipo in _LEGACY_SUPABASE_TYPES:
-        return tipo
-    if tipo == 'verification_code':
         return tipo
     return 'transactional'
 
@@ -135,13 +138,15 @@ def _send_via_supabase(
     text: str,
     tipo: str = 'transactional',
 ) -> EmailSendResult:
+    if not _supabase_email_enabled():
+        return EmailSendResult(ok=False, channel='supabase', detail='supabase_email_disabled')
+
     edge_type = _supabase_type_for_edge(tipo)
     payload = _build_supabase_payload(email, subject, html, text, edge_type)
     ok, detail = _invoke_supabase_function(payload)
     if ok:
         return EmailSendResult(ok=True, channel='supabase')
 
-    # Retry with generic type when Edge Function rejects unknown ``type`` (HTTP 400).
     if edge_type != tipo and edge_type != 'transactional':
         payload_retry = _build_supabase_payload(email, subject, html, text, 'transactional')
         ok_retry, detail_retry = _invoke_supabase_function(payload_retry)
@@ -167,8 +172,8 @@ def _send_via_django(
             ok=False,
             channel='django',
             detail=(
-                'smtp_not_configured: set RESEND_API_KEY or EMAIL_HOST_USER/PASSWORD '
-                'on Railway (localhost SMTP is not available in production).'
+                'smtp_not_configured: set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD '
+                '(Gmail App Password) on Railway, or enable SUPABASE_EMAIL_ENABLED.'
             ),
         )
 
@@ -197,40 +202,46 @@ def enviar_email_transaccional(
     tipo: str = 'transactional',
 ) -> EmailSendResult:
     """
-    Send any transactional email through the Supabase Edge Function first,
-    falling back to Django SMTP (Resend/Gmail) when configured.
+    Envía correo: Supabase Edge Function (si está activa) y luego Gmail SMTP.
     """
     if not (email or '').strip():
         return EmailSendResult(ok=False, channel='none', detail='empty_recipient')
 
-    supabase_result = _send_via_supabase(email, subject, html, text, tipo)
-    if supabase_result.ok:
-        log.info('email sent via=supabase type=%s to=%s', tipo, email)
-        return supabase_result
+    supabase_result = None
+    if _supabase_email_enabled():
+        supabase_result = _send_via_supabase(email, subject, html, text, tipo)
+        if supabase_result.ok:
+            log.info('email sent via=supabase type=%s to=%s', tipo, email)
+            return supabase_result
 
-    if _is_non_retryable_delivery_error(supabase_result.detail):
-        log.error(
-            'Supabase email rejected (type=%s to=%s): %s — skipping SMTP fallback',
-            tipo,
-            email,
-            supabase_result.detail[:400],
+        if _is_non_retryable_delivery_error(supabase_result.detail):
+            log.error(
+                'Supabase email rejected (type=%s to=%s): %s',
+                tipo,
+                email,
+                supabase_result.detail[:400],
+            )
+    else:
+        supabase_result = EmailSendResult(
+            ok=False,
+            channel='supabase',
+            detail='supabase_email_disabled',
         )
-        return supabase_result
 
     log.warning(
-        'Supabase failed (type=%s detail=%s), trying Django fallback for %s',
+        'Supabase failed (type=%s detail=%s), trying Gmail SMTP for %s',
         tipo,
         supabase_result.detail,
         email,
     )
     django_result = _send_via_django(email, subject, html, text, email_type=tipo)
     if django_result.ok:
-        log.info('email sent via=django fallback type=%s to=%s', tipo, email)
+        log.info('email sent via=gmail fallback type=%s to=%s', tipo, email)
     return django_result
 
 
 def enviar_codigo_verificacion(email: str, code: str) -> EmailSendResult:
-    """Send OTP code (Supabase first, then Django SMTP)."""
+    """Send OTP code (Supabase first, then Gmail SMTP)."""
     subject = 'Your verification code — TradeFlow Colón'
     text = (
         f'Your TradeFlow Colón verification code is: {code}\n\n'

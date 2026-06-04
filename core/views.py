@@ -4225,7 +4225,7 @@ def solicitud_acceso(request):
                     request,
                     _(
                         'Solicitud guardada, pero el correo no pudo enviarse. '
-                        'Revisa RESEND_API_KEY en .env.'
+                        'Configura Gmail (EMAIL_HOST_USER) o Supabase Edge Function.'
                     ),
                 )
             else:

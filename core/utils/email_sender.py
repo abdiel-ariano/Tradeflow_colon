@@ -605,7 +605,7 @@ def enviar_solicitud_decision(app, aprobada: bool):
     iniciar sesión; si no, a registrarse con el mismo correo.
 
     Returns:
-        EmailSendResult: resultado del envío (``ok=False`` si Resend/SMTP rechaza).
+        EmailSendResult: resultado del envío (``ok=False`` si Supabase/Gmail rechaza).
     """
     from core.email_service import EmailSendResult, enviar_email_transaccional
     base = _public_base_url()

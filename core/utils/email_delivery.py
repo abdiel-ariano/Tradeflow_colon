@@ -1,5 +1,5 @@
 """
-Capa de entrega de correo: logging, validación y reintentos (backend Django / Resend).
+Capa de entrega de correo: logging, validación y reintentos (Gmail SMTP / consola).
 """
 from __future__ import annotations
 
@@ -26,13 +26,12 @@ def validate_email_infrastructure() -> list[str]:
         and not settings.DEBUG
     ):
         warnings.append(
-            'Sin RESEND_API_KEY/EMAIL_HOST_* ni Supabase completo; '
+            'Sin Supabase email ni EMAIL_HOST_* (Gmail); '
             'los correos fallarán en producción.'
         )
     elif not getattr(settings, 'EMAIL_USE_REAL_SMTP', False) and not settings.DEBUG:
         warnings.append(
-            'RESEND_API_KEY o EMAIL_HOST_* no configurada; '
-            'el fallback Django no podrá enviar si Supabase falla.'
+            'Gmail SMTP no configurado; el fallback no podrá enviar si Supabase falla.'
         )
     if not getattr(settings, 'DEFAULT_FROM_EMAIL', ''):
         warnings.append('DEFAULT_FROM_EMAIL no está definido.')
@@ -54,10 +53,10 @@ def deliver_mail(
     """
     Envía correo con registro en ``EmailDeliveryLog`` y un reintento opcional.
 
-    Usa ``EMAIL_BACKEND`` de Django (anymail Resend en producción).
+    Usa ``EMAIL_BACKEND`` de Django (Gmail SMTP en producción).
     """
     backend = getattr(settings, 'EMAIL_BACKEND', '') or ''
-    channel = 'resend' if 'resend' in backend.lower() or 'anymail' in backend.lower() else 'django'
+    channel = 'gmail' if getattr(settings, 'EMAIL_SMTP_CONFIGURED', False) else 'django'
     recipient = recipient_list[0] if recipient_list else ''
     last_error = ''
 

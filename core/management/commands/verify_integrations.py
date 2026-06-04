@@ -85,8 +85,8 @@ class Command(BaseCommand):
         )
         try:
             deliver_mail(
-                subject='TradeFlow — prueba Resend',
-                message='Si lees esto, Resend / django-anymail está configurado correctamente.',
+                subject='TradeFlow — prueba correo',
+                message='Si lees esto, Gmail SMTP está configurado correctamente.',
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[to_addr],
                 html_message=html,
