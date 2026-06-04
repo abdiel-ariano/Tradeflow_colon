@@ -299,6 +299,48 @@ class UserApplicationAdmin(admin.ModelAdmin):
     list_filter = ['status', 'role']
     search_fields = ['full_name', 'email', 'company_name']
     readonly_fields = ['review_token', 'created_at', 'reviewed_at']
+    actions = ['aprobar_solicitudes', 'rechazar_solicitudes']
+
+    def save_model(self, request, obj, form, change):
+        """Editing the status to approved/rejected activates + notifies the user."""
+        from .utils.application_review import aprobar_solicitud, rechazar_solicitud
+
+        old_status = None
+        if change and obj.pk:
+            old_status = (
+                UserApplication.objects.filter(pk=obj.pk)
+                .values_list('status', flat=True)
+                .first()
+            )
+        super().save_model(request, obj, form, change)
+        if obj.status == 'approved' and old_status != 'approved':
+            aprobar_solicitud(obj, notificar=True)
+            self.message_user(request, f'{obj.email}: approved, account activated and notified.')
+        elif obj.status == 'rejected' and old_status != 'rejected':
+            rechazar_solicitud(obj, notificar=True)
+            self.message_user(request, f'{obj.email}: rejected and notified.')
+
+    @admin.action(description='Approve selected applications (activate + email)')
+    def aprobar_solicitudes(self, request, queryset):
+        from .utils.application_review import aprobar_solicitud
+
+        count = 0
+        for app in queryset:
+            if app.status != 'approved':
+                aprobar_solicitud(app, notificar=True)
+                count += 1
+        self.message_user(request, f'{count} application(s) approved and notified.')
+
+    @admin.action(description='Reject selected applications (email)')
+    def rechazar_solicitudes(self, request, queryset):
+        from .utils.application_review import rechazar_solicitud
+
+        count = 0
+        for app in queryset:
+            if app.status != 'rejected':
+                rechazar_solicitud(app, notificar=True)
+                count += 1
+        self.message_user(request, f'{count} application(s) rejected and notified.')
 
 
 # =============================================================================

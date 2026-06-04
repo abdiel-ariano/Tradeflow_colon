@@ -4252,16 +4252,11 @@ def revisar_solicitud(request, token, accion):
         return redirect('home')
 
     if accion == 'aprobar':
-        app.status = 'approved'
         aprobada = True
     elif accion == 'rechazar':
-        app.status = 'rejected'
         aprobada = False
     else:
         raise Http404
-
-    app.reviewed_at = timezone.now()
-    app.save(update_fields=['status', 'reviewed_at'])
 
     if aprobada and app.requested_plan_slug == 'ecosistema_enterprise':
         from .models import Company
@@ -4288,10 +4283,12 @@ def revisar_solicitud(request, token, accion):
                 except ValueError:
                     log.exception('Enterprise activation on approve')
 
-    try:
-        enviar_solicitud_decision(app, aprobada)
-    except Exception:
-        log.exception('Email decisión solicitud')
+    from .utils.application_review import aprobar_solicitud, rechazar_solicitud
+    if aprobada:
+        aprobar_solicitud(app, notificar=True)
+    else:
+        rechazar_solicitud(app, notificar=True)
+
     messages.success(request, _('Decisión registrada y correo enviado al solicitante.'))
     return redirect('home')
 
@@ -4385,7 +4382,7 @@ def pending_approval_view(request):
     return render(request, 'core/pending_approval.html')
 
 
-@login_required
+@admin_required
 def admin_applications_view(request):
     """Admin panel to review company access applications."""
     try:
@@ -4405,40 +4402,37 @@ def admin_applications_view(request):
         raise
 
 
-@login_required
+@admin_required
 def approve_application_view(request, pk):
-    """Approve a company application and activate the user account."""
+    """Approve a company application, activate the account and notify the user."""
     from .models import UserApplication
+    from .utils.application_review import aprobar_solicitud
     if request.method == 'POST':
         try:
             app = UserApplication.objects.get(pk=pk)
-            app.status = 'approved'
-            app.save()
-            if app.user:
-                app.user.is_active = True
-                app.user.save()
-                if hasattr(app.user, 'profile'):
-                    app.user.profile.email_verificado = True
-                    app.user.profile.save()
-            messages.success(request, 'Account approved successfully.')
+            aprobar_solicitud(app, notificar=True)
+            messages.success(
+                request,
+                'Application approved. The applicant has been notified by email.',
+            )
         except UserApplication.DoesNotExist:
             messages.error(request, 'Application not found.')
     return redirect('admin_applications')
 
 
-@login_required
+@admin_required
 def reject_application_view(request, pk):
-    """Reject a company application."""
+    """Reject a company application and notify the user."""
     from .models import UserApplication
+    from .utils.application_review import rechazar_solicitud
     if request.method == 'POST':
         try:
             app = UserApplication.objects.get(pk=pk)
-            app.status = 'rejected'
-            app.save()
-            if app.user:
-                app.user.is_active = False
-                app.user.save()
-            messages.success(request, 'Account rejected.')
+            rechazar_solicitud(app, notificar=True)
+            messages.success(
+                request,
+                'Application rejected. The applicant has been notified by email.',
+            )
         except UserApplication.DoesNotExist:
             messages.error(request, 'Application not found.')
     return redirect('admin_applications')

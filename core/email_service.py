@@ -40,7 +40,13 @@ def _verification_html(code: str) -> str:
 </html>"""
 
 
-def _send_via_supabase(email: str, subject: str, html: str, text: str) -> EmailSendResult:
+def _send_via_supabase(
+    email: str,
+    subject: str,
+    html: str,
+    text: str,
+    tipo: str = 'transactional',
+) -> EmailSendResult:
     supabase_url  = getattr(settings, 'SUPABASE_URL', '') or ''
     service_key   = getattr(settings, 'SUPABASE_SERVICE_KEY', '') or ''
     function_name = getattr(settings, 'SUPABASE_EMAIL_FUNCTION', 'send-transactional-email')
@@ -54,7 +60,7 @@ def _send_via_supabase(email: str, subject: str, html: str, text: str) -> EmailS
         'subject': subject,
         'html': html,
         'text': text,
-        'type': 'verification_code',
+        'type': tipo,
     }).encode('utf-8')
 
     req = urllib.request.Request(
@@ -98,6 +104,38 @@ def _send_via_django(email: str, subject: str, html: str, text: str) -> EmailSen
         return EmailSendResult(ok=False, channel='django', detail=str(exc)[:500])
 
 
+def enviar_email_transaccional(
+    email: str,
+    subject: str,
+    html: str,
+    text: str,
+    tipo: str = 'transactional',
+) -> EmailSendResult:
+    """
+    Send any transactional email through the Supabase Edge Function first,
+    falling back to Django's EMAIL_BACKEND. This lets confirmations work
+    without configuring Resend/SMTP, reusing the same channel as OTP codes.
+    """
+    if not (email or '').strip():
+        return EmailSendResult(ok=False, channel='none', detail='empty_recipient')
+
+    supabase_result = _send_via_supabase(email, subject, html, text, tipo)
+    if supabase_result.ok:
+        log.info('email sent via=supabase type=%s to=%s', tipo, email)
+        return supabase_result
+
+    log.warning(
+        'Supabase failed (type=%s detail=%s), trying Django fallback for %s',
+        tipo,
+        supabase_result.detail,
+        email,
+    )
+    django_result = _send_via_django(email, subject, html, text)
+    if django_result.ok:
+        log.info('email sent via=django fallback type=%s to=%s', tipo, email)
+    return django_result
+
+
 def enviar_codigo_verificacion(email: str, code: str) -> EmailSendResult:
     """
     Send OTP code to the given email.
@@ -110,18 +148,4 @@ def enviar_codigo_verificacion(email: str, code: str) -> EmailSendResult:
         '— Colón Free Zone, Panama'
     )
     html = _verification_html(code)
-
-    supabase_result = _send_via_supabase(email, subject, html, text)
-    if supabase_result.ok:
-        log.info('verification_email sent via=supabase to=%s', email)
-        return supabase_result
-
-    log.warning(
-        'Supabase failed (detail=%s), trying Django fallback for %s',
-        supabase_result.detail,
-        email,
-    )
-    django_result = _send_via_django(email, subject, html, text)
-    if django_result.ok:
-        log.info('verification_email sent via=django fallback to=%s', email)
-    return django_result
+    return enviar_email_transaccional(email, subject, html, text, tipo='verification_code')
