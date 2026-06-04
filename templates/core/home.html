@@ -365,7 +365,36 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     gap: 24px;
   }
   @media (max-width: 991px) { .hm-product-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 575px) { .hm-product-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) {
+    .hm-product-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 12px !important;
+      padding: 0 4px !important;
+    }
+    .hm-pcard-media {
+      padding-top: 65% !important;
+    }
+    .hm-pcard-body {
+      padding: 10px 12px 12px !important;
+    }
+    .hm-pcard-name {
+      font-size: 0.82rem !important;
+    }
+    .hm-pcard-price {
+      font-size: 1rem !important;
+    }
+    .hm-pcard-add {
+      padding: 6px 8px !important;
+      font-size: 11px !important;
+    }
+    .hm-pcard-add .material-symbols-rounded {
+      font-size: 13px !important;
+    }
+    .hm-pcard-badge {
+      font-size: 10px !important;
+      padding: 3px 7px !important;
+    }
+  }
 
   .hm-pcard {
     background: var(--tf-white);
@@ -558,7 +587,6 @@ stats, featured_products, empresas_carousel, show_cart_actions.
       flex-direction: row !important;
     }
 
-    .hm-emp-card,
     .hm-carousel-slide,
     [class*="company-card"],
     [class*="carousel-card"] {
@@ -566,10 +594,23 @@ stats, featured_products, empresas_carousel, show_cart_actions.
       flex-direction: column !important;
       opacity: 1 !important;
       visibility: visible !important;
+    }
+    .hm-emp-card,
+    [class*="company-card"] {
       background: white !important;
       border-radius: 16px !important;
       padding: 24px !important;
       box-shadow: 0 2px 12px rgba(15, 42, 68, 0.1) !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+
+    .hm-carousel-wrap,
+    .hm-carousel-slide,
+    .hm-emp-card {
+      opacity: 1 !important;
+      transform: none !important;
+      visibility: visible !important;
     }
   }
   .hm-emp-card {
@@ -1274,6 +1315,21 @@ stats, featured_products, empresas_carousel, show_cart_actions.
   });
 
   function initCarousel() {
+    // Force all carousel elements visible on mobile
+    if (window.innerWidth <= 768) {
+      var carouselWrap = document.getElementById('hm-emp-carousel');
+      if (carouselWrap) {
+        carouselWrap.style.opacity = '1';
+        carouselWrap.style.transform = 'none';
+        carouselWrap.classList.add('visible');
+      }
+      document.querySelectorAll('.hm-carousel-slide, .hm-emp-card').forEach(function (el) {
+        el.style.opacity = '1';
+        el.style.visibility = 'visible';
+        el.style.transform = 'none';
+      });
+    }
+
     var track = document.querySelector(
       '.hm-carousel-track, [class*="carousel-track"], [class*="slider-track"], [class*="companies-track"]'
     );
