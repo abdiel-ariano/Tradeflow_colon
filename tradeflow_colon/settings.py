@@ -254,7 +254,11 @@ DASHBOARD_KPI_REVENUE_DELIVERED_ONLY = config(
     default=False,
     cast=bool,
 )
-from core.utils.email_config import TRADEFLOW_GMAIL_ACCOUNT, normalize_project_gmail
+from core.utils.email_config import (
+    TRADEFLOW_GMAIL_ACCOUNT,
+    normalize_contact_email,
+    normalize_project_gmail,
+)
 
 # Correo (fallback Django cuando Supabase Edge Function no está disponible)
 EMAIL_BACKEND = config(
@@ -271,7 +275,10 @@ if LEGACY_GMAIL_ACCOUNT in _default_from.lower():
         TRADEFLOW_GMAIL_ACCOUNT,
     )
 DEFAULT_FROM_EMAIL = _default_from
-TRADEFLOW_CONTACT_EMAIL = config('TRADEFLOW_CONTACT_EMAIL', default='info@tradeflow.pa').strip()
+TRADEFLOW_CONTACT_EMAIL = normalize_project_gmail(
+    config('TRADEFLOW_CONTACT_EMAIL', default=TRADEFLOW_GMAIL_ACCOUNT).strip()
+    or TRADEFLOW_GMAIL_ACCOUNT
+)
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
 # Gmail SMTP opcional (fallback cuando la Edge Function de Supabase no envía)

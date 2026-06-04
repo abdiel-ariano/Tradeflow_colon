@@ -6,7 +6,9 @@ from django.conf import settings
 
 def tradeflow_contact_email() -> str:
     """Canonical support/contact address shown to users."""
-    return (getattr(settings, 'TRADEFLOW_CONTACT_EMAIL', None) or 'info@tradeflow.pa').strip()
+    from core.utils.email_config import TRADEFLOW_GMAIL_ACCOUNT
+
+    return (getattr(settings, 'TRADEFLOW_CONTACT_EMAIL', None) or TRADEFLOW_GMAIL_ACCOUNT).strip()
 
 
 def email_template_context(extra: dict | None = None) -> dict:
