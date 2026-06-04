@@ -542,116 +542,44 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     .hm-companies {
       overflow-x: hidden;
     }
-    .lp-companies-slider,
-    .companies-carousel,
-    [class*="carousel"]:not(#hm-emp-carousel),
-    [class*="slider"] {
-      overflow: hidden !important;
-      width: 100% !important;
-    }
-    .lp-companies-slider .company-card,
-    .companies-carousel .company-card,
-    [class*="carousel"] > *,
-    [class*="slider"] > * {
-      min-width: calc(100vw - 48px) !important;
-      max-width: calc(100vw - 48px) !important;
-      scroll-snap-align: start;
-    }
-    .lp-companies-slider,
-    .companies-carousel {
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-    }
-    .hm-carousel-wrap:not(#hm-emp-carousel) {
-      overflow: hidden !important;
-      width: 100% !important;
-    }
-    .hm-carousel-track:not(#hm-emp-track) {
-      width: 100% !important;
-    }
-    .hm-carousel-slide {
-      flex: 0 0 calc(100vw - 48px) !important;
-      min-width: calc(100vw - 48px) !important;
-      max-width: calc(100vw - 48px) !important;
-      margin-right: 16px;
-      scroll-snap-align: start;
-    }
     .hm-companies .hm-container {
       overflow-x: hidden;
       padding-left: 16px;
       padding-right: 16px;
     }
 
-    .hm-carousel-track,
-    [class*="carousel-track"],
-    [class*="slider-track"],
-    [class*="companies-track"] {
-      display: flex !important;
-      flex-direction: row !important;
-    }
-
-    .hm-carousel-slide,
-    [class*="company-card"],
-    [class*="carousel-card"] {
-      display: flex !important;
-      flex-direction: column !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-    }
-    .hm-emp-card,
-    [class*="company-card"] {
-      background: white !important;
-      border-radius: 16px !important;
-      padding: 24px !important;
-      box-shadow: 0 2px 12px rgba(15, 42, 68, 0.1) !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-    }
-
-    .hm-carousel-wrap,
-    .hm-carousel-slide,
-    .hm-emp-card {
-      opacity: 1 !important;
-      transform: none !important;
-      visibility: visible !important;
-    }
-
-    #hm-emp-carousel,
-    #hm-emp-carousel .hm-carousel-wrap,
-    #hm-emp-track .hm-carousel-slide,
-    #hm-emp-track .hm-emp-card {
-      opacity: 1 !important;
-      visibility: visible !important;
-      transform: none !important;
-    }
-    #hm-emp-track {
-      opacity: 1 !important;
-      visibility: visible !important;
-    }
-
-    /* Mobile: JS-driven autoplay carousel (one company per view) */
+    /* Mobile companies carousel: JS autoplay, one card per view with a peek
+       of the next company so it's clear there are several. */
     #hm-emp-carousel {
       overflow: hidden !important;
       width: 100% !important;
     }
     #hm-emp-track {
       display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
       width: auto !important;
       gap: 0 !important;
+      opacity: 1 !important;
+      visibility: visible !important;
     }
     #hm-emp-track .hm-carousel-slide {
-      flex: 0 0 calc(100vw - 32px) !important;
-      min-width: calc(100vw - 32px) !important;
-      max-width: calc(100vw - 32px) !important;
-      margin-right: 0 !important;
-      scroll-snap-align: none !important;
+      flex: 0 0 calc(100vw - 64px) !important;
+      width: calc(100vw - 64px) !important;
+      min-width: calc(100vw - 64px) !important;
+      max-width: calc(100vw - 64px) !important;
+      margin-right: 16px !important;
+      display: flex !important;
+      flex-direction: column !important;
       opacity: 1 !important;
       visibility: visible !important;
+      transform: none !important;
     }
     #hm-emp-track .hm-emp-card {
+      width: 100% !important;
       opacity: 1 !important;
       visibility: visible !important;
-      width: 100% !important;
+      transform: none !important;
     }
     .hm-carousel-dots {
       display: flex !important;
@@ -1419,7 +1347,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     });
 
     var isMobile = window.innerWidth <= 768;
-    var cardWidth = isMobile ? window.innerWidth - 32 : 0;
+    var cardWidth = isMobile ? window.innerWidth - 64 : 0;
     cards.forEach(function (card) {
       if (!card.classList.contains('hm-carousel-slide')) return;
       if (isMobile) {
@@ -1478,18 +1406,28 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     }
   }
 
+  function slidePitch() {
+    // Measure the real distance between consecutive slides so the translate
+    // always lands exactly on a card, regardless of viewport width or gaps.
+    if (slides.length >= 2) {
+      var a = slides[0].getBoundingClientRect();
+      var b = slides[1].getBoundingClientRect();
+      var d = b.left - a.left;
+      if (d > 10) return d;
+    }
+    if (slides[0]) {
+      var rect = slides[0].getBoundingClientRect();
+      var mr = parseFloat(getComputedStyle(slides[0]).marginRight) || 0;
+      if (rect.width > 10) return rect.width + mr;
+    }
+    return window.innerWidth - 32;
+  }
+
   function update() {
     perView = perViewNow();
     if (idx > maxIdx()) idx = 0;
 
-    var slideW = 0;
-    if (slides[0]) {
-      var rect = slides[0].getBoundingClientRect();
-      slideW = rect.width > 10 ? rect.width + 24 : (window.innerWidth - 32);
-    }
-    if (window.innerWidth <= 768) {
-      slideW = window.innerWidth - 32;
-    }
+    var slideW = slidePitch();
 
     track.style.transform = 'translateX(-' + (idx * slideW) + 'px)';
 
