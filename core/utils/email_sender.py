@@ -25,6 +25,7 @@ from django.urls import reverse
 from django.utils.html import strip_tags
 
 from core.models import Order, UserProfile
+from core.utils.contact import email_template_context, tradeflow_contact_email
 
 log = logging.getLogger(__name__)
 
@@ -96,7 +97,7 @@ def _render_email_shell(title_inner: str, inner_html: str) -> str:
           </tr>
           <tr>
             <td style="padding:16px 24px 24px;border-top:1px solid #E5E7EB;font-size:12px;color:#6B7A88;">
-              <p style="margin:0;">Need help? Write to us at soporte@tradeflow.pa</p>
+              <p style="margin:0;">Need help? Write to us at {tradeflow_contact_email()}</p>
               <p style="margin:8px 0 0;">This message was generated automatically; do not reply directly to this sender.</p>
             </td>
           </tr>
@@ -370,12 +371,12 @@ def enviar_bienvenida(user: User) -> None:
         pass
     html_message = render_to_string(
         'core/emails/bienvenida.html',
-        {
+        email_template_context({
             'user': user,
             'es_seller': es_seller,
             'url_tienda': base + reverse('tienda'),
             'url_panel': base + reverse('portal_seller'),
-        },
+        }),
     )
     try:
         send_mail(
@@ -574,11 +575,11 @@ def enviar_resultado_aplicacion_transportista(transportista, aprobado: bool) -> 
         return
     html = render_to_string(
         'core/emails/resultado_transportista.html',
-        {
+        email_template_context({
             'transportista': transportista,
             'aprobado': aprobado,
             'signup_url': _public_base_url() + reverse('signup'),
-        },
+        }),
     )
     subject = (
         'Welcome to TradeFlow!' if aprobado
@@ -640,13 +641,14 @@ def enviar_solicitud_decision(app, aprobada: bool):
         msg = (
             f'Hello {app.full_name},\n\n'
             'We cannot approve your application at this time. '
-            'Contact soporte@tradeflow.pa if you have questions.\n'
+            f'Contact {tradeflow_contact_email()} if you have questions.\n'
         )
+        contact = tradeflow_contact_email()
         inner = (
             f'<h1 style="margin:0 0 12px;font-size:20px;color:#0F2A44;">Application update</h1>'
             f'<p style="margin:0 0 8px;color:#374151;">Hello {_h(app.full_name)},</p>'
             f'<p style="margin:0;color:#374151;">We cannot approve your application at this stage. '
-            f'Contact <a href="mailto:soporte@tradeflow.pa">soporte@tradeflow.pa</a> if you have questions.</p>'
+            f'Contact <a href="mailto:{_h(contact)}">{_h(contact)}</a> if you have questions.</p>'
         )
     try:
         return enviar_email_transaccional(

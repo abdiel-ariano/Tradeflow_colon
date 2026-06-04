@@ -978,7 +978,7 @@ _ASSISTANT_SYSTEM_PROMPT = (
 
 _ASSISTANT_FALLBACK = (
     "I'm sorry, the assistant is temporarily unavailable. Please try again in a "
-    "moment, browse the store, or contact info@tradeflow.pa for help."
+    "moment, browse the store, or contact the support email shown on the site for help."
 )
 
 

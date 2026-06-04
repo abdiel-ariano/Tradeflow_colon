@@ -53,7 +53,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 DEFAULT_FROM_EMAIL=TradeFlow <noreply@tradeflow.pa>
 PUBLIC_BASE_URL=http://127.0.0.1:8000
 
-APPLICATION_REVIEW_EMAILS=
+APPLICATION_REVIEW_EMAILS=tradeflowcolon@gmail.com
 
 REQUIRE_EMAIL_VERIFICATION=true
 REQUIRE_APPROVED_APPLICATION=false

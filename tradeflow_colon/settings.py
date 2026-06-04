@@ -126,6 +126,7 @@ TEMPLATES = [
                 'core.context_processors.cart_badge',
                 'core.context_processors.pending_applications_badge',
                 'core.context_processors.tf_i18n',
+                'core.context_processors.tradeflow_contact',
                 'core.context_processors.supabase_public',
                 'core.context_processors.enterprise_saas',
             ],
@@ -253,19 +254,35 @@ DASHBOARD_KPI_REVENUE_DELIVERED_ONLY = config(
     default=False,
     cast=bool,
 )
+from core.utils.email_config import (
+    TRADEFLOW_GMAIL_ACCOUNT,
+    normalize_contact_email,
+    normalize_project_gmail,
+)
+
 # Correo (fallback Django cuando Supabase Edge Function no está disponible)
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default='django.core.mail.backends.console.EmailBackend',
 )
-DEFAULT_FROM_EMAIL = config(
+_default_from = config(
     'DEFAULT_FROM_EMAIL',
     default='TradeFlow <noreply@tradeflow.pa>',
+)
+if LEGACY_GMAIL_ACCOUNT in _default_from.lower():
+    _default_from = _default_from.replace(LEGACY_GMAIL_ACCOUNT, TRADEFLOW_GMAIL_ACCOUNT).replace(
+        LEGACY_GMAIL_ACCOUNT.upper(),
+        TRADEFLOW_GMAIL_ACCOUNT,
+    )
+DEFAULT_FROM_EMAIL = _default_from
+TRADEFLOW_CONTACT_EMAIL = normalize_contact_email(
+    config('TRADEFLOW_CONTACT_EMAIL', default=TRADEFLOW_GMAIL_ACCOUNT)
 )
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
 # Gmail SMTP opcional (fallback cuando la Edge Function de Supabase no envía)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='').strip()
+_email_host_user = normalize_project_gmail(config('EMAIL_HOST_USER', default='').strip())
+EMAIL_HOST_USER = _email_host_user
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='').strip()
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
 
@@ -345,11 +362,14 @@ if SUPABASE_SERVICE_KEY and SUPABASE_URL:
     }
 
 # Revisores de solicitudes de acceso (lista separada por comas)
-APPLICATION_REVIEW_EMAILS = config(
+_application_review_raw = config(
     'APPLICATION_REVIEW_EMAILS',
-    default='',
+    default=TRADEFLOW_GMAIL_ACCOUNT,
     cast=Csv(),
 )
+APPLICATION_REVIEW_EMAILS = [
+    normalize_project_gmail(addr) for addr in _application_review_raw if str(addr).strip()
+] or [TRADEFLOW_GMAIL_ACCOUNT]
 
 # Checkout: True = flujo antiguo (pago inmediato). False = awaiting_seller (PreExpo).
 CHECKOUT_AUTO_APPROVE = config('CHECKOUT_AUTO_APPROVE', default=False, cast=bool)
