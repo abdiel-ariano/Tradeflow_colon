@@ -629,40 +629,32 @@ stats, featured_products, empresas_carousel, show_cart_actions.
       visibility: visible !important;
     }
 
-    /* Replace JS carousel with native CSS scroll on mobile */
+    /* Mobile: JS-driven autoplay carousel (one company per view) */
     #hm-emp-carousel {
-      overflow-x: auto !important;
-      overflow-y: hidden !important;
-      -webkit-overflow-scrolling: touch !important;
-      scroll-snap-type: x mandatory !important;
+      overflow: hidden !important;
       width: 100% !important;
-      padding-bottom: 12px !important;
     }
     #hm-emp-track {
       display: flex !important;
-      transform: none !important;
-      transition: none !important;
-      width: max-content !important;
+      width: auto !important;
       gap: 0 !important;
     }
     #hm-emp-track .hm-carousel-slide {
       flex: 0 0 calc(100vw - 32px) !important;
       min-width: calc(100vw - 32px) !important;
       max-width: calc(100vw - 32px) !important;
-      margin-right: 16px !important;
-      scroll-snap-align: start !important;
+      margin-right: 0 !important;
+      scroll-snap-align: none !important;
       opacity: 1 !important;
       visibility: visible !important;
-      transform: none !important;
     }
     #hm-emp-track .hm-emp-card {
       opacity: 1 !important;
       visibility: visible !important;
-      transform: none !important;
       width: 100% !important;
     }
     .hm-carousel-dots {
-      display: none !important;
+      display: flex !important;
     }
   }
   .hm-emp-card {
@@ -1259,17 +1251,14 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 (function () {
   'use strict';
 
-  // On mobile, disable JS carousel completely and use CSS scroll
+  // On mobile, keep the carousel visible; the JS autoplay below still runs.
   if (window.innerWidth <= 768) {
     var mobileTrack = document.getElementById('hm-emp-track');
     var mobileWrap = document.getElementById('hm-emp-carousel');
     if (mobileTrack) {
-      mobileTrack.style.transform = 'none';
-      mobileTrack.style.transition = 'none';
       mobileTrack.querySelectorAll('.hm-carousel-slide, .hm-emp-card').forEach(function (el) {
         el.style.opacity = '1';
         el.style.visibility = 'visible';
-        el.style.transform = 'none';
       });
     }
     if (mobileWrap) {
@@ -1397,11 +1386,6 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     else revealObserver.observe(el);
   });
 
-  // Stop here on mobile - don't run JS carousel (CSS scroll handles it)
-  if (window.innerWidth <= 768) {
-    return;
-  }
-
   function initCarousel() {
     // Force all carousel elements visible on mobile
     if (window.innerWidth <= 768) {
@@ -1435,7 +1419,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
     });
 
     var isMobile = window.innerWidth <= 768;
-    var cardWidth = isMobile ? window.innerWidth - 48 : 0;
+    var cardWidth = isMobile ? window.innerWidth - 32 : 0;
     cards.forEach(function (card) {
       if (!card.classList.contains('hm-carousel-slide')) return;
       if (isMobile) {
