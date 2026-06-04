@@ -1,0 +1,108 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Términos de uso — TradeFlow Colón{% endblock %}
+{% block extra_css %}{% include "core/includes/legal_page_styles.html" %}{% endblock %}
+{% block content %}
+<div class="legal-page">
+  <header class="legal-header">
+    {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" %}
+    <h1>Términos de uso</h1>
+    <p class="legal-updated">Última actualización: junio 2026</p>
+  </header>
+
+  <article class="legal-body">
+    <h2>1. Descripción del servicio</h2>
+    <p>
+      TradeFlow Colón («TradeFlow», «la Plataforma») es un marketplace intermediario B2B y B2C
+      orientado a la Zona Libre de Colón (ZLC), República de Panamá. TradeFlow facilita el
+      contacto, la cotización y la gestión de órdenes entre compradores y empresas vendedoras
+      registradas; <strong>no actúa como vendedor directo</strong> de los productos publicados
+      ni como transportista, salvo que se indique expresamente un servicio adicional contratado.
+    </p>
+    <p>
+      El uso de la Plataforma implica la aceptación de estos Términos. Si no está de acuerdo,
+      debe abstenerse de registrarse o utilizar los servicios.
+    </p>
+
+    <h2>2. Registro y cuentas</h2>
+    <p>Para operar en TradeFlow puede registrarse como comprador («buyer») o vendedor («seller»), según el rol autorizado.</p>
+    <ul>
+      <li>Debe proporcionar información veraz, completa y actualizada (nombre, correo, teléfono y, en su caso, datos de la empresa).</li>
+      <li>Es responsable de la confidencialidad de sus credenciales y de toda actividad realizada desde su cuenta.</li>
+      <li>Debe notificar de inmediato cualquier uso no autorizado a <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a>.</li>
+      <li>TradeFlow puede suspender o cancelar cuentas que incumplan estos Términos o requisitos de la ZLC.</li>
+    </ul>
+
+    <h2>3. Obligaciones del vendedor</h2>
+    <ul>
+      <li>Mantener inventario real y actualizado; no publicar productos sin disponibilidad razonable.</li>
+      <li>Expresar precios en dólares estadounidenses (USD), salvo indicación contractual distinta acordada con el comprador.</li>
+      <li>Cumplir con la documentación aduanera, fiscal y comercial aplicable a sus operaciones en la ZLC y en el destino de la mercancía.</li>
+      <li>Confirmar o rechazar órdenes dentro de los plazos mostrados en la Plataforma y comunicar incidencias de forma diligente.</li>
+      <li>No publicar contenido ilícito, engañoso o que infrinja derechos de terceros.</li>
+    </ul>
+
+    <h2>4. Obligaciones del comprador</h2>
+    <ul>
+      <li>Utilizar la Plataforma con fines legítimos de compra o abastecimiento comercial.</li>
+      <li>Proporcionar datos de contacto, entrega y facturación verídicos.</li>
+      <li>Revisar cotizaciones y órdenes antes de confirmarlas; las confirmaciones vinculan a las partes según el flujo de la Plataforma.</li>
+      <li>Respetar los plazos de pago, recepción y disputa establecidos en cada transacción.</li>
+    </ul>
+
+    <h2>5. Órdenes, pagos y disputas</h2>
+    <p>
+      Las órdenes se crean según el flujo visible en la Plataforma (carrito, checkout, cotizaciones
+      o herramientas administrativas). El estado de cada orden (pendiente, en espera de confirmación
+      del vendedor, pagada, enviada, entregada, cancelada, etc.) se refleja en el panel correspondiente.
+    </p>
+    <p>
+      Los pagos pueden procesarse mediante los proveedores o métodos habilitados en cada momento
+      (incluidos mecanismos de prueba o simulación en entornos de demostración). TradeFlow no
+      custodia fondos entre las partes salvo que un producto específico indique lo contrario.
+    </p>
+    <p>
+      Cancelaciones y disputas deben gestionarse primero entre comprador y vendedor, usando los
+      canales de la Plataforma y el correo de soporte. TradeFlow podrá mediar de buena fe pero
+      no sustituye las obligaciones contractuales entre las partes.
+    </p>
+
+    <h2>6. Propiedad intelectual</h2>
+    <p>
+      El nombre TradeFlow Colón, logotipos, diseño de interfaz, textos institucionales y software
+      de la Plataforma son propiedad de sus titulares o licenciantes. Queda prohibida su reproducción
+      no autorizada. Los vendedores conservan los derechos sobre sus marcas y descripciones de
+      producto, y otorgan a TradeFlow una licencia limitada para exhibirlos en el marketplace.
+    </p>
+
+    <h2>7. Limitación de responsabilidad</h2>
+    <p>
+      TradeFlow procura mantener la Plataforma disponible y segura, pero no garantiza ausencia
+      de interrupciones ni errores. <strong>No garantiza la ejecución física de la transacción</strong>
+      entre comprador y vendedor (calidad, entrega, aduanas, pagos fuera de la Plataforma).
+      En la medida permitida por la ley panameña, TradeFlow no será responsable por daños indirectos,
+      lucro cesante o incumplimientos atribuibles a terceros o a las propias partes de la operación.
+    </p>
+
+    <h2>8. Ley aplicable y jurisdicción</h2>
+    <p>
+      Estos Términos se rigen por las leyes de la <strong>República de Panamá</strong>.
+      Para controversias no resueltas amistosamente, las partes se someten a la jurisdicción de
+      los tribunales competentes en la <strong>provincia de Colón</strong>, sin perjuicio de
+      derechos imperativos del consumidor que resulten aplicables.
+    </p>
+
+    <h2>9. Contacto</h2>
+    <p>
+      Consultas sobre estos Términos: <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a>.
+      Documentos relacionados: <a href="{% url 'legal_privacidad' %}">Política de privacidad</a>
+      y <a href="{% url 'legal_cookies' %}">Política de cookies</a>.
+    </p>
+  </article>
+
+  <a href="{% url 'home' %}" class="legal-back">
+    <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+    Volver al inicio
+  </a>
+</div>
+{% endblock %}

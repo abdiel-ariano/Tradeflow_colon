@@ -17,6 +17,11 @@ urlpatterns = [
     path('mapa/', views.mapa_zlc, name='mapa_zlc'),
     path('visitante/zlc/', views.visitante_zlc_verificacion, name='visitante_zlc_verificacion'),
 
+    # ── Páginas legales ─────────────────────────────────────────────────────
+    path('terminos/', views.legal_terminos, name='legal_terminos'),
+    path('privacidad/', views.legal_privacidad, name='legal_privacidad'),
+    path('cookies/', views.legal_cookies, name='legal_cookies'),
+
     # ── Autenticación ─────────────────────────────────────────────────────
     path('login/',   views.login_view,  name='login'),
     path(

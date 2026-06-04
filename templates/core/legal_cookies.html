@@ -1,0 +1,77 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Política de cookies — TradeFlow Colón{% endblock %}
+{% block extra_css %}{% include "core/includes/legal_page_styles.html" %}{% endblock %}
+{% block content %}
+<div class="legal-page">
+  <header class="legal-header">
+    {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" %}
+    <h1>Política de cookies</h1>
+    <p class="legal-updated">Última actualización: junio 2026</p>
+  </header>
+
+  <article class="legal-body">
+    <h2>1. Qué son las cookies</h2>
+    <p>
+      Las cookies son pequeños archivos que el sitio o servicios asociados guardan en su navegador
+      para recordar preferencias, mantener sesiones o medir el uso de TradeFlow Colón.
+      Tecnologías similares (almacenamiento local, píxeles) se tratan con el mismo criterio de transparencia.
+    </p>
+
+    <h2>2. Cookies esenciales</h2>
+    <p>Son necesarias para el funcionamiento básico de la Plataforma. Sin ellas no podría, por ejemplo:</p>
+    <ul>
+      <li>Mantener su <strong>sesión de inicio de sesión</strong> de forma segura.</li>
+      <li>Guardar el <strong>carrito de compras</strong> mientras navega.</li>
+      <li>Aplicar protección CSRF en formularios y preferencias de seguridad.</li>
+    </ul>
+    <p>Estas cookies no requieren consentimiento previo en la medida en que sean estrictamente necesarias.</p>
+
+    <h2>3. Cookies analíticas</h2>
+    <p>
+      Nos ayudan a entender tráfico y comportamiento agregado (páginas visitadas, duración, dispositivo).
+      Cuando esté habilitado, podemos utilizar servicios como <strong>Google Analytics</strong> u
+      herramientas equivalentes, siempre procurando configuraciones que limiten identificación directa.
+    </p>
+
+    <h2>4. Cookies funcionales</h2>
+    <p>
+      Recuerdan elecciones suyas para mejorar la experiencia: idioma, filtros de tienda, banners ya
+      cerrados o preferencias de interfaz en paneles de comprador y vendedor.
+    </p>
+
+    <h2>5. Cookies de terceros</h2>
+    <p>
+      Al integrar <strong>servicios de pago</strong>, mapas, reproductores o widgets externos, esos
+      proveedores pueden establecer sus propias cookies sujetas a sus políticas. TradeFlow no controla
+      íntegramente esas tecnologías; le recomendamos revisar la documentación del proveedor correspondiente
+      cuando complete un pago o use un servicio enlazado.
+    </p>
+
+    <h2>6. Cómo gestionar o desactivar cookies</h2>
+    <p>Puede configurar su navegador para bloquear o eliminar cookies:</p>
+    <ul>
+      <li>Chrome: Configuración → Privacidad y seguridad → Cookies.</li>
+      <li>Firefox: Opciones → Privacidad y seguridad.</li>
+      <li>Safari: Preferencias → Privacidad.</li>
+      <li>Edge: Configuración → Cookies y permisos del sitio.</li>
+    </ul>
+    <p>
+      Si desactiva cookies esenciales, algunas funciones (login, carrito, checkout) pueden dejar de
+      operar correctamente.
+    </p>
+
+    <h2>7. Actualizaciones y contacto</h2>
+    <p>
+      Esta política puede modificarse; la fecha superior indica la versión publicada.
+      Dudas: <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a>.
+      Véase también <a href="{% url 'legal_privacidad' %}">Política de privacidad</a>.
+    </p>
+  </article>
+
+  <a href="{% url 'home' %}" class="legal-back">
+    <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+    Volver al inicio
+  </a>
+</div>
+{% endblock %}
