@@ -77,7 +77,14 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 # En .env local: ALLOWED_HOSTS=127.0.0.1,localhost
 # En Railway:    ALLOWED_HOSTS=tuapp.up.railway.app,tradeflow.pa
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
+ALLOWED_HOSTS = list(config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv()))
+
+# Railway inyecta el dominio público; evita DisallowedHost si falta en Variables.
+import os as _os
+
+_railway_public = (_os.environ.get('RAILWAY_PUBLIC_DOMAIN') or '').strip()
+if _railway_public and _railway_public not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_railway_public)
 
 # ── Aplicaciones ──────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -157,9 +164,10 @@ if _db_url:
         conn_max_age=600,
         ssl_require=_ssl_required,
     )
+    _db_cfg.setdefault('OPTIONS', {})
     if _ssl_required:
-        _db_cfg.setdefault('OPTIONS', {})
         _db_cfg['OPTIONS']['sslmode'] = config('DB_SSLMODE', default='require')
+    _db_cfg['OPTIONS']['connect_timeout'] = config('DB_CONNECT_TIMEOUT', default=10, cast=int)
     DATABASES = {'default': _db_cfg}
     USING_SUPABASE = 'supabase' in _db_url.lower() or 'postgres' in _db_cfg.get('ENGINE', '')
 else:
