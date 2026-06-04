@@ -4460,3 +4460,22 @@ def reject_application_view(request, pk):
         except UserApplication.DoesNotExist:
             messages.error(request, 'Application not found.')
     return redirect('admin_applications')
+
+
+# =============================================================================
+# PÁGINAS LEGALES (públicas)
+# =============================================================================
+
+def legal_terminos(request):
+    """Términos de uso del marketplace TradeFlow Colón."""
+    return render(request, 'core/legal_terminos.html')
+
+
+def legal_privacidad(request):
+    """Política de privacidad y tratamiento de datos."""
+    return render(request, 'core/legal_privacidad.html')
+
+
+def legal_cookies(request):
+    """Política de cookies y tecnologías similares."""
+    return render(request, 'core/legal_cookies.html')

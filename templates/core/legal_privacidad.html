@@ -1,0 +1,101 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Política de privacidad — TradeFlow Colón{% endblock %}
+{% block extra_css %}{% include "core/includes/legal_page_styles.html" %}{% endblock %}
+{% block content %}
+<div class="legal-page">
+  <header class="legal-header">
+    {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" %}
+    <h1>Política de privacidad</h1>
+    <p class="legal-updated">Última actualización: junio 2026</p>
+  </header>
+
+  <article class="legal-body">
+    <h2>1. Responsable del tratamiento</h2>
+    <p>
+      TradeFlow Colón trata datos personales en el marco de su marketplace para la Zona Libre de Colón.
+      Para ejercer sus derechos o formular consultas: <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a>.
+    </p>
+
+    <h2>2. Datos que recopilamos</h2>
+    <ul>
+      <li><strong>Identificación y contacto:</strong> nombre, correo electrónico, teléfono, nombre de usuario.</li>
+      <li><strong>Empresa (vendedores):</strong> razón social, dirección en ZLC, datos de contacto comercial.</li>
+      <li><strong>Transacciones:</strong> historial de órdenes, cotizaciones, estados, montos y notas asociadas.</li>
+      <li><strong>Técnicos:</strong> dirección IP, agente de navegador, registros de acceso y cookies (véase la política de cookies).</li>
+      <li><strong>Ubicación:</strong> coordenadas cuando usted las confirma voluntariamente en checkout o logística.</li>
+    </ul>
+
+    <h2>3. Finalidades del uso</h2>
+    <ul>
+      <li>Crear y administrar su cuenta (comprador, vendedor o administrador autorizado).</li>
+      <li>Procesar órdenes, cotizaciones, pagos simulados o reales y notificaciones operativas.</li>
+      <li>Enviar comunicaciones transaccionales (confirmaciones, cambios de estado, verificación de correo).</li>
+      <li>Mejorar la seguridad, prevenir fraude y cumplir obligaciones legales aplicables.</li>
+      <li>Analizar uso agregado de la Plataforma para rendimiento y experiencia de usuario.</li>
+    </ul>
+
+    <h2>4. Compartición de datos</h2>
+    <p>
+      No vendemos ni alquilamos sus datos personales a terceros con fines publicitarios.
+      Podemos compartir información únicamente cuando sea necesario para:
+    </p>
+    <ul>
+      <li><strong>Proveedores de pago</strong> o pasarelas habilitadas en la Plataforma.</li>
+      <li><strong>Operadores logísticos</strong> o transportistas seleccionados en el flujo de la orden.</li>
+      <li><strong>Infraestructura técnica</strong> (alojamiento, correo, bases de datos) bajo contratos de confidencialidad.</li>
+      <li><strong>Autoridades</strong> cuando la ley panameña lo exija.</li>
+    </ul>
+    <p>
+      Entre comprador y vendedor se intercambian los datos mínimos necesarios para ejecutar cada operación
+      (por ejemplo, contacto y referencias de pedido).
+    </p>
+
+    <h2>5. Conservación</h2>
+    <p>
+      Conservamos los datos mientras su cuenta permanezca activa y durante el plazo necesario para
+      obligaciones legales, contables o resolución de disputas. Los registros de órdenes pueden
+      mantenerse por períodos adicionales cuando la normativa o la auditoría lo requieran.
+    </p>
+
+    <h2>6. Sus derechos</h2>
+    <p>Usted puede solicitar, según la ley aplicable:</p>
+    <ul>
+      <li><strong>Acceso</strong> a los datos personales que tratamos sobre usted.</li>
+      <li><strong>Rectificación</strong> de datos inexactos o incompletos.</li>
+      <li><strong>Eliminación</strong> cuando ya no sean necesarios o retire su consentimiento, salvo obligación legal de conservación.</li>
+      <li><strong>Limitación u oposición</strong> al tratamiento en los supuestos previstos por la normativa.</li>
+    </ul>
+    <p>
+      Envíe su solicitud a <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a> indicando su correo
+      registrado. Responderemos en un plazo razonable.
+    </p>
+
+    <h2>7. Seguridad</h2>
+    <p>
+      Aplicamos medidas técnicas y organizativas acordes al riesgo (cifrado en tránsito, control de acceso,
+      contraseñas seguras). Ningún sistema es infalible; le recomendamos usar contraseñas robustas y
+      proteger sus dispositivos.
+    </p>
+
+    <h2>8. Menores de edad</h2>
+    <p>
+      La Plataforma está dirigida a operadores comerciales y usuarios mayores de edad. No recopilamos
+      deliberadamente datos de menores.
+    </p>
+
+    <h2>9. Cambios y contacto</h2>
+    <p>
+      Podemos actualizar esta política; la fecha de «Última actualización» reflejará la versión vigente.
+      Contacto: <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a>.
+      Consulte también <a href="{% url 'legal_cookies' %}">Política de cookies</a>
+      y <a href="{% url 'legal_terminos' %}">Términos de uso</a>.
+    </p>
+  </article>
+
+  <a href="{% url 'home' %}" class="legal-back">
+    <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+    Volver al inicio
+  </a>
+</div>
+{% endblock %}
