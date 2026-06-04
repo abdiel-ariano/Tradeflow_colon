@@ -60,7 +60,12 @@ def deliver_mail(
     recipient = recipient_list[0] if recipient_list else ''
     last_error = ''
 
-    for attempt in range(1, max_attempts + 1):
+    # Do not block HTTP requests (checkout, status changes) on long SMTP timeouts.
+    attempts = 1 if fail_silently else max_attempts
+    base_timeout = getattr(settings, 'EMAIL_TIMEOUT', 10)
+    timeout = min(base_timeout, 4) if fail_silently else base_timeout
+
+    for attempt in range(1, attempts + 1):
         try:
             if html_message:
                 msg = EmailMultiAlternatives(
@@ -77,7 +82,6 @@ def deliver_mail(
                     from_email=from_email,
                     to=recipient_list,
                 )
-            timeout = getattr(settings, 'EMAIL_TIMEOUT', 10)
             msg.connection = get_connection(fail_silently=False, timeout=timeout)
             msg.send(fail_silently=False)
             EmailDeliveryLog.objects.create(
@@ -98,7 +102,7 @@ def deliver_mail(
                 attempt,
                 last_error,
             )
-            if attempt < max_attempts:
+            if attempt < attempts and not fail_silently:
                 time.sleep(0.6)
 
     EmailDeliveryLog.objects.create(

@@ -1,0 +1,80 @@
+"""Checkout must redirect even when SMTP is unreachable (Railway network)."""
+from decimal import Decimal
+from unittest.mock import patch
+
+from django.contrib.auth.models import User
+from django.test import TestCase, override_settings
+
+from core.models import (
+    Category,
+    Company,
+    Inventory,
+    Order,
+    Payment,
+    Product,
+    TransportCarrier,
+    UserProfile,
+)
+
+
+class CheckoutEmailNonBlockingTests(TestCase):
+    def setUp(self):
+        self.buyer = User.objects.create_user(
+            username='buyer_checkout_email',
+            email='buyer@example.com',
+            password='TestPass123!',
+        )
+        UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
+        company = Company.objects.create(name='Co', slug='co-email', owner=self.buyer)
+        cat = Category.objects.create(name='Cat', slug='cat-email')
+        self.product = Product.objects.create(
+            company=company,
+            category=cat,
+            name='Widget',
+            sku='W-EMAIL-1',
+            unit_price=Decimal('10.00'),
+            is_active=True,
+        )
+        Inventory.objects.create(product=self.product, stock_qty=50, reserved_qty=0)
+        self.carrier = TransportCarrier.objects.create(
+            code='zlc-test-email',
+            name='Test Carrier',
+            base_shipping_cost=Decimal('5.00'),
+            is_active=True,
+        )
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend')
+    def test_checkout_redirects_when_smtp_unreachable(self):
+        self.client.login(username='buyer_checkout_email', password='TestPass123!')
+        session = self.client.session
+        session['carrito'] = {
+            str(self.product.pk): {
+                'nombre': self.product.name,
+                'precio': str(self.product.unit_price),
+                'cantidad': 1,
+                'subtotal': str(self.product.unit_price),
+                'imagen': '',
+            }
+        }
+        session.save()
+
+        def _smtp_down(*_args, **_kwargs):
+            raise OSError(101, 'Network is unreachable')
+
+        with patch(
+            'core.utils.email_delivery.get_connection',
+            side_effect=_smtp_down,
+        ):
+            response = self.client.post(
+                '/checkout/',
+                {
+                    'notas': '',
+                    'transport_carrier': self.carrier.pk,
+                    'buyer_latitude': '9.3667000',
+                    'buyer_longitude': '-79.9000000',
+                },
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Order.objects.filter(buyer=self.buyer).exists())
+        self.assertTrue(Payment.objects.filter(order__buyer=self.buyer).exists())

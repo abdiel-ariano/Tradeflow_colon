@@ -227,7 +227,7 @@ def enviar_confirmacion_orden(orden: Order) -> None:
             ),
             recipient_list=[to_email],
             html_message=html_body,
-            fail_silently=False,
+            fail_silently=True,
         )
     except Exception as exc:
         log.exception("enviar_confirmacion_orden falló: %s", exc)
@@ -433,7 +433,7 @@ def enviar_cambio_estado(orden: Order, estado_anterior: str) -> None:
             ),
             recipient_list=[to_email],
             html_message=html_body,
-            fail_silently=False,
+            fail_silently=True,
         )
     except Exception as exc:
         log.exception("enviar_cambio_estado falló: %s", exc)
@@ -469,7 +469,7 @@ def enviar_orden_pendiente_vendedor(orden: Order) -> None:
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[company.owner.email],
             html_message=_render_email_shell('New order', inner),
-            fail_silently=False,
+            fail_silently=True,
         )
     except Exception as exc:
         log.exception('enviar_orden_pendiente_vendedor: %s', exc)
