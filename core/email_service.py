@@ -46,6 +46,18 @@ def _verification_html(code: str) -> str:
 </html>"""
 
 
+def _is_non_retryable_delivery_error(detail: str) -> bool:
+    """Resend sandbox / domain errors will fail on every channel — do not retry SMTP."""
+    d = (detail or '').lower()
+    return (
+        'validation_error' in d
+        or 'verify a domain' in d
+        or 'only send testing emails' in d
+        or 'statuscode":403' in d
+        or 'statuscode": 403' in d
+    )
+
+
 def _supabase_type_for_edge(tipo: str) -> str:
     """Map app email kinds to types accepted by older Edge Functions."""
     if tipo in _LEGACY_SUPABASE_TYPES:
@@ -93,7 +105,7 @@ def _invoke_supabase_function(payload: dict) -> tuple[bool, str]:
     }
     req = urllib.request.Request(url, data=body, headers=headers, method='POST')
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=8) as resp:
             if resp.status >= 400:
                 return False, f'function_status_{resp.status}'
             return True, ''
@@ -194,6 +206,15 @@ def enviar_email_transaccional(
     supabase_result = _send_via_supabase(email, subject, html, text, tipo)
     if supabase_result.ok:
         log.info('email sent via=supabase type=%s to=%s', tipo, email)
+        return supabase_result
+
+    if _is_non_retryable_delivery_error(supabase_result.detail):
+        log.error(
+            'Supabase email rejected (type=%s to=%s): %s — skipping SMTP fallback',
+            tipo,
+            email,
+            supabase_result.detail[:400],
+        )
         return supabase_result
 
     log.warning(

@@ -598,12 +598,16 @@ def enviar_resultado_aplicacion_transportista(transportista, aprobado: bool) -> 
         raise
 
 
-def enviar_solicitud_decision(app, aprobada: bool) -> None:
+def enviar_solicitud_decision(app, aprobada: bool):
     """Notifica al solicitante la decisión (vía Supabase, fallback Django).
 
     Si ya existe una cuenta para el correo, el enlace de aprobación apunta a
     iniciar sesión; si no, a registrarse con el mismo correo.
+
+    Returns:
+        EmailSendResult: resultado del envío (``ok=False`` si Resend/SMTP rechaza).
     """
+    from core.email_service import EmailSendResult, enviar_email_transaccional
     base = _public_base_url()
     if aprobada:
         tiene_cuenta = bool(getattr(app, 'user_id', None)) or User.objects.filter(
@@ -645,9 +649,10 @@ def enviar_solicitud_decision(app, aprobada: bool) -> None:
             f'Contact <a href="mailto:soporte@tradeflow.pa">soporte@tradeflow.pa</a> if you have questions.</p>'
         )
     try:
-        enviar_email_transaccional(
+        return enviar_email_transaccional(
             app.email, subject, _render_email_shell(subject, inner), msg,
             tipo='access_decision',
         )
     except Exception as exc:
         log.exception('enviar_solicitud_decision: %s', exc)
+        return EmailSendResult(ok=False, channel='error', detail=str(exc)[:500])

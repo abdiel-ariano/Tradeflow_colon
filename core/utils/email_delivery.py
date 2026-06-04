@@ -78,7 +78,8 @@ def deliver_mail(
                     from_email=from_email,
                     to=recipient_list,
                 )
-            msg.connection = get_connection(fail_silently=False)
+            timeout = getattr(settings, 'EMAIL_TIMEOUT', 10)
+            msg.connection = get_connection(fail_silently=False, timeout=timeout)
             msg.send(fail_silently=False)
             EmailDeliveryLog.objects.create(
                 email_type=email_type[:40],

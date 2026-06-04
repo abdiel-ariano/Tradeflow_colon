@@ -4283,13 +4283,21 @@ def revisar_solicitud(request, token, accion):
                 except ValueError:
                     log.exception('Enterprise activation on approve')
 
-    from .utils.application_review import aprobar_solicitud, rechazar_solicitud
+    from .utils.application_review import (
+        aprobar_solicitud,
+        mensaje_fallo_correo,
+        rechazar_solicitud,
+    )
     if aprobada:
-        aprobar_solicitud(app, notificar=True)
+        _, email_result = aprobar_solicitud(app, notificar=True)
     else:
-        rechazar_solicitud(app, notificar=True)
+        _, email_result = rechazar_solicitud(app, notificar=True)
 
-    messages.success(request, _('Decisión registrada y correo enviado al solicitante.'))
+    warn = mensaje_fallo_correo(email_result)
+    if warn:
+        messages.warning(request, warn)
+    else:
+        messages.success(request, _('Decisión registrada y correo enviado al solicitante.'))
     return redirect('home')
 
 
@@ -4406,15 +4414,19 @@ def admin_applications_view(request):
 def approve_application_view(request, pk):
     """Approve a company application, activate the account and notify the user."""
     from .models import UserApplication
-    from .utils.application_review import aprobar_solicitud
+    from .utils.application_review import aprobar_solicitud, mensaje_fallo_correo
     if request.method == 'POST':
         try:
             app = UserApplication.objects.get(pk=pk)
-            aprobar_solicitud(app, notificar=True)
-            messages.success(
-                request,
-                'Application approved. The applicant has been notified by email.',
-            )
+            _, email_result = aprobar_solicitud(app, notificar=True)
+            warn = mensaje_fallo_correo(email_result)
+            if warn:
+                messages.warning(request, warn)
+            else:
+                messages.success(
+                    request,
+                    'Application approved. The applicant has been notified by email.',
+                )
         except UserApplication.DoesNotExist:
             messages.error(request, 'Application not found.')
     return redirect('admin_applications')
@@ -4424,15 +4436,19 @@ def approve_application_view(request, pk):
 def reject_application_view(request, pk):
     """Reject a company application and notify the user."""
     from .models import UserApplication
-    from .utils.application_review import rechazar_solicitud
+    from .utils.application_review import mensaje_fallo_correo, rechazar_solicitud
     if request.method == 'POST':
         try:
             app = UserApplication.objects.get(pk=pk)
-            rechazar_solicitud(app, notificar=True)
-            messages.success(
-                request,
-                'Application rejected. The applicant has been notified by email.',
-            )
+            _, email_result = rechazar_solicitud(app, notificar=True)
+            warn = mensaje_fallo_correo(email_result)
+            if warn:
+                messages.warning(request, warn)
+            else:
+                messages.success(
+                    request,
+                    'Application rejected. The applicant has been notified by email.',
+                )
         except UserApplication.DoesNotExist:
             messages.error(request, 'Application not found.')
     return redirect('admin_applications')

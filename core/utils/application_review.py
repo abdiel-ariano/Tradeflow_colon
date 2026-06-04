@@ -42,19 +42,46 @@ def _activar_cuenta(app):
     return user
 
 
+def mensaje_fallo_correo(email_result) -> str:
+    """Texto para admin cuando la solicitud se guardó pero el correo falló."""
+    if email_result is None or getattr(email_result, 'ok', True):
+        return ''
+    detail = (getattr(email_result, 'detail', '') or '').lower()
+    if 'only send testing emails' in detail or 'verify a domain' in detail:
+        return (
+            'La solicitud se procesó y la cuenta quedó activa, pero el correo NO se envió: '
+            'Resend está en modo prueba y solo permite enviar a tu correo de cuenta Resend. '
+            'Verifica un dominio en resend.com/domains y usa DEFAULT_FROM_EMAIL con ese dominio.'
+        )
+    return (
+        'La solicitud se procesó, pero no se pudo enviar el correo al solicitante. '
+        'Revisa RESEND_API_KEY / dominio verificado en Railway.'
+    )
+
+
+def _notificar_decision(app, *, aprobada: bool):
+    """Envía correo de decisión; nunca lanza (la aprobación ya quedó guardada)."""
+    try:
+        from core.utils.email_sender import enviar_solicitud_decision
+
+        return enviar_solicitud_decision(app, aprobada=aprobada)
+    except Exception as exc:  # noqa: BLE001
+        log.exception('notificar_decision: %s', exc)
+        from core.email_service import EmailSendResult
+
+        return EmailSendResult(ok=False, channel='error', detail=str(exc)[:500])
+
+
 def aprobar_solicitud(app, *, notificar: bool = True):
     """Aprueba la solicitud: estado, fecha, activación de cuenta y aviso."""
     app.status = 'approved'
     app.reviewed_at = timezone.now()
     app.save(update_fields=['status', 'reviewed_at'])
     _activar_cuenta(app)
+    email_result = None
     if notificar:
-        try:
-            from core.utils.email_sender import enviar_solicitud_decision
-            enviar_solicitud_decision(app, aprobada=True)
-        except Exception as exc:  # noqa: BLE001 — el correo nunca debe romper el flujo
-            log.exception('aprobar_solicitud notificación: %s', exc)
-    return app
+        email_result = _notificar_decision(app, aprobada=True)
+    return app, email_result
 
 
 def rechazar_solicitud(app, *, notificar: bool = True):
@@ -66,10 +93,7 @@ def rechazar_solicitud(app, *, notificar: bool = True):
     if user is not None and user.is_active:
         user.is_active = False
         user.save(update_fields=['is_active'])
+    email_result = None
     if notificar:
-        try:
-            from core.utils.email_sender import enviar_solicitud_decision
-            enviar_solicitud_decision(app, aprobada=False)
-        except Exception as exc:  # noqa: BLE001
-            log.exception('rechazar_solicitud notificación: %s', exc)
-    return app
+        email_result = _notificar_decision(app, aprobada=False)
+    return app, email_result

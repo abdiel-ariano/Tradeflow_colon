@@ -303,7 +303,11 @@ class UserApplicationAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         """Editing the status to approved/rejected activates + notifies the user."""
-        from .utils.application_review import aprobar_solicitud, rechazar_solicitud
+        from .utils.application_review import (
+            aprobar_solicitud,
+            mensaje_fallo_correo,
+            rechazar_solicitud,
+        )
 
         old_status = None
         if change and obj.pk:
@@ -314,33 +318,53 @@ class UserApplicationAdmin(admin.ModelAdmin):
             )
         super().save_model(request, obj, form, change)
         if obj.status == 'approved' and old_status != 'approved':
-            aprobar_solicitud(obj, notificar=True)
-            self.message_user(request, f'{obj.email}: approved, account activated and notified.')
+            _, email_result = aprobar_solicitud(obj, notificar=True)
+            warn = mensaje_fallo_correo(email_result)
+            if warn:
+                self.message_user(request, f'{obj.email}: {warn}', level=30)
+            else:
+                self.message_user(request, f'{obj.email}: approved, account activated and notified.')
         elif obj.status == 'rejected' and old_status != 'rejected':
-            rechazar_solicitud(obj, notificar=True)
-            self.message_user(request, f'{obj.email}: rejected and notified.')
+            _, email_result = rechazar_solicitud(obj, notificar=True)
+            warn = mensaje_fallo_correo(email_result)
+            if warn:
+                self.message_user(request, f'{obj.email}: {warn}', level=30)
+            else:
+                self.message_user(request, f'{obj.email}: rejected and notified.')
 
     @admin.action(description='Approve selected applications (activate + email)')
     def aprobar_solicitudes(self, request, queryset):
-        from .utils.application_review import aprobar_solicitud
+        from .utils.application_review import aprobar_solicitud, mensaje_fallo_correo
 
         count = 0
+        email_fail = 0
         for app in queryset:
             if app.status != 'approved':
-                aprobar_solicitud(app, notificar=True)
+                _, email_result = aprobar_solicitud(app, notificar=True)
                 count += 1
-        self.message_user(request, f'{count} application(s) approved and notified.')
+                if mensaje_fallo_correo(email_result):
+                    email_fail += 1
+        msg = f'{count} application(s) approved.'
+        if email_fail:
+            msg += f' {email_fail} without email (check Resend domain).'
+        self.message_user(request, msg)
 
     @admin.action(description='Reject selected applications (email)')
     def rechazar_solicitudes(self, request, queryset):
-        from .utils.application_review import rechazar_solicitud
+        from .utils.application_review import mensaje_fallo_correo, rechazar_solicitud
 
         count = 0
+        email_fail = 0
         for app in queryset:
             if app.status != 'rejected':
-                rechazar_solicitud(app, notificar=True)
+                _, email_result = rechazar_solicitud(app, notificar=True)
                 count += 1
-        self.message_user(request, f'{count} application(s) rejected and notified.')
+                if mensaje_fallo_correo(email_result):
+                    email_fail += 1
+        msg = f'{count} application(s) rejected.'
+        if email_fail:
+            msg += f' {email_fail} without email (check Resend domain).'
+        self.message_user(request, msg)
 
 
 # =============================================================================

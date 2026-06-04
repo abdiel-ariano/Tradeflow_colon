@@ -70,11 +70,11 @@
           <td>
             {% if app.status == 'pending' %}
             <div style="display:flex;gap:6px;">
-              <form method="post" action="{% url 'approve_application' app.pk %}">{% csrf_token %}
-                <button type="submit" style="padding:6px 12px;background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Approve</button>
+              <form method="post" action="{% url 'approve_application' app.pk %}" class="js-app-review-form">{% csrf_token %}
+                <button type="submit" class="js-app-review-btn" style="padding:6px 12px;background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Approve</button>
               </form>
-              <form method="post" action="{% url 'reject_application' app.pk %}">{% csrf_token %}
-                <button type="submit" style="padding:6px 12px;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Reject</button>
+              <form method="post" action="{% url 'reject_application' app.pk %}" class="js-app-review-form">{% csrf_token %}
+                <button type="submit" class="js-app-review-btn" style="padding:6px 12px;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Reject</button>
               </form>
             </div>
             {% else %}
@@ -93,4 +93,23 @@
   </div>
   {% endif %}
 </div>
+<script>
+(function () {
+  document.querySelectorAll('.js-app-review-form').forEach(function (form) {
+    form.addEventListener('submit', function () {
+      var btn = form.querySelector('.js-app-review-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Processing…';
+      }
+      window.setTimeout(function () {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = btn.closest('form').action.indexOf('reject') >= 0 ? 'Reject' : 'Approve';
+        }
+      }, 12000);
+    });
+  });
+})();
+</script>
 {% endblock %}
