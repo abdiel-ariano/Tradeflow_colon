@@ -49,14 +49,14 @@ def mensaje_fallo_correo(email_result) -> str:
     detail = (getattr(email_result, 'detail', '') or '').lower()
     if 'only send testing emails' in detail or 'verify a domain' in detail:
         return (
-            'La solicitud se procesó y la cuenta quedó activa, pero el correo NO se envió. '
-            'Desactiva SUPABASE_EMAIL_ENABLED en Railway y configura Gmail '
-            '(EMAIL_HOST_USER + App Password), o corrige la Edge Function en Supabase.'
+            'The application was processed and the account is active, but the email was NOT sent. '
+            'Disable SUPABASE_EMAIL_ENABLED on Railway and configure Gmail '
+            '(EMAIL_HOST_USER + App Password), or fix the Edge Function in Supabase.'
         )
     return (
-        'La solicitud se procesó, pero no se pudo enviar el correo al solicitante. '
-        'Configura Gmail en Railway (EMAIL_HOST_USER / EMAIL_HOST_PASSWORD) '
-        'o revisa SUPABASE_URL y la Edge Function.'
+        'The application was processed, but the email could not be sent to the applicant. '
+        'Configure Gmail on Railway (EMAIL_HOST_USER / EMAIL_HOST_PASSWORD) '
+        'or check SUPABASE_URL and the Edge Function.'
     )
 
 
