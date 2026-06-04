@@ -1193,7 +1193,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       <div>
         <div class="tf-footer-col-title">Contact</div>
         <div class="tf-footer-links">
-          <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a>
+          <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>
           <a href="#">Colón Free Zone</a>
           <a href="#">Panama</a>
         </div>
@@ -1325,7 +1325,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         fb.innerHTML = '<span style="color:#15803d;">Thanks for your feedback!</span>';
       });
       no.addEventListener('click', function () {
-        fb.innerHTML = '<span>We will improve it. Email us at soporte@tradeflow.pa</span>';
+        fb.innerHTML = '<span>' + ((window.TF_I18N && window.TF_I18N.supportEmailPrompt) || ('We will improve it. Email us at ' + (window.TF_I18N && window.TF_I18N.contactEmail || 'info@tradeflow.pa'))) + '</span>';
       });
       fb.appendChild(yes);
       fb.appendChild(no);

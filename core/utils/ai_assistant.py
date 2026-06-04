@@ -13,6 +13,8 @@ from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
 
+from core.utils.contact import tradeflow_contact_email
+
 SYSTEM_PROMPT = """
 You are TF Assistant, assistant for TradeFlow Colón (B2B/B2C marketplace in the Colón Free Zone, Panama).
 Always respond in the same language the user uses (Spanish or English).
@@ -21,7 +23,7 @@ Use ONLY the catalog data provided; do not invent products, stock, or prices.
 For prices use the format indicated in the catalog (USD with two decimals).
 If they ask how to buy: registration, email verification, store, and cart.
 If they ask about shipping or customs: indicate it depends on the seller and carrier; do not invent timelines.
-If information is missing, suggest /tienda/, filters by company or category, or info@tradeflow.pa.
+If information is missing, suggest /tienda/, filters by company or category, or the public contact email provided in context.
 Do not reveal user data, private orders, passwords, or API keys.
 """
 
@@ -328,7 +330,7 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
         return (
             'The catalog does not have active products yet. '
             'When inventory is published, I can recommend deals and prices. '
-            f'In the meantime, email us at info@tradeflow.pa.'
+            f'In the meantime, email us at {tradeflow_contact_email()}.'
         )
 
     muestra = snapshot.get('productos_muestra') or []
@@ -357,9 +359,13 @@ def _consultar_groq(mensaje_usuario: str, historial, snapshot: dict) -> str | No
     from groq import Groq
 
     client = Groq(api_key=settings.GROQ_API_KEY)
+    from core.utils.contact import tradeflow_contact_email
+
     catalogo = snapshot.get('texto', '')[:6000]
+    contact = tradeflow_contact_email()
     system = (
         f'{SYSTEM_PROMPT}\n\n'
+        f'Public contact email: {contact}\n\n'
         f'--- Current catalog (use only this) ---\n{catalogo}\n---'
     )
     messages = [{'role': 'system', 'content': system}]
@@ -619,9 +625,9 @@ def responder_seller_rag(mensaje: str, company) -> dict:
         html = format_structured_response(
             'soporte',
             [fallback],
-            'Email soporte@tradeflow.pa or use the contact form.',
+            f'Email {tradeflow_contact_email()} or use the contact form.',
             'Contact support',
-            'mailto:soporte@tradeflow.pa',
+            f'mailto:{tradeflow_contact_email()}',
         )
         return {
             'respuesta': fallback,
@@ -685,7 +691,7 @@ def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
                 [fb],
                 'Browse the store or contact support.',
                 'Contact support',
-                'mailto:soporte@tradeflow.pa',
+                f'mailto:{tradeflow_contact_email()}',
             ),
             'confianza': conf,
             'categoria': 'soporte',

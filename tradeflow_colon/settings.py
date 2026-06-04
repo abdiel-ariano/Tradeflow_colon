@@ -126,6 +126,7 @@ TEMPLATES = [
                 'core.context_processors.cart_badge',
                 'core.context_processors.pending_applications_badge',
                 'core.context_processors.tf_i18n',
+                'core.context_processors.tradeflow_contact',
                 'core.context_processors.supabase_public',
                 'core.context_processors.enterprise_saas',
             ],
@@ -262,6 +263,7 @@ DEFAULT_FROM_EMAIL = config(
     'DEFAULT_FROM_EMAIL',
     default='TradeFlow <noreply@tradeflow.pa>',
 )
+TRADEFLOW_CONTACT_EMAIL = config('TRADEFLOW_CONTACT_EMAIL', default='info@tradeflow.pa').strip()
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
 # Gmail SMTP opcional (fallback cuando la Edge Function de Supabase no envía)

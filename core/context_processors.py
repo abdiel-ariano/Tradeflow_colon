@@ -37,9 +37,21 @@ def cart_badge(request):
     return {'carrito_count': count}
 
 
+def tradeflow_contact(request):
+    """Public contact email (footer, legal pages, support links)."""
+    from core.utils.contact import tradeflow_contact_email
+
+    email = tradeflow_contact_email()
+    return {'tradeflow_contact_email': email}
+
+
 def tf_i18n(request):
     """UI strings for client scripts (TF_I18N)."""
+    from core.utils.contact import tradeflow_contact_email
+
+    contact = tradeflow_contact_email()
     payload = {
+        'contactEmail': contact,
         'close': 'Close',
         'cartTitle': 'Cart',
         'slide': 'Slide',
@@ -68,6 +80,7 @@ def tf_i18n(request):
         'geoUnsupported': 'Your browser does not support geolocation.',
         'awaitingSeller': 'Awaiting company confirmation',
         'orderUpdated': 'Order status updated',
+        'supportEmailPrompt': f'We will improve it. Email us at {contact}',
     }
     return {'tf_i18n': payload}
 
