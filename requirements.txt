@@ -29,7 +29,7 @@ Django==6.0.5                   # cierra GHSA-frmv (CRITICAL) + 5 HIGH + GHSA-w2
 
 # ── Base de datos ──────────────────────────────────────────────────────────
 psycopg2-binary>=2.9.9,<3.0     # driver PostgreSQL
-dj-database-url>=2.1,<3.0       # parsea DATABASE_URL a formato Django
+dj-database-url>=3.1.2,<4.0       # parsea DATABASE_URL a formato Django
 
 # ── Variables de entorno ───────────────────────────────────────────────────
 python-decouple>=3.8,<4.0       # lee .env en local y variables de entorno en prod
