@@ -93,7 +93,7 @@
   </div>
   {% endif %}
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   document.querySelectorAll('.js-app-review-form').forEach(function (form) {
     form.addEventListener('submit', function () {

@@ -6,9 +6,15 @@ on:
   pull_request:
     branches: [master]
 
+# OWASP A05/A08: minimo privilegio para el token GITHUB_TOKEN.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       DJANGO_SETTINGS_MODULE: tradeflow_colon.settings
       SECRET_KEY: ci-test-secret-key-not-for-production
@@ -41,3 +47,23 @@ jobs:
         run: python manage.py release_check --allow-debug
       - name: Tests
         run: python manage.py test core.tests.test_flujo_compra -v2
+
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install scanners
+        run: pip install bandit pip-audit
+      - name: Bandit (SAST)
+        # warn-only mientras se calibran false positives. Cambiar a `false` cuando estable.
+        continue-on-error: true
+        run: bandit -c .bandit -r core/ tradeflow_colon/
+      - name: pip-audit (CVE de dependencias)
+        continue-on-error: true
+        run: pip-audit -r requirements.txt

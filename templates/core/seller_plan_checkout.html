@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block seller_extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
 .sp-checkout-page { max-width: 920px; margin: 0 auto; padding: 0 8px 40px; }
 .sp-checkout-steps {
   display: flex;

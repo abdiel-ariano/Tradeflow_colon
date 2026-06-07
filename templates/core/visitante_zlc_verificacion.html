@@ -6,7 +6,7 @@ Contexto: error (str opcional), subject (User), profile (UserProfile).
 {% endcomment %}
 {% block title %}CFZ verification — TradeFlow{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .vz-page { max-width: 560px; margin: 0 auto; padding: 2rem 1rem 3rem; }
   .vz-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.5rem; }
   .vz-card h1 { font-size: 1.25rem; color: #0F2A44; margin: 0 0 1rem; }

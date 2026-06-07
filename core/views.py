@@ -2238,12 +2238,27 @@ def seller_predictive_insights(request):
 
 
 def _optimize_product_image_from_request(request, product_form, product):
-    """Optimiza imagen subida antes de persistir (storage cloud-friendly)."""
+    """Optimiza imagen subida antes de persistir (storage cloud-friendly).
+
+    Si la imagen falla las validaciones de seguridad de
+    `optimize_uploaded_image` (tamano > 10 MiB, formato no permitido,
+    decompression bomb, archivo malformado), se muestra un mensaje al
+    usuario y se guarda el producto SIN la imagen nueva (conservando la
+    anterior si esta editando). Asi evitamos un 500 ante uploads invalidos.
+    """
     if 'image' not in request.FILES:
         return product
+    from django.core.exceptions import ValidationError as _ValidationError
+
     from .utils.media_storage import optimize_uploaded_image
 
-    product.image = optimize_uploaded_image(request.FILES['image'])
+    try:
+        product.image = optimize_uploaded_image(request.FILES['image'])
+    except _ValidationError as exc:
+        detalle = exc.message if hasattr(exc, 'message') else (
+            exc.messages[0] if getattr(exc, 'messages', None) else str(exc)
+        )
+        messages.error(request, _('Imagen rechazada: %(detalle)s') % {'detalle': detalle})
     return product
 
 

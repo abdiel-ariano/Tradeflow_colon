@@ -9,7 +9,7 @@ Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones
 {% endcomment %}
 {% block title %}New quote — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .cot-form-page { max-width: 920px; margin: 0 auto; padding: 48px 24px 64px; }
   .cot-form-card {
     background: #fff;
@@ -38,7 +38,7 @@ Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones
     <form method="get" action="{% url 'solicitar_cotizacion' %}" class="t-filters" style="margin-bottom:1.5rem;">
       <label class="w-100" style="max-width:360px;">
         <span style="display:block;font-size:0.75rem;font-weight:600;color:var(--tf-muted);text-transform:uppercase;margin-bottom:6px;">Target company</span>
-        <select name="empresa" class="tf-input" style="width:100%;" onchange="this.form.submit()">
+        <select name="empresa" id="cotForm_companySelect" class="tf-input" style="width:100%;">
           <option value="">Select company…</option>
           {% for e in empresas %}
           <option value="{{ e.id }}" id="cot-opt-emp-{{ e.id }}">{{ e.name }}</option>
@@ -99,12 +99,18 @@ Contexto: vista solicitar_cotizacion; validación en servidor; sin comparaciones
     {% endif %}
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var id = "{{ empresa_id|escapejs }}";
-  if (!id) return;
-  var opt = document.getElementById("cot-opt-emp-" + id);
-  if (opt) opt.selected = true;
+  if (id) {
+    var opt = document.getElementById("cot-opt-emp-" + id);
+    if (opt) opt.selected = true;
+  }
+  // CSP nonce refactor: handler que antes era `onchange="this.form.submit()"`
+  var sel = document.getElementById("cotForm_companySelect");
+  if (sel) {
+    sel.addEventListener("change", function () { this.form.submit(); });
+  }
 })();
 </script>
 {% endblock %}

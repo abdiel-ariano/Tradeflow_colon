@@ -125,7 +125,7 @@
 {% endblock %}
 
 {% block seller_extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 window.SP_PORTAL = {
   revenueLabels: {{ chart_revenue_labels_json|safe }},
   revenueValues: {{ chart_revenue_values_json|safe }},

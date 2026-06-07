@@ -16,7 +16,7 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 {% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .auth-page {
     min-height: calc(100vh - 64px);
     width: 100%;
@@ -178,7 +178,7 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
     </div>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var root = document.getElementById('auth-login-root');
   var requireVer = root && root.getAttribute('data-require-verification') === '1';

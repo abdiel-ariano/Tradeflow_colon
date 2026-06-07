@@ -9,7 +9,7 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
 {% endcomment %}
 {% block title %}My Profile — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .perfil-wrap {
     max-width: 900px;
     margin: 0 auto;
@@ -370,7 +370,7 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
   </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var root = document.getElementById('perfil-root');
   if (!root) return;

@@ -3,7 +3,7 @@
 {% block title %}Confirm order — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/tf_animations.css' %}">
-<style>
+<style nonce="{{ csp_nonce }}">
   .co-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
   .co-title { font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.5rem; text-align: center; }
   .co-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.35rem; margin-bottom: 1rem; }
@@ -79,7 +79,7 @@
 </div>
 {% endblock %}
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var I = window.TF_I18N || {};
   var lat = document.getElementById('co-lat');

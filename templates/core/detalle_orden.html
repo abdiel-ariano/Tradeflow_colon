@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ orden.order_number }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .adm-det-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.25rem; align-items: start; }
   @media (max-width: 991px) { .adm-det-grid { grid-template-columns: 1fr; } }
   .adm-info-card {
@@ -183,7 +183,7 @@
     </div>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var stMap = {
     awaiting_seller: { bg: '#fff7ed', fg: '#9a3412' },

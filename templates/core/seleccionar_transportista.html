@@ -2,8 +2,11 @@
 {% load static %}
 {% block title %}Select carrier — TradeFlow{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<style>
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
+      crossorigin="anonymous">
+<style nonce="{{ csp_nonce }}">
   #mapa-pickup { height: 350px; border-radius: var(--tf-radius-card); border: 1px solid var(--tf-border); }
   .transportista-card {
     border: 2px solid var(--tf-border);
@@ -54,8 +57,10 @@
 </div>
 {% endblock %}
 {% block extra_js %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH"
+        crossorigin="anonymous"></script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var selId = null, geoOk = false;
   var map = L.map('mapa-pickup').setView([9.3667, -79.9], 13);

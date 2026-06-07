@@ -12,7 +12,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 {% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   :root {
     --tf-navy: #0F2A44;
     --tf-mid: #1B3B63;
@@ -1175,7 +1175,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   'use strict';
 

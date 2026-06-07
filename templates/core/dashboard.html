@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static tf_money %}
+{% load static tf_money tf_csp %}
 {% comment %}
 ================================================================================
 ACCIÓN: REEMPLAZAR
@@ -14,7 +14,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 {% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .adm-main {
     padding-top: 48px;
     background: var(--tf-light, #F2F3F5);
@@ -405,14 +405,15 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
   </div>
 </div>
 
-{{ charts_initial|json_script:"adm-charts-initial" }}
+{# CSP nonce: tag custom para que el <script type="application/json"> reciba nonce. #}
+{% json_data_block charts_initial "adm-charts-initial" %}
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
 <script src="{% static 'vendor/chartjs/chartjs-plugin-datalabels.min.js' %}"></script>
 <script src="{% static 'js/admin_rail.js' %}"></script>
 <script src="{% static 'js/dashboard_charts.js' %}"></script>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var stMap = {
     awaiting_seller: { bg: '#fff7ed', fg: '#9a3412' },

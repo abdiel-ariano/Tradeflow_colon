@@ -104,6 +104,7 @@ MIDDLEWARE = [
     'axes.middleware.AxesMiddleware',
     'core.middleware.onboarding_gate.OnboardingGateMiddleware',
     'core.middleware.tf_security.SecurityHeadersMiddleware',
+    'core.middleware.tf_security.SecurityEventLogMiddleware',  # OWASP A09
     'core.middleware.tf_security.ApiRateLimitMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -123,6 +124,7 @@ TEMPLATES = [
                 'django.template.context_processors.i18n',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.csp_nonce_context',  # OWASP A03 (CSP nonce)
                 'core.context_processors.cart_badge',
                 'core.context_processors.pending_applications_badge',
                 'core.context_processors.tf_i18n',
@@ -178,12 +180,29 @@ DATABASE_ENGINE_LABEL = (
     DATABASES['default'].get('ENGINE', 'unknown').split('.')[-1]
 )
 
-# ── Validación de contraseñas ──────────────────────────────────────────────
+# ── Validación de contraseñas (OWASP A07:2021) ────────────────────────────
+# Endurecido en auditoria 2026-06:
+#   - MinimumLength sube de 8 (default) a 12 caracteres.
+#   - CommonPassword sigue (lista de 20k passwords mas comunes integrada en Django).
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 12},
+    },
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# ── Hashing de contraseñas (OWASP A02:2021) ────────────────────────────────
+# Argon2 ganador del Password Hashing Competition (PHC). Resistente a GPU/ASIC.
+# PBKDF2/BCrypt mantenidos para verificar hashes legacy (Django rehashea al login).
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.ScryptPasswordHasher',
 ]
 
 # ── Internationalization ───────────────────────────────────────────────────
@@ -255,6 +274,7 @@ DASHBOARD_KPI_REVENUE_DELIVERED_ONLY = config(
     cast=bool,
 )
 from core.utils.email_config import (
+    LEGACY_GMAIL_ACCOUNT,
     TRADEFLOW_GMAIL_ACCOUNT,
     normalize_contact_email,
     normalize_project_gmail,
@@ -381,6 +401,22 @@ AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = 'core/bloqueado.html'
 AXES_LOCKOUT_PARAMETERS = [['username'], ['ip_address']]
 
+# ── Seguridad de cookies (todos los entornos) ──────────────────────────────
+# OWASP A05:2021 — aplican siempre, no solo en produccion.
+SESSION_COOKIE_HTTPONLY = True        # JS no puede leer la cookie de sesion
+SESSION_COOKIE_SAMESITE = 'Lax'       # mitiga CSRF basico
+CSRF_COOKIE_HTTPONLY = True           # JS no puede leer la cookie CSRF
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Session timeout: expira a las 12 horas de inactividad (sliding window).
+# Reduce ventana de uso de cookies robadas.
+SESSION_COOKIE_AGE = 12 * 60 * 60     # 12 horas en segundos
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True     # sliding (extiende sesion en cada hit)
+
+# Referrer-Policy (privacy + no leak de URLs internas a sitios externos).
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
 # ── Seguridad en producción ────────────────────────────────────────────────
 # Estas opciones solo se activan cuando DEBUG=False
 if not DEBUG:
@@ -418,6 +454,9 @@ LOGGING = {
         'tradeflow.media': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
         'tradeflow.platform': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
         'tradeflow.saas': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        # OWASP A09:2021 — log de eventos de seguridad (401/403/429/5xx, admin scans).
+        # En produccion, conectar a Sentry / Datadog / Loki redirigiendo el handler.
+        'tradeflow.security': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
     },
 }
 

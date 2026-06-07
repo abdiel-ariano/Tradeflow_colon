@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block seller_extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
 .sp-plans-page { padding: 0 8px 32px; max-width: 1180px; margin: 0 auto; }
 .sp-plans-hero { margin-bottom: 28px; }
 .sp-plans-hero h2 { font-family: 'DM Serif Display', serif; color: var(--tf-navy); margin: 0 0 8px; font-size: 1.35rem; }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
+{% load tf_csp %}
 {% comment %}
 ================================================================================
 templates/core/base.html — TradeFlow Colón
@@ -21,11 +22,14 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="apple-touch-icon" href="{% static 'img/logo-icon-color.png' %}">
   <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
   <link rel="preload" href="{% static 'img/logo-icon-color.png' %}" as="image" type="image/png">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+        crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Serif+Display&family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
-  <style>
+  <style nonce="{{ csp_nonce }}">
     /* ═══════════════════════════════════════════════════════════════════════════
        BLINDAJE — utilidades críticas (evita regresión de estilos)
        ═══════════════════════════════════════════════════════════════════════════ */
@@ -1089,7 +1093,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     </div>
   </nav>
 
-  <script>
+  <script nonce="{{ csp_nonce }}">
   (function () {
     var meta = document.getElementById('tf-nav-meta');
     var navActive = meta ? (meta.getAttribute('data-nav-active') || '') : '';
@@ -1136,7 +1140,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </script>
 
   {% if messages %}
-  <script>
+  <script nonce="{{ csp_nonce }}">
   document.addEventListener('DOMContentLoaded', function () {
     if (typeof TF === 'undefined') return;
     var messages = [
@@ -1206,12 +1210,14 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </footer>
   {% endblock %}
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>window.TF_STATIC_LOGO = "{% static 'img/logo-icon-color.png' %}";</script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+          crossorigin="anonymous"></script>
+  <script nonce="{{ csp_nonce }}">window.TF_STATIC_LOGO = "{% static 'img/logo-icon-color.png' %}";</script>
   <script src="{% static 'js/tf_animations.js' %}"></script>
   <script src="{% static 'js/tf_notifications.js' %}"></script>
   <script src="{% static 'js/cart_ajax.js' %}"></script>
-  <style>
+  <style nonce="{{ csp_nonce }}">
     .tf-bot-card { font-size: 13px; line-height: 1.5; }
     .tf-bot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0F2A44; }
     .tf-bot-head .material-symbols-rounded { font-size: 20px; color: #F26522; }
@@ -1221,8 +1227,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-chat-feedback { display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E5E7EB; font-size: 12px; }
     .tf-chat-feedback button { border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 11px; }
   </style>
-  {{ tf_i18n|json_script:"tf-i18n-data" }}
-  <script>
+  {# CSP nonce: tag custom para que el <script type="application/json"> reciba nonce. #}
+  {% json_data_block tf_i18n "tf-i18n-data" %}
+  <script nonce="{{ csp_nonce }}">
   (function () {
     var el = document.getElementById('tf-i18n-data');
     if (!el) { window.TF_I18N = window.TF_I18N || {}; return; }
@@ -1262,7 +1269,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       </div>
     </div>
   </div>
-  <script>
+  <script nonce="{{ csp_nonce }}">
   (function () {
     'use strict';
     var tfChatOpen = false;
@@ -1393,7 +1400,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   })();
   </script>
-  <script>
+  <script nonce="{{ csp_nonce }}">
   (function() {
     var btn = document.getElementById('tf-hamburger');
     var links = document.querySelector('.tf-nav-links');

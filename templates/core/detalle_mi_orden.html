@@ -12,7 +12,7 @@
 {% block title %}Order {{ orden.order_number }} — TradeFlow Colón{% endblock %}
 
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
 .detalle-wrap { max-width: 820px; margin: 0 auto; padding: 2rem 1.5rem; }
 .detalle-nav {
   display: flex; align-items: center; gap: 8px;

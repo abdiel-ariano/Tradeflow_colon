@@ -10,7 +10,7 @@ Contexto: vista comparar_cotizaciones.
 {% endcomment %}
 {% block title %}Compare quotes — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .cmp-page { max-width: 1080px; margin: 0 auto; padding: clamp(2rem, 6vw, 3.5rem) 1rem clamp(2.5rem, 5vw, 4rem); }
   .cmp-hdr { margin-bottom: 1.5rem; }
   .cmp-hdr h1 { font-size: 1.5rem; font-weight: 700; color: var(--tf-navy); margin: 0 0 6px; }

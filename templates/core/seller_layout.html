@@ -7,7 +7,7 @@
 {% block seller_extra_head %}{% endblock %}
 {% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   @media (max-width: 768px) {
     .seller-layout {
       flex-direction: column !important;
@@ -142,8 +142,8 @@
     </div>
   </div>
 </div>
-<script>document.body.classList.add('sp-mode');</script>
-<script>
+<script nonce="{{ csp_nonce }}">document.body.classList.add('sp-mode');</script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var nav = '{{ nav_activo|default:""|escapejs }}';
   document.querySelectorAll('[data-sp-nav]').forEach(function (a) {

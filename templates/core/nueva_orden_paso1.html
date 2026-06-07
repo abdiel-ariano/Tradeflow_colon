@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
 .wizard-steps { display:flex; gap:0; margin-bottom:28px; }
 .wizard-step { flex:1; padding:12px 16px; background:var(--color-bg,#f0f0f0); text-align:center; font-size:.82rem; color:#888; border-bottom:3px solid transparent; }
 .wizard-step.active { color:var(--color-primary,#098698); border-bottom-color:var(--color-primary,#098698); font-weight:600; }
@@ -36,8 +36,7 @@
       <div style="display:flex;gap:12px;">
         {% for val, label in order_types %}
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 16px;border:2px solid #ddd;border-radius:8px;">
-          <input type="radio" name="order_type" value="{{ val }}" {% if val == 'b2c' %}checked{% endif %}
-                 onchange="this.closest('label').style.borderColor='var(--color-primary)'">
+          <input type="radio" name="order_type" value="{{ val }}" {% if val == 'b2c' %}checked{% endif %}>
           {{ label }}
         </label>
         {% endfor %}
@@ -46,12 +45,11 @@
 
     <label style="font-weight:600;display:block;margin-bottom:8px;">Buyer</label>
     <input type="text" id="buscarBuyer" placeholder="Filter by name or username..."
-           class="form-control" style="margin-bottom:12px;"
-           onkeyup="filtrarBuyeres(this.value)">
+           class="form-control" style="margin-bottom:12px;">
 
     <div class="buyer-grid" id="buyerGrid">
       {% for user in compradores %}
-      <label class="buyer-card" onclick="selectBuyer(this, {{ user.pk }})">
+      <label class="buyer-card" data-buyer-id="{{ user.pk }}">
         <input type="radio" name="buyer_id" value="{{ user.pk }}">
         <div class="buyer-name">
           {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
@@ -74,7 +72,7 @@
 </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 function selectBuyer(card, id) {
   document.querySelectorAll('.buyer-card').forEach(c => c.classList.remove('selected'));
   card.classList.add('selected');
@@ -94,6 +92,25 @@ function filtrarBuyeres(q) {
 document.querySelector('form').addEventListener('submit', function() {
   const checked = document.querySelector('input[name=buyer_id][type=radio]:checked');
   if (checked) document.getElementById('buyerIdHidden').value = checked.value;
+});
+
+// CSP nonce refactor: handlers movidos desde atributos inline (onchange/onkeyup/onclick).
+document.querySelectorAll('input[type="radio"][name="order_type"]').forEach(function (r) {
+  r.addEventListener('change', function () {
+    const lbl = this.closest('label');
+    if (lbl) lbl.style.borderColor = 'var(--color-primary)';
+  });
+});
+
+const buyerSearch = document.getElementById('buscarBuyer');
+if (buyerSearch) {
+  buyerSearch.addEventListener('keyup', function () { filtrarBuyeres(this.value); });
+}
+
+document.querySelectorAll('.buyer-card[data-buyer-id]').forEach(function (card) {
+  card.addEventListener('click', function () {
+    selectBuyer(this, parseInt(this.dataset.buyerId, 10));
+  });
 });
 </script>
 {% endblock %}

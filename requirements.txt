@@ -6,44 +6,64 @@
 #
 # En Railway se instala automáticamente en cada deploy.
 # =============================================================================
+# NOTA DE SEGURIDAD (auditoría 2026-06):
+#   Pin exacto (==) en lugar de rango (>=,<). Razones:
+#     - Builds reproducibles en CI y producción.
+#     - Cero sorpresas de versión vulnerable instalada en futuros deploys.
+#     - Dependabot actualiza los pines automaticamente cuando sale parche.
+#
+#   Bumps mayores aplicados (auditoria 2026-06):
+#     - Django 4.2.x → 6.0.5       (cierra CRITICAL + 5 HIGH + 3 MEDIUM CVEs).
+#     - Pillow 10.3 → 12.2.0       (cierra todas las Pillow CVEs conocidas).
+#     - gunicorn 21.2 → 23.0.0     (cierra GHSA-hc5x y GHSA-w3h3).
+#
+#   Tras `pip install -r requirements.txt` correr OBLIGATORIO:
+#     python manage.py check
+#     python manage.py makemigrations --check --dry-run
+#     python manage.py test core.tests
+#     cd frontend/admin-saas && npm install && npm run build
+# =============================================================================
 
 # ── Framework principal ────────────────────────────────────────────────────
-Django>=4.2,<5.0
+Django==6.0.5                   # cierra GHSA-frmv (CRITICAL) + 5 HIGH + GHSA-w26r MEDIUM
 
 # ── Base de datos ──────────────────────────────────────────────────────────
-psycopg2-binary>=2.9        # driver PostgreSQL (binary = sin compilar, más fácil)
-dj-database-url>=2.1        # parsea DATABASE_URL a formato Django
+psycopg2-binary>=2.9.9,<3.0     # driver PostgreSQL
+dj-database-url>=2.1,<3.0       # parsea DATABASE_URL a formato Django
 
 # ── Variables de entorno ───────────────────────────────────────────────────
-python-decouple>=3.8        # lee .env en local y variables de entorno en prod
+python-decouple>=3.8,<4.0       # lee .env en local y variables de entorno en prod
 
 # ── Archivos estáticos en producción ──────────────────────────────────────
-whitenoise>=6.6             # sirve CSS/JS directamente desde Django sin Nginx
+whitenoise>=6.6,<7.0            # sirve CSS/JS directamente desde Django sin Nginx
 
 # ── Imágenes ──────────────────────────────────────────────────────────────
-Pillow>=10.0                # procesamiento de imágenes para ImageField
+Pillow==12.2.0                  # imágenes (cierra todas las CVEs 10.x y 11.x conocidas)
 
 # ── Servidor de producción ────────────────────────────────────────────────
-gunicorn>=21.2              # servidor WSGI para Railway/Heroku (reemplaza runserver)
+gunicorn==23.0.0                # WSGI (cierra GHSA-hc5x-x2vx-497g y GHSA-w3h3-4rj7-4ph4)
 
 # ── Generación de PDFs (facturas y packing lists) ─────────────────────────
-reportlab>=4.0
+reportlab>=4.0,<5.0
 
 # ── Mapas interactivos ZLC ─────────────────────────────────────────────────
-folium>=0.16.0
+folium>=0.16,<0.17
 
 # ── Códigos QR (pre-registro visitantes ZLC) ─────────────────────────────
-qrcode[pil]>=7.4
+qrcode[pil]>=7.4,<8.0
 
 # ── Supabase (Postgres remoto, Storage, Edge Functions) ───────────────────
-supabase>=2.4
+supabase>=2.4,<3.0
 
 # ── Rate limiting login ────────────────────────────────────────────────────
 django-axes>=6.3,<7.0
 
 # ── Asistente IA (Groq API) ────────────────────────────────────────────────
-groq>=0.9.0
+groq>=0.9.0,<1.0
+
+# ── Hashing de contraseñas (OWASP A02:2021 — Argon2) ──────────────────────
+argon2-cffi>=23.1,<24.0         # backend Argon2 para Django PASSWORD_HASHERS
 
 # ── Supabase Storage (opcional, media en bucket S3-compatible) ─────────────
-django-storages>=1.14
-boto3>=1.34
+django-storages>=1.14,<2.0
+boto3>=1.34                     # sin upper bound: PyPI rota wheels antiguos

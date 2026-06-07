@@ -6,7 +6,7 @@ Plantilla django-axes para bloqueo por intentos de login.
 {% endcomment %}
 {% block title %}Account blocked — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .blk-wrap { min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5); }
   .blk-card { max-width: 440px; background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 2rem; text-align: center; box-shadow: 0 8px 24px rgba(15,42,68,0.1); }
   .blk-card h1 { font-size: 1.25rem; color: #0F2A44; margin: 0 0 12px; }

@@ -9,7 +9,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
 {% endcomment %}
 {% block title %}Quote {{ cot.numero }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .cot-doc { max-width: 900px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1rem clamp(2.5rem, 5vw, 4rem); font-family: 'Inter', sans-serif; }
   .cot-doc-paper {
     background: #fff;
@@ -171,7 +171,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
     </a>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var meta = document.getElementById('cot-det-meta');
   if (!meta) return;

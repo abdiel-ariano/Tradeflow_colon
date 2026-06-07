@@ -7,7 +7,7 @@
 {% endblock %}
 {% block extra_css %}
 {% include "core/includes/static_css_bundle.html" %}
-<style>
+<style nonce="{{ csp_nonce }}">
   /* TradeFlow brand — SaaS admin shell */
   .adm-shell .adm-side {
     background: linear-gradient(180deg, var(--tf-navy, #0F2A44) 0%, #0a1f33 100%) !important;
@@ -180,7 +180,7 @@
 </div>
 {% endblock %}
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   /** English month labels for charts (API may still send Spanish abbreviations). */
   window.TF_MONTHS_EN = [

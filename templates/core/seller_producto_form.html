@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ titulo_pagina }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .spf-grid { display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; align-items: start; }
   @media (max-width: 991px) { .spf-grid { grid-template-columns: 1fr; } }
   .spf-preview { border: 1px dashed #D1D5DB; border-radius: 12px; padding: 1rem; text-align: center; background: #F2F3F5; }
@@ -91,7 +91,7 @@
     </div>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var inp = document.getElementById("id_image");
   var img = document.getElementById("spf-img-prev");

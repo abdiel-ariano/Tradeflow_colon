@@ -6,6 +6,16 @@ from __future__ import annotations
 from django.conf import settings
 
 
+def csp_nonce_context(request):
+    """Expone `csp_nonce` (string) en todas las plantillas.
+
+    `SecurityHeadersMiddleware` lo asigna a `request.csp_nonce` antes del
+    view. Las plantillas DEBEN renderizarlo en cada `<script>` y `<style>`
+    inline para que la CSP `'nonce-...'` los autorize.
+    """
+    return {'csp_nonce': getattr(request, 'csp_nonce', '')}
+
+
 def pending_applications_badge(request):
     """Pending access applications count for admin navbar."""
     if not request.user.is_authenticated:

@@ -84,7 +84,7 @@
 {% endblock %}
 
 {% block seller_extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 window.SP_PRODUCTS = {
   catLabels: {{ chart_cat_labels_json|safe }},
   catValues: {{ chart_cat_values_json|safe }}

@@ -17,7 +17,7 @@
       </select>
       <button type="submit" class="btn-seller-outline">Filter</button>
     </form>
-    <script>
+    <script nonce="{{ csp_nonce }}">
     (function () {
       var sel = document.getElementById("seller-ventas-estado");
       if (!sel) return;
@@ -70,7 +70,7 @@
     {% endif %}
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var map = {
     pending: { bg: "var(--order-pending-bg)", fg: "var(--order-pending-fg)" },

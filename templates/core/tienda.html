@@ -15,7 +15,7 @@ show_cart_actions, tienda_params.
 <link rel="stylesheet" href="{% static 'css/buyer_portal.css' %}">
 {% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   :root {
     --tf-navy: #0F2A44;
     --tf-mid: #1B3B63;

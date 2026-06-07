@@ -6,7 +6,7 @@ Contexto: verify_url, qr_data_uri, generated_at, profile, titulo_pagina, nav_act
 {% endcomment %}
 {% block title %}My QR code — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .qr-page { max-width: 640px; margin: 0 auto; padding: 2rem 1rem 3rem; }
   .qr-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.75rem; box-shadow: 0 8px 24px rgba(15,42,68,0.08); }
   .qr-card h1 { font-size: 1.35rem; font-weight: 700; color: #0F2A44; margin: 0 0 0.75rem; }

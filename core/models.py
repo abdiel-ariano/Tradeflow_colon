@@ -23,6 +23,7 @@ Tablas implementadas (mapeadas exactamente al ERD del PDF):
 """
 from decimal import Decimal
 import random
+import secrets   # OWASP A02: CSPRNG para OTP (random.randint es predecible)
 
 from django.conf import settings
 from django.db import models
@@ -1048,7 +1049,9 @@ class EmailVerification(models.Model):
     @classmethod
     def generate_for(cls, user: User) -> 'EmailVerification':
         cls.objects.filter(user=user).delete()
-        code = f'{random.randint(0, 999999):06d}'
+        # Usar `secrets` (CSPRNG) en vez de `random` para que el codigo de
+        # verificacion NO sea predecible a partir del estado del RNG.
+        code = f'{secrets.randbelow(1_000_000):06d}'
         return cls.objects.create(user=user, code=code)
 
 

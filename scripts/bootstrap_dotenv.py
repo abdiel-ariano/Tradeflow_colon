@@ -37,7 +37,7 @@ def build_env_content(
 ) -> str:
     return f"""# Generado por scripts/bootstrap_dotenv.py — NO subir a git
 SECRET_KEY={secret_key}
-DEBUG=True
+DEBUG=true
 ALLOWED_HOSTS=127.0.0.1,localhost
 
 DATABASE_URL={database_url}

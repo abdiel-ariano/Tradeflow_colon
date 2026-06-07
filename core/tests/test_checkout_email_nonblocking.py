@@ -25,8 +25,8 @@ class CheckoutEmailNonBlockingTests(TestCase):
             password='TestPass123!',
         )
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
-        company = Company.objects.create(name='Co', slug='co-email', owner=self.buyer)
-        cat = Category.objects.create(name='Cat', slug='cat-email')
+        company = Company.objects.create(name='Co', owner=self.buyer)
+        cat = Category.objects.create(name='Cat')
         self.product = Product.objects.create(
             company=company,
             category=cat,
@@ -45,7 +45,10 @@ class CheckoutEmailNonBlockingTests(TestCase):
 
     @override_settings(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend')
     def test_checkout_redirects_when_smtp_unreachable(self):
-        self.client.login(username='buyer_checkout_email', password='TestPass123!')
+        # `force_login` evita el backend de django-axes que requiere `request`
+        # en authenticate(). En produccion el login real pasa por la vista
+        # `login_view` que si tiene request, asi que esto es solo un test helper.
+        self.client.force_login(self.buyer)
         session = self.client.session
         session['carrito'] = {
             str(self.product.pk): {

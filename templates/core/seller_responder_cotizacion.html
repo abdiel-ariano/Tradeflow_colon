@@ -9,7 +9,7 @@ Contexto: vista seller_responder_cotizacion; POST con precio por línea.
 {% endcomment %}
 {% block title %}Respond to {{ cot.numero }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .cot-rsp-card { background:#fff;border:1px solid var(--tf-border);border-radius:12px;padding:1.5rem;max-width:800px; }
   .cot-rsp-table { width:100%;border-collapse:collapse;font-size:0.9rem;margin-top:1rem; }
   .cot-rsp-table th { background:#f9fafb;text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;color:#6b7a88; }

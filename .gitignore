@@ -1,11 +1,95 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# TRADEFLOW COLÓN — .gitignore
+# Expandido en auditoria 2026-06 (OWASP A05:2021 Security Misconfiguration)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Secrets y credenciales (NUNCA commitear)
 .env
+.env.local
+.env.*.local
+.env.dev
+.env.prod
+.env.staging
+*.key
+*.pem
+*.p12
+*.pfx
+*.cer
+*.crt
+credentials.json
+service_account*.json
+secrets.yml
+secrets.json
+
+# Logs (pueden tener datos sensibles)
+*.log
+debug.log
+celery-*.log
+logs/
+
+# SO
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+.project
+.pydevproject
+
+# Python build
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+build/
+dist/
+develop-eggs/
+
+# Virtualenvs
 venv/
+.venv/
+env/
+.env_dir/
+ENV/
+
+# Django
 db.sqlite3
+db.sqlite3-journal
 media/
 staticfiles/
-.idea/
+local_settings.py
+
+# Node/frontend
+node_modules/
 frontend/admin-saas/node_modules/
+frontend/admin-saas/dist/
 frontend/admin-saas/.vite/
 frontend/admin-saas/tsconfig.tsbuildinfo
+.parcel-cache/
+
+# Tools
+.bandit-report
+.safety-report
+pip-audit-report.json
+
+# OS/Editor temp
+~$*
+*.bak
+*.tmp
+.cache/
