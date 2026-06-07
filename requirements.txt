@@ -50,7 +50,7 @@ reportlab>=4.0,<5.0
 folium>=0.16,<0.17
 
 # ── Códigos QR (pre-registro visitantes ZLC) ─────────────────────────────
-qrcode[pil]>=7.4,<8.0
+qrcode[pil]>=8.2,<9.0
 
 # ── Supabase (Postgres remoto, Storage, Edge Functions) ───────────────────
 supabase>=2.4,<3.0
