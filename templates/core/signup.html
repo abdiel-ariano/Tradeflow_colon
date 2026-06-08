@@ -22,7 +22,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 48px 24px;
+    padding: clamp(3rem, 8vh, 4.5rem) 24px clamp(2.5rem, 6vh, 3.5rem);
   }
   .auth-card {
     width: 100%;
@@ -68,7 +68,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
 </style>
 {% endblock %}
 {% block content %}
-<div class="auth-page" style="min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5);">
+<div class="auth-page">
   <div class="auth-card">
     <div class="auth-logo-block">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" eager=1 %}
