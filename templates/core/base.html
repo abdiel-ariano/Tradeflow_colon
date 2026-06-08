@@ -471,9 +471,34 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-nav-user-block {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       flex-shrink: 0;
       margin-left: 4px;
+    }
+    .tf-nav-profile-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none !important;
+      color: inherit;
+      border-radius: 999px;
+      padding: 4px 10px 4px 4px;
+      cursor: pointer;
+      transition: background 0.15s ease, opacity 0.15s ease;
+      border: none;
+      background: transparent;
+      font: inherit;
+    }
+    .tf-nav-profile-link:hover,
+    .tf-nav-profile-link:focus,
+    .tf-nav-profile-link:focus-visible {
+      text-decoration: none !important;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+    }
+    .tf-nav-profile-link:hover .tf-nav-user-name {
+      color: #fff;
+      opacity: 1;
     }
     .tf-nav-group { display: none; align-items: center; gap: 2px; }
     .tf-nav-group.is-visible { display: flex; }
@@ -523,11 +548,27 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
     .tf-nav-user-name {
       font-size: 0.8125rem;
-      color: rgba(255, 255, 255, 0.85);
-      max-width: 140px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.88);
+      max-width: 160px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      text-decoration: none !important;
+      line-height: 1.2;
+      transition: color 0.15s ease, opacity 0.15s ease;
+    }
+
+    /* Admin panel: sidebar is primary nav — hide duplicate top links */
+    body:has(.adm-shell) #tf-nav-admin {
+      display: none !important;
+    }
+    body:has(.adm-shell) .tf-nav-links {
+      flex: 1;
+      justify-content: flex-end;
+    }
+    body:has(.adm-shell) #tf-nav-divider-auth {
+      display: none;
     }
 
     .tf-nav-cart {
@@ -1107,7 +1148,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         </div>
         <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
         <div class="tf-nav-user-block">
-          <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+          <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link">
             <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
             <span class="tf-nav-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
           </a>
