@@ -199,12 +199,57 @@ show_cart_actions, tienda_params.
     color: var(--tf-sand, #d9cab3);
     font-family: 'DM Serif Display', serif;
     font-size: 1.1rem;
-    margin-top: 0.5rem;
+    margin-top: 0.35rem;
+    line-height: 1.2;
   }
   .bp-promo-was {
     color: rgba(255, 255, 255, 0.55);
     font-size: 0.75rem;
     text-decoration: line-through;
+    margin-bottom: 0.35rem;
+    line-height: 1.3;
+    display: block;
+  }
+  .bp-promo-prices {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 0.5rem;
+  }
+  .bp-promo-view-all {
+    color: var(--tf-sand, #D9CAB3);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: color 0.18s ease, opacity 0.18s ease;
+  }
+  .bp-promo-view-all:hover {
+    color: var(--tf-white);
+    opacity: 0.92;
+  }
+  .td-btn-clear-filters {
+    display: none;
+    margin: 12px 16px 8px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--tf-muted);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+  }
+  .td-btn-clear-filters.is-visible { display: inline-flex; }
+  .td-btn-clear-filters .material-symbols-rounded {
+    font-size: 16px;
+    flex-shrink: 0;
+    line-height: 1;
   }
   .td-tabs {
     display: flex;
@@ -374,10 +419,15 @@ show_cart_actions, tienda_params.
     box-sizing: border-box;
   }
 
-  .td-main { min-width: 0; }
+  .td-main { min-width: 0; padding-top: 4px; }
   #t-prod-section {
     position: relative;
     transition: opacity 0.2s ease;
+    padding-top: 12px;
+  }
+  #td-product-grid {
+    padding-top: 8px;
+    align-items: start;
   }
   #t-prod-section.is-loading {
     opacity: 0.5;
@@ -894,8 +944,8 @@ show_cart_actions, tienda_params.
               </ul>
             </div>
           </details>
-          <a href="{% url 'tienda' %}" id="btn-limpiar" style="display:none;margin:12px 16px 8px;text-align:center;font-size:13px;color:var(--tf-muted);text-decoration:none;padding:8px;border-radius:8px;border:1px solid #E5E7EB;">
-            <span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">filter_alt_off</span>
+          <a href="{% url 'tienda' %}" id="btn-limpiar" class="td-btn-clear-filters">
+            <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span>
             Clear filters
           </a>
         </form>
@@ -911,15 +961,17 @@ show_cart_actions, tienda_params.
             <h2 id="bp-promo-title" style="font-family:'DM Serif Display',serif;color:var(--tf-white);font-size:1.25rem;margin:0;">Active deals</h2>
             <p style="color:var(--tf-sand, rgba(255,255,255,0.75));font-size:.8rem;margin:.25rem 0 0;">Limited time only — direct prices from the CFZ</p>
           </div>
-          <a href="{{ tab_urls.ofertas }}" style="color:var(--tf-sand, #D9CAB3);font-size:.85rem;text-decoration:none;border-bottom:1px solid currentColor;">View all →</a>
+          <a href="{{ tab_urls.ofertas }}" class="bp-promo-view-all">View all →</a>
         </div>
         <div class="bp-promo-scroll" role="list">
           {% for producto in productos_promo %}
           <a href="{% url 'tienda' %}?producto={{ producto.id }}" class="bp-promo-card" role="listitem">
             <span class="bp-promo-badge">-{{ producto.discount_pct }}%</span>
             <div class="bp-promo-name">{{ producto.name }}</div>
-            <div class="bp-promo-price">{{ producto.display_price|money_usd }}</div>
-            <div class="bp-promo-was">{{ producto.unit_price|money_usd }}</div>
+            <div class="bp-promo-prices">
+              <div class="bp-promo-was">{{ producto.unit_price|money_usd }}</div>
+              <div class="bp-promo-price">{{ producto.display_price|money_usd }}</div>
+            </div>
           </a>
           {% endfor %}
         </div>

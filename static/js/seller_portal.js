@@ -53,6 +53,7 @@
 
   function compactDoughnut(el, labels, values) {
     if (!el || typeof Chart === 'undefined' || !values || !values.length) return null;
+    var total = values.reduce(function (s, v) { return s + Number(v || 0); }, 0);
     return new Chart(el, {
       type: 'doughnut',
       data: {
@@ -66,11 +67,36 @@
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        aspectRatio: 1.15,
-        cutout: '72%',
+        aspectRatio: 1,
+        cutout: '68%',
         animation: { duration: 400 },
-        plugins: { legend: { display: false } },
+        layout: { padding: 4 },
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: true },
+        },
       },
+      plugins: total ? [{
+        id: 'spDoughnutCenter',
+        beforeDraw: function (chart) {
+          var ctx = chart.ctx;
+          var meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data || !meta.data[0]) return;
+          var center = meta.data[0];
+          var x = center.x;
+          var y = center.y;
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = navy;
+          ctx.font = '700 18px Inter, sans-serif';
+          ctx.fillText(String(total), x, y - 4);
+          ctx.fillStyle = '#6B7A88';
+          ctx.font = '500 10px Inter, sans-serif';
+          ctx.fillText('units', x, y + 12);
+          ctx.restore();
+        },
+      }] : [],
     });
   }
 
@@ -150,6 +176,20 @@
   function notify(msg, type) {
     if (global.TF && TF.notify) TF.notify(msg, type || 'success');
     else if (type === 'error') console.error(msg);
+  }
+
+  var SP_IMG_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect fill='%23f3f4f6' width='80' height='80' rx='10'/%3E%3Ctext x='50%25' y='52%25' dominant-baseline='middle' text-anchor='middle' fill='%239CA3AF' font-family='Inter,sans-serif' font-size='10'%3ENo image%3C/text%3E%3C/svg%3E";
+
+  function bindProductImageFallback() {
+    document.querySelectorAll('.sp-product-img').forEach(function (img) {
+      function applyFallback() {
+        img.onerror = null;
+        img.src = SP_IMG_FALLBACK;
+        img.classList.add('is-fallback');
+      }
+      img.addEventListener('error', applyFallback);
+      if (img.complete && img.naturalWidth === 0 && img.src) applyFallback();
+    });
   }
 
   function bindProductToggles() {
@@ -325,6 +365,7 @@
         compactDoughnut(catEl, cfg.catLabels, cfg.catValues);
       }
       bindProductToggles();
+      bindProductImageFallback();
     },
     initTimers: initTimers,
     bindConfirmLinks: bindConfirmLinks,
