@@ -933,6 +933,32 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       color: var(--tf-body);
     }
 
+    /* Auth (login/signup): full viewport below navbar + gap from sticky header */
+    main.tf-main > .auth-page {
+      min-height: calc(100vh - 64px);
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: max(4rem, 6vh) 24px max(2.5rem, 4vh);
+      background: var(--tf-light, #F2F3F5);
+    }
+    main.tf-main > .auth-page .auth-card {
+      margin-top: 0;
+      flex-shrink: 0;
+    }
+    @media (max-width: 640px) {
+      main.tf-main > .auth-page {
+        justify-content: flex-start;
+        padding-top: 3.5rem;
+      }
+      main.tf-main > .auth-page .auth-card {
+        margin-top: 1rem;
+      }
+    }
+
     /* Formularios y bloques centrados — más aire respecto al navbar (sticky 64px) */
     .tf-centered-page {
       max-width: 1100px;
@@ -1044,7 +1070,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     </button>
 
     <div class="tf-nav-links">
+      {# Map disabled temporarily — production errors (mapa_zlc) #}
+      {% comment %}
       <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>Map</a>
+      {% endcomment %}
       {% if request.user.is_authenticated %}
         <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
           <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
