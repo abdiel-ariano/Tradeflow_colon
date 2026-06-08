@@ -1,6 +1,21 @@
 /* TradeFlow buyer portal */
 .bp-page { max-width: 1280px; margin: 0 auto; padding: 24px; }
 .bp-promo-band { background: linear-gradient(135deg, var(--tf-dark2) 0%, var(--tf-dark) 100%); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; color: var(--tf-white); }
+.bp-promo-view-all {
+  color: var(--tf-sand, #D9CAB3);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  white-space: nowrap;
+}
+.bp-promo-view-all:hover { color: var(--tf-white); }
+.bp-promo-prices {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 0.5rem;
+}
 .bp-checkout-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; }
 @media (max-width: 900px) { .bp-checkout-grid { grid-template-columns: 1fr; } }
 .bp-sticky { position: sticky; top: 88px; }

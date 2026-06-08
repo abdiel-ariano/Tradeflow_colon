@@ -120,6 +120,11 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     min-height: 280px;
     height: 280px;
   }
+  .adm-chart-canvas-wrap.adm-chart-rankings {
+    min-height: 300px;
+    height: auto;
+    padding-bottom: 8px;
+  }
   .adm-charts-error {
     display: none;
     margin-bottom: 16px;
@@ -362,13 +367,13 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         <div class="adm-chart-title">Top companies (USD)</div>
         <p class="adm-chart-lead">Revenue by selling company.</p>
         <p class="adm-chart-empty" id="adm-emp-empty">No data in this period</p>
-        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admEmpChart"></canvas></div>
+        <div class="adm-chart-canvas-wrap adm-chart-tall adm-chart-rankings"><canvas id="admEmpChart"></canvas></div>
       </div>
       <div class="adm-chart-card">
         <div class="adm-chart-title">Units by product</div>
         <p class="adm-chart-lead">Best-selling products by quantity.</p>
         <p class="adm-chart-empty" id="adm-prod-empty">No data in this period</p>
-        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admProdChart"></canvas></div>
+        <div class="adm-chart-canvas-wrap adm-chart-tall adm-chart-rankings"><canvas id="admProdChart"></canvas></div>
       </div>
     </div>
 

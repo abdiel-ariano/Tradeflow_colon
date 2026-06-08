@@ -178,6 +178,27 @@
       return {
         legend: { display: false },
         datalabels: {
+          anchor: 'center',
+          align: 'end',
+          offset: 6,
+          clip: false,
+          color: '#0F2A44',
+          font: { weight: '600', size: 11 },
+          formatter: function (v) {
+            var n = Number(v);
+            return n > 0 ? String(Math.round(n)) : '';
+          },
+        },
+      };
+    }
+
+    function pluginsCountLabelsVertical() {
+      if (!hasDataLabels()) {
+        return { legend: { display: false } };
+      }
+      return {
+        legend: { display: false },
+        datalabels: {
           anchor: 'end',
           align: 'end',
           offset: 4,
@@ -188,6 +209,75 @@
             return n > 0 ? String(Math.round(n)) : '';
           },
         },
+      };
+    }
+
+    function rankingChartHeight(count) {
+      var n = Math.max(1, Number(count) || 1);
+      return Math.max(300, Math.min(440, n * 34 + 72));
+    }
+
+    function setRankingWrapHeight(canvas, count) {
+      if (!canvas || !canvas.parentElement) return;
+      canvas.parentElement.style.height = rankingChartHeight(count) + 'px';
+      canvas.parentElement.style.minHeight = rankingChartHeight(count) + 'px';
+    }
+
+    function horizontalBarScalesUsd() {
+      return {
+        x: {
+          beginAtZero: true,
+          grace: '8%',
+          ticks: {
+            callback: function (v) { return formatUsd(v); },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 5,
+            font: { size: 9 },
+            padding: 6,
+          },
+          grid: { color: 'rgba(209,213,219,0.45)' },
+        },
+        y: {
+          ticks: {
+            font: { size: 11 },
+            padding: 6,
+            autoSkip: false,
+          },
+          grid: { display: false },
+        },
+      };
+    }
+
+    function horizontalBarScalesCount() {
+      return {
+        x: {
+          beginAtZero: true,
+          grace: '8%',
+          ticks: {
+            precision: 0,
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 6,
+            font: { size: 10 },
+            padding: 6,
+          },
+          grid: { color: 'rgba(209,213,219,0.45)' },
+        },
+        y: {
+          ticks: {
+            font: { size: 11 },
+            padding: 6,
+            autoSkip: false,
+          },
+          grid: { display: false },
+        },
+      };
+    }
+
+    function horizontalBarLayout() {
+      return {
+        padding: { top: 8, right: 16, bottom: 28, left: 4 },
       };
     }
 
@@ -262,7 +352,7 @@
               }],
             },
             options: Object.assign({}, chartBaseOptions(), {
-              plugins: pluginsCountLabels(),
+              plugins: pluginsCountLabelsVertical(),
               scales: {
                 x: { grid: { display: false }, ticks: { color: '#6B7A88', maxRotation: 45 } },
                 y: {
@@ -407,6 +497,7 @@
       var empCtx = document.getElementById('admEmpChart');
       toggleEmpty(document.getElementById('adm-emp-empty'), empCtx ? empCtx.parentElement : null, emps.length === 0);
       if (empCtx && emps.length) {
+        setRankingWrapHeight(empCtx, emps.length);
         empChart = new Chart(empCtx, {
           type: 'bar',
           data: {
@@ -416,17 +507,14 @@
               data: emps.map(function (e) { return Number(e.total || 0); }),
               backgroundColor: '#2E5B8A',
               borderRadius: 4,
+              maxBarThickness: 22,
             }],
           },
           options: Object.assign({}, chartBaseOptions(), {
             indexAxis: 'y',
+            layout: horizontalBarLayout(),
             plugins: pluginsUsdHBar(),
-            scales: {
-              x: {
-                beginAtZero: true,
-                ticks: { callback: function (v) { return formatUsd(v); } },
-              },
-            },
+            scales: horizontalBarScalesUsd(),
           }),
         });
       }
@@ -435,6 +523,7 @@
       var prodCtx = document.getElementById('admProdChart');
       toggleEmpty(document.getElementById('adm-prod-empty'), prodCtx ? prodCtx.parentElement : null, prods.length === 0);
       if (prodCtx && prods.length) {
+        setRankingWrapHeight(prodCtx, prods.length);
         prodChart = new Chart(prodCtx, {
           type: 'bar',
           data: {
@@ -444,12 +533,14 @@
               data: prods.map(function (p) { return Number(p.units || 0); }),
               backgroundColor: '#F26522',
               borderRadius: 4,
+              maxBarThickness: 22,
             }],
           },
           options: Object.assign({}, chartBaseOptions(), {
             indexAxis: 'y',
+            layout: horizontalBarLayout(),
             plugins: pluginsCountLabels(),
-            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
+            scales: horizontalBarScalesCount(),
           }),
         });
       }

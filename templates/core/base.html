@@ -1218,6 +1218,50 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-bot-cta { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; color: #F26522; text-decoration: none; }
     .tf-chat-feedback { display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E5E7EB; font-size: 12px; }
     .tf-chat-feedback button { border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 11px; }
+
+    /* Assistant widget — fixed overlay, out of document flow */
+    #tf-assistant {
+      position: fixed;
+      right: max(16px, env(safe-area-inset-right, 0px));
+      bottom: max(16px, env(safe-area-inset-bottom, 0px));
+      z-index: 10050;
+      font-family: var(--tf-font-body);
+      pointer-events: none;
+    }
+    #tf-assistant > * { pointer-events: auto; }
+    #tf-chat-toggle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      background: var(--tf-orange);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(242, 101, 34, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    #tf-chat-toggle:hover { transform: scale(1.04); }
+    #tf-chat-window {
+      display: none;
+      position: absolute;
+      right: 0;
+      bottom: calc(100% + 12px);
+      width: min(340px, calc(100vw - 32px));
+      height: min(460px, calc(100vh - 120px));
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(15, 42, 68, 0.2);
+      border: 1px solid var(--tf-border);
+      flex-direction: column;
+      overflow: hidden;
+    }
+    @media (max-width: 480px) {
+      #tf-assistant { right: 12px; bottom: 12px; }
+      #tf-chat-window { width: calc(100vw - 24px); }
+    }
   </style>
   {{ tf_i18n|json_script:"tf-i18n-data" }}
   <script>
@@ -1230,11 +1274,11 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   {% block extra_js %}{% endblock %}
 
   <!-- TF Assistant Widget -->
-  <div id="tf-assistant" style="position:fixed;bottom:28px;right:28px;z-index:9999;font-family:var(--tf-font-body);">
-    <button type="button" id="tf-chat-toggle" aria-label="Open assistant" style="width:56px;height:56px;border-radius:50%;border:none;background:var(--tf-orange);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(242,101,34,0.4);display:flex;align-items:center;justify-content:center;transition:all 0.25s ease;">
+  <div id="tf-assistant" aria-live="polite">
+    <button type="button" id="tf-chat-toggle" aria-label="Open assistant">
       <span class="material-symbols-rounded" id="tf-chat-icon" style="font-size:26px;">smart_toy</span>
     </button>
-    <div id="tf-chat-window" style="display:none;position:absolute;bottom:68px;right:0;width:340px;height:460px;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(15,42,68,0.2);border:1px solid var(--tf-border);flex-direction:column;overflow:hidden;">
+    <div id="tf-chat-window" role="dialog" aria-label="TradeFlow Assistant">
       <div style="background:var(--tf-navy);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:10px;">
         <div style="width:36px;height:36px;border-radius:50%;background:var(--tf-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <span class="material-symbols-rounded" style="font-size:20px;">smart_toy</span>
