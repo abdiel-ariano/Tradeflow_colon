@@ -155,45 +155,72 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     font-weight: 600;
     color: var(--tf-navy, #0F2A44);
   }
+  /* Insights: 1 col mobile → 3 cols xl (1 + 2), fixed activity height, no row-span */
   .adm-insights-grid {
     display: grid;
-    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: 16px;
+    grid-template-columns: 1fr;
+    gap: 24px;
     margin-bottom: 16px;
-    align-items: stretch;
+    align-items: start;
+  }
+  @media (min-width: 1280px) {
+    .adm-insights-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
   .adm-insights-activity {
-    grid-column: 1;
-    grid-row: 1 / span 2;
     display: flex;
     flex-direction: column;
-    min-height: 0;
-    height: 100%;
+    width: 100%;
+    min-height: 320px;
+    max-height: min(480px, 70vh);
+    overflow: hidden;
   }
-  .adm-insights-activity .adm-chart-lead { margin-bottom: 10px; }
+  @media (min-width: 1280px) {
+    .adm-insights-activity {
+      height: 500px;
+      max-height: 500px;
+      min-height: 500px;
+    }
+  }
+  .adm-insights-activity .adm-chart-lead {
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
   .adm-insights-act-list {
     flex: 1 1 auto;
     min-height: 0;
-    max-height: none;
     overflow-y: auto;
+    padding-right: 8px;
+    max-height: none;
   }
   .adm-insights-right {
-    grid-column: 2;
-    grid-row: 1 / span 2;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    min-height: 0;
-    height: 100%;
+    gap: 24px;
+    min-width: 0;
+    width: 100%;
+  }
+  @media (min-width: 1280px) {
+    .adm-insights-right {
+      grid-column: span 2;
+      height: 500px;
+      max-height: 500px;
+      min-height: 500px;
+    }
   }
   .adm-insights-meta {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    grid-template-columns: 1fr;
+    gap: 16px;
     flex-shrink: 0;
   }
-  .adm-insights-meta .adm-meta-card { margin: 0; }
+  @media (min-width: 768px) {
+    .adm-insights-meta {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .adm-insights-meta .adm-meta-card { margin: 0; min-width: 0; }
   .adm-quick-actions {
     display: flex;
     flex-wrap: wrap;
@@ -201,11 +228,11 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     flex-shrink: 0;
   }
   .adm-quick-btn {
-    flex: 1 1 160px;
+    flex: 1 1 140px;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 14px;
+    padding: 8px 12px;
     border: 1px solid var(--tf-border, #D1D5DB);
     border-radius: 10px;
     background: var(--tf-white, #fff);
@@ -234,55 +261,42 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     font-size: 0.6875rem;
     font-weight: 700;
   }
-  .adm-insights-charts {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-  .adm-insights-charts .adm-chart-card {
+  .adm-insights-fill-chart {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    min-height: 0;
-    margin: 0;
-    padding: 16px;
-  }
-  .adm-insights-charts .adm-chart-canvas-wrap {
     flex: 1 1 auto;
-    min-height: 168px;
+    min-height: 300px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .adm-insights-fill-chart .adm-chart-lead { flex-shrink: 0; }
+  .adm-insights-fill-chart .adm-chart-canvas-wrap {
+    flex: 1 1 auto;
+    min-height: 200px;
     height: auto;
   }
   .adm-donuts-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: 1fr;
     gap: 16px;
     margin-bottom: 16px;
     align-items: stretch;
   }
+  @media (min-width: 768px) {
+    .adm-donuts-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
   .adm-rankings-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 16px;
     margin-bottom: 16px;
   }
-  @media (max-width: 1100px) {
-    .adm-insights-meta { grid-template-columns: 1fr; }
-    .adm-donuts-row { grid-template-columns: 1fr; }
-    .adm-rankings-row { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 991px) {
-    .adm-insights-grid {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto;
+  @media (min-width: 768px) {
+    .adm-rankings-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .adm-insights-activity,
-    .adm-insights-right {
-      grid-column: 1;
-      grid-row: auto;
-    }
-    .adm-insights-charts { grid-template-columns: 1fr; }
   }
 </style>
 {% endblock %}
@@ -462,29 +476,27 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
           </a>
         </div>
 
-        <div class="adm-insights-charts">
-          <div class="adm-chart-card">
-            <div class="adm-chart-title">Distribution by status</div>
-            <p class="adm-chart-lead">Orders in period by operational status.</p>
-            <p class="adm-chart-empty" id="adm-doughnut-empty">No orders in this period</p>
-            <div class="adm-chart-canvas-wrap"><canvas id="admDoughnutChart" aria-label="Order statuses"></canvas></div>
-          </div>
-          <div class="adm-chart-card">
-            <div class="adm-chart-title">Orders B2B / B2C</div>
-            <p class="adm-chart-lead">Distribution by order type in the period.</p>
-            <p class="adm-chart-empty" id="adm-tipo-empty">No orders in this period</p>
-            <div class="adm-chart-canvas-wrap"><canvas id="admTipoDoughnut"></canvas></div>
-          </div>
+        <div class="adm-chart-card adm-insights-fill-chart">
+          <div class="adm-chart-title">Sales by category (%)</div>
+          <p class="adm-chart-lead">Share by category in the period.</p>
+          <p class="adm-chart-empty" id="adm-cat-empty">No data in this period</p>
+          <div class="adm-chart-canvas-wrap"><canvas id="admCatDoughnut"></canvas></div>
         </div>
       </div>
     </div>
 
     <div class="adm-donuts-row">
       <div class="adm-chart-card">
-        <div class="adm-chart-title">Sales by category (%)</div>
-        <p class="adm-chart-lead">Share by category in the period.</p>
-        <p class="adm-chart-empty" id="adm-cat-empty">No data in this period</p>
-        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admCatDoughnut"></canvas></div>
+        <div class="adm-chart-title">Distribution by status</div>
+        <p class="adm-chart-lead">Orders in period by operational status.</p>
+        <p class="adm-chart-empty" id="adm-doughnut-empty">No orders in this period</p>
+        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admDoughnutChart" aria-label="Order statuses"></canvas></div>
+      </div>
+      <div class="adm-chart-card">
+        <div class="adm-chart-title">Orders B2B / B2C</div>
+        <p class="adm-chart-lead">Distribution by order type in the period.</p>
+        <p class="adm-chart-empty" id="adm-tipo-empty">No orders in this period</p>
+        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admTipoDoughnut"></canvas></div>
       </div>
     </div>
 
