@@ -1,108 +1,109 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Términos de uso — TradeFlow Colón{% endblock %}
+{% block title %}Terms of Use — TradeFlow Colón{% endblock %}
 {% block extra_css %}{% include "core/includes/legal_page_styles.html" %}{% endblock %}
 {% block content %}
 <div class="legal-page">
   <header class="legal-header">
     {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" %}
-    <h1>Términos de uso</h1>
-    <p class="legal-updated">Última actualización: junio 2026</p>
+    <h1>Terms of Use</h1>
+    <p class="legal-updated">Last updated: June 2026</p>
   </header>
 
   <article class="legal-body">
-    <h2>1. Descripción del servicio</h2>
+    <h2>1. Service description</h2>
     <p>
-      TradeFlow Colón («TradeFlow», «la Plataforma») es un marketplace intermediario B2B y B2C
-      orientado a la Zona Libre de Colón (ZLC), República de Panamá. TradeFlow facilita el
-      contacto, la cotización y la gestión de órdenes entre compradores y empresas vendedoras
-      registradas; <strong>no actúa como vendedor directo</strong> de los productos publicados
-      ni como transportista, salvo que se indique expresamente un servicio adicional contratado.
+      TradeFlow Colón (“TradeFlow”, “the Platform”) is a B2B and B2C intermediary marketplace
+      focused on the Colón Free Zone (CFZ), Republic of Panama. TradeFlow facilitates contact,
+      quoting, and order management between buyers and registered seller companies;
+      <strong>it does not act as the direct seller</strong> of listed products or as a carrier,
+      unless an additional contracted service is expressly indicated.
     </p>
     <p>
-      El uso de la Plataforma implica la aceptación de estos Términos. Si no está de acuerdo,
-      debe abstenerse de registrarse o utilizar los servicios.
+      Use of the Platform implies acceptance of these Terms. If you do not agree,
+      you must not register or use the services.
     </p>
 
-    <h2>2. Registro y cuentas</h2>
-    <p>Para operar en TradeFlow puede registrarse como comprador («buyer») o vendedor («seller»), según el rol autorizado.</p>
+    <h2>2. Registration and accounts</h2>
+    <p>To operate on TradeFlow you may register as a buyer or seller, according to the authorized role.</p>
     <ul>
-      <li>Debe proporcionar información veraz, completa y actualizada (nombre, correo, teléfono y, en su caso, datos de la empresa).</li>
-      <li>Es responsable de la confidencialidad de sus credenciales y de toda actividad realizada desde su cuenta.</li>
-      <li>Debe notificar de inmediato cualquier uso no autorizado a <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>.</li>
-      <li>TradeFlow puede suspender o cancelar cuentas que incumplan estos Términos o requisitos de la ZLC.</li>
+      <li>You must provide truthful, complete, and up-to-date information (name, email, phone, and, where applicable, company details).</li>
+      <li>You are responsible for the confidentiality of your credentials and for all activity performed from your account.</li>
+      <li>You must immediately notify any unauthorized use to <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>.</li>
+      <li>TradeFlow may suspend or cancel accounts that violate these Terms or CFZ requirements.</li>
     </ul>
 
-    <h2>3. Obligaciones del vendedor</h2>
+    <h2>3. Seller obligations</h2>
     <ul>
-      <li>Mantener inventario real y actualizado; no publicar productos sin disponibilidad razonable.</li>
-      <li>Expresar precios en dólares estadounidenses (USD), salvo indicación contractual distinta acordada con el comprador.</li>
-      <li>Cumplir con la documentación aduanera, fiscal y comercial aplicable a sus operaciones en la ZLC y en el destino de la mercancía.</li>
-      <li>Confirmar o rechazar órdenes dentro de los plazos mostrados en la Plataforma y comunicar incidencias de forma diligente.</li>
-      <li>No publicar contenido ilícito, engañoso o que infrinja derechos de terceros.</li>
+      <li>Maintain accurate, up-to-date inventory; do not list products without reasonable availability.</li>
+      <li>Express prices in US dollars (USD), unless a different contractual indication is agreed with the buyer.</li>
+      <li>Comply with customs, tax, and commercial documentation applicable to operations in the CFZ and at the destination of the goods.</li>
+      <li>Confirm or reject orders within the deadlines shown on the Platform and communicate incidents diligently.</li>
+      <li>Do not publish unlawful, misleading content or content that infringes third-party rights.</li>
     </ul>
 
-    <h2>4. Obligaciones del comprador</h2>
+    <h2>4. Buyer obligations</h2>
     <ul>
-      <li>Utilizar la Plataforma con fines legítimos de compra o abastecimiento comercial.</li>
-      <li>Proporcionar datos de contacto, entrega y facturación verídicos.</li>
-      <li>Revisar cotizaciones y órdenes antes de confirmarlas; las confirmaciones vinculan a las partes según el flujo de la Plataforma.</li>
-      <li>Respetar los plazos de pago, recepción y disputa establecidos en cada transacción.</li>
+      <li>Use the Platform for legitimate purchasing or commercial sourcing purposes.</li>
+      <li>Provide truthful contact, delivery, and billing details.</li>
+      <li>Review quotes and orders before confirming them; confirmations bind the parties according to the Platform flow.</li>
+      <li>Respect payment, receipt, and dispute deadlines established for each transaction.</li>
     </ul>
 
-    <h2>5. Órdenes, pagos y disputas</h2>
+    <h2>5. Orders, payments, and disputes</h2>
     <p>
-      Las órdenes se crean según el flujo visible en la Plataforma (carrito, checkout, cotizaciones
-      o herramientas administrativas). El estado de cada orden (pendiente, en espera de confirmación
-      del vendedor, pagada, enviada, entregada, cancelada, etc.) se refleja en el panel correspondiente.
+      Orders are created according to the flow visible on the Platform (cart, checkout, quotes,
+      or administrative tools). The status of each order (pending, awaiting seller confirmation,
+      paid, shipped, delivered, cancelled, etc.) is reflected in the corresponding panel.
     </p>
     <p>
-      Los pagos pueden procesarse mediante los proveedores o métodos habilitados en cada momento
-      (incluidos mecanismos de prueba o simulación en entornos de demostración). TradeFlow no
-      custodia fondos entre las partes salvo que un producto específico indique lo contrario.
+      Payments may be processed through providers or methods enabled at any given time
+      (including test or simulation mechanisms in demo environments). TradeFlow does not
+      hold funds between parties unless a specific product indicates otherwise.
     </p>
     <p>
-      Cancelaciones y disputas deben gestionarse primero entre comprador y vendedor, usando los
-      canales de la Plataforma y el correo de soporte. TradeFlow podrá mediar de buena fe pero
-      no sustituye las obligaciones contractuales entre las partes.
-    </p>
-
-    <h2>6. Propiedad intelectual</h2>
-    <p>
-      El nombre TradeFlow Colón, logotipos, diseño de interfaz, textos institucionales y software
-      de la Plataforma son propiedad de sus titulares o licenciantes. Queda prohibida su reproducción
-      no autorizada. Los vendedores conservan los derechos sobre sus marcas y descripciones de
-      producto, y otorgan a TradeFlow una licencia limitada para exhibirlos en el marketplace.
+      Cancellations and disputes must first be handled between buyer and seller, using
+      Platform channels and support email. TradeFlow may mediate in good faith but
+      does not replace contractual obligations between the parties.
     </p>
 
-    <h2>7. Limitación de responsabilidad</h2>
+    <h2>6. Intellectual property</h2>
     <p>
-      TradeFlow procura mantener la Plataforma disponible y segura, pero no garantiza ausencia
-      de interrupciones ni errores. <strong>No garantiza la ejecución física de la transacción</strong>
-      entre comprador y vendedor (calidad, entrega, aduanas, pagos fuera de la Plataforma).
-      En la medida permitida por la ley panameña, TradeFlow no será responsable por daños indirectos,
-      lucro cesante o incumplimientos atribuibles a terceros o a las propias partes de la operación.
+      The TradeFlow Colón name, logos, interface design, institutional text, and Platform
+      software are owned by their holders or licensors. Unauthorized reproduction is prohibited.
+      Sellers retain rights to their brands and product descriptions, and grant TradeFlow a
+      limited license to display them on the marketplace.
     </p>
 
-    <h2>8. Ley aplicable y jurisdicción</h2>
+    <h2>7. Limitation of liability</h2>
     <p>
-      Estos Términos se rigen por las leyes de la <strong>República de Panamá</strong>.
-      Para controversias no resueltas amistosamente, las partes se someten a la jurisdicción de
-      los tribunales competentes en la <strong>provincia de Colón</strong>, sin perjuicio de
-      derechos imperativos del consumidor que resulten aplicables.
+      TradeFlow seeks to keep the Platform available and secure, but does not guarantee
+      uninterrupted or error-free operation. <strong>It does not guarantee physical execution
+      of the transaction</strong> between buyer and seller (quality, delivery, customs,
+      payments outside the Platform). To the extent permitted by Panamanian law, TradeFlow
+      shall not be liable for indirect damages, lost profits, or breaches attributable to
+      third parties or to the parties themselves.
     </p>
 
-    <h2>9. Contacto</h2>
+    <h2>8. Governing law and jurisdiction</h2>
     <p>
-      Consultas sobre estos Términos: <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>.
-      Documentos relacionados: <a href="{% url 'legal_privacidad' %}">Política de privacidad</a>
-      y <a href="{% url 'legal_cookies' %}">Política de cookies</a>.
+      These Terms are governed by the laws of the <strong>Republic of Panama</strong>.
+      For disputes not resolved amicably, the parties submit to the jurisdiction of
+      the competent courts in the <strong>province of Colón</strong>, without prejudice
+      to mandatory consumer rights that may apply.
+    </p>
+
+    <h2>9. Contact</h2>
+    <p>
+      Questions about these Terms: <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>.
+      Related documents: <a href="{% url 'legal_privacidad' %}">Privacy Policy</a>
+      and <a href="{% url 'legal_cookies' %}">Cookie Policy</a>.
     </p>
   </article>
 
   <a href="{% url 'home' %}" class="legal-back">
     <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
-    Volver al inicio
+    Back to home
   </a>
 </div>
 {% endblock %}

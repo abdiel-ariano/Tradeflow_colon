@@ -1,77 +1,77 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Política de cookies — TradeFlow Colón{% endblock %}
+{% block title %}Cookie Policy — TradeFlow Colón{% endblock %}
 {% block extra_css %}{% include "core/includes/legal_page_styles.html" %}{% endblock %}
 {% block content %}
 <div class="legal-page">
   <header class="legal-header">
     {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" %}
-    <h1>Política de cookies</h1>
-    <p class="legal-updated">Última actualización: junio 2026</p>
+    <h1>Cookie Policy</h1>
+    <p class="legal-updated">Last updated: June 2026</p>
   </header>
 
   <article class="legal-body">
-    <h2>1. Qué son las cookies</h2>
+    <h2>1. What cookies are</h2>
     <p>
-      Las cookies son pequeños archivos que el sitio o servicios asociados guardan en su navegador
-      para recordar preferencias, mantener sesiones o medir el uso de TradeFlow Colón.
-      Tecnologías similares (almacenamiento local, píxeles) se tratan con el mismo criterio de transparencia.
+      Cookies are small files that the site or associated services store in your browser
+      to remember preferences, maintain sessions, or measure use of TradeFlow Colón.
+      Similar technologies (local storage, pixels) are handled with the same transparency criteria.
     </p>
 
-    <h2>2. Cookies esenciales</h2>
-    <p>Son necesarias para el funcionamiento básico de la Plataforma. Sin ellas no podría, por ejemplo:</p>
+    <h2>2. Essential cookies</h2>
+    <p>These are necessary for basic Platform operation. Without them you could not, for example:</p>
     <ul>
-      <li>Mantener su <strong>sesión de inicio de sesión</strong> de forma segura.</li>
-      <li>Guardar el <strong>carrito de compras</strong> mientras navega.</li>
-      <li>Aplicar protección CSRF en formularios y preferencias de seguridad.</li>
+      <li>Maintain your <strong>login session</strong> securely.</li>
+      <li>Store your <strong>shopping cart</strong> while you browse.</li>
+      <li>Apply CSRF protection on forms and security preferences.</li>
     </ul>
-    <p>Estas cookies no requieren consentimiento previo en la medida en que sean estrictamente necesarias.</p>
+    <p>These cookies do not require prior consent to the extent they are strictly necessary.</p>
 
-    <h2>3. Cookies analíticas</h2>
+    <h2>3. Analytics cookies</h2>
     <p>
-      Nos ayudan a entender tráfico y comportamiento agregado (páginas visitadas, duración, dispositivo).
-      Cuando esté habilitado, podemos utilizar servicios como <strong>Google Analytics</strong> u
-      herramientas equivalentes, siempre procurando configuraciones que limiten identificación directa.
+      These help us understand traffic and aggregated behavior (pages visited, duration, device).
+      When enabled, we may use services such as <strong>Google Analytics</strong> or
+      equivalent tools, always seeking configurations that limit direct identification.
     </p>
 
-    <h2>4. Cookies funcionales</h2>
+    <h2>4. Functional cookies</h2>
     <p>
-      Recuerdan elecciones suyas para mejorar la experiencia: idioma, filtros de tienda, banners ya
-      cerrados o preferencias de interfaz en paneles de comprador y vendedor.
+      These remember your choices to improve the experience: language, store filters, dismissed
+      banners, or interface preferences in buyer and seller panels.
     </p>
 
-    <h2>5. Cookies de terceros</h2>
+    <h2>5. Third-party cookies</h2>
     <p>
-      Al integrar <strong>servicios de pago</strong>, mapas, reproductores o widgets externos, esos
-      proveedores pueden establecer sus propias cookies sujetas a sus políticas. TradeFlow no controla
-      íntegramente esas tecnologías; le recomendamos revisar la documentación del proveedor correspondiente
-      cuando complete un pago o use un servicio enlazado.
+      When integrating <strong>payment services</strong>, maps, players, or external widgets,
+      those providers may set their own cookies subject to their policies. TradeFlow does not
+      fully control those technologies; we recommend reviewing the corresponding provider’s
+      documentation when you complete a payment or use a linked service.
     </p>
 
-    <h2>6. Cómo gestionar o desactivar cookies</h2>
-    <p>Puede configurar su navegador para bloquear o eliminar cookies:</p>
+    <h2>6. How to manage or disable cookies</h2>
+    <p>You can configure your browser to block or delete cookies:</p>
     <ul>
-      <li>Chrome: Configuración → Privacidad y seguridad → Cookies.</li>
-      <li>Firefox: Opciones → Privacidad y seguridad.</li>
-      <li>Safari: Preferencias → Privacidad.</li>
-      <li>Edge: Configuración → Cookies y permisos del sitio.</li>
+      <li>Chrome: Settings → Privacy and security → Cookies.</li>
+      <li>Firefox: Options → Privacy &amp; Security.</li>
+      <li>Safari: Preferences → Privacy.</li>
+      <li>Edge: Settings → Cookies and site permissions.</li>
     </ul>
     <p>
-      Si desactiva cookies esenciales, algunas funciones (login, carrito, checkout) pueden dejar de
-      operar correctamente.
+      If you disable essential cookies, some features (login, cart, checkout) may stop
+      working correctly.
     </p>
 
-    <h2>7. Actualizaciones y contacto</h2>
+    <h2>7. Updates and contact</h2>
     <p>
-      Esta política puede modificarse; la fecha superior indica la versión publicada.
-      Dudas: <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>.
-      Véase también <a href="{% url 'legal_privacidad' %}">Política de privacidad</a>.
+      This policy may be modified; the date above indicates the published version.
+      Questions: <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>.
+      See also <a href="{% url 'legal_privacidad' %}">Privacy Policy</a>.
     </p>
   </article>
 
   <a href="{% url 'home' %}" class="legal-back">
     <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
-    Volver al inicio
+    Back to home
   </a>
 </div>
 {% endblock %}

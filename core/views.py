@@ -4482,15 +4482,15 @@ def reject_application_view(request, pk):
 # =============================================================================
 
 def legal_terminos(request):
-    """Términos de uso del marketplace TradeFlow Colón."""
+    """Terms of Use for the TradeFlow Colón marketplace."""
     return render(request, 'core/legal_terminos.html')
 
 
 def legal_privacidad(request):
-    """Política de privacidad y tratamiento de datos."""
+    """Privacy policy and data processing."""
     return render(request, 'core/legal_privacidad.html')
 
 
 def legal_cookies(request):
-    """Política de cookies y tecnologías similares."""
+    """Cookie policy and similar technologies."""
     return render(request, 'core/legal_cookies.html')
