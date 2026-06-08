@@ -1,97 +1,172 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block title %}Access Applications — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<style nonce="{{ csp_nonce }}">
+  .adm-apps-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .adm-apps-pills a {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-decoration: none !important;
+    border-bottom: 2px solid transparent;
+    border-radius: 8px;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .adm-apps-pills a:hover {
+    color: #1f2937;
+    background: rgba(15, 42, 68, 0.04);
+  }
+  .adm-apps-pills a.is-active {
+    color: var(--tf-orange, #F26522);
+    font-weight: 600;
+    border-bottom-color: var(--tf-orange, #F26522);
+    background: rgba(242, 101, 34, 0.08);
+  }
+  .adm-apps-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .adm-apps-btn-approve,
+  .adm-apps-btn-reject {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: inherit;
+  }
+  .adm-apps-btn-approve {
+    background: #D1FAE5;
+    color: #065F46;
+    border-color: #6EE7B7;
+  }
+  .adm-apps-btn-reject {
+    background: #FEE2E2;
+    color: #991B1B;
+    border-color: #FCA5A5;
+  }
+  .adm-apps-btn-approve:disabled,
+  .adm-apps-btn-reject:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+  .adm-apps-empty {
+    text-align: center;
+    padding: 3.5rem 1.5rem;
+    background: var(--tf-white, #fff);
+    border: 1px solid var(--tf-border, #D1D5DB);
+    border-radius: 12px;
+  }
+  .adm-badge--warn { background: #FEF3C7; color: #92400E; }
+  .adm-badge--ok { background: #D1FAE5; color: #065F46; }
+  .adm-badge--err { background: #FEE2E2; color: #991B1B; }
+</style>
+{% endblock %}
 {% block content %}
-<div class="tf-page">
-  <div class="tf-page-header">
-    <div>
-      <h1 class="tf-page-title">
-        Access Applications
-        {% if pending_count %}
-        <span style="background:var(--tf-orange);color:#fff;border-radius:20px;padding:2px 10px;font-size:14px;font-weight:700;margin-left:8px;vertical-align:middle;">{{ pending_count }}</span>
-        {% endif %}
-      </h1>
-      <p class="tf-page-subtitle">Review and approve company access requests</p>
-    </div>
-  </div>
+<div class="adm-shell">
+  {% include "core/admin_rail.html" %}
+  <div class="adm-main">
+    <header class="adm-head">
+      <div>
+        <h1>
+          Access Applications
+          {% if pending_count %}
+          <span class="adm-badge adm-badge--warn" style="margin-left:8px;vertical-align:middle;">{{ pending_count }} pending</span>
+          {% endif %}
+        </h1>
+        <p>Review and approve company access requests</p>
+      </div>
+    </header>
 
-  <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
-    <a href="{% url 'admin_applications' %}"
-       style="padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;{% if not current_filter %}background:var(--tf-navy);color:#fff;{% else %}background:var(--tf-light);color:var(--tf-muted);{% endif %}">All</a>
-    <a href="{% url 'admin_applications' %}?status=pending"
-       style="padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;{% if current_filter == 'pending' %}background:var(--tf-navy);color:#fff;{% else %}background:var(--tf-light);color:var(--tf-muted);{% endif %}">Pending</a>
-    <a href="{% url 'admin_applications' %}?status=approved"
-       style="padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;{% if current_filter == 'approved' %}background:var(--tf-navy);color:#fff;{% else %}background:var(--tf-light);color:var(--tf-muted);{% endif %}">Approved</a>
-    <a href="{% url 'admin_applications' %}?status=rejected"
-       style="padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;{% if current_filter == 'rejected' %}background:var(--tf-navy);color:#fff;{% else %}background:var(--tf-light);color:var(--tf-muted);{% endif %}">Rejected</a>
-  </div>
+    <nav class="adm-apps-pills" aria-label="Filter applications by status">
+      <a href="{% url 'admin_applications' %}" class="{% if not current_filter %}is-active{% endif %}">All</a>
+      <a href="{% url 'admin_applications' %}?status=pending" class="{% if current_filter == 'pending' %}is-active{% endif %}">Pending</a>
+      <a href="{% url 'admin_applications' %}?status=approved" class="{% if current_filter == 'approved' %}is-active{% endif %}">Approved</a>
+      <a href="{% url 'admin_applications' %}?status=rejected" class="{% if current_filter == 'rejected' %}is-active{% endif %}">Rejected</a>
+    </nav>
 
-  {% if applications %}
-  <div class="tf-table-container">
-    <table class="tf-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Name</th>
-          <th>Company</th>
-          <th>Role</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Message</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for app in applications %}
-        <tr>
-          <td style="white-space:nowrap;font-size:12px;color:var(--tf-muted);">{{ app.created_at|date:"M d, Y" }}</td>
-          <td style="font-weight:500;">{{ app.full_name }}</td>
-          <td>{{ app.company_name|default:"—" }}</td>
-          <td>
-            {% if app.role == 'buyer' %}
-              <span class="tf-badge tf-badge-navy">Buyer</span>
-            {% else %}
-              <span class="tf-badge tf-badge-orange">Seller</span>
-            {% endif %}
-          </td>
-          <td style="font-size:13px;">{{ app.email }}</td>
-          <td style="font-size:13px;">{{ app.phone|default:"—" }}</td>
-          <td style="font-size:12px;color:var(--tf-muted);max-width:200px;">{{ app.message|default:"—" }}</td>
-          <td>
-            {% if app.status == 'pending' %}
-              <span class="tf-badge tf-badge-st-pending">Pending</span>
-            {% elif app.status == 'approved' %}
-              <span class="tf-badge" style="background:#D1FAE5;color:#065F46;">Approved</span>
-            {% elif app.status == 'rejected' %}
-              <span class="tf-badge tf-badge-st-cancelled">Rejected</span>
-            {% endif %}
-          </td>
-          <td>
-            {% if app.status == 'pending' %}
-            <div style="display:flex;gap:6px;">
-              <form method="post" action="{% url 'approve_application' app.pk %}" class="js-app-review-form">{% csrf_token %}
-                <button type="submit" class="js-app-review-btn" style="padding:6px 12px;background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Approve</button>
-              </form>
-              <form method="post" action="{% url 'reject_application' app.pk %}" class="js-app-review-form">{% csrf_token %}
-                <button type="submit" class="js-app-review-btn" style="padding:6px 12px;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Reject</button>
-              </form>
-            </div>
-            {% else %}
+    {% if applications %}
+    <div class="adm-table-card">
+      <div class="adm-table-head">
+        <span>{% if current_filter %}{{ current_filter|title }} applications{% else %}All applications{% endif %}</span>
+        <span>{{ applications|length }} record{{ applications|length|pluralize }}</span>
+      </div>
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Company</th>
+            <th>Role</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Message</th>
+            <th>Status</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+          <tr>
+            <td style="white-space:nowrap;font-size:12px;color:var(--tf-muted);">{{ app.created_at|date:"M d, Y" }}</td>
+            <td><strong>{{ app.full_name }}</strong></td>
+            <td>{{ app.company_name|default:"—" }}</td>
+            <td>
+              {% if app.role == 'buyer' %}
+              <span class="adm-badge">Buyer</span>
+              {% else %}
+              <span class="adm-badge adm-badge--warn">Seller</span>
+              {% endif %}
+            </td>
+            <td style="font-size:13px;">{{ app.email }}</td>
+            <td style="font-size:13px;">{{ app.phone|default:"—" }}</td>
+            <td style="font-size:12px;color:var(--tf-muted);max-width:200px;">{{ app.message|default:"—" }}</td>
+            <td>
+              {% if app.status == 'pending' %}
+              <span class="adm-badge adm-badge--warn">Pending</span>
+              {% elif app.status == 'approved' %}
+              <span class="adm-badge adm-badge--ok">Approved</span>
+              {% elif app.status == 'rejected' %}
+              <span class="adm-badge adm-badge--err">Rejected</span>
+              {% endif %}
+            </td>
+            <td style="text-align:right;">
+              {% if app.status == 'pending' %}
+              <div class="adm-apps-actions">
+                <form method="post" action="{% url 'approve_application' app.pk %}" class="js-app-review-form">{% csrf_token %}
+                  <button type="submit" class="adm-apps-btn-approve js-app-review-btn">Approve</button>
+                </form>
+                <form method="post" action="{% url 'reject_application' app.pk %}" class="js-app-review-form">{% csrf_token %}
+                  <button type="submit" class="adm-apps-btn-reject js-app-review-btn">Reject</button>
+                </form>
+              </div>
+              {% else %}
               <span style="font-size:12px;color:var(--tf-muted);">—</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="adm-apps-empty">
+      <span class="material-symbols-rounded" style="font-size:48px;color:var(--tf-muted);display:block;margin-bottom:12px;">assignment_ind</span>
+      <p style="color:var(--tf-muted);font-size:15px;margin:0;">No applications found.</p>
+    </div>
+    {% endif %}
   </div>
-  {% else %}
-  <div style="text-align:center;padding:60px 24px;background:var(--tf-white);border:1px solid var(--tf-border);border-radius:12px;">
-    <span class="material-symbols-rounded" style="font-size:48px;color:var(--tf-muted);display:block;margin-bottom:12px;">assignment_ind</span>
-    <p style="color:var(--tf-muted);font-size:15px;margin:0;">No applications found.</p>
-  </div>
-  {% endif %}
 </div>
 <script nonce="{{ csp_nonce }}">
 (function () {
@@ -112,4 +187,7 @@
   });
 })();
 </script>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/admin_rail.js' %}"></script>
 {% endblock %}

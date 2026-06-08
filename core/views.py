@@ -4427,6 +4427,7 @@ def admin_applications_view(request):
             'applications': applications,
             'pending_count': pending_count,
             'current_filter': status_filter,
+            'nav_activo': 'admin_applications',
         })
     except Exception as e:
         log.exception('Error in admin_applications_view: %s', e)
