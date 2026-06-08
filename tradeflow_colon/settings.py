@@ -222,7 +222,7 @@ STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 # Cache-bust query param for JS/CSS after deploy (set TRADEFLOW_ASSET_VERSION on Railway).
-TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='7f8f37d')
+TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='auth-chat-v1')
 
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
 MEDIA_URL  = '/media/'
