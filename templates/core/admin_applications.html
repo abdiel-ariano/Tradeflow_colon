@@ -3,11 +3,20 @@
 {% block title %}Access Applications — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
+  .adm-apps-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
   .adm-apps-pills {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    margin-bottom: 1.25rem;
+    margin: 0;
   }
   .adm-apps-pills a {
     display: inline-flex;
@@ -31,16 +40,81 @@
     border-bottom-color: var(--tf-orange, #F26522);
     background: rgba(242, 101, 34, 0.08);
   }
-  .adm-apps-actions {
+  .adm-apps-toolbar-actions {
     display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+  .adm-apps-search-wrap {
+    position: relative;
+    min-width: min(280px, 100%);
+  }
+  .adm-apps-search-wrap .material-symbols-rounded {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #9ca3af;
+    pointer-events: none;
+  }
+  .adm-apps-search-wrap input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px 9px 40px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-family: inherit;
+    background: #fff;
+    color: #374151;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .adm-apps-search-wrap input:focus {
+    outline: none;
+    border-color: rgba(242, 101, 34, 0.45);
+    box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.1);
+  }
+  .adm-apps-export-btn {
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
+    padding: 9px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    color: #374151;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .adm-apps-export-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+  .adm-apps-export-btn .material-symbols-rounded { font-size: 18px; }
+  .adm-apps-null {
+    font-size: 0.75rem;
+    color: #d1d5db;
+    font-style: italic;
+  }
+  .adm-apps-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
     flex-wrap: wrap;
   }
   .adm-apps-btn-approve,
   .adm-apps-btn-reject {
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     cursor: pointer;
     border: 1px solid transparent;
@@ -61,6 +135,45 @@
     opacity: 0.65;
     cursor: not-allowed;
   }
+  .adm-apps-view-btn {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--tf-orange, #F26522) !important;
+    text-decoration: none !important;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .adm-apps-view-btn:hover { opacity: 0.85; text-decoration: none !important; }
+  .adm-apps-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #6b7280;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .adm-apps-icon-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+    border-color: #d1d5db;
+  }
+  .adm-apps-icon-btn .material-symbols-rounded { font-size: 18px; }
+  .adm-table tbody tr.adm-apps-row {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  .adm-table tbody tr.adm-apps-row:hover {
+    background: #f9fafb;
+  }
+  .adm-table tbody tr.adm-apps-row.is-hidden { display: none; }
   .adm-apps-empty {
     text-align: center;
     padding: 3.5rem 1.5rem;
@@ -68,9 +181,65 @@
     border: 1px solid var(--tf-border, #D1D5DB);
     border-radius: 12px;
   }
+  .adm-apps-no-results {
+    display: none;
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--tf-muted);
+    font-size: 0.875rem;
+  }
+  .adm-apps-no-results.is-visible { display: block; }
   .adm-badge--warn { background: #FEF3C7; color: #92400E; }
   .adm-badge--ok { background: #D1FAE5; color: #065F46; }
   .adm-badge--err { background: #FEE2E2; color: #991B1B; }
+  .adm-apps-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 42, 68, 0.45);
+    z-index: 10060;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .adm-apps-modal-backdrop.is-open { display: flex; }
+  .adm-apps-modal {
+    width: min(480px, 100%);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 24px 64px rgba(15, 42, 68, 0.2);
+    overflow: hidden;
+  }
+  .adm-apps-modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .adm-apps-modal-head h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--tf-navy);
+  }
+  .adm-apps-modal-body {
+    padding: 16px 20px 20px;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: #374151;
+  }
+  .adm-apps-modal-body dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 10px 12px;
+  }
+  .adm-apps-modal-body dt {
+    color: #6b7280;
+    font-weight: 500;
+    margin: 0;
+  }
+  .adm-apps-modal-body dd { margin: 0; word-break: break-word; }
 </style>
 {% endblock %}
 {% block content %}
@@ -89,20 +258,32 @@
       </div>
     </header>
 
-    <nav class="adm-apps-pills" aria-label="Filter applications by status">
-      <a href="{% url 'admin_applications' %}" class="{% if not current_filter %}is-active{% endif %}">All</a>
-      <a href="{% url 'admin_applications' %}?status=pending" class="{% if current_filter == 'pending' %}is-active{% endif %}">Pending</a>
-      <a href="{% url 'admin_applications' %}?status=approved" class="{% if current_filter == 'approved' %}is-active{% endif %}">Approved</a>
-      <a href="{% url 'admin_applications' %}?status=rejected" class="{% if current_filter == 'rejected' %}is-active{% endif %}">Rejected</a>
-    </nav>
+    <div class="adm-apps-toolbar">
+      <nav class="adm-apps-pills" aria-label="Filter applications by status">
+        <a href="{% url 'admin_applications' %}" class="{% if not current_filter %}is-active{% endif %}">All</a>
+        <a href="{% url 'admin_applications' %}?status=pending" class="{% if current_filter == 'pending' %}is-active{% endif %}">Pending</a>
+        <a href="{% url 'admin_applications' %}?status=approved" class="{% if current_filter == 'approved' %}is-active{% endif %}">Approved</a>
+        <a href="{% url 'admin_applications' %}?status=rejected" class="{% if current_filter == 'rejected' %}is-active{% endif %}">Rejected</a>
+      </nav>
+      <div class="adm-apps-toolbar-actions">
+        <label class="adm-apps-search-wrap">
+          <span class="material-symbols-rounded" aria-hidden="true">search</span>
+          <input type="search" id="adm-apps-search" placeholder="Search by name or email..." autocomplete="off" aria-label="Search applications">
+        </label>
+        <button type="button" class="adm-apps-export-btn" id="adm-apps-export">
+          <span class="material-symbols-rounded" aria-hidden="true">download</span>
+          Export
+        </button>
+      </div>
+    </div>
 
     {% if applications %}
-    <div class="adm-table-card">
+    <div class="adm-table-card" id="adm-apps-table-card">
       <div class="adm-table-head">
         <span>{% if current_filter %}{{ current_filter|title }} applications{% else %}All applications{% endif %}</span>
-        <span>{{ applications|length }} record{{ applications|length|pluralize }}</span>
+        <span id="adm-apps-visible-count">{{ applications|length }} record{{ applications|length|pluralize }}</span>
       </div>
-      <table class="adm-table">
+      <table class="adm-table" id="adm-apps-table">
         <thead>
           <tr>
             <th>Date</th>
@@ -118,10 +299,27 @@
         </thead>
         <tbody>
           {% for app in applications %}
-          <tr>
+          <tr class="adm-apps-row"
+              tabindex="0"
+              data-app-id="{{ app.pk }}"
+              data-search="{{ app.full_name|lower }} {{ app.email|lower }}"
+              data-name="{{ app.full_name|escape }}"
+              data-email="{{ app.email|escape }}"
+              data-company="{{ app.company_name|default:''|escape }}"
+              data-phone="{{ app.phone|default:''|escape }}"
+              data-role="{{ app.role|escape }}"
+              data-status="{{ app.status|escape }}"
+              data-message="{{ app.message|default:''|escape }}"
+              data-date="{{ app.created_at|date:'M d, Y' }}">
             <td style="white-space:nowrap;font-size:12px;color:var(--tf-muted);">{{ app.created_at|date:"M d, Y" }}</td>
             <td><strong>{{ app.full_name }}</strong></td>
-            <td>{{ app.company_name|default:"—" }}</td>
+            <td>
+              {% if app.company_name %}
+              {{ app.company_name }}
+              {% else %}
+              <span class="adm-apps-null">Not provided</span>
+              {% endif %}
+            </td>
             <td>
               {% if app.role == 'buyer' %}
               <span class="adm-badge">Buyer</span>
@@ -129,9 +327,21 @@
               <span class="adm-badge adm-badge--warn">Seller</span>
               {% endif %}
             </td>
-            <td style="font-size:13px;">{{ app.email }}</td>
-            <td style="font-size:13px;">{{ app.phone|default:"—" }}</td>
-            <td style="font-size:12px;color:var(--tf-muted);max-width:200px;">{{ app.message|default:"—" }}</td>
+            <td style="font-size:13px;font-weight:500;">{{ app.email }}</td>
+            <td style="font-size:13px;">
+              {% if app.phone %}
+              {{ app.phone }}
+              {% else %}
+              <span class="adm-apps-null">Not provided</span>
+              {% endif %}
+            </td>
+            <td style="font-size:12px;max-width:200px;">
+              {% if app.message %}
+              <span style="color:var(--tf-muted);">{{ app.message|truncatechars:80 }}</span>
+              {% else %}
+              <span class="adm-apps-null">Not provided</span>
+              {% endif %}
+            </td>
             <td>
               {% if app.status == 'pending' %}
               <span class="adm-badge adm-badge--warn">Pending</span>
@@ -141,24 +351,27 @@
               <span class="adm-badge adm-badge--err">Rejected</span>
               {% endif %}
             </td>
-            <td style="text-align:right;">
-              {% if app.status == 'pending' %}
+            <td style="text-align:right;" class="adm-apps-actions-cell">
               <div class="adm-apps-actions">
-                <form method="post" action="{% url 'approve_application' app.pk %}" class="js-app-review-form">{% csrf_token %}
+                {% if app.status == 'pending' %}
+                <form method="post" action="{% url 'approve_application' app.pk %}" class="js-app-review-form" onclick="event.stopPropagation();">{% csrf_token %}
                   <button type="submit" class="adm-apps-btn-approve js-app-review-btn">Approve</button>
                 </form>
-                <form method="post" action="{% url 'reject_application' app.pk %}" class="js-app-review-form">{% csrf_token %}
+                <form method="post" action="{% url 'reject_application' app.pk %}" class="js-app-review-form" onclick="event.stopPropagation();">{% csrf_token %}
                   <button type="submit" class="adm-apps-btn-reject js-app-review-btn">Reject</button>
                 </form>
+                {% endif %}
+                <button type="button" class="adm-apps-view-btn js-app-view-btn" onclick="event.stopPropagation();">View</button>
+                <button type="button" class="adm-apps-icon-btn js-app-view-btn" aria-label="View application details" onclick="event.stopPropagation();">
+                  <span class="material-symbols-rounded">more_horiz</span>
+                </button>
               </div>
-              {% else %}
-              <span style="font-size:12px;color:var(--tf-muted);">—</span>
-              {% endif %}
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
+      <p class="adm-apps-no-results" id="adm-apps-no-results">No applications match your search.</p>
     </div>
     {% else %}
     <div class="adm-apps-empty">
@@ -168,8 +381,137 @@
     {% endif %}
   </div>
 </div>
+
+<div class="adm-apps-modal-backdrop" id="adm-apps-modal" role="dialog" aria-modal="true" aria-labelledby="adm-apps-modal-title">
+  <div class="adm-apps-modal">
+    <div class="adm-apps-modal-head">
+      <h2 id="adm-apps-modal-title">Application details</h2>
+      <button type="button" class="adm-apps-icon-btn" id="adm-apps-modal-close" aria-label="Close">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+    <div class="adm-apps-modal-body">
+      <dl id="adm-apps-modal-dl"></dl>
+    </div>
+  </div>
+</div>
+
 <script nonce="{{ csp_nonce }}">
 (function () {
+  'use strict';
+
+  function openModal(row) {
+    var modal = document.getElementById('adm-apps-modal');
+    var dl = document.getElementById('adm-apps-modal-dl');
+    var title = document.getElementById('adm-apps-modal-title');
+    if (!modal || !dl || !row) return;
+    var name = row.getAttribute('data-name') || '';
+    title.textContent = name || 'Application details';
+    var fields = [
+      ['Date', row.getAttribute('data-date')],
+      ['Name', row.getAttribute('data-name')],
+      ['Email', row.getAttribute('data-email')],
+      ['Company', row.getAttribute('data-company') || 'Not provided'],
+      ['Phone', row.getAttribute('data-phone') || 'Not provided'],
+      ['Role', row.getAttribute('data-role')],
+      ['Status', row.getAttribute('data-status')],
+      ['Message', row.getAttribute('data-message') || 'Not provided']
+    ];
+    dl.innerHTML = fields.map(function (pair) {
+      return '<dt>' + pair[0] + '</dt><dd>' + pair[1] + '</dd>';
+    }).join('');
+    modal.classList.add('is-open');
+  }
+
+  function closeModal() {
+    var modal = document.getElementById('adm-apps-modal');
+    if (modal) modal.classList.remove('is-open');
+  }
+
+  document.querySelectorAll('.js-app-view-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var row = btn.closest('.adm-apps-row');
+      if (row) openModal(row);
+    });
+  });
+
+  document.querySelectorAll('.adm-apps-row').forEach(function (row) {
+    row.addEventListener('click', function (e) {
+      if (e.target.closest('form, button, a')) return;
+      openModal(row);
+    });
+    row.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openModal(row);
+      }
+    });
+  });
+
+  var closeBtn = document.getElementById('adm-apps-modal-close');
+  var backdrop = document.getElementById('adm-apps-modal');
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (backdrop) {
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop) closeModal();
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  var searchInput = document.getElementById('adm-apps-search');
+  var rows = document.querySelectorAll('.adm-apps-row');
+  var countEl = document.getElementById('adm-apps-visible-count');
+  var noResults = document.getElementById('adm-apps-no-results');
+
+  function applySearch() {
+    var q = (searchInput && searchInput.value || '').trim().toLowerCase();
+    var visible = 0;
+    rows.forEach(function (row) {
+      var hay = row.getAttribute('data-search') || '';
+      var show = !q || hay.indexOf(q) >= 0;
+      row.classList.toggle('is-hidden', !show);
+      if (show) visible += 1;
+    });
+    if (countEl) {
+      countEl.textContent = visible + ' record' + (visible === 1 ? '' : 's');
+    }
+    if (noResults) {
+      noResults.classList.toggle('is-visible', rows.length > 0 && visible === 0);
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applySearch);
+  }
+
+  var exportBtn = document.getElementById('adm-apps-export');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', function () {
+      var lines = ['Date,Name,Company,Role,Email,Phone,Status,Message'];
+      document.querySelectorAll('.adm-apps-row:not(.is-hidden)').forEach(function (row) {
+        var cells = [
+          row.getAttribute('data-date'),
+          row.getAttribute('data-name'),
+          row.getAttribute('data-company') || '',
+          row.getAttribute('data-role'),
+          row.getAttribute('data-email'),
+          row.getAttribute('data-phone') || '',
+          row.getAttribute('data-status'),
+          (row.getAttribute('data-message') || '').replace(/"/g, '""')
+        ];
+        lines.push(cells.map(function (c) { return '"' + (c || '') + '"'; }).join(','));
+      });
+      var blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'tradeflow-applications.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  }
+
   document.querySelectorAll('.js-app-review-form').forEach(function (form) {
     form.addEventListener('submit', function () {
       var btn = form.querySelector('.js-app-review-btn');
