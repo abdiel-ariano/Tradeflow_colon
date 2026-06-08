@@ -1,15 +1,29 @@
 /* TradeFlow buyer portal */
 .bp-page { max-width: 1280px; margin: 0 auto; padding: 24px; }
 .bp-promo-band { background: linear-gradient(135deg, var(--tf-dark2) 0%, var(--tf-dark) 100%); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; color: var(--tf-white); }
+.bp-promo-band a.bp-promo-view-all,
 .bp-promo-view-all {
-  color: var(--tf-sand, #D9CAB3);
+  color: var(--tf-orange, #F26522) !important;
   font-size: 0.85rem;
   font-weight: 600;
-  text-decoration: none;
-  border-bottom: 1px solid currentColor;
+  text-decoration: none !important;
+  border-bottom: none;
   white-space: nowrap;
 }
-.bp-promo-view-all:hover { color: var(--tf-white); }
+.bp-promo-band a.bp-promo-view-all:hover,
+.bp-promo-view-all:hover {
+  color: var(--tf-orange-h, #FF7A3D) !important;
+  text-decoration: none !important;
+}
+.bp-promo-card {
+  background: #243545;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+}
+.bp-promo-card:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+  transform: translateY(-2px);
+}
 .bp-promo-prices {
   display: flex;
   flex-direction: column;

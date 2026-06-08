@@ -160,20 +160,84 @@ show_cart_actions, tienda_params.
     display: flex;
     gap: 1rem;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding: 4px 40px 8px;
     scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
   .bp-promo-scroll::-webkit-scrollbar { display: none; }
+  .bp-promo-carousel-body {
+    position: relative;
+  }
+  .bp-promo-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(15, 42, 68, 0.72);
+    color: rgba(255, 255, 255, 0.92);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+    backdrop-filter: blur(4px);
+  }
+  .bp-promo-nav:hover {
+    background: rgba(15, 42, 68, 0.92);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  .bp-promo-nav:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .bp-promo-nav .material-symbols-rounded { font-size: 20px; }
+  .bp-promo-nav--prev { left: 4px; }
+  .bp-promo-nav--next { right: 4px; }
+  .bp-promo-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    min-height: 10px;
+  }
+  .bp-promo-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    border: none;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.32);
+    cursor: pointer;
+    transition: width 0.2s ease, background 0.2s ease;
+  }
+  .bp-promo-dot.is-active {
+    width: 22px;
+    background: var(--tf-orange);
+  }
   .bp-promo-card {
     min-width: 180px;
-    background: rgba(255, 255, 255, 0.07);
+    background: #243545;
     border-radius: 10px;
     padding: 1rem;
     text-decoration: none;
     flex-shrink: 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    scroll-snap-align: start;
+    transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+  }
+  .bp-promo-card:hover {
+    background: #2a3f52;
+    border-color: rgba(148, 163, 184, 0.55);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+    transform: translateY(-2px);
+    text-decoration: none;
   }
   .bp-promo-badge {
     background: var(--tf-teal, var(--tf-blue));
@@ -216,19 +280,22 @@ show_cart_actions, tienda_params.
     gap: 2px;
     margin-top: 0.5rem;
   }
+  .bp-promo-band a.bp-promo-view-all,
   .bp-promo-view-all {
-    color: var(--tf-sand, #D9CAB3);
+    color: var(--tf-orange) !important;
     font-size: 0.85rem;
     font-weight: 600;
-    text-decoration: none;
-    border-bottom: 1px solid currentColor;
+    text-decoration: none !important;
+    border-bottom: none;
     white-space: nowrap;
     flex-shrink: 0;
     transition: color 0.18s ease, opacity 0.18s ease;
   }
+  .bp-promo-band a.bp-promo-view-all:hover,
   .bp-promo-view-all:hover {
-    color: var(--tf-white);
-    opacity: 0.92;
+    color: var(--tf-orange-h) !important;
+    text-decoration: none !important;
+    opacity: 1;
   }
   .td-btn-clear-filters {
     display: none;
@@ -449,18 +516,22 @@ show_cart_actions, tienda_params.
     flex-wrap: wrap;
   }
   .td-search-wrap {
-    flex: 1;
-    min-width: 220px;
     position: relative;
+    width: 100%;
   }
   .td-search-wrap .material-symbols-rounded {
     position: absolute;
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--tf-muted);
+    color: #9ca3af;
     font-size: 18px;
     pointer-events: none;
+    line-height: 1;
+    z-index: 1;
+  }
+  .td-search-wrap--sidebar {
+    margin: 0 16px 12px;
   }
   .td-search-input {
     width: 100%;
@@ -468,6 +539,7 @@ show_cart_actions, tienda_params.
     border: 1.5px solid #E5E7EB;
     border-radius: 10px;
     font-size: 14px;
+    font-family: var(--tf-font-body, 'Montserrat', sans-serif);
     box-sizing: border-box;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
@@ -886,9 +958,9 @@ show_cart_actions, tienda_params.
           {% if tab_catalogo and tab_catalogo != 'todos' %}
           <input type="hidden" name="tab" value="{{ tab_catalogo }}">
           {% endif %}
-          <div style="position:relative;margin:0 16px 12px;" class="td-span-2">
-            <span class="material-symbols-rounded" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tf-muted);font-size:18px;pointer-events:none;">search</span>
-            <input type="text" name="buscar" id="input-buscar" placeholder="Search products, SKU..." value="{{ buscar }}" class="td-search-input" style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-family:var(--tf-font-body);box-sizing:border-box;">
+          <div class="td-search-wrap td-search-wrap--sidebar td-span-2">
+            <span class="material-symbols-rounded" aria-hidden="true">search</span>
+            <input type="text" name="buscar" id="input-buscar" placeholder="Search products, SKU..." value="{{ buscar }}" class="td-search-input">
           </div>
           <div class="td-filter-primary">
             <div>
@@ -954,7 +1026,7 @@ show_cart_actions, tienda_params.
 
     <div class="td-main">
       {% if productos_promo %}
-      <section class="bp-promo-band" aria-labelledby="bp-promo-title" style="overflow:hidden;position:relative;">
+      <section class="bp-promo-band" id="bp-promo-carousel" aria-labelledby="bp-promo-title" style="overflow:hidden;position:relative;">
         <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle, rgba(217,202,179,0.15) 0%, transparent 70%);pointer-events:none;"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:12px;">
           <div>
@@ -963,18 +1035,27 @@ show_cart_actions, tienda_params.
           </div>
           <a href="{{ tab_urls.ofertas }}" class="bp-promo-view-all">View all →</a>
         </div>
-        <div class="bp-promo-scroll" role="list">
-          {% for producto in productos_promo %}
-          <a href="{% url 'tienda' %}?producto={{ producto.id }}" class="bp-promo-card" role="listitem">
-            <span class="bp-promo-badge">-{{ producto.discount_pct }}%</span>
-            <div class="bp-promo-name">{{ producto.name }}</div>
-            <div class="bp-promo-prices">
-              <div class="bp-promo-was">{{ producto.unit_price|money_usd }}</div>
-              <div class="bp-promo-price">{{ producto.display_price|money_usd }}</div>
-            </div>
-          </a>
-          {% endfor %}
+        <div class="bp-promo-carousel-body">
+          <button type="button" class="bp-promo-nav bp-promo-nav--prev" id="bp-promo-prev" aria-label="Previous deals">
+            <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+          </button>
+          <div class="bp-promo-scroll" id="bp-promo-track" role="list" tabindex="0" aria-label="Active deals carousel">
+            {% for producto in productos_promo %}
+            <a href="{% url 'tienda' %}?producto={{ producto.id }}" class="bp-promo-card" role="listitem">
+              <span class="bp-promo-badge">-{{ producto.discount_pct }}%</span>
+              <div class="bp-promo-name">{{ producto.name }}</div>
+              <div class="bp-promo-prices">
+                <div class="bp-promo-was">{{ producto.unit_price|money_usd }}</div>
+                <div class="bp-promo-price">{{ producto.display_price|money_usd }}</div>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+          <button type="button" class="bp-promo-nav bp-promo-nav--next" id="bp-promo-next" aria-label="Next deals">
+            <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+          </button>
         </div>
+        <div class="bp-promo-dots" id="bp-promo-dots" role="tablist" aria-label="Deal carousel pages"></div>
       </section>
       {% endif %}
       {% if promo_banner %}
@@ -1083,5 +1164,6 @@ show_cart_actions, tienda_params.
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/tienda_promo_carousel.js' %}?v={{ tf_asset_version }}"></script>
 <script src="{% static 'js/tienda_catalog.js' %}?v={{ tf_asset_version }}"></script>
 {% endblock %}
