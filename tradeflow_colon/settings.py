@@ -131,6 +131,7 @@ TEMPLATES = [
                 'core.context_processors.tradeflow_contact',
                 'core.context_processors.supabase_public',
                 'core.context_processors.enterprise_saas',
+                'core.context_processors.tf_asset_version',
             ],
         },
     },
@@ -220,6 +221,8 @@ LOCALE_PATHS = [BASE_DIR / 'locale']
 STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# Cache-bust query param for JS/CSS after deploy (set TRADEFLOW_ASSET_VERSION on Railway).
+TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='7f8f37d')
 
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
 MEDIA_URL  = '/media/'

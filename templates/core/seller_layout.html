@@ -2,7 +2,7 @@
 {% load static %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/colors.css' %}">
-<link rel="stylesheet" href="{% static 'css/seller_portal_premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/seller_portal_premium.css' %}?v={{ tf_asset_version }}">
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 {% block seller_extra_head %}{% endblock %}
 {% endblock %}
@@ -158,6 +158,6 @@
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
-<script src="{% static 'js/seller_portal.js' %}"></script>
+<script src="{% static 'js/seller_portal.js' %}?v={{ tf_asset_version }}"></script>
 {% block seller_extra_js %}{% endblock %}
 {% endblock %}

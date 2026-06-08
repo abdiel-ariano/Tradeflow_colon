@@ -417,7 +417,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
 <script src="{% static 'vendor/chartjs/chartjs-plugin-datalabels.min.js' %}"></script>
 <script src="{% static 'js/admin_rail.js' %}"></script>
-<script src="{% static 'js/dashboard_charts.js' %}"></script>
+<script src="{% static 'js/dashboard_charts.js' %}?v={{ tf_asset_version }}"></script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var stMap = {

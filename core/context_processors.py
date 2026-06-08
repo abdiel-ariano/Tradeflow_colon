@@ -139,3 +139,8 @@ def supabase_public(request):
         'SUPABASE_ANON_KEY': anon,
         'SUPABASE_REALTIME_ENABLED': bool(url and anon),
     }
+
+
+def tf_asset_version(request):
+    """Version string for static asset cache busting (?v=)."""
+    return {'tf_asset_version': getattr(settings, 'TRADEFLOW_ASSET_VERSION', '1')}
