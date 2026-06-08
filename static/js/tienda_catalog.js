@@ -164,7 +164,7 @@
             catalogRoot.getAttribute('data-buscar-active') ||
             (catalogRoot.getAttribute('data-orden-active') || 'nombre') !== 'nombre'
           );
-          btnLimpiar.style.display = hay ? 'block' : 'none';
+          btnLimpiar.classList.toggle('is-visible', hay);
         }
 
         document.querySelectorAll('.td-spotlight').forEach(function (el) {
@@ -295,6 +295,17 @@
 
   window.tfTiendaLoadCatalog = loadCatalog;
   bindCartForms();
+
+  var btnLimpiarInit = document.getElementById('btn-limpiar');
+  if (btnLimpiarInit && catalogRoot) {
+    var hayInit = !!(
+      catalogRoot.getAttribute('data-cat-active') ||
+      catalogRoot.getAttribute('data-empresa-active') ||
+      catalogRoot.getAttribute('data-buscar-active') ||
+      (catalogRoot.getAttribute('data-orden-active') || 'nombre') !== 'nombre'
+    );
+    btnLimpiarInit.classList.toggle('is-visible', hayInit);
+  }
   markPagination(catalogRoot.getAttribute('data-cur-page') || '1');
   markTabs(meta ? meta.getAttribute('data-tab-active') || 'todos' : 'todos');
 })();

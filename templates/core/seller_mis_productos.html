@@ -52,7 +52,7 @@
        loading="lazy">
   {% endwith %}
   {% endif %}
-  <div>
+  <div class="sp-product-info">
     <div style="font-weight:700;color:var(--tf-navy);">{{ p.name }}</div>
     <div style="font-size:12px;color:var(--tf-muted);">{{ p.sku|default:"—" }} · {{ p.category.name|default:"—" }}</div>
     <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-top:6px;">{{ p.currency }} {{ p.display_price }}</div>
