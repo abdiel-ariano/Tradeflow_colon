@@ -54,6 +54,71 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
     color: #94a3b8;
     font-weight: 400;
   }
+  .auth-field-label-subtle {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+  }
+  .auth-password-wrap {
+    position: relative;
+    width: 100%;
+  }
+  .auth-password-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 40px 10px 16px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    outline: none;
+    font-size: 0.875rem;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #1e293b;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .auth-password-input::placeholder {
+    color: #9ca3af;
+  }
+  .auth-password-input:hover {
+    background: #f1f5f9;
+  }
+  .auth-password-input:focus {
+    background: #ffffff;
+    border-color: var(--tf-orange, #F26522);
+    box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.2);
+  }
+  .auth-password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: color 0.18s ease;
+  }
+  .auth-password-toggle:hover {
+    color: #475569;
+  }
+  .auth-password-toggle:focus {
+    outline: none;
+  }
+  .auth-password-toggle:focus-visible {
+    outline: 2px solid rgba(242, 101, 34, 0.45);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .auth-password-toggle .material-symbols-rounded {
+    font-size: 20px;
+    line-height: 1;
+  }
   .auth-submit {
     width: 100%; margin-top: 0.5rem; padding: 12px 16px; border: none; border-radius: 8px;
     font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.9375rem; color: #fff;
@@ -120,12 +185,24 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
       </div>
       <div class="row-2">
         <div class="tf-field">
-          <label class="tf-label" for="id_password1">Password <span class="req">*</span></label>
-          <input type="password" name="password1" id="id_password1" class="tf-input" placeholder="Min. 8 characters" autocomplete="new-password" required>
+          <label class="auth-field-label-subtle" for="id_password1">Password <span class="req">*</span></label>
+          <div class="auth-password-wrap">
+            <input type="password" name="password1" id="id_password1" class="auth-password-input" placeholder="Min. 8 characters" autocomplete="new-password" required>
+            <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Show password" aria-pressed="false" data-target="id_password1">
+              <span class="material-symbols-rounded js-pw-icon-show" aria-hidden="true">visibility</span>
+              <span class="material-symbols-rounded js-pw-icon-hide" aria-hidden="true" hidden>visibility_off</span>
+            </button>
+          </div>
         </div>
         <div class="tf-field">
-          <label class="tf-label" for="id_password2">Password <span class="req">*</span></label>
-          <input type="password" name="password2" id="id_password2" class="tf-input" placeholder="Password" autocomplete="new-password" required>
+          <label class="auth-field-label-subtle" for="id_password2">Confirm password <span class="req">*</span></label>
+          <div class="auth-password-wrap">
+            <input type="password" name="password2" id="id_password2" class="auth-password-input" placeholder="Re-enter password" autocomplete="new-password" required>
+            <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Show password" aria-pressed="false" data-target="id_password2">
+              <span class="material-symbols-rounded js-pw-icon-show" aria-hidden="true">visibility</span>
+              <span class="material-symbols-rounded js-pw-icon-hide" aria-hidden="true" hidden>visibility_off</span>
+            </button>
+          </div>
         </div>
       </div>
       <button type="submit" class="auth-submit">
@@ -143,6 +220,22 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
   var role = "{{ selected_role|escapejs }}";
   var seller = document.getElementById('r_seller');
   if (seller && role === "seller") seller.checked = true;
+  document.querySelectorAll('.js-password-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var inputId = btn.getAttribute('data-target');
+      var input = inputId ? document.getElementById(inputId) : null;
+      if (!input) return;
+      var showIcon = btn.querySelector('.js-pw-icon-show');
+      var hideIcon = btn.querySelector('.js-pw-icon-hide');
+      var visible = input.type === 'text';
+      input.type = visible ? 'password' : 'text';
+      btn.setAttribute('aria-pressed', visible ? 'false' : 'true');
+      btn.setAttribute('aria-label', visible ? 'Show password' : 'Hide password');
+      if (showIcon) showIcon.hidden = !visible;
+      if (hideIcon) hideIcon.hidden = visible;
+    });
+  });
+
   if (window.performance &&
       window.performance.navigation &&
       window.performance.navigation.type ===
@@ -150,6 +243,17 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
     document.querySelectorAll(
       'input[type="text"], input[type="email"], input[type="password"], input[type="tel"]'
     ).forEach(function (el) { el.value = ''; });
+    document.querySelectorAll('.js-password-toggle').forEach(function (btn) {
+      var inputId = btn.getAttribute('data-target');
+      var input = inputId ? document.getElementById(inputId) : null;
+      if (input) input.type = 'password';
+      btn.setAttribute('aria-pressed', 'false');
+      btn.setAttribute('aria-label', 'Show password');
+      var showIcon = btn.querySelector('.js-pw-icon-show');
+      var hideIcon = btn.querySelector('.js-pw-icon-hide');
+      if (showIcon) showIcon.hidden = false;
+      if (hideIcon) hideIcon.hidden = true;
+    });
   }
 })();
 </script>
