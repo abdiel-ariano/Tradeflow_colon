@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static tf_money %}
+{% load static tf_money tf_catalog %}
 {% comment %}
 ================================================================================
 templates/core/tienda.html — TradeFlow Colón
@@ -70,10 +70,11 @@ show_cart_actions, tienda_params.
   }
   .td-hero-h1 {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(1.6rem, 3vw, 2.25rem);
-    color: var(--tf-white);
+    font-size: clamp(1.375rem, 2.5vw, 1.875rem);
+    font-weight: 700;
+    color: #ffffff;
     margin: 0 0 8px;
-    line-height: 1.2;
+    line-height: 1.25;
   }
   .td-hero-desc {
     color: rgba(255, 255, 255, 0.78);
@@ -630,10 +631,11 @@ show_cart_actions, tienda_params.
     gap: 12px;
   }
   .td-results-hdr h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--tf-navy);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e293b;
     margin: 0;
+    line-height: 1.3;
   }
   .td-results-count {
     font-size: 13px;
@@ -1025,7 +1027,7 @@ show_cart_actions, tienda_params.
               <select name="categoria" id="select-categoria" class="td-filter-select">
                 <option value="">All categories</option>
                 {% for cat in categorias %}
-                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                <option value="{{ cat.id }}">{{ cat.name|category_label }}</option>
                 {% endfor %}
               </select>
             </div>
@@ -1066,7 +1068,7 @@ show_cart_actions, tienda_params.
                 <li>
                   <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="td-cat-link tf-cat-link" data-categoria-id="{{ cat.id }}" data-active="{% if cat_activa == cat.pk|stringformat:'s' %}true{% else %}false{% endif %}">
                     <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">category</span>
-                    {{ cat.name }}
+                    {{ cat.name|category_label }}
                   </a>
                 </li>
                 {% endfor %}

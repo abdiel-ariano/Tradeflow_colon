@@ -9,7 +9,7 @@ USO:
     python manage.py cargar_demo
 
 RESULTADO:
-    - 3 categorías (Electrónica, Textiles, Perfumería)
+    - 3 categorías (Electronics, Textiles, Perfumería)
     - 3 empresas de la Zona Libre de Colón
     - 9 productos con imágenes descargadas automáticamente
     - 1 usuario buyer de demo  (usuario: demo_buyer  / clave: Demo1234!)
@@ -47,7 +47,7 @@ TRANSPORTISTAS = [
 # ---------------------------------------------------------------------------
 
 CATEGORIAS = [
-    'Electrónica',
+    'Electronics',
     'Textiles',
     'Perfumería y Cosméticos',
 ]
