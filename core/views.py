@@ -967,14 +967,20 @@ def api_home_merchandising(request):
     return JsonResponse(data)
 
 
-_ASSISTANT_SYSTEM_PROMPT = (
-    "You are TradeFlow Colón's virtual assistant. TradeFlow Colón is a B2B/B2C "
-    "marketplace for the Colón Free Zone in Panama — the world's second largest "
-    "free trade zone. Help users with questions about: how to register, how to "
-    "buy products, how to become a seller, what is the Colón Free Zone, shipping "
-    "and logistics, and general platform navigation. Be concise, professional, "
-    "and always respond in the same language the user writes in."
-)
+def _assistant_system_prompt() -> str:
+    from core.utils.saas_plan_catalog import build_saas_plans_ai_context
+
+    return (
+        "You are TradeFlow Colón's virtual assistant. TradeFlow Colón is a B2B/B2C "
+        "marketplace for the Colón Free Zone in Panama — the world's second largest "
+        "free trade zone. Help users with questions about: how to register, how to "
+        "buy products, how to become a seller, seller SaaS plans and commissions, "
+        "what is the Colón Free Zone, shipping and logistics, and general platform "
+        "navigation. Be concise, professional, and always respond in the same "
+        "language the user writes in. For seller plans use ONLY the data below; "
+        "do not invent prices or commissions.\n\n"
+        f"{build_saas_plans_ai_context()}"
+    )
 
 _ASSISTANT_FALLBACK = (
     "I'm sorry, the assistant is temporarily unavailable. Please try again in a "
@@ -1046,7 +1052,7 @@ def api_asistente(request):
         logging.getLogger('tradeflow.ai').warning('api_asistente: GROQ_API_KEY not configured')
         return _asistente_json_payload(_ASSISTANT_FALLBACK)
 
-    messages = [{'role': 'system', 'content': _ASSISTANT_SYSTEM_PROMPT}]
+    messages = [{'role': 'system', 'content': _assistant_system_prompt()}]
     if isinstance(historial, list):
         for item in historial[-6:]:
             if not isinstance(item, dict):
