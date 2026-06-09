@@ -47,6 +47,13 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
   .auth-toggle input:checked + label small { color: rgba(255,255,255,0.75); }
   .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .req { color: #EF4444; }
+  .auth-field-hint {
+    margin: 4px 0 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #94a3b8;
+    font-weight: 400;
+  }
   .auth-submit {
     width: 100%; margin-top: 0.5rem; padding: 12px 16px; border: none; border-radius: 8px;
     font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.9375rem; color: #fff;
@@ -91,7 +98,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
         <div class="tf-field">
           <label class="tf-label" for="id_first_name">First name <span class="req">*</span></label>
           <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="First name" value="{{ form_first_name|default:'' }}" required>
-          <p style="font-size:12px; color:#6B7A88; margin-top:4px;">Letters and spaces only (no numbers or symbols).</p>
+          <p class="auth-field-hint">Letters and spaces only (no numbers or symbols).</p>
         </div>
         <div class="tf-field">
           <label class="tf-label" for="id_last_name">Last name</label>
@@ -105,7 +112,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
       <div class="tf-field">
         <label class="tf-label" for="id_username">Username <span class="req">*</span></label>
         <input type="text" name="username" id="id_username" class="tf-input" placeholder="Username" autocomplete="off" required>
-        <p style="font-size:12px; color:#6B7A88; margin-top:4px;">Letters, numbers, dots, and underscores only. Must start with a letter (3–30 characters).</p>
+        <p class="auth-field-hint">Letters, numbers, dots, and underscores only. Must start with a letter (3–30 characters).</p>
       </div>
       <div class="tf-field">
         <label class="tf-label" for="id_phone">Phone</label>
