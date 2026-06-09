@@ -103,9 +103,19 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
     border-color: var(--tf-orange, #F26522);
     box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.2);
   }
+  .auth-password-input::-ms-reveal,
+  .auth-password-input::-ms-clear {
+    display: none !important;
+  }
+  .auth-password-input::-webkit-credentials-auto-fill-button,
+  .auth-password-input::-webkit-textfield-decoration-container {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
   .auth-password-toggle {
     position: absolute;
-    right: 14px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
@@ -117,9 +127,9 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
     margin: 0;
     border: none;
     background: transparent;
-    color: #9ca3af;
+    color: #94a3b8;
     cursor: pointer;
-    transition: color 0.18s ease;
+    transition: color 0.2s ease;
   }
   .auth-password-toggle:hover {
     color: #475569;
@@ -208,8 +218,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
           <div class="auth-password-wrap">
             <input type="password" name="password1" id="id_password1" class="auth-password-input" placeholder="Min. 8 characters" autocomplete="new-password" required>
             <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Show password" aria-pressed="false" data-target="id_password1">
-              <span class="material-symbols-rounded js-pw-icon-show" aria-hidden="true">visibility</span>
-              <span class="material-symbols-rounded js-pw-icon-hide" aria-hidden="true" hidden>visibility_off</span>
+              <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
             </button>
           </div>
         </div>
@@ -218,8 +227,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
           <div class="auth-password-wrap">
             <input type="password" name="password2" id="id_password2" class="auth-password-input" placeholder="Re-enter password" autocomplete="new-password" required>
             <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Show password" aria-pressed="false" data-target="id_password2">
-              <span class="material-symbols-rounded js-pw-icon-show" aria-hidden="true">visibility</span>
-              <span class="material-symbols-rounded js-pw-icon-hide" aria-hidden="true" hidden>visibility_off</span>
+              <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
             </button>
           </div>
         </div>
@@ -239,19 +247,23 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
   var role = "{{ selected_role|escapejs }}";
   var seller = document.getElementById('r_seller');
   if (seller && role === "seller") seller.checked = true;
+  function syncPasswordToggle(btn, visible) {
+    var inputId = btn.getAttribute('data-target');
+    var input = inputId ? document.getElementById(inputId) : null;
+    if (!input) return;
+    input.type = visible ? 'text' : 'password';
+    btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
+    btn.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+    var icon = btn.querySelector('.js-pw-icon');
+    if (icon) icon.textContent = visible ? 'visibility_off' : 'visibility';
+  }
+
   document.querySelectorAll('.js-password-toggle').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var inputId = btn.getAttribute('data-target');
       var input = inputId ? document.getElementById(inputId) : null;
       if (!input) return;
-      var showIcon = btn.querySelector('.js-pw-icon-show');
-      var hideIcon = btn.querySelector('.js-pw-icon-hide');
-      var visible = input.type === 'text';
-      input.type = visible ? 'password' : 'text';
-      btn.setAttribute('aria-pressed', visible ? 'false' : 'true');
-      btn.setAttribute('aria-label', visible ? 'Show password' : 'Hide password');
-      if (showIcon) showIcon.hidden = !visible;
-      if (hideIcon) hideIcon.hidden = visible;
+      syncPasswordToggle(btn, input.type !== 'text');
     });
   });
 
@@ -263,15 +275,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
       'input[type="text"], input[type="email"], input[type="password"], input[type="tel"]'
     ).forEach(function (el) { el.value = ''; });
     document.querySelectorAll('.js-password-toggle').forEach(function (btn) {
-      var inputId = btn.getAttribute('data-target');
-      var input = inputId ? document.getElementById(inputId) : null;
-      if (input) input.type = 'password';
-      btn.setAttribute('aria-pressed', 'false');
-      btn.setAttribute('aria-label', 'Show password');
-      var showIcon = btn.querySelector('.js-pw-icon-show');
-      var hideIcon = btn.querySelector('.js-pw-icon-hide');
-      if (showIcon) showIcon.hidden = false;
-      if (hideIcon) hideIcon.hidden = true;
+      syncPasswordToggle(btn, false);
     });
   }
 })();

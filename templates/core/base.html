@@ -849,6 +849,18 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
     .tf-input::placeholder { color: var(--tf-muted); }
 
+    /* Hide native password reveal controls (Edge, Chrome, etc.) */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear {
+      display: none !important;
+    }
+    input[type="password"]::-webkit-credentials-auto-fill-button,
+    input[type="password"]::-webkit-textfield-decoration-container {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
     /* ----- Cards ----- */
     .tf-card {
       background: var(--tf-white);
