@@ -1524,7 +1524,7 @@ def lista_ordenes(request):
         filtros_q['estado'] = estado
     orden_filtros_query = urlencode(filtros_q)
 
-    estado_opciones = [{'value': '', 'label': 'Todos los estados', 'selected': not bool(estado)}]
+    estado_opciones = [{'value': '', 'label': 'All statuses', 'selected': not bool(estado)}]
     for val, label in Order.STATUS_CHOICES:
         estado_opciones.append({
             'value':    val,
