@@ -19,8 +19,29 @@
   align-items: flex-start;
   gap: 10px;
   padding: 8px 12px 16px;
-  border-bottom: 1px solid var(--tf-border, #D1D5DB);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 8px;
+}
+
+.sp-brand-logo-link {
+  display: inline-flex;
+  text-decoration: none;
+  color: inherit;
+  line-height: 0;
+}
+
+.sp-brand-company {
+  display: block;
+  font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  line-height: 1.35;
+  max-width: 100%;
+  word-break: break-word;
 }
 
 .sp-brand-logo .tf-logo-wordmark {

@@ -2,9 +2,8 @@
 {% load static %}
 {% block title %}Seller panel — {{ company.name }}{% endblock %}
 {% block seller_page_title %}Hello, {{ name }}{% endblock %}
-{% block seller_page_sub %}<p class="sp-topbar-sub">{{ company.name }} · Operations center</p>{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Operations center</p>{% endblock %}
 {% block seller_topbar_actions %}
-<a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-secondary">My Sales</a>
 <a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>Product</a>
 {% endblock %}
 

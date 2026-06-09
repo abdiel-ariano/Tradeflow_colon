@@ -69,9 +69,6 @@
       gap: 8px !important;
       padding: 12px !important;
     }
-    #sp-menu-toggle {
-      display: none !important;
-    }
   }
 </style>
 {% block seller_extra_css %}{% endblock %}
@@ -79,10 +76,12 @@
 {% block content %}
 <div class="sp-shell" id="sp-shell">
   <aside class="sp-sidebar" id="sp-sidebar" aria-label="Seller panel">
-    <a href="{% url 'portal_seller' %}" class="sp-brand-logo" style="text-decoration:none;">
-      {% include "core/includes/tf_logo.html" with variant="icon-color" size="sidebar" class="sp-logo-wordmark" %}
-      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);">{{ company.name|default:"TradeFlow" }}</span>
-    </a>
+    <div class="sp-brand-logo">
+      <a href="{% url 'portal_seller' %}" class="sp-brand-logo-link" aria-label="Seller dashboard">
+        {% include "core/includes/tf_logo.html" with variant="icon-color" size="sidebar" class="sp-logo-wordmark" %}
+      </a>
+      <span class="sp-brand-company">{{ company.name|default:"TradeFlow" }}</span>
+    </div>
     <nav class="sp-nav">
       <a href="{% url 'portal_seller' %}" data-sp-nav="mi_tienda">
         <span class="material-symbols-rounded">dashboard</span>Dashboard
@@ -116,17 +115,9 @@
   <div class="sp-main">
     {% block seller_topbar %}
     <header class="sp-topbar">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <button type="button" class="sp-btn sp-btn-secondary" id="sp-menu-toggle" style="display:none;padding:8px;" aria-label="Menu">
-          <span class="material-symbols-rounded">menu</span>
-        </button>
-        <div style="display:flex;align-items:center;gap:12px;">
-          {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="sp-topbar-logo" lazy=1 %}
-          <div>
-            <h1>{% block seller_page_title %}{{ titulo_pagina|default:"My Panel" }}{% endblock %}</h1>
-            {% block seller_page_sub %}{% endblock %}
-          </div>
-        </div>
+      <div class="sp-topbar-intro">
+        <h1>{% block seller_page_title %}{{ titulo_pagina|default:"My Panel" }}{% endblock %}</h1>
+        {% block seller_page_sub %}{% endblock %}
       </div>
       <div class="sp-topbar-actions">
         {% block seller_topbar_actions %}
@@ -149,10 +140,6 @@
   document.querySelectorAll('[data-sp-nav]').forEach(function (a) {
     if (a.getAttribute('data-sp-nav') === nav) a.classList.add('is-active');
   });
-  var t = document.getElementById('sp-menu-toggle');
-  var s = document.getElementById('sp-sidebar');
-  if (t && s) t.addEventListener('click', function () { s.classList.toggle('is-open'); });
-  if (window.matchMedia('(max-width:900px)').matches && t) t.style.display = 'inline-flex';
 })();
 </script>
 {% endblock %}
