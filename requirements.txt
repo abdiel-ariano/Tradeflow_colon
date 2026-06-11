@@ -65,5 +65,5 @@ groq>=0.9.0,<1.0
 argon2-cffi>=23.1,<24.0         # backend Argon2 para Django PASSWORD_HASHERS
 
 # ── Supabase Storage (opcional, media en bucket S3-compatible) ─────────────
-django-storages>=1.14,<2.0
+django-storages>=1.14.6,<2.0
 boto3>=1.34                     # sin upper bound: PyPI rota wheels antiguos
