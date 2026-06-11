@@ -53,7 +53,7 @@ folium>=0.16,<0.17
 qrcode[pil]>=7.4,<8.0
 
 # ── Supabase (Postgres remoto, Storage, Edge Functions) ───────────────────
-supabase>=2.4,<3.0
+supabase>=2.31.0,<3.0
 
 # ── Rate limiting login ────────────────────────────────────────────────────
 django-axes>=6.3,<7.0
