@@ -1,0 +1,4 @@
+# Fuerza el provider de Python. Sin el comodín "..." se SOBRESCRIBE la
+# autodetección de Nixpacks: así no elige Deno por los archivos .ts de la
+# Edge Function de Supabase (que causaba "pip/python: command not found").
+providers = ["python"]
