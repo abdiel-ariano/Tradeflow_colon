@@ -19,7 +19,7 @@ Estilos exclusivos del Dashboard (KPI cards + gráficos).
   text-decoration: none;
 }
 .date-pill:hover { border-color: var(--color-primary); color: var(--color-primary); }
-.date-pill.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+.date-pill.active { background: var(--color-primary); color: var(--color-primary-fg, #fff); border-color: var(--color-primary); }
 
 /* KPI Grid */
 .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
