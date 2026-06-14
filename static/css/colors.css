@@ -104,6 +104,13 @@ CONVENCIÓN DE SUFIJOS
   --color-danger-subtle:  rgba(231,76,60,0.15);  /* fondo botón logout */
   --color-danger-hover:   rgba(231,76,60,0.3);   /* hover botón logout */
 
+  /* Foreground (-fg): color de texto sobre fondos sólidos de marca.
+     Se elige el color de la paleta con mejor contraste WCAG sobre cada fondo
+     (no se altera ningún fondo de la paleta). */
+  --color-primary-fg:     #ffffff;   /* blanco sobre --color-primary / -dark */
+  --color-danger-fg:      #ffffff;   /* blanco sobre --color-danger */
+  --color-success-fg:     #0F2A44;   /* navy: el blanco no alcanza AA sobre el verde sólido */
+
 
   /* ════════════════════════════════════════════════════════
      3. ALERTAS  --alert-*
