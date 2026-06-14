@@ -22,8 +22,8 @@ Estilos del wizard multi-step de Nueva Orden.
   font-weight: 700;
   transition: var(--transition);
 }
-.step-circle.active { border-color: var(--color-primary); background: var(--color-primary); color: white; }
-.step-circle.done   { border-color: var(--color-success); background: var(--color-success); color: white; }
+.step-circle.active { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-primary-fg, #fff); }
+.step-circle.done   { border-color: var(--color-success); background: var(--color-success); color: var(--color-success-fg, #0F2A44); }
 .step-label { font-size: 0.8rem; color: var(--color-muted); }
 .step-label.active { color: var(--color-primary); font-weight: 600; }
 .step-label.done   { color: var(--color-success); }
