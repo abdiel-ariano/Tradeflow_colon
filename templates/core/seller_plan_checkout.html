@@ -137,7 +137,7 @@
             </div>
           </div>
         </div>
-        <button type="submit" class="sp-btn sp-btn-primary" style="width:100%;margin-top:20px;justify-content:center;padding:14px;">
+        <button type="submit" id="sp-checkout-submit" class="sp-btn sp-btn-primary" style="width:100%;margin-top:20px;justify-content:center;padding:14px;">
           Pay and activate plan
         </button>
         <p class="sp-secure-badge">
@@ -182,4 +182,30 @@
     </aside>
   </div>
 </div>
+{% endblock %}
+
+{% block seller_extra_js %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var I = window.TF_I18N || {};
+  var form = document.getElementById('sp-checkout-form');
+  var submit = document.getElementById('sp-checkout-submit');
+  if (!form || !submit) return;
+  // Evita doble POST (doble cobro/activación): al enviar, deshabilita el botón.
+  var submitted = false;
+  form.addEventListener('submit', function (e) {
+    // Respeta la validación nativa: si el form es inválido, no hacer nada.
+    if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+      return;
+    }
+    if (submitted) {
+      e.preventDefault();
+      return;
+    }
+    submitted = true;
+    submit.disabled = true;
+    submit.textContent = I.processing || 'Processing…';
+  });
+})();
+</script>
 {% endblock %}

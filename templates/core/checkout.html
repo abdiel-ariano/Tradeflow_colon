@@ -87,6 +87,7 @@
   var status = document.getElementById('co-geo-status');
   var btn = document.getElementById('co-geo-btn');
   var submit = document.getElementById('co-submit');
+  var form = document.getElementById('co-form');
 
   function setOk() {
     btn.classList.add('is-ok', 'tf-pulse-once');
@@ -110,6 +111,24 @@
       status.style.color = '#b91c1c';
     }, { enableHighAccuracy: true, timeout: 12000 });
   });
+
+  // Evita doble POST (doble Order/Payment): al enviar, deshabilita el botón.
+  if (form && submit) {
+    var submitted = false;
+    form.addEventListener('submit', function (e) {
+      // Respeta la validación nativa: si el form es inválido, no hacer nada.
+      if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+        return;
+      }
+      if (submitted) {
+        e.preventDefault();
+        return;
+      }
+      submitted = true;
+      submit.disabled = true;
+      submit.textContent = I.processing || 'Processing…';
+    });
+  }
 })();
 </script>
 {% endblock %}
