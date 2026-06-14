@@ -90,6 +90,7 @@ def tf_i18n(request):
         'geoUnsupported': 'Your browser does not support geolocation.',
         'awaitingSeller': 'Awaiting company confirmation',
         'orderUpdated': 'Order status updated',
+        'processing': 'Processing…',
         'supportEmailPrompt': f'We will improve it. Email us at {contact}',
     }
     return {'tf_i18n': payload}
