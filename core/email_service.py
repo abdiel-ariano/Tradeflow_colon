@@ -188,6 +188,7 @@ def _send_via_django(
             html_message=html,
             email_type=email_type,
             fail_silently=False,
+            skip_supabase=True,
         )
         backend = getattr(settings, 'EMAIL_BACKEND', 'django')
         return EmailSendResult(ok=True, channel=f'django:{backend.split(".")[-1]}')

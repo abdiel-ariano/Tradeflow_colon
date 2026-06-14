@@ -38,6 +38,41 @@ def validate_email_infrastructure() -> list[str]:
     return warnings
 
 
+def _try_supabase_delivery(
+    subject: str,
+    message: str,
+    recipient_list: list,
+    html_message: str | None,
+    email_type: str,
+) -> bool:
+    """Envía vía Supabase Edge Function (HTTPS) si está habilitada.
+
+    Devuelve True solo si TODOS los destinatarios se enviaron por Supabase.
+    Es la ruta que funciona en hosts que bloquean el SMTP saliente (Railway).
+    """
+    try:
+        # Import perezoso para evitar import circular con email_service.
+        from core.email_service import _send_via_supabase, _supabase_email_enabled
+    except Exception:  # pragma: no cover
+        return False
+    if not _supabase_email_enabled():
+        return False
+    recipients = [r for r in (recipient_list or []) if r]
+    if not recipients:
+        return False
+    html = html_message or message or ''
+    text = message or ''
+    for r in recipients:
+        result = _send_via_supabase(r, subject, html, text, email_type)
+        if not result.ok:
+            log.warning(
+                'supabase_delivery_failed type=%s to=%s detail=%s',
+                email_type, r, result.detail,
+            )
+            return False
+    return True
+
+
 def deliver_mail(
     subject: str,
     message: str,
@@ -48,17 +83,34 @@ def deliver_mail(
     email_type: str = 'transactional',
     fail_silently: bool = False,
     max_attempts: int = 2,
+    skip_supabase: bool = False,
     **_kwargs,
 ) -> bool:
     """
     Envía correo con registro en ``EmailDeliveryLog`` y un reintento opcional.
 
-    Usa ``EMAIL_BACKEND`` de Django (Gmail SMTP en producción).
+    Intenta primero la Supabase Edge Function (HTTPS) y, si no, Gmail SMTP
+    (``EMAIL_BACKEND`` de Django).
     """
     backend = getattr(settings, 'EMAIL_BACKEND', '') or ''
     channel = 'gmail' if getattr(settings, 'EMAIL_SMTP_CONFIGURED', False) else 'django'
     recipient = recipient_list[0] if recipient_list else ''
     last_error = ''
+
+    # Canal preferido: Supabase Edge Function (funciona aunque el host bloquee
+    # el SMTP saliente). Solo se intenta si está habilitada y configurada.
+    if not skip_supabase and _try_supabase_delivery(
+        subject, message, recipient_list, html_message, email_type
+    ):
+        EmailDeliveryLog.objects.create(
+            email_type=email_type[:40],
+            recipient=recipient,
+            subject=subject[:255],
+            status='sent',
+            backend='supabase',
+        )
+        log.info('email_sent via=supabase type=%s to=%s', email_type, recipient)
+        return True
 
     # Do not block HTTP requests (checkout, status changes) on long SMTP timeouts.
     attempts = 1 if fail_silently else max_attempts
