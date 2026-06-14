@@ -9,6 +9,38 @@ Network is unreachable`).
 Django (Railway, HTTPS 443)  ──►  Supabase Edge Function  ──►  Gmail SMTP (465)
 ```
 
+---
+
+## Option A (recommended): deploy from GitHub — no local CLI
+
+A GitHub Action (`.github/workflows/deploy-supabase-functions.yml`) deploys this
+function automatically when changes under `supabase/functions/**` land on
+`master` (i.e. when this PR is merged), and can also be run on demand from the
+**Actions** tab → *Deploy Supabase Edge Functions* → *Run workflow*.
+
+Add these **repository secrets** (GitHub → Settings → Secrets and variables →
+Actions → New repository secret):
+
+| Secret | Where to get it |
+|--------|-----------------|
+| `SUPABASE_ACCESS_TOKEN` | https://supabase.com/dashboard/account/tokens |
+| `SUPABASE_PROJECT_REF` | Supabase Dashboard → Project Settings → General → *Reference ID* |
+| `GMAIL_USER` *(optional)* | your Gmail address (e.g. `you@gmail.com`) |
+| `GMAIL_APP_PASSWORD` *(optional)* | 16-char Gmail App Password |
+| `DEFAULT_FROM_NAME` *(optional)* | display name, default "TradeFlow Colón" |
+
+- If you add `GMAIL_USER` + `GMAIL_APP_PASSWORD` as repo secrets, the workflow
+  also pushes them to the function on each deploy.
+- If you prefer not to store the Gmail secrets in GitHub, set them once in the
+  Supabase Dashboard (Edge Functions → Secrets) and omit those two repo secrets;
+  the workflow will just deploy the code.
+
+Then finish with **step 3** below (the Railway variables).
+
+---
+
+## Option B: deploy manually with the Supabase CLI
+
 ## 1. Set the function secrets
 
 Use a Gmail **App Password** (16 chars, no spaces) — not your login password and
