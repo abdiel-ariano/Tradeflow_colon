@@ -1,0 +1,11 @@
+# Excluir del contexto de build de Railway lo que NO forma parte de la app
+# Django/gunicorn. Además evita que Nixpacks detecte Deno/Node (por los .ts) en
+# vez de Python y omita instalar Python (causaba "pip/python: command not found").
+#
+# - supabase/: Edge Functions (Deno). Se despliegan en Supabase vía GitHub
+#   Actions (.github/workflows/deploy-supabase-functions.yml), no van en la
+#   imagen de Railway.
+# - frontend/: código fuente del dashboard admin-saas (Vite/TS). El bundle ya
+#   está compilado y versionado en static/admin-saas/, que sí se sirve.
+supabase/
+frontend/
