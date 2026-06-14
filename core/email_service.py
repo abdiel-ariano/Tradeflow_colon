@@ -108,7 +108,9 @@ def _invoke_supabase_function(payload: dict) -> tuple[bool, str]:
     }
     req = urllib.request.Request(url, data=body, headers=headers, method='POST')
     try:
-        with urllib.request.urlopen(req, timeout=8) as resp:
+        # The Edge Function relays via SMTP from Supabase's network, which can
+        # take a few seconds; allow enough time so it isn't reported as failed.
+        with urllib.request.urlopen(req, timeout=20) as resp:
             if resp.status >= 400:
                 return False, f'function_status_{resp.status}'
             return True, ''
