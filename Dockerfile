@@ -27,8 +27,13 @@ RUN pip install -r requirements.txt
 # Copiar el resto del proyecto.
 COPY . .
 
+# collectstatic en BUILD (no necesita base de datos). SECRET_KEY dummy solo para
+# poder cargar settings; las variables reales llegan en runtime. Así el arranque
+# del contenedor es rápido (solo migrate + gunicorn) y el puerto abre enseguida.
+RUN SECRET_KEY=build-only-not-a-secret DEBUG=False python manage.py collectstatic --noinput
+
 EXPOSE 8080
 
-# collectstatic + migrate + gunicorn en runtime (con las variables reales de
-# Railway: SECRET_KEY, DATABASE_URL, etc.). $PORT lo provee Railway.
-CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate --noinput && gunicorn tradeflow_colon.wsgi --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120"]
+# Runtime: migrate + gunicorn (con logs a stdout/stderr para verlos en Railway).
+# $PORT lo provee Railway.
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn tradeflow_colon.wsgi --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120 --access-logfile - --error-logfile - --log-level info"]
