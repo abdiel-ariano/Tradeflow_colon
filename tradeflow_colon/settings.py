@@ -76,8 +76,12 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # En .env local: ALLOWED_HOSTS=127.0.0.1,localhost
-# En Railway:    ALLOWED_HOSTS=tuapp.up.railway.app,tradeflow.pa
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
+# En Railway:    ALLOWED_HOSTS=web-production-xxxx.up.railway.app,tu-dominio.com
+ALLOWED_HOSTS = list(config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv()))
+# Healthchecks internos de Railway usan subdominios *.up.railway.app
+for _railway_host in ('.up.railway.app', '.railway.app'):
+    if _railway_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_railway_host)
 
 # ── Aplicaciones ──────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -435,6 +439,11 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER   = True
     SECURE_CONTENT_TYPE_NOSNIFF  = True
     X_FRAME_OPTIONS              = 'DENY'
+    # El probe interno de Railway llega por HTTP sin X-Forwarded-Proto.
+    SECURE_REDIRECT_EXEMPT = [
+        r'^health/live/?$',
+        r'^health/ready/?$',
+    ]
 
     # Railway usa un proxy inverso — esto confía en su header X-Forwarded-Proto
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
