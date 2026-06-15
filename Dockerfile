@@ -1,10 +1,11 @@
 # =============================================================================
 # TradeFlow Colón — Dockerfile (deploy determinista en Railway)
 # =============================================================================
-# Se usa un Dockerfile a propósito: Railway/Nixpacks autodetectaba Deno/Node por
-# los archivos .ts (Edge Function de Supabase, frontend Vite) y no instalaba
-# Python -> "pip/python: command not found". Con un Dockerfile no hay
-# autodetección de provider: Python y pip están siempre disponibles.
+# Railway/Nixpacks autodetectaba Deno/Node por .ts (Supabase, Vite) y no instalaba
+# Python. Con Dockerfile el stack es siempre Python 3.12 + pip.
+#
+# collectstatic en BUILD (no en cada arranque) → gunicorn escucha $PORT antes del
+# timeout del proxy (~15s) y desaparece el 502 "Application failed to respond".
 # =============================================================================
 FROM python:3.12-slim
 
@@ -15,20 +16,23 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Dependencias de sistema para compilar wheels que lo necesiten.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar dependencias primero (mejor cache de capas).
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
-# Copiar el resto del proyecto.
 COPY . .
+
+# Valores dummy solo para collectstatic en build (no se usan en runtime).
+ENV SECRET_KEY=collectstatic-build-only-not-for-runtime \
+    DEBUG=false \
+    ALLOWED_HOSTS=localhost,127.0.0.1
+RUN python manage.py collectstatic --noinput
+
+RUN chmod +x scripts/docker-entrypoint.sh
 
 EXPOSE 8080
 
-# collectstatic + migrate + gunicorn en runtime (con las variables reales de
-# Railway: SECRET_KEY, DATABASE_URL, etc.). $PORT lo provee Railway.
-CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate --noinput && gunicorn tradeflow_colon.wsgi --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120"]
+CMD ["scripts/docker-entrypoint.sh"]
