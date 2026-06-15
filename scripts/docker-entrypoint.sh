@@ -1,9 +1,20 @@
 #!/bin/sh
-# Railway: bind gunicorn quickly; avoid collectstatic at runtime (done in Docker build).
+# Railway: migrate then gunicorn. PORT must be numeric (Railway injects it at runtime).
 set -e
 
-PORT="${PORT:-8080}"
+# Some Railway/custom start commands pass the literal "$PORT" without shell expansion.
+_raw_port="${PORT:-8080}"
+case "$_raw_port" in
+  '$PORT'|"\$PORT"|"") _raw_port=8080 ;;
+esac
+# Keep digits only (defensive).
+PORT="$(printf '%s' "$_raw_port" | tr -cd '0-9')"
+if [ -z "$PORT" ]; then
+  PORT=8080
+fi
+export PORT
 
+echo "[tradeflow] PORT=${PORT}"
 echo "[tradeflow] migrate --noinput"
 python manage.py migrate --noinput
 
