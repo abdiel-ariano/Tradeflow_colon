@@ -1,0 +1,20 @@
+# Mantener la imagen Docker pequeña y el build rápido. Nada de esto lo necesita
+# el contenedor Django en runtime.
+.git
+.github
+__pycache__/
+*.pyc
+*.pyo
+*.sqlite3
+db.sqlite3
+.env
+.env.*
+*.log
+.venv/
+venv/
+staticfiles/
+node_modules/
+# El frontend ya está compilado en static/admin-saas/; el código fuente no va
+# en la imagen. La Edge Function de Supabase se despliega aparte (GitHub Actions).
+frontend/
+supabase/
