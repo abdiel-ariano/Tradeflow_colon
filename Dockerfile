@@ -35,4 +35,4 @@ RUN chmod +x scripts/docker-entrypoint.sh
 
 EXPOSE 8080
 
-CMD ["scripts/docker-entrypoint.sh"]
+CMD ["/bin/sh", "scripts/docker-entrypoint.sh"]
