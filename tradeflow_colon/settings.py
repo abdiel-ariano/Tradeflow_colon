@@ -164,6 +164,9 @@ if _db_url:
     if _ssl_required:
         _db_cfg.setdefault('OPTIONS', {})
         _db_cfg['OPTIONS']['sslmode'] = config('DB_SSLMODE', default='require')
+    _db_cfg.setdefault('OPTIONS', {})
+    # Evita que migrate/gunicorn cuelguen minutos si DATABASE_URL es incorrecta.
+    _db_cfg['OPTIONS'].setdefault('connect_timeout', 15)
     DATABASES = {'default': _db_cfg}
     USING_SUPABASE = 'supabase' in _db_url.lower() or 'postgres' in _db_cfg.get('ENGINE', '')
 else:
