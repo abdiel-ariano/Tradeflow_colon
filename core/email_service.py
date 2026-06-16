@@ -61,6 +61,9 @@ def _is_non_retryable_delivery_error(detail: str) -> bool:
         or 'only send testing emails' in d
         or 'statuscode":403' in d
         or 'statuscode": 403' in d
+        or 'not_found' in d
+        or 'requested function was not found' in d
+        or 'function_status_404' in d
     )
 
 
