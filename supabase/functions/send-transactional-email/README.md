@@ -1,5 +1,9 @@
 # send-transactional-email (Supabase Edge Function)
 
+> **404 NOT_FOUND?** Los secrets en Supabase no despliegan el código. Ejecuta
+> GitHub Actions → *Deploy Supabase Edge Functions* → *Run workflow*, o
+> `bash scripts/deploy_supabase_email.sh`.
+
 Relays TradeFlow transactional email through **Gmail SMTP** from Supabase's
 network. The Django app calls this function over HTTPS (port 443), so it works
 even on hosts that block outbound SMTP (Railway Free/Trial/Hobby → `Errno 101

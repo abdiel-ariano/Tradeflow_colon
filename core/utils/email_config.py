@@ -46,6 +46,12 @@ def explain_email_failure(detail: str) -> str:
             'La Edge Function no tiene GMAIL_USER / GMAIL_APP_PASSWORD. '
             'Configúralos en Supabase → Edge Functions → Secrets.'
         )
+    if 'not_found' in d or 'requested function was not found' in d:
+        return (
+            'La Edge Function send-transactional-email no está desplegada en Supabase. '
+            'GitHub → Actions → "Deploy Supabase Edge Functions" → Run workflow, '
+            'o ejecuta: bash scripts/deploy_supabase_email.sh'
+        )
     if 'smtp_not_configured' in d:
         return (
             'Correo no configurado. Activa SUPABASE_EMAIL_ENABLED y despliega '
