@@ -15,6 +15,10 @@ class EmailRailwayRoutingTests(SimpleTestCase):
         self.assertIn('send-transactional-email', msg)
         self.assertIn('bright-handler', msg)
 
+    def test_explain_not_found(self):
+        msg = explain_email_failure('NOT_FOUND Requested function was not found')
+        self.assertIn('desplegada', msg.lower())
+
     @override_settings(
         SUPABASE_EMAIL_ENABLED=True,
         SUPABASE_CONFIGURED=True,
