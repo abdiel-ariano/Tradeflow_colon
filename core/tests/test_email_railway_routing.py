@@ -18,7 +18,7 @@ class EmailRailwayRoutingTests(SimpleTestCase):
     def test_explain_not_found(self):
         msg = explain_email_failure('NOT_FOUND Requested function was not found')
         self.assertIn('desplegada', msg.lower())
-        self.assertIn('SUPABASE_ACCESS_TOKEN', msg)
+        self.assertIn('TF_SB_ACCESS_TOKEN', msg)
 
     def test_not_found_is_non_retryable(self):
         detail = 'HTTP Error 404: Not Found — {"code":"NOT_FOUND","message":"Requested function was not found"}'
