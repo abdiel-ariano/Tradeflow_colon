@@ -326,6 +326,16 @@ if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
 EMAIL_USE_REAL_SMTP = 'console' not in (EMAIL_BACKEND or '').lower()
 EMAIL_SMTP_CONFIGURED = EMAIL_USE_REAL_SMTP
 
+import os as _os
+
+RAILWAY_DEPLOY = bool(_os.environ.get('RAILWAY_ENVIRONMENT') or _os.environ.get('RAILWAY_PROJECT_ID'))
+# Railway bloquea SMTP saliente (587/465) → solo Edge Function Supabase en prod.
+EMAIL_SMTP_FALLBACK_ENABLED = config(
+    'EMAIL_SMTP_FALLBACK_ENABLED',
+    default=not RAILWAY_DEPLOY,
+    cast=bool,
+)
+
 # Supabase — Postgres (DATABASE_URL), Storage, Edge Functions (email transaccional)
 SUPABASE_URL = config('SUPABASE_URL', default='').strip()
 SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='').strip()

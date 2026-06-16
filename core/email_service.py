@@ -47,7 +47,7 @@ def _verification_html(code: str) -> str:
 
 def _supabase_email_enabled() -> bool:
     return bool(
-        getattr(settings, 'SUPABASE_EMAIL_ENABLED', True)
+        getattr(settings, 'SUPABASE_EMAIL_ENABLED', False)
         and getattr(settings, 'SUPABASE_CONFIGURED', False)
     )
 
@@ -167,7 +167,18 @@ def _send_via_django(
     *,
     email_type: str = 'transactional',
 ) -> EmailSendResult:
+    from core.utils.email_config import django_smtp_fallback_enabled, is_railway_deploy
     from core.utils.email_delivery import deliver_mail
+
+    if is_railway_deploy() and not django_smtp_fallback_enabled():
+        return EmailSendResult(
+            ok=False,
+            channel='django',
+            detail=(
+                'smtp_blocked_on_railway: use SUPABASE_EMAIL_ENABLED=true and '
+                'send-transactional-email (Gmail secrets in Supabase).'
+            ),
+        )
 
     if not getattr(settings, 'EMAIL_SMTP_CONFIGURED', False):
         return EmailSendResult(
@@ -224,6 +235,7 @@ def enviar_email_transaccional(
                 email,
                 supabase_result.detail[:400],
             )
+            return supabase_result
     else:
         supabase_result = EmailSendResult(
             ok=False,

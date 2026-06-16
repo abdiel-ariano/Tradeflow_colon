@@ -112,6 +112,26 @@ def deliver_mail(
         log.info('email_sent via=supabase type=%s to=%s', email_type, recipient)
         return True
 
+    from core.utils.email_config import django_smtp_fallback_enabled
+
+    if not django_smtp_fallback_enabled():
+        last_error = (
+            'smtp_fallback_disabled: on Railway use SUPABASE_EMAIL_ENABLED=true '
+            'and send-transactional-email Edge Function.'
+        )
+        EmailDeliveryLog.objects.create(
+            email_type=email_type[:40],
+            recipient=recipient,
+            subject=subject[:255],
+            status='failed',
+            error_message=last_error[:2000],
+            backend=backend[:80],
+        )
+        log.error('email_delivery_failed type=%s to=%s error=%s', email_type, recipient, last_error)
+        if not fail_silently:
+            raise RuntimeError(last_error)
+        return False
+
     # Do not block HTTP requests (checkout, status changes) on long SMTP timeouts.
     attempts = 1 if fail_silently else max_attempts
     base_timeout = getattr(settings, 'EMAIL_TIMEOUT', 10)

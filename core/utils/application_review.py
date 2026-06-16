@@ -44,19 +44,15 @@ def _activar_cuenta(app):
 
 def mensaje_fallo_correo(email_result) -> str:
     """Texto para admin cuando la solicitud se guardó pero el correo falló."""
+    from core.utils.email_config import explain_email_failure
+
     if email_result is None or getattr(email_result, 'ok', True):
         return ''
-    detail = (getattr(email_result, 'detail', '') or '').lower()
-    if 'only send testing emails' in detail or 'verify a domain' in detail:
-        return (
-            'The application was processed and the account is active, but the email was NOT sent. '
-            'Disable SUPABASE_EMAIL_ENABLED on Railway and configure Gmail '
-            '(EMAIL_HOST_USER + App Password), or fix the Edge Function in Supabase.'
-        )
+    detail = getattr(email_result, 'detail', '') or ''
+    explanation = explain_email_failure(detail)
     return (
         'The application was processed, but the email could not be sent to the applicant. '
-        'Configure Gmail on Railway (EMAIL_HOST_USER / EMAIL_HOST_PASSWORD) '
-        'or check SUPABASE_URL and the Edge Function.'
+        f'{explanation}'
     )
 
 
