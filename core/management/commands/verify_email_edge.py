@@ -39,7 +39,7 @@ class Command(BaseCommand):
         self.stdout.write(
             '\nOpciones:\n'
             '  1) GitHub → Actions → "Deploy Supabase Edge Functions" → Run workflow\n'
-            '     (secrets: SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF, GMAIL_*)\n'
+            '     (secrets GitHub: TF_SB_ACCESS_TOKEN, TF_SB_PROJECT_REF, GMAIL_*)\n'
             '  2) Local: bash scripts/deploy_supabase_email.sh\n'
         )
         raise SystemExit(1)

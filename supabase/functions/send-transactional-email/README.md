@@ -27,8 +27,8 @@ Actions → New repository secret):
 
 | Secret | Where to get it |
 |--------|-----------------|
-| `SUPABASE_ACCESS_TOKEN` | https://supabase.com/dashboard/account/tokens |
-| `SUPABASE_PROJECT_REF` | Supabase Dashboard → Project Settings → General → *Reference ID* |
+| `TF_SB_ACCESS_TOKEN` | https://supabase.com/dashboard/account/tokens (GitHub no permite el prefijo `SUPABASE_`) |
+| `TF_SB_PROJECT_REF` | Supabase Dashboard → Project Settings → General → *Reference ID* |
 | `GMAIL_USER` *(optional)* | your Gmail address (e.g. `you@gmail.com`) |
 | `GMAIL_APP_PASSWORD` *(optional)* | 16-char Gmail App Password |
 | `DEFAULT_FROM_NAME` *(optional)* | display name, default "TradeFlow Colón" |

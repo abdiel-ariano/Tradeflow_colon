@@ -49,8 +49,9 @@ def explain_email_failure(detail: str) -> str:
     if 'not_found' in d or 'requested function was not found' in d:
         return (
             'La Edge Function send-transactional-email no está desplegada en Supabase. '
-            'En GitHub → Settings → Secrets → Actions añade SUPABASE_ACCESS_TOKEN y '
-            'SUPABASE_PROJECT_REF, luego Actions → "Deploy Supabase Edge Functions" → '
+            'En GitHub → Settings → Secrets → Actions añade TF_SB_ACCESS_TOKEN y '
+            'TF_SB_PROJECT_REF (GitHub no acepta nombres con prefijo SUPABASE_), luego '
+            'Actions → "Deploy Supabase Edge Functions" → '
             'Run workflow. Alternativa: bash scripts/deploy_supabase_email.sh con la CLI.'
         )
     if 'smtp_blocked_on_railway' in d:
