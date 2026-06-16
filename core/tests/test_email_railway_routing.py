@@ -18,6 +18,11 @@ class EmailRailwayRoutingTests(SimpleTestCase):
     def test_explain_not_found(self):
         msg = explain_email_failure('NOT_FOUND Requested function was not found')
         self.assertIn('desplegada', msg.lower())
+        self.assertIn('SUPABASE_ACCESS_TOKEN', msg)
+
+    def test_not_found_is_non_retryable(self):
+        detail = 'HTTP Error 404: Not Found — {"code":"NOT_FOUND","message":"Requested function was not found"}'
+        self.assertTrue(_is_non_retryable_delivery_error(detail))
 
     @override_settings(
         SUPABASE_EMAIL_ENABLED=True,
@@ -45,3 +50,32 @@ class EmailRailwayRoutingTests(SimpleTestCase):
             )
         self.assertFalse(result.ok)
         self.assertIn('validation_error', result.detail.lower() or reject_detail.lower())
+
+    @override_settings(
+        SUPABASE_EMAIL_ENABLED=True,
+        SUPABASE_CONFIGURED=True,
+        SUPABASE_URL='https://x.supabase.co',
+        SUPABASE_SERVICE_KEY='key',
+        EMAIL_SMTP_CONFIGURED=True,
+        EMAIL_SMTP_FALLBACK_ENABLED=False,
+        RAILWAY_DEPLOY=True,
+    )
+    def test_skips_smtp_on_railway_after_not_found(self):
+        from unittest.mock import patch
+
+        not_found = (
+            'HTTP Error 404: Not Found — {"code":"NOT_FOUND","message":"Requested function was not found"}'
+        )
+        with patch('core.email_service._send_via_supabase') as mock_sb:
+            mock_sb.return_value = type('R', (), {'ok': False, 'detail': not_found})()
+            with patch('core.email_service._send_via_django') as mock_smtp:
+                result = enviar_email_transaccional(
+                    'deevid.162@gmail.com',
+                    'Subject',
+                    '<p>hi</p>',
+                    'hi',
+                    tipo='access_decision',
+                )
+        mock_smtp.assert_not_called()
+        self.assertFalse(result.ok)
+        self.assertIn('not_found', result.detail.lower())
