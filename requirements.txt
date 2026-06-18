@@ -44,7 +44,7 @@ Pillow==12.2.0                  # imágenes (cierra todas las CVEs 10.x y 11.x c
 gunicorn==23.0.0                # WSGI (cierra GHSA-hc5x-x2vx-497g y GHSA-w3h3-4rj7-4ph4)
 
 # ── Generación de PDFs (facturas y packing lists) ─────────────────────────
-reportlab>=4.0,<5.0
+reportlab>=5.0.0,<6.0
 
 # ── Mapas interactivos ZLC ─────────────────────────────────────────────────
 folium>=0.16,<0.17
