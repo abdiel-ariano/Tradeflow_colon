@@ -49,7 +49,7 @@ def platform_health_payload() -> dict:
         'database': db,
         'storage': storage,
         'email': {
-            'smtp_ready': getattr(settings, 'EMAIL_USE_REAL_SMTP', False),
+            'resend_ready': bool((getattr(settings, 'RESEND_API_KEY', '') or '').strip()),
             'warnings': email_warnings,
         },
         'supabase': {

@@ -8,7 +8,7 @@ from core.utils.email_sender import enviar_verificacion_email
 
 
 class Command(BaseCommand):
-    help = 'Envía email de verificación a un usuario (Supabase o Gmail)'
+    help = 'Envía email de verificación a un usuario (Resend)'
 
     def add_arguments(self, parser):
         parser.add_argument('--email', type=str, help='Email del usuario en BD')
@@ -45,8 +45,8 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"OK channel={result['channel']} code={result['code']} to={result['recipient']}"
         ))
-        if 'supabase' not in result['channel'] and 'smtp' not in result['channel'].lower():
+        if result['channel'] != 'resend':
             self.stdout.write(self.style.WARNING(
-                'Configura Supabase o Gmail (EMAIL_HOST_USER) en .env'
+                'Configura RESEND_API_KEY=re_... en .env o Railway'
             ))
         self.stdout.write(f"URL: {result['link']}")
