@@ -585,7 +585,7 @@ def _redirect_after_email_verified(user):
 
 @login_required
 def enviar_codigo(request):
-    """Genera OTP, envía por Supabase (o fallback Django) y redirige al formulario."""
+    """Genera OTP, envía por Resend y redirige al formulario."""
     if not settings.REQUIRE_EMAIL_VERIFICATION:
         messages.info(request, 'Email verification is disabled in this environment.')
         return redirect('tienda')
@@ -613,7 +613,7 @@ def enviar_codigo(request):
     else:
         messages.error(
             request,
-            'We could not send the email. Check Supabase or EMAIL_BACKEND in .env.',
+            'We could not send the email. Check RESEND_API_KEY and DEFAULT_FROM_EMAIL in .env.',
         )
     return redirect('verificar_codigo')
 
