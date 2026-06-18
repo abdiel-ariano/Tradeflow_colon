@@ -41,7 +41,7 @@ whitenoise>=6.6,<7.0            # sirve CSS/JS directamente desde Django sin Ngi
 Pillow==12.2.0                  # imágenes (cierra todas las CVEs 10.x y 11.x conocidas)
 
 # ── Servidor de producción ────────────────────────────────────────────────
-gunicorn==23.0.0                # WSGI (cierra GHSA-hc5x-x2vx-497g y GHSA-w3h3-4rj7-4ph4)
+gunicorn==26.0.0                # WSGI (cierra GHSA-hc5x-x2vx-497g y GHSA-w3h3-4rj7-4ph4)
 
 # ── Generación de PDFs (facturas y packing lists) ─────────────────────────
 reportlab>=4.0,<5.0
