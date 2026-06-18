@@ -47,8 +47,8 @@ DB_SSLMODE=require
 SUPABASE_URL={supabase_url}
 SUPABASE_ANON_KEY={supabase_anon}
 SUPABASE_SERVICE_KEY={supabase_service}
-SUPABASE_EMAIL_FUNCTION=send-transactional-email
 
+RESEND_API_KEY=
 EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 DEFAULT_FROM_EMAIL=TradeFlow <noreply@tradeflow.pa>
 PUBLIC_BASE_URL=http://127.0.0.1:8000

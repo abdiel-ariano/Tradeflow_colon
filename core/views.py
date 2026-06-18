@@ -4254,7 +4254,7 @@ def solicitud_acceso(request):
                     request,
                     _(
                         'Application saved, but email could not be sent. '
-                        'Configure Gmail (EMAIL_HOST_USER) or Supabase Edge Function.'
+                        'Configure RESEND_API_KEY and verify sender domain in Resend.'
                     ),
                 )
             else:

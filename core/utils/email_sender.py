@@ -336,7 +336,7 @@ def _cambio_estado_plain(orden: Order, estado_anterior: str, headline: str) -> s
 
 def enviar_verificacion_email(user: User, request) -> dict:
     """
-    Envía código OTP vía Supabase (email_service) con fallback Django.
+    Envía código OTP vía Resend (email_service); consola en DEBUG sin API key.
 
     Returns:
         dict: code, link, channel, recipient.
@@ -600,13 +600,13 @@ def enviar_resultado_aplicacion_transportista(transportista, aprobado: bool) -> 
 
 
 def enviar_solicitud_decision(app, aprobada: bool):
-    """Notifica al solicitante la decisión (vía Supabase, fallback Django).
+    """Notifica al solicitante la decisión vía Resend.
 
     Si ya existe una cuenta para el correo, el enlace de aprobación apunta a
     iniciar sesión; si no, a registrarse con el mismo correo.
 
     Returns:
-        EmailSendResult: resultado del envío (``ok=False`` si Supabase/Gmail rechaza).
+        EmailSendResult: resultado del envío (``ok=False`` si Resend rechaza).
     """
     from core.email_service import EmailSendResult, enviar_email_transaccional
     base = _public_base_url()

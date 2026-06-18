@@ -4,7 +4,7 @@ Aprobación/rechazo centralizado de solicitudes de acceso (UserApplication).
 Un único punto de verdad para que TODOS los caminos de revisión (enlace de
 correo a revisores, panel /panel/applications/ y Django admin) tengan el mismo
 efecto: actualizar estado, activar/desactivar la cuenta y notificar al
-solicitante por correo (Supabase Edge Function con fallback Django).
+solicitante por correo (Resend).
 """
 from __future__ import annotations
 

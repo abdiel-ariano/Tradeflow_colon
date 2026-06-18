@@ -1,9 +1,9 @@
 """
-Verifica conexión a Supabase/Postgres, storage cloud y envío Gmail SMTP.
+Verifica conexión a Supabase/Postgres, storage cloud y envío Resend.
 
 Uso:
   python manage.py verify_integrations
-  python manage.py verify_integrations --email tu@gmail.com
+  python manage.py verify_integrations --email tu@dominio.com
   python manage.py verify_integrations --skip-email
 """
 from django.conf import settings
@@ -15,14 +15,14 @@ from core.utils.platform_health import platform_health_payload
 
 
 class Command(BaseCommand):
-    help = 'Prueba DATABASE_URL (Supabase), storage y EMAIL (Gmail SMTP).'
+    help = 'Prueba DATABASE_URL (Supabase), storage y email (Resend).'
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--email',
             type=str,
             default='',
-            help='Correo de prueba (default: EMAIL_HOST_USER)',
+            help='Correo de prueba (default: DEFAULT_FROM_EMAIL)',
         )
         parser.add_argument(
             '--skip-email',
@@ -64,11 +64,9 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('\nVerificación parcial: OK'))
             return
 
-        if not getattr(settings, 'EMAIL_USE_REAL_SMTP', False) and not getattr(
-            settings, 'SUPABASE_CONFIGURED', False
-        ):
+        if not (getattr(settings, 'RESEND_API_KEY', '') or '').strip() and not settings.DEBUG:
             self.stdout.write(self.style.WARNING(
-                '\nEmail no configurado. Añade SUPABASE_* o EMAIL_BACKEND SMTP en .env'
+                '\nEmail no configurado. Añade RESEND_API_KEY=re_... en .env o Railway.'
             ))
             return
 
@@ -79,14 +77,14 @@ class Command(BaseCommand):
 
         base = settings.PUBLIC_BASE_URL.rstrip('/')
         html = (
-            f'<p>TradeFlow Colón — prueba SMTP.</p>'
+            f'<p>TradeFlow Colón — prueba Resend.</p>'
             f'<p><img src="{base}/static/img/logo-icon-color.png" alt="TradeFlow" '
             f'width="80" style="max-height:40px;"></p>'
         )
         try:
             deliver_mail(
-                subject='TradeFlow — prueba correo',
-                message='Si lees esto, Gmail SMTP está configurado correctamente.',
+                subject='TradeFlow — prueba Resend',
+                message='Si lees esto, Resend está configurado correctamente.',
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[to_addr],
                 html_message=html,
@@ -97,10 +95,10 @@ class Command(BaseCommand):
                 f'  Correo de prueba enviado a {to_addr} (registrado en EmailDeliveryLog)'
             ))
         except Exception as exc:
-            self.stdout.write(self.style.ERROR(f'  Error SMTP: {exc}'))
+            self.stdout.write(self.style.ERROR(f'  Error Resend: {exc}'))
             self.stdout.write(
-                '  Revisa App Password de Google (2FA) y '
-                'https://myaccount.google.com/apppasswords'
+                '  Revisa RESEND_API_KEY, dominio verificado en Resend → Domains '
+                'y que DEFAULT_FROM_EMAIL use ese dominio.'
             )
             raise SystemExit(1) from exc
 

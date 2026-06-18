@@ -290,7 +290,11 @@ from core.utils.email_config import (
     normalize_project_gmail,
 )
 
-# Correo (fallback Django cuando Supabase Edge Function no está disponible)
+# Correo transaccional vía Resend (core/email_service.py). Consola solo en DEBUG local.
+import os
+
+RESEND_API_KEY = config('RESEND_API_KEY', default=os.environ.get('RESEND_API_KEY', '')).strip()
+
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default='django.core.mail.backends.console.EmailBackend',
@@ -310,41 +314,13 @@ TRADEFLOW_CONTACT_EMAIL = normalize_contact_email(
 )
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
-# Gmail SMTP opcional (fallback cuando la Edge Function de Supabase no envía)
-_email_host_user = normalize_project_gmail(config('EMAIL_HOST_USER', default='').strip())
-EMAIL_HOST_USER = _email_host_user
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='').strip()
-EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
-
-if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
-    if 'console' in (EMAIL_BACKEND or '').lower():
-        EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-
-EMAIL_USE_REAL_SMTP = 'console' not in (EMAIL_BACKEND or '').lower()
+EMAIL_USE_REAL_SMTP = bool(RESEND_API_KEY)
 EMAIL_SMTP_CONFIGURED = EMAIL_USE_REAL_SMTP
 
-import os as _os
-
-RAILWAY_DEPLOY = bool(_os.environ.get('RAILWAY_ENVIRONMENT') or _os.environ.get('RAILWAY_PROJECT_ID'))
-# Railway bloquea SMTP saliente (587/465) → solo Edge Function Supabase en prod.
-EMAIL_SMTP_FALLBACK_ENABLED = config(
-    'EMAIL_SMTP_FALLBACK_ENABLED',
-    default=not RAILWAY_DEPLOY,
-    cast=bool,
-)
-
-# Supabase — Postgres (DATABASE_URL), Storage, Edge Functions (email transaccional)
+# Supabase — Postgres (DATABASE_URL) y Storage (no email; ver RESEND_API_KEY)
 SUPABASE_URL = config('SUPABASE_URL', default='').strip()
 SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='').strip()
 SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='').strip()
-SUPABASE_EMAIL_FUNCTION = config(
-    'SUPABASE_EMAIL_FUNCTION',
-    default='send-transactional-email',
-)
-SUPABASE_EMAIL_ENABLED = config('SUPABASE_EMAIL_ENABLED', default=False, cast=bool)
 SUPABASE_CONFIGURED = bool(SUPABASE_URL and SUPABASE_SERVICE_KEY)
 
 import logging as _logging
@@ -362,16 +338,15 @@ if DEBUG:
     if SUPABASE_CONFIGURED:
         _boot_log.info('Supabase configurado (URL + service key).')
     else:
+        _boot_log.warning('Supabase incomplete — DB/Storage pueden fallar.')
+    if RESEND_API_KEY:
+        _boot_log.info('Resend configurado (RESEND_API_KEY).')
+    elif not DEBUG:
         _boot_log.warning(
-            'Supabase incomplete — verification emails will use Django EMAIL_BACKEND only.'
+            'Producción sin correo: configura RESEND_API_KEY (resend.com/api-keys).'
         )
-    if not DEBUG and not EMAIL_SMTP_CONFIGURED and not (
-        SUPABASE_CONFIGURED and SUPABASE_EMAIL_ENABLED
-    ):
-        _boot_log.warning(
-            'Producción sin correo: activa SUPABASE_EMAIL_ENABLED + Supabase '
-            'o EMAIL_HOST_USER/PASSWORD (Gmail App Password).'
-        )
+    elif 'console' in (EMAIL_BACKEND or '').lower():
+        _boot_log.info('Email en consola (DEBUG + EMAIL_BACKEND console).')
 
 STORAGES = {
     'default': {
