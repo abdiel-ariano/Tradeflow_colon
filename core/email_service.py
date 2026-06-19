@@ -3,17 +3,13 @@ Transactional email via Resend API (https://resend.com).
 """
 from __future__ import annotations
 
-import json as _json
 import logging
-import urllib.error
-import urllib.request
 from dataclasses import dataclass
 
+import resend as resend_sdk
 from django.conf import settings
 
 log = logging.getLogger('tradeflow.email')
-
-RESEND_API_URL = 'https://api.resend.com/emails'
 
 
 @dataclass
@@ -48,41 +44,21 @@ def _send_via_resend(email: str, subject: str, html: str, text: str) -> EmailSen
         log.warning('RESEND_API_KEY no configurada; correo no enviado a %s', email)
         return EmailSendResult(ok=False, channel='resend', detail='resend_not_configured')
 
-    from_email = (getattr(settings, 'DEFAULT_FROM_EMAIL', '') or '').strip()
-    payload = {
-        'from': from_email,
-        'to': [email],
-        'subject': subject,
-        'html': html,
-        'text': text or '',
-    }
-    body = _json.dumps(payload).encode('utf-8')
-    headers = {
-        'Authorization': f'Bearer {api_key}',
-        'Content-Type': 'application/json',
-    }
-    req = urllib.request.Request(RESEND_API_URL, data=body, headers=headers, method='POST')
     try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            if resp.status >= 400:
-                return EmailSendResult(
-                    ok=False,
-                    channel='resend',
-                    detail=f'resend_status_{resp.status}',
-                )
-            return EmailSendResult(ok=True, channel='resend')
-    except urllib.error.HTTPError as exc:
-        detail = f'HTTP Error {exc.code}: {exc.reason}'
-        try:
-            err_body = exc.read().decode('utf-8', errors='replace')[:800]
-            if err_body:
-                detail = f'{detail} — {err_body}'
-        except Exception:
-            pass
-        log.warning('Resend API failed: %s', detail)
-        return EmailSendResult(ok=False, channel='resend', detail=detail)
+        resend_sdk.api_key = api_key
+        params = {
+            'from': (getattr(settings, 'DEFAULT_FROM_EMAIL', '') or '').strip(),
+            'to': [email],
+            'subject': subject,
+            'html': html,
+            'text': text or '',
+        }
+        response = resend_sdk.Emails.send(params)
+        message_id = response.get('id') if isinstance(response, dict) else getattr(response, 'id', None)
+        log.info('email_sent via=resend id=%s to=%s', message_id, email)
+        return EmailSendResult(ok=True, channel='resend', detail=str(message_id or ''))
     except Exception as exc:
-        log.warning('Resend API failed: %s', exc)
+        log.error('email_delivery_failed via=resend to=%s error=%s', email, exc)
         return EmailSendResult(ok=False, channel='resend', detail=str(exc)[:500])
 
 

@@ -1,5 +1,5 @@
 """Resend email delivery."""
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 
@@ -23,11 +23,7 @@ class ResendEmailTests(SimpleTestCase):
 
     @override_settings(RESEND_API_KEY='re_test', DEBUG=False, DEFAULT_FROM_EMAIL='TF <a@b.com>')
     def test_enviar_via_resend_success(self):
-        mock_resp = MagicMock()
-        mock_resp.status = 200
-        mock_resp.__enter__ = MagicMock(return_value=mock_resp)
-        mock_resp.__exit__ = MagicMock(return_value=False)
-        with patch('urllib.request.urlopen', return_value=mock_resp):
+        with patch('core.email_service.resend_sdk.Emails.send', return_value={'id': 'msg_123'}):
             result = enviar_email_transaccional(
                 'buyer@test.pa',
                 'Subject',
@@ -36,6 +32,7 @@ class ResendEmailTests(SimpleTestCase):
             )
         self.assertTrue(result.ok)
         self.assertEqual(result.channel, 'resend')
+        self.assertEqual(result.detail, 'msg_123')
 
     @override_settings(RESEND_API_KEY='', DEBUG=False)
     def test_enviar_fails_without_key_in_production(self):
