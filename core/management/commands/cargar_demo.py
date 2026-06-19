@@ -401,6 +401,9 @@ class Command(BaseCommand):
             u = User.objects.filter(username=uname).first()
             if not u:
                 continue
+            if not u.is_active:
+                u.is_active = True
+                u.save(update_fields=['is_active'])
             prof = getattr(u, 'profile', None)
             if prof and (not prof.email_verificado or prof.token_verificacion):
                 prof.email_verificado = True
