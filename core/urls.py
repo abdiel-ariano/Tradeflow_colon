@@ -92,6 +92,7 @@ urlpatterns = [
     ),
     path('verificar/enviar/', views.enviar_codigo, name='enviar_codigo'),
     path('verificar/', views.verificar_codigo, name='verificar_codigo'),
+    path('verificar/otp/', views.verificar_codigo, name='verify_otp'),
     path('verificar-email/<str:token>/', views.verificar_email, name='verificar_email'),
     path('reenviar-verificacion/', views.reenviar_verificacion, name='reenviar_verificacion'),
     path('reenviar-verificacion-email/', views.reenviar_verificacion_public, name='reenviar_verificacion_public'),

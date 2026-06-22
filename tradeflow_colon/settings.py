@@ -389,6 +389,9 @@ APPLICATION_REVIEW_EMAILS = [
 # Checkout: True = flujo antiguo (pago inmediato). False = awaiting_seller (PreExpo).
 CHECKOUT_AUTO_APPROVE = config('CHECKOUT_AUTO_APPROVE', default=False, cast=bool)
 
+# Demo Expo: bypass onboarding gate tras OTP (UserApplication approved + is_active).
+EXPO_DEMO_MODE = config('EXPO_DEMO_MODE', default=False, cast=bool)
+
 # ── django-axes (bloqueo por intentos fallidos de login) ──────────────────
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
@@ -451,6 +454,7 @@ LOGGING = {
     },
     'loggers': {
         'tradeflow.email': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'tradeflow.auth': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
         'tradeflow.media': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
         'tradeflow.platform': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
         'tradeflow.saas': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
