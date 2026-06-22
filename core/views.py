@@ -622,76 +622,8 @@ def enviar_codigo(request):
 enviar_codigo_verificacion = enviar_codigo
 
 
-@login_required
-def verificar_codigo(request):
-    """GET: formulario OTP. POST: valida código y marca email_verified."""
-    if not settings.REQUIRE_EMAIL_VERIFICATION:
-        return redirect('tienda')
-
-    try:
-        profile = request.user.profile
-    except UserProfile.DoesNotExist:
-        messages.error(request, 'Profile not found.')
-        return redirect('signup')
-
-    if profile.email_verified:
-        messages.info(request, 'Your email is already verified.')
-        return redirect('tienda')
-
-    if request.method == 'POST':
-        raw = (request.POST.get('codigo') or '').strip()
-        if not re.fullmatch(r'\d{6}', raw):
-            messages.error(request, 'Enter a 6-digit code.')
-            return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
-
-        verification = (
-            EmailVerification.objects.filter(
-                user=request.user,
-                code=raw,
-                is_used=False,
-            )
-            .order_by('-created_at')
-            .first()
-        )
-        if not verification or not verification.is_valid():
-            messages.error(request, 'Invalid or expired code. Request a new one.')
-            return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
-
-        verification.is_used = True
-        verification.save(update_fields=['is_used'])
-        profile.email_verified = True
-        profile.token_verificacion = None
-        profile.codigo_verificacion_email = ''
-        profile.codigo_verificacion_expira = None
-        profile.save(
-            update_fields=[
-                'email_verificado',
-                'token_verificacion',
-                'codigo_verificacion_email',
-                'codigo_verificacion_expira',
-            ],
-        )
-        try:
-            enviar_bienvenida(request.user)
-        except Exception:
-            log.exception('bienvenida tras verificar_codigo')
-        messages.success(request, 'Email verified! You can continue now.')
-        from core.utils.access_gating import onboarding_redirect_name
-        nxt = onboarding_redirect_name(request.user)
-        if nxt:
-            return redirect(nxt)
-        return _redirect_after_email_verified(request.user)
-
-    return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
-
-
-def _verificar_codigo_context(request):
-    masked = request.user.email or ''
-    if '@' in masked:
-        local, domain = masked.split('@', 1)
-        if len(local) > 2:
-            masked = f'{local[0]}***{local[-1]}@{domain}'
-    return {'masked_email': masked}
+# OTP verificación segura — core/auth_views.py (django-axes, anti-replay, EXPO_DEMO_MODE)
+from core.auth_views import verify_otp_view as verificar_codigo  # noqa: E402
 
 
 def verificar_email(request, token):
