@@ -30,7 +30,7 @@ def _verification_html(code: str) -> str:
         <p style="color:#F2F3F5;font-size:14px;margin:0 0 8px;">TradeFlow Colón</p>
         <h1 style="color:#ffffff;font-size:22px;margin:0 0 24px;">Your verification code</h1>
         <p style="color:#F26522;font-size:48px;font-weight:700;letter-spacing:10px;margin:0 0 16px;">{code}</p>
-        <p style="color:#F2F3F5;font-size:13px;margin:0;">Valid for 15 minutes. Do not share this code.</p>
+        <p style="color:#F2F3F5;font-size:13px;margin:0;">Valid for 10 minutes. Do not share this code.</p>
       </td>
     </tr>
   </table>
@@ -117,7 +117,7 @@ def enviar_codigo_verificacion(email: str, code: str) -> EmailSendResult:
     subject = 'Your verification code — TradeFlow Colón'
     text = (
         f'Your TradeFlow Colón verification code is: {code}\n\n'
-        'Valid for 15 minutes.\n\n'
+        'Valid for 10 minutes.\n\n'
         '— Colón Free Zone, Panama'
     )
     html = _verification_html(code)
