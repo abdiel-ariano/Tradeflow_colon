@@ -1022,7 +1022,7 @@ class AsignacionTransporte(models.Model):
 # =============================================================================
 
 class EmailVerification(models.Model):
-    """Código OTP de 6 dígitos; expira a los 15 minutos."""
+    """Código OTP de 6 dígitos; expira a los 10 minutos (ver ``otp_handler.OTP_EXPIRY_MINUTES``)."""
 
     user = models.ForeignKey(
         User,
@@ -1042,17 +1042,19 @@ class EmailVerification(models.Model):
         return f'{self.user_id} · {self.code} · used={self.is_used}'
 
     def is_valid(self) -> bool:
+        from core.utils.otp_handler import OTP_EXPIRY_MINUTES
+
         if self.is_used:
             return False
-        return timezone.now() <= self.created_at + timezone.timedelta(minutes=15)
+        return timezone.now() <= self.created_at + timezone.timedelta(minutes=OTP_EXPIRY_MINUTES)
 
     @classmethod
     def generate_for(cls, user: User) -> 'EmailVerification':
-        cls.objects.filter(user=user).delete()
-        # Usar `secrets` (CSPRNG) en vez de `random` para que el codigo de
-        # verificacion NO sea predecible a partir del estado del RNG.
-        code = f'{secrets.randbelow(1_000_000):06d}'
-        return cls.objects.create(user=user, code=code)
+        """Genera OTP seguro; delega en ``generate_user_otp``."""
+        from core.utils.otp_handler import generate_user_otp
+
+        code = generate_user_otp(user)
+        return cls.objects.filter(user=user, code=code, is_used=False).latest('created_at')
 
 
 # Modelos enterprise (SaaS, ads, API, logística extendida)
