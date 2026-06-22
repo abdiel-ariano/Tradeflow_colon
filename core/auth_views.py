@@ -68,6 +68,18 @@ def _json_error(error_code: str, detail: str, status: int = 400) -> JsonResponse
     return JsonResponse({'ok': False, 'error': error_code, 'detail': detail}, status=status)
 
 
+def _email_verification_gate_active(user) -> bool:
+    """OTP requerido por configuración global o por registro en modo demo Expo."""
+    if settings.REQUIRE_EMAIL_VERIFICATION:
+        return True
+    if getattr(settings, 'EXPO_DEMO_MODE', False):
+        try:
+            return not user.profile.email_verificado
+        except Exception:
+            return True
+    return False
+
+
 @login_required
 @axes_dispatch
 @require_http_methods(['GET', 'POST'])
@@ -81,7 +93,7 @@ def verify_otp_view(request: HttpRequest) -> HttpResponse:
     - Token de un solo uso: borrado en DB tras éxito (anti-replay).
     - ``transaction.atomic()`` en ``verify_user_otp`` (consistencia perfil + OTP).
     """
-    if not settings.REQUIRE_EMAIL_VERIFICATION:
+    if not _email_verification_gate_active(request.user):
         dest = _redirect_by_role(request.user)
         if _wants_json(request):
             return JsonResponse({'ok': True, 'redirect': dest})
