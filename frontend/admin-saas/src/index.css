@@ -1,21 +1,25 @@
 @import "tailwindcss";
+@config "../tailwind.config.js";
 
 @theme {
-  --color-background: #F2F3F5;
-  --color-foreground: #0F2A44;
+  --color-background: #F4F6F8;
+  --color-foreground: #0D1B2A;
   --color-card: #ffffff;
-  --color-card-foreground: #0F2A44;
-  --color-primary: #2E5B8A;
+  --color-card-foreground: #0D1B2A;
+  --color-primary: #E8490F;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #F2F3F5;
-  --color-secondary-foreground: #0F2A44;
-  --color-muted: #F2F3F5;
-  --color-muted-foreground: #6B7A88;
-  --color-destructive: #b91c1c;
+  --color-secondary: #F4F6F8;
+  --color-secondary-foreground: #0D1B2A;
+  --color-muted: #F4F6F8;
+  --color-muted-foreground: #8A97A8;
+  --color-destructive: #E84040;
   --color-destructive-foreground: #ffffff;
-  --color-border: #D1D5DB;
-  --color-emerald: #F26522;
+  --color-border: #E2E8F0;
+  --color-navy: #0D1B2A;
+  --color-cream: #FAF3E8;
+  --color-orange: #E8490F;
   --radius-lg: 0.75rem;
+  --radius-xl: 0.75rem;
 }
 
 body {
@@ -23,4 +27,5 @@ body {
   font-family: Inter, system-ui, sans-serif;
   background: var(--color-background);
   color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
 }

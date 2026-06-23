@@ -43,15 +43,19 @@ CONVENCIÓN DE SUFIJOS
   --tf-teal2:      #1B3B63;
   --tf-teal-faint: rgba(46, 91, 138, 0.12);
 
-  /* Paleta oficial TradeFlow Colón (Zona Libre) */
-  --tf-dark:         #0F2A44;
-  --tf-dark2:        #0a1f33;
-  --tf-dark-faint:   rgba(15, 42, 68, 0.08);
-  --tf-mid:          #1B3B63;
-  --tf-blue:         #2E5B8A;
-  --tf-orange:       #F26522;
-  --tf-orange-light: #FF7A3D;
-  --tf-orange-soft:  #FFA15A;
+  /* Paleta oficial TradeFlow Colón — Lovable v2 (Jun 2026) */
+  --tf-dark:         #0D1B2A;
+  --tf-dark2:        #243852;
+  --tf-dark-faint:   rgba(13, 27, 42, 0.08);
+  --tf-mid:          #1A2D42;
+  --tf-navy:         #0D1B2A;
+  --tf-navy-mid:     #1A2D42;
+  --tf-blue:         #2E6BE6;
+  --tf-orange:       #E8490F;
+  --tf-orange-light: #FDE8DF;
+  --tf-orange-soft:  #F47B50;
+  --tf-cream:        #FAF3E8;
+  --tf-cream-dark:   #F0E6D3;
 
   /* Arena / calor — alineado a acentos naranja para highlights */
   --tf-sand:       #FFA15A;
@@ -66,12 +70,12 @@ CONVENCIÓN DE SUFIJOS
   --tf-green-dark: #0F2A44;
 
   /* Neutros */
-  --tf-light:      #F2F3F5;
+  --tf-light:      #F4F6F8;
   --tf-white:      #ffffff;
-  --tf-text:       #0F2A44;
-  --tf-muted:      #6B7A88;
-  --tf-border:     #D1D5DB;
-  --tf-border-hover: #b8c0c9;
+  --tf-text:       #0D1B2A;
+  --tf-muted:      #8A97A8;
+  --tf-border:     #E2E8F0;
+  --tf-border-hover: #8A97A8;
 
 
   /* ════════════════════════════════════════════════════════
@@ -165,11 +169,11 @@ CONVENCIÓN DE SUFIJOS
         Usados en: .badge-pending, .badge-paid, etc. (templates)
      ════════════════════════════════════════════════════════ */
 
-  --order-pending-bg:     #faeeda;
-  --order-pending-fg:     #854f0b;
+  --order-pending-bg:     #FEF3C7;
+  --order-pending-fg:     #D97706;
 
-  --order-paid-bg:        #e6f1fb;
-  --order-paid-fg:        #185fa5;
+  --order-paid-bg:        #E6F7F0;
+  --order-paid-fg:        #1FAD6F;
 
   --order-shipped-bg:     #eeedfe;
   --order-shipped-fg:     #534ab7;
@@ -180,8 +184,8 @@ CONVENCIÓN DE SUFIJOS
   --order-delivered-bg:   #e1f5ee;
   --order-delivered-fg:   #0f6e56;
 
-  --order-cancelled-bg:   #fcebeb;
-  --order-cancelled-fg:   #a32d2d;
+  --order-cancelled-bg:   #FDE8E8;
+  --order-cancelled-fg:   #E84040;
 
 
   /* ════════════════════════════════════════════════════════
