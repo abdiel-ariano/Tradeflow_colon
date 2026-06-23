@@ -73,9 +73,9 @@ Variables: product, show_cart_actions (bool), card_extra_class (opcional)
       </button>
     </form>
     {% else %}
-    <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="tf-btn-secondary tf-product-card-btn">
-      <span class="material-symbols-rounded" aria-hidden="true">login</span>
-      Log in to buy
+    <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-btn-secondary tf-product-card-btn">
+      <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
+      View in catalog
     </a>
     {% endif %}
   </div>

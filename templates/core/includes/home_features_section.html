@@ -1,0 +1,93 @@
+{% load static %}
+{% comment %}Lovable v2 — value props + how it works + CTA on public home.{% endcomment %}
+<section class="pn-home-section pn-home-section--white" id="hm-features" aria-labelledby="pn-features-title">
+  <div class="pn-home-inner">
+    <div class="pn-home-head">
+      <p class="pn-home-label">Why TradeFlow</p>
+      <h2 class="pn-home-title" id="pn-features-title">Everything you need to trade in the Free Zone</h2>
+    </div>
+    <div class="pn-features-grid">
+      <article class="pn-feat-card">
+        <div class="pn-feat-ico" style="background:rgba(13,27,42,0.08);">
+          <span class="material-symbols-rounded" style="color:var(--ds-navy,#0D1B2A);">travel_explore</span>
+        </div>
+        <h3>Shop without traveling</h3>
+        <p>Access the Colón Free Zone catalog from any country without moving goods until confirmed.</p>
+      </article>
+      <article class="pn-feat-card">
+        <div class="pn-feat-ico" style="background:rgba(232,73,15,0.1);">
+          <span class="material-symbols-rounded" style="color:var(--ds-orange,#E8490F);">inventory_2</span>
+        </div>
+        <h3>Real-time inventory</h3>
+        <p>Stock updated by each seller for reliable purchasing decisions.</p>
+      </article>
+      <article class="pn-feat-card">
+        <div class="pn-feat-ico" style="background:rgba(46,107,230,0.1);">
+          <span class="material-symbols-rounded" style="color:#2E6BE6;">description</span>
+        </div>
+        <h3>Customs documents</h3>
+        <p>Invoice and packing list ready for export procedures.</p>
+      </article>
+      <article class="pn-feat-card">
+        <div class="pn-feat-ico" style="background:rgba(31,173,111,0.12);">
+          <span class="material-symbols-rounded" style="color:#1a7a3c;">lock</span>
+        </div>
+        <h3>Secure payment</h3>
+        <p>Transparent checkout flow and order statuses for buyers and sellers.</p>
+      </article>
+      <article class="pn-feat-card">
+        <div class="pn-feat-ico" style="background:rgba(232,73,15,0.1);">
+          <span class="material-symbols-rounded" style="color:var(--ds-orange,#E8490F);">qr_code_scanner</span>
+        </div>
+        <h3>QR Pre-registration</h3>
+        <p>Colón Free Zone visitors with quick verification for PreExpo networking.</p>
+      </article>
+      <article class="pn-feat-card">
+        <div class="pn-feat-ico" style="background:rgba(13,27,42,0.08);">
+          <span class="material-symbols-rounded" style="color:var(--ds-navy,#0D1B2A);">analytics</span>
+        </div>
+        <h3>Advanced analytics</h3>
+        <p>Admin panel with KPIs and charts for operations and investors.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="pn-home-section pn-home-section--cream" id="como-funciona" aria-labelledby="pn-how-title">
+  <div class="pn-home-inner">
+    <div class="pn-home-head">
+      <h2 class="pn-home-title" id="pn-how-title">How it works</h2>
+    </div>
+    <div class="pn-steps">
+      <article class="pn-step">
+        <div class="pn-step-num">1</div>
+        <h3>Browse the catalog</h3>
+        <p>Explore products and companies — no account required.</p>
+      </article>
+      <article class="pn-step">
+        <div class="pn-step-num">2</div>
+        <h3>Create your account</h3>
+        <p>Sign up as a buyer or company in 2 minutes when you're ready.</p>
+      </article>
+      <article class="pn-step">
+        <div class="pn-step-num">3</div>
+        <h3>Place your order</h3>
+        <p>Add to cart, request quotes, and pay securely.</p>
+      </article>
+      <article class="pn-step">
+        <div class="pn-step-num">4</div>
+        <h3>Receive your goods</h3>
+        <p>Real-time tracking to your destination.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="pn-home-cta" id="hm-cta">
+  <h2>Start today in the <span>Colón Free Zone</span></h2>
+  <p>Join TradeFlow Colón — the platform ready for PreExpo 2026 and international investors.</p>
+  <div class="pn-home-cta-btns">
+    <a href="{% url 'signup' %}" class="ds-btn ds-btn--primary ds-btn--lg">Get started now</a>
+    <a href="{% url 'tienda' %}" class="ds-btn ds-btn--secondary ds-btn--lg" style="background:#fff;border-color:#fff;">Explore catalog</a>
+  </div>
+</section>

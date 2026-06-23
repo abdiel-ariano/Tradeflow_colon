@@ -1,7 +1,6 @@
 {% load static %}
 {% comment %}
-Lovable v2 hero — cream background, ship illustration, dual CTAs.
-Context: stats (optional, for future live counters).
+Lovable v2 hero — cream background, cargo ship illustration, dual CTAs.
 {% endcomment %}
 <section class="pn-hero" id="pn-hero" aria-labelledby="pn-hero-title">
   <span class="pn-hero-dot" aria-hidden="true"></span>
@@ -23,22 +22,76 @@ Context: stats (optional, for future live counters).
     </div>
     <div class="pn-hero-art" aria-hidden="true">
       <span class="pn-hero-dashed"></span>
-      <svg viewBox="0 0 420 280" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cargo ship with containers">
-        <path d="M40 200 H380" stroke="#0D1B2A" stroke-opacity="0.15" stroke-width="2" stroke-dasharray="6 6"/>
-        <path d="M60 195 Q210 175 360 195" stroke="#1A2D42" stroke-opacity="0.2" stroke-width="3" fill="none"/>
-        <path d="M80 198 L340 198 L320 220 L100 220 Z" fill="#1A2D42"/>
-        <path d="M120 198 L120 160 L300 160 L300 198 Z" fill="#243852"/>
-        <rect x="130" y="128" width="44" height="32" rx="3" fill="#F5C842"/>
-        <rect x="178" y="120" width="44" height="40" rx="3" fill="#E8490F"/>
-        <rect x="226" y="124" width="44" height="36" rx="3" fill="#0D1B2A"/>
-        <rect x="274" y="118" width="44" height="42" rx="3" fill="#2E6BE6"/>
-        <rect x="155" y="108" width="36" height="28" rx="3" fill="#1FAD6F"/>
-        <rect x="210" y="104" width="36" height="32" rx="3" fill="#F5C842"/>
-        <path d="M300 160 L330 130 L350 160 Z" fill="#8A97A8"/>
-        <rect x="318" y="108" width="8" height="52" fill="#4A5568"/>
-        <path d="M95 198 Q70 185 55 198 L55 210 Q75 205 95 210 Z" fill="#1A2D42"/>
-        <ellipse cx="210" cy="228" rx="160" ry="12" fill="#0D1B2A" fill-opacity="0.06"/>
-      </svg>
+      <div class="pn-ship-scene">
+        <svg class="pn-ship-svg" viewBox="0 0 480 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cargo ship with containers sailing on the ocean">
+          <defs>
+            <linearGradient id="pn-hull-grad" x1="80" y1="200" x2="400" y2="230" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#1A2D42"/>
+              <stop offset="1" stop-color="#0D1B2A"/>
+            </linearGradient>
+            <linearGradient id="pn-deck-grad" x1="120" y1="150" x2="340" y2="200" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#243852"/>
+              <stop offset="1" stop-color="#1A2D42"/>
+            </linearGradient>
+            <linearGradient id="pn-water-grad" x1="0" y1="230" x2="480" y2="280" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#0D1B2A" stop-opacity="0.04"/>
+              <stop offset="1" stop-color="#0D1B2A" stop-opacity="0.12"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Horizon -->
+          <path d="M20 218 Q240 200 460 218" stroke="#1A2D42" stroke-opacity="0.12" stroke-width="2" fill="none"/>
+
+          <!-- Water -->
+          <ellipse cx="240" cy="248" rx="200" ry="18" fill="url(#pn-water-grad)"/>
+          <path class="pn-ship-wave pn-ship-wave--1" d="M30 242 Q90 232 150 242 T270 242 T390 242 T450 242" stroke="#1A2D42" stroke-opacity="0.18" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path class="pn-ship-wave pn-ship-wave--2" d="M50 252 Q120 262 190 252 T310 252 T430 252" stroke="#E8490F" stroke-opacity="0.15" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+          <!-- Wake -->
+          <path d="M55 228 Q75 222 90 228 L88 236 Q72 232 55 236 Z" fill="#0D1B2A" fill-opacity="0.08"/>
+
+          <!-- Hull -->
+          <path d="M70 218 L410 218 L385 248 L95 248 Z" fill="url(#pn-hull-grad)"/>
+          <path d="M70 218 L55 228 L95 248 Z" fill="#0D1B2A"/>
+          <path d="M95 248 L385 248 L375 255 L105 255 Z" fill="#0D1B2A" fill-opacity="0.35"/>
+
+          <!-- Deck -->
+          <path d="M110 218 L110 168 L360 168 L360 218 Z" fill="url(#pn-deck-grad)"/>
+          <rect x="110" y="212" width="250" height="6" fill="#0D1B2A" fill-opacity="0.2"/>
+
+          <!-- Containers row 1 -->
+          <rect x="122" y="138" width="46" height="30" rx="3" fill="#1FAD6F"/>
+          <rect x="124" y="140" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
+          <rect x="172" y="128" width="46" height="40" rx="3" fill="#F5C842"/>
+          <rect x="174" y="130" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
+          <rect x="222" y="132" width="46" height="36" rx="3" fill="#E8490F"/>
+          <rect x="224" y="134" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
+          <rect x="272" y="124" width="46" height="44" rx="3" fill="#0D1B2A"/>
+          <rect x="274" y="126" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
+          <rect x="322" y="130" width="40" height="38" rx="3" fill="#2E6BE6"/>
+          <rect x="324" y="132" width="36" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
+
+          <!-- Containers row 2 (stacked) -->
+          <rect x="148" y="108" width="38" height="28" rx="3" fill="#E8490F" fill-opacity="0.85"/>
+          <rect x="196" y="100" width="38" height="32" rx="3" fill="#1FAD6F"/>
+          <rect x="244" y="104" width="38" height="28" rx="3" fill="#F5C842"/>
+
+          <!-- Bridge -->
+          <path d="M360 168 L360 128 L395 108 L420 128 L420 168 Z" fill="#8A97A8"/>
+          <rect x="368" y="118" width="36" height="22" rx="2" fill="#C5D0DC"/>
+          <rect x="372" y="122" width="10" height="8" rx="1" fill="#1A2D42" fill-opacity="0.3"/>
+          <rect x="386" y="122" width="10" height="8" rx="1" fill="#1A2D42" fill-opacity="0.3"/>
+          <rect x="400" y="100" width="6" height="68" fill="#4A5568"/>
+          <rect x="398" y="96" width="10" height="8" rx="1" fill="#E8490F"/>
+
+          <!-- Crane detail -->
+          <path d="M130 168 L130 118 L145 118 L145 168" stroke="#4A5568" stroke-width="3"/>
+          <path d="M130 118 L165 108" stroke="#4A5568" stroke-width="2.5" stroke-linecap="round"/>
+
+          <!-- Life ring -->
+          <circle cx="88" cy="205" r="7" stroke="#E8490F" stroke-width="2.5" fill="none"/>
+        </svg>
+      </div>
     </div>
   </div>
 </section>

@@ -48,7 +48,7 @@
           <span class="pn-account-bottom">&amp; Orders</span>
         </a>
         <a href="{% url 'signup' %}" class="pn-btn-create">Create Account</a>
-        <a href="{% url 'login' %}?next={% url 'ver_carrito' %}" class="pn-cart" title="Cart">
+        <a href="{% url 'login' %}?next={% url 'ver_carrito' %}" class="pn-cart" title="Sign in to view cart">
           <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
           <span class="pn-cart-badge" data-count="0" aria-hidden="true"></span>
         </a>
@@ -57,10 +57,10 @@
 
     <div class="pn-nav-row pn-nav-row--sub" id="pn-sub-nav">
       <a href="{% url 'tienda' %}" class="pn-sub-link">All</a>
-      <a href="{% url 'tienda' %}?destacados=1" class="pn-sub-link">Today's Deals</a>
+      <a href="{% url 'tienda' %}?tab=ofertas" class="pn-sub-link">Today's Deals</a>
       <a href="{% url 'tienda' %}?verificado=1" class="pn-sub-link">Verified Companies</a>
       <a href="{% url 'tienda' %}" class="pn-sub-link">CFZ Catalog</a>
-      <a href="{% url 'tienda' %}?bulk=1" class="pn-sub-link">Bulk Orders</a>
+      <a href="{% url 'tienda' %}?tab=bestsellers" class="pn-sub-link">Bulk Orders</a>
       <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Logistics</a>
       <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Documentation</a>
       <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Buyer Protection</a>
