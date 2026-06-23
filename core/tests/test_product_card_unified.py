@@ -16,12 +16,17 @@ from core.models import Category, Company, Inventory, Product, UserProfile
 )
 class ProductCardUnifiedTests(TestCase):
     def setUp(self):
-        self.company = Company.objects.create(name='CFZ Demo Co', is_verified=True)
+        self.company = Company.objects.create(
+            name='CFZ Demo Co',
+            is_verified=True,
+            ruc='123456789',
+        )
         self.category = Category.objects.create(name='Electronics')
         self.product = Product.objects.create(
             company=self.company,
             category=self.category,
             name='Unified Widget',
+            description='A reliable widget for export.',
             sku='UW-001',
             unit_price='99.99',
             currency='USD',
@@ -29,6 +34,16 @@ class ProductCardUnifiedTests(TestCase):
             is_featured=True,
         )
         Inventory.objects.create(product=self.product, stock_qty=10, reserved_qty=0)
+        self.related = Product.objects.create(
+            company=self.company,
+            category=self.category,
+            name='Related Gadget',
+            sku='RG-002',
+            unit_price='49.99',
+            currency='USD',
+            is_active=True,
+        )
+        Inventory.objects.create(product=self.related, stock_qty=5, reserved_qty=0)
         self.buyer = User.objects.create_user(
             username='buyer_pcard',
             email='buyer_pcard@test.pa',
@@ -40,7 +55,18 @@ class ProductCardUnifiedTests(TestCase):
         response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Unified Widget')
+        self.assertContains(response, 'Desde')
+        self.assertContains(response, 'Regístrate para ver precios mayoristas')
+        self.assertContains(response, 'CFZ Verified')
+        self.assertContains(response, 'Export Ready')
         self.assertFalse(response.context['show_cart_actions'])
+        self.assertContains(response, 'og:title')
+        self.assertContains(response, 'Productos relacionados')
+
+    def test_guest_breadcrumb_shows_category(self):
+        response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
+        self.assertContains(response, 'Inicio')
+        self.assertContains(response, 'Electronics')
 
     def test_home_uses_unified_public_card(self):
         response = self.client.get('/')
@@ -55,3 +81,5 @@ class ProductCardUnifiedTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
         self.assertContains(response, 'Add to cart')
+        self.assertContains(response, 'Auto quote')
+        self.assertNotContains(response, 'Regístrate para ver precios mayoristas')

@@ -3154,8 +3154,11 @@ def tienda(request):
 
 
 @catalog_access
-def catalogo_producto(request, pk):
-    """Vista pública de detalle de producto (invitados y compradores)."""
+def catalogo_producto_detail(request, pk):
+    """Vista pública de detalle de producto (sin login requerido)."""
+    from django.templatetags.static import static
+    from django.urls import reverse
+
     product = get_object_or_404(
         Product.objects.select_related('company', 'category', 'inventory'),
         pk=pk,
@@ -3172,16 +3175,75 @@ def catalogo_producto(request, pk):
         not is_guest
         and (role in ('buyer', 'admin') or request.user.is_superuser)
     )
+
+    related_products = list(
+        Product.objects.filter(is_active=True, category=product.category_id)
+        .exclude(pk=product.pk)
+        .select_related('company', 'category', 'inventory')
+        .order_by('-merchandising_priority', '-is_featured', 'name')[:4]
+    )
+    if len(related_products) < 4:
+        existing_ids = [p.pk for p in related_products]
+        extra = list(
+            Product.objects.filter(is_active=True, company=product.company_id)
+            .exclude(pk=product.pk)
+            .exclude(pk__in=existing_ids)
+            .select_related('company', 'category', 'inventory')
+            .order_by('-merchandising_priority', 'name')[: 4 - len(related_products)]
+        )
+        related_products.extend(extra)
+
+    company = product.company
+    export_ready = bool(
+        company.is_verified
+        and (company.ruc or product.sku)
+    )
+    if product.available_qty <= 0:
+        stock_status = 'out'
+        stock_label = 'Out of stock'
+    elif product.available_qty <= 5:
+        stock_status = 'low'
+        stock_label = f'Low stock ({product.available_qty} units)'
+    else:
+        stock_status = 'ok'
+        stock_label = f'In stock ({product.available_qty} units)'
+
+    if product.image:
+        og_image = request.build_absolute_uri(product.image.url)
+    else:
+        og_image = request.build_absolute_uri(static('img/product-placeholder.svg'))
+
+    meta_description = (
+        product.description[:155].strip()
+        if product.description
+        else f'{product.name} from {company.name} in the Colón Free Zone — TradeFlow Colón.'
+    )
+
     return render(
         request,
-        'core/catalogo_producto.html',
+        'core/catalogo_producto_detail.html',
         {
             'product': product,
+            'company': company,
             'show_cart_actions': show_cart_actions,
+            'is_guest': is_guest,
+            'related_products': related_products,
+            'export_ready': export_ready,
+            'stock_status': stock_status,
+            'stock_label': stock_label,
+            'meta_description': meta_description,
+            'og_image': og_image,
+            'canonical_url': request.build_absolute_uri(
+                reverse('catalogo_producto_detail', args=[product.pk]),
+            ),
             'titulo_pagina': product.name,
             'nav_activo': 'tienda',
         },
     )
+
+
+# Alias legacy (misma ruta, nombre anterior)
+catalogo_producto = catalogo_producto_detail
 
 
 # ---------------------------------------------------------------------------
