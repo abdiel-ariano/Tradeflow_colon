@@ -973,6 +973,13 @@ show_cart_actions, tienda_params.
        data-cur-page="{{ productos.number }}"
        hidden></div>
 
+  {% if not buscar and not cat_activa and not empresa and tab_catalogo == 'todos' and productos.number == 1 %}
+  {# Vista buyer (landing tienda) — patrón Alibaba #}
+  {% include "core/includes/buyer/buyer_hero_search.html" with show_mode_tabs=False %}
+  {% include "core/includes/buyer/buyer_welcome_zone.html" %}
+  {% include "core/includes/buyer/buyer_value_strip.html" %}
+  {% include "core/includes/buyer/buyer_recommended.html" %}
+  {% else %}
   <div class="bh-results-head" aria-label="Búsqueda en catálogo">
     {% include "core/includes/buyer/search_bar.html" with variant="compact" value=buscar placeholder="Buscar productos, empresas, SKU…" form_id="td-results" %}
     {% if buscar %}
@@ -982,6 +989,7 @@ show_cart_actions, tienda_params.
     </p>
     {% endif %}
   </div>
+  {% endif %}
 
   <div class="td-wrap">
     <aside class="td-sidebar" aria-label="Catalog filters">

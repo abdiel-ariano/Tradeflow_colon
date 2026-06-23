@@ -1116,7 +1116,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   {% endif %}
 
   {% if not request.user.is_authenticated %}
-    {% include "core/includes/buyer/buyer_navbar.html" %}
+    {% include "core/includes/public_navbar.html" %}
   {% elif request.user.is_superuser or request.user.profile.role == 'admin' or request.user.profile.role == 'seller' %}
   <nav class="tf-nav tf-navbar" aria-label="Principal">
     <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">

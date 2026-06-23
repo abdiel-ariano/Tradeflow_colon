@@ -77,7 +77,7 @@ Nivel 3 (mega tabs) solo si show_buyer_mega_tabs=True o url_name == home.
     <a href="{% url 'signup' %}?role=seller" class="bn-l2-link">Vende en TF</a>
   </div>
 
-  {% if show_tabs or request.resolver_match.url_name == 'home' %}
+  {% if show_tabs or request.resolver_match.url_name == 'tienda' %}
   <div class="bn-l3" role="tablist" aria-label="Modo de búsqueda">
     <a href="{% url 'home' %}" class="bn-l3-tab" role="tab">
       Modo IA <span class="bn-l3-star" aria-hidden="true">✦</span>
