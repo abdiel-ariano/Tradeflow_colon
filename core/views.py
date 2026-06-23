@@ -45,7 +45,7 @@ import qrcode
 from folium.plugins import MarkerCluster
 from django.core import signing
 
-from .decorators import admin_required, buyer_required, seller_required
+from .decorators import admin_required, buyer_required, catalog_access, seller_required
 from .forms import SellerProductForm, SellerInventoryForm
 from .email_service import enviar_codigo_verificacion as enviar_codigo_email
 from .models import (
@@ -2895,7 +2895,7 @@ def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
     return slots
 
 
-@buyer_required
+@catalog_access
 def tienda(request):
     """
     Muestra el catálogo de productos disponibles para el comprador.
@@ -2925,6 +2925,23 @@ def tienda(request):
         qs = q.urlencode()
         return f"{reverse('tienda')}?{qs}" if qs else reverse('tienda')
 
+    is_guest = not request.user.is_authenticated
+    if is_guest:
+        role = None
+    else:
+        try:
+            role = request.user.profile.role
+        except Exception:
+            role = None
+    show_cart_actions = (
+        not is_guest
+        and (
+            role == 'buyer'
+            or role == 'admin'
+            or request.user.is_superuser
+        )
+    )
+
     catalogo_base = merch.active_products_base()
     now = timezone.now()
     promo_q = (
@@ -2943,15 +2960,27 @@ def tienda(request):
     }
 
     productos = catalogo_base
-    tab_catalogo = request.GET.get('tab', 'todos').strip() or 'todos'
+    tab_catalogo = request.GET.get('tab', '').strip()
+    if not tab_catalogo:
+        if request.GET.get('destacados') == '1':
+            tab_catalogo = 'destacados'
+        elif request.GET.get('ofertas') == '1':
+            tab_catalogo = 'ofertas'
+        else:
+            tab_catalogo = 'todos'
     orden = request.GET.get('orden', 'nombre').strip() or 'nombre'
 
     buscar    = request.GET.get('buscar', '').strip()
     categoria = request.GET.get('categoria', '').strip()
     empresa   = request.GET.get('empresa', '').strip()
     vista_tab = request.GET.get('vista', 'categoria').strip() or 'categoria'
+    if request.GET.get('verificado') == '1':
+        vista_tab = 'empresa'
     if vista_tab not in ('categoria', 'empresa'):
         vista_tab = 'categoria'
+
+    if request.GET.get('verificado') == '1':
+        productos = productos.filter(company__is_verified=True)
 
     if tab_catalogo == 'ofertas':
         productos = productos.filter(promo_q)
@@ -3039,6 +3068,8 @@ def tienda(request):
         .filter(num_productos__gt=0)
         .order_by('name')
     )
+    if request.GET.get('verificado') == '1':
+        empresas_catalogo = empresas_catalogo.filter(is_verified=True)
     empresas_filtro = empresas_catalogo
 
     qcopy = request.GET.copy()
@@ -3089,7 +3120,8 @@ def tienda(request):
         'tab_catalogo': tab_catalogo,
         'orden_activo': orden,
         'promo_banner': promo_banner,
-        'show_cart_actions': True,
+        'show_cart_actions': show_cart_actions,
+        'is_guest_catalog': is_guest,
         'tienda_stats': tienda_stats,
         'tab_urls': {
             'todos': _tienda_tab_url('todos'),

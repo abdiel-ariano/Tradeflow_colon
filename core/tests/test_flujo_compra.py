@@ -227,7 +227,11 @@ class TestFlujoBuyer(TestCase):
         self.assertTrue(r.url.endswith('/dashboard/'))
 
     def test_acceso_sin_login_redirige(self):
-        """/tienda/ sin login redirige a /login/."""
+        """Invitados exploran /tienda/; acciones de compra siguen en login."""
         r = self.client.get('/tienda/')
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(r.context['show_cart_actions'])
+
+        r = self.client.post(f'/carrito/agregar/{self.product.pk}/', {'cantidad': 1})
         self.assertEqual(r.status_code, 302)
         self.assertIn('/login/', r.url)
