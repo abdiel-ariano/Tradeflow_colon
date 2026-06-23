@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 type KpiCardProps = {
@@ -12,17 +12,17 @@ type KpiCardProps = {
 
 export function KpiCard({ title, value, delta, icon: Icon, className }: KpiCardProps) {
   return (
-    <Card className={cn('p-5', className)}>
-      <CardContent className="p-0 flex flex-col gap-3">
+    <Card className={cn('p-5', className)} hoverable>
+      <div className="flex flex-col gap-3 p-0">
         <div className="flex items-start justify-between">
-          <span className="text-sm text-muted-foreground">{title}</span>
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <span className="text-label uppercase tracking-widest text-gray-mid">{title}</span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-light text-orange">
             <Icon className="h-4 w-4" />
           </span>
         </div>
-        <p className="text-2xl font-bold tracking-tight">{value}</p>
-        <p className="text-xs text-muted-foreground">{delta}</p>
-      </CardContent>
+        <p className="text-2xl font-bold tracking-tight text-navy">{value}</p>
+        <p className="text-xs text-gray-mid">{delta}</p>
+      </div>
     </Card>
   );
 }
