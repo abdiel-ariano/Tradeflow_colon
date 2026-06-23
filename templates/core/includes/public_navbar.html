@@ -19,7 +19,7 @@
         <span class="pn-location-value">Worldwide</span>
       </div>
 
-      <form class="pn-search" action="{% url 'tienda' %}" method="get" role="search">
+      <form class="pn-search" action="{% url 'catalogo_publico' %}" method="get" role="search">
         <label class="visually-hidden" for="pn-search-input">Search</label>
         <select class="pn-search-scope" name="scope" aria-label="Search scope" disabled>
           <option>All</option>
@@ -56,11 +56,11 @@
     </div>
 
     <div class="pn-nav-row pn-nav-row--sub" id="pn-sub-nav">
-      <a href="{% url 'tienda' %}" class="pn-sub-link">All</a>
-      <a href="{% url 'tienda' %}?tab=ofertas" class="pn-sub-link">Today's Deals</a>
-      <a href="{% url 'tienda' %}?verificado=1" class="pn-sub-link">Verified Companies</a>
-      <a href="{% url 'tienda' %}" class="pn-sub-link">CFZ Catalog</a>
-      <a href="{% url 'tienda' %}?tab=bestsellers" class="pn-sub-link">Bulk Orders</a>
+      <a href="{% url 'catalogo_publico' %}" class="pn-sub-link">All</a>
+      <a href="{% url 'catalogo_publico' %}?orden=novedades" class="pn-sub-link">Today's Deals</a>
+      <a href="{% url 'catalogo_publico' %}?verificado=1" class="pn-sub-link">Verified Companies</a>
+      <a href="{% url 'catalogo_publico' %}" class="pn-sub-link">CFZ Catalog</a>
+      <a href="{% url 'catalogo_publico' %}" class="pn-sub-link">Bulk Orders</a>
       <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Logistics</a>
       <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Documentation</a>
       <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Buyer Protection</a>
