@@ -20,7 +20,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="icon" type="image/png" href="{% static 'img/logo-icon-color.png' %}" sizes="32x32">
   <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
   <link rel="apple-touch-icon" href="{% static 'img/logo-icon-color.png' %}">
-  <link rel="stylesheet" href="{% static 'css/colors.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tf-design-tokens.css' %}?v={{ tf_asset_version|default:'2' }}">
+  <link rel="stylesheet" href="{% static 'css/colors.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-public-shell.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'2' }}">
@@ -305,51 +306,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-alert-success { background: #ECFDF5; border: 1px solid #6EE7B7; color: #065F46; }
     .tf-alert-danger { background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; }
     .tf-alert-info { background: #EFF6FF; border: 1px solid #93C5FD; color: #1E40AF; }
-
-    :root {
-      /* Paleta ZLC oficial (gradual en comprador/landing) */
-      --tf-zlc-dark: #404b57;
-      --tf-zlc-teal: #62929a;
-      --tf-zlc-sand: #d9cab3;
-      --tf-teal: #62929a;
-      --tf-teal-brand: #2E5B8A;
-      --tf-sand: #d9cab3;
-      --tf-dark: #404b57;
-      --tf-dark-faint: rgba(15, 42, 68, 0.08);
-      --tf-mid: #1B3B63;
-      --tf-radius: 12px;
-      --tf-radius-sm: 8px;
-      --tf-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
-      --tf-shadow-lg: 0 8px 24px rgba(15, 42, 68, 0.15);
-      --tf-navy: #0D1B2A;
-      --tf-navy-mid: #1A2D42;
-      --tf-blue: #2E6BE6;
-      --tf-orange: #E8490F;
-      --tf-orange-h: #F47B50;
-      --tf-orange-s: #F47B50;
-      --tf-light: #F4F6F8;
-      --tf-border: #E2E8F0;
-      --tf-muted: #8A97A8;
-      --tf-white: #FFFFFF;
-      --tf-font-body: 'Montserrat', sans-serif;
-      --tf-font-display: 'DM Serif Display', serif;
-      --tf-body: #374151;
-      --tf-title: #0F2A44;
-      --tf-subtitle: #1B3B63;
-      --tf-danger: #EF4444;
-      --tf-radius-card: 12px;
-      --tf-radius-btn: 8px;
-      --tf-radius-input: 8px;
-      --tf-radius-badge: 20px;
-      --tf-radius-modal: 16px;
-      --tf-shadow-card: 0 2px 8px rgba(15, 42, 68, 0.08);
-      --tf-shadow-card-hover: 0 8px 24px rgba(15, 42, 68, 0.15);
-      --tf-shadow-nav: 0 1px 0 #D1D5DB;
-      --tf-shadow-btn-primary: 0 4px 12px rgba(242, 101, 34, 0.3);
-      --tf-motion-fast: 0.18s;
-      --tf-motion-med: 0.28s;
-      --tf-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
-    }
 
     @keyframes tf-soft-in {
       from {

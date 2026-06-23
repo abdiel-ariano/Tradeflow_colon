@@ -1,86 +1,10 @@
 /*
 =============================================================================
 TRADEFLOW COLÓN — tf-design-system.css (Lovable v2)
-Sistema de diseño base: tokens, tipografía Inter, componentes reutilizables.
-Cargar después de colors.css en base.html / seller_layout.html.
+Componentes reutilizables (.ds-btn, .ds-card, …).
+Tokens: static/css/tf-design-tokens.css (cargar antes de este archivo).
 =============================================================================
 */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-:root {
-  /* Layout */
-  --sidebar-width: 256px;
-  --topbar-height: 64px;
-  --navbar-height: 64px;
-  --transition-fast: 150ms ease;
-  --transition-mid: 250ms ease;
-
-  /* Lovable palette — semantic */
-  --ds-navy: #0D1B2A;
-  --ds-navy-mid: #1A2D42;
-  --ds-navy-light: #243852;
-  --ds-cream: #FAF3E8;
-  --ds-cream-dark: #F0E6D3;
-  --ds-orange: #E8490F;
-  --ds-orange-soft: #F47B50;
-  --ds-orange-light: #FDE8DF;
-  --ds-gray-page: #F4F6F8;
-  --ds-gray-border: #E2E8F0;
-  --ds-gray-mid: #8A97A8;
-  --ds-gray-text: #4A5568;
-
-  /* Status */
-  --ds-status-paid: #1FAD6F;
-  --ds-status-paid-bg: #E6F7F0;
-  --ds-status-cancelled: #E84040;
-  --ds-status-cancelled-bg: #FDE8E8;
-  --ds-status-pending: #D97706;
-  --ds-status-pending-bg: #FEF3C7;
-  --ds-status-processing: #2563EB;
-  --ds-status-processing-bg: #EFF6FF;
-
-  /* Container colors (hero ship) */
-  --ds-container-yellow: #F5C842;
-  --ds-container-blue: #2E6BE6;
-  --ds-container-green: #1FAD6F;
-
-  /* Typography scale */
-  --ds-text-hero: 56px;
-  --ds-text-h1: 36px;
-  --ds-text-h2: 24px;
-  --ds-text-h3: 18px;
-  --ds-text-label: 12px;
-
-  /* Radii & shadows */
-  --ds-radius-xl: 12px;
-  --ds-radius-2xl: 16px;
-  --ds-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --ds-shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
-
-  /* Backward-compat aliases → existing --tf-* consumers pick up v2 */
-  --tf-navy: var(--ds-navy);
-  --tf-navy-mid: var(--ds-navy-mid);
-  --tf-mid: var(--ds-navy-mid);
-  --tf-dark: var(--ds-navy);
-  --tf-dark2: var(--ds-navy-light);
-  --tf-orange: var(--ds-orange);
-  --tf-orange-h: var(--ds-orange-soft);
-  --tf-orange-s: var(--ds-orange-soft);
-  --tf-orange-light: var(--ds-orange-light);
-  --tf-light: var(--ds-gray-page);
-  --tf-border: var(--ds-gray-border);
-  --tf-muted: var(--ds-gray-mid);
-  --tf-body: var(--ds-gray-text);
-  --tf-title: var(--ds-navy);
-  --tf-cream: var(--ds-cream);
-  --tf-font-body: 'Inter', system-ui, sans-serif;
-  --tf-radius: var(--ds-radius-xl);
-  --tf-radius-card: var(--ds-radius-xl);
-  --tf-radius-btn: 8px;
-  --tf-shadow-card: var(--ds-shadow-card);
-  --tf-shadow-card-hover: var(--ds-shadow-card-hover);
-}
 
 /* ── Global base (public shell) ── */
 body.tf-public,
