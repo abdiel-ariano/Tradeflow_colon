@@ -3103,6 +3103,7 @@ def tienda(request):
         'spotlight_destacados': spotlight_destacados,
         'productos_promo': merch.daily_deals(8),
         'tienda_pagination_slots': _tienda_pagination_slots(page_obj),
+        'category_spotlights': merch.category_spotlights(4, 4),
     }
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'
