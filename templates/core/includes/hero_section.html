@@ -1,0 +1,44 @@
+{% load static %}
+{% comment %}
+Lovable v2 hero — cream background, ship illustration, dual CTAs.
+Context: stats (optional, for future live counters).
+{% endcomment %}
+<section class="pn-hero" id="pn-hero" aria-labelledby="pn-hero-title">
+  <span class="pn-hero-dot" aria-hidden="true"></span>
+  <div class="pn-hero-grid">
+    <div class="pn-hero-copy">
+      <p class="pn-hero-label">Colón Free Zone · Panama</p>
+      <h1 class="pn-hero-title" id="pn-hero-title">
+        Free international delivery to your business.
+      </h1>
+      <p class="pn-hero-desc">
+        Shop the Colón Free Zone from anywhere. Verified suppliers, transparent inventory
+        and export-ready documentation in one place.
+      </p>
+      <p class="pn-hero-fine">*On qualifying bulk orders. Terms apply.</p>
+      <div class="pn-hero-ctas">
+        <a href="{% url 'tienda' %}" class="ds-btn ds-btn--primary ds-btn--lg">Shop the CFZ</a>
+        <a href="{% url 'signup' %}" class="ds-btn ds-btn--secondary ds-btn--lg">List your company</a>
+      </div>
+    </div>
+    <div class="pn-hero-art" aria-hidden="true">
+      <span class="pn-hero-dashed"></span>
+      <svg viewBox="0 0 420 280" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cargo ship with containers">
+        <path d="M40 200 H380" stroke="#0D1B2A" stroke-opacity="0.15" stroke-width="2" stroke-dasharray="6 6"/>
+        <path d="M60 195 Q210 175 360 195" stroke="#1A2D42" stroke-opacity="0.2" stroke-width="3" fill="none"/>
+        <path d="M80 198 L340 198 L320 220 L100 220 Z" fill="#1A2D42"/>
+        <path d="M120 198 L120 160 L300 160 L300 198 Z" fill="#243852"/>
+        <rect x="130" y="128" width="44" height="32" rx="3" fill="#F5C842"/>
+        <rect x="178" y="120" width="44" height="40" rx="3" fill="#E8490F"/>
+        <rect x="226" y="124" width="44" height="36" rx="3" fill="#0D1B2A"/>
+        <rect x="274" y="118" width="44" height="42" rx="3" fill="#2E6BE6"/>
+        <rect x="155" y="108" width="36" height="28" rx="3" fill="#1FAD6F"/>
+        <rect x="210" y="104" width="36" height="32" rx="3" fill="#F5C842"/>
+        <path d="M300 160 L330 130 L350 160 Z" fill="#8A97A8"/>
+        <rect x="318" y="108" width="8" height="52" fill="#4A5568"/>
+        <path d="M95 198 Q70 185 55 198 L55 210 Q75 205 95 210 Z" fill="#1A2D42"/>
+        <ellipse cx="210" cy="228" rx="160" ry="12" fill="#0D1B2A" fill-opacity="0.06"/>
+      </svg>
+    </div>
+  </div>
+</section>

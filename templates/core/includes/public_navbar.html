@@ -1,0 +1,82 @@
+{% load static %}
+{% comment %}Lovable v2 — Public navbar (guest: 2 rows).{% endcomment %}
+<header class="pn-shell" id="pn-public-shell">
+  <nav class="pn-nav pn-nav--guest" aria-label="TradeFlow store">
+    <div class="pn-nav-row pn-nav-row--main">
+      <a href="{% url 'home' %}" class="pn-brand" aria-label="TradeFlow Colón">
+        <span class="pn-brand-mark" aria-hidden="true">TF</span>
+        <span class="pn-brand-text">
+          <span class="pn-brand-name">TradeFlow</span>
+          <span class="pn-brand-tld">.cfz</span>
+        </span>
+      </a>
+
+      <div class="pn-location" title="Delivery region">
+        <span class="pn-location-label">
+          <span class="material-symbols-rounded" aria-hidden="true">location_on</span>
+          Deliver to
+        </span>
+        <span class="pn-location-value">Worldwide</span>
+      </div>
+
+      <form class="pn-search" action="{% url 'tienda' %}" method="get" role="search">
+        <label class="visually-hidden" for="pn-search-input">Search</label>
+        <select class="pn-search-scope" name="scope" aria-label="Search scope" disabled>
+          <option>All</option>
+        </select>
+        <input id="pn-search-input" class="pn-search-input" type="search" name="buscar"
+               placeholder="Search verified companies…" autocomplete="off">
+        <button type="submit" class="pn-search-btn" aria-label="Search">
+          <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        </button>
+      </form>
+
+      <button type="button" class="pn-hamburger" id="pn-hamburger" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="pn-actions">
+        <button type="button" class="pn-lang" aria-label="Language English">
+          <span aria-hidden="true">🇺🇸</span> EN <span class="material-symbols-rounded" style="font-size:16px;">expand_more</span>
+        </button>
+        <a href="{% url 'login' %}" class="pn-account-link">
+          <span class="pn-account-top">Hello, sign in</span>
+          <span class="pn-account-bottom">Account &amp; Lists</span>
+        </a>
+        <a href="{% url 'login' %}" class="pn-account-link">
+          <span class="pn-account-top">Returns</span>
+          <span class="pn-account-bottom">&amp; Orders</span>
+        </a>
+        <a href="{% url 'signup' %}" class="pn-btn-create">Create Account</a>
+        <a href="{% url 'login' %}?next={% url 'ver_carrito' %}" class="pn-cart" title="Cart">
+          <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
+          <span class="pn-cart-badge" data-count="0" aria-hidden="true"></span>
+        </a>
+      </div>
+    </div>
+
+    <div class="pn-nav-row pn-nav-row--sub" id="pn-sub-nav">
+      <a href="{% url 'tienda' %}" class="pn-sub-link">All</a>
+      <a href="{% url 'tienda' %}?destacados=1" class="pn-sub-link">Today's Deals</a>
+      <a href="{% url 'tienda' %}?verificado=1" class="pn-sub-link">Verified Companies</a>
+      <a href="{% url 'tienda' %}" class="pn-sub-link">CFZ Catalog</a>
+      <a href="{% url 'tienda' %}?bulk=1" class="pn-sub-link">Bulk Orders</a>
+      <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Logistics</a>
+      <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Documentation</a>
+      <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Buyer Protection</a>
+      <a href="{% url 'signup' %}?role=seller" class="pn-sub-link">Sell on TradeFlow</a>
+    </div>
+  </nav>
+</header>
+
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var btn = document.getElementById('pn-hamburger');
+  var sub = document.getElementById('pn-sub-nav');
+  if (!btn || !sub) return;
+  btn.addEventListener('click', function () {
+    var open = sub.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+})();
+</script>
