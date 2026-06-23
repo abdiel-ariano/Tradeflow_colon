@@ -538,10 +538,6 @@ def signup_view(request):
         profile.role = role
         profile.save()
 
-        # Deactivate user until admin approves
-        user.is_active = False
-        user.save()
-
         # Create application record
         from .models import UserApplication
         UserApplication.objects.get_or_create(
@@ -557,7 +553,18 @@ def signup_view(request):
             }
         )
 
-        # Redirect to pending approval page
+        if getattr(settings, 'EXPO_DEMO_MODE', False):
+            user.is_active = True
+            user.save(update_fields=['is_active'])
+            login(request, user, backend=AUTH_MODEL_BACKEND)
+            from core.views_onboarding import finalize_signup_with_otp
+
+            return finalize_signup_with_otp(request, user)
+
+        # Deactivate user until admin approves
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+
         return redirect('pending_approval')
 
     return render(request, 'core/signup.html', {
@@ -586,7 +593,9 @@ def _redirect_after_email_verified(user):
 @login_required
 def enviar_codigo(request):
     """Genera OTP, envía por Resend y redirige al formulario."""
-    if not settings.REQUIRE_EMAIL_VERIFICATION:
+    from core.auth_views import _email_verification_gate_active
+
+    if not _email_verification_gate_active(request.user):
         messages.info(request, 'Email verification is disabled in this environment.')
         return redirect('tienda')
 

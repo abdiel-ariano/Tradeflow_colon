@@ -3,14 +3,22 @@ Pantallas premium de onboarding: verificación y aprobación empresarial.
 """
 from __future__ import annotations
 
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
+from core.email_service import enviar_codigo_verificacion
 from core.models import UserProfile
+from core.utils.otp_handler import generate_user_otp
+
+log = logging.getLogger('tradeflow.onboarding')
+
+SESSION_PENDING_VERIFY_USER_ID = 'pending_verify_user_id'
 from core.utils.access_gating import (
     application_gate_status,
     email_verification_required,
@@ -18,6 +26,61 @@ from core.utils.access_gating import (
     onboarding_context,
     onboarding_redirect_name,
 )
+
+
+def _store_pending_verification_session(request: HttpRequest, user) -> None:
+    """Contexto de sesión para que /verificar/ identifique la cuenta en validación."""
+    request.session[SESSION_PENDING_VERIFY_USER_ID] = user.pk
+    request.session['pending_verify_email'] = user.email or ''
+    request.session.modified = True
+
+
+def finalize_signup_with_otp(request: HttpRequest, user) -> HttpResponse:
+    """
+    Tras registro exitoso en modo demo (EXPO_DEMO_MODE): genera OTP, envía correo
+    vía Resend y redirige a /verificar/ sin abortar el flujo si el correo falla.
+    """
+    _store_pending_verification_session(request, user)
+
+    try:
+        otp_code = generate_user_otp(user)
+    except Exception:
+        log.exception('signup_otp_generate_failed user_id=%s', user.pk)
+        messages.warning(
+            request,
+            'Account created, but we could not generate a verification code. '
+            'Use "Resend code" on the next screen.',
+        )
+        return redirect('verificar_codigo')
+
+    try:
+        result = enviar_codigo_verificacion(user.email, otp_code)
+        if result.ok:
+            messages.success(
+                request,
+                f'We sent a 6-digit code to {user.email}. Check your inbox and spam folder.',
+            )
+        else:
+            log.warning(
+                'signup_otp_email_failed user_id=%s channel=%s detail=%s',
+                user.pk,
+                result.channel,
+                result.detail,
+            )
+            messages.warning(
+                request,
+                'Your account was created, but we could not send the verification email. '
+                'Request a new code on the next screen if needed.',
+            )
+    except Exception:
+        log.exception('signup_otp_email_exception user_id=%s email=%s', user.pk, user.email)
+        messages.warning(
+            request,
+            'Your account was created, but the email service is temporarily unavailable. '
+            'You can still enter your code or request a new one.',
+        )
+
+    return redirect('verificar_codigo')
 
 
 def _redirect_active_verified_user(request):
