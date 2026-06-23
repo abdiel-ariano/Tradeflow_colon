@@ -29,7 +29,7 @@ show_cart_actions, tienda_params.
   }
 
   .td-page {
-    background: var(--tf-light);
+    background: var(--ds-gray-page, #F4F6F8);
     min-height: calc(100vh - 64px);
     padding: 0 0 56px;
   }
@@ -973,38 +973,15 @@ show_cart_actions, tienda_params.
        data-cur-page="{{ productos.number }}"
        hidden></div>
 
-  <header class="td-hero-band" aria-label="Catalog overview">
-    <div class="td-hero-inner">
-      <div class="td-hero-top">
-        <div>
-          <span class="td-hero-badge">
-            <span class="material-symbols-rounded" style="font-size:14px;" aria-hidden="true">storefront</span>
-            Colón Free Zone
-          </span>
-          <h1 class="td-hero-h1 tf-serif">Shop the Colón Free Zone</h1>
-          <p class="td-hero-desc">Browse deals, verified companies, and thousands of products. Filter by category or add to cart in one click.</p>
-        </div>
-      </div>
-      <div class="td-stats" role="list">
-        <div class="td-stat" role="listitem">
-          <span class="td-stat-val">{{ tienda_stats.productos }}</span>
-          <span class="td-stat-lbl">Products</span>
-        </div>
-        <div class="td-stat" role="listitem">
-          <span class="td-stat-val">{{ tienda_stats.empresas }}</span>
-          <span class="td-stat-lbl">Companies</span>
-        </div>
-        <div class="td-stat" role="listitem">
-          <span class="td-stat-val">{{ tienda_stats.categorias }}</span>
-          <span class="td-stat-lbl">Categories</span>
-        </div>
-        <div class="td-stat" role="listitem">
-          <span class="td-stat-val">{{ tienda_stats.ofertas }}</span>
-          <span class="td-stat-lbl">Deals</span>
-        </div>
-      </div>
-    </div>
-  </header>
+  <div class="bh-results-head" aria-label="Búsqueda en catálogo">
+    {% include "core/includes/buyer/search_bar.html" with variant="compact" value=buscar placeholder="Buscar productos, empresas, SKU…" form_id="td-results" %}
+    {% if buscar %}
+    <p style="margin:12px 0 0;font-size:14px;color:var(--ds-gray-text,#4A5568);">
+      Resultados para <strong style="color:var(--ds-navy,#0D1B2A);">"{{ buscar }}"</strong>
+      — {{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }}
+    </p>
+    {% endif %}
+  </div>
 
   <div class="td-wrap">
     <aside class="td-sidebar" aria-label="Catalog filters">

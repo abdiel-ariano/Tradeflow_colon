@@ -1,0 +1,80 @@
+{% comment %}CategoryMegaMenu — panel hover en navbar nivel 2.{% endcomment %}
+<div class="bn-mega" id="bn-mega-menu" role="region" aria-label="Categorías">
+  <div class="bn-mega-left" id="bn-mega-left">
+    <a href="{% url 'tienda' %}?buscar=ropa" class="bn-mega-cat is-active" data-mega-panel="ropa">
+      <span>🎽 Ropa y accesorios</span>
+      <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+    </a>
+    <a href="{% url 'tienda' %}?buscar=electronica" class="bn-mega-cat" data-mega-panel="electronica">
+      <span>📱 Electrónica de consumo</span>
+      <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+    </a>
+    <a href="{% url 'tienda' %}?buscar=deportes" class="bn-mega-cat" data-mega-panel="deportes">
+      <span>🏋️ Deportes y entretenimiento</span>
+      <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+    </a>
+    <a href="{% url 'tienda' %}?buscar=belleza" class="bn-mega-cat" data-mega-panel="belleza">
+      <span>💄 Belleza</span>
+      <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+    </a>
+    <a href="{% url 'tienda' %}?buscar=joyeria" class="bn-mega-cat" data-mega-panel="joyeria">
+      <span>💎 Joyería, gafas y relojes</span>
+      <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+    </a>
+    <a href="{% url 'tienda' %}?buscar=hogar" class="bn-mega-cat" data-mega-panel="hogar">
+      <span>🏠 Hogar y jardín</span>
+      <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+    </a>
+    <a href="{% url 'tienda' %}?buscar=industrial" class="bn-mega-cat" data-mega-panel="industrial">
+      <span>⚡ Electrónica industrial</span>
+      <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+    </a>
+    <a href="{% url 'tienda' %}?buscar=maquinaria" class="bn-mega-cat" data-mega-panel="maquinaria">
+      <span>🔧 Maquinaria</span>
+      <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+    </a>
+  </div>
+  <div class="bn-mega-right" id="bn-mega-right">
+    <h4 id="bn-mega-title">Ropa y accesorios</h4>
+    <div class="bn-mega-subgrid" id="bn-mega-subgrid">
+      <a class="bn-mega-sub" href="{% url 'tienda' %}?buscar=textiles">Textiles</a>
+      <a class="bn-mega-sub" href="{% url 'tienda' %}?buscar=uniformes">Uniformes CFZ</a>
+      <a class="bn-mega-sub" href="{% url 'tienda' %}?buscar=calzado">Calzado</a>
+      <a class="bn-mega-sub" href="{% url 'tienda' %}?buscar=bolsos">Bolsos y marroquinería</a>
+      <a class="bn-mega-sub" href="{% url 'tienda' %}?buscar=ropa+trabajo">Ropa de trabajo</a>
+      <a class="bn-mega-sub" href="{% url 'tienda' %}?buscar=accesorios">Accesorios</a>
+    </div>
+  </div>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var panels = {
+    ropa: { title: 'Ropa y accesorios', subs: ['Textiles', 'Uniformes CFZ', 'Calzado', 'Bolsos', 'Ropa de trabajo', 'Accesorios'] },
+    electronica: { title: 'Electrónica de consumo', subs: ['Audio', 'TV y video', 'Drones', 'Componentes', 'Cables', 'Smart devices'] },
+    deportes: { title: 'Deportes y entretenimiento', subs: ['Fitness', 'Ciclismo', 'Camping', 'Juguetes', 'Outdoor'] },
+    belleza: { title: 'Belleza', subs: ['Cuidado personal', 'Cosmética', 'Perfumería', 'Salud'] },
+    joyeria: { title: 'Joyería y relojes', subs: ['Relojes', 'Gafas', 'Bisutería', 'Óptica'] },
+    hogar: { title: 'Hogar y jardín', subs: ['Muebles', 'Decoración', 'Iluminación', 'Jardín'] },
+    industrial: { title: 'Electrónica industrial', subs: ['Automatización', 'Sensores', 'PLC', 'Redes'] },
+    maquinaria: { title: 'Maquinaria', subs: ['Equipos pesados', 'Herramientas', 'Repuestos', 'Mantenimiento'] }
+  };
+  var left = document.getElementById('bn-mega-left');
+  var title = document.getElementById('bn-mega-title');
+  var grid = document.getElementById('bn-mega-subgrid');
+  if (!left || !title || !grid) return;
+  left.addEventListener('mouseover', function (e) {
+    var cat = e.target.closest('.bn-mega-cat');
+    if (!cat) return;
+    var key = cat.getAttribute('data-mega-panel');
+    var data = panels[key];
+    if (!data) return;
+    left.querySelectorAll('.bn-mega-cat').forEach(function (el) { el.classList.remove('is-active'); });
+    cat.classList.add('is-active');
+    title.textContent = data.title;
+    grid.innerHTML = data.subs.map(function (s) {
+      return '<a class="bn-mega-sub" href="/tienda/?buscar=' + encodeURIComponent(s) + '">' + s + '</a>';
+    }).join('');
+  });
+})();
+</script>
