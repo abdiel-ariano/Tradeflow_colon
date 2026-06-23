@@ -1,0 +1,202 @@
+/*
+=============================================================================
+TRADEFLOW COLÓN — tf-components.css
+Componentes UI compartidos (tarjeta de producto unificada).
+Requiere: tf-design-tokens.css
+=============================================================================
+*/
+
+/* ── Product card grid ── */
+.tf-pcard-grid {
+  display: grid;
+  gap: var(--tf-space-5, 20px);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 576px) {
+  .tf-pcard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 992px) {
+  .tf-pcard-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  .tf-pcard-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ── Product card (.tf-pcard) ── */
+.tf-pcard {
+  display: flex;
+  flex-direction: column;
+  background: var(--tf-white, #fff);
+  border: 1px solid var(--tf-border, #D1D5DB);
+  border-radius: var(--tf-radius-card, 12px);
+  overflow: hidden;
+  box-shadow: var(--tf-shadow-card, 0 2px 8px rgba(15, 42, 68, 0.08));
+  transition:
+    transform var(--tf-motion-fast, 0.18s) var(--tf-motion-ease, ease),
+    box-shadow var(--tf-motion-fast, 0.18s) var(--tf-motion-ease, ease),
+    border-color var(--tf-motion-fast, 0.18s) var(--tf-motion-ease, ease);
+}
+.tf-pcard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--tf-shadow-card-hover, 0 8px 24px rgba(15, 42, 68, 0.15));
+  border-color: var(--tf-orange, #F26522);
+}
+
+.tf-pcard__media {
+  display: block;
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--tf-light, #F2F3F5);
+  overflow: hidden;
+  text-decoration: none;
+}
+.tf-pcard__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tf-pcard__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: var(--tf-radius-sm, 8px);
+  font-size: var(--tf-text-xs, 11px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+.tf-pcard__badge--out { background: #FEE2E2; color: #991B1B; }
+.tf-pcard__badge--stock { background: #FEF3C7; color: #92400E; }
+.tf-pcard__badge--promo { background: var(--tf-orange, #F26522); color: var(--tf-white, #fff); }
+.tf-pcard__badge--top { background: var(--tf-navy, #0F2A44); color: var(--tf-white, #fff); }
+.tf-pcard__badge--feat { background: var(--tf-blue, #2E5B8A); color: var(--tf-white, #fff); }
+
+.tf-pcard__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--tf-space-4, 16px);
+  gap: var(--tf-space-2, 8px);
+}
+
+.tf-pcard__company {
+  margin: 0;
+  font-size: var(--tf-text-sm, 13px);
+  color: var(--tf-muted, #6B7A88);
+  line-height: 1.3;
+}
+.tf-pcard__company a {
+  color: inherit;
+  text-decoration: none;
+}
+.tf-pcard__company a:hover {
+  color: var(--tf-orange, #F26522);
+  text-decoration: underline;
+}
+
+.tf-pcard__title {
+  margin: 0;
+  font-size: var(--tf-text-md, 16px);
+  font-weight: 600;
+  line-height: 1.35;
+  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+}
+.tf-pcard__title a {
+  color: var(--tf-navy, #0F2A44);
+  text-decoration: none;
+}
+.tf-pcard__title a:hover {
+  color: var(--tf-orange, #F26522);
+}
+
+.tf-pcard__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tf-space-2, 8px);
+  margin-top: auto;
+}
+.tf-pcard__price-old {
+  font-size: var(--tf-text-sm, 13px);
+  color: var(--tf-muted, #6B7A88);
+  text-decoration: line-through;
+}
+.tf-pcard__price-now {
+  font-size: var(--tf-text-md, 16px);
+  font-weight: 700;
+  color: var(--tf-orange, #F26522);
+}
+
+.tf-pcard__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2, 8px);
+  margin-top: var(--tf-space-2, 8px);
+}
+
+.tf-pcard__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--tf-radius-btn, 8px);
+  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+  font-size: var(--tf-text-sm, 13px);
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast, 150ms ease),
+    color var(--transition-fast, 150ms ease),
+    border-color var(--transition-fast, 150ms ease);
+}
+.tf-pcard__btn--primary {
+  background: var(--tf-orange, #F26522);
+  color: var(--tf-white, #fff);
+}
+.tf-pcard__btn--primary:hover {
+  background: var(--tf-orange-h, #FF7A3D);
+  color: var(--tf-white, #fff);
+}
+.tf-pcard__btn--secondary {
+  background: var(--tf-white, #fff);
+  color: var(--tf-navy, #0F2A44);
+  border: 1.5px solid var(--tf-border, #D1D5DB);
+}
+.tf-pcard__btn--secondary:hover {
+  border-color: var(--tf-orange, #F26522);
+  color: var(--tf-orange, #F26522);
+}
+.tf-pcard__btn--cta {
+  background: transparent;
+  color: var(--tf-orange, #F26522);
+  border: none;
+  padding: 8px 0 0;
+  justify-content: flex-start;
+  font-weight: 600;
+}
+.tf-pcard__btn--cta:hover {
+  color: var(--tf-orange-h, #FF7A3D);
+  text-decoration: underline;
+}
+.tf-pcard__btn--disabled {
+  background: var(--tf-light, #F2F3F5);
+  color: var(--tf-muted, #6B7A88);
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tf-pcard,
+  .tf-pcard__btn {
+    transition: none;
+  }
+  .tf-pcard:hover {
+    transform: none;
+  }
+}

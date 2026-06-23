@@ -10,9 +10,9 @@
       </div>
       <a href="{% url 'tienda' %}" class="pn-home-see-all">View full catalog →</a>
     </div>
-    <div class="pn-home-products">
+    <div class="tf-pcard-grid">
       {% for product in featured_products|slice:":8" %}
-        {% include "core/includes/product_card.html" with product=product show_cart_actions=show_cart_actions %}
+        {% include "core/includes/product_card_unified.html" with product=product is_public=True %}
       {% empty %}
         <p class="pn-home-empty">No featured products yet. <a href="{% url 'tienda' %}">Browse the catalog</a>.</p>
       {% endfor %}
@@ -31,9 +31,9 @@
       </div>
       <a href="{% url 'tienda' %}?tab=bestsellers" class="pn-home-see-all">See bestsellers →</a>
     </div>
-    <div class="pn-home-products">
+    <div class="tf-pcard-grid">
       {% for product in bestsellers|slice:":4" %}
-        {% include "core/includes/product_card.html" with product=product show_cart_actions=show_cart_actions %}
+        {% include "core/includes/product_card_unified.html" with product=product is_public=True %}
       {% endfor %}
     </div>
   </div>

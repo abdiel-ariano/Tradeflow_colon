@@ -69,29 +69,9 @@ Public home sections below hero/grid — Lovable v2 palette.
   color: var(--ds-orange-hover, #FF5A1F);
 }
 
-/* ── Product grid ── */
-.pn-home-products {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
-}
-@media (max-width: 1100px) {
-  .pn-home-products { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-@media (max-width: 768px) {
-  .pn-home-products { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-}
-.pn-home-products .tf-product-card {
-  border: 1px solid var(--ds-gray-border, #E2E8F0);
-  border-radius: var(--ds-radius-xl, 12px);
-  background: #fff;
-  box-shadow: var(--ds-shadow-card, 0 1px 3px rgba(13, 27, 42, 0.06));
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.pn-home-products .tf-product-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(13, 27, 42, 0.1);
+/* ── Product grid (delegates card styles to tf-components.css) ── */
+.pn-home-section .tf-pcard-grid {
+  margin-top: 0;
 }
 
 /* ── Companies strip ── */

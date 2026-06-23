@@ -23,7 +23,7 @@
 
   <div class="td-grid" id="td-product-grid">
     {% for producto in productos %}
-    {% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}
+    {% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}
     {% empty %}
     <div class="td-empty">
       <span class="material-symbols-rounded" aria-hidden="true">search_off</span>

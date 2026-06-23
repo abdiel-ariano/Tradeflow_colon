@@ -1,0 +1,92 @@
+{% load static tf_money %}
+{% comment %}
+Tarjeta de producto unificada — home (público) y tienda (autenticado).
+
+Variables:
+  product            — instancia Product (requerido)
+  show_cart_actions  — bool, mostrar Add / Auto quote (solo is_public=False)
+  is_public          — bool, default False; home/landing sin acciones de compra
+  card_extra_class   — clases CSS opcionales en el <article>
+{% endcomment %}
+<article class="tf-pcard {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
+  {% if is_public %}
+  <a href="{% url 'catalogo_producto' product.pk %}" class="tf-pcard__media">
+  {% else %}
+  <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-pcard__media">
+  {% endif %}
+    {% if product.image %}
+    <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300">
+    {% else %}
+    <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300">
+    {% endif %}
+    {% if not product.available_qty %}
+    <span class="tf-pcard__badge tf-pcard__badge--out">Out of stock</span>
+    {% elif product.available_qty <= 5 %}
+    <span class="tf-pcard__badge tf-pcard__badge--stock">Low stock</span>
+    {% elif product.is_on_promo_now %}
+    <span class="tf-pcard__badge tf-pcard__badge--promo">-{{ product.discount_pct }}%</span>
+    {% elif product.is_bestseller %}
+    <span class="tf-pcard__badge tf-pcard__badge--top">Top CFZ</span>
+    {% elif product.is_featured %}
+    <span class="tf-pcard__badge tf-pcard__badge--feat">Featured</span>
+    {% endif %}
+  </a>
+
+  <div class="tf-pcard__body">
+    <p class="tf-pcard__company">
+      {% if is_public %}
+      <a href="{% url 'tienda' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
+      {% else %}
+      <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="js-tienda-empresa-link" data-empresa-id="{{ product.company_id }}">{{ product.company.name }}</a>
+      {% endif %}
+    </p>
+    <h3 class="tf-pcard__title">
+      {% if is_public %}
+      <a href="{% url 'catalogo_producto' product.pk %}">{{ product.name }}</a>
+      {% else %}
+      <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}">{{ product.name }}</a>
+      {% endif %}
+    </h3>
+    <div class="tf-pcard__price">
+      {% if product.is_on_promo_now %}
+      <span class="tf-pcard__price-old">{{ product.unit_price|money_usd }}</span>
+      <span class="tf-pcard__price-now">{{ product.display_price|money_usd }}</span>
+      {% else %}
+      <span class="tf-pcard__price-now">{{ product.display_price|money_usd }}</span>
+      {% endif %}
+    </div>
+
+    <div class="tf-pcard__actions">
+      {% if is_public %}
+      <a href="{% url 'catalogo_producto' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
+        Ver detalles →
+      </a>
+      {% elif show_cart_actions %}
+        {% if product.available_qty %}
+      <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form tf-pcard__form">
+        {% csrf_token %}
+        <input type="hidden" name="cantidad" value="1">
+        <button type="submit" class="tf-pcard__btn tf-pcard__btn--primary">
+          <span class="material-symbols-rounded" aria-hidden="true" style="font-size:18px;">add_shopping_cart</span>
+          Add
+        </button>
+      </form>
+        {% else %}
+      <span class="tf-pcard__btn tf-pcard__btn--disabled">Out of stock</span>
+        {% endif %}
+      <form method="post" action="{% url 'solicitar_cotizacion_automatica' product.pk %}" class="tf-pcard__form">
+        {% csrf_token %}
+        <input type="hidden" name="cantidad" value="1">
+        <button type="submit" class="tf-pcard__btn tf-pcard__btn--secondary" title="Get automatic quotes from every company that sells this product">
+          <span class="material-symbols-rounded" aria-hidden="true" style="font-size:18px;">request_quote</span>
+          Auto quote
+        </button>
+      </form>
+      {% else %}
+      <a href="{% url 'catalogo_producto' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
+        Ver detalles →
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</article>

@@ -1110,19 +1110,19 @@ show_cart_actions, tienda_params.
       {% if show_spotlights and spotlight_ofertas %}
       <section class="td-spotlight" aria-labelledby="td-spot-ofertas">
         <div class="td-spot-head"><h2 id="td-spot-ofertas">Daily deals</h2><a href="{{ tab_urls.ofertas }}">View all →</a></div>
-        <div class="td-grid td-grid-spot">{% for producto in spotlight_ofertas %}{% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}{% endfor %}</div>
+        <div class="td-grid td-grid-spot">{% for producto in spotlight_ofertas %}{% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}{% endfor %}</div>
       </section>
       {% endif %}
       {% if show_spotlights and spotlight_bestsellers %}
       <section class="td-spotlight" aria-labelledby="td-spot-best">
         <div class="td-spot-head"><h2 id="td-spot-best">Bestsellers in the Colón Free Zone</h2><a href="{{ tab_urls.bestsellers }}">View ranking →</a></div>
-        <div class="td-grid td-grid-spot">{% for producto in spotlight_bestsellers %}{% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}{% endfor %}</div>
+        <div class="td-grid td-grid-spot">{% for producto in spotlight_bestsellers %}{% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}{% endfor %}</div>
       </section>
       {% endif %}
       {% if show_spotlights and spotlight_destacados %}
       <section class="td-spotlight" aria-labelledby="td-spot-feat">
         <div class="td-spot-head"><h2 id="td-spot-feat">Featured selection</h2><a href="{{ tab_urls.destacados }}">View featured →</a></div>
-        <div class="td-grid td-grid-spot">{% for producto in spotlight_destacados %}{% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}{% endfor %}</div>
+        <div class="td-grid td-grid-spot">{% for producto in spotlight_destacados %}{% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}{% endfor %}</div>
       </section>
       {% endif %}
 
@@ -1150,7 +1150,7 @@ show_cart_actions, tienda_params.
 
       <div class="td-grid" id="td-product-grid">
         {% for producto in productos %}
-        {% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}
+        {% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}
         {% empty %}
         <div class="td-empty">
           <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
