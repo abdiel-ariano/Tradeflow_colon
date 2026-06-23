@@ -1,0 +1,21 @@
+{% load static %}
+<section class="bh-recommended" id="bh-recommended" aria-labelledby="bh-rec-heading">
+  <h2 class="bh-rec-title" id="bh-rec-heading">Recomendado para su negocio</h2>
+  <div class="bh-rec-grid">
+    {% for product in featured_products|slice:":5" %}
+    <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}" class="bh-rec-item" title="{{ product.name }}">
+      {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+      {% else %}
+      <img src="https://picsum.photos/seed/rec{{ product.id }}/360/360" alt="{{ product.name }}" loading="lazy">
+      {% endif %}
+    </a>
+    {% empty %}
+    <a href="{% url 'tienda' %}" class="bh-rec-item"><img src="https://picsum.photos/seed/rec1/360/360" alt="" loading="lazy"></a>
+    <a href="{% url 'tienda' %}" class="bh-rec-item"><img src="https://picsum.photos/seed/rec2/360/360" alt="" loading="lazy"></a>
+    <a href="{% url 'tienda' %}" class="bh-rec-item"><img src="https://picsum.photos/seed/rec3/360/360" alt="" loading="lazy"></a>
+    <a href="{% url 'tienda' %}" class="bh-rec-item"><img src="https://picsum.photos/seed/rec4/360/360" alt="" loading="lazy"></a>
+    <a href="{% url 'tienda' %}" class="bh-rec-item"><img src="https://picsum.photos/seed/rec5/360/360" alt="" loading="lazy"></a>
+    {% endfor %}
+  </div>
+</section>
