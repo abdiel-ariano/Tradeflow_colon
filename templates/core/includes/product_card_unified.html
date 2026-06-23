@@ -10,7 +10,7 @@ Variables:
 {% endcomment %}
 <article class="tf-pcard {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
   {% if is_public %}
-  <a href="{% url 'catalogo_producto' product.pk %}" class="tf-pcard__media">
+  <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__media">
   {% else %}
   <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-pcard__media">
   {% endif %}
@@ -42,7 +42,7 @@ Variables:
     </p>
     <h3 class="tf-pcard__title">
       {% if is_public %}
-      <a href="{% url 'catalogo_producto' product.pk %}">{{ product.name }}</a>
+      <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name }}</a>
       {% else %}
       <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}">{{ product.name }}</a>
       {% endif %}
@@ -58,7 +58,7 @@ Variables:
 
     <div class="tf-pcard__actions">
       {% if is_public %}
-      <a href="{% url 'catalogo_producto' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
+      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
         Ver detalles →
       </a>
       {% elif show_cart_actions %}
@@ -83,7 +83,7 @@ Variables:
         </button>
       </form>
       {% else %}
-      <a href="{% url 'catalogo_producto' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
+      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
         Ver detalles →
       </a>
       {% endif %}
