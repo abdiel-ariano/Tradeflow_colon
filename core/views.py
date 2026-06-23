@@ -3153,6 +3153,37 @@ def tienda(request):
     return render(request, 'core/tienda.html', context)
 
 
+@catalog_access
+def catalogo_producto(request, pk):
+    """Vista pública de detalle de producto (invitados y compradores)."""
+    product = get_object_or_404(
+        Product.objects.select_related('company', 'category', 'inventory'),
+        pk=pk,
+        is_active=True,
+    )
+    is_guest = not request.user.is_authenticated
+    role = None
+    if not is_guest:
+        try:
+            role = request.user.profile.role
+        except Exception:
+            role = None
+    show_cart_actions = (
+        not is_guest
+        and (role in ('buyer', 'admin') or request.user.is_superuser)
+    )
+    return render(
+        request,
+        'core/catalogo_producto.html',
+        {
+            'product': product,
+            'show_cart_actions': show_cart_actions,
+            'titulo_pagina': product.name,
+            'nav_activo': 'tienda',
+        },
+    )
+
+
 # ---------------------------------------------------------------------------
 # CARRITO — Gestión del carrito de compras
 # ---------------------------------------------------------------------------

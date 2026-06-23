@@ -14,7 +14,7 @@ Context: category_spotlights, stats, empresas_carousel.
           {% if prod.image %}
           <img src="{{ prod.image.url }}" alt="{{ row.category.name }}" loading="lazy" decoding="async">
           {% else %}
-          <img src="https://picsum.photos/seed/cat{{ row.category.id }}/200/200" alt="{{ row.category.name }}" loading="lazy">
+          <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ row.category.name }}" loading="lazy" decoding="async">
           {% endif %}
           <span>{{ row.category.name }}</span>
           {% endwith %}
