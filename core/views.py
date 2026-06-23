@@ -3104,6 +3104,13 @@ def tienda(request):
         'productos_promo': merch.daily_deals(8),
         'tienda_pagination_slots': _tienda_pagination_slots(page_obj),
         'category_spotlights': merch.category_spotlights(4, 4),
+        'buyer_store_landing': (
+            not buscar
+            and not categoria
+            and not empresa
+            and tab_catalogo in ('todos', '')
+            and int(request.GET.get('page', 1) or 1) == 1
+        ),
     }
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'

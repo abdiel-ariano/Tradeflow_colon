@@ -973,7 +973,7 @@ show_cart_actions, tienda_params.
        data-cur-page="{{ productos.number }}"
        hidden></div>
 
-  {% if not buscar and not cat_activa and not empresa and tab_catalogo == 'todos' and productos.number == 1 %}
+  {% if buyer_store_landing %}
   {# Vista buyer (landing tienda) — patrón Alibaba #}
   {% include "core/includes/buyer/buyer_hero_search.html" with show_mode_tabs=False %}
   {% include "core/includes/buyer/buyer_welcome_zone.html" %}
