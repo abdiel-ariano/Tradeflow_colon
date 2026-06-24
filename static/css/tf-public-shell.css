@@ -378,22 +378,95 @@ Public navbar, hero cream, home grid. Sin lógica de backend.
   max-width: 520px;
   margin: 0 0 12px;
 }
-.pn-hero-fine {
-  font-size: 12px;
-  color: var(--ds-gray-mid, #8A97A8);
-  margin: 0 0 28px;
-}
 .pn-hero-ctas {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
+  margin-bottom: 24px;
 }
+
+.pn-hero-trust {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pn-hero-trust li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ds-navy, #0D1B2A);
+  opacity: 0.85;
+}
+.pn-hero-trust .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--ds-orange, #E8490F);
+  flex-shrink: 0;
+}
+
+.pn-hero-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pn-hero-stats-card {
+  background: var(--tf-white, #fff);
+  border: 1px solid var(--tf-border, #E2E8F0);
+  border-radius: var(--tf-radius-lg, 16px);
+  padding: 20px 22px;
+  box-shadow: var(--tf-shadow-md, 0 8px 24px rgba(13, 27, 42, 0.08));
+}
+.pn-hero-stats-title {
+  margin: 0 0 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tf-muted, #8A97A8);
+}
+.pn-hero-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+}
+.pn-hero-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pn-hero-stat--wide {
+  grid-column: 1 / -1;
+  padding-top: 4px;
+  border-top: 1px solid var(--tf-border, #E2E8F0);
+}
+.pn-hero-stat-val {
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--tf-navy, #0D1B2A);
+  font-variant-numeric: tabular-nums;
+}
+.pn-hero-stat-val--gmv {
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  color: var(--tf-orange, #E8490F);
+}
+.pn-hero-stat-lbl {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--tf-muted, #6B7A88);
+}
+
 .pn-hero-art {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 280px;
+  min-height: 200px;
 }
 .pn-hero-art svg {
   width: 100%;
