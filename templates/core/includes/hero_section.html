@@ -1,118 +1,108 @@
 {% load static %}
 {% comment %}
-Hero público — stats reales desde merchandising.home_stats() (sin métricas inventadas).
-Contexto: stats (dict con empresas_verificadas, productos, ordenes_completadas, gmv_30d_fmt, categorias).
+Public hero — live stats from merchandising.home_stats() (no hardcoded metrics).
+Context: stats (empresas_verificadas, productos, ordenes_completadas, gmv_30d_fmt, categorias).
 {% endcomment %}
 <section class="pn-hero" id="pn-hero" aria-labelledby="pn-hero-title">
   <span class="pn-hero-dot" aria-hidden="true"></span>
   <div class="pn-hero-grid">
     <div class="pn-hero-copy">
-      <p class="pn-hero-label">Zona Libre de Colón · Panamá</p>
+      <p class="pn-hero-label">Colón Free Zone · Panama</p>
       <h1 class="pn-hero-title" id="pn-hero-title">
-        Compra la Zona Libre de Colón desde cualquier parte del mundo.
+        Shop the Colón Free Zone from anywhere in the world.
       </h1>
       <p class="pn-hero-desc">
-        Marketplace B2B con empresas verificadas, inventario en tiempo real
-        y documentación lista para exportación.
+        B2B marketplace with verified companies, real-time inventory,
+        and export-ready documentation.
       </p>
       <div class="pn-hero-ctas">
-        <a href="{% url 'catalogo_publico' %}" class="ds-btn ds-btn--primary ds-btn--lg">Explorar catálogo</a>
-        <a href="{% url 'signup' %}" class="ds-btn ds-btn--secondary ds-btn--lg">Registrar mi empresa</a>
+        <a href="{% url 'catalogo_publico' %}" class="ds-btn ds-btn--primary ds-btn--lg">Explore catalog</a>
+        <a href="{% url 'signup' %}?role=seller" class="ds-btn ds-btn--secondary ds-btn--lg">Register your company</a>
       </div>
-      <ul class="pn-hero-trust" aria-label="Garantías de la plataforma">
+      <ul class="pn-hero-trust" aria-label="Platform guarantees">
         <li>
           <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-          Empresas verificadas CFZ
+          CFZ verified companies
         </li>
         <li>
           <span class="material-symbols-rounded" aria-hidden="true">description</span>
-          Documentación de exportación incluida
+          Export documentation included
         </li>
         <li>
           <span class="material-symbols-rounded" aria-hidden="true">lock</span>
-          Pagos seguros en plataforma
+          Secure in-platform payments
         </li>
       </ul>
     </div>
 
     <div class="pn-hero-aside">
-      <div class="pn-hero-stats-card" aria-label="Métricas en vivo de TradeFlow">
-        <p class="pn-hero-stats-title">Datos reales de la plataforma</p>
+      <div class="pn-hero-stats-card" aria-label="Live TradeFlow metrics">
+        <p class="pn-hero-stats-title">Real platform data</p>
         <div class="pn-hero-stats-grid">
           <div class="pn-hero-stat">
             <span class="pn-hero-stat-val js-count-up" data-count="{{ stats.empresas_verificadas|default:0 }}">0</span>
-            <span class="pn-hero-stat-lbl">Empresas verificadas</span>
+            <span class="pn-hero-stat-lbl">Verified companies</span>
           </div>
           <div class="pn-hero-stat">
             <span class="pn-hero-stat-val js-count-up" data-count="{{ stats.productos|default:0 }}">0</span>
-            <span class="pn-hero-stat-lbl">Productos activos</span>
+            <span class="pn-hero-stat-lbl">Active products</span>
           </div>
           <div class="pn-hero-stat">
             <span class="pn-hero-stat-val js-count-up" data-count="{{ stats.ordenes_completadas|default:0 }}">0</span>
-            <span class="pn-hero-stat-lbl">Órdenes completadas</span>
+            <span class="pn-hero-stat-lbl">Completed orders</span>
           </div>
           <div class="pn-hero-stat">
             <span class="pn-hero-stat-val js-count-up" data-count="{{ stats.categorias|default:0 }}">0</span>
-            <span class="pn-hero-stat-lbl">Categorías disponibles</span>
+            <span class="pn-hero-stat-lbl">Categories available</span>
           </div>
           <div class="pn-hero-stat pn-hero-stat--wide">
             <span class="pn-hero-stat-val pn-hero-stat-val--gmv">{{ stats.gmv_30d_fmt|default:"USD 0.00" }}</span>
-            <span class="pn-hero-stat-lbl">Volumen últimos 30 días</span>
+            <span class="pn-hero-stat-lbl">Volume last 30 days</span>
           </div>
         </div>
       </div>
 
       <div class="pn-hero-art" aria-hidden="true">
         <span class="pn-hero-dashed"></span>
-        <div class="pn-ship-scene">
-          <svg class="pn-ship-svg" viewBox="0 0 480 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Barco de carga con contenedores">
-            <defs>
-              <linearGradient id="pn-hull-grad" x1="80" y1="200" x2="400" y2="230" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#1A2D42"/>
-                <stop offset="1" stop-color="#0D1B2A"/>
-              </linearGradient>
-              <linearGradient id="pn-deck-grad" x1="120" y1="150" x2="340" y2="200" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#243852"/>
-                <stop offset="1" stop-color="#1A2D42"/>
-              </linearGradient>
-              <linearGradient id="pn-water-grad" x1="0" y1="230" x2="480" y2="280" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#0D1B2A" stop-opacity="0.04"/>
-                <stop offset="1" stop-color="#0D1B2A" stop-opacity="0.12"/>
-              </linearGradient>
-            </defs>
-            <path d="M20 218 Q240 200 460 218" stroke="#1A2D42" stroke-opacity="0.12" stroke-width="2" fill="none"/>
-            <ellipse cx="240" cy="248" rx="200" ry="18" fill="url(#pn-water-grad)"/>
-            <path class="pn-ship-wave pn-ship-wave--1" d="M30 242 Q90 232 150 242 T270 242 T390 242 T450 242" stroke="#1A2D42" stroke-opacity="0.18" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-            <path class="pn-ship-wave pn-ship-wave--2" d="M50 252 Q120 262 190 252 T310 252 T430 252" stroke="#E8490F" stroke-opacity="0.15" stroke-width="2" fill="none" stroke-linecap="round"/>
-            <path d="M55 228 Q75 222 90 228 L88 236 Q72 232 55 236 Z" fill="#0D1B2A" fill-opacity="0.08"/>
-            <path d="M70 218 L410 218 L385 248 L95 248 Z" fill="url(#pn-hull-grad)"/>
-            <path d="M70 218 L55 228 L95 248 Z" fill="#0D1B2A"/>
-            <path d="M95 248 L385 248 L375 255 L105 255 Z" fill="#0D1B2A" fill-opacity="0.35"/>
-            <path d="M110 218 L110 168 L360 168 L360 218 Z" fill="url(#pn-deck-grad)"/>
-            <rect x="110" y="212" width="250" height="6" fill="#0D1B2A" fill-opacity="0.2"/>
-            <rect x="122" y="138" width="46" height="30" rx="3" fill="#1FAD6F"/>
-            <rect x="124" y="140" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
-            <rect x="172" y="128" width="46" height="40" rx="3" fill="#F5C842"/>
-            <rect x="174" y="130" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
-            <rect x="222" y="132" width="46" height="36" rx="3" fill="#E8490F"/>
-            <rect x="224" y="134" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
-            <rect x="272" y="124" width="46" height="44" rx="3" fill="#0D1B2A"/>
-            <rect x="274" y="126" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
-            <rect x="322" y="130" width="40" height="38" rx="3" fill="#2E6BE6"/>
-            <rect x="324" y="132" width="36" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
-            <rect x="148" y="108" width="38" height="28" rx="3" fill="#E8490F" fill-opacity="0.85"/>
-            <rect x="196" y="100" width="38" height="32" rx="3" fill="#1FAD6F"/>
-            <rect x="244" y="104" width="38" height="28" rx="3" fill="#F5C842"/>
-            <path d="M360 168 L360 128 L395 108 L420 128 L420 168 Z" fill="#8A97A8"/>
-            <rect x="368" y="118" width="36" height="22" rx="2" fill="#C5D0DC"/>
-            <rect x="372" y="122" width="10" height="8" rx="1" fill="#1A2D42" fill-opacity="0.3"/>
-            <rect x="386" y="122" width="10" height="8" rx="1" fill="#1A2D42" fill-opacity="0.3"/>
-            <rect x="400" y="100" width="6" height="68" fill="#4A5568"/>
-            <rect x="398" y="96" width="10" height="8" rx="1" fill="#E8490F"/>
-            <path d="M130 168 L130 118 L145 118 L145 168" stroke="#4A5568" stroke-width="3"/>
-            <path d="M130 118 L165 108" stroke="#4A5568" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="88" cy="205" r="7" stroke="#E8490F" stroke-width="2.5" fill="none"/>
-          </svg>
+        <div class="hero-ship-container" id="hero-ship-container">
+          <div class="hero-wave hero-wave-back" aria-hidden="true">
+            <div class="hero-wave-track">
+              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 38 C200 8 400 52 600 36 C800 20 1000 48 1200 34 L1200 60 L0 60 Z"/>
+              </svg>
+              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M0 38 C200 8 400 52 600 36 C800 20 1000 48 1200 34 L1200 60 L0 60 Z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="hero-wave hero-wave-mid" aria-hidden="true">
+            <div class="hero-wave-track">
+              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 42 C180 18 360 54 540 40 C720 26 900 56 1080 38 L1200 44 L1200 60 L0 60 Z"/>
+              </svg>
+              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M0 42 C180 18 360 54 540 40 C720 26 900 56 1080 38 L1200 44 L1200 60 L0 60 Z"/>
+              </svg>
+            </div>
+          </div>
+          <img src="{% static 'img/ship-cargo.svg' %}"
+               alt="International shipping from Colón Free Zone"
+               class="hero-ship-img"
+               width="360"
+               height="225"
+               loading="eager"
+               fetchpriority="low"
+               decoding="async">
+          <div class="hero-wave hero-wave-front" aria-hidden="true">
+            <div class="hero-wave-track">
+              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 44 C160 28 320 50 480 42 C640 34 800 52 960 40 C1080 32 1140 46 1200 42 L1200 60 L0 60 Z"/>
+              </svg>
+              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M0 44 C160 28 320 50 480 42 C640 34 800 52 960 40 C1080 32 1140 46 1200 42 L1200 60 L0 60 Z"/>
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
     </div>

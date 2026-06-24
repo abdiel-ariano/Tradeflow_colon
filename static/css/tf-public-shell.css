@@ -468,35 +468,6 @@ Public navbar, hero cream, home grid. Sin lógica de backend.
   align-items: center;
   min-height: 200px;
 }
-.pn-hero-art svg {
-  width: 100%;
-  max-width: 420px;
-  height: auto;
-}
-.pn-ship-scene {
-  animation: pn-ship-float 5s ease-in-out infinite;
-}
-@keyframes pn-ship-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-.pn-ship-wave--1 {
-  animation: pn-wave-drift 4s ease-in-out infinite;
-}
-.pn-ship-wave--2 {
-  animation: pn-wave-drift 5s ease-in-out infinite reverse;
-}
-@keyframes pn-wave-drift {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(6px); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pn-ship-scene,
-  .pn-ship-wave--1,
-  .pn-ship-wave--2 {
-    animation: none !important;
-  }
-}
 .pn-hero-dashed {
   position: absolute;
   inset: 10% 5% auto auto;

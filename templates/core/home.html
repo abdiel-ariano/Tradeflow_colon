@@ -8,6 +8,7 @@ Context: home_view — stats, featured_products, bestsellers, empresas_carousel,
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/tf-hero-ship.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
 {% block content %}
@@ -28,7 +29,7 @@ Context: home_view — stats, featured_products, bestsellers, empresas_carousel,
   if (!els.length) return;
 
   function formatNum(n) {
-    return n.toLocaleString('es-PA');
+    return n.toLocaleString('en-US');
   }
 
   function animate(el) {
@@ -61,6 +62,24 @@ Context: home_view — stats, featured_products, bestsellers, empresas_carousel,
     els.forEach(function (el) { io.observe(el); });
   } else {
     els.forEach(animate);
+  }
+
+  var shipContainer = document.getElementById('hero-ship-container');
+  if (shipContainer) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      shipContainer.classList.add('is-visible');
+    } else if ('IntersectionObserver' in window) {
+      var shipIo = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          shipContainer.classList.add('is-visible');
+          shipIo.unobserve(shipContainer);
+        });
+      }, { threshold: 0.15 });
+      shipIo.observe(shipContainer);
+    } else {
+      shipContainer.classList.add('is-visible');
+    }
   }
 })();
 </script>
