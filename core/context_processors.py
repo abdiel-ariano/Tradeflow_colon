@@ -6,6 +6,16 @@ from __future__ import annotations
 from django.conf import settings
 
 
+def csp_nonce_context(request):
+    """Expone `csp_nonce` (string) en todas las plantillas.
+
+    `SecurityHeadersMiddleware` lo asigna a `request.csp_nonce` antes del
+    view. Las plantillas DEBEN renderizarlo en cada `<script>` y `<style>`
+    inline para que la CSP `'nonce-...'` los autorize.
+    """
+    return {'csp_nonce': getattr(request, 'csp_nonce', '')}
+
+
 def pending_applications_badge(request):
     """Pending access applications count for admin navbar."""
     if not request.user.is_authenticated:
@@ -18,9 +28,7 @@ def pending_applications_badge(request):
             return {'pending_applications_count': 0}
     from core.models import UserApplication
 
-    count = UserApplication.objects.filter(
-        status__in=('pendiente', 'en_revision'),
-    ).count()
+    count = UserApplication.objects.filter(status='pending').count()
     return {'pending_applications_count': count}
 
 
@@ -39,9 +47,21 @@ def cart_badge(request):
     return {'carrito_count': count}
 
 
+def tradeflow_contact(request):
+    """Public contact email (footer, legal pages, support links)."""
+    from core.utils.contact import tradeflow_contact_email
+
+    email = tradeflow_contact_email()
+    return {'tradeflow_contact_email': email}
+
+
 def tf_i18n(request):
     """UI strings for client scripts (TF_I18N)."""
+    from core.utils.contact import tradeflow_contact_email
+
+    contact = tradeflow_contact_email()
     payload = {
+        'contactEmail': contact,
         'close': 'Close',
         'cartTitle': 'Cart',
         'slide': 'Slide',
@@ -70,6 +90,8 @@ def tf_i18n(request):
         'geoUnsupported': 'Your browser does not support geolocation.',
         'awaitingSeller': 'Awaiting company confirmation',
         'orderUpdated': 'Order status updated',
+        'processing': 'Processing…',
+        'supportEmailPrompt': f'We will improve it. Email us at {contact}',
     }
     return {'tf_i18n': payload}
 
@@ -118,3 +140,8 @@ def supabase_public(request):
         'SUPABASE_ANON_KEY': anon,
         'SUPABASE_REALTIME_ENABLED': bool(url and anon),
     }
+
+
+def tf_asset_version(request):
+    """Version string for static asset cache busting (?v=)."""
+    return {'tf_asset_version': getattr(settings, 'TRADEFLOW_ASSET_VERSION', '1')}

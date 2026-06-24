@@ -1,0 +1,124 @@
+{% load static %}
+{% comment %}
+BuyerNavbar — 3 niveles (patrón Alibaba). Invitados y compradores autenticados.
+Nivel 3 (mega tabs) solo si show_buyer_mega_tabs=True o url_name == home.
+{% endcomment %}
+{% with is_auth=request.user.is_authenticated %}
+{% with show_tabs=show_buyer_mega_tabs|default:False %}
+<header class="bn-shell pn-shell" id="bn-buyer-shell">
+  <nav class="bn-l1" aria-label="TradeFlow comprador">
+    <a href="{% url 'home' %}" class="bn-brand" aria-label="TradeFlow Colón">
+      <span class="bn-brand-mark" aria-hidden="true">TF</span>
+      <span>
+        <div class="bn-brand-name">TradeFlow</div>
+        <div class="bn-brand-tld">.cfz</div>
+      </span>
+    </a>
+
+    <button type="button" class="bn-deliver" aria-haspopup="listbox" aria-expanded="false" title="Región de entrega">
+      <span class="bn-deliver-top">
+        <span class="material-symbols-rounded" aria-hidden="true">location_on</span>
+        Entregar a:
+      </span>
+      <span class="bn-deliver-val">Worldwide <span class="material-symbols-rounded" style="font-size:16px;">expand_more</span></span>
+    </button>
+
+    {% include "core/includes/buyer/search_bar.html" with variant="compact" value=request.GET.buscar placeholder="Buscar empresas, productos, HS codes…" form_id="bn-nav" %}
+
+    <button type="button" class="bn-mobile-toggle" id="bn-mobile-toggle" aria-label="Menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="bn-actions">
+      <button type="button" class="bn-icon-btn" aria-label="Idioma">
+        <span class="material-symbols-rounded">language</span>
+        ES <span class="material-symbols-rounded" style="font-size:16px;">expand_more</span>
+      </button>
+
+      <a href="{% url 'ver_carrito' %}" class="bn-icon-btn" title="Carrito">
+        <span class="material-symbols-rounded">shopping_cart</span>
+        {% if is_auth %}
+        <span class="bn-badge" id="bn-cart-badge">{% if carrito_count %}{{ carrito_count }}{% endif %}</span>
+        {% endif %}
+      </a>
+
+      {% if is_auth %}
+      <div class="bn-auth-links">
+        <a href="{% url 'mis_ordenes' %}" class="bn-auth-link">Mis pedidos</a>
+        <a href="{% url 'mis_cotizaciones' %}" class="bn-auth-link">Mis cotizaciones</a>
+      </div>
+      <a href="{% url 'mi_perfil' %}" class="bn-user">
+        <span class="bn-user-avatar" id="bn-user-avatar" aria-hidden="true"></span>
+        <span class="bn-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+      </a>
+      <a href="{% url 'logout' %}" class="bn-auth-link bn-auth-link--muted">Cerrar sesión</a>
+      {% else %}
+      <a href="{% url 'login' %}" class="bn-icon-btn" title="Mi cuenta">
+        <span class="material-symbols-rounded">person</span>
+      </a>
+      <a href="{% url 'signup' %}" class="bn-btn-signup">Crear una cuenta</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <div class="bn-l2" id="bn-l2">
+    <div class="bn-cat-trigger-wrap" style="position:relative;">
+      <button type="button" class="bn-cat-trigger" id="bn-cat-trigger" aria-expanded="false" aria-controls="bn-mega-menu">
+        <span class="material-symbols-rounded" style="font-size:20px;">menu</span>
+        Todas las categorías
+      </button>
+      {% include "core/includes/buyer/category_mega_menu.html" %}
+    </div>
+    <a href="{% url 'tienda' %}?verificado=1" class="bn-l2-link">Empresas verificadas</a>
+    <a href="{% url 'home' %}#hm-features" class="bn-l2-link">Protección de pedidos</a>
+    <a href="{% url 'home' %}#hm-features" class="bn-l2-link">Documentación CFZ</a>
+    <a href="{% url 'home' %}#hm-features" class="bn-l2-link">Exención de impuestos</a>
+    <a href="{% url 'home' %}#como-funciona" class="bn-l2-link">Centro de ayuda</a>
+    <a href="{% url 'signup' %}?role=seller" class="bn-l2-link">Vende en TF</a>
+  </div>
+
+  {% if show_tabs or request.resolver_match.url_name == 'tienda' %}
+  <div class="bn-l3" role="tablist" aria-label="Modo de búsqueda">
+    <a href="{% url 'home' %}" class="bn-l3-tab" role="tab">
+      Modo IA <span class="bn-l3-star" aria-hidden="true">✦</span>
+    </a>
+    <span class="bn-l3-sep" aria-hidden="true">|</span>
+    <a href="{% url 'tienda' %}" class="bn-l3-tab is-active" role="tab" aria-selected="true">Productos</a>
+    <span class="bn-l3-sep" aria-hidden="true">|</span>
+    <a href="{% url 'tienda' %}?vista=empresa" class="bn-l3-tab" role="tab">Fabricantes</a>
+    <span class="bn-l3-sep" aria-hidden="true">|</span>
+    <a href="{% url 'tienda' %}?buscar=worldwide" class="bn-l3-tab" role="tab">Mundial</a>
+  </div>
+  {% endif %}
+</header>
+
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var toggle = document.getElementById('bn-mobile-toggle');
+  var l2 = document.getElementById('bn-l2');
+  if (toggle && l2) {
+    toggle.addEventListener('click', function () {
+      var open = l2.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  var av = document.getElementById('bn-user-avatar');
+  var nameEl = document.querySelector('.bn-user-name');
+  if (av && nameEl && nameEl.textContent) {
+    var parts = nameEl.textContent.trim().split(/\s+/);
+    av.textContent = (parts[0].charAt(0) || '').toUpperCase() +
+      (parts.length > 1 ? parts[parts.length - 1].charAt(0) : '').toUpperCase() || 'U';
+  }
+  var meta = document.getElementById('tf-nav-meta');
+  if (meta) {
+    var navActive = meta.getAttribute('data-nav-active') || '';
+    document.querySelectorAll('.bn-l2-link').forEach(function (a) {
+      if (a.getAttribute('href') && a.getAttribute('href').indexOf(navActive) !== -1) {
+        a.classList.add('is-active');
+      }
+    });
+  }
+})();
+</script>
+{% endwith %}
+{% endwith %}

@@ -37,7 +37,7 @@ def build_env_content(
 ) -> str:
     return f"""# Generado por scripts/bootstrap_dotenv.py — NO subir a git
 SECRET_KEY={secret_key}
-DEBUG=True
+DEBUG=true
 ALLOWED_HOSTS=127.0.0.1,localhost
 
 DATABASE_URL={database_url}
@@ -47,13 +47,13 @@ DB_SSLMODE=require
 SUPABASE_URL={supabase_url}
 SUPABASE_ANON_KEY={supabase_anon}
 SUPABASE_SERVICE_KEY={supabase_service}
-SUPABASE_EMAIL_FUNCTION=send-transactional-email
 
+RESEND_API_KEY=
 EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 DEFAULT_FROM_EMAIL=TradeFlow <noreply@tradeflow.pa>
 PUBLIC_BASE_URL=http://127.0.0.1:8000
 
-APPLICATION_REVIEW_EMAILS=
+APPLICATION_REVIEW_EMAILS=tradeflowcolon@gmail.com
 
 REQUIRE_EMAIL_VERIFICATION=true
 REQUIRE_APPROVED_APPLICATION=false

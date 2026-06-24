@@ -2,7 +2,7 @@
 {% block title %}Verify email — TradeFlow Colón{% endblock %}
 
 {% block extra_head %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .tf-verify-wrap {
     min-height: calc(100vh - 200px);
     display: flex;

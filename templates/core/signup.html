@@ -13,16 +13,10 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
 {% endblock %}
 {% block footer %}{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .auth-page {
-    min-height: calc(100vh - 64px);
     width: 100%;
     box-sizing: border-box;
-    background: var(--tf-light, #F2F3F5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
   }
   .auth-card {
     width: 100%;
@@ -53,6 +47,107 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
   .auth-toggle input:checked + label small { color: rgba(255,255,255,0.75); }
   .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .req { color: #EF4444; }
+  .auth-field-hint {
+    margin: 4px 0 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #94a3b8;
+    font-weight: 400;
+  }
+  .auth-field-label-subtle {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+  }
+  .auth-password-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  .auth-password-field {
+    width: 100%;
+    min-width: 0;
+  }
+  .auth-password-wrap {
+    position: relative;
+    width: 100%;
+  }
+  .auth-password-input {
+    display: block;
+    width: 100%;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0 44px 0 16px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    outline: none;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #1e293b;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .auth-password-input::placeholder {
+    color: #9ca3af;
+  }
+  .auth-password-input:hover {
+    background: #f1f5f9;
+  }
+  .auth-password-input:focus {
+    background: #ffffff;
+    border-color: var(--tf-orange, #F26522);
+    box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.2);
+  }
+  .auth-password-input::-ms-reveal,
+  .auth-password-input::-ms-clear {
+    display: none !important;
+  }
+  .auth-password-input::-webkit-credentials-auto-fill-button,
+  .auth-password-input::-webkit-textfield-decoration-container {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  .auth-password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .auth-password-toggle:hover {
+    color: #475569;
+  }
+  .auth-password-toggle:focus {
+    outline: none;
+  }
+  .auth-password-toggle:focus-visible {
+    outline: 2px solid rgba(242, 101, 34, 0.45);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .auth-password-toggle .material-symbols-rounded {
+    font-size: 20px;
+    line-height: 1;
+    width: 20px;
+    height: 20px;
+  }
   .auth-submit {
     width: 100%; margin-top: 0.5rem; padding: 12px 16px; border: none; border-radius: 8px;
     font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.9375rem; color: #fff;
@@ -68,7 +163,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
 </style>
 {% endblock %}
 {% block content %}
-<div class="auth-page" style="min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5);">
+<div class="auth-page">
   <div class="auth-card">
     <div class="auth-logo-block">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" eager=1 %}
@@ -97,7 +192,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
         <div class="tf-field">
           <label class="tf-label" for="id_first_name">First name <span class="req">*</span></label>
           <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="First name" value="{{ form_first_name|default:'' }}" required>
-          <p style="font-size:12px; color:#6B7A88; margin-top:4px;">Letters and spaces only (no numbers or symbols).</p>
+          <p class="auth-field-hint">Letters and spaces only (no numbers or symbols).</p>
         </div>
         <div class="tf-field">
           <label class="tf-label" for="id_last_name">Last name</label>
@@ -111,20 +206,30 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
       <div class="tf-field">
         <label class="tf-label" for="id_username">Username <span class="req">*</span></label>
         <input type="text" name="username" id="id_username" class="tf-input" placeholder="Username" autocomplete="off" required>
-        <p style="font-size:12px; color:#6B7A88; margin-top:4px;">Letters, numbers, dots, and underscores only. Must start with a letter (3–30 characters).</p>
+        <p class="auth-field-hint">Letters, numbers, dots, and underscores only. Must start with a letter (3–30 characters).</p>
       </div>
       <div class="tf-field">
         <label class="tf-label" for="id_phone">Phone</label>
         <input type="tel" name="phone" id="id_phone" class="tf-input" placeholder="+507 6000-0000" value="{{ form_phone|default:'' }}">
       </div>
-      <div class="row-2">
-        <div class="tf-field">
-          <label class="tf-label" for="id_password1">Password <span class="req">*</span></label>
-          <input type="password" name="password1" id="id_password1" class="tf-input" placeholder="Min. 8 characters" autocomplete="new-password" required>
+      <div class="auth-password-stack">
+        <div class="auth-password-field">
+          <label class="auth-field-label-subtle" for="id_password1">Password <span class="req">*</span></label>
+          <div class="auth-password-wrap">
+            <input type="password" name="password1" id="id_password1" class="auth-password-input" placeholder="Min. 8 characters" autocomplete="new-password" required>
+            <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Show password" aria-pressed="false" data-target="id_password1">
+              <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
+            </button>
+          </div>
         </div>
-        <div class="tf-field">
-          <label class="tf-label" for="id_password2">Password <span class="req">*</span></label>
-          <input type="password" name="password2" id="id_password2" class="tf-input" placeholder="Password" autocomplete="new-password" required>
+        <div class="auth-password-field">
+          <label class="auth-field-label-subtle" for="id_password2">Confirm password <span class="req">*</span></label>
+          <div class="auth-password-wrap">
+            <input type="password" name="password2" id="id_password2" class="auth-password-input" placeholder="Re-enter password" autocomplete="new-password" required>
+            <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Show password" aria-pressed="false" data-target="id_password2">
+              <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
+            </button>
+          </div>
         </div>
       </div>
       <button type="submit" class="auth-submit">
@@ -133,15 +238,35 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
     </form>
     <div class="auth-divider">or</div>
     <div class="auth-footer">
-      Don’t have an account? <a href="{% url 'login' %}">Sign in</a>
+      Already have an account? <a href="{% url 'login' %}">Sign in</a>
     </div>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var role = "{{ selected_role|escapejs }}";
   var seller = document.getElementById('r_seller');
   if (seller && role === "seller") seller.checked = true;
+  function syncPasswordToggle(btn, visible) {
+    var inputId = btn.getAttribute('data-target');
+    var input = inputId ? document.getElementById(inputId) : null;
+    if (!input) return;
+    input.type = visible ? 'text' : 'password';
+    btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
+    btn.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+    var icon = btn.querySelector('.js-pw-icon');
+    if (icon) icon.textContent = visible ? 'visibility_off' : 'visibility';
+  }
+
+  document.querySelectorAll('.js-password-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var inputId = btn.getAttribute('data-target');
+      var input = inputId ? document.getElementById(inputId) : null;
+      if (!input) return;
+      syncPasswordToggle(btn, input.type !== 'text');
+    });
+  });
+
   if (window.performance &&
       window.performance.navigation &&
       window.performance.navigation.type ===
@@ -149,6 +274,9 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
     document.querySelectorAll(
       'input[type="text"], input[type="email"], input[type="password"], input[type="tel"]'
     ).forEach(function (el) { el.value = ''; });
+    document.querySelectorAll('.js-password-toggle').forEach(function (btn) {
+      syncPasswordToggle(btn, false);
+    });
   }
 })();
 </script>

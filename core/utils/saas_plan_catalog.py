@@ -3,6 +3,82 @@ Catálogo comercial de planes (copy y UX) — los límites USD viven solo en Saa
 """
 from __future__ import annotations
 
+# Referencia autoritativa para asistente IA (Groq) y copy público de planes vendedor.
+SAAS_PLANS_AI_ROWS = (
+    {
+        'name': 'Digitalízate',
+        'slug': 'digitalizate',
+        'monthly_usd': 49,
+        'commission': '5.0%',
+        'billing_cap': 'Hasta USD 15,000 / mes',
+        'access': (
+            'Catálogo al 100% para Micro/PyMEs. Mapa digital con rastreo. '
+            'Reporte básico de ventas propias y acceso al módulo promocional '
+            "'Top 3 Buscados de la ZLC'."
+        ),
+    },
+    {
+        'name': 'Expansión',
+        'slug': 'expansion',
+        'monthly_usd': 149,
+        'commission': '4.0%',
+        'billing_cap': 'Hasta USD 50,000 / mes',
+        'access': (
+            'Catálogo al 100% para Empresas Medianas. Despacho en 1 clic a '
+            'agencias nacionales. Desbloqueo del gestor TradeFlow Ads para '
+            'comprar anuncios destacados.'
+        ),
+    },
+    {
+        'name': 'Corporativo Pro',
+        'slug': 'corporativo_pro',
+        'monthly_usd': 349,
+        'commission': '3.5%',
+        'billing_cap': 'Ilimitado',
+        'access': (
+            'Catálogo ilimitado. Automatización de guías y etiquetas de envío. '
+            'Estudio de Mercado Completo de la ZLC. Incluye 3 anuncios destacados '
+            'mensuales fijos.'
+        ),
+    },
+    {
+        'name': 'Ecosistema Enterprise',
+        'slug': 'ecosistema_enterprise',
+        'monthly_usd': 799,
+        'commission': '3.0%',
+        'billing_cap': 'Ilimitado',
+        'access': (
+            'Sincronización por API con el ERP interno de la empresa. Soporte '
+            'multi-bodega y técnico 24/7. Máxima prioridad en búsquedas y 1 banner '
+            'principal fijo mensual.'
+        ),
+    },
+)
+
+
+def build_saas_plans_ai_context() -> str:
+    """Texto estructurado de planes para system prompts de Groq."""
+    lines = [
+        'Seller SaaS plans for TradeFlow Colón (use ONLY these figures; do not invent prices):',
+        '',
+    ]
+    for row in SAAS_PLANS_AI_ROWS:
+        lines.extend([
+            f"• {row['name']}",
+            f"  - Fixed investment: USD {row['monthly_usd']} / month",
+            f"  - Commission: {row['commission']}",
+            f"  - Monthly billing cap: {row['billing_cap']}",
+            f"  - Logistics, data & ads access: {row['access']}",
+            '',
+        ])
+    lines.append(
+        'To become a seller: business sign-up, access application if required, '
+        'then activate a plan from the seller portal. '
+        'Ecosistema Enterprise may require commercial approval.'
+    )
+    return '\n'.join(lines)
+
+
 PLAN_MARKETING = {
     'digitalizate': {
         'tagline': 'Digitalización empresarial en la ZLC',

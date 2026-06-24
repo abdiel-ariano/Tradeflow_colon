@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ titulo_pagina|default:"Store TradeFlow" }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .portal-temp-hero {
     background: var(--tf-blue, #2e5b8a);
     color: #fff;

@@ -1,0 +1,7 @@
+# Bandit config — TradeFlow Colón
+[bandit]
+exclude_dirs = .venv,venv,migrations,tests,node_modules,staticfiles,scripts
+
+skips = B101,B311
+# B101 assert_used (valido en codigo defensivo Django)
+# B311 random (usamos `secrets` donde aplica; resto es feature no security)

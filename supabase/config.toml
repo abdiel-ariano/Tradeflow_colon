@@ -1,0 +1,6 @@
+project_id = "tradeflow-colon"
+
+# Edge Function que relaya correo transaccional por Gmail SMTP.
+# verify_jwt = true: Django se autentica con la service_role key (un JWT válido).
+[functions.send-transactional-email]
+verify_jwt = true

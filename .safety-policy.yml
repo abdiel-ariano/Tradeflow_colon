@@ -1,0 +1,11 @@
+# Safety policy — TradeFlow Colón (auditoría 2026-06)
+security:
+  ignore-cvss-severity-below: 4.0
+  ignore-cvss-unknown-severity: false
+  continue-on-vulnerability-error: false
+  ignore-vulnerabilities:
+    # Lista de IDs aceptados con justificacion + fecha de revision.
+    # Ejemplo:
+    # 12345:
+    #   reason: "No aplicable porque no usamos la funcion X."
+    #   expires: "2026-12-31"

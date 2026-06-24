@@ -7,16 +7,91 @@
 {% endblock %}
 {% block extra_css %}
 {% include "core/includes/static_css_bundle.html" %}
-<style>
+<style nonce="{{ csp_nonce }}">
+  /* TradeFlow brand — SaaS admin shell */
+  .adm-shell .adm-side {
+    background: linear-gradient(180deg, var(--tf-navy, #0F2A44) 0%, #0a1f33 100%) !important;
+  }
+  .adm-shell .adm-side a[data-adm-nav] {
+    color: rgba(255, 255, 255, 0.75) !important;
+  }
+  .adm-shell .adm-side a[data-adm-nav]:hover {
+    background: rgba(242, 101, 34, 0.12) !important;
+    color: #ffffff !important;
+  }
+  .adm-shell .adm-side a[data-adm-nav].is-active {
+    border-left-color: var(--tf-orange, #F26522) !important;
+    background: rgba(242, 101, 34, 0.18) !important;
+    color: #ffffff !important;
+  }
+  .adm-shell .adm-rail-brand-mark .material-symbols-rounded {
+    color: var(--tf-orange, #F26522) !important;
+  }
   .adm-shell .adm-main.adm-saas-wrap {
     padding: 0;
-    background: #f8fafc;
+    background: #F2F3F5;
     min-height: calc(100vh - 64px);
   }
   #admin-saas-root {
     min-height: calc(100vh - 64px);
     width: 100%;
     font-family: Inter, system-ui, sans-serif;
+    --color-background: #F2F3F5;
+    --color-border: #D1D5DB;
+    --color-muted-foreground: #6B7A88;
+    --color-primary: #2E5B8A;
+    --color-emerald: #F26522;
+  }
+  #admin-saas-root [class*="bg-primary"] {
+    background-color: #2E5B8A !important;
+  }
+  #admin-saas-root .text-emerald {
+    color: #F26522 !important;
+  }
+  /* Tabs: Plan usage | Requests | Revenue distribution */
+  #admin-saas-root [role="tablist"] {
+    background: #F2F3F5 !important;
+    border: 1px solid #D1D5DB;
+    border-radius: 10px;
+    padding: 4px !important;
+    gap: 4px;
+  }
+  #admin-saas-root [role="tab"] {
+    background: transparent !important;
+    color: #6B7A88 !important;
+    box-shadow: none !important;
+    border-radius: 8px 8px 0 0 !important;
+    border-bottom: 2px solid transparent !important;
+  }
+  #admin-saas-root [role="tab"][data-state="active"] {
+    background: #ffffff !important;
+    color: #0F2A44 !important;
+    border-bottom-color: #F26522 !important;
+    box-shadow: 0 1px 3px rgba(15, 42, 68, 0.08) !important;
+  }
+  #admin-saas-root [role="tab"]:hover:not([data-state="active"]) {
+    color: #0F2A44 !important;
+    background: rgba(255, 255, 255, 0.6) !important;
+  }
+  /* Administration Panel header icon */
+  #admin-saas-root .adm-saas-header-icon {
+    background: rgba(242, 101, 34, 0.12) !important;
+    border-radius: 12px !important;
+    color: #F26522 !important;
+  }
+  #admin-saas-root .adm-saas-header-icon svg {
+    color: #F26522 !important;
+    stroke: #F26522 !important;
+  }
+  /* Predictive analysis badge */
+  #admin-saas-root .adm-saas-predictive-badge {
+    background: rgba(15, 42, 68, 0.08) !important;
+    color: #0F2A44 !important;
+    border: 1px solid #D1D5DB !important;
+    border-radius: 20px !important;
+    padding: 4px 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
   }
   .adm-saas-fallback {
     padding: 28px clamp(20px, 4vw, 40px) 48px;
@@ -105,8 +180,21 @@
 </div>
 {% endblock %}
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
+  /** English month labels for charts (API may still send Spanish abbreviations). */
+  window.TF_MONTHS_EN = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+  window.TF_MONTH_ES_TO_EN = {
+    Ene: 'Jan', Abr: 'Apr', Ago: 'Aug', Dic: 'Dec'
+  };
+  window.tfMonthEn = function (label) {
+    if (!label) return label;
+    return window.TF_MONTH_ES_TO_EN[label] || label;
+  };
+
   var root = document.getElementById('admin-saas-root');
   var status = document.getElementById('admin-saas-boot-status');
   if (!root) return;

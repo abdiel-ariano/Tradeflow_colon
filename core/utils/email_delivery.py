@@ -1,13 +1,11 @@
 """
-Capa de entrega de correo: logging, validación y reintentos (backend Django / Resend).
+Capa de entrega de correo: logging y registro en EmailDeliveryLog (Resend).
 """
 from __future__ import annotations
 
 import logging
-import time
 
 from django.conf import settings
-from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
 
 from core.enterprise_models import EmailDeliveryLog
 
@@ -20,7 +18,7 @@ def validate_email_infrastructure() -> list[str]:
     base = (getattr(settings, 'PUBLIC_BASE_URL', '') or '').strip().rstrip('/')
     if not base or base.startswith('http://127.0.0.1') and not settings.DEBUG:
         warnings.append('PUBLIC_BASE_URL debe ser la URL pública HTTPS de producción.')
-    if not getattr(settings, 'EMAIL_USE_REAL_SMTP', False) and not settings.DEBUG:
+    if not (getattr(settings, 'RESEND_API_KEY', '') or '').strip() and not settings.DEBUG:
         warnings.append('RESEND_API_KEY no configurada; los correos no saldrán en producción.')
     if not getattr(settings, 'DEFAULT_FROM_EMAIL', ''):
         warnings.append('DEFAULT_FROM_EMAIL no está definido.')
@@ -40,69 +38,53 @@ def deliver_mail(
     **_kwargs,
 ) -> bool:
     """
-    Envía correo con registro en ``EmailDeliveryLog`` y un reintento opcional.
-
-    Usa ``EMAIL_BACKEND`` de Django (anymail Resend en producción).
+    Envía correo con registro en ``EmailDeliveryLog`` vía ``enviar_email_transaccional``.
     """
-    backend = getattr(settings, 'EMAIL_BACKEND', '') or ''
-    channel = 'resend' if 'resend' in backend.lower() or 'anymail' in backend.lower() else 'django'
-    recipient = recipient_list[0] if recipient_list else ''
+    from core.email_service import enviar_email_transaccional
+
+    recipients = [r for r in (recipient_list or []) if r]
+    if not recipients:
+        return False
+
+    html = html_message or message or ''
+    text = message or ''
     last_error = ''
 
-    for attempt in range(1, max_attempts + 1):
-        try:
-            if html_message:
-                msg = EmailMultiAlternatives(
-                    subject=subject,
-                    body=message,
-                    from_email=from_email,
-                    to=recipient_list,
-                )
-                msg.attach_alternative(html_message, 'text/html')
-            else:
-                msg = EmailMessage(
-                    subject=subject,
-                    body=message,
-                    from_email=from_email,
-                    to=recipient_list,
-                )
-            msg.connection = get_connection(fail_silently=False)
-            msg.send(fail_silently=False)
+    for recipient in recipients:
+        result = enviar_email_transaccional(
+            recipient,
+            subject,
+            html,
+            text,
+            tipo=email_type,
+        )
+        if not result.ok:
+            last_error = result.detail or 'email_delivery_failed'
             EmailDeliveryLog.objects.create(
                 email_type=email_type[:40],
                 recipient=recipient,
                 subject=subject[:255],
-                status='sent',
-                backend=f'{channel}:{backend[:100]}',
+                status='failed',
+                error_message=last_error[:2000],
+                backend=result.channel[:80],
             )
-            log.info('email_sent via=%s type=%s to=%s', channel, email_type, recipient)
-            return True
-        except Exception as exc:
-            last_error = str(exc)
-            log.warning(
-                'email_attempt_failed type=%s to=%s attempt=%s error=%s',
+            log.error(
+                'email_delivery_failed type=%s to=%s error=%s',
                 email_type,
                 recipient,
-                attempt,
                 last_error,
             )
-            if attempt < max_attempts:
-                time.sleep(0.6)
+            if not fail_silently:
+                raise RuntimeError(last_error)
+            return False
 
-    EmailDeliveryLog.objects.create(
-        email_type=email_type[:40],
-        recipient=recipient,
-        subject=subject[:255],
-        status='failed',
-        error_message=last_error[:2000],
-        backend=backend[:80],
-    )
-    log.error(
-        'email_delivery_failed type=%s to=%s error=%s',
-        email_type,
-        recipient,
-        last_error,
-    )
-    if not fail_silently:
-        raise RuntimeError(last_error or 'email_delivery_failed')
-    return False
+        EmailDeliveryLog.objects.create(
+            email_type=email_type[:40],
+            recipient=recipient,
+            subject=subject[:255],
+            status='sent',
+            backend=f'resend:{result.channel[:90]}',
+        )
+        log.info('email_sent via=resend type=%s to=%s', email_type, recipient)
+
+    return True

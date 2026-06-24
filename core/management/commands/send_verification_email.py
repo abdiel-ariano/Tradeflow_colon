@@ -8,7 +8,7 @@ from core.utils.email_sender import enviar_verificacion_email
 
 
 class Command(BaseCommand):
-    help = 'Envía email de verificación a un usuario (prueba Resend)'
+    help = 'Envía email de verificación a un usuario (Resend)'
 
     def add_arguments(self, parser):
         parser.add_argument('--email', type=str, help='Email del usuario en BD')
@@ -47,7 +47,6 @@ class Command(BaseCommand):
         ))
         if result['channel'] != 'resend':
             self.stdout.write(self.style.WARNING(
-                'Configura RESEND_API_KEY=re_... en .env'
+                'Configura RESEND_API_KEY=re_... en .env o Railway'
             ))
-        else:
-            self.stdout.write(f"URL: {result['link']}")
+        self.stdout.write(f"URL: {result['link']}")

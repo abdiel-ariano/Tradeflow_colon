@@ -1,0 +1,7 @@
+{% comment %}
+Status badge — paid | cancelled | pending | processing
+Usage: {% include "core/includes/ui/status_badge.html" with status="paid" label="Paid" %}
+{% endcomment %}
+<span class="ds-badge ds-badge--{{ status|default:'pending' }}{% if extra_class %} {{ extra_class }}{% endif %}">
+  {{ label|default:status }}
+</span>

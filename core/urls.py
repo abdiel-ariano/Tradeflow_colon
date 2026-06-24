@@ -7,23 +7,20 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
-from .views import (
-    admin_applications_view,
-    approve_application_view,
-    pending_approval_view,
-    reject_application_view,
-)
 from . import views_onboarding as onboarding
 from . import views_transportistas as vt
 from . import views_api_enterprise as vapi
 
 urlpatterns = [
 
-    # ── Mapa ZLC + QR visitante ─────────────────────────────────────────────
+    # ── Mapa ZLC + verificación visitante ───────────────────────────────────
     path('mapa/', views.mapa_zlc, name='mapa_zlc'),
     path('visitante/zlc/', views.visitante_zlc_verificacion, name='visitante_zlc_verificacion'),
-    path('mi-qr/', views.mi_qr, name='mi_qr'),
-    path('mi-qr/descargar/', views.generar_qr_visitante, name='descargar_qr'),
+
+    # ── Páginas legales ─────────────────────────────────────────────────────
+    path('terminos/', views.legal_terminos, name='legal_terminos'),
+    path('privacidad/', views.legal_privacidad, name='legal_privacidad'),
+    path('cookies/', views.legal_cookies, name='legal_cookies'),
 
     # ── Autenticación ─────────────────────────────────────────────────────
     path('login/',   views.login_view,  name='login'),
@@ -95,6 +92,7 @@ urlpatterns = [
     ),
     path('verificar/enviar/', views.enviar_codigo, name='enviar_codigo'),
     path('verificar/', views.verificar_codigo, name='verificar_codigo'),
+    path('verificar/otp/', views.verificar_codigo, name='verify_otp'),
     path('verificar-email/<str:token>/', views.verificar_email, name='verificar_email'),
     path('reenviar-verificacion/', views.reenviar_verificacion, name='reenviar_verificacion'),
     path('reenviar-verificacion-email/', views.reenviar_verificacion_public, name='reenviar_verificacion_public'),
@@ -114,6 +112,8 @@ urlpatterns = [
     path('catalogo/',                       views.catalogo_publico,     name='catalogo_publico'),
     path('catalogo/producto/<int:pk>/', views.catalogo_producto_detail, name='catalogo_producto_detail'),
     path('tienda/',                         views.tienda,               name='tienda'),
+    path('catalogo/',                       views.catalogo_publico,     name='catalogo_publico'),
+    path('catalogo/producto/<int:pk>/', views.catalogo_producto_detail, name='catalogo_producto_detail'),
     path('carrito/',                         views.ver_carrito,         name='ver_carrito'),
     path('carrito/agregar/<int:producto_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),
     path('carrito/quitar/<int:producto_id>/',  views.quitar_del_carrito, name='quitar_del_carrito'),
@@ -125,11 +125,15 @@ urlpatterns = [
 
     path('cotizaciones/', views.mis_cotizaciones, name='mis_cotizaciones'),
     path('cotizaciones/nueva/', views.solicitar_cotizacion, name='solicitar_cotizacion'),
+    path('cotizaciones/automatica/<int:producto_id>/', views.solicitar_cotizacion_automatica, name='solicitar_cotizacion_automatica'),
+    path('cotizaciones/comparar/<str:lote>/', views.comparar_cotizaciones, name='comparar_cotizaciones'),
     path('cotizaciones/<int:pk>/', views.detalle_cotizacion, name='detalle_cotizacion'),
     path('cotizaciones/<int:pk>/pdf/', views.descargar_cotizacion_pdf, name='descargar_cotizacion_pdf'),
 
     # Portal del vendedor
     path('mi-tienda/', views.portal_seller, name='portal_seller'),
+    path('mi-tienda/qr/', views.seller_company_qr, name='seller_company_qr'),
+    path('mi-tienda/qr/descargar/', views.seller_download_qr, name='seller_download_qr'),
     path('api/seller-dashboard/', views.api_seller_dashboard, name='api_seller_dashboard'),
     path(
         'api/seller/orders/<int:pk>/timeline/',
@@ -199,8 +203,12 @@ urlpatterns = [
     path('api/home-merchandising/', views.api_home_merchandising, name='api_home_merchandising'),
     path('api/asistente/', views.api_asistente, name='api_asistente'),
 
-    path('admin/applications/', admin_applications_view, name='admin_applications'),
-    path('admin/applications/<int:pk>/approve/', approve_application_view, name='approve_application'),
-    path('admin/applications/<int:pk>/reject/', reject_application_view, name='reject_application'),
-    path('pending-approval/', pending_approval_view, name='pending_approval'),
+    # ── Applications (admin approval) ────────────────────────────────────
+    path('panel/applications/', views.admin_applications_view, name='admin_applications'),
+    path('panel/applications/<int:pk>/approve/', views.approve_application_view, name='approve_application'),
+    path('panel/applications/<int:pk>/reject/', views.reject_application_view, name='reject_application'),
+    path('admin/applications/', views.admin_applications_view),
+    path('admin/applications/<int:pk>/approve/', views.approve_application_view),
+    path('admin/applications/<int:pk>/reject/', views.reject_application_view),
+    path('pending-approval/', views.pending_approval_view, name='pending_approval'),
 ]

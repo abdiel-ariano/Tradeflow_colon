@@ -3,7 +3,7 @@
 {% block title %}Confirm order — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/tf_animations.css' %}">
-<style>
+<style nonce="{{ csp_nonce }}">
   .co-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
   .co-title { font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.5rem; text-align: center; }
   .co-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.35rem; margin-bottom: 1rem; }
@@ -79,14 +79,19 @@
 </div>
 {% endblock %}
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var I = window.TF_I18N || {};
+  // Centro ZLC — mismos defaults que Company.latitud/longitud y tests de checkout
+  var FALLBACK_LAT = '9.3667000';
+  var FALLBACK_LNG = '-79.9000000';
+  var GEO_TIMEOUT_MS = 5000;
   var lat = document.getElementById('co-lat');
   var lng = document.getElementById('co-lng');
   var status = document.getElementById('co-geo-status');
   var btn = document.getElementById('co-geo-btn');
   var submit = document.getElementById('co-submit');
+  var form = document.getElementById('co-form');
 
   function setOk() {
     btn.classList.add('is-ok', 'tf-pulse-once');
@@ -95,21 +100,62 @@
     status.style.color = '#15803d';
   }
 
-  btn.addEventListener('click', function () {
+  function applyCoords(latVal, lngVal) {
+    lat.value = latVal;
+    lng.value = lngVal;
+    setOk();
+  }
+
+  function requestLocation() {
     if (!navigator.geolocation) {
-      status.textContent = I.geoUnsupported || 'Your browser does not support geolocation.';
+      applyCoords(FALLBACK_LAT, FALLBACK_LNG);
       return;
     }
     status.textContent = 'Getting location…';
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      lat.value = pos.coords.latitude.toFixed(7);
-      lng.value = pos.coords.longitude.toFixed(7);
-      setOk();
-    }, function () {
-      status.textContent = I.geoDenied || 'Location permission denied.';
-      status.style.color = '#b91c1c';
-    }, { enableHighAccuracy: true, timeout: 12000 });
-  });
+    var settled = false;
+    function finishWithFallback() {
+      if (settled) return;
+      settled = true;
+      applyCoords(FALLBACK_LAT, FALLBACK_LNG);
+    }
+    var timer = window.setTimeout(finishWithFallback, GEO_TIMEOUT_MS);
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        applyCoords(
+          pos.coords.latitude.toFixed(7),
+          pos.coords.longitude.toFixed(7)
+        );
+      },
+      function () {
+        window.clearTimeout(timer);
+        finishWithFallback();
+      },
+      { enableHighAccuracy: true, timeout: GEO_TIMEOUT_MS, maximumAge: 60000 }
+    );
+  }
+
+  btn.addEventListener('click', requestLocation);
+
+  // Evita doble POST (doble Order/Payment): al enviar, deshabilita el botón.
+  if (form && submit) {
+    var submitted = false;
+    form.addEventListener('submit', function (e) {
+      // Respeta la validación nativa: si el form es inválido, no hacer nada.
+      if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+        return;
+      }
+      if (submitted) {
+        e.preventDefault();
+        return;
+      }
+      submitted = true;
+      submit.disabled = true;
+      submit.textContent = I.processing || 'Processing…';
+    });
+  }
 })();
 </script>
 {% endblock %}

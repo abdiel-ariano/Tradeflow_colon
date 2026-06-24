@@ -23,6 +23,7 @@ Tablas implementadas (mapeadas exactamente al ERD del PDF):
 """
 from decimal import Decimal
 import random
+import secrets   # OWASP A02: CSPRNG para OTP (random.randint es predecible)
 
 from django.conf import settings
 from django.db import models
@@ -464,10 +465,9 @@ class UserApplication(models.Model):
         ('seller', _('Seller')),
     ]
     STATUS_CHOICES = [
-        ('pendiente', _('Pending')),
-        ('en_revision', _('Under review')),
-        ('aprobada', _('Approved')),
-        ('rechazada', _('Rejected')),
+        ('pending', _('Pending')),
+        ('approved', _('Approved')),
+        ('rejected', _('Rejected')),
     ]
 
     user = models.ForeignKey(
@@ -489,7 +489,7 @@ class UserApplication(models.Model):
         blank=True,
         help_text='Requested SaaS plan (e.g. ecosistema_enterprise)',
     )
-    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pendiente')
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pending')
     review_token = models.CharField(max_length=64, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
@@ -847,6 +847,18 @@ class Cotizacion(models.Model):
     notas_buyer = models.TextField(blank=True, verbose_name='Buyer notes')
     notas_seller = models.TextField(blank=True, verbose_name='Seller notes')
     validez_dias = models.PositiveIntegerField(default=30, verbose_name='Validity (days)')
+    es_automatica = models.BooleanField(
+        default=False,
+        verbose_name='Automatic quote',
+        help_text=_('Generated automatically with catalog pricing (no manual seller reply).'),
+    )
+    lote = models.CharField(
+        max_length=40,
+        blank=True,
+        db_index=True,
+        verbose_name='Broadcast batch',
+        help_text=_('Groups quotes created together from one automatic request.'),
+    )
     order = models.ForeignKey(
         Order,
         on_delete=models.SET_NULL,
@@ -1010,7 +1022,7 @@ class AsignacionTransporte(models.Model):
 # =============================================================================
 
 class EmailVerification(models.Model):
-    """Código OTP de 6 dígitos; expira a los 15 minutos."""
+    """Código OTP de 6 dígitos; expira a los 10 minutos (ver ``otp_handler.OTP_EXPIRY_MINUTES``)."""
 
     user = models.ForeignKey(
         User,
@@ -1030,15 +1042,19 @@ class EmailVerification(models.Model):
         return f'{self.user_id} · {self.code} · used={self.is_used}'
 
     def is_valid(self) -> bool:
+        from core.utils.otp_handler import OTP_EXPIRY_MINUTES
+
         if self.is_used:
             return False
-        return timezone.now() <= self.created_at + timezone.timedelta(minutes=15)
+        return timezone.now() <= self.created_at + timezone.timedelta(minutes=OTP_EXPIRY_MINUTES)
 
     @classmethod
     def generate_for(cls, user: User) -> 'EmailVerification':
-        cls.objects.filter(user=user).delete()
-        code = f'{random.randint(0, 999999):06d}'
-        return cls.objects.create(user=user, code=code)
+        """Genera OTP seguro; delega en ``generate_user_otp``."""
+        from core.utils.otp_handler import generate_user_otp
+
+        code = generate_user_otp(user)
+        return cls.objects.filter(user=user, code=code, is_used=False).latest('created_at')
 
 
 # Modelos enterprise (SaaS, ads, API, logística extendida)

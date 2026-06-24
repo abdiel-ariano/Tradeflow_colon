@@ -5,7 +5,7 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
 {% endcomment %}
 {% block title %}Products — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .adm-prod-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
   .adm-prod-actions a { font-size: 0.75rem; }
 </style>
@@ -118,7 +118,7 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
     {% endif %}
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   document.querySelectorAll('.adm-prod-stock-js').forEach(function (el) {
     var qty = parseInt(el.getAttribute('data-qty'), 10);

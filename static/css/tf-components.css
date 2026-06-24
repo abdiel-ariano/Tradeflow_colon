@@ -483,33 +483,3 @@ Requiere: tf-design-tokens.css
   .cpd-specs > div { grid-template-columns: 1fr; gap: 4px; }
   .cpd-tab { min-width: 100%; text-align: left; }
 }
-
-/* ── Design system buttons (ds-btn) ── */
-.ds-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: var(--tf-radius-sm, 8px);
-  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
-  font-weight: 600;
-  font-size: var(--tf-text-sm, 13px);
-  border: 1px solid transparent;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-.ds-btn--primary {
-  background: var(--tf-orange, #F26522);
-  color: #fff;
-}
-.ds-btn--primary:hover { background: var(--tf-orange-h, #FF7A3D); }
-.ds-btn--secondary {
-  background: var(--tf-white, #fff);
-  border-color: var(--tf-border, #D1D5DB);
-  color: var(--tf-navy, #0F2A44);
-}
-.ds-btn--secondary:hover { background: var(--tf-light, #F2F3F5); }
-.ds-btn--full { width: 100%; }
-.ds-btn--lg { padding: 12px 22px; font-size: 15px; }

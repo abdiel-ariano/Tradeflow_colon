@@ -22,7 +22,9 @@ Si falla SSL en Windows local con `DEBUG=True`, prueba `DB_SSL=false` o añade `
 
 ### Opción rápida (recomendada en Windows)
 
-Cuenta del proyecto: `tradeflowcolon@gmail.com` (2FA + App Password en Google).
+Cuenta del proyecto: **`tradeflowcolon@gmail.com`** (2FA + App Password en Google).
+
+> No uses `infotradeflow@gmail.com` (cuenta antigua). En Railway y `.env`, pon `EMAIL_HOST_USER=tradeflowcolon@gmail.com`.
 
 ```powershell
 cd Tradeflow_colon-master

@@ -9,7 +9,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
 {% endcomment %}
 {% block title %}Quote {{ cot.numero }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .cot-doc { max-width: 900px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1rem clamp(2.5rem, 5vw, 4rem); font-family: 'Inter', sans-serif; }
   .cot-doc-paper {
     background: #fff;
@@ -70,6 +70,9 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
       <div class="cot-doc-title">
         <h1>QUOTE</h1>
         <div class="cot-doc-num">{{ cot.numero }}</div>
+        {% if cot.es_automatica %}
+        <div style="margin-top:6px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#1E40AF;background:#DBEAFE;display:inline-block;padding:3px 9px;border-radius:999px;">Automatic quote</div>
+        {% endif %}
       </div>
     </header>
 
@@ -158,7 +161,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
     </div>
 
     <footer class="cot-doc-foot">
-      TradeFlow Colón — Colón Free Zone, Panama · info@tradeflow.pa
+      TradeFlow Colón — Colón Free Zone, Panama · {{ tradeflow_contact_email }}
     </footer>
   </div>
   <div style="margin-top:1rem;">
@@ -168,7 +171,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
     </a>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var meta = document.getElementById('cot-det-meta');
   if (!meta) return;

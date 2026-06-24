@@ -1,0 +1,94 @@
+{% load static %}
+<section class="bh-welcome" id="bh-welcome" aria-labelledby="bh-welcome-title">
+  <h2 class="visually-hidden" id="bh-welcome-title">Bienvenido a TradeFlow CFZ</h2>
+
+  <aside class="bh-cat-sidebar" aria-label="Categorías">
+    {% for row in category_spotlights|slice:":8" %}
+    <a href="{% url 'tienda' %}?categoria={{ row.category.id }}" class="bh-cat-item">
+      <span class="material-symbols-rounded" aria-hidden="true">category</span>
+      {{ row.category.name }}
+      <span class="material-symbols-rounded bh-cat-chevron" aria-hidden="true">chevron_right</span>
+    </a>
+    {% empty %}
+    {% for cat in categorias|slice:":8" %}
+    <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="bh-cat-item">
+      <span class="material-symbols-rounded" aria-hidden="true">category</span>
+      {{ cat.name }}
+      <span class="material-symbols-rounded bh-cat-chevron" aria-hidden="true">chevron_right</span>
+    </a>
+    {% empty %}
+    <a href="{% url 'tienda' %}?buscar=electronica" class="bh-cat-item">
+      <span class="material-symbols-rounded">devices</span> Electrónica
+      <span class="material-symbols-rounded bh-cat-chevron">chevron_right</span>
+    </a>
+    {% endfor %}
+    {% endfor %}
+  </aside>
+
+  <div class="bh-center">
+    {% for row in category_spotlights|slice:":2" %}
+    <article class="bh-freq-card">
+      <p class="bh-freq-label">Búsquedas frecuentes</p>
+      <h3 class="bh-freq-title">{{ row.category.name }}</h3>
+      {% with prod=row.products.0 %}
+      <a href="{% url 'tienda' %}?categoria={{ row.category.id }}">
+        {% if prod.image %}
+        <img class="bh-freq-img" src="{{ prod.image.url }}" alt="{{ prod.name }}" loading="lazy">
+        {% else %}
+        <img class="bh-freq-img" src="https://picsum.photos/seed/freq{{ row.category.id }}/400/400" alt="{{ row.category.name }}" loading="lazy">
+        {% endif %}
+      </a>
+      {% endwith %}
+    </article>
+    {% empty %}
+    {% for product in spotlight_destacados|slice:":2" %}
+    <article class="bh-freq-card">
+      <p class="bh-freq-label">Búsquedas frecuentes</p>
+      <h3 class="bh-freq-title">{{ product.category.name|default:product.name }}</h3>
+      <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}">
+        {% if product.image %}
+        <img class="bh-freq-img" src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+        {% else %}
+        <img class="bh-freq-img" src="https://picsum.photos/seed/td{{ product.id }}/400/400" alt="{{ product.name }}" loading="lazy">
+        {% endif %}
+      </a>
+    </article>
+    {% empty %}
+    <article class="bh-freq-card">
+      <p class="bh-freq-label">Búsquedas frecuentes</p>
+      <h3 class="bh-freq-title">Electrónica</h3>
+      <a href="{% url 'tienda' %}?buscar=electronica">
+        <img class="bh-freq-img" src="https://picsum.photos/seed/electronics/400/400" alt="Electrónica" loading="lazy">
+      </a>
+    </article>
+    <article class="bh-freq-card">
+      <p class="bh-freq-label">Búsquedas frecuentes</p>
+      <h3 class="bh-freq-title">Textiles</h3>
+      <a href="{% url 'tienda' %}?buscar=textiles">
+        <img class="bh-freq-img" src="https://picsum.photos/seed/textiles/400/400" alt="Textiles" loading="lazy">
+      </a>
+    </article>
+    {% endfor %}
+    {% endfor %}
+  </div>
+
+  <aside class="bh-promo" aria-label="Promoción">
+    <div>
+      <h3>Proveedores y productos populares en la Zona Libre</h3>
+      <p>
+        {% for emp in empresas_catalogo|slice:":1" %}
+        {{ emp.name }} y otras empresas verificadas en la CFZ.
+        {% empty %}
+        Empresas ODM verificadas — descubre catálogos listos para exportación.
+        {% endfor %}
+      </p>
+    </div>
+    <a href="{% url 'tienda' %}?vista=empresa" class="bh-promo-btn">Ver más</a>
+    <div class="bh-promo-dots" aria-hidden="true">
+      <span class="bh-promo-dot is-active"></span>
+      <span class="bh-promo-dot"></span>
+      <span class="bh-promo-dot"></span>
+      <span class="bh-promo-dot"></span>
+    </div>
+  </aside>
+</section>

@@ -1,6 +1,6 @@
 """
 =============================================================================
-TRADEFLOW COLÓN — core/views.py  (v5 — Seller portal + Roles)
+TRADEFLOW COLÓN — core/views.py  (v5 — Portal vendedor + Roles)
 =============================================================================
 Incluye: autenticación, admin, portal comprador (tienda, carrito, checkout),
 portal vendedor (panel, productos, ventas) y API JSON de productos.
@@ -26,6 +26,8 @@ import io
 import json
 import logging
 import re
+import unicodedata
+import uuid
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import escape
@@ -43,7 +45,7 @@ import qrcode
 from folium.plugins import MarkerCluster
 from django.core import signing
 
-from .decorators import admin_required, buyer_required, seller_required
+from .decorators import admin_required, buyer_required, catalog_access, seller_required
 from .forms import SellerProductForm, SellerInventoryForm
 from .email_service import enviar_codigo_verificacion as enviar_codigo_email
 from .models import (
@@ -360,6 +362,33 @@ def login_view(request):
 
         if user is not None:
             login(request, user, backend=AUTH_MODEL_BACKEND)
+
+            try:
+                profile = user.profile
+                if user.is_active and profile.email_verificado and profile.role:
+                    messages.success(
+                        request,
+                        f'Welcome, {user.first_name or user.username}!',
+                    )
+                    next_url = (request.GET.get('next') or '').strip()
+                    if next_url.startswith('//') or '://' in next_url:
+                        next_url = ''
+                    elif next_url.startswith('/'):
+                        home_path = reverse('home')
+                        login_path = reverse('login')
+                        if (
+                            next_url in (home_path, '/')
+                            or next_url == login_path
+                            or next_url.startswith(login_path + '?')
+                        ):
+                            next_url = ''
+                    else:
+                        next_url = ''
+                    dest = next_url if next_url else _redirect_by_role(user)
+                    return redirect(dest)
+            except UserProfile.DoesNotExist:
+                pass
+
             from core.utils.access_gating import onboarding_redirect_name
 
             gate_route = onboarding_redirect_name(user)
@@ -389,31 +418,31 @@ def login_view(request):
             dest = next_url if next_url else _redirect_by_role(user)
             return redirect(dest)
         else:
-            inactive = User.objects.filter(
-                username=username,
-                is_active=False,
-            ).first()
-            if inactive and inactive.check_password(password):
-                messages.info(
-                    request,
-                    'Your account is pending approval. You will be notified once activated.',
-                )
-            else:
-                messages.error(request, 'Incorrect username or password.')
+            messages.error(request, 'Incorrect username or password.')
 
     return render(request, 'core/login.html', _login_template_context())
 
 
 def logout_view(request):
     logout(request)
-    messages.info(request, 'You have been signed out.')
+    request.session.flush()
     return redirect('login')
 
 
 def signup_view(request):
-    """Registro público: crea User + UserProfile."""
+    """Public registration: creates User + UserProfile."""
     if request.user.is_authenticated:
         return redirect(_redirect_by_role(request.user))
+
+    if request.method == 'GET':
+        return render(request, 'core/signup.html', {
+            'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
+            'selected_role': 'buyer',
+            'form_first_name': '',
+            'form_last_name': '',
+            'form_email': '',
+            'form_phone': '',
+        })
 
     if request.method == 'POST':
         first_name = escape(request.POST.get('first_name', '').strip())
@@ -450,7 +479,7 @@ def signup_view(request):
         if not USERNAME_REGEX.match(username):
             errores.append(
                 'Username must start with a letter and may only '
-                'contain letters, numbers, dots and '
+                'contain letters, numbers, dots, and '
                 'underscores (3-30 characters).'
             )
 
@@ -498,59 +527,45 @@ def signup_view(request):
             last_name=last_name,
         )
 
-        if settings.REQUIRE_APPROVED_APPLICATION:
-            user.is_active = False
-            user.save(update_fields=['is_active'])
-            full_name = f'{first_name} {last_name}'.strip() or username
-            UserProfile.objects.create(
-                user=user,
-                role=role,
-                phone=phone,
-                email_verificado=False,
-            )
-            UserApplication.objects.create(
-                user=user,
-                full_name=full_name,
-                email=email,
-                phone=phone,
-                role=role,
-                company_name='',
-                message='',
-                status='pendiente',
-            )
-            messages.success(
-                request,
-                'Your application was submitted. Our team will review it within 1-2 business days.',
-            )
-            return redirect('pending_approval')
-
-        if settings.REQUIRE_EMAIL_VERIFICATION:
-            UserProfile.objects.create(
-                user=user,
-                role=role,
-                phone=phone,
-                email_verificado=False,
-            )
-            login(request, user, backend=AUTH_MODEL_BACKEND)
-            messages.success(
-                request,
-                f'Account created. We will send a 6-digit code to {email}.',
-            )
-            return redirect('enviar_codigo')
-
-        UserProfile.objects.create(
+        from .models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(
             user=user,
-            role=role,
-            phone=phone,
-            email_verificado=True,
-            token_verificacion=None,
+            defaults={
+                'role': role,
+                'email_verificado': False,
+            }
         )
-        login(request, user, backend=AUTH_MODEL_BACKEND)
-        messages.success(
-            request,
-            f'Welcome to TradeFlow, {first_name}! Your account has been created.',
+        profile.role = role
+        profile.save()
+
+        # Create application record
+        from .models import UserApplication
+        UserApplication.objects.get_or_create(
+            user=user,
+            defaults={
+                'full_name': f"{first_name} {last_name}".strip(),
+                'email': email,
+                'phone': phone,
+                'role': role,
+                'company_name': '',
+                'message': '',
+                'status': 'pending',
+            }
         )
-        return redirect(_redirect_by_role(user))
+
+        if getattr(settings, 'EXPO_DEMO_MODE', False):
+            user.is_active = True
+            user.save(update_fields=['is_active'])
+            login(request, user, backend=AUTH_MODEL_BACKEND)
+            from core.views_onboarding import finalize_signup_with_otp
+
+            return finalize_signup_with_otp(request, user)
+
+        # Deactivate user until admin approves
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+
+        return redirect('pending_approval')
 
     return render(request, 'core/signup.html', {
         'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
@@ -577,8 +592,10 @@ def _redirect_after_email_verified(user):
 
 @login_required
 def enviar_codigo(request):
-    """Genera OTP, envía por Supabase (o fallback Django) y redirige al formulario."""
-    if not settings.REQUIRE_EMAIL_VERIFICATION:
+    """Genera OTP, envía por Resend y redirige al formulario."""
+    from core.auth_views import _email_verification_gate_active
+
+    if not _email_verification_gate_active(request.user):
         messages.info(request, 'Email verification is disabled in this environment.')
         return redirect('tienda')
 
@@ -600,12 +617,12 @@ def enviar_codigo(request):
     if result.ok:
         messages.success(
             request,
-            f'We sent a 6-digit code to {request.user.email}. Check your inbox and spam.',
+            f'We sent a 6-digit code to {request.user.email}. Check your inbox and spam folder.',
         )
     else:
         messages.error(
             request,
-            'We could not send the email. Check Supabase or EMAIL_BACKEND in .env.',
+            'We could not send the email. Check RESEND_API_KEY and DEFAULT_FROM_EMAIL in .env.',
         )
     return redirect('verificar_codigo')
 
@@ -614,76 +631,8 @@ def enviar_codigo(request):
 enviar_codigo_verificacion = enviar_codigo
 
 
-@login_required
-def verificar_codigo(request):
-    """GET: formulario OTP. POST: valida código y marca email_verified."""
-    if not settings.REQUIRE_EMAIL_VERIFICATION:
-        return redirect('tienda')
-
-    try:
-        profile = request.user.profile
-    except UserProfile.DoesNotExist:
-        messages.error(request, 'Profile not found.')
-        return redirect('signup')
-
-    if profile.email_verified:
-        messages.info(request, 'Your email is already verified.')
-        return redirect('tienda')
-
-    if request.method == 'POST':
-        raw = (request.POST.get('codigo') or '').strip()
-        if not re.fullmatch(r'\d{6}', raw):
-            messages.error(request, 'Enter a 6-digit code.')
-            return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
-
-        verification = (
-            EmailVerification.objects.filter(
-                user=request.user,
-                code=raw,
-                is_used=False,
-            )
-            .order_by('-created_at')
-            .first()
-        )
-        if not verification or not verification.is_valid():
-            messages.error(request, 'Invalid or expired code. Request a new one.')
-            return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
-
-        verification.is_used = True
-        verification.save(update_fields=['is_used'])
-        profile.email_verified = True
-        profile.token_verificacion = None
-        profile.codigo_verificacion_email = ''
-        profile.codigo_verificacion_expira = None
-        profile.save(
-            update_fields=[
-                'email_verificado',
-                'token_verificacion',
-                'codigo_verificacion_email',
-                'codigo_verificacion_expira',
-            ],
-        )
-        try:
-            enviar_bienvenida(request.user)
-        except Exception:
-            log.exception('bienvenida tras verificar_codigo')
-        messages.success(request, 'Email verified! You can continue.')
-        from core.utils.access_gating import onboarding_redirect_name
-        nxt = onboarding_redirect_name(request.user)
-        if nxt:
-            return redirect(nxt)
-        return _redirect_after_email_verified(request.user)
-
-    return render(request, 'core/verificar_codigo.html', _verificar_codigo_context(request))
-
-
-def _verificar_codigo_context(request):
-    masked = request.user.email or ''
-    if '@' in masked:
-        local, domain = masked.split('@', 1)
-        if len(local) > 2:
-            masked = f'{local[0]}***{local[-1]}@{domain}'
-    return {'masked_email': masked}
+# OTP verificación segura — core/auth_views.py (django-axes, anti-replay, EXPO_DEMO_MODE)
+from core.auth_views import verify_otp_view as verificar_codigo  # noqa: E402
 
 
 def verificar_email(request, token):
@@ -700,7 +649,7 @@ def verificar_email(request, token):
         if profile.email_verificado:
             messages.info(
                 request,
-                'Your email was already verified. You can sign in.',
+                'Your email was already verified. You can log in.',
             )
         else:
             profile.email_verificado = True
@@ -729,7 +678,7 @@ def verificar_email(request, token):
     except UserProfile.DoesNotExist:
         messages.error(
             request,
-            'Verification link is invalid or was already used.',
+            'Verification link is invalid or has already been used.',
         )
         return redirect('login')
 
@@ -772,10 +721,10 @@ def reenviar_verificacion_public(request):
                 if not profile.email_verificado:
                     messages.info(
                         request,
-                        'Sign in and use Resend code on the verification screen.',
+                        'Log in and use Resend code on the verification screen.',
                     )
                 else:
-                    messages.info(request, 'That account is already verified. You can sign in.')
+                    messages.info(request, 'That account is already verified. You can log in.')
             except UserProfile.DoesNotExist:
                 pass
         else:
@@ -959,6 +908,47 @@ def api_home_merchandising(request):
     return JsonResponse(data)
 
 
+def _assistant_system_prompt() -> str:
+    from core.utils.saas_plan_catalog import build_saas_plans_ai_context
+
+    return (
+        "You are TradeFlow Colón's virtual assistant. TradeFlow Colón is a B2B/B2C "
+        "marketplace for the Colón Free Zone in Panama — the world's second largest "
+        "free trade zone. Help users with questions about: how to register, how to "
+        "buy products, how to become a seller, seller SaaS plans and commissions, "
+        "what is the Colón Free Zone, shipping and logistics, and general platform "
+        "navigation. Be concise, professional, and always respond in the same "
+        "language the user writes in. For seller plans use ONLY the data below; "
+        "do not invent prices or commissions.\n\n"
+        f"{build_saas_plans_ai_context()}"
+    )
+
+_ASSISTANT_FALLBACK = (
+    "I'm sorry, the assistant is temporarily unavailable. Please try again in a "
+    "moment, browse the store, or contact the support email shown on the site for help."
+)
+
+
+def _asistente_respuesta_html(text: str) -> str:
+    safe = escape(text).replace('\n', '<br>')
+    return (
+        '<div class="tf-bot-card">'
+        f'<p style="margin:0;line-height:1.55;">{safe}</p>'
+        '</div>'
+    )
+
+
+def _asistente_json_payload(respuesta: str, *, ok: bool = True, status: int = 200):
+    return JsonResponse(
+        {
+            'ok': ok,
+            'respuesta': respuesta,
+            'respuesta_html': _asistente_respuesta_html(respuesta),
+        },
+        status=status,
+    )
+
+
 @require_POST
 def api_asistente(request):
     """
@@ -969,13 +959,14 @@ def api_asistente(request):
         historial: Mensajes anteriores (opcional).
 
     Returns:
-        JsonResponse: ``ok`` y ``respuesta``.
+        JsonResponse: ``ok``, ``respuesta`` y ``respuesta_html``.
     """
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse(
-            {'ok': False, 'respuesta': 'Invalid format.'},
+        return _asistente_json_payload(
+            'Invalid request format.',
+            ok=False,
             status=400,
         )
 
@@ -983,30 +974,62 @@ def api_asistente(request):
     historial = data.get('historial') or []
 
     if not mensaje:
-        return JsonResponse(
-            {'ok': False, 'respuesta': 'Enter a message.'},
+        return _asistente_json_payload(
+            'Please enter a message.',
+            ok=False,
             status=400,
         )
 
     if len(mensaje) > 500:
-        return JsonResponse(
-            {'ok': False, 'respuesta': 'Message is too long.'},
+        return _asistente_json_payload(
+            'Message is too long (max 500 characters).',
+            ok=False,
             status=400,
         )
 
-    from .utils.ai_assistant import consultar_asistente
+    groq_api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
 
-    historial = historial[-5:]
-    company = _get_seller_company(request.user) if request.user.is_authenticated else None
-    result = consultar_asistente(
-        mensaje,
-        historial,
-        user=request.user if request.user.is_authenticated else None,
-        company=company,
-    )
-    if isinstance(result, str):
-        result = {'respuesta': result, 'respuesta_html': result, 'confianza': 0.8}
-    return JsonResponse({'ok': True, **result})
+    if not groq_api_key:
+        logging.getLogger('tradeflow.ai').warning('api_asistente: GROQ_API_KEY not configured')
+        return _asistente_json_payload(_ASSISTANT_FALLBACK)
+
+    messages = [{'role': 'system', 'content': _assistant_system_prompt()}]
+    if isinstance(historial, list):
+        for item in historial[-6:]:
+            if not isinstance(item, dict):
+                continue
+            role = item.get('role')
+            content = (item.get('content') or '').strip()
+            if role in ('user', 'assistant') and content:
+                messages.append({'role': role, 'content': content[:500]})
+
+    if (
+        not messages
+        or messages[-1].get('role') != 'user'
+        or messages[-1].get('content') != mensaje
+    ):
+        messages.append({'role': 'user', 'content': mensaje[:500]})
+
+    try:
+        from groq import Groq
+
+        client = Groq(api_key=groq_api_key)
+        model = getattr(settings, 'GROQ_MODEL', 'llama-3.1-8b-instant')
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            max_tokens=512,
+            temperature=0.5,
+        )
+        text = (response.choices[0].message.content or '').strip()
+        if not text:
+            raise ValueError('empty Groq response')
+        return _asistente_json_payload(text)
+    except Exception as exc:
+        logging.getLogger('tradeflow.ai').warning(
+            'api_asistente groq failed: %s', exc, exc_info=True,
+        )
+        return _asistente_json_payload(_ASSISTANT_FALLBACK)
 
 
 # ── Sal firmado para QR de visitante ZLC (pre-registro) ─────────────────────
@@ -1029,7 +1052,7 @@ def mapa_zlc(request):
         HttpResponse: Plantilla con HTML del mapa embebido.
     """
     m = folium.Map(location=[9.3667, -79.9000], zoom_start=13, tiles='OpenStreetMap')
-    cluster = MarkerCluster(name='CFZ Companies').add_to(m)
+    cluster = MarkerCluster(name='Empresas ZLC').add_to(m)
     empresas = Company.objects.annotate(
         n_activos=Count('products', filter=Q(products__is_active=True))
     ).order_by('name')
@@ -1044,18 +1067,18 @@ def mapa_zlc(request):
         nombre = html_module.escape(c.name)
         cat_txt_e = html_module.escape(cat_txt)
         catalog_url = request.build_absolute_uri(
-            reverse('catalogo_publico') + '?empresa=' + str(c.pk)
+            reverse('tienda') + '?empresa=' + str(c.pk)
         )
         catalog_url_e = html_module.escape(catalog_url)
         html_popup = (
             '<div style="min-width:220px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.45;">'
             f'<strong style="color:#0F2A44;">{nombre}</strong><br>'
-            f'<span style="color:#6B7A88;">{_('Active products:')}</span> {c.n_activos}<br>'
-            f'<span style="color:#6B7A88;">{_('Categories:')}</span> {cat_txt_e}<br>'
+            f'<span style="color:#6B7A88;">Active products:</span> {c.n_activos}<br>'
+            f'<span style="color:#6B7A88;">Categories:</span> {cat_txt_e}<br>'
             f'<a href="{catalog_url_e}" target="_blank" rel="noopener noreferrer" '
             'style="display:inline-block;margin-top:10px;padding:8px 14px;background:#F26522;'
             'color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.85rem;">'
-            f'{_('View catalog')}</a></div>'
+            f'View catalog</a></div>'
         )
         icon_color = 'orange' if c.is_verified else 'gray'
         folium.Marker(
@@ -1067,9 +1090,9 @@ def mapa_zlc(request):
 
     map_html = m._repr_html_()
     return render(request, 'core/mapa_zlc.html', {
-        'map_html':       map_html,
-        'titulo_pagina':  'CFZ Map',
-        'nav_activo':     'mapa_zlc',
+        'map_html': map_html,
+        'titulo_pagina': 'CFZ Map',
+        'nav_activo': 'mapa_zlc',
     })
 
 
@@ -1270,7 +1293,7 @@ def dashboard(request):
     dashboard_modo_pruebas = not settings.DASHBOARD_KPI_REVENUE_DELIVERED_ONLY
     if dashboard_modo_pruebas:
         kpi_ingresos_label = 'Period revenue (active orders)'
-        kpi_ingresos_sub = 'Todas las no canceladas; no hace falta marcar entregado'
+        kpi_ingresos_sub = 'All non-cancelled; delivery mark not required'
     else:
         kpi_ingresos_label = 'Delivered revenue (period)'
         kpi_ingresos_sub = 'Delivered orders only'
@@ -1347,7 +1370,7 @@ def dashboard(request):
             {
                 'ts': u.date_joined,
                 'icon': 'person_add',
-                'titulo': f'User {u.username}',
+                'titulo': f'Usuario {u.username}',
                 'detalle': u.email or '—',
             }
         )
@@ -1551,7 +1574,7 @@ def nueva_orden_paso1(request):
     return render(request, 'core/nueva_orden_paso1.html', {
         'compradores':   compradores,
         'order_types':   Order.ORDER_TYPE_CHOICES,
-        'titulo_pagina': 'New Order — Step 1',
+        'titulo_pagina': 'New order — Step 1',
         'nav_activo':    'ordenes',
         'paso_actual':   1,
     })
@@ -1646,7 +1669,7 @@ def nueva_orden_paso2(request):
         'cat_activa':    categoria,
         'items_carrito': items_sesion,
         'total_carrito': total_carrito,
-        'titulo_pagina': 'New Order — Step 2',
+        'titulo_pagina': 'New order — Step 2',
         'nav_activo':    'ordenes',
         'paso_actual':   2,
     })
@@ -1737,7 +1760,7 @@ def nueva_orden_paso3(request):
         'subtotal':      subtotal,
         'direcciones':   direcciones,
         'metodos_pago':  Payment.PROVIDER_CHOICES,
-        'titulo_pagina': 'New Order — Step 3',
+        'titulo_pagina': 'New order — Step 3',
         'nav_activo':    'ordenes',
         'paso_actual':   3,
     })
@@ -1826,8 +1849,61 @@ def lista_empresas(request):
 def portal_buyer(request):
     """Portal del comprador — se completa el Lunes 14."""
     return render(request, 'core/portal_buyer_temp.html', {
-        'titulo_pagina': 'TradeFlow Store',
+        'titulo_pagina': 'TradeFlow store',
     })
+
+
+@seller_required
+def seller_company_qr(request):
+    """QR code linking to the seller company catalog in the public store."""
+    try:
+        company = Company.objects.get(owner=request.user)
+    except Company.DoesNotExist:
+        messages.error(request, 'No company linked to your account.')
+        return redirect('portal_seller')
+
+    catalog_url = request.build_absolute_uri(
+        reverse('tienda') + f'?empresa={company.pk}'
+    )
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(catalog_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color='#0F2A44', back_color='white')
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+
+    return render(request, 'core/seller_qr.html', {
+        'company': company,
+        'qr_base64': qr_base64,
+        'catalog_url': catalog_url,
+        'titulo_pagina': 'Company QR',
+        'nav_activo': 'seller_qr',
+    })
+
+
+@seller_required
+def seller_download_qr(request):
+    """Download PNG QR for the seller company catalog URL."""
+    try:
+        company = Company.objects.get(owner=request.user)
+    except Company.DoesNotExist:
+        return redirect('portal_seller')
+
+    catalog_url = request.build_absolute_uri(
+        reverse('tienda') + f'?empresa={company.pk}'
+    )
+    qr = qrcode.QRCode(version=1, box_size=15, border=4)
+    qr.add_data(catalog_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color='#0F2A44', back_color='white')
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    buffer.seek(0)
+    safe_name = re.sub(r'[^\w\-]+', '-', company.name).strip('-') or 'company'
+    response = HttpResponse(buffer.getvalue(), content_type='image/png')
+    response['Content-Disposition'] = f'attachment; filename="qr-{safe_name}.png"'
+    return response
 
 
 @seller_required
@@ -1854,7 +1930,7 @@ def portal_seller(request):
         'chart_status_values_json': _json.dumps(data['chart_status_values']),
         'chart_week_labels_json': _json.dumps(data['chart_week_labels']),
         'chart_week_orders_json': _json.dumps(data['chart_week_orders']),
-        'titulo_pagina': _('Seller panel'),
+        'titulo_pagina': _('Seller dashboard'),
         'nav_activo': 'mi_tienda',
     })
 
@@ -1996,7 +2072,7 @@ def seller_plan_checkout(request, plan_slug: str):
         messages.info(request, _('You already have this plan active.'))
         return redirect('seller_plan_consumo')
     if target.sort_order <= sub.plan.sort_order:
-        messages.info(request, _('Select a plan above your current tier.'))
+        messages.info(request, _('Select a plan higher than your current one.'))
         return redirect('seller_plan_consumo')
 
     try:
@@ -2042,7 +2118,7 @@ def seller_plan_checkout_pay(request, plan_slug: str):
 
     checkout = get_pending_checkout(company)
     if not checkout or checkout.target_plan.slug != plan_slug:
-        messages.error(request, _('Invalid checkout session. Choose the plan again.'))
+        messages.error(request, _('Invalid payment session. Choose your plan again.'))
         return redirect('seller_plan_consumo')
 
     provider = request.POST.get('payment_method', 'mock').strip() or 'mock'
@@ -2054,7 +2130,7 @@ def seller_plan_checkout_pay(request, plan_slug: str):
     try:
         complete_plan_checkout(checkout, provider=provider, txn_ref=txn_ref)
     except ValueError:
-        messages.error(request, _('Could not complete payment.'))
+        messages.error(request, _('Payment could not be completed.'))
         return redirect('seller_plan_checkout', plan_slug=plan_slug)
 
     messages.success(
@@ -2109,12 +2185,27 @@ def seller_predictive_insights(request):
 
 
 def _optimize_product_image_from_request(request, product_form, product):
-    """Optimiza imagen subida antes de persistir (storage cloud-friendly)."""
+    """Optimiza imagen subida antes de persistir (storage cloud-friendly).
+
+    Si la imagen falla las validaciones de seguridad de
+    `optimize_uploaded_image` (tamano > 10 MiB, formato no permitido,
+    decompression bomb, archivo malformado), se muestra un mensaje al
+    usuario y se guarda el producto SIN la imagen nueva (conservando la
+    anterior si esta editando). Asi evitamos un 500 ante uploads invalidos.
+    """
     if 'image' not in request.FILES:
         return product
+    from django.core.exceptions import ValidationError as _ValidationError
+
     from .utils.media_storage import optimize_uploaded_image
 
-    product.image = optimize_uploaded_image(request.FILES['image'])
+    try:
+        product.image = optimize_uploaded_image(request.FILES['image'])
+    except _ValidationError as exc:
+        detalle = exc.message if hasattr(exc, 'message') else (
+            exc.messages[0] if getattr(exc, 'messages', None) else str(exc)
+        )
+        messages.error(request, _('Imagen rechazada: %(detalle)s') % {'detalle': detalle})
     return product
 
 
@@ -2137,10 +2228,10 @@ def _seller_company_or_response(request, nav_activo='mi_tienda'):
         return company, None
     messages.warning(
         request,
-        'Your account is not linked to a company. Contact an administrator to assign your business in the system.',
+        'Your account is not linked to a company yet. Please contact the administrator to assign your company.',
     )
     ctx = {
-        'titulo_pagina': 'My Store',
+        'titulo_pagina': 'My store',
         'nav_activo':    nav_activo,
     }
     return None, render(request, 'core/seller_sin_empresa.html', ctx)
@@ -2206,7 +2297,7 @@ def seller_dashboard(request):
         'ordenes_semana':    ordenes_semana,
         'ventas_semana':     ventas_semana,
         'ordenes_recientes': ordenes_recientes,
-        'titulo_pagina':     'Seller panel',
+        'titulo_pagina':     'Seller dashboard',
         'nav_activo':        'mi_tienda',
     }
     return render(request, 'core/seller_dashboard.html', context)
@@ -2222,7 +2313,7 @@ def seller_productos(request):
         return resp
 
     productos = (
-        Product.objects.filter(company=company)
+        Product.objects.filter(company=company, is_active=True)
         .select_related('category', 'company')
         .defer('company__owner')
         .prefetch_related('inventory')
@@ -2249,7 +2340,7 @@ def seller_productos(request):
         'categorias':    Category.objects.all().order_by('name'),
         'buscar':        buscar,
         'cat_activa':    categoria,
-        'titulo_pagina': 'My Products',
+        'titulo_pagina': 'My products',
         'nav_activo':    'seller_productos',
     }
     return render(request, 'core/seller_productos.html', context)
@@ -2273,7 +2364,7 @@ def seller_mis_productos(request):
 
     buscar = request.GET.get('buscar', '').strip()
     categoria = request.GET.get('categoria', '').strip()
-    estado = request.GET.get('estado', '').strip()
+    estado = request.GET.get('estado', 'activo').strip() or 'activo'
     stock_f = request.GET.get('stock', '').strip()
     orden = request.GET.get('orden', 'nombre')
 
@@ -2289,6 +2380,9 @@ def seller_mis_productos(request):
         productos = productos.filter(is_active=True)
     elif estado == 'inactivo':
         productos = productos.filter(is_active=False)
+    elif estado != 'todos':
+        productos = productos.filter(is_active=True)
+        estado = 'activo'
 
     vendidos_ids = set(
         OrderItem.objects.filter(product__company=company)
@@ -2329,7 +2423,7 @@ def seller_mis_productos(request):
         'dash': dash,
         'chart_cat_labels_json': _json.dumps(dash['chart_cat_labels']),
         'chart_cat_values_json': _json.dumps(dash['chart_cat_values']),
-        'titulo_pagina': 'My Products',
+        'titulo_pagina': 'My products',
         'nav_activo': 'seller_productos',
     })
 
@@ -2351,7 +2445,7 @@ def seller_producto_nuevo(request):
             messages.error(
                 request,
                 _(
-                    'You have reached your plan\'s monthly limit. '
+                    "You have reached your plan's monthly limit. "
                     'Upgrade your plan before publishing new products.'
                 ),
             )
@@ -2370,13 +2464,13 @@ def seller_producto_nuevo(request):
                 inv.save()
             messages.success(request, f'Product "{product.name}" created successfully.')
             return redirect('seller_productos')
-        messages.error(request, 'Please review the form data.')
+        messages.error(request, 'Please check the form data.')
 
     context = {
         'company':        company,
         'product_form':   product_form,
         'inv_form':       inv_form,
-        'titulo_pagina':  'Add product',
+        'titulo_pagina':  'New product',
         'nav_activo':     'seller_productos',
         'es_edicion':     False,
     }
@@ -2423,7 +2517,7 @@ def seller_producto_editar(request, pk):
                 inv_form.save()
             messages.success(request, 'Changes saved.')
             return redirect('seller_productos')
-        messages.error(request, 'Please review the form data.')
+        messages.error(request, 'Please check the form data.')
 
     context = {
         'company':        company,
@@ -2454,10 +2548,15 @@ def seller_toggle_producto(request, pk):
     product.save(update_fields=['is_active'])
     estado = _('active') if product.is_active else _('inactive')
     if _request_wants_json(request):
+        from .utils.seller_analytics import seller_product_kpis
+
+        kpis = seller_product_kpis(company)
         return JsonResponse({
             'ok': True,
             'id': product.pk,
             'is_active': product.is_active,
+            'kpi_total': kpis['kpi_total'],
+            'kpi_activos': kpis['kpi_activos'],
             'message': _('Product "%(name)s" is now %(estado)s.') % {
                 'name': product.name,
                 'estado': estado,
@@ -2498,7 +2597,7 @@ def seller_ventas(request):
         'ordenes':        page_obj,
         'estado_actual':  estado,
         'status_choices': Order.STATUS_CHOICES,
-        'titulo_pagina':  'My Sales',
+        'titulo_pagina':  'My sales',
         'nav_activo':     'seller_ventas',
     }
     return render(request, 'core/seller_ventas.html', context)
@@ -2561,7 +2660,7 @@ def seller_mis_ventas(request):
         'ticket_promedio': dash['ticket_promedio'],
         'chart_line_labels_json': _json.dumps(dash['chart_line_labels']),
         'chart_line_values_json': _json.dumps(dash['chart_line_values']),
-        'titulo_pagina': 'My Sales',
+        'titulo_pagina': 'Mis ventas',
         'nav_activo': 'seller_ventas',
     })
 
@@ -2590,7 +2689,7 @@ def seller_export_ventas_csv(request):
         f'attachment; filename="ventas_{company.pk}.csv"'
     )
     writer = csv.writer(response)
-    writer.writerow(['ID', 'Date', 'Customer', 'Amount', 'Status', 'Type'])
+    writer.writerow(['ID', 'Fecha', 'Cliente', 'Monto', 'Estado', 'Tipo'])
     for o in ordenes[:500]:
         sub = sum(
             li.line_total
@@ -2649,7 +2748,7 @@ def seller_venta_detalle(request, pk):
                     request,
                     _(
                         'Monthly plan limit reached (USD %(limit)s). '
-                        'Upgrade your plan to confirm this USD %(add)s sale.'
+                        'Upgrade your plan to confirm this sale of USD %(add)s.'
                     ) % {'limit': exc.limit, 'add': exc.additional},
                 )
                 return redirect('seller_plan_consumo')
@@ -2658,14 +2757,14 @@ def seller_venta_detalle(request, pk):
                 enviar_cambio_estado(orden, estado_prev)
                 enviar_confirmacion_orden(orden)
             except Exception:
-                log.exception('seller post-confirmation email')
+                log.exception('Email post-confirmación vendedor')
         elif accion == 'rechazar':
             reject_seller_order(orden)
             messages.warning(request, _('Order rejected. Reserved inventory was released.'))
             try:
                 enviar_cambio_estado(orden, estado_prev)
             except Exception:
-                log.exception('order rejection email')
+                log.exception('Email rechazo orden')
         return redirect('seller_detalle_venta', pk=pk)
 
     subtotal_vendedor = sum((li.line_total for li in lineas), Decimal('0.00'))
@@ -2773,7 +2872,7 @@ def _request_wants_json(request):
 
 
 # ---------------------------------------------------------------------------
-# CATÁLOGO PÚBLICO — Browse read-only sin login
+# TIENDA — Catálogo principal del comprador
 # ---------------------------------------------------------------------------
 
 def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
@@ -2796,6 +2895,7 @@ def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
     return slots
 
 
+@catalog_access
 def catalogo_publico(request):
     """Catálogo público read-only (sin login) — filtros + grid de productos."""
     from decimal import Decimal, InvalidOperation
@@ -2818,6 +2918,7 @@ def catalogo_publico(request):
     precio_min = request.GET.get('precio_min', '').strip()
     precio_max = request.GET.get('precio_max', '').strip()
     solo_stock = request.GET.get('stock', '') in ('1', 'true', 'on')
+    solo_verificado = request.GET.get('verificado', '') == '1'
     orden = request.GET.get('orden', 'relevancia').strip() or 'relevancia'
 
     productos = catalogo_base.annotate(
@@ -2852,6 +2953,9 @@ def catalogo_publico(request):
 
     if solo_stock:
         productos = productos.filter(avail_qty__gt=0)
+
+    if solo_verificado:
+        productos = productos.filter(company__is_verified=True)
 
     try:
         if precio_min:
@@ -2926,6 +3030,7 @@ def catalogo_publico(request):
         'precio_min': precio_min,
         'precio_max': precio_max,
         'solo_stock': solo_stock,
+        'solo_verificado': solo_verificado,
         'orden': orden_key,
         'catalogo_params': catalogo_params,
         'catalogo_stats': stats,
@@ -2947,98 +3052,7 @@ def catalogo_publico(request):
     return render(request, 'core/catalogo_publico.html', context)
 
 
-def catalogo_producto_detail(request, pk):
-    """Vista pública de detalle de producto (sin login requerido)."""
-    from django.templatetags.static import static
-
-    product = get_object_or_404(
-        Product.objects.select_related('company', 'category', 'inventory'),
-        pk=pk,
-        is_active=True,
-    )
-    is_guest = not request.user.is_authenticated
-    role = None
-    if not is_guest:
-        try:
-            role = request.user.profile.role
-        except Exception:
-            role = None
-    show_cart_actions = (
-        not is_guest
-        and (role in ('buyer', 'admin') or request.user.is_superuser)
-    )
-
-    related_products = list(
-        Product.objects.filter(is_active=True, category=product.category_id)
-        .exclude(pk=product.pk)
-        .select_related('company', 'category', 'inventory')
-        .order_by('-merchandising_priority', '-is_featured', 'name')[:4]
-    )
-    if len(related_products) < 4:
-        existing_ids = [p.pk for p in related_products]
-        extra = list(
-            Product.objects.filter(is_active=True, company=product.company_id)
-            .exclude(pk=product.pk)
-            .exclude(pk__in=existing_ids)
-            .select_related('company', 'category', 'inventory')
-            .order_by('-merchandising_priority', 'name')[: 4 - len(related_products)]
-        )
-        related_products.extend(extra)
-
-    company = product.company
-    export_ready = bool(
-        company.is_verified
-        and (company.ruc or product.sku)
-    )
-    if product.available_qty <= 0:
-        stock_status = 'out'
-        stock_label = 'Out of stock'
-    elif product.available_qty <= 5:
-        stock_status = 'low'
-        stock_label = f'Low stock ({product.available_qty} units)'
-    else:
-        stock_status = 'ok'
-        stock_label = f'In stock ({product.available_qty} units)'
-
-    if product.image:
-        og_image = request.build_absolute_uri(product.image.url)
-    else:
-        og_image = request.build_absolute_uri(static('img/product-placeholder.svg'))
-
-    meta_description = (
-        product.description[:155].strip()
-        if product.description
-        else f'{product.name} from {company.name} in the Colón Free Zone — TradeFlow Colón.'
-    )
-
-    return render(
-        request,
-        'core/catalogo_producto_detail.html',
-        {
-            'product': product,
-            'company': company,
-            'show_cart_actions': show_cart_actions,
-            'is_guest': is_guest,
-            'related_products': related_products,
-            'export_ready': export_ready,
-            'stock_status': stock_status,
-            'stock_label': stock_label,
-            'meta_description': meta_description,
-            'og_image': og_image,
-            'canonical_url': request.build_absolute_uri(
-                reverse('catalogo_producto_detail', args=[product.pk]),
-            ),
-            'titulo_pagina': product.name,
-            'nav_activo': 'catalogo',
-        },
-    )
-
-
-# ---------------------------------------------------------------------------
-# TIENDA — Catalog principal del comprador
-# ---------------------------------------------------------------------------
-
-@buyer_required
+@catalog_access
 def tienda(request):
     """
     Muestra el catálogo de productos disponibles para el comprador.
@@ -3068,6 +3082,23 @@ def tienda(request):
         qs = q.urlencode()
         return f"{reverse('tienda')}?{qs}" if qs else reverse('tienda')
 
+    is_guest = not request.user.is_authenticated
+    if is_guest:
+        role = None
+    else:
+        try:
+            role = request.user.profile.role
+        except Exception:
+            role = None
+    show_cart_actions = (
+        not is_guest
+        and (
+            role == 'buyer'
+            or role == 'admin'
+            or request.user.is_superuser
+        )
+    )
+
     catalogo_base = merch.active_products_base()
     now = timezone.now()
     promo_q = (
@@ -3086,15 +3117,27 @@ def tienda(request):
     }
 
     productos = catalogo_base
-    tab_catalogo = request.GET.get('tab', 'todos').strip() or 'todos'
+    tab_catalogo = request.GET.get('tab', '').strip()
+    if not tab_catalogo:
+        if request.GET.get('destacados') == '1':
+            tab_catalogo = 'destacados'
+        elif request.GET.get('ofertas') == '1':
+            tab_catalogo = 'ofertas'
+        else:
+            tab_catalogo = 'todos'
     orden = request.GET.get('orden', 'nombre').strip() or 'nombre'
 
     buscar    = request.GET.get('buscar', '').strip()
     categoria = request.GET.get('categoria', '').strip()
     empresa   = request.GET.get('empresa', '').strip()
     vista_tab = request.GET.get('vista', 'categoria').strip() or 'categoria'
+    if request.GET.get('verificado') == '1':
+        vista_tab = 'empresa'
     if vista_tab not in ('categoria', 'empresa'):
         vista_tab = 'categoria'
+
+    if request.GET.get('verificado') == '1':
+        productos = productos.filter(company__is_verified=True)
 
     if tab_catalogo == 'ofertas':
         productos = productos.filter(promo_q)
@@ -3182,6 +3225,8 @@ def tienda(request):
         .filter(num_productos__gt=0)
         .order_by('name')
     )
+    if request.GET.get('verificado') == '1':
+        empresas_catalogo = empresas_catalogo.filter(is_verified=True)
     empresas_filtro = empresas_catalogo
 
     qcopy = request.GET.copy()
@@ -3227,12 +3272,13 @@ def tienda(request):
         'url_tab_categoria': url_tab_categoria,
         'url_tab_empresa': url_tab_empresa,
         'carrito_count': _contar_items(carrito),
-        'titulo_pagina': 'TradeFlow Store',
+        'titulo_pagina': 'TradeFlow store',
         'nav_activo': 'tienda',
         'tab_catalogo': tab_catalogo,
         'orden_activo': orden,
         'promo_banner': promo_banner,
-        'show_cart_actions': True,
+        'show_cart_actions': show_cart_actions,
+        'is_guest_catalog': is_guest,
         'tienda_stats': tienda_stats,
         'tab_urls': {
             'todos': _tienda_tab_url('todos'),
@@ -3246,6 +3292,14 @@ def tienda(request):
         'spotlight_destacados': spotlight_destacados,
         'productos_promo': merch.daily_deals(8),
         'tienda_pagination_slots': _tienda_pagination_slots(page_obj),
+        'category_spotlights': merch.category_spotlights(4, 4),
+        'buyer_store_landing': (
+            not buscar
+            and not categoria
+            and not empresa
+            and tab_catalogo in ('todos', '')
+            and int(request.GET.get('page', 1) or 1) == 1
+        ),
     }
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -3254,6 +3308,99 @@ def tienda(request):
     if is_partial:
         return render(request, 'core/tienda_catalog_partial.html', context)
     return render(request, 'core/tienda.html', context)
+
+
+@catalog_access
+def catalogo_producto_detail(request, pk):
+    """Vista pública de detalle de producto (sin login requerido)."""
+    from django.templatetags.static import static
+    from django.urls import reverse
+
+    product = get_object_or_404(
+        Product.objects.select_related('company', 'category', 'inventory'),
+        pk=pk,
+        is_active=True,
+    )
+    is_guest = not request.user.is_authenticated
+    role = None
+    if not is_guest:
+        try:
+            role = request.user.profile.role
+        except Exception:
+            role = None
+    show_cart_actions = (
+        not is_guest
+        and (role in ('buyer', 'admin') or request.user.is_superuser)
+    )
+
+    related_products = list(
+        Product.objects.filter(is_active=True, category=product.category_id)
+        .exclude(pk=product.pk)
+        .select_related('company', 'category', 'inventory')
+        .order_by('-merchandising_priority', '-is_featured', 'name')[:4]
+    )
+    if len(related_products) < 4:
+        existing_ids = [p.pk for p in related_products]
+        extra = list(
+            Product.objects.filter(is_active=True, company=product.company_id)
+            .exclude(pk=product.pk)
+            .exclude(pk__in=existing_ids)
+            .select_related('company', 'category', 'inventory')
+            .order_by('-merchandising_priority', 'name')[: 4 - len(related_products)]
+        )
+        related_products.extend(extra)
+
+    company = product.company
+    export_ready = bool(
+        company.is_verified
+        and (company.ruc or product.sku)
+    )
+    if product.available_qty <= 0:
+        stock_status = 'out'
+        stock_label = 'Out of stock'
+    elif product.available_qty <= 5:
+        stock_status = 'low'
+        stock_label = f'Low stock ({product.available_qty} units)'
+    else:
+        stock_status = 'ok'
+        stock_label = f'In stock ({product.available_qty} units)'
+
+    if product.image:
+        og_image = request.build_absolute_uri(product.image.url)
+    else:
+        og_image = request.build_absolute_uri(static('img/product-placeholder.svg'))
+
+    meta_description = (
+        product.description[:155].strip()
+        if product.description
+        else f'{product.name} from {company.name} in the Colón Free Zone — TradeFlow Colón.'
+    )
+
+    return render(
+        request,
+        'core/catalogo_producto_detail.html',
+        {
+            'product': product,
+            'company': company,
+            'show_cart_actions': show_cart_actions,
+            'is_guest': is_guest,
+            'related_products': related_products,
+            'export_ready': export_ready,
+            'stock_status': stock_status,
+            'stock_label': stock_label,
+            'meta_description': meta_description,
+            'og_image': og_image,
+            'canonical_url': request.build_absolute_uri(
+                reverse('catalogo_producto_detail', args=[product.pk]),
+            ),
+            'titulo_pagina': product.name,
+            'nav_activo': 'tienda',
+        },
+    )
+
+
+# Alias legacy (misma ruta, nombre anterior)
+catalogo_producto = catalogo_producto_detail
 
 
 # ---------------------------------------------------------------------------
@@ -3298,7 +3445,7 @@ def agregar_al_carrito(request, producto_id):
         return redirect('tienda')
 
     if disponible == 0:
-        msg = _('"%(name)s" is out of stock.') % {'name': producto.name}
+        msg = _('"%(name)s" has no stock available.') % {'name': producto.name}
         if _request_wants_json(request):
             return JsonResponse({'ok': False, 'message': msg}, status=400)
         messages.error(request, msg)
@@ -3410,7 +3557,7 @@ def ver_carrito(request):
         'carrito':       carrito,
         'total':         total,
         'carrito_count': _contar_items(carrito),
-        'titulo_pagina': 'My Cart',
+        'titulo_pagina': 'My cart',
         'nav_activo':    'tienda',
     }
     return render(request, 'core/carrito.html', context)
@@ -3525,7 +3672,7 @@ def checkout(request):
                 # El producto fue desactivado entre que se agregó y el checkout
                 messages.warning(
                     request,
-                    f'A product is no longer available and was omitted.'
+                    f'A product is no longer available and was skipped.'
                 )
 
         if items_creados == 0:
@@ -3567,7 +3714,7 @@ def checkout(request):
                 request,
                 _(
                     'Order %(num)s submitted. Awaiting company confirmation '
-                    '(deadline until %(fecha)s).'
+                    '(deadline %(fecha)s).'
                 ) % {
                     'num': orden.order_number,
                     'fecha': orden.seller_confirm_by.strftime('%d/%m/%Y %H:%M'),
@@ -3577,7 +3724,7 @@ def checkout(request):
                 enviar_cambio_estado(orden, 'pending')
                 enviar_orden_pendiente_vendedor(orden)
             except Exception:
-                log.exception('pending order seller email')
+                log.exception('Email orden pendiente vendedor')
             from .models import Transportista
             if Transportista.objects.filter(estado='aprobado', activo=True).exists():
                 return redirect('seleccionar_transportista', order_pk=orden.pk)
@@ -3604,7 +3751,7 @@ def checkout(request):
         try:
             enviar_confirmacion_orden(orden)
         except Exception:
-            log.exception('order confirmation email send failed')
+            log.exception('No se pudo enviar email de confirmación de orden.')
         from .models import Transportista
         if Transportista.objects.filter(estado='aprobado', activo=True).exists():
             return redirect('seleccionar_transportista', order_pk=orden.pk)
@@ -3626,7 +3773,7 @@ def checkout(request):
         'carrito': carrito,
         'subtotal': subtotal,
         'carrito_count': _contar_items(carrito),
-        'titulo_pagina': 'Confirm Order',
+        'titulo_pagina': 'Confirm order',
         'nav_activo': 'tienda',
         'transportistas': transportistas,
         'checkout_auto_approve': auto_approve,
@@ -3671,7 +3818,7 @@ def mis_ordenes(request):
         'estado_actual':  estado,
         'status_choices': Order.STATUS_CHOICES,
         'carrito_count':  _contar_items(_get_carrito(request)),
-        'titulo_pagina':  'My Orders',
+        'titulo_pagina':  'My orders',
         'nav_activo':     'mis_ordenes',
     }
     return render(request, 'core/mis_ordenes.html', context)
@@ -3826,10 +3973,10 @@ def solicitar_cotizacion(request):
         lines = []
         seen = set()
         for key, raw in request.POST.items():
-            if not key.startswith('qty_('):
+            if not key.startswith('qty_'):
                 continue
             try:
-                pid = int(key.replace(')qty_(', ')', 1))
+                pid = int(key.replace('qty_', '', 1))
             except ValueError:
                 continue
             try:
@@ -3846,7 +3993,7 @@ def solicitar_cotizacion(request):
                 lines.append((prod, qty))
 
         if not lines:
-            messages.error(request, 'Add at least one product with a quantity greater than zero.')
+            messages.error(request, 'Specify at least one product with quantity greater than zero.')
             return redirect(f"{reverse('solicitar_cotizacion')}?empresa={empresa_dest.pk}")
 
         with transaction.atomic():
@@ -3876,6 +4023,168 @@ def solicitar_cotizacion(request):
         'nav_activo': 'mis_cotizaciones',
     }
     return render(request, 'core/cotizacion_form.html', context)
+
+
+def _normalizar_nombre(texto):
+    """Normaliza un nombre para comparar 'el mismo producto' entre empresas.
+
+    Minúsculas, sin acentos y con espacios colapsados, de modo que
+    'Café Premium' y 'cafe  premium' se consideren equivalentes.
+    """
+    base = (texto or '').strip().lower()
+    base = ''.join(
+        c for c in unicodedata.normalize('NFKD', base)
+        if not unicodedata.combining(c)
+    )
+    return ' '.join(base.split())
+
+
+def _empresas_con_producto(base_product, limite=25):
+    """Devuelve [(company, product)] de empresas que venden el mismo producto.
+
+    Como cada Product pertenece a una sola Company y no hay catálogo
+    compartido, "el mismo producto" se determina por nombre normalizado o
+    por SKU exacto. Se elige, por empresa, el producto activo más barato.
+    """
+    nombre_norm = _normalizar_nombre(base_product.name)
+    sku_norm = (base_product.sku or '').strip().lower()
+
+    filtro = Q(name__iexact=(base_product.name or '').strip())
+    if sku_norm:
+        filtro |= Q(sku__iexact=(base_product.sku or '').strip())
+    palabras = [p for p in nombre_norm.split() if len(p) >= 3]
+    if palabras:
+        filtro |= Q(name__icontains=palabras[0])
+
+    candidatos = (
+        Product.objects.filter(is_active=True)
+        .filter(filtro)
+        .select_related('company', 'inventory')
+    )
+
+    mejor_por_empresa = {}
+    for prod in candidatos:
+        if not prod.company_id:
+            continue
+        coincide_nombre = _normalizar_nombre(prod.name) == nombre_norm
+        coincide_sku = bool(sku_norm) and (prod.sku or '').strip().lower() == sku_norm
+        if not (coincide_nombre or coincide_sku):
+            continue
+        actual = mejor_por_empresa.get(prod.company_id)
+        if actual is None or prod.display_price < actual.display_price:
+            mejor_por_empresa[prod.company_id] = prod
+
+    resultado = [(p.company, p) for p in mejor_por_empresa.values()]
+    resultado.sort(key=lambda par: (par[1].display_price, par[0].name.lower()))
+    return resultado[:limite]
+
+
+@buyer_required
+@require_POST
+def solicitar_cotizacion_automatica(request, producto_id):
+    """Cotización automática: toda empresa que venda el producto responde sola.
+
+    A partir de un producto base, busca el mismo producto en todas las
+    empresas y crea una cotización ya respondida (estado='respondida') por
+    cada empresa, con el precio de catálogo vigente. El comprador las compara
+    al instante en lugar de esperar respuestas manuales.
+    """
+    base = get_object_or_404(
+        Product.objects.select_related('company'),
+        pk=producto_id,
+        is_active=True,
+    )
+
+    try:
+        qty = int(request.POST.get('cantidad', '1') or '1')
+    except (TypeError, ValueError):
+        qty = 1
+    if qty < 1:
+        qty = 1
+    notas_buyer = request.POST.get('notas_buyer', '').strip()
+
+    matches = _empresas_con_producto(base)
+    if not matches:
+        messages.error(
+            request,
+            'We found no companies selling this product to quote.',
+        )
+        return redirect('tienda')
+
+    lote = uuid.uuid4().hex[:12]
+    nota_auto = 'Automatic quote generated with the current catalog price.'
+    creadas = 0
+    with transaction.atomic():
+        for company, prod in matches:
+            cot = Cotizacion.objects.create(
+                buyer=request.user,
+                empresa=company,
+                estado='respondida',
+                es_automatica=True,
+                lote=lote,
+                notas_buyer=notas_buyer,
+                notas_seller=nota_auto,
+                validez_dias=30,
+            )
+            CotizacionItem.objects.create(
+                cotizacion=cot,
+                product=prod,
+                cantidad_solicitada=qty,
+                precio_ofertado=prod.display_price,
+            )
+            creadas += 1
+
+    messages.success(
+        request,
+        f'We generated {creadas} automatic quote(s) for "{base.name}". '
+        f'Compare them and choose the best one.',
+    )
+    return redirect('comparar_cotizaciones', lote=lote)
+
+
+@buyer_required
+def comparar_cotizaciones(request, lote):
+    """Comparativa de las cotizaciones automáticas creadas en un mismo lote."""
+    cots = (
+        Cotizacion.objects.filter(buyer=request.user, lote=lote)
+        .select_related('empresa', 'order')
+        .prefetch_related(
+            Prefetch(
+                'items',
+                queryset=CotizacionItem.objects.select_related('product'),
+            )
+        )
+        .order_by('created_at')
+    )
+    cots = list(cots)
+    if not cots:
+        messages.warning(request, 'We could not find that quote comparison.')
+        return redirect('mis_cotizaciones')
+
+    filas = []
+    for c in cots:
+        items = list(c.items.all())
+        total = sum((it.linea_total or Decimal('0.00')) for it in items)
+        filas.append({'cot': c, 'items': items, 'total': total})
+    filas.sort(key=lambda f: f['total'])
+    for i, fila in enumerate(filas):
+        fila['mejor_precio'] = (i == 0)
+
+    primer_item = filas[0]['items'][0] if filas[0]['items'] else None
+    producto_nombre = primer_item.product.name if primer_item else 'product'
+    cantidad = primer_item.cantidad_solicitada if primer_item else 1
+
+    context = {
+        'filas': filas,
+        'lote': lote,
+        'producto_nombre': producto_nombre,
+        'cantidad': cantidad,
+        'total_empresas': len(filas),
+        'carrito_count': _contar_items(_get_carrito(request)),
+        'titulo_pagina': f'Compare quotes — {producto_nombre}',
+        'nav_activo': 'mis_cotizaciones',
+    }
+    return render(request, 'core/comparar_cotizaciones.html', context)
 
 
 @buyer_required
@@ -3929,7 +4238,7 @@ def detalle_cotizacion(request, pk):
         if accion == 'convertir' and cot.estado == 'respondida' and not cot.order_id:
             items = list(cot.items.all())
             if not items or any(it.precio_ofertado is None for it in items):
-                messages.error(request, 'Quote does not have complete pricing to create an order.')
+                messages.error(request, 'Quote does not have complete pricing to create the order.')
                 return redirect('detalle_cotizacion', pk=cot.pk)
 
             addr = Address.objects.filter(user=request.user).order_by('-is_default', 'id').first()
@@ -3986,7 +4295,7 @@ def detalle_cotizacion(request, pk):
                 cot.estado = 'aceptada'
                 cot.save(update_fields=['order', 'estado', 'updated_at'])
 
-            messages.success(request, f'Order {orden.order_number} created from quote.')
+            messages.success(request, f'Order {orden.order_number} created from the quote.')
             return redirect('detalle_mi_orden', pk=orden.pk)
 
         return redirect('detalle_cotizacion', pk=cot.pk)
@@ -4044,7 +4353,7 @@ def seller_cotizaciones(request):
         'cotizaciones_mes': dash['cotizaciones_mes'],
         'tasa_conversion': dash['tasa_conversion'],
         'monto_cotizado': dash['monto_cotizado'],
-        'titulo_pagina': 'Quotes received',
+        'titulo_pagina': 'Received quotes',
         'nav_activo': 'seller_cotizaciones',
     }
     return render(request, 'core/seller_cotizaciones.html', context)
@@ -4101,7 +4410,7 @@ def seller_responder_cotizacion(request, pk):
     context = {
         'company': company,
         'cot': cot,
-        'titulo_pagina': f'Reply to {cot.numero}',
+        'titulo_pagina': f'Respond to {cot.numero}',
         'nav_activo': 'seller_cotizaciones',
     }
     return render(request, 'core/seller_responder_cotizacion.html', context)
@@ -4119,39 +4428,33 @@ def solicitud_acceso(request):
 
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
-        email = (
-            request.POST.get('corporate_email', '').strip()
-            or request.POST.get('email', '').strip()
-        ).lower()
+        email = request.POST.get('email', '').strip().lower()
         phone = request.POST.get('phone', '').strip()
-        ruc = request.POST.get('ruc', '').strip()
         role = request.POST.get('role', 'buyer')
         company_name = request.POST.get('company_name', '').strip()
         message = request.POST.get('message', '').strip()
         req_plan = request.POST.get('requested_plan_slug', '').strip() or plan_intent
 
-        if ruc:
-            ruc_line = f'RUC: {ruc}'
-            message = f'{ruc_line}\n{message}'.strip() if message else ruc_line
-
-        if not all([full_name, email, phone, ruc, company_name]):
-            messages.error(request, 'Please complete all required fields.')
+        if not full_name or not email:
+            messages.error(request, _('Name and email are required.'))
         elif role not in ('buyer', 'seller'):
-            messages.error(request, 'Invalid role.')
+            messages.error(request, _('Invalid role.'))
         else:
             existing = UserApplication.objects.filter(
                 email__iexact=email,
-                status__in=('pendiente', 'en_revision'),
+                status='pending',
             ).first()
             if existing:
                 messages.info(
                     request,
-                    'You already have an application under review. '
-                    'We will notify you when it is approved.',
+                    _(
+                        'You already have an application under review. '
+                        'We will email you when it is approved.'
+                    ),
                 )
                 if request.user.is_authenticated:
                     return redirect('onboarding_espera_aprobacion')
-                return redirect('pending_approval')
+                return redirect('solicitud_acceso')
 
             app = UserApplication.objects.create(
                 full_name=full_name,
@@ -4173,133 +4476,47 @@ def solicitud_acceso(request):
                     message=message,
                     user_application=app,
                 )
-            messages.success(
-                request,
-                'Application submitted. Our team will review it within 1-2 business days.',
-            )
+            try:
+                enviar_solicitud_recibida(app)
+                enviar_solicitud_a_revisores(app)
+            except Exception:
+                log.exception('Email solicitud acceso')
+                messages.warning(
+                    request,
+                    _(
+                        'Application saved, but email could not be sent. '
+                        'Configure RESEND_API_KEY and verify sender domain in Resend.'
+                    ),
+                )
+            else:
+                messages.success(
+                    request,
+                    _('Application submitted. Check your email for confirmation.'),
+                )
             if request.user.is_authenticated:
                 return redirect('onboarding_espera_aprobacion')
-            return redirect('pending_approval')
+            return redirect('onboarding_solicitud_enviada')
 
     return render(request, 'core/solicitud_acceso.html', {
-        'titulo_pagina': 'Apply for access',
+        'titulo_pagina': _('Access application'),
         'plan_intent': plan_intent,
         'is_enterprise_intent': plan_intent == 'ecosistema_enterprise',
     })
 
 
-def pending_approval_view(request):
-    """Pantalla pública tras registro: cuenta pendiente de aprobación admin."""
-    return render(request, 'core/pending_approval.html')
-
-
-def _application_status_filter(param: str) -> tuple[str | None, list[str] | None]:
-    """Map query ?status= to model status values."""
-    mapping = {
-        'pending': ['pendiente', 'en_revision'],
-        'approved': ['aprobada'],
-        'rejected': ['rechazada'],
-    }
-    key = (param or '').strip().lower()
-    if key in mapping:
-        return key, mapping[key]
-    return None, None
-
-
-@admin_required
-def admin_applications_view(request):
-    """Panel admin: solicitudes de acceso pendientes y histórico."""
-    current_filter, status_values = _application_status_filter(request.GET.get('status'))
-    qs = UserApplication.objects.select_related('user').order_by('-created_at')
-    if status_values:
-        qs = qs.filter(status__in=status_values)
-    pending_count = UserApplication.objects.filter(
-        status__in=('pendiente', 'en_revision'),
-    ).count()
-    return render(
-        request,
-        'core/admin_applications.html',
-        {
-            'applications': qs,
-            'pending_count': pending_count,
-            'current_filter': current_filter,
-            'nav_activo': 'admin_applications',
-        },
-    )
-
-
-@admin_required
-def approve_application_view(request, pk):
-    if request.method != 'POST':
-        return redirect('admin_applications')
-    app = get_object_or_404(UserApplication.objects.select_related('user'), pk=pk)
-    if app.status not in ('pendiente', 'en_revision'):
-        messages.info(request, 'This application has already been reviewed.')
-        return redirect('admin_applications')
-
-    app.status = 'aprobada'
-    app.reviewed_at = timezone.now()
-    app.save(update_fields=['status', 'reviewed_at'])
-
-    if app.user_id:
-        app.user.is_active = True
-        app.user.save(update_fields=['is_active'])
-        try:
-            profile = app.user.profile
-            profile.email_verificado = True
-            profile.token_verificacion = None
-            profile.save(update_fields=['email_verificado', 'token_verificacion'])
-        except UserProfile.DoesNotExist:
-            UserProfile.objects.create(
-                user=app.user,
-                role=app.role,
-                phone=app.phone,
-                email_verificado=True,
-            )
-
-    messages.success(request, 'Account approved successfully.')
-    return redirect('admin_applications')
-
-
-@admin_required
-def reject_application_view(request, pk):
-    if request.method != 'POST':
-        return redirect('admin_applications')
-    app = get_object_or_404(UserApplication.objects.select_related('user'), pk=pk)
-    if app.status not in ('pendiente', 'en_revision'):
-        messages.info(request, 'This application has already been reviewed.')
-        return redirect('admin_applications')
-
-    app.status = 'rechazada'
-    app.reviewed_at = timezone.now()
-    app.save(update_fields=['status', 'reviewed_at'])
-
-    if app.user_id:
-        app.user.is_active = False
-        app.user.save(update_fields=['is_active'])
-
-    messages.success(request, 'Account rejected.')
-    return redirect('admin_applications')
-
-
 def revisar_solicitud(request, token, accion):
     """Aprueba o rechaza solicitud desde enlace del correo."""
     app = get_object_or_404(UserApplication, review_token=token)
-    if app.status not in ('pendiente', 'en_revision'):
+    if app.status not in ('pending',):
         messages.info(request, _('This application has already been reviewed.'))
         return redirect('home')
 
     if accion == 'aprobar':
-        app.status = 'aprobada'
         aprobada = True
     elif accion == 'rechazar':
-        app.status = 'rechazada'
         aprobada = False
     else:
         raise Http404
-
-    app.reviewed_at = timezone.now()
-    app.save(update_fields=['status', 'reviewed_at'])
 
     if aprobada and app.requested_plan_slug == 'ecosistema_enterprise':
         from .models import Company
@@ -4326,11 +4543,21 @@ def revisar_solicitud(request, token, accion):
                 except ValueError:
                     log.exception('Enterprise activation on approve')
 
-    try:
-        enviar_solicitud_decision(app, aprobada)
-    except Exception:
-        log.exception('application decision email')
-    messages.success(request, _('Decision recorded and email sent to the applicant.'))
+    from .utils.application_review import (
+        aprobar_solicitud,
+        mensaje_fallo_correo,
+        rechazar_solicitud,
+    )
+    if aprobada:
+        _, email_result = aprobar_solicitud(app, notificar=True)
+    else:
+        _, email_result = rechazar_solicitud(app, notificar=True)
+
+    warn = mensaje_fallo_correo(email_result)
+    if warn:
+        messages.warning(request, warn)
+    else:
+        messages.success(request, _('Decision recorded and email sent to the applicant.'))
     return redirect('home')
 
 
@@ -4395,22 +4622,113 @@ def api_admin_saas_request_action(request, pk: int):
         'company', 'requested_plan'
     ).first()
     if not req:
-        return JsonResponse({'error': 'Request not found'}, status=404)
+        return JsonResponse({'error': 'Application not found'}, status=404)
     if req.status not in ('pending', 'en_revision'):
-        return JsonResponse({'error': 'The request has already been processed'}, status=400)
+        return JsonResponse({'error': 'Application has already been processed'}, status=400)
 
     if action == 'approve':
         approve_commercial_request(req)
         return JsonResponse({
             'ok': True,
             'status': 'approved',
-            'message': f'Plan {req.requested_plan.name} activated for {req.company.name}.',
+            'message': f'Plan {req.requested_plan.name} activado para {req.company.name}.',
         })
     if action == 'reject':
         reject_commercial_request(req)
         return JsonResponse({
             'ok': True,
             'status': 'rejected',
-            'message': f'Request from {req.company.name} rejected.',
+            'message': f'Application from {req.company.name} rejected.',
         })
     return JsonResponse({'error': 'Invalid action'}, status=400)
+
+
+# ── Application approval views ────────────────────────────────────────────────
+
+def pending_approval_view(request):
+    """Page shown after signup while account is pending admin approval."""
+    return render(request, 'core/pending_approval.html')
+
+
+@admin_required
+def admin_applications_view(request):
+    """Admin panel to review company access applications."""
+    try:
+        from .models import UserApplication
+        status_filter = request.GET.get('status', '')
+        applications = UserApplication.objects.all().order_by('-created_at')
+        if status_filter:
+            applications = applications.filter(status=status_filter)
+        pending_count = UserApplication.objects.filter(status='pending').count()
+        return render(request, 'core/admin_applications.html', {
+            'applications': applications,
+            'pending_count': pending_count,
+            'current_filter': status_filter,
+            'nav_activo': 'admin_applications',
+        })
+    except Exception as e:
+        log.exception('Error in admin_applications_view: %s', e)
+        raise
+
+
+@admin_required
+def approve_application_view(request, pk):
+    """Approve a company application, activate the account and notify the user."""
+    from .models import UserApplication
+    from .utils.application_review import aprobar_solicitud, mensaje_fallo_correo
+    if request.method == 'POST':
+        try:
+            app = UserApplication.objects.get(pk=pk)
+            _, email_result = aprobar_solicitud(app, notificar=True)
+            warn = mensaje_fallo_correo(email_result)
+            if warn:
+                messages.warning(request, warn)
+            else:
+                messages.success(
+                    request,
+                    'Application approved. The applicant has been notified by email.',
+                )
+        except UserApplication.DoesNotExist:
+            messages.error(request, 'Application not found.')
+    return redirect('admin_applications')
+
+
+@admin_required
+def reject_application_view(request, pk):
+    """Reject a company application and notify the user."""
+    from .models import UserApplication
+    from .utils.application_review import mensaje_fallo_correo, rechazar_solicitud
+    if request.method == 'POST':
+        try:
+            app = UserApplication.objects.get(pk=pk)
+            _, email_result = rechazar_solicitud(app, notificar=True)
+            warn = mensaje_fallo_correo(email_result)
+            if warn:
+                messages.warning(request, warn)
+            else:
+                messages.success(
+                    request,
+                    'Application rejected. The applicant has been notified by email.',
+                )
+        except UserApplication.DoesNotExist:
+            messages.error(request, 'Application not found.')
+    return redirect('admin_applications')
+
+
+# =============================================================================
+# PÁGINAS LEGALES (públicas)
+# =============================================================================
+
+def legal_terminos(request):
+    """Terms of Use for the TradeFlow Colón marketplace."""
+    return render(request, 'core/legal_terminos.html')
+
+
+def legal_privacidad(request):
+    """Privacy policy and data processing."""
+    return render(request, 'core/legal_privacidad.html')
+
+
+def legal_cookies(request):
+    """Cookie policy and similar technologies."""
+    return render(request, 'core/legal_cookies.html')

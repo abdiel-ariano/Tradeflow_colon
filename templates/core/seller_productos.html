@@ -21,7 +21,7 @@
         <button type="submit" class="btn-seller-outline">Filter</button>
       </form>
     </div>
-    <script>
+    <script nonce="{{ csp_nonce }}">
     (function () {
       var sel = document.querySelector("select[name=categoria]");
       if (!sel) return;

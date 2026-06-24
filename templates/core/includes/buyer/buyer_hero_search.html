@@ -1,0 +1,23 @@
+{% load static %}
+<section class="bh-hero-search" id="bh-hero-search" aria-labelledby="bh-hero-label">
+  <p class="bh-hero-label" id="bh-hero-label">Colón Free Zone · Panama</p>
+
+  {% if show_mode_tabs != False %}
+  <div class="bh-mode-tabs" role="tablist" aria-label="Modo de búsqueda">
+    <a href="{% url 'tienda' %}" class="bh-mode-tab">Modo IA ✦</a>
+    <a href="{% url 'tienda' %}" class="bh-mode-tab is-active" aria-selected="true">Productos</a>
+    <a href="{% url 'tienda' %}?vista=empresa" class="bh-mode-tab">Fabricantes</a>
+    <a href="{% url 'tienda' %}?buscar=export" class="bh-mode-tab">Mundial</a>
+  </div>
+  {% endif %}
+
+  {% include "core/includes/buyer/search_bar.html" with variant="hero" value=request.GET.buscar placeholder="ropa interior femenina" form_id="bh-hero" %}
+
+  <div class="bh-chips" aria-label="Búsquedas frecuentes">
+    <a href="{% url 'tienda' %}?buscar=electronica" class="bh-chip">electrónica</a>
+    <a href="{% url 'tienda' %}?buscar=textiles" class="bh-chip">textiles</a>
+    <a href="{% url 'tienda' %}?buscar=repuestos" class="bh-chip">repuestos</a>
+    <a href="{% url 'tienda' %}?buscar=logistica" class="bh-chip">logística</a>
+    <a href="{% url 'tienda' %}?buscar=CFZ" class="bh-chip">CFZ</a>
+  </div>
+</section>

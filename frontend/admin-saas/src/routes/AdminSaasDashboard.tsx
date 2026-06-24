@@ -39,12 +39,41 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { currencyUsd, formatUsdK } from '@/lib/utils';
+import { currencyUsd, formatUsdK, monthLabelEn } from '@/lib/utils';
 
 export const MONTHS_EN = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
+
+/** TradeFlow Colón brand palette */
+const TF_NAVY = '#0F2A44';
+const TF_ORANGE = '#F26522';
+const TF_BLUE = '#2E5B8A';
+const TF_MUTED = '#6B7A88';
+const TF_BORDER = '#D1D5DB';
+
+const PLAN_BRAND_COLORS: Record<string, string> = {
+  digitalizate: TF_BLUE,
+  expansion: TF_ORANGE,
+  corporativo_pro: TF_NAVY,
+  ecosistema_enterprise: TF_MUTED,
+};
+
+function translateTrendLabel(label: string | undefined): string {
+  if (!label) return 'Positive trend';
+  const map: Record<string, string> = {
+    'Tendencia positiva': 'Positive trend',
+    'Tendencia negativa': 'Negative trend',
+    'Tendencia estable': 'Stable trend',
+    'Tendencia a vigilar': 'Trend to watch',
+  };
+  return map[label] ?? label;
+}
+
+function brandColorForPlan(slug: string, fallback: string): string {
+  return PLAN_BRAND_COLORS[slug] ?? fallback;
+}
 
 /** Fallback data when the API is unavailable (development). */
 export const historicalSales = [42000, 45500, 49800, 52300, 56100, 61200, 64900, 70400, 74800];
@@ -61,10 +90,10 @@ type PlanUsageRow = {
 };
 
 export const planUsageFallback: PlanUsageRow[] = [
-  { slug: 'digitalizate', name: 'Digitalize', count: 0, limit: 200, monthly_income_usd: 0, color: 'oklch(0.7 0.15 200)', occupancy_pct: 0 },
-  { slug: 'expansion', name: 'Expansion', count: 0, limit: 150, monthly_income_usd: 0, color: 'oklch(0.65 0.18 260)', occupancy_pct: 0 },
-  { slug: 'corporativo_pro', name: 'Corporate Pro', count: 0, limit: 50, monthly_income_usd: 0, color: 'oklch(0.6 0.2 30)', occupancy_pct: 0 },
-  { slug: 'ecosistema_enterprise', name: 'Enterprise Ecosystem', count: 0, limit: 20, monthly_income_usd: 0, color: 'oklch(0.65 0.18 145)', occupancy_pct: 0 },
+  { slug: 'digitalizate', name: 'Digitalize', count: 0, limit: 200, monthly_income_usd: 0, color: TF_BLUE, occupancy_pct: 0 },
+  { slug: 'expansion', name: 'Expansion', count: 0, limit: 150, monthly_income_usd: 0, color: TF_ORANGE, occupancy_pct: 0 },
+  { slug: 'corporativo_pro', name: 'Corporate Pro', count: 0, limit: 50, monthly_income_usd: 0, color: TF_NAVY, occupancy_pct: 0 },
+  { slug: 'ecosistema_enterprise', name: 'Enterprise', count: 0, limit: 20, monthly_income_usd: 0, color: TF_MUTED, occupancy_pct: 0 },
 ];
 
 export type PlanRequest = {
@@ -177,16 +206,25 @@ export function AdminSaasDashboard() {
     pending_requests: 0,
   };
 
-  const planUsage = data?.plan_usage?.length ? data.plan_usage : planUsageFallback;
+  const planUsage = useMemo(() => {
+    const rows = data?.plan_usage?.length ? data.plan_usage : planUsageFallback;
+    return rows.map((p) => ({
+      ...p,
+      color: brandColorForPlan(p.slug, p.color),
+    }));
+  }, [data]);
   const predictive = data?.predictive;
   const salesTrend = data?.sales_trend?.length
-    ? data.sales_trend
+    ? data.sales_trend.map((r) => ({
+        ...r,
+        month: monthLabelEn(r.month),
+      }))
     : historicalSales.map((v, i) => ({ month: MONTHS_EN[i], revenue_usd: v }));
 
   const areaChartData = useMemo(() => {
     if (predictive?.chart?.length) {
       return predictive.chart.map((c) => ({
-        month: c.month,
+        month: monthLabelEn(c.month),
         real: c.real ?? undefined,
         predicted: c.predicted ?? undefined,
         boundary: c.is_today_boundary,
@@ -210,7 +248,9 @@ export function AdminSaasDashboard() {
   }, [predictive]);
 
   const predictedAmount = predictive?.predicted_amount_usd ?? linearRegressionForecast(historicalSales, 1)[0];
-  const nextMonth = predictive?.next_month_label ?? MONTHS_EN[new Date().getMonth() % 12];
+  const nextMonth = monthLabelEn(
+    predictive?.next_month_label ?? MONTHS_EN[new Date().getMonth() % 12],
+  );
   const confidence = predictive?.confidence_pct ?? 78;
   const trendPct = predictive?.monthly_trend_pct ?? 8.4;
 
@@ -255,13 +295,23 @@ export function AdminSaasDashboard() {
     }
   };
 
-  const revenuePie = data?.revenue_by_plan?.length
-    ? data.revenue_by_plan
-    : planUsage.map((p) => ({
-        name: p.name,
-        value: p.monthly_income_usd,
-        color: p.color,
-      }));
+  const revenuePie = useMemo(() => {
+    const source = data?.revenue_by_plan?.length
+      ? data.revenue_by_plan
+      : planUsage.map((p) => ({
+          name: p.name,
+          value: p.monthly_income_usd,
+          color: p.color,
+        }));
+    return source.map((entry) => {
+      const plan = planUsage.find((p) => p.name === entry.name);
+      return {
+        name: entry.name,
+        value: entry.value,
+        color: plan?.color ?? entry.color,
+      };
+    });
+  }, [data, planUsage]);
 
   if (loading) {
     return (
@@ -277,8 +327,8 @@ export function AdminSaasDashboard() {
 
       <header className="sticky top-0 z-20 -mx-6 md:-mx-10 lg:-mx-12 px-6 md:px-10 lg:px-12 py-4 mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center gap-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Building2 className="h-6 w-6" />
+          <span className="adm-saas-header-icon flex h-12 w-12 items-center justify-center">
+            <Building2 className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
             <h1 className="text-xl font-bold tracking-tight">Administration Panel</h1>
@@ -294,7 +344,9 @@ export function AdminSaasDashboard() {
       <Card className="mb-8 overflow-hidden">
         <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-4 pb-0">
           <div>
-            <Badge variant="secondary" className="mb-2">Predictive analysis</Badge>
+            <Badge variant="outline" className="adm-saas-predictive-badge mb-2">
+              Predictive analysis
+            </Badge>
             <CardTitle className="text-lg font-normal text-muted-foreground">
               Expected sales for{' '}
               <span className="text-foreground font-semibold">{nextMonth}</span> are{' '}
@@ -310,7 +362,7 @@ export function AdminSaasDashboard() {
           </div>
           <div className="flex items-center gap-2 text-emerald font-medium text-sm">
             <TrendingUp className="h-5 w-5" />
-            {predictive?.trend_label ?? 'Positive trend'}
+            {translateTrendLabel(predictive?.trend_label)}
           </div>
         </CardHeader>
         <CardContent className="pt-6 h-[280px]">
@@ -318,21 +370,21 @@ export function AdminSaasDashboard() {
             <AreaChart data={areaChartData} margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
               <defs>
                 <linearGradient id="realFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="oklch(0.55 0.15 250)" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="oklch(0.55 0.15 250)" stopOpacity={0} />
+                  <stop offset="0%" stopColor={TF_BLUE} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={TF_BLUE} stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="predFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="oklch(0.55 0.15 155)" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="oklch(0.55 0.15 155)" stopOpacity={0} />
+                  <stop offset="0%" stopColor={TF_ORANGE} stopOpacity={0.3} />
+                  <stop offset="100%" stopColor={TF_ORANGE} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.9 0.01 240)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={TF_BORDER} />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
               <YAxis tickFormatter={formatUsdK} tick={{ fontSize: 11 }} />
               <Tooltip content={<ChartTooltipCard />} />
               <ReferenceLine
                 x={areaChartData.find((d) => 'boundary' in d && d.boundary)?.month}
-                stroke="oklch(0.5 0.05 250)"
+                stroke={TF_MUTED}
                 strokeDasharray="4 4"
                 label={{ value: 'Today', position: 'top', fontSize: 11 }}
               />
@@ -340,7 +392,7 @@ export function AdminSaasDashboard() {
                 type="monotone"
                 dataKey="real"
                 name="Actual sales"
-                stroke="oklch(0.5 0.14 250)"
+                stroke={TF_BLUE}
                 fill="url(#realFill)"
                 strokeWidth={2}
                 connectNulls={false}
@@ -349,7 +401,7 @@ export function AdminSaasDashboard() {
                 type="monotone"
                 dataKey="predicted"
                 name="Forecast"
-                stroke="oklch(0.55 0.15 155)"
+                stroke={TF_ORANGE}
                 fill="url(#predFill)"
                 strokeWidth={2}
                 strokeDasharray="6 4"
@@ -565,9 +617,9 @@ export function AdminSaasDashboard() {
                       type="monotone"
                       dataKey="revenue_usd"
                       name="Sales"
-                      stroke="oklch(0.5 0.14 250)"
+                      stroke={TF_BLUE}
                       strokeWidth={2}
-                      dot={{ r: 3 }}
+                      dot={{ r: 3, fill: TF_ORANGE }}
                     />
                   </LineChart>
                 </ResponsiveContainer>

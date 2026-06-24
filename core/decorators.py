@@ -40,6 +40,28 @@ def _enforce_onboarding(request):
     return None
 
 
+def catalog_access(view_func):
+    """Catálogo visible para invitados; compradores y admins con sesión."""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return view_func(request, *args, **kwargs)
+        blocked = _enforce_onboarding(request)
+        if blocked:
+            return blocked
+        role = _get_role(request.user)
+        if role == 'buyer':
+            return view_func(request, *args, **kwargs)
+        if role == 'seller':
+            messages.info(request, 'Go to your seller portal.')
+            return redirect('/mi-tienda/')
+        if role == 'admin' or request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+        messages.error(request, 'You do not have permission to access this section.')
+        return redirect('/')
+    return wrapper
+
+
 def buyer_required(view_func):
     """Solo compradores. Sellers y admins son redirigidos a su portal."""
     @wraps(view_func)

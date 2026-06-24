@@ -6,9 +6,9 @@ Map Folium embebido; contexto: map_html, titulo_pagina, nav_activo.
 {% endcomment %}
 {% block title %}Map — Colón Free Zone — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .map-zlc-wrap { max-width: 1160px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1rem clamp(2.5rem, 5vw, 4rem); }
-  .map-zlc-head h1 { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.5rem; color: #0F2A44; margin: 0 0 0.5rem; }
+  .map-zlc-head h1 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.5rem; color: #0F2A44; margin: 0 0 0.5rem; }
   .map-zlc-head p { color: #6B7A88; font-size: 0.9rem; margin: 0 0 1.25rem; max-width: 60ch; }
   .map-zlc-frame { border: 1px solid #D1D5DB; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 8px 24px rgba(15,42,68,0.08); }
   .map-zlc-frame iframe, .map-zlc-frame .folium-map { width: 100% !important; min-height: 480px; }

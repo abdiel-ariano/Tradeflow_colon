@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static tf_money %}
+{% load static tf_money tf_csp %}
 {% comment %}
 ================================================================================
 ACCIÓN: REEMPLAZAR
@@ -14,7 +14,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 {% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .adm-main {
     padding-top: 48px;
     background: var(--tf-light, #F2F3F5);
@@ -30,7 +30,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
   }
   @media (max-width: 1100px) { .adm-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 575px) { .adm-kpi-grid { grid-template-columns: 1fr; } }
@@ -66,15 +66,15 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
   .adm-charts-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 24px;
+    gap: 16px;
+    margin-bottom: 16px;
   }
   @media (max-width: 991px) { .adm-charts-row { grid-template-columns: 1fr; } }
   .adm-analytics-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-bottom: 24px;
+    gap: 16px;
+    margin-bottom: 16px;
   }
   @media (max-width: 1100px) { .adm-analytics-grid { grid-template-columns: 1fr; } }
   .adm-chart-card {
@@ -155,32 +155,148 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     font-weight: 600;
     color: var(--tf-navy, #0F2A44);
   }
+  /* Insights: 1 col mobile → 3 cols xl (1 + 2), fixed activity height, no row-span */
+  .adm-insights-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 16px;
+    align-items: start;
+  }
+  @media (min-width: 1280px) {
+    .adm-insights-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .adm-insights-activity {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 320px;
+    max-height: min(480px, 70vh);
+    overflow: hidden;
+  }
+  @media (min-width: 1280px) {
+    .adm-insights-activity {
+      height: 500px;
+      max-height: 500px;
+      min-height: 500px;
+    }
+  }
+  .adm-insights-activity .adm-chart-lead {
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+  .adm-insights-act-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 8px;
+    max-height: none;
+  }
+  .adm-insights-right {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+    width: 100%;
+  }
+  @media (min-width: 1280px) {
+    .adm-insights-right {
+      grid-column: span 2;
+      height: 500px;
+      max-height: 500px;
+      min-height: 500px;
+    }
+  }
+  .adm-insights-meta {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  @media (min-width: 768px) {
+    .adm-insights-meta {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .adm-insights-meta .adm-meta-card { margin: 0; min-width: 0; }
+  .adm-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .adm-quick-btn {
+    flex: 1 1 140px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--tf-border, #D1D5DB);
+    border-radius: 10px;
+    background: var(--tf-white, #fff);
+    color: var(--tf-navy, #0F2A44);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .adm-quick-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
+    text-decoration: none !important;
+  }
+  .adm-quick-btn .material-symbols-rounded {
+    font-size: 18px;
+    color: var(--tf-blue, #2E5B8A);
+  }
+  .adm-quick-btn-badge {
+    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--tf-orange, #F26522);
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+  .adm-insights-fill-chart {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 300px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .adm-insights-fill-chart .adm-chart-lead { flex-shrink: 0; }
+  .adm-insights-fill-chart .adm-chart-canvas-wrap {
+    flex: 1 1 auto;
+    min-height: 200px;
+    height: auto;
+  }
   .adm-donuts-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-bottom: 24px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
     align-items: stretch;
+  }
+  @media (min-width: 768px) {
+    .adm-donuts-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
   .adm-rankings-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 24px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
   }
-  .adm-quick-grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 20px;
-    margin-bottom: 24px;
-    align-items: start;
-  }
-  @media (max-width: 1100px) {
-    .adm-donuts-row { grid-template-columns: 1fr; }
-    .adm-rankings-row { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 991px) {
-    .adm-quick-grid { grid-template-columns: 1fr; }
+  @media (min-width: 768px) {
+    .adm-rankings-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 </style>
 {% endblock %}
@@ -294,11 +410,11 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
       </div>
     </div>
 
-    <div class="adm-quick-grid">
-      <div class="adm-chart-card">
+    <div class="adm-insights-grid">
+      <div class="adm-chart-card adm-insights-activity">
         <div class="adm-chart-title">Recent activity</div>
         <p class="adm-chart-lead">Latest orders and user sign-ups.</p>
-        <div class="adm-act-list">
+        <div class="adm-act-list adm-insights-act-list">
           {% for item in actividad_reciente %}
           <div class="adm-act-row">
             <span class="material-symbols-rounded adm-act-ico">{{ item.icon }}</span>
@@ -313,41 +429,63 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
           {% endfor %}
         </div>
       </div>
-      <div class="adm-meta-strip" style="flex-direction:column;gap:12px;margin:0;">
-        <div class="adm-meta-card">
-          <span class="material-symbols-rounded">public</span>
-          <div>
-            <h3>B2B / B2C (period)</h3>
-            <p>
-              <strong id="adm-meta-b2b">{{ ordenes_b2b }}</strong> B2B ·
-              <strong id="adm-meta-b2c">{{ ordenes_b2c }}</strong> B2C
-            </p>
+
+      <div class="adm-insights-right">
+        <div class="adm-insights-meta">
+          <div class="adm-meta-card">
+            <span class="material-symbols-rounded">public</span>
+            <div>
+              <h3>B2B / B2C (period)</h3>
+              <p>
+                <strong id="adm-meta-b2b">{{ ordenes_b2b }}</strong> B2B ·
+                <strong id="adm-meta-b2c">{{ ordenes_b2c }}</strong> B2C
+              </p>
+            </div>
+          </div>
+          <div class="adm-meta-card">
+            <span class="material-symbols-rounded">group</span>
+            <div>
+              <h3>Users</h3>
+              <p><strong>{{ usuarios_plataforma }}</strong> active · <strong>{{ usuarios_login_periodo }}</strong> logged in during period.</p>
+            </div>
+          </div>
+          <div class="adm-meta-card">
+            <span class="material-symbols-rounded">inventory_2</span>
+            <div>
+              <h3>CFZ catalog</h3>
+              <p><strong>{{ total_productos }}</strong> products · <strong>{{ total_empresas }}</strong> companies.</p>
+            </div>
           </div>
         </div>
-        <div class="adm-meta-card">
-          <span class="material-symbols-rounded">group</span>
-          <div>
-            <h3>Users</h3>
-            <p><strong>{{ usuarios_plataforma }}</strong> active · <strong>{{ usuarios_login_periodo }}</strong> logged in during period.</p>
-          </div>
+
+        <div class="adm-quick-actions" aria-label="Quick actions">
+          <a href="{% url 'lista_productos' %}" class="adm-quick-btn">
+            <span class="material-symbols-rounded" aria-hidden="true">add_box</span>
+            Manage products
+          </a>
+          <a href="{% url 'admin_applications' %}" class="adm-quick-btn">
+            <span class="material-symbols-rounded" aria-hidden="true">assignment_ind</span>
+            Review applications
+            {% if pending_applications_count %}
+            <span class="adm-quick-btn-badge">{{ pending_applications_count }}</span>
+            {% endif %}
+          </a>
+          <a href="{% url 'lista_ordenes' %}" class="adm-quick-btn">
+            <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
+            View orders
+          </a>
         </div>
-        <div class="adm-meta-card">
-          <span class="material-symbols-rounded">inventory_2</span>
-          <div>
-            <h3>CFZ catalog</h3>
-            <p><strong>{{ total_productos }}</strong> products · <strong>{{ total_empresas }}</strong> companies.</p>
-          </div>
+
+        <div class="adm-chart-card adm-insights-fill-chart">
+          <div class="adm-chart-title">Sales by category (%)</div>
+          <p class="adm-chart-lead">Share by category in the period.</p>
+          <p class="adm-chart-empty" id="adm-cat-empty">No data in this period</p>
+          <div class="adm-chart-canvas-wrap"><canvas id="admCatDoughnut"></canvas></div>
         </div>
       </div>
     </div>
 
     <div class="adm-donuts-row">
-      <div class="adm-chart-card">
-        <div class="adm-chart-title">Sales by category (%)</div>
-        <p class="adm-chart-lead">Share by category in the period.</p>
-        <p class="adm-chart-empty" id="adm-cat-empty">No data in this period</p>
-        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admCatDoughnut"></canvas></div>
-      </div>
       <div class="adm-chart-card">
         <div class="adm-chart-title">Distribution by status</div>
         <p class="adm-chart-lead">Orders in period by operational status.</p>
@@ -410,14 +548,15 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
   </div>
 </div>
 
-{{ charts_initial|json_script:"adm-charts-initial" }}
+{# CSP nonce: tag custom para que el <script type="application/json"> reciba nonce. #}
+{% json_data_block charts_initial "adm-charts-initial" %}
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
 <script src="{% static 'vendor/chartjs/chartjs-plugin-datalabels.min.js' %}"></script>
 <script src="{% static 'js/admin_rail.js' %}"></script>
-<script src="{% static 'js/dashboard_charts.js' %}"></script>
-<script>
+<script src="{% static 'js/dashboard_charts.js' %}?v={{ tf_asset_version }}"></script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var stMap = {
     awaiting_seller: { bg: '#fff7ed', fg: '#9a3412' },

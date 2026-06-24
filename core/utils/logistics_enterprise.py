@@ -108,6 +108,26 @@ def _process_dispatch_queue(dispatch: LogisticsDispatchQueue, webhook: Logistics
         dispatch.save(update_fields=['status', 'sent_at'])
         return
 
+    # SSRF defense (OWASP A10:2021): el seller configura `endpoint_url`
+    # libremente. Validamos que no apunte a IPs internas, metadata services
+    # de cloud, puertos sensibles, etc. ANTES de hacer el request.
+    from django.core.exceptions import ValidationError as _ValidationError
+
+    from core.utils.url_validator import validate_outbound_url
+
+    try:
+        validate_outbound_url(webhook.endpoint_url)
+    except _ValidationError as exc:
+        dispatch.attempts += 1
+        dispatch.status = 'failed'
+        dispatch.last_error = f'SSRF rechazado: {exc.message if hasattr(exc, "message") else exc}'[:500]
+        dispatch.save(update_fields=['status', 'attempts', 'last_error'])
+        log.warning(
+            'Webhook URL bloqueada por SSRF guard webhook_id=%s url=%s reason=%s',
+            webhook.pk, webhook.endpoint_url, dispatch.last_error,
+        )
+        return
+
     body = json.dumps(dispatch.payload, default=str).encode()
     try:
         req = urllib.request.Request(

@@ -71,7 +71,7 @@
     <p style="margin-top:20px;font-size:13px;text-align:center;"><a href="{% url 'logout' %}" style="color:var(--tf-blue);">Sign out</a></p>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var pollUrl = "{{ poll_url|escapejs }}";
   var stateEl = document.getElementById('ob-verify-state');

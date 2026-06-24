@@ -1,29 +1,34 @@
-"""Diagnóstico de correo: Supabase + fallback Django."""
+"""Diagnóstico de correo: Resend + consola DEBUG."""
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from core.utils.email_config import smtp_configured
+from core.utils.email_delivery import validate_email_infrastructure
 
 
 class Command(BaseCommand):
-    help = 'Comprueba Supabase y EMAIL_BACKEND para envío de códigos'
+    help = 'Comprueba RESEND_API_KEY y DEFAULT_FROM_EMAIL para envío de correos'
 
     def handle(self, *args, **options):
         env_path = settings.BASE_DIR / '.env'
         self.stdout.write(f'.env existe: {env_path.is_file()} ({env_path})')
-        self.stdout.write(f'SUPABASE_URL: {"(ok)" if settings.SUPABASE_URL else "(vacío)"}')
+        key = (getattr(settings, 'RESEND_API_KEY', '') or '').strip()
         self.stdout.write(
-            f'SUPABASE_SERVICE_KEY: {"(configurada)" if settings.SUPABASE_SERVICE_KEY else "(vacía)"}'
+            f'RESEND_API_KEY: {"(configurada)" if key else "(vacía)"}'
         )
-        self.stdout.write(f'SUPABASE_EMAIL_FUNCTION: {settings.SUPABASE_EMAIL_FUNCTION}')
         self.stdout.write(f'EMAIL_BACKEND: {settings.EMAIL_BACKEND}')
         self.stdout.write(f'DEFAULT_FROM_EMAIL: {settings.DEFAULT_FROM_EMAIL}')
         self.stdout.write(f'smtp_configured(): {smtp_configured()}')
+
+        for warning in validate_email_infrastructure():
+            self.stdout.write(self.style.WARNING(f'  {warning}'))
+
         if smtp_configured():
             self.stdout.write(self.style.SUCCESS(
-                'OK — Supabase y/o Django pueden enviar correos.'
+                'OK — Resend (o consola DEBUG) puede enviar correos.'
             ))
         else:
             self.stdout.write(self.style.WARNING(
-                'Configura SUPABASE_* o un EMAIL_BACKEND SMTP en .env'
+                'Configura RESEND_API_KEY=re_... en .env o Railway '
+                '(resend.com/api-keys; verifica dominio en Resend → Domains).'
             ))

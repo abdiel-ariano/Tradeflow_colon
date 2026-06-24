@@ -86,7 +86,7 @@
 {% endblock %}
 
 {% block seller_extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function () {
   var labels = {{ chart_line_labels_json|safe }};
   var values = {{ chart_line_values_json|safe }};

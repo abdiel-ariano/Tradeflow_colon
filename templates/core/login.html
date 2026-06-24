@@ -16,16 +16,10 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 {% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .auth-page {
-    min-height: calc(100vh - 64px);
     width: 100%;
     box-sizing: border-box;
-    background: var(--tf-light, #F2F3F5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
   }
   .auth-card {
     width: 100%;
@@ -80,12 +74,27 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
   }
   .auth-toggle button.is-on { background: var(--tf-navy, #0F2A44); color: #fff; }
   .auth-toggle button .material-symbols-rounded { font-size: 18px; }
-  .auth-field { margin-bottom: 1rem; position: relative; }
-  .auth-field .tf-input { padding-left: 42px; }
+  .auth-field { margin-bottom: 1rem; }
+  .auth-field .tf-label { display: block; margin-bottom: 6px; }
+  .auth-forgot-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 6px;
+  }
+  .auth-forgot-row a {
+    font-size: 0.8125rem;
+    color: var(--tf-blue, #2E5B8A);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .auth-forgot-row a:hover { text-decoration: underline; color: var(--tf-navy, #0F2A44); }
+  .auth-input-wrap { position: relative; }
+  .auth-input-wrap .tf-input { padding-left: 42px; width: 100%; box-sizing: border-box; }
   .auth-field .field-ico {
     position: absolute;
     left: 12px;
-    top: 34px;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--tf-muted, #6B7A88);
     pointer-events: none;
   }
@@ -119,7 +128,6 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
 {% block content %}
 <div
   class="auth-page"
-  style="min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 48px 24px; background: var(--tf-light, #F2F3F5);"
   id="auth-login-root"
   data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
 >
@@ -146,16 +154,20 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
       {% csrf_token %}
       <div class="auth-field">
         <label class="tf-label" for="id_username">Username</label>
-        <span class="field-ico"><span class="material-symbols-rounded">person</span></span>
-        <input type="text" name="username" id="id_username" class="tf-input" placeholder="your_username" autocomplete="username" autofocus required>
-      </div>
-      <div class="auth-field">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-          <label class="tf-label" for="id_password" style="margin:0;">Password</label>
-          <a href="{% url 'password_reset' %}" style="font-size:0.8125rem;color:var(--tf-blue);text-decoration:none;white-space:nowrap;">Forgot your password?</a>
+        <div class="auth-input-wrap">
+          <span class="field-ico"><span class="material-symbols-rounded">person</span></span>
+          <input type="text" name="username" id="id_username" class="tf-input" placeholder="your_username" autocomplete="username" autofocus required>
         </div>
-        <span class="field-ico"><span class="material-symbols-rounded">lock</span></span>
-        <input type="password" name="password" id="id_password" class="tf-input" placeholder="Password" autocomplete="current-password" required>
+      </div>
+      <div class="auth-field auth-field-password">
+        <div class="auth-forgot-row">
+          <a href="{% url 'password_reset' %}">Forgot your password?</a>
+        </div>
+        <label class="tf-label" for="id_password">Password</label>
+        <div class="auth-input-wrap">
+          <span class="field-ico"><span class="material-symbols-rounded">lock</span></span>
+          <input type="password" name="password" id="id_password" class="tf-input" placeholder="Password" autocomplete="current-password" required>
+        </div>
       </div>
       <button type="submit" class="auth-submit">
         <span class="material-symbols-rounded" style="font-size:18px;">login</span> Sign in
@@ -178,7 +190,7 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
     </div>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var root = document.getElementById('auth-login-root');
   var requireVer = root && root.getAttribute('data-require-verification') === '1';

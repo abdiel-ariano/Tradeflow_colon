@@ -87,7 +87,7 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
     </div>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   document.querySelectorAll('.adm-emp-ver').forEach(function (el) {
     var v = el.getAttribute('data-verified') === '1';

@@ -4,8 +4,8 @@ Tarjeta de producto unificada — home (público) y tienda (autenticado).
 
 Variables:
   product            — instancia Product (requerido)
-  show_cart_actions  — bool, mostrar Add (solo is_public=False)
-  is_public          — bool, default False; catálogo público sin acciones de compra
+  show_cart_actions  — bool, mostrar Add / Auto quote (solo is_public=False)
+  is_public          — bool, default False; home/landing sin acciones de compra
   card_extra_class   — clases CSS opcionales en el <article>
 {% endcomment %}
 <article class="tf-pcard {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
@@ -35,7 +35,7 @@ Variables:
   <div class="tf-pcard__body">
     <p class="tf-pcard__company">
       {% if is_public %}
-      <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
+      <a href="{% url 'tienda' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
       {% else %}
       <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="js-tienda-empresa-link" data-empresa-id="{{ product.company_id }}">{{ product.company.name }}</a>
       {% endif %}
@@ -74,6 +74,14 @@ Variables:
         {% else %}
       <span class="tf-pcard__btn tf-pcard__btn--disabled">Out of stock</span>
         {% endif %}
+      <form method="post" action="{% url 'solicitar_cotizacion_automatica' product.pk %}" class="tf-pcard__form">
+        {% csrf_token %}
+        <input type="hidden" name="cantidad" value="1">
+        <button type="submit" class="tf-pcard__btn tf-pcard__btn--secondary" title="Get automatic quotes from every company that sells this product">
+          <span class="material-symbols-rounded" aria-hidden="true" style="font-size:18px;">request_quote</span>
+          Auto quote
+        </button>
+      </form>
       {% else %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
         Ver detalles →

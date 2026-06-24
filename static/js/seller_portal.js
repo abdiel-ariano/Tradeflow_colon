@@ -226,6 +226,20 @@
                 badge.className = 'sp-status ' + (data.is_active ? 'sp-status-delivered' : 'sp-status-cancelled');
               }
             }
+            var kpiRoot = document.getElementById('sp-product-kpis');
+            if (kpiRoot && typeof data.kpi_activos === 'number') {
+              var elTotal = kpiRoot.querySelector('[data-sp-kpi="total"]');
+              var elActivos = kpiRoot.querySelector('[data-sp-kpi="activos"]');
+              if (elTotal) elTotal.textContent = String(data.kpi_total);
+              if (elActivos) elActivos.textContent = String(data.kpi_activos);
+            }
+            var listFilter = kpiRoot && kpiRoot.getAttribute('data-filter-estado');
+            if (row && listFilter === 'activo' && !data.is_active) {
+              row.remove();
+            }
+            if (row && listFilter === 'inactivo' && data.is_active) {
+              row.remove();
+            }
             notify(data.message || 'Updated', 'success');
           })
           .catch(function () {

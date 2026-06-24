@@ -1,0 +1,34 @@
+{% load static %}
+{% comment %}Lovable v2 — verified companies grid on public home.{% endcomment %}
+<section class="pn-home-section pn-home-section--cream" id="hm-companies" aria-labelledby="pn-companies-title">
+  <div class="pn-home-inner">
+    <div class="pn-home-head-row">
+      <div>
+        <p class="pn-home-label">Suppliers</p>
+        <h2 class="pn-home-title" id="pn-companies-title">Companies in the Colón Free Zone</h2>
+        <p class="pn-home-sub">Browse verified supplier catalogs with export-ready documentation.</p>
+      </div>
+      <a href="{% url 'tienda' %}?verificado=1" class="pn-home-see-all">All verified companies →</a>
+    </div>
+    <div class="pn-companies-grid">
+      {% for emp in empresas_carousel|slice:":8" %}
+      <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="pn-company-card">
+        <div class="pn-company-avatar" aria-hidden="true">{{ emp.name|slice:":1"|upper }}</div>
+        <h3 class="pn-company-name">{{ emp.name }}</h3>
+        {% if emp.is_verified %}
+        <span class="pn-company-badge">
+          <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+          CFZ Verified
+        </span>
+        {% endif %}
+        <p class="pn-company-meta">
+          {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
+        </p>
+        <span class="pn-company-cta">View catalog →</span>
+      </a>
+      {% empty %}
+      <p class="pn-home-empty">More companies coming soon to the marketplace.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>

@@ -19,11 +19,13 @@ import uuid
 from django.conf import settings
 from django.contrib.auth.models import User
 from core.utils.email_delivery import deliver_mail as send_mail
+from core.email_service import enviar_email_transaccional
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import strip_tags
 
 from core.models import Order, UserProfile
+from core.utils.contact import email_template_context, tradeflow_contact_email
 
 log = logging.getLogger(__name__)
 
@@ -95,7 +97,7 @@ def _render_email_shell(title_inner: str, inner_html: str) -> str:
           </tr>
           <tr>
             <td style="padding:16px 24px 24px;border-top:1px solid #E5E7EB;font-size:12px;color:#6B7A88;">
-              <p style="margin:0;">Need help? Write to us at soporte@tradeflow.pa</p>
+              <p style="margin:0;">Need help? Write to us at {tradeflow_contact_email()}</p>
               <p style="margin:8px 0 0;">This message was generated automatically; do not reply directly to this sender.</p>
             </td>
           </tr>
@@ -226,7 +228,7 @@ def enviar_confirmacion_orden(orden: Order) -> None:
             ),
             recipient_list=[to_email],
             html_message=html_body,
-            fail_silently=False,
+            fail_silently=True,
         )
     except Exception as exc:
         log.exception("enviar_confirmacion_orden falló: %s", exc)
@@ -334,7 +336,7 @@ def _cambio_estado_plain(orden: Order, estado_anterior: str, headline: str) -> s
 
 def enviar_verificacion_email(user: User, request) -> dict:
     """
-    Envía código OTP vía Supabase (email_service) con fallback Django.
+    Envía código OTP vía Resend (email_service); consola en DEBUG sin API key.
 
     Returns:
         dict: code, link, channel, recipient.
@@ -369,12 +371,12 @@ def enviar_bienvenida(user: User) -> None:
         pass
     html_message = render_to_string(
         'core/emails/bienvenida.html',
-        {
+        email_template_context({
             'user': user,
             'es_seller': es_seller,
             'url_tienda': base + reverse('tienda'),
             'url_panel': base + reverse('portal_seller'),
-        },
+        }),
     )
     try:
         send_mail(
@@ -432,7 +434,7 @@ def enviar_cambio_estado(orden: Order, estado_anterior: str) -> None:
             ),
             recipient_list=[to_email],
             html_message=html_body,
-            fail_silently=False,
+            fail_silently=True,
         )
     except Exception as exc:
         log.exception("enviar_cambio_estado falló: %s", exc)
@@ -468,28 +470,33 @@ def enviar_orden_pendiente_vendedor(orden: Order) -> None:
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[company.owner.email],
             html_message=_render_email_shell('New order', inner),
-            fail_silently=False,
+            fail_silently=True,
         )
     except Exception as exc:
         log.exception('enviar_orden_pendiente_vendedor: %s', exc)
 
 
 def enviar_solicitud_recibida(app) -> None:
-    """Confirma al solicitante que recibimos su solicitud."""
+    """Confirma al solicitante que recibimos su solicitud (vía Supabase)."""
     from core.models import UserApplication
 
     if not isinstance(app, UserApplication):
         return
+    subject = 'TradeFlow — Access request received'
+    text = (
+        f'Hello {app.full_name},\n\n'
+        'We received your request. We will notify you by email when it has been reviewed.\n'
+    )
+    inner = (
+        f'<h1 style="margin:0 0 12px;font-size:20px;color:#0F2A44;">Request received</h1>'
+        f'<p style="margin:0 0 8px;color:#374151;">Hello {_h(app.full_name)},</p>'
+        f'<p style="margin:0;color:#374151;">We received your access request. '
+        f'We will notify you by email as soon as it has been reviewed.</p>'
+    )
     try:
-        send_mail(
-            subject='TradeFlow — Access request received',
-            message=(
-                f'Hello {app.full_name},\n\n'
-                'We received your request. We will notify you by email when it has been reviewed.\n'
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[app.email],
-            fail_silently=False,
+        enviar_email_transaccional(
+            app.email, subject, _render_email_shell(subject, inner), text,
+            tipo='access_received',
         )
     except Exception as exc:
         log.exception('enviar_solicitud_recibida: %s', exc)
@@ -516,14 +523,24 @@ def enviar_solicitud_a_revisores(app) -> None:
         f'Approve: {approve}\n'
         f'Reject: {reject}\n'
     )
+    inner = (
+        f'<h1 style="margin:0 0 12px;font-size:20px;color:#0F2A44;">New access request</h1>'
+        f'<p style="margin:0 0 4px;color:#374151;"><strong>{_h(app.full_name)}</strong> ({_h(app.email)})</p>'
+        f'<p style="margin:0 0 4px;color:#374151;">Role: {_h(app.get_role_display())}</p>'
+        f'<p style="margin:0 0 16px;color:#374151;">Company: {_h(app.company_name)}</p>'
+        f'<p style="margin:0 0 8px;"><a href="{_h(approve)}" '
+        f'style="display:inline-block;background:#10B981;color:#fff;text-decoration:none;'
+        f'padding:10px 18px;border-radius:8px;font-weight:600;margin-right:8px;">Approve</a>'
+        f'<a href="{_h(reject)}" '
+        f'style="display:inline-block;background:#EF4444;color:#fff;text-decoration:none;'
+        f'padding:10px 18px;border-radius:8px;font-weight:600;">Reject</a></p>'
+    )
     try:
-        send_mail(
-            subject=subject,
-            message=body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=reviewers,
-            fail_silently=False,
-        )
+        for reviewer in reviewers:
+            enviar_email_transaccional(
+                reviewer, subject, _render_email_shell(subject, inner), body,
+                tipo='access_review',
+            )
     except Exception as exc:
         log.exception('enviar_solicitud_a_revisores: %s', exc)
 
@@ -558,11 +575,11 @@ def enviar_resultado_aplicacion_transportista(transportista, aprobado: bool) -> 
         return
     html = render_to_string(
         'core/emails/resultado_transportista.html',
-        {
+        email_template_context({
             'transportista': transportista,
             'aprobado': aprobado,
             'signup_url': _public_base_url() + reverse('signup'),
-        },
+        }),
     )
     subject = (
         'Welcome to TradeFlow!' if aprobado
@@ -582,33 +599,62 @@ def enviar_resultado_aplicacion_transportista(transportista, aprobado: bool) -> 
         raise
 
 
-def enviar_solicitud_decision(app, aprobada: bool) -> None:
-    """Notifica al solicitante la decisión."""
+def enviar_solicitud_decision(app, aprobada: bool):
+    """Notifica al solicitante la decisión vía Resend.
+
+    Si ya existe una cuenta para el correo, el enlace de aprobación apunta a
+    iniciar sesión; si no, a registrarse con el mismo correo.
+
+    Returns:
+        EmailSendResult: resultado del envío (``ok=False`` si Resend rechaza).
+    """
+    from core.email_service import EmailSendResult, enviar_email_transaccional
     base = _public_base_url()
     if aprobada:
-        link = base + reverse('signup')
+        tiene_cuenta = bool(getattr(app, 'user_id', None)) or User.objects.filter(
+            email__iexact=(app.email or '').strip()
+        ).exists()
+        if tiene_cuenta:
+            link = base + reverse('login')
+            cta_label = 'Sign in'
+            extra = 'You can now sign in with this email and start using the platform.'
+        else:
+            link = base + reverse('signup')
+            cta_label = 'Create account'
+            extra = 'Create your account with this same email to start using the platform.'
+        subject = 'TradeFlow — Application approved'
         msg = (
             f'Hello {app.full_name},\n\n'
-            f'Your application was approved. Create your account at: {link}\n'
+            f'Great news! Your access request was approved.\n'
+            f'{extra}\n{link}\n'
         )
-        html = f'<p>Your application was <strong>approved</strong>.</p><p><a href="{_h(link)}">Sign up</a></p>'
-        subject = 'TradeFlow — Application approved'
+        inner = (
+            f'<h1 style="margin:0 0 12px;font-size:20px;color:#0F2A44;">You\'re approved \U0001F389</h1>'
+            f'<p style="margin:0 0 8px;color:#374151;">Hello {_h(app.full_name)},</p>'
+            f'<p style="margin:0 0 20px;color:#374151;">Your access request was approved. {_h(extra)}</p>'
+            f'<p style="margin:0 0 8px;"><a href="{_h(link)}" '
+            f'style="display:inline-block;background:#F26522;color:#fff;text-decoration:none;'
+            f'padding:12px 22px;border-radius:8px;font-weight:600;">{cta_label}</a></p>'
+        )
     else:
+        subject = 'TradeFlow — Application not approved'
         msg = (
             f'Hello {app.full_name},\n\n'
             'We cannot approve your application at this time. '
-            'Contact soporte@tradeflow.pa if you have questions.\n'
+            f'Contact {tradeflow_contact_email()} if you have questions.\n'
         )
-        html = '<p>Your application was not approved at this stage.</p>'
-        subject = 'TradeFlow — Application not approved'
+        contact = tradeflow_contact_email()
+        inner = (
+            f'<h1 style="margin:0 0 12px;font-size:20px;color:#0F2A44;">Application update</h1>'
+            f'<p style="margin:0 0 8px;color:#374151;">Hello {_h(app.full_name)},</p>'
+            f'<p style="margin:0;color:#374151;">We cannot approve your application at this stage. '
+            f'Contact <a href="mailto:{_h(contact)}">{_h(contact)}</a> if you have questions.</p>'
+        )
     try:
-        send_mail(
-            subject=subject,
-            message=msg,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[app.email],
-            html_message=_render_email_shell(subject, html),
-            fail_silently=False,
+        return enviar_email_transaccional(
+            app.email, subject, _render_email_shell(subject, inner), msg,
+            tipo='access_decision',
         )
     except Exception as exc:
         log.exception('enviar_solicitud_decision: %s', exc)
+        return EmailSendResult(ok=False, channel='error', detail=str(exc)[:500])

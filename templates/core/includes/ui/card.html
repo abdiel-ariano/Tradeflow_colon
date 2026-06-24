@@ -1,0 +1,12 @@
+{% comment %}
+Card wrapper — default | flat | highlighted
+Usage:
+  {% include "core/includes/ui/card.html" with variant="default" hoverable=True %}
+    ...content via block not supported in include; pass inner HTML via capture or use class directly
+  For block content, use the class on your markup: <div class="ds-card">...</div>
+This partial wraps optional title + body when title is provided.
+{% endcomment %}
+<div class="ds-card{% if variant == 'flat' %} ds-card--flat{% elif variant == 'highlighted' %} ds-card--highlighted{% endif %}{% if hoverable %} ds-card--hoverable{% endif %}{% if extra_class %} {{ extra_class }}{% endif %}">
+  {% if title %}<h3 class="ds-h3" style="margin:0 0 12px;">{{ title }}</h3>{% endif %}
+  {% if body %}{{ body|safe }}{% endif %}
+</div>

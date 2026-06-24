@@ -9,7 +9,7 @@ USO:
     python manage.py cargar_demo
 
 RESULTADO:
-    - 3 categorías (Electrónica, Textiles, Perfumería)
+    - 3 categorías (Electronics, Textiles, Perfumería)
     - 3 empresas de la Zona Libre de Colón
     - 9 productos con imágenes descargadas automáticamente
     - 1 usuario buyer de demo  (usuario: demo_buyer  / clave: Demo1234!)
@@ -47,7 +47,7 @@ TRANSPORTISTAS = [
 # ---------------------------------------------------------------------------
 
 CATEGORIAS = [
-    'Electrónica',
+    'Electronics',
     'Textiles',
     'Perfumería y Cosméticos',
 ]
@@ -401,6 +401,9 @@ class Command(BaseCommand):
             u = User.objects.filter(username=uname).first()
             if not u:
                 continue
+            if not u.is_active:
+                u.is_active = True
+                u.save(update_fields=['is_active'])
             prof = getattr(u, 'profile', None)
             if prof and (not prof.email_verificado or prof.token_verificacion):
                 prof.email_verificado = True

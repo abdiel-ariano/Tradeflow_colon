@@ -13,10 +13,13 @@ from django.utils import timezone
 
 from core.models import Order
 
-MONTHS_ES = [
-    'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-    'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+MONTHS_EN = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ]
+
+# Backward-compatible alias
+MONTHS_ES = MONTHS_EN
 
 
 def _month_start(year: int, month: int):
@@ -45,7 +48,7 @@ def _platform_monthly_revenue(months_back: int = 9) -> list[dict]:
         rows.append({
             'year': y,
             'month': m,
-            'label': MONTHS_ES[m - 1],
+            'label': MONTHS_EN[m - 1],
             'key': f'{y}-{m:02d}',
             'revenue_usd': float(total),
         })
@@ -142,7 +145,7 @@ def build_platform_predictive_payload() -> dict:
             fm = 1
             fy += 1
         chart.append({
-            'month': MONTHS_ES[fm - 1],
+            'month': MONTHS_EN[fm - 1],
             'key': f'{fy}-{fm:02d}',
             'real': None,
             'predicted': round(val, 2),
@@ -160,7 +163,7 @@ def build_platform_predictive_payload() -> dict:
         pass
 
     return {
-        'next_month_label': MONTHS_ES[next_m - 1],
+        'next_month_label': MONTHS_EN[next_m - 1],
         'predicted_amount_usd': round(predicted_next, 2),
         'confidence_pct': _confidence_pct(n, trend),
         'monthly_trend_pct': trend_pct,

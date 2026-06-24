@@ -1,21 +1,25 @@
 @import "tailwindcss";
+@config "../tailwind.config.js";
 
 @theme {
-  --color-background: oklch(0.99 0.002 240);
-  --color-foreground: oklch(0.22 0.04 250);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.22 0.04 250);
-  --color-primary: oklch(0.45 0.12 250);
-  --color-primary-foreground: oklch(0.99 0 0);
-  --color-secondary: oklch(0.96 0.01 240);
-  --color-secondary-foreground: oklch(0.35 0.04 250);
-  --color-muted: oklch(0.96 0.01 240);
-  --color-muted-foreground: oklch(0.5 0.03 250);
-  --color-destructive: oklch(0.55 0.2 25);
-  --color-destructive-foreground: oklch(0.99 0 0);
-  --color-border: oklch(0.9 0.01 240);
-  --color-emerald: oklch(0.55 0.15 155);
+  --color-background: #F4F6F8;
+  --color-foreground: #0D1B2A;
+  --color-card: #ffffff;
+  --color-card-foreground: #0D1B2A;
+  --color-primary: #E8490F;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #F4F6F8;
+  --color-secondary-foreground: #0D1B2A;
+  --color-muted: #F4F6F8;
+  --color-muted-foreground: #8A97A8;
+  --color-destructive: #E84040;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #E2E8F0;
+  --color-navy: #0D1B2A;
+  --color-cream: #FAF3E8;
+  --color-orange: #E8490F;
   --radius-lg: 0.75rem;
+  --radius-xl: 0.75rem;
 }
 
 body {
@@ -23,4 +27,5 @@ body {
   font-family: Inter, system-ui, sans-serif;
   background: var(--color-background);
   color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
 }

@@ -111,7 +111,7 @@ h3 { font-size: 1.1rem; }
 }
 .btn-primary {
   background: var(--color-primary);
-  color: var(--color-white);
+  color: var(--color-primary-fg, #fff);
   border-color: var(--color-primary);
 }
 .btn-primary:hover {
@@ -127,7 +127,7 @@ h3 { font-size: 1.1rem; }
 
 .btn-danger {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-danger-fg, #fff);
   border-color: var(--color-danger);
 }
 
@@ -237,7 +237,7 @@ label {
   transition: var(--transition);
 }
 .page-num:hover { border-color: var(--color-primary); color: var(--color-primary); }
-.page-num.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+.page-num.active { background: var(--color-primary); color: var(--color-primary-fg, #fff); border-color: var(--color-primary); }
 
 /* ---- UTILIDADES ---- */
 .text-muted  { color: var(--color-muted); }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
+{% load tf_csp %}
 {% comment %}
 ================================================================================
 templates/core/base.html — TradeFlow Colón
@@ -19,14 +20,23 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="icon" type="image/png" href="{% static 'img/logo-icon-color.png' %}" sizes="32x32">
   <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
   <link rel="apple-touch-icon" href="{% static 'img/logo-icon-color.png' %}">
+  <link rel="stylesheet" href="{% static 'css/tf-design-tokens.css' %}?v={{ tf_asset_version|default:'2' }}">
+  <link rel="stylesheet" href="{% static 'css/colors.css' %}?v={{ tf_asset_version|default:'2' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version|default:'2' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-public-shell.css' %}?v={{ tf_asset_version|default:'2' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'2' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
-  <link rel="stylesheet" href="{% static 'css/tf-design-tokens.css' %}?v=design-tokens-v1">
   <link rel="preload" href="{% static 'img/logo-icon-color.png' %}" as="image" type="image/png">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+        crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Serif+Display&family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
-  <style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Serif+Display&family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
+  <style nonce="{{ csp_nonce }}">
     /* ═══════════════════════════════════════════════════════════════════════════
        BLINDAJE — utilidades críticas (evita regresión de estilos)
        ═══════════════════════════════════════════════════════════════════════════ */
@@ -298,51 +308,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-alert-danger { background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; }
     .tf-alert-info { background: #EFF6FF; border: 1px solid #93C5FD; color: #1E40AF; }
 
-    :root {
-      /* Paleta ZLC oficial (gradual en comprador/landing) */
-      --tf-zlc-dark: #404b57;
-      --tf-zlc-teal: #62929a;
-      --tf-zlc-sand: #d9cab3;
-      --tf-teal: #62929a;
-      --tf-teal-brand: #2E5B8A;
-      --tf-sand: #d9cab3;
-      --tf-dark: #404b57;
-      --tf-dark-faint: rgba(15, 42, 68, 0.08);
-      --tf-mid: #1B3B63;
-      --tf-radius: 12px;
-      --tf-radius-sm: 8px;
-      --tf-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
-      --tf-shadow-lg: 0 8px 24px rgba(15, 42, 68, 0.15);
-      --tf-navy: #0F2A44;
-      --tf-navy-mid: #1B3B63;
-      --tf-blue: #2E5B8A;
-      --tf-orange: #F26522;
-      --tf-orange-h: #FF7A3D;
-      --tf-orange-s: #FFA15A;
-      --tf-light: #F2F3F5;
-      --tf-border: #D1D5DB;
-      --tf-muted: #6B7A88;
-      --tf-white: #FFFFFF;
-      --tf-font-body: 'Montserrat', sans-serif;
-      --tf-font-display: 'DM Serif Display', serif;
-      --tf-body: #374151;
-      --tf-title: #0F2A44;
-      --tf-subtitle: #1B3B63;
-      --tf-danger: #EF4444;
-      --tf-radius-card: 12px;
-      --tf-radius-btn: 8px;
-      --tf-radius-input: 8px;
-      --tf-radius-badge: 20px;
-      --tf-radius-modal: 16px;
-      --tf-shadow-card: 0 2px 8px rgba(15, 42, 68, 0.08);
-      --tf-shadow-card-hover: 0 8px 24px rgba(15, 42, 68, 0.15);
-      --tf-shadow-nav: 0 1px 0 #D1D5DB;
-      --tf-shadow-btn-primary: 0 4px 12px rgba(242, 101, 34, 0.3);
-      --tf-motion-fast: 0.18s;
-      --tf-motion-med: 0.28s;
-      --tf-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
     @keyframes tf-soft-in {
       from {
         opacity: 0;
@@ -468,9 +433,34 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-nav-user-block {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       flex-shrink: 0;
       margin-left: 4px;
+    }
+    .tf-nav-profile-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none !important;
+      color: inherit;
+      border-radius: 999px;
+      padding: 4px 10px 4px 4px;
+      cursor: pointer;
+      transition: background 0.15s ease, opacity 0.15s ease;
+      border: none;
+      background: transparent;
+      font: inherit;
+    }
+    .tf-nav-profile-link:hover,
+    .tf-nav-profile-link:focus,
+    .tf-nav-profile-link:focus-visible {
+      text-decoration: none !important;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+    }
+    .tf-nav-profile-link:hover .tf-nav-user-name {
+      color: #fff;
+      opacity: 1;
     }
     .tf-nav-group { display: none; align-items: center; gap: 2px; }
     .tf-nav-group.is-visible { display: flex; }
@@ -520,11 +510,27 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
     .tf-nav-user-name {
       font-size: 0.8125rem;
-      color: rgba(255, 255, 255, 0.85);
-      max-width: 140px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.88);
+      max-width: 160px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      text-decoration: none !important;
+      line-height: 1.2;
+      transition: color 0.15s ease, opacity 0.15s ease;
+    }
+
+    /* Admin panel: sidebar is primary nav — hide duplicate top links */
+    body:has(.adm-shell) #tf-nav-admin {
+      display: none !important;
+    }
+    body:has(.adm-shell) .tf-nav-links {
+      flex: 1;
+      justify-content: flex-end;
+    }
+    body:has(.adm-shell) #tf-nav-divider-auth {
+      display: none;
     }
 
     .tf-nav-cart {
@@ -805,6 +811,18 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
     .tf-input::placeholder { color: var(--tf-muted); }
 
+    /* Hide native password reveal controls (Edge, Chrome, etc.) */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear {
+      display: none !important;
+    }
+    input[type="password"]::-webkit-credentials-auto-fill-button,
+    input[type="password"]::-webkit-textfield-decoration-container {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
     /* ----- Cards ----- */
     .tf-card {
       background: var(--tf-white);
@@ -930,6 +948,32 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       color: var(--tf-body);
     }
 
+    /* Auth (login/signup): full viewport below navbar + gap from sticky header */
+    main.tf-main > .auth-page {
+      min-height: calc(100vh - 64px);
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: max(4rem, 6vh) 24px max(2.5rem, 4vh);
+      background: var(--tf-light, #F2F3F5);
+    }
+    main.tf-main > .auth-page .auth-card {
+      margin-top: 0;
+      flex-shrink: 0;
+    }
+    @media (max-width: 640px) {
+      main.tf-main > .auth-page {
+        justify-content: flex-start;
+        padding-top: 3.5rem;
+      }
+      main.tf-main > .auth-page .auth-card {
+        margin-top: 1rem;
+      }
+    }
+
     /* Formularios y bloques centrados — más aire respecto al navbar (sticky 64px) */
     .tf-centered-page {
       max-width: 1100px;
@@ -1020,7 +1064,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     {% block extra_css %}{% endblock %}
   </style>
 </head>
-<body class="{% if not request.user.is_authenticated %}tf-public{% endif %}">
+<body class="tf-design-v2{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif not request.user.is_superuser and request.user.profile.role != 'admin' and request.user.profile.role != 'seller' %} tf-public-shell{% endif %}">
   {% if request.user.is_authenticated %}
   <div id="tf-nav-meta" class="d-none"
        data-role="{{ request.user.profile.role }}"
@@ -1029,6 +1073,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
        data-cart-count="{% firstof carrito_count 0 %}"></div>
   {% endif %}
 
+  {% if not request.user.is_authenticated %}
+    {% include "core/includes/public_navbar.html" %}
+  {% elif request.user.is_superuser or request.user.profile.role == 'admin' or request.user.profile.role == 'seller' %}
   <nav class="tf-nav tf-navbar" aria-label="Principal">
     <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="nav" class="tf-nav-logo-img" eager=1 %}
@@ -1041,7 +1088,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     </button>
 
     <div class="tf-nav-links">
+      {# Map disabled temporarily — production errors (mapa_zlc) #}
+      {% comment %}
       <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>Map</a>
+      {% endcomment %}
       {% if request.user.is_authenticated %}
         <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
           <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
@@ -1059,7 +1109,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Store</a>
           <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>My orders</a>
           <a href="{% url 'mis_cotizaciones' %}" class="nav-link-tf" data-tf-nav="mis_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">description</span>My quotes</a>
-          <a href="{% url 'mi_qr' %}" class="nav-link-tf" data-tf-nav="mi_qr"><span class="material-symbols-rounded tf-ms-nav">qr_code_2</span>My QR</a>
           <a href="{% url 'ver_carrito' %}" class="tf-nav-cart" id="tf-nav-cart-link" title="Cart" data-tf-nav="carrito">
             <span class="material-symbols-rounded">shopping_cart</span>
             <span class="tf-nav-cart-badge" id="tf-nav-cart-badge">0</span>
@@ -1070,10 +1119,13 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           <a href="{% url 'seller_mis_productos' %}" class="nav-link-tf" data-tf-nav="seller_productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
           <a href="{% url 'seller_mis_ventas' %}" class="nav-link-tf" data-tf-nav="seller_ventas"><span class="material-symbols-rounded tf-ms-nav">payments</span>My sales</a>
           <a href="{% url 'seller_cotizaciones' %}" class="nav-link-tf" data-tf-nav="seller_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">request_quote</span>Quotes</a>
+          <a href="{% url 'seller_company_qr' %}" class="nav-link-tf" data-tf-nav="seller_qr">
+            <span class="material-symbols-rounded tf-ms-nav">qr_code_2</span>My QR
+          </a>
         </div>
         <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
         <div class="tf-nav-user-block">
-          <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+          <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link">
             <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
             <span class="tf-nav-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
           </a>
@@ -1082,15 +1134,20 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           </a>
         </div>
       {% else %}
-        <a href="{% url 'catalogo_publico' %}" class="nav-link-tf" data-tf-nav="catalogo"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Catalog</a>
         <a href="{% url 'login' %}" class="tf-btn-outline-sm">Sign in</a>
         <a href="{% url 'signup' %}" class="tf-btn-primary-sm">Create account</a>
       {% endif %}
     </div>
   </nav>
+  {% else %}
+    {% include "core/includes/buyer/buyer_navbar.html" %}
+  {% endif %}
 
-  <script>
+  <script nonce="{{ csp_nonce }}">
   (function () {
+    if (document.body.classList.contains('tf-public-shell') && !document.querySelector('.tf-nav.tf-navbar')) {
+      return;
+    }
     var meta = document.getElementById('tf-nav-meta');
     var navActive = meta ? (meta.getAttribute('data-nav-active') || '') : '';
 
@@ -1136,7 +1193,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </script>
 
   {% if messages %}
-  <script>
+  <script nonce="{{ csp_nonce }}">
   document.addEventListener('DOMContentLoaded', function () {
     if (typeof TF === 'undefined') return;
     var messages = [
@@ -1185,15 +1242,15 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       <div>
         <div class="tf-footer-col-title">Legal</div>
         <div class="tf-footer-links">
-          <a href="#">Terms of use</a>
-          <a href="#">Privacy</a>
-          <a href="#">Cookies</a>
+          <a href="{% url 'legal_terminos' %}">Terms of use</a>
+          <a href="{% url 'legal_privacidad' %}">Privacy</a>
+          <a href="{% url 'legal_cookies' %}">Cookies</a>
         </div>
       </div>
       <div>
         <div class="tf-footer-col-title">Contact</div>
         <div class="tf-footer-links">
-          <a href="mailto:info@tradeflow.pa">info@tradeflow.pa</a>
+          <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>
           <a href="#">Colón Free Zone</a>
           <a href="#">Panama</a>
         </div>
@@ -1206,12 +1263,14 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </footer>
   {% endblock %}
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>window.TF_STATIC_LOGO = "{% static 'img/logo-icon-color.png' %}";</script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+          crossorigin="anonymous"></script>
+  <script nonce="{{ csp_nonce }}">window.TF_STATIC_LOGO = "{% static 'img/logo-icon-color.png' %}";</script>
   <script src="{% static 'js/tf_animations.js' %}"></script>
   <script src="{% static 'js/tf_notifications.js' %}"></script>
   <script src="{% static 'js/cart_ajax.js' %}"></script>
-  <style>
+  <style nonce="{{ csp_nonce }}">
     .tf-bot-card { font-size: 13px; line-height: 1.5; }
     .tf-bot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0F2A44; }
     .tf-bot-head .material-symbols-rounded { font-size: 20px; color: #F26522; }
@@ -1245,28 +1304,164 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       justify-content: center;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    #tf-chat-toggle:hover { transform: scale(1.04); }
+    #tf-chat-toggle:hover { transform: scale(1.04); box-shadow: 0 6px 20px rgba(242, 101, 34, 0.45); }
     #tf-chat-window {
       display: none;
       position: absolute;
       right: 0;
       bottom: calc(100% + 12px);
-      width: min(340px, calc(100vw - 32px));
-      height: min(460px, calc(100vh - 120px));
+      width: min(360px, calc(100vw - 32px));
+      height: min(520px, calc(100vh - 120px));
       background: #fff;
       border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(15, 42, 68, 0.2);
-      border: 1px solid var(--tf-border);
+      box-shadow: 0 24px 64px rgba(15, 42, 68, 0.18);
+      border: 1px solid #E5E7EB;
       flex-direction: column;
       overflow: hidden;
     }
+    .tf-chat-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      background: #fff;
+      border-bottom: 1px solid #E5E7EB;
+      flex-shrink: 0;
+    }
+    .tf-chat-header-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--tf-orange) 0%, #FF7A3D 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(242, 101, 34, 0.25);
+    }
+    .tf-chat-header-avatar .material-symbols-rounded { font-size: 22px; }
+    .tf-chat-header-text { flex: 1; min-width: 0; }
+    .tf-chat-header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--tf-navy, #0F2A44);
+      line-height: 1.25;
+    }
+    .tf-chat-header-sub {
+      font-size: 12px;
+      color: var(--tf-muted, #6B7A88);
+      margin-top: 2px;
+    }
+    #tf-chat-close {
+      background: none;
+      border: none;
+      color: #9CA3AF;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease, color 0.15s ease;
+      flex-shrink: 0;
+    }
+    #tf-chat-close:hover { background: #F3F4F6; color: #374151; }
+    #tf-chat-close .material-symbols-rounded { font-size: 22px; }
+    #tf-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #F4F6F8;
+      scroll-behavior: smooth;
+    }
+    .tf-msg-bot,
+    .tf-msg-user {
+      max-width: 88%;
+      font-size: 13px;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+    .tf-msg-bot {
+      align-self: flex-start;
+      background: #fff;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px 12px 12px 4px;
+      padding: 10px 14px;
+      color: #374151;
+      box-shadow: 0 1px 3px rgba(15, 42, 68, 0.06);
+    }
+    .tf-msg-user {
+      align-self: flex-end;
+      margin-left: auto;
+      background: var(--tf-orange, #F26522);
+      color: #fff;
+      border-radius: 12px 12px 4px 12px;
+      padding: 10px 14px;
+      box-shadow: 0 2px 8px rgba(242, 101, 34, 0.22);
+    }
+    .tf-msg-bot.tf-msg-loading {
+      color: #6B7A88;
+      font-style: italic;
+      background: #fff;
+    }
+    .tf-chat-compose {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-top: 1px solid #E5E7EB;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    #tf-chat-input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #E5E7EB;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-family: var(--tf-font-body);
+      background: #F9FAFB;
+      color: #374151;
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    #tf-chat-input::placeholder { color: #9CA3AF; }
+    #tf-chat-input:focus {
+      border-color: rgba(242, 101, 34, 0.45);
+      background: #fff;
+      box-shadow: none;
+      outline: none;
+    }
+    #tf-chat-send {
+      background: var(--tf-orange, #F26522);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s ease, transform 0.12s ease;
+    }
+    #tf-chat-send:hover { background: var(--tf-orange-h, #FF7A3D); }
+    #tf-chat-send:active { transform: scale(0.96); }
+    #tf-chat-send .material-symbols-rounded { font-size: 20px; }
     @media (max-width: 480px) {
       #tf-assistant { right: 12px; bottom: 12px; }
       #tf-chat-window { width: calc(100vw - 24px); }
     }
   </style>
-  {{ tf_i18n|json_script:"tf-i18n-data" }}
-  <script>
+  {# CSP nonce: tag custom para que el <script type="application/json"> reciba nonce. #}
+  {% json_data_block tf_i18n "tf-i18n-data" %}
+  <script nonce="{{ csp_nonce }}">
   (function () {
     var el = document.getElementById('tf-i18n-data');
     if (!el) { window.TF_I18N = window.TF_I18N || {}; return; }
@@ -1281,32 +1476,32 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       <span class="material-symbols-rounded" id="tf-chat-icon" style="font-size:26px;">smart_toy</span>
     </button>
     <div id="tf-chat-window" role="dialog" aria-label="TradeFlow Assistant">
-      <div style="background:var(--tf-navy);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:10px;">
-        <div style="width:36px;height:36px;border-radius:50%;background:var(--tf-orange);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <span class="material-symbols-rounded" style="font-size:20px;">smart_toy</span>
+      <header class="tf-chat-header">
+        <div class="tf-chat-header-avatar" aria-hidden="true">
+          <span class="material-symbols-rounded">smart_toy</span>
         </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:700;">TradeFlow Assistant</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.65);">Free Zone virtual assistant</div>
+        <div class="tf-chat-header-text">
+          <div class="tf-chat-header-title">TradeFlow Assistant</div>
+          <div class="tf-chat-header-sub">Free Zone virtual assistant</div>
         </div>
-        <button type="button" id="tf-chat-close" aria-label="Close" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:0;display:flex;">
+        <button type="button" id="tf-chat-close" aria-label="Close">
           <span class="material-symbols-rounded">close</span>
         </button>
-      </div>
-      <div id="tf-chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#F9FAFB;">
-        <div class="tf-msg-bot" id="tf-chat-welcome" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px 12px 12px 0;padding:10px 14px;max-width:85%;font-size:13px;color:#374151;line-height:1.55;align-self:flex-start;">
+      </header>
+      <div id="tf-chat-messages">
+        <div class="tf-msg-bot" id="tf-chat-welcome">
           Hi! I'm the TradeFlow Colón assistant. How can I help you today?
         </div>
       </div>
-      <div style="padding:12px 14px;border-top:1px solid var(--tf-border);background:#fff;display:flex;gap:8px;">
-        <input type="text" id="tf-chat-input" placeholder="Type your question..." style="flex:1;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 12px;font-size:13px;outline:none;font-family:var(--tf-font-body);">
-        <button type="button" id="tf-chat-send" style="background:var(--tf-orange);color:#fff;border:none;border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <span class="material-symbols-rounded" style="font-size:18px;">send</span>
+      <div class="tf-chat-compose">
+        <input type="text" id="tf-chat-input" placeholder="Type your question..." autocomplete="off" aria-label="Message">
+        <button type="button" id="tf-chat-send" aria-label="Send message">
+          <span class="material-symbols-rounded">send</span>
         </button>
       </div>
     </div>
   </div>
-  <script>
+  <script nonce="{{ csp_nonce }}">
   (function () {
     'use strict';
     var tfChatOpen = false;
@@ -1341,9 +1536,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       var msgs = document.getElementById('tf-chat-messages');
       if (!msgs) return null;
       var div = document.createElement('div');
-      div.style.cssText = isBot
-        ? 'background:#fff;border:1px solid #E5E7EB;border-radius:12px 12px 12px 0;padding:10px 14px;max-width:92%;font-size:13px;color:#374151;line-height:1.55;align-self:flex-start;'
-        : 'background:#F26522;color:#fff;border-radius:12px 12px 0 12px;padding:10px 14px;max-width:85%;font-size:13px;line-height:1.55;align-self:flex-end;margin-left:auto;';
+      div.className = isBot ? 'tf-msg-bot' : 'tf-msg-user';
       if (isBot && htmlContent) {
         div.innerHTML = htmlContent;
       } else {
@@ -1369,7 +1562,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         fb.innerHTML = '<span style="color:#15803d;">Thanks for your feedback!</span>';
       });
       no.addEventListener('click', function () {
-        fb.innerHTML = '<span>We'll improve it. Email us at soporte@tradeflow.pa</span>';
+        fb.innerHTML = '<span>' + ((window.TF_I18N && window.TF_I18N.supportEmailPrompt) || ('We will improve it. Email us at ' + (window.TF_I18N && window.TF_I18N.contactEmail || 'tradeflowcolon@gmail.com'))) + '</span>';
       });
       fb.appendChild(yes);
       fb.appendChild(no);
@@ -1385,22 +1578,27 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       appendMessage(mensaje, false);
       tfChatHistory.push({ role: 'user', content: mensaje });
       var loadingDiv = appendMessage('Typing...', true);
-      if (loadingDiv) {
-        loadingDiv.style.color = '#6B7A88';
-        loadingDiv.style.fontStyle = 'italic';
-      }
+      if (loadingDiv) loadingDiv.classList.add('tf-msg-loading');
       fetch('{% url "api_asistente" %}', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({
           mensaje: mensaje,
-          historial: tfChatHistory.slice(-TF_CHAT_MAX_HIST)
+          historial: tfChatHistory.slice(0, -1).slice(-TF_CHAT_MAX_HIST)
         })
       })
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        return r.json().then(function (data) {
+          if (!r.ok || data.ok === false) {
+            throw new Error(data.respuesta || 'Request failed.');
+          }
+          return data;
+        });
+      })
       .then(function (data) {
         if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
         var respuesta = data.respuesta || 'I could not process your request.';
@@ -1412,9 +1610,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           tfChatHistory = tfChatHistory.slice(-TF_CHAT_MAX_HIST * 2);
         }
       })
-      .catch(function () {
+      .catch(function (err) {
         if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
-        appendMessage('Connection error. Try again later.', true);
+        var msg = (err && err.message) ? err.message : 'Connection error. Try again later.';
+        appendMessage(msg, true);
       })
       .finally(function () { tfChatLoading = false; });
     }
@@ -1428,7 +1627,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   })();
   </script>
-  <script>
+  <script nonce="{{ csp_nonce }}">
   (function() {
     var btn = document.getElementById('tf-hamburger');
     var links = document.querySelector('.tf-nav-links');

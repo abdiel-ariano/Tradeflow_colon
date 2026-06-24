@@ -13,8 +13,7 @@
 <meta name="twitter:description" content="{{ meta_description }}">
 <meta name="twitter:image" content="{{ og_image }}">
 <link rel="canonical" href="{{ canonical_url }}">
-<link rel="stylesheet" href="{% static 'css/tf-design-tokens.css' %}?v=design-tokens-v1">
-<link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v=design-tokens-v1">
+<link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
 {% block content %}
@@ -24,7 +23,7 @@
       <a href="{% url 'home' %}">Inicio</a>
       <span class="cpd-breadcrumb-sep" aria-hidden="true">›</span>
       {% if product.category %}
-      <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}">{{ product.category.name }}</a>
+      <a href="{% url 'tienda' %}?categoria={{ product.category_id }}">{{ product.category.name }}</a>
       <span class="cpd-breadcrumb-sep" aria-hidden="true">›</span>
       {% else %}
       <a href="{% url 'catalogo_publico' %}">Catálogo</a>
@@ -47,9 +46,9 @@
 
       <div class="cpd-hero-info">
         <p class="cpd-meta">
-          <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
+          <a href="{% url 'tienda' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
           {% if product.category %}
-          · <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}">{{ product.category.name }}</a>
+          · <a href="{% url 'tienda' %}?categoria={{ product.category_id }}">{{ product.category.name }}</a>
           {% endif %}
         </p>
 
@@ -103,12 +102,20 @@
                 Add to cart
               </button>
             </form>
+            <form method="post" action="{% url 'solicitar_cotizacion_automatica' product.pk %}" class="cpd-action-form">
+              {% csrf_token %}
+              <input type="hidden" name="cantidad" value="1">
+              <button type="submit" class="ds-btn ds-btn--secondary ds-btn--lg">
+                <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
+                Auto quote
+              </button>
+            </form>
             {% elif not product.available_qty %}
             <span class="cpd-btn-disabled">Out of stock</span>
             {% endif %}
           </div>
           {% endif %}
-          <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="cpd-supplier-link">
+          <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="cpd-supplier-link">
             Ver catálogo del proveedor →
           </a>
         </div>
@@ -164,7 +171,7 @@
             {% if company.tagline_es %}
             <p class="cpd-prose">{{ company.tagline_es }}</p>
             {% endif %}
-            <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="ds-btn ds-btn--secondary">Ver todos los productos</a>
+            <a href="{% url 'tienda' %}?empresa={{ company.pk }}" class="ds-btn ds-btn--secondary">Ver todos los productos</a>
           </div>
         </div>
       </div>
@@ -175,7 +182,7 @@
       <div class="cpd-related-head">
         <h2 class="cpd-related-title" id="cpd-related-title">Productos relacionados</h2>
         {% if product.category %}
-        <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}" class="cpd-related-link">Ver categoría →</a>
+        <a href="{% url 'tienda' %}?categoria={{ product.category_id }}" class="cpd-related-link">Ver categoría →</a>
         {% endif %}
       </div>
       <div class="tf-pcard-grid">

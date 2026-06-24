@@ -5,7 +5,9 @@
 {% block seller_page_sub %}<p class="sp-topbar-sub">Enterprise · forecast and stock alerts</p>{% endblock %}
 
 {% block seller_extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+        integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
+        crossorigin="anonymous" defer></script>
 {% endblock %}
 
 {% block seller_content %}
@@ -81,7 +83,7 @@
 {% endblock %}
 
 {% block seller_extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function () {
   if (typeof Chart === 'undefined') return;
   var el = document.getElementById('sp-insights-chart');

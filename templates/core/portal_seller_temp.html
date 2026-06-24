@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}My Store — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style>
+<style nonce="{{ csp_nonce }}">
   .portal-seller-temp-hero {
     background: var(--tf-navy, #0f2a44);
     color: #fff;

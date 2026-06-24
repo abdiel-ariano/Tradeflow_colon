@@ -1,6 +1,6 @@
 {% comment %}
 Rail lateral compartido del panel administrativo (TradeFlow Colón).
-Contexto: nav_activo — dashboard | saas | ordenes | productos | empresas
+Contexto: nav_activo — dashboard | saas | ordenes | productos | empresas | admin_applications
 {% endcomment %}
 <aside class="adm-side" id="admRail" data-nav-active="{{ nav_activo|default:'dashboard' }}" aria-label="Admin menu">
   <div class="adm-rail-brand">
@@ -29,19 +29,16 @@ Contexto: nav_activo — dashboard | saas | ordenes | productos | empresas
       <span class="material-symbols-rounded" aria-hidden="true">business</span>
       <span class="adm-rail-label">Companies</span>
     </a>
+    <a href="{% url 'admin_applications' %}" data-adm-nav="admin_applications" title="Applications">
+      <span class="material-symbols-rounded" aria-hidden="true">assignment_ind</span>
+      <span class="adm-rail-label">Applications</span>
+      {% if pending_applications_count %}
+      <span class="adm-rail-badge">{{ pending_applications_count }}</span>
+      {% endif %}
+    </a>
     <a href="{% url 'admin_saas_dashboard' %}" data-adm-nav="saas" title="SaaS Plans">
       <span class="material-symbols-rounded" aria-hidden="true">workspace_premium</span>
       <span class="adm-rail-label">SaaS Plans</span>
     </a>
   </nav>
-  <div class="adm-rail-footer">
-    <button type="button" class="adm-rail-toggle" id="admRailToggle" title="Toggle sidebar width">
-      <span class="material-symbols-rounded" aria-hidden="true">dock_to_right</span>
-      <span class="adm-rail-toggle-txt">Compact</span>
-    </button>
-    <a class="adm-rail-dj" href="/admin/" target="_blank" rel="noopener noreferrer" title="Django Admin site">
-      <span class="material-symbols-rounded" aria-hidden="true">admin_panel_settings</span>
-      <span class="adm-rail-label">Django Admin</span>
-    </a>
-  </div>
 </aside>

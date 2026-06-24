@@ -27,15 +27,6 @@
         <div class="sp-flow-step-body">
           <span class="sp-flow-step-label">{{ step.label }}</span>
           <span class="sp-flow-step-detail">{{ step.detail }}</span>
-          {% if step.status == 'current' and step.pct > 0 and step.key == 'activity' %}
-          <div class="sp-flow-step-meter" role="progressbar" aria-valuenow="{{ step.pct }}" aria-valuemin="0" aria-valuemax="100">
-            <div class="sp-flow-step-meter-fill {% if saas_snapshot.warning %}is-{{ saas_snapshot.warning }}{% endif %}" style="width:{{ step.pct }}%;"></div>
-          </div>
-          {% elif step.status == 'current' and step.key == 'pay' %}
-          <div class="sp-flow-step-meter" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">
-            <div class="sp-flow-step-meter-fill is-approaching" style="width:45%;"></div>
-          </div>
-          {% endif %}
         </div>
       </li>
       {% endfor %}

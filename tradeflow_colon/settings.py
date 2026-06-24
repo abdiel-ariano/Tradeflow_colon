@@ -76,8 +76,12 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # En .env local: ALLOWED_HOSTS=127.0.0.1,localhost
-# En Railway:    ALLOWED_HOSTS=tuapp.up.railway.app,tradeflow.pa
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
+# En Railway:    ALLOWED_HOSTS=web-production-xxxx.up.railway.app,tu-dominio.com
+ALLOWED_HOSTS = list(config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv()))
+# Healthchecks internos de Railway usan subdominios *.up.railway.app
+for _railway_host in ('.up.railway.app', '.railway.app'):
+    if _railway_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_railway_host)
 
 # ── Aplicaciones ──────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -104,6 +108,7 @@ MIDDLEWARE = [
     'axes.middleware.AxesMiddleware',
     'core.middleware.onboarding_gate.OnboardingGateMiddleware',
     'core.middleware.tf_security.SecurityHeadersMiddleware',
+    'core.middleware.tf_security.SecurityEventLogMiddleware',  # OWASP A09
     'core.middleware.tf_security.ApiRateLimitMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -123,11 +128,14 @@ TEMPLATES = [
                 'django.template.context_processors.i18n',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.csp_nonce_context',  # OWASP A03 (CSP nonce)
                 'core.context_processors.cart_badge',
                 'core.context_processors.pending_applications_badge',
                 'core.context_processors.tf_i18n',
+                'core.context_processors.tradeflow_contact',
                 'core.context_processors.supabase_public',
                 'core.context_processors.enterprise_saas',
+                'core.context_processors.tf_asset_version',
             ],
         },
     },
@@ -160,6 +168,9 @@ if _db_url:
     if _ssl_required:
         _db_cfg.setdefault('OPTIONS', {})
         _db_cfg['OPTIONS']['sslmode'] = config('DB_SSLMODE', default='require')
+    _db_cfg.setdefault('OPTIONS', {})
+    # Evita que migrate/gunicorn cuelguen minutos si DATABASE_URL es incorrecta.
+    _db_cfg['OPTIONS'].setdefault('connect_timeout', 15)
     DATABASES = {'default': _db_cfg}
     USING_SUPABASE = 'supabase' in _db_url.lower() or 'postgres' in _db_cfg.get('ENGINE', '')
 else:
@@ -177,12 +188,29 @@ DATABASE_ENGINE_LABEL = (
     DATABASES['default'].get('ENGINE', 'unknown').split('.')[-1]
 )
 
-# ── Validación de contraseñas ──────────────────────────────────────────────
+# ── Validación de contraseñas (OWASP A07:2021) ────────────────────────────
+# Endurecido en auditoria 2026-06:
+#   - MinimumLength sube de 8 (default) a 12 caracteres.
+#   - CommonPassword sigue (lista de 20k passwords mas comunes integrada en Django).
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 12},
+    },
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# ── Hashing de contraseñas (OWASP A02:2021) ────────────────────────────────
+# Argon2 ganador del Password Hashing Competition (PHC). Resistente a GPU/ASIC.
+# PBKDF2/BCrypt mantenidos para verificar hashes legacy (Django rehashea al login).
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.ScryptPasswordHasher',
 ]
 
 # ── Internationalization ───────────────────────────────────────────────────
@@ -200,6 +228,8 @@ LOCALE_PATHS = [BASE_DIR / 'locale']
 STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# Cache-bust query param for JS/CSS after deploy (set TRADEFLOW_ASSET_VERSION on Railway).
+TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='design-tokens-v1')
 
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
 MEDIA_URL  = '/media/'
@@ -253,27 +283,44 @@ DASHBOARD_KPI_REVENUE_DELIVERED_ONLY = config(
     default=False,
     cast=bool,
 )
-# Correo (fallback Django cuando Supabase Edge Function no está disponible)
+from core.utils.email_config import (
+    LEGACY_GMAIL_ACCOUNT,
+    TRADEFLOW_GMAIL_ACCOUNT,
+    normalize_contact_email,
+    normalize_project_gmail,
+)
+
+# Correo transaccional vía Resend (core/email_service.py). Consola solo en DEBUG local.
+import os
+
+RESEND_API_KEY = config('RESEND_API_KEY', default=os.environ.get('RESEND_API_KEY', '')).strip()
+
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default='django.core.mail.backends.console.EmailBackend',
 )
-DEFAULT_FROM_EMAIL = config(
+_default_from = config(
     'DEFAULT_FROM_EMAIL',
     default='TradeFlow <noreply@tradeflow.pa>',
 )
+if LEGACY_GMAIL_ACCOUNT in _default_from.lower():
+    _default_from = _default_from.replace(LEGACY_GMAIL_ACCOUNT, TRADEFLOW_GMAIL_ACCOUNT).replace(
+        LEGACY_GMAIL_ACCOUNT.upper(),
+        TRADEFLOW_GMAIL_ACCOUNT,
+    )
+DEFAULT_FROM_EMAIL = _default_from
+TRADEFLOW_CONTACT_EMAIL = normalize_contact_email(
+    config('TRADEFLOW_CONTACT_EMAIL', default=TRADEFLOW_GMAIL_ACCOUNT)
+)
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
-EMAIL_USE_REAL_SMTP = 'console' not in (EMAIL_BACKEND or '').lower()
+
+EMAIL_USE_REAL_SMTP = bool(RESEND_API_KEY)
 EMAIL_SMTP_CONFIGURED = EMAIL_USE_REAL_SMTP
 
-# Supabase — Postgres (DATABASE_URL), Storage, Edge Functions (email transaccional)
+# Supabase — Postgres (DATABASE_URL) y Storage (no email; ver RESEND_API_KEY)
 SUPABASE_URL = config('SUPABASE_URL', default='').strip()
 SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='').strip()
 SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='').strip()
-SUPABASE_EMAIL_FUNCTION = config(
-    'SUPABASE_EMAIL_FUNCTION',
-    default='send-transactional-email',
-)
 SUPABASE_CONFIGURED = bool(SUPABASE_URL and SUPABASE_SERVICE_KEY)
 
 import logging as _logging
@@ -291,9 +338,15 @@ if DEBUG:
     if SUPABASE_CONFIGURED:
         _boot_log.info('Supabase configurado (URL + service key).')
     else:
+        _boot_log.warning('Supabase incomplete — DB/Storage pueden fallar.')
+    if RESEND_API_KEY:
+        _boot_log.info('Resend configurado (RESEND_API_KEY).')
+    elif not DEBUG:
         _boot_log.warning(
-            'Supabase incomplete — verification emails will use Django EMAIL_BACKEND only.'
+            'Producción sin correo: configura RESEND_API_KEY (resend.com/api-keys).'
         )
+    elif 'console' in (EMAIL_BACKEND or '').lower():
+        _boot_log.info('Email en consola (DEBUG + EMAIL_BACKEND console).')
 
 STORAGES = {
     'default': {
@@ -303,7 +356,7 @@ STORAGES = {
         'BACKEND': (
             'django.contrib.staticfiles.storage.StaticFilesStorage'
             if DEBUG
-            else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+            else 'whitenoise.storage.CompressedStaticFilesStorage'
         ),
     },
 }
@@ -324,14 +377,20 @@ if SUPABASE_SERVICE_KEY and SUPABASE_URL:
     }
 
 # Revisores de solicitudes de acceso (lista separada por comas)
-APPLICATION_REVIEW_EMAILS = config(
+_application_review_raw = config(
     'APPLICATION_REVIEW_EMAILS',
-    default='',
+    default=TRADEFLOW_GMAIL_ACCOUNT,
     cast=Csv(),
 )
+APPLICATION_REVIEW_EMAILS = [
+    normalize_project_gmail(addr) for addr in _application_review_raw if str(addr).strip()
+] or [TRADEFLOW_GMAIL_ACCOUNT]
 
 # Checkout: True = flujo antiguo (pago inmediato). False = awaiting_seller (PreExpo).
 CHECKOUT_AUTO_APPROVE = config('CHECKOUT_AUTO_APPROVE', default=False, cast=bool)
+
+# Demo Expo: bypass onboarding gate tras OTP (UserApplication approved + is_active).
+EXPO_DEMO_MODE = config('EXPO_DEMO_MODE', default=False, cast=bool)
 
 # ── django-axes (bloqueo por intentos fallidos de login) ──────────────────
 AXES_FAILURE_LIMIT = 5
@@ -339,6 +398,22 @@ AXES_COOLOFF_TIME = 1
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = 'core/bloqueado.html'
 AXES_LOCKOUT_PARAMETERS = [['username'], ['ip_address']]
+
+# ── Seguridad de cookies (todos los entornos) ──────────────────────────────
+# OWASP A05:2021 — aplican siempre, no solo en produccion.
+SESSION_COOKIE_HTTPONLY = True        # JS no puede leer la cookie de sesion
+SESSION_COOKIE_SAMESITE = 'Lax'       # mitiga CSRF basico
+CSRF_COOKIE_HTTPONLY = True           # JS no puede leer la cookie CSRF
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Session timeout: expira a las 12 horas de inactividad (sliding window).
+# Reduce ventana de uso de cookies robadas.
+SESSION_COOKIE_AGE = 12 * 60 * 60     # 12 horas en segundos
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True     # sliding (extiende sesion en cada hit)
+
+# Referrer-Policy (privacy + no leak de URLs internas a sitios externos).
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # ── Seguridad en producción ────────────────────────────────────────────────
 # Estas opciones solo se activan cuando DEBUG=False
@@ -352,6 +427,11 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER   = True
     SECURE_CONTENT_TYPE_NOSNIFF  = True
     X_FRAME_OPTIONS              = 'DENY'
+    # El probe interno de Railway llega por HTTP sin X-Forwarded-Proto.
+    SECURE_REDIRECT_EXEMPT = [
+        r'^health/live/?$',
+        r'^health/ready/?$',
+    ]
 
     # Railway usa un proxy inverso — esto confía en su header X-Forwarded-Proto
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -374,9 +454,13 @@ LOGGING = {
     },
     'loggers': {
         'tradeflow.email': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'tradeflow.auth': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
         'tradeflow.media': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
         'tradeflow.platform': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
         'tradeflow.saas': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        # OWASP A09:2021 — log de eventos de seguridad (401/403/429/5xx, admin scans).
+        # En produccion, conectar a Sentry / Datadog / Loki redirigiendo el handler.
+        'tradeflow.security': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
     },
 }
 

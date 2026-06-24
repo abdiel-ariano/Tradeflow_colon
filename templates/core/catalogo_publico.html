@@ -3,9 +3,7 @@
 {% block title %}Catálogo Mayorista Zona Libre de Colón | TradeFlow{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/tf-design-tokens.css' %}?v=design-tokens-v1">
-<link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v=design-tokens-v1">
-<link rel="stylesheet" href="{% static 'css/catalogo-publico.css' %}?v=design-tokens-v1">
+<link rel="stylesheet" href="{% static 'css/catalogo-publico.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
 {% block content %}

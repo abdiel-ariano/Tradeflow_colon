@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static tf_money %}
+{% load static tf_money tf_catalog %}
 {% comment %}
 ================================================================================
 templates/core/tienda.html — TradeFlow Colón
@@ -15,21 +15,9 @@ show_cart_actions, tienda_params.
 <link rel="stylesheet" href="{% static 'css/buyer_portal.css' %}">
 {% endblock %}
 {% block extra_css %}
-<style>
-  :root {
-    --tf-navy: #0F2A44;
-    --tf-mid: #1B3B63;
-    --tf-blue: #2E5B8A;
-    --tf-orange: #F26522;
-    --tf-orange-h: #FF7A3D;
-    --tf-light: #F2F3F5;
-    --tf-border: #D1D5DB;
-    --tf-muted: #6B7A88;
-    --tf-white: #FFFFFF;
-  }
-
+<style nonce="{{ csp_nonce }}">
   .td-page {
-    background: var(--tf-light);
+    background: var(--ds-gray-page, #F4F6F8);
     min-height: calc(100vh - 64px);
     padding: 0 0 56px;
   }
@@ -58,22 +46,23 @@ show_cart_actions, tienda_params.
     align-items: center;
     gap: 6px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--tf-orange);
-    background: rgba(242, 101, 34, 0.14);
-    border: 1px solid rgba(242, 101, 34, 0.35);
-    border-radius: 20px;
-    padding: 5px 12px;
+    background: rgba(242, 101, 34, 0.1);
+    border: 1px solid rgba(242, 101, 34, 0.2);
+    border-radius: 999px;
+    padding: 4px 12px;
     margin-bottom: 10px;
   }
   .td-hero-h1 {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(1.6rem, 3vw, 2.25rem);
-    color: var(--tf-white);
+    font-size: clamp(1.375rem, 2.5vw, 1.875rem);
+    font-weight: 700;
+    color: #ffffff;
     margin: 0 0 8px;
-    line-height: 1.2;
+    line-height: 1.25;
   }
   .td-hero-desc {
     color: rgba(255, 255, 255, 0.78);
@@ -110,27 +99,34 @@ show_cart_actions, tienda_params.
     .td-stats { grid-template-columns: repeat(2, 1fr); }
   }
   .td-stat {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 14px 16px;
+    padding: 16px 18px;
     text-align: center;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .td-stat:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.16);
   }
   .td-stat-val {
     font-family: var(--tf-font-body, 'Montserrat', sans-serif);
-    font-size: 1.55rem;
+    font-size: clamp(1.5rem, 2.5vw, 1.875rem);
     font-weight: 700;
-    color: var(--tf-white);
+    color: #ffffff;
     display: block;
-    line-height: 1.1;
+    line-height: 1.15;
   }
   .td-stat-lbl {
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 0.875rem;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: rgba(255, 255, 255, 0.65);
-    margin-top: 4px;
+    letter-spacing: 0.08em;
+    color: #cbd5e1;
+    margin-top: 6px;
     display: block;
   }
   .td-promo {
@@ -160,20 +156,84 @@ show_cart_actions, tienda_params.
     display: flex;
     gap: 1rem;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding: 4px 40px 8px;
     scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
   .bp-promo-scroll::-webkit-scrollbar { display: none; }
+  .bp-promo-carousel-body {
+    position: relative;
+  }
+  .bp-promo-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(15, 42, 68, 0.72);
+    color: rgba(255, 255, 255, 0.92);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+    backdrop-filter: blur(4px);
+  }
+  .bp-promo-nav:hover {
+    background: rgba(15, 42, 68, 0.92);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  .bp-promo-nav:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .bp-promo-nav .material-symbols-rounded { font-size: 20px; }
+  .bp-promo-nav--prev { left: 4px; }
+  .bp-promo-nav--next { right: 4px; }
+  .bp-promo-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    min-height: 10px;
+  }
+  .bp-promo-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    border: none;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.32);
+    cursor: pointer;
+    transition: width 0.2s ease, background 0.2s ease;
+  }
+  .bp-promo-dot.is-active {
+    width: 22px;
+    background: var(--tf-orange);
+  }
   .bp-promo-card {
     min-width: 180px;
-    background: rgba(255, 255, 255, 0.07);
+    background: #243545;
     border-radius: 10px;
     padding: 1rem;
     text-decoration: none;
     flex-shrink: 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    scroll-snap-align: start;
+    transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+  }
+  .bp-promo-card:hover {
+    background: #2a3f52;
+    border-color: rgba(148, 163, 184, 0.55);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+    transform: translateY(-2px);
+    text-decoration: none;
   }
   .bp-promo-badge {
     background: var(--tf-teal, var(--tf-blue));
@@ -216,23 +276,27 @@ show_cart_actions, tienda_params.
     gap: 2px;
     margin-top: 0.5rem;
   }
+  .bp-promo-band a.bp-promo-view-all,
   .bp-promo-view-all {
-    color: var(--tf-sand, #D9CAB3);
+    color: var(--tf-orange) !important;
     font-size: 0.85rem;
     font-weight: 600;
-    text-decoration: none;
-    border-bottom: 1px solid currentColor;
+    text-decoration: none !important;
+    border-bottom: none;
     white-space: nowrap;
     flex-shrink: 0;
     transition: color 0.18s ease, opacity 0.18s ease;
   }
+  .bp-promo-band a.bp-promo-view-all:hover,
   .bp-promo-view-all:hover {
-    color: var(--tf-white);
-    opacity: 0.92;
+    color: var(--tf-orange-h) !important;
+    text-decoration: none !important;
+    opacity: 1;
   }
   .td-btn-clear-filters {
     display: none;
-    margin: 12px 16px 8px;
+    margin: 8px 0 0;
+    width: 100%;
     text-align: center;
     font-size: 13px;
     color: var(--tf-muted);
@@ -323,30 +387,36 @@ show_cart_actions, tienda_params.
   .td-filter-primary {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px 14px;
-    padding: 0 16px 12px;
+    gap: 14px 16px;
   }
   @media (max-width: 1199px) {
     .td-filter-primary { grid-template-columns: 1fr; }
   }
   .td-filter-primary .td-span-2 { grid-column: 1 / -1; }
-  .td-cat-scroll {
-    max-height: 200px;
-    overflow-y: auto;
-    margin: 0 0 8px;
-    border-top: 1px solid #F3F4F6;
-    padding-top: 8px;
+  .td-filter-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tf-muted);
+    display: block;
+    margin-bottom: 8px;
+  }
+  .td-filters-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
   }
   .td-btn-filter-apply {
-    width: calc(100% - 32px);
-    margin: 12px 16px 8px;
-    padding: 10px 16px;
+    width: 100%;
+    margin: 16px 0 8px;
+    padding: 11px 16px;
     border: none;
     border-radius: 10px;
     background: var(--tf-orange);
     color: var(--tf-white);
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -354,8 +424,18 @@ show_cart_actions, tienda_params.
     gap: 8px;
     font-family: var(--tf-font-body);
     box-sizing: border-box;
+    box-shadow: 0 4px 14px rgba(242, 101, 34, 0.2);
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
-  .td-btn-filter-apply:hover { background: var(--tf-orange-h); }
+  .td-btn-filter-apply:hover {
+    background: var(--tf-orange-h);
+    box-shadow: 0 8px 22px rgba(242, 101, 34, 0.28);
+    transform: translateY(-2px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .td-btn-filter-apply { transition: background 0.2s ease; }
+    .td-btn-filter-apply:hover { transform: none; }
+  }
 
   .td-sidebar {
     position: sticky;
@@ -366,23 +446,27 @@ show_cart_actions, tienda_params.
   }
   .td-side-card {
     background: var(--tf-white);
-    border-radius: 14px;
-    border: 1px solid #E5E7EB;
-    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid #f3f4f6;
+    box-shadow: 0 1px 3px rgba(15, 42, 68, 0.06);
+    padding: 20px;
+    overflow: visible;
   }
-  .td-side-head {
-    background: var(--tf-navy);
-    color: var(--tf-white);
-    padding: 16px 20px;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+  .td-side-title {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 16px;
+    line-height: 1.3;
   }
-  .td-side-head .material-symbols-rounded { font-size: 16px; }
+  .td-side-title .material-symbols-rounded {
+    font-size: 20px;
+    color: #94a3b8;
+    font-variation-settings: 'FILL' 0, 'wght' 400;
+  }
   .td-cat-list { padding: 8px 0; list-style: none; margin: 0; }
   .td-cat-link {
     display: flex;
@@ -407,16 +491,39 @@ show_cart_actions, tienda_params.
     font-weight: 600;
     border-left-color: var(--tf-orange);
   }
-  .td-filter-select {
+  .td-filter-select,
+  .td-search-input {
     width: 100%;
-    padding: 9px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: var(--tf-radius-btn, 8px);
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
     font-size: 14px;
-    font-family: var(--tf-font-body);
+    font-family: var(--tf-font-body, 'Montserrat', sans-serif);
     color: #374151;
-    background: #fff;
+    background: #f8fafc;
     box-sizing: border-box;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .td-search-input {
+    padding: 10px 14px 10px 40px;
+  }
+  .td-filter-select:hover,
+  .td-search-input:hover {
+    background: #f1f5f9;
+  }
+  .td-filter-select:focus,
+  .td-search-input:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: var(--tf-orange);
+    box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.2);
+  }
+  .td-cat-scroll {
+    max-height: 200px;
+    overflow-y: auto;
+    margin: 0 0 8px;
+    border-top: 1px solid #F3F4F6;
+    padding-top: 8px;
   }
 
   .td-main { min-width: 0; padding-top: 4px; }
@@ -449,33 +556,44 @@ show_cart_actions, tienda_params.
     flex-wrap: wrap;
   }
   .td-search-wrap {
-    flex: 1;
-    min-width: 220px;
     position: relative;
+    width: 100%;
   }
   .td-search-wrap .material-symbols-rounded {
     position: absolute;
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--tf-muted);
+    color: #9ca3af;
     font-size: 18px;
     pointer-events: none;
+    line-height: 1;
+    z-index: 1;
+  }
+  .td-search-wrap--sidebar {
+    margin: 0 0 14px;
   }
   .td-search-input {
     width: 100%;
-    padding: 10px 14px 10px 40px;
-    border: 1.5px solid #E5E7EB;
-    border-radius: 10px;
     font-size: 14px;
+    font-family: var(--tf-font-body, 'Montserrat', sans-serif);
     box-sizing: border-box;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
-  .td-search-input:focus {
-    outline: none;
-    border-color: var(--tf-orange);
-    box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.12);
+  .td-filter-more {
+    margin: 8px 0 0;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
+    background: #f8fafc;
   }
+  .td-filter-more summary {
+    cursor: pointer;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tf-navy);
+    list-style: none;
+  }
+  .td-filter-more summary::-webkit-details-marker { display: none; }
   .td-btn-search {
     background: var(--tf-navy);
     color: var(--tf-white);
@@ -501,10 +619,11 @@ show_cart_actions, tienda_params.
     gap: 12px;
   }
   .td-results-hdr h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--tf-navy);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e293b;
     margin: 0;
+    line-height: 1.3;
   }
   .td-results-count {
     font-size: 13px;
@@ -556,8 +675,60 @@ show_cart_actions, tienda_params.
   @media (max-width: 900px) {
     .td-grid, .td-grid-spot { grid-template-columns: repeat(2, 1fr); }
   }
-  @media (max-width: 560px) {
-    .td-grid, .td-grid-spot { grid-template-columns: 1fr; }
+  @media (max-width: 768px) {
+    .productos-grid,
+    .product-grid,
+    .td-grid,
+    .td-grid-spot,
+    [class*="product"][class*="grid"],
+    [class*="productos"][class*="grid"] {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 12px !important;
+      padding: 0 12px !important;
+    }
+
+    .producto-card,
+    .product-card,
+    .tf-product-card,
+    [class*="product-card"],
+    [class*="producto-card"] {
+      border-radius: 10px !important;
+    }
+
+    .producto-card img,
+    .product-card img,
+    .tf-product-card img,
+    .product-card-img,
+    [class*="product-card"] img {
+      height: 120px !important;
+      object-fit: cover !important;
+    }
+
+    .producto-card .product-name,
+    .product-card h3,
+    .tf-product-card-title,
+    [class*="product-card"] h3,
+    [class*="product-card"] .name {
+      font-size: 12px !important;
+      line-height: 1.3 !important;
+    }
+
+    .producto-card .price,
+    .product-card .price,
+    .tf-product-card-price,
+    [class*="product-card"] .price {
+      font-size: 13px !important;
+    }
+
+    .producto-card .btn-primary-tf,
+    .product-card .btn-primary-tf,
+    .tf-product-card .tf-btn-primary,
+    .tf-product-card .tf-product-card-btn,
+    [class*="product-card"] .btn-primary-tf {
+      padding: 6px 10px !important;
+      font-size: 11px !important;
+    }
   }
   .tf-product-card-btn-disabled {
     display: flex;
@@ -790,66 +961,51 @@ show_cart_actions, tienda_params.
        data-cur-page="{{ productos.number }}"
        hidden></div>
 
-  <header class="td-hero-band" aria-label="Catalog overview">
-    <div class="td-hero-inner">
-      <div class="td-hero-top">
-        <div>
-          <span class="td-hero-badge">
-            <span class="material-symbols-rounded" style="font-size:14px;" aria-hidden="true">storefront</span>
-            Colón Free Zone
-          </span>
-          <h1 class="td-hero-h1 tf-serif">Shop the Colón Free Zone</h1>
-          <p class="td-hero-desc">Browse deals, verified companies, and thousands of products. Filter by category or add to cart in one click.</p>
-        </div>
-      </div>
-      <div class="td-stats" role="list">
-        <div class="td-stat" role="listitem">
-          <span class="td-stat-val">{{ tienda_stats.productos }}</span>
-          <span class="td-stat-lbl">Products</span>
-        </div>
-        <div class="td-stat" role="listitem">
-          <span class="td-stat-val">{{ tienda_stats.empresas }}</span>
-          <span class="td-stat-lbl">Companies</span>
-        </div>
-        <div class="td-stat" role="listitem">
-          <span class="td-stat-val">{{ tienda_stats.categorias }}</span>
-          <span class="td-stat-lbl">Categories</span>
-        </div>
-        <div class="td-stat" role="listitem">
-          <span class="td-stat-val">{{ tienda_stats.ofertas }}</span>
-          <span class="td-stat-lbl">Deals</span>
-        </div>
-      </div>
-    </div>
-  </header>
+  {% if buyer_store_landing %}
+  {# Vista buyer (landing tienda) — patrón Alibaba #}
+  {% include "core/includes/buyer/buyer_hero_search.html" with show_mode_tabs=False %}
+  {% include "core/includes/buyer/buyer_welcome_zone.html" %}
+  {% include "core/includes/buyer/buyer_value_strip.html" %}
+  {% include "core/includes/buyer/buyer_recommended.html" %}
+  {% else %}
+  <div class="bh-results-head" aria-label="Búsqueda en catálogo">
+    {% include "core/includes/buyer/search_bar.html" with variant="compact" value=buscar placeholder="Buscar productos, empresas, SKU…" form_id="td-results" %}
+    {% if buscar %}
+    <p style="margin:12px 0 0;font-size:14px;color:var(--ds-gray-text,#4A5568);">
+      Resultados para <strong style="color:var(--ds-navy,#0D1B2A);">"{{ buscar }}"</strong>
+      — {{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }}
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
 
   <div class="td-wrap">
     <aside class="td-sidebar" aria-label="Catalog filters">
       <div class="td-side-card">
-        <div class="td-side-head">
+        <h2 class="td-side-title">
           <span class="material-symbols-rounded" aria-hidden="true">filter_list</span>
           Filters
-        </div>
-        <form method="get" action="{% url 'tienda' %}" id="filtros-form" style="padding:8px 0 12px;">
+        </h2>
+        <form method="get" action="{% url 'tienda' %}" id="filtros-form" class="td-filters-form">
           {% if tab_catalogo and tab_catalogo != 'todos' %}
           <input type="hidden" name="tab" value="{{ tab_catalogo }}">
           {% endif %}
-          <div style="position:relative;margin:0 16px 12px;" class="td-span-2">
-            <span class="material-symbols-rounded" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tf-muted);font-size:18px;pointer-events:none;">search</span>
-            <input type="text" name="buscar" id="input-buscar" placeholder="Search products, SKU..." value="{{ buscar }}" class="td-search-input" style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-family:var(--tf-font-body);box-sizing:border-box;">
+          <div class="td-search-wrap td-search-wrap--sidebar td-span-2">
+            <span class="material-symbols-rounded" aria-hidden="true">search</span>
+            <input type="text" name="buscar" id="input-buscar" placeholder="Search products, SKU..." value="{{ buscar }}" class="td-search-input">
           </div>
           <div class="td-filter-primary">
             <div>
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">Category</label>
+              <label class="td-filter-label" for="select-categoria">Category</label>
               <select name="categoria" id="select-categoria" class="td-filter-select">
                 <option value="">All categories</option>
                 {% for cat in categorias %}
-                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                <option value="{{ cat.id }}">{{ cat.name|category_label }}</option>
                 {% endfor %}
               </select>
             </div>
             <div>
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">Business</label>
+              <label class="td-filter-label" for="select-empresa">Business</label>
               <select name="empresa" id="select-empresa" class="td-filter-select">
                 <option value="">All companies</option>
                 {% for empresa in empresas %}
@@ -858,7 +1014,7 @@ show_cart_actions, tienda_params.
               </select>
             </div>
             <div class="td-span-2">
-              <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--tf-muted);display:block;margin-bottom:8px;">Sort by</label>
+              <label class="td-filter-label" for="select-orden">Sort by</label>
               <select name="orden" id="select-orden" class="td-filter-select">
                 <option value="nombre">Name A-Z</option>
                 <option value="precio_asc">Price: low to high</option>
@@ -871,8 +1027,8 @@ show_cart_actions, tienda_params.
             <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">check_circle</span>
             Apply filters
           </button>
-          <details class="td-filter-more" style="margin:4px 16px 0;border-radius:10px;border:1px solid #E5E7EB;background:#FAFAFA;">
-            <summary style="cursor:pointer;padding:10px 12px;font-size:13px;font-weight:600;color:var(--tf-navy);list-style:none;">Quick categories</summary>
+          <details class="td-filter-more">
+            <summary>Quick categories</summary>
             <div class="td-cat-scroll">
               <ul class="td-cat-list" style="padding-top:0;" aria-label="Quick categories">
                 <li>
@@ -885,7 +1041,7 @@ show_cart_actions, tienda_params.
                 <li>
                   <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="td-cat-link tf-cat-link" data-categoria-id="{{ cat.id }}" data-active="{% if cat_activa == cat.pk|stringformat:'s' %}true{% else %}false{% endif %}">
                     <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">category</span>
-                    {{ cat.name }}
+                    {{ cat.name|category_label }}
                   </a>
                 </li>
                 {% endfor %}
@@ -902,7 +1058,7 @@ show_cart_actions, tienda_params.
 
     <div class="td-main">
       {% if productos_promo %}
-      <section class="bp-promo-band" aria-labelledby="bp-promo-title" style="overflow:hidden;position:relative;">
+      <section class="bp-promo-band" id="bp-promo-carousel" aria-labelledby="bp-promo-title" style="overflow:hidden;position:relative;">
         <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle, rgba(217,202,179,0.15) 0%, transparent 70%);pointer-events:none;"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:12px;">
           <div>
@@ -911,18 +1067,27 @@ show_cart_actions, tienda_params.
           </div>
           <a href="{{ tab_urls.ofertas }}" class="bp-promo-view-all">View all →</a>
         </div>
-        <div class="bp-promo-scroll" role="list">
-          {% for producto in productos_promo %}
-          <a href="{% url 'tienda' %}?producto={{ producto.id }}" class="bp-promo-card" role="listitem">
-            <span class="bp-promo-badge">-{{ producto.discount_pct }}%</span>
-            <div class="bp-promo-name">{{ producto.name }}</div>
-            <div class="bp-promo-prices">
-              <div class="bp-promo-was">{{ producto.unit_price|money_usd }}</div>
-              <div class="bp-promo-price">{{ producto.display_price|money_usd }}</div>
-            </div>
-          </a>
-          {% endfor %}
+        <div class="bp-promo-carousel-body">
+          <button type="button" class="bp-promo-nav bp-promo-nav--prev" id="bp-promo-prev" aria-label="Previous deals">
+            <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+          </button>
+          <div class="bp-promo-scroll" id="bp-promo-track" role="list" tabindex="0" aria-label="Active deals carousel">
+            {% for producto in productos_promo %}
+            <a href="{% url 'tienda' %}?producto={{ producto.id }}" class="bp-promo-card" role="listitem">
+              <span class="bp-promo-badge">-{{ producto.discount_pct }}%</span>
+              <div class="bp-promo-name">{{ producto.name }}</div>
+              <div class="bp-promo-prices">
+                <div class="bp-promo-was">{{ producto.unit_price|money_usd }}</div>
+                <div class="bp-promo-price">{{ producto.display_price|money_usd }}</div>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+          <button type="button" class="bp-promo-nav bp-promo-nav--next" id="bp-promo-next" aria-label="Next deals">
+            <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+          </button>
         </div>
+        <div class="bp-promo-dots" id="bp-promo-dots" role="tablist" aria-label="Deal carousel pages"></div>
       </section>
       {% endif %}
       {% if promo_banner %}
@@ -945,19 +1110,19 @@ show_cart_actions, tienda_params.
       {% if show_spotlights and spotlight_ofertas %}
       <section class="td-spotlight" aria-labelledby="td-spot-ofertas">
         <div class="td-spot-head"><h2 id="td-spot-ofertas">Daily deals</h2><a href="{{ tab_urls.ofertas }}">View all →</a></div>
-        <div class="td-grid td-grid-spot">{% for producto in spotlight_ofertas %}{% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}{% endfor %}</div>
+        <div class="td-grid td-grid-spot">{% for producto in spotlight_ofertas %}{% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}{% endfor %}</div>
       </section>
       {% endif %}
       {% if show_spotlights and spotlight_bestsellers %}
       <section class="td-spotlight" aria-labelledby="td-spot-best">
         <div class="td-spot-head"><h2 id="td-spot-best">Bestsellers in the Colón Free Zone</h2><a href="{{ tab_urls.bestsellers }}">View ranking →</a></div>
-        <div class="td-grid td-grid-spot">{% for producto in spotlight_bestsellers %}{% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}{% endfor %}</div>
+        <div class="td-grid td-grid-spot">{% for producto in spotlight_bestsellers %}{% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}{% endfor %}</div>
       </section>
       {% endif %}
       {% if show_spotlights and spotlight_destacados %}
       <section class="td-spotlight" aria-labelledby="td-spot-feat">
         <div class="td-spot-head"><h2 id="td-spot-feat">Featured selection</h2><a href="{{ tab_urls.destacados }}">View featured →</a></div>
-        <div class="td-grid td-grid-spot">{% for producto in spotlight_destacados %}{% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}{% endfor %}</div>
+        <div class="td-grid td-grid-spot">{% for producto in spotlight_destacados %}{% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}{% endfor %}</div>
       </section>
       {% endif %}
 
@@ -985,7 +1150,7 @@ show_cart_actions, tienda_params.
 
       <div class="td-grid" id="td-product-grid">
         {% for producto in productos %}
-        {% include "core/includes/product_card.html" with product=producto show_cart_actions=show_cart_actions %}
+        {% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}
         {% empty %}
         <div class="td-empty">
           <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
@@ -1031,5 +1196,6 @@ show_cart_actions, tienda_params.
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/tienda_catalog.js' %}"></script>
+<script src="{% static 'js/tienda_promo_carousel.js' %}?v={{ tf_asset_version }}"></script>
+<script src="{% static 'js/tienda_catalog.js' %}?v={{ tf_asset_version }}"></script>
 {% endblock %}
