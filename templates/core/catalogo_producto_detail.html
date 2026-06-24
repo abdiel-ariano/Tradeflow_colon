@@ -1,0 +1,220 @@
+{% extends "core/base.html" %}
+{% load static tf_money %}
+{% block title %}{{ product.name }} — {{ product.company.name }} | TradeFlow Colón{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block extra_head %}
+<meta property="og:type" content="product">
+<meta property="og:title" content="{{ product.name }} — TradeFlow Colón">
+<meta property="og:description" content="{{ meta_description }}">
+<meta property="og:image" content="{{ og_image }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ product.name }} — TradeFlow Colón">
+<meta name="twitter:description" content="{{ meta_description }}">
+<meta name="twitter:image" content="{{ og_image }}">
+<link rel="canonical" href="{{ canonical_url }}">
+<link rel="stylesheet" href="{% static 'css/tf-design-tokens.css' %}?v=design-tokens-v1">
+<link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v=design-tokens-v1">
+{% endblock %}
+
+{% block content %}
+<main class="cpd-page" id="cpd-product-detail">
+  <div class="cpd-inner">
+    <nav class="cpd-breadcrumb" aria-label="Breadcrumb">
+      <a href="{% url 'home' %}">Inicio</a>
+      <span class="cpd-breadcrumb-sep" aria-hidden="true">›</span>
+      {% if product.category %}
+      <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}">{{ product.category.name }}</a>
+      <span class="cpd-breadcrumb-sep" aria-hidden="true">›</span>
+      {% else %}
+      <a href="{% url 'catalogo_publico' %}">Catálogo</a>
+      <span class="cpd-breadcrumb-sep" aria-hidden="true">›</span>
+      {% endif %}
+      <span aria-current="page">{{ product.name }}</span>
+    </nav>
+
+    <section class="cpd-hero" aria-labelledby="cpd-product-title">
+      <div class="cpd-hero-media">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" width="800" height="600" class="cpd-hero-img">
+        {% else %}
+        <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ product.name }}" width="800" height="600" class="cpd-hero-img">
+        {% endif %}
+        {% if product.is_on_promo_now %}
+        <span class="cpd-hero-badge cpd-hero-badge--promo">-{{ product.discount_pct }}%</span>
+        {% endif %}
+      </div>
+
+      <div class="cpd-hero-info">
+        <p class="cpd-meta">
+          <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
+          {% if product.category %}
+          · <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}">{{ product.category.name }}</a>
+          {% endif %}
+        </p>
+
+        <h1 class="cpd-title" id="cpd-product-title">{{ product.name }}</h1>
+
+        <div class="cpd-badges" aria-label="Product badges">
+          {% if company.is_verified %}
+          <span class="cpd-badge cpd-badge--verified">
+            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+            CFZ Verified
+          </span>
+          {% endif %}
+          {% if export_ready %}
+          <span class="cpd-badge cpd-badge--export">
+            <span class="material-symbols-rounded" aria-hidden="true">description</span>
+            Export Ready
+          </span>
+          {% endif %}
+          <span class="cpd-badge cpd-badge--stock cpd-badge--stock-{{ stock_status }}">
+            <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+            {{ stock_label }}
+          </span>
+        </div>
+
+        <div class="cpd-price-block">
+          {% if is_guest %}
+          <p class="cpd-price cpd-price--guest">
+            Desde {{ product.display_price|money_usd }}
+          </p>
+          <p class="cpd-wholesale-hint">
+            <span class="cpd-badge cpd-badge--register">Regístrate para ver precios mayoristas</span>
+          </p>
+          <div class="cpd-actions">
+            <a href="{% url 'signup' %}?next={{ canonical_url|urlencode }}" class="ds-btn ds-btn--primary ds-btn--lg">Crear cuenta</a>
+            <a href="{% url 'login' %}?next={{ canonical_url|urlencode }}" class="ds-btn ds-btn--secondary ds-btn--lg">Iniciar sesión</a>
+          </div>
+          {% else %}
+          <div class="cpd-price cpd-price--auth">
+            {% if product.is_on_promo_now %}
+            <span class="cpd-price-old">{{ product.unit_price|money_usd }}</span>
+            {% endif %}
+            <span class="cpd-price-now">{{ product.display_price|money_usd }}</span>
+          </div>
+          <div class="cpd-actions">
+            {% if show_cart_actions and product.available_qty %}
+            <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form cpd-action-form">
+              {% csrf_token %}
+              <input type="hidden" name="cantidad" value="1">
+              <button type="submit" class="ds-btn ds-btn--primary ds-btn--lg">
+                <span class="material-symbols-rounded" aria-hidden="true">add_shopping_cart</span>
+                Add to cart
+              </button>
+            </form>
+            {% elif not product.available_qty %}
+            <span class="cpd-btn-disabled">Out of stock</span>
+            {% endif %}
+          </div>
+          {% endif %}
+          <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="cpd-supplier-link">
+            Ver catálogo del proveedor →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="cpd-tabs" aria-label="Product information">
+      <div class="cpd-tabs-nav" role="tablist">
+        <button type="button" class="cpd-tab is-active" role="tab" aria-selected="true" aria-controls="cpd-panel-desc" id="cpd-tab-desc" data-cpd-tab="desc">Descripción</button>
+        <button type="button" class="cpd-tab" role="tab" aria-selected="false" aria-controls="cpd-panel-specs" id="cpd-tab-specs" data-cpd-tab="specs">Especificaciones</button>
+        <button type="button" class="cpd-tab" role="tab" aria-selected="false" aria-controls="cpd-panel-company" id="cpd-tab-company" data-cpd-tab="company">Empresa</button>
+      </div>
+
+      <div class="cpd-tab-panels">
+        <div class="cpd-tab-panel is-active" role="tabpanel" id="cpd-panel-desc" aria-labelledby="cpd-tab-desc">
+          {% if product.description %}
+          <div class="cpd-prose">{{ product.description|linebreaks }}</div>
+          {% else %}
+          <p class="cpd-muted">No hay descripción disponible para este producto.</p>
+          {% endif %}
+        </div>
+
+        <div class="cpd-tab-panel" role="tabpanel" id="cpd-panel-specs" aria-labelledby="cpd-tab-specs" hidden>
+          <dl class="cpd-specs">
+            <div><dt>SKU</dt><dd>{{ product.sku|default:"—" }}</dd></div>
+            <div><dt>Moneda</dt><dd>{{ product.currency }}</dd></div>
+            <div><dt>Categoría</dt><dd>{{ product.category.name|default:"—" }}</dd></div>
+            <div><dt>Stock disponible</dt><dd>{{ product.available_qty }}</dd></div>
+            {% if product.is_on_promo_now %}
+            <div><dt>Precio lista</dt><dd>{{ product.unit_price|money_usd }}</dd></div>
+            <div><dt>Precio promo</dt><dd>{{ product.display_price|money_usd }}</dd></div>
+            {% else %}
+            <div><dt>Precio unitario</dt><dd>{{ product.display_price|money_usd }}</dd></div>
+            {% endif %}
+          </dl>
+        </div>
+
+        <div class="cpd-tab-panel" role="tabpanel" id="cpd-panel-company" aria-labelledby="cpd-tab-company" hidden>
+          <div class="cpd-company-card">
+            <h2 class="cpd-company-name">{{ company.name }}</h2>
+            {% if company.is_verified %}
+            <p class="cpd-company-verified">
+              <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+              Empresa verificada en la Zona Libre de Colón
+            </p>
+            {% endif %}
+            {% if company.ruc %}
+            <p class="cpd-muted"><strong>RUC:</strong> {{ company.ruc }}</p>
+            {% endif %}
+            {% if company.address_text %}
+            <p class="cpd-muted">{{ company.address_text }}</p>
+            {% endif %}
+            {% if company.tagline_es %}
+            <p class="cpd-prose">{{ company.tagline_es }}</p>
+            {% endif %}
+            <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="ds-btn ds-btn--secondary">Ver todos los productos</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {% if related_products %}
+    <section class="cpd-related" aria-labelledby="cpd-related-title">
+      <div class="cpd-related-head">
+        <h2 class="cpd-related-title" id="cpd-related-title">Productos relacionados</h2>
+        {% if product.category %}
+        <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}" class="cpd-related-link">Ver categoría →</a>
+        {% endif %}
+      </div>
+      <div class="tf-pcard-grid">
+        {% for related in related_products %}
+          {% include "core/includes/product_card_unified.html" with product=related is_public=True %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var tabs = document.querySelectorAll('[data-cpd-tab]');
+  var panels = {
+    desc: document.getElementById('cpd-panel-desc'),
+    specs: document.getElementById('cpd-panel-specs'),
+    company: document.getElementById('cpd-panel-company')
+  };
+  if (!tabs.length) return;
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var key = tab.getAttribute('data-cpd-tab');
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      Object.keys(panels).forEach(function (k) {
+        if (!panels[k]) return;
+        var show = k === key;
+        panels[k].classList.toggle('is-active', show);
+        panels[k].hidden = !show;
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}
