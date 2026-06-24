@@ -2,8 +2,24 @@
 =============================================================================
 TRADEFLOW COLÓN — tf-sections.css
 Redesigned public landing sections — requires tf-design-tokens.css
+Loaded on home.html only.
 =============================================================================
 */
+
+/* ===== BORDER RADIUS TOKENS (B2B — tighter corners on landing) ===== */
+body.tf-public:has(.hm-root),
+.hm-root {
+  --tf-radius-sm: 4px;
+  --tf-radius-md: 6px;
+  --tf-radius-lg: 8px;
+  --tf-radius-btn: 6px;
+  --tf-radius-input: 6px;
+  --tf-radius-card: 8px;
+  --tf-radius-badge: 4px;
+  --tf-radius-modal: 8px;
+  --ds-radius-xl: 8px;
+  --ds-radius-2xl: 8px;
+}
 
 /* ===== GLOBAL REVEAL ANIMATIONS ===== */
 [data-reveal] {
@@ -86,7 +102,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
 .hero-stat-card {
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: 16px;
+  border-radius: var(--tf-radius-lg);
   padding: 20px 16px;
   text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -110,7 +126,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
   align-items: center;
   justify-content: center;
   background: rgba(242, 101, 34, 0.1);
-  border-radius: 12px;
+  border-radius: var(--tf-radius-md);
 }
 
 .hero-stat-icon-wrap .material-symbols-rounded {
@@ -195,7 +211,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
 .why-card {
   background: #ffffff;
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: 20px;
+  border-radius: var(--tf-radius-lg);
   padding: 28px;
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
@@ -223,7 +239,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, var(--tf-light, #F2F3F5), rgba(242, 101, 34, 0.06));
-  border-radius: 16px;
+  border-radius: var(--tf-radius-md);
   margin-bottom: 20px;
   transition: transform 0.3s ease;
 }
@@ -266,7 +282,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
 
 /* ===== COMPANIES ===== */
 .companies-section {
-  padding: 80px 24px;
+  padding: 64px 24px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -274,8 +290,8 @@ Redesigned public landing sections — requires tf-design-tokens.css
 .companies-header {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 40px;
+  gap: 12px;
+  margin-bottom: 32px;
 }
 
 @media (min-width: 768px) {
@@ -283,31 +299,32 @@ Redesigned public landing sections — requires tf-design-tokens.css
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
+    gap: 20px;
   }
 }
 
 .companies-label {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--tf-orange, #F26522);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .companies-header h2 {
   font-family: 'DM Serif Display', serif;
-  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
   color: var(--tf-navy, #0F2A44);
   font-weight: 700;
   line-height: 1.2;
-  margin-bottom: 8px;
+  margin: 0 0 6px 0;
 }
 
 .companies-header p {
   color: var(--tf-muted, #6B7A88);
-  font-size: 1rem;
+  font-size: 0.95rem;
   margin: 0;
 }
 
@@ -317,9 +334,11 @@ Redesigned public landing sections — requires tf-design-tokens.css
   gap: 6px;
   color: var(--tf-orange, #F26522);
   font-weight: 600;
+  font-size: 0.9rem;
   text-decoration: none;
   white-space: nowrap;
   transition: gap 0.2s ease;
+  flex-shrink: 0;
 }
 
 .companies-view-all:hover {
@@ -328,7 +347,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
 }
 
 .companies-view-all .material-symbols-rounded {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .companies-grid {
@@ -347,39 +366,43 @@ Redesigned public landing sections — requires tf-design-tokens.css
 @media (min-width: 1024px) {
   .companies-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
+    gap: 20px;
   }
 }
 
 .company-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background: #ffffff;
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: 20px;
-  padding: 28px 20px;
+  border-radius: var(--tf-radius-lg);
+  padding: 24px 20px;
   text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .company-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 40px rgba(15, 42, 68, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08);
   border-color: var(--tf-orange, #F26522);
 }
 
 .company-card-avatar {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 16px;
-  border-radius: 50%;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+  border-radius: var(--tf-radius-md);
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
 }
 
 .company-card-avatar img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 8px;
+  padding: 6px;
 }
 
 .company-card-initials {
@@ -389,16 +412,17 @@ Redesigned public landing sections — requires tf-design-tokens.css
   align-items: center;
   justify-content: center;
   font-family: 'DM Serif Display', serif;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #ffffff;
+  border-radius: var(--tf-radius-md);
 }
 
 .company-card-name {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--tf-navy, #0F2A44);
-  margin-bottom: 10px;
+  margin: 0 0 10px 0;
   line-height: 1.3;
 }
 
@@ -406,23 +430,23 @@ Redesigned public landing sections — requires tf-design-tokens.css
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(39, 174, 96, 0.1);
+  background: rgba(39, 174, 96, 0.08);
   color: #27ae60;
   font-size: 0.7rem;
   font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 20px;
+  padding: 3px 10px;
+  border-radius: var(--tf-radius-sm);
   margin-bottom: 10px;
 }
 
 .company-card-badge .material-symbols-rounded {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .company-card-meta {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--tf-muted, #6B7A88);
-  margin-bottom: 16px;
+  margin: 0 0 14px 0;
 }
 
 .company-card-link {
@@ -431,9 +455,10 @@ Redesigned public landing sections — requires tf-design-tokens.css
   gap: 4px;
   color: var(--tf-orange, #F26522);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-decoration: none;
   transition: gap 0.2s ease;
+  margin-top: auto;
 }
 
 .company-card-link:hover {
@@ -442,7 +467,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
 }
 
 .company-card-link .material-symbols-rounded {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .companies-empty {
@@ -450,6 +475,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
   text-align: center;
   color: var(--tf-muted, #6B7A88);
   padding: 40px;
+  font-size: 0.95rem;
 }
 
 /* ===== HOW IT WORKS ===== */
@@ -458,7 +484,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
   max-width: 1200px;
   margin: 0 auto;
   background: var(--tf-light, #F2F3F5);
-  border-radius: var(--tf-radius-lg, 16px);
+  border-radius: var(--tf-radius-lg);
 }
 
 .hiw-header {
@@ -547,7 +573,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
   font-family: 'DM Serif Display', serif;
   font-size: 1.25rem;
   font-weight: 700;
-  border-radius: 50%;
+  border-radius: var(--tf-radius-md);
   position: relative;
   z-index: 3;
   box-shadow: 0 4px 16px rgba(242, 101, 34, 0.3);
@@ -695,7 +721,7 @@ Redesigned public landing sections — requires tf-design-tokens.css
   align-items: center;
   justify-content: center;
   padding: 14px 32px;
-  border-radius: 10px;
+  border-radius: var(--tf-radius-md);
   font-weight: 600;
   font-size: 1rem;
   text-decoration: none;
@@ -760,4 +786,53 @@ Redesigned public landing sections — requires tf-design-tokens.css
       transform: scaleY(1);
     }
   }
+}
+
+/* ===== LANDING GLOBAL RADIUS (scoped to home) ===== */
+.hm-root .tf-pcard__btn,
+.hm-root .ds-btn,
+.hm-root .ds-btn--primary,
+.hm-root .ds-btn--secondary,
+.hm-root .ds-btn--lg {
+  border-radius: var(--tf-radius-md) !important;
+}
+
+body.tf-public:has(.hm-root) .tf-hdr-search,
+body.tf-public:has(.hm-root) .tf-hdr-search-input,
+body.tf-public:has(.hm-root) .tf-hdr-search-select,
+body.tf-public:has(.hm-root) .tf-hdr-search-btn {
+  border-radius: var(--tf-radius-md);
+}
+
+.hm-root .tf-pcard,
+.hm-root .pn-grid-card,
+.hm-root .pn-feat-card,
+.hm-root .pn-step,
+.hm-root .pn-company-card,
+.hm-root .pn-hero-stats-card {
+  border-radius: var(--tf-radius-lg);
+}
+
+.hm-root .pn-company-avatar,
+.hm-root .pn-step-num {
+  border-radius: var(--tf-radius-md);
+}
+
+.hm-root .pn-company-badge,
+.hm-root .pn-grid-badge,
+.hm-root .tf-pcard__badge {
+  border-radius: var(--tf-radius-sm);
+}
+
+.hm-root .tf-hdr-search,
+.hm-root .tf-hdr-search-input {
+  border-radius: var(--tf-radius-md);
+}
+
+.hm-root input[type="search"],
+.hm-root input[type="text"],
+.hm-root input[type="email"],
+.hm-root select,
+.hm-root textarea {
+  border-radius: var(--tf-radius-md);
 }
