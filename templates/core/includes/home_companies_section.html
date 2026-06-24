@@ -1,40 +1,50 @@
 {% load static %}
-{% comment %}Lovable v2 — verified companies grid on public home.{% endcomment %}
-<section class="pn-home-section pn-home-section--cream" id="hm-companies" aria-labelledby="pn-companies-title">
-  <div class="pn-home-inner">
-    <div class="pn-home-head-row">
-      <div>
-        <p class="pn-home-label">Suppliers</p>
-        <h2 class="pn-home-title" id="pn-companies-title">Companies in the Colón Free Zone</h2>
-        <p class="pn-home-sub">Browse verified supplier catalogs with export-ready documentation.</p>
-      </div>
-      <a href="{% url 'tienda' %}?verificado=1" class="pn-home-see-all">All verified companies →</a>
+{% comment %}Verified companies grid — redesigned public home section.{% endcomment %}
+<section class="companies-section" id="hm-companies" aria-labelledby="companies-heading">
+  <div class="companies-header" data-reveal="up">
+    <div>
+      <span class="companies-label">Suppliers</span>
+      <h2 id="companies-heading">Companies in the Colón Free Zone</h2>
+      <p>Browse verified supplier catalogs with export-ready documentation.</p>
     </div>
-    <div class="tf-skeleton-host" data-tf-skeleton aria-busy="true" aria-labelledby="pn-companies-title">
-      <div class="tf-skeleton-layer" aria-hidden="true">
-        {% include "core/includes/skeletons/company_grid.html" with skeleton_count=8 %}
-      </div>
-      <div class="tf-skeleton-content">
-        <div class="pn-companies-grid">
-          {% for emp in empresas_carousel|slice:":8" %}
-          <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="pn-company-card">
-            <div class="pn-company-avatar" aria-hidden="true">{{ emp.name|slice:":1"|upper }}</div>
-            <h3 class="pn-company-name">{{ emp.name }}</h3>
-            {% if emp.is_verified %}
-            <span class="pn-company-badge">
-              <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-              CFZ Verified
+    <a href="{% url 'catalogo_publico' %}?verificado=1" class="companies-view-all">
+      All verified companies
+      <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+    </a>
+  </div>
+
+  <div class="tf-skeleton-host" data-tf-skeleton aria-busy="true" aria-labelledby="companies-heading">
+    <div class="tf-skeleton-layer" aria-hidden="true">
+      {% include "core/includes/skeletons/company_grid.html" with skeleton_count=8 %}
+    </div>
+    <div class="tf-skeleton-content">
+      <div class="companies-grid">
+        {% for emp in empresas_carousel|slice:":8" %}
+        {% cycle 'linear-gradient(135deg, #0F2A44, #2E5B8A)' 'linear-gradient(135deg, #1B3B63, #62929a)' 'linear-gradient(135deg, #F26522, #FF7A3D)' 'linear-gradient(135deg, #2E5B8A, #0F2A44)' as gradient silent %}
+        <article class="company-card" data-reveal="up" data-reveal-delay="{{ forloop.counter }}">
+          <div class="company-card-avatar">
+            <span class="company-card-initials" style="background: {{ gradient }}">
+              {{ emp.name|slice:":2"|upper }}
             </span>
-            {% endif %}
-            <p class="pn-company-meta">
-              {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
-            </p>
-            <span class="pn-company-cta">View catalog →</span>
+          </div>
+          <h3 class="company-card-name">{{ emp.name }}</h3>
+          {% if emp.is_verified %}
+          <span class="company-card-badge">
+            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+            CFZ Verified
+          </span>
+          {% endif %}
+          <p class="company-card-meta">
+            {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
+          </p>
+          <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="company-card-link">
+            Explore {{ emp.num_productos }} products
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
           </a>
-          {% empty %}
-          <p class="pn-home-empty">More companies coming soon to the marketplace.</p>
-          {% endfor %}
-        </div>
+        </article>
+        {% empty %}
+        <p class="companies-empty">More companies coming soon to the platform.</p>
+        {% endfor %}
       </div>
     </div>
   </div>
