@@ -8,13 +8,13 @@
         <h2 class="pn-home-title" id="pn-products-title">Featured products from the Free Zone</h2>
         <p class="pn-home-sub">Verified suppliers with transparent inventory — explore before you sign up.</p>
       </div>
-      <a href="{% url 'tienda' %}" class="pn-home-see-all">View full catalog →</a>
+      <a href="{% url 'catalogo_publico' %}" class="pn-home-see-all">View full catalog →</a>
     </div>
     <div class="tf-pcard-grid">
       {% for product in featured_products|slice:":8" %}
         {% include "core/includes/product_card_unified.html" with product=product is_public=True %}
       {% empty %}
-        <p class="pn-home-empty">No featured products yet. <a href="{% url 'tienda' %}">Browse the catalog</a>.</p>
+        <p class="pn-home-empty">No featured products yet. <a href="{% url 'catalogo_publico' %}">Browse the catalog</a>.</p>
       {% endfor %}
     </div>
   </div>
@@ -29,7 +29,7 @@
         <h2 class="pn-home-title" id="pn-bestsellers-title">Recommended for your business</h2>
         <p class="pn-home-sub">Top sellers in the Colón Free Zone this week.</p>
       </div>
-      <a href="{% url 'tienda' %}?tab=bestsellers" class="pn-home-see-all">See bestsellers →</a>
+      <a href="{% url 'catalogo_publico' %}?orden=novedades" class="pn-home-see-all">See bestsellers →</a>
     </div>
     <div class="tf-pcard-grid">
       {% for product in bestsellers|slice:":4" %}

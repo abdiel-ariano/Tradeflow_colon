@@ -26,7 +26,7 @@ Context: category_spotlights, stats, empresas_carousel.
         <a href="{% url 'tienda' %}" class="pn-grid-cat"><span>Spare parts</span></a>
         {% endfor %}
       </div>
-      <a href="{% url 'tienda' %}" class="pn-grid-link">See all categories →</a>
+      <a href="{% url 'catalogo_publico' %}" class="pn-grid-link">See all categories →</a>
     </article>
 
     <article class="pn-grid-card">
@@ -43,7 +43,7 @@ Context: category_spotlights, stats, empresas_carousel.
         Explore audited supplier catalogs with export-ready documentation.{% endif %}
         {% endwith %}
       </p>
-      <a href="{% url 'tienda' %}?verificado=1" class="pn-grid-link">Explore catalogs →</a>
+      <a href="{% url 'catalogo_publico' %}?verificado=1" class="pn-grid-link">Explore catalogs →</a>
     </article>
 
     <article class="pn-grid-card">

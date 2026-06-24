@@ -12,7 +12,7 @@
     </div>
     <div class="pn-companies-grid">
       {% for emp in empresas_carousel|slice:":8" %}
-      <a href="{% url 'tienda' %}?empresa={{ emp.pk }}" class="pn-company-card">
+      <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="pn-company-card">
         <div class="pn-company-avatar" aria-hidden="true">{{ emp.name|slice:":1"|upper }}</div>
         <h3 class="pn-company-name">{{ emp.name }}</h3>
         {% if emp.is_verified %}

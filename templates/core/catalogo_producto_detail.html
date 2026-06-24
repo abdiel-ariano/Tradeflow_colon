@@ -26,7 +26,7 @@
       <a href="{% url 'tienda' %}?categoria={{ product.category_id }}">{{ product.category.name }}</a>
       <span class="cpd-breadcrumb-sep" aria-hidden="true">›</span>
       {% else %}
-      <a href="{% url 'tienda' %}">Catálogo</a>
+      <a href="{% url 'catalogo_publico' %}">Catálogo</a>
       <span class="cpd-breadcrumb-sep" aria-hidden="true">›</span>
       {% endif %}
       <span aria-current="page">{{ product.name }}</span>
