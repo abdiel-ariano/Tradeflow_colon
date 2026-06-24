@@ -10,12 +10,19 @@
       </div>
       <a href="{% url 'catalogo_publico' %}" class="pn-home-see-all">View full catalog →</a>
     </div>
-    <div class="tf-pcard-grid">
-      {% for product in featured_products|slice:":8" %}
-        {% include "core/includes/product_card_unified.html" with product=product is_public=True %}
-      {% empty %}
-        <p class="pn-home-empty">No featured products yet. <a href="{% url 'catalogo_publico' %}">Browse the catalog</a>.</p>
-      {% endfor %}
+    <div class="tf-skeleton-host" data-tf-skeleton aria-busy="true" aria-labelledby="pn-products-title">
+      <div class="tf-skeleton-layer" aria-hidden="true">
+        {% include "core/includes/skeletons/product_grid.html" with skeleton_count=8 %}
+      </div>
+      <div class="tf-skeleton-content">
+        <div class="tf-pcard-grid">
+          {% for product in featured_products|slice:":8" %}
+            {% include "core/includes/product_card_unified.html" with product=product is_public=True %}
+          {% empty %}
+            <p class="pn-home-empty">No featured products yet. <a href="{% url 'catalogo_publico' %}">Browse the catalog</a>.</p>
+          {% endfor %}
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -31,10 +38,17 @@
       </div>
       <a href="{% url 'catalogo_publico' %}?orden=novedades" class="pn-home-see-all">See bestsellers →</a>
     </div>
-    <div class="tf-pcard-grid">
-      {% for product in bestsellers|slice:":4" %}
-        {% include "core/includes/product_card_unified.html" with product=product is_public=True %}
-      {% endfor %}
+    <div class="tf-skeleton-host" data-tf-skeleton aria-busy="true" aria-labelledby="pn-bestsellers-title">
+      <div class="tf-skeleton-layer" aria-hidden="true">
+        {% include "core/includes/skeletons/product_grid.html" with skeleton_count=4 %}
+      </div>
+      <div class="tf-skeleton-content">
+        <div class="tf-pcard-grid">
+          {% for product in bestsellers|slice:":4" %}
+            {% include "core/includes/product_card_unified.html" with product=product is_public=True %}
+          {% endfor %}
+        </div>
+      </div>
     </div>
   </div>
 </section>

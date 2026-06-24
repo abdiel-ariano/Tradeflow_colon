@@ -13,6 +13,7 @@
 <meta name="twitter:description" content="{{ meta_description }}">
 <meta name="twitter:image" content="{{ og_image }}">
 <link rel="canonical" href="{{ canonical_url }}">
+<link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
@@ -32,6 +33,11 @@
       <span aria-current="page">{{ product.name }}</span>
     </nav>
 
+    <div class="tf-skeleton-host" id="cpd-hero-host" data-tf-skeleton aria-busy="true">
+      <div class="tf-skeleton-layer" aria-hidden="true">
+        {% include "core/includes/skeletons/product_detail.html" %}
+      </div>
+      <div class="tf-skeleton-content">
     <section class="cpd-hero" aria-labelledby="cpd-product-title">
       <div class="cpd-hero-media">
         {% if product.image %}
@@ -121,6 +127,8 @@
         </div>
       </div>
     </section>
+      </div>
+    </div>
 
     <section class="cpd-tabs" aria-label="Product information">
       <div class="cpd-tabs-nav" role="tablist">
@@ -197,6 +205,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/tf-skeletons.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var tabs = document.querySelectorAll('[data-cpd-tab]');
