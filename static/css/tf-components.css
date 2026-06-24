@@ -352,8 +352,10 @@ Requiere: tf-design-tokens.css
 .cpd-price--guest { font-family: var(--tf-font-body, 'Montserrat', sans-serif); }
 .cpd-price-old {
   font-size: 1rem;
-  color: var(--tf-muted, #6B7A88);
+  color: #1B3B63;
   text-decoration: line-through;
+  text-decoration-color: #6B7A88;
+  text-decoration-thickness: 1.5px;
   margin-right: 10px;
   font-weight: 500;
 }
