@@ -89,7 +89,7 @@ Public home sections below hero/grid — Lovable v2 palette.
 .pn-company-card {
   background: #fff;
   border: 1px solid var(--ds-gray-border, #E2E8F0);
-  border-radius: var(--ds-radius-xl, 12px);
+  border-radius: var(--tf-radius-lg, 8px);
   padding: 24px 20px;
   text-align: center;
   text-decoration: none;
@@ -109,7 +109,7 @@ Public home sections below hero/grid — Lovable v2 palette.
 .pn-company-avatar {
   width: 56px;
   height: 56px;
-  border-radius: 50%;
+  border-radius: var(--tf-radius-md, 6px);
   background: var(--ds-navy, #0D1B2A);
   color: #fff;
   font-size: 1.25rem;
@@ -132,7 +132,7 @@ Public home sections below hero/grid — Lovable v2 palette.
   font-weight: 600;
   color: #1a7a3c;
   background: rgba(31, 173, 111, 0.12);
-  border-radius: 999px;
+  border-radius: var(--tf-radius-sm, 4px);
   padding: 3px 10px;
 }
 .pn-company-badge .material-symbols-rounded { font-size: 13px; }
@@ -159,13 +159,13 @@ Public home sections below hero/grid — Lovable v2 palette.
 .pn-feat-card {
   background: #fff;
   border: 1px solid var(--ds-gray-border, #E2E8F0);
-  border-radius: var(--ds-radius-xl, 12px);
+  border-radius: var(--tf-radius-lg, 8px);
   padding: 24px;
 }
 .pn-feat-ico {
   width: 44px;
   height: 44px;
-  border-radius: 10px;
+  border-radius: var(--tf-radius-md, 6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -199,14 +199,14 @@ Public home sections below hero/grid — Lovable v2 palette.
 .pn-step {
   background: #fff;
   border: 1px solid var(--ds-gray-border, #E2E8F0);
-  border-radius: var(--ds-radius-xl, 12px);
+  border-radius: var(--tf-radius-lg, 8px);
   padding: 22px 20px;
   position: relative;
 }
 .pn-step-num {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--tf-radius-md, 6px);
   background: var(--ds-orange, #E8490F);
   color: #fff;
   font-size: 13px;

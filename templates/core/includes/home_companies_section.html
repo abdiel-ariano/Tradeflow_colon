@@ -1,5 +1,5 @@
 {% load static %}
-{% comment %}Verified companies grid — redesigned public home section.{% endcomment %}
+{% comment %}Verified companies grid — public home section.{% endcomment %}
 <section class="companies-section" id="hm-companies" aria-labelledby="companies-heading">
   <div class="companies-header" data-reveal="up">
     <div>
@@ -13,39 +13,30 @@
     </a>
   </div>
 
-  <div class="tf-skeleton-host" data-tf-skeleton aria-busy="true" aria-labelledby="companies-heading">
-    <div class="tf-skeleton-layer" aria-hidden="true">
-      {% include "core/includes/skeletons/company_grid.html" with skeleton_count=8 %}
-    </div>
-    <div class="tf-skeleton-content">
-      <div class="companies-grid">
-        {% for emp in empresas_carousel|slice:":8" %}
-        {% cycle 'linear-gradient(135deg, #0F2A44, #2E5B8A)' 'linear-gradient(135deg, #1B3B63, #62929a)' 'linear-gradient(135deg, #F26522, #FF7A3D)' 'linear-gradient(135deg, #2E5B8A, #0F2A44)' as gradient silent %}
-        <article class="company-card" data-reveal="up" data-reveal-delay="{{ forloop.counter }}">
-          <div class="company-card-avatar">
-            <span class="company-card-initials" style="background: {{ gradient }}">
-              {{ emp.name|slice:":2"|upper }}
-            </span>
-          </div>
-          <h3 class="company-card-name">{{ emp.name }}</h3>
-          {% if emp.is_verified %}
-          <span class="company-card-badge">
-            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-            CFZ Verified
-          </span>
-          {% endif %}
-          <p class="company-card-meta">
-            {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
-          </p>
-          <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="company-card-link">
-            Explore {{ emp.num_productos }} products
-            <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
-          </a>
-        </article>
-        {% empty %}
-        <p class="companies-empty">More companies coming soon to the platform.</p>
-        {% endfor %}
+  <div class="companies-grid">
+    {% for emp in empresas_carousel|slice:":8" %}
+    <article class="company-card" data-reveal="up" data-reveal-delay="{% cycle '1' '2' '3' '4' %}">
+      <div class="company-card-avatar">
+        <span class="company-card-initials"
+              style="background: {% cycle 'linear-gradient(135deg, #0F2A44, #2E5B8A)' 'linear-gradient(135deg, #1B3B63, #62929a)' 'linear-gradient(135deg, #2E5B8A, #0F2A44)' 'linear-gradient(135deg, #1B3B63, #2E5B8A)' %}">
+          {{ emp.name|slice:":2"|upper }}
+        </span>
       </div>
-    </div>
+      <h3 class="company-card-name">{{ emp.name }}</h3>
+      <span class="company-card-badge">
+        <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+        CFZ Verified
+      </span>
+      <p class="company-card-meta">
+        {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
+      </p>
+      <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="company-card-link">
+        Explore {{ emp.num_productos }} products
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+      </a>
+    </article>
+    {% empty %}
+    <p class="companies-empty">More companies coming soon to the platform.</p>
+    {% endfor %}
   </div>
 </section>
