@@ -183,7 +183,7 @@ def category_spotlights(limit_per_cat: int = 4, max_cats: int = 4):
 
 
 def home_stats():
-    """Estadísticas para hero CountUp (datos reales ORM)."""
+    """Estadísticas para hero y home (datos reales ORM)."""
     from .models import Order
 
     since = timezone.now() - timedelta(days=30)
@@ -199,11 +199,26 @@ def home_stats():
     gmv_dec = quantize_money(gmv)
     gmv_int = int(gmv_dec)
 
+    empresas_verificadas = (
+        Company.objects.filter(is_verified=True, products__is_active=True)
+        .distinct()
+        .count()
+    )
+    categorias_activas = (
+        Category.objects.annotate(
+            n=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(n__gt=0)
+        .count()
+    )
+
     return {
-        'empresas': Company.objects.filter(is_verified=True).count() or Company.objects.count(),
+        'empresas': empresas_verificadas or Company.objects.count(),
+        'empresas_verificadas': empresas_verificadas,
         'productos': Product.objects.filter(is_active=True).count(),
         'ordenes': Order.objects.exclude(status='cancelled').count(),
-        'categorias': Category.objects.count(),
+        'ordenes_completadas': Order.objects.filter(status='delivered').count(),
+        'categorias': categorias_activas or Category.objects.count(),
         'gmv_30d': gmv_int,
         'gmv_30d_fmt': format_money_usd(gmv_dec),
     }
