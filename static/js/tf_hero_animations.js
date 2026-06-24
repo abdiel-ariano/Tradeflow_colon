@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  var shipContainer = document.querySelector('.hero-ship-container');
+  var shipContainer = document.querySelector('.hero-ship-container') || document.getElementById('hero-ship-container');
   if (!shipContainer) return;
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

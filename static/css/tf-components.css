@@ -57,6 +57,20 @@ Requiere: tf-design-tokens.css
   display: block;
 }
 
+.tf-pcard__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--tf-navy, #0F2A44) 0%, var(--tf-blue, #2E5B8A) 100%);
+}
+
+.tf-pcard__placeholder .material-symbols-rounded {
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
 .tf-pcard__badge {
   position: absolute;
   top: 10px;
@@ -121,8 +135,11 @@ Requiere: tf-design-tokens.css
 }
 .tf-pcard__price-old {
   font-size: var(--tf-text-sm, 13px);
-  color: var(--tf-muted, #6B7A88);
+  font-weight: 500;
+  color: #1B3B63;
   text-decoration: line-through;
+  text-decoration-color: #6B7A88;
+  text-decoration-thickness: 1.5px;
 }
 .tf-pcard__price-now {
   font-size: var(--tf-text-md, 16px);

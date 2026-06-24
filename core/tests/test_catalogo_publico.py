@@ -36,7 +36,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, 'Wholesale Gadget')
         self.assertContains(response, 'tf-pcard')
         self.assertContains(response, 'Colón Free Zone Wholesale Catalog')
-        self.assertNotContains(response, 'id="cat-search-form"')
+        self.assertNotContains(response, 'cat-sort-select--quick')
         self.assertContains(response, 'CFZ Verified only')
 
     def test_search_filter(self):

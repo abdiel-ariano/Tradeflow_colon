@@ -17,7 +17,9 @@ Variables:
     {% if product.image %}
     <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300">
     {% else %}
-    <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300">
+    <div class="tf-pcard__placeholder" aria-hidden="true">
+      <span class="material-symbols-rounded">inventory_2</span>
+    </div>
     {% endif %}
     {% if not product.available_qty %}
     <span class="tf-pcard__badge tf-pcard__badge--out">Out of stock</span>

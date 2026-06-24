@@ -73,14 +73,14 @@ Context: stats (empresas_verificadas, productos, ordenes_completadas, categorias
           </div>
           <div class="hero-stat-card hero-stat-card--highlight"
                data-count="{{ stats.gmv_30d|default:0 }}"
-               data-prefix="USD "
+               data-prefix="$"
                data-decimals="0">
             <div class="hero-stat-icon-wrap">
               <span class="material-symbols-rounded">trending_up</span>
             </div>
             <span class="hero-stat-number"
                   data-target="{{ stats.gmv_30d|default:0 }}"
-                  data-prefix="USD "
+                  data-prefix="$"
                   data-decimals="0">0</span>
             <span class="hero-stat-label">Volume last 30 days</span>
           </div>
@@ -88,7 +88,7 @@ Context: stats (empresas_verificadas, productos, ordenes_completadas, categorias
       </section>
 
       <div class="pn-hero-art">
-        <div class="hero-ship-container" data-reveal="ship">
+        <div class="hero-ship-container" id="hero-ship-container">
           <div class="hero-waves" aria-hidden="true">
             <svg class="hero-wave hero-wave--back" viewBox="0 0 1440 120" preserveAspectRatio="none">
               <path d="M0,60 C240,120 480,0 720,60 C960,120 1200,0 1440,60 L1440,120 L0,120 Z"/>

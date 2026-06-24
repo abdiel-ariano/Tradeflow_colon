@@ -35,6 +35,16 @@
         {% if buscar %}<input type="hidden" name="buscar" value="{{ buscar }}">{% endif %}
         {% if empresa %}<input type="hidden" name="empresa" value="{{ empresa }}">{% endif %}
 
+        <div class="cat-filter-group cat-filter-group--sort">
+          <h2 class="cat-filter-title">Sort by</h2>
+          <select name="orden" class="cat-sort-select" aria-label="Sort results">
+            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevance</option>
+            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price ↑</option>
+            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price ↓</option>
+            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
+          </select>
+        </div>
+
         <div class="cat-filter-group">
           <h2 class="cat-filter-title">Category</h2>
           <ul class="cat-check-list">
@@ -118,16 +128,6 @@
           </label>
         </div>
 
-        <div class="cat-filter-group">
-          <h2 class="cat-filter-title">Sort by</h2>
-          <select name="orden" class="cat-sort-select" aria-label="Sort results">
-            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevance</option>
-            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price ↑</option>
-            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price ↓</option>
-            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
-          </select>
-        </div>
-
         <div class="cat-filter-actions">
           <button type="submit" class="ds-btn ds-btn--primary ds-btn--full">Apply filters</button>
           <a href="{% url 'catalogo_publico' %}" class="cat-btn-clear">Clear filters</a>
@@ -136,22 +136,13 @@
     </aside>
 
     <div class="cat-main">
-      <div class="cat-main-header">
-        <p class="cat-results-count">
-          {% if buscar or categorias_sel or empresa or precio_min or precio_max or solo_stock or solo_stock_low or solo_on_sale or solo_verificado %}
-          <strong>{{ total_resultados }}</strong> result{{ total_resultados|pluralize }} found
-          {% else %}
-          Browsing <strong>{{ catalogo_stats.productos }}</strong> wholesale products
-          {% endif %}
-        </p>
-        <select class="cat-sort-select cat-sort-select--quick" aria-label="Quick sort"
-                onchange="var f=document.getElementById('cat-filters-form');f.querySelector('[name=orden]').value=this.value;f.submit();">
-          <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevance</option>
-          <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price ↑</option>
-          <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price ↓</option>
-          <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
-        </select>
-      </div>
+      <p class="cat-results-count">
+        {% if buscar or categorias_sel or empresa or precio_min or precio_max or solo_stock or solo_stock_low or solo_on_sale or solo_verificado %}
+        {{ total_resultados }} result{{ total_resultados|pluralize }} found
+        {% else %}
+        Browsing {{ catalogo_stats.productos }} wholesale products
+        {% endif %}
+      </p>
 
       <div class="tf-skeleton-host" id="cat-results-host" data-tf-skeleton aria-busy="true" aria-live="polite">
         <div class="tf-skeleton-layer" aria-hidden="true">

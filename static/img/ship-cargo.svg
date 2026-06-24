@@ -9,7 +9,6 @@
       <stop offset="1" stop-color="#1A2D42"/>
     </linearGradient>
   </defs>
-  <path d="M55 228 Q75 222 90 228 L88 236 Q72 232 55 236 Z" fill="#0D1B2A" fill-opacity="0.08"/>
   <path d="M70 218 L410 218 L385 248 L95 248 Z" fill="url(#ship-hull-grad)"/>
   <path d="M70 218 L55 228 L95 248 Z" fill="#0D1B2A"/>
   <path d="M95 248 L385 248 L375 255 L105 255 Z" fill="#0D1B2A" fill-opacity="0.35"/>
@@ -36,5 +35,4 @@
   <rect x="398" y="96" width="10" height="8" rx="1" fill="#E8490F"/>
   <path d="M130 168 L130 118 L145 118 L145 168" stroke="#4A5568" stroke-width="3"/>
   <path d="M130 118 L165 108" stroke="#4A5568" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="88" cy="205" r="7" stroke="#E8490F" stroke-width="2.5" fill="none"/>
 </svg>
