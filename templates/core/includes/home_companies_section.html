@@ -10,25 +10,32 @@
       </div>
       <a href="{% url 'tienda' %}?verificado=1" class="pn-home-see-all">All verified companies →</a>
     </div>
-    <div class="pn-companies-grid">
-      {% for emp in empresas_carousel|slice:":8" %}
-      <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="pn-company-card">
-        <div class="pn-company-avatar" aria-hidden="true">{{ emp.name|slice:":1"|upper }}</div>
-        <h3 class="pn-company-name">{{ emp.name }}</h3>
-        {% if emp.is_verified %}
-        <span class="pn-company-badge">
-          <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-          CFZ Verified
-        </span>
-        {% endif %}
-        <p class="pn-company-meta">
-          {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
-        </p>
-        <span class="pn-company-cta">View catalog →</span>
-      </a>
-      {% empty %}
-      <p class="pn-home-empty">More companies coming soon to the marketplace.</p>
-      {% endfor %}
+    <div class="tf-skeleton-host" data-tf-skeleton aria-busy="true" aria-labelledby="pn-companies-title">
+      <div class="tf-skeleton-layer" aria-hidden="true">
+        {% include "core/includes/skeletons/company_grid.html" with skeleton_count=8 %}
+      </div>
+      <div class="tf-skeleton-content">
+        <div class="pn-companies-grid">
+          {% for emp in empresas_carousel|slice:":8" %}
+          <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="pn-company-card">
+            <div class="pn-company-avatar" aria-hidden="true">{{ emp.name|slice:":1"|upper }}</div>
+            <h3 class="pn-company-name">{{ emp.name }}</h3>
+            {% if emp.is_verified %}
+            <span class="pn-company-badge">
+              <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+              CFZ Verified
+            </span>
+            {% endif %}
+            <p class="pn-company-meta">
+              {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
+            </p>
+            <span class="pn-company-cta">View catalog →</span>
+          </a>
+          {% empty %}
+          <p class="pn-home-empty">More companies coming soon to the marketplace.</p>
+          {% endfor %}
+        </div>
+      </div>
     </div>
   </div>
 </section>

@@ -3,6 +3,7 @@
 {% block title %}Catálogo Mayorista Zona Libre de Colón | TradeFlow{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/catalogo-publico.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
@@ -131,35 +132,83 @@
         </select>
       </div>
 
-      {% include "core/includes/catalogo_publico_results.html" %}
+      <div class="tf-skeleton-host" id="cat-results-host" data-tf-skeleton aria-busy="true" aria-live="polite">
+        <div class="tf-skeleton-layer" aria-hidden="true">
+          {% include "core/includes/skeletons/product_grid.html" with skeleton_count=12 %}
+        </div>
+        <div class="tf-skeleton-content">
+          {% include "core/includes/catalogo_publico_results.html" %}
+        </div>
+      </div>
     </div>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/tf-skeletons.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var openBtn = document.getElementById('cat-filter-open');
   var sidebar = document.getElementById('cat-sidebar');
   var backdrop = document.getElementById('cat-sidebar-backdrop');
-  if (!openBtn || !sidebar) return;
-
-  function setOpen(open) {
-    sidebar.classList.toggle('is-open', open);
-    if (backdrop) {
-      backdrop.classList.toggle('is-open', open);
-      backdrop.hidden = !open;
+  if (openBtn && sidebar) {
+    function setOpen(open) {
+      sidebar.classList.toggle('is-open', open);
+      if (backdrop) {
+        backdrop.classList.toggle('is-open', open);
+        backdrop.hidden = !open;
+      }
+      openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
-    openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    openBtn.addEventListener('click', function () {
+      setOpen(!sidebar.classList.contains('is-open'));
+    });
+    if (backdrop) {
+      backdrop.addEventListener('click', function () { setOpen(false); });
+    }
   }
 
-  openBtn.addEventListener('click', function () {
-    setOpen(!sidebar.classList.contains('is-open'));
-  });
-  if (backdrop) {
-    backdrop.addEventListener('click', function () { setOpen(false); });
+  var host = document.getElementById('cat-results-host');
+  var filtersForm = document.getElementById('cat-filters-form');
+  var searchForm = document.getElementById('cat-search-form');
+
+  function reloadResults(url) {
+    if (!host || !window.TFSkeleton) return;
+    TFSkeleton.show(host);
+    fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'partial=1', {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        var content = host.querySelector('.tf-skeleton-content');
+        if (content) content.innerHTML = html;
+        if (window.TFSkeleton && TFSkeleton.refresh) TFSkeleton.refresh(host);
+        else if (window.TFSkeleton) TFSkeleton.ready(host);
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, '', url);
+        }
+      })
+      .catch(function () {
+        window.location.href = url;
+      });
   }
+
+  function interceptForm(form) {
+    if (!form || !host) return;
+    form.addEventListener('submit', function (e) {
+      if (!window.fetch) return;
+      e.preventDefault();
+      var params = new URLSearchParams(new FormData(form));
+      params.delete('page');
+      var qs = params.toString();
+      var base = form.getAttribute('action') || window.location.pathname;
+      reloadResults(base + (qs ? '?' + qs : ''));
+    });
+  }
+
+  interceptForm(filtersForm);
+  interceptForm(searchForm);
 })();
 </script>
 {% endblock %}

@@ -6,6 +6,7 @@ Context: home_view — stats, featured_products, bestsellers, empresas_carousel,
 {% endcomment %}
 {% block title %}TradeFlow Colón — Shop the Colón Free Zone{% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
@@ -20,6 +21,7 @@ Context: home_view — stats, featured_products, bestsellers, empresas_carousel,
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/tf-skeletons.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var els = document.querySelectorAll('.js-count-up[data-count]');
