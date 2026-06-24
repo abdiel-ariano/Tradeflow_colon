@@ -1,82 +1,88 @@
 {% load static %}
-{% comment %}Lovable v2 — Public navbar (guest: 2 rows).{% endcomment %}
-<header class="pn-shell" id="pn-public-shell">
-  <nav class="pn-nav pn-nav--guest" aria-label="TradeFlow store">
-    <div class="pn-nav-row pn-nav-row--main">
-      <a href="{% url 'home' %}" class="pn-brand" aria-label="TradeFlow Colón">
-        <span class="pn-brand-mark" aria-hidden="true">TF</span>
-        <span class="pn-brand-text">
-          <span class="pn-brand-name">TradeFlow</span>
-          <span class="pn-brand-tld">.cfz</span>
+{% comment %}
+Header público B2B — búsqueda prominente estilo Amazon (invitados).
+Contexto: nav_header_categories, carrito_count (0 para invitados).
+{% endcomment %}
+<header class="tf-hdr-shell pn-shell" id="tf-header-shell">
+  <div class="tf-hdr-sticky-bar" id="tf-hdr-sticky-bar" aria-hidden="true">
+    {% include "core/includes/tf_header_search.html" with input_id="tf-hdr-sticky-input" form_id="tf-hdr-sticky-form" %}
+  </div>
+
+  <nav class="tf-hdr" aria-label="TradeFlow Colón">
+    <div class="tf-hdr-row tf-hdr-row--main">
+      <a href="{% url 'home' %}" class="tf-hdr-logo" aria-label="TradeFlow Colón">
+        {% include "core/includes/tf_logo.html" with variant="icon-white" size="sm" class="tf-hdr-logo-img" eager=1 %}
+        <span class="tf-hdr-logo-text">
+          <span class="tf-hdr-logo-name">TradeFlow</span>
+          <span class="tf-hdr-logo-tld">Zona Libre CFZ</span>
         </span>
       </a>
 
-      <div class="pn-location" title="Delivery region">
-        <span class="pn-location-label">
-          <span class="material-symbols-rounded" aria-hidden="true">location_on</span>
-          Deliver to
-        </span>
-        <span class="pn-location-value">Worldwide</span>
+      {% include "core/includes/tf_header_search.html" with input_id="tf-hdr-search-input" form_id="tf-hdr-search-form" value=request.GET.buscar %}
+
+      <div class="tf-hdr-actions">
+        <a href="{% url 'login' %}" class="tf-hdr-action-link tf-hdr-action-link--outline tf-hdr-action-link--text">Iniciar sesión</a>
+        <a href="{% url 'signup' %}" class="tf-hdr-action-link tf-hdr-action-link--primary">Crear cuenta</a>
+        <a href="{% url 'login' %}?next={% url 'ver_carrito' %}" class="tf-hdr-cart" title="Inicia sesión para ver el carrito">
+          <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
+          <span class="tf-hdr-cart-badge" data-count="0" aria-hidden="true"></span>
+        </a>
       </div>
 
-      <form class="pn-search" action="{% url 'catalogo_publico' %}" method="get" role="search">
-        <label class="visually-hidden" for="pn-search-input">Search</label>
-        <select class="pn-search-scope" name="scope" aria-label="Search scope" disabled>
-          <option>All</option>
-        </select>
-        <input id="pn-search-input" class="pn-search-input" type="search" name="buscar"
-               placeholder="Search verified companies…" autocomplete="off">
-        <button type="submit" class="pn-search-btn" aria-label="Search">
-          <span class="material-symbols-rounded" aria-hidden="true">search</span>
-        </button>
-      </form>
-
-      <button type="button" class="pn-hamburger" id="pn-hamburger" aria-label="Menu" aria-expanded="false">
+      <button type="button" class="tf-hdr-icon-btn tf-hdr-search-toggle" aria-label="Buscar" aria-expanded="false">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      </button>
+      <button type="button" class="tf-hdr-hamburger" aria-label="Menú" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
-
-      <div class="pn-actions">
-        <button type="button" class="pn-lang" aria-label="Language English">
-          <span aria-hidden="true">🇺🇸</span> EN <span class="material-symbols-rounded" style="font-size:16px;">expand_more</span>
-        </button>
-        <a href="{% url 'login' %}" class="pn-account-link">
-          <span class="pn-account-top">Hello, sign in</span>
-          <span class="pn-account-bottom">Account &amp; Lists</span>
-        </a>
-        <a href="{% url 'login' %}" class="pn-account-link">
-          <span class="pn-account-top">Returns</span>
-          <span class="pn-account-bottom">&amp; Orders</span>
-        </a>
-        <a href="{% url 'signup' %}" class="pn-btn-create">Create Account</a>
-        <a href="{% url 'login' %}?next={% url 'ver_carrito' %}" class="pn-cart" title="Sign in to view cart">
-          <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
-          <span class="pn-cart-badge" data-count="0" aria-hidden="true"></span>
-        </a>
-      </div>
     </div>
 
-    <div class="pn-nav-row pn-nav-row--sub" id="pn-sub-nav">
-      <a href="{% url 'catalogo_publico' %}" class="pn-sub-link">All</a>
-      <a href="{% url 'catalogo_publico' %}?orden=novedades" class="pn-sub-link">Today's Deals</a>
-      <a href="{% url 'catalogo_publico' %}?verificado=1" class="pn-sub-link">Verified Companies</a>
-      <a href="{% url 'catalogo_publico' %}" class="pn-sub-link">CFZ Catalog</a>
-      <a href="{% url 'catalogo_publico' %}" class="pn-sub-link">Bulk Orders</a>
-      <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Logistics</a>
-      <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Documentation</a>
-      <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Buyer Protection</a>
-      <a href="{% url 'signup' %}?role=seller" class="pn-sub-link">Sell on TradeFlow</a>
+    <div class="tf-hdr-mobile-search" id="tf-hdr-mobile-search" aria-hidden="true">
+      {% include "core/includes/tf_header_search.html" with input_id="tf-hdr-mobile-input" form_id="tf-hdr-mobile-form" value=request.GET.buscar %}
+    </div>
+
+    <div class="tf-hdr-row tf-hdr-row--sub" id="tf-hdr-sub-nav">
+      <div class="tf-hdr-cat-wrap">
+        <button type="button" class="tf-hdr-cat-btn" aria-expanded="false" aria-haspopup="true">
+          <span class="material-symbols-rounded" style="font-size:20px;" aria-hidden="true">menu</span>
+          Categorías
+        </button>
+        <div class="tf-hdr-cat-panel" role="menu">
+          {% for cat in nav_header_categories %}
+          <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}" role="menuitem">
+            {{ cat.name }}
+            <small>{{ cat.num_productos }}</small>
+          </a>
+          {% empty %}
+          <a href="{% url 'catalogo_publico' %}" role="menuitem">Ver catálogo completo</a>
+          {% endfor %}
+          <a href="{% url 'catalogo_publico' %}" role="menuitem" style="font-weight:700;color:var(--tf-orange);">
+            Todas las categorías →
+          </a>
+        </div>
+      </div>
+      <a href="{% url 'catalogo_publico' %}?orden=novedades" class="tf-hdr-sub-link">Ofertas</a>
+      <a href="{% url 'catalogo_publico' %}?verificado=1" class="tf-hdr-sub-link">Empresas verificadas</a>
+      <a href="{% url 'home' %}#como-funciona" class="tf-hdr-sub-link">Cómo funciona</a>
+      <a href="{% url 'catalogo_publico' %}" class="tf-hdr-sub-link">Catálogo mayorista</a>
+      <a href="{% url 'signup' %}?role=seller" class="tf-hdr-sub-link">Vender en TradeFlow</a>
     </div>
   </nav>
+
+  <div class="tf-hdr-drawer-backdrop" aria-hidden="true"></div>
+  <aside class="tf-hdr-drawer" id="tf-hdr-drawer" aria-label="Menú de navegación" aria-hidden="true">
+    <a href="{% url 'catalogo_publico' %}">Catálogo completo</a>
+    <a href="{% url 'catalogo_publico' %}?verificado=1">Empresas verificadas</a>
+    <a href="{% url 'catalogo_publico' %}?orden=novedades">Ofertas</a>
+    <h2>Categorías</h2>
+    {% for cat in nav_header_categories %}
+    <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}">{{ cat.name }}</a>
+    {% endfor %}
+    <h2>Cuenta</h2>
+    <a href="{% url 'login' %}">Iniciar sesión</a>
+    <a href="{% url 'signup' %}">Crear cuenta</a>
+    <a href="{% url 'home' %}#como-funciona">Cómo funciona</a>
+  </aside>
 </header>
 
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var btn = document.getElementById('pn-hamburger');
-  var sub = document.getElementById('pn-sub-nav');
-  if (!btn || !sub) return;
-  btn.addEventListener('click', function () {
-    var open = sub.classList.toggle('is-open');
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  });
-})();
-</script>
+<script src="{% static 'js/tf-header.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>

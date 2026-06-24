@@ -136,6 +136,7 @@ TEMPLATES = [
                 'core.context_processors.supabase_public',
                 'core.context_processors.enterprise_saas',
                 'core.context_processors.tf_asset_version',
+                'core.context_processors.nav_header_categories',
             ],
         },
     },

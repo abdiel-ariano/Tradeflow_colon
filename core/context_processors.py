@@ -145,3 +145,19 @@ def supabase_public(request):
 def tf_asset_version(request):
     """Version string for static asset cache busting (?v=)."""
     return {'tf_asset_version': getattr(settings, 'TRADEFLOW_ASSET_VERSION', '1')}
+
+
+def nav_header_categories(request):
+    """Top categorías con productos activos — dropdown del header público."""
+    from django.db.models import Count, Q
+
+    from core.models import Category
+
+    categories = list(
+        Category.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
+        .order_by('-num_productos', 'name')[:10]
+    )
+    return {'nav_header_categories': categories}
