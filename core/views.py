@@ -2918,6 +2918,8 @@ def catalogo_publico(request):
     precio_min = request.GET.get('precio_min', '').strip()
     precio_max = request.GET.get('precio_max', '').strip()
     solo_stock = request.GET.get('stock', '') in ('1', 'true', 'on')
+    solo_stock_low = request.GET.get('stock_low', '') in ('1', 'true', 'on')
+    solo_on_sale = request.GET.get('on_sale', '') in ('1', 'true', 'on')
     solo_verificado = request.GET.get('verificado', '') == '1'
     orden = request.GET.get('orden', 'relevancia').strip() or 'relevancia'
 
@@ -2953,6 +2955,18 @@ def catalogo_publico(request):
 
     if solo_stock:
         productos = productos.filter(avail_qty__gt=0)
+
+    if solo_stock_low:
+        productos = productos.filter(
+            avail_qty__gt=0,
+            avail_qty__lte=F('inventory__low_stock_alert'),
+        )
+
+    if solo_on_sale:
+        productos = productos.filter(
+            promo_price__isnull=False,
+            promo_price__lt=F('unit_price'),
+        )
 
     if solo_verificado:
         productos = productos.filter(company__is_verified=True)
@@ -3030,6 +3044,8 @@ def catalogo_publico(request):
         'precio_min': precio_min,
         'precio_max': precio_max,
         'solo_stock': solo_stock,
+        'solo_stock_low': solo_stock_low,
+        'solo_on_sale': solo_on_sale,
         'solo_verificado': solo_verificado,
         'orden': orden_key,
         'catalogo_params': catalogo_params,

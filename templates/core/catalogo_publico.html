@@ -4,33 +4,28 @@
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/tf-sections.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/catalogo-publico.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
 {% block content %}
 <div class="cat-page" id="cat-public-catalog">
-  <div class="cat-search-bar" role="search">
-    <form class="cat-search-form" method="get" action="{% url 'catalogo_publico' %}" id="cat-search-form">
-      <button type="button" class="cat-filter-toggle" id="cat-filter-open" aria-expanded="false" aria-controls="cat-sidebar">
-        <span class="material-symbols-rounded" aria-hidden="true">tune</span>
-        Filters
-      </button>
-      <div class="cat-search-input-wrap">
-        <span class="material-symbols-rounded" aria-hidden="true">search</span>
-        <input type="search" name="buscar" class="cat-search-input" id="cat-search-input"
-               value="{{ buscar }}" placeholder="Search products, SKU or verified companies…"
-               autocomplete="off" aria-label="Search catalog">
-      </div>
-      <button type="submit" class="cat-search-btn">Search</button>
-    </form>
-  </div>
-
   <section class="cat-hero" aria-labelledby="cat-hero-title">
     <div class="cat-hero-inner">
       <h1 id="cat-hero-title">Colón Free Zone Catalog</h1>
       <p>{{ catalogo_stats.productos }} products from {{ verified_empresas }} verified companies</p>
     </div>
   </section>
+
+  <div class="cat-mobile-bar">
+    <button type="button" class="cat-filter-toggle" id="cat-filter-open" aria-expanded="false" aria-controls="cat-sidebar">
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      Filters
+    </button>
+    {% if buscar %}
+    <p class="cat-mobile-query">Results for &ldquo;{{ buscar }}&rdquo;</p>
+    {% endif %}
+  </div>
 
   <div class="cat-sidebar-backdrop" id="cat-sidebar-backdrop" hidden></div>
 
@@ -84,16 +79,42 @@
           <h2 class="cat-filter-title">Price range (USD)</h2>
           <div class="cat-price-row">
             <input type="number" name="precio_min" min="0" step="0.01" placeholder="Min"
-                   value="{{ precio_min }}" aria-label="Minimum price">
+                   value="{{ precio_min }}" aria-label="Minimum price" class="cat-price-input">
             <input type="number" name="precio_max" min="0" step="0.01" placeholder="Max"
-                   value="{{ precio_max }}" aria-label="Maximum price">
+                   value="{{ precio_max }}" aria-label="Maximum price" class="cat-price-input">
           </div>
+          <button type="submit" class="cat-price-apply">Apply</button>
         </div>
 
         <div class="cat-filter-group">
-          <label class="cat-toggle-row">
-            <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
-            In stock only
+          <h2 class="cat-filter-title">Availability</h2>
+          <ul class="cat-check-list cat-check-list--plain">
+            <li>
+              <label class="cat-check-item">
+                <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
+                <span>In stock</span>
+              </label>
+            </li>
+            <li>
+              <label class="cat-check-item">
+                <input type="checkbox" name="stock_low" value="1" {% if solo_stock_low %}checked{% endif %}>
+                <span>Low stock</span>
+              </label>
+            </li>
+            <li>
+              <label class="cat-check-item">
+                <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
+                <span>On sale</span>
+              </label>
+            </li>
+          </ul>
+        </div>
+
+        <div class="cat-filter-group">
+          <label class="cat-toggle-switch">
+            <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
+            <span class="cat-toggle-track" aria-hidden="true"></span>
+            <span class="cat-toggle-label">CFZ Verified only</span>
           </label>
         </div>
 
@@ -117,7 +138,7 @@
     <div class="cat-main">
       <div class="cat-main-header">
         <p class="cat-results-count">
-          {% if buscar or categorias_sel or empresa or precio_min or precio_max or solo_stock %}
+          {% if buscar or categorias_sel or empresa or precio_min or precio_max or solo_stock or solo_stock_low or solo_on_sale or solo_verificado %}
           <strong>{{ total_resultados }}</strong> result{{ total_resultados|pluralize }} found
           {% else %}
           Browsing <strong>{{ catalogo_stats.productos }}</strong> wholesale products
@@ -147,6 +168,7 @@
 
 {% block extra_js %}
 <script src="{% static 'js/tf-skeletons.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/tf_reveal.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var openBtn = document.getElementById('cat-filter-open');
@@ -171,7 +193,6 @@
 
   var host = document.getElementById('cat-results-host');
   var filtersForm = document.getElementById('cat-filters-form');
-  var searchForm = document.getElementById('cat-search-form');
 
   function reloadResults(url) {
     if (!host || !window.TFSkeleton) return;
@@ -194,21 +215,17 @@
       });
   }
 
-  function interceptForm(form) {
-    if (!form || !host) return;
-    form.addEventListener('submit', function (e) {
+  if (filtersForm && host) {
+    filtersForm.addEventListener('submit', function (e) {
       if (!window.fetch) return;
       e.preventDefault();
-      var params = new URLSearchParams(new FormData(form));
+      var params = new URLSearchParams(new FormData(filtersForm));
       params.delete('page');
       var qs = params.toString();
-      var base = form.getAttribute('action') || window.location.pathname;
+      var base = filtersForm.getAttribute('action') || window.location.pathname;
       reloadResults(base + (qs ? '?' + qs : ''));
     });
   }
-
-  interceptForm(filtersForm);
-  interceptForm(searchForm);
 })();
 </script>
 {% endblock %}

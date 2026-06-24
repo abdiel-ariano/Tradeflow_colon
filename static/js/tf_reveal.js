@@ -8,6 +8,13 @@
   var revealElements = document.querySelectorAll('[data-reveal]');
   if (!revealElements.length) return;
 
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    revealElements.forEach(function (el) {
+      el.classList.add('is-revealed');
+    });
+    return;
+  }
+
   if (!('IntersectionObserver' in window)) {
     revealElements.forEach(function (el) {
       el.classList.add('is-revealed');

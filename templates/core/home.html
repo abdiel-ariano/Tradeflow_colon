@@ -8,14 +8,13 @@ Context: home_view — stats, featured_products, bestsellers, empresas_carousel,
 
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-{% endblock %}
-
-{% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-sections.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-hero-animations.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
+
+{% block extra_css %}{% endblock %}
 
 {% block content %}
 <main class="hm-root" id="hm-root">

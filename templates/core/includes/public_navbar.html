@@ -1,4 +1,4 @@
-{% load static %}
+{% load static tf_catalog %}
 {% comment %}
 Public B2B header — Amazon-style prominent search (guests).
 Context: nav_header_categories, carrito_count (0 for guests).
@@ -49,15 +49,27 @@ Context: nav_header_categories, carrito_count (0 for guests).
         </button>
         <div class="tf-hdr-cat-panel" role="menu">
           {% for cat in nav_header_categories %}
-          <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}" role="menuitem">
-            {{ cat.name }}
-            <small>{{ cat.num_productos }}</small>
+          <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}" role="menuitem" class="tf-hdr-cat-item">
+            <span class="tf-hdr-cat-item-icon" aria-hidden="true">
+              <span class="material-symbols-rounded">{{ cat.name|category_icon }}</span>
+            </span>
+            <span class="tf-hdr-cat-item-label">{{ cat.name|category_label }}</span>
+            <small class="tf-hdr-cat-item-count">{{ cat.num_productos }}</small>
           </a>
           {% empty %}
-          <a href="{% url 'catalogo_publico' %}" role="menuitem">View full catalog</a>
+          <a href="{% url 'catalogo_publico' %}" role="menuitem" class="tf-hdr-cat-item">
+            <span class="tf-hdr-cat-item-icon" aria-hidden="true">
+              <span class="material-symbols-rounded">storefront</span>
+            </span>
+            <span class="tf-hdr-cat-item-label">View full catalog</span>
+          </a>
           {% endfor %}
-          <a href="{% url 'catalogo_publico' %}" role="menuitem" class="tf-hdr-cat-all">
-            All categories →
+          <a href="{% url 'catalogo_publico' %}" role="menuitem" class="tf-hdr-cat-all tf-hdr-cat-item">
+            <span class="tf-hdr-cat-item-icon" aria-hidden="true">
+              <span class="material-symbols-rounded">grid_view</span>
+            </span>
+            <span class="tf-hdr-cat-item-label">All categories</span>
+            <span class="material-symbols-rounded tf-hdr-cat-all-arrow" aria-hidden="true">arrow_forward</span>
           </a>
         </div>
       </div>
