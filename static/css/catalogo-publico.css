@@ -42,6 +42,7 @@ Public B2B catalog (read-only). Requires tf-design-tokens.css + tf-components.cs
   align-items: center;
   gap: 12px;
   padding: 12px clamp(16px, 4vw, 40px);
+  padding-left: max(24px, clamp(16px, 4vw, 40px));
   background: var(--tf-white, #fff);
   border-bottom: 1px solid var(--tf-border, #D1D5DB);
 }
@@ -105,13 +106,13 @@ Public B2B catalog (read-only). Requires tf-design-tokens.css + tf-components.cs
   height: calc(100vh - 80px);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(15, 42, 68, 0.25) transparent;
+  scrollbar-color: #D1D5DB transparent;
 }
 .cat-sidebar::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 .cat-sidebar::-webkit-scrollbar-thumb {
-  background: rgba(15, 42, 68, 0.2);
+  background: #D1D5DB;
   border-radius: 4px;
 }
 .cat-sidebar::-webkit-scrollbar-track {
@@ -149,7 +150,14 @@ Public B2B catalog (read-only). Requires tf-design-tokens.css + tf-components.cs
   color: var(--tf-muted, #6B7A88);
   margin: 0 0 var(--tf-space-2, 8px);
 }
-.cat-filter-group { border-bottom: 1px solid var(--tf-border, #D1D5DB); padding-bottom: var(--tf-space-4, 16px); }
+.cat-filter-group--sort {
+  border-bottom: 1px solid var(--tf-border, #D1D5DB);
+  padding-bottom: var(--tf-space-4, 16px);
+}
+.cat-filter-group {
+  border-bottom: 1px solid var(--tf-border, #D1D5DB);
+  padding-bottom: var(--tf-space-4, 16px);
+}
 .cat-filter-group:last-of-type { border-bottom: none; padding-bottom: 0; }
 
 .cat-check-list {
@@ -232,18 +240,18 @@ Public B2B catalog (read-only). Requires tf-design-tokens.css + tf-components.cs
 .cat-price-apply {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--tf-border, #D1D5DB);
+  border: none;
   border-radius: 6px;
-  background: var(--tf-light, #F2F3F5);
-  color: var(--tf-navy, #0F2A44);
+  background: var(--tf-orange, #F26522);
+  color: #ffffff;
   font-size: var(--tf-text-sm, 13px);
   font-weight: 600;
   cursor: pointer;
   font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+  transition: background 0.15s ease;
 }
 .cat-price-apply:hover {
-  border-color: var(--tf-orange, #F26522);
-  color: var(--tf-orange, #F26522);
+  background: var(--tf-orange-h, #FF7A3D);
 }
 
 .cat-toggle-switch {
@@ -317,20 +325,12 @@ Public B2B catalog (read-only). Requires tf-design-tokens.css + tf-components.cs
 .cat-btn-clear:hover { text-decoration: underline; }
 
 /* ── Main content ── */
-.cat-main-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: var(--tf-space-4, 16px);
-}
 .cat-results-count {
   font-size: var(--tf-text-sm, 13px);
   color: var(--tf-muted, #6B7A88);
-  margin: 0;
+  margin: 0 0 var(--tf-space-4, 16px);
+  padding: 0;
 }
-.cat-results-count strong { color: var(--tf-navy, #0F2A44); }
 
 .cat-empty {
   background: var(--tf-white, #fff);
@@ -420,4 +420,3 @@ Public B2B catalog (read-only). Requires tf-design-tokens.css + tf-components.cs
 .cat-check-empty { color: var(--tf-muted, #6B7A88); }
 .cat-empresa-count { color: var(--tf-muted, #6B7A88); }
 .cat-empty-action { margin-top: 24px; }
-.cat-sort-select--quick { width: auto; min-width: 160px; }

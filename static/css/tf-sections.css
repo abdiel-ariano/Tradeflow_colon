@@ -23,7 +23,8 @@ body.tf-public:has(.hm-root),
 }
 
 /* ===== GLOBAL REVEAL ANIMATIONS ===== */
-[data-reveal] {
+[data-reveal="up"],
+[data-reveal="scale"] {
   opacity: 0;
   transform: translateY(24px);
   transition: opacity 0.6s ease, transform 0.6s ease;
@@ -33,7 +34,8 @@ body.tf-public:has(.hm-root),
   transform: scale(0.95);
 }
 
-[data-reveal].is-revealed {
+[data-reveal="up"].is-revealed,
+[data-reveal="scale"].is-revealed {
   opacity: 1;
   transform: translateY(0) scale(1);
 }
@@ -143,11 +145,19 @@ body.tf-public:has(.hm-root),
 .hero-stat-number {
   display: block;
   font-family: 'DM Serif Display', serif;
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-size: clamp(1.25rem, 2.5vw, 2rem);
   font-weight: 700;
   color: var(--tf-navy, #0F2A44);
-  line-height: 1.1;
+  line-height: 1.15;
   margin-bottom: 4px;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-stat-card--highlight .hero-stat-number {
+  font-size: clamp(1.1rem, 2.2vw, 1.75rem);
 }
 
 .hero-stat-label {
@@ -358,9 +368,10 @@ body.tf-public:has(.hm-root),
 }
 
 .companies-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  list-style: none;
 }
 
 @media (min-width: 768px) {
@@ -378,7 +389,7 @@ body.tf-public:has(.hm-root),
 }
 
 .company-card {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: center;
   background: #ffffff;
@@ -387,6 +398,7 @@ body.tf-public:has(.hm-root),
   padding: 24px 20px;
   text-align: center;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  box-sizing: border-box;
 }
 
 .company-card:hover {
@@ -415,7 +427,7 @@ body.tf-public:has(.hm-root),
 .company-card-initials {
   width: 100%;
   height: 100%;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   font-family: 'DM Serif Display', serif;
@@ -423,6 +435,7 @@ body.tf-public:has(.hm-root),
   font-weight: 700;
   color: #ffffff;
   border-radius: var(--tf-radius-lg);
+  line-height: 1;
 }
 
 .company-card-name {
@@ -766,7 +779,8 @@ body.tf-public:has(.hm-root),
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  [data-reveal] {
+  [data-reveal="up"],
+  [data-reveal="scale"] {
     opacity: 1;
     transform: none;
     transition: none !important;
