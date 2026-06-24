@@ -1044,7 +1044,7 @@ def mapa_zlc(request):
         nombre = html_module.escape(c.name)
         cat_txt_e = html_module.escape(cat_txt)
         catalog_url = request.build_absolute_uri(
-            reverse('tienda') + '?empresa=' + str(c.pk)
+            reverse('catalogo_publico') + '?empresa=' + str(c.pk)
         )
         catalog_url_e = html_module.escape(catalog_url)
         html_popup = (
@@ -2773,7 +2773,7 @@ def _request_wants_json(request):
 
 
 # ---------------------------------------------------------------------------
-# TIENDA — Catalog principal del comprador
+# CATÁLOGO PÚBLICO — Browse read-only sin login
 # ---------------------------------------------------------------------------
 
 def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
@@ -2795,6 +2795,248 @@ def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
             slots.append({'type': 'ellipsis'})
     return slots
 
+
+def catalogo_publico(request):
+    """Catálogo público read-only (sin login) — filtros + grid de productos."""
+    from decimal import Decimal, InvalidOperation
+
+    from django.db.models import Case, DecimalField, F, IntegerField, When
+
+    from . import merchandising as merch
+
+    catalogo_base = merch.active_products_base()
+    stats = merch.home_stats()
+    verified_empresas = (
+        Company.objects.filter(is_verified=True, products__is_active=True)
+        .distinct()
+        .count()
+    )
+
+    buscar = request.GET.get('buscar', '').strip()
+    categorias_sel = [c for c in request.GET.getlist('categoria') if c.strip()]
+    empresa = request.GET.get('empresa', '').strip()
+    precio_min = request.GET.get('precio_min', '').strip()
+    precio_max = request.GET.get('precio_max', '').strip()
+    solo_stock = request.GET.get('stock', '') in ('1', 'true', 'on')
+    orden = request.GET.get('orden', 'relevancia').strip() or 'relevancia'
+
+    productos = catalogo_base.annotate(
+        sort_price=Case(
+            When(
+                promo_price__isnull=False,
+                promo_price__lt=F('unit_price'),
+                then=F('promo_price'),
+            ),
+            default=F('unit_price'),
+            output_field=DecimalField(max_digits=12, decimal_places=2),
+        ),
+        avail_qty=Case(
+            When(inventory__isnull=False, then=F('inventory__stock_qty') - F('inventory__reserved_qty')),
+            default=0,
+            output_field=IntegerField(),
+        ),
+    )
+
+    if buscar:
+        productos = productos.filter(
+            Q(name__icontains=buscar)
+            | Q(description__icontains=buscar)
+            | Q(sku__icontains=buscar)
+        )
+
+    if categorias_sel:
+        productos = productos.filter(category_id__in=categorias_sel)
+
+    if empresa:
+        productos = productos.filter(company_id=empresa)
+
+    if solo_stock:
+        productos = productos.filter(avail_qty__gt=0)
+
+    try:
+        if precio_min:
+            productos = productos.filter(sort_price__gte=Decimal(precio_min))
+    except (InvalidOperation, ValueError):
+        precio_min = ''
+
+    try:
+        if precio_max:
+            productos = productos.filter(sort_price__lte=Decimal(precio_max))
+    except (InvalidOperation, ValueError):
+        precio_max = ''
+
+    orden_map = {
+        'relevancia': None,
+        'precio_asc': 'sort_price',
+        'precio_desc': '-sort_price',
+        'novedades': '-created_at',
+    }
+    orden_key = orden if orden in orden_map else 'relevancia'
+    if orden_key == 'relevancia':
+        from .utils.ads_ranking import annotate_sponsored_score
+
+        productos = annotate_sponsored_score(productos).order_by('-sponsored_score', 'name')
+    else:
+        productos = productos.order_by(orden_map[orden_key])
+
+    total_resultados = productos.count()
+    paginator = Paginator(productos, 12)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    categorias = (
+        Category.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
+        .order_by('name')
+    )
+
+    empresas = (
+        Company.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
+        .order_by('name')
+    )
+
+    sugerencias = list(
+        categorias.order_by('-num_productos').values_list('name', flat=True)[:5]
+    )
+    if not sugerencias:
+        sugerencias = ['Electronics', 'Textiles', 'Logistics', 'Spare parts']
+
+    qcopy = request.GET.copy()
+    qcopy.pop('page', None)
+    qcopy.pop('partial', None)
+    catalogo_params = qcopy.urlencode()
+
+    meta_description = (
+        f'Explore {stats["productos"]} wholesale products from '
+        f'{verified_empresas or stats["empresas"]} verified Colón Free Zone companies. '
+        f'B2B catalog with transparent inventory on TradeFlow.'
+    )
+
+    context = {
+        'productos': page_obj,
+        'buscar': buscar,
+        'categorias': categorias,
+        'categorias_sel': categorias_sel,
+        'empresas': empresas,
+        'empresa': empresa,
+        'precio_min': precio_min,
+        'precio_max': precio_max,
+        'solo_stock': solo_stock,
+        'orden': orden_key,
+        'catalogo_params': catalogo_params,
+        'catalogo_stats': stats,
+        'verified_empresas': verified_empresas,
+        'total_resultados': total_resultados,
+        'sugerencias': sugerencias,
+        'pagination_slots': _tienda_pagination_slots(page_obj),
+        'meta_description': meta_description,
+        'titulo_pagina': 'Catálogo',
+        'nav_activo': 'catalogo',
+    }
+
+    is_partial = (
+        request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        or request.GET.get('partial') == '1'
+    )
+    if is_partial:
+        return render(request, 'core/catalogo_publico_partial.html', context)
+    return render(request, 'core/catalogo_publico.html', context)
+
+
+def catalogo_producto_detail(request, pk):
+    """Vista pública de detalle de producto (sin login requerido)."""
+    from django.templatetags.static import static
+
+    product = get_object_or_404(
+        Product.objects.select_related('company', 'category', 'inventory'),
+        pk=pk,
+        is_active=True,
+    )
+    is_guest = not request.user.is_authenticated
+    role = None
+    if not is_guest:
+        try:
+            role = request.user.profile.role
+        except Exception:
+            role = None
+    show_cart_actions = (
+        not is_guest
+        and (role in ('buyer', 'admin') or request.user.is_superuser)
+    )
+
+    related_products = list(
+        Product.objects.filter(is_active=True, category=product.category_id)
+        .exclude(pk=product.pk)
+        .select_related('company', 'category', 'inventory')
+        .order_by('-merchandising_priority', '-is_featured', 'name')[:4]
+    )
+    if len(related_products) < 4:
+        existing_ids = [p.pk for p in related_products]
+        extra = list(
+            Product.objects.filter(is_active=True, company=product.company_id)
+            .exclude(pk=product.pk)
+            .exclude(pk__in=existing_ids)
+            .select_related('company', 'category', 'inventory')
+            .order_by('-merchandising_priority', 'name')[: 4 - len(related_products)]
+        )
+        related_products.extend(extra)
+
+    company = product.company
+    export_ready = bool(
+        company.is_verified
+        and (company.ruc or product.sku)
+    )
+    if product.available_qty <= 0:
+        stock_status = 'out'
+        stock_label = 'Out of stock'
+    elif product.available_qty <= 5:
+        stock_status = 'low'
+        stock_label = f'Low stock ({product.available_qty} units)'
+    else:
+        stock_status = 'ok'
+        stock_label = f'In stock ({product.available_qty} units)'
+
+    if product.image:
+        og_image = request.build_absolute_uri(product.image.url)
+    else:
+        og_image = request.build_absolute_uri(static('img/product-placeholder.svg'))
+
+    meta_description = (
+        product.description[:155].strip()
+        if product.description
+        else f'{product.name} from {company.name} in the Colón Free Zone — TradeFlow Colón.'
+    )
+
+    return render(
+        request,
+        'core/catalogo_producto_detail.html',
+        {
+            'product': product,
+            'company': company,
+            'show_cart_actions': show_cart_actions,
+            'is_guest': is_guest,
+            'related_products': related_products,
+            'export_ready': export_ready,
+            'stock_status': stock_status,
+            'stock_label': stock_label,
+            'meta_description': meta_description,
+            'og_image': og_image,
+            'canonical_url': request.build_absolute_uri(
+                reverse('catalogo_producto_detail', args=[product.pk]),
+            ),
+            'titulo_pagina': product.name,
+            'nav_activo': 'catalogo',
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# TIENDA — Catalog principal del comprador
+# ---------------------------------------------------------------------------
 
 @buyer_required
 def tienda(request):

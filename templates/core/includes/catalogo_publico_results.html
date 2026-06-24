@@ -1,0 +1,47 @@
+{% load static %}
+{% comment %}Fragmento reutilizable: grid + empty + paginación del catálogo público.{% endcomment %}
+<div id="cat-results-root">
+  {% if productos %}
+  <div class="tf-pcard-grid cat-grid" id="cat-product-grid">
+    {% for producto in productos %}
+      {% include "core/includes/product_card_unified.html" with product=producto is_public=True %}
+    {% endfor %}
+  </div>
+
+  {% if productos.has_other_pages %}
+  <nav class="cat-pagination" aria-label="Paginación del catálogo">
+    {% if productos.has_previous %}
+    <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ productos.previous_page_number }}"
+       class="cat-page-link" aria-label="Página anterior">‹</a>
+    {% endif %}
+    {% for slot in pagination_slots %}
+      {% if slot.type == 'ellipsis' %}
+      <span class="cat-page-ellipsis" aria-hidden="true">…</span>
+      {% else %}
+      <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ slot.num }}"
+         class="cat-page-link{% if slot.num == productos.number %} is-active{% endif %}"
+         {% if slot.num == productos.number %}aria-current="page"{% endif %}>{{ slot.num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if productos.has_next %}
+    <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ productos.next_page_number }}"
+       class="cat-page-link" aria-label="Página siguiente">›</a>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="cat-empty" id="cat-empty-state">
+    <h2>No encontramos productos{% if buscar %} para &ldquo;{{ buscar }}&rdquo;{% endif %}</h2>
+    <p>Prueba con estos términos o ajusta los filtros:</p>
+    <div class="cat-suggestions">
+      {% for term in sugerencias %}
+      <a href="{% url 'catalogo_publico' %}?buscar={{ term|urlencode }}" class="cat-suggestion-chip">{{ term }}</a>
+      {% endfor %}
+    </div>
+    <p style="margin-top:24px;">
+      <a href="{% url 'catalogo_publico' %}" class="cat-btn-clear">Ver todo el catálogo</a>
+    </p>
+  </div>
+  {% endif %}
+</div>

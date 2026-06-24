@@ -873,7 +873,11 @@ stats, featured_products, empresas_carousel, show_cart_actions.
           B2B and B2C marketplace with verified companies, real-time inventory, and export-ready documentation from the Colón Free Zone.
         </p>
         <div class="hm-hero-ctas hero-ctas hm-hero-animate">
-          <a href="{% url 'signup' %}" class="hm-btn-primary hm-btn-ripple" id="hm-cta-signup">
+          <a href="{% url 'catalogo_publico' %}" class="hm-btn-primary hm-btn-ripple" id="hm-cta-catalog">
+            <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">storefront</span>
+            Browse catalog
+          </a>
+          <a href="{% url 'signup' %}" class="hm-btn-secondary" id="hm-cta-signup">
             <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">rocket_launch</span>
             Create free account
           </a>
@@ -1025,7 +1029,7 @@ stats, featured_products, empresas_carousel, show_cart_actions.
               </span>
               {% endif %}
               <p class="hm-emp-count">{% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}</p>
-              <a href="{% url 'tienda' %}?empresa={{ emp.pk }}" class="hm-emp-btn">View catalog</a>
+              <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="hm-emp-btn">View catalog</a>
             </article>
           </div>
           {% empty %}

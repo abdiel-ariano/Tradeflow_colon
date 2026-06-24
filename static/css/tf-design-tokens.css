@@ -1,0 +1,531 @@
+/*
+=============================================================================
+TRADEFLOW COLÓN — tf-design-tokens.css
+Fuente única de verdad para design tokens CSS (PreExpo 2026).
+
+CARGA
+  Primera hoja en base.html, ANTES de colors.css y tf-design-system.css:
+    <link rel="stylesheet" href="{% static 'css/tf-design-tokens.css' %}">
+
+CONVENCIÓN
+  --tf-*     Marca pública PreExpo + layout compartido
+  --ds-*     Alias semánticos (shell Lovable v2 → apuntan a --tf-*)
+  --color-*  Panel admin
+  --alert-*  Banners de notificación
+  --status-* Badges admin
+  --order-*  Chips de estado de órdenes
+  --stock-*  Indicadores de inventario
+  --ui-*     Tokens puntuales de componentes
+
+MIGRACIÓN GRADUAL
+  1. Eliminar bloques :root duplicados en base.html (~L309–352), tienda.html (~L19–29).
+  2. colors.css ya re-exporta este archivo vía @import.
+  3. tf-design-system.css conserva solo componentes (.ds-btn, etc.), no :root.
+=============================================================================
+*/
+
+:root {
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     1. MARCA PREEXPO — paleta pública principal
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Uso: fondos navy, navbar, títulos principales */
+  --tf-navy: #0F2A44;
+
+  /* Uso: gradientes hero, navbar secundario, hover navy */
+  --tf-mid: #1B3B63;
+
+  /* Uso: enlaces, iconos informativos, acentos fríos */
+  --tf-blue: #2E5B8A;
+
+  /* Uso: CTAs primarios, badges de marca, acentos cálidos */
+  --tf-orange: #F26522;
+
+  /* Uso: hover de botones primarios, estados activos naranja */
+  --tf-orange-h: #FF7A3D;
+
+  /* Uso: fondo de página, secciones claras alternas */
+  --tf-light: #F2F3F5;
+
+  /* Uso: bordes de cards, inputs, divisores */
+  --tf-border: #D1D5DB;
+
+  /* Uso: texto secundario, placeholders, metadatos */
+  --tf-muted: #6B7A88;
+
+  /* Uso: superficies de cards, modales, inputs */
+  --tf-white: #FFFFFF;
+
+  /* Uso: texto sobre fondos claros (cuerpo) */
+  --tf-text: #0F2A44;
+
+  /* Uso: alias semántico título (headings en UI densa) */
+  --tf-title: #0F2A44;
+
+  /* Uso: subtítulos, labels destacados */
+  --tf-subtitle: #1B3B63;
+
+  /* Uso: texto de párrafo en formularios / flash */
+  --tf-body: #374151;
+
+  /* Uso: errores de validación, acciones destructivas */
+  --tf-danger: #EF4444;
+
+  /* Uso: fondos navy alternativos (alias de --tf-navy) */
+  --tf-dark: #0F2A44;
+
+  /* Uso: variante navy más clara para gradientes */
+  --tf-dark2: #1B3B63;
+
+  /* Uso: fondos sutiles navy (badges, highlights) */
+  --tf-dark-faint: rgba(15, 42, 68, 0.08);
+
+  /* Uso: navbar v2, sub-nav (alias de --tf-mid) */
+  --tf-navy-mid: #1B3B63;
+
+  /* Uso: superficie cream en hero landing v2 */
+  --tf-cream: #FAF3E8;
+
+  /* Uso: variante cream para gradientes */
+  --tf-cream-dark: #F0E6D3;
+
+  /* Uso: fondos suaves naranja (badges promo) */
+  --tf-orange-light: #FDE8DF;
+
+  /* Uso: naranja secundario suave */
+  --tf-orange-s: #FF7A3D;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     2. TIPOGRAFÍA
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Uso: font-family global body, botones, formularios */
+  --tf-font-body: 'Montserrat', system-ui, -apple-system, sans-serif;
+
+  /* Uso: h1 hero, titulares editoriales (tienda, home legacy) */
+  --tf-font-display: 'DM Serif Display', Georgia, serif;
+
+  /* Uso: tamaño base (14px) — body.tf-design-v2 */
+  --tf-text-base: 14px;
+
+  /* Uso: labels uppercase, badges pequeños */
+  --tf-text-xs: 11px;
+
+  /* Uso: metadatos, captions en cards */
+  --tf-text-sm: 13px;
+
+  /* Uso: párrafos destacados, descripciones */
+  --tf-text-md: 16px;
+
+  /* Uso: subtítulos de sección */
+  --tf-text-lg: 18px;
+
+  /* Uso: h2 de sección */
+  --tf-text-xl: 24px;
+
+  /* Uso: h1 de página */
+  --tf-text-2xl: 36px;
+
+  /* Uso: hero principal (clamp con este máximo) */
+  --tf-text-hero: 56px;
+
+  /* Uso: line-height tight para display */
+  --tf-leading-tight: 1.1;
+
+  /* Uso: line-height estándar body */
+  --tf-leading-normal: 1.5;
+
+  /* Uso: line-height relajado (descripciones largas) */
+  --tf-leading-relaxed: 1.65;
+
+  /* Uso: letter-spacing labels uppercase */
+  --tf-tracking-label: 0.08em;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     3. ESPACIADO
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Uso: gaps mínimos, padding interno badges */
+  --tf-space-1: 4px;
+
+  /* Uso: gaps entre icono y texto */
+  --tf-space-2: 8px;
+
+  /* Uso: padding compacto botones sm */
+  --tf-space-3: 12px;
+
+  /* Uso: padding estándar cards, inputs */
+  --tf-space-4: 16px;
+
+  /* Uso: gaps de grid, padding secciones móvil */
+  --tf-space-5: 20px;
+
+  /* Uso: gaps de grid desktop, padding cards */
+  --tf-space-6: 24px;
+
+  /* Uso: padding secciones verticales */
+  --tf-space-8: 32px;
+
+  /* Uso: padding hero, secciones grandes */
+  --tf-space-10: 40px;
+
+  /* Uso: padding vertical secciones home */
+  --tf-space-12: 48px;
+
+  /* Uso: padding hero desktop */
+  --tf-space-16: 64px;
+
+  /* Uso: padding vertical secciones XL */
+  --tf-space-20: 80px;
+
+  /* Alias admin (--space-* en style.css) */
+  --space-xs: 4px;   /* Uso: micro gaps admin */
+  --space-sm: 8px;   /* Uso: gaps toolbar admin */
+  --space-md: 16px;  /* Uso: padding cards admin */
+  --space-lg: 24px;  /* Uso: secciones admin */
+  --space-xl: 32px;  /* Uso: márgenes de página admin */
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     4. RADIOS (border-radius)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Uso: default global, cards pequeñas */
+  --tf-radius: 12px;
+
+  /* Uso: botones, inputs, chips */
+  --tf-radius-sm: 8px;
+
+  /* Uso: alias botones (--tf-radius-btn) */
+  --tf-radius-btn: 8px;
+
+  /* Uso: inputs de formulario */
+  --tf-radius-input: 8px;
+
+  /* Uso: cards de producto, paneles */
+  --tf-radius-card: 12px;
+
+  /* Uso: pills, badges redondeados */
+  --tf-radius-badge: 20px;
+
+  /* Uso: modales, drawers */
+  --tf-radius-modal: 16px;
+
+  /* Uso: alias shell v2 */
+  --ds-radius-xl: 12px;
+
+  /* Uso: cards grandes, hero cards */
+  --ds-radius-2xl: 16px;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     5. SOMBRAS
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Uso: elevación sutil (dropdowns, inputs focus) */
+  --tf-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
+
+  /* Uso: modales, popovers */
+  --tf-shadow-lg: 0 8px 24px rgba(15, 42, 68, 0.15);
+
+  /* Uso: cards en reposo */
+  --tf-shadow-card: 0 2px 8px rgba(15, 42, 68, 0.08);
+
+  /* Uso: cards hover, product grid */
+  --tf-shadow-card-hover: 0 8px 24px rgba(15, 42, 68, 0.15);
+
+  /* Uso: borde inferior navbar */
+  --tf-shadow-nav: 0 1px 0 #D1D5DB;
+
+  /* Uso: glow botón primario hover */
+  --tf-shadow-btn-primary: 0 4px 12px rgba(242, 101, 34, 0.3);
+
+  /* Uso: shell v2 cards ligeras */
+  --ds-shadow-card: 0 1px 3px rgba(15, 42, 68, 0.06), 0 1px 2px rgba(15, 42, 68, 0.04);
+
+  /* Uso: shell v2 hover cards */
+  --ds-shadow-card-hover: 0 4px 12px rgba(15, 42, 68, 0.12);
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     6. MOTION / TRANSICIONES
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Uso: hover botones, toggles */
+  --tf-motion-fast: 0.18s;
+
+  /* Uso: expand/collapse, modales */
+  --tf-motion-med: 0.28s;
+
+  /* Uso: easing estándar (carousels, reveals) */
+  --tf-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Uso: alias shell v2 */
+  --transition-fast: 150ms ease;
+
+  /* Uso: transiciones medias shell v2 */
+  --transition-mid: 250ms ease;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     7. LAYOUT
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Uso: ancho sidebar admin/seller */
+  --sidebar-width: 256px;
+
+  /* Uso: altura topbar admin */
+  --topbar-height: 64px;
+
+  /* Uso: altura navbar pública / buyer */
+  --navbar-height: 64px;
+
+  /* Uso: max-width contenedor home */
+  --tf-container-sm: 720px;
+
+  /* Uso: max-width contenedor estándar */
+  --tf-container-md: 1160px;
+
+  /* Uso: max-width tienda / catálogo */
+  --tf-container-lg: 1320px;
+
+  /* Uso: max-width layout amplio */
+  --tf-container-xl: 1680px;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     8. BREAKPOINTS (referencia; usar en clamp/JS — no válidos en @media)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Uso: móvil pequeño (1 col) */
+  --tf-bp-xs: 520px;
+
+  /* Uso: móvil / hamburger */
+  --tf-bp-sm: 575px;
+
+  /* Uso: tablet portrait */
+  --tf-bp-md: 768px;
+
+  /* Uso: tablet landscape / sidebar collapse */
+  --tf-bp-lg: 991px;
+
+  /* Uso: desktop estándar */
+  --tf-bp-xl: 1100px;
+
+  /* Uso: desktop ancho (tienda) */
+  --tf-bp-2xl: 1320px;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     9. Z-INDEX (escala unificada)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Uso: elevación local en cards */
+  --tf-z-base: 1;
+
+  /* Uso: sidebar admin, overlays locales */
+  --tf-z-dropdown: 100;
+
+  /* Uso: modales Bootstrap compat */
+  --tf-z-modal: 1040;
+
+  /* Uso: menú móvil legacy */
+  --tf-z-mobile-nav: 1999;
+
+  /* Uso: navbar sticky principal */
+  --tf-z-sticky: 2000;
+
+  /* Uso: public navbar (pn-shell) */
+  --tf-z-public-nav: 2100;
+
+  /* Uso: buyer navbar Alibaba */
+  --tf-z-buyer-nav: 2200;
+
+  /* Uso: mega menú categorías */
+  --tf-z-mega-menu: 2300;
+
+  /* Uso: chat widget flotante */
+  --tf-z-chat: 10050;
+
+  /* Uso: toasts, flash messages */
+  --tf-z-toast: 11000;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     10. SHELL V2 — alias semánticos (--ds-* → PreExpo)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --ds-navy: var(--tf-navy);
+  --ds-navy-mid: var(--tf-mid);
+  --ds-navy-light: var(--tf-blue);
+  --ds-cream: var(--tf-cream);
+  --ds-cream-dark: var(--tf-cream-dark);
+  --ds-orange: var(--tf-orange);
+  --ds-orange-soft: var(--tf-orange-h);
+  --ds-orange-light: var(--tf-orange-light);
+  --ds-orange-hover: var(--tf-orange-h);
+  --ds-gray-page: var(--tf-light);
+  --ds-gray-border: var(--tf-border);
+  --ds-gray-mid: var(--tf-muted);
+  --ds-gray-text: var(--tf-body);
+
+  /* Uso: escala tipográfica shell v2 */
+  --ds-text-hero: var(--tf-text-hero);
+  --ds-text-h1: var(--tf-text-2xl);
+  --ds-text-h2: var(--tf-text-xl);
+  --ds-text-h3: var(--tf-text-lg);
+  --ds-text-label: 12px;
+
+  /* Uso: estados en dashboards v2 */
+  --ds-status-paid: #1FAD6F;
+  --ds-status-paid-bg: #E6F7F0;
+  --ds-status-cancelled: #E84040;
+  --ds-status-cancelled-bg: #FDE8E8;
+  --ds-status-pending: #D97706;
+  --ds-status-pending-bg: #FEF3C7;
+  --ds-status-processing: #2563EB;
+  --ds-status-processing-bg: #EFF6FF;
+
+  /* Uso: ilustración hero (contenedores del barco) */
+  --ds-container-yellow: #F5C842;
+  --ds-container-blue: #2E6BE6;
+  --ds-container-green: #1FAD6F;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     11. PANEL ADMIN — --color-*
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --color-primary: #098698;
+  --color-primary-dark: #076f7f;
+  --color-primary-light: #e0f4f6;
+  --color-primary-glow: rgba(9, 134, 152, 0.12);
+  --color-primary-overlay: rgba(9, 134, 152, 0.2);
+  --color-secondary: #404b57;
+  --color-accent: #d9cab3;
+  --color-bg: #f0f0f0;
+  --color-white: #ffffff;
+  --color-text: #2c3e50;
+  --color-muted: #7f8c8d;
+  --color-border: #e0e0e0;
+  --color-success: #27ae60;
+  --color-warning: #f39c12;
+  --color-danger: #e74c3c;
+  --color-info: #3498db;
+  --color-danger-subtle: rgba(231, 76, 60, 0.15);
+  --color-danger-hover: rgba(231, 76, 60, 0.3);
+  --color-primary-fg: #ffffff;
+  --color-danger-fg: #ffffff;
+  --color-success-fg: #0F2A44;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     12. ALERTAS — banners inline
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --alert-success-bg: #edf7ee;
+  --alert-success-fg: #1e5c21;
+  --alert-success-border: #9ecfa0;
+  --alert-danger-bg: #fdecea;
+  --alert-danger-fg: #7d1a14;
+  --alert-danger-border: #f5a9a3;
+  --alert-warning-bg: #fef8e7;
+  --alert-warning-fg: #6b4a00;
+  --alert-warning-border: #f5d98c;
+  --alert-info-bg: #e8f4f8;
+  --alert-info-fg: #1a4f65;
+  --alert-info-border: #9fcfe0;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     13. ESTADO (TAGS ADMIN)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --status-success-bg: #d4edda;
+  --status-success-fg: #155724;
+  --status-warning-bg: #fff3cd;
+  --status-warning-fg: #856404;
+  --status-info-bg: #cce5ff;
+  --status-info-fg: #004085;
+  --status-danger-bg: #f8d7da;
+  --status-danger-fg: #721c24;
+  --status-neutral-bg: #e2e3e5;
+  --status-neutral-fg: #383d41;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     14. ÓRDENES — chips de estado
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --order-pending-bg: #FEF3C7;
+  --order-pending-fg: #D97706;
+  --order-paid-bg: #E6F7F0;
+  --order-paid-fg: #1FAD6F;
+  --order-shipped-bg: #eeedfe;
+  --order-shipped-fg: #534ab7;
+  --order-packed-bg: #e6f1fb;
+  --order-packed-fg: #185fa5;
+  --order-delivered-bg: #e1f5ee;
+  --order-delivered-fg: #0f6e56;
+  --order-cancelled-bg: #FDE8E8;
+  --order-cancelled-fg: #E84040;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     15. STOCK — indicadores inventario
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --stock-ok-bg: #e1f5ee;
+  --stock-ok-fg: #0f6e56;
+  --stock-low-bg: #faeeda;
+  --stock-low-fg: #854f0b;
+  --stock-out-bg: #fcebeb;
+  --stock-out-fg: #a32d2d;
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     16. COMPONENTES UI — tokens puntuales
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --ui-card-sand-bg: #faf8f5;
+  --ui-card-hover-border: #c5c5c5;
+  --ui-table-divider: #f5f5f5;
+  --ui-table-row-hover: #fafafa;
+  --ui-placeholder: #b0bac5;
+  --ui-input-error: #e05a52;
+  --ui-input-error-glow: rgba(224, 90, 82, 0.1);
+  --tf-border-hover: var(--tf-muted);
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     17. DEPRECATED — alias de migración (no usar en código nuevo)
+     Redirigen a tokens PreExpo; eliminar cuando no haya referencias.
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Uso: deprecated → --tf-blue */
+  --tf-teal: var(--tf-blue);
+  --tf-teal2: var(--tf-mid);
+  --tf-teal-brand: var(--tf-blue);
+  --tf-teal-faint: rgba(46, 91, 138, 0.12);
+
+  /* Uso: deprecated → --tf-border / --tf-orange */
+  --tf-sand: var(--tf-border);
+  --tf-sand2: var(--tf-orange);
+  --tf-sand-faint: rgba(242, 101, 34, 0.12);
+  --tf-sand-dim: rgba(15, 42, 68, 0.12);
+  --tf-sand-fg: var(--tf-muted);
+  --tf-sand-text: var(--tf-muted);
+
+  /* Uso: deprecated ZLC legacy */
+  --tf-zlc-dark: var(--color-secondary);
+  --tf-zlc-teal: var(--color-primary);
+  --tf-zlc-sand: var(--color-accent);
+
+  /* Uso: deprecated portal colors */
+  --tf-green: var(--tf-orange);
+  --tf-green-dark: var(--tf-navy);
+
+}
