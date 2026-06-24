@@ -109,6 +109,8 @@ urlpatterns = [
     path('dashboard/', views.dashboard,  name='dashboard'),
 
     # Portal del comprador
+    path('catalogo/',                       views.catalogo_publico,     name='catalogo_publico'),
+    path('catalogo/producto/<int:pk>/', views.catalogo_producto_detail, name='catalogo_producto_detail'),
     path('tienda/',                         views.tienda,               name='tienda'),
     path('catalogo/',                       views.catalogo_publico,     name='catalogo_publico'),
     path('catalogo/producto/<int:pk>/', views.catalogo_producto_detail, name='catalogo_producto_detail'),
