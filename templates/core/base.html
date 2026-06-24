@@ -25,6 +25,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-public-shell.css' %}?v={{ tf_asset_version|default:'2' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-header.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
@@ -1076,6 +1077,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   {% if not request.user.is_authenticated %}
     {% include "core/includes/public_navbar.html" %}
   {% elif request.user.is_superuser or request.user.profile.role == 'admin' or request.user.profile.role == 'seller' %}
+  {# Admin/seller: navbar por rol (tf-nav). Map oculto hasta fix mapa_zlc. #}
   <nav class="tf-nav tf-navbar" aria-label="Principal">
     <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="nav" class="tf-nav-logo-img" eager=1 %}
@@ -1140,6 +1142,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     </div>
   </nav>
   {% else %}
+    {# Buyer autenticado: buyer/buyer_navbar.html (3 niveles + búsqueda tf-hdr-search → tienda) #}
     {% include "core/includes/buyer/buyer_navbar.html" %}
   {% endif %}
 
