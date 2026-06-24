@@ -6,7 +6,8 @@ Loaded on home.html only.
 =============================================================================
 */
 
-/* ===== BORDER RADIUS TOKENS (B2B — tighter corners on landing) ===== */
+/* ===== BORDER RADIUS TOKENS (B2B — tighter corners on public UI) ===== */
+body.tf-public,
 body.tf-public:has(.hm-root),
 .hm-root {
   --tf-radius-sm: 4px;
@@ -100,11 +101,16 @@ body.tf-public:has(.hm-root),
 }
 
 .hero-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--tf-border, #D1D5DB);
   border-radius: var(--tf-radius-lg);
   padding: 20px 16px;
   text-align: center;
+  min-height: 148px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -155,7 +161,8 @@ body.tf-public:has(.hm-root),
 .hero-stats-old-lines,
 .hero-ship-old-lines,
 .hero-ship-decoration-circle,
-.pn-hero-dashed {
+.pn-hero-dashed,
+.pn-hero-dot {
   display: none !important;
 }
 
@@ -392,7 +399,7 @@ body.tf-public:has(.hm-root),
   width: 72px;
   height: 72px;
   margin: 0 auto 14px;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--tf-radius-lg);
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
@@ -415,7 +422,7 @@ body.tf-public:has(.hm-root),
   font-size: 1.5rem;
   font-weight: 700;
   color: #ffffff;
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--tf-radius-lg);
 }
 
 .company-card-name {
@@ -835,4 +842,42 @@ body.tf-public:has(.hm-root) .tf-hdr-search-btn {
 .hm-root select,
 .hm-root textarea {
   border-radius: var(--tf-radius-md);
+}
+
+/* ===== PUBLIC SHELL RADIUS (catalog, auth, legal) ===== */
+body.tf-public .tf-pcard,
+body.tf-public .cat-sidebar,
+body.tf-public .cat-empty,
+body.tf-public .cpd-hero-media,
+body.tf-public .cpd-hero-info,
+body.tf-public .ds-btn,
+body.tf-public .tf-input,
+body.tf-public input[type="text"],
+body.tf-public input[type="email"],
+body.tf-public input[type="password"],
+body.tf-public input[type="search"],
+body.tf-public input[type="number"],
+body.tf-public select,
+body.tf-public textarea {
+  border-radius: var(--tf-radius-md);
+}
+
+body.tf-public .tf-pcard,
+body.tf-public .cat-sidebar,
+body.tf-public .cat-empty,
+body.tf-public .cpd-hero-media,
+body.tf-public .cpd-hero-info,
+body.tf-public .auth-card {
+  border-radius: var(--tf-radius-lg);
+}
+
+body.tf-public .tf-pcard__badge,
+body.tf-public .cat-suggestion-chip,
+body.tf-public .cat-empresa-av {
+  border-radius: var(--tf-radius-sm);
+}
+
+body.tf-public .cat-empresa-av,
+body.tf-public .tf-hdr-cat-item-icon {
+  border-radius: var(--tf-radius-lg);
 }

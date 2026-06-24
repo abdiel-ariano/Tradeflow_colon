@@ -53,8 +53,11 @@ Hero ship entrance + layered SVG waves — requires tf-design-tokens.css
 }
 
 .hero-waves--foreground {
-  z-index: 4;
-  height: 40px;
+  display: none;
+}
+
+.hero-wave--front-2 {
+  display: none;
 }
 
 .hero-wave {

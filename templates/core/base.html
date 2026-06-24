@@ -321,10 +321,12 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       }
     }
 
-    /* Fondos oscuros (landing hero): título legible frente a reglas globales de h1. */
+    /* Fondos oscuros: títulos legibles sobre navy */
     .lp-hero h1,
     .lp-hero .lp-hero-title,
-    section.lp-hero h1 {
+    section.lp-hero h1,
+    .cat-hero h1,
+    .cat-hero p {
       color: #ffffff !important;
     }
 
@@ -1000,9 +1002,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
 
     {% include "core/includes/static_css_bundle.html" %}
-
-    {% block extra_css %}{% endblock %}
   </style>
+  {% block extra_css %}{% endblock %}
 </head>
 <body class="tf-design-v2{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif not request.user.is_superuser and request.user.profile.role != 'admin' and request.user.profile.role != 'seller' %} tf-public-shell{% endif %}">
   {% if request.user.is_authenticated %}
