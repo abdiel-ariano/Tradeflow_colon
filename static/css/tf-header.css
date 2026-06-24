@@ -300,6 +300,11 @@ Header B2B estilo Amazon — requiere tf-design-tokens.css
   color: var(--tf-muted, #6B7A88);
   font-size: 11px;
 }
+.tf-hdr-cat-icon { font-size: 20px; }
+.tf-hdr-cat-all {
+  font-weight: 700;
+  color: var(--tf-orange, #F26522);
+}
 
 /* ── Mobile controls ── */
 .tf-hdr-icon-btn {

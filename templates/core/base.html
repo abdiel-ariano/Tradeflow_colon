@@ -1163,75 +1163,75 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </main>
 
   {% block footer %}
-  <footer class="tf-footer" role="contentinfo" aria-label="Pie de página TradeFlow Colón">
+  <footer class="tf-footer" role="contentinfo" aria-label="TradeFlow Colón footer">
     <div class="tf-footer-inner">
       <div class="tf-footer-grid">
         <div class="tf-footer-col tf-footer-col--brand">
-          <a href="{% url 'home' %}" class="tf-footer-brand-link" aria-label="TradeFlow Colón — Inicio">
+          <a href="{% url 'home' %}" class="tf-footer-brand-link" aria-label="TradeFlow Colón home">
             {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
           </a>
           <p class="tf-footer-tagline">
-            Marketplace B2B mayorista para la Zona Libre de Colón. Catálogo verificado, cotizaciones y logística en un solo lugar.
+            B2B wholesale marketplace for the Colón Free Zone. Verified catalog, quotes, and logistics in one place.
           </p>
           <a href="mailto:{{ tradeflow_contact_email }}" class="tf-footer-email">
             <span class="material-symbols-rounded" aria-hidden="true">mail</span>
             {{ tradeflow_contact_email }}
           </a>
-          <div class="tf-footer-social" aria-label="Redes sociales">
-            <span class="tf-footer-social-label">Síguenos</span>
-            <span class="tf-footer-social-btn" title="LinkedIn (próximamente)" aria-label="LinkedIn — próximamente">
+          <div class="tf-footer-social" aria-label="Social media">
+            <span class="tf-footer-social-label">Follow us</span>
+            <span class="tf-footer-social-btn" title="LinkedIn (coming soon)" aria-label="LinkedIn — coming soon">
               <span class="material-symbols-rounded" aria-hidden="true">work</span>
             </span>
-            <span class="tf-footer-social-btn" title="Instagram (próximamente)" aria-label="Instagram — próximamente">
+            <span class="tf-footer-social-btn" title="Instagram (coming soon)" aria-label="Instagram — coming soon">
               <span class="material-symbols-rounded" aria-hidden="true">photo_camera</span>
             </span>
-            <span class="tf-footer-social-btn" title="Facebook (próximamente)" aria-label="Facebook — próximamente">
+            <span class="tf-footer-social-btn" title="Facebook (coming soon)" aria-label="Facebook — coming soon">
               <span class="material-symbols-rounded" aria-hidden="true">groups</span>
             </span>
           </div>
         </div>
 
         <div class="tf-footer-col">
-          <h2 class="tf-footer-col-title">Compradores</h2>
-          <nav class="tf-footer-links" aria-label="Enlaces para compradores">
-            <a href="{% url 'home' %}#como-funciona">Cómo comprar</a>
-            <a href="{% url 'catalogo_publico' %}">Catálogo</a>
-            <a href="{% url 'catalogo_publico' %}?verificado=1">Empresas verificadas</a>
-            <span class="tf-footer-link-soon">FAQ <em>(próximamente)</em></span>
+          <h2 class="tf-footer-col-title">Buyers</h2>
+          <nav class="tf-footer-links" aria-label="Buyer links">
+            <a href="{% url 'home' %}#how-it-works">How to buy</a>
+            <a href="{% url 'catalogo_publico' %}">Catalog</a>
+            <a href="{% url 'catalogo_publico' %}?verificado=1">Verified companies</a>
+            <span class="tf-footer-link-soon">FAQ <em>(coming soon)</em></span>
           </nav>
         </div>
 
         <div class="tf-footer-col">
-          <h2 class="tf-footer-col-title">Vendedores</h2>
-          <nav class="tf-footer-links" aria-label="Enlaces para vendedores">
-            <a href="{% url 'signup' %}?role=seller">Vender en TradeFlow</a>
-            <a href="{% url 'solicitud_acceso' %}">Requisitos CFZ</a>
-            <span class="tf-footer-link-soon">Tarifas <em>(próximamente)</em></span>
-            <a href="mailto:{{ tradeflow_contact_email }}">Contacto</a>
+          <h2 class="tf-footer-col-title">Sellers</h2>
+          <nav class="tf-footer-links" aria-label="Seller links">
+            <a href="{% url 'signup' %}?role=seller">Sell on TradeFlow</a>
+            <a href="{% url 'solicitud_acceso' %}">CFZ requirements</a>
+            <span class="tf-footer-link-soon">Pricing <em>(coming soon)</em></span>
+            <a href="mailto:{{ tradeflow_contact_email }}">Contact</a>
           </nav>
         </div>
 
         <div class="tf-footer-col">
           <h2 class="tf-footer-col-title">Legal</h2>
-          <nav class="tf-footer-links" aria-label="Enlaces legales">
-            <a href="{% url 'legal_terminos' %}">Términos de uso</a>
-            <a href="{% url 'legal_privacidad' %}">Privacidad</a>
+          <nav class="tf-footer-links" aria-label="Legal links">
+            <a href="{% url 'legal_terminos' %}">Terms of use</a>
+            <a href="{% url 'legal_privacidad' %}">Privacy</a>
             <a href="{% url 'legal_cookies' %}">Cookies</a>
-            <span class="tf-footer-link-soon">Mapa del sitio <em>(próximamente)</em></span>
+            <span class="tf-footer-link-soon">Sitemap <em>(coming soon)</em></span>
           </nav>
         </div>
       </div>
 
       <div class="tf-footer-bottom">
         <div class="tf-footer-bottom-meta">
-          <span>© 2026 TradeFlow Colón. Todos los derechos reservados.</span>
-          <span><strong>Zona Libre de Colón, Panamá</strong></span>
+          <span>© 2026 TradeFlow Colón. All rights reserved.</span>
+          <span><strong>Colón Free Zone, Panama</strong></span>
         </div>
-        <div class="tf-footer-lang" role="group" aria-label="Selección de idioma">
+        <div class="tf-footer-lang" role="group" aria-label="Language selection">
           <span class="tf-footer-lang-flag" aria-hidden="true">🇵🇦</span>
-          <button type="button" class="tf-footer-lang-opt" aria-disabled="true" title="Español — próximamente">ES</button>
+          <button type="button" class="tf-footer-lang-opt" aria-disabled="true" title="Spanish — coming soon">ES</button>
           <span class="tf-footer-lang-sep" aria-hidden="true">|</span>
-          <button type="button" class="tf-footer-lang-opt is-active" aria-current="true" title="English (activo)">EN</button>
+          <button type="button" class="tf-footer-lang-opt is-active" aria-current="true" title="English (active)">EN</button>
         </div>
       </div>
     </div>

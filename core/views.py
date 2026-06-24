@@ -3039,7 +3039,7 @@ def catalogo_publico(request):
         'sugerencias': sugerencias,
         'pagination_slots': _tienda_pagination_slots(page_obj),
         'meta_description': meta_description,
-        'titulo_pagina': 'Catálogo',
+        'titulo_pagina': 'Catalog',
         'nav_activo': 'catalogo',
     }
 

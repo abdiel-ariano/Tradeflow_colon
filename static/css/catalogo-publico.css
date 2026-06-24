@@ -383,3 +383,8 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
 @media (min-width: 1200px) {
   .cat-grid.tf-pcard-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+.cat-check-empty { color: var(--tf-muted, #6B7A88); }
+.cat-empresa-count { color: var(--tf-muted, #6B7A88); }
+.cat-empty-action { margin-top: 24px; }
+.cat-sort-select--quick { width: auto; min-width: 160px; }

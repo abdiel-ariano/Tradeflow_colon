@@ -32,10 +32,10 @@ class CatalogoPublicoTests(TestCase):
     def test_guest_can_browse_catalogo(self):
         response = self.client.get('/catalogo/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Catálogo Zona Libre de Colón')
+        self.assertContains(response, 'Colón Free Zone Catalog')
         self.assertContains(response, 'Wholesale Gadget')
         self.assertContains(response, 'tf-pcard')
-        self.assertContains(response, 'Catálogo Mayorista')
+        self.assertContains(response, 'Colón Free Zone Wholesale Catalog')
 
     def test_search_filter(self):
         response = self.client.get('/catalogo/', {'buscar': 'Wholesale'})
@@ -46,7 +46,7 @@ class CatalogoPublicoTests(TestCase):
     def test_empty_state_suggestions(self):
         response = self.client.get('/catalogo/', {'buscar': 'zzznomatch'})
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'No encontramos productos')
+        self.assertContains(response, 'No products found')
         self.assertContains(response, 'Electronics')
 
     def test_partial_returns_grid_only(self):

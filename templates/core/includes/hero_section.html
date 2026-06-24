@@ -1,7 +1,7 @@
 {% load static %}
 {% comment %}
 Public hero — live stats from merchandising.home_stats() (no hardcoded metrics).
-Context: stats (empresas_verificadas, productos, ordenes_completadas, gmv_30d_fmt, categorias).
+Context: stats (empresas_verificadas, productos, ordenes_completadas, categorias, gmv_30d).
 {% endcomment %}
 <section class="pn-hero" id="pn-hero" aria-labelledby="pn-hero-title">
   <span class="pn-hero-dot" aria-hidden="true"></span>
@@ -36,72 +36,83 @@ Context: stats (empresas_verificadas, productos, ordenes_completadas, gmv_30d_fm
     </div>
 
     <div class="pn-hero-aside">
-      <div class="pn-hero-stats-card" aria-label="Live TradeFlow metrics">
-        <p class="pn-hero-stats-title">Real platform data</p>
-        <div class="pn-hero-stats-grid">
-          <div class="pn-hero-stat">
-            <span class="pn-hero-stat-val js-count-up" data-count="{{ stats.empresas_verificadas|default:0 }}">0</span>
-            <span class="pn-hero-stat-lbl">Verified companies</span>
+      <section class="hero-stats-section" aria-label="Live marketplace metrics">
+        <div class="hero-stats-header">
+          <span class="hero-stats-live-badge">
+            <span class="hero-stats-pulse" aria-hidden="true"></span>
+            Live data
+          </span>
+        </div>
+        <div class="hero-stats-grid">
+          <div class="hero-stat-card" data-count="{{ stats.empresas_verificadas|default:0 }}">
+            <div class="hero-stat-icon-wrap">
+              <span class="material-symbols-rounded">domain</span>
+            </div>
+            <span class="hero-stat-number" data-target="{{ stats.empresas_verificadas|default:0 }}">0</span>
+            <span class="hero-stat-label">Verified companies</span>
           </div>
-          <div class="pn-hero-stat">
-            <span class="pn-hero-stat-val js-count-up" data-count="{{ stats.productos|default:0 }}">0</span>
-            <span class="pn-hero-stat-lbl">Active products</span>
+          <div class="hero-stat-card" data-count="{{ stats.productos|default:0 }}">
+            <div class="hero-stat-icon-wrap">
+              <span class="material-symbols-rounded">inventory_2</span>
+            </div>
+            <span class="hero-stat-number" data-target="{{ stats.productos|default:0 }}">0</span>
+            <span class="hero-stat-label">Active products</span>
           </div>
-          <div class="pn-hero-stat">
-            <span class="pn-hero-stat-val js-count-up" data-count="{{ stats.ordenes_completadas|default:0 }}">0</span>
-            <span class="pn-hero-stat-lbl">Completed orders</span>
+          <div class="hero-stat-card" data-count="{{ stats.ordenes_completadas|default:0 }}">
+            <div class="hero-stat-icon-wrap">
+              <span class="material-symbols-rounded">local_shipping</span>
+            </div>
+            <span class="hero-stat-number" data-target="{{ stats.ordenes_completadas|default:0 }}">0</span>
+            <span class="hero-stat-label">Completed orders</span>
           </div>
-          <div class="pn-hero-stat">
-            <span class="pn-hero-stat-val js-count-up" data-count="{{ stats.categorias|default:0 }}">0</span>
-            <span class="pn-hero-stat-lbl">Categories available</span>
+          <div class="hero-stat-card" data-count="{{ stats.categorias|default:0 }}">
+            <div class="hero-stat-icon-wrap">
+              <span class="material-symbols-rounded">category</span>
+            </div>
+            <span class="hero-stat-number" data-target="{{ stats.categorias|default:0 }}">0</span>
+            <span class="hero-stat-label">Categories</span>
           </div>
-          <div class="pn-hero-stat pn-hero-stat--wide">
-            <span class="pn-hero-stat-val pn-hero-stat-val--gmv">{{ stats.gmv_30d_fmt|default:"USD 0.00" }}</span>
-            <span class="pn-hero-stat-lbl">Volume last 30 days</span>
+          <div class="hero-stat-card hero-stat-card--highlight"
+               data-count="{{ stats.gmv_30d|default:0 }}"
+               data-prefix="USD "
+               data-decimals="0">
+            <div class="hero-stat-icon-wrap">
+              <span class="material-symbols-rounded">trending_up</span>
+            </div>
+            <span class="hero-stat-number"
+                  data-target="{{ stats.gmv_30d|default:0 }}"
+                  data-prefix="USD "
+                  data-decimals="0">0</span>
+            <span class="hero-stat-label">Volume last 30 days</span>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="pn-hero-art" aria-hidden="true">
-        <span class="pn-hero-dashed"></span>
-        <div class="hero-ship-container" id="hero-ship-container">
-          <div class="hero-wave hero-wave-back" aria-hidden="true">
-            <div class="hero-wave-track">
-              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 38 C200 8 400 52 600 36 C800 20 1000 48 1200 34 L1200 60 L0 60 Z"/>
-              </svg>
-              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M0 38 C200 8 400 52 600 36 C800 20 1000 48 1200 34 L1200 60 L0 60 Z"/>
-              </svg>
-            </div>
+      <div class="pn-hero-art">
+        <div class="hero-ship-container" data-reveal="ship">
+          <div class="hero-waves" aria-hidden="true">
+            <svg class="hero-wave hero-wave--back" viewBox="0 0 1440 120" preserveAspectRatio="none">
+              <path d="M0,60 C240,120 480,0 720,60 C960,120 1200,0 1440,60 L1440,120 L0,120 Z"/>
+            </svg>
+            <svg class="hero-wave hero-wave--mid" viewBox="0 0 1440 100" preserveAspectRatio="none">
+              <path d="M0,50 C360,100 720,0 1080,50 C1260,75 1350,25 1440,50 L1440,100 L0,100 Z"/>
+            </svg>
+            <svg class="hero-wave hero-wave--front" viewBox="0 0 1440 80" preserveAspectRatio="none">
+              <path d="M0,40 C180,80 360,0 540,40 C720,80 900,0 1080,40 C1260,80 1350,20 1440,40 L1440,80 L0,80 Z"/>
+            </svg>
           </div>
-          <div class="hero-wave hero-wave-mid" aria-hidden="true">
-            <div class="hero-wave-track">
-              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 42 C180 18 360 54 540 40 C720 26 900 56 1080 38 L1200 44 L1200 60 L0 60 Z"/>
-              </svg>
-              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M0 42 C180 18 360 54 540 40 C720 26 900 56 1080 38 L1200 44 L1200 60 L0 60 Z"/>
-              </svg>
-            </div>
-          </div>
+
           <img src="{% static 'img/ship-cargo.svg' %}"
-               alt="International shipping from Colón Free Zone"
+               alt="International cargo ship exporting from Colón Free Zone"
                class="hero-ship-img"
-               width="360"
-               height="225"
-               loading="eager"
-               fetchpriority="low"
-               decoding="async">
-          <div class="hero-wave hero-wave-front" aria-hidden="true">
-            <div class="hero-wave-track">
-              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 44 C160 28 320 50 480 42 C640 34 800 52 960 40 C1080 32 1140 46 1200 42 L1200 60 L0 60 Z"/>
-              </svg>
-              <svg viewBox="0 0 1200 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M0 44 C160 28 320 50 480 42 C640 34 800 52 960 40 C1080 32 1140 46 1200 42 L1200 60 L0 60 Z"/>
-              </svg>
-            </div>
+               width="400"
+               height="250"
+               loading="eager">
+
+          <div class="hero-waves hero-waves--foreground" aria-hidden="true">
+            <svg class="hero-wave hero-wave--front-2" viewBox="0 0 1440 60" preserveAspectRatio="none">
+              <path d="M0,30 C360,60 720,0 1080,30 C1260,45 1350,15 1440,30 L1440,60 L0,60 Z"/>
+            </svg>
           </div>
         </div>
       </div>

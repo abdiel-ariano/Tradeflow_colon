@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Catálogo Mayorista Zona Libre de Colón | TradeFlow{% endblock %}
+{% block title %}Colón Free Zone Wholesale Catalog | TradeFlow{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
@@ -13,35 +13,35 @@
     <form class="cat-search-form" method="get" action="{% url 'catalogo_publico' %}" id="cat-search-form">
       <button type="button" class="cat-filter-toggle" id="cat-filter-open" aria-expanded="false" aria-controls="cat-sidebar">
         <span class="material-symbols-rounded" aria-hidden="true">tune</span>
-        Filtros
+        Filters
       </button>
       <div class="cat-search-input-wrap">
         <span class="material-symbols-rounded" aria-hidden="true">search</span>
         <input type="search" name="buscar" class="cat-search-input" id="cat-search-input"
-               value="{{ buscar }}" placeholder="Buscar productos, SKU o empresas verificadas…"
-               autocomplete="off" aria-label="Buscar en el catálogo">
+               value="{{ buscar }}" placeholder="Search products, SKU or verified companies…"
+               autocomplete="off" aria-label="Search catalog">
       </div>
-      <button type="submit" class="cat-search-btn">Buscar</button>
+      <button type="submit" class="cat-search-btn">Search</button>
     </form>
   </div>
 
   <section class="cat-hero" aria-labelledby="cat-hero-title">
     <div class="cat-hero-inner">
-      <h1 id="cat-hero-title">Catálogo Zona Libre de Colón</h1>
-      <p>{{ catalogo_stats.productos }} productos de {{ verified_empresas }} empresas verificadas</p>
+      <h1 id="cat-hero-title">Colón Free Zone Catalog</h1>
+      <p>{{ catalogo_stats.productos }} products from {{ verified_empresas }} verified companies</p>
     </div>
   </section>
 
   <div class="cat-sidebar-backdrop" id="cat-sidebar-backdrop" hidden></div>
 
   <div class="cat-layout">
-    <aside class="cat-sidebar" id="cat-sidebar" aria-label="Filtros del catálogo">
+    <aside class="cat-sidebar" id="cat-sidebar" aria-label="Catalog filters">
       <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form" id="cat-filters-form">
         {% if buscar %}<input type="hidden" name="buscar" value="{{ buscar }}">{% endif %}
         {% if empresa %}<input type="hidden" name="empresa" value="{{ empresa }}">{% endif %}
 
         <div class="cat-filter-group">
-          <h2 class="cat-filter-title">Categoría</h2>
+          <h2 class="cat-filter-title">Category</h2>
           <ul class="cat-check-list">
             {% for cat in categorias %}
             <li>
@@ -53,19 +53,19 @@
               </label>
             </li>
             {% empty %}
-            <li class="cat-check-item" style="color:var(--tf-muted);">Sin categorías</li>
+            <li class="cat-check-item cat-check-empty">No categories</li>
             {% endfor %}
           </ul>
         </div>
 
         <div class="cat-filter-group">
-          <h2 class="cat-filter-title">Empresa</h2>
+          <h2 class="cat-filter-title">Company</h2>
           <ul class="cat-empresa-list">
             <li class="cat-empresa-item">
               <a href="{% url 'catalogo_publico' %}{% if buscar %}?buscar={{ buscar|urlencode }}{% endif %}"
                  class="cat-empresa-link{% if not empresa %} is-active{% endif %}">
                 <span class="cat-empresa-av" aria-hidden="true">∗</span>
-                <span>Todas</span>
+                <span>All</span>
               </a>
             </li>
             {% for emp in empresas|slice:":20" %}
@@ -73,7 +73,7 @@
               <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}{% if buscar %}&buscar={{ buscar|urlencode }}{% endif %}"
                  class="cat-empresa-link{% if empresa == emp.pk|stringformat:'s' %} is-active{% endif %}">
                 <span class="cat-empresa-av" aria-hidden="true">{{ emp.name|slice:":1"|upper }}</span>
-                <span>{{ emp.name }} <small style="color:var(--tf-muted);">({{ emp.num_productos }})</small></span>
+                <span>{{ emp.name }} <small class="cat-empresa-count">({{ emp.num_productos }})</small></span>
               </a>
             </li>
             {% endfor %}
@@ -81,35 +81,35 @@
         </div>
 
         <div class="cat-filter-group">
-          <h2 class="cat-filter-title">Rango de precio (USD)</h2>
+          <h2 class="cat-filter-title">Price range (USD)</h2>
           <div class="cat-price-row">
-            <input type="number" name="precio_min" min="0" step="0.01" placeholder="Mín"
-                   value="{{ precio_min }}" aria-label="Precio mínimo">
-            <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx"
-                   value="{{ precio_max }}" aria-label="Precio máximo">
+            <input type="number" name="precio_min" min="0" step="0.01" placeholder="Min"
+                   value="{{ precio_min }}" aria-label="Minimum price">
+            <input type="number" name="precio_max" min="0" step="0.01" placeholder="Max"
+                   value="{{ precio_max }}" aria-label="Maximum price">
           </div>
         </div>
 
         <div class="cat-filter-group">
           <label class="cat-toggle-row">
             <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
-            Solo con stock disponible
+            In stock only
           </label>
         </div>
 
         <div class="cat-filter-group">
-          <h2 class="cat-filter-title">Ordenar por</h2>
-          <select name="orden" class="cat-sort-select" aria-label="Ordenar resultados">
-            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevancia</option>
-            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Precio ↑</option>
-            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Precio ↓</option>
-            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Más reciente</option>
+          <h2 class="cat-filter-title">Sort by</h2>
+          <select name="orden" class="cat-sort-select" aria-label="Sort results">
+            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevance</option>
+            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price ↑</option>
+            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price ↓</option>
+            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
           </select>
         </div>
 
         <div class="cat-filter-actions">
-          <button type="submit" class="ds-btn ds-btn--primary ds-btn--full">Aplicar filtros</button>
-          <a href="{% url 'catalogo_publico' %}" class="cat-btn-clear">Limpiar filtros</a>
+          <button type="submit" class="ds-btn ds-btn--primary ds-btn--full">Apply filters</button>
+          <a href="{% url 'catalogo_publico' %}" class="cat-btn-clear">Clear filters</a>
         </div>
       </form>
     </aside>
@@ -118,17 +118,17 @@
       <div class="cat-main-header">
         <p class="cat-results-count">
           {% if buscar or categorias_sel or empresa or precio_min or precio_max or solo_stock %}
-          <strong>{{ total_resultados }}</strong> resultado{{ total_resultados|pluralize }} encontrado{{ total_resultados|pluralize }}
+          <strong>{{ total_resultados }}</strong> result{{ total_resultados|pluralize }} found
           {% else %}
-          Explorando <strong>{{ catalogo_stats.productos }}</strong> productos mayoristas
+          Browsing <strong>{{ catalogo_stats.productos }}</strong> wholesale products
           {% endif %}
         </p>
-        <select class="cat-sort-select" style="width:auto;min-width:160px;" aria-label="Orden rápido"
+        <select class="cat-sort-select cat-sort-select--quick" aria-label="Quick sort"
                 onchange="var f=document.getElementById('cat-filters-form');f.querySelector('[name=orden]').value=this.value;f.submit();">
-          <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevancia</option>
-          <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Precio ↑</option>
-          <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Precio ↓</option>
-          <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Más reciente</option>
+          <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevance</option>
+          <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price ↑</option>
+          <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price ↓</option>
+          <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
         </select>
       </div>
 
