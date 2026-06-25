@@ -97,6 +97,59 @@ def featured_companies_carousel(limit: int = 10):
     )
 
 
+def trending_products(limit: int = 8):
+    """Trending row for public home — bestsellers with carousel fallback."""
+    items = bestsellers(limit=limit)
+    if len(items) >= 4:
+        return items
+    return carousel_products(limit=limit)
+
+
+def home_company_tiers(premium_limit: int = 3, standard_limit: int = 5):
+    """
+    Split home companies into premium featured (with product carousel)
+    and standard grid cards.
+    """
+    base_qs = (
+        Company.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
+    )
+    premium_qs = list(
+        base_qs.filter(is_featured=True)
+        .order_by('-carousel_priority', '-num_productos', 'name')[:premium_limit]
+    )
+    premium_ids = {c.pk for c in premium_qs}
+    if len(premium_qs) < premium_limit:
+        for emp in base_qs.exclude(pk__in=premium_ids).order_by('-num_productos', 'name'):
+            if len(premium_qs) >= premium_limit:
+                break
+            premium_qs.append(emp)
+            premium_ids.add(emp.pk)
+
+    product_map: dict[int, list] = {}
+    if premium_qs:
+        for product in (
+            active_products_base()
+            .filter(company_id__in=premium_ids)
+            .order_by('company_id', '-merchandising_priority', '-created_at')
+        ):
+            bucket = product_map.setdefault(product.company_id, [])
+            if len(bucket) < 5:
+                bucket.append(product)
+
+    premium = []
+    for emp in premium_qs:
+        emp.productos_destacados = product_map.get(emp.pk, [])
+        premium.append(emp)
+
+    standard = list(
+        base_qs.exclude(pk__in=premium_ids).order_by('name')[:standard_limit]
+    )
+    return premium, standard
+
+
 def carousel_products(limit: int = 12):
     """Productos para carrusel: promo, bestsellers o destacados."""
     deals = daily_deals(limit=limit)

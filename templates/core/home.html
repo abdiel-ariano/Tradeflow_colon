@@ -1,8 +1,8 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% comment %}
-TradeFlow Colón — public landing (polished v3).
-Context: home_view — stats, featured_products, bestsellers, empresas_carousel, show_cart_actions.
+TradeFlow Colón — public landing (product showcase).
+Context: stats, trending_products, empresas_premium, empresas_standard, featured_products.
 {% endcomment %}
 {% block title %}TradeFlow Colón — Shop the Colón Free Zone{% endblock %}
 
@@ -11,7 +11,7 @@ Context: home_view — stats, featured_products, bestsellers, empresas_carousel,
 <link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-sections.css' %}?v={{ tf_asset_version|default:'2' }}">
-<link rel="stylesheet" href="{% static 'css/tf-hero-animations.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/tf-animations.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
 {% block extra_css %}{% endblock %}
@@ -19,6 +19,7 @@ Context: home_view — stats, featured_products, bestsellers, empresas_carousel,
 {% block content %}
 <main class="hm-root" id="hm-root">
   {% include "core/includes/hero_section.html" %}
+  {% include "core/includes/home_trending_section.html" %}
   {% include "core/includes/home_grid.html" %}
   {% include "core/includes/home_products_section.html" %}
   {% include "core/includes/home_companies_section.html" %}
@@ -30,7 +31,7 @@ Context: home_view — stats, featured_products, bestsellers, empresas_carousel,
 
 {% block extra_js %}
 <script src="{% static 'js/tf-skeletons.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/tf_hero_animations.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/tf_countup.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/tf_reveal.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/tf_trending.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

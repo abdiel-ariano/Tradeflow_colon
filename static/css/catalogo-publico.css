@@ -406,12 +406,9 @@ Public B2B catalog (read-only). Requires tf-design-tokens.css + tf-components.cs
   color: var(--tf-muted, #6B7A88);
 }
 
-/* Product grid: 1 / 2 / 4 cols */
+/* Product grid: 2 cols mobile, 4 cols desktop */
 .cat-grid.tf-pcard-grid {
-  grid-template-columns: 1fr;
-}
-@media (min-width: 576px) {
-  .cat-grid.tf-pcard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 @media (min-width: 1200px) {
   .cat-grid.tf-pcard-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }

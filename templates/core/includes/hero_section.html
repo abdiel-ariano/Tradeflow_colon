@@ -3,7 +3,7 @@
 Public hero — live stats from merchandising.home_stats() (no hardcoded metrics).
 Context: stats (empresas_verificadas, productos, ordenes_completadas, categorias, gmv_30d).
 {% endcomment %}
-<section class="pn-hero" id="pn-hero" aria-labelledby="pn-hero-title">
+<section class="pn-hero pn-hero--showcase" id="pn-hero" aria-labelledby="pn-hero-title">
   <div class="pn-hero-grid">
     <div class="pn-hero-copy">
       <p class="pn-hero-label">Colón Free Zone · Panama</p>
@@ -35,46 +35,37 @@ Context: stats (empresas_verificadas, productos, ordenes_completadas, categorias
     </div>
 
     <div class="pn-hero-aside">
-      <section class="hero-stats-section" aria-label="Live marketplace metrics">
-        <div class="hero-stats-header">
-          <span class="hero-stats-live-badge">
-            <span class="hero-stats-pulse" aria-hidden="true"></span>
-            Live data
-          </span>
-        </div>
+      <section class="hero-stats-section" aria-label="Marketplace metrics">
         <div class="hero-stats-grid">
-          <div class="hero-stat-card" data-count="{{ stats.empresas_verificadas|default:0 }}">
+          <div class="hero-stat-card" data-stat-index="0">
             <div class="hero-stat-icon-wrap">
               <span class="material-symbols-rounded">domain</span>
             </div>
             <span class="hero-stat-number" data-target="{{ stats.empresas_verificadas|default:0 }}">0</span>
             <span class="hero-stat-label">Verified companies</span>
           </div>
-          <div class="hero-stat-card" data-count="{{ stats.productos|default:0 }}">
+          <div class="hero-stat-card" data-stat-index="1">
             <div class="hero-stat-icon-wrap">
               <span class="material-symbols-rounded">inventory_2</span>
             </div>
             <span class="hero-stat-number" data-target="{{ stats.productos|default:0 }}">0</span>
             <span class="hero-stat-label">Active products</span>
           </div>
-          <div class="hero-stat-card" data-count="{{ stats.ordenes_completadas|default:0 }}">
+          <div class="hero-stat-card" data-stat-index="2">
             <div class="hero-stat-icon-wrap">
               <span class="material-symbols-rounded">local_shipping</span>
             </div>
             <span class="hero-stat-number" data-target="{{ stats.ordenes_completadas|default:0 }}">0</span>
             <span class="hero-stat-label">Completed orders</span>
           </div>
-          <div class="hero-stat-card" data-count="{{ stats.categorias|default:0 }}">
+          <div class="hero-stat-card" data-stat-index="3">
             <div class="hero-stat-icon-wrap">
               <span class="material-symbols-rounded">category</span>
             </div>
             <span class="hero-stat-number" data-target="{{ stats.categorias|default:0 }}">0</span>
             <span class="hero-stat-label">Categories</span>
           </div>
-          <div class="hero-stat-card hero-stat-card--highlight"
-               data-count="{{ stats.gmv_30d|default:0 }}"
-               data-prefix="$"
-               data-decimals="0">
+          <div class="hero-stat-card hero-stat-card--highlight" data-stat-index="4">
             <div class="hero-stat-icon-wrap">
               <span class="material-symbols-rounded">trending_up</span>
             </div>
@@ -86,29 +77,6 @@ Context: stats (empresas_verificadas, productos, ordenes_completadas, categorias
           </div>
         </div>
       </section>
-
-      <div class="pn-hero-art">
-        <div class="hero-ship-container" id="hero-ship-container">
-          <div class="hero-waves" aria-hidden="true">
-            <svg class="hero-wave hero-wave--back" viewBox="0 0 1440 120" preserveAspectRatio="none">
-              <path d="M0,60 C240,120 480,0 720,60 C960,120 1200,0 1440,60 L1440,120 L0,120 Z"/>
-            </svg>
-            <svg class="hero-wave hero-wave--mid" viewBox="0 0 1440 100" preserveAspectRatio="none">
-              <path d="M0,50 C360,100 720,0 1080,50 C1260,75 1350,25 1440,50 L1440,100 L0,100 Z"/>
-            </svg>
-            <svg class="hero-wave hero-wave--front" viewBox="0 0 1440 80" preserveAspectRatio="none">
-              <path d="M0,40 C180,80 360,0 540,40 C720,80 900,0 1080,40 C1260,80 1350,20 1440,40 L1440,80 L0,80 Z"/>
-            </svg>
-          </div>
-
-          <img src="{% static 'img/ship-cargo.svg' %}"
-               alt="International cargo ship exporting from Colón Free Zone"
-               class="hero-ship-img"
-               width="400"
-               height="250"
-               loading="eager">
-        </div>
-      </div>
     </div>
   </div>
 </section>
