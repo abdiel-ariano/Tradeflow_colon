@@ -28,14 +28,14 @@
       var el = entry.target;
       var delay = el.dataset.revealDelay;
       if (delay) {
-        el.style.transitionDelay = (parseInt(delay, 10) * 0.1) + 's';
+        el.style.transitionDelay = (parseInt(delay, 10) * 0.08) + 's';
       }
       el.classList.add('is-revealed');
       observer.unobserve(el);
     });
   }, {
-    threshold: 0.15,
-    rootMargin: '0px 0px -50px 0px'
+    threshold: 0.12,
+    rootMargin: '0px 0px -40px 0px'
   });
 
   revealElements.forEach(function (el) {
