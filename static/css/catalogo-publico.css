@@ -36,6 +36,99 @@ Public B2B catalog (read-only). Requires tf-design-tokens.css + tf-components.cs
   opacity: 0.95;
 }
 
+/* ── Category hero banners ── */
+.cat-category-banners {
+  background: var(--tf-white, #fff);
+  border-bottom: 1px solid var(--tf-border, #E8ECF0);
+  padding: 24px clamp(16px, 4vw, 40px);
+}
+
+.cat-category-banners-inner {
+  max-width: var(--tf-container-lg, 1320px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .cat-category-banners-inner {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .cat-category-banners-inner {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cat-category-banner {
+  background: var(--tf-white, #fff);
+  border: 1px solid var(--tf-border, #E8ECF0);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cat-category-banner-hero {
+  display: block;
+}
+
+.cat-category-banner-hero img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+.cat-category-banner-body {
+  padding: 14px;
+}
+
+.cat-category-banner-body h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--tf-navy, #0F2A44);
+  margin: 0 0 4px;
+}
+
+.cat-category-banner-body p {
+  font-size: 0.8rem;
+  color: var(--tf-muted, #6B7A88);
+  margin: 0 0 10px;
+}
+
+.cat-category-banner-thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.cat-category-banner-thumbs a {
+  display: block;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cat-category-banner-thumbs img {
+  width: 100%;
+  height: 48px;
+  object-fit: cover;
+  display: block;
+}
+
+.cat-category-banner-cta {
+  color: var(--tf-orange, #F26522);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.cat-category-banner-cta:hover {
+  color: var(--tf-orange-h, #FF7A3D);
+}
+
 /* ── Mobile filter bar (no duplicate search) ── */
 .cat-mobile-bar {
   display: none;
@@ -406,9 +499,12 @@ Public B2B catalog (read-only). Requires tf-design-tokens.css + tf-components.cs
   color: var(--tf-muted, #6B7A88);
 }
 
-/* Product grid: 2 cols mobile, 4 cols desktop */
+/* Product grid: 2 cols mobile, 3 tablet, 4 desktop */
 .cat-grid.tf-pcard-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 768px) {
+  .cat-grid.tf-pcard-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (min-width: 1200px) {
   .cat-grid.tf-pcard-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }

@@ -136,7 +136,7 @@ def home_company_tiers(premium_limit: int = 3, standard_limit: int = 5):
             .order_by('company_id', '-merchandising_priority', '-created_at')
         ):
             bucket = product_map.setdefault(product.company_id, [])
-            if len(bucket) < 5:
+            if len(bucket) < 16:
                 bucket.append(product)
 
     premium = []
@@ -231,8 +231,16 @@ def category_spotlights(limit_per_cat: int = 4, max_cats: int = 4):
             .order_by('-merchandising_priority')[:limit_per_cat]
         )
         if prods:
-            rows.append({'category': cat, 'products': prods})
+            rows.append({'category': cat, 'products': prods, 'product_count': cat.n})
     return rows
+
+
+def texture_products(limit: int = 12):
+    """Decorative product thumbnails for hero texture band."""
+    items = carousel_products(limit=limit)
+    if len(items) >= 8:
+        return items
+    return list(active_products_base().order_by('-merchandising_priority', '-created_at')[:limit])
 
 
 def home_stats():

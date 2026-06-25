@@ -28,7 +28,7 @@ Requiere: tf-design-tokens.css
   flex-direction: column;
   background: var(--tf-white, #fff);
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: var(--tf-radius-card, 12px);
+  border-radius: var(--tf-radius-card, 8px);
   overflow: hidden;
   box-shadow: var(--tf-shadow-card, 0 2px 8px rgba(15, 42, 68, 0.08));
   transition:
@@ -264,7 +264,7 @@ Requiere: tf-design-tokens.css
   position: relative;
   background: var(--tf-white, #fff);
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: var(--tf-radius-card, 12px);
+  border-radius: var(--tf-radius-card, 8px);
   overflow: hidden;
   aspect-ratio: 4 / 3;
 }
@@ -291,7 +291,7 @@ Requiere: tf-design-tokens.css
 .cpd-hero-info {
   background: var(--tf-white, #fff);
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: var(--tf-radius-card, 12px);
+  border-radius: var(--tf-radius-card, 8px);
   padding: clamp(20px, 4vw, 28px);
 }
 .cpd-meta {
@@ -389,7 +389,7 @@ Requiere: tf-design-tokens.css
 .cpd-tabs {
   background: var(--tf-white, #fff);
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: var(--tf-radius-card, 12px);
+  border-radius: var(--tf-radius-card, 8px);
   overflow: hidden;
   margin-bottom: var(--tf-space-10, 40px);
 }
