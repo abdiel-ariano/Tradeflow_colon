@@ -856,8 +856,9 @@ def home_view(request):
     if not empresas_home:
         empresas_home = merch.featured_companies_carousel(8)
 
-    empresas_premium, empresas_standard = merch.home_company_tiers(3, 5)
-    trending = merch.trending_products(8)
+    empresas_premium, empresas_standard = merch.home_company_tiers(3, 8)
+    trending = merch.trending_products(12)
+    texture = merch.texture_products(12)
 
     return render(
         request,
@@ -868,6 +869,7 @@ def home_view(request):
             'bestsellers': bestsellers_list,
             'featured_products': list(featured_qs),
             'trending_products': trending,
+            'texture_products': texture,
             'carousel_products': merch.carousel_products(12),
             'empresas_carousel': empresas_home,
             'empresas_premium': empresas_premium,
@@ -3063,6 +3065,7 @@ def catalogo_publico(request):
         'meta_description': meta_description,
         'titulo_pagina': 'Catalog',
         'nav_activo': 'catalogo',
+        'category_spotlights': merch.category_spotlights(4, 4),
     }
 
     is_partial = (

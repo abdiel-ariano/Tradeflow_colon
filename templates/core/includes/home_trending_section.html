@@ -9,9 +9,9 @@
     </a>
   </div>
   <div class="trending-track" tabindex="0" aria-label="Trending product carousel">
-    {% for product in trending_products|default:featured_products|slice:":8" %}
+    {% for product in trending_products|default:featured_products|slice:":12" %}
     <a href="{% url 'catalogo_producto_detail' product.pk %}" class="trending-card">
-      <div class="trending-img-wrap">
+      <div class="trending-card-img">
         {% if product.image %}
         <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
         {% else %}
@@ -21,10 +21,16 @@
         {% endif %}
       </div>
       <span class="trending-name">{{ product.name|truncatechars:28 }}</span>
+      <span class="trending-company">{{ product.company.name }}</span>
       <span class="trending-price">{{ product.display_price|money_usd }}</span>
     </a>
     {% empty %}
     <p class="trending-empty">Products coming soon to the catalog.</p>
+    {% endfor %}
+  </div>
+  <div class="trending-dots" aria-hidden="true">
+    {% for product in trending_products|default:featured_products|slice:":12" %}
+    <span class="trending-dot{% if forloop.first %} active{% endif %}"></span>
     {% endfor %}
   </div>
 </section>

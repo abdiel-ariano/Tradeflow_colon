@@ -1,10 +1,10 @@
 {% load static tf_money %}
-{% comment %}Verified companies — premium featured tier + standard grid.{% endcomment %}
+{% comment %}Verified companies — premium dense grid + standard grid.{% endcomment %}
 <section class="companies-section" id="hm-companies" aria-labelledby="companies-heading">
   <div class="companies-header" data-reveal="up">
     <div>
       <span class="companies-label">Suppliers</span>
-      <h2 id="companies-heading">Companies in the Colón Free Zone</h2>
+      <h2 id="companies-heading">Featured suppliers in the Colón Free Zone</h2>
     </div>
     <a href="{% url 'catalogo_publico' %}?verificado=1" class="companies-view-all">
       All verified companies
@@ -13,44 +13,59 @@
   </div>
 
   {% for emp in empresas_premium|default:empresas_carousel|slice:":3" %}
-  <article class="company-card company-card--premium" data-reveal="up">
-    <div class="company-premium-main">
-      <div class="company-premium-avatar">
-        <span class="company-premium-initials"
+  <article class="premium-company" data-reveal="up">
+    <div class="premium-company-header">
+      <div class="premium-company-logo">
+        <span class="premium-company-initials"
               style="background: {% cycle 'linear-gradient(135deg, #0F2A44, #2E5B8A)' 'linear-gradient(135deg, #1B3B63, #62929a)' 'linear-gradient(135deg, #2E5B8A, #0F2A44)' %}">
           {{ emp.name|slice:":2"|upper }}
         </span>
       </div>
-      <div class="company-premium-info">
+      <div class="premium-company-info">
         <h3>{{ emp.name }}</h3>
-        <span class="company-premium-badge">
-          <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-          CFZ Verified
-          <span class="company-premium-featured">Featured</span>
-        </span>
-        <p>
+        <div class="premium-company-badges">
+          <span class="premium-badge premium-badge--verified">
+            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+            CFZ Verified
+          </span>
+          <span class="premium-badge premium-badge--featured">Featured</span>
+        </div>
+        <p class="premium-company-count">
           {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
         </p>
-        <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}">
-          Explore full catalog
-          <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
-        </a>
       </div>
+      <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="premium-company-explore">
+        Explore →
+      </a>
     </div>
+
     {% if emp.productos_destacados %}
-    <div class="company-premium-carousel">
-      <div class="company-premium-track">
-        {% for product in emp.productos_destacados %}
-        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="company-premium-product">
-          <div class="company-premium-img">
+    <div class="premium-company-grids">
+      <div class="premium-company-grid-row premium-company-grid-row--left" data-premium-row>
+        {% for product in emp.productos_destacados|slice:":8" %}
+        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="premium-mini">
+          <div class="premium-mini-img">
             {% if product.image %}
-            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+            <img src="{{ product.image.url }}" alt="" loading="lazy" decoding="async">
             {% else %}
             <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
             {% endif %}
           </div>
-          <span class="company-premium-product-name">{{ product.name|truncatechars:20 }}</span>
-          <span class="company-premium-product-price">{{ product.display_price|money_usd }}</span>
+          <span class="premium-mini-price">{{ product.display_price|money_usd }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      <div class="premium-company-grid-row premium-company-grid-row--right" data-premium-row>
+        {% for product in emp.productos_destacados|slice:"8:16" %}
+        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="premium-mini">
+          <div class="premium-mini-img">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="" loading="lazy" decoding="async">
+            {% else %}
+            <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+            {% endif %}
+          </div>
+          <span class="premium-mini-price">{{ product.display_price|money_usd }}</span>
         </a>
         {% endfor %}
       </div>
@@ -60,7 +75,7 @@
   {% endfor %}
 
   <div class="companies-grid-standard">
-    {% for emp in empresas_standard|default:empresas_carousel|slice:"3:8" %}
+    {% for emp in empresas_standard|default:empresas_carousel|slice:"3:11" %}
     <article class="company-card" data-reveal="up" data-reveal-delay="{% cycle '1' '2' '3' '4' %}">
       <div class="company-card-avatar">
         <span class="company-card-initials"
@@ -77,7 +92,7 @@
         {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
       </p>
       <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="company-card-link">
-        Explore {{ emp.num_productos }} products
+        Explore →
         <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
       </a>
     </article>

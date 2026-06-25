@@ -17,6 +17,42 @@
     </div>
   </section>
 
+  {% if category_spotlights and not buscar and not categorias_sel and not empresa %}
+  <section class="cat-category-banners" aria-label="Browse by category">
+    <div class="cat-category-banners-inner">
+      {% for row in category_spotlights|slice:":4" %}
+      <article class="cat-category-banner">
+        <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="cat-category-banner-hero">
+          {% with hero=row.products.0 %}
+          {% if hero.image %}
+          <img src="{{ hero.image.url }}" alt="{{ row.category.name }}" loading="lazy" decoding="async">
+          {% else %}
+          <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ row.category.name }}" loading="lazy" decoding="async">
+          {% endif %}
+          {% endwith %}
+        </a>
+        <div class="cat-category-banner-body">
+          <h2>{{ row.category.name }}</h2>
+          <p>{% if row.product_count == 1 %}{{ row.product_count }} product{% else %}{{ row.product_count }} products{% endif %}</p>
+          <div class="cat-category-banner-thumbs">
+            {% for product in row.products|slice:":4" %}
+            <a href="{% url 'catalogo_producto_detail' product.pk %}">
+              {% if product.image %}
+              <img src="{{ product.image.url }}" alt="" loading="lazy" decoding="async">
+              {% else %}
+              <img src="{% static 'img/product-placeholder.svg' %}" alt="" loading="lazy" decoding="async">
+              {% endif %}
+            </a>
+            {% endfor %}
+          </div>
+          <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="cat-category-banner-cta">Explore →</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   <div class="cat-mobile-bar">
     <button type="button" class="cat-filter-toggle" id="cat-filter-open" aria-expanded="false" aria-controls="cat-sidebar">
       <span class="material-symbols-rounded" aria-hidden="true">tune</span>
@@ -160,6 +196,7 @@
 {% block extra_js %}
 <script src="{% static 'js/tf-skeletons.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/tf_reveal.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/tf-carousel.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var openBtn = document.getElementById('cat-filter-open');

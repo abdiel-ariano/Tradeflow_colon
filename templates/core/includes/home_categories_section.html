@@ -1,0 +1,72 @@
+{% load static %}
+{% comment %}Shop by Category — Amazon-style mixed large + compact cards.{% endcomment %}
+<section class="categories-section" id="hm-categories" aria-labelledby="categories-heading">
+  <div class="categories-inner">
+    <div class="categories-header" data-reveal="up">
+      <span class="categories-label">Browse</span>
+      <h2 id="categories-heading">Shop by category</h2>
+      <p>Explore wholesale inventory across the Colón Free Zone.</p>
+    </div>
+
+    <div class="categories-layout">
+      {% for row in category_spotlights|slice:":3" %}
+      <article class="category-card category-card--large" data-reveal="up" data-reveal-delay="{% cycle '1' '2' '3' %}">
+        <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="category-card--large-link">
+          {% with hero=row.products.0 %}
+          {% if hero.image %}
+          <img src="{{ hero.image.url }}" alt="" class="category-card--large-hero" loading="lazy" decoding="async">
+          {% else %}
+          <img src="{% static 'img/product-placeholder.svg' %}" alt="" class="category-card--large-hero" loading="lazy" decoding="async">
+          {% endif %}
+          {% endwith %}
+        </a>
+        <div class="category-card--large-content">
+          <h3>{{ row.category.name }}</h3>
+          <p class="category-card-count">
+            {% if row.product_count == 1 %}{{ row.product_count }} product{% else %}{{ row.product_count }} products{% endif %}
+          </p>
+          <div class="category-card--large-thumbs">
+            {% for product in row.products|slice:":4" %}
+            <a href="{% url 'catalogo_producto_detail' product.pk %}" class="category-thumb">
+              {% if product.image %}
+              <img src="{{ product.image.url }}" alt="" loading="lazy" decoding="async">
+              {% else %}
+              <img src="{% static 'img/product-placeholder.svg' %}" alt="" loading="lazy" decoding="async">
+              {% endif %}
+            </a>
+            {% endfor %}
+          </div>
+          <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="category-card-cta">
+            Explore →
+          </a>
+        </div>
+      </article>
+      {% endfor %}
+
+      {% with row=category_spotlights.3 %}
+      {% if row %}
+      <article class="category-card category-card--compact" data-reveal="up" data-reveal-delay="4">
+        <div class="category-card--compact-grid">
+          {% for product in row.products|slice:":4" %}
+          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="category-compact-thumb">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="" loading="lazy" decoding="async">
+            {% else %}
+            <img src="{% static 'img/product-placeholder.svg' %}" alt="" loading="lazy" decoding="async">
+            {% endif %}
+          </a>
+          {% endfor %}
+        </div>
+        <h3>{{ row.category.name }}</h3>
+        <p class="category-card-count">
+          {% if row.product_count == 1 %}{{ row.product_count }} product{% else %}{{ row.product_count }} products{% endif %}
+        </p>
+        <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="category-card-cta">
+          View all {{ row.product_count }} →
+        </a>
+      </article>
+      {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+</section>
