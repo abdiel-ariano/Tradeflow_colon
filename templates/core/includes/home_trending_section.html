@@ -1,36 +1,33 @@
 {% load tf_money %}
 {% comment %}Trending products carousel — context: trending_products, featured_products.{% endcomment %}
-<section class="trending-section" id="hm-trending" aria-label="Trending products" data-reveal="up">
+<section class="trending-section" id="hm-trending" aria-label="Trending products">
   <div class="trending-header">
-    <span class="trending-label">Trending now</span>
-    <a href="{% url 'catalogo_publico' %}" class="trending-view-all">
+    <h2>Trending now</h2>
+    <a href="{% url 'catalogo_publico' %}">
       View all products
       <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
     </a>
   </div>
-  <div class="trending-track" tabindex="0" aria-label="Trending product carousel">
-    {% for product in trending_products|default:featured_products|slice:":12" %}
-    <a href="{% url 'catalogo_producto_detail' product.pk %}" class="trending-card">
-      <div class="trending-card-img">
-        {% if product.image %}
-        <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
-        {% else %}
-        <span class="trending-img-placeholder" aria-hidden="true">
-          <span class="material-symbols-rounded">inventory_2</span>
-        </span>
-        {% endif %}
-      </div>
-      <span class="trending-name">{{ product.name|truncatechars:28 }}</span>
-      <span class="trending-company">{{ product.company.name }}</span>
-      <span class="trending-price">{{ product.display_price|money_usd }}</span>
-    </a>
-    {% empty %}
-    <p class="trending-empty">Products coming soon to the catalog.</p>
-    {% endfor %}
-  </div>
-  <div class="trending-dots" aria-hidden="true">
-    {% for product in trending_products|default:featured_products|slice:":12" %}
-    <span class="trending-dot{% if forloop.first %} active{% endif %}"></span>
-    {% endfor %}
+  <div class="trending-wrap">
+    <div class="trending-track">
+      {% for product in trending_products|default:featured_products|slice:":12" %}
+      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="trending-card">
+        <div class="trending-img">
+          {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+          {% else %}
+          <span class="trending-placeholder" aria-hidden="true">
+            <span class="material-symbols-rounded">inventory_2</span>
+          </span>
+          {% endif %}
+        </div>
+        <span class="trending-name">{{ product.name|truncatechars:24 }}</span>
+        <span class="trending-price">{{ product.display_price|money_usd }}</span>
+      </a>
+      {% empty %}
+      <p class="trending-empty">Products coming soon to the catalog.</p>
+      {% endfor %}
+    </div>
+    <div class="trending-dots" aria-hidden="true"></div>
   </div>
 </section>

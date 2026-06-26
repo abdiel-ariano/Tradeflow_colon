@@ -1,130 +1,109 @@
 /**
- * TradeFlow public carousels — trending dots + premium supplier rows.
+ * Trending carousel — transform-based scroll only (never touches page scroll).
  */
 (function () {
   'use strict';
 
+  var track = document.querySelector('.trending-track');
+  var dotsContainer = document.querySelector('.trending-dots');
+  if (!track || !dotsContainer) return;
+
+  var cards = track.querySelectorAll('.trending-card');
+  if (!cards.length) return;
+
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cardWidth = 140;
+  var gap = 16;
+  var wrap = track.parentElement;
+  function recalc() {
+    visible = Math.max(1, Math.floor((wrap ? wrap.offsetWidth : window.innerWidth) / stride()));
+    maxIndex = Math.max(0, cards.length - visible);
+    if (current > maxIndex) current = maxIndex;
+    createDots();
+    goTo(current);
+  }
 
-  /* ── Trending carousel ── */
-  (function initTrending() {
-    var track = document.querySelector('.trending-track');
-    var dots = document.querySelectorAll('.trending-dot');
-    if (!track || !dots.length) return;
+  var visible = 1;
+  var maxIndex = 0;
+  var current = 0;
+  var interval = null;
 
-    var cards = track.querySelectorAll('.trending-card');
-    var total = cards.length;
-    if (!total) return;
-
-    var current = 0;
-    var interval = null;
-
-    function cardStride() {
-      var gap = parseInt(window.getComputedStyle(track).gap, 10) || 16;
-      return cards[0].offsetWidth + gap;
+  function createDots() {
+    dotsContainer.innerHTML = '';
+    for (var i = 0; i <= maxIndex; i++) {
+      var dot = document.createElement('span');
+      dot.className = 'trending-dot' + (i === 0 ? ' active' : '');
+      dot.addEventListener('click', function (idx) {
+        return function () {
+          goTo(idx);
+          stop();
+          start();
+        };
+      }(i));
+      dotsContainer.appendChild(dot);
     }
+  }
 
-    function scrollTo(index) {
-      if (index >= total) index = 0;
-      if (index < 0) index = total - 1;
-      cards[index].scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', inline: 'start', block: 'nearest' });
-      dots.forEach(function (d, i) { d.classList.toggle('active', i === index); });
-      current = index;
-    }
+  function getDots() {
+    return dotsContainer.querySelectorAll('.trending-dot');
+  }
 
-    function startAuto() {
-      if (reducedMotion) return;
-      stopAuto();
-      interval = window.setInterval(function () { scrollTo(current + 1); }, 5000);
-    }
+  function stride() {
+    if (!cards[0]) return cardWidth + gap;
+    var g = parseInt(window.getComputedStyle(track).gap, 10) || gap;
+    return cards[0].offsetWidth + g;
+  }
 
-    function stopAuto() {
-      if (interval) {
-        window.clearInterval(interval);
-        interval = null;
-      }
-    }
-
-    track.addEventListener('mouseenter', stopAuto);
-    track.addEventListener('mouseleave', startAuto);
-    track.addEventListener('touchstart', stopAuto, { passive: true });
-    track.addEventListener('touchend', function () {
-      window.setTimeout(startAuto, 3000);
-    }, { passive: true });
-
-    track.addEventListener('scroll', function () {
-      var stride = cardStride();
-      if (!stride) return;
-      var newIndex = Math.round(track.scrollLeft / stride);
-      if (newIndex !== current && newIndex >= 0 && newIndex < total) {
-        current = newIndex;
-        dots.forEach(function (d, i) { d.classList.toggle('active', i === current); });
-      }
+  function goTo(index) {
+    if (index > maxIndex) index = 0;
+    if (index < 0) index = maxIndex;
+    current = index;
+    track.style.transform = 'translateX(-' + (current * stride()) + 'px)';
+    getDots().forEach(function (d, i) {
+      d.classList.toggle('active', i === current);
     });
+  }
 
-    dots.forEach(function (dot, i) {
-      dot.addEventListener('click', function () {
-        scrollTo(i);
-        stopAuto();
-        startAuto();
-      });
-    });
+  function next() {
+    goTo(current + 1 > maxIndex ? 0 : current + 1);
+  }
 
-    startAuto();
-  })();
-
-  /* ── Premium company row auto-scroll (alternating directions, 8s) ── */
-  (function initPremiumRows() {
+  function start() {
     if (reducedMotion) return;
+    stop();
+    interval = window.setInterval(next, 5000);
+  }
 
-    document.querySelectorAll('[data-premium-row]').forEach(function (row, idx) {
-      var items = row.querySelectorAll('.premium-mini');
-      if (!items.length || row.scrollWidth <= row.clientWidth) return;
+  function stop() {
+    if (interval) {
+      window.clearInterval(interval);
+      interval = null;
+    }
+  }
 
-      var direction = idx % 2 === 0 ? 1 : -1;
-      var paused = false;
-      var timer = null;
+  if (wrap) {
+    wrap.addEventListener('mouseenter', stop);
+    wrap.addEventListener('mouseleave', start);
+    wrap.addEventListener('touchstart', stop, { passive: true });
+  }
 
-      function stride() {
-        var gap = parseInt(window.getComputedStyle(row).gap, 10) || 8;
-        return items[0].offsetWidth + gap;
-      }
+  var touchStart = 0;
+  track.addEventListener('touchstart', function (e) {
+    touchStart = e.touches[0].clientX;
+    stop();
+  }, { passive: true });
 
-      function step() {
-        if (paused) return;
-        var move = stride();
-        var maxScroll = row.scrollWidth - row.clientWidth;
-        if (direction > 0) {
-          if (row.scrollLeft >= maxScroll - 2) {
-            row.scrollTo({ left: 0, behavior: 'smooth' });
-          } else {
-            row.scrollBy({ left: move, behavior: 'smooth' });
-          }
-        } else if (row.scrollLeft <= 2) {
-          row.scrollTo({ left: maxScroll, behavior: 'smooth' });
-        } else {
-          row.scrollBy({ left: -move, behavior: 'smooth' });
-        }
-      }
+  track.addEventListener('touchend', function (e) {
+    var diff = touchStart - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) next();
+      else goTo(current - 1);
+    }
+    window.setTimeout(start, 3000);
+  }, { passive: true });
 
-      function start() {
-        stop();
-        timer = window.setInterval(step, 8000);
-      }
+  window.addEventListener('resize', recalc);
 
-      function stop() {
-        if (timer) {
-          window.clearInterval(timer);
-          timer = null;
-        }
-      }
-
-      row.addEventListener('mouseenter', function () { paused = true; });
-      row.addEventListener('mouseleave', function () { paused = false; });
-      row.addEventListener('touchstart', function () { paused = true; }, { passive: true });
-      row.addEventListener('touchend', function () { paused = false; }, { passive: true });
-
-      start();
-    });
-  })();
+  recalc();
+  start();
 })();

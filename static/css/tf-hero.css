@@ -1,227 +1,99 @@
 /*
 =============================================================================
 TRADEFLOW COLÓN — tf-hero.css
-Hero stats hierarchy + decorative product texture band.
-Requires: tf-design-tokens.css
+Hero shell + minimalist stats + legacy ship/wave suppression.
 =============================================================================
 */
 
 .pn-hero--showcase {
-  position: relative;
-  border-bottom: 1px solid var(--tf-border, #E8ECF0);
+  border-bottom: 1px solid var(--tf-border, #D1D5DB);
 }
 
-.pn-hero--showcase .pn-hero-aside {
-  align-self: stretch;
+.pn-hero--showcase .pn-hero-grid {
+  grid-template-columns: 1fr;
 }
 
-.pn-hero--showcase .pn-hero-copy,
-.pn-hero--showcase .pn-hero-ctas {
-  position: relative;
-  z-index: 2;
-}
-
-/* ===== HERO STATS — hierarchical layout ===== */
-.hero-stats-section {
-  margin: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.hero-stat-primary {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+/* ===== MINIMALIST HERO STATS ===== */
+.hero-stats {
+  padding: 48px 24px;
   text-align: center;
-  width: 100%;
-  max-width: 100%;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 24px 20px;
-  border-radius: var(--tf-radius-lg, 8px);
-  background: linear-gradient(180deg, rgba(242, 101, 34, 0.06) 0%, transparent 100%);
-  border: 1px solid var(--tf-border, #E8ECF0);
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-.hero-stat-primary.is-revealed {
-  opacity: 1;
-  transform: translateY(0);
+.hero-stats-primary {
+  margin-bottom: 24px;
 }
 
-@media (min-width: 1024px) {
-  .hero-stat-primary {
-    max-width: 50%;
-  }
-}
-
-.hero-stat-number--primary {
+.hero-stats-number {
   display: block;
   font-family: 'DM Serif Display', serif;
-  font-size: 2.5rem;
+  font-size: clamp(2.5rem, 6vw, 4rem);
   font-weight: 700;
   color: var(--tf-navy, #0F2A44);
   line-height: 1.1;
-  margin-bottom: 6px;
-  white-space: nowrap;
 }
 
-.hero-stat-primary .hero-stat-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--tf-muted, #6B7A88);
-}
-
-.hero-stats-secondary {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-@media (min-width: 768px) {
-  .hero-stats-secondary {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .hero-stats-secondary {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-}
-
-.hero-stat-card--secondary {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  background: #ffffff;
-  border: 1px solid #E8ECF0;
-  border-radius: 8px;
-  padding: 16px;
-  text-align: left;
-  opacity: 0;
-  transform: translateY(16px);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
-}
-
-.hero-stat-card--secondary.is-revealed {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.hero-stat-card--secondary[data-stat-index="1"].is-revealed { transition-delay: 0.08s; }
-.hero-stat-card--secondary[data-stat-index="2"].is-revealed { transition-delay: 0.16s; }
-.hero-stat-card--secondary[data-stat-index="3"].is-revealed { transition-delay: 0.24s; }
-.hero-stat-card--secondary[data-stat-index="4"].is-revealed { transition-delay: 0.32s; }
-
-.hero-stat-card--secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(15, 42, 68, 0.06);
-}
-
-.hero-stat-card--secondary .hero-stat-icon-wrap {
-  width: 36px;
-  height: 36px;
-  margin: 0 0 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--tf-light, #F2F3F5);
-  border-radius: 50%;
-}
-
-.hero-stat-card--secondary .hero-stat-icon-wrap .material-symbols-rounded {
-  font-size: 20px;
-  color: var(--tf-navy, #0F2A44);
-}
-
-.hero-stat-card--secondary .hero-stat-number {
+.hero-stats-suffix {
   display: block;
-  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--tf-navy, #0F2A44);
-  line-height: 1.2;
-  margin-bottom: 4px;
+  font-size: 1rem;
+  color: var(--tf-muted, #6B7A88);
+  margin-top: 8px;
 }
 
-.hero-stat-card--secondary .hero-stat-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.hero-stats-divider {
+  width: 60px;
+  height: 3px;
+  background: var(--tf-orange, #F26522);
+  margin: 24px auto;
+  border-radius: 2px;
+}
+
+.hero-stats-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+  font-size: 0.9rem;
   color: var(--tf-muted, #6B7A88);
 }
 
-/* ===== HERO TEXTURE ===== */
-.hero-texture {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 80px;
-  overflow: hidden;
-  opacity: 0.15;
-  pointer-events: none;
-  z-index: 1;
+.hero-stats-meta strong {
+  color: var(--tf-navy, #0F2A44);
+  font-weight: 700;
 }
 
-.hero-texture-track {
-  display: flex;
-  gap: 8px;
-  width: max-content;
-  animation: texture-scroll 20s linear infinite;
+.hero-stats-sep {
+  color: var(--tf-orange, #F26522);
+  font-weight: 700;
 }
 
-.hero-texture img {
-  width: 60px;
-  height: 45px;
-  object-fit: cover;
-  border-radius: 4px;
-  filter: grayscale(40%) saturate(60%);
-  flex-shrink: 0;
+@media (max-width: 600px) {
+  .hero-stats-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .hero-stats-sep {
+    display: none;
+  }
 }
 
-@keyframes texture-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-/* Legacy hero elements — hidden */
-.hero-stats-old-lines,
-.hero-ship-old-lines,
+/* ===== REMOVE SHIP, WAVES, STRAY DECORATIONS ===== */
 .hero-ship-container,
 .hero-ship-img,
 .hero-waves,
 .hero-ship-decoration-circle,
+.hero-texture,
+.hero-texture-track,
 .pn-hero-art,
 .pn-hero-dashed,
 .pn-hero-dot,
-.hero-stats-header,
-.hero-stats-live-badge,
-.hero-stats-pulse,
+.pn-hero-aside,
+.hero-stats-section,
 .hero-stats-grid,
-.hero-stat-card--highlight {
+.hero-stat-card,
+.hero-stat-primary,
+.hero-stats-secondary {
   display: none !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-texture-track {
-    animation: none;
-  }
-
-  .hero-stat-primary,
-  .hero-stat-card--secondary {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
 }

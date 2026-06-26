@@ -17,7 +17,7 @@ Variables:
     {% if product.image %}
     <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300">
     {% else %}
-    <div class="tf-pcard__placeholder" aria-hidden="true">
+    <div class="tf-pcard__placeholder product-img-placeholder" aria-hidden="true">
       <span class="material-symbols-rounded">inventory_2</span>
     </div>
     {% endif %}

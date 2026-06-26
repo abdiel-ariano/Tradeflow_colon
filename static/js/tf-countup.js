@@ -1,87 +1,60 @@
 /**
- * CountUp for primary hero stat — easeOutExpo, 2.5s.
- * Secondary stats fade in via CSS after primary reveals.
+ * Hero stats CountUp — easeOutExpo, 2.5s, scroll-triggered once.
  */
 (function () {
   'use strict';
 
-  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var DURATION = 2500;
+  var el = document.querySelector('.hero-stats-number');
+  if (!el) return;
 
-  function easeOutExpo(t) {
-    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+  var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var target = parseFloat(el.dataset.target) || 0;
+  var prefix = el.dataset.prefix || '';
+  var duration = 2500;
+  var started = false;
+
+  function finish() {
+    el.textContent = prefix + Math.floor(target).toLocaleString('en-US');
   }
 
-  function formatNumber(num, prefix, suffix, decimals) {
-    var n = parseFloat(num) || 0;
-    var formatted = n.toLocaleString('en-US', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    });
-    return (prefix || '') + formatted + (suffix || '');
-  }
-
-  function animateCounter(el, target, duration, prefix, suffix, decimals) {
-    if (prefersReducedMotion) {
-      el.textContent = formatNumber(target, prefix, suffix, decimals);
-      revealSecondary();
-      return;
-    }
-
-    var startTime = null;
-
-    function update(currentTime) {
-      if (startTime === null) startTime = currentTime;
-      var elapsed = currentTime - startTime;
-      var progress = Math.min(elapsed / duration, 1);
-      var current = target * easeOutExpo(progress);
-      el.textContent = formatNumber(current, prefix, suffix, decimals);
-      if (progress < 1) {
-        requestAnimationFrame(update);
-      } else {
-        revealSecondary();
-      }
-    }
-
-    requestAnimationFrame(update);
-  }
-
-  function revealSecondary() {
-    var primary = document.querySelector('.hero-stat-primary');
-    var cards = document.querySelectorAll('.hero-stat-card--secondary');
-    if (primary) primary.classList.add('is-revealed');
-    cards.forEach(function (card) {
-      card.classList.add('is-revealed');
-    });
-  }
-
-  var primaryEl = document.querySelector('.hero-stat-number--primary');
-  if (!primaryEl) return;
-
-  function runPrimary() {
-    var target = parseFloat(primaryEl.dataset.target) || 0;
-    var prefix = primaryEl.dataset.prefix || '';
-    var suffix = primaryEl.dataset.suffix || '';
-    var decimals = parseInt(primaryEl.dataset.decimals, 10) || 0;
-    animateCounter(primaryEl, target, DURATION, prefix, suffix, decimals);
-  }
-
-  if (!('IntersectionObserver' in window)) {
-    runPrimary();
+  if (prefersReduced) {
+    finish();
     return;
   }
 
-  var observed = false;
-  var section = document.querySelector('.hero-stats-section');
+  function update(now) {
+    if (!started) return;
+    var progress = Math.min((now - start) / duration, 1);
+    var eased = 1 - Math.pow(2, -10 * progress);
+    var current = Math.floor(target * eased);
+    el.textContent = prefix + current.toLocaleString('en-US');
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+
+  var start = 0;
+
+  function run() {
+    if (started) return;
+    started = true;
+    start = performance.now();
+    requestAnimationFrame(update);
+  }
+
+  if (!('IntersectionObserver' in window)) {
+    run();
+    return;
+  }
 
   var observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (!entry.isIntersecting || observed) return;
-      observed = true;
-      runPrimary();
-      observer.disconnect();
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        run();
+        observer.unobserve(el);
+      }
     });
-  }, { threshold: 0.35 });
+  }, { threshold: 0.5 });
 
-  observer.observe(section || primaryEl);
+  observer.observe(el);
 })();

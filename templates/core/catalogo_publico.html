@@ -195,8 +195,7 @@
 
 {% block extra_js %}
 <script src="{% static 'js/tf-skeletons.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/tf_reveal.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/tf-carousel.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/tf-reveal.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var openBtn = document.getElementById('cat-filter-open');
