@@ -14,13 +14,7 @@ Variables:
   {% else %}
   <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-pcard__media">
   {% endif %}
-    {% if product.image %}
-    <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300">
-    {% else %}
-    <div class="tf-pcard__placeholder product-img-placeholder" aria-hidden="true">
-      <span class="material-symbols-rounded">inventory_2</span>
-    </div>
-    {% endif %}
+    {% include "core/includes/product_image_placeholder.html" with product=product %}
     {% if not product.available_qty %}
     <span class="tf-pcard__badge tf-pcard__badge--out">Out of stock</span>
     {% elif product.available_qty <= 5 %}

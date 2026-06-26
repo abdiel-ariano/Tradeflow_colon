@@ -25,5 +25,12 @@ urlpatterns += i18n_patterns(
     prefix_default_language=False,
 )
 
-if settings.DEBUG:
+def _serve_local_media_files():
+    if settings.DEBUG or getattr(settings, 'SERVE_LOCAL_MEDIA', False):
+        return True
+    backend = settings.STORAGES.get('default', {}).get('BACKEND', '')
+    return 'FileSystemStorage' in backend
+
+
+if _serve_local_media_files():
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

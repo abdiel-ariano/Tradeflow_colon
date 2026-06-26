@@ -32,11 +32,9 @@
       <h3 class="bh-freq-title">{{ row.category.name }}</h3>
       {% with prod=row.products.0 %}
       <a href="{% url 'tienda' %}?categoria={{ row.category.id }}">
-        {% if prod.image %}
-        <img class="bh-freq-img" src="{{ prod.image.url }}" alt="{{ prod.name }}" loading="lazy">
-        {% else %}
-        <img class="bh-freq-img" src="https://picsum.photos/seed/freq{{ row.category.id }}/400/400" alt="{{ row.category.name }}" loading="lazy">
-        {% endif %}
+        <div class="bh-freq-img">
+          {% include "core/includes/product_image_placeholder.html" with product=prod %}
+        </div>
       </a>
       {% endwith %}
     </article>
@@ -46,11 +44,9 @@
       <p class="bh-freq-label">Búsquedas frecuentes</p>
       <h3 class="bh-freq-title">{{ product.category.name|default:product.name }}</h3>
       <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}">
-        {% if product.image %}
-        <img class="bh-freq-img" src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
-        {% else %}
-        <img class="bh-freq-img" src="https://picsum.photos/seed/td{{ product.id }}/400/400" alt="{{ product.name }}" loading="lazy">
-        {% endif %}
+        <div class="bh-freq-img">
+          {% include "core/includes/product_image_placeholder.html" with product=product %}
+        </div>
       </a>
     </article>
     {% empty %}

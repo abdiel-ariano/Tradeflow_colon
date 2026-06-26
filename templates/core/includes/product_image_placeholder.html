@@ -1,0 +1,17 @@
+{% comment %}
+Gradient + initials fallback for product images.
+Usage: {% include "core/includes/product_image_placeholder.html" with product=product %}
+Optional: css_class, img_class, width, height, alt
+{% endcomment %}
+{% load tf_media %}
+<div class="img-placeholder{% if css_class %} {{ css_class }}{% endif %}" data-initials="{{ product.name|slice:':2'|upper }}">
+  {% with image_src=product|product_image_src %}
+  {% if image_src %}
+  <img src="{{ image_src }}" alt="{{ alt|default:product.name }}" loading="lazy" decoding="async"
+       {% if width %}width="{{ width }}"{% endif %}
+       {% if height %}height="{{ height }}"{% endif %}
+       {% if img_class %}class="{{ img_class }}"{% endif %}
+       onerror="this.parentElement.classList.add('fallback-active')">
+  {% endif %}
+  {% endwith %}
+</div>

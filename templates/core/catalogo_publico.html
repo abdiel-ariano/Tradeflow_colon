@@ -24,11 +24,7 @@
       <article class="cat-category-banner">
         <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="cat-category-banner-hero">
           {% with hero=row.products.0 %}
-          {% if hero.image %}
-          <img src="{{ hero.image.url }}" alt="{{ row.category.name }}" loading="lazy" decoding="async">
-          {% else %}
-          <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ row.category.name }}" loading="lazy" decoding="async">
-          {% endif %}
+          {% include "core/includes/product_image_placeholder.html" with product=hero alt=row.category.name %}
           {% endwith %}
         </a>
         <div class="cat-category-banner-body">
@@ -37,11 +33,7 @@
           <div class="cat-category-banner-thumbs">
             {% for product in row.products|slice:":4" %}
             <a href="{% url 'catalogo_producto_detail' product.pk %}">
-              {% if product.image %}
-              <img src="{{ product.image.url }}" alt="" loading="lazy" decoding="async">
-              {% else %}
-              <img src="{% static 'img/product-placeholder.svg' %}" alt="" loading="lazy" decoding="async">
-              {% endif %}
+              {% include "core/includes/product_image_placeholder.html" with product=product alt="" %}
             </a>
             {% endfor %}
           </div>

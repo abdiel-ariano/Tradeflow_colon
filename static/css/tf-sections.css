@@ -41,6 +41,107 @@ body.tf-public:has(.hm-root),
 [data-reveal-delay="5"] { transition-delay: 0.5s; }
 
 /* ===== PRODUCT IMAGE PLACEHOLDERS ===== */
+.img-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0F2A44, #2E5B8A);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.img-placeholder::before {
+  content: attr(data-initials);
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+.img-placeholder img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+}
+
+.img-placeholder.fallback-active::before {
+  display: flex;
+}
+
+.img-placeholder:has(img[src])::before {
+  display: none;
+}
+
+.img-placeholder.fallback-active:has(img[src])::before {
+  display: flex;
+}
+
+.category-card--large-link > .img-placeholder,
+.cat-category-banner-hero > .img-placeholder {
+  height: 180px;
+  display: block;
+}
+
+.cpd-hero-media > .img-placeholder {
+  width: 100%;
+  min-height: 280px;
+  border-radius: var(--tf-radius-lg, 8px);
+}
+
+.trending-img > .img-placeholder {
+  aspect-ratio: 4 / 3;
+}
+
+.supplier-premium-img > .img-placeholder {
+  aspect-ratio: 4 / 3;
+}
+
+.category-thumb > .img-placeholder,
+.category-compact-thumb > .img-placeholder,
+.cat-category-banner-thumbs .img-placeholder {
+  aspect-ratio: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.tf-pcard__media > .img-placeholder {
+  aspect-ratio: 4 / 3;
+  max-height: 200px;
+}
+
+.bh-freq-img.img-placeholder,
+.bh-freq-card .img-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+}
+
+.bh-rec-item > .img-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+}
+
+.item-row > .img-placeholder.item-img {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.item-row > .img-placeholder.item-img::before {
+  font-size: 1rem;
+}
+
 .product-img-placeholder,
 .tf-pcard__placeholder {
   width: 100%;

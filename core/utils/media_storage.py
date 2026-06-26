@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import io
 import logging
+from pathlib import Path
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -14,6 +15,17 @@ log = logging.getLogger('tradeflow.media')
 
 PLACEHOLDER_PRODUCT = 'img/logo-icon-color.png'
 
+
+def is_remote_media_storage() -> bool:
+    backend = settings.STORAGES.get('default', {}).get('BACKEND', '')
+    return 's3boto3' in backend.lower() or 's3' in backend.lower()
+
+
+def local_media_file_exists(rel_path: str) -> bool:
+    if not rel_path:
+        return False
+    return (Path(settings.MEDIA_ROOT) / rel_path).is_file()
+
 # ── Defensas contra uploads maliciosos ─────────────────────────────────────
 MAX_IMAGE_BYTES = 10 * 1024 * 1024  # 10 MiB
 MAX_IMAGE_PIXELS = 60_000_000        # anti decompression bomb
@@ -21,13 +33,17 @@ ALLOWED_IMAGE_FORMATS = ('JPEG', 'JPG', 'PNG', 'WEBP', 'GIF')
 
 
 def product_image_url(product) -> str:
-    """URL pública de imagen de producto o placeholder de marca."""
+    """Public product image URL, or empty string when unset or unavailable."""
     try:
         if product.image and product.image.name:
-            return product.image.url
+            rel_path = product.image.name.replace('\\', '/')
+            if local_media_file_exists(rel_path):
+                return f'{settings.MEDIA_URL.rstrip("/")}/{rel_path.lstrip("/")}'
+            if is_remote_media_storage():
+                return product.image.url
     except Exception:
         pass
-    return f'{settings.STATIC_URL.rstrip("/")}/{PLACEHOLDER_PRODUCT}'
+    return ''
 
 
 def optimize_uploaded_image(uploaded_file, max_side: int = 1200, quality: int = 85) -> ContentFile:
