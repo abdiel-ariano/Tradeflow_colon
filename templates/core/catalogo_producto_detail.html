@@ -44,7 +44,9 @@
         {% if product.image %}
         <img src="{{ product.image.url }}" alt="{{ product.name }}" width="800" height="600" class="cpd-hero-img">
         {% else %}
-        <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ product.name }}" width="800" height="600" class="cpd-hero-img">
+        <div class="cpd-hero-img product-img-placeholder" role="img" aria-label="{{ product.name }}">
+          <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+        </div>
         {% endif %}
         {% if product.is_on_promo_now %}
         <span class="cpd-hero-badge cpd-hero-badge--promo">-{{ product.discount_pct }}%</span>

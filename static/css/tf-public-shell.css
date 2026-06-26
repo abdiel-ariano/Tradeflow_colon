@@ -332,15 +332,7 @@ Public navbar, hero cream, home grid. Sin lógica de backend.
   padding: 80px clamp(20px, 5vw, 64px);
 }
 .pn-hero-dot {
-  position: absolute;
-  top: -80px;
-  right: -80px;
-  width: 280px;
-  height: 280px;
-  border-radius: 50%;
-  background: var(--ds-orange, #E8490F);
-  opacity: 0.12;
-  pointer-events: none;
+  display: none !important;
 }
 .pn-hero-grid {
   display: grid;

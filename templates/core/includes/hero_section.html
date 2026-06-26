@@ -1,7 +1,6 @@
 {% load static %}
 {% comment %}
-Public hero — live stats from merchandising.home_stats().
-Context: stats, texture_products.
+Public hero — copy + minimalist stats from merchandising.home_stats().
 {% endcomment %}
 <section class="pn-hero pn-hero--showcase" id="pn-hero" aria-labelledby="pn-hero-title">
   <div class="pn-hero-grid">
@@ -33,59 +32,32 @@ Context: stats, texture_products.
         </li>
       </ul>
     </div>
-
-    <div class="pn-hero-aside">
-      <section class="hero-stats-section" aria-label="Marketplace metrics">
-        <div class="hero-stat-primary" data-stat-index="0">
-          <span class="hero-stat-number hero-stat-number--primary"
-                data-target="{{ stats.gmv_30d|default:0 }}"
-                data-prefix="$"
-                data-decimals="0">0</span>
-          <span class="hero-stat-label">Volume last 30 days</span>
-        </div>
-
-        <div class="hero-stats-secondary">
-          <div class="hero-stat-card hero-stat-card--secondary" data-stat-index="1">
-            <div class="hero-stat-icon-wrap">
-              <span class="material-symbols-rounded">domain</span>
-            </div>
-            <span class="hero-stat-number" data-target="{{ stats.empresas_verificadas|default:0 }}">{{ stats.empresas_verificadas|default:0 }}</span>
-            <span class="hero-stat-label">Verified</span>
-          </div>
-          <div class="hero-stat-card hero-stat-card--secondary" data-stat-index="2">
-            <div class="hero-stat-icon-wrap">
-              <span class="material-symbols-rounded">inventory_2</span>
-            </div>
-            <span class="hero-stat-number" data-target="{{ stats.productos|default:0 }}">{{ stats.productos|default:0 }}</span>
-            <span class="hero-stat-label">Products</span>
-          </div>
-          <div class="hero-stat-card hero-stat-card--secondary" data-stat-index="3">
-            <div class="hero-stat-icon-wrap">
-              <span class="material-symbols-rounded">local_shipping</span>
-            </div>
-            <span class="hero-stat-number" data-target="{{ stats.ordenes_completadas|default:0 }}">{{ stats.ordenes_completadas|default:0 }}</span>
-            <span class="hero-stat-label">Orders</span>
-          </div>
-          <div class="hero-stat-card hero-stat-card--secondary" data-stat-index="4">
-            <div class="hero-stat-icon-wrap">
-              <span class="material-symbols-rounded">category</span>
-            </div>
-            <span class="hero-stat-number" data-target="{{ stats.categorias|default:0 }}">{{ stats.categorias|default:0 }}</span>
-            <span class="hero-stat-label">Categories</span>
-          </div>
-        </div>
-      </section>
-    </div>
   </div>
 
-  <div class="hero-texture" aria-hidden="true">
-    <div class="hero-texture-track">
-      {% for product in texture_products|slice:":12" %}
-      <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'img/product-placeholder.svg' %}{% endif %}" alt="" loading="lazy" decoding="async">
-      {% endfor %}
-      {% for product in texture_products|slice:":12" %}
-      <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'img/product-placeholder.svg' %}{% endif %}" alt="" loading="lazy" decoding="async">
-      {% endfor %}
+  <section class="hero-stats" aria-label="Platform metrics">
+    <div class="hero-stats-primary" data-reveal="up">
+      <span class="hero-stats-number"
+            data-target="{{ stats.gmv_30d|default:0 }}"
+            data-prefix="$">0</span>
+      <span class="hero-stats-suffix">in wholesale volume this month</span>
     </div>
-  </div>
+    <div class="hero-stats-divider" aria-hidden="true"></div>
+    <div class="hero-stats-meta">
+      <span data-reveal="up" data-reveal-delay="1">
+        <strong>{{ stats.empresas_verificadas|default:0 }}</strong> verified companies
+      </span>
+      <span class="hero-stats-sep" aria-hidden="true">·</span>
+      <span data-reveal="up" data-reveal-delay="2">
+        <strong>{{ stats.productos|default:0 }}</strong> products
+      </span>
+      <span class="hero-stats-sep" aria-hidden="true">·</span>
+      <span data-reveal="up" data-reveal-delay="3">
+        <strong>{{ stats.ordenes_completadas|default:0 }}</strong> orders fulfilled
+      </span>
+      <span class="hero-stats-sep" aria-hidden="true">·</span>
+      <span data-reveal="up" data-reveal-delay="4">
+        <strong>{{ stats.categorias|default:0 }}</strong> categories
+      </span>
+    </div>
+  </section>
 </section>
