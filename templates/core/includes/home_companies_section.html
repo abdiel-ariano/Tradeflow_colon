@@ -41,13 +41,7 @@
       {% for product in emp.productos_destacados|slice:":8" %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}" class="supplier-premium-item">
         <div class="supplier-premium-img">
-          {% if product.image %}
-          <img src="{{ product.image.url }}" alt="" loading="lazy" decoding="async">
-          {% else %}
-          <span class="product-img-placeholder" aria-hidden="true">
-            <span class="material-symbols-rounded">inventory_2</span>
-          </span>
-          {% endif %}
+          {% include "core/includes/product_image_placeholder.html" with product=product %}
         </div>
         <span class="supplier-premium-price">{{ product.display_price|money_usd }}</span>
       </a>

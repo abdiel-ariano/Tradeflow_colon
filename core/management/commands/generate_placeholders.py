@@ -18,6 +18,7 @@ from core.utils.demo_product_images import (
     save_product_image_bytes,
     storage_mode_help,
 )
+from core.utils.media_storage import local_media_file_exists
 
 
 class Command(BaseCommand):
@@ -33,7 +34,12 @@ class Command(BaseCommand):
         parser.add_argument(
             '--force',
             action='store_true',
-            help='Regenerate even when an image is already set',
+            help='Regenerate placeholders for every product',
+        )
+        parser.add_argument(
+            '--repair-missing',
+            action='store_true',
+            help='Regenerate when image path is set but the local file is missing',
         )
         parser.add_argument(
             '--storage',
@@ -45,10 +51,21 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         limit = options['limit']
         force = options['force']
+        repair_missing = options['repair_missing']
         storage_mode = options['storage']
 
         qs = Product.objects.order_by('pk')
-        if not force:
+        if force:
+            pass
+        elif repair_missing or storage_mode == 'local':
+            candidates = []
+            for product in qs.iterator():
+                if not product.image:
+                    candidates.append(product.pk)
+                elif storage_mode == 'local' and not local_media_file_exists(product.image.name):
+                    candidates.append(product.pk)
+            qs = Product.objects.filter(pk__in=candidates).order_by('pk')
+        else:
             qs = qs.filter(Q(image='') | Q(image__isnull=True))
         if limit > 0:
             qs = qs[:limit]

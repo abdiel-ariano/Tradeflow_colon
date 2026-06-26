@@ -5,21 +5,13 @@
     {% if featured_products %}
       {% for product in featured_products|slice:":5" %}
       <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}" class="bh-rec-item" title="{{ product.name }}">
-        {% if product.image %}
-        <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
-        {% else %}
-        <img src="https://picsum.photos/seed/rec{{ product.id }}/360/360" alt="{{ product.name }}" loading="lazy">
-        {% endif %}
+        {% include "core/includes/product_image_placeholder.html" with product=product %}
       </a>
       {% endfor %}
     {% else %}
       {% for product in spotlight_destacados|default:productos_promo|slice:":5" %}
       <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}" class="bh-rec-item" title="{{ product.name }}">
-        {% if product.image %}
-        <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
-        {% else %}
-        <img src="https://picsum.photos/seed/rec{{ product.id }}/360/360" alt="{{ product.name }}" loading="lazy">
-        {% endif %}
+        {% include "core/includes/product_image_placeholder.html" with product=product %}
       </a>
       {% empty %}
       <a href="{% url 'tienda' %}" class="bh-rec-item"><img src="https://picsum.photos/seed/rec1/360/360" alt="" loading="lazy"></a>

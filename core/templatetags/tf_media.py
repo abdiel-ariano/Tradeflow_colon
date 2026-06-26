@@ -9,7 +9,14 @@ register = template.Library()
 @register.simple_tag
 def product_img(product, css_class=''):
     url = product_image_url(product)
-    name = escape(getattr(product, 'name', 'Producto'))
+    name = escape(getattr(product, 'name', 'Product'))
+    if not url:
+        initials = escape(getattr(product, 'name', 'TF')[:2].upper())
+        return format_html(
+            '<div class="img-placeholder {}" data-initials="{}"></div>',
+            css_class,
+            initials,
+        )
     return format_html(
         '<img src="{}" alt="{}" class="{}" loading="lazy" decoding="async" '
         'style="object-fit:cover;">',

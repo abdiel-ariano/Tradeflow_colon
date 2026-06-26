@@ -13,13 +13,7 @@
       {% for product in trending_products|default:featured_products|slice:":12" %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}" class="trending-card">
         <div class="trending-img">
-          {% if product.image %}
-          <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
-          {% else %}
-          <span class="trending-placeholder" aria-hidden="true">
-            <span class="material-symbols-rounded">inventory_2</span>
-          </span>
-          {% endif %}
+          {% include "core/includes/product_image_placeholder.html" with product=product %}
         </div>
         <span class="trending-name">{{ product.name|truncatechars:24 }}</span>
         <span class="trending-price">{{ product.display_price|money_usd }}</span>

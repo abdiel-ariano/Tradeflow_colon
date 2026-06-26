@@ -80,17 +80,7 @@
         <div class="detalle-card-title">Products ({{ orden.items.count }})</div>
         {% for item in orden.items.all %}
         <div class="item-row">
-            {% if item.product.image %}
-            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-img product-img" loading="lazy" decoding="async">
-            {% else %}
-            {% with seed=item.product.id|add:item.product.category_id|default:0 %}
-            <img src="https://picsum.photos/seed/{{ item.product.id }}{{ item.product.category_id }}/400/300"
-                 alt="{{ item.product.name }}"
-                 class="item-img product-img"
-                 loading="lazy"
-                 decoding="async">
-            {% endwith %}
-            {% endif %}
+            {% include "core/includes/product_image_placeholder.html" with product=item.product css_class="item-img product-img" %}
           <div class="item-info">
             <div class="item-nombre">{{ item.product.name }}</div>
             <div class="item-empresa">{{ item.product.company.name }}</div>

@@ -138,12 +138,13 @@ def generate_placeholder_bytes(product: Product) -> bytes:
 
     font_candidates = [
         '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+        '/usr/share/fonts/TTF/DejaVuSans-Bold.ttf',
         '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
     ]
     font = ImageFont.load_default()
     for path in font_candidates:
         if Path(path).is_file():
-            font = ImageFont.truetype(path, 60)
+            font = ImageFont.truetype(path, 80)
             break
 
     parts = [p for p in product.name.split() if p][:2]

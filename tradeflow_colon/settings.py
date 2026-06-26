@@ -235,6 +235,8 @@ TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='design-toke
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+# Serve /media/ from MEDIA_ROOT when DEBUG=False but files are stored locally (Docker demo).
+SERVE_LOCAL_MEDIA = config('SERVE_LOCAL_MEDIA', default=DEBUG, cast=bool)
 
 # ── Autenticación ──────────────────────────────────────────────────────────
 AUTHENTICATION_BACKENDS = [

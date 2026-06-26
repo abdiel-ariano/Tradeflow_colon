@@ -13,11 +13,7 @@
       <article class="category-card category-card--large" data-reveal="up" data-reveal-delay="{% cycle '1' '2' '3' %}">
         <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="category-card--large-link">
           {% with hero=row.products.0 %}
-          {% if hero.image %}
-          <img src="{{ hero.image.url }}" alt="" class="category-card--large-hero" loading="lazy" decoding="async">
-          {% else %}
-          <img src="{% static 'img/product-placeholder.svg' %}" alt="" class="category-card--large-hero" loading="lazy" decoding="async">
-          {% endif %}
+          {% include "core/includes/product_image_placeholder.html" with product=hero img_class="category-card--large-hero" alt="" %}
           {% endwith %}
         </a>
         <div class="category-card--large-content">
@@ -28,11 +24,7 @@
           <div class="category-card--large-thumbs">
             {% for product in row.products|slice:":4" %}
             <a href="{% url 'catalogo_producto_detail' product.pk %}" class="category-thumb">
-              {% if product.image %}
-              <img src="{{ product.image.url }}" alt="" loading="lazy" decoding="async">
-              {% else %}
-              <img src="{% static 'img/product-placeholder.svg' %}" alt="" loading="lazy" decoding="async">
-              {% endif %}
+              {% include "core/includes/product_image_placeholder.html" with product=product alt="" %}
             </a>
             {% endfor %}
           </div>
@@ -49,11 +41,7 @@
         <div class="category-card--compact-grid">
           {% for product in row.products|slice:":4" %}
           <a href="{% url 'catalogo_producto_detail' product.pk %}" class="category-compact-thumb">
-            {% if product.image %}
-            <img src="{{ product.image.url }}" alt="" loading="lazy" decoding="async">
-            {% else %}
-            <img src="{% static 'img/product-placeholder.svg' %}" alt="" loading="lazy" decoding="async">
-            {% endif %}
+            {% include "core/includes/product_image_placeholder.html" with product=product alt="" %}
           </a>
           {% endfor %}
         </div>
