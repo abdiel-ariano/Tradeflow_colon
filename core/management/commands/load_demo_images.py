@@ -1,56 +1,32 @@
 """
-Download demo product images from Picsum and assign to products without images.
+Download demo product images and assign to products without images.
 
 Usage:
     python manage.py load_demo_images
     python manage.py load_demo_images --limit 10
-    python manage.py load_demo_images --dry-run
+    python manage.py load_demo_images --storage local
+    python manage.py load_demo_images --storage remote
+    python manage.py load_demo_images --fallback placeholders
 """
 
 from __future__ import annotations
 
-import re
 import time
 
 import requests
-from django.conf import settings
-from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 
 from core.models import Product
+from core.utils.demo_product_images import (
+    category_keyword,
+    generate_placeholder_bytes,
+    picsum_url,
+    save_product_image_bytes,
+    storage_mode_help,
+)
 
-# Category keyword hints (matched against Category.name, case-insensitive).
-CATEGORY_IMAGES = {
-    'textiles': ['textile', 'fabric', 'clothing', 'uniform', 'apparel'],
-    'electronics': ['electronic', 'gadget', 'computer', 'phone', 'tech'],
-    'home_appliances': ['appliance', 'kitchen', 'home', 'household'],
-    'beauty': ['beauty', 'cosmetic', 'perfume', 'fragrance', 'personal care'],
-    'toys': ['toy', 'game', 'children'],
-    'general': ['wholesale', 'bulk', 'merchandise', 'general'],
-}
-
-PICSUM_SIZE = '400/300'
 RATE_LIMIT_SECONDS = 0.5
-
-
-def category_keyword(product: Product) -> str:
-    """Pick the best keyword bucket for a product's category name."""
-    if not product.category_id or not product.category:
-        return 'general'
-    cat_name = product.category.name.lower()
-    for key, hints in CATEGORY_IMAGES.items():
-        if key.replace('_', ' ') in cat_name or key in cat_name:
-            return key
-        if any(hint in cat_name for hint in hints):
-            return key
-    return 'general'
-
-
-def seed_slug(product: Product) -> str:
-    """Stable seed so the same product always gets the same remote image."""
-    raw = f'{product.pk}_{product.name[:40]}'
-    return re.sub(r'[^a-zA-Z0-9_-]', '_', raw)
 
 
 class Command(BaseCommand):
@@ -73,70 +49,128 @@ class Command(BaseCommand):
             action='store_true',
             help='Re-download even if an image file is already set',
         )
+        parser.add_argument(
+            '--storage',
+            choices=['local', 'remote', 'auto'],
+            default='local',
+            help=storage_mode_help(),
+        )
+        parser.add_argument(
+            '--fallback',
+            choices=['none', 'placeholders'],
+            default='placeholders',
+            help='When download or upload fails: none (skip) or placeholders (PIL)',
+        )
+        parser.add_argument(
+            '--delay',
+            type=float,
+            default=RATE_LIMIT_SECONDS,
+            help='Seconds between downloads (default 0.5)',
+        )
 
     def handle(self, *args, **options):
         limit = options['limit']
         dry_run = options['dry_run']
         force = options['force']
+        storage_mode = options['storage']
+        fallback = options['fallback']
+        delay = max(0.0, options['delay'])
 
         qs = Product.objects.select_related('category').order_by('pk')
         if not force:
             qs = qs.filter(Q(image='') | Q(image__isnull=True))
-
         if limit > 0:
             qs = qs[:limit]
 
-        total = qs.count()
-        self.stdout.write(f'Found {total} product(s) to process')
+        products = list(qs)
+        total = len(products)
+        self.stdout.write(f'Found {total} product(s) to process (storage={storage_mode})')
 
         if dry_run:
-            for product in qs:
-                seed = seed_slug(product)
+            for product in products:
                 keyword = category_keyword(product)
-                url = f'https://picsum.photos/seed/{seed}/{PICSUM_SIZE}'
-                self.stdout.write(f'  [dry-run] {product.name} ({keyword}) → {url}')
+                self.stdout.write(f'  [dry-run] {product.name} ({keyword}) → {picsum_url(product)}')
             self.stdout.write(self.style.SUCCESS('Dry run complete.'))
             return
 
         saved = 0
+        placeholder_saved = 0
         failed = 0
 
-        for idx, product in enumerate(qs, start=1):
-            seed = seed_slug(product)
-            url = f'https://picsum.photos/seed/{seed}/{PICSUM_SIZE}'
+        for idx, product in enumerate(products, start=1):
             keyword = category_keyword(product)
+            content = None
 
             try:
-                response = requests.get(url, timeout=15, allow_redirects=True)
-                if response.status_code != 200:
+                response = requests.get(picsum_url(product), timeout=20, allow_redirects=True)
+                if response.status_code == 200 and response.content:
+                    content = response.content
+                else:
                     self.stdout.write(
                         self.style.WARNING(
                             f'[{idx}/{total}] HTTP {response.status_code} for {product.name}'
                         )
                     )
-                    failed += 1
-                    continue
-
-                filename = f'demo/product_{product.pk}.jpg'
-                product.image.save(filename, ContentFile(response.content), save=True)
-                saved += 1
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f'[{idx}/{total}] Saved image for {product.name} ({keyword})'
-                    )
-                )
             except Exception as exc:
-                failed += 1
                 self.stdout.write(
-                    self.style.ERROR(f'[{idx}/{total}] Error for {product.name}: {exc}')
+                    self.style.WARNING(f'[{idx}/{total}] Download failed for {product.name}: {exc}')
                 )
 
-            if idx < total:
-                time.sleep(RATE_LIMIT_SECONDS)
+            try:
+                if content:
+                    save_product_image_bytes(product, content, storage_mode=storage_mode)
+                    saved += 1
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f'[{idx}/{total}] Saved image for {product.name} ({keyword})'
+                        )
+                    )
+                elif fallback == 'placeholders':
+                    blob = generate_placeholder_bytes(product)
+                    save_product_image_bytes(product, blob, storage_mode=storage_mode)
+                    placeholder_saved += 1
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f'[{idx}/{total}] Placeholder for {product.name} ({keyword})'
+                        )
+                    )
+                else:
+                    failed += 1
+            except Exception as exc:
+                if fallback == 'placeholders':
+                    try:
+                        blob = generate_placeholder_bytes(product)
+                        save_product_image_bytes(product, blob, storage_mode='local')
+                        placeholder_saved += 1
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f'[{idx}/{total}] Upload failed ({exc}); saved local placeholder for {product.name}'
+                            )
+                        )
+                    except Exception as inner:
+                        failed += 1
+                        self.stdout.write(
+                            self.style.ERROR(
+                                f'[{idx}/{total}] Error for {product.name}: {inner}'
+                            )
+                        )
+                else:
+                    failed += 1
+                    self.stdout.write(
+                        self.style.ERROR(f'[{idx}/{total}] Error for {product.name}: {exc}')
+                    )
+
+            if idx < total and delay:
+                time.sleep(delay)
 
         self.stdout.write('')
         self.stdout.write(
             self.style.SUCCESS(
-                f'Done. Saved: {saved}, failed: {failed}. Media root: {settings.MEDIA_ROOT}'
+                f'Done. Downloaded: {saved}, placeholders: {placeholder_saved}, failed: {failed}.'
             )
         )
+        if storage_mode == 'local':
+            self.stdout.write(
+                'Images saved under MEDIA_ROOT/products/demo/. '
+                'Use --storage remote to upload to Supabase when bucket permissions are configured.'
+            )
