@@ -1,0 +1,69 @@
+{% load static tf_money %}
+{% comment %}B2B catalog product card — /catalogo/ only.{% endcomment %}
+<article class="product-card tf-pcard" data-product-id="{{ product.pk }}">
+  <a href="{% url 'catalogo_producto_detail' product.pk %}" class="card-image-link">
+    <div class="card-image">
+      {% if product.is_on_promo_now %}
+      <span class="badge-discount">{{ product.discount_pct }}% off</span>
+      {% endif %}
+
+      {% include "core/includes/product_image_placeholder.html" with product=product %}
+
+      <button type="button" class="btn-image-search" aria-label="Search by image"
+              onclick="event.preventDefault(); event.stopPropagation();">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 0 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </button>
+    </div>
+  </a>
+
+  <div class="card-body">
+    <a href="{% url 'catalogo_producto_detail' product.pk %}" class="card-name">
+      {{ product.name|truncatechars:70 }}
+    </a>
+
+    <div class="card-trust">
+      {% if product.is_bestseller %}
+      <span class="trust-dot" aria-hidden="true"></span>
+      Reorder rate {% if product.discount_pct %}{{ product.discount_pct }}{% else %}32{% endif %}%
+      {% elif product.is_on_promo_now %}
+      <span class="trust-lower">↓ Lower priced than similar</span>
+      {% endif %}
+    </div>
+
+    <div class="card-price">
+      <span class="price-main">{{ product.display_price|money_usd }}</span>
+      {% if product.is_on_promo_now %}
+      <span class="price-original">{{ product.unit_price|money_usd }}</span>
+      <span class="price-discount">{{ product.discount_pct }}% off</span>
+      {% endif %}
+    </div>
+
+    <div class="card-moq">
+      MOQ: 1 piece
+      {% if product.available_qty %} · {{ product.available_qty }} in stock{% endif %}
+    </div>
+
+    <div class="card-supplier">
+      <span class="supplier-meta">
+        {{ product.company.name|truncatechars:16 }} · 🇵🇦 PA
+      </span>
+      {% if product.company.is_verified %}
+      <span class="badge-verified">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        CFZ Verified
+      </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card-inquiry">
+    <button type="button" class="btn-inquiry" data-product-id="{{ product.pk }}">
+      + Add to inquiry
+    </button>
+  </div>
+</article>

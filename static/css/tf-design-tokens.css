@@ -72,6 +72,20 @@ MIGRACIÓN GRADUAL
   /* Uso: errores de validación, acciones destructivas */
   --tf-danger: #EF4444;
 
+  /* Catálogo público — tokens adicionales (tradeflowcolon.com) */
+  --tf-navy-hover: #1B3B63;
+  --tf-navy-deep: #081E33;
+  --tf-orange-soft: #FFA15A;
+  --tf-emerald: #1F8A57;
+  --tf-emerald-soft: #E8F5EE;
+  --tf-surface: #F2F3F5;
+  --tf-surface-hover: #E8EAEE;
+  --tf-border-soft: #E5E7EB;
+  --tf-border-hover: #9CA3AF;
+  --tf-text-2: #6B7280;
+  --tf-text-3: #9CA3AF;
+  --tf-red: #DC2626;
+
   /* Uso: fondos navy alternativos (alias de --tf-navy) */
   --tf-dark: #0F2A44;
 
