@@ -1,6 +1,20 @@
 {% load static %}
-{% comment %}Homepage footer — 4-column blue footer.{% endcomment %}
+{% comment %}Homepage footer — newsletter + link columns (dual palette).{% endcomment %}
 <footer class="hm-footer">
+  <div class="hm-footer__newsletter">
+    <div class="hm-footer__newsletter-inner">
+      <div class="hm-footer__newsletter-copy">
+        <h2 class="hm-footer__newsletter-title">Stay Updated</h2>
+        <p class="hm-footer__newsletter-sub">Get the latest products and deals from the Free Zone</p>
+      </div>
+      <form class="hm-footer__newsletter-form" action="{% url 'home' %}" method="get" aria-label="Newsletter signup">
+        <label class="visually-hidden" for="hm-newsletter-email">Email</label>
+        <input id="hm-newsletter-email" type="email" name="newsletter" placeholder="your@email.com" autocomplete="email">
+        <button type="submit" class="hm-footer__newsletter-btn">Subscribe</button>
+      </form>
+    </div>
+  </div>
+
   <div class="hm-footer__grid">
     <div class="hm-footer__brand">
       {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
@@ -46,6 +60,7 @@
     </div>
   </div>
   <div class="hm-footer__bottom">
-    <span>© 2026 TradeFlow Colón · All rights reserved · 🇵🇦 Panama</span>
+    <span>© 2026 TradeFlow Colón · All rights reserved · Panama</span>
+    <a href="mailto:{{ tradeflow_contact_email }}" class="hm-footer__bottom-link">{{ tradeflow_contact_email }}</a>
   </div>
 </footer>

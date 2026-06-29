@@ -1,6 +1,6 @@
 /**
  * TradeFlow Colón — homepage interactions
- * Count-up stats, scroll reveals, carousel arrows, rankings tooltip.
+ * Count-up stats, scroll reveals, transform sliders, supplier carousels, navbar shadow.
  */
 (function () {
   'use strict';
@@ -72,7 +72,148 @@
     items.forEach(function (el) { observer.observe(el); });
   }
 
-  /* ── Horizontal carousels ── */
+  /* ── Transform sliders (trending, testimonials) ── */
+  function initSliders() {
+    document.querySelectorAll('[data-hm-slider]').forEach(function (root) {
+      var track = root.querySelector('.hm-slider__track');
+      var viewport = root.querySelector('.hm-slider__viewport');
+      var dotsWrap = root.querySelector('.hm-slider__dots');
+      var prev = root.querySelector('.hm-slider__arrow--prev');
+      var next = root.querySelector('.hm-slider__arrow--next');
+      if (!track || !viewport || !dotsWrap) return;
+
+      var slides = Array.prototype.slice.call(track.children).filter(function (el) {
+        return el.nodeType === 1;
+      });
+      if (!slides.length) return;
+
+      var visible = parseInt(root.getAttribute('data-hm-slider-visible'), 10) || 4;
+      var current = 0;
+      var maxIndex = 0;
+      var interval = null;
+      var autoMs = parseInt(root.getAttribute('data-hm-slider-autoplay'), 10) || 5000;
+
+      function stride() {
+        if (!slides[0]) return 280;
+        var gap = parseInt(window.getComputedStyle(track).gap, 10) || 16;
+        return slides[0].offsetWidth + gap;
+      }
+
+      function recalc() {
+        var vpWidth = viewport.offsetWidth;
+        var slideW = slides[0] ? slides[0].offsetWidth : 0;
+        var gap = parseInt(window.getComputedStyle(track).gap, 10) || 16;
+        if (slideW > 0) {
+          visible = Math.max(1, Math.floor((vpWidth + gap) / (slideW + gap)));
+        }
+        maxIndex = Math.max(0, slides.length - visible);
+        if (current > maxIndex) current = maxIndex;
+        buildDots();
+        goTo(current, false);
+        updateArrows();
+      }
+
+      function buildDots() {
+        dotsWrap.innerHTML = '';
+        for (var i = 0; i <= maxIndex; i++) {
+          var dot = document.createElement('button');
+          dot.type = 'button';
+          dot.className = 'hm-slider__dot' + (i === current ? ' is-active' : '');
+          dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+          dot.addEventListener('click', (function (idx) {
+            return function () {
+              goTo(idx);
+              restartAutoplay();
+            };
+          })(i));
+          dotsWrap.appendChild(dot);
+        }
+      }
+
+      function getDots() {
+        return dotsWrap.querySelectorAll('.hm-slider__dot');
+      }
+
+      function goTo(index, animate) {
+        if (index > maxIndex) index = 0;
+        if (index < 0) index = maxIndex;
+        current = index;
+        var offset = current * stride();
+        track.style.transition = animate === false || REDUCED ? 'none' : '';
+        track.style.transform = 'translateX(-' + offset + 'px)';
+        getDots().forEach(function (d, i) {
+          d.classList.toggle('is-active', i === current);
+        });
+        updateArrows();
+      }
+
+      function updateArrows() {
+        if (!prev || !next) return;
+        prev.disabled = current <= 0;
+        next.disabled = current >= maxIndex;
+      }
+
+      function nextSlide() {
+        goTo(current + 1 > maxIndex ? 0 : current + 1);
+      }
+
+      function stopAutoplay() {
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      }
+
+      function startAutoplay() {
+        if (REDUCED || maxIndex <= 0) return;
+        stopAutoplay();
+        interval = setInterval(nextSlide, autoMs);
+      }
+
+      function restartAutoplay() {
+        stopAutoplay();
+        startAutoplay();
+      }
+
+      if (prev) {
+        prev.addEventListener('click', function () {
+          goTo(current - 1);
+          restartAutoplay();
+        });
+      }
+
+      if (next) {
+        next.addEventListener('click', function () {
+          goTo(current + 1);
+          restartAutoplay();
+        });
+      }
+
+      root.addEventListener('mouseenter', stopAutoplay);
+      root.addEventListener('mouseleave', startAutoplay);
+
+      var touchStart = 0;
+      track.addEventListener('touchstart', function (e) {
+        touchStart = e.touches[0].clientX;
+        stopAutoplay();
+      }, { passive: true });
+
+      track.addEventListener('touchend', function (e) {
+        var diff = touchStart - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) {
+          if (diff > 0) goTo(current + 1);
+          else goTo(current - 1);
+        }
+        setTimeout(startAutoplay, 3000);
+      }, { passive: true });
+
+      window.addEventListener('resize', recalc);
+      recalc();
+      startAutoplay();
+    });
+  }
+
+  /* ── Supplier scroll carousels ── */
   function initCarousels() {
     document.querySelectorAll('[data-hm-carousel]').forEach(function (root) {
       var track = root.querySelector('.hm-carousel__track');
@@ -98,6 +239,19 @@
       track.addEventListener('scroll', updateArrows, { passive: true });
       updateArrows();
     });
+  }
+
+  /* ── Navbar shadow on scroll ── */
+  function initNavShadow() {
+    var shell = document.getElementById('hm-public-nav');
+    if (!shell) return;
+
+    function onScroll() {
+      shell.classList.toggle('is-scrolled', window.scrollY > 8);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
   }
 
   /* ── Rankings tooltip ── */
@@ -127,7 +281,9 @@
   function init() {
     initCountUp();
     initReveal();
+    initSliders();
     initCarousels();
+    initNavShadow();
     initRankingsTooltip();
   }
 

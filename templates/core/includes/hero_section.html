@@ -1,38 +1,51 @@
 {% load static %}
-{% comment %}Home hero — dark blue, animated pattern, stats count-up.{% endcomment %}
+{% comment %}Hero — navy/orange + blue dual palette, 2-column layout.{% endcomment %}
 <section class="hm-hero" id="hm-hero" aria-labelledby="hm-hero-title">
   <div class="hm-hero__pattern" aria-hidden="true"></div>
-  <div class="hm-hero__inner">
-    <p class="hm-hero__eyebrow hm-animate-in">🇵🇦 Colón Free Zone · Panama</p>
-    <h1 class="hm-hero__title hm-animate-in hm-animate-in--1" id="hm-hero-title">
-      The Wholesale Marketplace of the Americas
-    </h1>
-    <p class="hm-hero__subtitle hm-animate-in hm-animate-in--2">
-      Shop the Colón Free Zone from anywhere. Verified suppliers, transparent inventory,
-      and export-ready documentation in one B2B marketplace.
-    </p>
-    <div class="hm-hero__ctas hm-animate-in hm-animate-in--3">
-      <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--primary hm-btn--lg">Explore Catalog</a>
-      <a href="{% url 'signup' %}?role=seller" class="hm-btn hm-btn--outline hm-btn--lg">Register your company</a>
+  <div class="hm-hero__grid">
+    <div class="hm-hero__copy">
+      <p class="hm-hero__badge hm-animate-in">Panama Free Zone · B2B Wholesale</p>
+      <h1 class="hm-hero__title hm-animate-in hm-animate-in--1" id="hm-hero-title">
+        The Wholesale Marketplace of the Americas
+      </h1>
+      <p class="hm-hero__subtitle hm-animate-in hm-animate-in--2">
+        Shop the Colón Free Zone from anywhere. Verified suppliers, transparent inventory,
+        and export-ready documentation in one B2B marketplace.
+      </p>
+      <div class="hm-hero__ctas hm-animate-in hm-animate-in--3">
+        <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore Catalog →</a>
+        <a href="{% url 'signup' %}?role=seller" class="hm-btn hm-btn--outline hm-btn--lg">Register your company</a>
+      </div>
+      <div class="hm-hero__divider" aria-hidden="true"></div>
+      <dl class="hm-hero__stats">
+        <div class="hm-hero__stat">
+          <dd class="hm-hero__stat-num" data-hm-count="{{ stats.productos|default:0 }}">0</dd>
+          <dt class="hm-hero__stat-lbl">Products</dt>
+        </div>
+        <div class="hm-hero__stat">
+          <dd class="hm-hero__stat-num" data-hm-count="{{ stats.empresas|default:0 }}">0</dd>
+          <dt class="hm-hero__stat-lbl">Companies</dt>
+        </div>
+        <div class="hm-hero__stat">
+          <dd class="hm-hero__stat-num" data-hm-count="{{ stats.ordenes|default:0 }}">0</dd>
+          <dt class="hm-hero__stat-lbl">Orders</dt>
+        </div>
+        <div class="hm-hero__stat">
+          <dd class="hm-hero__stat-num" data-hm-count="40" data-hm-suffix="+">0</dd>
+          <dt class="hm-hero__stat-lbl">Countries</dt>
+        </div>
+      </dl>
     </div>
-    <div class="hm-hero__divider" aria-hidden="true"></div>
-    <dl class="hm-hero__stats">
-      <div class="hm-hero__stat">
-        <dd class="hm-hero__stat-num" data-hm-count="{{ stats.productos|default:0 }}">0</dd>
-        <dt class="hm-hero__stat-lbl">Products</dt>
+    <div class="hm-hero__visual hm-animate-in hm-animate-in--2" aria-hidden="true">
+      {% with hero_product=featured_products.0 %}
+      <div class="hm-hero__visual-frame">
+        {% if hero_product %}
+          {% include "core/includes/product_image_placeholder.html" with product=hero_product img_class="hm-hero__visual-img" alt="" %}
+        {% else %}
+          <img src="{% static 'img/ship-cargo.svg' %}" alt="" class="hm-hero__visual-img hm-hero__visual-img--art" loading="eager" decoding="async">
+        {% endif %}
       </div>
-      <div class="hm-hero__stat">
-        <dd class="hm-hero__stat-num" data-hm-count="{{ stats.empresas|default:0 }}">0</dd>
-        <dt class="hm-hero__stat-lbl">Companies</dt>
-      </div>
-      <div class="hm-hero__stat">
-        <dd class="hm-hero__stat-num" data-hm-count="{{ stats.ordenes|default:0 }}">0</dd>
-        <dt class="hm-hero__stat-lbl">Orders</dt>
-      </div>
-      <div class="hm-hero__stat">
-        <dd class="hm-hero__stat-num" data-hm-count="40" data-hm-suffix="+">0</dd>
-        <dt class="hm-hero__stat-lbl">Countries</dt>
-      </div>
-    </dl>
+      {% endwith %}
+    </div>
   </div>
 </section>

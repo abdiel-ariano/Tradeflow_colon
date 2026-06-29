@@ -7,8 +7,9 @@
         <h2 class="hm-section-title" id="hm-suppliers-title">Featured Suppliers</h2>
         <p class="hm-section-sub">Promoted partners in the Free Zone</p>
       </div>
-      <button type="button" class="hm-info-btn" id="hm-rankings-info" aria-describedby="hm-rankings-tooltip">
-        ⓘ How rankings work
+      <button type="button" class="hm-info-btn" id="hm-rankings-info" aria-describedby="hm-rankings-tooltip" aria-expanded="false">
+        <span class="material-symbols-rounded hm-info-btn__icon" aria-hidden="true">info</span>
+        How rankings work
       </button>
       <div class="hm-info-tooltip" id="hm-rankings-tooltip" role="tooltip" hidden>
         Suppliers appear based on their visibility plan. All companies are CFZ-verified.
@@ -24,7 +25,10 @@
           <span class="hm-supplier__avatar">{{ top.name|slice:":2"|upper }}</span>
           <div>
             <h3 class="hm-supplier__name">{{ top.name }}</h3>
-            <span class="hm-supplier__badge hm-supplier__badge--light">✓ CFZ Verified</span>
+            <span class="hm-supplier__badge hm-supplier__badge--light">
+              <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+              CFZ Verified
+            </span>
           </div>
         </div>
         <a href="{% url 'catalogo_publico' %}?empresa={{ top.pk }}" class="hm-supplier__link">Visit storefront →</a>
@@ -65,7 +69,10 @@
             <span class="hm-supplier__avatar hm-supplier__avatar--sm">{{ emp.name|slice:":2"|upper }}</span>
             <div>
               <h3 class="hm-supplier__name hm-supplier__name--sm">{{ emp.name }}</h3>
-              <span class="hm-supplier__badge hm-supplier__badge--dark">✓ CFZ Verified</span>
+              <span class="hm-supplier__badge hm-supplier__badge--dark">
+                <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+                CFZ Verified
+              </span>
             </div>
           </div>
           <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="hm-supplier__link hm-supplier__link--dark">Visit →</a>
