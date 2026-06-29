@@ -1,6 +1,8 @@
 """Inline static CSS at render time when /static/ links are unavailable."""
 from __future__ import annotations
 
+from pathlib import Path
+
 from django import template
 from django.contrib.staticfiles import finders
 from django.utils.safestring import mark_safe
@@ -20,7 +22,7 @@ def _read_static(static_path: str, cache: dict[str, str]) -> str:
         return ''
 
     try:
-        content = resolved.read_text(encoding='utf-8')
+        content = Path(resolved).read_text(encoding='utf-8')
     except OSError:
         return ''
 
