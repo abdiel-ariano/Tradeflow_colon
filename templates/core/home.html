@@ -1,12 +1,11 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% comment %}
-TradeFlow Colón — public landing (blue palette redesign).
-Context: home_view — stats, featured_products, carousel_products, empresas_carousel, category_spotlights.
+TradeFlow Colón — public landing (dual palette: navy/orange + blue).
 {% endcomment %}
 {% block title %}TradeFlow Colón — The Wholesale Marketplace of the Americas{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'3' }}">
+<link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'5' }}">
 {% endblock %}
 
 {% block content %}
@@ -17,6 +16,7 @@ Context: home_view — stats, featured_products, carousel_products, empresas_car
   {% include "core/includes/home_trending_section.html" %}
   {% include "core/includes/home_how_it_works.html" %}
   {% include "core/includes/home_categories_section.html" %}
+  {% include "core/includes/home_testimonials_section.html" %}
 </main>
 {% endblock %}
 
@@ -25,5 +25,5 @@ Context: home_view — stats, featured_products, carousel_products, empresas_car
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/tf-home.js' %}?v={{ tf_asset_version|default:'3' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/tf-home.js' %}?v={{ tf_asset_version|default:'5' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

@@ -5,18 +5,7 @@
     {% if product.is_on_promo_now %}
     <span class="hm-sp-card__badge">-{{ product.discount_pct }}%</span>
     {% endif %}
-    {% if product.image %}
-    <img src="{{ product.image.url }}" alt="" loading="lazy" decoding="async">
-    {% else %}
-    <span class="hm-sp-card__icon material-symbols-rounded" aria-hidden="true">
-      {% with cat=product.category.name|default:''|lower %}
-      {% if 'elect' in cat or 'tech' in cat or 'phone' in cat %}devices
-      {% elif 'text' in cat or 'cloth' in cat or 'apparel' in cat %}checkroom
-      {% elif 'toy' in cat or 'game' in cat %}sports_esports
-      {% else %}inventory_2{% endif %}
-      {% endwith %}
-    </span>
-    {% endif %}
+    {% include "core/includes/product_image_placeholder.html" with product=product css_class="hm-sp-card__placeholder" alt="" %}
   </div>
   <p class="hm-sp-card__name">{{ product.name|truncatechars:48 }}</p>
   <p class="hm-sp-card__company">

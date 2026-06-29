@@ -1,11 +1,16 @@
 /*
 =============================================================================
 TRADEFLOW COLÓN — tf-public-shell.css
-Public navbar + category pills (blue palette).
+Public navbar + category pills — dual palette (navy/orange + blue).
 =============================================================================
 */
 
 :root {
+  --navy: #0F2A44;
+  --navy-mid: #1B3B63;
+  --navy-light: #2E5B8A;
+  --orange: #F26522;
+  --orange-light: #FF7A3D;
   --primary: #0057A8;
   --primary-dark: #003D7A;
   --primary-light: #E8F1FB;
@@ -13,7 +18,7 @@ Public navbar + category pills (blue palette).
   --gray-50: #F8F9FA;
   --gray-100: #F1F3F5;
   --gray-200: #E9ECEF;
-  --gray-500: #6C757D;
+  --gray-500: #6B7A88;
   --gray-700: #343A40;
   --gray-900: #111318;
   --success: #1A7A4A;
@@ -38,10 +43,15 @@ Public navbar + category pills (blue palette).
   top: 0;
   z-index: 2100;
   isolation: isolate;
+  transition: box-shadow 0.2s ease;
+}
+
+.hm-nav-shell.is-scrolled {
+  box-shadow: 0 4px 24px rgba(15, 42, 68, 0.18);
 }
 
 .hm-nav {
-  background: var(--primary-dark);
+  background: var(--navy);
   color: var(--white);
 }
 
@@ -49,15 +59,43 @@ Public navbar + category pills (blue palette).
   display: flex;
   align-items: center;
   gap: 16px;
-  min-height: 64px;
+  min-height: 72px;
   padding: 0 clamp(16px, 4vw, 40px);
 }
 
 .hm-nav__brand {
   display: flex;
   align-items: center;
+  gap: 10px;
   flex-shrink: 0;
   text-decoration: none;
+  color: var(--white);
+}
+
+.hm-nav__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--orange);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.hm-nav__wordmark {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--white);
+  letter-spacing: -0.01em;
+}
+
+.hm-nav__accent {
+  color: var(--orange);
 }
 
 .hm-nav__logo {
@@ -73,7 +111,8 @@ Public navbar + category pills (blue palette).
   max-width: 560px;
   display: flex;
   align-items: stretch;
-  background: var(--white);
+  background: var(--navy-mid);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   overflow: hidden;
   margin: 0 auto;
@@ -84,32 +123,34 @@ Public navbar + category pills (blue palette).
   border: none;
   padding: 10px 14px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
-  color: var(--gray-900);
+  font-family: 'Montserrat', sans-serif;
+  color: var(--white);
+  background: transparent;
   min-width: 0;
 }
 
 .hm-nav__search-input::placeholder {
-  color: var(--gray-500);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .hm-nav__search-input:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 87, 168, 0.3);
+  box-shadow: inset 0 0 0 2px rgba(242, 101, 34, 0.45);
 }
 
 .hm-nav__search-btn {
   border: none;
-  background: var(--primary);
+  background: var(--orange);
   color: var(--white);
   padding: 0 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
+  transition: background 0.2s ease;
 }
 
 .hm-nav__search-btn:hover {
-  background: #004a90;
+  background: var(--orange-light);
 }
 
 .hm-nav__hamburger {
@@ -171,7 +212,7 @@ Public navbar + category pills (blue palette).
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   border-radius: 8px;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -190,14 +231,15 @@ Public navbar + category pills (blue palette).
 }
 
 .hm-nav__btn--solid {
-  background: var(--white);
-  color: var(--primary-dark);
-  border: 1px solid var(--white);
+  background: var(--orange);
+  color: var(--white);
+  border: 1px solid var(--orange);
 }
 
 .hm-nav__btn--solid:hover {
-  background: var(--primary-light);
-  color: var(--primary-dark);
+  background: var(--orange-light);
+  border-color: var(--orange-light);
+  color: var(--white);
 }
 
 /* ── Category pills ── */
@@ -245,6 +287,13 @@ Public navbar + category pills (blue palette).
   background: var(--primary);
   color: var(--white);
   border-color: var(--primary);
+}
+
+.hm-nav__pill--accent.is-active,
+.hm-nav__pill:hover.hm-nav__pill--accent {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--white);
 }
 
 @media (max-width: 900px) {

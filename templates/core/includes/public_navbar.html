@@ -1,10 +1,11 @@
 {% load static %}
-{% comment %}Public navbar — blue palette, search + category pills.{% endcomment %}
+{% comment %}Public navbar — dual palette (navy + blue + orange accent).{% endcomment %}
 <header class="hm-nav-shell" id="hm-public-nav">
   <nav class="hm-nav" aria-label="TradeFlow store">
     <div class="hm-nav__main">
       <a href="{% url 'home' %}" class="hm-nav__brand" aria-label="TradeFlow Colón">
-        {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="nav" class="hm-nav__logo" eager=1 %}
+        <span class="hm-nav__mark" aria-hidden="true">TF</span>
+        <span class="hm-nav__wordmark">Trade<span class="hm-nav__accent">F</span>low</span>
       </a>
 
       <form class="hm-nav__search" action="{% url 'catalogo_publico' %}" method="get" role="search">
@@ -41,7 +42,7 @@
         <a href="{% url 'catalogo_publico' %}?buscar=beauty" class="hm-nav__pill">Beauty</a>
         <a href="{% url 'catalogo_publico' %}?buscar=home" class="hm-nav__pill">Home &amp; Kitchen</a>
         <a href="{% url 'catalogo_publico' %}?buscar=toys" class="hm-nav__pill">Toys</a>
-        <a href="{% url 'signup' %}?role=seller" class="hm-nav__pill">Sell on TradeFlow</a>
+        <a href="{% url 'signup' %}?role=seller" class="hm-nav__pill hm-nav__pill--accent">Sell on TradeFlow</a>
       </div>
     </div>
   </nav>
