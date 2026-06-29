@@ -1,63 +1,38 @@
 {% load static %}
-{% comment %}
-Public hero — copy + minimalist stats from merchandising.home_stats().
-{% endcomment %}
-<section class="pn-hero pn-hero--showcase" id="pn-hero" aria-labelledby="pn-hero-title">
-  <div class="pn-hero-grid">
-    <div class="pn-hero-copy">
-      <p class="pn-hero-label">Colón Free Zone · Panama</p>
-      <h1 class="pn-hero-title" id="pn-hero-title">
-        Shop the Colón Free Zone from anywhere in the world.
-      </h1>
-      <p class="pn-hero-desc">
-        B2B marketplace with verified companies, real-time inventory,
-        and export-ready documentation.
-      </p>
-      <div class="pn-hero-ctas">
-        <a href="{% url 'catalogo_publico' %}" class="ds-btn ds-btn--primary ds-btn--lg">Explore catalog</a>
-        <a href="{% url 'signup' %}?role=seller" class="ds-btn ds-btn--secondary ds-btn--lg">Register your company</a>
+{% comment %}Home hero — dark blue, animated pattern, stats count-up.{% endcomment %}
+<section class="hm-hero" id="hm-hero" aria-labelledby="hm-hero-title">
+  <div class="hm-hero__pattern" aria-hidden="true"></div>
+  <div class="hm-hero__inner">
+    <p class="hm-hero__eyebrow hm-animate-in">🇵🇦 Colón Free Zone · Panama</p>
+    <h1 class="hm-hero__title hm-animate-in hm-animate-in--1" id="hm-hero-title">
+      The Wholesale Marketplace of the Americas
+    </h1>
+    <p class="hm-hero__subtitle hm-animate-in hm-animate-in--2">
+      Shop the Colón Free Zone from anywhere. Verified suppliers, transparent inventory,
+      and export-ready documentation in one B2B marketplace.
+    </p>
+    <div class="hm-hero__ctas hm-animate-in hm-animate-in--3">
+      <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--primary hm-btn--lg">Explore Catalog</a>
+      <a href="{% url 'signup' %}?role=seller" class="hm-btn hm-btn--outline hm-btn--lg">Register your company</a>
+    </div>
+    <div class="hm-hero__divider" aria-hidden="true"></div>
+    <dl class="hm-hero__stats">
+      <div class="hm-hero__stat">
+        <dd class="hm-hero__stat-num" data-hm-count="{{ stats.productos|default:0 }}">0</dd>
+        <dt class="hm-hero__stat-lbl">Products</dt>
       </div>
-      <ul class="pn-hero-trust" aria-label="Platform guarantees">
-        <li>
-          <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-          CFZ verified companies
-        </li>
-        <li>
-          <span class="material-symbols-rounded" aria-hidden="true">description</span>
-          Export documentation included
-        </li>
-        <li>
-          <span class="material-symbols-rounded" aria-hidden="true">lock</span>
-          Secure in-platform payments
-        </li>
-      </ul>
-    </div>
+      <div class="hm-hero__stat">
+        <dd class="hm-hero__stat-num" data-hm-count="{{ stats.empresas|default:0 }}">0</dd>
+        <dt class="hm-hero__stat-lbl">Companies</dt>
+      </div>
+      <div class="hm-hero__stat">
+        <dd class="hm-hero__stat-num" data-hm-count="{{ stats.ordenes|default:0 }}">0</dd>
+        <dt class="hm-hero__stat-lbl">Orders</dt>
+      </div>
+      <div class="hm-hero__stat">
+        <dd class="hm-hero__stat-num" data-hm-count="40" data-hm-suffix="+">0</dd>
+        <dt class="hm-hero__stat-lbl">Countries</dt>
+      </div>
+    </dl>
   </div>
-
-  <section class="hero-stats" aria-label="Platform metrics">
-    <div class="hero-stats-primary" data-reveal="up">
-      <span class="hero-stats-number"
-            data-target="{{ stats.gmv_30d|default:0 }}"
-            data-prefix="$">0</span>
-      <span class="hero-stats-suffix">in wholesale volume this month</span>
-    </div>
-    <div class="hero-stats-divider" aria-hidden="true"></div>
-    <div class="hero-stats-meta">
-      <span data-reveal="up" data-reveal-delay="1">
-        <strong>{{ stats.empresas_verificadas|default:0 }}</strong> verified companies
-      </span>
-      <span class="hero-stats-sep" aria-hidden="true">·</span>
-      <span data-reveal="up" data-reveal-delay="2">
-        <strong>{{ stats.productos|default:0 }}</strong> products
-      </span>
-      <span class="hero-stats-sep" aria-hidden="true">·</span>
-      <span data-reveal="up" data-reveal-delay="3">
-        <strong>{{ stats.ordenes_completadas|default:0 }}</strong> orders fulfilled
-      </span>
-      <span class="hero-stats-sep" aria-hidden="true">·</span>
-      <span data-reveal="up" data-reveal-delay="4">
-        <strong>{{ stats.categorias|default:0 }}</strong> categories
-      </span>
-    </div>
-  </section>
 </section>

@@ -1,38 +1,29 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% comment %}
-TradeFlow Colón — public landing (redesigned v2).
-Context: stats, texture_products, category_spotlights, trending_products,
-         empresas_premium, empresas_standard.
+TradeFlow Colón — public landing (blue palette redesign).
+Context: home_view — stats, featured_products, carousel_products, empresas_carousel, category_spotlights.
 {% endcomment %}
-{% block title %}TradeFlow Colón — Shop the Colón Free Zone{% endblock %}
-
-{% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
-<link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'2' }}">
-<link rel="stylesheet" href="{% static 'css/tf-hero.css' %}?v={{ tf_asset_version|default:'2' }}">
-<link rel="stylesheet" href="{% static 'css/tf-sections.css' %}?v={{ tf_asset_version|default:'2' }}">
-<link rel="stylesheet" href="{% static 'css/tf-animations.css' %}?v={{ tf_asset_version|default:'2' }}">
+{% block title %}TradeFlow Colón — The Wholesale Marketplace of the Americas{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'3' }}">
 {% endblock %}
-
-{% block extra_css %}{% endblock %}
 
 {% block content %}
 <main class="hm-root" id="hm-root">
   {% include "core/includes/hero_section.html" %}
-  {% include "core/includes/home_categories_section.html" %}
+  {% include "core/includes/home_trust_bar.html" %}
+  {% include "core/includes/home_suppliers_section.html" %}
   {% include "core/includes/home_trending_section.html" %}
-  {% include "core/includes/home_companies_section.html" %}
-  {% include "core/includes/home_why_section.html" %}
-  {% include "core/includes/home_hiw_section.html" %}
-  {% include "core/includes/home_cta_section.html" %}
+  {% include "core/includes/home_how_it_works.html" %}
+  {% include "core/includes/home_categories_section.html" %}
 </main>
 {% endblock %}
 
+{% block footer %}
+  {% include "core/includes/home_footer.html" %}
+{% endblock %}
+
 {% block extra_js %}
-<script src="{% static 'js/tf-skeletons.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/tf-countup.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/tf-reveal.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/tf-carousel.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/tf-home.js' %}?v={{ tf_asset_version|default:'3' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

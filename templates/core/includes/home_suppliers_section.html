@@ -1,0 +1,120 @@
+{% load tf_money %}
+{% comment %}Featured suppliers — promoted + standard grid. Context: empresas_carousel, carousel_products, featured_products{% endcomment %}
+<section class="hm-suppliers" id="hm-suppliers" aria-labelledby="hm-suppliers-title">
+  <div class="hm-suppliers__inner">
+    <div class="hm-suppliers__head">
+      <div>
+        <h2 class="hm-section-title" id="hm-suppliers-title">Featured Suppliers</h2>
+        <p class="hm-section-sub">Promoted partners in the Free Zone</p>
+      </div>
+      <button type="button" class="hm-info-btn" id="hm-rankings-info" aria-describedby="hm-rankings-tooltip">
+        ⓘ How rankings work
+      </button>
+      <div class="hm-info-tooltip" id="hm-rankings-tooltip" role="tooltip" hidden>
+        Suppliers appear based on their visibility plan. All companies are CFZ-verified.
+      </div>
+    </div>
+
+    {% with top=empresas_carousel.0 %}
+    {% if top %}
+    <article class="hm-supplier hm-supplier--top" data-hm-reveal>
+      <span class="hm-supplier__promoted">PROMOTED</span>
+      <div class="hm-supplier__header">
+        <div class="hm-supplier__identity">
+          <span class="hm-supplier__avatar">{{ top.name|slice:":2"|upper }}</span>
+          <div>
+            <h3 class="hm-supplier__name">{{ top.name }}</h3>
+            <span class="hm-supplier__badge hm-supplier__badge--light">✓ CFZ Verified</span>
+          </div>
+        </div>
+        <a href="{% url 'catalogo_publico' %}?empresa={{ top.pk }}" class="hm-supplier__link">Visit storefront →</a>
+      </div>
+      <p class="hm-supplier__meta">
+        Wholesale catalog · {% if top.num_productos == 1 %}{{ top.num_productos }} SKU{% else %}{{ top.num_productos }} SKUs{% endif %} · Export-ready
+      </p>
+      <div class="hm-carousel" data-hm-carousel data-visible="4">
+        <button type="button" class="hm-carousel__arrow hm-carousel__arrow--prev" aria-label="Previous products">
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+        <div class="hm-carousel__track">
+          {% for product in carousel_products %}
+            {% if product.company_id == top.pk %}
+              {% include "core/includes/home_supplier_product_card.html" with product=product %}
+            {% endif %}
+          {% endfor %}
+          {% for product in featured_products %}
+            {% if product.company_id == top.pk %}
+              {% include "core/includes/home_supplier_product_card.html" with product=product %}
+            {% endif %}
+          {% endfor %}
+        </div>
+        <button type="button" class="hm-carousel__arrow hm-carousel__arrow--next" aria-label="Next products">
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+      </div>
+    </article>
+    {% endif %}
+    {% endwith %}
+
+    <div class="hm-suppliers__secondary">
+      {% for emp in empresas_carousel|slice:"1:3" %}
+      <article class="hm-supplier hm-supplier--secondary" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter }}">
+        <span class="hm-supplier__promoted">PROMOTED</span>
+        <div class="hm-supplier__header">
+          <div class="hm-supplier__identity">
+            <span class="hm-supplier__avatar hm-supplier__avatar--sm">{{ emp.name|slice:":2"|upper }}</span>
+            <div>
+              <h3 class="hm-supplier__name hm-supplier__name--sm">{{ emp.name }}</h3>
+              <span class="hm-supplier__badge hm-supplier__badge--dark">✓ CFZ Verified</span>
+            </div>
+          </div>
+          <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="hm-supplier__link hm-supplier__link--dark">Visit →</a>
+        </div>
+        <div class="hm-carousel hm-carousel--compact" data-hm-carousel data-visible="3">
+          <button type="button" class="hm-carousel__arrow hm-carousel__arrow--prev" aria-label="Previous products">
+            <span class="material-symbols-rounded">chevron_left</span>
+          </button>
+          <div class="hm-carousel__track">
+            {% for product in carousel_products %}
+              {% if product.company_id == emp.pk %}
+                {% include "core/includes/home_supplier_product_card.html" with product=product %}
+              {% endif %}
+            {% endfor %}
+            {% for product in featured_products %}
+              {% if product.company_id == emp.pk %}
+                {% include "core/includes/home_supplier_product_card.html" with product=product %}
+              {% endif %}
+            {% endfor %}
+          </div>
+          <button type="button" class="hm-carousel__arrow hm-carousel__arrow--next" aria-label="Next products">
+            <span class="material-symbols-rounded">chevron_right</span>
+          </button>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="hm-suppliers__grid">
+      {% for emp in empresas_carousel|slice:"3:7" %}
+      <article class="hm-supplier-card" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter }}">
+        <div class="hm-supplier-card__top">
+          <span class="hm-supplier-card__avatar">{{ emp.name|slice:":2"|upper }}</span>
+          <div>
+            <h3 class="hm-supplier-card__name">{{ emp.name }}</h3>
+            <span class="hm-supplier-card__verified">
+              <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+              CFZ Verified
+            </span>
+          </div>
+        </div>
+        <p class="hm-supplier-card__count">
+          {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
+        </p>
+        <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="hm-supplier-card__link">View catalog →</a>
+      </article>
+      {% empty %}
+      <p class="hm-empty">More verified suppliers coming soon.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>

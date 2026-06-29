@@ -1,100 +1,60 @@
-{% load static tf_catalog %}
-{% comment %}
-Public B2B header — Amazon-style prominent search (guests).
-Context: nav_header_categories, carrito_count (0 for guests).
-{% endcomment %}
-<header class="tf-hdr-shell pn-shell" id="tf-header-shell">
-  <div class="tf-hdr-sticky-bar" id="tf-hdr-sticky-bar" aria-hidden="true">
-    {% include "core/includes/tf_header_search.html" with input_id="tf-hdr-sticky-input" form_id="tf-hdr-sticky-form" %}
-  </div>
-
-  <nav class="tf-hdr" aria-label="TradeFlow Colón">
-    <div class="tf-hdr-row tf-hdr-row--main">
-      <a href="{% url 'home' %}" class="tf-hdr-logo" aria-label="TradeFlow Colón home">
-        {% include "core/includes/tf_logo.html" with variant="icon-white" size="sm" class="tf-hdr-logo-img" eager=1 %}
-        <span class="tf-hdr-logo-text">
-          <span class="tf-hdr-logo-name">TradeFlow</span>
-          <span class="tf-hdr-logo-tld">Colón Free Zone</span>
-        </span>
+{% load static %}
+{% comment %}Public navbar — blue palette, search + category pills.{% endcomment %}
+<header class="hm-nav-shell" id="hm-public-nav">
+  <nav class="hm-nav" aria-label="TradeFlow store">
+    <div class="hm-nav__main">
+      <a href="{% url 'home' %}" class="hm-nav__brand" aria-label="TradeFlow Colón">
+        {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="nav" class="hm-nav__logo" eager=1 %}
       </a>
 
-      {% include "core/includes/tf_header_search.html" with input_id="tf-hdr-search-input" form_id="tf-hdr-search-form" value=request.GET.buscar %}
+      <form class="hm-nav__search" action="{% url 'catalogo_publico' %}" method="get" role="search">
+        <label class="visually-hidden" for="hm-nav-search">Search</label>
+        <input id="hm-nav-search" class="hm-nav__search-input" type="search" name="buscar"
+               placeholder="Search products, companies, categories..." autocomplete="off">
+        <button type="submit" class="hm-nav__search-btn" aria-label="Search">
+          <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        </button>
+      </form>
 
-      <div class="tf-hdr-actions">
-        <a href="{% url 'login' %}" class="tf-hdr-action-link tf-hdr-action-link--outline tf-hdr-action-link--text">Sign in</a>
-        <a href="{% url 'signup' %}" class="tf-hdr-action-link tf-hdr-action-link--primary">Create account</a>
-        <a href="{% url 'login' %}?next={% url 'ver_carrito' %}" class="tf-hdr-cart" title="Sign in to view cart">
-          <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
-          <span class="tf-hdr-cart-badge" data-count="0" aria-hidden="true"></span>
-        </a>
-      </div>
-
-      <button type="button" class="tf-hdr-icon-btn tf-hdr-search-toggle" aria-label="Search" aria-expanded="false">
-        <span class="material-symbols-rounded" aria-hidden="true">search</span>
-      </button>
-      <button type="button" class="tf-hdr-hamburger" aria-label="Menu" aria-expanded="false">
+      <button type="button" class="hm-nav__hamburger" id="hm-nav-hamburger" aria-label="Menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
-    </div>
 
-    <div class="tf-hdr-mobile-search" id="tf-hdr-mobile-search" aria-hidden="true">
-      {% include "core/includes/tf_header_search.html" with input_id="tf-hdr-mobile-input" form_id="tf-hdr-mobile-form" value=request.GET.buscar %}
-    </div>
-
-    <div class="tf-hdr-row tf-hdr-row--sub" id="tf-hdr-sub-nav">
-      <div class="tf-hdr-cat-wrap">
-        <button type="button" class="tf-hdr-cat-btn" aria-expanded="false" aria-haspopup="true">
-          <span class="material-symbols-rounded tf-hdr-cat-icon" aria-hidden="true">menu</span>
-          Categories
-        </button>
-        <div class="tf-hdr-cat-panel" role="menu">
-          {% for cat in nav_header_categories %}
-          <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}" role="menuitem" class="tf-hdr-cat-item">
-            <span class="tf-hdr-cat-item-icon" aria-hidden="true">
-              <span class="material-symbols-rounded">{{ cat.name|category_icon }}</span>
-            </span>
-            <span class="tf-hdr-cat-item-label">{{ cat.name|category_label }}</span>
-            <small class="tf-hdr-cat-item-count">{{ cat.num_productos }}</small>
-          </a>
-          {% empty %}
-          <a href="{% url 'catalogo_publico' %}" role="menuitem" class="tf-hdr-cat-item">
-            <span class="tf-hdr-cat-item-icon" aria-hidden="true">
-              <span class="material-symbols-rounded">storefront</span>
-            </span>
-            <span class="tf-hdr-cat-item-label">View full catalog</span>
-          </a>
-          {% endfor %}
-          <a href="{% url 'catalogo_publico' %}" role="menuitem" class="tf-hdr-cat-all tf-hdr-cat-item">
-            <span class="tf-hdr-cat-item-icon" aria-hidden="true">
-              <span class="material-symbols-rounded">grid_view</span>
-            </span>
-            <span class="tf-hdr-cat-item-label">All categories</span>
-            <span class="material-symbols-rounded tf-hdr-cat-all-arrow" aria-hidden="true">arrow_forward</span>
-          </a>
+      <div class="hm-nav__actions">
+        <div class="hm-nav__lang" role="group" aria-label="Language">
+          <a href="{% url 'set_language' %}?language=es&amp;next={{ request.path }}" class="hm-nav__lang-link" lang="es">ES</a>
+          <span class="hm-nav__lang-sep" aria-hidden="true">|</span>
+          <a href="{% url 'set_language' %}?language=en&amp;next={{ request.path }}" class="hm-nav__lang-link is-active" lang="en">EN</a>
         </div>
+        <a href="{% url 'login' %}" class="hm-nav__btn hm-nav__btn--ghost">Sign in</a>
+        <a href="{% url 'signup' %}" class="hm-nav__btn hm-nav__btn--solid">Start buying</a>
       </div>
-      <a href="{% url 'catalogo_publico' %}?orden=novedades" class="tf-hdr-sub-link">Deals</a>
-      <a href="{% url 'catalogo_publico' %}?verificado=1" class="tf-hdr-sub-link">Verified companies</a>
-      <a href="{% url 'home' %}#how-it-works" class="tf-hdr-sub-link">How it works</a>
-      <a href="{% url 'catalogo_publico' %}" class="tf-hdr-sub-link">Wholesale catalog</a>
-      <a href="{% url 'signup' %}?role=seller" class="tf-hdr-sub-link">Sell on TradeFlow</a>
+    </div>
+
+    <div class="hm-nav__pills-wrap" id="hm-nav-pills">
+      <div class="hm-nav__pills">
+        <a href="{% url 'catalogo_publico' %}" class="hm-nav__pill is-active">All</a>
+        <a href="{% url 'catalogo_publico' %}?verificado=1" class="hm-nav__pill">Verified</a>
+        <a href="{% url 'catalogo_publico' %}?orden=novedades" class="hm-nav__pill">New arrivals</a>
+        <a href="{% url 'catalogo_publico' %}?buscar=electronics" class="hm-nav__pill">Electronics</a>
+        <a href="{% url 'catalogo_publico' %}?buscar=textiles" class="hm-nav__pill">Textiles</a>
+        <a href="{% url 'catalogo_publico' %}?buscar=beauty" class="hm-nav__pill">Beauty</a>
+        <a href="{% url 'catalogo_publico' %}?buscar=home" class="hm-nav__pill">Home &amp; Kitchen</a>
+        <a href="{% url 'catalogo_publico' %}?buscar=toys" class="hm-nav__pill">Toys</a>
+        <a href="{% url 'signup' %}?role=seller" class="hm-nav__pill">Sell on TradeFlow</a>
+      </div>
     </div>
   </nav>
-
-  <div class="tf-hdr-drawer-backdrop" aria-hidden="true"></div>
-  <aside class="tf-hdr-drawer" id="tf-hdr-drawer" aria-label="Navigation menu" aria-hidden="true">
-    <a href="{% url 'catalogo_publico' %}">Full catalog</a>
-    <a href="{% url 'catalogo_publico' %}?verificado=1">Verified companies</a>
-    <a href="{% url 'catalogo_publico' %}?orden=novedades">Deals</a>
-    <h2>Categories</h2>
-    {% for cat in nav_header_categories %}
-    <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}">{{ cat.name }}</a>
-    {% endfor %}
-    <h2>Account</h2>
-    <a href="{% url 'login' %}">Sign in</a>
-    <a href="{% url 'signup' %}">Create account</a>
-    <a href="{% url 'home' %}#how-it-works">How it works</a>
-  </aside>
 </header>
 
-<script src="{% static 'js/tf-header.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var btn = document.getElementById('hm-nav-hamburger');
+  var pills = document.getElementById('hm-nav-pills');
+  if (!btn || !pills) return;
+  btn.addEventListener('click', function () {
+    var open = pills.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+})();
+</script>
