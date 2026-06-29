@@ -12,8 +12,8 @@ from django.http import HttpResponseForbidden
 
 # Permite a vendor scripts (Leaflet, supabase-js, Bootstrap, Chart.js)
 # que cargamos vía <script src="https://..."></script> seguir funcionando
-# con CSP strict. Si en futuro se mueven a self-hosted, quitar de aqui.
 _CSP_SCRIPT_CDN = "https://cdn.jsdelivr.net https://unpkg.com"
+_CSP_STYLE_CDN = "https://fonts.googleapis.com https://cdn.jsdelivr.net"
 
 
 class SecurityHeadersMiddleware:
@@ -72,7 +72,7 @@ class SecurityHeadersMiddleware:
                     'Content-Security-Policy',
                     "default-src 'self'; "
                     "img-src 'self' data: https: blob:; "
-                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
                     "font-src 'self' https://fonts.gstatic.com; "
                     f"script-src 'self' 'unsafe-inline' {_CSP_SCRIPT_CDN}; "
                     "connect-src 'self' https: wss:; "
@@ -86,7 +86,7 @@ class SecurityHeadersMiddleware:
                     'Content-Security-Policy',
                     "default-src 'self'; "
                     "img-src 'self' data: https: blob:; "
-                    f"style-src 'self' 'nonce-{nonce}' https://fonts.googleapis.com; "
+                    f"style-src 'self' 'nonce-{nonce}' {_CSP_STYLE_CDN}; "
                     "font-src 'self' https://fonts.gstatic.com; "
                     f"script-src 'self' 'nonce-{nonce}' {_CSP_SCRIPT_CDN}; "
                     "connect-src 'self' https: wss:; "
