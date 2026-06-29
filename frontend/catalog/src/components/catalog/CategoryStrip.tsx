@@ -1,43 +1,45 @@
-import { categories } from '@/lib/catalog-data';
+import { CATEGORIES } from '@/lib/catalog-data';
 
 interface CategoryStripProps {
   activeCategory: string | null;
-  onCategoryChange: (categoryId: string | null) => void;
+  onChange: (id: string | null) => void;
 }
 
-export function CategoryStrip({ activeCategory, onCategoryChange }: CategoryStripProps) {
-  const displayCategories = categories.slice(0, 6);
-
+export function CategoryStrip({ activeCategory, onChange }: CategoryStripProps) {
   return (
     <nav
       aria-label="Product categories"
       className="h-12 border-b border-border bg-white"
     >
       <div className="mx-auto flex h-full max-w-[1440px] items-center px-4 lg:px-6">
-        <div className="flex h-full items-center gap-2 overflow-x-auto scrollbar-none">
+        <div className="no-scrollbar flex h-full items-center gap-2 overflow-x-auto">
           <button
             type="button"
-            onClick={() => onCategoryChange(null)}
-            className={`shrink-0 rounded-[6px] px-4 py-1.5 text-[13px] font-medium transition-colors ${
+            onClick={() => onChange(null)}
+            className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-4 text-[13px] font-medium transition-colors ${
               activeCategory === null
-                ? 'bg-navy text-white'
-                : 'bg-surface text-text-secondary hover:text-navy'
+                ? 'border-navy bg-navy text-white'
+                : 'border-border text-text-secondary hover:border-navy'
             }`}
           >
-            All Products
+            All
           </button>
-          {displayCategories.map((cat) => (
+          {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               type="button"
-              onClick={() => onCategoryChange(cat.id)}
-              className={`shrink-0 rounded-[6px] px-4 py-1.5 text-[13px] font-medium transition-colors ${
+              onClick={() => onChange(cat.id)}
+              className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-4 text-[13px] font-medium transition-colors ${
                 activeCategory === cat.id
-                  ? 'bg-navy text-white'
-                  : 'bg-surface text-text-secondary hover:text-navy'
+                  ? 'border-navy bg-navy text-white'
+                  : 'border-border text-text-secondary hover:border-navy'
               }`}
             >
-              {cat.name}
+              <span aria-hidden="true">{cat.icon}</span>
+              {cat.label}
+              <span className={activeCategory === cat.id ? 'text-white/80' : 'text-text-muted'}>
+                ({cat.count})
+              </span>
             </button>
           ))}
         </div>
