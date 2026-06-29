@@ -1,0 +1,51 @@
+{% load static %}
+{% comment %}Homepage footer — 4-column blue footer.{% endcomment %}
+<footer class="hm-footer">
+  <div class="hm-footer__grid">
+    <div class="hm-footer__brand">
+      {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
+      <p class="hm-footer__tagline">B2B wholesale marketplace for the Colón Free Zone</p>
+      <div class="hm-footer__social">
+        <a href="mailto:{{ tradeflow_contact_email }}" class="hm-footer__social-link" aria-label="Email">
+          <span class="material-symbols-rounded">mail</span>
+        </a>
+        <a href="{% url 'catalogo_publico' %}" class="hm-footer__social-link" aria-label="Catalog">
+          <span class="material-symbols-rounded">storefront</span>
+        </a>
+        <a href="{% url 'home' %}#como-funciona" class="hm-footer__social-link" aria-label="How it works">
+          <span class="material-symbols-rounded">help</span>
+        </a>
+      </div>
+    </div>
+    <div>
+      <h3 class="hm-footer__col-title">Buyers</h3>
+      <nav class="hm-footer__links" aria-label="Buyer links">
+        <a href="{% url 'catalogo_publico' %}">Browse catalog</a>
+        <a href="{% url 'signup' %}">Create account</a>
+        <a href="{% url 'login' %}">Sign in</a>
+        <a href="{% url 'home' %}#como-funciona">How it works</a>
+      </nav>
+    </div>
+    <div>
+      <h3 class="hm-footer__col-title">Sellers</h3>
+      <nav class="hm-footer__links" aria-label="Seller links">
+        <a href="{% url 'signup' %}?role=seller">List your company</a>
+        <a href="{% url 'login' %}">Seller sign in</a>
+        <a href="{% url 'catalogo_publico' %}?verificado=1">Verified suppliers</a>
+        <a href="{% url 'home' %}#hm-suppliers">Featured suppliers</a>
+      </nav>
+    </div>
+    <div>
+      <h3 class="hm-footer__col-title">Legal</h3>
+      <nav class="hm-footer__links" aria-label="Legal links">
+        <a href="{% url 'legal_terminos' %}">Terms of use</a>
+        <a href="{% url 'legal_privacidad' %}">Privacy policy</a>
+        <a href="{% url 'legal_cookies' %}">Cookie policy</a>
+        <a href="mailto:{{ tradeflow_contact_email }}">Contact</a>
+      </nav>
+    </div>
+  </div>
+  <div class="hm-footer__bottom">
+    <span>© 2026 TradeFlow Colón · All rights reserved · 🇵🇦 Panama</span>
+  </div>
+</footer>

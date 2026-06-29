@@ -1,81 +1,59 @@
 {% load static %}
-{% comment %}Lovable v2 — Public navbar (guest: 2 rows).{% endcomment %}
-<header class="pn-shell" id="pn-public-shell">
-  <nav class="pn-nav pn-nav--guest" aria-label="TradeFlow store">
-    <div class="pn-nav-row pn-nav-row--main">
-      <a href="{% url 'home' %}" class="pn-brand" aria-label="TradeFlow Colón">
-        <span class="pn-brand-mark" aria-hidden="true">TF</span>
-        <span class="pn-brand-text">
-          <span class="pn-brand-name">TradeFlow</span>
-          <span class="pn-brand-tld">.cfz</span>
-        </span>
+{% comment %}Public navbar — blue palette, search + category pills.{% endcomment %}
+<header class="hm-nav-shell" id="hm-public-nav">
+  <nav class="hm-nav" aria-label="TradeFlow store">
+    <div class="hm-nav__main">
+      <a href="{% url 'home' %}" class="hm-nav__brand" aria-label="TradeFlow Colón">
+        {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="nav" class="hm-nav__logo" eager=1 %}
       </a>
 
-      <div class="pn-location" title="Delivery region">
-        <span class="pn-location-label">
-          <span class="material-symbols-rounded" aria-hidden="true">location_on</span>
-          Deliver to
-        </span>
-        <span class="pn-location-value">Worldwide</span>
-      </div>
-
-      <form class="pn-search" action="{% url 'catalogo_publico' %}" method="get" role="search">
-        <label class="visually-hidden" for="pn-search-input">Search</label>
-        <select class="pn-search-scope" name="scope" aria-label="Search scope" disabled>
-          <option>All</option>
-        </select>
-        <input id="pn-search-input" class="pn-search-input" type="search" name="buscar"
-               placeholder="Search verified companies…" autocomplete="off">
-        <button type="submit" class="pn-search-btn" aria-label="Search">
+      <form class="hm-nav__search" action="{% url 'catalogo_publico' %}" method="get" role="search">
+        <label class="visually-hidden" for="hm-nav-search">Search</label>
+        <input id="hm-nav-search" class="hm-nav__search-input" type="search" name="buscar"
+               placeholder="Search products, companies, categories..." autocomplete="off">
+        <button type="submit" class="hm-nav__search-btn" aria-label="Search">
           <span class="material-symbols-rounded" aria-hidden="true">search</span>
         </button>
       </form>
 
-      <button type="button" class="pn-hamburger" id="pn-hamburger" aria-label="Menu" aria-expanded="false">
+      <button type="button" class="hm-nav__hamburger" id="hm-nav-hamburger" aria-label="Menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
 
-      <div class="pn-actions">
-        <button type="button" class="pn-lang" aria-label="Language English">
-          <span aria-hidden="true">🇺🇸</span> EN <span class="material-symbols-rounded" style="font-size:16px;">expand_more</span>
-        </button>
-        <a href="{% url 'login' %}" class="pn-account-link">
-          <span class="pn-account-top">Hello, sign in</span>
-          <span class="pn-account-bottom">Account &amp; Lists</span>
-        </a>
-        <a href="{% url 'login' %}" class="pn-account-link">
-          <span class="pn-account-top">Returns</span>
-          <span class="pn-account-bottom">&amp; Orders</span>
-        </a>
-        <a href="{% url 'signup' %}" class="pn-btn-create">Create Account</a>
-        <a href="{% url 'login' %}?next={% url 'ver_carrito' %}" class="pn-cart" title="Sign in to view cart">
-          <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
-          <span class="pn-cart-badge" data-count="0" aria-hidden="true"></span>
-        </a>
+      <div class="hm-nav__actions">
+        <div class="hm-nav__lang" role="group" aria-label="Language">
+          <a href="{% url 'set_language' %}?language=es&amp;next={{ request.path }}" class="hm-nav__lang-link" lang="es">ES</a>
+          <span class="hm-nav__lang-sep" aria-hidden="true">|</span>
+          <a href="{% url 'set_language' %}?language=en&amp;next={{ request.path }}" class="hm-nav__lang-link is-active" lang="en">EN</a>
+        </div>
+        <a href="{% url 'login' %}" class="hm-nav__btn hm-nav__btn--ghost">Sign in</a>
+        <a href="{% url 'signup' %}" class="hm-nav__btn hm-nav__btn--solid">Start buying</a>
       </div>
     </div>
 
-    <div class="pn-nav-row pn-nav-row--sub" id="pn-sub-nav">
-      <a href="{% url 'catalogo_publico' %}" class="pn-sub-link">All</a>
-      <a href="{% url 'catalogo_publico' %}?orden=novedades" class="pn-sub-link">Today's Deals</a>
-      <a href="{% url 'catalogo_publico' %}?verificado=1" class="pn-sub-link">Verified Companies</a>
-      <a href="{% url 'catalogo_publico' %}" class="pn-sub-link">CFZ Catalog</a>
-      <a href="{% url 'catalogo_publico' %}" class="pn-sub-link">Bulk Orders</a>
-      <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Logistics</a>
-      <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Documentation</a>
-      <a href="{% url 'home' %}#hm-features" class="pn-sub-link">Buyer Protection</a>
-      <a href="{% url 'signup' %}?role=seller" class="pn-sub-link">Sell on TradeFlow</a>
+    <div class="hm-nav__pills-wrap" id="hm-nav-pills">
+      <div class="hm-nav__pills">
+        <a href="{% url 'catalogo_publico' %}" class="hm-nav__pill is-active">All</a>
+        <a href="{% url 'catalogo_publico' %}?verificado=1" class="hm-nav__pill">Verified</a>
+        <a href="{% url 'catalogo_publico' %}?orden=novedades" class="hm-nav__pill">New arrivals</a>
+        <a href="{% url 'catalogo_publico' %}?buscar=electronics" class="hm-nav__pill">Electronics</a>
+        <a href="{% url 'catalogo_publico' %}?buscar=textiles" class="hm-nav__pill">Textiles</a>
+        <a href="{% url 'catalogo_publico' %}?buscar=beauty" class="hm-nav__pill">Beauty</a>
+        <a href="{% url 'catalogo_publico' %}?buscar=home" class="hm-nav__pill">Home &amp; Kitchen</a>
+        <a href="{% url 'catalogo_publico' %}?buscar=toys" class="hm-nav__pill">Toys</a>
+        <a href="{% url 'signup' %}?role=seller" class="hm-nav__pill">Sell on TradeFlow</a>
+      </div>
     </div>
   </nav>
 </header>
 
 <script nonce="{{ csp_nonce }}">
 (function () {
-  var btn = document.getElementById('pn-hamburger');
-  var sub = document.getElementById('pn-sub-nav');
-  if (!btn || !sub) return;
+  var btn = document.getElementById('hm-nav-hamburger');
+  var pills = document.getElementById('hm-nav-pills');
+  if (!btn || !pills) return;
   btn.addEventListener('click', function () {
-    var open = sub.classList.toggle('is-open');
+    var open = pills.classList.toggle('is-open');
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
 })();

@@ -1,0 +1,32 @@
+{% comment %}Shop by category grid. Context: category_spotlights{% endcomment %}
+<section class="hm-categories" id="hm-categories" aria-labelledby="hm-categories-title">
+  <div class="hm-categories__inner">
+    <h2 class="hm-section-title" id="hm-categories-title">Shop by Category</h2>
+    <div class="hm-categories__grid">
+      {% for row in category_spotlights %}
+      <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="hm-cat-card" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter0 }}">
+        <span class="hm-cat-card__icon material-symbols-rounded" aria-hidden="true">
+          {% with cat=row.category.name|lower %}
+          {% if 'elect' in cat or 'tech' in cat %}devices
+          {% elif 'text' in cat or 'cloth' in cat or 'apparel' in cat %}checkroom
+          {% elif 'beaut' in cat or 'cosmetic' in cat %}spa
+          {% elif 'toy' in cat or 'game' in cat %}sports_esports
+          {% elif 'home' in cat or 'kitchen' in cat %}kitchen
+          {% elif 'food' in cat or 'groc' in cat %}lunch_dining
+          {% else %}category{% endif %}
+          {% endwith %}
+        </span>
+        <span class="hm-cat-card__name">{{ row.category.name }}</span>
+        <span class="hm-cat-card__count">
+          {% if row.category.n == 1 %}{{ row.category.n }} product{% else %}{{ row.category.n }} products{% endif %}
+        </span>
+      </a>
+      {% empty %}
+      <a href="{% url 'catalogo_publico' %}?buscar=electronics" class="hm-cat-card" data-hm-reveal><span class="hm-cat-card__icon material-symbols-rounded">devices</span><span class="hm-cat-card__name">Electronics</span><span class="hm-cat-card__count">Browse catalog</span></a>
+      <a href="{% url 'catalogo_publico' %}?buscar=textiles" class="hm-cat-card" data-hm-reveal><span class="hm-cat-card__icon material-symbols-rounded">checkroom</span><span class="hm-cat-card__name">Textiles</span><span class="hm-cat-card__count">Browse catalog</span></a>
+      <a href="{% url 'catalogo_publico' %}?buscar=beauty" class="hm-cat-card" data-hm-reveal><span class="hm-cat-card__icon material-symbols-rounded">spa</span><span class="hm-cat-card__name">Beauty</span><span class="hm-cat-card__count">Browse catalog</span></a>
+      <a href="{% url 'catalogo_publico' %}?buscar=home" class="hm-cat-card" data-hm-reveal><span class="hm-cat-card__icon material-symbols-rounded">kitchen</span><span class="hm-cat-card__name">Home &amp; Kitchen</span><span class="hm-cat-card__count">Browse catalog</span></a>
+      {% endfor %}
+    </div>
+  </div>
+</section>

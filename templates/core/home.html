@@ -1,20 +1,29 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% comment %}
-TradeFlow Colón — public landing (Lovable v2).
-Context: home_view — stats, featured_products, bestsellers, empresas_carousel, show_cart_actions.
+TradeFlow Colón — public landing (blue palette redesign).
+Context: home_view — stats, featured_products, carousel_products, empresas_carousel, category_spotlights.
 {% endcomment %}
-{% block title %}TradeFlow Colón — Shop the Colón Free Zone{% endblock %}
+{% block title %}TradeFlow Colón — The Wholesale Marketplace of the Americas{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'3' }}">
 {% endblock %}
 
 {% block content %}
 <main class="hm-root" id="hm-root">
   {% include "core/includes/hero_section.html" %}
-  {% include "core/includes/home_grid.html" %}
-  {% include "core/includes/home_products_section.html" %}
-  {% include "core/includes/home_companies_section.html" %}
-  {% include "core/includes/home_features_section.html" %}
+  {% include "core/includes/home_trust_bar.html" %}
+  {% include "core/includes/home_suppliers_section.html" %}
+  {% include "core/includes/home_trending_section.html" %}
+  {% include "core/includes/home_how_it_works.html" %}
+  {% include "core/includes/home_categories_section.html" %}
 </main>
+{% endblock %}
+
+{% block footer %}
+  {% include "core/includes/home_footer.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/tf-home.js' %}?v={{ tf_asset_version|default:'3' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

@@ -1,0 +1,84 @@
+{% load tf_money %}
+{% comment %}Trending products carousel. Context: carousel_products, featured_products, bestsellers{% endcomment %}
+<section class="hm-trending" id="hm-trending" aria-labelledby="hm-trending-title">
+  <div class="hm-trending__inner">
+    <div class="hm-trending__head">
+      <h2 class="hm-section-title" id="hm-trending-title">Trending in the Free Zone</h2>
+      <a href="{% url 'catalogo_publico' %}" class="hm-trending__see-all">See all →</a>
+    </div>
+
+    <div class="hm-carousel hm-carousel--trending" data-hm-carousel data-visible="4">
+      <button type="button" class="hm-carousel__arrow hm-carousel__arrow--prev" aria-label="Previous">
+        <span class="material-symbols-rounded">chevron_left</span>
+      </button>
+      <div class="hm-carousel__track">
+        {% if carousel_products %}
+          {% for product in carousel_products|slice:":12" %}
+        <article class="hm-trend-card" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter0 }}">
+          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-trend-card__media">
+            {% if product.is_on_promo_now %}
+            <span class="hm-trend-card__badge">-{{ product.discount_pct }}%</span>
+            {% endif %}
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+            {% else %}
+            <span class="hm-trend-card__icon material-symbols-rounded" aria-hidden="true">
+              {% with cat=product.category.name|default:''|lower %}
+              {% if 'elect' in cat or 'tech' in cat %}devices
+              {% elif 'text' in cat or 'cloth' in cat %}checkroom
+              {% elif 'toy' in cat or 'game' in cat %}sports_esports
+              {% else %}inventory_2{% endif %}
+              {% endwith %}
+            </span>
+            {% endif %}
+          </a>
+          <p class="hm-trend-card__company">
+            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+            {{ product.company.name|truncatechars:24 }}
+          </p>
+          <h3 class="hm-trend-card__name">
+            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:56 }}</a>
+          </h3>
+          <p class="hm-trend-card__price">{{ product.display_price|money_usd }}</p>
+          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-trend-card__cta">View details</a>
+        </article>
+          {% endfor %}
+        {% else %}
+          {% for product in featured_products|slice:":12" %}
+        <article class="hm-trend-card" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter0 }}">
+          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-trend-card__media">
+            {% if product.is_on_promo_now %}
+            <span class="hm-trend-card__badge">-{{ product.discount_pct }}%</span>
+            {% endif %}
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+            {% else %}
+            <span class="hm-trend-card__icon material-symbols-rounded" aria-hidden="true">
+              {% with cat=product.category.name|default:''|lower %}
+              {% if 'elect' in cat or 'tech' in cat %}devices
+              {% elif 'text' in cat or 'cloth' in cat %}checkroom
+              {% elif 'toy' in cat or 'game' in cat %}sports_esports
+              {% else %}inventory_2{% endif %}
+              {% endwith %}
+            </span>
+            {% endif %}
+          </a>
+          <p class="hm-trend-card__company">
+            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+            {{ product.company.name|truncatechars:24 }}
+          </p>
+          <h3 class="hm-trend-card__name">
+            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:56 }}</a>
+          </h3>
+          <p class="hm-trend-card__price">{{ product.display_price|money_usd }}</p>
+          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-trend-card__cta">View details</a>
+        </article>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <button type="button" class="hm-carousel__arrow hm-carousel__arrow--next" aria-label="Next">
+        <span class="material-symbols-rounded">chevron_right</span>
+      </button>
+    </div>
+  </div>
+</section>
