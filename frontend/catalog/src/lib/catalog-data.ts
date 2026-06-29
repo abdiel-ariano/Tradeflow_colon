@@ -1,10 +1,10 @@
-export interface Product {
+export type Product = {
   id: string;
   name: string;
   emoji: string;
   bg: string;
   priceMin: number;
-  priceMax: number;
+  priceMax?: number;
   originalPrice?: number;
   discount?: number;
   moq: number;
@@ -14,31 +14,28 @@ export interface Product {
   country: string;
   flag: string;
   verified: boolean;
-  reorderRate: number;
-  lowerPriced: boolean;
-  category: string;
-}
+  reorderRate?: number;
+  lowerPriced?: boolean;
+};
 
-export interface Category {
-  id: string;
-  name: string;
-  count: number;
-}
-
-export const categories: Category[] = [
-  { id: 'electronics', name: 'Electronics & Office', count: 314 },
-  { id: 'textiles', name: 'Textiles & Uniforms', count: 254 },
-  { id: 'general', name: 'General Imports', count: 235 },
-  { id: 'logistics', name: 'Logistics & Packaging', count: 146 },
-  { id: 'home', name: 'Home & Appliances', count: 139 },
-  { id: 'accessories', name: 'Accessories & Leather', count: 138 },
-  { id: 'food', name: 'Food & Beverages', count: 127 },
-  { id: 'health', name: 'Health & Beauty', count: 112 },
-  { id: 'construction', name: 'Construction & Hardware', count: 98 },
-  { id: 'automotive', name: 'Automotive & Parts', count: 86 },
+export const CATEGORIES = [
+  { id: 'electronics', icon: '📱', label: 'Electronics & Office', count: 314 },
+  { id: 'textiles', icon: '👕', label: 'Textiles & Uniforms', count: 254 },
+  { id: 'imports', icon: '📦', label: 'General Imports', count: 235 },
+  { id: 'logistics', icon: '🚚', label: 'Logistics & Packaging', count: 146 },
+  { id: 'home', icon: '🏠', label: 'Home & Appliances', count: 139 },
+  { id: 'accessories', icon: '👜', label: 'Accessories & Leather', count: 138 },
 ];
 
-export const products: Product[] = [
+export const ALL_CATEGORIES = [
+  ...CATEGORIES,
+  { id: 'automotive', icon: '🚗', label: 'Automotive Parts', count: 98 },
+  { id: 'beauty', icon: '💄', label: 'Beauty & Personal Care', count: 87 },
+  { id: 'industrial', icon: '🏭', label: 'Industrial Equipment', count: 76 },
+  { id: 'food', icon: '🥫', label: 'Food & Beverage', count: 54 },
+];
+
+export const PRODUCTS: (Product & { category: string })[] = [
   {
     id: '1',
     name: 'Wireless Bluetooth Earbuds Pro — Bulk OEM Packaging',
@@ -267,12 +264,36 @@ export const products: Product[] = [
   },
 ];
 
-export function formatPrice(min: number, max: number): string {
+const COUNTRY_CODES: Record<string, string> = {
+  Panama: 'PA',
+  Colombia: 'CO',
+  China: 'CN',
+  Mexico: 'MX',
+  Italy: 'IT',
+  Taiwan: 'TW',
+  'Costa Rica': 'CR',
+  'South Korea': 'KR',
+  USA: 'US',
+  Germany: 'DE',
+};
+
+export function countryCode(country: string): string {
+  return COUNTRY_CODES[country] ?? country.slice(0, 2).toUpperCase();
+}
+
+export function formatPrice(min: number, max?: number): string {
   const fmt = (n: number) =>
     n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return `PAB ${fmt(min)} – ${fmt(max)}`;
+  if (max !== undefined) {
+    return `PAB ${fmt(min)}–${fmt(max)}`;
+  }
+  return `PAB ${fmt(min)}`;
 }
 
 export function formatSold(n: number): string {
   return n.toLocaleString('en-US') + ' sold';
+}
+
+export function categoryLabel(id: string): string {
+  return ALL_CATEGORIES.find((c) => c.id === id)?.label ?? id;
 }

@@ -1,20 +1,40 @@
 @import "tailwindcss";
 
+:root {
+  /* TradeFlow Colón brand palette */
+  --navy: #0F2A44;
+  --navy-hover: #0A1F33;
+  --navy-mid: #1B3B63;
+  --gold: #FF7A3D;
+  --gold-hover: #E8651F;
+  --orange-soft: #FFA15A;
+  --emerald: #1F8A57;
+  --danger: #C0392B;
+  --surface: #F2F3F5;
+  --border-soft: #E2E5E9;
+  --text-primary: #0F2A44;
+  --text-secondary: #4A5B6E;
+  --text-muted: #7A8696;
+}
+
 @theme inline {
-  --color-navy: #0F2A44;
-  --color-navy-hover: #0A1F33;
-  --color-navy-mid: #1B3B63;
-  --color-orange: #FF7A3D;
-  --color-orange-hover: #E8651F;
-  --color-orange-soft: #FFA15A;
-  --color-emerald: #1F8A57;
-  --color-danger: #C0392B;
-  --color-surface: #F2F3F5;
-  --color-border: #E2E5E9;
-  --color-text-primary: #0F2A44;
-  --color-text-secondary: #4A5B6E;
-  --color-text-muted: #7A8696;
+  --color-navy: var(--navy);
+  --color-navy-hover: var(--navy-hover);
+  --color-navy-mid: var(--navy-mid);
+  --color-navy-mid: var(--navy-mid);
+  --color-gold: var(--gold);
+  --color-gold-hover: var(--gold-hover);
+  --color-orange-soft: var(--orange-soft);
+  --color-emerald: var(--emerald);
+  --color-danger: var(--danger);
+  --color-surface: var(--surface);
+  --color-border: var(--border-soft);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --destructive: var(--danger);
+  --ring: var(--navy);
 }
 
 @layer base {
@@ -33,4 +53,13 @@
   input[type="range"] {
     accent-color: var(--color-navy);
   }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

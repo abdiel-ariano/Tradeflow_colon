@@ -1,22 +1,25 @@
-import { BadgeCheck, CreditCard, Globe, ShieldCheck } from 'lucide-react';
+import { Award, FileText, Zap } from 'lucide-react';
 
-const trustItems = [
-  { icon: BadgeCheck, label: 'CFZ Verified' },
-  { icon: Globe, label: 'Export-Ready' },
-  { icon: CreditCard, label: 'Secure Payments' },
-  { icon: ShieldCheck, label: 'Verified Suppliers' },
+const items = [
+  { icon: FileText, label: 'Request for Quotation' },
+  { icon: Award, label: 'CFZ Top Ranked Suppliers' },
+  { icon: Zap, label: 'Export-Ready Documentation' },
 ];
 
 export function TrustStrip() {
   return (
-    <div className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-center gap-6 px-4 py-3 lg:gap-10 lg:px-6">
-        {trustItems.map(({ icon: Icon, label }) => (
-          <div key={label} className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-navy" strokeWidth={2} />
-            <span className="text-[13px] font-medium text-text-secondary">{label}</span>
-          </div>
-        ))}
+    <div className="h-12 border-y border-border bg-surface">
+      <div className="mx-auto flex h-full max-w-[1440px] items-center justify-center px-4 lg:px-6">
+        <div className="grid w-full max-w-3xl grid-cols-3 gap-4">
+          {items.map(({ icon: Icon, label }) => (
+            <div key={label} className="flex items-center justify-center gap-2">
+              <Icon className="h-4 w-4 shrink-0 text-navy" strokeWidth={2} />
+              <span className="text-[12px] font-medium text-text-secondary sm:text-[13px]">
+                {label}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
