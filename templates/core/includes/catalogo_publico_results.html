@@ -2,36 +2,42 @@
 {% comment %}Reusable fragment: catalog grid + empty state + pagination.{% endcomment %}
 <div id="cat-results-root">
   {% if productos %}
-  <div class="tf-pcard-grid cat-grid" id="cat-product-grid">
+  <div class="product-grid cat-grid tf-pcard-grid" id="cat-product-grid">
     {% for producto in productos %}
-      {% include "core/includes/product_card_unified.html" with product=producto is_public=True %}
+      {% include "core/includes/catalogo_card.html" with product=producto %}
     {% endfor %}
   </div>
 
   {% if productos.has_other_pages %}
-  <nav class="cat-pagination" aria-label="Catalog pagination">
+  <nav class="pagination cat-pagination" aria-label="Catalog pagination">
     {% if productos.has_previous %}
     <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ productos.previous_page_number }}"
-       class="cat-page-link" aria-label="Previous page">‹</a>
+       class="page-btn" aria-label="Previous page">← Prev</a>
+    {% else %}
+    <span class="page-btn page-btn--disabled" aria-hidden="true">← Prev</span>
     {% endif %}
+
     {% for slot in pagination_slots %}
       {% if slot.type == 'ellipsis' %}
-      <span class="cat-page-ellipsis" aria-hidden="true">…</span>
+      <span class="page-ellipsis" aria-hidden="true">…</span>
       {% else %}
       <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ slot.num }}"
-         class="cat-page-link{% if slot.num == productos.number %} is-active{% endif %}"
+         class="page-btn{% if slot.num == productos.number %} page-btn--active{% endif %}"
          {% if slot.num == productos.number %}aria-current="page"{% endif %}>{{ slot.num }}</a>
       {% endif %}
     {% endfor %}
+
     {% if productos.has_next %}
     <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ productos.next_page_number }}"
-       class="cat-page-link" aria-label="Next page">›</a>
+       class="page-btn" aria-label="Next page">Next →</a>
+    {% else %}
+    <span class="page-btn page-btn--disabled" aria-hidden="true">Next →</span>
     {% endif %}
   </nav>
   {% endif %}
 
   {% else %}
-  <div class="cat-empty" id="cat-empty-state">
+  <div class="empty-state cat-empty" id="cat-empty-state">
     <h2>No products found{% if buscar %} for &ldquo;{{ buscar }}&rdquo;{% endif %}</h2>
     <p>Try these terms or adjust your filters:</p>
     <div class="cat-suggestions">
@@ -40,7 +46,7 @@
       {% endfor %}
     </div>
     <p class="cat-empty-action">
-      <a href="{% url 'catalogo_publico' %}" class="cat-btn-clear">View full catalog</a>
+      <a href="{% url 'catalogo_publico' %}" class="btn-clear-filters">View full catalog</a>
     </p>
   </div>
   {% endif %}
