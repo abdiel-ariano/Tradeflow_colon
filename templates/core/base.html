@@ -25,6 +25,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-public-shell.css' %}?v={{ tf_asset_version|default:'2' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-header.css' %}?v={{ tf_asset_version|default:'2' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-footer.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
@@ -319,10 +321,12 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       }
     }
 
-    /* Fondos oscuros (landing hero): título legible frente a reglas globales de h1. */
+    /* Fondos oscuros: títulos legibles sobre navy */
     .lp-hero h1,
     .lp-hero .lp-hero-title,
-    section.lp-hero h1 {
+    section.lp-hero h1,
+    .cat-hero h1,
+    .cat-hero p {
       color: #ffffff !important;
     }
 
@@ -879,68 +883,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-badge-st-delivered { background: #d1fae5; color: #065f46; }
     .tf-badge-st-cancelled { background: #fee2e2; color: #991b1b; }
 
-    /* ----- Footer (tema oscuro marca) ----- */
-    .tf-footer {
-      background: var(--tf-navy);
-      color: rgba(255, 255, 255, 0.65);
-      padding: 40px 32px 24px;
-      margin-top: auto;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .tf-footer-grid {
-      max-width: 1160px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 2rem;
-    }
-    @media (max-width: 991px) {
-      .tf-footer-grid { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 575px) {
-      .tf-footer-grid { grid-template-columns: 1fr; }
-    }
-    .tf-footer-brand {
-      font-family: var(--tf-font-body);
-      font-weight: 700;
-      font-size: 1.15rem;
-      color: #ffffff;
-    }
-    .tf-footer-lead {
-      font-size: 0.875rem;
-      margin-top: 10px;
-      line-height: 1.6;
-      color: rgba(255, 255, 255, 0.65);
-    }
-    .tf-footer a {
-      color: rgba(255, 255, 255, 0.78);
-      text-decoration: none;
-      font-size: 0.8125rem;
-      transition: color 0.2s ease;
-    }
-    .tf-footer a:hover { color: var(--tf-orange); }
-    .tf-footer-col-title {
-      font-size: 0.6875rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: rgba(255, 255, 255, 0.5);
-      margin-bottom: 10px;
-    }
-    .tf-footer-links { display: flex; flex-direction: column; gap: 8px; }
-    .tf-footer-bottom {
-      max-width: 1160px;
-      margin: 1.5rem auto 0;
-      padding-top: 1rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.55);
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
     main.tf-main {
       flex: 1;
       width: 100%;
@@ -1060,9 +1002,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
 
     {% include "core/includes/static_css_bundle.html" %}
-
-    {% block extra_css %}{% endblock %}
   </style>
+  {% block extra_css %}{% endblock %}
 </head>
 <body class="tf-design-v2{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif not request.user.is_superuser and request.user.profile.role != 'admin' and request.user.profile.role != 'seller' %} tf-public-shell{% endif %}">
   {% if request.user.is_authenticated %}
@@ -1076,6 +1017,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   {% if not request.user.is_authenticated %}
     {% include "core/includes/public_navbar.html" %}
   {% elif request.user.is_superuser or request.user.profile.role == 'admin' or request.user.profile.role == 'seller' %}
+  {# Admin/seller: navbar por rol (tf-nav). Map oculto hasta fix mapa_zlc. #}
   <nav class="tf-nav tf-navbar" aria-label="Principal">
     <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="nav" class="tf-nav-logo-img" eager=1 %}
@@ -1140,6 +1082,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     </div>
   </nav>
   {% else %}
+    {# Buyer autenticado: buyer/buyer_navbar.html (3 niveles + búsqueda tf-hdr-search → tienda) #}
     {% include "core/includes/buyer/buyer_navbar.html" %}
   {% endif %}
 
@@ -1221,44 +1164,77 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </main>
 
   {% block footer %}
-  <footer class="tf-footer">
-    <div class="tf-footer-grid">
-      <div>
-        <div class="tf-footer-brand-row">
-          {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
+  <footer class="tf-footer" role="contentinfo" aria-label="TradeFlow Colón footer">
+    <div class="tf-footer-inner">
+      <div class="tf-footer-grid">
+        <div class="tf-footer-col tf-footer-col--brand">
+          <a href="{% url 'home' %}" class="tf-footer-brand-link" aria-label="TradeFlow Colón home">
+            {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
+          </a>
+          <p class="tf-footer-tagline">
+            B2B wholesale marketplace for the Colón Free Zone. Verified catalog, quotes, and logistics in one place.
+          </p>
+          <a href="mailto:{{ tradeflow_contact_email }}" class="tf-footer-email">
+            <span class="material-symbols-rounded" aria-hidden="true">mail</span>
+            {{ tradeflow_contact_email }}
+          </a>
+          <div class="tf-footer-social" aria-label="Social media">
+            <span class="tf-footer-social-label">Follow us</span>
+            <span class="tf-footer-social-btn" title="LinkedIn (coming soon)" aria-label="LinkedIn — coming soon">
+              <span class="material-symbols-rounded" aria-hidden="true">work</span>
+            </span>
+            <span class="tf-footer-social-btn" title="Instagram (coming soon)" aria-label="Instagram — coming soon">
+              <span class="material-symbols-rounded" aria-hidden="true">photo_camera</span>
+            </span>
+            <span class="tf-footer-social-btn" title="Facebook (coming soon)" aria-label="Facebook — coming soon">
+              <span class="material-symbols-rounded" aria-hidden="true">groups</span>
+            </span>
+          </div>
         </div>
-        <p class="tf-footer-lead">
-          B2B/B2C marketplace for the Colón Free Zone, Panama.
-        </p>
-      </div>
-      <div>
-        <div class="tf-footer-col-title">Platform</div>
-        <div class="tf-footer-links">
-          <a href="{% url 'home' %}">Home</a>
-          <a href="{% url 'signup' %}">Create account</a>
-          <a href="{% url 'login' %}">Sign in</a>
+
+        <div class="tf-footer-col">
+          <h2 class="tf-footer-col-title">Buyers</h2>
+          <nav class="tf-footer-links" aria-label="Buyer links">
+            <a href="{% url 'home' %}#how-it-works">How to buy</a>
+            <a href="{% url 'catalogo_publico' %}">Catalog</a>
+            <a href="{% url 'catalogo_publico' %}?verificado=1">Verified companies</a>
+            <span class="tf-footer-link-soon">FAQ <em>(coming soon)</em></span>
+          </nav>
+        </div>
+
+        <div class="tf-footer-col">
+          <h2 class="tf-footer-col-title">Sellers</h2>
+          <nav class="tf-footer-links" aria-label="Seller links">
+            <a href="{% url 'signup' %}?role=seller">Sell on TradeFlow</a>
+            <a href="{% url 'solicitud_acceso' %}">CFZ requirements</a>
+            <span class="tf-footer-link-soon">Pricing <em>(coming soon)</em></span>
+            <a href="mailto:{{ tradeflow_contact_email }}">Contact</a>
+          </nav>
+        </div>
+
+        <div class="tf-footer-col">
+          <h2 class="tf-footer-col-title">Legal</h2>
+          <nav class="tf-footer-links" aria-label="Legal links">
+            <a href="{% url 'legal_terminos' %}">Terms of use</a>
+            <a href="{% url 'legal_privacidad' %}">Privacy</a>
+            <a href="{% url 'legal_cookies' %}">Cookies</a>
+            <span class="tf-footer-link-soon">Sitemap <em>(coming soon)</em></span>
+          </nav>
         </div>
       </div>
-      <div>
-        <div class="tf-footer-col-title">Legal</div>
-        <div class="tf-footer-links">
-          <a href="{% url 'legal_terminos' %}">Terms of use</a>
-          <a href="{% url 'legal_privacidad' %}">Privacy</a>
-          <a href="{% url 'legal_cookies' %}">Cookies</a>
+
+      <div class="tf-footer-bottom">
+        <div class="tf-footer-bottom-meta">
+          <span>© 2026 TradeFlow Colón. All rights reserved.</span>
+          <span><strong>Colón Free Zone, Panama</strong></span>
+        </div>
+        <div class="tf-footer-lang" role="group" aria-label="Language selection">
+          <span class="tf-footer-lang-flag" aria-hidden="true">🇵🇦</span>
+          <button type="button" class="tf-footer-lang-opt" aria-disabled="true" title="Spanish — coming soon">ES</button>
+          <span class="tf-footer-lang-sep" aria-hidden="true">|</span>
+          <button type="button" class="tf-footer-lang-opt is-active" aria-current="true" title="English (active)">EN</button>
         </div>
       </div>
-      <div>
-        <div class="tf-footer-col-title">Contact</div>
-        <div class="tf-footer-links">
-          <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>
-          <a href="#">Colón Free Zone</a>
-          <a href="#">Panama</a>
-        </div>
-      </div>
-    </div>
-    <div class="tf-footer-bottom">
-      <span>2026 TradeFlow Colón. All rights reserved.</span>
-      <span>Centro Supérate · Alberto Motta Foundation</span>
     </div>
   </footer>
   {% endblock %}

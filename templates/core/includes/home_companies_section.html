@@ -1,34 +1,82 @@
-{% load static %}
-{% comment %}Lovable v2 — verified companies grid on public home.{% endcomment %}
-<section class="pn-home-section pn-home-section--cream" id="hm-companies" aria-labelledby="pn-companies-title">
-  <div class="pn-home-inner">
-    <div class="pn-home-head-row">
-      <div>
-        <p class="pn-home-label">Suppliers</p>
-        <h2 class="pn-home-title" id="pn-companies-title">Companies in the Colón Free Zone</h2>
-        <p class="pn-home-sub">Browse verified supplier catalogs with export-ready documentation.</p>
-      </div>
-      <a href="{% url 'tienda' %}?verificado=1" class="pn-home-see-all">All verified companies →</a>
+{% load static tf_money %}
+{% comment %}Featured suppliers — premium tier + standard company cards.{% endcomment %}
+<section class="companies-section" id="hm-companies" aria-labelledby="companies-heading">
+  <div class="companies-header" data-reveal="up">
+    <div>
+      <span class="companies-label">Suppliers</span>
+      <h2 id="companies-heading">Featured suppliers in the Colón Free Zone</h2>
     </div>
-    <div class="pn-companies-grid">
-      {% for emp in empresas_carousel|slice:":8" %}
-      <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="pn-company-card">
-        <div class="pn-company-avatar" aria-hidden="true">{{ emp.name|slice:":1"|upper }}</div>
-        <h3 class="pn-company-name">{{ emp.name }}</h3>
-        {% if emp.is_verified %}
-        <span class="pn-company-badge">
-          <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-          CFZ Verified
+    <a href="{% url 'catalogo_publico' %}?verificado=1" class="companies-view-all">
+      All verified companies
+      <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+    </a>
+  </div>
+
+  {% for emp in empresas_premium|default:empresas_carousel|slice:":3" %}
+  <article class="supplier-premium" data-reveal="up">
+    <div class="supplier-premium-header">
+      <div class="supplier-premium-avatar">
+        <span style="background: {% cycle 'linear-gradient(135deg, #0F2A44, #2E5B8A)' 'linear-gradient(135deg, #1B3B63, #62929a)' 'linear-gradient(135deg, #2E5B8A, #0F2A44)' %}">{{ emp.name|slice:":2"|upper }}</span>
+      </div>
+      <div class="supplier-premium-info">
+        <h3>{{ emp.name }}</h3>
+        <span class="supplier-premium-badges">
+          <span class="badge-verified">
+            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+            CFZ Verified
+          </span>
+          <span class="badge-featured">Featured</span>
         </span>
-        {% endif %}
-        <p class="pn-company-meta">
+        <p>
           {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
         </p>
-        <span class="pn-company-cta">View catalog →</span>
+      </div>
+      <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="supplier-premium-cta">
+        Explore full catalog
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
       </a>
-      {% empty %}
-      <p class="pn-home-empty">More companies coming soon to the marketplace.</p>
+    </div>
+    {% if emp.productos_destacados %}
+    <div class="supplier-premium-grid">
+      {% for product in emp.productos_destacados|slice:":8" %}
+      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="supplier-premium-item">
+        <div class="supplier-premium-img">
+          {% include "core/includes/product_image_placeholder.html" with product=product %}
+        </div>
+        <span class="supplier-premium-price">{{ product.display_price|money_usd }}</span>
+      </a>
       {% endfor %}
     </div>
+    {% endif %}
+  </article>
+  {% endfor %}
+
+  <div class="suppliers-grid">
+    {% for emp in empresas_standard|default:empresas_carousel|slice:"3:11" %}
+    <article class="company-card" data-reveal="up" data-reveal-delay="{% cycle '1' '2' '3' '4' %}">
+      <div class="company-card-avatar">
+        <span class="company-card-initials"
+              style="background: {% cycle 'linear-gradient(135deg, #0F2A44, #2E5B8A)' 'linear-gradient(135deg, #1B3B63, #62929a)' 'linear-gradient(135deg, #2E5B8A, #0F2A44)' 'linear-gradient(135deg, #1B3B63, #2E5B8A)' %}">
+          {{ emp.name|slice:":2"|upper }}
+        </span>
+      </div>
+      <h3 class="company-card-name">{{ emp.name }}</h3>
+      <span class="company-card-badge">
+        <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+        CFZ Verified
+      </span>
+      <p class="company-card-meta">
+        {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
+      </p>
+      <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="company-card-link">
+        Explore {{ emp.num_productos }} products
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+      </a>
+    </article>
+    {% empty %}
+    {% if not empresas_premium %}
+    <p class="companies-empty">More companies coming soon to the platform.</p>
+    {% endif %}
+    {% endfor %}
   </div>
 </section>

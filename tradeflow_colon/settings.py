@@ -136,6 +136,7 @@ TEMPLATES = [
                 'core.context_processors.supabase_public',
                 'core.context_processors.enterprise_saas',
                 'core.context_processors.tf_asset_version',
+                'core.context_processors.nav_header_categories',
             ],
         },
     },
@@ -234,6 +235,8 @@ TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='design-toke
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+# Serve /media/ from MEDIA_ROOT when DEBUG=False but files are stored locally (Docker demo).
+SERVE_LOCAL_MEDIA = config('SERVE_LOCAL_MEDIA', default=DEBUG, cast=bool)
 
 # ── Autenticación ──────────────────────────────────────────────────────────
 AUTHENTICATION_BACKENDS = [

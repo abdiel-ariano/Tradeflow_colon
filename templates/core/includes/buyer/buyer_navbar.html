@@ -23,7 +23,7 @@ Nivel 3 (mega tabs) solo si show_buyer_mega_tabs=True o url_name == home.
       <span class="bn-deliver-val">Worldwide <span class="material-symbols-rounded" style="font-size:16px;">expand_more</span></span>
     </button>
 
-    {% include "core/includes/buyer/search_bar.html" with variant="compact" value=request.GET.buscar placeholder="Buscar empresas, productos, HS codes…" form_id="bn-nav" %}
+    {% include "core/includes/tf_header_search.html" with search_action="tienda" input_id="bn-search-input" form_id="bn-nav-search" value=request.GET.buscar placeholder="Buscar productos, empresas o categorías…" %}
 
     <button type="button" class="bn-mobile-toggle" id="bn-mobile-toggle" aria-label="Menú" aria-expanded="false">
       <span></span><span></span><span></span>
@@ -69,11 +69,12 @@ Nivel 3 (mega tabs) solo si show_buyer_mega_tabs=True o url_name == home.
       </button>
       {% include "core/includes/buyer/category_mega_menu.html" %}
     </div>
-    <a href="{% url 'tienda' %}?verificado=1" class="bn-l2-link">Empresas verificadas</a>
+    <a href="{% url 'catalogo_publico' %}?orden=novedades" class="bn-l2-link">Ofertas</a>
+    <a href="{% url 'catalogo_publico' %}?verificado=1" class="bn-l2-link">Empresas verificadas</a>
     <a href="{% url 'home' %}#hm-features" class="bn-l2-link">Protección de pedidos</a>
     <a href="{% url 'home' %}#hm-features" class="bn-l2-link">Documentación CFZ</a>
     <a href="{% url 'home' %}#hm-features" class="bn-l2-link">Exención de impuestos</a>
-    <a href="{% url 'home' %}#como-funciona" class="bn-l2-link">Centro de ayuda</a>
+    <a href="{% url 'home' %}#como-funciona" class="bn-l2-link">Cómo funciona</a>
     <a href="{% url 'signup' %}?role=seller" class="bn-l2-link">Vende en TF</a>
   </div>
 

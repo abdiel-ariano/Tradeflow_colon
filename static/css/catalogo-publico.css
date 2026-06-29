@@ -1,7 +1,7 @@
 /*
 =============================================================================
 TRADEFLOW COLÓN — catalogo-publico.css
-Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-components.css
+Public B2B catalog (read-only). Requires tf-design-tokens.css + tf-components.css
 =============================================================================
 */
 
@@ -10,86 +10,10 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
   min-height: calc(100vh - var(--navbar-height, 64px));
 }
 
-/* ── Sticky search header ── */
-.cat-search-bar {
-  position: sticky;
-  top: 88px;
-  z-index: 2090;
-  background: var(--tf-navy, #0F2A44);
-  padding: var(--tf-space-3, 12px) clamp(16px, 4vw, 40px);
-  box-shadow: var(--tf-shadow, 0 2px 8px rgba(15, 42, 68, 0.12));
-}
-.cat-search-form {
-  max-width: var(--tf-container-lg, 1320px);
-  margin: 0 auto;
-  display: flex;
-  gap: var(--tf-space-3, 12px);
-  align-items: stretch;
-}
-.cat-search-input-wrap {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  background: var(--tf-white, #fff);
-  border-radius: var(--tf-radius-btn, 8px);
-  overflow: hidden;
-  border: 2px solid transparent;
-  transition: border-color var(--transition-fast, 150ms ease);
-}
-.cat-search-input-wrap:focus-within {
-  border-color: var(--tf-orange, #F26522);
-}
-.cat-search-input-wrap .material-symbols-rounded {
-  margin-left: 14px;
-  color: var(--tf-muted, #6B7A88);
-  font-size: 22px;
-}
-.cat-search-input {
-  flex: 1;
-  border: none;
-  padding: 14px 16px;
-  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
-  font-size: var(--tf-text-md, 16px);
-  color: var(--tf-navy, #0F2A44);
-  min-width: 0;
-}
-.cat-search-input::placeholder { color: var(--tf-muted, #6B7A88); }
-.cat-search-btn {
-  padding: 0 24px;
-  border: none;
-  border-radius: var(--tf-radius-btn, 8px);
-  background: var(--tf-orange, #F26522);
-  color: var(--tf-white, #fff);
-  font-weight: 600;
-  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.cat-search-btn:hover { background: var(--tf-orange-h, #FF7A3D); }
-
-.cat-filter-toggle {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 16px;
-  border-radius: var(--tf-radius-btn, 8px);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: transparent;
-  color: var(--tf-white, #fff);
-  font-weight: 600;
-  font-size: var(--tf-text-sm, 13px);
-  cursor: pointer;
-  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
-}
-@media (max-width: 991px) {
-  .cat-filter-toggle { display: inline-flex; }
-}
-
 /* ── Hero band ── */
 .cat-hero {
   background: linear-gradient(120deg, var(--tf-navy, #0F2A44) 0%, var(--tf-mid, #1B3B63) 100%);
-  color: var(--tf-white, #fff);
+  color: #ffffff;
   padding: var(--tf-space-8, 32px) clamp(16px, 4vw, 40px);
 }
 .cat-hero-inner {
@@ -101,11 +25,150 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
   font-size: clamp(1.5rem, 4vw, 2rem);
   margin: 0 0 8px;
   line-height: var(--tf-leading-tight, 1.1);
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(15, 42, 68, 0.35);
 }
 .cat-hero p {
   margin: 0;
   font-size: var(--tf-text-md, 16px);
-  color: rgba(255, 255, 255, 0.82);
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(15, 42, 68, 0.3);
+  opacity: 0.95;
+}
+
+/* ── Category hero banners ── */
+.cat-category-banners {
+  background: var(--tf-white, #fff);
+  border-bottom: 1px solid var(--tf-border, #E8ECF0);
+  padding: 24px clamp(16px, 4vw, 40px);
+}
+
+.cat-category-banners-inner {
+  max-width: var(--tf-container-lg, 1320px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .cat-category-banners-inner {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .cat-category-banners-inner {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cat-category-banner {
+  background: var(--tf-white, #fff);
+  border: 1px solid var(--tf-border, #E8ECF0);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cat-category-banner-hero {
+  display: block;
+}
+
+.cat-category-banner-hero img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+.cat-category-banner-body {
+  padding: 14px;
+}
+
+.cat-category-banner-body h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--tf-navy, #0F2A44);
+  margin: 0 0 4px;
+}
+
+.cat-category-banner-body p {
+  font-size: 0.8rem;
+  color: var(--tf-muted, #6B7A88);
+  margin: 0 0 10px;
+}
+
+.cat-category-banner-thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.cat-category-banner-thumbs a {
+  display: block;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cat-category-banner-thumbs img {
+  width: 100%;
+  height: 48px;
+  object-fit: cover;
+  display: block;
+}
+
+.cat-category-banner-cta {
+  color: var(--tf-orange, #F26522);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.cat-category-banner-cta:hover {
+  color: var(--tf-orange-h, #FF7A3D);
+}
+
+/* ── Mobile filter bar (no duplicate search) ── */
+.cat-mobile-bar {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 12px clamp(16px, 4vw, 40px);
+  padding-left: max(24px, clamp(16px, 4vw, 40px));
+  background: var(--tf-white, #fff);
+  border-bottom: 1px solid var(--tf-border, #D1D5DB);
+}
+.cat-mobile-query {
+  margin: 0;
+  font-size: var(--tf-text-sm, 13px);
+  color: var(--tf-muted, #6B7A88);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--tf-border, #D1D5DB);
+  background: var(--tf-white, #fff);
+  color: var(--tf-navy, #0F2A44);
+  font-weight: 600;
+  font-size: var(--tf-text-sm, 13px);
+  cursor: pointer;
+  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+  flex-shrink: 0;
+}
+.cat-filter-toggle .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--tf-orange, #F26522);
+}
+@media (max-width: 991px) {
+  .cat-mobile-bar { display: flex; }
 }
 
 /* ── Layout ── */
@@ -114,13 +177,14 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
   margin: 0 auto;
   padding: var(--tf-space-6, 24px) clamp(16px, 4vw, 40px) var(--tf-space-16, 64px);
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: var(--tf-space-6, 24px);
   align-items: start;
 }
 @media (max-width: 991px) {
   .cat-layout {
     grid-template-columns: 1fr;
+    padding-top: var(--tf-space-4, 16px);
   }
 }
 
@@ -128,12 +192,24 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
 .cat-sidebar {
   background: var(--tf-white, #fff);
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: var(--tf-radius-card, 12px);
+  border-radius: 8px;
   padding: var(--tf-space-4, 16px);
   position: sticky;
-  top: calc(88px + 64px);
-  max-height: calc(100vh - 180px);
+  top: 80px;
+  height: calc(100vh - 80px);
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #D1D5DB transparent;
+}
+.cat-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.cat-sidebar::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 4px;
+}
+.cat-sidebar::-webkit-scrollbar-track {
+  background: transparent;
 }
 @media (max-width: 991px) {
   .cat-sidebar {
@@ -141,8 +217,9 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
     position: fixed;
     inset: auto 0 0 0;
     top: auto;
-    max-height: 75vh;
-    border-radius: var(--tf-radius-card, 12px) var(--tf-radius-card, 12px) 0 0;
+    height: auto;
+    max-height: 80vh;
+    border-radius: 8px 8px 0 0;
     z-index: var(--tf-z-mega-menu, 2300);
     box-shadow: 0 -8px 32px rgba(15, 42, 68, 0.2);
   }
@@ -158,12 +235,6 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
 }
 
 .cat-filters-form { display: flex; flex-direction: column; gap: var(--tf-space-5, 20px); }
-.cat-filter-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--tf-space-2, 8px);
-}
 .cat-filter-title {
   font-size: var(--tf-text-sm, 13px);
   font-weight: 700;
@@ -172,7 +243,14 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
   color: var(--tf-muted, #6B7A88);
   margin: 0 0 var(--tf-space-2, 8px);
 }
-.cat-filter-group { border-bottom: 1px solid var(--tf-border, #D1D5DB); padding-bottom: var(--tf-space-4, 16px); }
+.cat-filter-group--sort {
+  border-bottom: 1px solid var(--tf-border, #D1D5DB);
+  padding-bottom: var(--tf-space-4, 16px);
+}
+.cat-filter-group {
+  border-bottom: 1px solid var(--tf-border, #D1D5DB);
+  padding-bottom: var(--tf-space-4, 16px);
+}
 .cat-filter-group:last-of-type { border-bottom: none; padding-bottom: 0; }
 
 .cat-check-list {
@@ -182,6 +260,7 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
   max-height: 200px;
   overflow-y: auto;
 }
+.cat-check-list--plain { max-height: none; overflow: visible; }
 .cat-check-item {
   display: flex;
   align-items: center;
@@ -211,7 +290,7 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border-radius: var(--tf-radius-sm, 8px);
+  border-radius: 6px;
   text-decoration: none;
   color: var(--tf-navy, #0F2A44);
   font-size: var(--tf-text-sm, 13px);
@@ -225,7 +304,7 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
 .cat-empresa-av {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: 8px;
   background: var(--tf-navy, #0F2A44);
   color: var(--tf-white, #fff);
   font-size: 12px;
@@ -240,30 +319,85 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  margin-bottom: 10px;
 }
-.cat-price-row input {
+.cat-price-row input,
+.cat-price-input {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: var(--tf-radius-sm, 8px);
+  border-radius: 6px;
   font-size: var(--tf-text-sm, 13px);
   font-family: var(--tf-font-body, 'Montserrat', sans-serif);
 }
+.cat-price-apply {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: var(--tf-orange, #F26522);
+  color: #ffffff;
+  font-size: var(--tf-text-sm, 13px);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+  transition: background 0.15s ease;
+}
+.cat-price-apply:hover {
+  background: var(--tf-orange-h, #FF7A3D);
+}
 
-.cat-toggle-row {
+.cat-toggle-switch {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: var(--tf-text-sm, 13px);
-  color: var(--tf-navy, #0F2A44);
+  gap: 12px;
   cursor: pointer;
+  user-select: none;
+}
+.cat-toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.cat-toggle-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--tf-border, #D1D5DB);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+.cat-toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 42, 68, 0.2);
+  transition: transform 0.2s ease;
+}
+.cat-toggle-switch input:checked + .cat-toggle-track {
+  background: var(--tf-orange, #F26522);
+}
+.cat-toggle-switch input:checked + .cat-toggle-track::after {
+  transform: translateX(20px);
+}
+.cat-toggle-label {
+  font-size: var(--tf-text-sm, 13px);
+  font-weight: 600;
+  color: var(--tf-navy, #0F2A44);
 }
 
 .cat-sort-select {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: var(--tf-radius-sm, 8px);
+  border-radius: 6px;
   font-family: var(--tf-font-body, 'Montserrat', sans-serif);
   font-size: var(--tf-text-sm, 13px);
   background: var(--tf-white, #fff);
@@ -284,25 +418,17 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
 .cat-btn-clear:hover { text-decoration: underline; }
 
 /* ── Main content ── */
-.cat-main-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: var(--tf-space-4, 16px);
-}
 .cat-results-count {
   font-size: var(--tf-text-sm, 13px);
   color: var(--tf-muted, #6B7A88);
-  margin: 0;
+  margin: 0 0 var(--tf-space-4, 16px);
+  padding: 0;
 }
-.cat-results-count strong { color: var(--tf-navy, #0F2A44); }
 
 .cat-empty {
   background: var(--tf-white, #fff);
   border: 1px solid var(--tf-border, #D1D5DB);
-  border-radius: var(--tf-radius-card, 12px);
+  border-radius: 8px;
   padding: var(--tf-space-10, 40px) var(--tf-space-6, 24px);
   text-align: center;
 }
@@ -325,7 +451,7 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
 .cat-suggestion-chip {
   display: inline-block;
   padding: 8px 14px;
-  border-radius: 999px;
+  border-radius: 6px;
   background: var(--tf-light, #F2F3F5);
   color: var(--tf-blue, #2E5B8A);
   font-size: var(--tf-text-sm, 13px);
@@ -354,7 +480,7 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
   min-width: 36px;
   height: 36px;
   padding: 0 10px;
-  border-radius: var(--tf-radius-sm, 8px);
+  border-radius: 6px;
   border: 1px solid var(--tf-border, #D1D5DB);
   background: var(--tf-white, #fff);
   color: var(--tf-navy, #0F2A44);
@@ -373,13 +499,17 @@ Catálogo público B2B (read-only). Requiere tf-design-tokens.css + tf-component
   color: var(--tf-muted, #6B7A88);
 }
 
-/* Product grid: 1 / 2 / 4 cols */
+/* Product grid: 2 cols mobile, 3 tablet, 4 desktop */
 .cat-grid.tf-pcard-grid {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-@media (min-width: 576px) {
-  .cat-grid.tf-pcard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 768px) {
+  .cat-grid.tf-pcard-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (min-width: 1200px) {
   .cat-grid.tf-pcard-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+.cat-check-empty { color: var(--tf-muted, #6B7A88); }
+.cat-empresa-count { color: var(--tf-muted, #6B7A88); }
+.cat-empty-action { margin-top: 24px; }
