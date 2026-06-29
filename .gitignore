@@ -81,6 +81,10 @@ frontend/admin-saas/node_modules/
 frontend/admin-saas/dist/
 frontend/admin-saas/.vite/
 frontend/admin-saas/tsconfig.tsbuildinfo
+frontend/catalog/node_modules/
+frontend/catalog/dist/
+frontend/catalog/.vite/
+frontend/catalog/tsconfig.tsbuildinfo
 .parcel-cache/
 
 # Tools
