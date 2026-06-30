@@ -80,6 +80,14 @@
     }, 250);
   }
 
+  function getSkeletonCount() {
+    var w = window.innerWidth;
+    if (w >= 1280) return 12;
+    if (w >= 768) return 9;
+    if (w >= 480) return 8;
+    return 4;
+  }
+
   function buildSkeletonCard() {
     var card = document.createElement('article');
     card.className = 'product-card product-card--skeleton';
@@ -90,6 +98,7 @@
       '<span class="skeleton-shimmer skeleton-line skeleton-line--title-2"></span>' +
       '<span class="skeleton-shimmer skeleton-line skeleton-line--price"></span>' +
       '<span class="skeleton-shimmer skeleton-line skeleton-line--meta"></span>' +
+      '<span class="skeleton-shimmer skeleton-line skeleton-line--footer"></span>' +
       '</div>';
     return card;
   }
@@ -113,12 +122,15 @@
     var gridEl = ensureProductGrid();
     if (!gridEl) return;
 
+    gridEl.classList.remove('is-skeleton-exiting');
+
     var pagination = document.querySelector('.pagination');
     if (pagination) pagination.remove();
 
     gridEl.innerHTML = '';
     var fragment = document.createDocumentFragment();
-    for (var i = 0; i < count; i++) {
+    var total = count || getSkeletonCount();
+    for (var i = 0; i < total; i++) {
       fragment.appendChild(buildSkeletonCard());
     }
     gridEl.appendChild(fragment);
@@ -134,6 +146,20 @@
       card.classList.add('is-entering');
       card.style.animationDelay = Math.min(index * 25, 200) + 'ms';
     });
+  }
+
+  function transitionToResults(gridEl, newGridHTML) {
+    if (!gridEl) return;
+    var hasSkeleton = gridEl.querySelector('.product-card--skeleton');
+    if (!hasSkeleton) {
+      renderResultsWithFade(gridEl, newGridHTML);
+      return;
+    }
+    gridEl.classList.add('is-skeleton-exiting');
+    setTimeout(function () {
+      gridEl.classList.remove('is-skeleton-exiting');
+      renderResultsWithFade(gridEl, newGridHTML);
+    }, 220);
   }
 
   function flashMiniSpinner(sectionKey) {
@@ -171,12 +197,14 @@
       flashMiniSpinner(options.spinner);
     }
 
-    if (options.skeleton !== false) {
-      showSkeletonGrid(8);
-    }
+    showSkeletonGrid(getSkeletonCount());
 
     var params = new URLSearchParams(new FormData(filtersForm));
-    params.delete('page');
+    if (options.page) {
+      params.set('page', options.page);
+    } else {
+      params.delete('page');
+    }
     params.delete('export_docs');
     params.delete('intl_orders');
     params.delete('orden-mobile');
@@ -196,9 +224,9 @@
         var doc = parser.parseFromString(html, 'text/html');
         var newGrid = doc.getElementById('cat-product-grid');
 
-        if (options.skeleton !== false && newGrid) {
+        if (newGrid) {
           var currentGrid = ensureProductGrid();
-          renderResultsWithFade(currentGrid, newGrid.innerHTML);
+          transitionToResults(currentGrid, newGrid.innerHTML);
 
           var newPagination = doc.querySelector('.pagination');
           var currentPagination = document.querySelector('.pagination');
@@ -235,6 +263,7 @@
 
         grid = document.getElementById('cat-product-grid');
         bindInquiryButtons();
+        bindPaginationLinks();
         finishProgressBar();
       })
       .catch(function (err) {
@@ -249,28 +278,17 @@
     return SPINNER_BY_INPUT[input.name] || null;
   }
 
-  function isSortInput(input) {
-    return input.name === 'orden' || input.name === 'orden-mobile';
-  }
-
   if (filtersForm) {
     filtersForm.addEventListener('submit', function (e) {
       e.preventDefault();
       clearTimeout(debounceTimer);
-      applyFilters({ skeleton: true });
+      applyFilters({ spinner: null });
     });
 
     filtersForm.querySelectorAll('input[type="checkbox"], input[type="radio"], select').forEach(function (input) {
       input.addEventListener('change', function () {
         clearTimeout(debounceTimer);
-        if (isSortInput(input)) {
-          applyFilters({ skeleton: false });
-        } else {
-          applyFilters({
-            skeleton: true,
-            spinner: spinnerForInput(input),
-          });
-        }
+        applyFilters({ spinner: spinnerForInput(input) });
       });
     });
 
@@ -279,7 +297,7 @@
         clearTimeout(debounceTimer);
         var spinner = spinnerForInput(input);
         debounceTimer = setTimeout(function () {
-          applyFilters({ skeleton: true, spinner: spinner });
+          applyFilters({ spinner: spinner });
         }, 500);
       });
     });
@@ -290,7 +308,21 @@
   if (mobileSort && desktopSort) {
     mobileSort.addEventListener('change', function () {
       desktopSort.value = mobileSort.value;
-      applyFilters({ skeleton: false });
+      applyFilters();
+    });
+  }
+
+  function bindPaginationLinks() {
+    document.querySelectorAll('.pagination a.page-btn').forEach(function (link) {
+      if (link.dataset.bound) return;
+      link.dataset.bound = '1';
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        var pageUrl = new URL(link.href, window.location.origin);
+        var page = pageUrl.searchParams.get('page');
+        if (!page) return;
+        applyFilters({ page: page });
+      });
     });
   }
 
@@ -336,4 +368,5 @@
   }
 
   bindInquiryButtons();
+  bindPaginationLinks();
 })();
