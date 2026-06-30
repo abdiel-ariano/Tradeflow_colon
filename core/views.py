@@ -856,6 +856,7 @@ def home_view(request):
     )
     if not empresas_home:
         empresas_home = merch.featured_companies_carousel(8)
+    merch.spotlight_products_for_companies(empresas_home[:5], limit_per=3)
 
     empresas_premium, empresas_standard = merch.home_company_tiers(3, 8)
     trending = merch.trending_products(12)

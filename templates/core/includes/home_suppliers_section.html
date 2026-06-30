@@ -20,7 +20,7 @@
       <div class="hm-company-rotator__track">
         {% for emp in empresas_carousel|slice:":5" %}
         <div class="hm-company-rotator__panel{% if forloop.first %} is-active{% endif %}">
-          {% include "core/includes/home_company_spotlight.html" with company=emp carousel_products=carousel_products featured_products=featured_products %}
+          {% include "core/includes/home_company_spotlight.html" with company=emp %}
         </div>
         {% endfor %}
       </div>

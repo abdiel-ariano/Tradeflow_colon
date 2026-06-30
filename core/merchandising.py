@@ -150,6 +150,27 @@ def home_company_tiers(premium_limit: int = 3, standard_limit: int = 5):
     return premium, standard
 
 
+def spotlight_products_for_companies(companies, limit_per: int = 3):
+    """
+    Attach up to ``limit_per`` showcase products on each company for the home
+    spotlight mini-carousel (ordered by merchandising priority).
+    """
+    if not companies:
+        return
+    company_ids = [c.pk for c in companies]
+    product_map: dict[int, list] = {cid: [] for cid in company_ids}
+    for product in (
+        active_products_base()
+        .filter(company_id__in=company_ids)
+        .order_by('company_id', '-merchandising_priority', '-is_featured', '-created_at')
+    ):
+        bucket = product_map[product.company_id]
+        if len(bucket) < limit_per:
+            bucket.append(product)
+    for emp in companies:
+        emp.spotlight_products = product_map.get(emp.pk, [])
+
+
 def carousel_products(limit: int = 12):
     """Productos para carrusel: promo, bestsellers o destacados."""
     deals = daily_deals(limit=limit)

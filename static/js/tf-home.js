@@ -123,6 +123,11 @@
         slides.forEach(function (s, i) {
           s.classList.toggle('is-active', i === current);
         });
+        var frame = root;
+        frame.classList.toggle(
+          'hm-hero-mega__frame--how-active',
+          slides[current].classList.contains('hm-hero-mega__slide--how')
+        );
       }
 
       function nextSlide() {
@@ -196,10 +201,28 @@
       var current = 0;
       var interval = null;
 
+      function markSpotlightReady(panel) {
+        var host = panel.querySelector('[data-hm-spotlight-products]');
+        if (host) host.classList.add('is-ready');
+      }
+
+      function syncRotatorHeight() {
+        var track = root.querySelector('.hm-company-rotator__track');
+        var active = root.querySelector('.hm-company-rotator__panel.is-active');
+        if (!track || !active) return;
+        track.style.minHeight = active.offsetHeight + 'px';
+      }
+
       function goTo(index) {
         if (index >= panels.length) index = 0;
         if (index < 0) index = panels.length - 1;
         current = index;
+        panels.forEach(function (p, i) {
+          var host = p.querySelector('[data-hm-spotlight-products]');
+          if (host && i !== current) {
+            host.classList.remove('is-ready');
+          }
+        });
         panels.forEach(function (p, i) {
           p.classList.toggle('is-active', i === current);
         });
@@ -207,9 +230,14 @@
           t.classList.toggle('is-active', i === current);
           t.setAttribute('aria-selected', i === current ? 'true' : 'false');
         });
-        window.setTimeout(function () {
-          window.dispatchEvent(new Event('resize'));
-        }, 60);
+        window.requestAnimationFrame(function () {
+          markSpotlightReady(panels[current]);
+          syncRotatorHeight();
+          window.setTimeout(function () {
+            syncRotatorHeight();
+            window.dispatchEvent(new Event('resize'));
+          }, 60);
+        });
       }
 
       function stopAutoplay() {
@@ -243,7 +271,10 @@
       root.addEventListener('mouseenter', stopAutoplay);
       root.addEventListener('mouseleave', startAutoplay);
 
+      window.addEventListener('resize', syncRotatorHeight);
+
       goTo(0);
+      syncRotatorHeight();
       startAutoplay();
     });
   }
