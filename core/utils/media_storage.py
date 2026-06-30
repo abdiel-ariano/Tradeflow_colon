@@ -13,7 +13,10 @@ from django.core.files.base import ContentFile
 
 log = logging.getLogger('tradeflow.media')
 
+from core.storage.supabase_media import supabase_media_url
+
 PLACEHOLDER_PRODUCT = 'img/logo-icon-color.png'
+PRODUCT_IMAGE_FALLBACK_STATIC = 'images/placeholder-producto.svg'
 
 
 def is_remote_media_storage() -> bool:
@@ -46,7 +49,7 @@ def product_image_url(product) -> str:
             if local_media_file_exists(rel_path):
                 return f'{settings.MEDIA_URL.rstrip("/")}/{rel_path.lstrip("/")}'
             if is_remote_media_storage():
-                return product.image.url
+                return supabase_media_url(rel_path)
             if _serve_local_media_urls():
                 return product.image.url
     except Exception:
