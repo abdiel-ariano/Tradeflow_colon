@@ -187,7 +187,7 @@
       var tabs = root.querySelectorAll('[data-hm-company-tab]');
       if (!panels.length) return;
 
-      var autoMs = parseInt(root.getAttribute('data-hm-company-autoplay'), 10) || 6500;
+      var autoMs = parseInt(root.getAttribute('data-hm-company-autoplay'), 10) || 8000;
       var current = 0;
       var interval = null;
 
@@ -202,6 +202,9 @@
           t.classList.toggle('is-active', i === current);
           t.setAttribute('aria-selected', i === current ? 'true' : 'false');
         });
+        window.setTimeout(function () {
+          window.dispatchEvent(new Event('resize'));
+        }, 60);
       }
 
       function stopAutoplay() {
