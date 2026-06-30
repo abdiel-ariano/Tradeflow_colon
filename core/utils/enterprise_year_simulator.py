@@ -17,8 +17,6 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Callable, Sequence
 
-import urllib.request
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import connection, transaction
@@ -49,6 +47,7 @@ from core.models import (
     TransportCarrier,
     UserProfile,
 )
+from core.utils.demo_product_images import assign_product_image
 from core.utils.ads_ranking import ensure_ad_credits
 from core.utils.predictive_insights import get_predictive_dashboard
 from core.utils.saas_billing import get_or_create_subscription, refresh_billing_usage
@@ -66,14 +65,6 @@ REQUIRED_TABLES = (
     'core_saasplan',
     'core_companysubscription',
 )
-
-# Tope de descargas HTTPS por ejecución (standard/stress generan miles de SKUs).
-MAX_IMAGE_DOWNLOADS: dict[str, int] = {
-    'demo': 30,
-    'standard': 48,
-    'stress': 0,
-}
-
 
 class DatabaseSchemaNotReadyError(RuntimeError):
     """La base no tiene migraciones aplicadas."""
@@ -384,25 +375,12 @@ def _ensure_categories() -> list[Category]:
     return cats
 
 
-def _download_product_image(rel_path: str, seed: int, pic_id: int) -> str | None:
-    """Descarga a MEDIA_ROOT/products/; devuelve ruta relativa para ImageField o None."""
-    import os
-
-    media_products = os.path.join(settings.MEDIA_ROOT, 'products')
-    os.makedirs(media_products, exist_ok=True)
-    dest = os.path.join(media_products, rel_path)
-    if os.path.isfile(dest):
-        return f'products/{rel_path}'
-    url = f'https://picsum.photos/seed/tradeflow{seed}{pic_id}/800/600.jpg'
+def _generate_product_image(product: Product) -> str | None:
+    """Generate a local PNG under MEDIA_ROOT/productos/ and return the relative ImageField path."""
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'TradeFlowSeed/1.0'})
-        with urllib.request.urlopen(req, timeout=6) as resp:
-            data = resp.read()
-        with open(dest, 'wb') as f:
-            f.write(data)
-        return f'products/{rel_path}'
+        return assign_product_image(product)
     except Exception as exc:
-        log.warning('seed_image_download_failed path=%s err=%s', rel_path, exc)
+        log.warning('seed_image_generation_failed product=%s err=%s', product.pk, exc)
         return None
 
 
@@ -496,21 +474,26 @@ def run_enterprise_year_seed(
         logmsg(str(exc))
         return out
 
-    image_budget = 0 if skip_images else MAX_IMAGE_DOWNLOADS.get(scale, 0)
-    if not skip_images and image_budget == 0:
+    if not skip_images and scale == 'stress':
         skip_images = True
         logmsg(
-            '[images] Stress scale has no downloads by default; use --scale=demo --with-images.'
+            '[images] Stress scale skips images by default; use --scale=demo or --scale=standard --with-images.'
         )
     elif skip_images:
-        logmsg('[images] Skipped (fast). Use --with-images for up to '
-               f'{MAX_IMAGE_DOWNLOADS.get(scale, 0)} placeholders.')
+        logmsg(
+            '[images] Skipped (fast). Use --with-images to generate local placeholders under media/productos/. '
+            'After --clear you must pass --with-images again to recreate images.'
+        )
     else:
-        logmsg(f'[images] Up to {image_budget} downloads (picsum.photos).')
+        logmsg('[images] Generating local PNG placeholders (media/productos/) for all seeded products.')
 
     if clear:
         d = clear_enterprise_year_simulation()
         logmsg(f'[clear] removed: {d}')
+        logmsg(
+            '[clear] Product image files under media/productos/ are not deleted automatically. '
+            'Re-run with --with-images to assign fresh images to newly seeded products.'
+        )
 
     carriers = _ensure_transport_carriers()
     categories = _ensure_categories()
@@ -584,7 +567,8 @@ def run_enterprise_year_seed(
 
         # Productos por empresa (más productos en tier 1)
         products_by_company: dict[int, list[Product]] = {c.id: [] for c in companies}
-        pic_counter = 0
+        images_generated = 0
+        products_pending_images: list[Product] = []
         for ci, co in enumerate(companies):
             tier = blueprints[ci]['tier']
             n_lo = cfg.products_min + (8 if tier == 1 else 0)
@@ -601,12 +585,6 @@ def run_enterprise_year_seed(
                 promo_price = None
                 if rng.random() < 0.12:
                     promo_price = (price * Decimal('0.88')).quantize(Decimal('0.01'))
-                image_name = f'eyear_{seed}_{co.id}_{p_idx}.jpg'
-                rel_image = ''
-                if not skip_images and pic_counter < image_budget:
-                    rel = _download_product_image(image_name, seed, pic_counter)
-                    pic_counter += 1
-                    rel_image = rel or ''
 
                 pr = Product(
                     company=co,
@@ -624,9 +602,9 @@ def run_enterprise_year_seed(
                     promo_ends_at=now + timedelta(days=30) if promo_price else None,
                     merchandising_priority=rng.randint(0, 50) + (30 if tier == 1 else 0),
                 )
-                if rel_image:
-                    pr.image = rel_image
                 pr.save()
+                if not skip_images:
+                    products_pending_images.append(pr)
                 stock_base = rng.randint(200, 1200) + (300 if tier == 1 else 0)
                 Inventory.objects.create(
                     product=pr,
@@ -635,6 +613,17 @@ def run_enterprise_year_seed(
                     low_stock_alert=max(5, stock_base // 80),
                 )
                 products_by_company[co.id].append(pr)
+
+        total_image_targets = len(products_pending_images)
+        for idx, pr in enumerate(products_pending_images, start=1):
+            rel_image = _generate_product_image(pr)
+            if rel_image:
+                Product.objects.filter(pk=pr.pk).update(image=rel_image)
+                pr.image = rel_image
+                images_generated += 1
+                logmsg(f'[{idx}/{total_image_targets}] Generated image for {pr.name} → {rel_image}')
+        if not skip_images:
+            logmsg(f'[images] Generated {images_generated}/{total_image_targets} product image(s).')
 
         # SaaS: solo empresas simuladas (no toca otras empresas en la misma BD)
         seeded_subs = 0
