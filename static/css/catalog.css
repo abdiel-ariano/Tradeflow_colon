@@ -786,25 +786,99 @@ input[type="range"].price-range {
   padding: 12px 16px;
 }
 
-/* ── Filter loading states ── */
-#cat-filters-form.is-loading,
-#cat-product-grid.is-loading {
-  opacity: 0.55;
+/* ── Top progress bar (filter loading) ── */
+.top-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--tf-orange), var(--tf-orange-soft));
+  z-index: 9999;
+  opacity: 0;
+  transition: width 0.3s ease, opacity 0.2s ease;
+  border-radius: 0 2px 2px 0;
   pointer-events: none;
+}
+
+.top-progress-bar.is-active {
+  opacity: 1;
+  width: 70%;
+  transition: width 4s cubic-bezier(0.1, 0.5, 0.1, 1);
+}
+
+.top-progress-bar.is-complete {
+  width: 100%;
+  transition: width 0.2s ease;
+}
+
+.top-progress-bar.is-done {
+  opacity: 0;
+  transition: opacity 0.3s ease 0.2s;
+}
+
+/* ── Skeleton cards (filter loading) ── */
+@keyframes cat-shimmer {
+  0% { background-position: -468px 0; }
+  100% { background-position: 468px 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--tf-surface) 0%,
+    var(--tf-surface-hover) 20%,
+    var(--tf-surface) 40%
+  );
+  background-size: 800px 100%;
+  animation: cat-shimmer 1.4s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.product-card--skeleton {
+  pointer-events: none;
+}
+
+.product-card--skeleton .card-image {
+  height: 180px;
+  border-radius: 0;
+}
+
+.skeleton-line {
+  height: 12px;
+  margin-bottom: 8px;
+}
+
+.skeleton-line--title { width: 90%; height: 13px; }
+.skeleton-line--title-2 { width: 60%; height: 13px; }
+.skeleton-line--price { width: 50%; height: 18px; margin-top: 4px; }
+.skeleton-line--meta { width: 40%; height: 11px; }
+
+/* ── Filter section mini-spinner ── */
+.filter-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-mini-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--tf-border-soft);
+  border-top-color: var(--tf-navy);
+  border-radius: 50%;
+  animation: cat-spin 0.6s linear infinite;
+  opacity: 0;
   transition: opacity 0.15s ease;
+  flex-shrink: 0;
 }
 
-.catalog-sidebar.is-loading {
-  position: relative;
+.filter-mini-spinner.is-visible {
+  opacity: 1;
 }
 
-.catalog-sidebar.is-loading::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.45);
-  cursor: wait;
-  border-radius: 8px;
+@keyframes cat-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ── Product card ── */
