@@ -1,4 +1,4 @@
-{% comment %}Top companies — monthly rotator + bold spotlights + auto carousel.{% endcomment %}
+{% comment %}Top companies — single auto-rotator (8s) with unified spotlight cards.{% endcomment %}
 <section class="hm-suppliers" id="hm-suppliers" aria-labelledby="hm-suppliers-title">
   <div class="hm-suppliers__inner">
     <div class="hm-suppliers__head">
@@ -16,16 +16,16 @@
     </div>
 
     {% if empresas_carousel %}
-    <div class="hm-company-rotator" data-hm-company-rotator data-hm-company-autoplay="6500" aria-live="polite">
+    <div class="hm-company-rotator" data-hm-company-rotator data-hm-company-autoplay="8000" aria-live="polite">
       <div class="hm-company-rotator__track">
-        {% for emp in empresas_carousel|slice:":3" %}
+        {% for emp in empresas_carousel|slice:":5" %}
         <div class="hm-company-rotator__panel{% if forloop.first %} is-active{% endif %}">
-          {% include "core/includes/home_company_spotlight.html" with company=emp variant="top" carousel_products=carousel_products featured_products=featured_products %}
+          {% include "core/includes/home_company_spotlight.html" with company=emp carousel_products=carousel_products featured_products=featured_products %}
         </div>
         {% endfor %}
       </div>
       <div class="hm-company-rotator__tabs" role="tablist" aria-label="Top companies">
-        {% for emp in empresas_carousel|slice:":3" %}
+        {% for emp in empresas_carousel|slice:":5" %}
         <button type="button"
                 class="hm-company-rotator__tab{% if forloop.first %} is-active{% endif %}"
                 role="tab"
@@ -38,12 +38,6 @@
       </div>
     </div>
 
-    <div class="hm-spotlights-bold">
-      {% for emp in empresas_carousel|slice:"1:3" %}
-      {% include "core/includes/home_company_spotlight.html" with company=emp variant="secondary" carousel_products=carousel_products featured_products=featured_products %}
-      {% endfor %}
-    </div>
-
     <div class="hm-suppliers__more">
       <h3 class="hm-suppliers__more-title">More verified suppliers</h3>
       <div class="hm-slider hm-slider--companies" data-hm-slider data-hm-slider-visible="4" data-hm-slider-autoplay="5000">
@@ -52,7 +46,7 @@
         </button>
         <div class="hm-slider__viewport">
           <div class="hm-slider__track">
-            {% for emp in empresas_carousel|slice:"3:11" %}
+            {% for emp in empresas_carousel|slice:"5:11" %}
             <article class="hm-supplier-card hm-supplier-card--slide" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter0 }}">
               <div class="hm-supplier-card__top">
                 <span class="hm-supplier-card__avatar">{{ emp.name|slice:":2"|upper }}</span>

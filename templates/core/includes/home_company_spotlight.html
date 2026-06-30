@@ -1,34 +1,34 @@
 {% comment %}
-Split spotlight: company story (left) + auto product slider (right).
-Variables: company, carousel_products, featured_products, variant (top|secondary)
+Unified company spotlight — description + product carousel in one card.
+Variables: company, carousel_products, featured_products
 {% endcomment %}
-<article class="hm-spotlight hm-spotlight--{{ variant|default:'top' }}" data-hm-reveal>
-  <div class="hm-spotlight__company">
-    <span class="hm-spotlight__rank">
-      {% if variant == 'top' %}Top company this month{% else %}Featured partner{% endif %}
-    </span>
-    <div class="hm-spotlight__identity">
-      <span class="hm-spotlight__avatar">{{ company.name|slice:":2"|upper }}</span>
+<article class="hm-spotlight-unified" data-hm-reveal>
+  <header class="hm-spotlight-unified__head">
+    <div class="hm-spotlight-unified__identity">
+      <span class="hm-spotlight-unified__avatar">{{ company.name|slice:":2"|upper }}</span>
       <div>
-        <h3 class="hm-spotlight__name">{{ company.name }}</h3>
-        <span class="hm-spotlight__badge">
+        <span class="hm-spotlight-unified__rank">Top company this month</span>
+        <h3 class="hm-spotlight-unified__name">{{ company.name }}</h3>
+        <span class="hm-spotlight-unified__badge">
           <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-          CFZ Verified
+          CFZ Verified · {% if company.num_productos == 1 %}{{ company.num_productos }} SKU{% else %}{{ company.num_productos }} SKUs{% endif %}
         </span>
       </div>
     </div>
-    <p class="hm-spotlight__desc">
-      Wholesale catalog with export-ready documentation.
-      {% if company.num_productos == 1 %}{{ company.num_productos }} active SKU{% else %}{{ company.num_productos }} active SKUs{% endif %}
-      serving buyers across the Americas from the Colón Free Zone.
-    </p>
-    <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="hm-spotlight__cta">
+    <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="hm-spotlight-unified__cta">
       Visit storefront <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
     </a>
-  </div>
+  </header>
 
-  <div class="hm-spotlight__products">
+  <p class="hm-spotlight-unified__desc">
+    Wholesale catalog with export-ready documentation, serving buyers across the Americas from the Colón Free Zone.
+  </p>
+
+  <div class="hm-spotlight-unified__products">
     <div class="hm-slider hm-slider--spotlight" data-hm-slider data-hm-slider-visible="3" data-hm-slider-autoplay="4500">
+      <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous products">
+        <span class="material-symbols-rounded">chevron_left</span>
+      </button>
       <div class="hm-slider__viewport">
         <div class="hm-slider__track">
           {% for product in carousel_products %}
@@ -43,6 +43,9 @@ Variables: company, carousel_products, featured_products, variant (top|secondary
           {% endfor %}
         </div>
       </div>
+      <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next products">
+        <span class="material-symbols-rounded">chevron_right</span>
+      </button>
       <div class="hm-slider__dots" aria-hidden="true"></div>
     </div>
   </div>

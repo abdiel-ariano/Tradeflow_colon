@@ -13,7 +13,7 @@
 
         {# ── Slide 1: Brand + live stats ── #}
         <article class="hm-hero-mega__slide hm-hero-mega__slide--brand is-active" aria-label="TradeFlow marketplace">
-          <div class="hm-hero-mega__grid">
+          <div class="hm-hero__grid hm-hero__grid--compact">
             <div class="hm-hero-mega__copy">
               <p class="hm-hero__badge">Panama Free Zone · B2B Wholesale</p>
               <h1 class="hm-hero__title" id="hm-hero-title">The Wholesale Marketplace of the Americas</h1>
@@ -66,25 +66,25 @@
             <h2 class="hm-hero-mega__how-title">How TradeFlow works</h2>
             <ol class="hm-how__steps hm-how__steps--hero">
               <li class="hm-how__step">
-                <span class="hm-how__step-bg" aria-hidden="true">1</span>
+                <span class="hm-how__step-num" aria-hidden="true">1</span>
                 <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">travel_explore</span>
                 <h3 class="hm-how__step-title">Browse the catalog</h3>
                 <p class="hm-how__step-desc">Explore products and verified companies — no account required.</p>
               </li>
               <li class="hm-how__step">
-                <span class="hm-how__step-bg" aria-hidden="true">2</span>
+                <span class="hm-how__step-num" aria-hidden="true">2</span>
                 <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">person_add</span>
                 <h3 class="hm-how__step-title">Create your account</h3>
                 <p class="hm-how__step-desc">Sign up as a buyer or supplier in minutes when you are ready.</p>
               </li>
               <li class="hm-how__step">
-                <span class="hm-how__step-bg" aria-hidden="true">3</span>
+                <span class="hm-how__step-num" aria-hidden="true">3</span>
                 <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">shopping_cart</span>
                 <h3 class="hm-how__step-title">Place your order</h3>
                 <p class="hm-how__step-desc">Add to cart, request quotes, and pay through secure checkout.</p>
               </li>
               <li class="hm-how__step">
-                <span class="hm-how__step-bg" aria-hidden="true">4</span>
+                <span class="hm-how__step-num" aria-hidden="true">4</span>
                 <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">local_shipping</span>
                 <h3 class="hm-how__step-title">Receive your goods</h3>
                 <p class="hm-how__step-desc">Track fulfillment with export documentation included.</p>
@@ -105,6 +105,11 @@
                 From <strong>{{ product.company.name }}</strong> — CFZ-verified inventory with export-ready docs.
                 {% if product.is_on_promo_now %}Limited-time wholesale pricing available now.{% endif %}
               </p>
+              {% if product.description %}
+              <p class="hm-hero-mega__pitch-desc">{{ product.description|striptags|truncatechars:200 }}</p>
+              {% else %}
+              <p class="hm-hero-mega__pitch-desc">Wholesale lot ready for export from the Colón Free Zone — transparent pricing, verified supplier, and documentation included for international buyers.</p>
+              {% endif %}
               <p class="hm-hero-mega__pitch-price">{{ product.display_price|money_usd }}</p>
               <div class="hm-hero__ctas">
                 <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-btn hm-btn--cta hm-btn--lg">View product →</a>
