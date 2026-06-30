@@ -1,6 +1,6 @@
 {% load static %}
 {% comment %}Reusable fragment: catalog grid + empty state + pagination.{% endcomment %}
-<div id="cat-results-root">
+<div id="cat-results-root" data-total="{{ total_resultados|default:0 }}">
   {% if productos %}
   <div class="product-grid cat-grid tf-pcard-grid" id="cat-product-grid">
     {% for producto in productos %}

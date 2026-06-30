@@ -1,4 +1,4 @@
-{% load static tf_money %}
+{% load static tf_money tf_media %}
 {% comment %}B2B catalog product card — /catalogo/ only.{% endcomment %}
 <article class="product-card tf-pcard" data-product-id="{{ product.pk }}">
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="card-image-link">
@@ -7,7 +7,14 @@
       <span class="badge-discount">{{ product.discount_pct }}% off</span>
       {% endif %}
 
-      {% include "core/includes/product_image_placeholder.html" with product=product %}
+      <img
+        src="{{ product|catalog_card_image_src }}"
+        alt="{{ product.name }}"
+        loading="lazy"
+        decoding="async"
+        class="card-image-img"
+        onerror="this.onerror=null;this.src='{% static 'img/product-placeholder.svg' %}';"
+      >
 
       <button type="button" class="btn-image-search" aria-label="Search by image"
               onclick="event.preventDefault(); event.stopPropagation();">
