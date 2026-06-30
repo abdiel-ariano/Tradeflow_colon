@@ -32,6 +32,12 @@ MAX_IMAGE_PIXELS = 60_000_000        # anti decompression bomb
 ALLOWED_IMAGE_FORMATS = ('JPEG', 'JPG', 'PNG', 'WEBP', 'GIF')
 
 
+def _serve_local_media_urls() -> bool:
+    if settings.DEBUG or getattr(settings, 'SERVE_LOCAL_MEDIA', False):
+        return True
+    return not is_remote_media_storage()
+
+
 def product_image_url(product) -> str:
     """Public product image URL, or empty string when unset or unavailable."""
     try:
@@ -40,6 +46,8 @@ def product_image_url(product) -> str:
             if local_media_file_exists(rel_path):
                 return f'{settings.MEDIA_URL.rstrip("/")}/{rel_path.lstrip("/")}'
             if is_remote_media_storage():
+                return product.image.url
+            if _serve_local_media_urls():
                 return product.image.url
     except Exception:
         pass

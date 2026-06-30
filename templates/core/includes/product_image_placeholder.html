@@ -1,13 +1,15 @@
 {% comment %}
-Product image: real file when available, gradient initials fallback otherwise.
+Product image: assigned media file with gradient CSS fallback on load error.
 {% endcomment %}
-{% load tf_media %}
-{% with image_src=product|product_image_src %}
-{% if image_src %}
-<img src="{{ image_src }}" alt="{{ alt|default:product.name }}" class="product-img{% if img_class %} {{ img_class }}{% endif %}{% if css_class %} {{ css_class }}{% endif %}" loading="lazy" decoding="async"
+{% if product.image %}
+<img src="{{ product.image.url }}"
+     alt="{{ alt|default:product.name }}"
+     class="product-img{% if img_class %} {{ img_class }}{% endif %}{% if css_class %} {{ css_class }}{% endif %}"
+     loading="lazy"
+     decoding="async"
      {% if width %}width="{{ width }}"{% endif %}
-     {% if height %}height="{{ height }}"{% endif %}>
+     {% if height %}height="{{ height }}"{% endif %}
+     onerror="this.style.background='linear-gradient(135deg,#1B3B63,#2E5B8A)'; this.style.display='block';">
 {% else %}
 <div class="img-placeholder product-img{% if css_class %} {{ css_class }}{% endif %}" data-initials="{{ product.name|slice:':2'|upper }}"></div>
 {% endif %}
-{% endwith %}
