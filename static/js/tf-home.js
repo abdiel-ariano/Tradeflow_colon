@@ -72,6 +72,174 @@
     items.forEach(function (el) { observer.observe(el); });
   }
 
+  /* ── Hero mega-carousel (full-width slides) ── */
+  function initHeroCarousel() {
+    document.querySelectorAll('[data-hm-hero-carousel]').forEach(function (root) {
+      var track = root.querySelector('.hm-hero-mega__track');
+      var slides = track ? track.querySelectorAll('.hm-hero-mega__slide') : [];
+      var dotsWrap = root.querySelector('.hm-hero-mega__dots');
+      var prev = root.querySelector('.hm-hero-mega__arrow--prev');
+      var next = root.querySelector('.hm-hero-mega__arrow--next');
+      if (!track || !slides.length || !dotsWrap) return;
+
+      var autoMs = parseInt(root.getAttribute('data-hm-hero-autoplay'), 10) || 7000;
+      var current = 0;
+      var interval = null;
+
+      function getDots() {
+        return dotsWrap.querySelectorAll('.hm-hero-mega__dot');
+      }
+
+      function buildDots() {
+        dotsWrap.innerHTML = '';
+        for (var i = 0; i < slides.length; i++) {
+          var dot = document.createElement('button');
+          dot.type = 'button';
+          dot.className = 'hm-hero-mega__dot' + (i === 0 ? ' is-active' : '');
+          dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+          dot.addEventListener('click', (function (idx) {
+            return function () {
+              goTo(idx);
+              restartAutoplay();
+            };
+          })(i));
+          dotsWrap.appendChild(dot);
+        }
+      }
+
+      function goTo(index) {
+        if (index >= slides.length) index = 0;
+        if (index < 0) index = slides.length - 1;
+        current = index;
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+        getDots().forEach(function (d, i) {
+          d.classList.toggle('is-active', i === current);
+        });
+        slides.forEach(function (s, i) {
+          s.classList.toggle('is-active', i === current);
+        });
+      }
+
+      function nextSlide() {
+        goTo(current + 1);
+      }
+
+      function stopAutoplay() {
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      }
+
+      function startAutoplay() {
+        if (REDUCED || slides.length <= 1) return;
+        stopAutoplay();
+        interval = setInterval(nextSlide, autoMs);
+      }
+
+      function restartAutoplay() {
+        stopAutoplay();
+        startAutoplay();
+      }
+
+      if (prev) {
+        prev.addEventListener('click', function () {
+          goTo(current - 1);
+          restartAutoplay();
+        });
+      }
+
+      if (next) {
+        next.addEventListener('click', function () {
+          goTo(current + 1);
+          restartAutoplay();
+        });
+      }
+
+      root.addEventListener('mouseenter', stopAutoplay);
+      root.addEventListener('mouseleave', startAutoplay);
+
+      var touchStart = 0;
+      track.addEventListener('touchstart', function (e) {
+        touchStart = e.touches[0].clientX;
+        stopAutoplay();
+      }, { passive: true });
+
+      track.addEventListener('touchend', function (e) {
+        var diff = touchStart - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) {
+          if (diff > 0) goTo(current + 1);
+          else goTo(current - 1);
+        }
+        setTimeout(startAutoplay, 4000);
+      }, { passive: true });
+
+      buildDots();
+      goTo(0);
+      startAutoplay();
+    });
+  }
+
+  /* ── Top companies rotator ── */
+  function initCompanyRotator() {
+    document.querySelectorAll('[data-hm-company-rotator]').forEach(function (root) {
+      var panels = root.querySelectorAll('.hm-company-rotator__panel');
+      var tabs = root.querySelectorAll('[data-hm-company-tab]');
+      if (!panels.length) return;
+
+      var autoMs = parseInt(root.getAttribute('data-hm-company-autoplay'), 10) || 6500;
+      var current = 0;
+      var interval = null;
+
+      function goTo(index) {
+        if (index >= panels.length) index = 0;
+        if (index < 0) index = panels.length - 1;
+        current = index;
+        panels.forEach(function (p, i) {
+          p.classList.toggle('is-active', i === current);
+        });
+        tabs.forEach(function (t, i) {
+          t.classList.toggle('is-active', i === current);
+          t.setAttribute('aria-selected', i === current ? 'true' : 'false');
+        });
+      }
+
+      function stopAutoplay() {
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      }
+
+      function startAutoplay() {
+        if (REDUCED || panels.length <= 1) return;
+        stopAutoplay();
+        interval = setInterval(function () {
+          goTo(current + 1);
+        }, autoMs);
+      }
+
+      function restartAutoplay() {
+        stopAutoplay();
+        startAutoplay();
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          var idx = parseInt(tab.getAttribute('data-hm-company-tab'), 10) || 0;
+          goTo(idx);
+          restartAutoplay();
+        });
+      });
+
+      root.addEventListener('mouseenter', stopAutoplay);
+      root.addEventListener('mouseleave', startAutoplay);
+
+      goTo(0);
+      startAutoplay();
+    });
+  }
+
   /* ── Transform sliders (trending, testimonials) ── */
   function initSliders() {
     document.querySelectorAll('[data-hm-slider]').forEach(function (root) {
@@ -279,6 +447,8 @@
   }
 
   function init() {
+    initHeroCarousel();
+    initCompanyRotator();
     initCountUp();
     initReveal();
     initSliders();

@@ -1,0 +1,49 @@
+{% comment %}
+Split spotlight: company story (left) + auto product slider (right).
+Variables: company, carousel_products, featured_products, variant (top|secondary)
+{% endcomment %}
+<article class="hm-spotlight hm-spotlight--{{ variant|default:'top' }}" data-hm-reveal>
+  <div class="hm-spotlight__company">
+    <span class="hm-spotlight__rank">
+      {% if variant == 'top' %}Top company this month{% else %}Featured partner{% endif %}
+    </span>
+    <div class="hm-spotlight__identity">
+      <span class="hm-spotlight__avatar">{{ company.name|slice:":2"|upper }}</span>
+      <div>
+        <h3 class="hm-spotlight__name">{{ company.name }}</h3>
+        <span class="hm-spotlight__badge">
+          <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+          CFZ Verified
+        </span>
+      </div>
+    </div>
+    <p class="hm-spotlight__desc">
+      Wholesale catalog with export-ready documentation.
+      {% if company.num_productos == 1 %}{{ company.num_productos }} active SKU{% else %}{{ company.num_productos }} active SKUs{% endif %}
+      serving buyers across the Americas from the Colón Free Zone.
+    </p>
+    <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="hm-spotlight__cta">
+      Visit storefront <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+    </a>
+  </div>
+
+  <div class="hm-spotlight__products">
+    <div class="hm-slider hm-slider--spotlight" data-hm-slider data-hm-slider-visible="3" data-hm-slider-autoplay="4500">
+      <div class="hm-slider__viewport">
+        <div class="hm-slider__track">
+          {% for product in carousel_products %}
+            {% if product.company_id == company.pk %}
+              {% include "core/includes/home_supplier_product_card.html" with product=product %}
+            {% endif %}
+          {% endfor %}
+          {% for product in featured_products %}
+            {% if product.company_id == company.pk %}
+              {% include "core/includes/home_supplier_product_card.html" with product=product %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="hm-slider__dots" aria-hidden="true"></div>
+    </div>
+  </div>
+</article>
