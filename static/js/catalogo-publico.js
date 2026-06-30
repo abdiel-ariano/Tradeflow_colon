@@ -61,23 +61,10 @@
     });
   });
 
-  document.querySelectorAll('.view-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var view = btn.getAttribute('data-view');
-      document.querySelectorAll('.view-btn').forEach(function (b) {
-        var active = b === btn;
-        b.classList.toggle('view-btn--active', active);
-        b.setAttribute('aria-pressed', active ? 'true' : 'false');
-      });
-      if (grid) {
-        grid.classList.toggle('is-list-view', view === 'list');
-      }
-    });
-  });
-
   function startProgressBar() {
     if (!progressBar) return;
     progressBar.classList.remove('is-done', 'is-complete');
+    progressBar.style.width = '0%';
     progressBar.setAttribute('aria-hidden', 'false');
     void progressBar.offsetWidth;
     progressBar.classList.add('is-active');
@@ -90,7 +77,7 @@
     setTimeout(function () {
       progressBar.classList.add('is-done');
       progressBar.setAttribute('aria-hidden', 'true');
-    }, 200);
+    }, 250);
   }
 
   function buildSkeletonCard() {
@@ -99,10 +86,10 @@
     card.innerHTML =
       '<div class="skeleton-shimmer card-image"></div>' +
       '<div class="card-body">' +
-      '<div class="skeleton-shimmer skeleton-line skeleton-line--title"></div>' +
-      '<div class="skeleton-shimmer skeleton-line skeleton-line--title-2"></div>' +
-      '<div class="skeleton-shimmer skeleton-line skeleton-line--price"></div>' +
-      '<div class="skeleton-shimmer skeleton-line skeleton-line--meta"></div>' +
+      '<span class="skeleton-shimmer skeleton-line skeleton-line--title"></span>' +
+      '<span class="skeleton-shimmer skeleton-line skeleton-line--title-2"></span>' +
+      '<span class="skeleton-shimmer skeleton-line skeleton-line--price"></span>' +
+      '<span class="skeleton-shimmer skeleton-line skeleton-line--meta"></span>' +
       '</div>';
     return card;
   }
@@ -135,11 +122,18 @@
       fragment.appendChild(buildSkeletonCard());
     }
     gridEl.appendChild(fragment);
+  }
 
-    var activeList = document.querySelector('.view-btn[data-view="list"].view-btn--active');
-    if (activeList) {
-      gridEl.classList.add('is-list-view');
+  function renderResultsWithFade(gridEl, newGridHTML) {
+    if (!gridEl) return;
+    if (typeof newGridHTML === 'string') {
+      gridEl.innerHTML = newGridHTML;
     }
+    gridEl.querySelectorAll('.product-card').forEach(function (card, index) {
+      card.style.opacity = '0';
+      card.classList.add('is-entering');
+      card.style.animationDelay = Math.min(index * 25, 200) + 'ms';
+    });
   }
 
   function flashMiniSpinner(sectionKey) {
@@ -198,10 +192,41 @@
       .then(function (html) {
         if (requestId !== activeRequestId || controller.signal.aborted) return;
 
-        host.innerHTML = html;
-
         var parser = new DOMParser();
         var doc = parser.parseFromString(html, 'text/html');
+        var newGrid = doc.getElementById('cat-product-grid');
+
+        if (options.skeleton !== false && newGrid) {
+          var currentGrid = ensureProductGrid();
+          renderResultsWithFade(currentGrid, newGrid.innerHTML);
+
+          var newPagination = doc.querySelector('.pagination');
+          var currentPagination = document.querySelector('.pagination');
+          if (newPagination && currentPagination) {
+            currentPagination.innerHTML = newPagination.innerHTML;
+          } else if (newPagination && !currentPagination) {
+            var root = document.getElementById('cat-results-root');
+            if (root) root.appendChild(newPagination.cloneNode(true));
+          } else if (!newPagination && currentPagination) {
+            currentPagination.remove();
+          }
+
+          var newEmpty = doc.getElementById('cat-empty-state');
+          var currentEmpty = document.getElementById('cat-empty-state');
+          if (newEmpty && !currentEmpty) {
+            var resultsRoot = document.getElementById('cat-results-root');
+            if (resultsRoot) resultsRoot.appendChild(newEmpty.cloneNode(true));
+          } else if (!newEmpty && currentEmpty) {
+            currentEmpty.remove();
+          }
+        } else {
+          host.innerHTML = html;
+          grid = document.getElementById('cat-product-grid');
+          if (grid) {
+            renderResultsWithFade(grid);
+          }
+        }
+
         updateResultsCount(doc);
 
         if (window.history && window.history.pushState) {
@@ -209,17 +234,6 @@
         }
 
         grid = document.getElementById('cat-product-grid');
-        if (grid) {
-          var activeList = document.querySelector('.view-btn[data-view="list"].view-btn--active');
-          if (activeList) {
-            grid.classList.add('is-list-view');
-          }
-          grid.querySelectorAll('.product-card').forEach(function (card, index) {
-            card.classList.add('is-entering');
-            card.style.animationDelay = Math.min(index * 20, 200) + 'ms';
-          });
-        }
-
         bindInquiryButtons();
         finishProgressBar();
       })
