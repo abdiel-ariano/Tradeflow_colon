@@ -3,7 +3,7 @@
 {% block title %}Colón Free Zone Wholesale Catalog | TradeFlow Colón{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'6' }}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'7' }}">
 {% endblock %}
 
 {% block content %}
@@ -228,10 +228,6 @@
             <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price ↓</option>
             <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
           </select>
-          <div class="view-toggle" role="group" aria-label="View mode">
-            <button type="button" class="view-btn view-btn--active" data-view="grid" aria-label="Grid view" aria-pressed="true">⊞</button>
-            <button type="button" class="view-btn" data-view="list" aria-label="List view" aria-pressed="false">≡</button>
-          </div>
         </div>
       </div>
 
@@ -248,5 +244,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'6' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'7' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
