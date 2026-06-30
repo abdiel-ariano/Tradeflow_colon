@@ -10,10 +10,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# psycopg2-binary ships prebuilt wheels — no build-essential / libpq-dev / gcc.
-RUN apt-get update \
-    && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/* \
-    && apt-get clean
+# psycopg2-binary ships prebuilt wheels — no apt build toolchain required.
 
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
