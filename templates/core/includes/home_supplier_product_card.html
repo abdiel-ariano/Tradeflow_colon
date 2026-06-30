@@ -1,16 +1,18 @@
 {% load tf_money %}
 {% comment %}Mini product card for supplier carousels. Variables: product{% endcomment %}
-<a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-sp-card">
-  <div class="hm-sp-card__media">
+<article class="hm-sp-card">
+  <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-sp-card__media" aria-label="{{ product.name }}">
     {% if product.is_on_promo_now %}
     <span class="hm-sp-card__badge">-{{ product.discount_pct }}%</span>
     {% endif %}
-    {% include "core/includes/product_image_placeholder.html" with product=product css_class="hm-sp-card__placeholder" alt="" %}
-  </div>
-  <p class="hm-sp-card__name">{{ product.name|truncatechars:48 }}</p>
+    {% include "core/includes/product_image_placeholder.html" with product=product css_class="hm-sp-card__placeholder" decorative=True %}
+  </a>
+  <h3 class="hm-sp-card__name">
+    <a href="{% url 'catalogo_producto_detail' product.pk %}" title="{{ product.name }}">{{ product.name|truncatechars:48 }}</a>
+  </h3>
   <p class="hm-sp-card__company">
     <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-    {{ product.company.name|truncatechars:22 }}
+    <span title="{{ product.company.name }}">{{ product.company.name|truncatechars:22 }}</span>
   </p>
   <p class="hm-sp-card__price">{{ product.display_price|money_usd }}</p>
-</a>
+</article>

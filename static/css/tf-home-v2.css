@@ -794,33 +794,39 @@ Public homepage — dual palette (navy/orange + blue).
   background: var(--white);
   border-radius: 12px;
   padding: 16px;
-  text-decoration: none;
   color: inherit;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.hm-carousel--compact .hm-sp-card { flex: 0 0 calc(33.333% - 8px); }
-
 .hm-sp-card__media {
   position: relative;
   height: 160px;
+  flex-shrink: 0;
   background: var(--primary-light);
   border-radius: 8px;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  text-decoration: none;
 }
 
-.hm-sp-card__media img { width: 100%; height: 100%; object-fit: cover; }
-.hm-sp-card__icon { font-size: 40px; color: var(--primary); }
+.hm-carousel--compact .hm-sp-card { flex: 0 0 calc(33.333% - 8px); }
+
+.hm-sp-card__media .product-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+  max-height: 100%;
+  object-fit: cover;
+  display: block;
+}
 
 .hm-sp-card__badge {
   position: absolute;
   top: 8px;
   left: 8px;
+  z-index: 2;
   background: var(--danger);
   color: var(--white);
   font-size: 11px;
@@ -829,16 +835,27 @@ Public homepage — dual palette (navy/orange + blue).
   border-radius: 4px;
 }
 
+.hm-sp-card__icon { font-size: 40px; color: var(--primary); }
+
 .hm-sp-card__name {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--gray-900);
   line-height: 1.35;
+}
+
+.hm-sp-card__name a {
+  color: inherit;
+  text-decoration: none;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.hm-sp-card__name a:hover {
+  color: var(--primary);
 }
 
 .hm-sp-card__company {
@@ -897,7 +914,15 @@ Public homepage — dual palette (navy/orange + blue).
   font-size: 14px;
 }
 
-.hm-supplier-card__name { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--gray-900); }
+.hm-supplier-card__name {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gray-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .hm-supplier-card__verified {
   display: inline-flex;
@@ -1240,7 +1265,7 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-cat-card__collage-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 40%, rgba(15, 42, 68, 0.85) 100%);
+  background: linear-gradient(180deg, transparent 15%, rgba(0, 0, 0, 0.55) 55%, rgba(15, 42, 68, 0.92) 100%);
   pointer-events: none;
   z-index: 1;
 }
@@ -1413,14 +1438,39 @@ Public homepage — dual palette (navy/orange + blue).
   font-weight: 700;
 }
 
+.hm-slider--trending {
+  padding: 0 48px;
+}
+
+.hm-slider--trending .hm-slider__arrow--prev { left: 4px; }
+.hm-slider--trending .hm-slider__arrow--next { right: 4px; }
+
+.hm-trend-card__media-wrap .product-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+  max-height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hm-hero__visual-frame .product-img,
+.hm-hero-mega__pitch-visual .product-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+  max-height: 100%;
+  object-fit: cover;
+}
+
 .hm-company-rotator__tab-name {
   max-width: 160px;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* ── Unified company spotlight (single card) ── */
 .hm-spotlight-unified {
   background: linear-gradient(145deg, var(--navy) 0%, var(--navy-mid) 50%, var(--primary-dark) 100%);
   border: 2px solid var(--orange);
