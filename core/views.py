@@ -64,6 +64,7 @@ from .utils.email_sender import (
     enviar_solicitud_decision,
 )
 from .utils.saas_billing import VolumeLimitExceeded, is_volume_limit_reached
+from .utils.media_storage import product_image_url
 from .utils.order_workflow import (
     accept_seller_order,
     reject_seller_order,
@@ -3390,10 +3391,11 @@ def catalogo_producto_detail(request, pk):
         stock_status = 'ok'
         stock_label = f'In stock ({product.available_qty} units)'
 
-    if product.image:
-        og_image = request.build_absolute_uri(product.image.url)
+    img = product_image_url(product)
+    if img:
+        og_image = img if img.startswith('http') else request.build_absolute_uri(img)
     else:
-        og_image = request.build_absolute_uri(static('img/product-placeholder.svg'))
+        og_image = request.build_absolute_uri(static('images/placeholder-producto.svg'))
 
     meta_description = (
         product.description[:155].strip()
@@ -3513,7 +3515,7 @@ def agregar_al_carrito(request, producto_id):
             'precio':   str(producto.unit_price),
             'cantidad': cantidad,
             'subtotal': str(producto.unit_price * cantidad),
-            'imagen':   producto.image.url if producto.image else '',
+            'imagen':   product_image_url(producto) or '',
         }
 
     _save_carrito(request, carrito)

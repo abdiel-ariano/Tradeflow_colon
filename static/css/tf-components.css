@@ -62,6 +62,12 @@ Requiere: tf-design-tokens.css
   display: block;
 }
 
+.product-img.is-placeholder,
+img[data-tf-product-image].is-placeholder {
+  object-fit: contain;
+  background: #e5e7eb;
+}
+
 .tf-pcard__media img.product-img,
 .tf-pcard__media .product-img {
   height: 100%;

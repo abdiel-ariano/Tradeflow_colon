@@ -49,16 +49,7 @@
           {% for p in productos %}
           <tr>
             <td style="width:56px;">
-              {% if p.image %}
-              <img class="seller-product-thumb product-img" src="{{ p.image.url }}" alt="{{ p.name }}">
-              {% else %}
-              {% with seed=p.id|add:p.category_id|default:0 %}
-              <img class="seller-product-thumb product-img"
-                   src="https://picsum.photos/seed/{{ p.id }}{{ p.category_id }}/400/300"
-                   alt="{{ p.name }}"
-                   loading="lazy">
-              {% endwith %}
-              {% endif %}
+              {% include "core/includes/product_image_placeholder.html" with product=p img_class="seller-product-thumb" %}
             </td>
             <td><strong>{{ p.name }}</strong>{% if p.category %}<br><span style="color:var(--tf-muted);font-size:0.82rem;">{{ p.category.name }}</span>{% endif %}</td>
             <td>{{ p.sku|default:"—" }}</td>
