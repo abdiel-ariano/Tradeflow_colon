@@ -28,19 +28,19 @@
               <div class="hm-hero__divider" aria-hidden="true"></div>
               <dl class="hm-hero__stats">
                 <div class="hm-hero__stat">
-                  <dd class="hm-hero__stat-num" data-hm-count="{{ stats.productos|default:0 }}">0</dd>
+                  <dd class="hm-hero__stat-num" data-hm-count="{{ stats.productos|default:0 }}">{{ stats.productos|default:0 }}</dd>
                   <dt class="hm-hero__stat-lbl">Products</dt>
                 </div>
                 <div class="hm-hero__stat">
-                  <dd class="hm-hero__stat-num" data-hm-count="{{ stats.empresas|default:0 }}">0</dd>
+                  <dd class="hm-hero__stat-num" data-hm-count="{{ stats.empresas|default:0 }}">{{ stats.empresas|default:0 }}</dd>
                   <dt class="hm-hero__stat-lbl">Companies</dt>
                 </div>
                 <div class="hm-hero__stat">
-                  <dd class="hm-hero__stat-num" data-hm-count="{{ stats.ordenes|default:0 }}">0</dd>
+                  <dd class="hm-hero__stat-num" data-hm-count="{{ stats.ordenes|default:0 }}">{{ stats.ordenes|default:0 }}</dd>
                   <dt class="hm-hero__stat-lbl">Orders</dt>
                 </div>
                 <div class="hm-hero__stat">
-                  <dd class="hm-hero__stat-num" data-hm-count="40" data-hm-suffix="+">0</dd>
+                  <dd class="hm-hero__stat-num" data-hm-count="40" data-hm-suffix="+">40+</dd>
                   <dt class="hm-hero__stat-lbl">Countries</dt>
                 </div>
               </dl>
@@ -49,7 +49,7 @@
               {% with hero_product=featured_products.0 %}
               <div class="hm-hero__visual-frame">
                 {% if hero_product %}
-                  {% include "core/includes/product_image_placeholder.html" with product=hero_product img_class="hm-hero__visual-img" alt="" %}
+                  {% include "core/includes/product_image_placeholder.html" with product=hero_product img_class="hm-hero__visual-img" decorative=True %}
                 {% else %}
                   <img src="{% static 'img/ship-cargo.svg' %}" alt="" class="hm-hero__visual-img hm-hero__visual-img--art" loading="eager" decoding="async">
                 {% endif %}
@@ -117,7 +117,7 @@
               </div>
             </div>
             <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-hero-mega__pitch-visual">
-              {% include "core/includes/product_image_placeholder.html" with product=product img_class="hm-hero-mega__pitch-img" alt=product.name %}
+              {% include "core/includes/product_image_placeholder.html" with product=product img_class="hm-hero-mega__pitch-img" decorative=True %}
             </a>
           </div>
         </article>

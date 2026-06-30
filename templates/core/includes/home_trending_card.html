@@ -1,18 +1,18 @@
 {% load tf_money %}
 {% comment %}Single trending product card. Variable: product{% endcomment %}
 <article class="hm-trend-card" data-hm-reveal data-hm-reveal-delay="{{ delay|default:0 }}">
-  <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-trend-card__media-wrap">
+  <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-trend-card__media-wrap" aria-label="{{ product.name }}">
     {% if product.is_on_promo_now %}
     <span class="hm-trend-card__badge">-{{ product.discount_pct }}%</span>
     {% endif %}
-    {% include "core/includes/product_image_placeholder.html" with product=product css_class="hm-trend-card__media" alt=product.name %}
+    {% include "core/includes/product_image_placeholder.html" with product=product css_class="hm-trend-card__media" decorative=True %}
   </a>
   <p class="hm-trend-card__company">
     <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-    {{ product.company.name|truncatechars:24 }}
+    <span title="{{ product.company.name }}">{{ product.company.name|truncatechars:24 }}</span>
   </p>
   <h3 class="hm-trend-card__name">
-    <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:56 }}</a>
+    <a href="{% url 'catalogo_producto_detail' product.pk %}" title="{{ product.name }}">{{ product.name|truncatechars:56 }}</a>
   </h3>
   <p class="hm-trend-card__price">{{ product.display_price|money_usd }}</p>
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-trend-card__cta">View details</a>

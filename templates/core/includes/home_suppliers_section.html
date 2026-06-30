@@ -32,7 +32,7 @@
                 aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
                 data-hm-company-tab="{{ forloop.counter0 }}">
           <span class="hm-company-rotator__tab-avatar">{{ emp.name|slice:":2"|upper }}</span>
-          <span class="hm-company-rotator__tab-name">{{ emp.name|truncatechars:28 }}</span>
+          <span class="hm-company-rotator__tab-name" title="{{ emp.name }}">{{ emp.name|truncatechars:28 }}</span>
         </button>
         {% endfor %}
       </div>
@@ -51,7 +51,7 @@
               <div class="hm-supplier-card__top">
                 <span class="hm-supplier-card__avatar">{{ emp.name|slice:":2"|upper }}</span>
                 <div>
-                  <h3 class="hm-supplier-card__name">{{ emp.name }}</h3>
+                  <h3 class="hm-supplier-card__name" title="{{ emp.name }}">{{ emp.name }}</h3>
                   <span class="hm-supplier-card__verified">
                     <span class="material-symbols-rounded" aria-hidden="true">verified</span>
                     CFZ Verified

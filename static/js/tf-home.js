@@ -13,7 +13,12 @@
       el.textContent = target.toLocaleString() + (suffix || '');
       return;
     }
-    var start = 0;
+    var parsed = parseInt(String(el.textContent).replace(/[^0-9]/g, ''), 10);
+    var start = isNaN(parsed) ? 0 : parsed;
+    if (start >= target) {
+      el.textContent = target.toLocaleString() + (suffix || '');
+      return;
+    }
     var startTime = null;
     function step(ts) {
       if (!startTime) startTime = ts;

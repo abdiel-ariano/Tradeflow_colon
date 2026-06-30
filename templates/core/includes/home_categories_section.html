@@ -14,7 +14,7 @@
           <div class="hm-cat-card__collage-overlay"></div>
           {% for product in row.products|slice:":4" %}
           <span class="hm-cat-card__thumb">
-            {% include "core/includes/product_image_placeholder.html" with product=product alt="" %}
+            {% include "core/includes/product_image_placeholder.html" with product=product decorative=True %}
           </span>
           {% empty %}
           <span class="hm-cat-card__thumb hm-cat-card__thumb--empty hm-cat-card__thumb--1"></span>
