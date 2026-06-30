@@ -1,51 +1,141 @@
-{% load static %}
-{% comment %}Hero — navy/orange + blue dual palette, 2-column layout.{% endcomment %}
-<section class="hm-hero" id="hm-hero" aria-labelledby="hm-hero-title">
-  <div class="hm-hero__pattern" aria-hidden="true"></div>
-  <div class="hm-hero__grid">
-    <div class="hm-hero__copy">
-      <p class="hm-hero__badge hm-animate-in">Panama Free Zone · B2B Wholesale</p>
-      <h1 class="hm-hero__title hm-animate-in hm-animate-in--1" id="hm-hero-title">
-        The Wholesale Marketplace of the Americas
-      </h1>
-      <p class="hm-hero__subtitle hm-animate-in hm-animate-in--2">
-        Shop the Colón Free Zone from anywhere. Verified suppliers, transparent inventory,
-        and export-ready documentation in one B2B marketplace.
-      </p>
-      <div class="hm-hero__ctas hm-animate-in hm-animate-in--3">
-        <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore Catalog →</a>
-        <a href="{% url 'signup' %}?role=seller" class="hm-btn hm-btn--outline hm-btn--lg">Register your company</a>
+{% load static tf_money %}
+{% comment %}Hero mega-carousel — 4 slides: brand/stats, how-it-works, 2 product pitches.{% endcomment %}
+<section class="hm-hero-mega" id="hm-hero" aria-roledescription="carousel" aria-label="TradeFlow highlights">
+  <div class="hm-hero-mega__pattern" aria-hidden="true"></div>
+
+  <div class="hm-hero-mega__frame" data-hm-hero-carousel data-hm-hero-autoplay="7000">
+    <button type="button" class="hm-hero-mega__arrow hm-hero-mega__arrow--prev" aria-label="Previous slide">
+      <span class="material-symbols-rounded">chevron_left</span>
+    </button>
+
+    <div class="hm-hero-mega__viewport">
+      <div class="hm-hero-mega__track">
+
+        {# ── Slide 1: Brand + live stats ── #}
+        <article class="hm-hero-mega__slide hm-hero-mega__slide--brand is-active" aria-label="TradeFlow marketplace">
+          <div class="hm-hero-mega__grid">
+            <div class="hm-hero-mega__copy">
+              <p class="hm-hero__badge">Panama Free Zone · B2B Wholesale</p>
+              <h1 class="hm-hero__title" id="hm-hero-title">The Wholesale Marketplace of the Americas</h1>
+              <p class="hm-hero__subtitle">
+                Shop the Colón Free Zone from anywhere. Verified suppliers, transparent inventory,
+                and export-ready documentation in one B2B marketplace.
+              </p>
+              <div class="hm-hero__ctas">
+                <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore Catalog →</a>
+                <a href="{% url 'signup' %}?role=seller" class="hm-btn hm-btn--outline hm-btn--lg">Register your company</a>
+              </div>
+              <div class="hm-hero__divider" aria-hidden="true"></div>
+              <dl class="hm-hero__stats">
+                <div class="hm-hero__stat">
+                  <dd class="hm-hero__stat-num" data-hm-count="{{ stats.productos|default:0 }}">0</dd>
+                  <dt class="hm-hero__stat-lbl">Products</dt>
+                </div>
+                <div class="hm-hero__stat">
+                  <dd class="hm-hero__stat-num" data-hm-count="{{ stats.empresas|default:0 }}">0</dd>
+                  <dt class="hm-hero__stat-lbl">Companies</dt>
+                </div>
+                <div class="hm-hero__stat">
+                  <dd class="hm-hero__stat-num" data-hm-count="{{ stats.ordenes|default:0 }}">0</dd>
+                  <dt class="hm-hero__stat-lbl">Orders</dt>
+                </div>
+                <div class="hm-hero__stat">
+                  <dd class="hm-hero__stat-num" data-hm-count="40" data-hm-suffix="+">0</dd>
+                  <dt class="hm-hero__stat-lbl">Countries</dt>
+                </div>
+              </dl>
+            </div>
+            <div class="hm-hero__visual" aria-hidden="true">
+              {% with hero_product=featured_products.0 %}
+              <div class="hm-hero__visual-frame">
+                {% if hero_product %}
+                  {% include "core/includes/product_image_placeholder.html" with product=hero_product img_class="hm-hero__visual-img" alt="" %}
+                {% else %}
+                  <img src="{% static 'img/ship-cargo.svg' %}" alt="" class="hm-hero__visual-img hm-hero__visual-img--art" loading="eager" decoding="async">
+                {% endif %}
+              </div>
+              {% endwith %}
+            </div>
+          </div>
+        </article>
+
+        {# ── Slide 2: How it works (replaces standalone section) ── #}
+        <article class="hm-hero-mega__slide hm-hero-mega__slide--how" id="como-funciona" aria-label="How it works">
+          <div class="hm-hero-mega__how">
+            <p class="hm-hero-mega__eyebrow">Simple B2B flow</p>
+            <h2 class="hm-hero-mega__how-title">How TradeFlow works</h2>
+            <ol class="hm-how__steps hm-how__steps--hero">
+              <li class="hm-how__step">
+                <span class="hm-how__step-bg" aria-hidden="true">1</span>
+                <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">travel_explore</span>
+                <h3 class="hm-how__step-title">Browse the catalog</h3>
+                <p class="hm-how__step-desc">Explore products and verified companies — no account required.</p>
+              </li>
+              <li class="hm-how__step">
+                <span class="hm-how__step-bg" aria-hidden="true">2</span>
+                <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">person_add</span>
+                <h3 class="hm-how__step-title">Create your account</h3>
+                <p class="hm-how__step-desc">Sign up as a buyer or supplier in minutes when you are ready.</p>
+              </li>
+              <li class="hm-how__step">
+                <span class="hm-how__step-bg" aria-hidden="true">3</span>
+                <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">shopping_cart</span>
+                <h3 class="hm-how__step-title">Place your order</h3>
+                <p class="hm-how__step-desc">Add to cart, request quotes, and pay through secure checkout.</p>
+              </li>
+              <li class="hm-how__step">
+                <span class="hm-how__step-bg" aria-hidden="true">4</span>
+                <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">local_shipping</span>
+                <h3 class="hm-how__step-title">Receive your goods</h3>
+                <p class="hm-how__step-desc">Track fulfillment with export documentation included.</p>
+              </li>
+            </ol>
+            <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg hm-hero-mega__how-cta">Start browsing →</a>
+          </div>
+        </article>
+
+        {# ── Slides 3–4: Product pitch ── #}
+        {% for product in featured_products|slice:"1:3" %}
+        <article class="hm-hero-mega__slide hm-hero-mega__slide--pitch" aria-label="{{ product.name }}">
+          <div class="hm-hero-mega__pitch">
+            <div class="hm-hero-mega__pitch-copy">
+              <span class="hm-hero-mega__eyebrow">Wholesale pick</span>
+              <h2 class="hm-hero-mega__pitch-title">{{ product.name|truncatechars:72 }}</h2>
+              <p class="hm-hero-mega__pitch-sub">
+                From <strong>{{ product.company.name }}</strong> — CFZ-verified inventory with export-ready docs.
+                {% if product.is_on_promo_now %}Limited-time wholesale pricing available now.{% endif %}
+              </p>
+              <p class="hm-hero-mega__pitch-price">{{ product.display_price|money_usd }}</p>
+              <div class="hm-hero__ctas">
+                <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-btn hm-btn--cta hm-btn--lg">View product →</a>
+                <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="hm-btn hm-btn--outline hm-btn--lg">Supplier catalog</a>
+              </div>
+            </div>
+            <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-hero-mega__pitch-visual">
+              {% include "core/includes/product_image_placeholder.html" with product=product img_class="hm-hero-mega__pitch-img" alt=product.name %}
+            </a>
+          </div>
+        </article>
+        {% empty %}
+        <article class="hm-hero-mega__slide hm-hero-mega__slide--pitch" aria-label="Wholesale catalog">
+          <div class="hm-hero-mega__pitch">
+            <div class="hm-hero-mega__pitch-copy">
+              <span class="hm-hero-mega__eyebrow">Wholesale pick</span>
+              <h2 class="hm-hero-mega__pitch-title">Thousands of SKUs ready to ship</h2>
+              <p class="hm-hero-mega__pitch-sub">Browse verified Free Zone suppliers with transparent inventory and B2B checkout.</p>
+              <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore catalog →</a>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+
       </div>
-      <div class="hm-hero__divider" aria-hidden="true"></div>
-      <dl class="hm-hero__stats">
-        <div class="hm-hero__stat">
-          <dd class="hm-hero__stat-num" data-hm-count="{{ stats.productos|default:0 }}">0</dd>
-          <dt class="hm-hero__stat-lbl">Products</dt>
-        </div>
-        <div class="hm-hero__stat">
-          <dd class="hm-hero__stat-num" data-hm-count="{{ stats.empresas|default:0 }}">0</dd>
-          <dt class="hm-hero__stat-lbl">Companies</dt>
-        </div>
-        <div class="hm-hero__stat">
-          <dd class="hm-hero__stat-num" data-hm-count="{{ stats.ordenes|default:0 }}">0</dd>
-          <dt class="hm-hero__stat-lbl">Orders</dt>
-        </div>
-        <div class="hm-hero__stat">
-          <dd class="hm-hero__stat-num" data-hm-count="40" data-hm-suffix="+">0</dd>
-          <dt class="hm-hero__stat-lbl">Countries</dt>
-        </div>
-      </dl>
     </div>
-    <div class="hm-hero__visual hm-animate-in hm-animate-in--2" aria-hidden="true">
-      {% with hero_product=featured_products.0 %}
-      <div class="hm-hero__visual-frame">
-        {% if hero_product %}
-          {% include "core/includes/product_image_placeholder.html" with product=hero_product img_class="hm-hero__visual-img" alt="" %}
-        {% else %}
-          <img src="{% static 'img/ship-cargo.svg' %}" alt="" class="hm-hero__visual-img hm-hero__visual-img--art" loading="eager" decoding="async">
-        {% endif %}
-      </div>
-      {% endwith %}
-    </div>
+
+    <button type="button" class="hm-hero-mega__arrow hm-hero-mega__arrow--next" aria-label="Next slide">
+      <span class="material-symbols-rounded">chevron_right</span>
+    </button>
+
+    <div class="hm-hero-mega__dots" role="tablist" aria-label="Hero slides"></div>
   </div>
 </section>
