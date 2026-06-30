@@ -442,6 +442,8 @@ body.cat-catalog-page .tf-main {
   border: 1px solid var(--tf-border-soft);
   border-radius: 8px;
   padding: 16px;
+  pointer-events: auto;
+  z-index: 56;
 }
 
 .catalog-sidebar .cat-filters-form {
@@ -836,7 +838,20 @@ input[type="range"].price-range {
 }
 
 .product-card--skeleton {
-  pointer-events: none;
+  background: #fff;
+  border: 1px solid var(--tf-border-soft);
+  border-radius: 8px;
+  overflow: hidden;
+  height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card--skeleton .card-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .product-card--skeleton .card-image {
@@ -844,15 +859,21 @@ input[type="range"].price-range {
   border-radius: 0;
 }
 
-.skeleton-line {
-  height: 12px;
-  margin-bottom: 8px;
-}
+.skeleton-line { height: 12px; }
 
 .skeleton-line--title { width: 90%; height: 13px; }
 .skeleton-line--title-2 { width: 60%; height: 13px; }
 .skeleton-line--price { width: 50%; height: 18px; margin-top: 4px; }
 .skeleton-line--meta { width: 40%; height: 11px; }
+
+@keyframes cat-fade-in-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.product-card.is-entering {
+  animation: cat-fade-in-up 0.25s ease forwards;
+}
 
 /* ── Filter section mini-spinner ── */
 .filter-section-label {
@@ -1216,6 +1237,7 @@ input[type="range"].price-range {
   inset: 0;
   z-index: 55;
   background: rgba(0, 0, 0, 0.4);
+  pointer-events: none;
 }
 
 .sidebar-overlay.is-visible { display: block; }

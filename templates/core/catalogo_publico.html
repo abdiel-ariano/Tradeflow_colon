@@ -3,7 +3,7 @@
 {% block title %}Colón Free Zone Wholesale Catalog | TradeFlow Colón{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'5' }}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'6' }}">
 {% endblock %}
 
 {% block content %}
@@ -235,13 +235,8 @@
         </div>
       </div>
 
-      <div class="tf-skeleton-host" id="cat-results-host" data-tf-skeleton aria-busy="true" aria-live="polite">
-        <div class="tf-skeleton-layer" aria-hidden="true">
-          {% include "core/includes/skeletons/product_grid.html" with skeleton_count=12 %}
-        </div>
-        <div class="tf-skeleton-content">
-          {% include "core/includes/catalogo_publico_results.html" %}
-        </div>
+      <div id="cat-results-host" aria-live="polite">
+        {% include "core/includes/catalogo_publico_results.html" %}
       </div>
     </section>
   </div>
@@ -253,6 +248,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/tf-skeletons.js' %}?v={{ tf_asset_version|default:'3' }}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'5' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'6' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

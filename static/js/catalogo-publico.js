@@ -18,6 +18,7 @@
 
   var currentController = null;
   var debounceTimer = null;
+  var activeRequestId = 0;
 
   var SPINNER_BY_INPUT = {
     categoria: 'categories',
@@ -39,7 +40,6 @@
     if (openBtn) {
       openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
-    document.body.style.overflow = open ? 'hidden' : '';
   }
 
   if (openBtn && sidebar) {
@@ -50,12 +50,6 @@
 
   if (closeBtn) {
     closeBtn.addEventListener('click', function () {
-      setSidebarOpen(false);
-    });
-  }
-
-  if (backdrop) {
-    backdrop.addEventListener('click', function () {
       setSidebarOpen(false);
     });
   }
@@ -176,6 +170,7 @@
     }
     var controller = new AbortController();
     currentController = controller;
+    var requestId = ++activeRequestId;
 
     startProgressBar();
     if (options.spinner) {
@@ -201,33 +196,36 @@
     })
       .then(function (r) { return r.text(); })
       .then(function (html) {
-        if (controller.signal.aborted) return;
+        if (requestId !== activeRequestId || controller.signal.aborted) return;
 
-        var content = host.querySelector('.tf-skeleton-content');
-        if (content) content.innerHTML = html;
+        host.innerHTML = html;
 
         var parser = new DOMParser();
         var doc = parser.parseFromString(html, 'text/html');
         updateResultsCount(doc);
-
-        if (window.TFSkeleton) TFSkeleton.ready(host);
 
         if (window.history && window.history.pushState) {
           window.history.pushState({}, '', url);
         }
 
         grid = document.getElementById('cat-product-grid');
-        var activeList = document.querySelector('.view-btn[data-view="list"].view-btn--active');
-        if (grid && activeList) {
-          grid.classList.add('is-list-view');
+        if (grid) {
+          var activeList = document.querySelector('.view-btn[data-view="list"].view-btn--active');
+          if (activeList) {
+            grid.classList.add('is-list-view');
+          }
+          grid.querySelectorAll('.product-card').forEach(function (card, index) {
+            card.classList.add('is-entering');
+            card.style.animationDelay = Math.min(index * 20, 200) + 'ms';
+          });
         }
 
         bindInquiryButtons();
-        setSidebarOpen(false);
         finishProgressBar();
       })
       .catch(function (err) {
         if (err && err.name === 'AbortError') return;
+        if (requestId !== activeRequestId) return;
         finishProgressBar();
         window.location.href = url;
       });
