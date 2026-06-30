@@ -255,9 +255,17 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-how__steps--hero {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   text-align: center;
   margin-bottom: 20px;
   gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .hm-how__steps--hero {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .hm-how__steps--hero::before { display: none; }
@@ -1861,3 +1869,187 @@ Public homepage — dual palette (navy/orange + blue).
 
 body.tf-public:has(.hm-root) .tf-footer { display: none; }
 body.tf-public .tf-nav { display: none !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Home mobile responsive — 375px / 768px (landing only)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Hero — stack copy + visual; avoid arrow overlap with copy */
+@media (max-width: 767px) {
+  .hm-hero-mega__frame {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 32px;
+  }
+
+  .hm-hero-mega__slide {
+    padding: 12px 0 8px;
+  }
+
+  .hm-hero-mega__slide .hm-hero__grid,
+  .hm-hero-mega__slide .hm-hero__grid--compact {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .hm-hero__grid--compact .hm-hero__title {
+    font-size: clamp(22px, 6vw, 30px);
+  }
+
+  .hm-hero__grid--compact .hm-hero__subtitle {
+    font-size: 14px;
+    max-width: 100%;
+  }
+
+  .hm-hero__grid--compact .hm-hero__ctas {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hm-hero__grid--compact .hm-hero__ctas .hm-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hm-hero__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+  }
+
+  .hm-hero__grid--compact .hm-hero__visual-frame {
+    max-height: 220px;
+    margin-inline: auto;
+  }
+
+  .hm-hero-mega__pitch {
+    padding: 0;
+  }
+
+  .hm-hero-mega__pitch-visual {
+    max-height: 200px;
+  }
+
+  .hm-hero-mega__arrow--prev { left: 2px; }
+  .hm-hero-mega__arrow--next { right: 2px; }
+}
+
+@media (max-width: 374px) {
+  .hm-hero__grid--compact .hm-hero__stat-num {
+    font-size: 18px;
+  }
+}
+
+/* Product carousels — 1 card visible + peek, never 4-up squeeze */
+@media (max-width: 767px) {
+  .hm-slider--trending {
+    padding: 0 4px;
+  }
+
+  .hm-slider--trending .hm-trend-card {
+    flex: 0 0 82%;
+    min-width: 0;
+  }
+
+  .hm-slider--spotlight {
+    padding: 0 2px;
+  }
+
+  .hm-slider--spotlight .hm-sp-card {
+    flex: 0 0 84%;
+    min-width: 0;
+  }
+
+  .hm-slider--companies .hm-supplier-card--slide {
+    flex: 0 0 84%;
+    min-width: 0;
+  }
+
+  .hm-trending,
+  .hm-suppliers,
+  .hm-categories {
+    padding-top: 48px;
+    padding-bottom: 48px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 374px) {
+  .hm-slider--trending .hm-trend-card,
+  .hm-slider--spotlight .hm-sp-card,
+  .hm-slider--companies .hm-supplier-card--slide {
+    flex-basis: 90%;
+  }
+}
+
+/* Shop by Category — stack on narrow viewports (no 4-column crush) */
+@media (max-width: 767px) {
+  .hm-categories__grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .hm-cat-card__collage {
+    min-height: 120px;
+  }
+}
+
+/* Top Companies — horizontal scroll for company pills */
+@media (max-width: 767px) {
+  .hm-company-rotator__tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 8px;
+    padding-bottom: 6px;
+    margin-inline: -4px;
+  }
+
+  .hm-company-rotator__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hm-company-rotator__tab {
+    flex-shrink: 0;
+  }
+
+  .hm-company-rotator__track {
+    min-height: 300px;
+  }
+
+  .hm-spotlight-unified {
+    padding: 16px;
+  }
+
+  .hm-spotlight-unified__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hm-spotlight-unified__cta {
+    align-self: flex-start;
+  }
+
+  .hm-suppliers__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+/* Tablet — 2-up grids where appropriate */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hm-categories__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hm-slider--trending .hm-trend-card {
+    flex: 0 0 calc(50% - 8px);
+  }
+
+  .hm-slider--spotlight .hm-sp-card {
+    flex: 0 0 calc(50% - 8px);
+  }
+}

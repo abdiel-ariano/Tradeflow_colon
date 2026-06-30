@@ -299,15 +299,18 @@ Public navbar + category pills — dual palette (navy/orange + blue).
 @media (max-width: 900px) {
   .hm-nav__search { display: none; }
   .hm-nav__actions .hm-nav__btn--ghost { display: none; }
-  .hm-nav__hamburger { display: flex; }
-}
-
-@media (max-width: 900px) {
+  /* Pills always scroll horizontally; hamburger not needed for category row */
+  .hm-nav__hamburger { display: none; }
   .hm-nav__pills-wrap {
-    display: none;
-  }
-  .hm-nav__pills-wrap.is-open {
     display: block;
+  }
+  .hm-nav__pills {
+    padding: 8px 16px;
+    gap: 6px;
+  }
+  .hm-nav__pill {
+    font-size: 12px;
+    padding: 6px 12px;
   }
 }
 

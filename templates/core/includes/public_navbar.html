@@ -49,13 +49,5 @@
 </header>
 
 <script nonce="{{ csp_nonce }}">
-(function () {
-  var btn = document.getElementById('hm-nav-hamburger');
-  var pills = document.getElementById('hm-nav-pills');
-  if (!btn || !pills) return;
-  btn.addEventListener('click', function () {
-    var open = pills.classList.toggle('is-open');
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  });
-})();
+/* Pills row scrolls horizontally on mobile; no hamburger toggle required. */
 </script>
