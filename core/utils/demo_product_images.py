@@ -61,6 +61,23 @@ def picsum_url(product: Product) -> str:
     return f'https://picsum.photos/seed/{seed_slug(product)}/{PICSUM_SIZE}'
 
 
+def extract_initials(name: str) -> str:
+    """First letter of first two words, or first two letters of a single word."""
+    words = [w for w in (name or '').split() if w]
+    if len(words) >= 2:
+        return f'{words[0][0]}{words[1][0]}'.upper()
+    if len(words) == 1 and len(words[0]) >= 2:
+        return words[0][:2].upper()
+    if len(words) == 1 and len(words[0]) == 1:
+        return words[0][0].upper()
+    return 'NA'
+
+
+def placeholder_relative_path(product: Product) -> str:
+    initials = extract_initials(product.name)
+    return f'productos/placeholders/placeholder_{product.pk}_{initials}.png'
+
+
 def relative_image_path(product: Product) -> str:
     return f'products/demo/product_{product.pk}.jpg'
 
@@ -134,7 +151,23 @@ def save_product_image_bytes(
 
 
 def generate_placeholder_bytes(product: Product) -> bytes:
+    """400×400 PNG with vertical brand gradient and centered white initials."""
     from PIL import Image, ImageDraw, ImageFont
+
+    size = 400
+    top_rgb = (0x1B, 0x3B, 0x63)
+    bottom_rgb = (0x2E, 0x5B, 0x8A)
+    initials = extract_initials(product.name)
+
+    img = Image.new('RGB', (size, size), top_rgb)
+    draw = ImageDraw.Draw(img)
+    for y in range(size):
+        t = y / max(size - 1, 1)
+        color = tuple(
+            int(top_rgb[i] + (bottom_rgb[i] - top_rgb[i]) * t)
+            for i in range(3)
+        )
+        draw.line([(0, y), (size, y)], fill=color)
 
     font_candidates = [
         '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
@@ -144,23 +177,48 @@ def generate_placeholder_bytes(product: Product) -> bytes:
     font = ImageFont.load_default()
     for path in font_candidates:
         if Path(path).is_file():
-            font = ImageFont.truetype(path, 80)
+            font = ImageFont.truetype(path, 120)
             break
 
-    parts = [p for p in product.name.split() if p][:2]
-    initials = ''.join(word[0] for word in parts).upper() if parts else 'TF'
-
-    color = BRAND_COLORS[product.pk % len(BRAND_COLORS)]
-    img = Image.new('RGB', (400, 300), color)
-    draw = ImageDraw.Draw(img)
     bbox = draw.textbbox((0, 0), initials, font=font)
-    x = (400 - (bbox[2] - bbox[0])) / 2
-    y = (300 - (bbox[3] - bbox[1])) / 2
+    x = (size - (bbox[2] - bbox[0])) / 2
+    y = (size - (bbox[3] - bbox[1])) / 2
     draw.text((x, y), initials, fill=(255, 255, 255), font=font)
 
     buffer = io.BytesIO()
-    img.save(buffer, format='JPEG', quality=85)
+    img.save(buffer, format='PNG', optimize=True)
     return buffer.getvalue()
+
+
+def save_placeholder_for_product(
+    product: Product,
+    content: bytes,
+    *,
+    storage_mode: str = 'local',
+) -> str:
+    """Save PNG placeholder and assign product.image (idempotent path per product)."""
+    rel_path = placeholder_relative_path(product)
+
+    if storage_mode == 'local':
+        write_local_image(rel_path, content)
+        Product.objects.filter(pk=product.pk).update(image=rel_path)
+        return rel_path
+
+    if storage_mode in ('remote', 'auto'):
+        try:
+            storage = remote_command_storage()
+            saved = storage.save(rel_path, ContentFile(content))
+            Product.objects.filter(pk=product.pk).update(image=saved)
+            return saved
+        except Exception as exc:
+            if storage_mode == 'remote':
+                raise
+            log.warning('Remote storage failed for product %s (%s); using local.', product.pk, exc)
+            write_local_image(rel_path, content)
+            Product.objects.filter(pk=product.pk).update(image=rel_path)
+            return rel_path
+
+    raise ValueError(f'Unknown storage_mode: {storage_mode}')
 
 
 def storage_mode_help() -> str:
