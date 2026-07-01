@@ -399,6 +399,15 @@
         return slides[0].offsetWidth + gap;
       }
 
+      function applyStaticMode() {
+        var isStatic = slides.length <= visible || maxIndex <= 0;
+        root.classList.toggle('hm-slider--static', isStatic);
+        if (isStatic) {
+          track.style.transform = 'none';
+          track.style.transition = 'none';
+        }
+      }
+
       function recalc() {
         var vpWidth = viewport.offsetWidth;
         var slideW = slides[0] ? slides[0].offsetWidth : 0;
@@ -408,6 +417,7 @@
         }
         maxIndex = Math.max(0, slides.length - visible);
         if (current > maxIndex) current = maxIndex;
+        applyStaticMode();
         buildDots();
         goTo(current, false);
         updateArrows();
@@ -415,6 +425,7 @@
 
       function buildDots() {
         dotsWrap.innerHTML = '';
+        if (root.classList.contains('hm-slider--static')) return;
         for (var i = 0; i <= maxIndex; i++) {
           var dot = document.createElement('button');
           dot.type = 'button';
@@ -435,6 +446,10 @@
       }
 
       function goTo(index, animate) {
+        if (root.classList.contains('hm-slider--static')) {
+          track.style.transform = 'none';
+          return;
+        }
         if (index > maxIndex) index = 0;
         if (index < 0) index = maxIndex;
         current = index;

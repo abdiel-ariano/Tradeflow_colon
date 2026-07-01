@@ -8,9 +8,9 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 :root {
   --hm-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --hm-ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
-  --hm-section-y: clamp(56px, 9vw, 96px);
+  --hm-section-y: clamp(36px, 5vw, 56px);
   --hm-reveal-duration: 0.9s;
-  --hm-stagger-step: 0.1s;
+  --hm-stagger-step: 0.08s;
 }
 
 /* ── Section system ── */
@@ -20,13 +20,13 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 }
 
 .hm-section__inner {
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding-inline: clamp(20px, 4vw, 40px);
+  padding-inline: clamp(16px, 3vw, 28px);
 }
 
 .hm-section__head {
-  margin-bottom: clamp(28px, 4vw, 40px);
+  margin-bottom: clamp(18px, 2.5vw, 24px);
 }
 
 .hm-section__head--center {
@@ -52,6 +52,19 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 .hm-section--surface { background: var(--gray-50); }
 .hm-section--navy { background: var(--navy); color: var(--white); }
 .hm-section--trust { padding-block: 0; }
+
+/* Collapse legacy tf-home-v2 section padding (avoid double vertical rhythm) */
+.hm-section.hm-featured,
+.hm-section.hm-suppliers,
+.hm-section.hm-trending,
+.hm-section.hm-how,
+.hm-section.hm-categories,
+.hm-section.hm-proof,
+.hm-section.hm-wall,
+.hm-section.hm-deals {
+  padding: 0;
+  padding-block: var(--hm-section-y);
+}
 
 /* ── Motion choreography (sections enter as composed units) ── */
 .hm-root--motion [data-hm-section]:not(.is-inview) .hm-section__head,
@@ -206,42 +219,173 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 }
 
 .hm-featured__card {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 28px rgba(15, 42, 68, 0.06);
-  transition: transform 0.35s var(--hm-ease-out), box-shadow 0.35s var(--hm-ease-out);
+  box-shadow: 0 4px 16px rgba(15, 42, 68, 0.05);
+  transition: transform 0.28s var(--hm-ease-out), box-shadow 0.28s var(--hm-ease-out), border-color 0.2s ease;
 }
 
 .hm-featured__card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 44px rgba(15, 42, 68, 0.12);
+  transform: translateY(-3px);
+  border-color: rgba(0, 87, 168, 0.22);
+  box-shadow: 0 10px 28px rgba(15, 42, 68, 0.1);
 }
 
 .hm-featured__media {
+  position: relative;
   display: block;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1;
   overflow: hidden;
+  border-radius: 8px;
   text-decoration: none;
+}
+
+.hm-featured__badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 2;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--white);
+  background: var(--danger);
 }
 
 .hm-featured__body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 18px 20px 22px;
+  gap: 3px;
+  padding: 0;
+  min-width: 0;
+}
+
+.hm-featured__cat {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .hm-featured__company {
   margin: 0;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hm-featured__name {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.hm-featured__name a {
+  color: var(--gray-900);
+  text-decoration: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hm-featured__name a:hover { color: var(--primary); }
+
+.hm-featured__price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+  margin-top: 2px;
+}
+
+.hm-featured__price {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.hm-featured__price-was {
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.hm-featured__unit {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.hm-featured__stock {
+  display: inline-flex;
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--success);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.hm-featured__cta {
+  display: inline-flex;
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--white);
+  background: var(--orange);
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.hm-featured__cta:hover {
+  background: var(--orange-light);
+  transform: translateY(-1px);
+}
+
+.hm-featured__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .hm-featured__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .hm-featured__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .hm-featured__card {
+    grid-template-columns: 72px 1fr;
+    padding: 10px;
+  }
 }
 
 /* ── Catalog breadth wall ── */
@@ -370,29 +514,55 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   text-overflow: ellipsis;
 }
 
-.hm-wall__price {
+.hm-wall__price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
   margin: 2px 0 0;
-  font-size: 14px;
-  font-weight: 700;
+}
+
+.hm-wall__price {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
   color: var(--navy);
 }
 
+.hm-wall__price-was {
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.hm-wall__cta {
+  display: inline-flex;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.hm-wall__cta:hover { text-decoration: underline; }
+
+.hm-wall__tile:hover .hm-wall__cta { color: var(--orange); }
+
 .hm-wall__footer {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
-  margin-top: 32px;
-  padding-top: 28px;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-top: 20px;
+  padding-top: 18px;
   border-top: 1px solid var(--border);
-  text-align: center;
 }
 
 .hm-wall__hint {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--gray-600);
-  max-width: 52ch;
 }
 
 /* ── Daily deals strip ── */
@@ -485,11 +655,134 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   color: var(--navy);
 }
 
-/* Featured grid — 6-up on wide screens */
-@media (min-width: 1100px) {
-  .hm-featured__grid {
-    grid-template-columns: repeat(3, 1fr);
+/* ── Trending card commerce layer ── */
+.hm-trend-card__body {
+  padding: 10px 12px 12px;
+}
+
+.hm-trend-card__cat {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hm-trend-card__media-wrap {
+  height: 148px;
+}
+
+.hm-trend-card__price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+  margin: 0 0 8px;
+}
+
+.hm-trend-card__price {
+  margin: 0;
+  font-size: 16px;
+}
+
+.hm-trend-card__price-was {
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.hm-trend-card__unit {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.hm-trend-card__name {
+  margin: 0 0 6px;
+}
+
+.hm-trend-card__company {
+  margin: 0 0 4px;
+}
+
+.hm-trend-card__cta {
+  opacity: 1;
+  transform: none;
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+/* ── Slider static mode (few items — fill width, no dead carousel) ── */
+.hm-slider--static {
+  padding: 0;
+}
+
+.hm-slider--static .hm-slider__arrow,
+.hm-slider--static .hm-slider__dots {
+  display: none !important;
+}
+
+.hm-slider--static .hm-slider__viewport {
+  overflow: visible;
+}
+
+.hm-slider--static .hm-slider__track {
+  transform: none !important;
+  transition: none !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.hm-slider--static.hm-slider--companies .hm-supplier-card--slide {
+  flex: 1 1 calc(33.333% - 10px);
+  min-width: 200px;
+  max-width: none;
+}
+
+.hm-slider--static.hm-slider--trending .hm-trend-card {
+  flex: 1 1 calc(25% - 11px);
+  min-width: 180px;
+  max-width: none;
+}
+
+@media (max-width: 900px) {
+  .hm-slider--static.hm-slider--companies .hm-supplier-card--slide {
+    flex: 1 1 calc(50% - 8px);
   }
+
+  .hm-slider--static.hm-slider--trending .hm-trend-card {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
+
+@media (max-width: 560px) {
+  .hm-slider--static.hm-slider--companies .hm-supplier-card--slide,
+  .hm-slider--static.hm-slider--trending .hm-trend-card {
+    flex: 1 1 100%;
+  }
+}
+
+.hm-suppliers__more {
+  margin-top: 24px;
+}
+
+.hm-suppliers__more-title {
+  margin-bottom: 14px;
+}
+
+.hm-proof__head {
+  margin-bottom: 20px !important;
+}
+
+.hm-proof__grid {
+  gap: 14px;
+}
+
+.hm-proof__card {
+  padding: 18px 16px;
 }
 
 /* ── How steps — subtle lift on reveal ── */

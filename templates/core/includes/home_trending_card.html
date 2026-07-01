@@ -7,13 +7,24 @@
     {% endif %}
     {% include "core/includes/home_product_media.html" with product=product css_class="hm-trend-card__media" decorative=True %}
   </a>
-  <p class="hm-trend-card__company">
-    <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-    <span title="{{ product.company.name }}">{{ product.company.name|truncatechars:24 }}</span>
-  </p>
-  <h3 class="hm-trend-card__name">
-    <a href="{% url 'catalogo_producto_detail' product.pk %}" title="{{ product.name }}">{{ product.name|truncatechars:56 }}</a>
-  </h3>
-  <p class="hm-trend-card__price">{{ product.display_price|money_usd }}</p>
-  <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-trend-card__cta">View details</a>
+  <div class="hm-trend-card__body">
+    {% if product.category %}
+    <span class="hm-trend-card__cat">{{ product.category.name|truncatechars:18 }}</span>
+    {% endif %}
+    <p class="hm-trend-card__company">
+      <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+      <span title="{{ product.company.name }}">{{ product.company.name|truncatechars:24 }}</span>
+    </p>
+    <h3 class="hm-trend-card__name">
+      <a href="{% url 'catalogo_producto_detail' product.pk %}" title="{{ product.name }}">{{ product.name|truncatechars:56 }}</a>
+    </h3>
+    <div class="hm-trend-card__price-row">
+      <span class="hm-trend-card__price">{{ product.display_price|money_usd }}</span>
+      {% if product.is_on_promo_now %}
+      <span class="hm-trend-card__price-was">{{ product.unit_price|money_usd }}</span>
+      {% endif %}
+      <span class="hm-trend-card__unit">/ unit</span>
+    </div>
+    <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-trend-card__cta">View &amp; quote →</a>
+  </div>
 </article>

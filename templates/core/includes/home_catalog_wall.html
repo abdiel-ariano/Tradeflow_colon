@@ -29,7 +29,13 @@
             <a href="{% url 'catalogo_producto_detail' product.pk %}" title="{{ product.name }}">{{ product.name|truncatechars:48 }}</a>
           </h3>
           <p class="hm-wall__company" title="{{ product.company.name }}">{{ product.company.name|truncatechars:28 }}</p>
-          <p class="hm-wall__price">{{ product.display_price|money_usd }}</p>
+          <p class="hm-wall__price-row">
+            <span class="hm-wall__price">{{ product.display_price|money_usd }}</span>
+            {% if product.is_on_promo_now %}
+            <span class="hm-wall__price-was">{{ product.unit_price|money_usd }}</span>
+            {% endif %}
+          </p>
+          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-wall__cta">View →</a>
         </div>
       </article>
       {% endfor %}
@@ -37,10 +43,10 @@
 
     <div class="hm-wall__footer">
       <p class="hm-wall__hint">
-        Showing {{ catalog_breadth_products|length }} of <strong>{{ stats.productos|default:0 }}</strong> active SKUs
-        from <strong>{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}</strong> verified suppliers.
+        {{ catalog_breadth_products|length }} of <strong>{{ stats.productos|default:0 }}</strong> SKUs
+        · <strong>{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}</strong> verified suppliers
       </p>
-      <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore full catalog →</a>
+      <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta">Explore full catalog →</a>
     </div>
   </div>
 </section>
