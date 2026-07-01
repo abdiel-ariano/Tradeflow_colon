@@ -209,9 +209,7 @@
 
       function syncRotatorHeight() {
         var track = root.querySelector('.hm-company-rotator__track');
-        var active = root.querySelector('.hm-company-rotator__panel.is-active');
-        if (!track || !active) return;
-        track.style.minHeight = active.offsetHeight + 'px';
+        if (track) track.style.minHeight = '';
       }
 
       function goTo(index) {
@@ -249,7 +247,7 @@
       }
 
       function startAutoplay() {
-        if (REDUCED || panels.length <= 1) return;
+        if (REDUCED || panels.length <= 1 || autoMs <= 0) return;
         stopAutoplay();
         interval = setInterval(function () {
           goTo(current + 1);
@@ -258,7 +256,7 @@
 
       function restartAutoplay() {
         stopAutoplay();
-        startAutoplay();
+        if (autoMs > 0) startAutoplay();
       }
 
       tabs.forEach(function (tab) {
@@ -269,14 +267,16 @@
         });
       });
 
-      root.addEventListener('mouseenter', stopAutoplay);
-      root.addEventListener('mouseleave', startAutoplay);
+      if (autoMs > 0) {
+        root.addEventListener('mouseenter', stopAutoplay);
+        root.addEventListener('mouseleave', startAutoplay);
+      }
 
       window.addEventListener('resize', syncRotatorHeight);
 
       goTo(0);
       syncRotatorHeight();
-      startAutoplay();
+      if (autoMs > 0) startAutoplay();
     });
   }
 
@@ -375,14 +375,14 @@
       }
 
       function startAutoplay() {
-        if (REDUCED || maxIndex <= 0) return;
+        if (REDUCED || maxIndex <= 0 || autoMs <= 0) return;
         stopAutoplay();
         interval = setInterval(nextSlide, autoMs);
       }
 
       function restartAutoplay() {
         stopAutoplay();
-        startAutoplay();
+        if (autoMs > 0) startAutoplay();
       }
 
       if (prev) {
@@ -399,13 +399,15 @@
         });
       }
 
-      root.addEventListener('mouseenter', stopAutoplay);
-      root.addEventListener('mouseleave', startAutoplay);
+      if (autoMs > 0) {
+        root.addEventListener('mouseenter', stopAutoplay);
+        root.addEventListener('mouseleave', startAutoplay);
+      }
 
       var touchStart = 0;
       track.addEventListener('touchstart', function (e) {
         touchStart = e.touches[0].clientX;
-        stopAutoplay();
+        if (autoMs > 0) stopAutoplay();
       }, { passive: true });
 
       track.addEventListener('touchend', function (e) {
@@ -414,12 +416,14 @@
           if (diff > 0) goTo(current + 1);
           else goTo(current - 1);
         }
-        setTimeout(startAutoplay, 3000);
+        if (autoMs > 0) {
+          setTimeout(startAutoplay, 3000);
+        }
       }, { passive: true });
 
       window.addEventListener('resize', recalc);
       recalc();
-      startAutoplay();
+      if (autoMs > 0) startAutoplay();
     });
   }
 
