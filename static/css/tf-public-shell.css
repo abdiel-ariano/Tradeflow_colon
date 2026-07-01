@@ -107,6 +107,12 @@ Public navbar + category pills — dual palette (navy/orange + blue).
   object-fit: contain;
 }
 
+.hm-nav-shell .tf-logo-wordmark--white,
+.hm-footer .tf-logo-wordmark--white {
+  opacity: 1;
+  filter: none;
+}
+
 .hm-nav__search {
   flex: 1;
   min-width: 0;
