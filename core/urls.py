@@ -110,9 +110,7 @@ urlpatterns = [
 
     # Portal del comprador
     path('catalogo/',                       views.catalogo_publico,     name='catalogo_publico'),
-    path('catalogo/producto/<int:pk>/', views.catalogo_producto_detail, name='catalogo_producto_detail'),
-    path('tienda/',                         views.tienda,               name='tienda'),
-    path('catalogo/',                       views.catalogo_publico,     name='catalogo_publico'),
+    path('catalogo/inquiry/agregar/<int:producto_id>/', views.catalogo_agregar_inquiry, name='catalogo_agregar_inquiry'),
     path('catalogo/producto/<int:pk>/', views.catalogo_producto_detail, name='catalogo_producto_detail'),
     path('carrito/',                         views.ver_carrito,         name='ver_carrito'),
     path('carrito/agregar/<int:producto_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),

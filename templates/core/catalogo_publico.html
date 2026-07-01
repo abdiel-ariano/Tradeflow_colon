@@ -3,11 +3,33 @@
 {% block title %}Colón Free Zone Wholesale Catalog | TradeFlow Colón{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'8' }}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'9' }}">
+{% if productos %}
+<script type="application/ld+json" nonce="{{ csp_nonce }}">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Colón Free Zone Wholesale Catalog",
+  "numberOfItems": {{ total_resultados|default:0 }},
+  "itemListElement": [
+    {% for producto in productos %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter }},
+      "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'catalogo_producto_detail' producto.pk %}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif %}
 {% endblock %}
 
 {% block content %}
 <div class="top-progress-bar" id="top-progress-bar" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100"></div>
+<div id="cat-page-config" hidden
+     data-inquiry-url="{% url 'catalogo_agregar_inquiry' 0 %}"
+     data-catalog-url="{% url 'catalogo_publico' %}"></div>
 <h1 class="visually-hidden">Colón Free Zone Catalog</h1>
 
 {% if not request.user.is_authenticated %}
@@ -17,12 +39,14 @@
 <div class="category-strip" aria-label="Browse by category">
   <div class="category-strip-inner">
     <a href="{% url 'catalogo_publico' %}{% if buscar %}?buscar={{ buscar|urlencode }}{% endif %}"
-       class="cat-pill{% if not categorias_sel %} cat-pill--active{% endif %}">
+       class="cat-pill cat-pill--ajax{% if not categorias_sel %} cat-pill--active{% endif %}"
+       data-cat-pill="all">
       All <span class="cat-count">({{ catalogo_stats.productos }})</span>
     </a>
     {% for cat in categorias|slice:":10" %}
     <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}{% if buscar %}&buscar={{ buscar|urlencode }}{% endif %}"
-       class="cat-pill{% if cat.pk|stringformat:'s' in categorias_sel %} cat-pill--active{% endif %}">
+       class="cat-pill cat-pill--ajax{% if cat.pk|stringformat:'s' in categorias_sel %} cat-pill--active{% endif %}"
+       data-cat-pill="{{ cat.pk }}">
       {% if "Electronics" in cat.name %}📱{% elif "Textile" in cat.name or "Uniform" in cat.name %}👕{% elif "Logistic" in cat.name or "Pack" in cat.name %}🚚{% elif "Home" in cat.name or "Appliance" in cat.name %}🏠{% elif "Access" in cat.name or "Leather" in cat.name %}👜{% elif "Food" in cat.name or "Beverage" in cat.name %}🥫{% elif "Auto" in cat.name %}🚗{% elif "Beauty" in cat.name or "Health" in cat.name %}💄{% else %}📦{% endif %}
       {{ cat.name }}
       <span class="cat-count">({{ cat.num_productos }})</span>
@@ -73,8 +97,8 @@
         <button type="button" class="sidebar-close" id="cat-sidebar-close" aria-label="Close filters">✕</button>
       </div>
       <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form" id="cat-filters-form">
-        {% if buscar %}<input type="hidden" name="buscar" value="{{ buscar }}">{% endif %}
-        {% if empresa %}<input type="hidden" name="empresa" value="{{ empresa }}">{% endif %}
+        <input type="hidden" name="buscar" id="cat-filter-buscar" value="{{ buscar }}">
+        <input type="hidden" name="empresa" id="cat-filter-empresa" value="{{ empresa }}">
 
         <div class="filter-section">
           <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
@@ -125,16 +149,16 @@
           <div class="filter-section-body">
             <ul class="filter-list filter-list--companies">
               <li>
-                <a href="{% url 'catalogo_publico' %}{% if buscar %}?buscar={{ buscar|urlencode }}{% endif %}"
-                   class="filter-company-link{% if not empresa %} is-active{% endif %}">All companies</a>
+                <button type="button" class="filter-company-link{% if not empresa %} is-active{% endif %}"
+                        data-empresa-filter="">All companies</button>
               </li>
               {% for emp in empresas|slice:":20" %}
               <li>
-                <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}{% if buscar %}&buscar={{ buscar|urlencode }}{% endif %}"
-                   class="filter-company-link{% if empresa == emp.pk|stringformat:'s' %} is-active{% endif %}">
+                <button type="button" class="filter-company-link{% if empresa == emp.pk|stringformat:'s' %} is-active{% endif %}"
+                        data-empresa-filter="{{ emp.pk }}">
                   {{ emp.name }}
                   <span class="filter-count">{{ emp.num_productos }}</span>
-                </a>
+                </button>
               </li>
               {% endfor %}
             </ul>
@@ -156,7 +180,9 @@
               <input type="number" name="precio_max" min="0" step="0.01" placeholder="Max PAB"
                      value="{{ precio_max }}" aria-label="Maximum price" class="price-input">
             </div>
-            <input type="range" min="0" max="500" value="250" class="price-range" aria-label="Price range slider">
+            <input type="range" min="0" max="500" step="5"
+                   value="{% if precio_max %}{{ precio_max }}{% else %}250{% endif %}"
+                   class="price-range" id="cat-price-range" aria-label="Price range slider">
           </div>
         </div>
 
@@ -172,14 +198,6 @@
             <label class="filter-option">
               <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
               <span>CFZ Verified only</span>
-            </label>
-            <label class="filter-option">
-              <input type="checkbox" name="export_docs" value="1" disabled>
-              <span>Has export documentation</span>
-            </label>
-            <label class="filter-option">
-              <input type="checkbox" name="intl_orders" value="1" checked disabled>
-              <span>Accepts international orders</span>
             </label>
           </div>
         </div>
@@ -216,6 +234,7 @@
     </aside>
 
     <section class="catalog-content">
+      <div class="active-filters" id="cat-active-filters" aria-live="polite" hidden></div>
       <div class="results-toolbar">
         <span class="results-count">
           <strong>{{ total_resultados|default:catalogo_stats.productos }}</strong> wholesale products
@@ -244,5 +263,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'8' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'9' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

@@ -3006,7 +3006,7 @@ def catalogo_publico(request):
         productos = productos.order_by(orden_map[orden_key])
 
     total_resultados = productos.count()
-    paginator = Paginator(productos, 12)
+    paginator = Paginator(productos, 24)
     page_obj = paginator.get_page(request.GET.get('page', 1))
 
     categorias = (
@@ -3065,6 +3065,7 @@ def catalogo_publico(request):
         'meta_description': meta_description,
         'titulo_pagina': 'Catalog',
         'nav_activo': 'catalogo',
+        'carrito_count': _contar_items(_get_carrito(request)),
         'category_spotlights': merch.category_spotlights(4, 4),
     }
 
@@ -3432,101 +3433,116 @@ catalogo_producto = catalogo_producto_detail
 # CARRITO — Gestión del carrito de compras
 # ---------------------------------------------------------------------------
 
+def _append_product_to_carrito(request, producto_id, cantidad=1, *, success_template=None):
+    """
+    Añade o incrementa un producto en el carrito de sesión.
+    Devuelve (ok: bool, payload: dict) para JSON o mensajes flash.
+    """
+    cantidad = int(cantidad)
+    producto = get_object_or_404(
+        Product.objects.select_related('inventory'),
+        pk=producto_id,
+        is_active=True,
+    )
+    disponible = producto.available_qty
+    precio = producto.display_price
+
+    if cantidad < 1:
+        return False, {'message': _('Quantity must be at least 1.'), 'status': 400}
+
+    if disponible == 0:
+        return False, {
+            'message': _('"%(name)s" has no stock available.') % {'name': producto.name},
+            'status': 400,
+        }
+
+    carrito = _get_carrito(request)
+    producto_key = str(producto_id)
+
+    if producto_key in carrito:
+        nueva_cantidad = carrito[producto_key]['cantidad'] + cantidad
+        if nueva_cantidad > disponible:
+            nueva_cantidad = disponible
+        carrito[producto_key]['cantidad'] = nueva_cantidad
+        carrito[producto_key]['subtotal'] = str(Decimal(precio) * nueva_cantidad)
+    else:
+        if cantidad > disponible:
+            cantidad = disponible
+        carrito[producto_key] = {
+            'nombre': producto.name,
+            'precio': str(precio),
+            'cantidad': cantidad,
+            'subtotal': str(precio * cantidad),
+            'imagen': producto.image.url if producto.image else '',
+        }
+
+    _save_carrito(request, carrito)
+    if success_template:
+        ok_msg = success_template % {'name': producto.name}
+    else:
+        ok_msg = _('"%(name)s" added to cart.') % {'name': producto.name}
+    return True, {
+        'message': ok_msg,
+        'carrito_count': _contar_items(carrito),
+        'producto_id': producto_id,
+        'cantidad_en_carrito': carrito[producto_key]['cantidad'],
+    }
+
+
+@catalog_access
+def catalogo_agregar_inquiry(request, producto_id):
+    """Añade al carrito de sesión desde el catálogo público (invitados incluidos)."""
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'message': _('Method not allowed.')}, status=405)
+
+    try:
+        cantidad = int(request.POST.get('cantidad', 1))
+    except (TypeError, ValueError):
+        cantidad = 1
+
+    ok, payload = _append_product_to_carrito(
+        request,
+        producto_id,
+        cantidad,
+        success_template=_('"%(name)s" added to inquiry cart.'),
+    )
+    if not ok:
+        status = payload.pop('status', 400)
+        if _request_wants_json(request):
+            return JsonResponse({'ok': False, **payload}, status=status)
+        messages.error(request, payload.get('message', ''))
+        return redirect('catalogo_publico')
+
+    if _request_wants_json(request):
+        return JsonResponse({'ok': True, **payload})
+    messages.success(request, payload['message'])
+    return redirect('catalogo_publico')
+
+
 @buyer_required
 def agregar_al_carrito(request, producto_id):
     """
     Agrega un producto al carrito o incrementa su cantidad si ya existe.
-
-    Método: POST únicamente (botón en la tarjeta del producto)
-    Parámetro POST: cantidad (int, default=1)
-
-    Validaciones:
-        - Producto debe existir y estar activo
-        - Cantidad debe ser >= 1
-        - Cantidad total no puede superar el stock disponible
-
-    Redirige de vuelta a la tienda después de agregar.
     """
     if request.method != 'POST':
         return redirect('tienda')
 
-    cantidad = int(request.POST.get('cantidad', 1))
+    try:
+        cantidad = int(request.POST.get('cantidad', 1))
+    except (TypeError, ValueError):
+        cantidad = 1
 
-    # Obtener producto con su inventario en una sola consulta
-    producto = get_object_or_404(
-        Product.objects.select_related('inventory'),
-        pk=producto_id,
-        is_active=True
-    )
-
-    disponible = producto.available_qty
-
-    # Validar cantidad
-    if cantidad < 1:
-        msg = _('Quantity must be at least 1.')
+    ok, payload = _append_product_to_carrito(request, producto_id, cantidad)
+    if not ok:
+        status = payload.pop('status', 400)
         if _request_wants_json(request):
-            return JsonResponse({'ok': False, 'message': msg}, status=400)
-        messages.error(request, msg)
+            return JsonResponse({'ok': False, **payload}, status=status)
+        messages.error(request, payload.get('message', ''))
         return redirect('tienda')
 
-    if disponible == 0:
-        msg = _('"%(name)s" has no stock available.') % {'name': producto.name}
-        if _request_wants_json(request):
-            return JsonResponse({'ok': False, 'message': msg}, status=400)
-        messages.error(request, msg)
-        return redirect('tienda')
-
-    # Actualizar carrito en sesión
-    carrito     = _get_carrito(request)
-    producto_key = str(producto_id)
-
-    if producto_key in carrito:
-        # El producto ya está en el carrito — sumar cantidades
-        nueva_cantidad = carrito[producto_key]['cantidad'] + cantidad
-        if nueva_cantidad > disponible:
-            warn_msg = _('Only %(qty)s units available for "%(name)s".') % {
-                'qty': disponible,
-                'name': producto.name,
-            }
-            if _request_wants_json(request):
-                pass
-            else:
-                messages.warning(request, warn_msg)
-            nueva_cantidad = disponible
-        carrito[producto_key]['cantidad'] = nueva_cantidad
-        carrito[producto_key]['subtotal'] = str(
-            Decimal(carrito[producto_key]['precio']) * nueva_cantidad
-        )
-    else:
-        # Producto nuevo en el carrito
-        if cantidad > disponible:
-            cantidad = disponible
-            if not _request_wants_json(request):
-                messages.warning(
-                    request,
-                    _('Only %(qty)s units available. Quantity was adjusted.') % {
-                        'qty': disponible,
-                    },
-                )
-        carrito[producto_key] = {
-            'nombre':   producto.name,
-            'precio':   str(producto.unit_price),
-            'cantidad': cantidad,
-            'subtotal': str(producto.unit_price * cantidad),
-            'imagen':   producto.image.url if producto.image else '',
-        }
-
-    _save_carrito(request, carrito)
-    ok_msg = _('"%(name)s" added to cart.') % {'name': producto.name}
     if _request_wants_json(request):
-        return JsonResponse({
-            'ok': True,
-            'message': ok_msg,
-            'carrito_count': _contar_items(carrito),
-            'producto_id': producto_id,
-            'cantidad_en_carrito': carrito[producto_key]['cantidad'],
-        })
-    messages.success(request, ok_msg)
+        return JsonResponse({'ok': True, **payload})
+    messages.success(request, payload['message'])
     return redirect('tienda')
 
 

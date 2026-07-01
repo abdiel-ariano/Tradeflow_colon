@@ -220,9 +220,13 @@ body.cat-catalog-page .tf-main {
   min-width: 16px;
   height: 16px;
   border-radius: 9999px;
-  display: grid;
+  display: none;
   place-items: center;
   padding: 0 2px;
+}
+
+.cart-badge.has-count {
+  display: grid;
 }
 
 .link-signin {
@@ -618,10 +622,16 @@ body.cat-catalog-page .tf-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
   padding: 6px 0;
   font-size: 13px;
   color: var(--tf-text);
   text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
 }
 
 .filter-company-link.is-active {
@@ -689,6 +699,47 @@ input[type="range"].price-range {
 }
 
 .btn-clear-filters:hover { color: var(--tf-navy); }
+
+/* ── Active filter chips ── */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tf-navy);
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border-soft);
+  border-radius: 9999px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.filter-chip:hover {
+  background: var(--tf-surface-hover);
+  border-color: var(--tf-border-hover);
+}
+
+.filter-chip--clear {
+  background: transparent;
+  color: var(--tf-text-2);
+  border-style: dashed;
+}
+
+.filter-chip--clear:hover {
+  color: var(--tf-navy);
+  background: transparent;
+}
 
 /* ── Results toolbar ── */
 .results-toolbar {
@@ -1109,6 +1160,22 @@ body.cat-catalog-page .product-card:hover .card-inquiry {
   transform: translateY(0);
 }
 
+@media (hover: none), (max-width: 767px) {
+  body.cat-catalog-page .product-card .card-inquiry {
+    transform: translateY(0);
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin-top: 8px;
+    height: 36px;
+  }
+
+  body.cat-catalog-page .product-card {
+    padding-bottom: var(--cat-card-padding);
+  }
+}
+
 .card-inquiry {
   position: absolute;
   left: 0;
@@ -1394,4 +1461,12 @@ body.cat-catalog-page .product-card:hover .card-inquiry {
 /* Hide default site footer when catalog footer is used */
 body.cat-catalog-page .tf-footer {
   display: none;
+}
+
+/* Chatbot clearance above mobile filter FAB */
+@media (max-width: 767px) {
+  body.cat-catalog-page #tf-assistant {
+    bottom: max(72px, calc(12px + env(safe-area-inset-bottom, 0px))) !important;
+    right: max(12px, env(safe-area-inset-right, 0px)) !important;
+  }
 }

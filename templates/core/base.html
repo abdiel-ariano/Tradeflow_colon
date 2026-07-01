@@ -1024,7 +1024,11 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   {% endif %}
 
   {% if not request.user.is_authenticated %}
+    {% with nav_page=request.resolver_match.url_name|default:'' %}
+    {% if nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' %}
     {% include "core/includes/public_navbar.html" %}
+    {% endif %}
+    {% endwith %}
   {% elif request.user.is_superuser or request.user.profile.role == 'admin' or request.user.profile.role == 'seller' %}
   {# Admin/seller: navbar por rol (tf-nav). Map oculto hasta fix mapa_zlc. #}
   <nav class="tf-nav tf-navbar" aria-label="Principal">
