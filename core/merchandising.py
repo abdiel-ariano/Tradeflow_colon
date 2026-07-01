@@ -324,8 +324,8 @@ def catalog_breadth_products(
     return picked[:limit]
 
 
-def home_stats():
-    """Estadísticas para hero y home (datos reales ORM)."""
+def home_stats_uncached():
+    """Estadísticas para hero y home (datos reales ORM, sin cache)."""
     from .models import Order
 
     since = timezone.now() - timedelta(days=30)
@@ -363,6 +363,78 @@ def home_stats():
         'categorias': categorias_activas or Category.objects.count(),
         'gmv_30d': gmv_int,
         'gmv_30d_fmt': format_money_usd(gmv_dec),
+    }
+
+
+def home_stats():
+    """Estadísticas para hero y home — cacheadas en producción."""
+    from core.utils.tradeflow_cache import cached_home_stats
+
+    return cached_home_stats()
+
+
+def build_guest_home_context(lang: str) -> dict:
+    """
+    Contexto completo de la landing pública (invitados).
+    Usado por home_view con cache por idioma.
+    """
+    promo_sections = []
+    for section in active_home_sections():
+        promo_sections.append({
+            'section': section,
+            'products': resolve_section_products(section),
+            'title': section.title_for_lang(lang),
+            'subtitle': section.subtitle_for_lang(lang),
+        })
+
+    cms_types = {row['section'].section_type for row in promo_sections}
+    daily_deals_list = daily_deals(8)
+    show_daily_deals_strip = (
+        'daily_deals' not in cms_types and len(daily_deals_list) >= 3
+    )
+    show_bestsellers_section = 'bestsellers' not in cms_types
+
+    featured_qs = active_products_base().filter(is_featured=True).select_related(
+        'company', 'category',
+    ).order_by('-merchandising_priority', '-created_at')[:8]
+    if not featured_qs.exists():
+        featured_qs = active_products_base().select_related(
+            'company', 'category',
+        ).order_by('-created_at')[:8]
+
+    bestsellers_list = bestsellers(8)
+    if not bestsellers_list:
+        bestsellers_list = list(featured_qs[:8])
+
+    empresas_home = list(
+        Company.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
+        .order_by('name')[:8]
+    )
+    if not empresas_home:
+        empresas_home = featured_companies_carousel(8)
+    spotlight_products_for_companies(empresas_home[:5], limit_per=3)
+
+    empresas_premium, empresas_standard = home_company_tiers(3, 8)
+
+    return {
+        'stats': home_stats_uncached(),
+        'daily_deals': daily_deals_list,
+        'bestsellers': bestsellers_list,
+        'featured_products': list(featured_qs),
+        'trending_products': trending_products(24),
+        'texture_products': texture_products(12),
+        'carousel_products': carousel_products(24),
+        'catalog_breadth_products': catalog_breadth_products(24),
+        'empresas_carousel': empresas_home,
+        'empresas_premium': empresas_premium,
+        'empresas_standard': empresas_standard,
+        'category_spotlights': category_spotlights(4, 6),
+        'promo_sections': promo_sections,
+        'show_daily_deals_strip': show_daily_deals_strip,
+        'show_bestsellers_section': show_bestsellers_section,
     }
 
 
