@@ -60,7 +60,9 @@ Public navbar + category pills — dual palette (navy/orange + blue).
   align-items: center;
   gap: 16px;
   min-height: 72px;
-  padding: 0 clamp(16px, 4vw, 40px);
+  max-width: 1380px;
+  margin-inline: auto;
+  padding: 0 clamp(12px, 2.5vw, 20px);
 }
 
 .hm-nav__brand {
@@ -251,7 +253,9 @@ Public navbar + category pills — dual palette (navy/orange + blue).
 .hm-nav__pills {
   display: flex;
   gap: 8px;
-  padding: 10px clamp(16px, 4vw, 40px);
+  max-width: 1380px;
+  margin-inline: auto;
+  padding: 10px clamp(12px, 2.5vw, 20px);
   overflow-x: auto;
   scroll-behavior: smooth;
   -ms-overflow-style: none;

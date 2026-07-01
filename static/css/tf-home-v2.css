@@ -182,9 +182,9 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-hero-mega__frame {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: 1380px;
   margin: 0 auto;
-  padding: 0 clamp(16px, 4vw, 40px) 48px;
+  padding: 0 clamp(12px, 2.5vw, 20px) 48px;
 }
 
 .hm-hero-mega__viewport {
@@ -649,13 +649,13 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-trust__list {
   list-style: none;
   margin: 0 auto;
-  padding: 20px clamp(20px, 4vw, 40px);
+  padding: 20px clamp(12px, 2.5vw, 20px);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 12px 0;
-  max-width: 1200px;
+  max-width: 1380px;
 }
 
 @media (max-width: 768px) {
@@ -2090,13 +2090,14 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-footer__newsletter-inner {
-  max-width: 1200px;
+  max-width: 1380px;
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  padding-inline: clamp(12px, 2.5vw, 20px);
 }
 
 .hm-footer__newsletter-title {
@@ -2160,9 +2161,9 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-footer__newsletter-btn:hover { background: var(--orange-light); }
 
 .hm-footer__grid {
-  max-width: 1200px;
+  max-width: 1380px;
   margin: 0 auto;
-  padding: 48px clamp(20px, 4vw, 40px) 0;
+  padding: 48px clamp(12px, 2.5vw, 20px) 0;
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 32px;
@@ -2210,9 +2211,9 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-footer__links a:hover { color: var(--white); }
 
 .hm-footer__bottom {
-  max-width: 1200px;
+  max-width: 1380px;
   margin: 32px auto 0;
-  padding: 20px clamp(20px, 4vw, 40px) 0;
+  padding: 20px clamp(12px, 2.5vw, 20px) 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 13px;
   text-align: center;

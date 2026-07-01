@@ -11,6 +11,8 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   --hm-section-y: clamp(36px, 5vw, 56px);
   --hm-reveal-duration: 0.9s;
   --hm-stagger-step: 0.08s;
+  --hm-content-max: 1380px;
+  --hm-gutter: clamp(12px, 2.5vw, 20px);
 }
 
 /* ── Section system ── */
@@ -20,9 +22,9 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 }
 
 .hm-section__inner {
-  max-width: 1240px;
+  max-width: var(--hm-content-max);
   margin: 0 auto;
-  padding-inline: clamp(16px, 3vw, 28px);
+  padding-inline: var(--hm-gutter);
 }
 
 .hm-section__head {
@@ -52,6 +54,47 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 .hm-section--surface { background: var(--gray-50); }
 .hm-section--navy { background: var(--navy); color: var(--white); }
 .hm-section--trust { padding-block: 0; }
+
+/* Home — use horizontal space; minimal side gutters */
+.hm-root .hm-hero-mega__frame,
+.hm-root .hm-trust__list,
+.hm-root .hm-footer__newsletter-inner,
+.hm-root .hm-footer__grid,
+.hm-root .hm-footer__bottom {
+  max-width: var(--hm-content-max);
+  padding-inline: var(--hm-gutter);
+}
+
+.hm-root .hm-hero-mega__frame {
+  margin-inline: auto;
+}
+
+.hm-root .hm-categories__grid {
+  gap: 14px;
+}
+
+@media (min-width: 1280px) {
+  .hm-root .hm-categories__grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .hm-root .hm-wall__grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+}
+
+.hm-footer__brand .tf-logo-wordmark--white {
+  height: 32px;
+  width: auto;
+  max-width: min(220px, 100%);
+}
+
+.hm-footer__logo {
+  display: inline-flex;
+  line-height: 0;
+  text-decoration: none;
+}
 
 /* Collapse legacy tf-home-v2 section padding (avoid double vertical rhythm) */
 .hm-section.hm-featured,

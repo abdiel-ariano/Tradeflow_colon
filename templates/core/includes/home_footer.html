@@ -17,7 +17,9 @@
 
   <div class="hm-footer__grid">
     <div class="hm-footer__brand">
-      {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
+      <a href="{% url 'home' %}" class="hm-footer__logo" aria-label="TradeFlow Colón home">
+        {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
+      </a>
       <p class="hm-footer__tagline">B2B wholesale marketplace for the Colón Free Zone</p>
       <div class="hm-footer__social">
         <a href="mailto:{{ tradeflow_contact_email }}" class="hm-footer__social-link" aria-label="Email">
