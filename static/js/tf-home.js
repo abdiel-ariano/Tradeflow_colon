@@ -197,7 +197,8 @@
       var tabs = root.querySelectorAll('[data-hm-company-tab]');
       if (!panels.length) return;
 
-      var autoMs = parseInt(root.getAttribute('data-hm-company-autoplay'), 10) || 8000;
+      var autoMs = parseInt(root.getAttribute('data-hm-company-autoplay'), 10);
+      if (isNaN(autoMs)) autoMs = 0;
       var current = 0;
       var interval = null;
 
@@ -298,7 +299,9 @@
       var current = 0;
       var maxIndex = 0;
       var interval = null;
-      var autoMs = parseInt(root.getAttribute('data-hm-slider-autoplay'), 10) || 5000;
+      var autoMsAttr = root.getAttribute('data-hm-slider-autoplay');
+      var autoMs = autoMsAttr === null || autoMsAttr === '' ? 0 : parseInt(autoMsAttr, 10);
+      if (isNaN(autoMs)) autoMs = 0;
 
       function stride() {
         if (!slides[0]) return 280;

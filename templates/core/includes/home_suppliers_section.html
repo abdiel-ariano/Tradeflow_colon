@@ -3,8 +3,8 @@
   <div class="hm-suppliers__inner">
     <div class="hm-suppliers__head">
       <div>
-        <h2 class="hm-section-title" id="hm-suppliers-title">Top Companies This Month</h2>
-        <p class="hm-section-sub">CFZ-verified partners with live wholesale inventory</p>
+        <h2 class="hm-section-title" id="hm-suppliers-title">Featured suppliers</h2>
+        <p class="hm-section-sub">CFZ-verified partners highlighted by catalog activity and visibility plans</p>
       </div>
       <button type="button" class="hm-info-btn" id="hm-rankings-info" aria-describedby="hm-rankings-tooltip" aria-expanded="false">
         <span class="material-symbols-rounded hm-info-btn__icon" aria-hidden="true">info</span>
@@ -16,7 +16,7 @@
     </div>
 
     {% if empresas_carousel %}
-    <div class="hm-company-rotator" data-hm-company-rotator data-hm-company-autoplay="8000" aria-live="polite">
+    <div class="hm-company-rotator" data-hm-company-rotator aria-live="polite">
       <div class="hm-company-rotator__track">
         {% for emp in empresas_carousel|slice:":5" %}
         <div class="hm-company-rotator__panel{% if forloop.first %} is-active{% endif %}">
@@ -40,7 +40,7 @@
 
     <div class="hm-suppliers__more">
       <h3 class="hm-suppliers__more-title">More verified suppliers</h3>
-      <div class="hm-slider hm-slider--companies" data-hm-slider data-hm-slider-visible="4" data-hm-slider-autoplay="5000">
+      <div class="hm-slider hm-slider--companies" data-hm-slider data-hm-slider-visible="4">
         <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous suppliers">
           <span class="material-symbols-rounded">chevron_left</span>
         </button>

@@ -3,7 +3,7 @@
 <header class="cat-nav" id="cat-catalog-nav">
   <div class="navbar-primary">
     <a class="navbar-logo" href="{% url 'home' %}">
-      <div class="logo-square">T</div>
+      {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="navbar-logo__img" eager=1 %}
       <span class="logo-text">TradeFlow <span class="logo-accent">Colón</span></span>
     </a>
 

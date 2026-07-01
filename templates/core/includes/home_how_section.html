@@ -1,0 +1,38 @@
+{% comment %}Static how-it-works — always visible, not inside hero carousel.{% endcomment %}
+<section class="hm-how" id="como-funciona" aria-labelledby="hm-how-title">
+  <div class="hm-how__inner">
+    <div class="hm-how__head" data-hm-reveal>
+      <h2 class="hm-section-title hm-section-title--center" id="hm-how-title">How TradeFlow works</h2>
+      <p class="hm-section-sub hm-section-sub--center">A straightforward B2B path from browse to delivery</p>
+    </div>
+    <ol class="hm-how__steps">
+      <li class="hm-how__step" data-hm-reveal>
+        <span class="hm-how__step-num" aria-hidden="true">1</span>
+        <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">travel_explore</span>
+        <h3 class="hm-how__step-title">Browse the catalog</h3>
+        <p class="hm-how__step-desc">Explore products and verified companies — no account required.</p>
+      </li>
+      <li class="hm-how__step" data-hm-reveal data-hm-reveal-delay="1">
+        <span class="hm-how__step-num" aria-hidden="true">2</span>
+        <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">person_add</span>
+        <h3 class="hm-how__step-title">Create your account</h3>
+        <p class="hm-how__step-desc">Sign up as a buyer when you are ready to order or request quotes.</p>
+      </li>
+      <li class="hm-how__step" data-hm-reveal data-hm-reveal-delay="2">
+        <span class="hm-how__step-num" aria-hidden="true">3</span>
+        <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">shopping_cart</span>
+        <h3 class="hm-how__step-title">Place your order</h3>
+        <p class="hm-how__step-desc">Add to cart, request quotes, and pay through secure B2B checkout.</p>
+      </li>
+      <li class="hm-how__step" data-hm-reveal data-hm-reveal-delay="3">
+        <span class="hm-how__step-num" aria-hidden="true">4</span>
+        <span class="hm-how__icon material-symbols-rounded" aria-hidden="true">local_shipping</span>
+        <h3 class="hm-how__step-title">Receive your goods</h3>
+        <p class="hm-how__step-desc">Track fulfillment with export documentation included.</p>
+      </li>
+    </ol>
+    <p class="hm-how__cta-wrap">
+      <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--primary hm-btn--lg">Start browsing →</a>
+    </p>
+  </div>
+</section>

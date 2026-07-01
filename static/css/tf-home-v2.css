@@ -305,6 +305,83 @@ Public homepage — dual palette (navy/orange + blue).
 
 .hm-hero-mega__how-cta { margin-top: 4px; }
 
+/* Static hero (no carousel) */
+.hm-hero-mega--static .hm-hero-mega__frame {
+  padding-top: clamp(20px, 4vw, 36px);
+  padding-bottom: clamp(36px, 6vw, 56px);
+}
+
+.hm-hero__logo-link {
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+.hm-hero__logo {
+  height: 36px !important;
+  max-width: 200px;
+}
+
+.hm-hero__seller-link {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.hm-hero__seller-link a {
+  color: var(--orange-light);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hm-hero__seller-link a:hover { text-decoration: underline; }
+
+.hm-hero__proof {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.hm-hero__proof-item strong {
+  color: var(--white);
+  font-weight: 700;
+}
+
+.hm-hero__proof-sep { opacity: 0.45; }
+
+.hm-hero__visual-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  text-decoration: none;
+  color: var(--white);
+}
+
+.hm-hero__visual-caption-name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.hm-hero__visual-caption-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--orange-light);
+  white-space: nowrap;
+}
+
+.hm-section-sub--center { text-align: center; }
+
 .hm-hero-mega__pitch {
   display: grid;
   grid-template-columns: 1fr;
@@ -584,6 +661,20 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-trust__icon {
   font-size: 18px;
   color: var(--orange);
+}
+
+.hm-trust__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.hm-trust__link:hover {
+  color: var(--white);
+  text-decoration: underline;
 }
 
 .hm-trust__divider {
@@ -1176,6 +1267,23 @@ Public homepage — dual palette (navy/orange + blue).
 
 .hm-how { background: var(--gray-100); padding: 64px clamp(20px, 4vw, 40px); }
 .hm-how__inner { max-width: 1100px; margin: 0 auto; }
+.hm-how__head { text-align: center; margin-bottom: 32px; }
+.hm-how__cta-wrap { text-align: center; margin: 32px 0 0; }
+
+.hm-how__step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
 
 .hm-how__steps {
   list-style: none;
@@ -1236,6 +1344,156 @@ Public homepage — dual palette (navy/orange + blue).
 
 .hm-how__step-title { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--gray-900); }
 .hm-how__step-desc { margin: 0; font-size: 13px; color: var(--gray-500); line-height: 1.5; }
+
+.hm-featured {
+  background: var(--white);
+  padding: 56px clamp(20px, 4vw, 40px);
+  border-bottom: 1px solid var(--border);
+}
+
+.hm-featured__inner { max-width: 1200px; margin: 0 auto; }
+
+.hm-featured__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.hm-featured__see-all {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.hm-featured__see-all:hover { text-decoration: underline; }
+
+.hm-featured__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .hm-featured__grid { grid-template-columns: 1fr; }
+}
+
+.hm-featured__card {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 16px;
+  padding: 16px;
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+@media (max-width: 520px) {
+  .hm-featured__card { grid-template-columns: 1fr; }
+}
+
+.hm-featured__media {
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--white);
+}
+
+.hm-featured__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hm-featured__company {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hm-featured__name {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.hm-featured__name a {
+  color: var(--gray-900);
+  text-decoration: none;
+}
+
+.hm-featured__name a:hover { color: var(--primary); }
+
+.hm-featured__price {
+  margin: 0 0 12px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.hm-proof {
+  background: linear-gradient(145deg, var(--navy) 0%, var(--navy-mid) 100%);
+  color: var(--white);
+  padding: 64px clamp(20px, 4vw, 40px);
+}
+
+.hm-proof__inner { max-width: 1100px; margin: 0 auto; }
+.hm-proof__head { text-align: center; margin-bottom: 32px; }
+
+.hm-proof__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .hm-proof__grid { grid-template-columns: 1fr; }
+}
+
+.hm-proof__card {
+  padding: 22px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.hm-proof__icon {
+  font-size: 28px;
+  color: var(--orange-light);
+  margin-bottom: 10px;
+}
+
+.hm-proof__title {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.hm-proof__text {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.hm-proof__link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--orange-light);
+  text-decoration: none;
+}
+
+.hm-proof__link:hover { text-decoration: underline; }
 
 .hm-categories { background: var(--white); padding: 64px clamp(20px, 4vw, 40px); }
 .hm-categories--dark {

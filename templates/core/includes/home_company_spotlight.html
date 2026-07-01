@@ -7,7 +7,7 @@ Variables: company (with spotlight_products attached in home_view)
     <div class="hm-spotlight-unified__identity">
       <span class="hm-spotlight-unified__avatar">{{ company.name|slice:":2"|upper }}</span>
       <div>
-        <span class="hm-spotlight-unified__rank">Top company this month</span>
+        <span class="hm-spotlight-unified__rank">Featured supplier</span>
         <h3 class="hm-spotlight-unified__name">{{ company.name }}</h3>
         <span class="hm-spotlight-unified__badge">
           <span class="material-symbols-rounded" aria-hidden="true">verified</span>
@@ -39,7 +39,7 @@ Variables: company (with spotlight_products attached in home_view)
 
     <div class="hm-spotlight-unified__products-body">
       {% if company.spotlight_products %}
-      <div class="hm-slider hm-slider--spotlight" data-hm-slider data-hm-slider-visible="3" data-hm-slider-autoplay="4500">
+      <div class="hm-slider hm-slider--spotlight" data-hm-slider data-hm-slider-visible="3">
         <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous products">
           <span class="material-symbols-rounded">chevron_left</span>
         </button>

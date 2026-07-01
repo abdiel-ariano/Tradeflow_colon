@@ -1,29 +1,39 @@
-{% comment %}Trust bar — Material icons, navy mid background.{% endcomment %}
+{% comment %}Trust bar — factual platform signals with catalog links.{% endcomment %}
 <section class="hm-trust" id="hm-trust" aria-label="Platform trust indicators">
   <ul class="hm-trust__list">
     <li class="hm-trust__item">
-      <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">shield</span>
-      CFZ-Verified Companies
+      <a href="{% url 'catalogo_publico' %}?verificado=1" class="hm-trust__link">
+        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">shield</span>
+        CFZ-verified companies
+      </a>
     </li>
     <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
     <li class="hm-trust__item">
-      <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">description</span>
-      Export Docs Included
+      <a href="{% url 'home' %}#como-funciona" class="hm-trust__link" title="Export docs included in the order flow">
+        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">description</span>
+        Export docs in every order
+      </a>
     </li>
     <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
     <li class="hm-trust__item">
-      <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">lock</span>
-      Secure Escrow Payments
+      <a href="{% url 'signup' %}" class="hm-trust__link" title="Secure B2B checkout for registered buyers">
+        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">lock</span>
+        Secure B2B checkout
+      </a>
     </li>
     <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
     <li class="hm-trust__item">
-      <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">star</span>
-      Verified Supplier Reviews
+      <a href="{% url 'catalogo_publico' %}" class="hm-trust__link">
+        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">inventory_2</span>
+        Live wholesale inventory
+      </a>
     </li>
     <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
     <li class="hm-trust__item">
-      <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">account_balance</span>
-      Official Free Zone Registry
+      <a href="{% url 'home' %}#hm-suppliers" class="hm-trust__link">
+        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">account_balance</span>
+        Colón Free Zone registry
+      </a>
     </li>
   </ul>
 </section>
