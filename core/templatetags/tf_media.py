@@ -25,10 +25,10 @@ def product_img(product, css_class=''):
 
 @register.filter
 def product_image_src(product):
-    """Public image URL — verified local file, remote URL, or picsum demo seed."""
+    """Public image URL — upload, local file, bundled category seed, or optional picsum."""
     if not product:
         return ''
-    from core.utils.demo_product_images import picsum_url
+    from core.utils.demo_product_images import catalog_seed_static_path, picsum_url, use_runtime_picsum
     from core.utils.media_storage import is_remote_media_storage, local_media_file_exists, product_image_url
 
     rel = ''
@@ -43,14 +43,25 @@ def product_image_src(product):
         elif local_media_file_exists(rel):
             return product_image_url(product)
 
-    return picsum_url(product)
+    if use_runtime_picsum():
+        return picsum_url(product)
+    return static(catalog_seed_static_path(product))
+
+
+@register.filter
+def product_image_category_seed_src(product):
+    from core.utils.demo_product_images import catalog_seed_static_path
+
+    return static(catalog_seed_static_path(product)) if product else ''
 
 
 @register.filter
 def product_image_picsum_src(product):
-    from core.utils.demo_product_images import picsum_url
+    from core.utils.demo_product_images import picsum_url, use_runtime_picsum
 
-    return picsum_url(product) if product else ''
+    if not product or not use_runtime_picsum():
+        return ''
+    return picsum_url(product)
 
 
 @register.filter

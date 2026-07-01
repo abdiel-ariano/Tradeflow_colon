@@ -23,6 +23,15 @@ log = logging.getLogger('tradeflow.demo_images')
 
 PICSUM_SIZE = '400/300'
 
+CATALOG_SEED_FILES = {
+    'electronics': 'images/catalog-seeds/electronics.jpg',
+    'textiles': 'images/catalog-seeds/textiles.jpg',
+    'beauty': 'images/catalog-seeds/beauty.jpg',
+    'home_appliances': 'images/catalog-seeds/home_appliances.jpg',
+    'toys': 'images/catalog-seeds/toys.jpg',
+    'general': 'images/catalog-seeds/general.jpg',
+}
+
 CATEGORY_KEYWORDS = {
     'textiles': ['textile', 'fabric', 'clothing', 'uniform', 'apparel'],
     'electronics': ['electronic', 'gadget', 'computer', 'phone', 'tech'],
@@ -59,6 +68,68 @@ def seed_slug(product: Product) -> str:
 
 def picsum_url(product: Product) -> str:
     return f'https://picsum.photos/seed/{seed_slug(product)}/{PICSUM_SIZE}'
+
+
+def use_runtime_picsum() -> bool:
+    """Remote picsum only when explicitly enabled (dev/demo). Production uses bundled seeds."""
+    return bool(getattr(settings, 'TRADEFLOW_USE_PICSUM_RUNTIME', settings.DEBUG))
+
+
+def catalog_seed_relative_path(keyword: str) -> str:
+    return CATALOG_SEED_FILES.get(keyword, CATALOG_SEED_FILES['general'])
+
+
+def catalog_seed_static_path(product: Product) -> str:
+    """Bundled category photograph — served from /static/, no external request."""
+    return catalog_seed_relative_path(category_keyword(product))
+
+
+def catalog_seed_bytes(keyword: str) -> bytes:
+    """Load bundled JPEG for a category keyword."""
+    rel = catalog_seed_relative_path(keyword)
+    full = Path(settings.BASE_DIR) / 'static' / rel
+    if not full.is_file():
+        raise FileNotFoundError(f'Catalog seed missing: {full}')
+    return full.read_bytes()
+
+
+def variant_image_bytes(product: Product, *, width: int = 800, height: int = 600) -> bytes:
+    """
+    Crop/resize a category seed with a per-product offset so SKUs in the same
+    category do not look identical on the home grid.
+    """
+    from PIL import Image
+
+    keyword = category_keyword(product)
+    source = Image.open(io.BytesIO(catalog_seed_bytes(keyword))).convert('RGB')
+    src_w, src_h = source.size
+
+    if src_w < width or src_h < height:
+        source = source.resize((max(width, src_w), max(height, src_h)), Image.Resampling.LANCZOS)
+        src_w, src_h = source.size
+
+    offset_x = (product.pk * 47) % max(src_w - width, 1)
+    offset_y = (product.pk * 31) % max(src_h - height, 1)
+    cropped = source.crop((offset_x, offset_y, offset_x + width, offset_y + height))
+
+    buffer = io.BytesIO()
+    cropped.save(buffer, format='JPEG', quality=88, optimize=True)
+    return buffer.getvalue()
+
+
+def assign_catalog_seed_image(product: Product, *, log_fn=None) -> str:
+    """Persist a category seed variant as the product's image file."""
+    if not product.pk:
+        raise ValueError('Product must be saved before assigning an image')
+
+    content = variant_image_bytes(product)
+    rel_path = relative_image_path(product)
+    write_local_image(rel_path, content)
+    Product.objects.filter(pk=product.pk).update(image=rel_path)
+
+    if log_fn:
+        log_fn(f'Catalog seed image for {product.name} → {rel_path}')
+    return rel_path
 
 
 def extract_initials(name: str) -> str:

@@ -1,24 +1,10 @@
-{% comment %}Trust bar — factual platform signals with catalog links.{% endcomment %}
-<section class="hm-trust" id="hm-trust" aria-label="Platform trust indicators">
+{% comment %}Trust bar — compact factual signals (Impeccable: one line, no repetition with footer).{% endcomment %}
+<section class="hm-trust hm-trust--compact" id="hm-trust" aria-label="Platform trust indicators">
   <ul class="hm-trust__list">
     <li class="hm-trust__item">
       <a href="{% url 'catalogo_publico' %}?verificado=1" class="hm-trust__link">
-        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">shield</span>
-        CFZ-verified companies
-      </a>
-    </li>
-    <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
-    <li class="hm-trust__item">
-      <a href="{% url 'home' %}#como-funciona" class="hm-trust__link" title="Export docs included in the order flow">
-        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">description</span>
-        Export docs in every order
-      </a>
-    </li>
-    <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
-    <li class="hm-trust__item">
-      <a href="{% url 'signup' %}" class="hm-trust__link" title="Secure B2B checkout for registered buyers">
-        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">lock</span>
-        Secure B2B checkout
+        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">verified</span>
+        CFZ-verified suppliers
       </a>
     </li>
     <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
@@ -30,9 +16,9 @@
     </li>
     <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
     <li class="hm-trust__item">
-      <a href="{% url 'home' %}#hm-suppliers" class="hm-trust__link">
-        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">account_balance</span>
-        Colón Free Zone registry
+      <a href="{% url 'home' %}#como-funciona" class="hm-trust__link">
+        <span class="material-symbols-rounded hm-trust__icon" aria-hidden="true">description</span>
+        Export docs included
       </a>
     </li>
   </ul>

@@ -4,7 +4,7 @@ Home product media — shimmer while loading, picsum + branded SVG fallback chai
 Variables: product, img_class, css_class, loading, aspect (optional modifier class)
 {% endcomment %}
 {% load static tf_media %}
-{% with primary=product|product_image_src picsum=product|product_image_picsum_src %}
+{% with primary=product|product_image_src category_seed=product|product_image_category_seed_src picsum=product|product_image_picsum_src %}
 <div class="hm-media{% if aspect %} hm-media--{{ aspect }}{% endif %}" data-hm-media>
   <div class="hm-media__shimmer" aria-hidden="true"></div>
   <img src="{{ primary }}"
@@ -14,7 +14,8 @@ Variables: product, img_class, css_class, loading, aspect (optional modifier cla
        decoding="async"
        {% if decorative %}role="presentation"{% endif %}
        data-tf-product-image
-       data-hm-picsum="{{ picsum }}"
+       {% if category_seed %}data-hm-category-seed="{{ category_seed }}"{% endif %}
+       {% if picsum %}data-hm-picsum="{{ picsum }}"{% endif %}
        data-hm-static="{% static 'images/home-product-fallback.svg' %}"
        data-hm-fallback-stage="0"
        onerror="if(window.TFHomeMediaFallback){window.TFHomeMediaFallback(this);}">

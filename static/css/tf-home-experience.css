@@ -997,6 +997,30 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   max-width: min(260px, 72vw) !important;
 }
 
+/* ── Compact trust bar ── */
+.hm-trust--compact .hm-trust__list {
+  justify-content: center;
+  gap: 8px 12px;
+  padding-block: 10px;
+}
+
+.hm-trust--compact .hm-trust__link {
+  font-size: 13px;
+}
+
+.hm-footer__newsletter-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+@media (max-width: 720px) {
+  .hm-footer__newsletter-action {
+    justify-content: flex-start;
+    margin-top: 12px;
+  }
+}
+
 /* ── Compact how-it-works ── */
 .hm-how__head--compact {
   margin-bottom: clamp(16px, 2vw, 22px) !important;

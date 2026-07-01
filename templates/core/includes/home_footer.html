@@ -7,11 +7,9 @@
         <h2 class="hm-footer__newsletter-title">Stay Updated</h2>
         <p class="hm-footer__newsletter-sub">Get the latest products and deals from the Free Zone</p>
       </div>
-      <form class="hm-footer__newsletter-form" action="{% url 'home' %}" method="get" aria-label="Newsletter signup">
-        <label class="visually-hidden" for="hm-newsletter-email">Email</label>
-        <input id="hm-newsletter-email" type="email" name="newsletter" placeholder="your@email.com" autocomplete="email">
-        <button type="submit" class="hm-footer__newsletter-btn">Subscribe</button>
-      </form>
+      <div class="hm-footer__newsletter-action">
+        <a href="mailto:{{ tradeflow_contact_email }}?subject=TradeFlow%20marketplace%20updates" class="hm-footer__newsletter-btn">Contact us for updates</a>
+      </div>
     </div>
   </div>
 

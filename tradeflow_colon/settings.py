@@ -230,7 +230,9 @@ STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 # Cache-bust query param for JS/CSS after deploy (set TRADEFLOW_ASSET_VERSION on Railway).
-TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='home-dual-v22')
+TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='home-dual-v23')
+# Runtime picsum URLs in templates (off in production — use bundled catalog seeds).
+TRADEFLOW_USE_PICSUM_RUNTIME = config('TRADEFLOW_USE_PICSUM_RUNTIME', default=DEBUG, cast=bool)
 
 # ── Cache (páginas públicas / merchandising) ───────────────────────────────
 # REDIS_URL en Railway → compartido entre workers Gunicorn (recomendado).
