@@ -7,13 +7,83 @@
 
   var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ── Product image fallback: primary → picsum → branded SVG ── */
+  function mediaFallback(img) {
+    var stage = img.getAttribute('data-hm-fallback-stage') || '0';
+    var picsum = img.getAttribute('data-hm-picsum');
+    var staticSrc = img.getAttribute('data-hm-static');
+    var wrap = img.closest('[data-hm-media]');
+
+    if (stage === '0' && picsum && img.src !== picsum) {
+      img.setAttribute('data-hm-fallback-stage', '1');
+      img.src = picsum;
+      return;
+    }
+    if (stage === '1' && staticSrc) {
+      img.setAttribute('data-hm-fallback-stage', '2');
+      img.src = staticSrc;
+      img.classList.add('is-placeholder');
+      if (wrap) {
+        wrap.classList.add('is-error');
+        wrap.classList.add('is-loaded');
+      }
+    }
+  }
+
+  window.TFHomeMediaFallback = mediaFallback;
+
+  function markMediaLoaded(img) {
+    var wrap = img.closest('[data-hm-media]');
+    if (!wrap) return;
+    wrap.classList.add('is-loaded');
+    if (img.classList.contains('is-placeholder')) {
+      wrap.classList.add('is-error');
+    }
+  }
+
+  function bindMediaImage(img) {
+    function onLoad() {
+      markMediaLoaded(img);
+    }
+
+    function onError() {
+      var prev = img.src;
+      mediaFallback(img);
+      if (img.src !== prev) {
+        img.addEventListener('load', onLoad, { once: true });
+        img.addEventListener('error', function () {
+          markMediaLoaded(img);
+        }, { once: true });
+        return;
+      }
+      markMediaLoaded(img);
+    }
+
+    if (img.complete && img.naturalWidth > 0) {
+      onLoad();
+      return;
+    }
+
+    img.addEventListener('load', onLoad, { once: true });
+    img.addEventListener('error', onError, { once: true });
+  }
+
+  function initProductMedia() {
+    document.querySelectorAll('[data-hm-media] img').forEach(bindMediaImage);
+  }
+
   /* ── Count-up (hero stats) ── */
   function animateCount(el, target, suffix, duration) {
     if (REDUCED) {
       el.textContent = target.toLocaleString() + (suffix || '');
       return;
     }
-    var start = 0;
+    var parsed = parseInt(String(el.textContent).replace(/[^0-9]/g, ''), 10);
+    var start = isNaN(parsed) ? 0 : parsed;
+    if (start >= target) {
+      el.textContent = target.toLocaleString() + (suffix || '');
+      return;
+    }
     var startTime = null;
     function step(ts) {
       if (!startTime) startTime = ts;
@@ -47,7 +117,7 @@
     stats.forEach(function (el) { observer.observe(el); });
   }
 
-  /* ── Scroll reveal ── */
+  /* ── Scroll reveal (individual elements) ── */
   function initReveal() {
     var items = document.querySelectorAll('[data-hm-reveal]');
     if (!items.length) return;
@@ -66,10 +136,35 @@
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.12, rootMargin: '0px 0px -6% 0px' }
     );
 
     items.forEach(function (el) { observer.observe(el); });
+  }
+
+  /* ── Section choreography (staggered groups) ── */
+  function initSectionReveal() {
+    var sections = document.querySelectorAll('[data-hm-section]');
+    if (!sections.length) return;
+
+    if (REDUCED) {
+      sections.forEach(function (el) { el.classList.add('is-inview'); });
+      return;
+    }
+
+    var observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-inview');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -8% 0px' }
+    );
+
+    sections.forEach(function (el) { observer.observe(el); });
   }
 
   /* ── Hero mega-carousel (full-width slides) ── */
@@ -118,6 +213,11 @@
         slides.forEach(function (s, i) {
           s.classList.toggle('is-active', i === current);
         });
+        var frame = root;
+        frame.classList.toggle(
+          'hm-hero-mega__frame--how-active',
+          slides[current].classList.contains('hm-hero-mega__slide--how')
+        );
       }
 
       function nextSlide() {
@@ -187,14 +287,31 @@
       var tabs = root.querySelectorAll('[data-hm-company-tab]');
       if (!panels.length) return;
 
-      var autoMs = parseInt(root.getAttribute('data-hm-company-autoplay'), 10) || 8000;
+      var autoMs = parseInt(root.getAttribute('data-hm-company-autoplay'), 10);
+      if (isNaN(autoMs)) autoMs = 0;
       var current = 0;
       var interval = null;
+
+      function markSpotlightReady(panel) {
+        var host = panel.querySelector('[data-hm-spotlight-products]');
+        if (host) host.classList.add('is-ready');
+      }
+
+      function syncRotatorHeight() {
+        var track = root.querySelector('.hm-company-rotator__track');
+        if (track) track.style.minHeight = '';
+      }
 
       function goTo(index) {
         if (index >= panels.length) index = 0;
         if (index < 0) index = panels.length - 1;
         current = index;
+        panels.forEach(function (p, i) {
+          var host = p.querySelector('[data-hm-spotlight-products]');
+          if (host && i !== current) {
+            host.classList.remove('is-ready');
+          }
+        });
         panels.forEach(function (p, i) {
           p.classList.toggle('is-active', i === current);
         });
@@ -202,9 +319,14 @@
           t.classList.toggle('is-active', i === current);
           t.setAttribute('aria-selected', i === current ? 'true' : 'false');
         });
-        window.setTimeout(function () {
-          window.dispatchEvent(new Event('resize'));
-        }, 60);
+        window.requestAnimationFrame(function () {
+          markSpotlightReady(panels[current]);
+          syncRotatorHeight();
+          window.setTimeout(function () {
+            syncRotatorHeight();
+            window.dispatchEvent(new Event('resize'));
+          }, 60);
+        });
       }
 
       function stopAutoplay() {
@@ -215,7 +337,7 @@
       }
 
       function startAutoplay() {
-        if (REDUCED || panels.length <= 1) return;
+        if (REDUCED || panels.length <= 1 || autoMs <= 0) return;
         stopAutoplay();
         interval = setInterval(function () {
           goTo(current + 1);
@@ -224,7 +346,7 @@
 
       function restartAutoplay() {
         stopAutoplay();
-        startAutoplay();
+        if (autoMs > 0) startAutoplay();
       }
 
       tabs.forEach(function (tab) {
@@ -235,11 +357,16 @@
         });
       });
 
-      root.addEventListener('mouseenter', stopAutoplay);
-      root.addEventListener('mouseleave', startAutoplay);
+      if (autoMs > 0) {
+        root.addEventListener('mouseenter', stopAutoplay);
+        root.addEventListener('mouseleave', startAutoplay);
+      }
+
+      window.addEventListener('resize', syncRotatorHeight);
 
       goTo(0);
-      startAutoplay();
+      syncRotatorHeight();
+      if (autoMs > 0) startAutoplay();
     });
   }
 
@@ -262,12 +389,23 @@
       var current = 0;
       var maxIndex = 0;
       var interval = null;
-      var autoMs = parseInt(root.getAttribute('data-hm-slider-autoplay'), 10) || 5000;
+      var autoMsAttr = root.getAttribute('data-hm-slider-autoplay');
+      var autoMs = autoMsAttr === null || autoMsAttr === '' ? 0 : parseInt(autoMsAttr, 10);
+      if (isNaN(autoMs)) autoMs = 0;
 
       function stride() {
         if (!slides[0]) return 280;
         var gap = parseInt(window.getComputedStyle(track).gap, 10) || 16;
         return slides[0].offsetWidth + gap;
+      }
+
+      function applyStaticMode() {
+        var isStatic = slides.length <= visible || maxIndex <= 0;
+        root.classList.toggle('hm-slider--static', isStatic);
+        if (isStatic) {
+          track.style.transform = 'none';
+          track.style.transition = 'none';
+        }
       }
 
       function recalc() {
@@ -279,6 +417,7 @@
         }
         maxIndex = Math.max(0, slides.length - visible);
         if (current > maxIndex) current = maxIndex;
+        applyStaticMode();
         buildDots();
         goTo(current, false);
         updateArrows();
@@ -286,6 +425,7 @@
 
       function buildDots() {
         dotsWrap.innerHTML = '';
+        if (root.classList.contains('hm-slider--static')) return;
         for (var i = 0; i <= maxIndex; i++) {
           var dot = document.createElement('button');
           dot.type = 'button';
@@ -306,6 +446,10 @@
       }
 
       function goTo(index, animate) {
+        if (root.classList.contains('hm-slider--static')) {
+          track.style.transform = 'none';
+          return;
+        }
         if (index > maxIndex) index = 0;
         if (index < 0) index = maxIndex;
         current = index;
@@ -336,14 +480,14 @@
       }
 
       function startAutoplay() {
-        if (REDUCED || maxIndex <= 0) return;
+        if (REDUCED || maxIndex <= 0 || autoMs <= 0) return;
         stopAutoplay();
         interval = setInterval(nextSlide, autoMs);
       }
 
       function restartAutoplay() {
         stopAutoplay();
-        startAutoplay();
+        if (autoMs > 0) startAutoplay();
       }
 
       if (prev) {
@@ -360,13 +504,15 @@
         });
       }
 
-      root.addEventListener('mouseenter', stopAutoplay);
-      root.addEventListener('mouseleave', startAutoplay);
+      if (autoMs > 0) {
+        root.addEventListener('mouseenter', stopAutoplay);
+        root.addEventListener('mouseleave', startAutoplay);
+      }
 
       var touchStart = 0;
       track.addEventListener('touchstart', function (e) {
         touchStart = e.touches[0].clientX;
-        stopAutoplay();
+        if (autoMs > 0) stopAutoplay();
       }, { passive: true });
 
       track.addEventListener('touchend', function (e) {
@@ -375,12 +521,14 @@
           if (diff > 0) goTo(current + 1);
           else goTo(current - 1);
         }
-        setTimeout(startAutoplay, 3000);
+        if (autoMs > 0) {
+          setTimeout(startAutoplay, 3000);
+        }
       }, { passive: true });
 
       window.addEventListener('resize', recalc);
       recalc();
-      startAutoplay();
+      if (autoMs > 0) startAutoplay();
     });
   }
 
@@ -449,11 +597,20 @@
     });
   }
 
+  function initMotion() {
+    var root = document.querySelector('.hm-root');
+    if (!root || REDUCED) return;
+    root.classList.add('hm-root--motion');
+  }
+
   function init() {
+    initMotion();
     initHeroCarousel();
     initCompanyRotator();
     initCountUp();
+    initSectionReveal();
     initReveal();
+    initProductMedia();
     initSliders();
     initCarousels();
     initNavShadow();

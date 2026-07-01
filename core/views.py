@@ -33,6 +33,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import escape
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.cache import cache_control
 
 AUTH_MODEL_BACKEND = 'django.contrib.auth.backends.ModelBackend'
 
@@ -64,6 +65,7 @@ from .utils.email_sender import (
     enviar_solicitud_decision,
 )
 from .utils.saas_billing import VolumeLimitExceeded, is_volume_limit_reached
+from .utils.media_storage import product_image_url
 from .utils.order_workflow import (
     accept_seller_order,
     reject_seller_order,
@@ -825,63 +827,15 @@ def home_view(request):
             return redirect(gate_route)
         return redirect(_redirect_by_role(request.user))
 
-    from . import merchandising as merch
+    from core.utils.tradeflow_cache import cached_guest_home_context
 
-    promo_sections = []
-    for section in merch.active_home_sections():
-        promo_sections.append({
-            'section': section,
-            'products': merch.resolve_section_products(section),
-        })
-
-    featured_qs = merch.active_products_base().filter(is_featured=True).select_related(
-        'company', 'category',
-    ).order_by('-merchandising_priority', '-created_at')[:6]
-    if not featured_qs.exists():
-        featured_qs = merch.active_products_base().select_related(
-            'company', 'category',
-        ).order_by('-created_at')[:6]
-
-    bestsellers_list = merch.bestsellers(6)
-    if not bestsellers_list:
-        bestsellers_list = list(featured_qs[:6])
-
-    empresas_home = list(
-        Company.objects.annotate(
-            num_productos=Count('products', filter=Q(products__is_active=True)),
-        )
-        .filter(num_productos__gt=0)
-        .order_by('name')[:8]
-    )
-    if not empresas_home:
-        empresas_home = merch.featured_companies_carousel(8)
-
-    empresas_premium, empresas_standard = merch.home_company_tiers(3, 8)
-    trending = merch.trending_products(12)
-    texture = merch.texture_products(12)
-
-    return render(
-        request,
-        'core/home.html',
-        {
-            'stats': merch.home_stats(),
-            'daily_deals': merch.daily_deals(8),
-            'bestsellers': bestsellers_list,
-            'featured_products': list(featured_qs),
-            'trending_products': trending,
-            'texture_products': texture,
-            'carousel_products': merch.carousel_products(12),
-            'empresas_carousel': empresas_home,
-            'empresas_premium': empresas_premium,
-            'empresas_standard': empresas_standard,
-            'category_spotlights': merch.category_spotlights(4, 4),
-            'promo_sections': promo_sections,
-            'show_cart_actions': False,
-        },
-    )
+    context = cached_guest_home_context()
+    context['show_cart_actions'] = False
+    return render(request, 'core/home.html', context)
 
 
 @require_GET
+@cache_control(public=True, max_age=60)
 def api_home_merchandising(request):
     """
     JSON público de merchandising home (cacheable) para integraciones ligeras.
@@ -889,31 +843,9 @@ def api_home_merchandising(request):
     Returns:
         JsonResponse: ofertas, bestsellers, destacados y secciones CMS activas.
     """
-    from django.core.cache import cache
+    from core.utils.tradeflow_cache import cached_api_home_merchandising
 
-    from . import merchandising as merch
-
-    cache_key = 'tf_home_merch_v1'
-    data = cache.get(cache_key)
-    if data is None:
-        sections = []
-        for section in merch.active_home_sections():
-            sections.append({
-                'slug': section.slug,
-                'type': section.section_type,
-                'title_es': section.title_es,
-                'title_en': section.title_en or section.title_es,
-                'product_ids': [p.pk for p in merch.resolve_section_products(section)],
-            })
-        data = {
-            'daily_deals': [p.pk for p in merch.daily_deals(12)],
-            'bestsellers': [p.pk for p in merch.bestsellers(12)],
-            'featured': [p.pk for p in merch.featured_products(12)],
-            'sections': sections,
-            'stats': merch.home_stats(),
-        }
-        cache.set(cache_key, data, 120)
-    return JsonResponse(data)
+    return JsonResponse(cached_api_home_merchandising())
 
 
 def _assistant_system_prompt() -> str:
@@ -2911,6 +2843,10 @@ def catalogo_publico(request):
     from django.db.models import Case, DecimalField, F, IntegerField, When
 
     from . import merchandising as merch
+    from core.utils.tradeflow_cache import (
+        cached_catalog_categories,
+        cached_catalog_empresas,
+    )
 
     catalogo_base = merch.active_products_base()
     stats = merch.home_stats()
@@ -3009,25 +2945,16 @@ def catalogo_publico(request):
     paginator = Paginator(productos, 24)
     page_obj = paginator.get_page(request.GET.get('page', 1))
 
-    categorias = (
-        Category.objects.annotate(
-            num_productos=Count('products', filter=Q(products__is_active=True)),
-        )
-        .filter(num_productos__gt=0)
-        .order_by('name')
-    )
+    categorias = cached_catalog_categories()
+    empresas = cached_catalog_empresas()
 
-    empresas = (
-        Company.objects.annotate(
-            num_productos=Count('products', filter=Q(products__is_active=True)),
-        )
-        .filter(num_productos__gt=0)
-        .order_by('name')
-    )
-
-    sugerencias = list(
-        categorias.order_by('-num_productos').values_list('name', flat=True)[:5]
-    )
+    sugerencias = [
+        c.name
+        for c in sorted(
+            categorias,
+            key=lambda c: (-getattr(c, 'num_productos', 0), c.name),
+        )[:5]
+    ]
     if not sugerencias:
         sugerencias = ['Electronics', 'Textiles', 'Logistics', 'Spare parts']
 
@@ -3391,10 +3318,11 @@ def catalogo_producto_detail(request, pk):
         stock_status = 'ok'
         stock_label = f'In stock ({product.available_qty} units)'
 
-    if product.image:
-        og_image = request.build_absolute_uri(product.image.url)
+    img = product_image_url(product)
+    if img:
+        og_image = img if img.startswith('http') else request.build_absolute_uri(img)
     else:
-        og_image = request.build_absolute_uri(static('img/product-placeholder.svg'))
+        og_image = request.build_absolute_uri(static('images/placeholder-producto.svg'))
 
     meta_description = (
         product.description[:155].strip()
@@ -3473,7 +3401,7 @@ def _append_product_to_carrito(request, producto_id, cantidad=1, *, success_temp
             'precio': str(precio),
             'cantidad': cantidad,
             'subtotal': str(precio * cantidad),
-            'imagen': producto.image.url if producto.image else '',
+            'imagen': product_image_url(producto) or '',
         }
 
     _save_carrito(request, carrito)

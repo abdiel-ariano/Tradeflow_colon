@@ -1,13 +1,13 @@
 {% comment %}
 Unified company spotlight — description + product carousel in one card.
-Variables: company, carousel_products, featured_products
+Variables: company (with spotlight_products attached in home_view)
 {% endcomment %}
 <article class="hm-spotlight-unified" data-hm-reveal>
   <header class="hm-spotlight-unified__head">
     <div class="hm-spotlight-unified__identity">
       <span class="hm-spotlight-unified__avatar">{{ company.name|slice:":2"|upper }}</span>
       <div>
-        <span class="hm-spotlight-unified__rank">Top company this month</span>
+        <span class="hm-spotlight-unified__rank">Featured supplier</span>
         <h3 class="hm-spotlight-unified__name">{{ company.name }}</h3>
         <span class="hm-spotlight-unified__badge">
           <span class="material-symbols-rounded" aria-hidden="true">verified</span>
@@ -20,33 +20,47 @@ Variables: company, carousel_products, featured_products
     </a>
   </header>
 
-  <p class="hm-spotlight-unified__desc">
-    Wholesale catalog with export-ready documentation, serving buyers across the Americas from the Colón Free Zone.
-  </p>
+  {% if company.tagline_es %}
+  <p class="hm-spotlight-unified__desc">{{ company.tagline_es }}</p>
+  {% endif %}
 
-  <div class="hm-spotlight-unified__products">
-    <div class="hm-slider hm-slider--spotlight" data-hm-slider data-hm-slider-visible="3" data-hm-slider-autoplay="4500">
-      <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous products">
-        <span class="material-symbols-rounded">chevron_left</span>
-      </button>
-      <div class="hm-slider__viewport">
-        <div class="hm-slider__track">
-          {% for product in carousel_products %}
-            {% if product.company_id == company.pk %}
-              {% include "core/includes/home_supplier_product_card.html" with product=product %}
-            {% endif %}
-          {% endfor %}
-          {% for product in featured_products %}
-            {% if product.company_id == company.pk %}
-              {% include "core/includes/home_supplier_product_card.html" with product=product %}
-            {% endif %}
-          {% endfor %}
+  <div class="hm-spotlight-unified__products hm-spotlight-products-host{% if spotlight_ready %} is-ready{% endif %}" data-hm-spotlight-products>
+    <div class="hm-spotlight-unified__products-loading" aria-hidden="true">
+      <div class="hm-spotlight-skeleton" aria-hidden="true">
+        {% for _ in "123" %}
+        <div class="hm-spotlight-skeleton__card">
+          <div class="hm-spotlight-skeleton__img"></div>
+          <div class="hm-spotlight-skeleton__line hm-spotlight-skeleton__line--title"></div>
+          <div class="hm-spotlight-skeleton__line hm-spotlight-skeleton__line--price"></div>
         </div>
+        {% endfor %}
       </div>
-      <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next products">
-        <span class="material-symbols-rounded">chevron_right</span>
-      </button>
-      <div class="hm-slider__dots" aria-hidden="true"></div>
+    </div>
+
+    <div class="hm-spotlight-unified__products-body">
+      {% if company.spotlight_products %}
+      <div class="hm-slider hm-slider--spotlight" data-hm-slider data-hm-slider-visible="3">
+        <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous products">
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+        <div class="hm-slider__viewport">
+          <div class="hm-slider__track">
+            {% for product in company.spotlight_products %}
+              {% include "core/includes/home_supplier_product_card.html" with product=product %}
+            {% endfor %}
+          </div>
+        </div>
+        <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next products">
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+        <div class="hm-slider__dots" aria-hidden="true"></div>
+      </div>
+      {% else %}
+      <p class="hm-spotlight-unified__products-empty" role="status">
+        <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+        No featured products yet
+      </p>
+      {% endif %}
     </div>
   </div>
 </article>

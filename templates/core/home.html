@@ -11,10 +11,16 @@ Home CSS is inlined in base.html via {% inline_css %} when url_name == home.
 <main class="hm-root" id="hm-root">
   {% include "core/includes/hero_section.html" %}
   {% include "core/includes/home_trust_bar.html" %}
+  {% include "core/includes/home_how_section.html" %}
+  {% include "core/includes/home_featured_section.html" %}
+  {% include "core/includes/home_promo_sections.html" %}
+  {% include "core/includes/home_deals_strip.html" %}
+  {% include "core/includes/home_bestsellers_section.html" %}
   {% include "core/includes/home_suppliers_section.html" %}
   {% include "core/includes/home_trending_section.html" %}
   {% include "core/includes/home_categories_section.html" %}
-  {% include "core/includes/home_testimonials_section.html" %}
+  {% include "core/includes/home_catalog_wall.html" %}
+  {% include "core/includes/home_proof_section.html" %}
 </main>
 {% endblock %}
 

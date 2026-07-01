@@ -78,6 +78,31 @@ def placeholder_relative_path(product: Product) -> str:
     return f'productos/placeholders/placeholder_{product.pk}_{initials}.png'
 
 
+def assign_product_image(product: Product, *, log_fn=None) -> str:
+    """
+    Generate a brand placeholder PNG, write to MEDIA_ROOT/productos/, return relative path.
+
+    Requires product.pk. Raises if the file is missing or zero bytes after write.
+    """
+    if not product.pk:
+        raise ValueError('Product must be saved before assigning an image')
+
+    content = generate_placeholder_bytes(product)
+    if not content:
+        raise ValueError(f'Empty image bytes for product {product.pk}')
+
+    rel_path = placeholder_relative_path(product)
+    write_local_image(rel_path, content)
+
+    full_path = Path(settings.MEDIA_ROOT) / rel_path
+    if not full_path.is_file() or full_path.stat().st_size == 0:
+        raise OSError(f'Image file missing or empty after write: {full_path}')
+
+    if log_fn:
+        log_fn(f'Generated image for {product.name} → {rel_path}')
+    return rel_path
+
+
 def relative_image_path(product: Product) -> str:
     return f'products/demo/product_{product.pk}.jpg'
 

@@ -60,7 +60,9 @@ Public navbar + category pills — dual palette (navy/orange + blue).
   align-items: center;
   gap: 16px;
   min-height: 72px;
-  padding: 0 clamp(16px, 4vw, 40px);
+  max-width: 1380px;
+  margin-inline: auto;
+  padding: 0 clamp(12px, 2.5vw, 20px);
 }
 
 .hm-nav__brand {
@@ -99,10 +101,16 @@ Public navbar + category pills — dual palette (navy/orange + blue).
 }
 
 .hm-nav__logo {
-  height: 32px !important;
+  height: 34px !important;
   width: auto;
-  max-width: 180px;
+  max-width: min(240px, 42vw);
   object-fit: contain;
+}
+
+.hm-nav-shell .tf-logo-wordmark--white,
+.hm-footer .tf-logo-wordmark--white {
+  opacity: 1;
+  filter: none;
 }
 
 .hm-nav__search {
@@ -251,7 +259,9 @@ Public navbar + category pills — dual palette (navy/orange + blue).
 .hm-nav__pills {
   display: flex;
   gap: 8px;
-  padding: 10px clamp(16px, 4vw, 40px);
+  max-width: 1380px;
+  margin-inline: auto;
+  padding: 10px clamp(12px, 2.5vw, 20px);
   overflow-x: auto;
   scroll-behavior: smooth;
   -ms-overflow-style: none;
@@ -299,15 +309,18 @@ Public navbar + category pills — dual palette (navy/orange + blue).
 @media (max-width: 900px) {
   .hm-nav__search { display: none; }
   .hm-nav__actions .hm-nav__btn--ghost { display: none; }
-  .hm-nav__hamburger { display: flex; }
-}
-
-@media (max-width: 900px) {
+  /* Pills always scroll horizontally; hamburger not needed for category row */
+  .hm-nav__hamburger { display: none; }
   .hm-nav__pills-wrap {
-    display: none;
-  }
-  .hm-nav__pills-wrap.is-open {
     display: block;
+  }
+  .hm-nav__pills {
+    padding: 8px 16px;
+    gap: 6px;
+  }
+  .hm-nav__pill {
+    font-size: 12px;
+    padding: 6px 12px;
   }
 }
 

@@ -106,6 +106,14 @@ body.cat-catalog-page .tf-main {
 
 .logo-accent { color: var(--tf-orange); }
 
+.navbar-logo__img,
+.navbar-logo .tf-logo-img {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
 .search-container {
   flex: 1;
   max-width: 720px;

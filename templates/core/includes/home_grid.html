@@ -11,10 +11,10 @@ Context: category_spotlights, stats, empresas_carousel.
         {% for row in category_spotlights|slice:":4" %}
         <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.id }}" class="pn-grid-cat">
           {% with prod=row.products.0 %}
-          {% if prod.image %}
-          <img src="{{ prod.image.url }}" alt="{{ row.category.name }}" loading="lazy" decoding="async">
+          {% if prod %}
+          {% include "core/includes/product_image_placeholder.html" with product=prod alt=row.category.name %}
           {% else %}
-          <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ row.category.name }}" loading="lazy" decoding="async">
+          <img src="{% static 'images/placeholder-producto.svg' %}" alt="{{ row.category.name }}" loading="lazy" decoding="async">
           {% endif %}
           <span>{{ row.category.name }}</span>
           {% endwith %}

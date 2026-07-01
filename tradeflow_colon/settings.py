@@ -230,7 +230,44 @@ STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 # Cache-bust query param for JS/CSS after deploy (set TRADEFLOW_ASSET_VERSION on Railway).
-TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='home-dual-v8')
+TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='home-dual-v22')
+
+# ── Cache (páginas públicas / merchandising) ───────────────────────────────
+# REDIS_URL en Railway → compartido entre workers Gunicorn (recomendado).
+# Sin Redis: LocMem por worker (default). USE_DB_CACHE=true + createcachetable
+# para cache compartida en PostgreSQL.
+CACHE_TTL_HOME = config('CACHE_TTL_HOME', default=120, cast=int)
+CACHE_TTL_STATS = config('CACHE_TTL_STATS', default=300, cast=int)
+CACHE_TTL_NAV = config('CACHE_TTL_NAV', default=600, cast=int)
+CACHE_TTL_CATALOG_META = config('CACHE_TTL_CATALOG_META', default=300, cast=int)
+
+_redis_url = config('REDIS_URL', default='')
+if _redis_url:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': _redis_url,
+            'KEY_PREFIX': 'tf',
+        }
+    }
+else:
+    # LocMem works out of the box (per Gunicorn worker). For shared cache across
+    # workers without Redis, set USE_DB_CACHE=true and run createcachetable once.
+    _use_db_cache = config('USE_DB_CACHE', default=False, cast=bool)
+    if _use_db_cache and _db_url:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+                'LOCATION': 'tradeflow_cache',
+            }
+        }
+    else:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+                'LOCATION': 'tradeflow-local',
+            }
+        }
 
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
 MEDIA_URL  = '/media/'
@@ -325,6 +362,10 @@ SUPABASE_URL = config('SUPABASE_URL', default='').strip()
 SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='').strip()
 SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='').strip()
 SUPABASE_CONFIGURED = bool(SUPABASE_URL and SUPABASE_SERVICE_KEY)
+SUPABASE_STORAGE_BUCKET = config('SUPABASE_STORAGE_BUCKET', default='media')
+# Public bucket → native /object/public/ URLs (recommended for product images).
+SUPABASE_STORAGE_PUBLIC = config('SUPABASE_STORAGE_PUBLIC', default=True, cast=bool)
+SUPABASE_SIGNED_URL_TTL = config('SUPABASE_SIGNED_URL_TTL', default=3600, cast=int)
 
 import logging as _logging
 
@@ -367,12 +408,12 @@ if SUPABASE_SERVICE_KEY and SUPABASE_URL:
     if 'storages' not in INSTALLED_APPS:
         INSTALLED_APPS.append('storages')
     STORAGES['default'] = {
-        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'BACKEND': 'core.storage.supabase_media.SupabaseMediaStorage',
         'OPTIONS': {
             'endpoint_url': SUPABASE_URL.rstrip('/') + '/storage/v1/s3',
             'access_key': 'service_role',
             'secret_key': SUPABASE_SERVICE_KEY,
-            'bucket_name': config('SUPABASE_STORAGE_BUCKET', default='media'),
+            'bucket_name': SUPABASE_STORAGE_BUCKET,
             'region_name': config('AWS_S3_REGION_NAME', default='us-east-1'),
             'default_acl': 'public-read',
             'file_overwrite': False,

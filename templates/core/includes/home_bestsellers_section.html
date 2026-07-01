@@ -1,0 +1,31 @@
+{% comment %}Fallback bestsellers row when CMS has no bestsellers section.{% endcomment %}
+{% if show_bestsellers_section and bestsellers|length >= 4 %}
+<section class="hm-bestsellers hm-section hm-section--surface" id="hm-bestsellers" data-hm-section aria-labelledby="hm-bestsellers-title">
+  <div class="hm-section__inner hm-bestsellers__inner">
+    <header class="hm-section__head hm-bestsellers__head">
+      <div>
+        <span class="hm-section__eyebrow">Top movers</span>
+        <h2 class="hm-section-title" id="hm-bestsellers-title">Bestsellers in the Free Zone</h2>
+        <p class="hm-section-sub">What wholesale buyers are ordering most this month</p>
+      </div>
+      <a href="{% url 'catalogo_publico' %}?orden=novedades" class="hm-bestsellers__see-all">See ranking →</a>
+    </header>
+    <div class="hm-slider hm-slider--bestsellers" data-hm-slider data-hm-slider-visible="4">
+      <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous">
+        <span class="material-symbols-rounded">chevron_left</span>
+      </button>
+      <div class="hm-slider__viewport">
+        <div class="hm-slider__track">
+          {% for product in bestsellers %}
+            {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
+          {% endfor %}
+        </div>
+      </div>
+      <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next">
+        <span class="material-symbols-rounded">chevron_right</span>
+      </button>
+      <div class="hm-slider__dots" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+{% endif %}

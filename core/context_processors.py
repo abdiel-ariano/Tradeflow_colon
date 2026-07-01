@@ -149,15 +149,6 @@ def tf_asset_version(request):
 
 def nav_header_categories(request):
     """Top categorías con productos activos — dropdown del header público."""
-    from django.db.models import Count, Q
+    from core.utils.tradeflow_cache import cached_nav_categories
 
-    from core.models import Category
-
-    categories = list(
-        Category.objects.annotate(
-            num_productos=Count('products', filter=Q(products__is_active=True)),
-        )
-        .filter(num_productos__gt=0)
-        .order_by('-num_productos', 'name')[:10]
-    )
-    return {'nav_header_categories': categories}
+    return {'nav_header_categories': cached_nav_categories()}

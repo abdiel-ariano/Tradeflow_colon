@@ -23,6 +23,10 @@ echo "[tradeflow] PORT=${PORT} ALLOWED_HOSTS=${ALLOWED_HOSTS:-<unset>} DATABASE_
   echo "[tradeflow] migrate --noinput (background)"
   if python manage.py migrate --noinput; then
     echo "[tradeflow] migrate OK"
+    if [ "${USE_DB_CACHE:-false}" = "true" ]; then
+      echo "[tradeflow] createcachetable (USE_DB_CACHE)"
+      python manage.py createcachetable --noinput 2>/dev/null || true
+    fi
   else
     echo "[tradeflow] WARN migrate failed (exit $?); gunicorn sigue activo"
   fi

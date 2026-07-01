@@ -47,3 +47,8 @@ class Command(BaseCommand):
             p.save(update_fields=['promo_price', 'promo_starts_at', 'promo_ends_at'])
             cleared += 1
         self.stdout.write(self.style.SUCCESS(f'Promos vencidas limpiadas: {cleared}'))
+
+        from core.utils.tradeflow_cache import invalidate_merchandising_cache
+
+        invalidate_merchandising_cache()
+        self.stdout.write(self.style.SUCCESS('Cache de merchandising invalidada.'))

@@ -1,13 +1,43 @@
 {% load static %}
-{% comment %}Final CTA — dual buyer/seller signup on public home.{% endcomment %}
-<section class="cta-section" id="hm-cta" aria-labelledby="cta-heading">
-  <div class="cta-bg-pattern" aria-hidden="true"></div>
-  <div class="cta-content" data-reveal="up">
-    <h2 id="cta-heading">Start trading in the <span class="cta-highlight">Colón Free Zone</span></h2>
-    <p>Join TradeFlow Colón — the platform ready for PreExpo 2026 and international investors.</p>
-    <div class="cta-buttons">
-      <a href="{% url 'signup' %}?role=buyer" class="cta-btn cta-btn--primary">Start buying</a>
-      <a href="{% url 'signup' %}?role=seller" class="cta-btn cta-btn--secondary">Start selling</a>
+{% comment %}Final buyer/seller CTA — split layout with visual and proof points.{% endcomment %}
+<section class="hm-close hm-section hm-section--navy" id="hm-cta" data-hm-section aria-labelledby="hm-cta-title">
+  <div class="hm-close__pattern" aria-hidden="true"></div>
+  <div class="hm-close__inner">
+    <div class="hm-close__grid">
+      <div class="hm-close__copy">
+        <span class="hm-section__eyebrow">Get started</span>
+        <h2 class="hm-close__title" id="hm-cta-title">Source wholesale inventory from the Colón Free Zone</h2>
+        <p class="hm-close__sub">
+          TradeFlow connects buyers across the Americas with CFZ-verified suppliers —
+          live catalogs, export documentation, and secure B2B checkout in one platform.
+        </p>
+        <ul class="hm-close__points">
+          <li>
+            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+            <span><strong>{{ stats.empresas|default:0 }} verified companies</strong> with active catalogs in the Free Zone</span>
+          </li>
+          <li>
+            <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+            <span><strong>{{ stats.productos|default:0 }} SKUs</strong> browsable without creating an account</span>
+          </li>
+          <li>
+            <span class="material-symbols-rounded" aria-hidden="true">description</span>
+            <span>Export-ready documentation included in every B2B order flow</span>
+          </li>
+        </ul>
+        <div class="hm-close__actions">
+          <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore catalog →</a>
+          <a href="{% url 'signup' %}" class="hm-btn hm-btn--outline hm-btn--lg">Create buyer account</a>
+          <a href="{% url 'signup' %}?role=seller" class="hm-close__seller-link">List your company on TradeFlow →</a>
+        </div>
+      </div>
+      <div class="hm-close__visual" data-hm-reveal data-hm-reveal-delay="2" aria-hidden="true">
+        <img src="{% static 'img/ship-cargo.svg' %}" alt="" class="hm-close__art" loading="lazy" decoding="async">
+        <div class="hm-close__stat">
+          <strong>40+</strong>
+          <span>buyer countries served</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>

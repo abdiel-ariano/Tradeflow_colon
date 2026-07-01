@@ -150,6 +150,27 @@ def home_company_tiers(premium_limit: int = 3, standard_limit: int = 5):
     return premium, standard
 
 
+def spotlight_products_for_companies(companies, limit_per: int = 3):
+    """
+    Attach up to ``limit_per`` showcase products on each company for the home
+    spotlight mini-carousel (ordered by merchandising priority).
+    """
+    if not companies:
+        return
+    company_ids = [c.pk for c in companies]
+    product_map: dict[int, list] = {cid: [] for cid in company_ids}
+    for product in (
+        active_products_base()
+        .filter(company_id__in=company_ids)
+        .order_by('company_id', '-merchandising_priority', '-is_featured', '-created_at')
+    ):
+        bucket = product_map[product.company_id]
+        if len(bucket) < limit_per:
+            bucket.append(product)
+    for emp in companies:
+        emp.spotlight_products = product_map.get(emp.pk, [])
+
+
 def carousel_products(limit: int = 12):
     """Productos para carrusel: promo, bestsellers o destacados."""
     deals = daily_deals(limit=limit)
@@ -183,6 +204,15 @@ def active_home_sections(now=None):
         'products', 'companies', 'categories'
     ).order_by('sort_order', 'slug')
     return [s for s in sections if _section_in_window(s, now)]
+
+
+def active_home_section_types(now=None) -> set[str]:
+    """Tipos de sección CMS activos en la landing (para evitar duplicados)."""
+    return {section.section_type for section in active_home_sections(now)}
+
+
+def has_active_home_section(section_type: str, now=None) -> bool:
+    return section_type in active_home_section_types(now)
 
 
 def resolve_section_products(section: HomePromoSection):
@@ -243,8 +273,59 @@ def texture_products(limit: int = 12):
     return list(active_products_base().order_by('-merchandising_priority', '-created_at')[:limit])
 
 
-def home_stats():
-    """Estadísticas para hero y home (datos reales ORM)."""
+def catalog_breadth_products(
+    limit: int = 24,
+    per_category: int = 2,
+    max_categories: int = 12,
+):
+    """
+    Diverse home sample across top categories — one wall of SKUs that
+    reflects marketplace breadth instead of repeating the same few picks.
+    """
+    picked: list[Product] = []
+    seen: set[int] = set()
+
+    cats = (
+        Category.objects.annotate(
+            n=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(n__gt=0)
+        .order_by('-n')[:max_categories]
+    )
+
+    for cat in cats:
+        bucket = 0
+        for product in (
+            active_products_base()
+            .filter(category=cat)
+            .order_by('-merchandising_priority', '-created_at')
+        ):
+            if product.pk in seen:
+                continue
+            picked.append(product)
+            seen.add(product.pk)
+            bucket += 1
+            if bucket >= per_category or len(picked) >= limit:
+                break
+        if len(picked) >= limit:
+            break
+
+    if len(picked) < limit:
+        for product in active_products_base().order_by(
+            '-merchandising_priority', '-created_at',
+        ):
+            if product.pk in seen:
+                continue
+            picked.append(product)
+            seen.add(product.pk)
+            if len(picked) >= limit:
+                break
+
+    return picked[:limit]
+
+
+def home_stats_uncached():
+    """Estadísticas para hero y home (datos reales ORM, sin cache)."""
     from .models import Order
 
     since = timezone.now() - timedelta(days=30)
@@ -282,6 +363,78 @@ def home_stats():
         'categorias': categorias_activas or Category.objects.count(),
         'gmv_30d': gmv_int,
         'gmv_30d_fmt': format_money_usd(gmv_dec),
+    }
+
+
+def home_stats():
+    """Estadísticas para hero y home — cacheadas en producción."""
+    from core.utils.tradeflow_cache import cached_home_stats
+
+    return cached_home_stats()
+
+
+def build_guest_home_context(lang: str) -> dict:
+    """
+    Contexto completo de la landing pública (invitados).
+    Usado por home_view con cache por idioma.
+    """
+    promo_sections = []
+    for section in active_home_sections():
+        promo_sections.append({
+            'section': section,
+            'products': resolve_section_products(section),
+            'title': section.title_for_lang(lang),
+            'subtitle': section.subtitle_for_lang(lang),
+        })
+
+    cms_types = {row['section'].section_type for row in promo_sections}
+    daily_deals_list = daily_deals(8)
+    show_daily_deals_strip = (
+        'daily_deals' not in cms_types and len(daily_deals_list) >= 3
+    )
+    show_bestsellers_section = 'bestsellers' not in cms_types
+
+    featured_qs = active_products_base().filter(is_featured=True).select_related(
+        'company', 'category',
+    ).order_by('-merchandising_priority', '-created_at')[:8]
+    if not featured_qs.exists():
+        featured_qs = active_products_base().select_related(
+            'company', 'category',
+        ).order_by('-created_at')[:8]
+
+    bestsellers_list = bestsellers(8)
+    if not bestsellers_list:
+        bestsellers_list = list(featured_qs[:8])
+
+    empresas_home = list(
+        Company.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
+        .order_by('name')[:8]
+    )
+    if not empresas_home:
+        empresas_home = featured_companies_carousel(8)
+    spotlight_products_for_companies(empresas_home[:5], limit_per=3)
+
+    empresas_premium, empresas_standard = home_company_tiers(3, 8)
+
+    return {
+        'stats': home_stats_uncached(),
+        'daily_deals': daily_deals_list,
+        'bestsellers': bestsellers_list,
+        'featured_products': list(featured_qs),
+        'trending_products': trending_products(24),
+        'texture_products': texture_products(12),
+        'carousel_products': carousel_products(24),
+        'catalog_breadth_products': catalog_breadth_products(24),
+        'empresas_carousel': empresas_home,
+        'empresas_premium': empresas_premium,
+        'empresas_standard': empresas_standard,
+        'category_spotlights': category_spotlights(4, 6),
+        'promo_sections': promo_sections,
+        'show_daily_deals_strip': show_daily_deals_strip,
+        'show_bestsellers_section': show_bestsellers_section,
     }
 
 

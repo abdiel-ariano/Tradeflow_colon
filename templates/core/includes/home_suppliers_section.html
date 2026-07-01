@@ -1,10 +1,11 @@
 {% comment %}Top companies — single auto-rotator (8s) with unified spotlight cards.{% endcomment %}
-<section class="hm-suppliers" id="hm-suppliers" aria-labelledby="hm-suppliers-title">
-  <div class="hm-suppliers__inner">
-    <div class="hm-suppliers__head">
+<section class="hm-suppliers hm-section hm-section--surface" id="hm-suppliers" data-hm-section aria-labelledby="hm-suppliers-title">
+  <div class="hm-section__inner hm-suppliers__inner">
+    <header class="hm-section__head hm-suppliers__head">
       <div>
-        <h2 class="hm-section-title" id="hm-suppliers-title">Top Companies This Month</h2>
-        <p class="hm-section-sub">CFZ-verified partners with live wholesale inventory</p>
+        <span class="hm-section__eyebrow">Verified partners</span>
+        <h2 class="hm-section-title" id="hm-suppliers-title">Featured suppliers</h2>
+        <p class="hm-section-sub">CFZ-verified partners highlighted by catalog activity and visibility plans</p>
       </div>
       <button type="button" class="hm-info-btn" id="hm-rankings-info" aria-describedby="hm-rankings-tooltip" aria-expanded="false">
         <span class="material-symbols-rounded hm-info-btn__icon" aria-hidden="true">info</span>
@@ -13,14 +14,14 @@
       <div class="hm-info-tooltip" id="hm-rankings-tooltip" role="tooltip" hidden>
         Companies are highlighted based on visibility plans and catalog activity. All are CFZ-verified.
       </div>
-    </div>
+    </header>
 
     {% if empresas_carousel %}
-    <div class="hm-company-rotator" data-hm-company-rotator data-hm-company-autoplay="8000" aria-live="polite">
+    <div class="hm-company-rotator" data-hm-company-rotator aria-live="polite">
       <div class="hm-company-rotator__track">
         {% for emp in empresas_carousel|slice:":5" %}
         <div class="hm-company-rotator__panel{% if forloop.first %} is-active{% endif %}">
-          {% include "core/includes/home_company_spotlight.html" with company=emp carousel_products=carousel_products featured_products=featured_products %}
+          {% include "core/includes/home_company_spotlight.html" with company=emp spotlight_ready=forloop.first %}
         </div>
         {% endfor %}
       </div>
@@ -32,7 +33,7 @@
                 aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
                 data-hm-company-tab="{{ forloop.counter0 }}">
           <span class="hm-company-rotator__tab-avatar">{{ emp.name|slice:":2"|upper }}</span>
-          <span class="hm-company-rotator__tab-name">{{ emp.name|truncatechars:28 }}</span>
+          <span class="hm-company-rotator__tab-name" title="{{ emp.name }}">{{ emp.name|truncatechars:28 }}</span>
         </button>
         {% endfor %}
       </div>
@@ -40,18 +41,18 @@
 
     <div class="hm-suppliers__more">
       <h3 class="hm-suppliers__more-title">More verified suppliers</h3>
-      <div class="hm-slider hm-slider--companies" data-hm-slider data-hm-slider-visible="4" data-hm-slider-autoplay="5000">
+      <div class="hm-slider hm-slider--companies" data-hm-slider data-hm-slider-visible="4">
         <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous suppliers">
           <span class="material-symbols-rounded">chevron_left</span>
         </button>
         <div class="hm-slider__viewport">
           <div class="hm-slider__track">
             {% for emp in empresas_carousel|slice:"5:11" %}
-            <article class="hm-supplier-card hm-supplier-card--slide" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter0 }}">
+            <article class="hm-supplier-card hm-supplier-card--slide">
               <div class="hm-supplier-card__top">
                 <span class="hm-supplier-card__avatar">{{ emp.name|slice:":2"|upper }}</span>
                 <div>
-                  <h3 class="hm-supplier-card__name">{{ emp.name }}</h3>
+                  <h3 class="hm-supplier-card__name" title="{{ emp.name }}">{{ emp.name }}</h3>
                   <span class="hm-supplier-card__verified">
                     <span class="material-symbols-rounded" aria-hidden="true">verified</span>
                     CFZ Verified

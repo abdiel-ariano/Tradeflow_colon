@@ -3,7 +3,7 @@
 <header class="cat-nav" id="cat-catalog-nav">
   <div class="navbar-primary">
     <a class="navbar-logo" href="{% url 'home' %}">
-      <div class="logo-square">T</div>
+      {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="navbar-logo__img" eager=1 %}
       <span class="logo-text">TradeFlow <span class="logo-accent">Colón</span></span>
     </a>
 
@@ -59,7 +59,7 @@
         <a href="{% url 'catalogo_publico' %}?verificado=1" class="cat-nav-ajax-link">Verified Companies</a>
         <a href="{% url 'catalogo_publico' %}" class="cat-nav-ajax-link">Wholesale Catalog</a>
         <a href="{% url 'catalogo_publico' %}?orden=novedades" class="cat-nav-ajax-link">Deals</a>
-        <a href="{% url 'home' %}#how-it-works">How it works</a>
+        <a href="{% url 'home' %}#como-funciona">How it works</a>
       </div>
       <div class="nav-secondary-right">
         Export docs included · Secure payments ·

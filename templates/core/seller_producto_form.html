@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load static tf_media %}
 {% block title %}{{ titulo_pagina }} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
@@ -82,7 +82,7 @@
             <img id="spf-img-prev" alt="">
             {{ product_form.image }}
             {% if es_edicion %}{% if product.image %}
-            <p style="font-size:0.82rem;color:var(--tf-muted);margin-top:10px;text-align:left;">Current: <a href="{{ product.image.url }}" target="_blank" rel="noopener">view file</a></p>
+            <p style="font-size:0.82rem;color:var(--tf-muted);margin-top:10px;text-align:left;">Current: {% if product.image %}<a href="{{ product|product_image_src }}" target="_blank" rel="noopener">view file</a>{% else %}no image{% endif %}</p>
             {% endif %}{% endif %}
           </div>
         </div>
