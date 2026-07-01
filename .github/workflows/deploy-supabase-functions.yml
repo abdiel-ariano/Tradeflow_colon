@@ -23,7 +23,7 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.TF_SB_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF: ${{ secrets.TF_SB_PROJECT_REF }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
