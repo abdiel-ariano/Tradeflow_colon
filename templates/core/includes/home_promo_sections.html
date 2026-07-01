@@ -1,0 +1,232 @@
+{% load tf_money %}
+{% comment %}CMS-driven home promo blocks — Impeccable hm-section rhythm.{% endcomment %}
+{% for block in promo_sections %}
+{% with section=block.section products=block.products title=block.title subtitle=block.subtitle %}
+{% if products or section.section_type == 'seasonal_banner' %}
+{% if section.section_type == 'seasonal_banner' %}
+<section class="hm-promo-banner hm-section hm-section--navy" id="hm-promo-{{ section.slug }}" data-hm-section aria-labelledby="hm-promo-{{ section.slug }}-title">
+  <div class="hm-section__inner hm-promo-banner__inner">
+    <div class="hm-promo-banner__copy" data-hm-stagger>
+      <span class="hm-section__eyebrow hm-section__eyebrow--light">Campaign</span>
+      <h2 class="hm-section-title hm-section-title--light" id="hm-promo-{{ section.slug }}-title">{{ title }}</h2>
+      {% if subtitle %}
+      <p class="hm-section-sub hm-section-sub--light">{{ subtitle }}</p>
+      {% endif %}
+      <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore campaign catalog →</a>
+    </div>
+    {% if products %}
+    <div class="hm-promo-banner__mosaic" data-hm-stagger aria-hidden="true">
+      {% for product in products|slice:":4" %}
+      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-banner__thumb">
+        {% include "core/includes/home_product_media.html" with product=product decorative=True %}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% elif section.section_type == 'daily_deals' %}
+<section class="hm-deals hm-section" id="hm-promo-{{ section.slug }}" data-hm-section aria-labelledby="hm-promo-{{ section.slug }}-title">
+  <div class="hm-section__inner hm-deals__inner">
+    <header class="hm-section__head hm-deals__head">
+      <div>
+        <span class="hm-section__eyebrow">Limited offers</span>
+        <h2 class="hm-section-title" id="hm-promo-{{ section.slug }}-title">{{ title }}</h2>
+        {% if subtitle %}<p class="hm-section-sub">{{ subtitle }}</p>{% endif %}
+      </div>
+      <a href="{% url 'catalogo_publico' %}?orden=promo" class="hm-deals__see-all">All deals →</a>
+    </header>
+    <div class="hm-deals__track" data-hm-stagger>
+      {% for product in products %}
+      <article class="hm-deals__card">
+        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-deals__media">
+          {% if product.is_on_promo_now %}
+          <span class="hm-deals__badge">-{{ product.discount_pct }}%</span>
+          {% endif %}
+          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
+        </a>
+        <div class="hm-deals__body">
+          <h3 class="hm-deals__name">
+            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:42 }}</a>
+          </h3>
+          <p class="hm-deals__price">{{ product.display_price|money_usd }}</p>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% elif section.section_type == 'bestsellers' %}
+<section class="hm-bestsellers hm-section hm-section--surface" id="hm-promo-{{ section.slug }}" data-hm-section aria-labelledby="hm-promo-{{ section.slug }}-title">
+  <div class="hm-section__inner hm-bestsellers__inner">
+    <header class="hm-section__head hm-bestsellers__head">
+      <div>
+        <span class="hm-section__eyebrow">Top movers</span>
+        <h2 class="hm-section-title" id="hm-promo-{{ section.slug }}-title">{{ title }}</h2>
+        {% if subtitle %}<p class="hm-section-sub">{{ subtitle }}</p>{% endif %}
+      </div>
+      <a href="{% url 'catalogo_publico' %}?orden=novedades" class="hm-bestsellers__see-all">See ranking →</a>
+    </header>
+    <div class="hm-slider hm-slider--bestsellers" data-hm-slider data-hm-slider-visible="4">
+      <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous">
+        <span class="material-symbols-rounded">chevron_left</span>
+      </button>
+      <div class="hm-slider__viewport">
+        <div class="hm-slider__track">
+          {% for product in products %}
+            {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
+          {% endfor %}
+        </div>
+      </div>
+      <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next">
+        <span class="material-symbols-rounded">chevron_right</span>
+      </button>
+      <div class="hm-slider__dots" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+{% elif section.section_type == 'product_carousel' %}
+<section class="hm-promo-carousel hm-section" id="hm-promo-{{ section.slug }}" data-hm-section aria-labelledby="hm-promo-{{ section.slug }}-title">
+  <div class="hm-section__inner hm-promo-carousel__inner">
+    <header class="hm-section__head hm-promo-carousel__head">
+      <div>
+        <span class="hm-section__eyebrow">Curated row</span>
+        <h2 class="hm-section-title" id="hm-promo-{{ section.slug }}-title">{{ title }}</h2>
+        {% if subtitle %}<p class="hm-section-sub">{{ subtitle }}</p>{% endif %}
+      </div>
+      <a href="{% url 'catalogo_publico' %}" class="hm-promo-carousel__see-all">View all →</a>
+    </header>
+    <div class="hm-slider hm-slider--promo" data-hm-slider data-hm-slider-visible="4">
+      <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous">
+        <span class="material-symbols-rounded">chevron_left</span>
+      </button>
+      <div class="hm-slider__viewport">
+        <div class="hm-slider__track">
+          {% for product in products %}
+            {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
+          {% endfor %}
+        </div>
+      </div>
+      <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next">
+        <span class="material-symbols-rounded">chevron_right</span>
+      </button>
+      <div class="hm-slider__dots" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+{% elif section.section_type == 'category_spotlight' %}
+<section class="hm-promo-row hm-section" id="hm-promo-{{ section.slug }}" data-hm-section aria-labelledby="hm-promo-{{ section.slug }}-title">
+  <div class="hm-section__inner hm-promo-row__inner">
+    <header class="hm-section__head hm-promo-row__head">
+      <div>
+        <span class="hm-section__eyebrow">Category spotlight</span>
+        <h2 class="hm-section-title" id="hm-promo-{{ section.slug }}-title">{{ title }}</h2>
+        {% if subtitle %}<p class="hm-section-sub">{{ subtitle }}</p>{% endif %}
+      </div>
+      {% with cat=section.categories.first %}
+      {% if cat %}
+      <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}" class="hm-promo-row__see-all">Browse {{ cat.name }} →</a>
+      {% else %}
+      <a href="{% url 'catalogo_publico' %}" class="hm-promo-row__see-all">View catalog →</a>
+      {% endif %}
+      {% endwith %}
+    </header>
+    <div class="hm-promo-row__grid" data-hm-stagger>
+      {% for product in products %}
+      <article class="hm-promo-row__card">
+        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__media">
+          {% if product.is_on_promo_now %}
+          <span class="hm-promo-row__badge">-{{ product.discount_pct }}%</span>
+          {% endif %}
+          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
+        </a>
+        <div class="hm-promo-row__body">
+          <h3 class="hm-promo-row__name">
+            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:48 }}</a>
+          </h3>
+          <p class="hm-promo-row__price">{{ product.display_price|money_usd }} <span class="hm-promo-row__unit">/ unit</span></p>
+          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__cta">View →</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% elif section.section_type == 'company_spotlight' %}
+<section class="hm-promo-row hm-section hm-section--surface" id="hm-promo-{{ section.slug }}" data-hm-section aria-labelledby="hm-promo-{{ section.slug }}-title">
+  <div class="hm-section__inner hm-promo-row__inner">
+    <header class="hm-section__head hm-promo-row__head">
+      <div>
+        <span class="hm-section__eyebrow">Supplier spotlight</span>
+        <h2 class="hm-section-title" id="hm-promo-{{ section.slug }}-title">{{ title }}</h2>
+        {% if subtitle %}<p class="hm-section-sub">{{ subtitle }}</p>{% endif %}
+      </div>
+      {% with comp=section.companies.first %}
+      {% if comp %}
+      <a href="{% url 'catalogo_publico' %}?empresa={{ comp.pk }}" class="hm-promo-row__see-all">Visit {{ comp.name|truncatechars:24 }} →</a>
+      {% else %}
+      <a href="{% url 'catalogo_publico' %}" class="hm-promo-row__see-all">View suppliers →</a>
+      {% endif %}
+      {% endwith %}
+    </header>
+    <div class="hm-promo-row__grid" data-hm-stagger>
+      {% for product in products %}
+      <article class="hm-promo-row__card">
+        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__media">
+          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
+        </a>
+        <div class="hm-promo-row__body">
+          <p class="hm-promo-row__company">{{ product.company.name|truncatechars:28 }}</p>
+          <h3 class="hm-promo-row__name">
+            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:48 }}</a>
+          </h3>
+          <p class="hm-promo-row__price">{{ product.display_price|money_usd }}</p>
+          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__cta">View →</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% else %}
+<section class="hm-promo-row hm-section" id="hm-promo-{{ section.slug }}" data-hm-section aria-labelledby="hm-promo-{{ section.slug }}-title">
+  <div class="hm-section__inner hm-promo-row__inner">
+    <header class="hm-section__head hm-promo-row__head">
+      <div>
+        <span class="hm-section__eyebrow">Featured picks</span>
+        <h2 class="hm-section-title" id="hm-promo-{{ section.slug }}-title">{{ title }}</h2>
+        {% if subtitle %}<p class="hm-section-sub">{{ subtitle }}</p>{% endif %}
+      </div>
+      <a href="{% url 'catalogo_publico' %}" class="hm-promo-row__see-all">View all →</a>
+    </header>
+    <div class="hm-promo-row__grid" data-hm-stagger>
+      {% for product in products %}
+      <article class="hm-promo-row__card">
+        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__media">
+          {% if product.is_on_promo_now %}
+          <span class="hm-promo-row__badge">-{{ product.discount_pct }}%</span>
+          {% endif %}
+          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
+        </a>
+        <div class="hm-promo-row__body">
+          <h3 class="hm-promo-row__name">
+            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:48 }}</a>
+          </h3>
+          <p class="hm-promo-row__price">{{ product.display_price|money_usd }} <span class="hm-promo-row__unit">/ unit</span></p>
+          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__cta">View &amp; quote →</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endif %}
+{% endwith %}
+{% endfor %}

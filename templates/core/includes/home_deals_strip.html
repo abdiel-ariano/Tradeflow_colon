@@ -1,6 +1,6 @@
 {% load tf_money %}
 {% comment %}Compact promo row when daily deals exist — uses unused home_view context.{% endcomment %}
-{% if daily_deals|length >= 3 %}
+{% if show_daily_deals_strip and daily_deals|length >= 3 %}
 <section class="hm-deals hm-section" id="hm-deals" data-hm-section aria-labelledby="hm-deals-title">
   <div class="hm-section__inner hm-deals__inner">
     <header class="hm-section__head hm-deals__head">

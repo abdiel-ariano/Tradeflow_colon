@@ -206,6 +206,15 @@ def active_home_sections(now=None):
     return [s for s in sections if _section_in_window(s, now)]
 
 
+def active_home_section_types(now=None) -> set[str]:
+    """Tipos de sección CMS activos en la landing (para evitar duplicados)."""
+    return {section.section_type for section in active_home_sections(now)}
+
+
+def has_active_home_section(section_type: str, now=None) -> bool:
+    return section_type in active_home_section_types(now)
+
+
 def resolve_section_products(section: HomePromoSection):
     """Productos para una sección según tipo y M2M."""
     limit = section.max_items or 8

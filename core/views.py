@@ -826,14 +826,25 @@ def home_view(request):
             return redirect(gate_route)
         return redirect(_redirect_by_role(request.user))
 
+    from django.utils.translation import get_language
+
     from . import merchandising as merch
 
+    lang = (get_language() or 'es')[:2]
     promo_sections = []
     for section in merch.active_home_sections():
         promo_sections.append({
             'section': section,
             'products': merch.resolve_section_products(section),
+            'title': section.title_for_lang(lang),
+            'subtitle': section.subtitle_for_lang(lang),
         })
+
+    cms_types = {row['section'].section_type for row in promo_sections}
+    show_daily_deals_strip = (
+        'daily_deals' not in cms_types and len(merch.daily_deals(8)) >= 3
+    )
+    show_bestsellers_section = 'bestsellers' not in cms_types
 
     featured_qs = merch.active_products_base().filter(is_featured=True).select_related(
         'company', 'category',
@@ -879,6 +890,8 @@ def home_view(request):
             'empresas_standard': empresas_standard,
             'category_spotlights': merch.category_spotlights(4, 6),
             'promo_sections': promo_sections,
+            'show_daily_deals_strip': show_daily_deals_strip,
+            'show_bestsellers_section': show_bestsellers_section,
             'show_cart_actions': False,
         },
     )
