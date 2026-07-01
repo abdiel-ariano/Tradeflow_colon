@@ -87,3 +87,16 @@ class TradeflowCacheTests(TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(cache.get(HOME_CTX_KEY.format(lang='en')))
+
+    @override_settings(
+        CACHES={
+            'default': {
+                'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+                'LOCATION': 'tradeflow_cache_missing',
+            }
+        }
+    )
+    def test_home_view_works_when_cache_table_missing(self):
+        """Production hotfix: missing DB cache table must not 500 the home page."""
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)

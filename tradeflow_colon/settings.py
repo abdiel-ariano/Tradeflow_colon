@@ -234,7 +234,8 @@ TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='home-dual-v
 
 # ── Cache (páginas públicas / merchandising) ───────────────────────────────
 # REDIS_URL en Railway → compartido entre workers Gunicorn (recomendado).
-# Sin Redis: tabla `tradeflow_cache` en PostgreSQL (`python manage.py createcachetable`).
+# Sin Redis: LocMem por worker (default). USE_DB_CACHE=true + createcachetable
+# para cache compartida en PostgreSQL.
 CACHE_TTL_HOME = config('CACHE_TTL_HOME', default=120, cast=int)
 CACHE_TTL_STATS = config('CACHE_TTL_STATS', default=300, cast=int)
 CACHE_TTL_NAV = config('CACHE_TTL_NAV', default=600, cast=int)
@@ -249,20 +250,24 @@ if _redis_url:
             'KEY_PREFIX': 'tf',
         }
     }
-elif _db_url:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-            'LOCATION': 'tradeflow_cache',
-        }
-    }
 else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'tradeflow-local',
+    # LocMem works out of the box (per Gunicorn worker). For shared cache across
+    # workers without Redis, set USE_DB_CACHE=true and run createcachetable once.
+    _use_db_cache = config('USE_DB_CACHE', default=False, cast=bool)
+    if _use_db_cache and _db_url:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+                'LOCATION': 'tradeflow_cache',
+            }
         }
-    }
+    else:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+                'LOCATION': 'tradeflow-local',
+            }
+        }
 
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
 MEDIA_URL  = '/media/'

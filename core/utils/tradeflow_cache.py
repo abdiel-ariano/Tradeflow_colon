@@ -3,15 +3,19 @@ TradeFlow — server-side cache helpers for public pages and merchandising.
 
 Uses Django's cache framework (Redis when REDIS_URL is set, else DB or LocMem).
 Invalidate via signals when catalog, CMS, or order data changes.
+On backend errors (missing cache table, Redis down), falls back to uncached ORM.
 """
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from typing import Any, TypeVar
 
 from django.conf import settings
 from django.core.cache import cache
 from django.utils.translation import get_language
+
+log = logging.getLogger(__name__)
 
 T = TypeVar('T')
 
@@ -29,13 +33,37 @@ def cache_ttl(setting_name: str, default: int) -> int:
     return int(getattr(settings, setting_name, default))
 
 
+def _cache_get(key: str) -> Any:
+    try:
+        return cache.get(key)
+    except Exception as exc:
+        log.warning('cache get failed key=%s: %s', key, exc, exc_info=True)
+        return None
+
+
+def _cache_set(key: str, value: Any, timeout: int) -> None:
+    try:
+        cache.set(key, value, timeout)
+    except Exception as exc:
+        log.warning('cache set failed key=%s: %s', key, exc, exc_info=True)
+
+
+def _cache_delete_many(keys: list[str]) -> None:
+    if not keys:
+        return
+    try:
+        cache.delete_many(keys)
+    except Exception as exc:
+        log.warning('cache delete_many failed: %s', exc, exc_info=True)
+
+
 def get_or_set(key: str, timeout: int, factory: Callable[[], T]) -> T:
-    """Read-through cache with a callable producer."""
-    cached = cache.get(key)
+    """Read-through cache with a callable producer; never raises on cache errors."""
+    cached = _cache_get(key)
     if cached is not None:
         return cached
     value = factory()
-    cache.set(key, value, timeout)
+    _cache_set(key, value, timeout)
     return value
 
 
@@ -49,7 +77,7 @@ def invalidate_merchandising_cache() -> None:
         API_HOME_MERCH_KEY,
         *[HOME_CTX_KEY.format(lang=lang) for lang in _SUPPORTED_LANGS],
     ]
-    cache.delete_many(keys)
+    _cache_delete_many(keys)
 
 
 def cached_home_stats() -> dict[str, Any]:
