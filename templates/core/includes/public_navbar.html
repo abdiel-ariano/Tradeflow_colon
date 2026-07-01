@@ -4,8 +4,7 @@
   <nav class="hm-nav" aria-label="TradeFlow store">
     <div class="hm-nav__main">
       <a href="{% url 'home' %}" class="hm-nav__brand" aria-label="TradeFlow Colón">
-        <span class="hm-nav__mark" aria-hidden="true">TF</span>
-        <span class="hm-nav__wordmark">Trade<span class="hm-nav__accent">F</span>low</span>
+        {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" class="hm-nav__logo" eager=1 %}
       </a>
 
       <form class="hm-nav__search" action="{% url 'catalogo_publico' %}" method="get" role="search">

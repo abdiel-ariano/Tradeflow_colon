@@ -101,7 +101,7 @@ Public navbar + category pills — dual palette (navy/orange + blue).
 .hm-nav__logo {
   height: 32px !important;
   width: auto;
-  max-width: 180px;
+  max-width: 200px;
   object-fit: contain;
 }
 
