@@ -42,6 +42,7 @@ def _maybe_seed_demo(sender, **kwargs):
     log.info('SEED_DEMO_IF_EMPTY: catálogo vacío, ejecutando cargar_demo…')
     try:
         call_command('cargar_demo')
+        call_command('seed_catalog_images', limit=0)
     except Exception as exc:
         log.exception('cargar_demo falló: %s', exc)
 
