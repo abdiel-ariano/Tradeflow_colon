@@ -104,7 +104,11 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 .hm-section.hm-categories,
 .hm-section.hm-proof,
 .hm-section.hm-wall,
-.hm-section.hm-deals {
+.hm-section.hm-deals,
+.hm-section.hm-bestsellers,
+.hm-section.hm-promo-banner,
+.hm-section.hm-promo-row,
+.hm-section.hm-promo-carousel {
   padding: 0;
   padding-block: var(--hm-section-y);
 }
@@ -975,6 +979,230 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
+
+/* ── Hero brand wordmark ── */
+.hm-hero__brand {
+  display: inline-flex;
+  margin-bottom: 14px;
+  line-height: 0;
+  text-decoration: none;
+  opacity: 0.96;
+  transition: opacity 0.2s ease;
+}
+
+.hm-hero__brand:hover { opacity: 1; }
+
+.hm-hero__wordmark {
+  height: 40px !important;
+  max-width: min(260px, 72vw) !important;
+}
+
+/* ── Compact how-it-works ── */
+.hm-how__head--compact {
+  margin-bottom: clamp(16px, 2vw, 22px) !important;
+}
+
+.hm-how__steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 1024px) {
+  .hm-how__steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+.hm-how__step {
+  padding: 14px 12px 12px;
+}
+
+.hm-how__step-desc {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.hm-how__cta-wrap {
+  margin-top: 18px;
+}
+
+/* ── CMS promo banner ── */
+.hm-promo-banner__inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .hm-promo-banner__inner {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 32px;
+  }
+}
+
+.hm-promo-banner__copy .hm-btn {
+  margin-top: 18px;
+}
+
+.hm-promo-banner__mosaic {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.hm-promo-banner__thumb {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hm-promo-banner__thumb .hm-media { border-radius: 12px; }
+
+/* ── Bestsellers + promo carousels ── */
+.hm-bestsellers__head,
+.hm-promo-carousel__head,
+.hm-promo-row__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hm-bestsellers__see-all,
+.hm-promo-carousel__see-all,
+.hm-promo-row__see-all {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.hm-bestsellers__see-all:hover,
+.hm-promo-carousel__see-all:hover,
+.hm-promo-row__see-all:hover {
+  text-decoration: underline;
+}
+
+/* ── CMS product row grid ── */
+.hm-promo-row__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .hm-promo-row__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .hm-promo-row__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.hm-promo-row__card {
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.25s var(--hm-ease-out), box-shadow 0.25s var(--hm-ease-out);
+}
+
+.hm-section--surface .hm-promo-row__card {
+  border-color: var(--gray-200);
+}
+
+.hm-promo-row__card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(15, 42, 68, 0.08);
+}
+
+.hm-promo-row__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.hm-promo-row__media .hm-media { border-radius: 0; }
+
+.hm-promo-row__badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--white);
+  background: var(--orange);
+}
+
+.hm-promo-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px 12px;
+}
+
+.hm-promo-row__company {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.hm-promo-row__name {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.hm-promo-row__name a {
+  color: var(--gray-900);
+  text-decoration: none;
+}
+
+.hm-promo-row__name a:hover { color: var(--primary); }
+
+.hm-promo-row__price {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.hm-promo-row__unit {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.hm-promo-row__cta {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.hm-promo-row__cta:hover { text-decoration: underline; }
 
 @media (prefers-reduced-motion: reduce) {
   .hm-media__shimmer { animation: none; opacity: 0; }
