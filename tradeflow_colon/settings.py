@@ -232,6 +232,38 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # Cache-bust query param for JS/CSS after deploy (set TRADEFLOW_ASSET_VERSION on Railway).
 TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='home-dual-v22')
 
+# ── Cache (páginas públicas / merchandising) ───────────────────────────────
+# REDIS_URL en Railway → compartido entre workers Gunicorn (recomendado).
+# Sin Redis: tabla `tradeflow_cache` en PostgreSQL (`python manage.py createcachetable`).
+CACHE_TTL_HOME = config('CACHE_TTL_HOME', default=120, cast=int)
+CACHE_TTL_STATS = config('CACHE_TTL_STATS', default=300, cast=int)
+CACHE_TTL_NAV = config('CACHE_TTL_NAV', default=600, cast=int)
+CACHE_TTL_CATALOG_META = config('CACHE_TTL_CATALOG_META', default=300, cast=int)
+
+_redis_url = config('REDIS_URL', default='')
+if _redis_url:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': _redis_url,
+            'KEY_PREFIX': 'tf',
+        }
+    }
+elif _db_url:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+            'LOCATION': 'tradeflow_cache',
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'tradeflow-local',
+        }
+    }
+
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

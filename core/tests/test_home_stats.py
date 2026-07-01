@@ -2,7 +2,7 @@
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
-from core.merchandising import home_stats
+from core.merchandising import home_stats_uncached
 from core.models import Category, Company, Inventory, Order, Product, UserProfile
 
 
@@ -31,7 +31,7 @@ class HomeStatsTests(TestCase):
         UserProfile.objects.create(user=buyer, role='buyer', email_verificado=True)
         Order.objects.create(buyer=buyer, status='delivered', total='250.00')
 
-        stats = home_stats()
+        stats = home_stats_uncached()
 
         self.assertEqual(stats['empresas_verificadas'], 1)
         self.assertEqual(stats['productos'], 1)
