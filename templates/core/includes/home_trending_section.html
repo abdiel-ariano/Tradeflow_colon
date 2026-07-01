@@ -6,6 +6,7 @@
       <a href="{% url 'catalogo_publico' %}" class="hm-trending__see-all">See all →</a>
     </div>
 
+    {% if carousel_products or featured_products %}
     <div class="hm-slider hm-slider--trending" data-hm-slider data-hm-slider-visible="4">
       <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous">
         <span class="material-symbols-rounded">chevron_left</span>
@@ -19,8 +20,6 @@
           {% else %}
             {% for product in featured_products|slice:":12" %}
               {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
-            {% empty %}
-            <p class="hm-empty">Products coming soon to the catalog.</p>
             {% endfor %}
           {% endif %}
         </div>
@@ -30,5 +29,8 @@
       </button>
       <div class="hm-slider__dots" aria-hidden="true"></div>
     </div>
+    {% else %}
+    <p class="hm-empty">Products coming soon to the catalog.</p>
+    {% endif %}
   </div>
 </section>

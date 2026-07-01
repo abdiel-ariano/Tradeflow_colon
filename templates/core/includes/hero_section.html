@@ -6,9 +6,6 @@
   <div class="hm-hero-mega__frame">
     <div class="hm-hero__grid hm-hero__grid--compact">
       <div class="hm-hero-mega__copy">
-        <a href="{% url 'home' %}" class="hm-hero__logo-link" aria-label="TradeFlow Colón home">
-          {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" class="hm-hero__logo" eager=1 %}
-        </a>
         <p class="hm-hero__badge">Panama Free Zone · B2B Wholesale</p>
         <h1 class="hm-hero__title" id="hm-hero-title">The Wholesale Marketplace of the Americas</h1>
         <p class="hm-hero__subtitle">
@@ -30,9 +27,9 @@
           <span class="hm-hero__proof-item">40+ buyer countries</span>
         </p>
       </div>
-      <div class="hm-hero__visual" aria-hidden="true">
+      <div class="hm-hero__visual">
         {% with hero_product=featured_products.0 %}
-        <div class="hm-hero__visual-frame">
+        <div class="hm-hero__visual-frame" aria-hidden="true">
           {% if hero_product %}
             {% include "core/includes/product_image_placeholder.html" with product=hero_product img_class="hm-hero__visual-img" decorative=True %}
           {% else %}
