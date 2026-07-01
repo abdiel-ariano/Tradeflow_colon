@@ -1,20 +1,20 @@
 {% load static %}
 {% comment %}Shop by Category — dark collage cards. Context: category_spotlights{% endcomment %}
-<section class="hm-categories hm-categories--dark" id="hm-categories" aria-labelledby="hm-categories-title">
-  <div class="hm-categories__inner">
-    <div class="hm-categories__head" data-hm-reveal>
-      <span class="hm-section-badge">Explore</span>
+<section class="hm-categories hm-categories--dark hm-section hm-section--navy" id="hm-categories" data-hm-section aria-labelledby="hm-categories-title">
+  <div class="hm-section__inner hm-categories__inner">
+    <header class="hm-section__head hm-section__head--center hm-categories__head">
+      <span class="hm-section__eyebrow">Explore</span>
       <h2 class="hm-section-title hm-section-title--light" id="hm-categories-title">Shop by Category</h2>
       <p class="hm-section-sub hm-section-sub--light">Browse wholesale inventory across the Colón Free Zone</p>
-    </div>
-    <div class="hm-categories__grid">
+    </header>
+    <div class="hm-categories__grid" data-hm-stagger>
       {% for row in category_spotlights|slice:":4" %}
-      <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="hm-cat-card hm-cat-card--dark" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter0 }}">
+      <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="hm-cat-card hm-cat-card--dark">
         <div class="hm-cat-card__collage" aria-hidden="true">
           <div class="hm-cat-card__collage-overlay"></div>
           {% for product in row.products|slice:":4" %}
           <span class="hm-cat-card__thumb">
-            {% include "core/includes/product_image_placeholder.html" with product=product decorative=True %}
+            {% include "core/includes/home_product_media.html" with product=product decorative=True %}
           </span>
           {% empty %}
           <span class="hm-cat-card__thumb hm-cat-card__thumb--empty hm-cat-card__thumb--1"></span>

@@ -25,13 +25,32 @@ def product_img(product, css_class=''):
 
 @register.filter
 def product_image_src(product):
-    """Public image URL with deterministic demo fallback for catalog/home cards."""
-    url = product_image_url(product)
-    if url:
-        return url
+    """Public image URL — verified local file, remote URL, or picsum demo seed."""
+    if not product:
+        return ''
     from core.utils.demo_product_images import picsum_url
+    from core.utils.media_storage import is_remote_media_storage, local_media_file_exists, product_image_url
+
+    rel = ''
+    if getattr(product, 'image', None) and product.image.name:
+        rel = product.image.name.replace('\\', '/')
+
+    if rel:
+        if is_remote_media_storage():
+            url = product_image_url(product)
+            if url:
+                return url
+        elif local_media_file_exists(rel):
+            return product_image_url(product)
 
     return picsum_url(product)
+
+
+@register.filter
+def product_image_picsum_src(product):
+    from core.utils.demo_product_images import picsum_url
+
+    return picsum_url(product) if product else ''
 
 
 @register.filter

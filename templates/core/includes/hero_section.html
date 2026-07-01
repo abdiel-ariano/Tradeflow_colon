@@ -31,7 +31,7 @@
         {% with hero_product=featured_products.0 %}
         <div class="hm-hero__visual-frame" aria-hidden="true">
           {% if hero_product %}
-            {% include "core/includes/product_image_placeholder.html" with product=hero_product img_class="hm-hero__visual-img" decorative=True loading="eager" %}
+            {% include "core/includes/home_product_media.html" with product=hero_product img_class="hm-hero__visual-img" decorative=True loading="eager" %}
           {% else %}
             <img src="{% static 'img/ship-cargo.svg' %}" alt="" class="hm-hero__visual-img hm-hero__visual-img--art" loading="eager" decoding="async">
           {% endif %}

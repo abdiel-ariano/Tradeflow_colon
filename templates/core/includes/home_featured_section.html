@@ -1,17 +1,18 @@
 {% load tf_money %}
 {% comment %}Static featured products grid — replaces hero product-pitch carousel slides.{% endcomment %}
 {% if featured_products|length > 1 %}
-<section class="hm-featured" id="hm-featured" aria-labelledby="hm-featured-title">
-  <div class="hm-featured__inner">
-    <div class="hm-featured__head">
+<section class="hm-featured hm-section hm-section--surface" id="hm-featured" data-hm-section aria-labelledby="hm-featured-title">
+  <div class="hm-section__inner">
+    <header class="hm-section__head hm-featured__head">
+      <span class="hm-section__eyebrow">Curated for buyers</span>
       <h2 class="hm-section-title" id="hm-featured-title">Featured wholesale picks</h2>
       <a href="{% url 'catalogo_publico' %}" class="hm-featured__see-all">See all →</a>
-    </div>
-    <div class="hm-featured__grid">
+    </header>
+    <div class="hm-featured__grid" data-hm-stagger>
       {% for product in featured_products|slice:"1:4" %}
-      <article class="hm-featured__card" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter0 }}">
+      <article class="hm-featured__card">
         <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-featured__media">
-          {% include "core/includes/product_image_placeholder.html" with product=product img_class="hm-featured__img" decorative=True %}
+          {% include "core/includes/home_product_media.html" with product=product img_class="hm-featured__img" decorative=True %}
         </a>
         <div class="hm-featured__body">
           <p class="hm-featured__company">{{ product.company.name }}</p>
