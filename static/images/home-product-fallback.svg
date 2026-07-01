@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Product image placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B3B63"/>
+      <stop offset="100%" stop-color="#2E5B8A"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+  <rect x="130" y="78" width="140" height="108" rx="10" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+  <circle cx="168" cy="118" r="11" fill="rgba(255,255,255,0.45)"/>
+  <path d="M148 168 L188 132 L214 154 L252 118 L272 168 Z" fill="rgba(242,101,34,0.85)"/>
+  <text x="200" y="228" fill="rgba(255,255,255,0.82)" font-family="system-ui,sans-serif" font-size="13" font-weight="600" text-anchor="middle">TradeFlow catalog</text>
+</svg>

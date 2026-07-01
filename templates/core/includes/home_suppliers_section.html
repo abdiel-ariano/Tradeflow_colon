@@ -1,8 +1,9 @@
 {% comment %}Top companies — single auto-rotator (8s) with unified spotlight cards.{% endcomment %}
-<section class="hm-suppliers" id="hm-suppliers" aria-labelledby="hm-suppliers-title">
-  <div class="hm-suppliers__inner">
-    <div class="hm-suppliers__head">
+<section class="hm-suppliers hm-section hm-section--surface" id="hm-suppliers" data-hm-section aria-labelledby="hm-suppliers-title">
+  <div class="hm-section__inner hm-suppliers__inner">
+    <header class="hm-section__head hm-suppliers__head">
       <div>
+        <span class="hm-section__eyebrow">Verified partners</span>
         <h2 class="hm-section-title" id="hm-suppliers-title">Featured suppliers</h2>
         <p class="hm-section-sub">CFZ-verified partners highlighted by catalog activity and visibility plans</p>
       </div>
@@ -13,7 +14,7 @@
       <div class="hm-info-tooltip" id="hm-rankings-tooltip" role="tooltip" hidden>
         Companies are highlighted based on visibility plans and catalog activity. All are CFZ-verified.
       </div>
-    </div>
+    </header>
 
     {% if empresas_carousel %}
     <div class="hm-company-rotator" data-hm-company-rotator aria-live="polite">
@@ -47,7 +48,7 @@
         <div class="hm-slider__viewport">
           <div class="hm-slider__track">
             {% for emp in empresas_carousel|slice:"5:11" %}
-            <article class="hm-supplier-card hm-supplier-card--slide" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter0 }}">
+            <article class="hm-supplier-card hm-supplier-card--slide">
               <div class="hm-supplier-card__top">
                 <span class="hm-supplier-card__avatar">{{ emp.name|slice:":2"|upper }}</span>
                 <div>

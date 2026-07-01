@@ -1,30 +1,31 @@
 {% comment %}Honest buyer confidence block — platform facts, no fabricated reviews.{% endcomment %}
-<section class="hm-proof" id="hm-proof" aria-labelledby="hm-proof-title">
-  <div class="hm-proof__inner">
-    <div class="hm-proof__head" data-hm-reveal>
+<section class="hm-proof hm-section hm-section--navy" id="hm-proof" data-hm-section aria-labelledby="hm-proof-title">
+  <div class="hm-section__inner hm-proof__inner">
+    <header class="hm-section__head hm-section__head--center">
+      <span class="hm-section__eyebrow">Why TradeFlow</span>
       <h2 class="hm-section-title hm-section-title--center hm-section-title--light" id="hm-proof-title">Wholesale confidence, built in</h2>
       <p class="hm-section-sub hm-section-sub--center hm-section-sub--light">What you can rely on when sourcing through TradeFlow</p>
-    </div>
-    <ul class="hm-proof__grid">
-      <li class="hm-proof__card" data-hm-reveal>
+    </header>
+    <ul class="hm-proof__grid" data-hm-stagger>
+      <li class="hm-proof__card">
         <span class="hm-proof__icon material-symbols-rounded" aria-hidden="true">verified</span>
         <h3 class="hm-proof__title">CFZ-verified suppliers</h3>
         <p class="hm-proof__text">Every company on the marketplace is registered in the Colón Free Zone with an active catalog.</p>
         <a href="{% url 'catalogo_publico' %}?verificado=1" class="hm-proof__link">Browse verified companies →</a>
       </li>
-      <li class="hm-proof__card" data-hm-reveal data-hm-reveal-delay="1">
+      <li class="hm-proof__card">
         <span class="hm-proof__icon material-symbols-rounded" aria-hidden="true">inventory_2</span>
         <h3 class="hm-proof__title">Live inventory</h3>
         <p class="hm-proof__text">Product counts and pricing come from supplier catalogs — not static marketing placeholders.</p>
         <a href="{% url 'catalogo_publico' %}" class="hm-proof__link">View catalog →</a>
       </li>
-      <li class="hm-proof__card" data-hm-reveal data-hm-reveal-delay="2">
+      <li class="hm-proof__card">
         <span class="hm-proof__icon material-symbols-rounded" aria-hidden="true">description</span>
         <h3 class="hm-proof__title">Export documentation</h3>
         <p class="hm-proof__text">Orders include the documentation international buyers need for customs and compliance.</p>
         <a href="{% url 'home' %}#como-funciona" class="hm-proof__link">See how it works →</a>
       </li>
-      <li class="hm-proof__card" data-hm-reveal data-hm-reveal-delay="3">
+      <li class="hm-proof__card">
         <span class="hm-proof__icon material-symbols-rounded" aria-hidden="true">lock</span>
         <h3 class="hm-proof__title">Secure B2B checkout</h3>
         <p class="hm-proof__text">Buyer accounts, order tracking, and protected payments designed for wholesale volumes.</p>

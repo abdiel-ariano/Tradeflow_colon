@@ -5,7 +5,7 @@
     {% if product.is_on_promo_now %}
     <span class="hm-sp-card__badge">-{{ product.discount_pct }}%</span>
     {% endif %}
-    {% include "core/includes/product_image_placeholder.html" with product=product css_class="hm-sp-card__placeholder" decorative=True %}
+    {% include "core/includes/home_product_media.html" with product=product css_class="hm-sp-card__placeholder" decorative=True %}
   </a>
   <h3 class="hm-sp-card__name">
     <a href="{% url 'catalogo_producto_detail' product.pk %}" title="{{ product.name }}">{{ product.name|truncatechars:48 }}</a>

@@ -24,6 +24,12 @@ class ProductImageSrcTests(TestCase):
         self.assertTrue(url.startswith('https://picsum.photos/seed/'))
         self.assertIn('400/300', url)
 
+    def test_product_image_src_uses_picsum_when_local_file_missing(self):
+        self.product.image = 'productos/missing_file.png'
+        self.product.save(update_fields=['image'])
+        url = product_image_src(self.product)
+        self.assertTrue(url.startswith('https://picsum.photos/seed/'))
+
     def test_catalog_card_image_src_matches_product_image_src(self):
         from core.templatetags.tf_media import catalog_card_image_src
 

@@ -7,6 +7,71 @@
 
   var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ── Product image fallback: primary → picsum → branded SVG ── */
+  function mediaFallback(img) {
+    var stage = img.getAttribute('data-hm-fallback-stage') || '0';
+    var picsum = img.getAttribute('data-hm-picsum');
+    var staticSrc = img.getAttribute('data-hm-static');
+    var wrap = img.closest('[data-hm-media]');
+
+    if (stage === '0' && picsum && img.src !== picsum) {
+      img.setAttribute('data-hm-fallback-stage', '1');
+      img.src = picsum;
+      return;
+    }
+    if (stage === '1' && staticSrc) {
+      img.setAttribute('data-hm-fallback-stage', '2');
+      img.src = staticSrc;
+      img.classList.add('is-placeholder');
+      if (wrap) {
+        wrap.classList.add('is-error');
+        wrap.classList.add('is-loaded');
+      }
+    }
+  }
+
+  window.TFHomeMediaFallback = mediaFallback;
+
+  function markMediaLoaded(img) {
+    var wrap = img.closest('[data-hm-media]');
+    if (!wrap) return;
+    wrap.classList.add('is-loaded');
+    if (img.classList.contains('is-placeholder')) {
+      wrap.classList.add('is-error');
+    }
+  }
+
+  function bindMediaImage(img) {
+    function onLoad() {
+      markMediaLoaded(img);
+    }
+
+    function onError() {
+      var prev = img.src;
+      mediaFallback(img);
+      if (img.src !== prev) {
+        img.addEventListener('load', onLoad, { once: true });
+        img.addEventListener('error', function () {
+          markMediaLoaded(img);
+        }, { once: true });
+        return;
+      }
+      markMediaLoaded(img);
+    }
+
+    if (img.complete && img.naturalWidth > 0) {
+      onLoad();
+      return;
+    }
+
+    img.addEventListener('load', onLoad, { once: true });
+    img.addEventListener('error', onError, { once: true });
+  }
+
+  function initProductMedia() {
+    document.querySelectorAll('[data-hm-media] img').forEach(bindMediaImage);
+  }
+
   /* ── Count-up (hero stats) ── */
   function animateCount(el, target, suffix, duration) {
     if (REDUCED) {
@@ -52,7 +117,7 @@
     stats.forEach(function (el) { observer.observe(el); });
   }
 
-  /* ── Scroll reveal ── */
+  /* ── Scroll reveal (individual elements) ── */
   function initReveal() {
     var items = document.querySelectorAll('[data-hm-reveal]');
     if (!items.length) return;
@@ -71,10 +136,35 @@
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.12, rootMargin: '0px 0px -6% 0px' }
     );
 
     items.forEach(function (el) { observer.observe(el); });
+  }
+
+  /* ── Section choreography (staggered groups) ── */
+  function initSectionReveal() {
+    var sections = document.querySelectorAll('[data-hm-section]');
+    if (!sections.length) return;
+
+    if (REDUCED) {
+      sections.forEach(function (el) { el.classList.add('is-inview'); });
+      return;
+    }
+
+    var observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-inview');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -8% 0px' }
+    );
+
+    sections.forEach(function (el) { observer.observe(el); });
   }
 
   /* ── Hero mega-carousel (full-width slides) ── */
@@ -503,7 +593,9 @@
     initHeroCarousel();
     initCompanyRotator();
     initCountUp();
+    initSectionReveal();
     initReveal();
+    initProductMedia();
     initSliders();
     initCarousels();
     initNavShadow();

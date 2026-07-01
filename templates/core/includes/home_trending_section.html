@@ -1,10 +1,13 @@
 {% comment %}Trending products — transform carousel (no scroll hijacking).{% endcomment %}
-<section class="hm-trending" id="hm-trending" aria-labelledby="hm-trending-title">
-  <div class="hm-trending__inner">
-    <div class="hm-trending__head">
-      <h2 class="hm-section-title" id="hm-trending-title">Trending in the Free Zone</h2>
+<section class="hm-trending hm-section" id="hm-trending" data-hm-section aria-labelledby="hm-trending-title">
+  <div class="hm-section__inner hm-trending__inner">
+    <header class="hm-section__head hm-trending__head">
+      <div>
+        <span class="hm-section__eyebrow">Live inventory</span>
+        <h2 class="hm-section-title" id="hm-trending-title">Trending in the Free Zone</h2>
+      </div>
       <a href="{% url 'catalogo_publico' %}" class="hm-trending__see-all">See all →</a>
-    </div>
+    </header>
 
     {% if carousel_products or featured_products %}
     <div class="hm-slider hm-slider--trending" data-hm-slider data-hm-slider-visible="4">
