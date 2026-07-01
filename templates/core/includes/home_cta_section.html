@@ -1,13 +1,12 @@
-{% load static %}
-{% comment %}Final CTA — dual buyer/seller signup on public home.{% endcomment %}
-<section class="cta-section" id="hm-cta" aria-labelledby="cta-heading">
-  <div class="cta-bg-pattern" aria-hidden="true"></div>
-  <div class="cta-content" data-reveal="up">
-    <h2 id="cta-heading">Start trading in the <span class="cta-highlight">Colón Free Zone</span></h2>
-    <p>Join TradeFlow Colón — the platform ready for PreExpo 2026 and international investors.</p>
-    <div class="cta-buttons">
-      <a href="{% url 'signup' %}?role=buyer" class="cta-btn cta-btn--primary">Start buying</a>
-      <a href="{% url 'signup' %}?role=seller" class="cta-btn cta-btn--secondary">Start selling</a>
+{% comment %}Final buyer/seller CTA — navy band before footer.{% endcomment %}
+<section class="hm-close" id="hm-cta" aria-labelledby="hm-cta-title">
+  <div class="hm-close__inner" data-hm-reveal>
+    <h2 class="hm-close__title" id="hm-cta-title">Ready to source from the Colón Free Zone?</h2>
+    <p class="hm-close__sub">Browse verified suppliers today, or list your catalog when you are ready to sell wholesale.</p>
+    <div class="hm-close__actions">
+      <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore catalog →</a>
+      <a href="{% url 'signup' %}" class="hm-btn hm-btn--outline hm-btn--lg">Create buyer account</a>
+      <a href="{% url 'signup' %}?role=seller" class="hm-close__seller-link">List your company on TradeFlow</a>
     </div>
   </div>
 </section>

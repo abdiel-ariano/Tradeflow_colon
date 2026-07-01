@@ -492,7 +492,14 @@
     });
   }
 
+  function initMotion() {
+    var root = document.querySelector('.hm-root');
+    if (!root || REDUCED) return;
+    root.classList.add('hm-root--motion');
+  }
+
   function init() {
+    initMotion();
     initHeroCarousel();
     initCompanyRotator();
     initCountUp();
