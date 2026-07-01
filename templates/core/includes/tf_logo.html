@@ -1,6 +1,8 @@
 {% load static %}
 {% if variant == "wordmark-white" or variant == "wordmark-dark" %}
-  {% if size == "footer" %}
+  {% if size == "nav" %}
+    <img src="{% static 'img/logo-wordmark-white.png' %}" alt="{{ aria_label|default:'TradeFlow Colón' }}" class="tf-logo-img tf-logo-wordmark {{ class }}" height="34" style="height:34px;width:auto;max-width:min(240px,100%);object-fit:contain;display:block;" {% if eager %}fetchpriority="high"{% endif %}>
+  {% elif size == "footer" %}
     <img src="{% static 'img/logo-wordmark-white.png' %}" alt="{{ aria_label|default:'TradeFlow Colón' }}" class="tf-logo-img tf-logo-wordmark {{ class }}" height="32" style="height:32px;width:auto;max-width:min(220px,100%);object-fit:contain;display:block;" {% if lazy %}loading="lazy" decoding="async"{% endif %}{% if eager %} fetchpriority="high"{% endif %}>
   {% elif size == "auth" or size == "wordmark" %}
     <img src="{% static 'img/logo-wordmark-white.png' %}" alt="{{ aria_label|default:'TradeFlow Colón' }}" class="tf-logo-img tf-logo-wordmark {{ class }}" height="56" style="height:56px;width:auto;max-width:min(320px,100%);object-fit:contain;display:block;" {% if eager %}fetchpriority="high"{% endif %}>

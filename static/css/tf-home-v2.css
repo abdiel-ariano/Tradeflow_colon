@@ -84,9 +84,10 @@ Public homepage — dual palette (navy/orange + blue).
   color: var(--gray-900);
   margin: 0 0 6px;
   line-height: 1.15;
+  text-wrap: balance;
 }
 
-.hm-section-title--center { text-align: center; margin-bottom: 40px; }
+.hm-section-title--center { text-align: center; margin-bottom: 12px; }
 .hm-section-sub { margin: 0; font-size: 15px; color: var(--muted); }
 .hm-section-sub--light { color: rgba(255, 255, 255, 0.65); }
 .hm-section-title--light { color: var(--white); }
@@ -307,18 +308,13 @@ Public homepage — dual palette (navy/orange + blue).
 
 /* Static hero (no carousel) */
 .hm-hero-mega--static .hm-hero-mega__frame {
-  padding-top: clamp(20px, 4vw, 36px);
+  padding-top: clamp(12px, 3vw, 28px);
   padding-bottom: clamp(36px, 6vw, 56px);
 }
 
-.hm-hero__logo-link {
-  display: inline-block;
-  margin-bottom: 16px;
-}
-
-.hm-hero__logo {
-  height: 36px !important;
-  max-width: 200px;
+.hm-hero-mega--static .hm-hero__grid--compact {
+  padding-top: clamp(28px, 5vw, 48px);
+  padding-bottom: clamp(48px, 7vw, 72px);
 }
 
 .hm-hero__seller-link {
@@ -558,6 +554,8 @@ Public homepage — dual palette (navy/orange + blue).
   line-height: 1.12;
   color: var(--white);
   margin: 0 0 16px;
+  text-wrap: balance;
+  letter-spacing: -0.02em;
 }
 
 .hm-hero__subtitle {
@@ -1342,8 +1340,8 @@ Public homepage — dual palette (navy/orange + blue).
   border: 2px solid rgba(0, 87, 168, 0.12);
 }
 
-.hm-how__step-title { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--gray-900); }
-.hm-how__step-desc { margin: 0; font-size: 13px; color: var(--gray-500); line-height: 1.5; }
+.hm-how__step-title { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--gray-900); text-wrap: balance; }
+.hm-how__step-desc { margin: 0; font-size: 13px; color: var(--gray-500); line-height: 1.5; text-wrap: pretty; }
 
 .hm-featured {
   background: var(--white);

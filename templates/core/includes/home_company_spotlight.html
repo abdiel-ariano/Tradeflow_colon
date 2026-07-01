@@ -24,7 +24,7 @@ Variables: company (with spotlight_products attached in home_view)
   <p class="hm-spotlight-unified__desc">{{ company.tagline_es }}</p>
   {% endif %}
 
-  <div class="hm-spotlight-unified__products hm-spotlight-products-host" data-hm-spotlight-products>
+  <div class="hm-spotlight-unified__products hm-spotlight-products-host{% if spotlight_ready %} is-ready{% endif %}" data-hm-spotlight-products>
     <div class="hm-spotlight-unified__products-loading" aria-hidden="true">
       <div class="hm-spotlight-skeleton" aria-hidden="true">
         {% for _ in "123" %}
