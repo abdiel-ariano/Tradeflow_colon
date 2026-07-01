@@ -1,0 +1,31 @@
+{% load tf_money %}
+{% comment %}Compact promo row when daily deals exist — uses unused home_view context.{% endcomment %}
+{% if daily_deals|length >= 3 %}
+<section class="hm-deals hm-section" id="hm-deals" data-hm-section aria-labelledby="hm-deals-title">
+  <div class="hm-section__inner hm-deals__inner">
+    <header class="hm-section__head hm-deals__head">
+      <div>
+        <span class="hm-section__eyebrow">Limited offers</span>
+        <h2 class="hm-section-title" id="hm-deals-title">Today's wholesale deals</h2>
+      </div>
+      <a href="{% url 'catalogo_publico' %}?orden=promo" class="hm-deals__see-all">All deals →</a>
+    </header>
+    <div class="hm-deals__track" data-hm-stagger>
+      {% for product in daily_deals|slice:":8" %}
+      <article class="hm-deals__card">
+        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-deals__media">
+          <span class="hm-deals__badge">-{{ product.discount_pct }}%</span>
+          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
+        </a>
+        <div class="hm-deals__body">
+          <h3 class="hm-deals__name">
+            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:42 }}</a>
+          </h3>
+          <p class="hm-deals__price">{{ product.display_price|money_usd }}</p>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}

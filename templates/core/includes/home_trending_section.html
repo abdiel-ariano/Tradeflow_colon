@@ -17,11 +17,11 @@
       <div class="hm-slider__viewport">
         <div class="hm-slider__track">
           {% if carousel_products %}
-            {% for product in carousel_products|slice:":12" %}
+            {% for product in carousel_products|slice:":24" %}
               {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
             {% endfor %}
           {% else %}
-            {% for product in featured_products|slice:":12" %}
+            {% for product in featured_products|slice:":24" %}
               {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
             {% endfor %}
           {% endif %}

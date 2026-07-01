@@ -1,0 +1,47 @@
+{% load tf_money %}
+{% comment %}Dense catalog mosaic — shows marketplace breadth across categories.{% endcomment %}
+{% if catalog_breadth_products %}
+<section class="hm-wall hm-section hm-section--surface" id="hm-catalog-wall" data-hm-section aria-labelledby="hm-wall-title">
+  <div class="hm-section__inner hm-wall__inner">
+    <header class="hm-section__head hm-wall__head">
+      <div>
+        <span class="hm-section__eyebrow">Full marketplace</span>
+        <h2 class="hm-section-title" id="hm-wall-title">Browse {{ stats.productos|default:0 }} SKUs from the Free Zone</h2>
+        <p class="hm-section-sub">A live sample across {{ stats.categorias|default:0 }} categories — no account required to explore.</p>
+      </div>
+      <a href="{% url 'catalogo_publico' %}" class="hm-wall__see-all">View full catalog →</a>
+    </header>
+
+    <div class="hm-wall__grid" data-hm-stagger>
+      {% for product in catalog_breadth_products %}
+      <article class="hm-wall__tile">
+        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-wall__media" aria-label="{{ product.name }}">
+          {% if product.is_on_promo_now %}
+          <span class="hm-wall__badge">-{{ product.discount_pct }}%</span>
+          {% endif %}
+          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
+        </a>
+        <div class="hm-wall__meta">
+          {% if product.category %}
+          <span class="hm-wall__cat">{{ product.category.name|truncatechars:22 }}</span>
+          {% endif %}
+          <h3 class="hm-wall__name">
+            <a href="{% url 'catalogo_producto_detail' product.pk %}" title="{{ product.name }}">{{ product.name|truncatechars:48 }}</a>
+          </h3>
+          <p class="hm-wall__company" title="{{ product.company.name }}">{{ product.company.name|truncatechars:28 }}</p>
+          <p class="hm-wall__price">{{ product.display_price|money_usd }}</p>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="hm-wall__footer">
+      <p class="hm-wall__hint">
+        Showing {{ catalog_breadth_products|length }} of <strong>{{ stats.productos|default:0 }}</strong> active SKUs
+        from <strong>{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}</strong> verified suppliers.
+      </p>
+      <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore full catalog →</a>
+    </div>
+  </div>
+</section>
+{% endif %}

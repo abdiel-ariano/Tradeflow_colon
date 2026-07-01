@@ -837,15 +837,15 @@ def home_view(request):
 
     featured_qs = merch.active_products_base().filter(is_featured=True).select_related(
         'company', 'category',
-    ).order_by('-merchandising_priority', '-created_at')[:6]
+    ).order_by('-merchandising_priority', '-created_at')[:8]
     if not featured_qs.exists():
         featured_qs = merch.active_products_base().select_related(
             'company', 'category',
-        ).order_by('-created_at')[:6]
+        ).order_by('-created_at')[:8]
 
-    bestsellers_list = merch.bestsellers(6)
+    bestsellers_list = merch.bestsellers(8)
     if not bestsellers_list:
-        bestsellers_list = list(featured_qs[:6])
+        bestsellers_list = list(featured_qs[:8])
 
     empresas_home = list(
         Company.objects.annotate(
@@ -859,7 +859,7 @@ def home_view(request):
     merch.spotlight_products_for_companies(empresas_home[:5], limit_per=3)
 
     empresas_premium, empresas_standard = merch.home_company_tiers(3, 8)
-    trending = merch.trending_products(12)
+    trending = merch.trending_products(24)
     texture = merch.texture_products(12)
 
     return render(
@@ -872,11 +872,12 @@ def home_view(request):
             'featured_products': list(featured_qs),
             'trending_products': trending,
             'texture_products': texture,
-            'carousel_products': merch.carousel_products(12),
+            'carousel_products': merch.carousel_products(24),
+            'catalog_breadth_products': merch.catalog_breadth_products(24),
             'empresas_carousel': empresas_home,
             'empresas_premium': empresas_premium,
             'empresas_standard': empresas_standard,
-            'category_spotlights': merch.category_spotlights(4, 4),
+            'category_spotlights': merch.category_spotlights(4, 6),
             'promo_sections': promo_sections,
             'show_cart_actions': False,
         },
