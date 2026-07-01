@@ -107,6 +107,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'axes.middleware.AxesMiddleware',
     'core.middleware.onboarding_gate.OnboardingGateMiddleware',
+    'core.middleware.db_unavailable.DatabaseUnavailableMiddleware',
     'core.middleware.tf_security.SecurityHeadersMiddleware',
     'core.middleware.tf_security.SecurityEventLogMiddleware',  # OWASP A09
     'core.middleware.tf_security.ApiRateLimitMiddleware',
@@ -157,7 +158,9 @@ WSGI_APPLICATION = 'tradeflow_colon.wsgi.application'
 #
 # DATABASE_URL en Railway: la provee el addon PostgreSQL automáticamente.
 #
-_db_url = config('DATABASE_URL', default='')
+from core.utils.database_url import normalize_database_url
+
+_db_url = normalize_database_url(config('DATABASE_URL', default=''))
 
 if _db_url:
     _ssl_required = config('DB_SSL', default=True, cast=bool)

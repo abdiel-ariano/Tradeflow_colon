@@ -46,7 +46,9 @@ class Command(BaseCommand):
 
         payload = platform_health_payload()
         if not payload['database']['ok']:
-            errors.append(f"DB: {payload['database']['detail']}")
+            from core.utils.database_url import database_connection_hint
+
+            errors.append(database_connection_hint(Exception(payload['database']['detail'])))
 
         for w in warnings:
             self.stdout.write(self.style.WARNING(f'  ⚠ {w}'))
