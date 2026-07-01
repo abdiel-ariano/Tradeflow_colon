@@ -8,7 +8,7 @@
     </a>
 
     <div class="search-container">
-      <form class="search-bar" action="{% url 'catalogo_publico' %}" method="get" role="search">
+      <form class="search-bar" action="{% url 'catalogo_publico' %}" method="get" role="search" id="cat-nav-search-form">
         <label class="visually-hidden" for="cat-nav-search">Search catalog</label>
         <input type="search" id="cat-nav-search" name="buscar" value="{{ buscar }}"
                placeholder="Search {{ catalogo_stats.productos|default:'1,342' }} CFZ products…" autocomplete="off">
@@ -45,7 +45,7 @@
           <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
         </svg>
-        <span class="cart-badge" id="cat-inquiry-badge">0</span>
+        <span class="cart-badge{% if carrito_count %} has-count{% endif %}" id="cat-inquiry-badge">{% firstof carrito_count 0 %}</span>
       </a>
       <a href="{% url 'login' %}" class="link-signin">Sign in</a>
       <a href="{% url 'signup' %}" class="btn-create-account">Create account</a>
@@ -56,9 +56,9 @@
     <div class="nav-secondary-inner">
       <div class="nav-secondary-left">
         <button type="button" class="btn-all-categories" aria-haspopup="true">☰ All categories</button>
-        <a href="{% url 'catalogo_publico' %}?verificado=1">Verified Companies</a>
-        <a href="{% url 'catalogo_publico' %}">Wholesale Catalog</a>
-        <a href="{% url 'catalogo_publico' %}?orden=novedades">Deals</a>
+        <a href="{% url 'catalogo_publico' %}?verificado=1" class="cat-nav-ajax-link">Verified Companies</a>
+        <a href="{% url 'catalogo_publico' %}" class="cat-nav-ajax-link">Wholesale Catalog</a>
+        <a href="{% url 'catalogo_publico' %}?orden=novedades" class="cat-nav-ajax-link">Deals</a>
         <a href="{% url 'home' %}#como-funciona">How it works</a>
       </div>
       <div class="nav-secondary-right">

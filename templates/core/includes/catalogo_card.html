@@ -1,6 +1,6 @@
 {% load static tf_money tf_media %}
 {% comment %}B2B catalog product card — /catalogo/ only.{% endcomment %}
-<article class="product-card tf-pcard" data-product-id="{{ product.pk }}">
+<article class="product-card" data-product-id="{{ product.pk }}">
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="card-image-link">
     <div class="card-image">
       {% if product.is_on_promo_now %}
@@ -10,7 +10,8 @@
       <img
         src="{{ product|catalog_card_image_src }}"
         alt="{{ product.name }}"
-        loading="lazy"
+        loading="{% if card_index and card_index <= 4 %}eager{% else %}lazy{% endif %}"
+        {% if card_index and card_index <= 4 %}fetchpriority="high"{% endif %}
         decoding="async"
         class="card-image-img"
         onerror="this.onerror=null;this.src='{% static 'img/product-placeholder.svg' %}';"

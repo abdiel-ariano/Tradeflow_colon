@@ -4,7 +4,7 @@
   {% if productos %}
   <div class="product-grid cat-grid tf-pcard-grid" id="cat-product-grid">
     {% for producto in productos %}
-      {% include "core/includes/catalogo_card.html" with product=producto %}
+      {% include "core/includes/catalogo_card.html" with product=producto card_index=forloop.counter %}
     {% endfor %}
   </div>
 
@@ -42,7 +42,7 @@
     <p>Try these terms or adjust your filters:</p>
     <div class="cat-suggestions">
       {% for term in sugerencias %}
-      <a href="{% url 'catalogo_publico' %}?buscar={{ term|urlencode }}" class="cat-suggestion-chip">{{ term }}</a>
+      <a href="{% url 'catalogo_publico' %}?buscar={{ term|urlencode }}" class="cat-suggestion-chip cat-ajax-chip">{{ term }}</a>
       {% endfor %}
     </div>
     <p class="cat-empty-action">

@@ -33,17 +33,17 @@ def pending_applications_badge(request):
 
 
 def cart_badge(request):
-    """Cart count for navbar (buyers only)."""
+    """Cart / inquiry count for navbar badge (session carrito)."""
+    carrito = request.session.get('carrito', {})
+    count = sum(int(item.get('cantidad', 0) or 0) for item in carrito.values())
     if not request.user.is_authenticated:
-        return {'carrito_count': 0}
+        return {'carrito_count': count}
     try:
         role = request.user.profile.role
     except Exception:
         role = None
     if request.user.is_superuser or role == 'admin' or role != 'buyer':
         return {'carrito_count': 0}
-    carrito = request.session.get('carrito', {})
-    count = sum(int(item.get('cantidad', 0) or 0) for item in carrito.values())
     return {'carrito_count': count}
 
 

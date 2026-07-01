@@ -15,10 +15,19 @@
   var grid = document.getElementById('cat-product-grid');
   var resultsCountEl = document.querySelector('.results-count strong');
   var progressBar = document.getElementById('top-progress-bar');
+  var activeFiltersEl = document.getElementById('cat-active-filters');
+  var priceRange = document.getElementById('cat-price-range');
+  var pageConfig = document.getElementById('cat-page-config');
+  var navHamburger = document.getElementById('cat-nav-hamburger');
+  var navSearchForm = document.getElementById('cat-nav-search-form');
+  var navSearchInput = document.getElementById('cat-nav-search');
+  var filterBuscar = document.getElementById('cat-filter-buscar');
+  var filterEmpresa = document.getElementById('cat-filter-empresa');
 
   var currentController = null;
   var debounceTimer = null;
   var activeRequestId = 0;
+  var inquiryUrlPattern = pageConfig ? pageConfig.getAttribute('data-inquiry-url') : '';
 
   var SPINNER_BY_INPUT = {
     categoria: 'categories',
@@ -29,6 +38,25 @@
     precio_min: 'price',
     precio_max: 'price',
   };
+
+  var SORT_LABELS = {
+    relevancia: 'Relevance',
+    precio_asc: 'Price ↑',
+    precio_desc: 'Price ↓',
+    novedades: 'Newest',
+  };
+
+  function getCookie(name) {
+    var parts = document.cookie ? document.cookie.split(';') : [];
+    var i;
+    for (i = 0; i < parts.length; i += 1) {
+      var chunk = parts[i].trim();
+      if (chunk.indexOf(name + '=') === 0) {
+        return decodeURIComponent(chunk.substring(name.length + 1));
+      }
+    }
+    return '';
+  }
 
   function setSidebarOpen(open) {
     if (!sidebar) return;
@@ -48,8 +76,35 @@
     });
   }
 
+  if (navHamburger) {
+    navHamburger.addEventListener('click', function () {
+      setSidebarOpen(true);
+    });
+  }
+
+  var allCategoriesBtn = document.querySelector('.btn-all-categories');
+  if (allCategoriesBtn) {
+    allCategoriesBtn.addEventListener('click', function () {
+      setSidebarOpen(true);
+    });
+  }
+
+  var cameraBtn = document.querySelector('.btn-camera');
+  if (cameraBtn && navSearchInput) {
+    cameraBtn.addEventListener('click', function () {
+      navSearchInput.focus();
+      showToast('Image search coming soon — use text search for now.');
+    });
+  }
+
   if (closeBtn) {
     closeBtn.addEventListener('click', function () {
+      setSidebarOpen(false);
+    });
+  }
+
+  if (backdrop) {
+    backdrop.addEventListener('click', function () {
       setSidebarOpen(false);
     });
   }
@@ -130,7 +185,8 @@
     gridEl.innerHTML = '';
     var fragment = document.createDocumentFragment();
     var total = count || getSkeletonCount();
-    for (var i = 0; i < total; i++) {
+    var i;
+    for (i = 0; i < total; i += 1) {
       fragment.appendChild(buildSkeletonCard());
     }
     gridEl.appendChild(fragment);
@@ -180,6 +236,176 @@
     }
   }
 
+  function syncCategoryPills() {
+    if (!filtersForm) return;
+    var selected = [];
+    filtersForm.querySelectorAll('input[name="categoria"]:checked').forEach(function (input) {
+      selected.push(input.value);
+    });
+    document.querySelectorAll('.cat-pill--ajax').forEach(function (pill) {
+      var catId = pill.getAttribute('data-cat-pill');
+      var active = catId === 'all' ? selected.length === 0 : selected.indexOf(catId) >= 0;
+      pill.classList.toggle('cat-pill--active', active);
+    });
+  }
+
+  function syncCompanyButtons() {
+    if (!filterEmpresa) return;
+    var current = filterEmpresa.value || '';
+    document.querySelectorAll('[data-empresa-filter]').forEach(function (btn) {
+      var val = btn.getAttribute('data-empresa-filter') || '';
+      btn.classList.toggle('is-active', val === current);
+    });
+  }
+
+  function renderActiveFilters() {
+    if (!activeFiltersEl || !filtersForm) return;
+
+    var chips = [];
+    var buscar = filterBuscar ? filterBuscar.value.trim() : '';
+    if (buscar) {
+      chips.push({ key: 'buscar', label: 'Search: ' + buscar });
+    }
+
+    filtersForm.querySelectorAll('input[name="categoria"]:checked').forEach(function (input) {
+      var label = input.closest('label');
+      var text = label ? label.querySelector('span') : null;
+      chips.push({ key: 'categoria:' + input.value, label: text ? text.textContent.trim() : 'Category' });
+    });
+
+    if (filterEmpresa && filterEmpresa.value) {
+      var empBtn = document.querySelector('[data-empresa-filter="' + filterEmpresa.value + '"]');
+      var empName = empBtn ? empBtn.textContent.trim().replace(/\d+$/, '').trim() : 'Company';
+      chips.push({ key: 'empresa', label: empName });
+    }
+
+    var precioMin = filtersForm.querySelector('input[name="precio_min"]');
+    var precioMax = filtersForm.querySelector('input[name="precio_max"]');
+    if (precioMin && precioMin.value) {
+      chips.push({ key: 'precio_min', label: 'Min $' + precioMin.value });
+    }
+    if (precioMax && precioMax.value) {
+      chips.push({ key: 'precio_max', label: 'Max $' + precioMax.value });
+    }
+
+    ['verificado', 'stock', 'stock_low', 'on_sale'].forEach(function (name) {
+      var input = filtersForm.querySelector('input[name="' + name + '"]:checked');
+      if (!input) return;
+      var label = input.closest('label');
+      var text = label ? label.querySelector('span') : null;
+      chips.push({ key: name, label: text ? text.textContent.trim() : name });
+    });
+
+    var ordenSelect = filtersForm.querySelector('select[name="orden"]');
+    if (ordenSelect && ordenSelect.value && ordenSelect.value !== 'relevancia') {
+      chips.push({ key: 'orden', label: SORT_LABELS[ordenSelect.value] || ordenSelect.value });
+    }
+
+    activeFiltersEl.innerHTML = '';
+    if (!chips.length) {
+      activeFiltersEl.hidden = true;
+      return;
+    }
+
+    activeFiltersEl.hidden = false;
+    chips.forEach(function (chip) {
+      var el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'filter-chip';
+      el.setAttribute('data-chip-key', chip.key);
+      el.innerHTML = chip.label + ' <span aria-hidden="true">×</span>';
+      el.addEventListener('click', function () {
+        clearFilterChip(chip.key);
+      });
+      activeFiltersEl.appendChild(el);
+    });
+
+    var clearAll = document.createElement('button');
+    clearAll.type = 'button';
+    clearAll.className = 'filter-chip filter-chip--clear';
+    clearAll.textContent = 'Clear all';
+    clearAll.addEventListener('click', function () {
+      window.location.href = pageConfig ? pageConfig.getAttribute('data-catalog-url') : '/catalogo/';
+    });
+    activeFiltersEl.appendChild(clearAll);
+  }
+
+  function clearFilterChip(key) {
+    if (!filtersForm) return;
+    if (key === 'buscar') {
+      if (filterBuscar) filterBuscar.value = '';
+      if (navSearchInput) navSearchInput.value = '';
+    } else if (key === 'empresa') {
+      if (filterEmpresa) filterEmpresa.value = '';
+    } else if (key.indexOf('categoria:') === 0) {
+      var catId = key.split(':')[1];
+      var catInput = filtersForm.querySelector('input[name="categoria"][value="' + catId + '"]');
+      if (catInput) catInput.checked = false;
+    } else if (key === 'precio_min' || key === 'precio_max') {
+      var priceInput = filtersForm.querySelector('input[name="' + key + '"]');
+      if (priceInput) priceInput.value = '';
+      if (key === 'precio_max' && priceRange) priceRange.value = '250';
+    } else if (key === 'orden') {
+      var ordenSelect = filtersForm.querySelector('select[name="orden"]');
+      if (ordenSelect) ordenSelect.value = 'relevancia';
+      var mobileSort = document.querySelector('.results-sort-mobile');
+      if (mobileSort) mobileSort.value = 'relevancia';
+    } else {
+      var toggle = filtersForm.querySelector('input[name="' + key + '"]');
+      if (toggle) toggle.checked = false;
+    }
+    applyFilters();
+  }
+
+  function syncFormFromUrl() {
+    if (!filtersForm) return;
+    var params = new URLSearchParams(window.location.search);
+
+    if (filterBuscar) {
+      filterBuscar.value = params.get('buscar') || '';
+      if (navSearchInput) navSearchInput.value = filterBuscar.value;
+    }
+
+    if (filterEmpresa) {
+      filterEmpresa.value = params.get('empresa') || '';
+    }
+
+    filtersForm.querySelectorAll('input[name="categoria"]').forEach(function (input) {
+      input.checked = params.getAll('categoria').indexOf(input.value) >= 0;
+    });
+
+    ['verificado', 'stock', 'stock_low', 'on_sale'].forEach(function (name) {
+      var input = filtersForm.querySelector('input[name="' + name + '"]');
+      if (input) input.checked = params.get(name) === '1';
+    });
+
+    var precioMin = filtersForm.querySelector('input[name="precio_min"]');
+    var precioMax = filtersForm.querySelector('input[name="precio_max"]');
+    if (precioMin) precioMin.value = params.get('precio_min') || '';
+    if (precioMax) precioMax.value = params.get('precio_max') || '';
+
+    if (priceRange) {
+      priceRange.value = precioMax && precioMax.value ? precioMax.value : '250';
+    }
+
+    var orden = params.get('orden') || 'relevancia';
+    var ordenSelect = filtersForm.querySelector('select[name="orden"]');
+    if (ordenSelect) ordenSelect.value = orden;
+    var mobileSort = document.querySelector('.results-sort-mobile');
+    if (mobileSort) mobileSort.value = orden;
+
+    syncCategoryPills();
+    syncCompanyButtons();
+  }
+
+  function applyFiltersFromLink(href) {
+    var linkUrl = new URL(href, window.location.origin);
+    window.history.pushState({}, '', linkUrl.pathname + linkUrl.search);
+    syncFormFromUrl();
+    var page = linkUrl.searchParams.get('page');
+    applyFilters({ page: page || null, skipHistory: true });
+  }
+
   function applyFilters(options) {
     if (!filtersForm || !host || !window.fetch) return;
 
@@ -202,12 +428,20 @@
     var params = new URLSearchParams(new FormData(filtersForm));
     if (options.page) {
       params.set('page', options.page);
-    } else {
+    } else if (!options.keepPage) {
       params.delete('page');
     }
     params.delete('export_docs');
     params.delete('intl_orders');
     params.delete('orden-mobile');
+
+    if (filterBuscar && !filterBuscar.value.trim()) {
+      params.delete('buscar');
+    }
+    if (filterEmpresa && !filterEmpresa.value.trim()) {
+      params.delete('empresa');
+    }
+
     var qs = params.toString();
     var base = filtersForm.getAttribute('action') || window.location.pathname;
     var url = base + (qs ? '?' + qs : '');
@@ -256,14 +490,18 @@
         }
 
         updateResultsCount(doc);
+        syncCategoryPills();
+        syncCompanyButtons();
+        renderActiveFilters();
 
-        if (window.history && window.history.pushState) {
+        if (!options.skipHistory && window.history && window.history.pushState) {
           window.history.pushState({}, '', url);
         }
 
         grid = document.getElementById('cat-product-grid');
         bindInquiryButtons();
         bindPaginationLinks();
+        bindAjaxChips();
         finishProgressBar();
       })
       .catch(function (err) {
@@ -297,9 +535,62 @@
         clearTimeout(debounceTimer);
         var spinner = spinnerForInput(input);
         debounceTimer = setTimeout(function () {
+          if (input.name === 'precio_max' && priceRange && input.value) {
+            priceRange.value = input.value;
+          }
           applyFilters({ spinner: spinner });
         }, 500);
       });
+    });
+  }
+
+  if (priceRange) {
+    priceRange.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      var maxInput = filtersForm ? filtersForm.querySelector('input[name="precio_max"]') : null;
+      if (maxInput) maxInput.value = priceRange.value;
+      debounceTimer = setTimeout(function () {
+        applyFilters({ spinner: 'price' });
+      }, 300);
+    });
+  }
+
+  document.querySelectorAll('[data-empresa-filter]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!filterEmpresa) return;
+      filterEmpresa.value = btn.getAttribute('data-empresa-filter') || '';
+      syncCompanyButtons();
+      applyFilters({ spinner: null });
+    });
+  });
+
+  document.querySelectorAll('.cat-pill--ajax').forEach(function (pill) {
+    pill.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!filtersForm) return;
+      var catId = pill.getAttribute('data-cat-pill');
+      filtersForm.querySelectorAll('input[name="categoria"]').forEach(function (input) {
+        input.checked = catId !== 'all' && input.value === catId;
+      });
+      syncCategoryPills();
+      applyFilters({ spinner: 'categories' });
+    });
+  });
+
+  document.querySelectorAll('.cat-nav-ajax-link').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      applyFiltersFromLink(link.href);
+    });
+  });
+
+  if (navSearchForm) {
+    navSearchForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (filterBuscar && navSearchInput) {
+        filterBuscar.value = navSearchInput.value.trim();
+      }
+      applyFilters({ spinner: null });
     });
   }
 
@@ -321,13 +612,31 @@
         var pageUrl = new URL(link.href, window.location.origin);
         var page = pageUrl.searchParams.get('page');
         if (!page) return;
-        applyFilters({ page: page });
+        applyFilters({ page: page, keepPage: true });
+      });
+    });
+  }
+
+  function bindAjaxChips() {
+    document.querySelectorAll('.cat-ajax-chip').forEach(function (chip) {
+      if (chip.dataset.bound) return;
+      chip.dataset.bound = '1';
+      chip.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (filterBuscar) {
+          var term = new URL(chip.href, window.location.origin).searchParams.get('buscar') || '';
+          filterBuscar.value = term;
+          if (navSearchInput) navSearchInput.value = term;
+        }
+        applyFilters();
       });
     });
   }
 
   window.addEventListener('popstate', function () {
-    window.location.reload();
+    syncFormFromUrl();
+    var page = new URLSearchParams(window.location.search).get('page');
+    applyFilters({ page: page, skipHistory: true, keepPage: true });
   });
 
   function showToast(message) {
@@ -344,13 +653,50 @@
     }, 2500);
   }
 
-  function addToInquiry() {
-    var badge = document.getElementById('cat-inquiry-badge');
-    if (badge) {
-      var current = parseInt(badge.textContent, 10) || 0;
-      badge.textContent = String(current + 1);
+  function updateCartBadges(count) {
+    var n = parseInt(count, 10) || 0;
+    document.querySelectorAll('#cat-inquiry-badge, #tf-nav-cart-badge, [data-cart-badge]').forEach(function (badge) {
+      badge.textContent = String(n);
+      badge.classList.toggle('has-count', n > 0);
+    });
+  }
+
+  function inquiryUrlFor(productId) {
+    if (!inquiryUrlPattern) return '/catalogo/inquiry/agregar/' + productId + '/';
+    return inquiryUrlPattern.replace('/0/', '/' + productId + '/');
+  }
+
+  function addToInquiry(productId, btn) {
+    if (!productId) return;
+
+    if (btn) {
+      btn.disabled = true;
     }
-    showToast('Added to inquiry cart');
+
+    fetch(inquiryUrlFor(productId), {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'cantidad=1',
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok) {
+          updateCartBadges(data.carrito_count);
+          showToast(data.message || 'Added to inquiry cart');
+        } else {
+          showToast(data.message || 'Could not add to inquiry cart');
+        }
+      })
+      .catch(function () {
+        showToast('Connection error — try again');
+      })
+      .finally(function () {
+        if (btn) btn.disabled = false;
+      });
   }
 
   window.addToInquiry = addToInquiry;
@@ -362,11 +708,16 @@
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        addToInquiry();
+        var productId = btn.getAttribute('data-product-id') ||
+          (btn.closest('[data-product-id]') && btn.closest('[data-product-id]').getAttribute('data-product-id'));
+        addToInquiry(productId, btn);
       });
     });
   }
 
+  syncFormFromUrl();
+  renderActiveFilters();
   bindInquiryButtons();
   bindPaginationLinks();
+  bindAjaxChips();
 })();
