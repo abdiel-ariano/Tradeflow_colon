@@ -25,15 +25,16 @@ def product_img(product, css_class=''):
 
 @register.filter
 def product_image_src(product):
-    return product_image_url(product)
-
-
-@register.filter
-def catalog_card_image_src(product):
-    """Catalog card image: uploaded file, else deterministic demo URL per product."""
+    """Public image URL with deterministic demo fallback for catalog/home cards."""
     url = product_image_url(product)
     if url:
         return url
     from core.utils.demo_product_images import picsum_url
 
     return picsum_url(product)
+
+
+@register.filter
+def catalog_card_image_src(product):
+    """Alias for product cards — same chain as product_image_src."""
+    return product_image_src(product)

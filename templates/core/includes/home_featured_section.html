@@ -8,7 +8,7 @@
       <a href="{% url 'catalogo_publico' %}" class="hm-featured__see-all">See all →</a>
     </div>
     <div class="hm-featured__grid">
-      {% for product in featured_products|slice:"1:3" %}
+      {% for product in featured_products|slice:"1:4" %}
       <article class="hm-featured__card" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter0 }}">
         <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-featured__media">
           {% include "core/includes/product_image_placeholder.html" with product=product img_class="hm-featured__img" decorative=True %}

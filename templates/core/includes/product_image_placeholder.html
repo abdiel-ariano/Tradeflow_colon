@@ -5,10 +5,10 @@ Pass decorative=True on cards where the product name is shown below (home grids)
 {% endcomment %}
 {% load static tf_media %}
 {% with image_src=product|product_image_src %}
-<img src="{% if image_src %}{{ image_src }}{% else %}{% static 'images/placeholder-producto.svg' %}{% endif %}"
+<img src="{{ image_src }}"
      alt="{% if decorative %}{% else %}{{ alt|default:product.name }}{% endif %}"
      class="product-img{% if img_class %} {{ img_class }}{% endif %}{% if css_class %} {{ css_class }}{% endif %}{% if decorative %} is-decorative{% endif %}"
-     loading="lazy"
+     loading="{{ loading|default:'lazy' }}"
      decoding="async"
      {% if decorative %}role="presentation"{% endif %}
      {% if width %}width="{{ width }}"{% endif %}
