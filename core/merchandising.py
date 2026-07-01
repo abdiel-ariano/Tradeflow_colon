@@ -97,6 +97,80 @@ def featured_companies_carousel(limit: int = 10):
     )
 
 
+def trending_products(limit: int = 8):
+    """Trending row for public home — bestsellers with carousel fallback."""
+    items = bestsellers(limit=limit)
+    if len(items) >= 4:
+        return items
+    return carousel_products(limit=limit)
+
+
+def home_company_tiers(premium_limit: int = 3, standard_limit: int = 5):
+    """
+    Split home companies into premium featured (with product carousel)
+    and standard grid cards.
+    """
+    base_qs = (
+        Company.objects.annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(num_productos__gt=0)
+    )
+    premium_qs = list(
+        base_qs.filter(is_featured=True)
+        .order_by('-carousel_priority', '-num_productos', 'name')[:premium_limit]
+    )
+    premium_ids = {c.pk for c in premium_qs}
+    if len(premium_qs) < premium_limit:
+        for emp in base_qs.exclude(pk__in=premium_ids).order_by('-num_productos', 'name'):
+            if len(premium_qs) >= premium_limit:
+                break
+            premium_qs.append(emp)
+            premium_ids.add(emp.pk)
+
+    product_map: dict[int, list] = {}
+    if premium_qs:
+        for product in (
+            active_products_base()
+            .filter(company_id__in=premium_ids)
+            .order_by('company_id', '-merchandising_priority', '-created_at')
+        ):
+            bucket = product_map.setdefault(product.company_id, [])
+            if len(bucket) < 16:
+                bucket.append(product)
+
+    premium = []
+    for emp in premium_qs:
+        emp.productos_destacados = product_map.get(emp.pk, [])
+        premium.append(emp)
+
+    standard = list(
+        base_qs.exclude(pk__in=premium_ids).order_by('name')[:standard_limit]
+    )
+    return premium, standard
+
+
+def spotlight_products_for_companies(companies, limit_per: int = 3):
+    """
+    Attach up to ``limit_per`` showcase products on each company for the home
+    spotlight mini-carousel (ordered by merchandising priority).
+    """
+    if not companies:
+        return
+    company_ids = [c.pk for c in companies]
+    product_map: dict[int, list] = {cid: [] for cid in company_ids}
+    for product in (
+        active_products_base()
+        .filter(company_id__in=company_ids)
+        .order_by('company_id', '-merchandising_priority', '-is_featured', '-created_at')
+    ):
+        bucket = product_map[product.company_id]
+        if len(bucket) < limit_per:
+            bucket.append(product)
+    for emp in companies:
+        emp.spotlight_products = product_map.get(emp.pk, [])
+
+
 def carousel_products(limit: int = 12):
     """Productos para carrusel: promo, bestsellers o destacados."""
     deals = daily_deals(limit=limit)
@@ -178,12 +252,20 @@ def category_spotlights(limit_per_cat: int = 4, max_cats: int = 4):
             .order_by('-merchandising_priority')[:limit_per_cat]
         )
         if prods:
-            rows.append({'category': cat, 'products': prods})
+            rows.append({'category': cat, 'products': prods, 'product_count': cat.n})
     return rows
 
 
+def texture_products(limit: int = 12):
+    """Decorative product thumbnails for hero texture band."""
+    items = carousel_products(limit=limit)
+    if len(items) >= 8:
+        return items
+    return list(active_products_base().order_by('-merchandising_priority', '-created_at')[:limit])
+
+
 def home_stats():
-    """Estadísticas para hero CountUp (datos reales ORM)."""
+    """Estadísticas para hero y home (datos reales ORM)."""
     from .models import Order
 
     since = timezone.now() - timedelta(days=30)
@@ -199,11 +281,26 @@ def home_stats():
     gmv_dec = quantize_money(gmv)
     gmv_int = int(gmv_dec)
 
+    empresas_verificadas = (
+        Company.objects.filter(is_verified=True, products__is_active=True)
+        .distinct()
+        .count()
+    )
+    categorias_activas = (
+        Category.objects.annotate(
+            n=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(n__gt=0)
+        .count()
+    )
+
     return {
-        'empresas': Company.objects.filter(is_verified=True).count() or Company.objects.count(),
+        'empresas': empresas_verificadas or Company.objects.count(),
+        'empresas_verificadas': empresas_verificadas,
         'productos': Product.objects.filter(is_active=True).count(),
         'ordenes': Order.objects.exclude(status='cancelled').count(),
-        'categorias': Category.objects.count(),
+        'ordenes_completadas': Order.objects.filter(status='delivered').count(),
+        'categorias': categorias_activas or Category.objects.count(),
         'gmv_30d': gmv_int,
         'gmv_30d_fmt': format_money_usd(gmv_dec),
     }

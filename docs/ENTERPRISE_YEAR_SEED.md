@@ -29,14 +29,21 @@ Si ejecuta el seed **antes** de `migrate`, verá `no such table: core_order`. El
 
 ## Imágenes
 
-Por defecto **no** se descargan miles de fotos de internet (evita bloqueos SSL y horas de espera en `--scale=standard`).
+Por defecto **no** se generan imágenes (rápido). Con `--with-images` se crean PNG locales bajo `media/productos/` para **todos** los productos sembrados (sin descargas HTTP).
 
 ```bash
-# Recomendado (rápido)
+# Recomendado (rápido, sin imágenes)
 python manage.py seed_enterprise_year --clear --scale=standard
 
-# Opcional: hasta ~48 placeholders en standard
+# Con imágenes locales para todos los productos del seed
 python manage.py seed_enterprise_year --clear --scale=standard --with-images
+```
+
+Para el catálogo completo existente (p. ej. 1 342 productos de `cargar_demo`), use:
+
+```bash
+python manage.py regenerate_product_images --missing-only
+python manage.py verify_media --show-missing
 ```
 
 ## Ejemplos

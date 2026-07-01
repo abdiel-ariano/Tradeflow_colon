@@ -27,3 +27,6 @@ urlpatterns += i18n_patterns(
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+elif getattr(settings, 'SERVE_LOCAL_MEDIA', False):
+    # Docker demo / local files when DEBUG=False (do not enable in production S3-only deploys).
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

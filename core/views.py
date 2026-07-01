@@ -64,6 +64,7 @@ from .utils.email_sender import (
     enviar_solicitud_decision,
 )
 from .utils.saas_billing import VolumeLimitExceeded, is_volume_limit_reached
+from .utils.media_storage import product_image_url
 from .utils.order_workflow import (
     accept_seller_order,
     reject_seller_order,
@@ -855,6 +856,11 @@ def home_view(request):
     )
     if not empresas_home:
         empresas_home = merch.featured_companies_carousel(8)
+    merch.spotlight_products_for_companies(empresas_home[:5], limit_per=3)
+
+    empresas_premium, empresas_standard = merch.home_company_tiers(3, 8)
+    trending = merch.trending_products(12)
+    texture = merch.texture_products(12)
 
     return render(
         request,
@@ -864,8 +870,12 @@ def home_view(request):
             'daily_deals': merch.daily_deals(8),
             'bestsellers': bestsellers_list,
             'featured_products': list(featured_qs),
+            'trending_products': trending,
+            'texture_products': texture,
             'carousel_products': merch.carousel_products(12),
             'empresas_carousel': empresas_home,
+            'empresas_premium': empresas_premium,
+            'empresas_standard': empresas_standard,
             'category_spotlights': merch.category_spotlights(4, 4),
             'promo_sections': promo_sections,
             'show_cart_actions': False,
@@ -2918,6 +2928,8 @@ def catalogo_publico(request):
     precio_min = request.GET.get('precio_min', '').strip()
     precio_max = request.GET.get('precio_max', '').strip()
     solo_stock = request.GET.get('stock', '') in ('1', 'true', 'on')
+    solo_stock_low = request.GET.get('stock_low', '') in ('1', 'true', 'on')
+    solo_on_sale = request.GET.get('on_sale', '') in ('1', 'true', 'on')
     solo_verificado = request.GET.get('verificado', '') == '1'
     orden = request.GET.get('orden', 'relevancia').strip() or 'relevancia'
 
@@ -2953,6 +2965,18 @@ def catalogo_publico(request):
 
     if solo_stock:
         productos = productos.filter(avail_qty__gt=0)
+
+    if solo_stock_low:
+        productos = productos.filter(
+            avail_qty__gt=0,
+            avail_qty__lte=F('inventory__low_stock_alert'),
+        )
+
+    if solo_on_sale:
+        productos = productos.filter(
+            promo_price__isnull=False,
+            promo_price__lt=F('unit_price'),
+        )
 
     if solo_verificado:
         productos = productos.filter(company__is_verified=True)
@@ -3030,6 +3054,8 @@ def catalogo_publico(request):
         'precio_min': precio_min,
         'precio_max': precio_max,
         'solo_stock': solo_stock,
+        'solo_stock_low': solo_stock_low,
+        'solo_on_sale': solo_on_sale,
         'solo_verificado': solo_verificado,
         'orden': orden_key,
         'catalogo_params': catalogo_params,
@@ -3039,8 +3065,9 @@ def catalogo_publico(request):
         'sugerencias': sugerencias,
         'pagination_slots': _tienda_pagination_slots(page_obj),
         'meta_description': meta_description,
-        'titulo_pagina': 'Catálogo',
+        'titulo_pagina': 'Catalog',
         'nav_activo': 'catalogo',
+        'category_spotlights': merch.category_spotlights(4, 4),
     }
 
     is_partial = (
@@ -3365,10 +3392,11 @@ def catalogo_producto_detail(request, pk):
         stock_status = 'ok'
         stock_label = f'In stock ({product.available_qty} units)'
 
-    if product.image:
-        og_image = request.build_absolute_uri(product.image.url)
+    img = product_image_url(product)
+    if img:
+        og_image = img if img.startswith('http') else request.build_absolute_uri(img)
     else:
-        og_image = request.build_absolute_uri(static('img/product-placeholder.svg'))
+        og_image = request.build_absolute_uri(static('images/placeholder-producto.svg'))
 
     meta_description = (
         product.description[:155].strip()
@@ -3488,7 +3516,7 @@ def agregar_al_carrito(request, producto_id):
             'precio':   str(producto.unit_price),
             'cantidad': cantidad,
             'subtotal': str(producto.unit_price * cantidad),
-            'imagen':   producto.image.url if producto.image else '',
+            'imagen':   product_image_url(producto) or '',
         }
 
     _save_carrito(request, carrito)

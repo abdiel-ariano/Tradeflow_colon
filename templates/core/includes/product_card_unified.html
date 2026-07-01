@@ -1,12 +1,12 @@
 {% load static tf_money %}
 {% comment %}
-Tarjeta de producto unificada — home (público) y tienda (autenticado).
+Unified product card — public home and authenticated store.
 
 Variables:
-  product            — instancia Product (requerido)
-  show_cart_actions  — bool, mostrar Add / Auto quote (solo is_public=False)
-  is_public          — bool, default False; home/landing sin acciones de compra
-  card_extra_class   — clases CSS opcionales en el <article>
+  product            — Product instance (required)
+  show_cart_actions  — bool, show Add / Auto quote (is_public=False only)
+  is_public          — bool, default False; public landing without purchase actions
+  card_extra_class   — optional CSS classes on <article>
 {% endcomment %}
 <article class="tf-pcard {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
   {% if is_public %}
@@ -14,11 +14,7 @@ Variables:
   {% else %}
   <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-pcard__media">
   {% endif %}
-    {% if product.image %}
-    <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300">
-    {% else %}
-    <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ product.name }}" loading="lazy" decoding="async" width="400" height="300">
-    {% endif %}
+    {% include "core/includes/product_image_placeholder.html" with product=product %}
     {% if not product.available_qty %}
     <span class="tf-pcard__badge tf-pcard__badge--out">Out of stock</span>
     {% elif product.available_qty <= 5 %}
@@ -35,7 +31,7 @@ Variables:
   <div class="tf-pcard__body">
     <p class="tf-pcard__company">
       {% if is_public %}
-      <a href="{% url 'tienda' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
+      <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
       {% else %}
       <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="js-tienda-empresa-link" data-empresa-id="{{ product.company_id }}">{{ product.company.name }}</a>
       {% endif %}
@@ -59,7 +55,7 @@ Variables:
     <div class="tf-pcard__actions">
       {% if is_public %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
-        Ver detalles →
+        View details →
       </a>
       {% elif show_cart_actions %}
         {% if product.available_qty %}
@@ -84,7 +80,7 @@ Variables:
       </form>
       {% else %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
-        Ver detalles →
+        View details →
       </a>
       {% endif %}
     </div>

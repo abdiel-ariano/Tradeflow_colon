@@ -1,0 +1,19 @@
+{% load static %}
+{% comment %}
+Header search bar — Amazon-style B2B.
+Vars: search_action (url name), input_id, value, input_name (default buscar)
+{% endcomment %}
+<form class="tf-hdr-search" action="{% url search_action|default:'catalogo_publico' %}" method="get" role="search"{% if form_id %} id="{{ form_id }}"{% endif %}>
+  <label class="visually-hidden" for="{{ input_id|default:'tf-hdr-search-input' }}">Search catalog</label>
+  <input type="search"
+         id="{{ input_id|default:'tf-hdr-search-input' }}"
+         class="tf-hdr-search-input"
+         name="{{ input_name|default:'buscar' }}"
+         value="{{ value|default:'' }}"
+         placeholder="{{ placeholder|default:'Search products, companies or categories…' }}"
+         autocomplete="off"
+         enterkeyhint="search">
+  <button type="submit" class="tf-hdr-search-btn" aria-label="Search">
+    <span class="material-symbols-rounded" aria-hidden="true">search</span>
+  </button>
+</form>

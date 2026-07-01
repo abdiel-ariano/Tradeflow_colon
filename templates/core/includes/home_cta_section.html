@@ -1,0 +1,13 @@
+{% load static %}
+{% comment %}Final CTA — dual buyer/seller signup on public home.{% endcomment %}
+<section class="cta-section" id="hm-cta" aria-labelledby="cta-heading">
+  <div class="cta-bg-pattern" aria-hidden="true"></div>
+  <div class="cta-content" data-reveal="up">
+    <h2 id="cta-heading">Start trading in the <span class="cta-highlight">Colón Free Zone</span></h2>
+    <p>Join TradeFlow Colón — the platform ready for PreExpo 2026 and international investors.</p>
+    <div class="cta-buttons">
+      <a href="{% url 'signup' %}?role=buyer" class="cta-btn cta-btn--primary">Start buying</a>
+      <a href="{% url 'signup' %}?role=seller" class="cta-btn cta-btn--secondary">Start selling</a>
+    </div>
+  </div>
+</section>

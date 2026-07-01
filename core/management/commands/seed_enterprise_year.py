@@ -8,7 +8,7 @@ Requisito: python manage.py migrate
 Uso típico (rápido, sin miles de descargas HTTP):
     python manage.py seed_enterprise_year --clear --scale=standard
 
-Con imágenes placeholder (máx. ~48 en standard):
+Con imágenes locales (PNG bajo media/productos/ para todos los productos sembrados):
     python manage.py seed_enterprise_year --clear --scale=standard --with-images
 """
 from django.core.management.base import BaseCommand
@@ -47,7 +47,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--with-images',
             action='store_true',
-            help='Descargar hasta N imágenes placeholder (lento; no recomendado en standard sin red).',
+            help='Generate local PNG placeholders under media/productos/ for all seeded products.',
         )
         parser.add_argument(
             '--skip-images',

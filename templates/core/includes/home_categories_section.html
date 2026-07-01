@@ -1,0 +1,42 @@
+{% load static %}
+{% comment %}Shop by Category — dark collage cards. Context: category_spotlights{% endcomment %}
+<section class="hm-categories hm-categories--dark" id="hm-categories" aria-labelledby="hm-categories-title">
+  <div class="hm-categories__inner">
+    <div class="hm-categories__head" data-hm-reveal>
+      <span class="hm-section-badge">Explore</span>
+      <h2 class="hm-section-title hm-section-title--light" id="hm-categories-title">Shop by Category</h2>
+      <p class="hm-section-sub hm-section-sub--light">Browse wholesale inventory across the Colón Free Zone</p>
+    </div>
+    <div class="hm-categories__grid">
+      {% for row in category_spotlights|slice:":4" %}
+      <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="hm-cat-card hm-cat-card--dark" data-hm-reveal data-hm-reveal-delay="{{ forloop.counter0 }}">
+        <div class="hm-cat-card__collage" aria-hidden="true">
+          <div class="hm-cat-card__collage-overlay"></div>
+          {% for product in row.products|slice:":4" %}
+          <span class="hm-cat-card__thumb">
+            {% include "core/includes/product_image_placeholder.html" with product=product decorative=True %}
+          </span>
+          {% empty %}
+          <span class="hm-cat-card__thumb hm-cat-card__thumb--empty hm-cat-card__thumb--1"></span>
+          <span class="hm-cat-card__thumb hm-cat-card__thumb--empty hm-cat-card__thumb--2"></span>
+          <span class="hm-cat-card__thumb hm-cat-card__thumb--empty hm-cat-card__thumb--3"></span>
+          <span class="hm-cat-card__thumb hm-cat-card__thumb--empty hm-cat-card__thumb--4"></span>
+          {% endfor %}
+        </div>
+        <div class="hm-cat-card__info">
+          <span class="hm-cat-card__label">Category</span>
+          <span class="hm-cat-card__name">{{ row.category.name }}</span>
+          <span class="hm-cat-card__count">
+            {% if row.category.n == 1 %}{{ row.category.n }} product{% else %}{{ row.category.n }} products{% endif %}
+          </span>
+        </div>
+      </a>
+      {% empty %}
+      <a href="{% url 'catalogo_publico' %}?buscar=electronics" class="hm-cat-card hm-cat-card--dark" data-hm-reveal><div class="hm-cat-card__collage"><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span></div><div class="hm-cat-card__info"><span class="hm-cat-card__name">Electronics</span><span class="hm-cat-card__count">Browse catalog</span></div></a>
+      <a href="{% url 'catalogo_publico' %}?buscar=textiles" class="hm-cat-card hm-cat-card--dark" data-hm-reveal><div class="hm-cat-card__collage"><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span></div><div class="hm-cat-card__info"><span class="hm-cat-card__name">Textiles</span><span class="hm-cat-card__count">Browse catalog</span></div></a>
+      <a href="{% url 'catalogo_publico' %}?buscar=beauty" class="hm-cat-card hm-cat-card--dark" data-hm-reveal><div class="hm-cat-card__collage"><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span></div><div class="hm-cat-card__info"><span class="hm-cat-card__name">Beauty</span><span class="hm-cat-card__count">Browse catalog</span></div></a>
+      <a href="{% url 'catalogo_publico' %}?buscar=home" class="hm-cat-card hm-cat-card--dark" data-hm-reveal><div class="hm-cat-card__collage"><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span><span class="hm-cat-card__thumb hm-cat-card__thumb--empty"></span></div><div class="hm-cat-card__info"><span class="hm-cat-card__name">Home &amp; Kitchen</span><span class="hm-cat-card__count">Browse catalog</span></div></a>
+      {% endfor %}
+    </div>
+  </div>
+</section>

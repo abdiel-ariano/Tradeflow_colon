@@ -1,0 +1,34 @@
+{% comment %}Trending products — transform carousel (no scroll hijacking).{% endcomment %}
+<section class="hm-trending" id="hm-trending" aria-labelledby="hm-trending-title">
+  <div class="hm-trending__inner">
+    <div class="hm-trending__head">
+      <h2 class="hm-section-title" id="hm-trending-title">Trending in the Free Zone</h2>
+      <a href="{% url 'catalogo_publico' %}" class="hm-trending__see-all">See all →</a>
+    </div>
+
+    <div class="hm-slider hm-slider--trending" data-hm-slider data-hm-slider-visible="4">
+      <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous">
+        <span class="material-symbols-rounded">chevron_left</span>
+      </button>
+      <div class="hm-slider__viewport">
+        <div class="hm-slider__track">
+          {% if carousel_products %}
+            {% for product in carousel_products|slice:":12" %}
+              {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
+            {% endfor %}
+          {% else %}
+            {% for product in featured_products|slice:":12" %}
+              {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
+            {% empty %}
+            <p class="hm-empty">Products coming soon to the catalog.</p>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+      <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next">
+        <span class="material-symbols-rounded">chevron_right</span>
+      </button>
+      <div class="hm-slider__dots" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>

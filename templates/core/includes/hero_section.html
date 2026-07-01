@@ -1,96 +1,51 @@
-{% load static %}
-{% comment %}
-Lovable v2 hero — cream background, cargo ship illustration, dual CTAs.
-{% endcomment %}
-<section class="pn-hero" id="pn-hero" aria-labelledby="pn-hero-title">
-  <span class="pn-hero-dot" aria-hidden="true"></span>
-  <div class="pn-hero-grid">
-    <div class="pn-hero-copy">
-      <p class="pn-hero-label">Colón Free Zone · Panama</p>
-      <h1 class="pn-hero-title" id="pn-hero-title">
-        Free international delivery to your business.
-      </h1>
-      <p class="pn-hero-desc">
-        Shop the Colón Free Zone from anywhere. Verified suppliers, transparent inventory
-        and export-ready documentation in one place.
-      </p>
-      <p class="pn-hero-fine">*On qualifying bulk orders. Terms apply.</p>
-      <div class="pn-hero-ctas">
-        <a href="{% url 'catalogo_publico' %}" class="ds-btn ds-btn--primary ds-btn--lg">Shop the CFZ</a>
-        <a href="{% url 'signup' %}" class="ds-btn ds-btn--secondary ds-btn--lg">List your company</a>
+{% load static tf_money %}
+{% comment %}Static hero — brand, buyer CTAs, live proof strip, featured product visual.{% endcomment %}
+<section class="hm-hero-mega hm-hero-mega--static" id="hm-hero" aria-labelledby="hm-hero-title">
+  <div class="hm-hero-mega__pattern" aria-hidden="true"></div>
+
+  <div class="hm-hero-mega__frame">
+    <div class="hm-hero__grid hm-hero__grid--compact">
+      <div class="hm-hero-mega__copy">
+        <a href="{% url 'home' %}" class="hm-hero__logo-link" aria-label="TradeFlow Colón home">
+          {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" class="hm-hero__logo" eager=1 %}
+        </a>
+        <p class="hm-hero__badge">Panama Free Zone · B2B Wholesale</p>
+        <h1 class="hm-hero__title" id="hm-hero-title">The Wholesale Marketplace of the Americas</h1>
+        <p class="hm-hero__subtitle">
+          Shop the Colón Free Zone from anywhere. Verified suppliers, transparent inventory,
+          and export-ready documentation in one B2B marketplace.
+        </p>
+        <div class="hm-hero__ctas">
+          <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore catalog →</a>
+          <a href="{% url 'signup' %}" class="hm-btn hm-btn--outline hm-btn--lg">Create buyer account</a>
+        </div>
+        <p class="hm-hero__seller-link">
+          Supplier? <a href="{% url 'signup' %}?role=seller">List your company on TradeFlow</a>
+        </p>
+        <p class="hm-hero__proof" role="status">
+          <span class="hm-hero__proof-item"><strong>{{ stats.productos|default:0 }}</strong> active SKUs</span>
+          <span class="hm-hero__proof-sep" aria-hidden="true">·</span>
+          <span class="hm-hero__proof-item"><strong>{{ stats.empresas|default:0 }}</strong> verified companies</span>
+          <span class="hm-hero__proof-sep" aria-hidden="true">·</span>
+          <span class="hm-hero__proof-item">40+ buyer countries</span>
+        </p>
       </div>
-    </div>
-    <div class="pn-hero-art" aria-hidden="true">
-      <span class="pn-hero-dashed"></span>
-      <div class="pn-ship-scene">
-        <svg class="pn-ship-svg" viewBox="0 0 480 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cargo ship with containers sailing on the ocean">
-          <defs>
-            <linearGradient id="pn-hull-grad" x1="80" y1="200" x2="400" y2="230" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#1A2D42"/>
-              <stop offset="1" stop-color="#0D1B2A"/>
-            </linearGradient>
-            <linearGradient id="pn-deck-grad" x1="120" y1="150" x2="340" y2="200" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#243852"/>
-              <stop offset="1" stop-color="#1A2D42"/>
-            </linearGradient>
-            <linearGradient id="pn-water-grad" x1="0" y1="230" x2="480" y2="280" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#0D1B2A" stop-opacity="0.04"/>
-              <stop offset="1" stop-color="#0D1B2A" stop-opacity="0.12"/>
-            </linearGradient>
-          </defs>
-
-          <!-- Horizon -->
-          <path d="M20 218 Q240 200 460 218" stroke="#1A2D42" stroke-opacity="0.12" stroke-width="2" fill="none"/>
-
-          <!-- Water -->
-          <ellipse cx="240" cy="248" rx="200" ry="18" fill="url(#pn-water-grad)"/>
-          <path class="pn-ship-wave pn-ship-wave--1" d="M30 242 Q90 232 150 242 T270 242 T390 242 T450 242" stroke="#1A2D42" stroke-opacity="0.18" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path class="pn-ship-wave pn-ship-wave--2" d="M50 252 Q120 262 190 252 T310 252 T430 252" stroke="#E8490F" stroke-opacity="0.15" stroke-width="2" fill="none" stroke-linecap="round"/>
-
-          <!-- Wake -->
-          <path d="M55 228 Q75 222 90 228 L88 236 Q72 232 55 236 Z" fill="#0D1B2A" fill-opacity="0.08"/>
-
-          <!-- Hull -->
-          <path d="M70 218 L410 218 L385 248 L95 248 Z" fill="url(#pn-hull-grad)"/>
-          <path d="M70 218 L55 228 L95 248 Z" fill="#0D1B2A"/>
-          <path d="M95 248 L385 248 L375 255 L105 255 Z" fill="#0D1B2A" fill-opacity="0.35"/>
-
-          <!-- Deck -->
-          <path d="M110 218 L110 168 L360 168 L360 218 Z" fill="url(#pn-deck-grad)"/>
-          <rect x="110" y="212" width="250" height="6" fill="#0D1B2A" fill-opacity="0.2"/>
-
-          <!-- Containers row 1 -->
-          <rect x="122" y="138" width="46" height="30" rx="3" fill="#1FAD6F"/>
-          <rect x="124" y="140" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
-          <rect x="172" y="128" width="46" height="40" rx="3" fill="#F5C842"/>
-          <rect x="174" y="130" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
-          <rect x="222" y="132" width="46" height="36" rx="3" fill="#E8490F"/>
-          <rect x="224" y="134" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
-          <rect x="272" y="124" width="46" height="44" rx="3" fill="#0D1B2A"/>
-          <rect x="274" y="126" width="42" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
-          <rect x="322" y="130" width="40" height="38" rx="3" fill="#2E6BE6"/>
-          <rect x="324" y="132" width="36" height="4" rx="1" fill="#fff" fill-opacity="0.25"/>
-
-          <!-- Containers row 2 (stacked) -->
-          <rect x="148" y="108" width="38" height="28" rx="3" fill="#E8490F" fill-opacity="0.85"/>
-          <rect x="196" y="100" width="38" height="32" rx="3" fill="#1FAD6F"/>
-          <rect x="244" y="104" width="38" height="28" rx="3" fill="#F5C842"/>
-
-          <!-- Bridge -->
-          <path d="M360 168 L360 128 L395 108 L420 128 L420 168 Z" fill="#8A97A8"/>
-          <rect x="368" y="118" width="36" height="22" rx="2" fill="#C5D0DC"/>
-          <rect x="372" y="122" width="10" height="8" rx="1" fill="#1A2D42" fill-opacity="0.3"/>
-          <rect x="386" y="122" width="10" height="8" rx="1" fill="#1A2D42" fill-opacity="0.3"/>
-          <rect x="400" y="100" width="6" height="68" fill="#4A5568"/>
-          <rect x="398" y="96" width="10" height="8" rx="1" fill="#E8490F"/>
-
-          <!-- Crane detail -->
-          <path d="M130 168 L130 118 L145 118 L145 168" stroke="#4A5568" stroke-width="3"/>
-          <path d="M130 118 L165 108" stroke="#4A5568" stroke-width="2.5" stroke-linecap="round"/>
-
-          <!-- Life ring -->
-          <circle cx="88" cy="205" r="7" stroke="#E8490F" stroke-width="2.5" fill="none"/>
-        </svg>
+      <div class="hm-hero__visual" aria-hidden="true">
+        {% with hero_product=featured_products.0 %}
+        <div class="hm-hero__visual-frame">
+          {% if hero_product %}
+            {% include "core/includes/product_image_placeholder.html" with product=hero_product img_class="hm-hero__visual-img" decorative=True %}
+          {% else %}
+            <img src="{% static 'img/ship-cargo.svg' %}" alt="" class="hm-hero__visual-img hm-hero__visual-img--art" loading="eager" decoding="async">
+          {% endif %}
+        </div>
+        {% if hero_product %}
+        <a href="{% url 'catalogo_producto_detail' hero_product.pk %}" class="hm-hero__visual-caption">
+          <span class="hm-hero__visual-caption-name">{{ hero_product.name|truncatechars:48 }}</span>
+          <span class="hm-hero__visual-caption-price">{{ hero_product.display_price|money_usd }}</span>
+        </a>
+        {% endif %}
+        {% endwith %}
       </div>
     </div>
   </div>

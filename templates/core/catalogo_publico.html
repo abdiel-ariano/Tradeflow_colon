@@ -1,165 +1,248 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Catálogo Mayorista Zona Libre de Colón | TradeFlow{% endblock %}
+{% block title %}Colón Free Zone Wholesale Catalog | TradeFlow Colón{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/catalogo-publico.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'8' }}">
 {% endblock %}
 
 {% block content %}
-<div class="cat-page" id="cat-public-catalog">
-  <div class="cat-search-bar" role="search">
-    <form class="cat-search-form" method="get" action="{% url 'catalogo_publico' %}" id="cat-search-form">
-      <button type="button" class="cat-filter-toggle" id="cat-filter-open" aria-expanded="false" aria-controls="cat-sidebar">
-        <span class="material-symbols-rounded" aria-hidden="true">tune</span>
-        Filtros
-      </button>
-      <div class="cat-search-input-wrap">
-        <span class="material-symbols-rounded" aria-hidden="true">search</span>
-        <input type="search" name="buscar" class="cat-search-input" id="cat-search-input"
-               value="{{ buscar }}" placeholder="Buscar productos, SKU o empresas verificadas…"
-               autocomplete="off" aria-label="Buscar en el catálogo">
-      </div>
-      <button type="submit" class="cat-search-btn">Buscar</button>
-    </form>
+<div class="top-progress-bar" id="top-progress-bar" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100"></div>
+<h1 class="visually-hidden">Colón Free Zone Catalog</h1>
+
+{% if not request.user.is_authenticated %}
+  {% include "core/includes/catalogo_navbar.html" %}
+{% endif %}
+
+<div class="category-strip" aria-label="Browse by category">
+  <div class="category-strip-inner">
+    <a href="{% url 'catalogo_publico' %}{% if buscar %}?buscar={{ buscar|urlencode }}{% endif %}"
+       class="cat-pill{% if not categorias_sel %} cat-pill--active{% endif %}">
+      All <span class="cat-count">({{ catalogo_stats.productos }})</span>
+    </a>
+    {% for cat in categorias|slice:":10" %}
+    <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}{% if buscar %}&buscar={{ buscar|urlencode }}{% endif %}"
+       class="cat-pill{% if cat.pk|stringformat:'s' in categorias_sel %} cat-pill--active{% endif %}">
+      {% if "Electronics" in cat.name %}📱{% elif "Textile" in cat.name or "Uniform" in cat.name %}👕{% elif "Logistic" in cat.name or "Pack" in cat.name %}🚚{% elif "Home" in cat.name or "Appliance" in cat.name %}🏠{% elif "Access" in cat.name or "Leather" in cat.name %}👜{% elif "Food" in cat.name or "Beverage" in cat.name %}🥫{% elif "Auto" in cat.name %}🚗{% elif "Beauty" in cat.name or "Health" in cat.name %}💄{% else %}📦{% endif %}
+      {{ cat.name }}
+      <span class="cat-count">({{ cat.num_productos }})</span>
+    </a>
+    {% endfor %}
   </div>
+</div>
 
-  <section class="cat-hero" aria-labelledby="cat-hero-title">
-    <div class="cat-hero-inner">
-      <h1 id="cat-hero-title">Catálogo Zona Libre de Colón</h1>
-      <p>{{ catalogo_stats.productos }} productos de {{ verified_empresas }} empresas verificadas</p>
+<div class="trust-strip" aria-label="TradeFlow guarantees">
+  <div class="trust-strip-inner">
+    <div class="trust-item">
+      <svg width="16" height="16" class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>
+      </svg>
+      Request for Quotation
     </div>
-  </section>
+    <div class="trust-item">
+      <svg width="16" height="16" class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+      </svg>
+      CFZ Top Ranked Suppliers
+    </div>
+    <div class="trust-item">
+      <svg width="16" height="16" class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+      Export-Ready Documentation
+    </div>
+  </div>
+</div>
 
-  <div class="cat-sidebar-backdrop" id="cat-sidebar-backdrop" hidden></div>
+<button type="button" class="btn-filter-floating" id="cat-filter-open" aria-expanded="false" aria-controls="cat-sidebar">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+    <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+    <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+    <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+  </svg>
+  Filters
+</button>
+<div class="sidebar-overlay" id="cat-sidebar-backdrop" hidden></div>
 
-  <div class="cat-layout">
-    <aside class="cat-sidebar" id="cat-sidebar" aria-label="Filtros del catálogo">
+<main class="catalog-main">
+  <div class="catalog-container">
+    <aside class="catalog-sidebar" id="cat-sidebar" aria-label="Catalog filters">
+      <div class="sidebar-heading-row">
+        <h2 class="sidebar-heading">Filter results</h2>
+        <button type="button" class="sidebar-close" id="cat-sidebar-close" aria-label="Close filters">✕</button>
+      </div>
       <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form" id="cat-filters-form">
         {% if buscar %}<input type="hidden" name="buscar" value="{{ buscar }}">{% endif %}
         {% if empresa %}<input type="hidden" name="empresa" value="{{ empresa }}">{% endif %}
 
-        <div class="cat-filter-group">
-          <h2 class="cat-filter-title">Categoría</h2>
-          <ul class="cat-check-list">
-            {% for cat in categorias %}
-            <li>
-              <label class="cat-check-item">
-                <input type="checkbox" name="categoria" value="{{ cat.pk }}"
-                       {% if cat.pk|stringformat:'s' in categorias_sel %}checked{% endif %}>
-                <span>{{ cat.name }}</span>
-                <span class="cat-check-count">{{ cat.num_productos }}</span>
-              </label>
-            </li>
-            {% empty %}
-            <li class="cat-check-item" style="color:var(--tf-muted);">Sin categorías</li>
-            {% endfor %}
-          </ul>
-        </div>
-
-        <div class="cat-filter-group">
-          <h2 class="cat-filter-title">Empresa</h2>
-          <ul class="cat-empresa-list">
-            <li class="cat-empresa-item">
-              <a href="{% url 'catalogo_publico' %}{% if buscar %}?buscar={{ buscar|urlencode }}{% endif %}"
-                 class="cat-empresa-link{% if not empresa %} is-active{% endif %}">
-                <span class="cat-empresa-av" aria-hidden="true">∗</span>
-                <span>Todas</span>
-              </a>
-            </li>
-            {% for emp in empresas|slice:":20" %}
-            <li class="cat-empresa-item">
-              <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}{% if buscar %}&buscar={{ buscar|urlencode }}{% endif %}"
-                 class="cat-empresa-link{% if empresa == emp.pk|stringformat:'s' %} is-active{% endif %}">
-                <span class="cat-empresa-av" aria-hidden="true">{{ emp.name|slice:":1"|upper }}</span>
-                <span>{{ emp.name }} <small style="color:var(--tf-muted);">({{ emp.num_productos }})</small></span>
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-
-        <div class="cat-filter-group">
-          <h2 class="cat-filter-title">Rango de precio (USD)</h2>
-          <div class="cat-price-row">
-            <input type="number" name="precio_min" min="0" step="0.01" placeholder="Mín"
-                   value="{{ precio_min }}" aria-label="Precio mínimo">
-            <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx"
-                   value="{{ precio_max }}" aria-label="Precio máximo">
+        <div class="filter-section">
+          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
+            Sort by
+            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="filter-section-body">
+            <select name="orden" class="filter-select cat-sort-select" aria-label="Sort results">
+              <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevance</option>
+              <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price ↑</option>
+              <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price ↓</option>
+              <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
+            </select>
           </div>
         </div>
 
-        <div class="cat-filter-group">
-          <label class="cat-toggle-row">
-            <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
-            Solo con stock disponible
-          </label>
+        <div class="filter-section">
+          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
+            <span class="filter-section-label">
+              Categories
+              <span class="filter-mini-spinner" data-spinner="categories" aria-hidden="true"></span>
+            </span>
+            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="filter-section-body">
+            <ul class="filter-list">
+              {% for cat in categorias %}
+              <li>
+                <label class="filter-option">
+                  <input type="checkbox" name="categoria" value="{{ cat.pk }}"
+                         {% if cat.pk|stringformat:'s' in categorias_sel %}checked{% endif %}>
+                  <span{% if cat.pk|stringformat:'s' in categorias_sel %} class="is-active"{% endif %}>{{ cat.name }}</span>
+                  <span class="filter-count">{{ cat.num_productos }}</span>
+                </label>
+              </li>
+              {% empty %}
+              <li class="filter-empty">No categories</li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
 
-        <div class="cat-filter-group">
-          <h2 class="cat-filter-title">Ordenar por</h2>
-          <select name="orden" class="cat-sort-select" aria-label="Ordenar resultados">
-            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevancia</option>
-            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Precio ↑</option>
-            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Precio ↓</option>
-            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Más reciente</option>
-          </select>
+        <div class="filter-section">
+          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
+            Company
+            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="filter-section-body">
+            <ul class="filter-list filter-list--companies">
+              <li>
+                <a href="{% url 'catalogo_publico' %}{% if buscar %}?buscar={{ buscar|urlencode }}{% endif %}"
+                   class="filter-company-link{% if not empresa %} is-active{% endif %}">All companies</a>
+              </li>
+              {% for emp in empresas|slice:":20" %}
+              <li>
+                <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}{% if buscar %}&buscar={{ buscar|urlencode }}{% endif %}"
+                   class="filter-company-link{% if empresa == emp.pk|stringformat:'s' %} is-active{% endif %}">
+                  {{ emp.name }}
+                  <span class="filter-count">{{ emp.num_productos }}</span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
 
-        <div class="cat-filter-actions">
-          <button type="submit" class="ds-btn ds-btn--primary ds-btn--full">Aplicar filtros</button>
-          <a href="{% url 'catalogo_publico' %}" class="cat-btn-clear">Limpiar filtros</a>
+        <div class="filter-section">
+          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
+            <span class="filter-section-label">
+              Price range (USD)
+              <span class="filter-mini-spinner" data-spinner="price" aria-hidden="true"></span>
+            </span>
+            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="filter-section-body">
+            <div class="price-inputs">
+              <input type="number" name="precio_min" min="0" step="0.01" placeholder="Min PAB"
+                     value="{{ precio_min }}" aria-label="Minimum price" class="price-input">
+              <input type="number" name="precio_max" min="0" step="0.01" placeholder="Max PAB"
+                     value="{{ precio_max }}" aria-label="Maximum price" class="price-input">
+            </div>
+            <input type="range" min="0" max="500" value="250" class="price-range" aria-label="Price range slider">
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
+            <span class="filter-section-label">
+              Trust level
+              <span class="filter-mini-spinner" data-spinner="trust" aria-hidden="true"></span>
+            </span>
+            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="filter-section-body">
+            <label class="filter-option">
+              <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
+              <span>CFZ Verified only</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" name="export_docs" value="1" disabled>
+              <span>Has export documentation</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" name="intl_orders" value="1" checked disabled>
+              <span>Accepts international orders</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
+            <span class="filter-section-label">
+              Availability
+              <span class="filter-mini-spinner" data-spinner="availability" aria-hidden="true"></span>
+            </span>
+            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="filter-section-body">
+            <label class="filter-option">
+              <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
+              <span>In stock</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" name="stock_low" value="1" {% if solo_stock_low %}checked{% endif %}>
+              <span>Low stock</span>
+            </label>
+            <label class="filter-option">
+              <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
+              <span>On sale</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn-apply-filters">Apply filters</button>
+          <a href="{% url 'catalogo_publico' %}" class="btn-clear-filters">Clear all</a>
         </div>
       </form>
     </aside>
 
-    <div class="cat-main">
-      <div class="cat-main-header">
-        <p class="cat-results-count">
-          {% if buscar or categorias_sel or empresa or precio_min or precio_max or solo_stock %}
-          <strong>{{ total_resultados }}</strong> resultado{{ total_resultados|pluralize }} encontrado{{ total_resultados|pluralize }}
-          {% else %}
-          Explorando <strong>{{ catalogo_stats.productos }}</strong> productos mayoristas
-          {% endif %}
-        </p>
-        <select class="cat-sort-select" style="width:auto;min-width:160px;" aria-label="Orden rápido"
-                onchange="var f=document.getElementById('cat-filters-form');f.querySelector('[name=orden]').value=this.value;f.submit();">
-          <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevancia</option>
-          <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Precio ↑</option>
-          <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Precio ↓</option>
-          <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Más reciente</option>
-        </select>
+    <section class="catalog-content">
+      <div class="results-toolbar">
+        <span class="results-count">
+          <strong>{{ total_resultados|default:catalogo_stats.productos }}</strong> wholesale products
+          {% if buscar %}for &ldquo;<em>{{ buscar }}</em>&rdquo;{% endif %}
+        </span>
+        <div class="results-controls">
+          <select class="filter-select results-sort-mobile" name="orden-mobile" aria-label="Sort" form="cat-filters-form">
+            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevance</option>
+            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price ↑</option>
+            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price ↓</option>
+            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
+          </select>
+        </div>
       </div>
 
-      {% include "core/includes/catalogo_publico_results.html" %}
-    </div>
+      <div id="cat-results-host" aria-live="polite">
+        {% include "core/includes/catalogo_publico_results.html" %}
+      </div>
+    </section>
   </div>
-</div>
+</main>
+{% endblock %}
+
+{% block footer %}
+  {% include "core/includes/catalogo_footer.html" %}
 {% endblock %}
 
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var openBtn = document.getElementById('cat-filter-open');
-  var sidebar = document.getElementById('cat-sidebar');
-  var backdrop = document.getElementById('cat-sidebar-backdrop');
-  if (!openBtn || !sidebar) return;
-
-  function setOpen(open) {
-    sidebar.classList.toggle('is-open', open);
-    if (backdrop) {
-      backdrop.classList.toggle('is-open', open);
-      backdrop.hidden = !open;
-    }
-    openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  }
-
-  openBtn.addEventListener('click', function () {
-    setOpen(!sidebar.classList.contains('is-open'));
-  });
-  if (backdrop) {
-    backdrop.addEventListener('click', function () { setOpen(false); });
-  }
-})();
-</script>
+<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'8' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

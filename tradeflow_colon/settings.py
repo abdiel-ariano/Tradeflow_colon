@@ -136,6 +136,7 @@ TEMPLATES = [
                 'core.context_processors.supabase_public',
                 'core.context_processors.enterprise_saas',
                 'core.context_processors.tf_asset_version',
+                'core.context_processors.nav_header_categories',
             ],
         },
     },
@@ -229,11 +230,13 @@ STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 # Cache-bust query param for JS/CSS after deploy (set TRADEFLOW_ASSET_VERSION on Railway).
-TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='design-tokens-v1')
+TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='home-dual-v13')
 
 # ── Archivos de medios (imágenes de productos) ────────────────────────────
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+# Serve /media/ from MEDIA_ROOT when DEBUG=False but files are stored locally (Docker demo).
+SERVE_LOCAL_MEDIA = config('SERVE_LOCAL_MEDIA', default=DEBUG, cast=bool)
 
 # ── Autenticación ──────────────────────────────────────────────────────────
 AUTHENTICATION_BACKENDS = [
@@ -322,6 +325,10 @@ SUPABASE_URL = config('SUPABASE_URL', default='').strip()
 SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='').strip()
 SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='').strip()
 SUPABASE_CONFIGURED = bool(SUPABASE_URL and SUPABASE_SERVICE_KEY)
+SUPABASE_STORAGE_BUCKET = config('SUPABASE_STORAGE_BUCKET', default='media')
+# Public bucket → native /object/public/ URLs (recommended for product images).
+SUPABASE_STORAGE_PUBLIC = config('SUPABASE_STORAGE_PUBLIC', default=True, cast=bool)
+SUPABASE_SIGNED_URL_TTL = config('SUPABASE_SIGNED_URL_TTL', default=3600, cast=int)
 
 import logging as _logging
 
@@ -364,12 +371,12 @@ if SUPABASE_SERVICE_KEY and SUPABASE_URL:
     if 'storages' not in INSTALLED_APPS:
         INSTALLED_APPS.append('storages')
     STORAGES['default'] = {
-        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'BACKEND': 'core.storage.supabase_media.SupabaseMediaStorage',
         'OPTIONS': {
             'endpoint_url': SUPABASE_URL.rstrip('/') + '/storage/v1/s3',
             'access_key': 'service_role',
             'secret_key': SUPABASE_SERVICE_KEY,
-            'bucket_name': config('SUPABASE_STORAGE_BUCKET', default='media'),
+            'bucket_name': SUPABASE_STORAGE_BUCKET,
             'region_name': config('AWS_S3_REGION_NAME', default='us-east-1'),
             'default_acl': 'public-read',
             'file_overwrite': False,
