@@ -264,6 +264,57 @@ def texture_products(limit: int = 12):
     return list(active_products_base().order_by('-merchandising_priority', '-created_at')[:limit])
 
 
+def catalog_breadth_products(
+    limit: int = 24,
+    per_category: int = 2,
+    max_categories: int = 12,
+):
+    """
+    Diverse home sample across top categories — one wall of SKUs that
+    reflects marketplace breadth instead of repeating the same few picks.
+    """
+    picked: list[Product] = []
+    seen: set[int] = set()
+
+    cats = (
+        Category.objects.annotate(
+            n=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(n__gt=0)
+        .order_by('-n')[:max_categories]
+    )
+
+    for cat in cats:
+        bucket = 0
+        for product in (
+            active_products_base()
+            .filter(category=cat)
+            .order_by('-merchandising_priority', '-created_at')
+        ):
+            if product.pk in seen:
+                continue
+            picked.append(product)
+            seen.add(product.pk)
+            bucket += 1
+            if bucket >= per_category or len(picked) >= limit:
+                break
+        if len(picked) >= limit:
+            break
+
+    if len(picked) < limit:
+        for product in active_products_base().order_by(
+            '-merchandising_priority', '-created_at',
+        ):
+            if product.pk in seen:
+                continue
+            picked.append(product)
+            seen.add(product.pk)
+            if len(picked) >= limit:
+                break
+
+    return picked[:limit]
+
+
 def home_stats():
     """Estadísticas para hero y home (datos reales ORM)."""
     from .models import Order

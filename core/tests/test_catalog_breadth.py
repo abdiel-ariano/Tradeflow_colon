@@ -1,0 +1,58 @@
+"""catalog_breadth_products() — diverse home catalog sample."""
+from django.test import TestCase
+
+from core.merchandising import catalog_breadth_products
+from core.models import Category, Company, Product
+
+
+class CatalogBreadthProductsTests(TestCase):
+    def setUp(self):
+        self.company_a = Company.objects.create(name='Alpha Trading', is_verified=True)
+        self.company_b = Company.objects.create(name='Beta Imports', is_verified=True)
+        self.cat_electronics = Category.objects.create(name='Electronics')
+        self.cat_textiles = Category.objects.create(name='Textiles')
+        self.cat_beauty = Category.objects.create(name='Beauty')
+
+    def _product(self, company, category, name, sku):
+        return Product.objects.create(
+            company=company,
+            category=category,
+            name=name,
+            sku=sku,
+            unit_price='50.00',
+            currency='USD',
+            is_active=True,
+        )
+
+    def test_returns_products_from_multiple_categories(self):
+        self._product(self.company_a, self.cat_electronics, 'USB Hub', 'E-1')
+        self._product(self.company_a, self.cat_electronics, 'Cable Pack', 'E-2')
+        self._product(self.company_b, self.cat_textiles, 'Cotton Roll', 'T-1')
+        self._product(self.company_b, self.cat_beauty, 'Lip Balm Set', 'B-1')
+
+        items = catalog_breadth_products(limit=4, per_category=1)
+
+        self.assertEqual(len(items), 4)
+        category_ids = {p.category_id for p in items}
+        self.assertGreaterEqual(len(category_ids), 3)
+
+    def test_deduplicates_products(self):
+        self._product(self.company_a, self.cat_electronics, 'Widget', 'W-1')
+
+        items = catalog_breadth_products(limit=8, per_category=2)
+
+        pks = [p.pk for p in items]
+        self.assertEqual(len(pks), len(set(pks)))
+
+    def test_fills_to_limit_when_few_categories(self):
+        for i in range(6):
+            self._product(
+                self.company_a,
+                self.cat_electronics,
+                f'Gadget {i}',
+                f'G-{i}',
+            )
+
+        items = catalog_breadth_products(limit=5, per_category=2)
+
+        self.assertEqual(len(items), 5)

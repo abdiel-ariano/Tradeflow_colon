@@ -9,7 +9,7 @@
       <a href="{% url 'catalogo_publico' %}" class="hm-featured__see-all">See all →</a>
     </header>
     <div class="hm-featured__grid" data-hm-stagger>
-      {% for product in featured_products|slice:"1:4" %}
+      {% for product in featured_products|slice:"1:7" %}
       <article class="hm-featured__card">
         <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-featured__media">
           {% include "core/includes/home_product_media.html" with product=product img_class="hm-featured__img" decorative=True %}

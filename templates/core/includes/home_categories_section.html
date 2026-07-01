@@ -8,7 +8,7 @@
       <p class="hm-section-sub hm-section-sub--light">Browse wholesale inventory across the Colón Free Zone</p>
     </header>
     <div class="hm-categories__grid" data-hm-stagger>
-      {% for row in category_spotlights|slice:":4" %}
+      {% for row in category_spotlights|slice:":6" %}
       <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="hm-cat-card hm-cat-card--dark">
         <div class="hm-cat-card__collage" aria-hidden="true">
           <div class="hm-cat-card__collage-overlay"></div>
