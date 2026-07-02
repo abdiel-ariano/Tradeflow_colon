@@ -249,17 +249,29 @@ def resolve_section_products(section: HomePromoSection):
     return featured_products(limit)
 
 
-def category_spotlights(limit_per_cat: int = 4, max_cats: int = 4):
-    """Filas por categoría con productos activos."""
+def category_spotlights(
+    limit_per_cat: int = 4,
+    max_cats: int = 4,
+    exclude_ids: set[int] | None = None,
+):
+    """Category rows for home — products not already shown in earlier scroll sections."""
+    seen = set(exclude_ids or [])
     rows = []
     for cat in Category.objects.annotate(
         n=Count('products', filter=Q(products__is_active=True))
     ).filter(n__gt=0).order_by('-n')[:max_cats]:
-        prods = list(
+        prods = []
+        for product in (
             active_products_base()
             .filter(category=cat)
-            .order_by('-merchandising_priority')[:limit_per_cat]
-        )
+            .order_by('-merchandising_priority', '-created_at')
+        ):
+            if product.pk in seen:
+                continue
+            prods.append(product)
+            seen.add(product.pk)
+            if len(prods) >= limit_per_cat:
+                break
         if prods:
             rows.append({'category': cat, 'products': prods, 'product_count': cat.n})
     return rows
@@ -446,6 +458,8 @@ def build_guest_home_context(lang: str) -> dict:
     )
     if not empresas_home:
         empresas_home = featured_companies_carousel(8)
+    # Supplier spotlight products are per-company (not deduped against home scroll):
+    # buyers expect to see that supplier's catalog even if a SKU appeared above.
     spotlight_products_for_companies(empresas_home[:5], limit_per=3)
 
     empresas_premium, empresas_standard = home_company_tiers(3, 8)
@@ -474,7 +488,7 @@ def build_guest_home_context(lang: str) -> dict:
         'empresas_carousel': empresas_home,
         'empresas_premium': empresas_premium,
         'empresas_standard': empresas_standard,
-        'category_spotlights': category_spotlights(4, 6),
+        'category_spotlights': category_spotlights(4, 6, exclude_ids=seen),
         'promo_sections': promo_sections,
         'show_daily_deals_strip': show_daily_deals_strip,
         'show_bestsellers_section': show_bestsellers_section,
