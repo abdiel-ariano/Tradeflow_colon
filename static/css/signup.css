@@ -1,15 +1,18 @@
 /*
  * TradeFlow Colón — signup page only (/signup/)
- * Split-screen layout; scoped under .signup-page
+ * Split-screen: live catalog mosaic + form
  */
 .signup-page {
-  --signup-navy: #0F2A4A;
-  --signup-navy-secondary: #1B3A5C;
-  --signup-orange: #F4791E;
+  --signup-navy: var(--tf-navy, #0F2A44);
+  --signup-navy-deep: #0F2A4A;
+  --signup-navy-secondary: var(--tf-mid, #1B3B63);
+  --signup-orange: var(--tf-orange, #F26522);
+  --signup-orange-hover: var(--tf-orange-h, #FF7A3D);
   --signup-orange-soft: #FDEEE3;
   --signup-orange-text: #B04E12;
   --signup-border: #D8D6CE;
   --signup-muted-blue: #9FB3CC;
+  --signup-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 main.tf-main > .signup-page {
@@ -19,7 +22,7 @@ main.tf-main > .signup-page {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(1.5rem, 4vh, 2.5rem) clamp(1rem, 3vw, 1.5rem);
+  padding: clamp(1.25rem, 3vh, 2rem) clamp(1rem, 3vw, 1.5rem);
   background: var(--tf-light, #F2F3F5);
 }
 
@@ -28,7 +31,7 @@ main.tf-main > .signup-page {
   width: 100%;
   max-width: 920px;
   border: 1px solid var(--signup-border);
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   background: #fff;
 }
@@ -36,28 +39,31 @@ main.tf-main > .signup-page {
 /* ── Left brand panel ── */
 .signup-brand-panel {
   flex: 0 0 38%;
-  background: var(--signup-navy);
+  background: linear-gradient(165deg, var(--signup-navy-deep) 0%, var(--signup-navy-secondary) 100%);
   color: #fff;
-  padding: 2rem 1.75rem;
+  padding: 1.75rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
+  position: relative;
 }
 
 .signup-brand-logo {
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .signup-brand-logo .tf-logo-icon {
-  height: 40px;
+  height: 36px;
   width: auto;
 }
 
 .signup-brand-name {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   line-height: 1.2;
   color: #fff;
@@ -72,8 +78,47 @@ main.tf-main > .signup-page {
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 1.125rem;
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.4;
   color: #fff;
+  position: relative;
+  z-index: 1;
+}
+
+.signup-brand-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.signup-catalog-mosaic {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.signup-catalog-mosaic::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 42, 68, 0.15) 0%,
+    rgba(15, 42, 68, 0.55) 100%
+  );
+  pointer-events: none;
+}
+
+.signup-catalog-mosaic img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
 }
 
 .signup-brand-subline {
@@ -83,55 +128,29 @@ main.tf-main > .signup-page {
   color: var(--signup-muted-blue);
 }
 
-.signup-route-graphic {
-  width: 100%;
-  max-width: 200px;
-  margin: 0.25rem 0;
-}
-
-.signup-trust-list {
-  list-style: none;
-  margin: auto 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-}
-
-.signup-trust-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: #fff;
-}
-
-.signup-trust-item .material-symbols-rounded {
-  font-size: 20px;
-  color: var(--signup-orange);
-  flex-shrink: 0;
-  margin-top: 1px;
+.signup-brand-mosaic-mobile {
+  display: none;
 }
 
 /* ── Right form panel ── */
 .signup-form-panel {
   flex: 1;
   min-width: 0;
-  padding: 2rem 2.25rem;
+  padding: 1.75rem 2rem;
   background: #fff;
 }
 
 .signup-form-header {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.125rem;
 }
 
 .signup-form-title {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.3rem;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: var(--signup-navy);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--signup-navy-deep);
+  line-height: 1.3;
 }
 
 .signup-form-subtitle {
@@ -140,11 +159,33 @@ main.tf-main > .signup-page {
   color: var(--tf-muted, #6B7A88);
 }
 
+.signup-field-group {
+  border: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  min-width: 0;
+}
+
+.signup-field-group--last {
+  margin-bottom: 0.25rem;
+}
+
+.signup-field-group-title {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-muted, #6B7A88);
+  margin: 0 0 0.625rem;
+  padding: 0;
+}
+
 .signup-page .auth-toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.125rem;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--signup-border);
@@ -153,23 +194,38 @@ main.tf-main > .signup-page {
 
 .signup-page .auth-toggle label {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 2px;
+  padding: 10px 8px;
   cursor: pointer;
+  text-align: center;
+  background: transparent;
+  transition: background-color 140ms var(--signup-ease-out), color 140ms var(--signup-ease-out), transform 100ms var(--signup-ease-out);
+  margin: 0;
+  user-select: none;
+}
+
+.signup-page .auth-toggle .auth-toggle-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--tf-muted, #6B7A88);
-  text-align: center;
-  background: transparent;
-  transition: background 0.15s ease, color 0.15s ease;
-  margin: 0;
+}
+
+.signup-page .auth-toggle .auth-toggle-sub {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--tf-muted, #94a3b8);
+  line-height: 1.3;
 }
 
 .signup-page .auth-toggle label .material-symbols-rounded {
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .signup-page .auth-toggle input {
@@ -189,7 +245,19 @@ main.tf-main > .signup-page {
 
 .signup-page .auth-toggle input:checked + label {
   background: var(--signup-orange-soft);
+}
+
+.signup-page .auth-toggle input:checked + label .auth-toggle-main {
   color: var(--signup-orange-text);
+}
+
+.signup-page .auth-toggle input:checked + label .auth-toggle-sub {
+  color: var(--signup-orange-text);
+  opacity: 0.85;
+}
+
+.signup-page .auth-toggle label:active {
+  transform: scale(0.98);
 }
 
 .signup-page .row-2 {
@@ -203,11 +271,21 @@ main.tf-main > .signup-page {
 }
 
 .signup-page .auth-field-hint {
-  margin: 4px 0 0;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin: 0;
   font-size: 11px;
   line-height: 1.45;
   color: var(--tf-muted, #94a3b8);
   font-weight: 400;
+  transition: max-height 180ms var(--signup-ease-out), opacity 180ms var(--signup-ease-out), margin 180ms var(--signup-ease-out);
+}
+
+.signup-page .tf-field:focus-within .auth-field-hint {
+  max-height: 3rem;
+  opacity: 1;
+  margin-top: 4px;
 }
 
 .signup-page .auth-field-label-subtle,
@@ -220,7 +298,11 @@ main.tf-main > .signup-page {
 }
 
 .signup-page .tf-field {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+}
+
+.signup-page .tf-field:last-child {
+  margin-bottom: 0;
 }
 
 .signup-page .tf-input,
@@ -238,7 +320,7 @@ main.tf-main > .signup-page {
   line-height: 1.25;
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--tf-body, #1e293b);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 140ms var(--signup-ease-out), box-shadow 140ms var(--signup-ease-out);
 }
 
 .signup-page .auth-password-input {
@@ -260,9 +342,8 @@ main.tf-main > .signup-page {
 .signup-page .auth-password-stack {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
-  margin-bottom: 4px;
 }
 
 .signup-page .auth-password-field {
@@ -296,17 +377,17 @@ main.tf-main > .signup-page {
   background: transparent;
   color: #94a3b8;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color 140ms ease;
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .signup-page .auth-password-toggle:hover {
     color: #475569;
   }
 }
 
 .signup-page .auth-password-toggle:focus-visible {
-  outline: 2px solid rgba(244, 121, 30, 0.45);
+  outline: 2px solid rgba(242, 101, 34, 0.45);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -322,21 +403,38 @@ main.tf-main > .signup-page {
   margin-top: 8px;
 }
 
+.signup-strength[aria-hidden="true"] {
+  visibility: hidden;
+  height: 3px;
+  margin-top: 8px;
+}
+
 .signup-strength-bar {
   flex: 1;
   height: 3px;
   border-radius: 999px;
   background: #E8EAEE;
-  transition: background 0.15s ease;
+  overflow: hidden;
 }
 
-.signup-strength-bar.is-filled {
+.signup-strength-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
   background: var(--signup-orange);
+  border-radius: inherit;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 180ms var(--signup-ease-out);
+}
+
+.signup-strength-fill.is-filled {
+  transform: scaleX(1);
 }
 
 .signup-page .auth-submit {
   width: 100%;
-  margin-top: 0.75rem;
+  margin-top: 0.875rem;
   padding: 12px 16px;
   border: none;
   border-radius: 8px;
@@ -346,42 +444,42 @@ main.tf-main > .signup-page {
   color: #fff;
   background: var(--signup-orange);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background-color 140ms var(--signup-ease-out), transform 100ms var(--signup-ease-out);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
 
-@media (hover: hover) {
+.signup-page .auth-submit-icon {
+  font-size: 18px;
+}
+
+@media (hover: hover) and (pointer: fine) {
   .signup-page .auth-submit:hover {
-    background: #e06c18;
+    background: var(--signup-orange-hover);
   }
 }
 
+.signup-page .auth-submit:active {
+  transform: scale(0.97);
+}
+
 .signup-page .auth-submit:focus-visible {
-  outline: 2px solid var(--signup-navy);
+  outline: 2px solid var(--signup-navy-deep);
   outline-offset: 2px;
 }
 
-.signup-page .auth-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 1.25rem 0;
+.signup-verify-note {
+  margin: 0.625rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
   color: var(--tf-muted, #6B7A88);
-  font-size: 0.8125rem;
-}
-
-.signup-page .auth-divider::before,
-.signup-page .auth-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--signup-border);
+  text-align: center;
 }
 
 .signup-page .auth-footer {
+  margin-top: 1.25rem;
   text-align: center;
   font-size: 0.875rem;
   color: var(--tf-muted, #6B7A88);
@@ -393,7 +491,7 @@ main.tf-main > .signup-page {
   text-decoration: none;
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .signup-page .auth-footer a:hover {
     text-decoration: underline;
   }
@@ -402,7 +500,7 @@ main.tf-main > .signup-page {
 @media (max-width: 768px) {
   main.tf-main > .signup-page {
     align-items: flex-start;
-    padding-top: 2rem;
+    padding-top: 1.5rem;
   }
 
   .signup-shell {
@@ -411,16 +509,41 @@ main.tf-main > .signup-page {
 
   .signup-brand-panel {
     flex: none;
-    padding: 1.25rem 1.5rem;
-    gap: 0.75rem;
+    padding: 1.125rem 1.25rem;
+    gap: 0.625rem;
+  }
+
+  .signup-brand-headline {
+    font-size: 1rem;
+    line-height: 1.35;
   }
 
   .signup-brand-detail {
     display: none;
   }
 
+  .signup-brand-mosaic-mobile {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 0.25rem;
+  }
+
+  .signup-brand-mosaic-mobile img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
   .signup-form-panel {
-    padding: 1.5rem;
+    padding: 1.25rem 1.25rem 1.5rem;
+  }
+
+  .signup-form-title {
+    font-size: 1.125rem;
   }
 
   .signup-page .row-2 {
@@ -428,14 +551,16 @@ main.tf-main > .signup-page {
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .signup-shell {
-    animation: tf-soft-in 0.46s var(--tf-motion-ease, ease) both;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .signup-shell {
-    animation: none !important;
+  .signup-page .auth-submit,
+  .signup-page .auth-toggle label,
+  .signup-strength-fill,
+  .signup-page .auth-field-hint {
+    transition: none !important;
+  }
+
+  .signup-page .auth-submit:active,
+  .signup-page .auth-toggle label:active {
+    transform: none;
   }
 }
