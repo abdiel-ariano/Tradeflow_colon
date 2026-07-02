@@ -1,5 +1,4 @@
-{% load tf_money %}
-{% comment %}Static featured products grid — replaces hero product-pitch carousel slides.{% endcomment %}
+{% comment %}Featured public product cards with stronger B2B signals.{% endcomment %}
 {% if featured_products|length > 1 %}
 <section class="hm-featured hm-section hm-section--surface" id="hm-featured" data-hm-section aria-labelledby="hm-featured-title">
   <div class="hm-section__inner">
@@ -7,39 +6,13 @@
       <div>
         <span class="hm-section__eyebrow">Curated for buyers</span>
         <h2 class="hm-section-title" id="hm-featured-title">Featured wholesale picks</h2>
+        <p class="hm-section-sub">Verified suppliers, live stock visibility, and quote-ready products selected for B2B buyers.</p>
       </div>
       <a href="{% url 'catalogo_publico' %}" class="hm-featured__see-all">See all →</a>
     </header>
-    <div class="hm-featured__grid" data-hm-stagger>
+    <div class="tf-pcard-grid hm-featured__grid" data-hm-stagger>
       {% for product in featured_products|slice:"1:7" %}
-      <article class="hm-featured__card">
-        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-featured__media">
-          {% if product.is_on_promo_now %}
-          <span class="hm-featured__badge">-{{ product.discount_pct }}%</span>
-          {% endif %}
-          {% include "core/includes/home_product_media.html" with product=product img_class="hm-featured__img" decorative=True %}
-        </a>
-        <div class="hm-featured__body">
-          {% if product.category %}
-          <span class="hm-featured__cat">{{ product.category.name|truncatechars:20 }}</span>
-          {% endif %}
-          <p class="hm-featured__company">{{ product.company.name|truncatechars:28 }}</p>
-          <h3 class="hm-featured__name">
-            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:52 }}</a>
-          </h3>
-          <div class="hm-featured__price-row">
-            <span class="hm-featured__price">{{ product.display_price|money_usd }}</span>
-            {% if product.is_on_promo_now %}
-            <span class="hm-featured__price-was">{{ product.unit_price|money_usd }}</span>
-            {% endif %}
-            <span class="hm-featured__unit">/ unit</span>
-          </div>
-          {% if product.available_qty > 0 %}
-          <span class="hm-featured__stock">In stock</span>
-          {% endif %}
-          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-featured__cta">View &amp; quote →</a>
-        </div>
-      </article>
+        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_extra_class="hm-featured__card" %}
       {% endfor %}
     </div>
   </div>
