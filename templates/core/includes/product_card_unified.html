@@ -8,7 +8,7 @@ Variables:
   is_public          — bool, default False; public landing without purchase actions
   card_extra_class   — optional CSS classes on <article>
 {% endcomment %}
-<article class="tf-pcard {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
+<article class="tf-pcard{% if card_density == 'compact' %} tf-pcard--compact{% endif %} {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
   {% if is_public %}
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__media">
   {% else %}
@@ -67,22 +67,26 @@ Variables:
         {% if product.available_qty <= 5 %}
         Low stock · {{ product.available_qty }} units
         {% else %}
-        In stock · {{ product.available_qty }} units
+        In stock · {{ product.available_qty }}+ units
         {% endif %}
       </li>
+      {% elif card_density != 'compact' %}
+      <li class="tf-pcard__signal tf-pcard__signal--out">Out of stock</li>
       {% endif %}
-      {% if product.company.order_confirm_hours %}
+      {% if card_density != 'compact' %}
+        {% if product.company.order_confirm_hours %}
       <li class="tf-pcard__signal">Confirms in {{ product.company.order_confirm_hours }}h</li>
-      {% endif %}
-      {% if product.sku %}
+        {% endif %}
+        {% if product.sku %}
       <li class="tf-pcard__signal">SKU {{ product.sku }}</li>
+        {% endif %}
       {% endif %}
     </ul>
     {% endif %}
 
     <div class="tf-pcard__actions">
       {% if is_public %}
-      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
+      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn{% if card_density == 'compact' %} tf-pcard__btn--primary{% else %} tf-pcard__btn--cta{% endif %}">
         View &amp; quote →
       </a>
       {% elif show_cart_actions %}

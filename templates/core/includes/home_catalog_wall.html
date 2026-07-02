@@ -13,7 +13,7 @@
 
     <div class="tf-pcard-grid hm-wall__grid" data-hm-stagger>
       {% for product in catalog_breadth_products %}
-        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_extra_class="hm-wall__tile" %}
+        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="hm-wall__tile" %}
       {% endfor %}
     </div>
 
