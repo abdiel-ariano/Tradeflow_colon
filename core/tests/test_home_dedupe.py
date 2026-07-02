@@ -62,6 +62,17 @@ class HomeProductDeduplicationTests(TestCase):
         overlap_breadth = earlier & breadth_pks
         self.assertEqual(overlap_breadth, set(), f'catalog breadth repeats earlier: {overlap_breadth}')
 
+        category_pks: list[int] = []
+        for row in ctx['category_spotlights']:
+            for product in row['products']:
+                self.assertNotIn(
+                    product.pk,
+                    earlier,
+                    'category spotlight repeats earlier scroll product',
+                )
+                category_pks.append(product.pk)
+        self.assertEqual(len(category_pks), len(set(category_pks)))
+
     def test_hero_collage_uses_featured_products(self):
         ctx = merch.build_guest_home_context('en')
         collage = ctx.get('hero_collage_products', [])

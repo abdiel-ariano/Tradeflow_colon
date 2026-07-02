@@ -2,34 +2,9 @@
 =============================================================================
 TRADEFLOW COLÓN — tf-home-v2.css
 Public homepage — dual palette (navy/orange + blue).
+Uses design tokens from tf-design-tokens.css only (no local :root).
 =============================================================================
 */
-
-:root {
-  --navy: #0F2A44;
-  --navy-mid: #1B3B63;
-  --navy-light: #2E5B8A;
-  --orange: #F26522;
-  --orange-light: #FF7A3D;
-  --primary: #0057A8;
-  --primary-dark: #003D7A;
-  --primary-darker: #002d5c;
-  --primary-light: #E8F1FB;
-  --white: #FFFFFF;
-  --surface: #F2F3F5;
-  --gray-50: #F8F9FA;
-  --gray-100: #F1F3F5;
-  --gray-200: #E9ECEF;
-  --gray-500: #6B7A88;
-  --gray-700: #343A40;
-  --gray-900: #111318;
-  --border: #D1D5DB;
-  --muted: #6B7A88;
-  --success: #1A7A4A;
-  --danger: #D93025;
-  --hm-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --hm-press-duration: 100ms;
-}
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(24px); }
@@ -77,27 +52,27 @@ Public homepage — dual palette (navy/orange + blue).
 
 .hm-root {
   overflow-x: hidden;
-  background: var(--white);
+  background: var(--tf-white);
   font-family: 'Montserrat', sans-serif;
   font-size: 16px;
   line-height: 1.6;
-  color: var(--gray-700);
+  color: var(--tf-gray-700);
 }
 
 .hm-section-title {
-  font-family: 'DM Serif Display', serif;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-family: var(--font-heading, var(--tf-font-display)), serif;
+  font-size: var(--fs-h2, 1.75rem);
   font-weight: 400;
-  color: var(--gray-900);
+  color: var(--color-text-primary, var(--tf-gray-900));
   margin: 0 0 6px;
   line-height: 1.15;
   text-wrap: balance;
 }
 
 .hm-section-title--center { text-align: center; margin-bottom: 12px; }
-.hm-section-sub { margin: 0; font-size: 15px; color: var(--muted); }
+.hm-section-sub { margin: 0; font-size: 15px; color: var(--tf-muted); }
 .hm-section-sub--light { color: rgba(255, 255, 255, 0.65); }
-.hm-section-title--light { color: var(--white); }
+.hm-section-title--light { color: var(--tf-white); }
 
 .hm-section-badge {
   display: inline-block;
@@ -107,17 +82,17 @@ Public homepage — dual palette (navy/orange + blue).
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--orange);
+  color: var(--tf-orange);
   background: rgba(242, 101, 34, 0.12);
   border-radius: 20px;
 }
 
 .hm-section-badge--light {
-  color: var(--primary);
-  background: var(--primary-light);
+  color: var(--tf-primary);
+  background: var(--tf-primary-light);
 }
 
-.hm-empty { color: var(--muted); font-size: 14px; margin: 0; }
+.hm-empty { color: var(--tf-muted); font-size: 14px; margin: 0; }
 
 .hm-btn {
   display: inline-flex;
@@ -144,43 +119,43 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-btn--lg { padding: 14px 28px; font-size: 15px; }
 
 .hm-btn--cta {
-  background: var(--orange);
-  color: var(--white);
+  background: var(--tf-orange);
+  color: var(--tf-white);
 }
 
-.hm-btn--primary { background: var(--primary); color: var(--white); }
+.hm-btn--primary { background: var(--tf-primary); color: var(--tf-white); }
 
 .hm-btn--outline {
   background: transparent;
-  color: var(--white);
-  border: 1px solid var(--white);
+  color: var(--tf-white);
+  border: 1px solid var(--tf-white);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .hm-btn--cta:hover {
-    background: var(--orange-light);
+    background: var(--tf-orange-h);
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(242, 101, 34, 0.35);
-    color: var(--white);
+    color: var(--tf-white);
   }
 
   .hm-btn--primary:hover {
     background: #004a90;
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 87, 168, 0.4);
-    color: var(--white);
+    color: var(--tf-white);
   }
 
   .hm-btn--outline:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--white);
+    color: var(--tf-white);
   }
 }
 
 .hm-hero-mega {
   position: relative;
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 55%, var(--primary-dark) 100%);
-  color: var(--white);
+  background: linear-gradient(135deg, var(--tf-navy) 0%, var(--tf-mid) 55%, var(--tf-primary-dark) 100%);
+  color: var(--tf-white);
   overflow: hidden;
 }
 
@@ -271,7 +246,7 @@ Public homepage — dual palette (navy/orange + blue).
   font-family: 'DM Serif Display', serif;
   font-size: clamp(1.5rem, 3.5vw, 2rem);
   margin: 0 0 20px;
-  color: var(--white);
+  color: var(--tf-white);
 }
 
 .hm-how__steps--hero {
@@ -304,18 +279,18 @@ Public homepage — dual palette (navy/orange + blue).
   height: 26px;
   margin: 0 auto 10px;
   border-radius: 50%;
-  background: var(--orange);
-  color: var(--white);
+  background: var(--tf-orange);
+  color: var(--tf-white);
   font-size: 12px;
   font-weight: 800;
   line-height: 1;
 }
 
-.hm-how__steps--hero .hm-how__step-title { color: var(--white); font-size: 14px; }
+.hm-how__steps--hero .hm-how__step-title { color: var(--tf-white); font-size: 14px; }
 .hm-how__steps--hero .hm-how__step-desc { color: rgba(255, 255, 255, 0.7); font-size: 12px; }
 .hm-how__steps--hero .hm-how__icon {
   background: rgba(255, 255, 255, 0.12);
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
   border-color: rgba(255, 255, 255, 0.2);
   width: 48px;
   height: 48px;
@@ -343,7 +318,7 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-hero__seller-link a {
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
   font-weight: 600;
   text-decoration: none;
 }
@@ -363,7 +338,7 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-hero__proof-item strong {
-  color: var(--white);
+  color: var(--tf-white);
   font-weight: 700;
 }
 
@@ -379,7 +354,7 @@ Public homepage — dual palette (navy/orange + blue).
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.22);
   text-decoration: none;
-  color: var(--white);
+  color: var(--tf-white);
 }
 
 .hm-hero__visual-caption-name {
@@ -391,7 +366,7 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-hero__visual-caption-price {
   font-size: 14px;
   font-weight: 700;
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
   white-space: nowrap;
 }
 
@@ -416,7 +391,7 @@ Public homepage — dual palette (navy/orange + blue).
   font-size: clamp(1.35rem, 3vw, 2rem);
   line-height: 1.15;
   margin: 0 0 10px;
-  color: var(--white);
+  color: var(--tf-white);
 }
 
 .hm-hero-mega__pitch-sub {
@@ -438,7 +413,7 @@ Public homepage — dual palette (navy/orange + blue).
   margin: 0 0 16px;
   font-size: 24px;
   font-weight: 800;
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
 }
 
 .hm-hero-mega__pitch-visual {
@@ -449,7 +424,7 @@ Public homepage — dual palette (navy/orange + blue).
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
   aspect-ratio: 16 / 11;
   max-height: 260px;
-  background: var(--navy-light);
+  background: var(--tf-blue);
 }
 
 .hm-hero-mega__pitch-img,
@@ -470,7 +445,7 @@ Public homepage — dual palette (navy/orange + blue).
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(15, 42, 68, 0.55);
-  color: var(--white);
+  color: var(--tf-white);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -479,7 +454,7 @@ Public homepage — dual palette (navy/orange + blue).
   transition: background 0.2s ease;
 }
 
-.hm-hero-mega__arrow:hover { background: var(--orange); border-color: var(--orange); }
+.hm-hero-mega__arrow:hover { background: var(--tf-orange); border-color: var(--tf-orange); }
 .hm-hero-mega__arrow--prev { left: 8px; }
 .hm-hero-mega__arrow--next { right: 8px; }
 
@@ -512,7 +487,7 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-hero-mega__dot.is-active {
-  background: var(--orange);
+  background: var(--tf-orange);
   transform: scale(1.15);
 }
 
@@ -523,13 +498,13 @@ Public homepage — dual palette (navy/orange + blue).
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
 }
 
 .hm-hero {
   position: relative;
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 55%, var(--primary-dark) 100%);
-  color: var(--white);
+  background: linear-gradient(135deg, var(--tf-navy) 0%, var(--tf-mid) 55%, var(--tf-primary-dark) 100%);
+  color: var(--tf-white);
   overflow: hidden;
 }
 
@@ -562,8 +537,8 @@ Public homepage — dual palette (navy/orange + blue).
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--white);
-  background: var(--orange);
+  color: var(--tf-white);
+  background: var(--tf-orange);
   border-radius: 20px;
 }
 
@@ -571,7 +546,7 @@ Public homepage — dual palette (navy/orange + blue).
   font-family: 'DM Serif Display', serif;
   font-size: clamp(32px, 5vw, 52px);
   line-height: 1.12;
-  color: var(--white);
+  color: var(--tf-white);
   margin: 0 0 16px;
   text-wrap: balance;
   letter-spacing: -0.02em;
@@ -611,7 +586,7 @@ Public homepage — dual palette (navy/orange + blue).
   margin: 0;
   font-size: 28px;
   font-weight: 800;
-  color: var(--white);
+  color: var(--tf-white);
   line-height: 1.1;
 }
 
@@ -640,7 +615,7 @@ Public homepage — dual palette (navy/orange + blue).
   overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 24px 64px rgba(15, 42, 68, 0.45);
-  background: var(--navy-light);
+  background: var(--tf-blue);
 }
 
 .hm-hero__visual-img {
@@ -652,7 +627,7 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-hero__visual-img--art {
   object-fit: contain;
   padding: 24px;
-  background: linear-gradient(160deg, var(--navy-light), var(--primary-dark));
+  background: linear-gradient(160deg, var(--tf-blue), var(--tf-primary-dark));
 }
 
 /* Hero collage — 3–4 real product thumbnails with floating stats */
@@ -670,7 +645,7 @@ Public homepage — dual palette (navy/orange + blue).
   overflow: hidden;
   box-shadow: var(--shadow-card-hover, 0 24px 64px rgba(15, 42, 68, 0.45));
   border: 3px solid rgba(255, 255, 255, 0.14);
-  background: var(--navy-light);
+  background: var(--tf-blue);
 }
 
 .hm-hero__collage-item .hm-media,
@@ -718,7 +693,7 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-hero__collage-item--placeholder {
-  background: linear-gradient(145deg, var(--navy-light), var(--navy-mid));
+  background: linear-gradient(145deg, var(--tf-blue), var(--tf-mid));
 }
 
 .hm-hero__float {
@@ -746,7 +721,7 @@ Public homepage — dual palette (navy/orange + blue).
   font-size: 1.125rem;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--color-accent, var(--orange));
+  color: var(--color-accent, var(--tf-orange));
 }
 
 .hm-hero__float-label {
@@ -761,7 +736,7 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-trust {
-  background: var(--navy-mid);
+  background: var(--tf-mid);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -807,7 +782,7 @@ Public homepage — dual palette (navy/orange + blue).
 
 .hm-trust__icon {
   font-size: 18px;
-  color: var(--orange);
+  color: var(--tf-orange);
 }
 
 .hm-trust__link {
@@ -820,7 +795,7 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-trust__link:hover {
-  color: var(--white);
+  color: var(--tf-white);
   text-decoration: underline;
 }
 
@@ -842,7 +817,7 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-suppliers {
-  background: var(--gray-50);
+  background: var(--tf-gray-50);
   padding: 64px clamp(20px, 4vw, 40px);
 }
 
@@ -863,15 +838,15 @@ Public homepage — dual palette (navy/orange + blue).
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--muted);
-  background: var(--white);
-  border: 1px solid var(--border);
+  color: var(--tf-muted);
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
   border-radius: 20px;
   padding: 6px 14px;
   cursor: pointer;
 }
 
-.hm-info-btn__icon { font-size: 16px; color: var(--primary); }
+.hm-info-btn__icon { font-size: 16px; color: var(--tf-primary); }
 
 .hm-supplier__badge {
   display: inline-flex;
@@ -885,7 +860,7 @@ Public homepage — dual palette (navy/orange + blue).
 
 .hm-supplier__badge .material-symbols-rounded { font-size: 14px; }
 
-.hm-info-btn:hover { border-color: var(--primary); color: var(--primary); }
+.hm-info-btn:hover { border-color: var(--tf-primary); color: var(--tf-primary); }
 
 .hm-info-tooltip {
   position: absolute;
@@ -895,11 +870,11 @@ Public homepage — dual palette (navy/orange + blue).
   max-width: 280px;
   padding: 12px 14px;
   font-size: 13px;
-  background: var(--white);
-  border: 1px solid var(--gray-200);
+  background: var(--tf-white);
+  border: 1px solid var(--tf-gray-200);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 61, 122, 0.12);
-  color: var(--gray-700);
+  color: var(--tf-gray-700);
   z-index: 10;
 }
 
@@ -908,15 +883,15 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-supplier { position: relative; border-radius: 16px; margin-bottom: 24px; }
 
 .hm-supplier--top {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, var(--primary-dark) 100%);
-  border: 2px solid var(--orange);
+  background: linear-gradient(135deg, var(--tf-navy) 0%, var(--tf-blue) 60%, var(--tf-primary-dark) 100%);
+  border: 2px solid var(--tf-orange);
   padding: 28px;
-  color: var(--white);
+  color: var(--tf-white);
 }
 
 .hm-supplier--secondary {
-  background: var(--white);
-  border: 1px solid var(--border);
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
@@ -943,7 +918,7 @@ Public homepage — dual palette (navy/orange + blue).
   font-weight: 600;
 }
 
-.hm-supplier--secondary .hm-supplier__promoted { color: var(--gray-500); }
+.hm-supplier--secondary .hm-supplier__promoted { color: var(--tf-muted); }
 
 .hm-supplier__header {
   display: flex;
@@ -960,8 +935,8 @@ Public homepage — dual palette (navy/orange + blue).
   width: 52px;
   height: 52px;
   border-radius: 10px;
-  background: var(--primary);
-  color: var(--white);
+  background: var(--tf-primary);
+  color: var(--tf-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -975,29 +950,29 @@ Public homepage — dual palette (navy/orange + blue).
   margin: 0 0 6px;
   font-size: 20px;
   font-weight: 700;
-  color: var(--white);
+  color: var(--tf-white);
 }
 
-.hm-supplier__name--sm { font-size: 16px; color: var(--gray-900); }
+.hm-supplier__name--sm { font-size: 16px; color: var(--tf-gray-900); }
 
 .hm-supplier__badge--light {
   border: 1px solid rgba(255, 255, 255, 0.5);
-  color: var(--white);
+  color: var(--tf-white);
 }
 
 .hm-supplier__badge--dark {
-  border: 1px solid var(--gray-200);
-  color: var(--gray-700);
+  border: 1px solid var(--tf-gray-200);
+  color: var(--tf-gray-700);
 }
 
 .hm-supplier__link {
   font-size: 14px;
   font-weight: 600;
-  color: var(--primary-light);
+  color: var(--tf-primary-light);
   text-decoration: none;
 }
 
-.hm-supplier__link--dark { color: var(--primary); }
+.hm-supplier__link--dark { color: var(--tf-primary); }
 .hm-supplier__link:hover { text-decoration: underline; }
 
 .hm-supplier__meta {
@@ -1006,7 +981,7 @@ Public homepage — dual palette (navy/orange + blue).
   color: rgba(255, 255, 255, 0.65);
 }
 
-.hm-supplier--secondary .hm-supplier__meta { color: var(--gray-500); }
+.hm-supplier--secondary .hm-supplier__meta { color: var(--tf-muted); }
 
 .hm-carousel { position: relative; }
 
@@ -1030,9 +1005,9 @@ Public homepage — dual palette (navy/orange + blue).
   height: 36px;
   border-radius: 50%;
   border: none;
-  background: var(--white);
+  background: var(--tf-white);
   box-shadow: 0 4px 12px rgba(0, 61, 122, 0.15);
-  color: var(--primary-dark);
+  color: var(--tf-primary-dark);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1051,7 +1026,7 @@ Public homepage — dual palette (navy/orange + blue).
   flex: 0 0 calc(25% - 9px);
   min-width: 160px;
   scroll-snap-align: start;
-  background: var(--white);
+  background: var(--tf-white);
   border-radius: 12px;
   padding: 16px;
   color: inherit;
@@ -1064,7 +1039,7 @@ Public homepage — dual palette (navy/orange + blue).
   position: relative;
   height: 160px;
   flex-shrink: 0;
-  background: var(--primary-light);
+  background: var(--tf-primary-light);
   border-radius: 8px;
   overflow: hidden;
   display: block;
@@ -1087,21 +1062,21 @@ Public homepage — dual palette (navy/orange + blue).
   top: 8px;
   left: 8px;
   z-index: 2;
-  background: var(--danger);
-  color: var(--white);
+  background: var(--tf-red);
+  color: var(--tf-white);
   font-size: 11px;
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 4px;
 }
 
-.hm-sp-card__icon { font-size: 40px; color: var(--primary); }
+.hm-sp-card__icon { font-size: 40px; color: var(--tf-primary); }
 
 .hm-sp-card__name {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--gray-900);
+  color: var(--tf-gray-900);
   line-height: 1.35;
 }
 
@@ -1115,20 +1090,20 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-sp-card__name a:hover {
-  color: var(--primary);
+  color: var(--tf-primary);
 }
 
 .hm-sp-card__company {
   margin: 0;
   font-size: 11px;
-  color: var(--gray-500);
+  color: var(--tf-muted);
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.hm-sp-card__company .material-symbols-rounded { font-size: 14px; color: var(--success); }
-.hm-sp-card__price { margin: 0; font-size: 16px; font-weight: 700; color: var(--primary-dark); }
+.hm-sp-card__company .material-symbols-rounded { font-size: 14px; color: var(--tf-emerald); }
+.hm-sp-card__price { margin: 0; font-size: 16px; font-weight: 700; color: var(--tf-primary-dark); }
 
 .hm-suppliers__grid {
   display: grid;
@@ -1147,8 +1122,8 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-supplier-card {
-  background: var(--white);
-  border: 1px solid var(--gray-200);
+  background: var(--tf-white);
+  border: 1px solid var(--tf-gray-200);
   border-radius: 12px;
   padding: 20px;
   transition: transform 0.25s var(--hm-ease-out), box-shadow 0.25s var(--hm-ease-out);
@@ -1172,8 +1147,8 @@ Public homepage — dual palette (navy/orange + blue).
   width: 44px;
   height: 44px;
   border-radius: 8px;
-  background: var(--primary);
-  color: var(--white);
+  background: var(--tf-primary);
+  color: var(--tf-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1185,7 +1160,7 @@ Public homepage — dual palette (navy/orange + blue).
   margin: 0 0 4px;
   font-size: 15px;
   font-weight: 700;
-  color: var(--gray-900);
+  color: var(--tf-gray-900);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1197,13 +1172,13 @@ Public homepage — dual palette (navy/orange + blue).
   gap: 4px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--success);
+  color: var(--tf-emerald);
 }
 
-.hm-supplier-card__count { margin: 0 0 12px; font-size: 13px; color: var(--gray-500); }
-.hm-supplier-card__link { font-size: 14px; font-weight: 600; color: var(--primary); text-decoration: none; }
+.hm-supplier-card__count { margin: 0 0 12px; font-size: 13px; color: var(--tf-muted); }
+.hm-supplier-card__link { font-size: 14px; font-weight: 600; color: var(--tf-primary); text-decoration: none; }
 
-.hm-trending { background: var(--white); padding: 64px clamp(20px, 4vw, 40px); }
+.hm-trending { background: var(--tf-white); padding: 64px clamp(20px, 4vw, 40px); }
 .hm-trending__inner { max-width: 1200px; margin: 0 auto; }
 
 .hm-trending__head {
@@ -1214,8 +1189,8 @@ Public homepage — dual palette (navy/orange + blue).
   margin-bottom: 28px;
 }
 
-.hm-trending__see-all { font-size: 14px; font-weight: 600; color: var(--orange); text-decoration: none; }
-.hm-trending__see-all:hover { color: var(--orange-light); }
+.hm-trending__see-all { font-size: 14px; font-weight: 600; color: var(--tf-orange); text-decoration: none; }
+.hm-trending__see-all:hover { color: var(--tf-orange-h); }
 
 /* ── Transform sliders (trending + testimonials) ── */
 .hm-slider {
@@ -1242,10 +1217,10 @@ Public homepage — dual palette (navy/orange + blue).
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--white);
+  border: 1px solid var(--tf-border);
+  background: var(--tf-white);
   box-shadow: 0 4px 16px rgba(15, 42, 68, 0.12);
-  color: var(--navy);
+  color: var(--tf-navy);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1258,7 +1233,7 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-slider:hover .hm-slider__arrow { opacity: 1; }
 .hm-slider__arrow--prev { left: -12px; }
 .hm-slider__arrow--next { right: -12px; }
-.hm-slider__arrow:hover { background: var(--primary-light); color: var(--primary); }
+.hm-slider__arrow:hover { background: var(--tf-primary-light); color: var(--tf-primary); }
 .hm-slider__arrow:disabled { opacity: 0.25 !important; cursor: default; }
 
 .hm-slider__dots {
@@ -1274,13 +1249,13 @@ Public homepage — dual palette (navy/orange + blue).
   border-radius: 50%;
   border: none;
   padding: 0;
-  background: var(--border);
+  background: var(--tf-border);
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .hm-slider__dot.is-active {
-  background: var(--orange);
+  background: var(--tf-orange);
   transform: scale(1.2);
 }
 
@@ -1311,8 +1286,8 @@ Public homepage — dual palette (navy/orange + blue).
   flex: 0 0 calc(25% - 12px);
   min-width: 200px;
   scroll-snap-align: start;
-  background: var(--white);
-  border: 1px solid var(--border);
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
   border-radius: 12px;
   padding-bottom: 16px;
   overflow: hidden;
@@ -1360,15 +1335,15 @@ Public homepage — dual palette (navy/orange + blue).
   width: 100%;
   height: 100%;
   font-size: 48px;
-  color: var(--primary);
+  color: var(--tf-primary);
 }
 
 .hm-trend-card__badge {
   position: absolute;
   top: 10px;
   left: 10px;
-  background: var(--danger);
-  color: var(--white);
+  background: var(--tf-red);
+  color: var(--tf-white);
   font-size: 11px;
   font-weight: 700;
   padding: 4px 8px;
@@ -1378,18 +1353,18 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-trend-card__company {
   margin: 12px 14px 4px;
   font-size: 11px;
-  color: var(--gray-500);
+  color: var(--tf-muted);
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.hm-trend-card__company .material-symbols-rounded { font-size: 14px; color: var(--success); }
+.hm-trend-card__company .material-symbols-rounded { font-size: 14px; color: var(--tf-emerald); }
 
 .hm-trend-card__name { margin: 0 14px 8px; font-size: 14px; font-weight: 600; }
 
 .hm-trend-card__name a {
-  color: var(--gray-900);
+  color: var(--tf-gray-900);
   text-decoration: none;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1401,7 +1376,7 @@ Public homepage — dual palette (navy/orange + blue).
   margin: 0 14px;
   font-size: 18px;
   font-weight: 800;
-  color: var(--primary-dark);
+  color: var(--tf-primary-dark);
 }
 
 .hm-trend-card__cta {
@@ -1411,8 +1386,8 @@ Public homepage — dual palette (navy/orange + blue).
   text-align: center;
   font-size: 12px;
   font-weight: 600;
-  background: var(--orange);
-  color: var(--white);
+  background: var(--tf-orange);
+  color: var(--tf-white);
   border-radius: 8px;
   text-decoration: none;
   opacity: 1;
@@ -1425,7 +1400,7 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-trend-card__cta:hover {
-  background: var(--orange-light);
+  background: var(--tf-orange-h);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1437,12 +1412,12 @@ Public homepage — dual palette (navy/orange + blue).
   .hm-trend-card:hover .hm-trend-card__cta { opacity: 1; transform: none; }
 }
 
-.hm-trend-card__cta:hover { background: var(--orange-light); color: var(--white); }
+.hm-trend-card__cta:hover { background: var(--tf-orange-h); color: var(--tf-white); }
 
 @media (max-width: 1024px) { .hm-trend-card { flex: 0 0 calc(50% - 8px); } }
 @media (max-width: 640px) { .hm-trend-card { flex: 0 0 66%; } }
 
-.hm-how { background: var(--gray-100); padding: 64px clamp(20px, 4vw, 40px); }
+.hm-how { background: var(--tf-gray-100); padding: 64px clamp(20px, 4vw, 40px); }
 .hm-how__inner { max-width: 1100px; margin: 0 auto; }
 .hm-how__head { text-align: center; margin-bottom: 32px; }
 .hm-how__cta-wrap { text-align: center; margin: 32px 0 0; }
@@ -1455,8 +1430,8 @@ Public homepage — dual palette (navy/orange + blue).
   height: 26px;
   margin: 0 auto 10px;
   border-radius: 50%;
-  background: var(--orange);
-  color: var(--white);
+  background: var(--tf-orange);
+  color: var(--tf-white);
   font-size: 12px;
   font-weight: 800;
   line-height: 1;
@@ -1487,7 +1462,7 @@ Public homepage — dual palette (navy/orange + blue).
     top: 72px;
     left: 12%;
     right: 12%;
-    border-top: 2px dashed var(--gray-200);
+    border-top: 2px dashed var(--tf-gray-200);
     z-index: 0;
   }
 }
@@ -1512,20 +1487,20 @@ Public homepage — dual palette (navy/orange + blue).
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--primary-light);
-  color: var(--primary);
+  background: var(--tf-primary-light);
+  color: var(--tf-primary);
   font-size: 26px;
   margin-bottom: 14px;
   border: 2px solid rgba(0, 87, 168, 0.12);
 }
 
-.hm-how__step-title { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--gray-900); text-wrap: balance; }
-.hm-how__step-desc { margin: 0; font-size: 13px; color: var(--gray-500); line-height: 1.5; text-wrap: pretty; }
+.hm-how__step-title { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--tf-gray-900); text-wrap: balance; }
+.hm-how__step-desc { margin: 0; font-size: 13px; color: var(--tf-muted); line-height: 1.5; text-wrap: pretty; }
 
 .hm-featured {
-  background: var(--white);
+  background: var(--tf-white);
   padding: 56px clamp(20px, 4vw, 40px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--tf-border);
 }
 
 .hm-featured__inner { max-width: 1200px; margin: 0 auto; }
@@ -1541,7 +1516,7 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-featured__see-all {
   font-size: 14px;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--tf-primary);
   text-decoration: none;
 }
 
@@ -1560,7 +1535,7 @@ Public homepage — dual palette (navy/orange + blue).
   border-radius: 10px;
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  background: var(--white);
+  background: var(--tf-white);
 }
 
 .hm-featured__img {
@@ -1576,7 +1551,7 @@ Public homepage — dual palette (navy/orange + blue).
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--tf-muted);
 }
 
 .hm-featured__name {
@@ -1586,22 +1561,22 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-featured__name a {
-  color: var(--gray-900);
+  color: var(--tf-gray-900);
   text-decoration: none;
 }
 
-.hm-featured__name a:hover { color: var(--primary); }
+.hm-featured__name a:hover { color: var(--tf-primary); }
 
 .hm-featured__price {
   margin: 0 0 12px;
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--tf-navy);
 }
 
 .hm-proof {
-  background: linear-gradient(145deg, var(--navy) 0%, var(--navy-mid) 100%);
-  color: var(--white);
+  background: linear-gradient(145deg, var(--tf-navy) 0%, var(--tf-mid) 100%);
+  color: var(--tf-white);
   padding: 64px clamp(20px, 4vw, 40px);
 }
 
@@ -1630,7 +1605,7 @@ Public homepage — dual palette (navy/orange + blue).
 
 .hm-proof__icon {
   font-size: 28px;
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
   margin-bottom: 10px;
 }
 
@@ -1650,7 +1625,7 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-proof__link {
   font-size: 13px;
   font-weight: 600;
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
   text-decoration: none;
 }
 
@@ -1658,8 +1633,8 @@ Public homepage — dual palette (navy/orange + blue).
 
 /* ── Closing CTA ── */
 .hm-close {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 55%, var(--primary-dark) 100%);
-  color: var(--white);
+  background: linear-gradient(135deg, var(--tf-navy) 0%, var(--tf-mid) 55%, var(--tf-primary-dark) 100%);
+  color: var(--tf-white);
   padding: clamp(56px, 8vw, 80px) clamp(20px, 4vw, 40px);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -1676,7 +1651,7 @@ Public homepage — dual palette (navy/orange + blue).
   font-size: clamp(1.75rem, 4vw, 2.25rem);
   font-weight: 400;
   line-height: 1.15;
-  color: var(--white);
+  color: var(--tf-white);
   text-wrap: balance;
 }
 
@@ -1705,7 +1680,7 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-close__seller-link:hover {
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
   text-decoration: underline;
 }
 
@@ -1713,7 +1688,7 @@ Public homepage — dual palette (navy/orange + blue).
 .product-img.is-placeholder {
   object-fit: contain;
   padding: 18%;
-  background: linear-gradient(145deg, var(--primary-light), var(--gray-100));
+  background: linear-gradient(145deg, var(--tf-primary-light), var(--tf-gray-100));
 }
 
 .hm-sp-card__media .product-img.is-placeholder,
@@ -1735,14 +1710,14 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-trust__link:focus-visible,
 .hm-proof__link:focus-visible,
 .hm-trend-card__cta:focus-visible {
-  outline: 2px solid var(--orange-light);
+  outline: 2px solid var(--tf-orange-h);
   outline-offset: 2px;
 }
 
-.hm-categories { background: var(--white); padding: 64px clamp(20px, 4vw, 40px); }
+.hm-categories { background: var(--tf-white); padding: 64px clamp(20px, 4vw, 40px); }
 .hm-categories--dark {
-  background: var(--navy);
-  color: var(--white);
+  background: var(--tf-navy);
+  color: var(--tf-white);
 }
 
 .hm-categories__inner { max-width: 1200px; margin: 0 auto; }
@@ -1762,7 +1737,7 @@ Public homepage — dual palette (navy/orange + blue).
   display: flex;
   flex-direction: column;
   padding: 0;
-  background: var(--navy-mid);
+  background: var(--tf-mid);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   text-decoration: none;
@@ -1778,7 +1753,7 @@ Public homepage — dual palette (navy/orange + blue).
 @media (hover: hover) and (pointer: fine) {
   .hm-cat-card--dark:hover {
     transform: translateY(-4px);
-    border-color: var(--orange);
+    border-color: var(--tf-orange);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
   }
 }
@@ -1789,7 +1764,7 @@ Public homepage — dual palette (navy/orange + blue).
   grid-template-columns: 1fr 1fr;
   gap: 4px;
   padding: 4px;
-  background: var(--navy);
+  background: var(--tf-navy);
   min-height: 140px;
 }
 
@@ -1806,12 +1781,12 @@ Public homepage — dual palette (navy/orange + blue).
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 6px;
-  background: var(--navy-light);
+  background: var(--tf-blue);
   position: relative;
   z-index: 0;
 }
 
-.hm-cat-card__thumb--empty { background: var(--navy-light); }
+.hm-cat-card__thumb--empty { background: var(--tf-blue); }
 .hm-cat-card__thumb--1 { background: linear-gradient(135deg, #1B3B63, #2E5B8A); }
 .hm-cat-card__thumb--2 { background: linear-gradient(135deg, #2E5B8A, #0057A8); }
 .hm-cat-card__thumb--3 { background: linear-gradient(135deg, #003D7A, #1B3B63); }
@@ -1827,8 +1802,8 @@ Public homepage — dual palette (navy/orange + blue).
 
 .hm-cat-card__info {
   padding: 16px 18px 18px;
-  background: var(--navy);
-  border-top: 3px solid var(--orange);
+  background: var(--tf-navy);
+  border-top: 3px solid var(--tf-orange);
 }
 
 .hm-cat-card--dark .hm-cat-card__label {
@@ -1837,7 +1812,7 @@ Public homepage — dual palette (navy/orange + blue).
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
   margin-bottom: 4px;
 }
 
@@ -1845,7 +1820,7 @@ Public homepage — dual palette (navy/orange + blue).
   display: block;
   font-size: 16px;
   font-weight: 700;
-  color: var(--white);
+  color: var(--tf-white);
   line-height: 1.25;
 }
 
@@ -1862,8 +1837,8 @@ Public homepage — dual palette (navy/orange + blue).
   flex-direction: column;
   align-items: flex-start;
   padding: 24px;
-  background: var(--white);
-  border: 1px solid var(--border);
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
   border-radius: 12px;
   text-decoration: none;
   transition:
@@ -1874,14 +1849,14 @@ Public homepage — dual palette (navy/orange + blue).
 
 @media (hover: hover) and (pointer: fine) {
   .hm-cat-card:not(.hm-cat-card--dark):hover {
-    background: var(--primary-light);
-    border-color: var(--primary);
+    background: var(--tf-primary-light);
+    border-color: var(--tf-primary);
     transform: translateY(-3px);
   }
 
   .hm-cat-card:hover .hm-cat-card__icon {
-    background: var(--primary);
-    color: var(--white);
+    background: var(--tf-primary);
+    color: var(--tf-white);
   }
 }
 
@@ -1891,8 +1866,8 @@ Public homepage — dual palette (navy/orange + blue).
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--primary-light);
-  color: var(--primary);
+  background: var(--tf-primary-light);
+  color: var(--tf-primary);
   border-radius: 10px;
   font-size: 22px;
   transition: background 0.2s ease, color 0.2s ease;
@@ -1901,8 +1876,8 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-cat-card:not(.hm-cat-card--dark):active {
   transform: scale(0.98);
 }
-.hm-cat-card__name { margin-top: 12px; font-size: 14px; font-weight: 700; color: var(--gray-900); }
-.hm-cat-card__count { margin-top: 4px; font-size: 12px; color: var(--muted); }
+.hm-cat-card__name { margin-top: 12px; font-size: 14px; font-weight: 700; color: var(--tf-gray-900); }
+.hm-cat-card__count { margin-top: 4px; font-size: 12px; color: var(--tf-muted); }
 
 .hm-suppliers__more { margin-top: 40px; }
 
@@ -1910,7 +1885,7 @@ Public homepage — dual palette (navy/orange + blue).
   margin: 0 0 20px;
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--gray-900);
+  color: var(--tf-gray-900);
 }
 
 /* ── Company spotlight (split layout) ── */
@@ -1945,12 +1920,12 @@ Public homepage — dual palette (navy/orange + blue).
   gap: 8px;
   padding: 8px 14px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--white);
+  border: 1px solid var(--tf-border);
+  background: var(--tf-white);
   cursor: pointer;
   font-family: 'Montserrat', sans-serif;
   font-size: 13px;
-  color: var(--gray-700);
+  color: var(--tf-gray-700);
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
@@ -1963,9 +1938,9 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-company-rotator__tab.is-active {
-  border-color: var(--orange);
+  border-color: var(--tf-orange);
   background: rgba(242, 101, 34, 0.08);
-  color: var(--navy);
+  color: var(--tf-navy);
   font-weight: 600;
 }
 
@@ -1973,8 +1948,8 @@ Public homepage — dual palette (navy/orange + blue).
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  background: var(--primary);
-  color: var(--white);
+  background: var(--tf-primary);
+  color: var(--tf-white);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2016,11 +1991,11 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-spotlight-unified {
-  background: linear-gradient(145deg, var(--navy) 0%, var(--navy-mid) 50%, var(--primary-dark) 100%);
-  border: 2px solid var(--orange);
+  background: linear-gradient(145deg, var(--tf-navy) 0%, var(--tf-mid) 50%, var(--tf-primary-dark) 100%);
+  border: 2px solid var(--tf-orange);
   border-radius: 16px;
   padding: 22px 24px 20px;
-  color: var(--white);
+  color: var(--tf-white);
   box-shadow: 0 12px 40px rgba(15, 42, 68, 0.18);
 }
 
@@ -2053,7 +2028,7 @@ Public homepage — dual palette (navy/orange + blue).
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
   margin-bottom: 4px;
 }
 
@@ -2089,7 +2064,7 @@ Public homepage — dual palette (navy/orange + blue).
   gap: 6px;
   font-size: 14px;
   font-weight: 700;
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -2199,7 +2174,7 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-spotlight-unified__products .hm-sp-card {
-  background: var(--white);
+  background: var(--tf-white);
 }
 
 .hm-slider--spotlight .hm-sp-card {
@@ -2224,13 +2199,13 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-footer {
-  background: var(--navy);
+  background: var(--tf-navy);
   color: rgba(255, 255, 255, 0.65);
   padding: 0 0 24px;
 }
 
 .hm-footer__newsletter {
-  background: linear-gradient(90deg, var(--navy-mid), var(--primary-dark));
+  background: linear-gradient(90deg, var(--tf-mid), var(--tf-primary-dark));
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding: 40px clamp(20px, 4vw, 40px);
 }
@@ -2251,7 +2226,7 @@ Public homepage — dual palette (navy/orange + blue).
   font-family: 'DM Serif Display', serif;
   font-size: 1.5rem;
   font-weight: 400;
-  color: var(--white);
+  color: var(--tf-white);
 }
 
 .hm-footer__newsletter-sub {
@@ -2275,7 +2250,7 @@ Public homepage — dual palette (navy/orange + blue).
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
-  color: var(--white);
+  color: var(--tf-white);
   font-family: 'Montserrat', sans-serif;
   font-size: 14px;
 }
@@ -2286,7 +2261,7 @@ Public homepage — dual palette (navy/orange + blue).
 
 .hm-footer__newsletter-form input:focus {
   outline: none;
-  border-color: var(--orange);
+  border-color: var(--tf-orange);
   box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.25);
 }
 
@@ -2294,8 +2269,8 @@ Public homepage — dual palette (navy/orange + blue).
   padding: 12px 20px;
   border: none;
   border-radius: 8px;
-  background: var(--orange);
-  color: var(--white);
+  background: var(--tf-orange);
+  color: var(--tf-white);
   font-family: 'Montserrat', sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -2304,7 +2279,7 @@ Public homepage — dual palette (navy/orange + blue).
   transition: background 0.2s ease;
 }
 
-.hm-footer__newsletter-btn:hover { background: var(--orange-light); }
+.hm-footer__newsletter-btn:hover { background: var(--tf-orange-h); }
 
 .hm-footer__grid {
   max-width: 1380px;
@@ -2326,7 +2301,7 @@ Public homepage — dual palette (navy/orange + blue).
   height: 36px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
-  color: var(--white);
+  color: var(--tf-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2334,7 +2309,7 @@ Public homepage — dual palette (navy/orange + blue).
   transition: background 0.2s ease;
 }
 
-.hm-footer__social-link:hover { background: rgba(255, 255, 255, 0.2); color: var(--white); }
+.hm-footer__social-link:hover { background: rgba(255, 255, 255, 0.2); color: var(--tf-white); }
 
 .hm-footer__col-title {
   margin: 0 0 12px;
@@ -2354,7 +2329,7 @@ Public homepage — dual palette (navy/orange + blue).
   transition: color 0.2s ease;
 }
 
-.hm-footer__links a:hover { color: var(--white); }
+.hm-footer__links a:hover { color: var(--tf-white); }
 
 .hm-footer__bottom {
   max-width: 1380px;
@@ -2371,15 +2346,15 @@ Public homepage — dual palette (navy/orange + blue).
 }
 
 .hm-footer__bottom-link {
-  color: var(--orange-light);
+  color: var(--tf-orange-h);
   text-decoration: none;
 }
 
-.hm-footer__bottom-link:hover { color: var(--white); }
+.hm-footer__bottom-link:hover { color: var(--tf-white); }
 
 /* ── Testimonials ── */
 .hm-testimonials {
-  background: var(--surface);
+  background: var(--tf-surface);
   padding: 64px clamp(20px, 4vw, 40px);
 }
 
@@ -2387,8 +2362,8 @@ Public homepage — dual palette (navy/orange + blue).
 .hm-testimonials__head { text-align: center; margin-bottom: 36px; }
 
 .hm-testimonial-card {
-  background: var(--white);
-  border: 1px solid var(--border);
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 4px 16px rgba(15, 42, 68, 0.06);
@@ -2406,8 +2381,8 @@ Public homepage — dual palette (navy/orange + blue).
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--navy), var(--primary));
-  color: var(--white);
+  background: linear-gradient(135deg, var(--tf-navy), var(--tf-primary));
+  color: var(--tf-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2419,19 +2394,19 @@ Public homepage — dual palette (navy/orange + blue).
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: var(--gray-900);
+  color: var(--tf-gray-900);
 }
 
 .hm-testimonial-card__meta {
   margin: 2px 0 0;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--tf-muted);
 }
 
 .hm-testimonial-card__date {
   margin-left: auto;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--tf-muted);
   white-space: nowrap;
 }
 
@@ -2439,7 +2414,7 @@ Public homepage — dual palette (navy/orange + blue).
   display: flex;
   gap: 2px;
   margin-bottom: 12px;
-  color: var(--orange);
+  color: var(--tf-orange);
 }
 
 .hm-testimonial-card__stars .material-symbols-rounded {
@@ -2451,14 +2426,14 @@ Public homepage — dual palette (navy/orange + blue).
   margin: 0;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--gray-700);
+  color: var(--tf-gray-700);
 }
 
 /* ── Image placeholders (home cards) ── */
 .hm-root .img-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--navy), var(--navy-light));
+  background: linear-gradient(135deg, var(--tf-navy), var(--tf-blue));
   display: flex;
   align-items: center;
   justify-content: center;

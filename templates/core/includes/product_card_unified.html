@@ -6,9 +6,11 @@ Variables:
   product            — Product instance (required)
   show_cart_actions  — bool, show Add / Auto quote (is_public=False only)
   is_public          — bool, default False; public landing without purchase actions
+  card_density       — "compact" for dense home rows
+  card_variant       — "deal" for promo strip; "spotlight" for supplier mini-carousel
   card_extra_class   — optional CSS classes on <article>
 {% endcomment %}
-<article class="tf-pcard{% if card_density == 'compact' %} tf-pcard--compact{% endif %} {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
+<article class="tf-pcard{% if card_density == 'compact' %} tf-pcard--compact{% endif %}{% if card_variant == 'deal' %} tf-pcard--deal{% endif %}{% if card_variant == 'spotlight' %} tf-pcard--spotlight{% endif %} {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
   {% if is_public %}
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__media">
   {% else %}
@@ -29,9 +31,10 @@ Variables:
   </a>
 
   <div class="tf-pcard__body">
-    {% if is_public and product.category %}
+    {% if is_public and product.category and card_variant != 'deal' and card_variant != 'spotlight' %}
     <p class="tf-pcard__eyebrow">{{ product.category.name }}</p>
     {% endif %}
+    {% if card_variant != 'deal' and card_variant != 'spotlight' %}
     <p class="tf-pcard__company">
       {% if is_public %}
       <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
@@ -39,6 +42,7 @@ Variables:
       <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="js-tienda-empresa-link" data-empresa-id="{{ product.company_id }}">{{ product.company.name }}</a>
       {% endif %}
     </p>
+    {% endif %}
     <h3 class="tf-pcard__title">
       {% if is_public %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name }}</a>
@@ -57,7 +61,7 @@ Variables:
       <span class="tf-pcard__price-unit">/ unit</span>
       {% endif %}
     </div>
-    {% if is_public %}
+    {% if is_public and card_variant != 'deal' and card_variant != 'spotlight' %}
     <ul class="tf-pcard__signals" aria-label="Marketplace product details">
       {% if product.company.is_verified %}
       <li class="tf-pcard__signal tf-pcard__signal--verified">CFZ Verified</li>
@@ -86,9 +90,11 @@ Variables:
 
     <div class="tf-pcard__actions">
       {% if is_public %}
+      {% if card_variant != 'deal' and card_variant != 'spotlight' %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn{% if card_density == 'compact' %} tf-pcard__btn--primary{% else %} tf-pcard__btn--cta{% endif %}">
         View &amp; quote →
       </a>
+      {% endif %}
       {% elif show_cart_actions %}
         {% if product.available_qty %}
       <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form tf-pcard__form">

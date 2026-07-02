@@ -39,20 +39,7 @@
     </header>
     <div class="hm-deals__track" data-hm-stagger>
       {% for product in products %}
-      <article class="hm-deals__card">
-        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-deals__media">
-          {% if product.is_on_promo_now %}
-          <span class="hm-deals__badge">-{{ product.discount_pct }}%</span>
-          {% endif %}
-          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
-        </a>
-        <div class="hm-deals__body">
-          <h3 class="hm-deals__name">
-            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:42 }}</a>
-          </h3>
-          <p class="hm-deals__price">{{ product.display_price|money_usd }}</p>
-        </div>
-      </article>
+        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_variant="deal" card_extra_class="hm-deals__card" %}
       {% endfor %}
     </div>
   </div>
@@ -76,7 +63,9 @@
       <div class="hm-slider__viewport">
         <div class="hm-slider__track">
           {% for product in products %}
-            {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
+            <div class="hm-slider__slide">
+              {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="tf-pcard--featured-dense hm-bestsellers__card" %}
+            </div>
           {% endfor %}
         </div>
       </div>
@@ -106,7 +95,9 @@
       <div class="hm-slider__viewport">
         <div class="hm-slider__track">
           {% for product in products %}
-            {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
+            <div class="hm-slider__slide">
+              {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="tf-pcard--featured-dense hm-bestsellers__card" %}
+            </div>
           {% endfor %}
         </div>
       </div>
@@ -137,21 +128,7 @@
     </header>
     <div class="hm-promo-row__grid" data-hm-stagger>
       {% for product in products %}
-      <article class="hm-promo-row__card">
-        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__media">
-          {% if product.is_on_promo_now %}
-          <span class="hm-promo-row__badge">-{{ product.discount_pct }}%</span>
-          {% endif %}
-          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
-        </a>
-        <div class="hm-promo-row__body">
-          <h3 class="hm-promo-row__name">
-            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:48 }}</a>
-          </h3>
-          <p class="hm-promo-row__price">{{ product.display_price|money_usd }} <span class="hm-promo-row__unit">/ unit</span></p>
-          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__cta">View →</a>
-        </div>
-      </article>
+        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="hm-promo-row__card" %}
       {% endfor %}
     </div>
   </div>
@@ -176,19 +153,7 @@
     </header>
     <div class="hm-promo-row__grid" data-hm-stagger>
       {% for product in products %}
-      <article class="hm-promo-row__card">
-        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__media">
-          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
-        </a>
-        <div class="hm-promo-row__body">
-          <p class="hm-promo-row__company">{{ product.company.name|truncatechars:28 }}</p>
-          <h3 class="hm-promo-row__name">
-            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:48 }}</a>
-          </h3>
-          <p class="hm-promo-row__price">{{ product.display_price|money_usd }}</p>
-          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__cta">View →</a>
-        </div>
-      </article>
+        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="hm-promo-row__card" %}
       {% endfor %}
     </div>
   </div>
@@ -207,21 +172,7 @@
     </header>
     <div class="hm-promo-row__grid" data-hm-stagger>
       {% for product in products %}
-      <article class="hm-promo-row__card">
-        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__media">
-          {% if product.is_on_promo_now %}
-          <span class="hm-promo-row__badge">-{{ product.discount_pct }}%</span>
-          {% endif %}
-          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
-        </a>
-        <div class="hm-promo-row__body">
-          <h3 class="hm-promo-row__name">
-            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:48 }}</a>
-          </h3>
-          <p class="hm-promo-row__price">{{ product.display_price|money_usd }} <span class="hm-promo-row__unit">/ unit</span></p>
-          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-row__cta">View &amp; quote →</a>
-        </div>
-      </article>
+        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="hm-promo-row__card" %}
       {% endfor %}
     </div>
   </div>

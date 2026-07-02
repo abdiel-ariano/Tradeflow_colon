@@ -110,6 +110,24 @@ MIGRACIÓN GRADUAL
   /* Uso: naranja secundario suave */
   --tf-orange-s: #FF7A3D;
 
+  /* Uso: acento azul corporativo en home (pills, badges light) */
+  --tf-primary: #0057A8;
+  --tf-primary-dark: #003D7A;
+  --tf-primary-darker: #002d5c;
+  --tf-primary-light: #E8F1FB;
+
+  /* Uso: escala neutra home (alias semánticos) */
+  --tf-gray-50: #F8F9FA;
+  --tf-gray-100: #F1F3F5;
+  --tf-gray-200: #E9ECEF;
+  --tf-gray-600: #4B5563;
+  --tf-gray-700: #343A40;
+  --tf-gray-900: #111318;
+
+  /* Uso: motion home (scroll reveal, press) */
+  --hm-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --hm-press-duration: 100ms;
+
 
   /* ═══════════════════════════════════════════════════════════════════════════
      2. TIPOGRAFÍA
