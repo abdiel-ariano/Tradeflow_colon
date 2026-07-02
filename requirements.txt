@@ -42,7 +42,7 @@ redis>=5.0,<6.0                 # backend django.core.cache.backends.redis.Redis
 
 # ── Imágenes ──────────────────────────────────────────────────────────────
 Pillow==12.2.0                  # imágenes (cierra todas las CVEs 10.x y 11.x conocidas)
-requests>=2.31,<3.0             # demo image downloads (load_demo_images command)
+requests>=2.34.2,<3.0             # demo image downloads (load_demo_images command)
 
 # ── Servidor de producción ────────────────────────────────────────────────
 gunicorn==23.0.0                # WSGI (cierra GHSA-hc5x-x2vx-497g y GHSA-w3h3-4rj7-4ph4)
