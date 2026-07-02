@@ -542,4 +542,44 @@ MIGRACIÓN GRADUAL
   --tf-green: var(--tf-orange);
   --tf-green-dark: var(--tf-navy);
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     18. MARKETPLACE DESKTOP — semantic aliases (public B2B surfaces)
+     Map design-spec tokens to PreExpo brand; use in new home/catalog work.
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --color-bg: var(--tf-white);
+  --color-surface: var(--tf-surface);
+  --color-text-primary: #101828;
+  --color-text-secondary: var(--tf-muted);
+  --color-border: var(--tf-border);
+  --color-accent: var(--tf-orange);
+  --color-accent-hover: var(--tf-orange-h);
+  --color-verified: var(--tf-emerald);
+  --color-success: var(--tf-emerald);
+  --color-warning: #D97706;
+  --color-danger: var(--tf-red);
+
+  --font-heading: var(--tf-font-display);
+  --font-body: var(--tf-font-body);
+  --fs-hero: clamp(2rem, 3vw, 3.5rem);
+  --fs-h2: 1.75rem;
+  --fs-h3: 1.25rem;
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+
+  --space-1: var(--tf-space-1);
+  --space-2: var(--tf-space-2);
+  --space-3: var(--tf-space-3);
+  --space-4: var(--tf-space-4);
+  --space-6: var(--tf-space-6);
+  --space-8: var(--tf-space-8);
+  --space-12: var(--tf-space-12);
+  --space-16: var(--tf-space-16);
+
+  --radius-card: var(--tf-radius-card);
+  --radius-button: var(--tf-radius-btn);
+  --shadow-card: var(--ds-shadow-card);
+  --shadow-card-hover: var(--ds-shadow-card-hover);
+
 }

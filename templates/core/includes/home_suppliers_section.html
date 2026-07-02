@@ -8,7 +8,7 @@
         <p class="hm-section-sub">CFZ-verified partners highlighted by catalog activity and visibility plans</p>
       </div>
       <button type="button" class="hm-info-btn" id="hm-rankings-info" aria-describedby="hm-rankings-tooltip" aria-expanded="false">
-        <span class="material-symbols-rounded hm-info-btn__icon" aria-hidden="true">info</span>
+        {% include "core/includes/tf_icon.html" with name="info" class="hm-info-btn__icon" %}
         How rankings work
       </button>
       <div class="hm-info-tooltip" id="hm-rankings-tooltip" role="tooltip" hidden>
@@ -32,7 +32,7 @@
                 role="tab"
                 aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
                 data-hm-company-tab="{{ forloop.counter0 }}">
-          <span class="hm-company-rotator__tab-avatar">{{ emp.name|slice:":2"|upper }}</span>
+          <span class="hm-company-rotator__tab-avatar">{% include "core/includes/company_avatar.html" with company=emp class="tf-co-avatar--tab" %}</span>
           <span class="hm-company-rotator__tab-name" title="{{ emp.name }}">{{ emp.name|truncatechars:28 }}</span>
         </button>
         {% endfor %}
@@ -43,18 +43,18 @@
       <h3 class="hm-suppliers__more-title">More verified suppliers</h3>
       <div class="hm-slider hm-slider--companies" data-hm-slider data-hm-slider-visible="4">
         <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous suppliers">
-          <span class="material-symbols-rounded">chevron_left</span>
+          {% include "core/includes/tf_icon.html" with name="chevron_left" %}
         </button>
         <div class="hm-slider__viewport">
           <div class="hm-slider__track">
             {% for emp in empresas_carousel|slice:"5:11" %}
             <article class="hm-supplier-card hm-supplier-card--slide">
               <div class="hm-supplier-card__top">
-                <span class="hm-supplier-card__avatar">{{ emp.name|slice:":2"|upper }}</span>
+                <span class="hm-supplier-card__avatar">{% include "core/includes/company_avatar.html" with company=emp %}</span>
                 <div>
                   <h3 class="hm-supplier-card__name" title="{{ emp.name }}">{{ emp.name }}</h3>
                   <span class="hm-supplier-card__verified">
-                    <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+                    {% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}
                     CFZ Verified
                   </span>
                 </div>
@@ -68,7 +68,7 @@
           </div>
         </div>
         <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next suppliers">
-          <span class="material-symbols-rounded">chevron_right</span>
+          {% include "core/includes/tf_icon.html" with name="chevron_right" %}
         </button>
         <div class="hm-slider__dots" aria-hidden="true"></div>
       </div>

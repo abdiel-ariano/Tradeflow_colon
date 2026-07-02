@@ -1,0 +1,46 @@
+/*
+=============================================================================
+TRADEFLOW — tf-icons.css
+Inline SVG icon component (no icon-font dependency on public surfaces).
+=============================================================================
+*/
+
+.tf-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+  color: inherit;
+  vertical-align: middle;
+}
+
+.tf-icon svg {
+  display: block;
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.tf-icon--sm svg {
+  width: 1em;
+  height: 1em;
+}
+
+.tf-icon--lg svg {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+/* Legacy material spans: hide ligature text if font fails to load */
+.material-symbols-rounded {
+  overflow: hidden;
+  max-width: 1.5em;
+  text-overflow: clip;
+}
+
+@supports (font-variation-settings: normal) {
+  .material-symbols-rounded {
+    overflow: visible;
+    max-width: none;
+  }
+}

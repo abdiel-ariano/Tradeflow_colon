@@ -31,7 +31,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'home-motion-v1' }}">
   <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'home-motion-v1' }}">
-  <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tf-icons.css' %}?v={{ tf_asset_version|default:'2' }}">
   {% if request.resolver_match and request.resolver_match.url_name == 'home' %}
   <link rel="preload" href="{% static 'img/logo-wordmark-white.png' %}?v={{ tf_asset_version|default:'6' %}" as="image" type="image/png" fetchpriority="high">
   {% else %}
@@ -43,7 +43,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Serif+Display&family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block" rel="stylesheet">
   <style nonce="{{ csp_nonce }}">
     /* ═══════════════════════════════════════════════════════════════════════════
        BLINDAJE — utilidades críticas (evita regresión de estilos)
@@ -1269,7 +1270,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <style nonce="{{ csp_nonce }}">
     .tf-bot-card { font-size: 13px; line-height: 1.5; }
     .tf-bot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0F2A44; }
-    .tf-bot-head .material-symbols-rounded { font-size: 20px; color: #F26522; }
+#tf-chat-toggle .tf-icon svg {
+  width: 26px;
+  height: 26px;
+}
     .tf-bot-list { margin: 0 0 10px; padding-left: 18px; }
     .tf-bot-summary { margin: 0 0 8px; font-size: 12px; color: #6B7A88; font-style: italic; }
     .tf-bot-cta { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; color: #F26522; text-decoration: none; }
@@ -1469,19 +1473,19 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <!-- TF Assistant Widget -->
   <div id="tf-assistant" aria-live="polite">
     <button type="button" id="tf-chat-toggle" aria-label="Open assistant">
-      <span class="material-symbols-rounded" id="tf-chat-icon" style="font-size:26px;">smart_toy</span>
+      {% include "core/includes/tf_icon.html" with name="smart_toy" class="tf-icon--lg" %}
     </button>
     <div id="tf-chat-window" role="dialog" aria-label="TradeFlow Assistant">
       <header class="tf-chat-header">
         <div class="tf-chat-header-avatar" aria-hidden="true">
-          <span class="material-symbols-rounded">smart_toy</span>
+          {% include "core/includes/tf_icon.html" with name="smart_toy" %}
         </div>
         <div class="tf-chat-header-text">
           <div class="tf-chat-header-title">TradeFlow Assistant</div>
           <div class="tf-chat-header-sub">Free Zone virtual assistant</div>
         </div>
         <button type="button" id="tf-chat-close" aria-label="Close">
-          <span class="material-symbols-rounded">close</span>
+          {% include "core/includes/tf_icon.html" with name="close" %}
         </button>
       </header>
       <div id="tf-chat-messages">
@@ -1492,7 +1496,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       <div class="tf-chat-compose">
         <input type="text" id="tf-chat-input" placeholder="Type your question..." autocomplete="off" aria-label="Message">
         <button type="button" id="tf-chat-send" aria-label="Send message">
-          <span class="material-symbols-rounded">send</span>
+          {% include "core/includes/tf_icon.html" with name="send" %}
         </button>
       </div>
     </div>
