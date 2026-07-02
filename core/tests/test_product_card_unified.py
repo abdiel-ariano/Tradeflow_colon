@@ -71,8 +71,10 @@ class ProductCardUnifiedTests(TestCase):
     def test_home_uses_unified_public_card(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Ver detalles')
+        self.assertContains(response, 'View &amp; quote')
         self.assertContains(response, 'tf-pcard')
+        self.assertContains(response, 'CFZ Verified')
+        self.assertContains(response, 'Confirms in 48h')
         self.assertNotContains(response, 'picsum.photos')
 
     def test_buyer_product_detail_has_cart_actions(self):

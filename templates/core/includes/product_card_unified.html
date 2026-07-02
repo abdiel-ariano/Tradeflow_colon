@@ -29,6 +29,9 @@ Variables:
   </a>
 
   <div class="tf-pcard__body">
+    {% if is_public and product.category %}
+    <p class="tf-pcard__eyebrow">{{ product.category.name }}</p>
+    {% endif %}
     <p class="tf-pcard__company">
       {% if is_public %}
       <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
@@ -50,12 +53,37 @@ Variables:
       {% else %}
       <span class="tf-pcard__price-now">{{ product.display_price|money_usd }}</span>
       {% endif %}
+      {% if is_public %}
+      <span class="tf-pcard__price-unit">/ unit</span>
+      {% endif %}
     </div>
+    {% if is_public %}
+    <ul class="tf-pcard__signals" aria-label="Marketplace product details">
+      {% if product.company.is_verified %}
+      <li class="tf-pcard__signal tf-pcard__signal--verified">CFZ Verified</li>
+      {% endif %}
+      {% if product.available_qty > 0 %}
+      <li class="tf-pcard__signal tf-pcard__signal--stock">
+        {% if product.available_qty <= 5 %}
+        Low stock · {{ product.available_qty }} units
+        {% else %}
+        In stock · {{ product.available_qty }} units
+        {% endif %}
+      </li>
+      {% endif %}
+      {% if product.company.order_confirm_hours %}
+      <li class="tf-pcard__signal">Confirms in {{ product.company.order_confirm_hours }}h</li>
+      {% endif %}
+      {% if product.sku %}
+      <li class="tf-pcard__signal">SKU {{ product.sku }}</li>
+      {% endif %}
+    </ul>
+    {% endif %}
 
     <div class="tf-pcard__actions">
       {% if is_public %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
-        View details →
+        View &amp; quote →
       </a>
       {% elif show_cart_actions %}
         {% if product.available_qty %}
