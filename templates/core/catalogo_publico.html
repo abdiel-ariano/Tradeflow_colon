@@ -3,7 +3,7 @@
 {% block title %}Colón Free Zone Wholesale Catalog | TradeFlow Colón{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'9' }}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'10' }}">
 {% if productos %}
 <script type="application/ld+json" nonce="{{ csp_nonce }}">
 {
@@ -35,25 +35,6 @@
 {% if not request.user.is_authenticated %}
   {% include "core/includes/catalogo_navbar.html" %}
 {% endif %}
-
-<div class="category-strip" aria-label="Browse by category">
-  <div class="category-strip-inner">
-    <a href="{% url 'catalogo_publico' %}{% if buscar %}?buscar={{ buscar|urlencode }}{% endif %}"
-       class="cat-pill cat-pill--ajax{% if not categorias_sel %} cat-pill--active{% endif %}"
-       data-cat-pill="all">
-      All <span class="cat-count">({{ catalogo_stats.productos }})</span>
-    </a>
-    {% for cat in categorias|slice:":10" %}
-    <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}{% if buscar %}&buscar={{ buscar|urlencode }}{% endif %}"
-       class="cat-pill cat-pill--ajax{% if cat.pk|stringformat:'s' in categorias_sel %} cat-pill--active{% endif %}"
-       data-cat-pill="{{ cat.pk }}">
-      {% if "Electronics" in cat.name %}📱{% elif "Textile" in cat.name or "Uniform" in cat.name %}👕{% elif "Logistic" in cat.name or "Pack" in cat.name %}🚚{% elif "Home" in cat.name or "Appliance" in cat.name %}🏠{% elif "Access" in cat.name or "Leather" in cat.name %}👜{% elif "Food" in cat.name or "Beverage" in cat.name %}🥫{% elif "Auto" in cat.name %}🚗{% elif "Beauty" in cat.name or "Health" in cat.name %}💄{% else %}📦{% endif %}
-      {{ cat.name }}
-      <span class="cat-count">({{ cat.num_productos }})</span>
-    </a>
-    {% endfor %}
-  </div>
-</div>
 
 <div class="trust-strip" aria-label="TradeFlow guarantees">
   <div class="trust-strip-inner">
@@ -263,5 +244,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'9' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'10' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
