@@ -3185,13 +3185,27 @@ def tienda(request):
         and not empresa
     )
     if show_spotlights:
-        spotlight_ofertas = merch.daily_deals(4)
-        spotlight_bestsellers = merch.bestsellers(4)
-        spotlight_destacados = merch.featured_products(4)
+        _spot_seen: set[int] = set()
+        spotlight_ofertas = merch._pick_unique_products(
+            merch.daily_deals(12), _spot_seen, 4, diverse_images=True,
+        )
+        spotlight_bestsellers = merch._pick_unique_products(
+            merch.bestsellers(12), _spot_seen, 4, diverse_images=True,
+        )
+        spotlight_destacados = merch._pick_unique_products(
+            merch.featured_products(12), _spot_seen, 4, diverse_images=True,
+        )
     else:
         spotlight_ofertas = []
         spotlight_bestsellers = []
         spotlight_destacados = []
+
+    buyer_recommended_products = merch._pick_unique_products(
+        merch.featured_products(20),
+        set(),
+        5,
+        diverse_images=True,
+    )
 
     paginator = Paginator(productos, 12)
     page_obj = paginator.get_page(request.GET.get('page', 1))
@@ -3272,6 +3286,7 @@ def tienda(request):
         'spotlight_bestsellers': spotlight_bestsellers,
         'spotlight_destacados': spotlight_destacados,
         'productos_promo': merch.daily_deals(8),
+        'buyer_recommended_products': buyer_recommended_products,
         'tienda_pagination_slots': _tienda_pagination_slots(page_obj),
         'category_spotlights': merch.category_spotlights(4, 4),
         'buyer_store_landing': (
