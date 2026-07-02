@@ -27,6 +27,8 @@ Public homepage — dual palette (navy/orange + blue).
   --muted: #6B7A88;
   --success: #1A7A4A;
   --danger: #D93025;
+  --hm-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --hm-press-duration: 100ms;
 }
 
 @keyframes fadeInUp {
@@ -51,8 +53,8 @@ Public homepage — dual palette (navy/orange + blue).
 
 .hm-root--motion [data-hm-reveal]:not(.is-visible) {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transform: translateY(16px);
+  transition: opacity 0.35s var(--hm-ease-out), transform 0.35s var(--hm-ease-out);
 }
 
 .hm-root--motion [data-hm-reveal].is-visible {
@@ -60,10 +62,10 @@ Public homepage — dual palette (navy/orange + blue).
   transform: translateY(0);
 }
 
-.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="1"] { transition-delay: 0.15s; }
-.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="2"] { transition-delay: 0.3s; }
-.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="3"] { transition-delay: 0.45s; }
-.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="4"] { transition-delay: 0.6s; }
+.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="1"] { transition-delay: 0.05s; }
+.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="2"] { transition-delay: 0.1s; }
+.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="3"] { transition-delay: 0.15s; }
+.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="4"] { transition-delay: 0.2s; }
 
 @media (prefers-reduced-motion: reduce) {
   .hm-root *, .hm-nav-shell * {
@@ -125,8 +127,18 @@ Public homepage — dual palette (navy/orange + blue).
   font-weight: 600;
   text-decoration: none;
   border-radius: 8px;
-  transition: all 0.2s ease;
   border: none;
+  transition:
+    transform 160ms var(--hm-ease-out),
+    background 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.hm-btn:active {
+  transform: scale(0.97);
+  transition-duration: var(--hm-press-duration);
 }
 
 .hm-btn--lg { padding: 14px 28px; font-size: 15px; }
@@ -136,20 +148,7 @@ Public homepage — dual palette (navy/orange + blue).
   color: var(--white);
 }
 
-.hm-btn--cta:hover {
-  background: var(--orange-light);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(242, 101, 34, 0.35);
-  color: var(--white);
-}
-
 .hm-btn--primary { background: var(--primary); color: var(--white); }
-.hm-btn--primary:hover {
-  background: #004a90;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 87, 168, 0.4);
-  color: var(--white);
-}
 
 .hm-btn--outline {
   background: transparent;
@@ -157,9 +156,25 @@ Public homepage — dual palette (navy/orange + blue).
   border: 1px solid var(--white);
 }
 
-.hm-btn--outline:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--white);
+@media (hover: hover) and (pointer: fine) {
+  .hm-btn--cta:hover {
+    background: var(--orange-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(242, 101, 34, 0.35);
+    color: var(--white);
+  }
+
+  .hm-btn--primary:hover {
+    background: #004a90;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 87, 168, 0.4);
+    color: var(--white);
+  }
+
+  .hm-btn--outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+  }
 }
 
 .hm-hero-mega {
@@ -175,7 +190,6 @@ Public homepage — dual palette (navy/orange + blue).
   inset: 0;
   background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
   background-size: 24px 24px;
-  animation: hmPatternMove 20s linear infinite;
   pointer-events: none;
 }
 
@@ -1032,12 +1046,19 @@ Public homepage — dual palette (navy/orange + blue).
   border: 1px solid var(--gray-200);
   border-radius: 12px;
   padding: 20px;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.25s var(--hm-ease-out), box-shadow 0.25s var(--hm-ease-out);
 }
 
-.hm-supplier-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 87, 168, 0.12);
+.hm-supplier-card:active {
+  transform: scale(0.98);
+  transition-duration: var(--hm-press-duration);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hm-supplier-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 87, 168, 0.12);
+  }
 }
 
 .hm-supplier-card__top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -1190,12 +1211,19 @@ Public homepage — dual palette (navy/orange + blue).
   border-radius: 12px;
   padding-bottom: 16px;
   overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.25s var(--hm-ease-out), box-shadow 0.25s var(--hm-ease-out);
 }
 
-.hm-trend-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(15, 42, 68, 0.12);
+.hm-trend-card:active {
+  transform: scale(0.98);
+  transition-duration: var(--hm-press-duration);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hm-trend-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15, 42, 68, 0.12);
+  }
 }
 
 .hm-trend-card__media-wrap {
@@ -1284,7 +1312,11 @@ Public homepage — dual palette (navy/orange + blue).
   text-decoration: none;
   opacity: 1;
   transform: none;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, transform 0.16s var(--hm-ease-out);
+}
+
+.hm-trend-card__cta:active {
+  transform: scale(0.97);
 }
 
 .hm-trend-card__cta:hover {
@@ -1642,13 +1674,20 @@ Public homepage — dual palette (navy/orange + blue).
   border-radius: 12px;
   text-decoration: none;
   overflow: hidden;
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.25s var(--hm-ease-out), border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.hm-cat-card--dark:hover {
-  transform: translateY(-4px);
-  border-color: var(--orange);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+.hm-cat-card--dark:active {
+  transform: scale(0.98);
+  transition-duration: var(--hm-press-duration);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hm-cat-card--dark:hover {
+    transform: translateY(-4px);
+    border-color: var(--orange);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  }
 }
 
 .hm-cat-card__collage {
@@ -1734,13 +1773,23 @@ Public homepage — dual palette (navy/orange + blue).
   border: 1px solid var(--border);
   border-radius: 12px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s var(--hm-ease-out);
 }
 
-.hm-cat-card:not(.hm-cat-card--dark):hover {
-  background: var(--primary-light);
-  border-color: var(--primary);
-  transform: translateY(-3px);
+@media (hover: hover) and (pointer: fine) {
+  .hm-cat-card:not(.hm-cat-card--dark):hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    transform: translateY(-3px);
+  }
+
+  .hm-cat-card:hover .hm-cat-card__icon {
+    background: var(--primary);
+    color: var(--white);
+  }
 }
 
 .hm-cat-card__icon {
@@ -1753,10 +1802,12 @@ Public homepage — dual palette (navy/orange + blue).
   color: var(--primary);
   border-radius: 10px;
   font-size: 22px;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.hm-cat-card:hover .hm-cat-card__icon { background: var(--primary); color: var(--white); }
+.hm-cat-card:not(.hm-cat-card--dark):active {
+  transform: scale(0.98);
+}
 .hm-cat-card__name { margin-top: 12px; font-size: 14px; font-weight: 700; color: var(--gray-900); }
 .hm-cat-card__count { margin-top: 4px; font-size: 12px; color: var(--muted); }
 
@@ -1807,7 +1858,15 @@ Public homepage — dual palette (navy/orange + blue).
   font-family: 'Montserrat', sans-serif;
   font-size: 13px;
   color: var(--gray-700);
-  transition: all 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.16s var(--hm-ease-out);
+}
+
+.hm-company-rotator__tab:active {
+  transform: scale(0.97);
 }
 
 .hm-company-rotator__tab.is-active {

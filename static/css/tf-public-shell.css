@@ -223,8 +223,16 @@ Public navbar + category pills — dual palette (navy/orange + blue).
   font-family: 'Montserrat', sans-serif;
   border-radius: 8px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition:
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
   white-space: nowrap;
+}
+
+.hm-nav__btn:active {
+  transform: scale(0.97);
 }
 
 .hm-nav__btn--ghost {
@@ -233,21 +241,22 @@ Public navbar + category pills — dual palette (navy/orange + blue).
   background: transparent;
 }
 
-.hm-nav__btn--ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--white);
-}
-
 .hm-nav__btn--solid {
   background: var(--orange);
   color: var(--white);
   border: 1px solid var(--orange);
 }
 
-.hm-nav__btn--solid:hover {
-  background: var(--orange-light);
-  border-color: var(--orange-light);
-  color: var(--white);
+@media (hover: hover) and (pointer: fine) {
+  .hm-nav__btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+  }
+
+  .hm-nav__btn--solid:hover {
+    background: var(--orange-light);
+    border-color: var(--orange-light);
+  }
 }
 
 /* ── Category pills ── */
@@ -283,14 +292,16 @@ Public navbar + category pills — dual palette (navy/orange + blue).
   border: 1px solid var(--gray-200);
   border-radius: 20px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition:
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
   white-space: nowrap;
 }
 
-.hm-nav__pill:hover {
-  background: var(--primary-light);
-  color: var(--primary);
-  border-color: var(--primary-light);
+.hm-nav__pill:active {
+  transform: scale(0.97);
 }
 
 .hm-nav__pill.is-active {
@@ -299,11 +310,19 @@ Public navbar + category pills — dual palette (navy/orange + blue).
   border-color: var(--primary);
 }
 
-.hm-nav__pill--accent.is-active,
-.hm-nav__pill:hover.hm-nav__pill--accent {
-  background: var(--orange);
-  border-color: var(--orange);
-  color: var(--white);
+@media (hover: hover) and (pointer: fine) {
+  .hm-nav__pill:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary-light);
+  }
+
+  .hm-nav__pill--accent.is-active,
+  .hm-nav__pill:hover.hm-nav__pill--accent {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: var(--white);
+  }
 }
 
 @media (max-width: 900px) {

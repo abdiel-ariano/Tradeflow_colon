@@ -6,11 +6,12 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 */
 
 :root {
-  --hm-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --hm-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --hm-ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
   --hm-section-y: clamp(36px, 5vw, 56px);
-  --hm-reveal-duration: 0.9s;
-  --hm-stagger-step: 0.08s;
+  --hm-reveal-duration: 0.35s;
+  --hm-stagger-step: 0.05s;
+  --hm-press-duration: 100ms;
   --hm-content-max: 1380px;
   --hm-gutter: clamp(12px, 2.5vw, 20px);
 }
@@ -117,7 +118,7 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 .hm-root--motion [data-hm-section]:not(.is-inview) .hm-section__head,
 .hm-root--motion [data-hm-section]:not(.is-inview) [data-hm-stagger] > * {
   opacity: 0;
-  transform: translateY(32px);
+  transform: translateY(20px);
 }
 
 .hm-root--motion [data-hm-section].is-inview .hm-section__head {
@@ -146,7 +147,7 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 /* Individual reveals — slower, softer (not abrupt pop-in) */
 .hm-root--motion [data-hm-reveal]:not(.is-visible) {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(16px);
   transition:
     opacity var(--hm-reveal-duration) var(--hm-ease-out),
     transform var(--hm-reveal-duration) var(--hm-ease-out);
@@ -157,10 +158,10 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   transform: translateY(0);
 }
 
-.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="1"] { transition-delay: 0.12s; }
-.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="2"] { transition-delay: 0.24s; }
-.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="3"] { transition-delay: 0.36s; }
-.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="4"] { transition-delay: 0.48s; }
+.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="1"] { transition-delay: 0.05s; }
+.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="2"] { transition-delay: 0.1s; }
+.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="3"] { transition-delay: 0.15s; }
+.hm-root--motion [data-hm-reveal][data-hm-reveal-delay="4"] { transition-delay: 0.2s; }
 
 /* ── Product media frame (shimmer → image fade) ── */
 .hm-media {
@@ -279,10 +280,17 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   transition: transform 0.28s var(--hm-ease-out), box-shadow 0.28s var(--hm-ease-out), border-color 0.2s ease;
 }
 
-.hm-featured__card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(0, 87, 168, 0.22);
-  box-shadow: 0 10px 28px rgba(15, 42, 68, 0.1);
+.hm-featured__card:active {
+  transform: scale(0.98);
+  transition-duration: var(--hm-press-duration);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hm-featured__card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(0, 87, 168, 0.22);
+    box-shadow: 0 10px 28px rgba(15, 42, 68, 0.1);
+  }
 }
 
 .hm-featured__media {
@@ -492,12 +500,19 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  transition: transform 0.3s var(--hm-ease-out), box-shadow 0.3s var(--hm-ease-out);
+  transition: transform 0.28s var(--hm-ease-out), box-shadow 0.28s var(--hm-ease-out);
 }
 
-.hm-wall__tile:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(15, 42, 68, 0.1);
+.hm-wall__tile:active {
+  transform: scale(0.98);
+  transition-duration: var(--hm-press-duration);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hm-wall__tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15, 42, 68, 0.1);
+  }
 }
 
 .hm-wall__media {
@@ -1151,9 +1166,16 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   border-color: var(--gray-200);
 }
 
-.hm-promo-row__card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 28px rgba(15, 42, 68, 0.08);
+.hm-promo-row__card:active {
+  transform: scale(0.98);
+  transition-duration: var(--hm-press-duration);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hm-promo-row__card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(15, 42, 68, 0.08);
+  }
 }
 
 .hm-promo-row__media {

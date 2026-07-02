@@ -130,7 +130,7 @@
           var el = entry.target;
           var target = parseInt(el.getAttribute('data-hm-count'), 10) || 0;
           var suffix = el.getAttribute('data-hm-suffix') || '';
-          animateCount(el, target, suffix, 1500);
+          animateCount(el, target, suffix, 900);
           obs.unobserve(el);
         });
       },
