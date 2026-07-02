@@ -71,8 +71,8 @@ def picsum_url(product: Product) -> str:
 
 
 def use_runtime_picsum() -> bool:
-    """Remote picsum only when explicitly enabled (dev/demo). Production uses bundled seeds."""
-    return bool(getattr(settings, 'TRADEFLOW_USE_PICSUM_RUNTIME', settings.DEBUG))
+    """Remote picsum only when explicitly enabled (dev/demo). Production must stay False."""
+    return bool(getattr(settings, 'TRADEFLOW_USE_PICSUM_RUNTIME', False))
 
 
 def catalog_seed_relative_path(keyword: str) -> str:
