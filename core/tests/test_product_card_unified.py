@@ -72,7 +72,7 @@ class ProductCardUnifiedTests(TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'View &amp; quote')
-        self.assertContains(response, 'tf-pcard--compact')
+        self.assertContains(response, 'tf-pcard--featured-dense')
         self.assertContains(response, 'CFZ Verified')
         self.assertNotContains(response, 'picsum.photos')
 
