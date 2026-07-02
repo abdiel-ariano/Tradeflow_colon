@@ -1,5 +1,4 @@
-{% load tf_money %}
-{% comment %}Compact promo row when daily deals exist — uses unused home_view context.{% endcomment %}
+{% comment %}Compact promo row when daily deals exist — unified product cards.{% endcomment %}
 {% if show_daily_deals_strip and daily_deals|length >= 3 %}
 <section class="hm-deals hm-section" id="hm-deals" data-hm-section aria-labelledby="hm-deals-title">
   <div class="hm-section__inner hm-deals__inner">
@@ -12,18 +11,7 @@
     </header>
     <div class="hm-deals__track" data-hm-stagger>
       {% for product in daily_deals|slice:":8" %}
-      <article class="hm-deals__card">
-        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-deals__media">
-          <span class="hm-deals__badge">-{{ product.discount_pct }}%</span>
-          {% include "core/includes/home_product_media.html" with product=product decorative=True %}
-        </a>
-        <div class="hm-deals__body">
-          <h3 class="hm-deals__name">
-            <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name|truncatechars:42 }}</a>
-          </h3>
-          <p class="hm-deals__price">{{ product.display_price|money_usd }}</p>
-        </div>
-      </article>
+        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_variant="deal" card_extra_class="hm-deals__card" %}
       {% endfor %}
     </div>
   </div>
