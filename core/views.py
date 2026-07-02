@@ -2803,6 +2803,34 @@ def _contar_items(carrito):
     return sum(item['cantidad'] for item in carrito.values())
 
 
+def _carrito_items_with_products(carrito):
+    """Enrich session cart lines with Product instances for image fallbacks."""
+    ids = []
+    for key in carrito:
+        try:
+            ids.append(int(key))
+        except (TypeError, ValueError):
+            continue
+    products = {}
+    if ids:
+        products = {
+            p.pk: p
+            for p in Product.objects.filter(pk__in=ids).select_related('category', 'company')
+        }
+    items = []
+    for prod_id, item in carrito.items():
+        try:
+            pk = int(prod_id)
+        except (TypeError, ValueError):
+            pk = None
+        items.append({
+            'prod_id': prod_id,
+            'item': item,
+            'product': products.get(pk) if pk is not None else None,
+        })
+    return items
+
+
 def _request_wants_json(request):
     """True si el cliente espera respuesta JSON (fetch/AJAX)."""
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -3524,6 +3552,7 @@ def ver_carrito(request):
 
     context = {
         'carrito':       carrito,
+        'carrito_items': _carrito_items_with_products(carrito),
         'total':         total,
         'carrito_count': _contar_items(carrito),
         'titulo_pagina': 'My cart',
