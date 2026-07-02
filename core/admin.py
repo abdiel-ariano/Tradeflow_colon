@@ -96,6 +96,11 @@ class CompanyAdmin(TradeFlowModelAdmin):
     search_fields  = ['name', 'ruc', 'owner__username', 'owner__email']
     list_editable  = ['is_verified']
     raw_id_fields  = ['owner']
+    fields         = [
+        'name', 'logo', 'ruc', 'address_text', 'owner', 'is_verified', 'is_featured',
+        'carousel_priority', 'tagline_es', 'tagline_en', 'order_confirm_hours',
+        'latitud', 'longitud',
+    ]
     list_per_page  = 25
 
 

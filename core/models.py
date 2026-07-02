@@ -139,6 +139,12 @@ class Company(models.Model):
         verbose_name='Hours to confirm order',
         help_text='Deadline for the company to accept or reject a new order.',
     )
+    logo = models.ImageField(
+        upload_to='companies/logos/',
+        blank=True,
+        null=True,
+        verbose_name='Logo',
+    )
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:

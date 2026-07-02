@@ -3,5 +3,9 @@ Company avatar — logo when available, else branded initials (deterministic col
 {% endcomment %}
 {% load tf_brand %}
 <div class="tf-co-avatar {{ class|default:'' }}" style="--tf-avatar-bg: {{ company|company_avatar_color }};">
+  {% if company.logo %}
+  <img src="{{ company.logo.url }}" alt="" class="tf-co-avatar__img" loading="lazy" decoding="async">
+  {% else %}
   <span class="tf-co-avatar__initials" aria-hidden="true">{{ company.name|slice:":2"|upper }}</span>
+  {% endif %}
 </div>
