@@ -29,8 +29,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-header.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-footer.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'2' }}">
-  <link rel="stylesheet" href="{% static 'css/tf-home-v2.css' %}?v={{ tf_asset_version|default:'home-motion-v1' }}">
-  <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'home-motion-v1' }}">
   <link rel="stylesheet" href="{% static 'css/tf-icons.css' %}?v={{ tf_asset_version|default:'2' }}">
   {% if request.resolver_match and request.resolver_match.url_name == 'home' %}
   <link rel="preload" href="{% static 'img/logo-wordmark-white.png' %}?v={{ tf_asset_version|default:'6' %}" as="image" type="image/png" fetchpriority="high">
@@ -44,7 +42,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  {% if not request.resolver_match or request.resolver_match.url_name != 'home' %}
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block" rel="stylesheet">
+  {% endif %}
   <style nonce="{{ csp_nonce }}">
     /* ═══════════════════════════════════════════════════════════════════════════
        BLINDAJE — utilidades críticas (evita regresión de estilos)
