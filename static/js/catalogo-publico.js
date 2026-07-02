@@ -46,6 +46,12 @@
     novedades: 'Newest',
   };
 
+  function syncStickyOffset() {
+    var nav = document.getElementById('cat-catalog-nav');
+    var height = nav ? Math.ceil(nav.getBoundingClientRect().height) : 0;
+    document.body.style.setProperty('--cat-nav-height', height + 'px');
+  }
+
   function getCookie(name) {
     var parts = document.cookie ? document.cookie.split(';') : [];
     var i;
@@ -236,19 +242,6 @@
     }
   }
 
-  function syncCategoryPills() {
-    if (!filtersForm) return;
-    var selected = [];
-    filtersForm.querySelectorAll('input[name="categoria"]:checked').forEach(function (input) {
-      selected.push(input.value);
-    });
-    document.querySelectorAll('.cat-pill--ajax').forEach(function (pill) {
-      var catId = pill.getAttribute('data-cat-pill');
-      var active = catId === 'all' ? selected.length === 0 : selected.indexOf(catId) >= 0;
-      pill.classList.toggle('cat-pill--active', active);
-    });
-  }
-
   function syncCompanyButtons() {
     if (!filterEmpresa) return;
     var current = filterEmpresa.value || '';
@@ -394,7 +387,6 @@
     var mobileSort = document.querySelector('.results-sort-mobile');
     if (mobileSort) mobileSort.value = orden;
 
-    syncCategoryPills();
     syncCompanyButtons();
   }
 
@@ -490,7 +482,6 @@
         }
 
         updateResultsCount(doc);
-        syncCategoryPills();
         syncCompanyButtons();
         renderActiveFilters();
 
@@ -561,19 +552,6 @@
       filterEmpresa.value = btn.getAttribute('data-empresa-filter') || '';
       syncCompanyButtons();
       applyFilters({ spinner: null });
-    });
-  });
-
-  document.querySelectorAll('.cat-pill--ajax').forEach(function (pill) {
-    pill.addEventListener('click', function (e) {
-      e.preventDefault();
-      if (!filtersForm) return;
-      var catId = pill.getAttribute('data-cat-pill');
-      filtersForm.querySelectorAll('input[name="categoria"]').forEach(function (input) {
-        input.checked = catId !== 'all' && input.value === catId;
-      });
-      syncCategoryPills();
-      applyFilters({ spinner: 'categories' });
     });
   });
 
@@ -720,4 +698,12 @@
   bindInquiryButtons();
   bindPaginationLinks();
   bindAjaxChips();
+  syncStickyOffset();
+  window.addEventListener('resize', syncStickyOffset);
+  if (window.ResizeObserver) {
+    var catalogNav = document.getElementById('cat-catalog-nav');
+    if (catalogNav) {
+      new ResizeObserver(syncStickyOffset).observe(catalogNav);
+    }
+  }
 })();
