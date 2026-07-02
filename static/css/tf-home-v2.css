@@ -1448,19 +1448,7 @@ Public homepage — dual palette (navy/orange + blue).
   gap: 20px;
 }
 
-.hm-featured__card {
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 16px;
-  padding: 16px;
-  background: var(--gray-50);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-@media (max-width: 520px) {
-  .hm-featured__card { grid-template-columns: 1fr; }
-}
+/* Layout owned by .tf-pcard — see tf-home-experience.css (.hm-featured__card) */
 
 .hm-featured__media {
   display: block;

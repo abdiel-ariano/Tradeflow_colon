@@ -4,12 +4,13 @@ ProductImage — reusable product image with local SVG fallback on missing URL o
 Pass decorative=True on cards where the product name is shown below (home grids).
 {% endcomment %}
 {% load static tf_media %}
-{% with image_src=product|product_image_src %}
+{% with image_src=product|product_image_src focal=product|product_image_object_position %}
 <img src="{{ image_src }}"
      alt="{% if decorative %}{% else %}{{ alt|default:product.name }}{% endif %}"
      class="product-img{% if img_class %} {{ img_class }}{% endif %}{% if css_class %} {{ css_class }}{% endif %}{% if decorative %} is-decorative{% endif %}"
      loading="{{ loading|default:'lazy' }}"
      decoding="async"
+     style="object-position: {{ focal }};"
      {% if decorative %}role="presentation"{% endif %}
      {% if width %}width="{{ width }}"{% endif %}
      {% if height %}height="{{ height }}"{% endif %}

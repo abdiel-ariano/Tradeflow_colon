@@ -266,8 +266,27 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   background: rgba(255, 255, 255, 0.1);
 }
 
-.hm-featured__card {
+.hm-root .hm-featured__grid .tf-pcard.hm-featured__card,
+.hm-root .hm-wall__grid .tf-pcard.hm-wall__tile {
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  background: var(--white);
+}
+
+.hm-root .tf-pcard--compact .tf-pcard__title a {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hm-root .tf-pcard--compact .tf-pcard__signals {
+  min-height: 24px;
+}
+
+.hm-root .tf-pcard--compact .tf-pcard__btn--primary {
+  margin-top: 4px;
 }
 
 .hm-featured__grid {
