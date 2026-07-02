@@ -1,19 +1,23 @@
 {% comment %}
-ProductImage — reusable product image with local SVG fallback on missing URL or load error.
+ProductImage — reusable product image with category seed + branded SVG fallback.
 
 Pass decorative=True on cards where the product name is shown below (home grids).
 {% endcomment %}
 {% load static tf_media %}
-{% with image_src=product|product_image_src focal=product|product_image_object_position %}
-<img src="{{ image_src }}"
+{% with primary=product|product_image_src category_seed=product|product_image_category_seed_src picsum=product|product_image_picsum_src focal=product|product_image_object_position %}
+<img src="{{ primary }}"
      alt="{% if decorative %}{% else %}{{ alt|default:product.name }}{% endif %}"
      class="product-img{% if img_class %} {{ img_class }}{% endif %}{% if css_class %} {{ css_class }}{% endif %}{% if decorative %} is-decorative{% endif %}"
      loading="{{ loading|default:'lazy' }}"
      decoding="async"
-     style="object-position: {{ focal }};"
+     style="object-fit: cover; object-position: {{ focal }};"
      {% if decorative %}role="presentation"{% endif %}
      {% if width %}width="{{ width }}"{% endif %}
      {% if height %}height="{{ height }}"{% endif %}
      data-tf-product-image
-     onerror="this.onerror=null;this.src='{% static 'images/placeholder-producto.svg' %}';this.classList.add('is-placeholder');">
+     {% if category_seed %}data-hm-category-seed="{{ category_seed }}"{% endif %}
+     {% if picsum %}data-hm-picsum="{{ picsum }}"{% endif %}
+     data-hm-static="{% static 'images/home-product-fallback.svg' %}"
+     data-hm-fallback-stage="0"
+     onerror="if(window.TFHomeMediaFallback){window.TFHomeMediaFallback(this);}else{this.onerror=null;this.src='{% static 'images/home-product-fallback.svg' %}';this.classList.add('is-placeholder');}">
 {% endwith %}

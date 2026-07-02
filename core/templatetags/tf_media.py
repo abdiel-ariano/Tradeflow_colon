@@ -69,8 +69,9 @@ def product_image_object_position(product):
     """Offset crop focal point so same category seed JPEGs look distinct in grids."""
     if not product or not getattr(product, 'pk', None):
         return '50% 50%'
-    x = (product.pk * 17) % 70 + 15
-    y = (product.pk * 13) % 50 + 25
+    pk = product.pk
+    x = (pk % 5) * 20
+    y = ((pk // 5) % 3) * 30
     return f'{x}% {y}%'
 
 

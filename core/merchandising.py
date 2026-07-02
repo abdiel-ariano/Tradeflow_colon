@@ -18,6 +18,39 @@ from django.utils.translation import get_language
 from .models import Category, Company, HomePromoSection, OrderItem, Product
 
 
+def _product_has_uploaded_image(product) -> bool:
+    """True when the product has a stored upload (local file or remote storage path)."""
+    from core.utils.media_storage import is_remote_media_storage, local_media_file_exists
+
+    if not getattr(product, 'image', None) or not product.image.name:
+        return False
+    rel = product.image.name.replace('\\', '/')
+    if local_media_file_exists(rel):
+        return True
+    return is_remote_media_storage()
+
+
+def _product_image_fingerprint(product) -> str:
+    """Visual key for deduping identical fallback photos in the same home row."""
+    from core.utils.demo_product_images import catalog_seed_static_path
+
+    if _product_has_uploaded_image(product):
+        return f'upload:{product.image.name.replace(chr(92), "/")}'
+    return f'seed:{catalog_seed_static_path(product)}'
+
+
+def _sort_products_by_image_priority(products: list) -> list:
+    """Prefer products with real uploads before category-seed fallbacks."""
+    return sorted(
+        products,
+        key=lambda p: (
+            0 if _product_has_uploaded_image(p) else 1,
+            -(getattr(p, 'merchandising_priority', 0) or 0),
+            -p.pk,
+        ),
+    )
+
+
 def active_products_base():
     """QuerySet base de productos activos con relaciones."""
     return (
@@ -57,12 +90,14 @@ def bestsellers(limit: int = 8, days: int = 30):
         products = {p.pk: p for p in active_products_base().filter(pk__in=id_order)}
         ordered = [products[pk] for pk in id_order if pk in products]
         if len(ordered) >= max(1, limit // 2):
-            return ordered[:limit]
-    return list(
-        active_products_base()
-        .filter(Q(is_bestseller=True) | Q(is_featured=True))
-        .order_by('-merchandising_priority', '-created_at')[:limit]
-    )
+            return _sort_products_by_image_priority(ordered)[:limit]
+    return _sort_products_by_image_priority(
+        list(
+            active_products_base()
+            .filter(Q(is_bestseller=True) | Q(is_featured=True))
+            .order_by('-merchandising_priority', '-created_at')[: max(limit * 3, limit)]
+        )
+    )[:limit]
 
 
 def featured_products(limit: int = 8):
@@ -261,15 +296,22 @@ def category_spotlights(
         n=Count('products', filter=Q(products__is_active=True))
     ).filter(n__gt=0).order_by('-n')[:max_cats]:
         prods = []
-        for product in (
-            active_products_base()
-            .filter(category=cat)
-            .order_by('-merchandising_priority', '-created_at')
+        row_fingerprints: set[str] = set()
+        for product in _sort_products_by_image_priority(
+            list(
+                active_products_base()
+                .filter(category=cat)
+                .order_by('-merchandising_priority', '-created_at')
+            )
         ):
             if product.pk in seen:
                 continue
+            fp = _product_image_fingerprint(product)
+            if fp in row_fingerprints:
+                continue
             prods.append(product)
             seen.add(product.pk)
+            row_fingerprints.add(fp)
             if len(prods) >= limit_per_cat:
                 break
         if prods:
@@ -308,15 +350,22 @@ def catalog_breadth_products(
 
     for cat in cats:
         bucket = 0
-        for product in (
-            active_products_base()
-            .filter(category=cat)
-            .order_by('-merchandising_priority', '-created_at')
+        row_fingerprints: set[str] = set()
+        for product in _sort_products_by_image_priority(
+            list(
+                active_products_base()
+                .filter(category=cat)
+                .order_by('-merchandising_priority', '-created_at')
+            )
         ):
             if product.pk in seen:
                 continue
+            fp = _product_image_fingerprint(product)
+            if fp in row_fingerprints:
+                continue
             picked.append(product)
             seen.add(product.pk)
+            row_fingerprints.add(fp)
             bucket += 1
             if bucket >= per_category or len(picked) >= limit:
                 break
@@ -386,13 +435,28 @@ def home_stats():
     return cached_home_stats()
 
 
-def _pick_unique_products(candidates, seen: set[int], limit: int) -> list:
+def _pick_unique_products(
+    candidates,
+    seen: set[int],
+    limit: int,
+    *,
+    diverse_images: bool = False,
+) -> list:
     """Return up to ``limit`` products not already in ``seen``; mutates ``seen``."""
+    if diverse_images:
+        candidates = _sort_products_by_image_priority(list(candidates))
+
     picked: list = []
+    row_fingerprints: set[str] = set()
     for product in candidates:
         pk = getattr(product, 'pk', None)
         if pk is None or pk in seen:
             continue
+        if diverse_images:
+            fp = _product_image_fingerprint(product)
+            if fp in row_fingerprints:
+                continue
+            row_fingerprints.add(fp)
         picked.append(product)
         seen.add(pk)
         if len(picked) >= limit:
@@ -425,7 +489,7 @@ def build_guest_home_context(lang: str) -> dict:
         cms_types.add(section.section_type)
         raw_products = resolve_section_products(section)
         limit = section.max_items or 8
-        products = _pick_unique_products(raw_products, seen, limit)
+        products = _pick_unique_products(raw_products, seen, limit, diverse_images=True)
         promo_sections.append({
             'section': section,
             'products': products,
@@ -433,13 +497,13 @@ def build_guest_home_context(lang: str) -> dict:
             'subtitle': section.subtitle_for_lang(lang),
         })
 
-    daily_deals_list = _pick_unique_products(daily_deals(16), seen, 8)
+    daily_deals_list = _pick_unique_products(daily_deals(16), seen, 8, diverse_images=True)
     show_daily_deals_strip = (
         'daily_deals' not in cms_types and len(daily_deals_list) >= 3
     )
     show_bestsellers_section = 'bestsellers' not in cms_types
 
-    bestsellers_list = _pick_unique_products(bestsellers(16), seen, 8)
+    bestsellers_list = _pick_unique_products(bestsellers(24), seen, 8, diverse_images=True)
     if not bestsellers_list:
         bestsellers_list = _pick_unique_products(
             active_products_base()
@@ -447,6 +511,7 @@ def build_guest_home_context(lang: str) -> dict:
             .order_by('-merchandising_priority', '-created_at'),
             seen,
             8,
+            diverse_images=True,
         )
 
     empresas_home = list(
@@ -480,7 +545,7 @@ def build_guest_home_context(lang: str) -> dict:
         'bestsellers': bestsellers_list,
         'featured_products': featured_list,
         'trending_products': _pick_unique_products(
-            trending_products(24), set(seen), 24,
+            trending_products(24), set(seen), 24, diverse_images=True,
         ),
         'texture_products': texture_products(12),
         'carousel_products': carousel_products(24),

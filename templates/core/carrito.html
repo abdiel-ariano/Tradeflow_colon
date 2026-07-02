@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load static tf_media %}
 {% block title %}My Cart — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
@@ -69,16 +69,20 @@
   {% if carrito %}
   <div class="c-grid">
     <div class="c-list">
-      {% for prod_id, item in carrito.items %}
+      {% for entry in carrito_items %}
       <div class="c-item">
-        {% if item.imagen %}<img src="{{ item.imagen }}" alt="" class="c-img">{% else %}<div class="c-ph"><span class="material-symbols-rounded" style="color:#D1D5DB;">inventory_2</span></div>{% endif %}
+        {% if entry.product %}
+        {% include "core/includes/product_image_placeholder.html" with product=entry.product img_class="c-img" decorative=True %}
+        {% else %}
+        <div class="c-ph" aria-hidden="true"><span class="material-symbols-rounded" style="color:#D1D5DB;">inventory_2</span></div>
+        {% endif %}
         <div class="c-info">
-          <div class="c-name">{{ item.nombre }}</div>
-          <div class="c-meta">USD {{ item.precio }} each</div>
-          <div class="c-qty"><span class="material-symbols-rounded" style="font-size:18px;">numbers</span> Quantity: <span>{{ item.cantidad }}</span></div>
+          <div class="c-name">{{ entry.item.nombre }}</div>
+          <div class="c-meta">USD {{ entry.item.precio }} each</div>
+          <div class="c-qty"><span class="material-symbols-rounded" style="font-size:18px;">numbers</span> Quantity: <span>{{ entry.item.cantidad }}</span></div>
         </div>
-        <div class="c-sub">USD {{ item.subtotal }}</div>
-        <form method="post" action="{% url 'quitar_del_carrito' prod_id %}">{% csrf_token %}
+        <div class="c-sub">USD {{ entry.item.subtotal }}</div>
+        <form method="post" action="{% url 'quitar_del_carrito' entry.prod_id %}">{% csrf_token %}
           <button type="submit" class="c-remove" title="Remove" aria-label="Remove"><span class="material-symbols-rounded">delete</span></button>
         </form>
       </div>
