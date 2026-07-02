@@ -4,241 +4,131 @@
 ================================================================================
 templates/core/signup.html — TradeFlow Colón
 Propósito: registro de compradores y vendedores con selector de rol.
-Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
+Contexto: vista signup_view; split-screen layout (marca + formulario).
 ================================================================================
 {% endcomment %}
 {% block title %}Create account — TradeFlow Colón{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
+<link rel="stylesheet" href="{% static 'css/signup.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
 {% block footer %}{% endblock %}
-{% block extra_css %}
-<style nonce="{{ csp_nonce }}">
-  .auth-page {
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .auth-card {
-    width: 100%;
-    max-width: 480px;
-    margin-left: auto;
-    margin-right: auto;
-    background: #fff; border: 1px solid #D1D5DB;
-    border-radius: 8px; padding: 2.25rem 2rem;
-    box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08);
-  }
-  .auth-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 1.25rem; }
-  .auth-logo img { width: 44px; height: 44px; object-fit: contain; }
-  .auth-brand { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.25rem; color: #0F2A44; }
-  .auth-brand-sub { font-size: 0.72rem; color: #6B7A88; font-weight: 500; margin-top: 2px; }
-  .auth-title { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1rem; color: #1B3B63; margin-bottom: 1rem; }
-  .auth-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 1.25rem; border-radius: 8px; overflow: hidden; border: 1px solid #D1D5DB; }
-  .auth-toggle label {
-    display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 10px;
-    cursor: pointer; font-size: 0.8125rem; font-weight: 600; color: #6B7A88; text-align: center;
-    background: #F2F3F5; transition: all 0.2s ease; margin: 0;
-  }
-  .auth-toggle label .material-symbols-rounded { font-size: 22px; }
-  .auth-toggle label small { font-weight: 400; font-size: 0.72rem; color: #6B7A88; }
-  .auth-toggle input { position: absolute; opacity: 0; pointer-events: none; }
-  .auth-toggle .auth-toggle-cell { position: relative; }
-  .auth-toggle input:focus-visible + label { outline: 2px solid #2E5B8A; outline-offset: 2px; }
-  .auth-toggle input:checked + label { background: #0F2A44; color: #fff; border-color: #0F2A44; }
-  .auth-toggle input:checked + label small { color: rgba(255,255,255,0.75); }
-  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .req { color: #EF4444; }
-  .auth-field-hint {
-    margin: 4px 0 0;
-    font-size: 11px;
-    line-height: 1.45;
-    color: #94a3b8;
-    font-weight: 400;
-  }
-  .auth-field-label-subtle {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: #64748b;
-  }
-  .auth-password-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-    margin-bottom: 4px;
-  }
-  .auth-password-field {
-    width: 100%;
-    min-width: 0;
-  }
-  .auth-password-wrap {
-    position: relative;
-    width: 100%;
-  }
-  .auth-password-input {
-    display: block;
-    width: 100%;
-    height: 44px;
-    box-sizing: border-box;
-    padding: 0 44px 0 16px;
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    outline: none;
-    font-size: 0.875rem;
-    line-height: 1.25;
-    font-family: 'Inter', system-ui, sans-serif;
-    color: #1e293b;
-    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-  .auth-password-input::placeholder {
-    color: #9ca3af;
-  }
-  .auth-password-input:hover {
-    background: #f1f5f9;
-  }
-  .auth-password-input:focus {
-    background: #ffffff;
-    border-color: var(--tf-orange, #F26522);
-    box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.2);
-  }
-  .auth-password-input::-ms-reveal,
-  .auth-password-input::-ms-clear {
-    display: none !important;
-  }
-  .auth-password-input::-webkit-credentials-auto-fill-button,
-  .auth-password-input::-webkit-textfield-decoration-container {
-    display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-  }
-  .auth-password-toggle {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    padding: 0;
-    margin: 0;
-    border: none;
-    background: transparent;
-    color: #94a3b8;
-    cursor: pointer;
-    transition: color 0.2s ease;
-  }
-  .auth-password-toggle:hover {
-    color: #475569;
-  }
-  .auth-password-toggle:focus {
-    outline: none;
-  }
-  .auth-password-toggle:focus-visible {
-    outline: 2px solid rgba(242, 101, 34, 0.45);
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-  .auth-password-toggle .material-symbols-rounded {
-    font-size: 20px;
-    line-height: 1;
-    width: 20px;
-    height: 20px;
-  }
-  .auth-submit {
-    width: 100%; margin-top: 0.5rem; padding: 12px 16px; border: none; border-radius: 8px;
-    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.9375rem; color: #fff;
-    background: #F26522; cursor: pointer; transition: all 0.2s ease;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-  .auth-submit:hover { background: #FF7A3D; box-shadow: 0 4px 12px rgba(242, 101, 34, 0.3); }
-  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 1.25rem 0; color: #6B7A88; font-size: 0.8125rem; }
-  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: #D1D5DB; }
-  .auth-footer { text-align: center; font-size: 0.875rem; color: #6B7A88; }
-  .auth-footer a { color: #F26522; font-weight: 700; text-decoration: none; }
-  .auth-footer a:hover { text-decoration: underline; }
-</style>
-{% endblock %}
 {% block content %}
-<div class="auth-page">
-  <div class="auth-card">
-    <div class="auth-logo-block">
-      {% include "core/includes/tf_logo.html" with variant="icon-color" size="auth" eager=1 %}
-      <div class="auth-brand-sub" style="font-size:0.875rem;color:var(--tf-muted);">Colón Free Zone · Panama</div>
-    </div>
-    <div class="auth-title">Create account</div>
-    <form method="post" action="{% url 'signup' %}" novalidate autocomplete="off">
-      {% csrf_token %}
-      <div class="auth-toggle" role="radiogroup" aria-label="Account type">
-        <div class="auth-toggle-cell">
-          <input type="radio" name="role" id="r_buyer" value="buyer" checked>
-          <label for="r_buyer">
-            <span class="material-symbols-rounded">shopping_bag</span>
-            Buyer
-          </label>
-        </div>
-        <div class="auth-toggle-cell">
-          <input type="radio" name="role" id="r_seller" value="seller">
-          <label for="r_seller">
-            <span class="material-symbols-rounded">store</span>
-            Seller
-          </label>
-        </div>
+<div class="auth-page signup-page">
+  <div class="signup-shell">
+    <aside class="signup-brand-panel" aria-label="TradeFlow Colón">
+      <div class="signup-brand-logo">
+        {% include "core/includes/tf_logo.html" with variant="icon-white" size="sm" class="signup-brand-logo__img" eager=1 %}
+        <span class="signup-brand-name">TradeFlow <span class="signup-brand-accent">Colón</span></span>
       </div>
-      <div class="row-2">
-        <div class="tf-field">
-          <label class="tf-label" for="id_first_name">First name <span class="req">*</span></label>
-          <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="First name" value="{{ form_first_name|default:'' }}" required>
-          <p class="auth-field-hint">Letters and spaces only (no numbers or symbols).</p>
-        </div>
-        <div class="tf-field">
-          <label class="tf-label" for="id_last_name">Last name</label>
-          <input type="text" name="last_name" id="id_last_name" class="tf-input" placeholder="Last name" value="{{ form_last_name|default:'' }}">
-        </div>
+      <p class="signup-brand-headline">Compra directo a fábricas verificadas de la Zona Libre de Colón</p>
+      <div class="signup-brand-detail">
+        <p class="signup-brand-subline">Documentación de exportación incluida y pagos protegidos en cada pedido.</p>
+        <svg class="signup-route-graphic" viewBox="0 0 200 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="28" cy="36" r="10" fill="#1B3A5C" stroke="#F4791E" stroke-width="1.5"/>
+          <rect x="20" y="30" width="16" height="10" rx="1" fill="#F4791E" opacity="0.85"/>
+          <path d="M38 36 H148" stroke="#F4791E" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <circle cx="172" cy="36" r="10" fill="#1B3A5C" stroke="#F4791E" stroke-width="1.5"/>
+          <path d="M168 32 L176 36 L168 40 Z" fill="#F4791E"/>
+        </svg>
+        <ul class="signup-trust-list">
+          <li class="signup-trust-item">
+            <span class="material-symbols-rounded" aria-hidden="true">warehouse</span>
+            <span>1,342 productos verificados de la CFZ</span>
+          </li>
+          <li class="signup-trust-item">
+            <span class="material-symbols-rounded" aria-hidden="true">verified_user</span>
+            <span>Compañías verificadas y con historial</span>
+          </li>
+          <li class="signup-trust-item">
+            <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
+            <span>Entrega garantizada a tu país</span>
+          </li>
+        </ul>
       </div>
-      <div class="tf-field">
-        <label class="tf-label" for="id_email">Email address <span class="req">*</span></label>
-        <input type="email" name="email" id="id_email" class="tf-input" placeholder="email@example.com" value="{{ form_email|default:'' }}" autocomplete="off" required>
-      </div>
-      <div class="tf-field">
-        <label class="tf-label" for="id_username">Username <span class="req">*</span></label>
-        <input type="text" name="username" id="id_username" class="tf-input" placeholder="Username" autocomplete="off" required>
-        <p class="auth-field-hint">Letters, numbers, dots, and underscores only. Must start with a letter (3–30 characters).</p>
-      </div>
-      <div class="tf-field">
-        <label class="tf-label" for="id_phone">Phone</label>
-        <input type="tel" name="phone" id="id_phone" class="tf-input" placeholder="+507 6000-0000" value="{{ form_phone|default:'' }}">
-      </div>
-      <div class="auth-password-stack">
-        <div class="auth-password-field">
-          <label class="auth-field-label-subtle" for="id_password1">Password <span class="req">*</span></label>
-          <div class="auth-password-wrap">
-            <input type="password" name="password1" id="id_password1" class="auth-password-input" placeholder="Min. 8 characters" autocomplete="new-password" required>
-            <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Show password" aria-pressed="false" data-target="id_password1">
-              <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
-            </button>
+    </aside>
+
+    <div class="signup-form-panel">
+      <header class="signup-form-header">
+        <h1 class="signup-form-title">Create account</h1>
+        <p class="signup-form-subtitle">Únete gratis en menos de 2 minutos.</p>
+      </header>
+
+      <form method="post" action="{% url 'signup' %}" novalidate autocomplete="off">
+        {% csrf_token %}
+        <div class="auth-toggle" role="radiogroup" aria-label="Account type">
+          <div class="auth-toggle-cell">
+            <input type="radio" name="role" id="r_buyer" value="buyer" checked>
+            <label for="r_buyer">
+              <span class="material-symbols-rounded">work</span>
+              Buyer
+            </label>
+          </div>
+          <div class="auth-toggle-cell">
+            <input type="radio" name="role" id="r_seller" value="seller">
+            <label for="r_seller">
+              <span class="material-symbols-rounded">store</span>
+              Seller
+            </label>
           </div>
         </div>
-        <div class="auth-password-field">
-          <label class="auth-field-label-subtle" for="id_password2">Confirm password <span class="req">*</span></label>
-          <div class="auth-password-wrap">
-            <input type="password" name="password2" id="id_password2" class="auth-password-input" placeholder="Re-enter password" autocomplete="new-password" required>
-            <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Show password" aria-pressed="false" data-target="id_password2">
-              <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
-            </button>
+        <div class="row-2">
+          <div class="tf-field">
+            <label class="tf-label" for="id_first_name">First name <span class="req">*</span></label>
+            <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="First name" value="{{ form_first_name|default:'' }}" required>
+            <p class="auth-field-hint">Letters and spaces only (no numbers or symbols).</p>
+          </div>
+          <div class="tf-field">
+            <label class="tf-label" for="id_last_name">Last name</label>
+            <input type="text" name="last_name" id="id_last_name" class="tf-input" placeholder="Last name" value="{{ form_last_name|default:'' }}">
           </div>
         </div>
+        <div class="tf-field">
+          <label class="tf-label" for="id_email">Email address <span class="req">*</span></label>
+          <input type="email" name="email" id="id_email" class="tf-input" placeholder="email@example.com" value="{{ form_email|default:'' }}" autocomplete="off" required>
+        </div>
+        <div class="tf-field">
+          <label class="tf-label" for="id_username">Username <span class="req">*</span></label>
+          <input type="text" name="username" id="id_username" class="tf-input" placeholder="Username" autocomplete="off" required>
+          <p class="auth-field-hint">Letters, numbers, dots, and underscores only. Must start with a letter (3–30 characters).</p>
+        </div>
+        <div class="tf-field">
+          <label class="tf-label" for="id_phone">Phone</label>
+          <input type="tel" name="phone" id="id_phone" class="tf-input" placeholder="+507 6000-0000" value="{{ form_phone|default:'' }}">
+        </div>
+        <div class="auth-password-stack">
+          <div class="auth-password-field">
+            <label class="auth-field-label-subtle" for="id_password1">Password <span class="req">*</span></label>
+            <div class="auth-password-wrap">
+              <input type="password" name="password1" id="id_password1" class="auth-password-input" placeholder="Min. 8 characters" autocomplete="new-password" required>
+              <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Show password" aria-pressed="false" data-target="id_password1">
+                <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
+              </button>
+            </div>
+            <div class="signup-strength" id="signup-strength" aria-hidden="true">
+              <span class="signup-strength-bar"></span>
+              <span class="signup-strength-bar"></span>
+              <span class="signup-strength-bar"></span>
+            </div>
+          </div>
+          <div class="auth-password-field">
+            <label class="auth-field-label-subtle" for="id_password2">Confirm password <span class="req">*</span></label>
+            <div class="auth-password-wrap">
+              <input type="password" name="password2" id="id_password2" class="auth-password-input" placeholder="Re-enter password" autocomplete="new-password" required>
+              <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Show password" aria-pressed="false" data-target="id_password2">
+                <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="auth-submit">
+          <span class="material-symbols-rounded" style="font-size:18px;">person_add</span> Create account
+        </button>
+      </form>
+      <div class="auth-divider">or</div>
+      <div class="auth-footer">
+        Already have an account? <a href="{% url 'login' %}">Sign in</a>
       </div>
-      <button type="submit" class="auth-submit">
-        <span class="material-symbols-rounded" style="font-size:18px;">person_add</span> Create account
-      </button>
-    </form>
-    <div class="auth-divider">or</div>
-    <div class="auth-footer">
-      Already have an account? <a href="{% url 'login' %}">Sign in</a>
     </div>
   </div>
 </div>
@@ -247,6 +137,7 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
   var role = "{{ selected_role|escapejs }}";
   var seller = document.getElementById('r_seller');
   if (seller && role === "seller") seller.checked = true;
+
   function syncPasswordToggle(btn, visible) {
     var inputId = btn.getAttribute('data-target');
     var input = inputId ? document.getElementById(inputId) : null;
@@ -267,6 +158,29 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
     });
   });
 
+  var pw1 = document.getElementById('id_password1');
+  var strengthEl = document.getElementById('signup-strength');
+  if (pw1 && strengthEl) {
+    var bars = strengthEl.querySelectorAll('.signup-strength-bar');
+    function scorePassword(value) {
+      var score = 0;
+      if (!value) return 0;
+      if (value.length >= 8) score += 1;
+      if (/[A-Z]/.test(value) && /[0-9]/.test(value)) score += 1;
+      if (value.length >= 12 || /[^A-Za-z0-9]/.test(value)) score += 1;
+      return score;
+    }
+    function updateStrength() {
+      var score = scorePassword(pw1.value);
+      strengthEl.setAttribute('aria-hidden', pw1.value ? 'false' : 'true');
+      bars.forEach(function (bar, index) {
+        bar.classList.toggle('is-filled', index < score);
+      });
+    }
+    pw1.addEventListener('input', updateStrength);
+    updateStrength();
+  }
+
   if (window.performance &&
       window.performance.navigation &&
       window.performance.navigation.type ===
@@ -277,6 +191,12 @@ Contexto: vista signup_view; formulario centrado con espacio respecto al navbar.
     document.querySelectorAll('.js-password-toggle').forEach(function (btn) {
       syncPasswordToggle(btn, false);
     });
+    if (pw1 && strengthEl) {
+      strengthEl.querySelectorAll('.signup-strength-bar').forEach(function (bar) {
+        bar.classList.remove('is-filled');
+      });
+      strengthEl.setAttribute('aria-hidden', 'true');
+    }
   }
 })();
 </script>
