@@ -80,6 +80,48 @@ img[data-tf-product-image].is-placeholder {
   display: block;
 }
 
+.tf-pcard__media img,
+.tf-pcard__media .product-img {
+  transition: transform 200ms ease;
+}
+
+.tf-pcard:hover .tf-pcard__media img,
+.tf-pcard:hover .tf-pcard__media .product-img {
+  transform: scale(1.03);
+}
+
+/* ── Company avatar (supplier cards) ── */
+.tf-co-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--tf-avatar-bg, var(--tf-navy));
+  color: var(--tf-white, #fff);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.tf-co-avatar--tab {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.tf-co-avatar__initials {
+  line-height: 1;
+}
+
+.hm-supplier-card__avatar .tf-co-avatar {
+  width: 44px;
+  height: 44px;
+}
+
 .tf-pcard__placeholder {
   width: 100%;
   height: 100%;

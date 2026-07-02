@@ -12,17 +12,19 @@
     </header>
     <div class="hm-slider hm-slider--bestsellers" data-hm-slider data-hm-slider-visible="4">
       <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous">
-        <span class="material-symbols-rounded">chevron_left</span>
+        {% include "core/includes/tf_icon.html" with name="chevron_left" %}
       </button>
       <div class="hm-slider__viewport">
         <div class="hm-slider__track">
           {% for product in bestsellers %}
-            {% include "core/includes/home_trending_card.html" with product=product delay=forloop.counter0 %}
+            <div class="hm-slider__slide">
+              {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="tf-pcard--featured-dense hm-bestsellers__card" %}
+            </div>
           {% endfor %}
         </div>
       </div>
       <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next">
-        <span class="material-symbols-rounded">chevron_right</span>
+        {% include "core/includes/tf_icon.html" with name="chevron_right" %}
       </button>
       <div class="hm-slider__dots" aria-hidden="true"></div>
     </div>

@@ -21,13 +21,13 @@
       <p class="hm-footer__tagline">B2B wholesale marketplace for the Colón Free Zone</p>
       <div class="hm-footer__social">
         <a href="mailto:{{ tradeflow_contact_email }}" class="hm-footer__social-link" aria-label="Email">
-          <span class="material-symbols-rounded">mail</span>
+          {% include "core/includes/tf_icon.html" with name="mail" %}
         </a>
         <a href="{% url 'catalogo_publico' %}" class="hm-footer__social-link" aria-label="Catalog">
-          <span class="material-symbols-rounded">storefront</span>
+          {% include "core/includes/tf_icon.html" with name="storefront" %}
         </a>
         <a href="{% url 'home' %}#como-funciona" class="hm-footer__social-link" aria-label="How it works">
-          <span class="material-symbols-rounded">help</span>
+          {% include "core/includes/tf_icon.html" with name="help" %}
         </a>
       </div>
     </div>

@@ -277,13 +277,14 @@ def catalog_breadth_products(
     limit: int = 24,
     per_category: int = 2,
     max_categories: int = 12,
+    exclude_ids: set[int] | None = None,
 ):
     """
     Diverse home sample across top categories — one wall of SKUs that
     reflects marketplace breadth instead of repeating the same few picks.
     """
     picked: list[Product] = []
-    seen: set[int] = set()
+    seen: set[int] = set(exclude_ids or [])
 
     cats = (
         Category.objects.annotate(
@@ -373,38 +374,68 @@ def home_stats():
     return cached_home_stats()
 
 
+def _pick_unique_products(candidates, seen: set[int], limit: int) -> list:
+    """Return up to ``limit`` products not already in ``seen``; mutates ``seen``."""
+    picked: list = []
+    for product in candidates:
+        pk = getattr(product, 'pk', None)
+        if pk is None or pk in seen:
+            continue
+        picked.append(product)
+        seen.add(pk)
+        if len(picked) >= limit:
+            break
+    return picked
+
+
 def build_guest_home_context(lang: str) -> dict:
     """
     Contexto completo de la landing pública (invitados).
     Usado por home_view con cache por idioma.
+    Product lists are deduplicated in scroll order so carousels do not repeat SKUs.
     """
+    seen: set[int] = set()
+
+    featured_qs = active_products_base().filter(is_featured=True).select_related(
+        'company', 'category', 'inventory',
+    ).order_by('-merchandising_priority', '-created_at')[:8]
+    if not featured_qs.exists():
+        featured_qs = active_products_base().select_related(
+            'company', 'category', 'inventory',
+        ).order_by('-created_at')[:8]
+    featured_list = list(featured_qs)
+    for product in featured_list:
+        seen.add(product.pk)
+
     promo_sections = []
+    cms_types: set[str] = set()
     for section in active_home_sections():
+        cms_types.add(section.section_type)
+        raw_products = resolve_section_products(section)
+        limit = section.max_items or 8
+        products = _pick_unique_products(raw_products, seen, limit)
         promo_sections.append({
             'section': section,
-            'products': resolve_section_products(section),
+            'products': products,
             'title': section.title_for_lang(lang),
             'subtitle': section.subtitle_for_lang(lang),
         })
 
-    cms_types = {row['section'].section_type for row in promo_sections}
-    daily_deals_list = daily_deals(8)
+    daily_deals_list = _pick_unique_products(daily_deals(16), seen, 8)
     show_daily_deals_strip = (
         'daily_deals' not in cms_types and len(daily_deals_list) >= 3
     )
     show_bestsellers_section = 'bestsellers' not in cms_types
 
-    featured_qs = active_products_base().filter(is_featured=True).select_related(
-        'company', 'category',
-    ).order_by('-merchandising_priority', '-created_at')[:8]
-    if not featured_qs.exists():
-        featured_qs = active_products_base().select_related(
-            'company', 'category',
-        ).order_by('-created_at')[:8]
-
-    bestsellers_list = bestsellers(8)
+    bestsellers_list = _pick_unique_products(bestsellers(16), seen, 8)
     if not bestsellers_list:
-        bestsellers_list = list(featured_qs[:8])
+        bestsellers_list = _pick_unique_products(
+            active_products_base()
+            .select_related('company', 'category', 'inventory')
+            .order_by('-merchandising_priority', '-created_at'),
+            seen,
+            8,
+        )
 
     empresas_home = list(
         Company.objects.annotate(
@@ -419,15 +450,27 @@ def build_guest_home_context(lang: str) -> dict:
 
     empresas_premium, empresas_standard = home_company_tiers(3, 8)
 
+    hero_collage = list(featured_list[:4])
+    if len(hero_collage) < 3:
+        for product in active_products_base().order_by('-merchandising_priority', '-created_at'):
+            if product.pk in seen:
+                continue
+            hero_collage.append(product)
+            if len(hero_collage) >= 4:
+                break
+
     return {
         'stats': home_stats_uncached(),
+        'hero_collage_products': hero_collage,
         'daily_deals': daily_deals_list,
         'bestsellers': bestsellers_list,
-        'featured_products': list(featured_qs),
-        'trending_products': trending_products(24),
+        'featured_products': featured_list,
+        'trending_products': _pick_unique_products(
+            trending_products(24), set(seen), 24,
+        ),
         'texture_products': texture_products(12),
         'carousel_products': carousel_products(24),
-        'catalog_breadth_products': catalog_breadth_products(24),
+        'catalog_breadth_products': catalog_breadth_products(24, exclude_ids=seen),
         'empresas_carousel': empresas_home,
         'empresas_premium': empresas_premium,
         'empresas_standard': empresas_standard,

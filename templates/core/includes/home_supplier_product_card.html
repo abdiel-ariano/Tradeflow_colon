@@ -11,7 +11,7 @@
     <a href="{% url 'catalogo_producto_detail' product.pk %}" title="{{ product.name }}">{{ product.name|truncatechars:48 }}</a>
   </h3>
   <p class="hm-sp-card__company">
-    <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+    {% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}
     <span title="{{ product.company.name }}">{{ product.company.name|truncatechars:22 }}</span>
   </p>
   <p class="hm-sp-card__price">{{ product.display_price|money_usd }}</p>

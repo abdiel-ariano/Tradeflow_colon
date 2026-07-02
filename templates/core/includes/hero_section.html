@@ -1,5 +1,5 @@
 {% load static tf_money %}
-{% comment %}Static hero — brand, buyer CTAs, live proof strip, featured product visual.{% endcomment %}
+{% comment %}Static hero — brand, buyer CTAs, live proof strip, product collage visual.{% endcomment %}
 <section class="hm-hero-mega hm-hero-mega--static" id="hm-hero" aria-labelledby="hm-hero-title">
   <div class="hm-hero-mega__pattern" aria-hidden="true"></div>
 
@@ -28,21 +28,25 @@
         </p>
       </div>
       <div class="hm-hero__visual">
-        {% with hero_product=featured_products.0 %}
-        <div class="hm-hero__visual-frame" aria-hidden="true">
-          {% if hero_product %}
-            {% include "core/includes/home_product_media.html" with product=hero_product img_class="hm-hero__visual-img" decorative=True loading="eager" %}
-          {% else %}
-            <img src="{% static 'img/ship-cargo.svg' %}" alt="" class="hm-hero__visual-img hm-hero__visual-img--art" loading="eager" decoding="async">
-          {% endif %}
+        <div class="hm-hero__collage" aria-hidden="true">
+          {% for product in hero_collage_products %}
+          <div class="hm-hero__collage-item hm-hero__collage-item--{{ forloop.counter }}">
+            {% include "core/includes/home_product_media.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" %}
+          </div>
+          {% empty %}
+          <div class="hm-hero__collage-item hm-hero__collage-item--1 hm-hero__collage-item--placeholder"></div>
+          <div class="hm-hero__collage-item hm-hero__collage-item--2 hm-hero__collage-item--placeholder"></div>
+          <div class="hm-hero__collage-item hm-hero__collage-item--3 hm-hero__collage-item--placeholder"></div>
+          {% endfor %}
         </div>
-        {% if hero_product %}
-        <a href="{% url 'catalogo_producto_detail' hero_product.pk %}" class="hm-hero__visual-caption">
-          <span class="hm-hero__visual-caption-name">{{ hero_product.name|truncatechars:48 }}</span>
-          <span class="hm-hero__visual-caption-price">{{ hero_product.display_price|money_usd }}</span>
-        </a>
-        {% endif %}
-        {% endwith %}
+        <div class="hm-hero__float hm-hero__float--stats">
+          <span class="hm-hero__float-value">{{ stats.productos|default:"1,200+" }}</span>
+          <span class="hm-hero__float-label">Active SKUs</span>
+        </div>
+        <div class="hm-hero__float hm-hero__float--verified">
+          <span class="hm-hero__float-value">{{ stats.empresas|default:"50+" }}</span>
+          <span class="hm-hero__float-label">Verified companies</span>
+        </div>
       </div>
     </div>
   </div>

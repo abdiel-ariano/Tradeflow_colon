@@ -1,0 +1,7 @@
+{% comment %}
+Company avatar — logo when available, else branded initials (deterministic color).
+{% endcomment %}
+{% load tf_brand %}
+<div class="tf-co-avatar {{ class|default:'' }}" style="--tf-avatar-bg: {{ company|company_avatar_color }};">
+  <span class="tf-co-avatar__initials" aria-hidden="true">{{ company.name|slice:":2"|upper }}</span>
+</div>

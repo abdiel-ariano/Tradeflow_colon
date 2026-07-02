@@ -655,6 +655,111 @@ Public homepage — dual palette (navy/orange + blue).
   background: linear-gradient(160deg, var(--navy-light), var(--primary-dark));
 }
 
+/* Hero collage — 3–4 real product thumbnails with floating stats */
+.hm-hero__collage {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  min-height: 360px;
+  margin: 0 auto;
+}
+
+.hm-hero__collage-item {
+  position: absolute;
+  border-radius: var(--radius-card, 14px);
+  overflow: hidden;
+  box-shadow: var(--shadow-card-hover, 0 24px 64px rgba(15, 42, 68, 0.45));
+  border: 3px solid rgba(255, 255, 255, 0.14);
+  background: var(--navy-light);
+}
+
+.hm-hero__collage-item .hm-media,
+.hm-hero__collage-item .hm-media__img {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  border-radius: inherit;
+}
+
+.hm-hero__collage-item--1 {
+  width: 52%;
+  aspect-ratio: 1;
+  top: 0;
+  left: 8%;
+  z-index: 3;
+  transform: rotate(-2deg);
+}
+
+.hm-hero__collage-item--2 {
+  width: 44%;
+  aspect-ratio: 1;
+  top: 12%;
+  right: 0;
+  z-index: 2;
+  transform: rotate(3deg);
+}
+
+.hm-hero__collage-item--3 {
+  width: 40%;
+  aspect-ratio: 1;
+  bottom: 4%;
+  left: 18%;
+  z-index: 1;
+  transform: rotate(-1deg);
+}
+
+.hm-hero__collage-item--4 {
+  width: 36%;
+  aspect-ratio: 1;
+  bottom: 8%;
+  right: 12%;
+  z-index: 4;
+  transform: rotate(2deg);
+}
+
+.hm-hero__collage-item--placeholder {
+  background: linear-gradient(145deg, var(--navy-light), var(--navy-mid));
+}
+
+.hm-hero__float {
+  position: absolute;
+  z-index: 5;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(15, 42, 68, 0.2));
+  color: var(--color-text-primary, #101828);
+}
+
+.hm-hero__float--stats {
+  top: 6%;
+  right: -4%;
+}
+
+.hm-hero__float--verified {
+  bottom: 10%;
+  left: -2%;
+}
+
+.hm-hero__float-value {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-accent, var(--orange));
+}
+
+.hm-hero__float-label {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #667085);
+}
+
+.hm-hero__visual {
+  position: relative;
+}
+
 .hm-trust {
   background: var(--navy-mid);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -1938,12 +2043,6 @@ Public homepage — dual palette (navy/orange + blue).
   width: 52px;
   height: 52px;
   border-radius: 12px;
-  background: var(--orange);
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
   font-size: 15px;
   flex-shrink: 0;
 }
