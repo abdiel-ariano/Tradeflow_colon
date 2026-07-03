@@ -68,12 +68,15 @@ class ProductCardUnifiedTests(TestCase):
         self.assertContains(response, 'Inicio')
         self.assertContains(response, 'Electronics')
 
-    def test_home_uses_unified_public_card(self):
+    def test_home_uses_catalog_marketplace_cards(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'View &amp; quote')
-        self.assertContains(response, 'tf-pcard--featured-dense')
+        self.assertContains(response, 'hm-marketplace')
+        self.assertContains(response, 'product-card')
+        self.assertContains(response, 'btn-inquiry')
+        self.assertContains(response, 'Add to inquiry')
         self.assertContains(response, 'CFZ Verified')
+        self.assertNotContains(response, 'tf-pcard--featured-dense')
         self.assertNotContains(response, 'picsum.photos')
 
     def test_buyer_product_detail_has_cart_actions(self):

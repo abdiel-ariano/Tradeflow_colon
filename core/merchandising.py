@@ -571,6 +571,14 @@ def build_guest_home_context(lang: str) -> dict:
             if len(hero_collage) >= 4:
                 break
 
+    marketplace_trending_categories = list(
+        Category.objects.annotate(
+            n=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(n__gt=0)
+        .order_by('-n', 'name')[:5]
+    )
+
     return {
         'stats': home_stats_uncached(),
         'hero_collage_products': hero_collage,
@@ -590,6 +598,7 @@ def build_guest_home_context(lang: str) -> dict:
         'promo_sections': promo_sections,
         'show_daily_deals_strip': show_daily_deals_strip,
         'show_bestsellers_section': show_bestsellers_section,
+        'marketplace_trending_categories': marketplace_trending_categories,
     }
 
 

@@ -1,4 +1,4 @@
-{% comment %}Dense public catalog grid — breadth plus decision-making signals.{% endcomment %}
+{% comment %}Dense public catalog grid — marketplace breadth sample.{% endcomment %}
 {% if catalog_breadth_products %}
 <section class="hm-wall hm-section hm-section--surface" id="hm-catalog-wall" data-hm-section aria-labelledby="hm-wall-title">
   <div class="hm-section__inner hm-wall__inner">
@@ -6,14 +6,14 @@
       <div>
         <span class="hm-section__eyebrow">Full marketplace</span>
         <h2 class="hm-section-title" id="hm-wall-title">Browse {{ stats.productos|default:0 }} SKUs from the Free Zone</h2>
-        <p class="hm-section-sub">A live sample across {{ stats.categorias|default:0 }} categories with verified suppliers, transparent stock, and quote-ready listings.</p>
+        <p class="hm-section-sub">Live inventory across {{ stats.categorias|default:0 }} categories — price, MOQ, and supplier on every card.</p>
       </div>
       <a href="{% url 'catalogo_publico' %}" class="hm-wall__see-all">View full catalog →</a>
     </header>
 
-    <div class="tf-pcard-grid hm-wall__grid" data-hm-stagger>
+    <div class="product-grid product-grid--dense" data-hm-stagger>
       {% for product in catalog_breadth_products %}
-        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="hm-wall__tile" %}
+        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter %}
       {% endfor %}
     </div>
 

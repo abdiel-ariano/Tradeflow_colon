@@ -908,7 +908,8 @@ input[type="range"].price-range {
 }
 
 /* ── Product card ── */
-body.cat-catalog-page .product-card {
+body.cat-catalog-page .product-card,
+.hm-marketplace .product-card {
   position: relative;
   height: 320px;
   background: #fff;
@@ -922,14 +923,16 @@ body.cat-catalog-page .product-card {
   transition: box-shadow 0.2s, border-color 0.2s;
 }
 
-body.cat-catalog-page .product-card:hover {
+body.cat-catalog-page .product-card:hover,
+.hm-marketplace .product-card:hover {
   box-shadow: 0 4px 12px rgba(255, 122, 61, 0.12);
   border-color: rgba(255, 122, 61, 0.35);
 }
 
 .card-image-link { display: block; text-decoration: none; }
 
-body.cat-catalog-page .product-card .card-image {
+body.cat-catalog-page .product-card .card-image,
+.hm-marketplace .product-card .card-image {
   position: relative;
   height: var(--cat-card-image-height);
   background: #F9FAFB;
@@ -1011,7 +1014,8 @@ body.cat-catalog-page .product-card .card-image {
   color: var(--tf-navy);
 }
 
-body.cat-catalog-page .product-card .card-body {
+body.cat-catalog-page .product-card .card-body,
+.hm-marketplace .product-card .card-body {
   padding: 8px 0 0;
   flex: 1;
   display: flex;
@@ -1021,7 +1025,8 @@ body.cat-catalog-page .product-card .card-body {
   min-height: 0;
 }
 
-body.cat-catalog-page .product-card .card-name {
+body.cat-catalog-page .product-card .card-name,
+.hm-marketplace .product-card .card-name {
   font-size: 13px;
   font-weight: 500;
   color: var(--tf-text);
@@ -1034,13 +1039,16 @@ body.cat-catalog-page .product-card .card-name {
   margin: 0;
 }
 
-body.cat-catalog-page .product-card.tf-pcard {
+body.cat-catalog-page .product-card.tf-pcard,
+.hm-marketplace .product-card.tf-pcard {
   border-radius: var(--cat-card-radius);
 }
 
-body.cat-catalog-page .product-card .card-name:hover { color: var(--tf-orange); }
+body.cat-catalog-page .product-card .card-name:hover,
+.hm-marketplace .product-card .card-name:hover { color: var(--tf-orange); }
 
-body.cat-catalog-page .product-card .card-trust {
+body.cat-catalog-page .product-card .card-trust,
+.hm-marketplace .product-card .card-trust {
   min-height: 16px;
   font-size: 12px;
   color: var(--tf-text-2);
@@ -1062,7 +1070,8 @@ body.cat-catalog-page .product-card .card-trust {
   color: var(--tf-red);
 }
 
-body.cat-catalog-page .product-card .card-price {
+body.cat-catalog-page .product-card .card-price,
+.hm-marketplace .product-card .card-price {
   display: flex;
   align-items: baseline;
   gap: 6px;
@@ -1088,13 +1097,15 @@ body.cat-catalog-page .product-card .card-price {
   color: var(--tf-red);
 }
 
-body.cat-catalog-page .product-card .card-moq {
+body.cat-catalog-page .product-card .card-moq,
+.hm-marketplace .product-card .card-moq {
   font-size: 12px;
   color: var(--tf-text-2);
   margin: 0;
 }
 
-body.cat-catalog-page .product-card .card-supplier {
+body.cat-catalog-page .product-card .card-supplier,
+.hm-marketplace .product-card .card-supplier {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1121,7 +1132,8 @@ body.cat-catalog-page .product-card .card-supplier {
   flex-shrink: 0;
 }
 
-body.cat-catalog-page .product-card .card-inquiry {
+body.cat-catalog-page .product-card .card-inquiry,
+.hm-marketplace .product-card .card-inquiry {
   position: absolute;
   left: var(--cat-card-padding);
   right: var(--cat-card-padding);
@@ -1136,12 +1148,14 @@ body.cat-catalog-page .product-card .card-inquiry {
   place-items: center;
 }
 
-body.cat-catalog-page .product-card:hover .card-inquiry {
+body.cat-catalog-page .product-card:hover .card-inquiry,
+.hm-marketplace .product-card:hover .card-inquiry {
   transform: translateY(0);
 }
 
 @media (hover: none), (max-width: 767px) {
-  body.cat-catalog-page .product-card .card-inquiry {
+  body.cat-catalog-page .product-card .card-inquiry,
+.hm-marketplace .product-card .card-inquiry {
     transform: translateY(0);
     position: relative;
     left: auto;
@@ -1151,7 +1165,8 @@ body.cat-catalog-page .product-card:hover .card-inquiry {
     height: 36px;
   }
 
-  body.cat-catalog-page .product-card {
+  body.cat-catalog-page .product-card,
+.hm-marketplace .product-card {
     padding-bottom: var(--cat-card-padding);
   }
 }

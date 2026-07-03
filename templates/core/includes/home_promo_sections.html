@@ -37,9 +37,9 @@
       </div>
       <a href="{% url 'catalogo_publico' %}?orden=promo" class="hm-deals__see-all">All deals →</a>
     </header>
-    <div class="hm-deals__track" data-hm-stagger>
+    <div class="product-grid hm-deals__track" data-hm-stagger>
       {% for product in products %}
-        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_variant="deal" card_extra_class="hm-deals__card" %}
+        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter %}
       {% endfor %}
     </div>
   </div>
@@ -64,7 +64,7 @@
         <div class="hm-slider__track">
           {% for product in products %}
             <div class="hm-slider__slide">
-              {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="tf-pcard--featured-dense hm-bestsellers__card" %}
+              {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter %}
             </div>
           {% endfor %}
         </div>
@@ -96,7 +96,7 @@
         <div class="hm-slider__track">
           {% for product in products %}
             <div class="hm-slider__slide">
-              {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="tf-pcard--featured-dense hm-bestsellers__card" %}
+              {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter %}
             </div>
           {% endfor %}
         </div>
@@ -126,9 +126,9 @@
       {% endif %}
       {% endwith %}
     </header>
-    <div class="hm-promo-row__grid" data-hm-stagger>
+    <div class="product-grid" data-hm-stagger>
       {% for product in products %}
-        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="hm-promo-row__card" %}
+        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter %}
       {% endfor %}
     </div>
   </div>
@@ -151,9 +151,9 @@
       {% endif %}
       {% endwith %}
     </header>
-    <div class="hm-promo-row__grid" data-hm-stagger>
+    <div class="product-grid" data-hm-stagger>
       {% for product in products %}
-        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="hm-promo-row__card" %}
+        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter %}
       {% endfor %}
     </div>
   </div>
@@ -170,9 +170,9 @@
       </div>
       <a href="{% url 'catalogo_publico' %}" class="hm-promo-row__see-all">View all →</a>
     </header>
-    <div class="hm-promo-row__grid" data-hm-stagger>
+    <div class="product-grid" data-hm-stagger>
       {% for product in products %}
-        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="hm-promo-row__card" %}
+        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter %}
       {% endfor %}
     </div>
   </div>

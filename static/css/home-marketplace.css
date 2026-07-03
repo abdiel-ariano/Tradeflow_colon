@@ -1,0 +1,302 @@
+/*
+=============================================================================
+TRADEFLOW COLÓN — home-marketplace.css
+Home landing marketplace density (Alibaba / Shopify wholesale patterns)
+=============================================================================
+*/
+
+.hm-marketplace {
+  --tf-navy-hover: #1B3B63;
+  --tf-navy-deep: #081E33;
+  --tf-orange: #FF7A3D;
+  --tf-orange-hover: #E5692E;
+  --tf-orange-soft: #FFA15A;
+  --tf-surface: #F2F3F5;
+  --tf-surface-hover: #E8EAEE;
+  --cat-card-radius: 6px;
+  --cat-card-padding: 12px;
+  --cat-card-image-height: 156px;
+  --tf-emerald: #1F8A57;
+  --tf-border-soft: #E5E7EB;
+  --tf-border-hover: #9CA3AF;
+  --tf-text-2: #6B7280;
+  --tf-text-3: #9CA3AF;
+  --tf-red: #DC2626;
+  background: var(--tf-surface);
+}
+
+@media (min-width: 768px) {
+  .hm-marketplace {
+    --cat-card-padding: 14px;
+    --cat-card-image-height: 154px;
+  }
+}
+
+.hm-marketplace .hm-section--surface {
+  background: #fff;
+}
+
+.hm-marketplace .hm-section {
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+/* Product image wrapper inside catalog cards */
+.hm-marketplace .product-card .card-image .product-img-wrap {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hm-marketplace .product-card .card-image .product-img,
+.hm-marketplace .product-card .card-image .card-image-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+.hm-marketplace .product-card .card-image .product-img__ref-label {
+  font-size: 9px;
+  padding: 2px 5px;
+}
+
+/* ── Marketplace search (Alibaba-style) ── */
+.hm-mkt-search {
+  background: #fff;
+  border-bottom: 1px solid var(--tf-border-soft);
+  padding: 16px 0 14px;
+}
+
+.hm-mkt-search__inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (min-width: 1024px) {
+  .hm-mkt-search__inner { padding: 0 24px; }
+}
+
+.hm-mkt-search__bar {
+  display: flex;
+  height: 48px;
+  border: 2px solid var(--tf-navy, #0F2A44);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  max-width: 880px;
+}
+
+.hm-mkt-search__input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 0 16px;
+  font-size: 15px;
+  color: var(--tf-text, #111827);
+  min-width: 0;
+}
+
+.hm-mkt-search__input::placeholder {
+  color: var(--tf-text-2);
+}
+
+.hm-mkt-search__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+  background: var(--tf-orange);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.hm-mkt-search__btn:hover {
+  background: var(--tf-orange-hover);
+}
+
+.hm-mkt-search__btn-label {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hm-mkt-search__btn-label { display: inline; }
+}
+
+.hm-mkt-search__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.hm-mkt-search__chips-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tf-text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hm-mkt-search__chip {
+  font-size: 13px;
+  color: var(--tf-navy, #0F2A44);
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border-soft);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.hm-mkt-search__chip:hover {
+  border-color: var(--tf-orange);
+  background: #fff;
+  color: var(--tf-orange);
+}
+
+/* ── Section headers — catalog density ── */
+.hm-marketplace .hm-section__head {
+  margin-bottom: 16px;
+}
+
+.hm-marketplace .hm-section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.hm-marketplace .hm-section-sub {
+  font-size: 14px;
+  color: var(--tf-text-2);
+  margin-top: 4px;
+}
+
+/* ── Grids use shared .product-grid from catalog.css ── */
+.hm-marketplace .product-grid {
+  gap: 14px;
+}
+
+@media (min-width: 1280px) {
+  .hm-marketplace .product-grid--dense {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* ── Horizontal deal strip ── */
+.hm-marketplace .hm-deals__track.product-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 14px;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hm-marketplace .hm-deals__track .product-card {
+  flex: 0 0 220px;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .hm-marketplace .hm-deals__track .product-card {
+    flex-basis: 240px;
+  }
+}
+
+/* ── Sliders with catalog cards ── */
+.hm-marketplace .hm-slider__slide {
+  flex: 0 0 calc(25% - 12px);
+  min-width: 220px;
+}
+
+.hm-marketplace .hm-slider--bestsellers .hm-slider__slide,
+.hm-marketplace .hm-slider--promo .hm-slider__slide {
+  flex: 0 0 calc(25% - 12px);
+}
+
+@media (max-width: 1023px) {
+  .hm-marketplace .hm-slider__slide {
+    flex: 0 0 calc(33.333% - 11px);
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 767px) {
+  .hm-marketplace .hm-slider__slide {
+    flex: 0 0 calc(50% - 8px);
+    min-width: 168px;
+  }
+}
+
+@media (max-width: 479px) {
+  .hm-marketplace .hm-slider__slide {
+    flex: 0 0 78%;
+    min-width: 0;
+  }
+}
+
+/* Supplier spotlight — light cards on dark panel */
+.hm-spotlight-unified .hm-slider__slide .product-card {
+  height: 300px;
+}
+
+.hm-spotlight-unified .product-card .card-name {
+  color: var(--tf-text, #111827);
+}
+
+/* Inquiry toast (shared with catalog) */
+.inquiry-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: var(--tf-navy, #0F2A44);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  box-shadow: 0 8px 24px rgba(15, 42, 68, 0.2);
+  pointer-events: none;
+}
+
+.inquiry-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Trust strip on home — full width above search */
+.hm-marketplace-trust {
+  margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  .hm-marketplace-trust .trust-strip-inner {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    height: auto;
+    padding: 10px 16px;
+  }
+
+  .hm-marketplace-trust.trust-strip {
+    height: auto;
+  }
+
+  .hm-marketplace-trust .trust-item {
+    justify-content: flex-start;
+    font-size: 12px;
+  }
+}
