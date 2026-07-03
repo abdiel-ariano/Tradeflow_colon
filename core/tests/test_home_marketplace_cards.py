@@ -53,6 +53,18 @@ class HomeMarketplaceCardsTests(TestCase):
         self.assertContains(response, 'Categories for you')
         self.assertContains(response, 'Products for you')
 
+    def test_home_uses_catalog_seed_photos_not_svg_icons(self):
+        response = self.client.get('/')
+        html = response.content.decode()
+        self.assertIn('/static/images/catalog-seeds/', html)
+        self.assertNotIn('/static/images/category-icons/', html)
+
+    def test_home_has_categories_modal(self):
+        response = self.client.get('/')
+        self.assertContains(response, 'hm-cat-modal')
+        self.assertContains(response, 'data-cat-modal-open')
+        self.assertContains(response, 'View all')
+
     def test_home_passes_sidebar_categories(self):
         response = self.client.get('/')
         categories = response.context.get('sidebar_categories', [])

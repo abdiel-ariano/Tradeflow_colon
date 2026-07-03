@@ -1,14 +1,22 @@
-{% comment %}Circular category discovery row — Alibaba "Categorías para ti".{% endcomment %}
+{% comment %}Circular category row + View all (opens categories modal).{% endcomment %}
 {% if category_discover %}
 <section class="hm-cat-discover" aria-labelledby="hm-cat-discover-title">
   <div class="hm-cat-discover__inner">
-    <h2 class="hm-cat-discover__title" id="hm-cat-discover-title">Categories for you</h2>
+    <div class="hm-cat-discover__head">
+      <h2 class="hm-cat-discover__title" id="hm-cat-discover-title">Categories for you</h2>
+      <button type="button" class="hm-cat-discover__view-all" data-cat-modal-open data-cat-panel="discover">View all</button>
+    </div>
     <div class="hm-cat-discover__rail">
       {% for item in category_discover %}
       <a href="{% url 'catalogo_publico' %}?categoria={{ item.category.pk }}" class="hm-cat-discover__tile">
         <span class="hm-cat-discover__circle">
+          {% if item.badge == 'hot' %}
+          <span class="hm-cat-discover__badge hm-cat-discover__badge--hot" aria-hidden="true">🔥</span>
+          {% elif item.badge == 'trend' %}
+          <span class="hm-cat-discover__badge hm-cat-discover__badge--trend" aria-hidden="true">↑</span>
+          {% endif %}
           {% if item.product %}
-            {% include "core/includes/product_image_placeholder.html" with product=item.product decorative=True img_class="hm-cat-discover__img" %}
+            {% include "core/includes/home_visual_media.html" with product=item.product decorative=True img_class="hm-cat-discover__img" object_fit="cover" %}
           {% else %}
             <span class="hm-cat-discover__placeholder" aria-hidden="true"></span>
           {% endif %}

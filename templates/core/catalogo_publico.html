@@ -4,6 +4,7 @@
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'10' }}">
+<link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% if productos %}
 <script type="application/ld+json" nonce="{{ csp_nonce }}">
 {
@@ -237,6 +238,7 @@
     </section>
   </div>
 </main>
+{% include "core/includes/home_categories_modal.html" %}
 {% endblock %}
 
 {% block footer %}
@@ -245,4 +247,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'10' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'1' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

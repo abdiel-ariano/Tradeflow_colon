@@ -104,3 +104,38 @@ def product_image_object_position(product):
 def catalog_card_image_src(product):
     """Alias for product cards — same chain as product_image_src."""
     return product_image_src(product)
+
+
+@register.filter
+def marketplace_visual_image_src(product):
+    """Home bento / discover — photo-like catalog seeds instead of SVG icons."""
+    if not product:
+        return ''
+    from core.utils.demo_product_images import (
+        ai_placeholder_file_exists,
+        ai_placeholder_static_path,
+        catalog_seed_static_path,
+        picsum_url,
+        use_runtime_picsum,
+    )
+    from core.utils.media_storage import is_remote_media_storage, local_media_file_exists, product_image_url
+
+    rel = ''
+    if getattr(product, 'image', None) and product.image.name:
+        rel = product.image.name.replace('\\', '/')
+
+    if rel:
+        if is_remote_media_storage():
+            url = product_image_url(product)
+            if url:
+                return url
+        elif local_media_file_exists(rel):
+            return product_image_url(product)
+
+    if ai_placeholder_file_exists(product):
+        return static(ai_placeholder_static_path(product))
+
+    if use_runtime_picsum():
+        return picsum_url(product)
+
+    return static(catalog_seed_static_path(product))
