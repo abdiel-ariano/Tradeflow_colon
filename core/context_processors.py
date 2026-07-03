@@ -152,3 +152,19 @@ def nav_header_categories(request):
     from core.utils.tradeflow_cache import cached_nav_categories
 
     return {'nav_header_categories': cached_nav_categories()}
+
+
+def social_auth_context(request):
+    """OAuth providers enabled for login/signup templates."""
+    from core.social_auth import provider_is_enabled, social_auth_enabled
+
+    providers = []
+    if social_auth_enabled():
+        if provider_is_enabled('google'):
+            providers.append('google')
+        if provider_is_enabled('microsoft'):
+            providers.append('microsoft')
+    return {
+        'social_auth_enabled': bool(providers),
+        'social_auth_providers': providers,
+    }
