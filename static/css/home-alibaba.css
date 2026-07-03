@@ -23,6 +23,36 @@ body.cat-catalog-page .tf-main {
   min-height: 50vh;
 }
 
+/* Disable legacy home shimmer overlay (tf-home-experience.css) on marketplace home */
+.hm-alibaba .hm-media__shimmer,
+.hm-alibaba .hm-visual .hm-media__shimmer,
+body.cat-catalog-page .hm-visual .hm-media__shimmer {
+  display: none !important;
+}
+
+.hm-alibaba .hm-visual__img,
+.hm-alibaba .hm-media__img,
+.hm-alibaba .product-card .hm-visual__img {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.hm-visual {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #fff;
+}
+
+.hm-visual__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+}
+
 .navbar-secondary .is-active {
   font-weight: 600;
   color: var(--tf-navy, #0F2A44);

@@ -1,10 +1,9 @@
 {% comment %}
-Home marketplace visuals — catalog-seed photos for dimension reference (not SVG icons).
+Home marketplace visuals — catalog-seed photos (no shimmer; static assets load instantly).
 {% endcomment %}
 {% load static tf_media %}
 {% with primary=product|marketplace_visual_image_src picsum=product|product_image_picsum_src focal=product|product_image_object_position %}
-<div class="hm-visual{% if wrap_class %} {{ wrap_class }}{% endif %}" data-hm-media>
-  <div class="hm-media__shimmer" aria-hidden="true"></div>
+<div class="hm-visual{% if wrap_class %} {{ wrap_class }}{% endif %}">
   <img src="{{ primary }}"
        alt="{% if decorative %}{% else %}{{ alt|default:product.name }}{% endif %}"
        class="hm-visual__img product-img{% if img_class %} {{ img_class }}{% endif %}{% if decorative %} is-decorative{% endif %}"
