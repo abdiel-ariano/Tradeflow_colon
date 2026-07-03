@@ -21,6 +21,7 @@ urlpatterns = [
     path('terminos/', views.legal_terminos, name='legal_terminos'),
     path('privacidad/', views.legal_privacidad, name='legal_privacidad'),
     path('cookies/', views.legal_cookies, name='legal_cookies'),
+    path('acerca/', views.acerca_tradeflow, name='acerca_tradeflow'),
 
     # ── Autenticación ─────────────────────────────────────────────────────
     path('login/',   views.login_view,  name='login'),

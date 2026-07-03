@@ -1,0 +1,21 @@
+{% load static %}
+{% comment %}Minimal marketplace footer — catalog-style.{% endcomment %}
+<footer class="mkt-footer">
+  <div class="mkt-footer__inner">
+    <div class="mkt-footer__brand">
+      <a href="{% url 'home' %}" class="mkt-footer__logo" aria-label="TradeFlow Colón">
+        {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" %}
+      </a>
+      <p class="mkt-footer__tagline">B2B wholesale marketplace · Colón Free Zone, Panama</p>
+    </div>
+    <nav class="mkt-footer__links" aria-label="Footer">
+      <a href="{% url 'catalogo_publico' %}">Catalog</a>
+      <a href="{% url 'acerca_tradeflow' %}">About TradeFlow</a>
+      <a href="{% url 'signup' %}">Create account</a>
+      <a href="{% url 'signup' %}?role=seller">Sell on TradeFlow</a>
+      <a href="{% url 'legal_terminos' %}">Terms</a>
+      <a href="{% url 'legal_privacidad' %}">Privacy</a>
+    </nav>
+    <p class="mkt-footer__copy">© {% now "Y" %} TradeFlow Colón · <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a></p>
+  </div>
+</footer>

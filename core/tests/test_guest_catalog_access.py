@@ -16,6 +16,8 @@ from core.models import UserProfile
 )
 class GuestCatalogAccessTests(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.buyer = User.objects.create_user(
             username='buyer_guest_test',
             email='buyer_guest@test.pa',
@@ -37,8 +39,7 @@ class GuestCatalogAccessTests(TestCase):
     def test_guest_home_links_to_tienda_not_login_wall(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'View full catalog')
-        self.assertContains(response, 'Explore catalog')
+        self.assertContains(response, 'Browse catalog')
         self.assertNotContains(response, 'login/?next=/tienda/')
 
     def test_buyer_still_has_cart_actions(self):

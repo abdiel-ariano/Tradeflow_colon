@@ -1,0 +1,90 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}About TradeFlow Colón — Wholesale Marketplace of the Americas{% endblock %}
+{% block meta_description %}Learn why buyers and suppliers choose TradeFlow Colón — the B2B marketplace for the Colón Free Zone with verified companies, RFQ workflows, and export-ready documentation.{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'12' }}">
+<link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'1' }}">
+{% endblock %}
+
+{% block content %}
+{% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='about' %}
+
+<main class="hm-about" id="hm-about">
+  <section class="hm-about-hero" aria-labelledby="hm-about-hero-title">
+    <div class="hm-about-hero__copy">
+      <p class="hm-about-hero__eyebrow">About TradeFlow Colón</p>
+      <h1 class="hm-about-hero__title" id="hm-about-hero-title">We make wholesale business possible from anywhere</h1>
+      <p class="hm-about-hero__sub">The leading B2B online marketplace for the Colón Free Zone — connecting verified suppliers with buyers across 40+ countries.</p>
+      <div class="hm-about-hero__ctas">
+        <a href="{% url 'catalogo_publico' %}" class="hm-about-hero__btn hm-about-hero__btn--primary">Explore catalog →</a>
+        <a href="{% url 'signup' %}" class="hm-about-hero__btn hm-about-hero__btn--outline">Create buyer account</a>
+      </div>
+    </div>
+    <div class="hm-about-hero__visual" aria-hidden="true">
+      <div class="hm-about-hero__stats">
+        <div class="hm-about-stat"><strong>{{ stats.productos|default:0 }}</strong><span>Active SKUs</span></div>
+        <div class="hm-about-stat"><strong>{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}</strong><span>Verified suppliers</span></div>
+        <div class="hm-about-stat"><strong>{{ stats.categorias|default:0 }}</strong><span>Categories</span></div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="hm-about-tabs" aria-label="About sections">
+    <a href="#why-tradeflow" class="hm-about-tabs__link is-active">Why TradeFlow</a>
+    <a href="#buyer-protection" class="hm-about-tabs__link">Trade protections</a>
+    <a href="#seller-program" class="hm-about-tabs__link">Seller program</a>
+    <a href="#free-zone" class="hm-about-tabs__link">Colón Free Zone</a>
+  </nav>
+
+  <section class="hm-about-cards" aria-label="TradeFlow highlights">
+    <article class="hm-about-card" id="why-tradeflow">
+      <div class="hm-about-card__media hm-about-card__media--navy"></div>
+      <div class="hm-about-card__body">
+        <h2 class="hm-about-card__title">Why choose TradeFlow Colón</h2>
+        <p class="hm-about-card__text">More than {{ stats.empresas|default:50 }} companies and {{ stats.productos|default:1200 }} SKUs in one wholesale platform. Buyers get live stock visibility, RFQ workflows, and verified supplier profiles — without flying to Panama.</p>
+        <a href="{% url 'catalogo_publico' %}" class="hm-about-card__link">Start browsing →</a>
+      </div>
+    </article>
+
+    <article class="hm-about-card" id="buyer-protection">
+      <div class="hm-about-card__media hm-about-card__media--orange"></div>
+      <div class="hm-about-card__body">
+        <h2 class="hm-about-card__title">Request for quotation &amp; order protection</h2>
+        <p class="hm-about-card__text">Build inquiry carts, compare suppliers, and receive quotes before you commit. Export-ready documentation and CFZ-verified companies reduce risk on every order.</p>
+        <a href="{% url 'signup' %}" class="hm-about-card__link">Create buyer account →</a>
+      </div>
+    </article>
+
+    <article class="hm-about-card hm-about-card--cta" id="seller-program">
+      <div class="hm-about-card__body">
+        <h2 class="hm-about-card__title">Sell on TradeFlow</h2>
+        <p class="hm-about-card__text">List your company, manage inventory, and reach wholesale buyers worldwide. SaaS plans for sellers include storefront tools, analytics, and logistics integrations.</p>
+        <a href="{% url 'signup' %}?role=seller" class="hm-about-hero__btn hm-about-hero__btn--primary">Apply as supplier →</a>
+      </div>
+    </article>
+  </section>
+
+  <section class="hm-about-zone" id="free-zone" aria-labelledby="hm-about-zone-title">
+    <div class="hm-about-zone__inner">
+      <h2 class="hm-about-zone__title" id="hm-about-zone-title">The Colón Free Zone advantage</h2>
+      <p class="hm-about-zone__text">The world's second-largest free trade zone is a hub for re-export, logistics, and duty-free wholesale. TradeFlow digitizes that ecosystem — transparent inventory, verified RUCs, and documentation ready for international buyers.</p>
+      <ul class="hm-about-zone__list">
+        <li>Verified CFZ companies with live product catalogs</li>
+        <li>USD pricing and MOQ transparency on every listing</li>
+        <li>Buyer accounts with inquiry carts and quote history</li>
+        <li>Seller SaaS with plans from starter to enterprise</li>
+      </ul>
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+{% block footer %}
+  {% include "core/includes/marketplace_footer.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
+{% endblock %}

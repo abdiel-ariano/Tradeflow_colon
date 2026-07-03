@@ -1,0 +1,63 @@
+{% comment %}Above-the-fold bento — category rail + spotlight tiles + promo banner.{% endcomment %}
+<section class="hm-bento" aria-label="Marketplace discovery">
+  <div class="hm-bento__grid">
+    <aside class="hm-bento__categories" aria-label="Categories">
+      <h2 class="hm-bento__categories-title">Categories for you</h2>
+      <ul class="hm-bento__category-list">
+        {% for cat in sidebar_categories %}
+        <li>
+          <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}" class="hm-bento__category-link">
+            <span class="hm-bento__category-name">{{ cat.name|truncatechars:28 }}</span>
+            <span class="hm-bento__category-count">{{ cat.n }}</span>
+            <span class="hm-bento__category-chevron" aria-hidden="true">›</span>
+          </a>
+        </li>
+        {% empty %}
+        <li><a href="{% url 'catalogo_publico' %}" class="hm-bento__category-link">Browse full catalog</a></li>
+        {% endfor %}
+      </ul>
+    </aside>
+
+    <div class="hm-bento__spotlights">
+      {% for product in bento_spotlights %}
+      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-bento__spotlight">
+        <span class="hm-bento__spotlight-label">Frequently viewed</span>
+        <span class="hm-bento__spotlight-name">{{ product.name|truncatechars:48 }}</span>
+        <div class="hm-bento__spotlight-media">
+          {% include "core/includes/product_image_placeholder.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" img_class="hm-bento__spotlight-img" %}
+        </div>
+      </a>
+      {% empty %}
+      <a href="{% url 'catalogo_publico' %}" class="hm-bento__spotlight hm-bento__spotlight--empty">
+        <span class="hm-bento__spotlight-label">Wholesale catalog</span>
+        <span class="hm-bento__spotlight-name">Explore {{ stats.productos|default:0 }} SKUs</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="hm-bento__banner" data-hm-bento-banner>
+      {% if promo_banner %}
+      <div class="hm-bento__banner-slide is-active">
+        <p class="hm-bento__banner-eyebrow">Campaign</p>
+        <h2 class="hm-bento__banner-title">{{ promo_banner.title }}</h2>
+        {% if promo_banner.subtitle %}
+        <p class="hm-bento__banner-sub">{{ promo_banner.subtitle }}</p>
+        {% endif %}
+        <a href="{% url 'catalogo_publico' %}" class="hm-bento__banner-cta">Shop now →</a>
+        {% if promo_banner.products %}
+        <div class="hm-bento__banner-thumb" aria-hidden="true">
+          {% include "core/includes/product_image_placeholder.html" with product=promo_banner.products.0 decorative=True img_class="hm-bento__banner-img" %}
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="hm-bento__banner-slide is-active hm-bento__banner-slide--default">
+        <p class="hm-bento__banner-eyebrow">Colón Free Zone</p>
+        <h2 class="hm-bento__banner-title">New buyer favorites for wholesale</h2>
+        <p class="hm-bento__banner-sub">Verified suppliers · transparent stock · export-ready docs</p>
+        <a href="{% url 'catalogo_publico' %}" class="hm-bento__banner-cta">Browse catalog →</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
