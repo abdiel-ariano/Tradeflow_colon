@@ -1,23 +1,19 @@
-{% load static tf_money tf_media %}
-{% comment %}B2B catalog product card — /catalogo/ only.{% endcomment %}
-<article class="product-card" data-product-id="{{ product.pk }}">
+{% load static tf_money tf_media i18n %}
+{% comment %}B2B marketplace product card — catalog + home grids.{% endcomment %}
+<article class="product-card{% if card_extra_class %} {{ card_extra_class }}{% endif %}" data-product-id="{{ product.pk }}">
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="card-image-link">
     <div class="card-image">
       {% if product.is_on_promo_now %}
       <span class="badge-discount">{{ product.discount_pct }}% off</span>
       {% endif %}
 
-      <img
-        src="{{ product|catalog_card_image_src }}"
-        alt="{{ product.name }}"
-        loading="{% if card_index and card_index <= 4 %}eager{% else %}lazy{% endif %}"
-        {% if card_index and card_index <= 4 %}fetchpriority="high"{% endif %}
-        decoding="async"
-        class="card-image-img"
-        onerror="this.onerror=null;this.src='{% static 'img/product-placeholder.svg' %}';"
-      >
+      {% if card_index and card_index <= 4 %}
+        {% include "core/includes/product_image_placeholder.html" with product=product decorative=True loading="eager" img_class="card-image-img" %}
+      {% else %}
+        {% include "core/includes/product_image_placeholder.html" with product=product decorative=True loading="lazy" img_class="card-image-img" %}
+      {% endif %}
 
-      <button type="button" class="btn-image-search" aria-label="Search by image"
+      <button type="button" class="btn-image-search" aria-label="{% trans 'Search by image' %}"
               onclick="event.preventDefault(); event.stopPropagation();">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 0 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -35,9 +31,9 @@
     <div class="card-trust">
       {% if product.is_bestseller %}
       <span class="trust-dot" aria-hidden="true"></span>
-      Reorder rate {% if product.discount_pct %}{{ product.discount_pct }}{% else %}32{% endif %}%
+      {% trans "Reorder rate" %} {% if product.discount_pct %}{{ product.discount_pct }}{% else %}32{% endif %}%
       {% elif product.is_on_promo_now %}
-      <span class="trust-lower">↓ Lower priced than similar</span>
+      <span class="trust-lower">{% trans "Lower priced than similar" %}</span>
       {% endif %}
     </div>
 
@@ -50,7 +46,7 @@
     </div>
 
     <div class="card-moq">
-      MOQ: 1 piece
+      {% trans "MOQ" %}: 1 {% trans "piece" %}
     </div>
 
     <div class="card-supplier">
@@ -62,7 +58,7 @@
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
         </svg>
-        CFZ Verified
+        {% trans "CFZ Verified" %}
       </span>
       {% endif %}
     </div>
@@ -70,7 +66,7 @@
 
   <div class="card-inquiry">
     <button type="button" class="btn-inquiry" data-product-id="{{ product.pk }}">
-      + Add to inquiry
+      + {% trans "Add to inquiry" %}
     </button>
   </div>
 </article>

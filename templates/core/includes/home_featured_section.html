@@ -1,4 +1,4 @@
-{% comment %}Featured public product cards with stronger B2B signals.{% endcomment %}
+{% comment %}Featured wholesale picks — catalog marketplace cards.{% endcomment %}
 {% if featured_products|length > 1 %}
 <section class="hm-featured hm-section hm-section--surface" id="hm-featured" data-hm-section aria-labelledby="hm-featured-title">
   <div class="hm-section__inner">
@@ -6,13 +6,13 @@
       <div>
         <span class="hm-section__eyebrow">Curated for buyers</span>
         <h2 class="hm-section-title" id="hm-featured-title">Featured wholesale picks</h2>
-        <p class="hm-section-sub">Verified suppliers, live stock visibility, and quote-ready products selected for B2B buyers.</p>
+        <p class="hm-section-sub">Verified suppliers, live stock, and quote-ready listings — same cards as the full catalog.</p>
       </div>
       <a href="{% url 'catalogo_publico' %}" class="hm-featured__see-all">See all →</a>
     </header>
-    <div class="hm-featured__grid" data-hm-stagger>
+    <div class="product-grid" data-hm-stagger>
       {% for product in featured_products|slice:"1:7" %}
-        {% include "core/includes/product_card_unified.html" with product=product is_public=True card_density="compact" card_extra_class="hm-featured__card tf-pcard--featured-dense" %}
+        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter %}
       {% endfor %}
     </div>
   </div>
