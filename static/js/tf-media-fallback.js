@@ -7,12 +7,18 @@
 
   function mediaFallback(img) {
     var stage = img.getAttribute('data-hm-fallback-stage') || '0';
+    var categoryIcon = img.getAttribute('data-hm-category-icon');
     var categorySeed = img.getAttribute('data-hm-category-seed');
     var picsum = img.getAttribute('data-hm-picsum');
     var staticSrc = img.getAttribute('data-hm-static');
     var wrap = img.closest('[data-hm-media]');
 
-    if (stage === '0' && categorySeed && img.src !== categorySeed) {
+    if (stage === '0' && categoryIcon && img.src !== categoryIcon) {
+      img.setAttribute('data-hm-fallback-stage', '1');
+      img.src = categoryIcon;
+      return;
+    }
+    if (stage === '1' && categorySeed && img.src !== categorySeed) {
       img.setAttribute('data-hm-fallback-stage', '1');
       img.src = categorySeed;
       return;

@@ -1,4 +1,4 @@
-"""Home product image src — uploaded URL or bundled category seed."""
+"""Home product image src — upload, AI reference, or category icon."""
 from django.test import TestCase, override_settings
 
 from core.models import Category, Company, Product
@@ -25,15 +25,15 @@ class HomeProductImageSrcTests(TestCase):
             is_active=True,
         )
 
-    def test_product_image_src_uses_catalog_seed_when_no_upload(self):
+    def test_product_image_src_uses_category_icon_when_no_upload(self):
         url = product_image_src(self.product)
-        self.assertIn('/static/images/catalog-seeds/electronics.jpg', url)
+        self.assertIn('/static/images/category-icons/electronics.svg', url)
 
-    def test_product_image_src_uses_catalog_seed_when_local_file_missing(self):
+    def test_product_image_src_uses_category_icon_when_local_file_missing(self):
         self.product.image = 'products/demo/missing.jpg'
         self.product.save(update_fields=['image'])
         url = product_image_src(self.product)
-        self.assertIn('/static/images/catalog-seeds/', url)
+        self.assertIn('/static/images/category-icons/', url)
 
     def test_object_position_uses_pk_modulo_grid(self):
         from core.templatetags.tf_media import product_image_object_position

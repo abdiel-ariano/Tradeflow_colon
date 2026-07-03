@@ -69,9 +69,9 @@ Variables:
       {% if product.available_qty > 0 %}
       <li class="tf-pcard__signal tf-pcard__signal--stock">
         {% if product.available_qty <= 5 %}
-        Low stock · {{ product.available_qty }} units
+        Low stock · {{ product.available_qty }} unit{{ product.available_qty|pluralize }}
         {% else %}
-        In stock · {{ product.available_qty }}+ units
+        In stock · {{ product.available_qty }} unit{{ product.available_qty|pluralize }}
         {% endif %}
       </li>
       {% elif card_density != 'compact' %}
