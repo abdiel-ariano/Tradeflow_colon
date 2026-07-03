@@ -32,6 +32,15 @@ CATALOG_SEED_FILES = {
     'general': 'images/catalog-seeds/general.jpg',
 }
 
+CATEGORY_ICON_FILES = {
+    'electronics': 'images/category-icons/electronics.svg',
+    'textiles': 'images/category-icons/textiles.svg',
+    'beauty': 'images/category-icons/beauty.svg',
+    'home_appliances': 'images/category-icons/home_appliances.svg',
+    'toys': 'images/category-icons/toys.svg',
+    'general': 'images/category-icons/general.svg',
+}
+
 CATEGORY_KEYWORDS = {
     'textiles': ['textile', 'fabric', 'clothing', 'uniform', 'apparel'],
     'electronics': ['electronic', 'gadget', 'computer', 'phone', 'tech'],
@@ -80,8 +89,44 @@ def catalog_seed_relative_path(keyword: str) -> str:
 
 
 def catalog_seed_static_path(product: Product) -> str:
-    """Bundled category photograph — served from /static/, no external request."""
+    """Bundled category photograph — used by seed commands, not public card display."""
     return catalog_seed_relative_path(category_keyword(product))
+
+
+def category_icon_static_path(product: Product) -> str:
+    """Category SVG icon — final public fallback when no upload or AI asset exists."""
+    keyword = category_keyword(product)
+    return CATEGORY_ICON_FILES.get(keyword, CATEGORY_ICON_FILES['general'])
+
+
+def ai_placeholder_relative_path(product: Product) -> str:
+    """Convention: static/assets/products/placeholder-ai/{category}-{sku}.webp"""
+    keyword = category_keyword(product)
+    sku = re.sub(r'[^a-zA-Z0-9_-]', '-', (product.sku or f'p{product.pk}').lower())
+    return f'assets/products/placeholder-ai/{keyword}-{sku}.webp'
+
+
+def ai_placeholder_static_path(product: Product) -> str:
+    return ai_placeholder_relative_path(product)
+
+
+def ai_placeholder_file_exists(product: Product) -> bool:
+    rel = ai_placeholder_relative_path(product)
+    return (Path(settings.BASE_DIR) / 'static' / rel).is_file()
+
+
+def product_uses_ai_reference_image(product: Product) -> bool:
+    """True when the public card will show a generated reference WebP."""
+    if not product:
+        return False
+    from core.utils.media_storage import is_remote_media_storage, local_media_file_exists
+
+    rel = ''
+    if getattr(product, 'image', None) and product.image.name:
+        rel = product.image.name.replace('\\', '/')
+    if rel and (local_media_file_exists(rel) or is_remote_media_storage()):
+        return False
+    return ai_placeholder_file_exists(product)
 
 
 def catalog_seed_bytes(keyword: str) -> bytes:
@@ -108,9 +153,17 @@ def variant_image_bytes(product: Product, *, width: int = 800, height: int = 600
         source = source.resize((max(width, src_w), max(height, src_h)), Image.Resampling.LANCZOS)
         src_w, src_h = source.size
 
-    offset_x = (product.pk * 47) % max(src_w - width, 1)
-    offset_y = (product.pk * 31) % max(src_h - height, 1)
-    cropped = source.crop((offset_x, offset_y, offset_x + width, offset_y + height))
+    # When the bundled seed matches the crop box, use a smaller window so PK offsets matter.
+    crop_w, crop_h = width, height
+    if src_w == width and src_h == height and src_w > 120:
+        crop_w = max(120, int(src_w * 0.72))
+        crop_h = max(90, int(src_h * 0.72))
+
+    offset_x = ((product.pk * 47) + (product.pk ** 2)) % max(src_w - crop_w, 1)
+    offset_y = ((product.pk * 31) + (product.pk * 19)) % max(src_h - crop_h, 1)
+    cropped = source.crop((offset_x, offset_y, offset_x + crop_w, offset_y + crop_h))
+    if crop_w != width or crop_h != height:
+        cropped = cropped.resize((width, height), Image.Resampling.LANCZOS)
 
     buffer = io.BytesIO()
     cropped.save(buffer, format='JPEG', quality=88, optimize=True)

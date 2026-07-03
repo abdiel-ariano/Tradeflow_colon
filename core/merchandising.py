@@ -32,15 +32,21 @@ def _product_has_uploaded_image(product) -> bool:
 
 def _product_image_fingerprint(product) -> str:
     """Visual key for deduping identical fallback photos in the same home row."""
-    from core.utils.demo_product_images import catalog_seed_static_path
+    from core.utils.demo_product_images import (
+        ai_placeholder_file_exists,
+        ai_placeholder_static_path,
+        category_icon_static_path,
+    )
 
     if _product_has_uploaded_image(product):
         return f'upload:{product.image.name.replace(chr(92), "/")}'
-    return f'seed:{catalog_seed_static_path(product)}'
+    if ai_placeholder_file_exists(product):
+        return f'ai:{ai_placeholder_static_path(product)}'
+    return f'icon:{category_icon_static_path(product)}'
 
 
 def _sort_products_by_image_priority(products: list) -> list:
-    """Prefer products with real uploads before category-seed fallbacks."""
+    """Prefer products with real uploads before icon/AI fallbacks."""
     return sorted(
         products,
         key=lambda p: (
@@ -462,6 +468,33 @@ def _pick_unique_products(
         if len(picked) >= limit:
             break
     return picked
+
+
+def diversify_visible_order(products: list, *, window: int = 4) -> list:
+    """
+  Reorder a catalog page so identical image fingerprints are not adjacent.
+
+  Keeps all SKUs but breaks visual copy-paste patterns in the first screenful.
+    """
+    if len(products) <= 1:
+        return products
+
+    remaining = list(products)
+    ordered: list = []
+    recent: list[str] = []
+
+    while remaining:
+        pick_at = 0
+        for idx, product in enumerate(remaining):
+            fp = _product_image_fingerprint(product)
+            if fp not in recent[-window:]:
+                pick_at = idx
+                break
+        product = remaining.pop(pick_at)
+        ordered.append(product)
+        recent.append(_product_image_fingerprint(product))
+
+    return ordered
 
 
 def build_guest_home_context(lang: str) -> dict:

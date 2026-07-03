@@ -62,6 +62,24 @@ Requiere: tf-design-tokens.css
   display: block;
 }
 
+.product-img-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.product-img__ref-label {
+  position: absolute;
+  left: var(--space-1, 8px);
+  bottom: var(--space-1, 8px);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary, var(--tf-muted));
+  background: rgba(255, 255, 255, 0.92);
+  pointer-events: none;
+}
+
 .product-img.is-placeholder,
 img[data-tf-product-image].is-placeholder {
   object-fit: contain;
@@ -70,6 +88,11 @@ img[data-tf-product-image].is-placeholder {
 
 .tf-pcard__media img.product-img,
 .tf-pcard__media .product-img {
+  height: 100%;
+}
+
+.tf-pcard__media .product-img-wrap {
+  width: 100%;
   height: 100%;
 }
 

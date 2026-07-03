@@ -3209,6 +3209,8 @@ def tienda(request):
 
     paginator = Paginator(productos, 12)
     page_obj = paginator.get_page(request.GET.get('page', 1))
+    if page_obj.object_list:
+        page_obj.object_list = merch.diversify_visible_order(list(page_obj.object_list))
 
     categorias = Category.objects.all().order_by('name')
     carrito = _get_carrito(request)

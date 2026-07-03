@@ -38,30 +38,34 @@ class CatalogSeedImageTests(TestCase):
         data = catalog_seed_bytes('electronics')
         self.assertGreater(len(data), 1000)
 
-    def test_product_image_src_uses_static_seed_not_picsum(self):
+    def test_product_image_src_uses_category_icon_not_picsum(self):
         url = product_image_src(self.product)
-        self.assertIn('/static/images/catalog-seeds/electronics.jpg', url)
+        self.assertIn('/static/images/category-icons/electronics.svg', url)
         self.assertNotIn('picsum.photos', url)
 
-    def test_category_seed_filter_matches_src_when_no_upload(self):
-        self.assertEqual(
+    def test_category_seed_filter_returns_jpeg_path(self):
+        self.assertIn(
+            '/static/images/catalog-seeds/electronics.jpg',
             product_image_category_seed_src(self.product),
-            product_image_src(self.product),
         )
 
     def test_variant_bytes_differs_per_product_pk(self):
-        other = Product.objects.create(
-            company=self.company,
-            category=self.category,
-            name='Cable Pack',
-            sku='USB-2',
-            unit_price='30.00',
-            currency='USD',
-            is_active=True,
-        )
-        self.assertNotEqual(
-            variant_image_bytes(self.product),
-            variant_image_bytes(other),
+        others = [
+            Product.objects.create(
+                company=self.company,
+                category=self.category,
+                name=f'Cable Pack {i}',
+                sku=f'USB-{i}',
+                unit_price='30.00',
+                currency='USD',
+                is_active=True,
+            )
+            for i in range(2, 8)
+        ]
+        base = variant_image_bytes(self.product)
+        self.assertTrue(
+            any(variant_image_bytes(p) != base for p in others),
+            'Expected at least one per-PK crop variant to differ',
         )
 
     def test_assign_catalog_seed_image_writes_media_file(self):

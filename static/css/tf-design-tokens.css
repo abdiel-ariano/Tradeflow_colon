@@ -27,6 +27,28 @@ MIGRACIÓN GRADUAL
 :root {
 
   /* ═══════════════════════════════════════════════════════════════════════════
+     0. MASTER LANDING ALIASES — public redesign contract (Fase 2+)
+     Maps prompt tokens to the existing --tf-* palette; do not hardcode elsewhere.
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --color-primary: #0B2545;
+  --color-primary-light: #13315C;
+  --color-surface: #FFFFFF;
+  --color-background: #F7F8FA;
+  --color-border: #E4E7EB;
+  --color-accent: #F2994A;
+  --color-accent-gold: #D4A94C;
+  --color-text-primary: #101828;
+  --color-text-secondary: #667085;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --space-6: 64px;
+  --radius-card: 8px;
+  --radius-badge: 999px;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
      1. MARCA PREEXPO — paleta pública principal
      ═══════════════════════════════════════════════════════════════════════════ */
 

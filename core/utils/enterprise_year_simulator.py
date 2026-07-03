@@ -48,6 +48,8 @@ from core.models import (
     UserProfile,
 )
 from core.utils.demo_product_images import assign_product_image
+from core.utils.product_seed_naming import build_seed_product_name
+from core.utils.product_stock_seed import realistic_stock_qty
 from core.utils.ads_ranking import ensure_ad_credits
 from core.utils.predictive_insights import get_predictive_dashboard
 from core.utils.saas_billing import get_or_create_subscription, refresh_billing_usage
@@ -579,7 +581,13 @@ def run_enterprise_year_seed(
                 cat = categories[rng.choice(cat_ixs)]
                 templates = PRODUCT_TEMPLATES.get(cat_ixs[0], PRODUCT_TEMPLATES[6])
                 base, desc, pmin, pmax = rng.choice(templates)
-                name = f'{base} — lot {rng.randint(100, 999)}'
+                name = build_seed_product_name(
+                    company_name=co.name,
+                    base_title=base,
+                    description=desc,
+                    product_index=p_idx,
+                    rng=rng,
+                )
                 sku = f'1Y-{co.id:04d}-{p_idx:04d}'
                 price = Decimal(str(round(rng.uniform(pmin, pmax), 2)))
                 promo_price = None
@@ -605,12 +613,12 @@ def run_enterprise_year_seed(
                 pr.save()
                 if not skip_images:
                     products_pending_images.append(pr)
-                stock_base = rng.randint(200, 1200) + (300 if tier == 1 else 0)
+                stock_base = realistic_stock_qty(rng, tier=tier)
                 Inventory.objects.create(
                     product=pr,
                     stock_qty=stock_base,
                     reserved_qty=0,
-                    low_stock_alert=max(5, stock_base // 80),
+                    low_stock_alert=max(5, min(stock_base // 10, 25)),
                 )
                 products_by_company[co.id].append(pr)
 
