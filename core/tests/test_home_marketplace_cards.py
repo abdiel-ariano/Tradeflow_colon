@@ -1,4 +1,4 @@
-"""Home marketplace — catalog-style product cards on landing."""
+"""Home marketplace — Alibaba-style unified product-first landing."""
 from django.test import TestCase, override_settings
 
 from core.models import Category, Company, Product
@@ -13,6 +13,8 @@ from core.models import Category, Company, Product
 )
 class HomeMarketplaceCardsTests(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.company = Company.objects.create(name='CFZ Trading', is_verified=True)
         self.category = Category.objects.create(name='Electronics & Office')
         for i in range(8):
@@ -29,28 +31,36 @@ class HomeMarketplaceCardsTests(TestCase):
                 merchandising_priority=30 - i,
             )
 
-    def test_home_uses_catalog_marketplace_cards(self):
+    def test_home_is_product_first_alibaba_layout(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
-        self.assertIn('hm-marketplace', html)
-        self.assertIn('product-grid', html)
+        self.assertIn('hm-alibaba', html)
+        self.assertIn('hm-bento', html)
         self.assertIn('product-card', html)
         self.assertIn('btn-inquiry', html)
-        self.assertIn('card-moq', html)
-        self.assertIn('CFZ Verified', html)
-        self.assertIn('home-marketplace.css', html)
-        self.assertNotIn('tf-pcard--featured-dense', html)
-        self.assertNotIn('picsum.photos', html)
+        self.assertIn('home-alibaba.css', html)
+        self.assertNotContains(response, 'id="hm-hero"')
+        self.assertNotContains(response, 'hm-mkt-search')
+        self.assertNotContains(response, 'class="tf-pcard ')
+        self.assertNotContains(response, 'picsum.photos')
 
-    def test_home_has_marketplace_search_and_trust_strip(self):
+    def test_home_has_bento_and_product_rows(self):
         response = self.client.get('/')
-        self.assertContains(response, 'hm-mkt-search')
-        self.assertContains(response, 'trust-strip')
-        self.assertContains(response, 'Request for Quotation')
+        self.assertContains(response, 'hm-bento')
+        self.assertContains(response, 'hm-product-row')
+        self.assertContains(response, 'hm-cat-discover')
+        self.assertContains(response, 'Categories for you')
+        self.assertContains(response, 'Products for you')
 
-    def test_home_passes_trending_categories(self):
+    def test_home_passes_sidebar_categories(self):
         response = self.client.get('/')
-        categories = response.context.get('marketplace_trending_categories', [])
+        categories = response.context.get('sidebar_categories', [])
         self.assertGreaterEqual(len(categories), 1)
-        self.assertEqual(categories[0].name, 'Electronics & Office')
+
+    def test_about_tradeflow_page(self):
+        response = self.client.get('/acerca/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'About TradeFlow Colón')
+        self.assertContains(response, 'hm-about-hero')
+        self.assertContains(response, 'Why choose TradeFlow')

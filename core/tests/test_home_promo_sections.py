@@ -75,6 +75,8 @@ class HomePromoSectionHelpersTests(TestCase):
 )
 class HomePromoRenderingTests(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         now = timezone.now()
         self.company = Company.objects.create(name='CFZ Seller', is_verified=True)
         self.category = Category.objects.create(name='Home Goods')
@@ -114,15 +116,32 @@ class HomePromoRenderingTests(TestCase):
             sort_order=1,
             max_items=4,
         )
-        self.deals_section.products.set(self.promo_products)
+        self.deals_section.products.set([
+            Product.objects.create(
+                company=self.company,
+                category=self.category,
+                name=f'Deal Only {i}',
+                sku=f'DO-{i}',
+                unit_price='70.00',
+                promo_price=Decimal('55.00'),
+                promo_starts_at=now - timedelta(days=1),
+                promo_ends_at=now + timedelta(days=30),
+                currency='USD',
+                is_active=True,
+            )
+            for i in range(4)
+        ])
 
     def test_home_renders_cms_promo_sections(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'id="hm-promo-cms-bestsellers"')
-        self.assertContains(response, 'id="hm-promo-cms-deals"')
-        self.assertContains(response, 'Top ZLC')
-        self.assertContains(response, 'CMS Deals')
+        content = response.content.decode()
+        rows = response.context.get('home_product_rows', [])
+        self.assertGreaterEqual(len(rows), 2, msg=[r.get('dom_id') for r in rows])
+        self.assertIn('hm-promo-cms-bestsellers', content, msg='bestsellers row missing')
+        self.assertIn('hm-promo-cms-deals', content, msg='deals row missing')
+        self.assertIn('Top ZLC', content, msg='bestsellers title missing')
+        self.assertIn('CMS Deals', content, msg='deals title missing')
 
     def test_home_hides_fallback_deals_when_cms_has_daily_deals(self):
         response = self.client.get('/')
@@ -135,7 +154,9 @@ class HomePromoRenderingTests(TestCase):
         self.assertNotContains(response, 'id="hm-bestsellers"')
 
     def test_home_shows_fallback_bestsellers_without_cms(self):
+        from django.core.cache import cache
         HomePromoSection.objects.all().delete()
+        cache.clear()
         for i in range(5):
             Product.objects.create(
                 company=self.company,
@@ -149,9 +170,10 @@ class HomePromoRenderingTests(TestCase):
             )
         response = self.client.get('/')
         self.assertTrue(response.context['show_bestsellers_section'])
-        self.assertContains(response, 'id="hm-bestsellers"')
+        self.assertIn('hm-bestsellers', response.content.decode())
 
-    def test_home_renders_hero_wordmark(self):
+    def test_home_renders_alibaba_bento_layout(self):
         response = self.client.get('/')
-        self.assertContains(response, 'hm-hero__wordmark')
-        self.assertContains(response, 'logo-wordmark-white.png')
+        self.assertContains(response, 'hm-bento')
+        self.assertContains(response, 'hm-alibaba')
+        self.assertNotContains(response, 'id="hm-hero"')

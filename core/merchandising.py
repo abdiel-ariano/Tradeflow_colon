@@ -522,7 +522,18 @@ def build_guest_home_context(lang: str) -> dict:
         cms_types.add(section.section_type)
         raw_products = resolve_section_products(section)
         limit = section.max_items or 8
-        products = _pick_unique_products(raw_products, seen, limit, diverse_images=True)
+        has_manual = section.products.exists()
+        if has_manual:
+            products = list(raw_products[:limit])
+        else:
+            products = _pick_unique_products(
+                raw_products,
+                seen,
+                limit,
+                diverse_images=True,
+            )
+        for product in products:
+            seen.add(product.pk)
         promo_sections.append({
             'section': section,
             'products': products,
@@ -576,7 +587,35 @@ def build_guest_home_context(lang: str) -> dict:
             n=Count('products', filter=Q(products__is_active=True)),
         )
         .filter(n__gt=0)
-        .order_by('-n', 'name')[:5]
+        .order_by('-n', 'name')[:8]
+    )
+
+    sidebar_categories = list(
+        Category.objects.annotate(
+            n=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(n__gt=0)
+        .order_by('-n', 'name')[:12]
+    )
+
+    category_spotlight_rows = category_spotlights(4, 8, exclude_ids=seen)
+    category_discover = _category_discover_items(
+        marketplace_trending_categories,
+        category_spotlight_rows,
+    )
+
+    bento_spotlights = list(featured_list[:2])
+    promo_banner = _first_promo_banner_block(promo_sections)
+    catalog_breadth_list = catalog_breadth_products(24, exclude_ids=seen)
+    home_product_rows = _build_home_product_rows(
+        featured_list=featured_list,
+        daily_deals=daily_deals_list,
+        bestsellers=bestsellers_list,
+        catalog_breadth=catalog_breadth_list,
+        promo_sections=promo_sections,
+        show_daily_deals_strip=show_daily_deals_strip,
+        show_bestsellers_section=show_bestsellers_section,
+        lang=lang,
     )
 
     return {
@@ -590,15 +629,20 @@ def build_guest_home_context(lang: str) -> dict:
         ),
         'texture_products': texture_products(12),
         'carousel_products': carousel_products(24),
-        'catalog_breadth_products': catalog_breadth_products(24, exclude_ids=seen),
+        'catalog_breadth_products': catalog_breadth_list,
         'empresas_carousel': empresas_home,
         'empresas_premium': empresas_premium,
         'empresas_standard': empresas_standard,
-        'category_spotlights': category_spotlights(4, 6, exclude_ids=seen),
+        'category_spotlights': category_spotlight_rows,
         'promo_sections': promo_sections,
         'show_daily_deals_strip': show_daily_deals_strip,
         'show_bestsellers_section': show_bestsellers_section,
         'marketplace_trending_categories': marketplace_trending_categories,
+        'sidebar_categories': sidebar_categories,
+        'category_discover': category_discover,
+        'bento_spotlights': bento_spotlights,
+        'promo_banner': promo_banner,
+        'home_product_rows': home_product_rows,
     }
 
 
@@ -607,3 +651,87 @@ def localized_company_tagline(company: Company) -> str:
     if lang == 'en' and company.tagline_en:
         return company.tagline_en
     return company.tagline_es or ''
+
+
+def _category_discover_items(trending_categories, spotlight_rows) -> list:
+    """Circle tiles for home — category + representative product image."""
+    by_cat = {row['category'].pk: row for row in spotlight_rows}
+    items = []
+    for cat in trending_categories:
+        row = by_cat.get(cat.pk)
+        product = row['products'][0] if row and row.get('products') else None
+        items.append({'category': cat, 'product': product})
+    return items
+
+
+def _first_promo_banner_block(promo_sections) -> dict | None:
+    for block in promo_sections:
+        if block['section'].section_type == 'seasonal_banner':
+            return block
+    return None
+
+
+def _build_home_product_rows(
+    *,
+    featured_list,
+    daily_deals,
+    bestsellers,
+    catalog_breadth,
+    promo_sections,
+    show_daily_deals_strip,
+    show_bestsellers_section,
+    lang: str,
+) -> list:
+    """Thin horizontal product rows for unified Alibaba-style home."""
+    rows: list[dict] = []
+    cms_types: set[str] = {block['section'].section_type for block in promo_sections}
+
+    def _row(slug, dom_id, title, products, see_all_query='', min_products=2):
+        if len(products) < min_products:
+            return
+        rows.append({
+            'slug': slug,
+            'dom_id': dom_id,
+            'title': title,
+            'see_all_query': see_all_query,
+            'products': list(products)[:12],
+        })
+
+    deals_title = 'Today\'s wholesale deals' if lang == 'en' else 'Ofertas del día'
+    best_title = 'Recommended for your business' if lang == 'en' else 'Recomendado para tu negocio'
+    for_you_title = 'Products for you' if lang == 'en' else 'Productos para ti'
+    browse_title = 'More from the Free Zone' if lang == 'en' else 'Más de la Zona Libre'
+
+    cms_deals_done = False
+    cms_best_done = False
+    for block in promo_sections:
+        section = block['section']
+        products = block.get('products') or []
+        if section.section_type == 'seasonal_banner':
+            continue
+        if section.section_type == 'daily_deals' and products:
+            _row(section.slug, f'hm-promo-{section.slug}', block.get('title') or deals_title, products, 'orden=promo')
+            cms_deals_done = True
+        elif section.section_type == 'bestsellers' and products:
+            _row(section.slug, f'hm-promo-{section.slug}', block.get('title') or best_title, products, 'orden=novedades')
+            cms_best_done = True
+        elif products:
+            _row(
+                section.slug,
+                f'hm-promo-{section.slug}',
+                block.get('title') or section.title_for_lang(lang),
+                products,
+            )
+
+    if not cms_deals_done and daily_deals and len(daily_deals) >= 3:
+        _row('deals', 'hm-deals', deals_title, daily_deals, 'orden=promo')
+
+    featured_row = list(featured_list[2:10]) if len(featured_list) > 2 else list(featured_list)
+    _row('for-you', 'hm-row-for-you', for_you_title, featured_row)
+
+    if not cms_best_done and bestsellers and len(bestsellers) >= 4:
+        _row('recommended', 'hm-bestsellers', best_title, bestsellers, 'orden=novedades')
+
+    _row('browse', 'hm-catalog-wall', browse_title, catalog_breadth)
+
+    return rows

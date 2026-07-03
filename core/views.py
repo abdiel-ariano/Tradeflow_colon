@@ -831,6 +831,8 @@ def home_view(request):
 
     context = cached_guest_home_context()
     context['show_cart_actions'] = False
+    stats = context.get('stats') or {}
+    context['catalogo_stats'] = stats
     return render(request, 'core/home.html', context)
 
 
@@ -4737,6 +4739,21 @@ def reject_application_view(request, pk):
 def legal_terminos(request):
     """Terms of Use for the TradeFlow Colón marketplace."""
     return render(request, 'core/legal_terminos.html')
+
+
+def acerca_tradeflow(request):
+    """About TradeFlow — brand story, ZLC, buyer/seller programs (Alibaba-style)."""
+    from core.merchandising import home_stats_uncached
+
+    stats = home_stats_uncached()
+    return render(
+        request,
+        'core/acerca_tradeflow.html',
+        {
+            'stats': stats,
+            'catalogo_stats': stats,
+        },
+    )
 
 
 def legal_privacidad(request):

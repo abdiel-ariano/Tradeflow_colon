@@ -1,0 +1,22 @@
+{% comment %}Circular category discovery row — Alibaba "Categorías para ti".{% endcomment %}
+{% if category_discover %}
+<section class="hm-cat-discover" aria-labelledby="hm-cat-discover-title">
+  <div class="hm-cat-discover__inner">
+    <h2 class="hm-cat-discover__title" id="hm-cat-discover-title">Categories for you</h2>
+    <div class="hm-cat-discover__rail">
+      {% for item in category_discover %}
+      <a href="{% url 'catalogo_publico' %}?categoria={{ item.category.pk }}" class="hm-cat-discover__tile">
+        <span class="hm-cat-discover__circle">
+          {% if item.product %}
+            {% include "core/includes/product_image_placeholder.html" with product=item.product decorative=True img_class="hm-cat-discover__img" %}
+          {% else %}
+            <span class="hm-cat-discover__placeholder" aria-hidden="true"></span>
+          {% endif %}
+        </span>
+        <span class="hm-cat-discover__label">{{ item.category.name|truncatechars:22 }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}

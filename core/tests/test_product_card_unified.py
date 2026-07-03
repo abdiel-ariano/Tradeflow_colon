@@ -16,6 +16,8 @@ from core.models import Category, Company, Inventory, Product, UserProfile
 )
 class ProductCardUnifiedTests(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.company = Company.objects.create(
             name='CFZ Demo Co',
             is_verified=True,
@@ -34,6 +36,17 @@ class ProductCardUnifiedTests(TestCase):
             is_featured=True,
         )
         Inventory.objects.create(product=self.product, stock_qty=10, reserved_qty=0)
+        for i in range(2, 8):
+            Product.objects.create(
+                company=self.company,
+                category=self.category,
+                name=f'Featured Widget {i}',
+                sku=f'UW-{i:03d}',
+                unit_price='49.99',
+                currency='USD',
+                is_active=True,
+                is_featured=True,
+            )
         self.related = Product.objects.create(
             company=self.company,
             category=self.category,
@@ -55,29 +68,28 @@ class ProductCardUnifiedTests(TestCase):
         response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Unified Widget')
-        self.assertContains(response, 'Desde')
-        self.assertContains(response, 'Regístrate para ver precios mayoristas')
+        self.assertContains(response, 'From')
+        self.assertContains(response, 'Sign up to view wholesale pricing')
         self.assertContains(response, 'CFZ Verified')
         self.assertContains(response, 'Export Ready')
         self.assertFalse(response.context['show_cart_actions'])
         self.assertContains(response, 'og:title')
-        self.assertContains(response, 'Productos relacionados')
+        self.assertContains(response, 'Related products')
 
     def test_guest_breadcrumb_shows_category(self):
         response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
-        self.assertContains(response, 'Inicio')
+        self.assertContains(response, 'Home')
         self.assertContains(response, 'Electronics')
 
     def test_home_uses_catalog_marketplace_cards(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'hm-marketplace')
+        self.assertContains(response, 'hm-alibaba')
         self.assertContains(response, 'product-card')
         self.assertContains(response, 'btn-inquiry')
         self.assertContains(response, 'Add to inquiry')
         self.assertContains(response, 'CFZ Verified')
-        self.assertNotContains(response, 'tf-pcard--featured-dense')
-        self.assertNotContains(response, 'picsum.photos')
+        self.assertNotContains(response, 'class="tf-pcard ')
 
     def test_buyer_product_detail_has_cart_actions(self):
         self.client.force_login(self.buyer)
