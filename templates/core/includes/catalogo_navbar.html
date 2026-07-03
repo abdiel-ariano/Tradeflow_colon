@@ -55,7 +55,7 @@
   <nav class="navbar-secondary" aria-label="Catalog shortcuts">
     <div class="nav-secondary-inner">
       <div class="nav-secondary-left">
-        <button type="button" class="btn-all-categories" aria-haspopup="true">☰ All categories</button>
+        <button type="button" class="btn-all-categories" data-cat-modal-open data-cat-panel="discover" aria-haspopup="dialog">☰ All categories</button>
         <a href="{% url 'catalogo_publico' %}?verificado=1" class="cat-nav-ajax-link">Verified Companies</a>
         <a href="{% url 'catalogo_publico' %}" class="cat-nav-ajax-link">Wholesale Catalog</a>
         <a href="{% url 'catalogo_publico' %}?orden=novedades" class="cat-nav-ajax-link">Deals</a>

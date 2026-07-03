@@ -7,7 +7,9 @@
       <span class="badge-discount">{{ product.discount_pct }}% off</span>
       {% endif %}
 
-      {% if card_index and card_index <= 4 %}
+      {% if visual_image %}
+        {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=card_index|default:99|yesno:"eager,lazy" img_class="card-image-img" wrap_class="product-img-wrap" %}
+      {% elif card_index and card_index <= 4 %}
         {% include "core/includes/product_image_placeholder.html" with product=product decorative=True loading="eager" img_class="card-image-img" %}
       {% else %}
         {% include "core/includes/product_image_placeholder.html" with product=product decorative=True loading="lazy" img_class="card-image-img" %}

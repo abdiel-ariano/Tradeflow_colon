@@ -604,7 +604,11 @@ def build_guest_home_context(lang: str) -> dict:
         category_spotlight_rows,
     )
 
-    bento_spotlights = list(featured_list[:2])
+    bento_spotlight_items = _bento_spotlight_items(
+        featured_list,
+        marketplace_trending_categories,
+    )
+    category_modal_panels = _category_modal_panels(sidebar_categories)
     promo_banner = _first_promo_banner_block(promo_sections)
     catalog_breadth_list = catalog_breadth_products(24, exclude_ids=seen)
     home_product_rows = _build_home_product_rows(
@@ -640,9 +644,34 @@ def build_guest_home_context(lang: str) -> dict:
         'marketplace_trending_categories': marketplace_trending_categories,
         'sidebar_categories': sidebar_categories,
         'category_discover': category_discover,
-        'bento_spotlights': bento_spotlights,
+        'bento_spotlight_items': bento_spotlight_items,
+        'category_modal_panels': category_modal_panels,
         'promo_banner': promo_banner,
         'home_product_rows': home_product_rows,
+    }
+
+
+def marketplace_categories_context() -> dict:
+    """Shared category rail + modal data for home and public catalog."""
+    sidebar_categories = list(
+        Category.objects.annotate(
+            n=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(n__gt=0)
+        .order_by('-n', 'name')[:12]
+    )
+    trending = list(
+        Category.objects.annotate(
+            n=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(n__gt=0)
+        .order_by('-n', 'name')[:8]
+    )
+    spotlight_rows = category_spotlights(4, 8)
+    return {
+        'sidebar_categories': sidebar_categories,
+        'category_discover': _category_discover_items(trending, spotlight_rows),
+        'category_modal_panels': _category_modal_panels(sidebar_categories),
     }
 
 
@@ -660,8 +689,58 @@ def _category_discover_items(trending_categories, spotlight_rows) -> list:
     for cat in trending_categories:
         row = by_cat.get(cat.pk)
         product = row['products'][0] if row and row.get('products') else None
-        items.append({'category': cat, 'product': product})
+        items.append({'category': cat, 'product': product, 'badge': _category_discover_badge(cat.pk)})
     return items
+
+
+def _category_discover_badge(category_pk: int) -> str:
+    """Decorative trend badge — rotates by category pk."""
+    if category_pk % 5 == 0:
+        return 'hot'
+    if category_pk % 3 == 0:
+        return 'trend'
+    return ''
+
+
+def _bento_spotlight_items(featured_list, trending_categories) -> list:
+    """Two image-first tiles — category label + representative product."""
+    items: list[dict] = []
+    cats = list(trending_categories[:2])
+    for i, cat in enumerate(cats):
+        product = featured_list[i] if i < len(featured_list) else None
+        if not product:
+            product = (
+                active_products_base()
+                .filter(category=cat)
+                .order_by('-merchandising_priority', '-created_at')
+                .first()
+            )
+        if product:
+            items.append({'category': cat, 'product': product, 'label': cat.name})
+    idx = len(items)
+    while len(items) < 2 and idx < len(featured_list):
+        product = featured_list[idx]
+        items.append({
+            'category': product.category,
+            'product': product,
+            'label': product.category.name if product.category else 'Featured',
+        })
+        idx += 1
+    return items[:2]
+
+
+def _category_modal_panels(categories, products_per: int = 18) -> list:
+    """Sidebar + grid data for Alibaba-style categories overlay."""
+    panels = []
+    for cat in categories:
+        products = list(
+            active_products_base()
+            .filter(category=cat)
+            .select_related('company', 'category', 'inventory')
+            .order_by('-merchandising_priority', '-created_at')[:products_per]
+        )
+        panels.append({'category': cat, 'products': products})
+    return panels
 
 
 def _first_promo_banner_block(promo_sections) -> dict | None:

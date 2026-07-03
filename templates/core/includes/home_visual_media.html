@@ -1,0 +1,23 @@
+{% comment %}
+Home marketplace visuals — catalog-seed photos for dimension reference (not SVG icons).
+{% endcomment %}
+{% load static tf_media %}
+{% with primary=product|marketplace_visual_image_src picsum=product|product_image_picsum_src focal=product|product_image_object_position %}
+<div class="hm-visual{% if wrap_class %} {{ wrap_class }}{% endif %}" data-hm-media>
+  <div class="hm-media__shimmer" aria-hidden="true"></div>
+  <img src="{{ primary }}"
+       alt="{% if decorative %}{% else %}{{ alt|default:product.name }}{% endif %}"
+       class="hm-visual__img product-img{% if img_class %} {{ img_class }}{% endif %}{% if decorative %} is-decorative{% endif %}"
+       loading="{{ loading|default:'lazy' }}"
+       decoding="async"
+       style="object-fit: {{ object_fit|default:'cover' }}; object-position: {{ focal }};"
+       {% if decorative %}role="presentation"{% endif %}
+       {% if width %}width="{{ width }}"{% endif %}
+       {% if height %}height="{{ height }}"{% endif %}
+       data-tf-product-image
+       {% if picsum %}data-hm-picsum="{{ picsum }}"{% endif %}
+       data-hm-static="{% static 'images/home-product-fallback.svg' %}"
+       data-hm-fallback-stage="0"
+       onerror="if(window.TFHomeMediaFallback){window.TFHomeMediaFallback(this);}else{this.onerror=null;this.src='{% static 'images/home-product-fallback.svg' %}';}">
+</div>
+{% endwith %}

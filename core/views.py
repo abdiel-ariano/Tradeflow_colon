@@ -3025,6 +3025,7 @@ def catalogo_publico(request):
         'carrito_count': _contar_items(_get_carrito(request)),
         'category_spotlights': merch.category_spotlights(4, 4),
     }
+    context.update(merch.marketplace_categories_context())
 
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'

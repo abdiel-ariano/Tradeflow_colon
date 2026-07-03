@@ -55,7 +55,7 @@
   <nav class="navbar-secondary" aria-label="Marketplace shortcuts">
     <div class="nav-secondary-inner">
       <div class="nav-secondary-left">
-        <a href="{% url 'catalogo_publico' %}" class="btn-all-categories">☰ All categories</a>
+        <button type="button" class="btn-all-categories" data-cat-modal-open data-cat-panel="discover">☰ All categories</button>
         <a href="{% url 'catalogo_publico' %}?verificado=1">Verified suppliers</a>
         <a href="{% url 'catalogo_publico' %}?orden=promo">Deals</a>
         <a href="{% url 'acerca_tradeflow' %}"{% if marketplace_nav_active == 'about' %} class="is-active" aria-current="page"{% endif %}>About TradeFlow</a>
