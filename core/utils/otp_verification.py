@@ -37,10 +37,17 @@ def _apply_expo_demo_bypass(user: User) -> None:
     """
     Bypass de onboarding en demo Expo: solicitud aprobada + cuenta activa.
 
-  Mitiga bloqueos de ``pending_approval`` sin relajar flags globales en producción.
+    Mitiga bloqueos de ``pending_approval`` sin relajar flags globales en producción.
     """
+    _apply_self_serve_activation(user, approve_all_roles=True)
+
+
+def _apply_self_serve_activation(user: User, *, approve_all_roles: bool = False) -> None:
+    """Compradores verificados quedan activos sin espera de aprobación manual."""
     profile = getattr(user, 'profile', None)
     role = profile.role if profile else 'buyer'
+    if role != 'buyer' and not approve_all_roles:
+        return
     UserApplication.objects.update_or_create(
         user=user,
         defaults={
@@ -54,7 +61,7 @@ def _apply_expo_demo_bypass(user: User) -> None:
     if not user.is_active:
         user.is_active = True
         user.save(update_fields=['is_active'])
-    log.info('expo_demo_bypass user_id=%s application=approved', user.pk)
+    log.info('self_serve_activation user_id=%s role=%s', user.pk, role)
 
 
 def verify_user_otp(user: User, raw_code: str) -> OtpVerificationResult:
@@ -115,8 +122,11 @@ def verify_user_otp(user: User, raw_code: str) -> OtpVerificationResult:
                 ],
             )
 
+            role = profile.role or 'buyer'
             if getattr(settings, 'EXPO_DEMO_MODE', False):
                 _apply_expo_demo_bypass(user)
+            elif role == 'buyer':
+                _apply_self_serve_activation(user)
 
             verification_id = verification.pk
             verification.delete()
@@ -128,7 +138,6 @@ def verify_user_otp(user: User, raw_code: str) -> OtpVerificationResult:
                 expires_at.isoformat(),
             )
 
-            role = profile.role or 'buyer'
             return OtpVerificationResult(ok=True, role=role)
     except Exception:
         log.exception('otp_verify_failed user_id=%s', user.pk)

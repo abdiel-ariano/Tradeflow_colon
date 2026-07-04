@@ -14,7 +14,7 @@ from core.views_onboarding import SESSION_PENDING_VERIFY_USER_ID
     DEBUG=True,
     SECURE_SSL_REDIRECT=False,
     EXPO_DEMO_MODE=True,
-    REQUIRE_EMAIL_VERIFICATION=False,
+    REQUIRE_EMAIL_VERIFICATION=True,
     AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
 )
 class SignupOtpOnboardingTests(TestCase):
@@ -78,11 +78,13 @@ class SignupOtpOnboardingTests(TestCase):
         self.assertLessEqual(len(resp.redirect_chain), 1)
         self.assertContains(resp, 'Verify your email')
 
-    @override_settings(EXPO_DEMO_MODE=False)
-    def test_signup_non_demo_stays_pending_approval(self):
+    @override_settings(EXPO_DEMO_MODE=False, REQUIRE_EMAIL_VERIFICATION=True)
+    @patch('core.views_onboarding.enviar_codigo_verificacion')
+    def test_signup_non_demo_redirects_to_verificar(self, mock_send):
+        mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
         resp = self.client.post(reverse('signup'), self._signup_payload(username='classic'), follow=False)
 
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('pending', resp['Location'])
+        self.assertIn('/verificar', resp['Location'])
         user = User.objects.get(username='classic')
-        self.assertFalse(user.is_active)
+        self.assertTrue(user.is_active)

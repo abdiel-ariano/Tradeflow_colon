@@ -64,6 +64,7 @@ def setup_profile_and_application(user: User, role: str, phone: str = '') -> Non
     profile.save(update_fields=['role', 'phone'] if phone else ['role'])
 
     full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
+    app_status = 'approved' if role == 'buyer' else 'pending'
     UserApplication.objects.get_or_create(
         user=user,
         defaults={
@@ -73,7 +74,7 @@ def setup_profile_and_application(user: User, role: str, phone: str = '') -> Non
             'role': role,
             'company_name': '',
             'message': '',
-            'status': 'pending',
+            'status': app_status,
         },
     )
 
@@ -106,6 +107,21 @@ class TradeFlowAccountAdapter(DefaultAccountAdapter):
 
 
 class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
+    def pre_social_login(self, request, sociallogin):
+        """Cuentas OAuth existentes sin perfil: comprador por defecto en login."""
+        if not sociallogin.is_existing:
+            return
+        user = sociallogin.user
+        if not user_needs_oauth_role(user):
+            return
+        flow = request.session.get('oauth_flow', 'login')
+        if flow == 'login':
+            setup_profile_and_application(user, 'buyer')
+            request.session['oauth_signup_done'] = True
+            request.session.pop('oauth_needs_role', None)
+        else:
+            request.session['oauth_needs_role'] = user.pk
+
     def populate_user(self, request, sociallogin, data):
         user = super().populate_user(request, sociallogin, data)
         extra = sociallogin.account.extra_data or {}
@@ -138,8 +154,13 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
         user = super().save_user(request, sociallogin, form)
 
         role = request.session.pop('oauth_signup_role', None)
+        flow = request.session.pop('oauth_flow', None) or 'signup'
         if role in ('buyer', 'seller'):
             setup_profile_and_application(user, role)
+            request.session['oauth_signup_done'] = True
+            request.session.pop('oauth_needs_role', None)
+        elif flow == 'login':
+            setup_profile_and_application(user, 'buyer')
             request.session['oauth_signup_done'] = True
             request.session.pop('oauth_needs_role', None)
         elif user_needs_oauth_role(user):
