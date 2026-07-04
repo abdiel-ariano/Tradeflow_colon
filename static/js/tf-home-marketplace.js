@@ -43,7 +43,17 @@
   }
 
   function initProductMedia() {
+    var wraps = document.querySelectorAll('.hm-alibaba [data-hm-media], .hm-marketplace [data-hm-media]');
+    wraps.forEach(function (wrap) {
+      wrap.classList.add('is-loaded');
+    });
     document.querySelectorAll('.hm-alibaba [data-hm-media] img, .hm-marketplace [data-hm-media] img').forEach(bindMediaImage);
+  }
+
+  function finalizeProductMedia() {
+    document.querySelectorAll('.hm-alibaba [data-hm-media], .hm-marketplace [data-hm-media]').forEach(function (wrap) {
+      wrap.classList.add('is-loaded');
+    });
   }
 
   var config = document.getElementById('hm-marketplace-config');
@@ -128,6 +138,8 @@
 
   function init() {
     initProductMedia();
+    window.addEventListener('load', finalizeProductMedia, { once: true });
+    window.setTimeout(finalizeProductMedia, 400);
   }
 
   if (document.readyState === 'loading') {

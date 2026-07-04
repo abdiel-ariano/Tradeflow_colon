@@ -59,7 +59,11 @@ class HomeMarketplaceCardsTests(TestCase):
         self.assertIn('/static/images/catalog-seeds/', html)
         self.assertNotIn('/static/images/category-icons/', html)
 
-    def test_home_has_categories_modal(self):
+    def test_home_has_no_infinite_shimmer_overlays(self):
+        response = self.client.get('/')
+        self.assertNotContains(response, 'hm-media__shimmer')
+        self.assertContains(response, 'hm-visual is-loaded')
+        self.assertContains(response, 'tf-home-marketplace.js')
         response = self.client.get('/')
         self.assertContains(response, 'hm-cat-modal')
         self.assertContains(response, 'data-cat-modal-open')

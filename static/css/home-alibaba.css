@@ -35,6 +35,14 @@ body.cat-catalog-page .tf-main {
   overflow: hidden;
 }
 
+/* Marketplace home SSR images — no infinite shimmer overlay */
+.hm-alibaba .hm-media__shimmer,
+.hm-marketplace .hm-media__shimmer {
+  display: none !important;
+  animation: none !important;
+  opacity: 0 !important;
+}
+
 .navbar-secondary .is-active {
   font-weight: 600;
   color: var(--tf-navy, #0F2A44);
