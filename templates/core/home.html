@@ -56,6 +56,6 @@
 
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
-<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-marketplace.js' %}?v={{ tf_asset_version|default:'2' }}"></script>
+<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-marketplace.js' %}?v={{ tf_asset_version|default:'3' }}"></script>
 <script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'1' }}"></script>
 {% endblock %}

@@ -190,7 +190,9 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 }
 
 .hm-media.is-loaded .hm-media__shimmer,
-.hm-media.is-error .hm-media__shimmer {
+.hm-media.is-error .hm-media__shimmer,
+[data-hm-media].is-loaded .hm-media__shimmer,
+[data-hm-media].is-error .hm-media__shimmer {
   opacity: 0;
   animation: none;
 }
@@ -207,7 +209,9 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
     transform 0.7s var(--hm-ease-out);
 }
 
-.hm-media.is-loaded .hm-media__img {
+.hm-media.is-loaded .hm-media__img,
+[data-hm-media].is-loaded .hm-media__img,
+[data-hm-media].is-loaded .hm-visual__img {
   opacity: 1;
   transform: scale(1);
 }

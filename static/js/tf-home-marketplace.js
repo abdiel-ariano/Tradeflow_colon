@@ -1,8 +1,50 @@
 /**
- * TradeFlow Colón — home marketplace inquiry actions
+ * TradeFlow Colón — home marketplace (inquiry actions + product media loading)
  */
 (function () {
   'use strict';
+
+  var mediaFallback = window.TFHomeMediaFallback || function () {};
+
+  function markMediaLoaded(img) {
+    var wrap = img.closest('[data-hm-media]');
+    if (!wrap) return;
+    wrap.classList.add('is-loaded');
+    if (img.classList.contains('is-placeholder')) {
+      wrap.classList.add('is-error');
+    }
+  }
+
+  function bindMediaImage(img) {
+    function onLoad() {
+      markMediaLoaded(img);
+    }
+
+    function onError() {
+      var prev = img.src;
+      mediaFallback(img);
+      if (img.src !== prev) {
+        img.addEventListener('load', onLoad, { once: true });
+        img.addEventListener('error', function () {
+          markMediaLoaded(img);
+        }, { once: true });
+        return;
+      }
+      markMediaLoaded(img);
+    }
+
+    if (img.complete && img.naturalWidth > 0) {
+      onLoad();
+      return;
+    }
+
+    img.addEventListener('load', onLoad, { once: true });
+    img.addEventListener('error', onError, { once: true });
+  }
+
+  function initProductMedia() {
+    document.querySelectorAll('.hm-alibaba [data-hm-media] img, .hm-marketplace [data-hm-media] img').forEach(bindMediaImage);
+  }
 
   var config = document.getElementById('hm-marketplace-config');
   var inquiryUrlPattern = config ? config.getAttribute('data-inquiry-url') : '';
@@ -83,4 +125,14 @@
     event.stopPropagation();
     addToInquiry(btn.getAttribute('data-product-id'), btn);
   });
+
+  function init() {
+    initProductMedia();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
