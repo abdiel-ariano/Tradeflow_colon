@@ -89,6 +89,26 @@ def user_needs_oauth_role(user: User) -> bool:
     return profile.role not in ('buyer', 'seller')
 
 
+def should_auto_activate_user(user: User) -> bool:
+    """Compradores (o sin perfil) no quedan bloqueados por is_active=False legacy."""
+    if not user or not user.pk:
+        return False
+    try:
+        role = user.profile.role
+    except Exception:
+        return True
+    return role in (None, 'buyer')
+
+
+def activate_user_if_eligible(user: User) -> bool:
+    if user.is_active or not should_auto_activate_user(user):
+        return False
+    user.is_active = True
+    user.save(update_fields=['is_active'])
+    log.info('auto_activated_user user_id=%s', user.pk)
+    return True
+
+
 class TradeFlowAccountAdapter(DefaultAccountAdapter):
     """Disable allauth email signup; custom /signup/ handles registration."""
 
@@ -105,13 +125,41 @@ class TradeFlowAccountAdapter(DefaultAccountAdapter):
             return reverse('oauth_post_signup')
         return super().get_login_redirect_url(request)
 
+    def pre_login(
+        self,
+        request,
+        user,
+        *,
+        email_verification=None,
+        signal_kwargs=None,
+        email=None,
+        signup=False,
+        redirect_url=None,
+    ):
+        activate_user_if_eligible(user)
+        if not user.is_active:
+            return self.respond_user_inactive(request, user)
+        return None
+
+    def respond_user_inactive(self, request, user):
+        from django.shortcuts import redirect
+
+        try:
+            role = user.profile.role
+        except Exception:
+            role = None
+        if role == 'seller':
+            return redirect('pending_approval')
+        return redirect('oauth_post_signup')
+
 
 class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
-        """Cuentas OAuth existentes sin perfil: comprador por defecto en login."""
+        """Cuentas OAuth existentes: reactivar compradores y completar perfil."""
         if not sociallogin.is_existing:
             return
         user = sociallogin.user
+        activate_user_if_eligible(user)
         if not user_needs_oauth_role(user):
             return
         flow = request.session.get('oauth_flow', 'login')
@@ -165,6 +213,8 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
             request.session.pop('oauth_needs_role', None)
         elif user_needs_oauth_role(user):
             request.session['oauth_needs_role'] = user.pk
+        user.is_active = True
+        user.save(update_fields=['is_active'])
         return user
 
     def get_signup_redirect_url(self, request, sociallogin):

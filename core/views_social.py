@@ -40,6 +40,28 @@ def _store_oauth_next(request: HttpRequest) -> None:
 
 
 @require_GET
+def redirect_accounts_inactive(request: HttpRequest) -> HttpResponse:
+    """Evita la plantilla genérica de allauth para cuentas inactivas."""
+    if request.user.is_authenticated:
+        from core.social_auth import activate_user_if_eligible
+
+        activate_user_if_eligible(request.user)
+        if request.user.is_active:
+            return redirect('oauth_post_signup')
+        try:
+            if request.user.profile.role == 'seller':
+                return redirect('pending_approval')
+        except Exception:
+            pass
+        return redirect('oauth_post_signup')
+    messages.info(
+        request,
+        'Inicia sesión de nuevo para continuar con la verificación de email.',
+    )
+    return redirect('login')
+
+
+@require_GET
 def redirect_accounts_login(request: HttpRequest) -> HttpResponse:
     return _redirect_with_query(request, 'login')
 

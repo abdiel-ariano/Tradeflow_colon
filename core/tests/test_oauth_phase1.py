@@ -68,6 +68,10 @@ class OAuthFlowViewsTests(TestCase):
         resp = self.client.get('/accounts/signup/')
         self.assertRedirects(resp, reverse('signup'))
 
+    def test_accounts_inactive_redirects_anonymous_to_login(self):
+        resp = self.client.get('/accounts/inactive/')
+        self.assertRedirects(resp, reverse('login'))
+
     def test_oauth_complete_signup_creates_profile(self):
         user = User.objects.create_user(
             username='newoauth',

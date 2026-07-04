@@ -83,6 +83,7 @@ urlpatterns = [
     ),
     path('accounts/login/', views_social.redirect_accounts_login),
     path('accounts/signup/', views_social.redirect_accounts_signup),
+    path('accounts/inactive/', views_social.redirect_accounts_inactive),
     path('accounts/', include('allauth.urls')),
     path('solicitud-acceso/', views.solicitud_acceso, name='solicitud_acceso'),
     path('onboarding/solicitud-enviada/', onboarding.onboarding_solicitud_enviada, name='onboarding_solicitud_enviada'),
