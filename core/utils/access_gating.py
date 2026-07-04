@@ -122,9 +122,13 @@ def application_gate_status(email: str) -> str | None:
 
 
 def email_verification_required(user) -> bool:
-    if not getattr(settings, 'REQUIRE_EMAIL_VERIFICATION', False):
+    """True si el usuario debe completar verificación OTP antes de rutas operativas."""
+    if not user or not user.is_authenticated or user_is_platform_exempt(user):
         return False
-    if user_is_platform_exempt(user):
+    if not (
+        getattr(settings, 'REQUIRE_EMAIL_VERIFICATION', False)
+        or getattr(settings, 'EXPO_DEMO_MODE', False)
+    ):
         return False
     try:
         return not user.profile.email_verificado
