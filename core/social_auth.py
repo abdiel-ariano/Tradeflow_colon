@@ -94,6 +94,9 @@ class TradeFlowAccountAdapter(DefaultAccountAdapter):
     def is_open_for_signup(self, request):
         return False
 
+    def get_signup_redirect_url(self, request):
+        return reverse('signup')
+
     def get_login_redirect_url(self, request):
         if request.session.get('oauth_needs_role'):
             return reverse('oauth_complete_signup')
