@@ -25,6 +25,7 @@ class EmailVerificationOtpTests(TestCase):
             user=self.user,
             role='buyer',
             email_verificado=False,
+            onboarding_completed_at=None,
         )
         self.client = Client()
 

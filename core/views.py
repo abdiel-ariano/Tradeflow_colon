@@ -520,6 +520,9 @@ def signup_view(request):
             }
         )
         profile.role = role
+        # Compradores nuevos deben completar el wizard de personalización post-registro
+        if role == 'buyer':
+            profile.onboarding_completed_at = None
         profile.save()
 
         # Create application record

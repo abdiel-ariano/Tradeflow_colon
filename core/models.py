@@ -109,8 +109,9 @@ class UserProfile(models.Model):
     onboarding_completed_at = models.DateTimeField(
         null=True,
         blank=True,
+        default=timezone.now,
         verbose_name='Buyer onboarding completed',
-        help_text='Null = wizard pending (new accounts only; existing users grandfathered).',
+        help_text='Null = wizard pending for new buyer signups; default now for legacy/test profiles.',
     )
 
     class Meta:
