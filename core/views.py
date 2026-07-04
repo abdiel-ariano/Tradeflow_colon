@@ -555,7 +555,11 @@ def signup_view(request):
 
 
 def _redirect_after_email_verified(user):
-    """Redirección post-verificación por rol (sin alterar login_view)."""
+    """Redirección post-verificación por rol (+ wizard comprador si aplica)."""
+    from django.urls import reverse
+
+    from core.utils.access_gating import buyer_onboarding_redirect_name
+
     try:
         role = user.profile.role
     except UserProfile.DoesNotExist:
@@ -564,6 +568,9 @@ def _redirect_after_email_verified(user):
         return redirect('dashboard')
     if role == 'seller':
         return redirect('portal_seller')
+    buyer_route = buyer_onboarding_redirect_name(user)
+    if buyer_route:
+        return redirect(buyer_route)
     return redirect('tienda')
 
 
@@ -3201,6 +3208,15 @@ def tienda(request):
         5,
         diverse_images=True,
     )
+    if not is_guest:
+        try:
+            profile = request.user.profile
+            if profile.role == 'buyer' and profile.preferred_categories.exists():
+                buyer_recommended_products = merch.buyer_recommended_products(
+                    profile, limit=20, diverse=5,
+                )
+        except Exception:
+            pass
 
     paginator = Paginator(productos, 12)
     page_obj = paginator.get_page(request.GET.get('page', 1))

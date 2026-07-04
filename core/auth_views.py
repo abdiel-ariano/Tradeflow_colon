@@ -41,8 +41,10 @@ def _wants_json(request: HttpRequest) -> bool:
 
 
 def _redirect_by_role(user) -> str:
-    """Destino post-verificación según rol."""
+    """Destino post-verificación según rol (+ wizard comprador si aplica)."""
     from django.urls import reverse
+
+    from core.utils.access_gating import buyer_onboarding_redirect_name
 
     try:
         role = user.profile.role
@@ -52,6 +54,9 @@ def _redirect_by_role(user) -> str:
         return reverse('dashboard')
     if role == 'seller':
         return reverse('portal_seller')
+    buyer_route = buyer_onboarding_redirect_name(user)
+    if buyer_route:
+        return reverse(buyer_route)
     return reverse('tienda')
 
 

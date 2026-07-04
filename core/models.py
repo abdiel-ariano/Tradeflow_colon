@@ -87,6 +87,31 @@ class UserProfile(models.Model):
         blank=True,
         verbose_name='Last cart reminder sent',
     )
+    # ── Onboarding comprador (wizard post-registro estilo marketplace) ──
+    PURCHASE_INTENT_CHOICES = [
+        ('business', _('Business purchase')),
+        ('personal', _('Personal purchase')),
+    ]
+    purchase_intent = models.CharField(
+        max_length=16,
+        choices=PURCHASE_INTENT_CHOICES,
+        blank=True,
+        verbose_name='Purchase intent',
+        help_text='Step 1 — wholesale vs personal shopping.',
+    )
+    preferred_categories = models.ManyToManyField(
+        'Category',
+        blank=True,
+        related_name='buyer_profiles',
+        verbose_name='Preferred categories',
+        help_text='Step 2 — category interests for personalization.',
+    )
+    onboarding_completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Buyer onboarding completed',
+        help_text='Null = wizard pending (new accounts only; existing users grandfathered).',
+    )
 
     class Meta:
         verbose_name        = 'User profile'

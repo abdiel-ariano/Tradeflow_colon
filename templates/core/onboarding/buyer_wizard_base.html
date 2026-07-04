@@ -1,0 +1,65 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% comment %}
+================================================================================
+TradeFlow Colón — base del wizard onboarding comprador (3 pasos).
+Layout split-screen: panel marca (naranja/navy) + panel interactivo.
+Paleta: --tf-navy, --tf-orange, --tf-light (design tokens).
+================================================================================
+{% endcomment %}
+{% block title %}{% block onboarding_title %}Personaliza tu experiencia{% endblock %} — TradeFlow Colón{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/buyer-onboarding.css' %}?v={{ tf_asset_version|default:'1' }}">
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="bo-page auth-page">
+  <div class="bo-shell signup-shell">
+    {# Panel izquierdo — mensaje motivacional por paso #}
+    <aside class="bo-brand-panel signup-brand-panel" aria-hidden="false">
+      <div class="bo-brand-logo signup-brand-logo">
+        {% include "core/includes/tf_logo.html" with variant="icon-white" size="sm" class="signup-brand-logo__img" eager=1 %}
+        <span class="signup-brand-name">TradeFlow <span class="signup-brand-accent">Colón</span></span>
+      </div>
+      <div class="bo-brand-visual" aria-hidden="true">
+        <div class="bo-brand-badge">
+          <span class="bo-brand-badge__letter">T</span>
+          <span class="bo-brand-badge__bag" aria-hidden="true">🛍</span>
+        </div>
+      </div>
+      <p class="bo-brand-message">{% block bo_brand_message %}Personalicemos tu experiencia de compra mayorista{% endblock %}</p>
+    </aside>
+
+    {# Panel derecho — contenido del paso #}
+    <div class="bo-form-panel signup-form-panel">
+      <header class="bo-form-header">
+        <div class="bo-form-nav">
+          {% block bo_back %}
+          {% if onboarding_step > 1 %}
+          <a href="{% if onboarding_step == 2 %}{% url 'buyer_onboarding_step1' %}{% elif onboarding_step == 3 %}{% url 'buyer_onboarding_step2' %}{% endif %}" class="bo-back-link">&lt; Volver</a>
+          {% else %}
+          <span class="bo-back-spacer"></span>
+          {% endif %}
+          {% endblock %}
+          <form method="post" action="{% url 'buyer_onboarding_skip' %}" class="bo-skip-form">
+            {% csrf_token %}
+            <button type="submit" class="bo-skip-link">Omitir</button>
+          </form>
+        </div>
+        <p class="bo-step-label" aria-live="polite">({{ onboarding_step }}/{{ onboarding_total }})</p>
+      </header>
+
+      <div class="bo-form-body">
+        {% block bo_content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}" src="{% static 'js/buyer-onboarding.js' %}?v={{ tf_asset_version|default:'1' }}"></script>
+{% endblock %}

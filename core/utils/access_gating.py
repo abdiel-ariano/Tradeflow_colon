@@ -166,6 +166,29 @@ def is_browse_path(path: str) -> bool:
     return any(p == pref.rstrip('/') or p.startswith(pref) for pref in BROWSE_PATH_PREFIXES)
 
 
+def buyer_onboarding_pending(user) -> bool:
+    """True si el comprador debe ver el wizard de personalización (cuentas nuevas)."""
+    if not user or not user.is_authenticated or user_is_platform_exempt(user):
+        return False
+    # OTP primero — onboarding solo tras email verificado (o si la verificación está desactivada)
+    if email_verification_required(user):
+        return False
+    try:
+        profile = user.profile
+    except UserProfile.DoesNotExist:
+        return False
+    if profile.role != 'buyer':
+        return False
+    return profile.onboarding_completed_at is None
+
+
+def buyer_onboarding_redirect_name(user) -> str | None:
+    """Ruta del paso 1 si el onboarding comprador está pendiente."""
+    if buyer_onboarding_pending(user):
+        return 'buyer_onboarding_step1'
+    return None
+
+
 def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     """
     Nombre de ruta Django para redirigir, o None si el usuario puede continuar.
@@ -179,11 +202,17 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     if scope == 'browse':
         if user_needs_role_completion(user):
             return 'oauth_complete_signup'
+        buyer_route = buyer_onboarding_redirect_name(user)
+        if buyer_route:
+            return buyer_route
         return None
 
     try:
         profile = user.profile
         if user.is_active and profile.email_verificado and profile.role:
+            buyer_route = buyer_onboarding_redirect_name(user)
+            if buyer_route:
+                return buyer_route
             return None
     except UserProfile.DoesNotExist:
         if user_needs_role_completion(user):
@@ -206,6 +235,10 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
         return 'pending_approval'
     if gate == 'rejected':
         return 'onboarding_aplicacion_rechazada'
+
+    buyer_route = buyer_onboarding_redirect_name(user)
+    if buyer_route:
+        return buyer_route
     return None
 
 
