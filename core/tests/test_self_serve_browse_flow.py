@@ -15,7 +15,22 @@ from core.social_auth import user_needs_oauth_role
     },
 )
 class OAuthSelfServeFlowTests(TestCase):
-    def test_login_oauth_without_profile_needs_role_before_adapter(self):
+    def test_auto_activate_inactive_buyer_on_pre_login(self):
+        from core.social_auth import TradeFlowAccountAdapter, activate_user_if_eligible
+
+        user = User.objects.create_user(username='react', email='r@t.pa', password='x')
+        user.is_active = False
+        user.save()
+        UserProfile.objects.create(user=user, role='buyer', email_verificado=False)
+        self.assertTrue(activate_user_if_eligible(user))
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+
+        adapter = TradeFlowAccountAdapter()
+        fake_request = type('R', (), {'session': {}})()
+        self.assertIsNone(
+            adapter.pre_login(fake_request, user, email_verification='none', signup=False)
+        )
         user = User.objects.create_user(username='oauth_new', email='new@g.pa', password='unused')
         user.set_unusable_password()
         user.save()
