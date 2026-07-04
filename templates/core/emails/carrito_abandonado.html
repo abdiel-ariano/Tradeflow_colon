@@ -1,0 +1,66 @@
+{% extends "core/emails/base_marketplace.html" %}
+{% block email_title %}¿Se te olvidó algo? — TradeFlow Colón{% endblock %}
+{% block preheader %}Tus productos siguen en el carrito. Completa tu pedido en TradeFlow Colón.{% endblock %}
+{% block hero_title %}¿Se te olvidó algo?{% endblock %}
+{% block hero_lead %}
+<p style="margin:10px 0 0;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:rgba(255,255,255,0.88);">
+  {{ items_count }} producto{{ items_count|pluralize }} te esperan en tu carrito mayorista.
+</p>
+{% endblock %}
+{% block body_content %}
+<p style="margin:0 0 16px;">Hola {{ user.first_name|default:user.username }},</p>
+<p style="margin:0 0 20px;">Dejaste artículos en tu carrito de <strong style="color:#0F2A44;">TradeFlow Colón</strong>. Los proveedores de la Zona Libre mantienen stock limitado — te recomendamos completar tu pedido pronto.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 20px;border:1px solid #e8eaed;border-radius:8px;overflow:hidden;">
+  <tr>
+    <td style="padding:12px 16px;background:#f8f9fa;font-size:12px;font-weight:700;color:#5f6368;text-transform:uppercase;letter-spacing:0.04em;">
+      Tu carrito
+    </td>
+  </tr>
+  {% for item in cart_preview %}
+  <tr>
+    <td style="padding:12px 16px;border-top:1px solid #e8eaed;font-size:14px;color:#3c4043;">
+      <strong style="color:#0F2A44;">{{ item.nombre }}</strong>
+      <span style="color:#80868b;"> · {{ item.cantidad }} uds.</span>
+      {% if item.subtotal %}
+      <span style="float:right;font-weight:600;color:#0F2A44;">${{ item.subtotal }}</span>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  {% if extra_items_count %}
+  <tr>
+    <td style="padding:10px 16px;border-top:1px solid #e8eaed;font-size:13px;color:#80868b;font-style:italic;">
+      y {{ extra_items_count }} producto{{ extra_items_count|pluralize }} más…
+    </td>
+  </tr>
+  {% endif %}
+  {% if cart_total %}
+  <tr>
+    <td style="padding:14px 16px;border-top:1px solid #e8eaed;background:#fafafa;font-size:15px;font-weight:700;color:#0F2A44;text-align:right;">
+      Total estimado: ${{ cart_total }}
+    </td>
+  </tr>
+  {% endif %}
+</table>
+<p style="margin:0;font-size:13px;color:#80868b;">Los precios pueden variar según disponibilidad. El total final se confirma en checkout.</p>
+{% endblock %}
+{% block cta %}
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:24px auto 8px;">
+  <tr>
+    <td align="center" style="border-radius:8px;background:#F26522;">
+      <a href="{{ url_carrito }}" target="_blank" style="display:inline-block;padding:14px 32px;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">
+        Volver a mi carrito
+      </a>
+    </td>
+  </tr>
+</table>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:8px auto 0;">
+  <tr>
+    <td align="center">
+      <a href="{{ url_tienda }}" target="_blank" style="font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#1a73e8;text-decoration:none;">
+        Seguir explorando el catálogo →
+      </a>
+    </td>
+  </tr>
+</table>
+{% endblock %}

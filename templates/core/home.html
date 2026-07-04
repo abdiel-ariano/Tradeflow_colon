@@ -12,7 +12,9 @@
 <div id="hm-marketplace-config" hidden
      data-inquiry-url="{% url 'catalogo_agregar_inquiry' 0 %}"></div>
 
-{% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='home' %}
+{% if not request.user.is_authenticated %}
+  {% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='home' %}
+{% endif %}
 
 <div class="trust-strip hm-marketplace-trust" aria-label="TradeFlow guarantees">
   <div class="trust-strip-inner">

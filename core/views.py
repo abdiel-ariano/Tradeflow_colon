@@ -2751,6 +2751,38 @@ def _save_carrito(request, carrito):
     """
     request.session['carrito'] = carrito
     request.session.modified = True
+    _sync_cart_activity_profile(request, carrito)
+
+
+def _sync_cart_activity_profile(request, carrito):
+    """Persist cart snapshot on buyer profile for abandonment reminders."""
+    user = getattr(request, 'user', None)
+    if not user or not user.is_authenticated:
+        return
+    try:
+        profile = user.profile
+    except Exception:
+        return
+    if profile.role != 'buyer':
+        return
+
+    from django.utils import timezone
+
+    count = _contar_items(carrito)
+    profile.cart_items_count = count
+    if count > 0:
+        profile.cart_last_activity_at = timezone.now()
+        profile.cart_reminder_sent_at = None
+    else:
+        profile.cart_last_activity_at = None
+        profile.cart_reminder_sent_at = None
+    profile.save(
+        update_fields=[
+            'cart_items_count',
+            'cart_last_activity_at',
+            'cart_reminder_sent_at',
+        ],
+    )
 
 
 def _calcular_total(carrito):

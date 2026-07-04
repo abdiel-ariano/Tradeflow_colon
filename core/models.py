@@ -72,6 +72,21 @@ class UserProfile(models.Model):
         blank=True,
         verbose_name='Email code expiration',
     )
+    cart_items_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Cart items (snapshot)',
+        help_text='Units in session cart — used for abandonment reminders.',
+    )
+    cart_last_activity_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Last cart activity',
+    )
+    cart_reminder_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Last cart reminder sent',
+    )
 
     class Meta:
         verbose_name        = 'User profile'

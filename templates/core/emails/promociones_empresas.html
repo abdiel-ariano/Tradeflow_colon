@@ -1,0 +1,60 @@
+{% extends "core/emails/base_marketplace.html" %}
+{% block email_title %}Promociones CFZ — TradeFlow Colón{% endblock %}
+{% block preheader %}Ofertas y proveedores destacados en la Zona Libre de Colón esta semana.{% endblock %}
+{% block hero_title %}Promociones de empresas CFZ{% endblock %}
+{% block hero_lead %}
+<p style="margin:10px 0 0;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:rgba(255,255,255,0.88);">
+  Descubre proveedores verificados con ofertas activas en TradeFlow Colón.
+</p>
+{% endblock %}
+{% block body_content %}
+<p style="margin:0 0 20px;">Hola {{ user.first_name|default:user.username }},</p>
+<p style="margin:0 0 20px;">Estas empresas de la <strong style="color:#0F2A44;">Zona Libre de Colón</strong> tienen productos destacados y promociones activas en el marketplace:</p>
+{% for promo in promociones %}
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 14px;border:1px solid #e8eaed;border-radius:10px;overflow:hidden;">
+  <tr>
+    <td style="padding:16px 18px;background:#ffffff;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+        <tr>
+          <td style="vertical-align:top;">
+            <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#F26522;">
+              {% if promo.is_verified %}✓ Verificada{% else %}Proveedor CFZ{% endif %}
+            </p>
+            <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#0F2A44;">{{ promo.company_name }}</p>
+            {% if promo.tagline %}
+            <p style="margin:0 0 8px;font-size:13px;color:#5f6368;line-height:1.4;">{{ promo.tagline }}</p>
+            {% endif %}
+            {% if promo.product_name %}
+            <p style="margin:0;font-size:13px;color:#3c4043;">
+              <strong>{{ promo.product_name }}</strong>
+              {% if promo.price %} · desde <span style="color:#F26522;font-weight:700;">${{ promo.price }}</span>{% endif %}
+            </p>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-top:12px;">
+            <a href="{{ promo.url }}" target="_blank" style="font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:13px;font-weight:600;color:#1a73e8;text-decoration:none;">
+              Ver catálogo →
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+{% empty %}
+<p style="margin:0;font-size:14px;color:#5f6368;">Explora el catálogo completo para descubrir nuevas ofertas de la ZLC.</p>
+{% endfor %}
+{% endblock %}
+{% block cta %}
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:24px auto 8px;">
+  <tr>
+    <td align="center" style="border-radius:8px;background:#F26522;">
+      <a href="{{ url_catalogo }}" target="_blank" style="display:inline-block;padding:14px 32px;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">
+        Ver todas las ofertas
+      </a>
+    </td>
+  </tr>
+</table>
+{% endblock %}

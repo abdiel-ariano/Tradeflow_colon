@@ -9,7 +9,7 @@
 (function (global) {
   'use strict';
 
-  var FALLBACK_MS = 4500;
+  var FALLBACK_MS = 1200;
 
   function ready(host) {
     if (!host || host.classList.contains('is-ready')) return;
@@ -65,8 +65,13 @@
         requestAnimationFrame(function () { ready(host); });
       });
     };
-    if (document.readyState === 'complete') run();
-    else window.addEventListener('load', run, { once: true });
+    if (document.readyState === 'complete') {
+      run();
+    } else if (document.readyState === 'interactive') {
+      run();
+    } else {
+      document.addEventListener('DOMContentLoaded', run, { once: true });
+    }
   }
 
   function initAll(root) {

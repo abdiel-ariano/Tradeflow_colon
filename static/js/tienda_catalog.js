@@ -117,9 +117,22 @@
     }
   }
 
+  var loadingSafetyTimer = null;
+
   function setLoading(on) {
     catalogRoot.classList.toggle('is-loading', on);
     catalogRoot.setAttribute('aria-busy', on ? 'true' : 'false');
+    if (loadingSafetyTimer) {
+      clearTimeout(loadingSafetyTimer);
+      loadingSafetyTimer = null;
+    }
+    if (on) {
+      loadingSafetyTimer = setTimeout(function () {
+        loadingSafetyTimer = null;
+        loading = false;
+        setLoading(false);
+      }, 12000);
+    }
   }
 
   function loadCatalog(url, pushState, scrollMode) {

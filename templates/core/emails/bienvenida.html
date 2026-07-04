@@ -1,84 +1,50 @@
-{% comment %}
-================================================================================
-templates/core/emails/bienvenida.html — TradeFlow Colón
-Propósito: correo de bienvenida tras verificar el email.
-Contexto: enviar_bienvenida; CTA según rol (es_seller desde la vista Python).
-================================================================================
-{% endcomment %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome — TradeFlow Colón</title>
-</head>
-<body style="margin:0;padding:0;background-color:#F2F3F5;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#F2F3F5;padding:32px 12px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background-color:#FFFFFF;border-radius:12px;overflow:hidden;border:1px solid #D1D5DB;">
-          <tr>
-            <td style="background-color:#0F2A44;padding:28px 32px;text-align:center;">
-              <p style="margin:0;font-size:22px;font-weight:700;color:#FFFFFF;">TradeFlow Colón</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:32px 28px;color:#374151;font-size:15px;line-height:1.6;">
-              <p style="margin:0 0 16px;font-size:20px;font-weight:700;color:#0F2A44;">
-                Welcome to TradeFlow Colón, {{ user.first_name|default:user.username }}!
-              </p>
-              <p style="margin:0 0 24px;">
-                Your email was verified. You can now use the platform according to your account type.
-              </p>
-              {% if es_seller %}
-              <p style="margin:0 0 12px;font-weight:600;color:#0F2A44;">Manage your products in the CFZ</p>
-              <p style="margin:0 0 24px;text-align:center;">
-                <a href="{{ url_panel }}"
-                   style="display:inline-block;padding:12px 28px;background-color:#F26522;color:#FFFFFF;text-decoration:none;border-radius:8px;font-weight:700;">
-                  Go to my dashboard
-                </a>
-              </p>
-              {% else %}
-              <p style="margin:0 0 12px;font-weight:600;color:#0F2A44;">Explore the CFZ catalog</p>
-              <p style="margin:0 0 24px;text-align:center;">
-                <a href="{{ url_tienda }}"
-                   style="display:inline-block;padding:12px 28px;background-color:#F26522;color:#FFFFFF;text-decoration:none;border-radius:8px;font-weight:700;">
-                  Go to store
-                </a>
-              </p>
-              {% endif %}
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:8px;">
-                <tr>
-                  <td style="padding:12px;background:#F9FAFB;border-radius:8px;font-size:13px;">
-                    <strong style="color:#0F2A44;">Verified catalog</strong><br>
-                    Free Zone companies with visible stock.
-                  </td>
-                </tr>
-                <tr><td style="height:8px;"></td></tr>
-                <tr>
-                  <td style="padding:12px;background:#F9FAFB;border-radius:8px;font-size:13px;">
-                    <strong style="color:#0F2A44;">Traceable orders</strong><br>
-                    Statuses, invoices, and export documents.
-                  </td>
-                </tr>
-                <tr><td style="height:8px;"></td></tr>
-                <tr>
-                  <td style="padding:12px;background:#F9FAFB;border-radius:8px;font-size:13px;">
-                    <strong style="color:#0F2A44;">Formal quotes</strong><br>
-                    RFQ with seller response and downloadable PDF.
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:20px 28px;border-top:1px solid #E5E7EB;font-size:12px;color:#6B7A88;">
-              <p style="margin:0;">Contact: {{ tradeflow_contact_email }} · Colón Free Zone, Panama</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+{% extends "core/emails/base_marketplace.html" %}
+{% block email_title %}Bienvenido — TradeFlow Colón{% endblock %}
+{% block preheader %}Tu cuenta está lista. Explora proveedores verificados en la ZLC.{% endblock %}
+{% block hero_title %}¡Bienvenido, {{ user.first_name|default:user.username }}!{% endblock %}
+{% block hero_lead %}
+<p style="margin:10px 0 0;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:rgba(255,255,255,0.88);">
+  Tu correo fue verificado. Ya puedes comprar, cotizar y gestionar pedidos en el marketplace.
+</p>
+{% endblock %}
+{% block body_content %}
+<p style="margin:0 0 16px;">Gracias por unirte a <strong style="color:#0F2A44;">TradeFlow Colón</strong>, el marketplace mayorista de la Zona Libre de Colón.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 20px;">
+  <tr>
+    <td style="padding:14px 16px;background:#f8f9fa;border-radius:8px;border:1px solid #e8eaed;">
+      <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0F2A44;">Catálogo verificado</p>
+      <p style="margin:0;font-size:13px;color:#5f6368;">Empresas CFZ con stock visible y documentación export-ready.</p>
+    </td>
+  </tr>
+  <tr><td style="height:8px;"></td></tr>
+  <tr>
+    <td style="padding:14px 16px;background:#f8f9fa;border-radius:8px;border:1px solid #e8eaed;">
+      <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0F2A44;">Pedidos trazables</p>
+      <p style="margin:0;font-size:13px;color:#5f6368;">Estados, facturas y documentos de exportación en un solo lugar.</p>
+    </td>
+  </tr>
+  <tr><td style="height:8px;"></td></tr>
+  <tr>
+    <td style="padding:14px 16px;background:#f8f9fa;border-radius:8px;border:1px solid #e8eaed;">
+      <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0F2A44;">Cotizaciones formales</p>
+      <p style="margin:0;font-size:13px;color:#5f6368;">RFQ con respuesta del vendedor y PDF descargable.</p>
+    </td>
+  </tr>
+</table>
+{% if es_seller %}
+<p style="margin:0;font-size:14px;color:#5f6368;">Configura tu catálogo y empieza a recibir pedidos desde el panel de vendedor.</p>
+{% else %}
+<p style="margin:0;font-size:14px;color:#5f6368;">Explora miles de SKUs mayoristas y arma tu carrito sin compromiso.</p>
+{% endif %}
+{% endblock %}
+{% block cta %}
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:24px auto 8px;">
+  <tr>
+    <td align="center" style="border-radius:8px;background:#F26522;">
+      <a href="{% if es_seller %}{{ url_panel }}{% else %}{{ url_tienda }}{% endif %}" target="_blank" style="display:inline-block;padding:14px 32px;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">
+        {% if es_seller %}Ir a mi panel{% else %}Explorar catálogo{% endif %}
+      </a>
+    </td>
+  </tr>
+</table>
+{% endblock %}

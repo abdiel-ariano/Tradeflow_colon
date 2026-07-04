@@ -1,0 +1,100 @@
+{% comment %}
+Gmail-friendly marketplace email shell — table layout, inline styles, Resend-safe.
+Blocks: preheader, hero_title, hero_lead, body_content, cta_url, cta_label, footer_note
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <title>{% block email_title %}TradeFlow Colón{% endblock %}</title>
+  <!--[if mso]>
+  <style type="text/css">
+    body, table, td { font-family: Arial, Helvetica, sans-serif !important; }
+  </style>
+  <![endif]-->
+</head>
+<body style="margin:0;padding:0;background-color:#f1f3f4;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+    {% block preheader %}TradeFlow Colón — Zona Libre de Colón, Panamá{% endblock %}
+  </div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f1f3f4;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;">
+          <!-- Brand bar -->
+          <tr>
+            <td style="padding:0 0 12px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#5f6368;">
+                    <span style="display:inline-block;width:28px;height:28px;border-radius:6px;background:#F26522;color:#fff;font-weight:800;font-size:11px;line-height:28px;text-align:center;vertical-align:middle;margin-right:8px;">TF</span>
+                    <strong style="color:#0F2A44;">TradeFlow Colón</strong>
+                    <span style="color:#9aa0a6;"> · CFZ Wholesale</span>
+                  </td>
+                  <td align="right" style="font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#9aa0a6;">
+                    {% block header_link %}
+                    <a href="{{ site_url|default:'https://tradeflowcolon.com' }}" style="color:#1a73e8;text-decoration:none;">Ver tienda</a>
+                    {% endblock %}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Card -->
+          <tr>
+            <td style="background:#ffffff;border:1px solid #dadce0;border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(60,64,67,0.15);">
+              {% block hero %}
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#0F2A44 0%,#1B3B63 100%);padding:28px 28px 24px;">
+                    <p style="margin:0 0 8px;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.72);">
+                      Zona Libre de Colón · Panamá
+                    </p>
+                    <h1 style="margin:0;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:24px;line-height:1.25;font-weight:700;color:#ffffff;">
+                      {% block hero_title %}TradeFlow Colón{% endblock %}
+                    </h1>
+                    {% block hero_lead %}{% endblock %}
+                  </td>
+                </tr>
+              </table>
+              {% endblock %}
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="padding:28px;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#3c4043;">
+                    {% block body_content %}{% endblock %}
+                    {% block cta %}
+                    {% if cta_url and cta_label %}
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:24px auto 8px;">
+                      <tr>
+                        <td align="center" style="border-radius:8px;background:#F26522;">
+                          <a href="{{ cta_url }}" target="_blank" style="display:inline-block;padding:14px 32px;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">
+                            {{ cta_label }}
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                    {% endif %}
+                    {% endblock %}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:20px 8px 8px;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#80868b;text-align:center;">
+              {% block footer_note %}
+              <p style="margin:0 0 8px;">¿Necesitas ayuda? Escríbenos a <a href="mailto:{{ tradeflow_contact_email }}" style="color:#1a73e8;text-decoration:none;">{{ tradeflow_contact_email }}</a></p>
+              <p style="margin:0;">TradeFlow Colón · Marketplace B2B Zona Libre de Colón</p>
+              {% endblock %}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
