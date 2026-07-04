@@ -47,8 +47,13 @@
         </svg>
         <span class="cart-badge{% if carrito_count %} has-count{% endif %}" id="cat-inquiry-badge">{% firstof carrito_count 0 %}</span>
       </a>
+      {% if request.user.is_authenticated %}
+      <a href="{% url 'mi_perfil' %}" class="link-signin">{{ request.user.get_full_name|default:request.user.username }}</a>
+      <a href="{% url 'logout' %}" class="btn-create-account" style="background:transparent;color:var(--tf-navy,#0F2A44);border:1.5px solid var(--tf-border-soft,#E5E7EB);">Sign out</a>
+      {% else %}
       <a href="{% url 'login' %}" class="link-signin">Sign in</a>
       <a href="{% url 'signup' %}" class="btn-create-account">Create account</a>
+      {% endif %}
     </div>
   </div>
 

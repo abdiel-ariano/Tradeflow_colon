@@ -122,17 +122,31 @@
     });
   });
 
+  var progressSafetyTimer = null;
+
   function startProgressBar() {
     if (!progressBar) return;
+    if (progressSafetyTimer) {
+      clearTimeout(progressSafetyTimer);
+      progressSafetyTimer = null;
+    }
     progressBar.classList.remove('is-done', 'is-complete');
     progressBar.style.width = '0%';
     progressBar.setAttribute('aria-hidden', 'false');
     void progressBar.offsetWidth;
     progressBar.classList.add('is-active');
+    progressSafetyTimer = setTimeout(function () {
+      progressSafetyTimer = null;
+      finishProgressBar();
+    }, 8000);
   }
 
   function finishProgressBar() {
     if (!progressBar) return;
+    if (progressSafetyTimer) {
+      clearTimeout(progressSafetyTimer);
+      progressSafetyTimer = null;
+    }
     progressBar.classList.remove('is-active');
     progressBar.classList.add('is-complete');
     setTimeout(function () {
@@ -496,9 +510,9 @@
         finishProgressBar();
       })
       .catch(function (err) {
-        if (err && err.name === 'AbortError') return;
         if (requestId !== activeRequestId) return;
         finishProgressBar();
+        if (err && err.name === 'AbortError') return;
         window.location.href = url;
       });
   }

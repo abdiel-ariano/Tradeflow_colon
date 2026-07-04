@@ -374,13 +374,14 @@ def enviar_bienvenida(user: User) -> None:
         email_template_context({
             'user': user,
             'es_seller': es_seller,
+            'site_url': base,
             'url_tienda': base + reverse('tienda'),
             'url_panel': base + reverse('portal_seller'),
         }),
     )
     try:
         send_mail(
-            subject='Welcome to TradeFlow Colón!',
+            subject='¡Bienvenido a TradeFlow Colón!',
             message=strip_tags(html_message),
             from_email=getattr(
                 settings,
@@ -658,3 +659,171 @@ def enviar_solicitud_decision(app, aprobada: bool):
     except Exception as exc:
         log.exception('enviar_solicitud_decision: %s', exc)
         return EmailSendResult(ok=False, channel='error', detail=str(exc)[:500])
+
+
+def _cart_preview_items(carrito: dict, limit: int = 3) -> list[dict]:
+    """First N cart lines for abandonment email preview."""
+    preview = []
+    for item in list(carrito.values())[:limit]:
+        preview.append({
+            'nombre': item.get('nombre', 'Producto'),
+            'cantidad': item.get('cantidad', 1),
+            'subtotal': item.get('subtotal', ''),
+        })
+    return preview
+
+
+def enviar_carrito_abandonado(user: User, carrito: dict) -> bool:
+    """
+    Email «¿Se te olvidó algo?» cuando el carrito lleva tiempo sin checkout.
+
+    Args:
+        user: Comprador autenticado con email verificado.
+        carrito: Dict de sesión ``{product_id: {nombre, cantidad, subtotal}}``.
+
+    Returns:
+        bool: True si el envío fue exitoso.
+    """
+    if not carrito:
+        return False
+    to_email = (user.email or '').strip()
+    if not to_email:
+        return False
+
+    base = _public_base_url()
+    items_count = sum(int(i.get('cantidad', 0) or 0) for i in carrito.values())
+    preview = _cart_preview_items(carrito)
+    total = _calcular_total_carrito(carrito)
+
+    html_message = render_to_string(
+        'core/emails/carrito_abandonado.html',
+        email_template_context({
+            'user': user,
+            'site_url': base,
+            'items_count': items_count,
+            'cart_preview': preview,
+            'extra_items_count': max(0, len(carrito) - len(preview)),
+            'cart_total': f'{total:.2f}',
+            'url_carrito': base + reverse('ver_carrito'),
+            'url_tienda': base + reverse('tienda'),
+        }),
+    )
+    plain = strip_tags(html_message)
+    try:
+        return send_mail(
+            subject='¿Se te olvidó algo? — TradeFlow Colón',
+            message=plain,
+            from_email=getattr(
+                settings,
+                'DEFAULT_FROM_EMAIL',
+                'TradeFlow <no-reply@tradeflow.pa>',
+            ),
+            recipient_list=[to_email],
+            html_message=html_message,
+            fail_silently=True,
+            email_type='cart_reminder',
+        )
+    except Exception as exc:
+        log.exception('enviar_carrito_abandonado falló: %s', exc)
+        return False
+
+
+def _calcular_total_carrito(carrito: dict):
+    from decimal import Decimal
+    total = Decimal('0.00')
+    for item in carrito.values():
+        total += Decimal(str(item.get('subtotal', '0') or '0'))
+    return total
+
+
+def _promociones_empresas_context(limit: int = 4) -> list[dict]:
+    """Featured companies with promo products for marketing email."""
+    from django.db.models import Count, F, Q
+
+    from core.models import Company, Product
+
+    base = _public_base_url()
+    promos = []
+    companies = (
+        Company.objects.filter(is_verified=True, products__is_active=True)
+        .annotate(
+            num_productos=Count('products', filter=Q(products__is_active=True)),
+        )
+        .distinct()
+        .order_by('-is_featured', '-num_productos')[:limit]
+    )
+    for company in companies:
+        product = (
+            Product.objects.filter(
+                company=company,
+                is_active=True,
+                promo_price__isnull=False,
+                promo_price__lt=F('unit_price'),
+            )
+            .order_by('-merchandising_priority', 'name')
+            .first()
+        )
+        if not product:
+            product = (
+                Product.objects.filter(company=company, is_active=True)
+                .order_by('-merchandising_priority', '-is_featured', 'name')
+                .first()
+            )
+        price = None
+        product_name = None
+        if product:
+            product_name = product.name
+            price_val = product.promo_price if product.promo_price else product.unit_price
+            if price_val is not None:
+                price = f'{price_val:.2f}'
+        promos.append({
+            'company_name': company.name,
+            'tagline': getattr(company, 'tagline_es', '') or '',
+            'is_verified': company.is_verified,
+            'product_name': product_name,
+            'price': price,
+            'url': base + reverse('catalogo_publico') + f'?empresa={company.pk}',
+        })
+    return promos
+
+
+def enviar_promociones_empresas(user: User) -> bool:
+    """
+    Email de promociones de empresas verificadas en la CFZ.
+
+    Returns:
+        bool: True si el envío fue exitoso.
+    """
+    to_email = (user.email or '').strip()
+    if not to_email:
+        return False
+
+    base = _public_base_url()
+    promociones = _promociones_empresas_context()
+    html_message = render_to_string(
+        'core/emails/promociones_empresas.html',
+        email_template_context({
+            'user': user,
+            'site_url': base,
+            'promociones': promociones,
+            'url_catalogo': base + reverse('catalogo_publico') + '?orden=promo',
+        }),
+    )
+    plain = strip_tags(html_message)
+    try:
+        return send_mail(
+            subject='Promociones CFZ — TradeFlow Colón',
+            message=plain,
+            from_email=getattr(
+                settings,
+                'DEFAULT_FROM_EMAIL',
+                'TradeFlow <no-reply@tradeflow.pa>',
+            ),
+            recipient_list=[to_email],
+            html_message=html_message,
+            fail_silently=True,
+            email_type='company_promotions',
+        )
+    except Exception as exc:
+        log.exception('enviar_promociones_empresas falló: %s', exc)
+        return False
