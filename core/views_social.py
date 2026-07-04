@@ -32,6 +32,13 @@ def _redirect_with_query(request: HttpRequest, route_name: str) -> HttpResponse:
     return redirect(url)
 
 
+def _store_oauth_next(request: HttpRequest) -> None:
+    next_url = (request.GET.get('next') or '').strip()
+    if next_url.startswith('/') and '://' not in next_url and not next_url.startswith('//'):
+        request.session['oauth_next'] = next_url
+        request.session.modified = True
+
+
 @require_GET
 def redirect_accounts_login(request: HttpRequest) -> HttpResponse:
     return _redirect_with_query(request, 'login')
@@ -55,6 +62,7 @@ def oauth_begin_signup(request: HttpRequest, provider: str) -> HttpResponse:
     request.session['oauth_signup_role'] = role
     request.session['oauth_flow'] = 'signup'
     request.session.modified = True
+    _store_oauth_next(request)
     return _redirect_to_provider_login(provider)
 
 
@@ -68,13 +76,14 @@ def oauth_begin_login(request: HttpRequest, provider: str) -> HttpResponse:
     request.session.pop('oauth_signup_role', None)
     request.session['oauth_flow'] = 'login'
     request.session.modified = True
+    _store_oauth_next(request)
     return _redirect_to_provider_login(provider)
 
 
 @login_required
 @require_http_methods(['GET', 'POST'])
 def oauth_complete_signup(request: HttpRequest) -> HttpResponse:
-    """New OAuth users who started from /login/ must pick buyer/seller."""
+    """Registro OAuth como vendedor (comprador se asigna automáticamente en login)."""
     if not user_needs_oauth_role(request.user):
         request.session.pop('oauth_needs_role', None)
         return redirect('oauth_post_signup')
@@ -101,10 +110,10 @@ def oauth_complete_signup(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_GET
 def oauth_post_signup(request: HttpRequest) -> HttpResponse:
-    """Activation + OTP redirect — same outcomes as manual signup_view."""
-    from django.conf import settings
+    """Activa cuenta, envía OTP y redirige según verificación pendiente."""
     from django.contrib.auth import login
 
+    from core.utils.access_gating import email_verification_required
     from core.views import AUTH_MODEL_BACKEND
     from core.views_onboarding import finalize_signup_with_otp
 
@@ -115,13 +124,16 @@ def oauth_post_signup(request: HttpRequest) -> HttpResponse:
     if user_needs_oauth_role(user):
         return redirect('oauth_complete_signup')
 
-    if getattr(settings, 'EXPO_DEMO_MODE', False):
-        if not user.is_active:
-            user.is_active = True
-            user.save(update_fields=['is_active'])
-        login(request, user, backend=AUTH_MODEL_BACKEND)
+    if not user.is_active:
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+
+    login(request, user, backend=AUTH_MODEL_BACKEND)
+
+    if email_verification_required(user):
         return finalize_signup_with_otp(request, user)
 
-    user.is_active = False
-    user.save(update_fields=['is_active'])
-    return redirect('pending_approval')
+    next_url = request.session.pop('oauth_next', None)
+    if next_url:
+        return redirect(next_url)
+    return redirect('home')

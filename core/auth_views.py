@@ -171,7 +171,7 @@ def verify_otp_view(request: HttpRequest) -> HttpResponse:
     dest = _redirect_by_role(request.user)
     from core.utils.access_gating import onboarding_redirect_name
 
-    gate = onboarding_redirect_name(request.user)
+    gate = onboarding_redirect_name(request.user, scope='restricted')
     if gate:
         from django.urls import reverse
 

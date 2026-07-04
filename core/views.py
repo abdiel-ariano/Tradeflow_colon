@@ -46,7 +46,7 @@ import qrcode
 from folium.plugins import MarkerCluster
 from django.core import signing
 
-from .decorators import admin_required, buyer_required, catalog_access, seller_required
+from .decorators import admin_required, buyer_required, catalog_access, guest_or_buyer_cart, seller_required
 from .forms import SellerProductForm, SellerInventoryForm
 from .email_service import enviar_codigo_verificacion as enviar_codigo_email
 from .models import (
@@ -352,15 +352,29 @@ def _login_template_context(**extra):
     return ctx
 
 
+def _safe_next_url(request, raw_next: str = '') -> str:
+    """Normaliza ?next= evitando open redirects y bucles login/home."""
+    next_url = (raw_next or request.GET.get('next') or '').strip()
+    if not next_url.startswith('/') or next_url.startswith('//') or '://' in next_url:
+        return ''
+    home_path = reverse('home')
+    login_path = reverse('login')
+    if (
+        next_url in (home_path, '/')
+        or next_url == login_path
+        or next_url.startswith(login_path + '?')
+    ):
+        return ''
+    return next_url
+
+
 def login_view(request):
     """Login con redirección inteligente según rol."""
     if request.user.is_authenticated:
-        from core.utils.access_gating import onboarding_redirect_name
-
-        gate_route = onboarding_redirect_name(request.user)
-        if gate_route:
-            return redirect(gate_route)
-        return redirect(_redirect_by_role(request.user))
+        next_url = _safe_next_url(request)
+        if next_url:
+            return redirect(next_url)
+        return redirect('home')
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
@@ -369,61 +383,24 @@ def login_view(request):
 
         if user is not None:
             login(request, user, backend=AUTH_MODEL_BACKEND)
+            messages.success(
+                request,
+                f'Welcome, {user.first_name or user.username}!',
+            )
+            next_url = _safe_next_url(request)
+            if next_url:
+                from core.utils.access_gating import is_protected_path, onboarding_redirect_name
 
-            try:
-                profile = user.profile
-                if user.is_active and profile.email_verificado and profile.role:
-                    messages.success(
-                        request,
-                        f'Welcome, {user.first_name or user.username}!',
-                    )
-                    next_url = (request.GET.get('next') or '').strip()
-                    if next_url.startswith('//') or '://' in next_url:
-                        next_url = ''
-                    elif next_url.startswith('/'):
-                        home_path = reverse('home')
-                        login_path = reverse('login')
-                        if (
-                            next_url in (home_path, '/')
-                            or next_url == login_path
-                            or next_url.startswith(login_path + '?')
-                        ):
-                            next_url = ''
-                    else:
-                        next_url = ''
-                    dest = next_url if next_url else _redirect_by_role(user)
-                    return redirect(dest)
-            except UserProfile.DoesNotExist:
-                pass
-
-            from core.utils.access_gating import onboarding_redirect_name
-
-            gate_route = onboarding_redirect_name(user)
-            if gate_route:
-                if settings.REQUIRE_EMAIL_VERIFICATION:
-                    try:
-                        if not user.profile.email_verificado:
-                            messages.info(
-                                request,
-                                'Verify your email to access all features.',
-                            )
-                    except UserProfile.DoesNotExist:
-                        pass
-                return redirect(gate_route)
-
-            messages.success(request, f'Welcome, {user.first_name or user.username}!')
-            next_url = (request.GET.get('next') or '').strip()
-            if next_url.startswith('//') or '://' in next_url:
-                next_url = ''
-            elif next_url.startswith('/'):
-                home_path = reverse('home')
-                login_path = reverse('login')
-                if next_url in (home_path, '/') or next_url == login_path or next_url.startswith(login_path + '?'):
-                    next_url = ''
-            else:
-                next_url = ''
-            dest = next_url if next_url else _redirect_by_role(user)
-            return redirect(dest)
+                if is_protected_path(next_url):
+                    gate_route = onboarding_redirect_name(user, scope='restricted')
+                    if gate_route:
+                        messages.info(
+                            request,
+                            'Verify your email to access checkout and orders.',
+                        )
+                        return redirect(gate_route)
+                return redirect(next_url)
+            return redirect('home')
         else:
             messages.error(request, 'Incorrect username or password.')
 
@@ -439,12 +416,7 @@ def logout_view(request):
 def signup_view(request):
     """Public registration: creates User + UserProfile."""
     if request.user.is_authenticated:
-        from core.utils.access_gating import onboarding_redirect_name
-
-        gate_route = onboarding_redirect_name(request.user)
-        if gate_route:
-            return redirect(gate_route)
-        return redirect(_redirect_by_role(request.user))
+        return redirect('home')
 
     if request.method == 'GET':
         return render(request, 'core/signup.html', {
@@ -561,23 +533,16 @@ def signup_view(request):
                 'role': role,
                 'company_name': '',
                 'message': '',
-                'status': 'pending',
+                'status': 'approved' if role == 'buyer' else 'pending',
             }
         )
 
-        if getattr(settings, 'EXPO_DEMO_MODE', False):
-            user.is_active = True
-            user.save(update_fields=['is_active'])
-            login(request, user, backend=AUTH_MODEL_BACKEND)
-            from core.views_onboarding import finalize_signup_with_otp
-
-            return finalize_signup_with_otp(request, user)
-
-        # Deactivate user until admin approves
-        user.is_active = False
+        user.is_active = True
         user.save(update_fields=['is_active'])
+        login(request, user, backend=AUTH_MODEL_BACKEND)
+        from core.views_onboarding import finalize_signup_with_otp
 
-        return redirect('pending_approval')
+        return finalize_signup_with_otp(request, user)
 
     return render(request, 'core/signup.html', {
         'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
@@ -827,20 +792,12 @@ def home_view(request):
     """
     Landing pública PreExpo: merchandising ORM, secciones CMS y stats reales.
 
-    Usuarios autenticados redirigen a su panel; invitados ven la landing completa.
+    Invitados y usuarios autenticados ven la landing; no se fuerza redirección al panel.
     """
-    if request.user.is_authenticated:
-        from core.utils.access_gating import onboarding_redirect_name
-
-        gate_route = onboarding_redirect_name(request.user)
-        if gate_route:
-            return redirect(gate_route)
-        return redirect(_redirect_by_role(request.user))
-
     from core.utils.tradeflow_cache import cached_guest_home_context
 
     context = cached_guest_home_context()
-    context['show_cart_actions'] = False
+    context['show_cart_actions'] = True
     stats = context.get('stats') or {}
     context['catalogo_stats'] = stats
     return render(request, 'core/home.html', context)
@@ -3084,14 +3041,7 @@ def tienda(request):
             role = request.user.profile.role
         except Exception:
             role = None
-    show_cart_actions = (
-        not is_guest
-        and (
-            role == 'buyer'
-            or role == 'admin'
-            or request.user.is_superuser
-        )
-    )
+    show_cart_actions = is_guest or role in ('buyer', 'admin') or request.user.is_superuser
 
     catalogo_base = merch.active_products_base()
     now = timezone.now()
@@ -3339,10 +3289,7 @@ def catalogo_producto_detail(request, pk):
             role = request.user.profile.role
         except Exception:
             role = None
-    show_cart_actions = (
-        not is_guest
-        and (role in ('buyer', 'admin') or request.user.is_superuser)
-    )
+    show_cart_actions = True
 
     related_products = list(
         Product.objects.filter(is_active=True, category=product.category_id)
@@ -3505,7 +3452,7 @@ def catalogo_agregar_inquiry(request, producto_id):
     return redirect('catalogo_publico')
 
 
-@buyer_required
+@guest_or_buyer_cart
 def agregar_al_carrito(request, producto_id):
     """
     Agrega un producto al carrito o incrementa su cantidad si ya existe.
@@ -3532,7 +3479,7 @@ def agregar_al_carrito(request, producto_id):
     return redirect('tienda')
 
 
-@buyer_required
+@guest_or_buyer_cart
 def quitar_del_carrito(request, producto_id):
     """
     Elimina un producto del carrito de compras.
@@ -3564,7 +3511,7 @@ def quitar_del_carrito(request, producto_id):
     return redirect('ver_carrito')
 
 
-@buyer_required
+@guest_or_buyer_cart
 def ver_carrito(request):
     """
     Muestra el contenido actual del carrito de compras.

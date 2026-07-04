@@ -12,6 +12,7 @@ from core.models import UserApplication, UserProfile
 PUBLIC_PATH_PREFIXES = (
     '/login',
     '/signup',
+    '/signup/oauth/',
     '/logout',
     '/accounts/',
     '/solicitud-acceso',
@@ -33,8 +34,6 @@ PUBLIC_PATH_PREFIXES = (
 )
 
 PROTECTED_PATH_PREFIXES = (
-    '/tienda',
-    '/carrito',
     '/checkout',
     '/mis-ordenes',
     '/cotizaciones',
@@ -49,8 +48,16 @@ PROTECTED_PATH_PREFIXES = (
     '/api/v1/pricing',
     '/api/productos',
     '/api/asistente',
-    '/api/home-merchandising',
     '/api/dashboard-stats',
+)
+
+# Rutas de compra restringidas (login + verificación); catálogo/carrito son públicos.
+BROWSE_PATH_PREFIXES = (
+    '/',
+    '/catalogo',
+    '/tienda',
+    '/carrito',
+    '/api/home-merchandising',
 )
 
 
@@ -121,6 +128,17 @@ def application_gate_status(email: str) -> str | None:
     return 'pending'
 
 
+def user_needs_role_completion(user) -> bool:
+    """Perfil ausente o rol no asignado (p. ej. OAuth sin completar)."""
+    if not user or not user.is_authenticated:
+        return False
+    try:
+        profile = user.profile
+    except UserProfile.DoesNotExist:
+        return True
+    return profile.role not in ('buyer', 'seller', 'admin')
+
+
 def email_verification_required(user) -> bool:
     """True si el usuario debe completar verificación OTP antes de rutas operativas."""
     if not user or not user.is_authenticated or user_is_platform_exempt(user):
@@ -136,11 +154,31 @@ def email_verification_required(user) -> bool:
         return True
 
 
-def onboarding_redirect_name(user) -> str | None:
+def is_protected_path(path: str) -> bool:
+    p = normalize_path(path)
+    return any(p.startswith(pref) for pref in PROTECTED_PATH_PREFIXES)
+
+
+def is_browse_path(path: str) -> bool:
+    p = normalize_path(path)
+    if p in ('/', ''):
+        return True
+    return any(p == pref.rstrip('/') or p.startswith(pref) for pref in BROWSE_PATH_PREFIXES)
+
+
+def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     """
     Nombre de ruta Django para redirigir, o None si el usuario puede continuar.
+
+    scope='browse' — catálogo, carrito, home (solo exige rol OAuth si falta).
+    scope='restricted' — checkout, pedidos, cotizaciones (email + solicitud).
     """
     if not user.is_authenticated or user_is_platform_exempt(user):
+        return None
+
+    if scope == 'browse':
+        if user_needs_role_completion(user):
+            return 'oauth_complete_signup'
         return None
 
     try:
@@ -148,7 +186,12 @@ def onboarding_redirect_name(user) -> str | None:
         if user.is_active and profile.email_verificado and profile.role:
             return None
     except UserProfile.DoesNotExist:
-        pass
+        if user_needs_role_completion(user):
+            return 'oauth_complete_signup'
+        return 'verificar_codigo'
+
+    if user_needs_role_completion(user):
+        return 'oauth_complete_signup'
 
     if not user.is_active:
         return 'pending_approval'

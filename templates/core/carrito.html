@@ -94,10 +94,17 @@
       <div class="c-row"><span>Shipping</span><span>On confirmation</span></div>
       <div class="c-total"><span>Total</span><span>USD {{ total }}</span></div>
       <div class="c-actions">
+        {% if user.is_authenticated %}
         <a href="{% url 'checkout' %}" class="c-checkout">
           <span class="material-symbols-rounded" style="font-size:20px;" aria-hidden="true">shopping_bag</span>
           Confirm order
         </a>
+        {% else %}
+        <a href="{% url 'login' %}?next={% url 'checkout' %}" class="c-checkout">
+          <span class="material-symbols-rounded" style="font-size:20px;" aria-hidden="true">login</span>
+          Sign in to checkout
+        </a>
+        {% endif %}
         <a href="{% url 'tienda' %}" class="c-continue">
           <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">arrow_back</span>
           Continue shopping
