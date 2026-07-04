@@ -1,0 +1,49 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Completa tu registro — TradeFlow Colón{% endblock %}
+{% block footer %}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
+<link rel="stylesheet" href="{% static 'css/signup.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/auth-oauth.css' %}?v={{ tf_asset_version|default:'1' }}">
+{% endblock %}
+{% block content %}
+<div class="auth-page signup-page">
+  <div class="signup-shell signup-shell--narrow">
+    <div class="signup-form-panel signup-form-panel--full">
+      <header class="signup-form-header">
+        <h1 class="signup-form-title">Elige tu tipo de cuenta</h1>
+        <p class="signup-form-subtitle">Un paso más para completar tu registro con Google o Microsoft.</p>
+      </header>
+      <form method="post" action="{% url 'oauth_complete_signup' %}">
+        {% csrf_token %}
+        <div class="auth-toggle" role="radiogroup" aria-label="Tipo de cuenta">
+          <div class="auth-toggle-cell">
+            <input type="radio" name="role" id="r_buyer" value="buyer" checked>
+            <label for="r_buyer">
+              <span class="auth-toggle-main">
+                <span class="material-symbols-rounded" aria-hidden="true">work</span>
+                Comprador
+              </span>
+              <span class="auth-toggle-sub">Solicitar cotizaciones</span>
+            </label>
+          </div>
+          <div class="auth-toggle-cell">
+            <input type="radio" name="role" id="r_seller" value="seller"{% if selected_role == 'seller' %} checked{% endif %}>
+            <label for="r_seller">
+              <span class="auth-toggle-main">
+                <span class="material-symbols-rounded" aria-hidden="true">store</span>
+                Vendedor
+              </span>
+              <span class="auth-toggle-sub">Publicar catálogo CFZ</span>
+            </label>
+          </div>
+        </div>
+        <button type="submit" class="auth-submit">
+          Continuar
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

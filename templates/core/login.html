@@ -14,6 +14,7 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
 {% block footer %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
+<link rel="stylesheet" href="{% static 'css/auth-oauth.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
@@ -173,7 +174,7 @@ Sin comparaciones == en tags; pills/toggles con JavaScript.
         <span class="material-symbols-rounded" style="font-size:18px;">login</span> Sign in
       </button>
     </form>
-    <div class="auth-divider">or</div>
+    {% include "core/includes/oauth_buttons_login.html" %}
     <div class="auth-footer">
       Don’t have an account? <a href="{% url 'signup' %}">Sign up for free</a>
     </div>

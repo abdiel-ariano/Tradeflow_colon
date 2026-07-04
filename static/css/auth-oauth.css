@@ -1,0 +1,82 @@
+/*
+ * TradeFlow Colón — OAuth buttons (signup + login)
+ */
+.oauth-block {
+  margin-top: 0.25rem;
+}
+
+.oauth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oauth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--signup-border, #D8D6CE);
+  background: #fff;
+  color: var(--tf-body, #1e293b);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+    background-color 140ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 100ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .oauth-btn:hover {
+    border-color: #b8b5ad;
+    background: #fafafa;
+  }
+}
+
+.oauth-btn:active {
+  transform: scale(0.98);
+}
+
+.oauth-btn:focus-visible {
+  outline: 2px solid var(--signup-orange, var(--tf-orange, #F26522));
+  outline-offset: 2px;
+}
+
+.oauth-btn__icon {
+  flex-shrink: 0;
+}
+
+.signup-shell--narrow {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.signup-form-panel--full {
+  width: 100%;
+}
+
+.auth-page .oauth-block .auth-divider {
+  margin: 1rem 0 0.875rem;
+}
+
+.auth-card .oauth-block .auth-divider {
+  margin: 1.25rem 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oauth-btn {
+    transition: none;
+  }
+
+  .oauth-btn:active {
+    transform: none;
+  }
+}

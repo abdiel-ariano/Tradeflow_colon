@@ -13,6 +13,7 @@ PUBLIC_PATH_PREFIXES = (
     '/login',
     '/signup',
     '/logout',
+    '/accounts/',
     '/solicitud-acceso',
     '/pending-approval',
     '/onboarding/',

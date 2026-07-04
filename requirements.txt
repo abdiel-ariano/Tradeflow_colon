@@ -59,6 +59,9 @@ qrcode[pil]>=7.4,<8.0
 # ── Supabase (Postgres remoto, Storage, Edge Functions) ───────────────────
 supabase>=2.4,<3.0
 
+# ── OAuth (Google / Microsoft signup & login) ───────────────────────────────
+django-allauth==65.18.0
+
 # ── Rate limiting login ────────────────────────────────────────────────────
 django-axes>=6.3,<7.0
 

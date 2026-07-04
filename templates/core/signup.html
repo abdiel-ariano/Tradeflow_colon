@@ -11,6 +11,7 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 <link rel="stylesheet" href="{% static 'css/signup.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/auth-oauth.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
 {% block footer %}{% endblock %}
 {% block content %}
@@ -69,6 +70,8 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
             </label>
           </div>
         </div>
+
+        {% include "core/includes/oauth_buttons_signup.html" %}
 
         <fieldset class="signup-field-group">
           <legend class="signup-field-group-title">Datos de contacto</legend>
@@ -171,6 +174,18 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
 
   if (buyerRadio) buyerRadio.addEventListener('change', syncRoleUi);
   if (sellerRadio) sellerRadio.addEventListener('change', syncRoleUi);
+
+  document.querySelectorAll('.js-oauth-signup').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var base = btn.getAttribute('data-base-url');
+      if (!base) return;
+      var roleInput = document.querySelector('input[name="role"]:checked');
+      var role = roleInput ? roleInput.value : 'buyer';
+      var sep = base.indexOf('?') >= 0 ? '&' : '?';
+      window.location.href = base + sep + 'role=' + encodeURIComponent(role);
+    });
+  });
 
   function syncPasswordToggle(btn, visible) {
     var inputId = btn.getAttribute('data-target');

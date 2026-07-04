@@ -91,7 +91,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'axes',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.microsoft',
     'core',
 ]
 
@@ -104,6 +110,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'axes.middleware.AxesMiddleware',
     'core.middleware.onboarding_gate.OnboardingGateMiddleware',
@@ -138,6 +145,7 @@ TEMPLATES = [
                 'core.context_processors.enterprise_saas',
                 'core.context_processors.tf_asset_version',
                 'core.context_processors.nav_header_categories',
+                'core.context_processors.social_auth_context',
             ],
         },
     },
@@ -281,13 +289,56 @@ MEDIA_ROOT = BASE_DIR / 'media'
 SERVE_LOCAL_MEDIA = config('SERVE_LOCAL_MEDIA', default=DEBUG, cast=bool)
 
 # ── Autenticación ──────────────────────────────────────────────────────────
+SITE_ID = 1
+
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 LOGIN_URL           = '/login/'
 LOGIN_REDIRECT_URL  = '/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+ACCOUNT_ADAPTER = 'core.social_auth.TradeFlowAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'core.social_auth.TradeFlowSocialAccountAdapter'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = False
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
+_GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='').strip()
+_GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='').strip()
+_MICROSOFT_CLIENT_ID = config('MICROSOFT_CLIENT_ID', default='').strip()
+_MICROSOFT_CLIENT_SECRET = config('MICROSOFT_CLIENT_SECRET', default='').strip()
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': _GOOGLE_CLIENT_ID,
+            'secret': _GOOGLE_CLIENT_SECRET,
+            'key': '',
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    },
+    'microsoft': {
+        'APP': {
+            'client_id': _MICROSOFT_CLIENT_ID,
+            'secret': _MICROSOFT_CLIENT_SECRET,
+            'key': '',
+        },
+        'TENANT': 'common',
+    },
+}
+
+SOCIAL_AUTH_ENABLED = bool(
+    (_GOOGLE_CLIENT_ID and _GOOGLE_CLIENT_SECRET)
+    or (_MICROSOFT_CLIENT_ID and _MICROSOFT_CLIENT_SECRET)
+)
 
 # ── Mensajes flash ─────────────────────────────────────────────────────────
 from django.contrib.messages import constants as messages

@@ -4,9 +4,10 @@ TRADEFLOW COLÓN — core/urls.py  (v4 — Roles + Signup)
 =============================================================================
 """
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import include, path
 
 from . import views
+from . import views_social
 from . import views_onboarding as onboarding
 from . import views_transportistas as vt
 from . import views_api_enterprise as vapi
@@ -60,6 +61,27 @@ urlpatterns = [
     ),
     path('logout/',  views.logout_view, name='logout'),
     path('signup/',  views.signup_view, name='signup'),
+    path(
+        'signup/oauth/begin/<str:provider>/',
+        views_social.oauth_begin_signup,
+        name='oauth_begin_signup',
+    ),
+    path(
+        'login/oauth/begin/<str:provider>/',
+        views_social.oauth_begin_login,
+        name='oauth_begin_login',
+    ),
+    path(
+        'signup/oauth/completar/',
+        views_social.oauth_complete_signup,
+        name='oauth_complete_signup',
+    ),
+    path(
+        'signup/oauth/finalizar/',
+        views_social.oauth_post_signup,
+        name='oauth_post_signup',
+    ),
+    path('accounts/', include('allauth.urls')),
     path('solicitud-acceso/', views.solicitud_acceso, name='solicitud_acceso'),
     path('onboarding/solicitud-enviada/', onboarding.onboarding_solicitud_enviada, name='onboarding_solicitud_enviada'),
     path('onboarding/verificar-email/', onboarding.onboarding_espera_verificacion, name='onboarding_espera_verificacion'),
