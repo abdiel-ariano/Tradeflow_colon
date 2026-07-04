@@ -84,3 +84,17 @@ class OAuthFlowViewsTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         profile = UserProfile.objects.get(user=user)
         self.assertEqual(profile.role, 'buyer')
+
+    def test_verificar_no_redirect_loop_without_profile(self):
+        user = User.objects.create_user(
+            username='loop_user',
+            email='loop@test.pa',
+            password='unused',
+        )
+        user.is_active = True
+        user.save()
+        self.client.force_login(user)
+        resp = self.client.get('/verificar/', follow=True)
+        self.assertLess(len(resp.redirect_chain), 4)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('/signup/oauth/completar/', resp.redirect_chain[0][0])

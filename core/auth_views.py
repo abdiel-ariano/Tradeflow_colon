@@ -69,15 +69,10 @@ def _json_error(error_code: str, detail: str, status: int = 400) -> JsonResponse
 
 
 def _email_verification_gate_active(user) -> bool:
-    """OTP requerido por configuración global o por registro en modo demo Expo."""
-    if settings.REQUIRE_EMAIL_VERIFICATION:
-        return True
-    if getattr(settings, 'EXPO_DEMO_MODE', False):
-        try:
-            return not user.profile.email_verificado
-        except Exception:
-            return True
-    return False
+    """OTP requerido — misma regla que onboarding middleware y decoradores."""
+    from core.utils.access_gating import email_verification_required
+
+    return email_verification_required(user)
 
 
 @login_required
@@ -102,6 +97,10 @@ def verify_otp_view(request: HttpRequest) -> HttpResponse:
     try:
         profile = request.user.profile
     except Exception:
+        from core.social_auth import user_needs_oauth_role
+
+        if user_needs_oauth_role(request.user):
+            return redirect('oauth_complete_signup')
         if _wants_json(request):
             return _json_error('profile_missing', 'User profile not found.', 400)
         from django.contrib import messages

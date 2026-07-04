@@ -355,6 +355,11 @@ def _login_template_context(**extra):
 def login_view(request):
     """Login con redirección inteligente según rol."""
     if request.user.is_authenticated:
+        from core.utils.access_gating import onboarding_redirect_name
+
+        gate_route = onboarding_redirect_name(request.user)
+        if gate_route:
+            return redirect(gate_route)
         return redirect(_redirect_by_role(request.user))
 
     if request.method == 'POST':
@@ -434,6 +439,11 @@ def logout_view(request):
 def signup_view(request):
     """Public registration: creates User + UserProfile."""
     if request.user.is_authenticated:
+        from core.utils.access_gating import onboarding_redirect_name
+
+        gate_route = onboarding_redirect_name(request.user)
+        if gate_route:
+            return redirect(gate_route)
         return redirect(_redirect_by_role(request.user))
 
     if request.method == 'GET':
