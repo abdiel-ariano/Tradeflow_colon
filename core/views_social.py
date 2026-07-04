@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods
 
 from core.social_auth import (
@@ -20,6 +21,25 @@ from core.social_auth import (
 
 def _redirect_to_provider_login(provider: str) -> HttpResponse:
     return redirect(f'/accounts/{provider}/login/')
+
+
+def _redirect_with_query(request: HttpRequest, route_name: str) -> HttpResponse:
+    """Send users to TradeFlow pages instead of default allauth templates."""
+    url = reverse(route_name)
+    qs = request.META.get('QUERY_STRING', '')
+    if qs:
+        url = f'{url}?{qs}'
+    return redirect(url)
+
+
+@require_GET
+def redirect_accounts_login(request: HttpRequest) -> HttpResponse:
+    return _redirect_with_query(request, 'login')
+
+
+@require_GET
+def redirect_accounts_signup(request: HttpRequest) -> HttpResponse:
+    return _redirect_with_query(request, 'signup')
 
 
 @require_GET
