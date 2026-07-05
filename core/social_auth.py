@@ -1,5 +1,5 @@
 """
-TradeFlow Colón — OAuth helpers (Google / Microsoft via django-allauth).
+TradeFlow Colón — OAuth helpers (Google / Outlook / LinkedIn via django-allauth).
 """
 from __future__ import annotations
 
@@ -15,14 +15,21 @@ from django.urls import reverse
 log = logging.getLogger('tradeflow.social_auth')
 
 USERNAME_REGEX = re.compile(r'^[a-zA-Z][a-zA-Z0-9._]{2,29}$')
-ALLOWED_OAUTH_PROVIDERS = frozenset({'google', 'microsoft'})
+ALLOWED_OAUTH_PROVIDERS = frozenset({'google', 'microsoft', 'linkedin'})
+OAUTH_PROVIDER_ALIASES = {'linkedin': 'linkedin_oauth2'}
+
+
+def resolve_oauth_provider(provider: str) -> str:
+    """Map public slug (linkedin) to django-allauth provider id."""
+    return OAUTH_PROVIDER_ALIASES.get(provider, provider)
 
 
 def provider_is_enabled(provider: str) -> bool:
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         return False
+    resolved = resolve_oauth_provider(provider)
     providers = getattr(settings, 'SOCIALACCOUNT_PROVIDERS', {})
-    app = providers.get(provider, {}).get('APP', {})
+    app = providers.get(resolved, {}).get('APP', {})
     return bool(app.get('client_id') and app.get('secret'))
 
 

@@ -164,6 +164,8 @@ def social_auth_context(request):
             providers.append('google')
         if provider_is_enabled('microsoft'):
             providers.append('microsoft')
+        if provider_is_enabled('linkedin'):
+            providers.append('linkedin')
     return {
         'social_auth_enabled': bool(providers),
         'social_auth_providers': providers,

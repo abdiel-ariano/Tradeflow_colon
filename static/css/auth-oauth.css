@@ -54,6 +54,10 @@
   flex-shrink: 0;
 }
 
+.oauth-btn--linkedin:hover {
+  border-color: #0A66C2;
+}
+
 .signup-shell--narrow {
   max-width: 480px;
   margin: 0 auto;
