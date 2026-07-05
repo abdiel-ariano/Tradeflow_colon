@@ -1,16 +1,14 @@
 {% comment %}
-================================================================================
-TiendaProductGrid — grid de productos (landing vs filtrado Alibaba).
+TiendaProductGrid — grid de productos (landing vs filtrado).
 
-tienda_filtered=True  → product-grid + tienda_alibaba_card (estilo Alibaba)
-tienda_filtered=False → td-grid + product_card_unified (landing / sin filtros)
-================================================================================
+tienda_filtered=True  → product-grid + catalogo_card (misma card que home/catálogo)
+tienda_filtered=False → td-grid + product_card_unified
 {% endcomment %}
-<div class="{% if tienda_filtered %}hm-marketplace product-grid td-alibaba-grid{% else %}td-grid{% endif %}"
+<div class="{% if tienda_filtered %}hm-marketplace product-grid td-catalog-grid{% else %}td-grid{% endif %}"
      id="td-product-grid">
   {% for producto in productos %}
     {% if tienda_filtered %}
-    {% include "core/includes/tienda/tienda_alibaba_card.html" with product=producto show_cart_actions=show_cart_actions card_index=forloop.counter %}
+    {% include "core/includes/catalogo_card.html" with product=producto show_cart_actions=show_cart_actions card_index=forloop.counter %}
     {% else %}
     {% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}
     {% endif %}

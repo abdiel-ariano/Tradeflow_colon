@@ -45,13 +45,15 @@ class TiendaFeaturedSearchTests(TestCase):
         self.assertContains(resp, 'CFZ Featured Co')
         self.assertContains(resp, 'Proveedor destacado')
 
-    def test_categoria_filter_shows_alibaba_cards(self):
+    def test_categoria_filter_shows_catalog_cards(self):
         resp = self.client.get(f'/tienda/?categoria={self.category.pk}')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'td-alibaba-results-bar')
-        self.assertContains(resp, 'td-alibaba-card')
+        self.assertContains(resp, 'product-card')
+        self.assertContains(resp, 'catalog-sidebar')
         self.assertContains(resp, 'Electronics')
-        self.assertContains(resp, 'MOQ: 1 unidad')
+        self.assertContains(resp, 'MOQ')
+        self.assertNotContains(resp, 'td-alibaba-card')
         self.assertNotContains(resp, 'td-featured--category')
 
     def test_partial_ajax_includes_featured_supplier(self):

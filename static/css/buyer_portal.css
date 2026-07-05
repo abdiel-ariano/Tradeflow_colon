@@ -293,6 +293,56 @@
   background: #fff;
 }
 
+.td-wrap--sidebar-right {
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
+  gap: 24px;
+}
+
+.td-wrap--sidebar-right .td-catalog-sidebar {
+  width: 100%;
+  top: 80px;
+}
+
+.td-catalog-grid {
+  margin-top: 4px;
+}
+
+.td-catalog-grid .td-empty--alibaba {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.filter-section-title--static {
+  cursor: default;
+  margin-bottom: 8px;
+}
+
+.catalogo-card__cart-form {
+  margin: 0;
+  width: 100%;
+}
+
+.hm-marketplace .btn-inquiry--disabled {
+  opacity: 0.55;
+  cursor: default;
+  pointer-events: none;
+}
+
+@media (max-width: 1023px) {
+  .td-wrap--sidebar-right {
+    grid-template-columns: 1fr;
+  }
+
+  .td-wrap--sidebar-right .td-catalog-sidebar {
+    display: none;
+  }
+
+  .td-wrap--sidebar-right .td-catalog-sidebar.is-open {
+    display: block;
+  }
+}
+
 .td-alibaba-results-bar {
   margin-bottom: 20px;
   padding-bottom: 16px;
@@ -322,38 +372,7 @@
   color: var(--tf-muted, #64748b);
 }
 
-.td-alibaba-grid {
-  margin-top: 4px;
-}
-
-.td-alibaba-grid .td-empty--alibaba {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 48px 24px;
-}
-
-.td-alibaba-card .supplier-meta {
-  color: var(--tf-blue, #2E5B8A);
-  text-decoration: none;
-}
-
-.td-alibaba-card .supplier-meta:hover {
-  color: var(--tf-orange, #F26522);
-  text-decoration: underline;
-}
-
-.td-alibaba-card__form {
-  margin: 0;
-  width: 100%;
-}
-
-.td-alibaba-card .btn-inquiry--disabled {
-  opacity: 0.55;
-  cursor: default;
-  pointer-events: none;
-}
-
-/* Cards Alibaba dentro de tienda filtrada — reutiliza catalog.css vía .hm-marketplace */
+/* Cards reutilizadas (catalogo_card) en vista filtrada */
 .td-page--filtered .hm-marketplace .product-card {
   height: auto;
   min-height: 320px;
