@@ -1,0 +1,110 @@
+{% load tf_catalog %}
+{% comment %}
+Sidebar de filtros — mismo patrón visual que catalogo_publico.html (catalog.css).
+Usado en /tienda/ cuando hay categoría, empresa, búsqueda o tab activo.
+{% endcomment %}
+<button type="button" class="btn-filter-floating" id="tienda-filter-open" aria-expanded="false" aria-controls="tienda-sidebar">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+    <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+    <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+    <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+  </svg>
+  Filtros
+</button>
+<div class="sidebar-overlay" id="tienda-sidebar-backdrop" hidden></div>
+
+<aside class="catalog-sidebar td-catalog-sidebar" id="tienda-sidebar" aria-label="Filtros del catálogo">
+  <div class="sidebar-heading-row">
+    <h2 class="sidebar-heading">Filtrar resultados</h2>
+    <button type="button" class="sidebar-close" id="tienda-sidebar-close" aria-label="Cerrar filtros">✕</button>
+  </div>
+  <form method="get" action="{% url 'tienda' %}" id="filtros-form" class="cat-filters-form td-filters-form">
+    {% if tab_catalogo and tab_catalogo != 'todos' %}
+    <input type="hidden" name="tab" value="{{ tab_catalogo }}">
+    {% endif %}
+    <input type="hidden" name="empresa" id="tienda-filter-empresa" value="{{ empresa_activa|default:'' }}">
+
+    <div class="filter-section">
+      <label class="filter-section-title filter-section-title--static" for="input-buscar">Buscar</label>
+      <div class="filter-section-body">
+        <input type="search" name="buscar" id="input-buscar" class="filter-select td-search-input"
+               placeholder="Productos, SKU…" value="{{ buscar }}" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
+        Ordenar por
+        <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-body">
+        <select name="orden" id="select-orden" class="filter-select cat-sort-select" aria-label="Ordenar resultados">
+          <option value="nombre">Nombre A-Z</option>
+          <option value="precio_asc">Precio: menor a mayor</option>
+          <option value="precio_desc">Precio: mayor a menor</option>
+          <option value="novedades">Más recientes</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
+        Categorías
+        <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-body">
+        <ul class="filter-list">
+          <li>
+            <label class="filter-option">
+              <input type="radio" name="categoria" value="" id="select-categoria-all"
+                     {% if not cat_activa %}checked{% endif %}>
+              <span{% if not cat_activa %} class="is-active"{% endif %}>Todas las categorías</span>
+            </label>
+          </li>
+          {% for cat in categorias %}
+          <li>
+            <label class="filter-option">
+              <input type="radio" name="categoria" value="{{ cat.pk }}" class="js-tienda-cat-radio"
+                     {% if cat_activa == cat.pk|stringformat:'s' %}checked{% endif %}>
+              <span{% if cat_activa == cat.pk|stringformat:'s' %} class="is-active"{% endif %}>{{ cat.name|category_label }}</span>
+              {% if cat.num_productos %}<span class="filter-count">{{ cat.num_productos }}</span>{% endif %}
+            </label>
+          </li>
+          {% empty %}
+          <li class="filter-empty">Sin categorías</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
+        Empresa
+        <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="filter-section-body">
+        <ul class="filter-list filter-list--companies">
+          <li>
+            <button type="button" class="filter-company-link js-tienda-empresa-link{% if not empresa_activa %} is-active{% endif %}"
+                    data-empresa-id="">Todas las empresas</button>
+          </li>
+          {% for empresa in empresas|slice:":24" %}
+          <li>
+            <button type="button" class="filter-company-link js-tienda-empresa-link{% if empresa_activa == empresa.pk|stringformat:'s' %} is-active{% endif %}"
+                    data-empresa-id="{{ empresa.pk }}">
+              {{ empresa.name|truncatechars:28 }}
+              {% if empresa.num_productos %}<span class="filter-count">{{ empresa.num_productos }}</span>{% endif %}
+            </button>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button type="submit" class="btn-apply-filters">Aplicar filtros</button>
+      <a href="{% url 'tienda' %}" id="btn-limpiar" class="btn-clear-filters">Limpiar todo</a>
+    </div>
+  </form>
+</aside>

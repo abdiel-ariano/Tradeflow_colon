@@ -969,7 +969,8 @@ show_cart_actions, tienda_params.
   {% include "core/includes/buyer/buyer_recommended.html" %}
   {% endif %}
 
-  <div class="td-wrap{% if tienda_filtered %} td-wrap--filtered{% endif %}">
+  <div class="td-wrap{% if tienda_filtered %} td-wrap--filtered td-wrap--sidebar-right{% endif %}">
+    {% if not tienda_filtered %}
     <aside class="td-sidebar" aria-label="Filtros del catálogo">
       <div class="td-side-card">
         <h2 class="td-side-title">
@@ -1018,13 +1019,13 @@ show_cart_actions, tienda_params.
             Aplicar filtros
           </button>
           <details class="td-filter-more">
-            <summary>Quick categories</summary>
+            <summary>Categorías rápidas</summary>
             <div class="td-cat-scroll">
-              <ul class="td-cat-list" style="padding-top:0;" aria-label="Quick categories">
+              <ul class="td-cat-list" style="padding-top:0;" aria-label="Categorías rápidas">
                 <li>
                   <a href="{% url 'tienda' %}" class="td-cat-link tf-cat-link" data-categoria-id="" data-active="{% if not cat_activa %}true{% else %}false{% endif %}">
                     <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">apps</span>
-                    All
+                    Todas
                   </a>
                 </li>
                 {% for cat in categorias %}
@@ -1040,11 +1041,12 @@ show_cart_actions, tienda_params.
           </details>
           <a href="{% url 'tienda' %}" id="btn-limpiar" class="td-btn-clear-filters">
             <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span>
-            Clear filters
+            Limpiar filtros
           </a>
         </form>
       </div>
     </aside>
+    {% endif %}
 
     <div class="td-main">
       {% if productos_promo %}
@@ -1173,6 +1175,10 @@ show_cart_actions, tienda_params.
       {% endif %}
       </div>
     </div>
+
+    {% if tienda_filtered %}
+    {% include "core/includes/tienda/tienda_filters_sidebar.html" %}
+    {% endif %}
   </div>
 </div>
 {% endblock %}

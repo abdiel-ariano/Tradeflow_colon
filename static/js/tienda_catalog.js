@@ -12,9 +12,51 @@
   var searchTimer = null;
   var loading = false;
   var SCROLL_KEY = 'tf_tienda_scroll';
+  var filteredLayout = document.querySelector('.td-wrap--sidebar-right');
 
   if ('scrollRestoration' in history) {
     history.scrollRestoration = 'manual';
+  }
+
+  function getCategoriaValue() {
+    var sel = document.getElementById('select-categoria');
+    if (sel) return sel.value;
+    var checked = form.querySelector('input[name="categoria"]:checked');
+    return checked ? checked.value : '';
+  }
+
+  function setCategoriaValue(value) {
+    var sel = document.getElementById('select-categoria');
+    if (sel) {
+      sel.value = value || '';
+      return;
+    }
+    form.querySelectorAll('input[name="categoria"]').forEach(function (radio) {
+      radio.checked = radio.value === (value || '');
+    });
+    form.querySelectorAll('input[name="categoria"]').forEach(function (radio) {
+      var span = radio.parentElement ? radio.parentElement.querySelector('span:not(.filter-count)') : null;
+      if (span) span.classList.toggle('is-active', radio.checked);
+    });
+  }
+
+  function getEmpresaValue() {
+    var sel = document.getElementById('select-empresa');
+    if (sel) return sel.value;
+    var hidden = document.getElementById('tienda-filter-empresa');
+    return hidden ? hidden.value : '';
+  }
+
+  function setEmpresaValue(value) {
+    var val = value || '';
+    var sel = document.getElementById('select-empresa');
+    if (sel) sel.value = val;
+    var hidden = document.getElementById('tienda-filter-empresa');
+    if (hidden) hidden.value = val;
+    document.querySelectorAll('.js-tienda-empresa-link').forEach(function (btn) {
+      var id = btn.getAttribute('data-empresa-id') || '';
+      btn.classList.toggle('is-active', id === val);
+    });
   }
 
   function buildUrl(extra) {
@@ -63,13 +105,10 @@
     meta.setAttribute('data-tab-active', root.getAttribute('data-tab-active') || '');
     meta.setAttribute('data-cur-page', root.getAttribute('data-cur-page') || '1');
 
-    var catSel = document.getElementById('select-categoria');
-    var empSel = document.getElementById('select-empresa');
-    var ordSel = document.getElementById('select-orden');
+    setCategoriaValue(root.getAttribute('data-cat-active') || '');
+    setEmpresaValue(root.getAttribute('data-empresa-active') || '');
+    markSelect(document.getElementById('select-orden'), root.getAttribute('data-orden-active') || 'nombre');
     var busInp = document.getElementById('input-buscar');
-    markSelect(catSel, root.getAttribute('data-cat-active') || '');
-    markSelect(empSel, root.getAttribute('data-empresa-active') || '');
-    markSelect(ordSel, root.getAttribute('data-orden-active') || 'nombre');
     if (busInp) busInp.value = root.getAttribute('data-buscar-active') || '';
 
     document.querySelectorAll('.td-cat-link, .tf-cat-link').forEach(function (lnk) {
@@ -114,6 +153,54 @@
     });
     if (typeof window.tfCartAjaxInit === 'function') {
       window.tfCartAjaxInit();
+    }
+  }
+
+  function setSidebarOpen(open) {
+    var sidebar = document.getElementById('tienda-sidebar');
+    var backdrop = document.getElementById('tienda-sidebar-backdrop');
+    var openBtn = document.getElementById('tienda-filter-open');
+    if (!sidebar) return;
+    sidebar.classList.toggle('is-open', open);
+    if (backdrop) {
+      backdrop.classList.toggle('is-visible', open);
+      backdrop.hidden = !open;
+    }
+    if (openBtn) {
+      openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+  }
+
+  function initFilterSidebar() {
+    if (!filteredLayout) return;
+
+    document.querySelectorAll('[data-filter-toggle]').forEach(function (btn) {
+      if (btn.dataset.tiendaBound) return;
+      btn.dataset.tiendaBound = '1';
+      btn.addEventListener('click', function () {
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+      });
+    });
+
+    var openBtn = document.getElementById('tienda-filter-open');
+    var closeBtn = document.getElementById('tienda-sidebar-close');
+    var backdrop = document.getElementById('tienda-sidebar-backdrop');
+    if (openBtn) {
+      openBtn.addEventListener('click', function () {
+        var sidebar = document.getElementById('tienda-sidebar');
+        setSidebarOpen(!(sidebar && sidebar.classList.contains('is-open')));
+      });
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        setSidebarOpen(false);
+      });
+    }
+    if (backdrop) {
+      backdrop.addEventListener('click', function () {
+        setSidebarOpen(false);
+      });
     }
   }
 
@@ -197,6 +284,7 @@
       .finally(function () {
         loading = false;
         setLoading(false);
+        setSidebarOpen(false);
       });
   }
 
@@ -205,18 +293,35 @@
     loadCatalog(buildUrl({ page: null }), true, 'keep');
   });
 
-  ['select-categoria', 'select-empresa', 'select-orden'].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('change', function () {
-        if (id === 'select-categoria') {
-          document.querySelectorAll('.td-cat-link, .tf-cat-link').forEach(function (lnk) {
-            lnk.setAttribute('data-active', lnk.getAttribute('data-categoria-id') === el.value ? 'true' : 'false');
-          });
-        }
-        loadCatalog(buildUrl({ page: null }), true, 'keep');
+  var ordSel = document.getElementById('select-orden');
+  if (ordSel) {
+    ordSel.addEventListener('change', function () {
+      loadCatalog(buildUrl({ page: null }), true, 'keep');
+    });
+  }
+
+  var selCategoria = document.getElementById('select-categoria');
+  if (selCategoria) {
+    selCategoria.addEventListener('change', function () {
+      document.querySelectorAll('.td-cat-link, .tf-cat-link').forEach(function (lnk) {
+        lnk.setAttribute('data-active', lnk.getAttribute('data-categoria-id') === selCategoria.value ? 'true' : 'false');
       });
-    }
+      loadCatalog(buildUrl({ page: null }), true, 'keep');
+    });
+  }
+
+  var selEmpresa = document.getElementById('select-empresa');
+  if (selEmpresa) {
+    selEmpresa.addEventListener('change', function () {
+      loadCatalog(buildUrl({ page: null }), true, 'keep');
+    });
+  }
+
+  form.querySelectorAll('input[name="categoria"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      setCategoriaValue(radio.value);
+      loadCatalog(buildUrl({ categoria: radio.value || null, page: null }), true, 'keep');
+    });
   });
 
   var inputBuscar = document.getElementById('input-buscar');
@@ -262,8 +367,7 @@
     if (catLink) {
       ev.preventDefault();
       var catId = catLink.getAttribute('data-categoria-id') || '';
-      var sel = document.getElementById('select-categoria');
-      if (sel) sel.value = catId;
+      setCategoriaValue(catId);
       loadCatalog(buildUrl({ categoria: catId || null, page: null }), true, 'keep');
       return;
     }
@@ -272,8 +376,7 @@
     if (empLink) {
       ev.preventDefault();
       var empId = empLink.getAttribute('data-empresa-id') || '';
-      var empSel = document.getElementById('select-empresa');
-      if (empSel) empSel.value = empId;
+      setEmpresaValue(empId);
       loadCatalog(buildUrl({ empresa: empId || null, page: null }), true, 'keep');
     }
   });
@@ -281,13 +384,12 @@
   var btnLimpiar = document.getElementById('btn-limpiar');
   if (btnLimpiar) {
     btnLimpiar.addEventListener('click', function (ev) {
-      ev.preventDefault();
-      var selC = document.getElementById('select-categoria');
-      var selE = document.getElementById('select-empresa');
-      var selO = document.getElementById('select-orden');
-      if (selC) selC.value = '';
-      if (selE) selE.value = '';
-      if (selO) selO.value = 'nombre';
+      if (btnLimpiar.tagName === 'A') {
+        ev.preventDefault();
+      }
+      setCategoriaValue('');
+      setEmpresaValue('');
+      markSelect(document.getElementById('select-orden'), 'nombre');
       if (inputBuscar) inputBuscar.value = '';
       var tabHidden = form.querySelector('input[name="tab"]');
       if (tabHidden) tabHidden.remove();
@@ -307,6 +409,7 @@
   });
 
   window.tfTiendaLoadCatalog = loadCatalog;
+  initFilterSidebar();
   bindCartForms();
 
   var btnLimpiarInit = document.getElementById('btn-limpiar');

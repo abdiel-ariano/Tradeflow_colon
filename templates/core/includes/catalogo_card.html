@@ -53,7 +53,7 @@
 
     <div class="card-supplier">
       <span class="supplier-meta">
-        {{ product.company.name|truncatechars:16 }} · 🇵🇦 PA
+        {{ product.company.name|truncatechars:16 }} · PA
       </span>
       {% if product.company.is_verified %}
       <span class="badge-verified">
@@ -67,8 +67,18 @@
   </div>
 
   <div class="card-inquiry">
+    {% if show_cart_actions and product.available_qty %}
+    <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form catalogo-card__cart-form">
+      {% csrf_token %}
+      <input type="hidden" name="cantidad" value="1">
+      <button type="submit" class="btn-inquiry">+ {% trans "Add to cart" %}</button>
+    </form>
+    {% elif show_cart_actions %}
+    <span class="btn-inquiry btn-inquiry--disabled">{% trans "Out of stock" %}</span>
+    {% else %}
     <button type="button" class="btn-inquiry" data-product-id="{{ product.pk }}">
       + {% trans "Add to inquiry" %}
     </button>
+    {% endif %}
   </div>
 </article>

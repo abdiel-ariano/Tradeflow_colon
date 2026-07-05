@@ -3226,7 +3226,9 @@ def tienda(request):
     if page_obj.object_list:
         page_obj.object_list = merch.diversify_visible_order(list(page_obj.object_list))
 
-    categorias = Category.objects.all().order_by('name')
+    categorias = Category.objects.annotate(
+        num_productos=Count('products', filter=Q(products__is_active=True)),
+    ).order_by('name')
     carrito = _get_carrito(request)
 
     empresas_catalogo = (
