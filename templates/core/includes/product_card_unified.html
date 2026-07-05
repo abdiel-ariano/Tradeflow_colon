@@ -1,14 +1,16 @@
 {% load static tf_money %}
 {% comment %}
-Unified product card — public home and authenticated store.
+================================================================================
+ProductCardUnified — tarjeta de producto unificada (tienda + home).
 
 Variables:
-  product            — Product instance (required)
-  show_cart_actions  — bool, show Add / Auto quote (is_public=False only)
-  is_public          — bool, default False; public landing without purchase actions
-  card_density       — "compact" for dense home rows
-  card_variant       — "deal" for promo strip; "spotlight" for supplier mini-carousel
-  card_extra_class   — optional CSS classes on <article>
+  product            — instancia Product (requerida)
+  show_cart_actions  — bool: botones Agregar / Cotización automática
+  is_public          — bool: landing pública sin acciones de compra
+  card_density       — "compact" para filas densas del home
+  card_variant       — "deal" | "spotlight" para variantes promo
+  card_extra_class   — clases CSS extra en <article>
+================================================================================
 {% endcomment %}
 <article class="tf-pcard{% if card_density == 'compact' %} tf-pcard--compact{% endif %}{% if card_variant == 'deal' %} tf-pcard--deal{% endif %}{% if card_variant == 'spotlight' %} tf-pcard--spotlight{% endif %} {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
   {% if is_public %}

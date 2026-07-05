@@ -213,6 +213,28 @@ def spotlight_products_for_companies(companies, limit_per: int = 3):
         emp.spotlight_products = product_map.get(emp.pk, [])
 
 
+def buyer_mega_menu_panels(limit_categories: int = 8, products_per: int = 6) -> list:
+    """
+    Paneles del mega menú comprador (navbar «Todas las categorías»).
+
+    Cada panel incluye la categoría real de la BD y productos destacados
+    como sub-enlaces — evita emojis hardcodeados y búsquedas ?buscar= vacías.
+    """
+    from core.utils.tradeflow_cache import cached_nav_categories
+
+    categories = cached_nav_categories()[:limit_categories]
+    panels = []
+    for cat in categories:
+        products = list(
+            active_products_base()
+            .filter(category=cat)
+            .select_related('company', 'category', 'inventory')
+            .order_by('-merchandising_priority', '-is_featured', '-created_at')[:products_per]
+        )
+        panels.append({'category': cat, 'products': products})
+    return panels
+
+
 def tienda_featured_supplier(company_id):
     """Proveedor destacado para resultados filtrados (?empresa=) — estilo Alibaba."""
     if not company_id:

@@ -980,11 +980,11 @@ show_cart_actions, tienda_params.
   {% endif %}
 
   <div class="td-wrap">
-    <aside class="td-sidebar" aria-label="Catalog filters">
+    <aside class="td-sidebar" aria-label="Filtros del catálogo">
       <div class="td-side-card">
         <h2 class="td-side-title">
           <span class="material-symbols-rounded" aria-hidden="true">filter_list</span>
-          Filters
+          Filtros
         </h2>
         <form method="get" action="{% url 'tienda' %}" id="filtros-form" class="td-filters-form">
           {% if tab_catalogo and tab_catalogo != 'todos' %}
@@ -992,40 +992,40 @@ show_cart_actions, tienda_params.
           {% endif %}
           <div class="td-search-wrap td-search-wrap--sidebar td-span-2">
             <span class="material-symbols-rounded" aria-hidden="true">search</span>
-            <input type="text" name="buscar" id="input-buscar" placeholder="Search products, SKU..." value="{{ buscar }}" class="td-search-input">
+            <input type="text" name="buscar" id="input-buscar" placeholder="Buscar productos, SKU…" value="{{ buscar }}" class="td-search-input">
           </div>
           <div class="td-filter-primary">
             <div>
-              <label class="td-filter-label" for="select-categoria">Category</label>
+              <label class="td-filter-label" for="select-categoria">Categoría</label>
               <select name="categoria" id="select-categoria" class="td-filter-select">
-                <option value="">All categories</option>
+                <option value="">Todas las categorías</option>
                 {% for cat in categorias %}
                 <option value="{{ cat.id }}">{{ cat.name|category_label }}</option>
                 {% endfor %}
               </select>
             </div>
             <div>
-              <label class="td-filter-label" for="select-empresa">Business</label>
+              <label class="td-filter-label" for="select-empresa">Empresa</label>
               <select name="empresa" id="select-empresa" class="td-filter-select">
-                <option value="">All companies</option>
+                <option value="">Todas las empresas</option>
                 {% for empresa in empresas %}
                 <option value="{{ empresa.id }}">{{ empresa.name }}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="td-span-2">
-              <label class="td-filter-label" for="select-orden">Sort by</label>
+              <label class="td-filter-label" for="select-orden">Ordenar por</label>
               <select name="orden" id="select-orden" class="td-filter-select">
-                <option value="nombre">Name A-Z</option>
-                <option value="precio_asc">Price: low to high</option>
-                <option value="precio_desc">Price: high to low</option>
-                <option value="novedades">Most recent</option>
+                <option value="nombre">Nombre A-Z</option>
+                <option value="precio_asc">Precio: menor a mayor</option>
+                <option value="precio_desc">Precio: mayor a menor</option>
+                <option value="novedades">Más recientes</option>
               </select>
             </div>
           </div>
           <button type="submit" class="td-btn-filter-apply">
             <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">check_circle</span>
-            Apply filters
+            Aplicar filtros
           </button>
           <details class="td-filter-more">
             <summary>Quick categories</summary>
@@ -1100,11 +1100,11 @@ show_cart_actions, tienda_params.
       </section>
       {% endif %}
 
-      <nav class="td-tabs" aria-label="Catalog views">
-        <a href="{{ tab_urls.todos }}" class="td-tab" data-tab="todos"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">grid_view</span>All</a>
-        <a href="{{ tab_urls.ofertas }}" class="td-tab" data-tab="ofertas"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">local_offer</span>Deals</a>
-        <a href="{{ tab_urls.bestsellers }}" class="td-tab" data-tab="bestsellers"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">trending_up</span>Bestsellers</a>
-        <a href="{{ tab_urls.destacados }}" class="td-tab" data-tab="destacados"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">star</span>Featured</a>
+      <nav class="td-tabs" aria-label="Vistas del catálogo">
+        <a href="{{ tab_urls.todos }}" class="td-tab" data-tab="todos"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">grid_view</span>Todos</a>
+        <a href="{{ tab_urls.ofertas }}" class="td-tab" data-tab="ofertas"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">local_offer</span>Ofertas</a>
+        <a href="{{ tab_urls.bestsellers }}" class="td-tab" data-tab="bestsellers"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">trending_up</span>Más vendidos</a>
+        <a href="{{ tab_urls.destacados }}" class="td-tab" data-tab="destacados"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">star</span>Destacados</a>
       </nav>
 
       {% if show_spotlights and spotlight_ofertas %}

@@ -387,6 +387,32 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
 }
 .bn-mega-sub:hover { color: var(--ds-orange, #E8490F); }
 
+/* Panel derecho del mega menú — una categoría visible a la vez */
+.bn-mega-panel { display: none; }
+.bn-mega-panel.is-active { display: block; }
+.bn-mega-panel__title {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ds-navy, #0D1B2A);
+}
+.bn-mega-browse {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ds-orange, #E8490F);
+  text-decoration: none;
+}
+.bn-mega-browse:hover { text-decoration: underline; }
+.bn-mega-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ds-gray-mid, #8A97A8);
+}
+.bn-mega-cat__label { flex: 1; min-width: 0; }
+.bn-cat-trigger__icon { flex-shrink: 0; margin-right: 6px; }
+
 .bn-mega-chevron {
   flex-shrink: 0;
   color: var(--ds-gray-mid, #8A97A8);
@@ -652,49 +678,12 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
-  max-width: 1100px;
+  max-width: 1320px;
   margin: 0 auto;
 }
 @media (max-width: 991px) { .bh-rec-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 600px) {
-  .bh-rec-grid {
-    display: flex;
-    overflow-x: auto;
-    gap: 12px;
-    padding-bottom: 8px;
-    scroll-snap-type: x mandatory;
-  }
-  .bh-rec-item { flex: 0 0 140px; scroll-snap-align: start; }
-}
-.bh-rec-item {
-  display: block;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: transform 200ms, box-shadow 200ms;
-  background: var(--ds-gray-page, #F4F6F8);
-}
-.bh-rec-item:hover {
-  transform: scale(1.02);
-  box-shadow: var(--ds-shadow-card-hover);
-}
-.bh-rec-item img {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  display: block;
-  background: var(--ds-gray-page, #F4F6F8);
-}
-.bh-rec-name {
-  padding: 8px 10px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--ds-navy, #0F2A44);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  .bh-rec-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ── Tienda search results header (Paso 3 preview) ── */
@@ -875,6 +864,10 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
 }
 
 .tf-nav-alibaba .btn-all-categories {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
   font-weight: 700;
   color: var(--tf-navy, #0F2A44);
 }
