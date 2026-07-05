@@ -13,6 +13,7 @@ show_cart_actions, tienda_params.
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/home_merchandising.css' %}">
 <link rel="stylesheet" href="{% static 'css/buyer_portal.css' %}">
+{% if tienda_filtered %}<link rel="stylesheet" href="{% static 'css/tienda-alibaba-results.css' %}?v={{ tf_asset_version }}">{% endif %}
 {% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
@@ -969,8 +970,10 @@ show_cart_actions, tienda_params.
   {% include "core/includes/buyer/buyer_recommended.html" %}
   {% endif %}
 
-  <div class="td-wrap{% if tienda_filtered %} td-wrap--filtered td-wrap--sidebar-right{% endif %}">
-    {% if not tienda_filtered %}
+  <div class="td-wrap{% if tienda_filtered %} td-wrap--filtered td-wrap--alibaba{% endif %}">
+    {% if tienda_filtered %}
+    {% include "core/includes/tienda/tienda_filters_sidebar.html" %}
+    {% elif not tienda_filtered %}
     <aside class="td-sidebar" aria-label="Filtros del catálogo">
       <div class="td-side-card">
         <h2 class="td-side-title">
@@ -1048,7 +1051,8 @@ show_cart_actions, tienda_params.
     </aside>
     {% endif %}
 
-    <div class="td-main">
+    <div class="td-main{% if tienda_filtered %} td-main--alibaba{% endif %}">
+      {% if not tienda_filtered %}
       {% if productos_promo %}
       <section class="bp-promo-band" id="bp-promo-carousel" aria-labelledby="bp-promo-title" style="overflow:hidden;position:relative;">
         <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle, rgba(217,202,179,0.15) 0%, transparent 70%);pointer-events:none;"></div>
@@ -1117,6 +1121,7 @@ show_cart_actions, tienda_params.
         <div class="td-grid td-grid-spot">{% for producto in spotlight_destacados %}{% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}{% endfor %}</div>
       </section>
       {% endif %}
+      {% endif %}
 
       <div id="t-prod-section"
            class="td-catalog-anchor{% if tienda_filtered %} td-catalog-anchor--filtered{% endif %}"
@@ -1175,10 +1180,6 @@ show_cart_actions, tienda_params.
       {% endif %}
       </div>
     </div>
-
-    {% if tienda_filtered %}
-    {% include "core/includes/tienda/tienda_filters_sidebar.html" %}
-    {% endif %}
   </div>
 </div>
 {% endblock %}

@@ -1,23 +1,19 @@
 {% comment %}
-TiendaProductGrid — grid de productos (landing vs filtrado).
-
-tienda_filtered=True  → product-grid + catalogo_card (misma card que home/catálogo)
-tienda_filtered=False → td-grid + product_card_unified
+Grid de productos — landing vs filtrado Alibaba.
 {% endcomment %}
-<div class="{% if tienda_filtered %}hm-marketplace product-grid td-catalog-grid{% else %}td-grid{% endif %}"
-     id="td-product-grid">
+<div class="{% if tienda_filtered %}ali-product-grid{% else %}td-grid{% endif %}" id="td-product-grid">
   {% for producto in productos %}
     {% if tienda_filtered %}
-    {% include "core/includes/catalogo_card.html" with product=producto show_cart_actions=show_cart_actions card_index=forloop.counter %}
+    {% include "core/includes/tienda/tienda_alibaba_card.html" with product=producto show_cart_actions=show_cart_actions card_index=forloop.counter %}
     {% else %}
     {% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}
     {% endif %}
   {% empty %}
-  <div class="td-empty td-empty--alibaba">
-    {% include "core/includes/tf_icon.html" with name="search" class="td-empty__icon" %}
+  <div class="{% if tienda_filtered %}ali-empty{% else %}td-empty td-empty--alibaba{% endif %}">
+    {% if not tienda_filtered %}{% include "core/includes/tf_icon.html" with name="search" class="td-empty__icon" %}{% endif %}
     <h2>No se encontraron productos</h2>
     <p>Prueba otra categoría o término de búsqueda</p>
-    <a href="{% url 'tienda' %}" class="td-btn-add">Ver todo el catálogo</a>
+    <a href="{% url 'tienda' %}" class="{% if tienda_filtered %}ali-card__btn{% else %}td-btn-add{% endif %}">Ver todo el catálogo</a>
   </div>
   {% endfor %}
 </div>

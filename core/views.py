@@ -3176,11 +3176,29 @@ def tienda(request):
             | Q(sku__icontains=buscar)
         )
 
+    precio_min = request.GET.get('precio_min', '').strip()
+    precio_max = request.GET.get('precio_max', '').strip()
+    solo_verificado = request.GET.get('verificado') == '1'
+
     if categoria:
         productos = productos.filter(category__id=categoria)
 
     if empresa:
         productos = productos.filter(company__id=empresa)
+
+    if solo_verificado:
+        productos = productos.filter(company__is_verified=True)
+
+    try:
+        if precio_min:
+            productos = productos.filter(sort_price__gte=Decimal(precio_min))
+    except Exception:
+        precio_min = ''
+    try:
+        if precio_max:
+            productos = productos.filter(sort_price__lte=Decimal(precio_max))
+    except Exception:
+        precio_max = ''
 
     show_spotlights = (
         vista_tab == 'categoria'
@@ -3254,6 +3272,12 @@ def tienda(request):
         qcopy['empresa'] = empresa
     if buscar:
         qcopy['buscar'] = buscar
+    if precio_min:
+        qcopy['precio_min'] = precio_min
+    if precio_max:
+        qcopy['precio_max'] = precio_max
+    if solo_verificado:
+        qcopy['verificado'] = '1'
     tienda_params = qcopy.urlencode()
 
     q_cat = request.GET.copy()
@@ -3288,6 +3312,9 @@ def tienda(request):
         not buscar
         and not categoria
         and not empresa
+        and not solo_verificado
+        and not precio_min
+        and not precio_max
         and tab_catalogo in ('todos', '')
         and int(request.GET.get('page', 1) or 1) == 1
     )
@@ -3334,6 +3361,9 @@ def tienda(request):
         'tienda_filtered': tienda_filtered,
         'categoria_activa_obj': categoria_activa_obj,
         'empresa_activa_obj': empresa_activa_obj,
+        'precio_min': precio_min,
+        'precio_max': precio_max,
+        'solo_verificado': solo_verificado,
         'featured_supplier': featured_supplier if empresa else None,
         'featured_category': None,
     }
