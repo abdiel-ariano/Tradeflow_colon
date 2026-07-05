@@ -280,3 +280,98 @@
   object-fit: cover;
   display: block;
 }
+
+/* =============================================================================
+   Vista filtrada /tienda/ — estilo Alibaba (cards + cabecera de resultados)
+   ============================================================================= */
+
+.td-page--filtered {
+  background: #fff;
+}
+
+.td-wrap--filtered .td-main {
+  background: #fff;
+}
+
+.td-alibaba-results-bar {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--tf-border-soft, #E5E7EB);
+}
+
+.td-alibaba-results-bar__eyebrow {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tf-muted, #64748b);
+}
+
+.td-alibaba-results-bar__title {
+  margin: 0 0 6px;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 700;
+  color: var(--tf-navy, #0F2A44);
+  line-height: 1.25;
+}
+
+.td-alibaba-results-bar__count {
+  margin: 0;
+  font-size: 14px;
+  color: var(--tf-muted, #64748b);
+}
+
+.td-alibaba-grid {
+  margin-top: 4px;
+}
+
+.td-alibaba-grid .td-empty--alibaba {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.td-alibaba-card .supplier-meta {
+  color: var(--tf-blue, #2E5B8A);
+  text-decoration: none;
+}
+
+.td-alibaba-card .supplier-meta:hover {
+  color: var(--tf-orange, #F26522);
+  text-decoration: underline;
+}
+
+.td-alibaba-card__form {
+  margin: 0;
+  width: 100%;
+}
+
+.td-alibaba-card .btn-inquiry--disabled {
+  opacity: 0.55;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Cards Alibaba dentro de tienda filtrada — reutiliza catalog.css vía .hm-marketplace */
+.td-page--filtered .hm-marketplace .product-card {
+  height: auto;
+  min-height: 320px;
+}
+
+.td-page--filtered .hm-marketplace .product-card .card-name {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.td-page--filtered .hm-marketplace .product-card .price-main {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.td-page--filtered .hm-marketplace .product-card .card-inquiry .btn-inquiry {
+  width: 100%;
+  border-radius: 999px;
+}

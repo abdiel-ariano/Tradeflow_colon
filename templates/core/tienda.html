@@ -951,7 +951,7 @@ show_cart_actions, tienda_params.
 {% endblock %}
 
 {% block content %}
-<div class="td-page">
+<div class="td-page{% if tienda_filtered %} td-page--filtered{% endif %}">
   <div id="tf-tienda-meta"
        data-cat-active="{{ cat_activa|escapejs }}"
        data-empresa-active="{{ empresa_activa|escapejs }}"
@@ -967,19 +967,9 @@ show_cart_actions, tienda_params.
   {% include "core/includes/buyer/buyer_welcome_zone.html" %}
   {% include "core/includes/buyer/buyer_value_strip.html" %}
   {% include "core/includes/buyer/buyer_recommended.html" %}
-  {% else %}
-  <div class="bh-results-head" aria-label="Búsqueda en catálogo">
-    {% include "core/includes/buyer/search_bar.html" with variant="compact" value=buscar placeholder="Buscar productos, empresas, SKU…" form_id="td-results" %}
-    {% if buscar %}
-    <p style="margin:12px 0 0;font-size:14px;color:var(--ds-gray-text,#4A5568);">
-      Resultados para <strong style="color:var(--ds-navy,#0D1B2A);">"{{ buscar }}"</strong>
-      — {{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }}
-    </p>
-    {% endif %}
-  </div>
   {% endif %}
 
-  <div class="td-wrap">
+  <div class="td-wrap{% if tienda_filtered %} td-wrap--filtered{% endif %}">
     <aside class="td-sidebar" aria-label="Filtros del catálogo">
       <div class="td-side-card">
         <h2 class="td-side-title">
@@ -1127,7 +1117,7 @@ show_cart_actions, tienda_params.
       {% endif %}
 
       <div id="t-prod-section"
-           class="td-catalog-anchor"
+           class="td-catalog-anchor{% if tienda_filtered %} td-catalog-anchor--filtered{% endif %}"
            data-cat-active="{{ cat_activa|escapejs }}"
            data-empresa-active="{{ empresa_activa|escapejs }}"
            data-orden-active="{{ orden_activo|escapejs }}"
@@ -1136,35 +1126,22 @@ show_cart_actions, tienda_params.
            data-cur-page="{{ productos.number }}">
       {% if featured_supplier %}
       {% include "core/includes/tienda_featured_supplier.html" with company=featured_supplier %}
-      {% elif featured_category %}
-      {% include "core/includes/tienda_featured_category.html" %}
       {% endif %}
+
+      {% if tienda_filtered %}
+      {% include "core/includes/tienda/tienda_results_bar.html" %}
+      {% else %}
       <div class="td-results-hdr">
         <div>
-          <h1 id="td-results-title">
-            {% if tab_catalogo == 'ofertas' %}Active deals
-            {% elif tab_catalogo == 'bestsellers' %}Bestsellers
-            {% elif tab_catalogo == 'destacados' %}Featured products
-            {% else %}Full catalog{% endif %}
-          </h1>
+          <h1 id="td-results-title">Catálogo completo</h1>
           <p class="td-results-count" id="td-results-count">
-            {% if productos.paginator.count == 1 %}{{ productos.paginator.count }} product found{% else %}{{ productos.paginator.count }} products found{% endif %}
+            {{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }}
           </p>
         </div>
       </div>
+      {% endif %}
 
-      <div class="td-grid" id="td-product-grid">
-        {% for producto in productos %}
-        {% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}
-        {% empty %}
-        <div class="td-empty">
-          <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
-          <h2>No products found</h2>
-          <p>Try another term or category</p>
-          <a href="{% url 'tienda' %}" class="td-btn-add">View all products</a>
-        </div>
-        {% endfor %}
-      </div>
+      {% include "core/includes/tienda/tienda_product_grid.html" %}
 
       {% if productos.has_other_pages %}
       <nav class="td-pag" id="td-pag" aria-label="Pagination">
