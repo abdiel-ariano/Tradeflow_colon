@@ -20,7 +20,9 @@ from core.social_auth import (
 
 
 def _redirect_to_provider_login(provider: str) -> HttpResponse:
-    return redirect(f'/accounts/{provider}/login/')
+    from core.social_auth import resolve_oauth_provider
+
+    return redirect(f'/accounts/{resolve_oauth_provider(provider)}/login/')
 
 
 def _redirect_with_query(request: HttpRequest, route_name: str) -> HttpResponse:
@@ -158,4 +160,7 @@ def oauth_post_signup(request: HttpRequest) -> HttpResponse:
     next_url = request.session.pop('oauth_next', None)
     if next_url:
         return redirect(next_url)
-    return redirect('home')
+
+    from core.auth_views import _redirect_by_role
+
+    return redirect(_redirect_by_role(user))

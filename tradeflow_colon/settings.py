@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.microsoft',
+    'allauth.socialaccount.providers.linkedin_oauth2',
     'core',
 ]
 
@@ -314,6 +315,8 @@ _GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='').strip()
 _GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='').strip()
 _MICROSOFT_CLIENT_ID = config('MICROSOFT_CLIENT_ID', default='').strip()
 _MICROSOFT_CLIENT_SECRET = config('MICROSOFT_CLIENT_SECRET', default='').strip()
+_LINKEDIN_CLIENT_ID = config('LINKEDIN_CLIENT_ID', default='').strip()
+_LINKEDIN_CLIENT_SECRET = config('LINKEDIN_CLIENT_SECRET', default='').strip()
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -333,11 +336,20 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'TENANT': 'common',
     },
+    'linkedin_oauth2': {
+        'APP': {
+            'client_id': _LINKEDIN_CLIENT_ID,
+            'secret': _LINKEDIN_CLIENT_SECRET,
+            'key': '',
+        },
+        'SCOPE': ['openid', 'profile', 'email'],
+    },
 }
 
 SOCIAL_AUTH_ENABLED = bool(
     (_GOOGLE_CLIENT_ID and _GOOGLE_CLIENT_SECRET)
     or (_MICROSOFT_CLIENT_ID and _MICROSOFT_CLIENT_SECRET)
+    or (_LINKEDIN_CLIENT_ID and _LINKEDIN_CLIENT_SECRET)
 )
 
 # ── Mensajes flash ─────────────────────────────────────────────────────────

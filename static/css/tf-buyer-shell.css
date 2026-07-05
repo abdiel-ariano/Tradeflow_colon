@@ -694,3 +694,191 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   padding: 16px clamp(16px, 5vw, 40px);
 }
 .bh-results-head .bsr-wrap { max-width: 100%; }
+
+/* =============================================================================
+   Navbar comprador — estilo Alibaba.com (fondo claro, 2 filas)
+   Usa clases cat-nav / navbar-* de catalog.css + utilidades bn-utility
+   ============================================================================= */
+.tf-nav-alibaba.cat-nav {
+  position: sticky;
+  top: 0;
+  z-index: 2200;
+  background: #fff;
+}
+
+.tf-nav-alibaba .logo-text {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--tf-orange, #F26522);
+  letter-spacing: -0.02em;
+}
+
+.tf-nav-alibaba .logo-accent {
+  color: var(--tf-orange, #F26522);
+  font-weight: 800;
+}
+
+.tf-nav-alibaba .navbar-primary {
+  min-height: 56px;
+  background: #fff;
+}
+
+.tf-nav-alibaba .search-container.bn-search-wrap {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .tf-nav-alibaba .search-container.bn-search-wrap {
+    display: block;
+    flex: 1;
+    max-width: 640px;
+  }
+}
+
+.tf-nav-alibaba .tf-hdr-search {
+  height: 40px;
+  max-width: 100%;
+  border: 2px solid var(--tf-navy, #0F2A44);
+  border-radius: 6px;
+  margin: 0;
+}
+
+.tf-nav-alibaba .tf-hdr-search:focus-within {
+  border-color: var(--tf-orange, #F26522);
+  box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.12);
+}
+
+.tf-nav-alibaba .tf-hdr-search-btn {
+  background: var(--tf-orange, #F26522);
+  color: #fff;
+  border: none;
+  padding: 0 18px;
+}
+
+.tf-nav-alibaba .tf-hdr-search-btn:hover {
+  background: var(--tf-orange-h, #FF7A3D);
+}
+
+.tf-nav-alibaba .navbar-actions {
+  gap: 4px;
+}
+
+.tf-nav-alibaba .bn-utility {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--tf-navy, #0F2A44);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .tf-nav-alibaba .bn-utility {
+    display: inline-flex;
+  }
+}
+
+.tf-nav-alibaba .bn-utility:hover {
+  background: var(--tf-light, #F2F3F5);
+  color: var(--tf-orange, #F26522);
+}
+
+.tf-nav-alibaba .bn-utility__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.15;
+}
+
+.tf-nav-alibaba .bn-utility__label {
+  font-size: 10px;
+  color: var(--tf-text-2, #6B7280);
+}
+
+.tf-nav-alibaba .bn-utility__value {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.tf-nav-alibaba .bn-utility--icon {
+  padding: 8px;
+}
+
+.tf-nav-alibaba .bn-utility--account {
+  max-width: 120px;
+}
+
+.tf-nav-alibaba .bn-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--tf-orange, #F26522);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.tf-nav-alibaba .bn-user-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tf-navy, #0F2A44);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tf-nav-alibaba .bn-signout {
+  display: none;
+  font-size: 12px;
+  color: var(--tf-text-2, #6B7280);
+}
+
+@media (min-width: 1100px) {
+  .tf-nav-alibaba .bn-signout {
+    display: inline;
+  }
+}
+
+.tf-nav-alibaba .navbar-secondary {
+  background: #FAFAF8;
+  border-bottom: 1px solid var(--tf-border-soft, #E5E7EB);
+}
+
+.tf-nav-alibaba .nav-secondary-inner a {
+  color: var(--tf-navy, #0F2A44);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.tf-nav-alibaba .nav-secondary-inner a:hover {
+  color: var(--tf-orange, #F26522);
+}
+
+.tf-nav-alibaba .btn-all-categories {
+  font-weight: 700;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.tf-nav-alibaba .bn-cat-trigger-wrap {
+  position: relative;
+}
+
+@media (max-width: 899px) {
+  .tf-nav-alibaba .navbar-secondary.bn-l2:not(.is-open) {
+    display: none;
+  }
+
+  .tf-nav-alibaba .navbar-secondary.bn-l2.is-open {
+    display: block;
+  }
+}
