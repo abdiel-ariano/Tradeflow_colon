@@ -1,0 +1,41 @@
+{% extends "core/onboarding/buyer_wizard_base.html" %}
+{% comment %}Paso 3/3 — Deep Search: sugerencias iniciales según categorías elegidas.{% endcomment %}
+
+{% block onboarding_title %}Tu primera búsqueda{% endblock %}
+{% block bo_brand_message %}Ya estás listo — explora proveedores de la ZLC{% endblock %}
+
+{% block bo_content %}
+<h1 class="bo-title" id="bo-step3-title">Empieza con tu primera</h1>
+<p class="bo-deep-search-label"><span aria-hidden="true">✨</span> Deep Search</p>
+{% if purchase_intent %}
+<p class="bo-subtitle bo-subtitle--muted">Perfil: {{ purchase_intent }}</p>
+{% endif %}
+
+<div class="bo-suggestion-grid" role="list">
+  {% for item in suggestions %}
+  <form method="post" action="{% url 'buyer_onboarding_finish' %}" class="bo-suggestion-form" role="listitem">
+    {% csrf_token %}
+    <input type="hidden" name="suggestion_category" value="{{ item.category.pk }}">
+    <button type="submit" class="bo-suggestion-card">
+      <span class="bo-suggestion-card__media">
+        {% include "core/includes/home_visual_media.html" with product=item.product decorative=True img_class="bo-suggestion-card__img" object_fit="cover" %}
+      </span>
+      <span class="bo-suggestion-card__label">{{ item.label|truncatechars:36 }}</span>
+      <span class="bo-suggestion-card__chevron material-symbols-rounded" aria-hidden="true">chevron_right</span>
+    </button>
+  </form>
+  {% empty %}
+  <p class="bo-empty">No encontramos sugerencias para tus categorías. Puedes ir directo al catálogo.</p>
+  {% endfor %}
+</div>
+
+<div class="bo-step3-actions">
+  <a href="{% url 'buyer_onboarding_step3' %}?seed={{ shuffle_seed }}" class="bo-shuffle-link">
+    <span aria-hidden="true">🎲</span> Mezclar sugerencias
+  </a>
+  <form method="post" action="{% url 'buyer_onboarding_finish' %}" class="bo-finish-form">
+    {% csrf_token %}
+    <button type="submit" class="bo-btn bo-btn--primary bo-btn--wide">Ir al catálogo</button>
+  </form>
+</div>
+{% endblock %}

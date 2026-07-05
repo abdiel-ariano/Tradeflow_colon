@@ -54,14 +54,22 @@ def setup_profile_and_application(user: User, role: str, phone: str = '') -> Non
     """Mirror signup_view profile + UserApplication creation (no activation)."""
     from core.models import UserApplication, UserProfile
 
-    profile, _ = UserProfile.objects.get_or_create(
+    profile, created = UserProfile.objects.get_or_create(
         user=user,
         defaults={'role': role, 'email_verificado': False},
     )
     profile.role = role
     if phone:
         profile.phone = phone
-    profile.save(update_fields=['role', 'phone'] if phone else ['role'])
+    # OAuth alta comprador: wizard pendiente solo en perfil recién creado
+    if role == 'buyer' and created:
+        profile.onboarding_completed_at = None
+    update_fields = ['role']
+    if phone:
+        update_fields.append('phone')
+    if role == 'buyer' and created:
+        update_fields.append('onboarding_completed_at')
+    profile.save(update_fields=update_fields)
 
     full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
     app_status = 'approved' if role == 'buyer' else 'pending'

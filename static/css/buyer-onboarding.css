@@ -1,0 +1,433 @@
+/*
+ * TradeFlow Colón — buyer-onboarding.css
+ * Wizard post-registro (3 pasos). Paleta: navy #0F2A44, orange #F26522, surface #F2F3F5.
+ */
+.bo-page {
+  --bo-navy: var(--tf-navy, #0F2A44);
+  --bo-orange: var(--tf-orange, #F26522);
+  --bo-orange-hover: var(--tf-orange-h, #FF7A3D);
+  --bo-orange-soft: #FDEEE3;
+  --bo-border: #E5E7EB;
+  --bo-muted: #6B7280;
+  --bo-surface: var(--tf-light, #F2F3F5);
+}
+
+main.tf-main > .bo-page {
+  min-height: calc(100vh - 64px);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 3vh, 2rem) clamp(0.75rem, 3vw, 1.5rem);
+  background: var(--bo-surface);
+}
+
+.bo-shell {
+  max-width: 960px;
+}
+
+/* Panel izquierdo — gradiente naranja TradeFlow (estilo marketplace) */
+.bo-brand-panel {
+  flex: 0 0 42%;
+  background: linear-gradient(
+    165deg,
+    var(--bo-orange) 0%,
+    #FF9A5C 55%,
+    #FFB380 100%
+  ) !important;
+  color: #fff;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.bo-brand-message {
+  margin: 1.25rem 0 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  max-width: 18ch;
+  margin-inline: auto;
+}
+
+.bo-brand-visual {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.bo-brand-badge {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 32px rgba(15, 42, 68, 0.15);
+}
+
+.bo-brand-badge__letter {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--bo-orange);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.bo-brand-badge__bag {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  font-size: 1.25rem;
+}
+
+/* Panel derecho */
+.bo-form-panel {
+  flex: 1;
+  padding: 1.75rem 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bo-form-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.bo-back-link,
+.bo-skip-link {
+  font-size: 0.875rem;
+  color: var(--bo-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+}
+
+.bo-back-link:hover,
+.bo-skip-link:hover {
+  color: var(--bo-navy);
+}
+
+.bo-step-label {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  color: var(--bo-muted);
+}
+
+.bo-title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.35rem, 3vw, 1.65rem);
+  font-weight: 800;
+  color: var(--bo-navy);
+  line-height: 1.2;
+}
+
+.bo-subtitle {
+  margin: 0 0 1.25rem;
+  font-size: 0.9375rem;
+  color: var(--bo-muted);
+  line-height: 1.45;
+}
+
+.bo-subtitle--muted {
+  font-size: 0.8125rem;
+  margin-top: -0.5rem;
+}
+
+.bo-deep-search-label {
+  margin: -0.25rem 0 1.25rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--bo-orange);
+}
+
+/* Paso 1 — tarjetas intención */
+.bo-intent-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.bo-intent-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 1.25rem 1rem;
+  border: 2px solid var(--bo-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: #fff;
+}
+
+.bo-intent-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bo-intent-card__icon {
+  font-size: 2rem;
+  color: var(--bo-orange);
+}
+
+.bo-intent-card__label {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--bo-navy);
+}
+
+.bo-intent-card__hint {
+  font-size: 0.75rem;
+  color: var(--bo-muted);
+  line-height: 1.35;
+}
+
+.bo-intent-card.is-selected,
+.bo-intent-card:has(input:checked) {
+  border-color: var(--bo-navy);
+  box-shadow: 0 0 0 1px var(--bo-navy);
+}
+
+/* Paso 2 — grid categorías */
+.bo-category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.bo-category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 10px 14px;
+  border: 2px solid var(--bo-border);
+  border-radius: 10px;
+  cursor: pointer;
+  background: #fff;
+  text-align: center;
+  transition: border-color 0.2s ease;
+}
+
+.bo-category-card input {
+  position: absolute;
+  opacity: 0;
+}
+
+.bo-category-card__media {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bo-surface);
+  display: grid;
+  place-items: center;
+}
+
+.bo-category-card__media .hm-visual,
+.bo-category-card__media .hm-visual__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bo-category-card__icon {
+  font-size: 2rem;
+  color: var(--bo-orange);
+}
+
+.bo-category-card__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--bo-navy);
+  line-height: 1.25;
+}
+
+.bo-category-card.is-selected,
+.bo-category-card:has(input:checked) {
+  border-color: var(--bo-navy);
+}
+
+.bo-category-card.bo-category-card--hidden {
+  display: none;
+}
+
+.bo-show-more {
+  display: block;
+  width: 100%;
+  margin: 0 0 1rem;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--bo-navy);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Paso 3 — sugerencias Deep Search */
+.bo-suggestion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.bo-suggestion-form {
+  margin: 0;
+}
+
+.bo-suggestion-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--bo-border);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bo-suggestion-card:hover {
+  border-color: var(--bo-orange);
+  box-shadow: 0 4px 16px rgba(242, 101, 34, 0.12);
+}
+
+.bo-suggestion-card__media {
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bo-surface);
+}
+
+.bo-suggestion-card__media .hm-visual,
+.bo-suggestion-card__media .hm-visual__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bo-suggestion-card__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--bo-navy);
+  padding-right: 1.5rem;
+  position: relative;
+}
+
+.bo-suggestion-card__chevron {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  font-size: 1.125rem;
+  color: var(--bo-muted);
+}
+
+.bo-step3-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.bo-shuffle-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--bo-navy);
+  text-decoration: none;
+}
+
+.bo-shuffle-link:hover {
+  color: var(--bo-orange);
+}
+
+.bo-finish-form {
+  width: 100%;
+  margin: 0;
+}
+
+/* Botones */
+.bo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.bo-btn--primary {
+  background: var(--bo-orange);
+  color: #fff;
+}
+
+.bo-btn--primary:hover:not(:disabled) {
+  background: var(--bo-orange-hover);
+}
+
+.bo-btn--primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #F5B895;
+}
+
+.bo-btn--wide {
+  max-width: 100%;
+}
+
+.bo-empty {
+  grid-column: 1 / -1;
+  color: var(--bo-muted);
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 720px) {
+  .bo-shell {
+    flex-direction: column;
+  }
+
+  .bo-brand-panel {
+    flex: none;
+    min-height: 160px;
+    padding: 1.25rem;
+  }
+
+  .bo-brand-message {
+    font-size: 1rem;
+  }
+
+  .bo-intent-grid,
+  .bo-category-grid,
+  .bo-suggestion-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bo-intent-card,
+  .bo-category-card,
+  .bo-suggestion-card,
+  .bo-btn {
+    transition: none;
+  }
+}

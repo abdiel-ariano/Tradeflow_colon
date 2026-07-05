@@ -25,6 +25,7 @@ class EmailVerificationOtpTests(TestCase):
             user=self.user,
             role='buyer',
             email_verificado=False,
+            onboarding_completed_at=None,
         )
         self.client = Client()
 
@@ -37,6 +38,11 @@ class EmailVerificationOtpTests(TestCase):
         self.assertFalse(ev.is_valid())
 
     def test_verificar_codigo_post_redirects_tienda(self):
+        from django.utils import timezone
+
+        # Cuenta con onboarding ya completado (equivalente a usuarios existentes)
+        self.profile.onboarding_completed_at = timezone.now()
+        self.profile.save(update_fields=['onboarding_completed_at'])
         ev = EmailVerification.generate_for(self.user)
         self.client.force_login(self.user)
         resp = self.client.post(
@@ -50,3 +56,14 @@ class EmailVerificationOtpTests(TestCase):
         )
         self.profile.refresh_from_db()
         self.assertTrue(self.profile.email_verified)
+
+    def test_verificar_codigo_new_buyer_redirects_onboarding(self):
+        ev = EmailVerification.generate_for(self.user)
+        self.client.force_login(self.user)
+        resp = self.client.post(
+            '/verificar/',
+            {'codigo': ev.code},
+            follow=False,
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/onboarding/comprador', resp['Location'])

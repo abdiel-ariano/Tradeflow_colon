@@ -8,6 +8,7 @@ Helpers de merchandising para home, tienda y API (ofertas, bestsellers, CMS).
 """
 from __future__ import annotations
 
+import random
 from datetime import timedelta
 
 from django.db import models
@@ -814,3 +815,104 @@ def _build_home_product_rows(
     _row('browse', 'hm-catalog-wall', browse_title, catalog_breadth)
 
     return rows
+
+
+# =============================================================================
+# Onboarding comprador — categorías y sugerencias Deep Search
+# =============================================================================
+
+def buyer_onboarding_category_choices(limit: int = 12) -> list[dict]:
+    """
+    Filas para el paso 2 del wizard — categorías con producto representativo.
+    Ordenadas por volumen de SKUs activos (las más relevantes primero).
+    """
+    rows: list[dict] = []
+    cats = (
+        Category.objects.annotate(
+            n=Count('products', filter=Q(products__is_active=True)),
+        )
+        .filter(n__gt=0)
+        .order_by('-n')[:limit]
+    )
+    for cat in cats:
+        product = (
+            active_products_base()
+            .filter(category=cat)
+            .select_related('company', 'category', 'inventory')
+            .order_by('-merchandising_priority', '-created_at')
+            .first()
+        )
+        rows.append({'category': cat, 'product': product, 'product_count': cat.n})
+    return rows
+
+
+def buyer_deep_search_suggestions(profile, limit: int = 4, seed: int = 0) -> list[dict]:
+    """
+    Sugerencias paso 3 — productos/categorías según intereses del comprador.
+    ``seed`` rota el orden al pulsar «Mezclar sugerencias».
+    """
+    from django.urls import reverse
+
+    cats = list(profile.preferred_categories.all())
+    if not cats:
+        cats = list(
+            Category.objects.annotate(
+                n=Count('products', filter=Q(products__is_active=True)),
+            )
+            .filter(n__gt=0)
+            .order_by('-n')[:limit]
+        )
+
+    if seed:
+        rng = random.Random(seed)
+        cats = list(cats)
+        rng.shuffle(cats)
+
+    suggestions: list[dict] = []
+    for cat in cats:
+        if len(suggestions) >= limit:
+            break
+        product = (
+            active_products_base()
+            .filter(category=cat)
+            .select_related('company', 'category', 'inventory')
+            .order_by('-merchandising_priority', '-created_at')
+            .first()
+        )
+        if not product:
+            continue
+        suggestions.append({
+            'category': cat,
+            'product': product,
+            'label': cat.name,
+            'search_query': cat.name,
+            'url': f"{reverse('tienda')}?categoria={cat.pk}",
+        })
+    return suggestions
+
+
+def buyer_recommended_products(profile, limit: int = 20, diverse: int = 5) -> list:
+    """
+    Recomendaciones personalizadas para /tienda/ según categorías preferidas.
+    Fallback a destacados globales si no hay preferencias.
+    """
+    cat_ids = list(profile.preferred_categories.values_list('pk', flat=True))
+    if not cat_ids:
+        return _pick_unique_products(featured_products(limit), set(), diverse, diverse_images=True)
+
+    pool = list(
+        active_products_base()
+        .filter(category_id__in=cat_ids)
+        .select_related('company', 'category', 'inventory')
+        .order_by('-merchandising_priority', '-created_at')[:limit]
+    )
+    if len(pool) < diverse:
+        extra = featured_products(limit)
+        seen = {p.pk for p in pool}
+        for p in extra:
+            if p.pk not in seen:
+                pool.append(p)
+                seen.add(p.pk)
+            if len(pool) >= limit:
+                break
+    return _pick_unique_products(pool, set(), diverse, diverse_images=True)
