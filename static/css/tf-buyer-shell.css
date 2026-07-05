@@ -810,6 +810,46 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   padding: 8px;
 }
 
+.tf-nav-alibaba .bn-utility--signin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.tf-nav-alibaba .bn-utility--signin:hover {
+  color: var(--tf-orange, #F26522);
+}
+
+.tf-nav-alibaba .bn-utility__signin-label {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+@media (max-width: 767px) {
+  .tf-nav-alibaba .bn-utility__signin-label {
+    display: none;
+  }
+}
+
+.tf-nav-alibaba .cat-nav .navbar-actions,
+.tf-nav-alibaba.navbar-actions,
+.cat-nav.tf-nav-alibaba .navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (min-width: 1024px) {
+  .cat-nav.tf-nav-alibaba .navbar-actions {
+    display: flex;
+  }
+}
+
 .tf-nav-alibaba .bn-utility--account {
   max-width: 120px;
 }

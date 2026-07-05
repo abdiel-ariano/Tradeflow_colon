@@ -5,8 +5,7 @@ Unified Alibaba-style marketplace home + about page
 =============================================================================
 */
 
-body.cat-catalog-page #hm-public-nav,
-body.cat-catalog-page #cat-catalog-nav {
+body.cat-catalog-page #hm-public-nav {
   display: none !important;
 }
 
