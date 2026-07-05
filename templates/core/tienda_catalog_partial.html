@@ -1,50 +1,41 @@
-{% comment %}Fragmento AJAX del catálogo comprador (grid + paginación).{% endcomment %}
+{% comment %}
+Fragmento AJAX del catálogo comprador (grid Alibaba + paginación).
+{% endcomment %}
 <div id="t-prod-section"
-     class="td-catalog-anchor"
+     class="td-catalog-anchor{% if tienda_filtered %} td-catalog-anchor--filtered{% endif %}"
      data-cat-active="{{ cat_activa|escapejs }}"
      data-empresa-active="{{ empresa_activa|escapejs }}"
      data-orden-active="{{ orden_activo|escapejs }}"
      data-buscar-active="{{ buscar|escapejs }}"
      data-tab-active="{{ tab_catalogo|escapejs }}"
      data-cur-page="{{ productos.number }}">
+
+  {# Proveedor destacado solo al filtrar por empresa (estilo Alibaba supplier) #}
   {% if featured_supplier %}
   {% include "core/includes/tienda_featured_supplier.html" with company=featured_supplier %}
-  {% elif featured_category %}
-  {% include "core/includes/tienda_featured_category.html" %}
   {% endif %}
+
+  {% if tienda_filtered %}
+  {% include "core/includes/tienda/tienda_results_bar.html" %}
+  {% else %}
   <div class="td-results-hdr">
     <div>
-      <h1 id="td-results-title">
-        {% if tab_catalogo == 'ofertas' %}Active deals
-        {% elif tab_catalogo == 'bestsellers' %}Bestsellers
-        {% elif tab_catalogo == 'destacados' %}Featured products
-        {% else %}Full catalog{% endif %}
-      </h1>
+      <h1 id="td-results-title">Catálogo completo</h1>
       <p class="td-results-count" id="td-results-count">
-        {% if productos.paginator.count == 1 %}{{ productos.paginator.count }} product found{% else %}{{ productos.paginator.count }} products found{% endif %}
+        {{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }}
       </p>
     </div>
   </div>
+  {% endif %}
 
-  <div class="td-grid" id="td-product-grid">
-    {% for producto in productos %}
-    {% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}
-    {% empty %}
-    <div class="td-empty">
-      <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
-      <h2>No products found</h2>
-      <p>Try another term or category</p>
-      <a href="{% url 'tienda' %}" class="td-btn-add">View all products</a>
-    </div>
-    {% endfor %}
-  </div>
+  {% include "core/includes/tienda/tienda_product_grid.html" %}
 
   {% if productos.has_other_pages %}
-  <nav class="td-pag" id="td-pag" aria-label="Pagination">
+  <nav class="td-pag" id="td-pag" aria-label="Paginación">
     {% if productos.has_previous %}
     <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}"
        class="td-pag-ajax td-pag-nav"
-       aria-label="Previous page">
+       aria-label="Página anterior">
       {% include "core/includes/tf_icon.html" with name="chevron_left" class="tf-icon--sm" %}
     </a>
     {% endif %}
@@ -61,7 +52,7 @@
     {% if productos.has_next %}
     <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}"
        class="td-pag-ajax td-pag-nav"
-       aria-label="Next page">
+       aria-label="Página siguiente">
       {% include "core/includes/tf_icon.html" with name="chevron_right" class="tf-icon--sm" %}
     </a>
     {% endif %}

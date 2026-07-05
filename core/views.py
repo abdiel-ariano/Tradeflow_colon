@@ -3275,6 +3275,22 @@ def tienda(request):
     elif categoria:
         featured_category_block = merch.tienda_featured_category(categoria)
 
+    categoria_activa_obj = None
+    empresa_activa_obj = None
+    if categoria:
+        categoria_activa_obj = categorias.filter(pk=categoria).first()
+    if empresa:
+        empresa_activa_obj = empresas_filtro.filter(pk=empresa).first()
+
+    buyer_store_landing = (
+        not buscar
+        and not categoria
+        and not empresa
+        and tab_catalogo in ('todos', '')
+        and int(request.GET.get('page', 1) or 1) == 1
+    )
+    tienda_filtered = not buyer_store_landing
+
     context = {
         'productos': page_obj,
         'categorias': categorias,
@@ -3312,15 +3328,12 @@ def tienda(request):
         'buyer_recommended_products': buyer_recommended_products,
         'tienda_pagination_slots': _tienda_pagination_slots(page_obj),
         'category_spotlights': merch.category_spotlights(4, 4),
-        'buyer_store_landing': (
-            not buscar
-            and not categoria
-            and not empresa
-            and tab_catalogo in ('todos', '')
-            and int(request.GET.get('page', 1) or 1) == 1
-        ),
-        'featured_supplier': featured_supplier,
-        'featured_category': featured_category_block,
+        'buyer_store_landing': buyer_store_landing,
+        'tienda_filtered': tienda_filtered,
+        'categoria_activa_obj': categoria_activa_obj,
+        'empresa_activa_obj': empresa_activa_obj,
+        'featured_supplier': featured_supplier if empresa else None,
+        'featured_category': None,
     }
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'
