@@ -46,16 +46,18 @@ class TiendaFeaturedSearchTests(TestCase):
         self.assertContains(resp, 'CFZ Featured Co')
         self.assertContains(resp, 'Proveedor destacado')
 
-    def test_categoria_filter_shows_alibaba_layout(self):
+    def test_categoria_filter_shows_compact_catalog_cards(self):
         resp = self.client.get(f'/tienda/?categoria={self.category.pk}')
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'ali-product-grid')
-        self.assertContains(resp, 'ali-product-card')
         self.assertContains(resp, 'ali-filters')
-        self.assertContains(resp, 'Añadir al carrito')
-        self.assertContains(resp, 'Chatea ahora')
+        self.assertContains(resp, 'product-card')
         self.assertContains(resp, 'Electronics')
-        self.assertContains(resp, 'Pedido mín: 1 unidad')
+        self.assertContains(resp, 'MOQ')
+        self.assertContains(resp, 'CFZ Verified')
+        self.assertNotContains(resp, 'ali-product-card')
+        self.assertNotContains(resp, 'Chatea ahora')
+        self.assertNotContains(resp, 'Añadir al carrito')
+        self.assertNotContains(resp, 'ali-filter-title">Empresa')
         self.assertNotContains(resp, 'td-featured--category')
 
     def test_partial_ajax_includes_featured_supplier(self):

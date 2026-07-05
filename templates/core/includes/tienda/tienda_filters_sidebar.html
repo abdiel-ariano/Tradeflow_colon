@@ -1,6 +1,6 @@
 {% load tf_catalog %}
 {% comment %}
-Sidebar de filtros — clon visual Alibaba.com (panel izquierdo).
+Sidebar compacto — solo secciones del panel Alibaba de referencia.
 {% endcomment %}
 <button type="button" class="ali-filter-float" id="tienda-filter-open" aria-expanded="false" aria-controls="tienda-sidebar">
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -26,10 +26,6 @@ Sidebar de filtros — clon visual Alibaba.com (panel izquierdo).
     <div class="ali-filter-block">
       <h3 class="ali-filter-title">Valoraciones</h3>
       <label class="ali-filter-option">
-        <input type="radio" name="rating" value="" checked>
-        <span>Todas</span>
-      </label>
-      <label class="ali-filter-option">
         <input type="radio" name="rating" value="4">
         <span>4.0 en adelante</span>
       </label>
@@ -49,22 +45,15 @@ Sidebar de filtros — clon visual Alibaba.com (panel izquierdo).
         <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
         <span>CFZ Verificado</span>
       </label>
-      <label class="ali-filter-option">
-        <input type="checkbox" name="on_sale" value="1" {% if tab_catalogo == 'ofertas' %}checked{% endif %}>
-        <span>En oferta</span>
-      </label>
     </div>
 
     <div class="ali-filter-block">
       <h3 class="ali-filter-title">Categoría</h3>
       {% if categoria_activa_obj %}
-      <p class="ali-filter-current">
-        {{ categoria_activa_obj.name|category_label }}
-        · <a href="{% url 'tienda' %}?{% if buscar %}buscar={{ buscar|urlencode }}&{% endif %}{% if empresa_activa %}empresa={{ empresa_activa }}&{% endif %}">Ver todas</a>
-      </p>
-      {% endif %}
-      <ul class="filter-list" style="list-style:none;margin:0;padding:0;">
-        {% for cat in categorias|slice:":12" %}
+      <p class="ali-filter-current">{{ categoria_activa_obj.name|category_label }}</p>
+      {% else %}
+      <ul class="ali-filter-cats">
+        {% for cat in categorias|slice:":8" %}
         <li>
           <label class="ali-filter-option">
             <input type="radio" name="categoria" value="{{ cat.pk }}" class="js-tienda-cat-radio"
@@ -74,6 +63,7 @@ Sidebar de filtros — clon visual Alibaba.com (panel izquierdo).
         </li>
         {% endfor %}
       </ul>
+      {% endif %}
     </div>
 
     <div class="ali-filter-block">
@@ -97,7 +87,7 @@ Sidebar de filtros — clon visual Alibaba.com (panel izquierdo).
       <h3 class="ali-filter-title">País o región del proveedor</h3>
       <div class="ali-supplier-search">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="search" id="ali-supplier-filter-search" placeholder="Buscar país" aria-label="Buscar país">
+        <input type="search" placeholder="Buscar país" aria-label="Buscar país" disabled>
       </div>
       <label class="ali-filter-option">
         <input type="checkbox" name="pais" value="PA" checked disabled>
@@ -105,30 +95,10 @@ Sidebar de filtros — clon visual Alibaba.com (panel izquierdo).
       </label>
     </div>
 
-    <div class="ali-filter-block">
-      <h3 class="ali-filter-title">Empresa</h3>
-      <ul class="filter-list filter-list--companies" style="list-style:none;margin:0;padding:0;max-height:160px;overflow-y:auto;">
-        <li>
-          <button type="button" class="filter-company-link js-tienda-empresa-link{% if not empresa_activa %} is-active{% endif %}"
-                  data-empresa-id="" style="display:flex;width:100%;padding:6px 0;border:none;background:none;font:inherit;font-size:13px;text-align:left;cursor:pointer;color:#333;">
-            Todas las empresas
-          </button>
-        </li>
-        {% for empresa in empresas|slice:":16" %}
-        <li>
-          <button type="button" class="filter-company-link js-tienda-empresa-link{% if empresa_activa == empresa.pk|stringformat:'s' %} is-active{% endif %}"
-                  data-empresa-id="{{ empresa.pk }}"
-                  style="display:flex;width:100%;padding:6px 0;border:none;background:none;font:inherit;font-size:13px;text-align:left;cursor:pointer;color:#333;{% if empresa_activa == empresa.pk|stringformat:'s' %}font-weight:600;color:#ff6a00;{% endif %}">
-            {{ empresa.name|truncatechars:26 }}
-          </button>
-        </li>
-        {% endfor %}
-      </ul>
+    {% if cat_activa or empresa_activa or buscar or solo_verificado or precio_min or precio_max %}
+    <div class="ali-filter-block ali-filter-block--actions">
+      <a href="{% url 'tienda' %}" id="btn-limpiar" class="ali-btn-clear">Limpiar filtros</a>
     </div>
-
-    <div class="ali-filter-actions">
-      <button type="submit" class="ali-btn-apply">Aplicar filtros</button>
-      <a href="{% url 'tienda' %}" id="btn-limpiar" class="ali-btn-clear">Limpiar todo</a>
-    </div>
+    {% endif %}
   </form>
 </aside>
