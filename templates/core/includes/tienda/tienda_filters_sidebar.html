@@ -1,10 +1,9 @@
 {% load tf_catalog %}
 {% comment %}
-Sidebar de filtros — mismo patrón visual que catalogo_publico.html (catalog.css).
-Usado en /tienda/ cuando hay categoría, empresa, búsqueda o tab activo.
+Sidebar de filtros — clon visual Alibaba.com (panel izquierdo).
 {% endcomment %}
-<button type="button" class="btn-filter-floating" id="tienda-filter-open" aria-expanded="false" aria-controls="tienda-sidebar">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+<button type="button" class="ali-filter-float" id="tienda-filter-open" aria-expanded="false" aria-controls="tienda-sidebar">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
     <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
     <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
     <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
@@ -12,99 +11,124 @@ Usado en /tienda/ cuando hay categoría, empresa, búsqueda o tab activo.
   </svg>
   Filtros
 </button>
-<div class="sidebar-overlay" id="tienda-sidebar-backdrop" hidden></div>
+<div class="ali-sidebar-backdrop" id="tienda-sidebar-backdrop" hidden></div>
 
-<aside class="catalog-sidebar td-catalog-sidebar" id="tienda-sidebar" aria-label="Filtros del catálogo">
-  <div class="sidebar-heading-row">
-    <h2 class="sidebar-heading">Filtrar resultados</h2>
-    <button type="button" class="sidebar-close" id="tienda-sidebar-close" aria-label="Cerrar filtros">✕</button>
-  </div>
-  <form method="get" action="{% url 'tienda' %}" id="filtros-form" class="cat-filters-form td-filters-form">
+<aside class="ali-filters" id="tienda-sidebar" aria-label="Filtros del catálogo">
+  <button type="button" class="ali-sidebar-close" id="tienda-sidebar-close" aria-label="Cerrar filtros">✕</button>
+
+  <form method="get" action="{% url 'tienda' %}" id="filtros-form" class="ali-filters-form">
     {% if tab_catalogo and tab_catalogo != 'todos' %}
     <input type="hidden" name="tab" value="{{ tab_catalogo }}">
     {% endif %}
     <input type="hidden" name="empresa" id="tienda-filter-empresa" value="{{ empresa_activa|default:'' }}">
+    <input type="hidden" name="buscar" id="tienda-filter-buscar" value="{{ buscar|default:'' }}">
 
-    <div class="filter-section">
-      <label class="filter-section-title filter-section-title--static" for="input-buscar">Buscar</label>
-      <div class="filter-section-body">
-        <input type="search" name="buscar" id="input-buscar" class="filter-select td-search-input"
-               placeholder="Productos, SKU…" value="{{ buscar }}" autocomplete="off">
+    <div class="ali-filter-block">
+      <h3 class="ali-filter-title">Valoraciones</h3>
+      <label class="ali-filter-option">
+        <input type="radio" name="rating" value="" checked>
+        <span>Todas</span>
+      </label>
+      <label class="ali-filter-option">
+        <input type="radio" name="rating" value="4">
+        <span>4.0 en adelante</span>
+      </label>
+      <label class="ali-filter-option">
+        <input type="radio" name="rating" value="45">
+        <span>4.5 o más</span>
+      </label>
+      <label class="ali-filter-option">
+        <input type="radio" name="rating" value="5">
+        <span>5.0</span>
+      </label>
+    </div>
+
+    <div class="ali-filter-block">
+      <h3 class="ali-filter-title">Características del producto</h3>
+      <label class="ali-filter-option">
+        <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
+        <span>CFZ Verificado</span>
+      </label>
+      <label class="ali-filter-option">
+        <input type="checkbox" name="on_sale" value="1" {% if tab_catalogo == 'ofertas' %}checked{% endif %}>
+        <span>En oferta</span>
+      </label>
+    </div>
+
+    <div class="ali-filter-block">
+      <h3 class="ali-filter-title">Categoría</h3>
+      {% if categoria_activa_obj %}
+      <p class="ali-filter-current">
+        {{ categoria_activa_obj.name|category_label }}
+        · <a href="{% url 'tienda' %}?{% if buscar %}buscar={{ buscar|urlencode }}&{% endif %}{% if empresa_activa %}empresa={{ empresa_activa }}&{% endif %}">Ver todas</a>
+      </p>
+      {% endif %}
+      <ul class="filter-list" style="list-style:none;margin:0;padding:0;">
+        {% for cat in categorias|slice:":12" %}
+        <li>
+          <label class="ali-filter-option">
+            <input type="radio" name="categoria" value="{{ cat.pk }}" class="js-tienda-cat-radio"
+                   {% if cat_activa == cat.pk|stringformat:'s' %}checked{% endif %}>
+            <span{% if cat_activa == cat.pk|stringformat:'s' %} class="is-active"{% endif %}>{{ cat.name|category_label }}</span>
+          </label>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="ali-filter-block">
+      <h3 class="ali-filter-title">Precio (USD)</h3>
+      <div class="ali-price-row">
+        <input type="number" name="precio_min" min="0" step="0.01" placeholder="Mín." value="{{ precio_min|default:'' }}" aria-label="Precio mínimo">
+        <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx." value="{{ precio_max|default:'' }}" aria-label="Precio máximo">
+        <button type="button" class="ali-filter-ok" data-apply-filter="price">OK</button>
       </div>
     </div>
 
-    <div class="filter-section">
-      <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
-        Ordenar por
-        <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-      <div class="filter-section-body">
-        <select name="orden" id="select-orden" class="filter-select cat-sort-select" aria-label="Ordenar resultados">
-          <option value="nombre">Nombre A-Z</option>
-          <option value="precio_asc">Precio: menor a mayor</option>
-          <option value="precio_desc">Precio: mayor a menor</option>
-          <option value="novedades">Más recientes</option>
-        </select>
+    <div class="ali-filter-block">
+      <h3 class="ali-filter-title">Pedido mínimo</h3>
+      <div class="ali-moq-row">
+        <input type="number" name="moq_max" min="1" step="1" placeholder="Unidades" aria-label="Pedido mínimo">
+        <button type="button" class="ali-filter-ok" data-apply-filter="moq">OK</button>
       </div>
     </div>
 
-    <div class="filter-section">
-      <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
-        Categorías
-        <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-      <div class="filter-section-body">
-        <ul class="filter-list">
-          <li>
-            <label class="filter-option">
-              <input type="radio" name="categoria" value="" id="select-categoria-all"
-                     {% if not cat_activa %}checked{% endif %}>
-              <span{% if not cat_activa %} class="is-active"{% endif %}>Todas las categorías</span>
-            </label>
-          </li>
-          {% for cat in categorias %}
-          <li>
-            <label class="filter-option">
-              <input type="radio" name="categoria" value="{{ cat.pk }}" class="js-tienda-cat-radio"
-                     {% if cat_activa == cat.pk|stringformat:'s' %}checked{% endif %}>
-              <span{% if cat_activa == cat.pk|stringformat:'s' %} class="is-active"{% endif %}>{{ cat.name|category_label }}</span>
-              {% if cat.num_productos %}<span class="filter-count">{{ cat.num_productos }}</span>{% endif %}
-            </label>
-          </li>
-          {% empty %}
-          <li class="filter-empty">Sin categorías</li>
-          {% endfor %}
-        </ul>
+    <div class="ali-filter-block">
+      <h3 class="ali-filter-title">País o región del proveedor</h3>
+      <div class="ali-supplier-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="search" id="ali-supplier-filter-search" placeholder="Buscar país" aria-label="Buscar país">
       </div>
+      <label class="ali-filter-option">
+        <input type="checkbox" name="pais" value="PA" checked disabled>
+        <span>Panamá (ZLC)</span>
+      </label>
     </div>
 
-    <div class="filter-section">
-      <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
-        Empresa
-        <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-      <div class="filter-section-body">
-        <ul class="filter-list filter-list--companies">
-          <li>
-            <button type="button" class="filter-company-link js-tienda-empresa-link{% if not empresa_activa %} is-active{% endif %}"
-                    data-empresa-id="">Todas las empresas</button>
-          </li>
-          {% for empresa in empresas|slice:":24" %}
-          <li>
-            <button type="button" class="filter-company-link js-tienda-empresa-link{% if empresa_activa == empresa.pk|stringformat:'s' %} is-active{% endif %}"
-                    data-empresa-id="{{ empresa.pk }}">
-              {{ empresa.name|truncatechars:28 }}
-              {% if empresa.num_productos %}<span class="filter-count">{{ empresa.num_productos }}</span>{% endif %}
-            </button>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
+    <div class="ali-filter-block">
+      <h3 class="ali-filter-title">Empresa</h3>
+      <ul class="filter-list filter-list--companies" style="list-style:none;margin:0;padding:0;max-height:160px;overflow-y:auto;">
+        <li>
+          <button type="button" class="filter-company-link js-tienda-empresa-link{% if not empresa_activa %} is-active{% endif %}"
+                  data-empresa-id="" style="display:flex;width:100%;padding:6px 0;border:none;background:none;font:inherit;font-size:13px;text-align:left;cursor:pointer;color:#333;">
+            Todas las empresas
+          </button>
+        </li>
+        {% for empresa in empresas|slice:":16" %}
+        <li>
+          <button type="button" class="filter-company-link js-tienda-empresa-link{% if empresa_activa == empresa.pk|stringformat:'s' %} is-active{% endif %}"
+                  data-empresa-id="{{ empresa.pk }}"
+                  style="display:flex;width:100%;padding:6px 0;border:none;background:none;font:inherit;font-size:13px;text-align:left;cursor:pointer;color:#333;{% if empresa_activa == empresa.pk|stringformat:'s' %}font-weight:600;color:#ff6a00;{% endif %}">
+            {{ empresa.name|truncatechars:26 }}
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
     </div>
 
-    <div class="filter-actions">
-      <button type="submit" class="btn-apply-filters">Aplicar filtros</button>
-      <a href="{% url 'tienda' %}" id="btn-limpiar" class="btn-clear-filters">Limpiar todo</a>
+    <div class="ali-filter-actions">
+      <button type="submit" class="ali-btn-apply">Aplicar filtros</button>
+      <a href="{% url 'tienda' %}" id="btn-limpiar" class="ali-btn-clear">Limpiar todo</a>
     </div>
   </form>
 </aside>

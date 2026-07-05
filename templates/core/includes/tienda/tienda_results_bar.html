@@ -1,37 +1,18 @@
 {% comment %}
-================================================================================
-TiendaResultsBar — cabecera de resultados estilo Alibaba (categoría / búsqueda).
-
-Muestra contexto del filtro activo y conteo de productos.
-Variables: categoria_activa_obj, empresa_activa_obj, buscar, productos, tab_catalogo
-================================================================================
+Barra de resultados estilo Alibaba — conteo + orden.
 {% endcomment %}
-<header class="td-alibaba-results-bar" id="td-alibaba-results-bar">
-  <div class="td-alibaba-results-bar__main">
-    {% if categoria_activa_obj %}
-    <p class="td-alibaba-results-bar__eyebrow">Categoría</p>
-    <h1 class="td-alibaba-results-bar__title" id="td-results-title">{{ categoria_activa_obj.name }}</h1>
-    {% elif empresa_activa_obj %}
-    <p class="td-alibaba-results-bar__eyebrow">Proveedor</p>
-    <h1 class="td-alibaba-results-bar__title" id="td-results-title">{{ empresa_activa_obj.name }}</h1>
-    {% elif buscar %}
-    <p class="td-alibaba-results-bar__eyebrow">Búsqueda</p>
-    <h1 class="td-alibaba-results-bar__title" id="td-results-title">"{{ buscar }}"</h1>
-    {% elif tab_catalogo == 'ofertas' %}
-    <h1 class="td-alibaba-results-bar__title" id="td-results-title">Ofertas activas</h1>
-    {% elif tab_catalogo == 'bestsellers' %}
-    <h1 class="td-alibaba-results-bar__title" id="td-results-title">Más vendidos en la ZLC</h1>
-    {% elif tab_catalogo == 'destacados' %}
-    <h1 class="td-alibaba-results-bar__title" id="td-results-title">Productos destacados</h1>
-    {% else %}
-    <h1 class="td-alibaba-results-bar__title" id="td-results-title">Catálogo completo</h1>
-    {% endif %}
-
-    <p class="td-alibaba-results-bar__count" id="td-results-count">
-      Mostrando {{ productos.paginator.count }}
-      producto{{ productos.paginator.count|pluralize }}
-      {% if categoria_activa_obj %}en {{ categoria_activa_obj.name }}{% endif %}
-      {% if empresa_activa_obj %}de {{ empresa_activa_obj.name }}{% endif %}
-    </p>
-  </div>
-</header>
+<div class="ali-results-toolbar" id="ali-results-toolbar">
+  <p class="ali-results-count" id="td-results-count">
+    <strong id="td-results-title">
+      {% if categoria_activa_obj %}{{ categoria_activa_obj.name }}{% elif empresa_activa_obj %}{{ empresa_activa_obj.name }}{% elif buscar %}Resultados{% else %}Catálogo{% endif %}
+    </strong>
+    — {{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }}
+    {% if buscar %}<span class="ali-results-query">para &ldquo;{{ buscar }}&rdquo;</span>{% endif %}
+  </p>
+  <select name="orden" id="select-orden" class="ali-results-sort" form="filtros-form" aria-label="Ordenar resultados">
+    <option value="nombre" {% if orden_activo == 'nombre' %}selected{% endif %}>Relevancia</option>
+    <option value="precio_asc" {% if orden_activo == 'precio_asc' %}selected{% endif %}>Precio ↑</option>
+    <option value="precio_desc" {% if orden_activo == 'precio_desc' %}selected{% endif %}>Precio ↓</option>
+    <option value="novedades" {% if orden_activo == 'novedades' %}selected{% endif %}>Más recientes</option>
+  </select>
+</div>

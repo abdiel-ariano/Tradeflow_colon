@@ -2,7 +2,7 @@
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
 
-from core.models import Category, Company, Product, UserProfile
+from core.models import Category, Company, Inventory, Product, UserProfile
 
 
 @override_settings(
@@ -27,7 +27,7 @@ class TiendaFeaturedSearchTests(TestCase):
         self.company = Company.objects.create(name='CFZ Featured Co', is_verified=True)
         self.category = Category.objects.create(name='Electronics')
         for i in range(5):
-            Product.objects.create(
+            product = Product.objects.create(
                 company=self.company,
                 category=self.category,
                 name=f'Widget {i}',
@@ -36,6 +36,7 @@ class TiendaFeaturedSearchTests(TestCase):
                 currency='USD',
                 is_active=True,
             )
+            Inventory.objects.create(product=product, stock_qty=50)
         self.client.force_login(self.user)
 
     def test_empresa_filter_shows_featured_supplier(self):
@@ -45,15 +46,16 @@ class TiendaFeaturedSearchTests(TestCase):
         self.assertContains(resp, 'CFZ Featured Co')
         self.assertContains(resp, 'Proveedor destacado')
 
-    def test_categoria_filter_shows_catalog_cards(self):
+    def test_categoria_filter_shows_alibaba_layout(self):
         resp = self.client.get(f'/tienda/?categoria={self.category.pk}')
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'td-alibaba-results-bar')
-        self.assertContains(resp, 'product-card')
-        self.assertContains(resp, 'catalog-sidebar')
+        self.assertContains(resp, 'ali-product-grid')
+        self.assertContains(resp, 'ali-product-card')
+        self.assertContains(resp, 'ali-filters')
+        self.assertContains(resp, 'Añadir al carrito')
+        self.assertContains(resp, 'Chatea ahora')
         self.assertContains(resp, 'Electronics')
-        self.assertContains(resp, 'MOQ')
-        self.assertNotContains(resp, 'td-alibaba-card')
+        self.assertContains(resp, 'Pedido mín: 1 unidad')
         self.assertNotContains(resp, 'td-featured--category')
 
     def test_partial_ajax_includes_featured_supplier(self):

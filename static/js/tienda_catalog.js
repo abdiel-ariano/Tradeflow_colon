@@ -108,8 +108,11 @@
     setCategoriaValue(root.getAttribute('data-cat-active') || '');
     setEmpresaValue(root.getAttribute('data-empresa-active') || '');
     markSelect(document.getElementById('select-orden'), root.getAttribute('data-orden-active') || 'nombre');
+    var busHidden = document.getElementById('tienda-filter-buscar');
     var busInp = document.getElementById('input-buscar');
-    if (busInp) busInp.value = root.getAttribute('data-buscar-active') || '';
+    var busVal = root.getAttribute('data-buscar-active') || '';
+    if (busHidden) busHidden.value = busVal;
+    if (busInp) busInp.value = busVal;
 
     document.querySelectorAll('.td-cat-link, .tf-cat-link').forEach(function (lnk) {
       var id = lnk.getAttribute('data-categoria-id') || '';
@@ -324,6 +327,18 @@
     });
   });
 
+  form.querySelectorAll('input[name="verificado"]').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      loadCatalog(buildUrl({ verificado: cb.checked ? '1' : null, page: null }), true, 'keep');
+    });
+  });
+
+  form.querySelectorAll('[data-apply-filter]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      loadCatalog(buildUrl({ page: null }), true, 'keep');
+    });
+  });
+
   var inputBuscar = document.getElementById('input-buscar');
   if (inputBuscar) {
     inputBuscar.addEventListener('input', function () {
@@ -399,6 +414,9 @@
         buscar: null,
         orden: null,
         tab: null,
+        precio_min: null,
+        precio_max: null,
+        verificado: null,
         page: null,
       }), true, 'top');
     });
