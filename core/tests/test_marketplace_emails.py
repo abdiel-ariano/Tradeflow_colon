@@ -147,3 +147,5 @@ class HomeNavbarTests(TestCase):
     def test_home_shows_marketplace_nav_for_guests(self):
         response = self.client.get(reverse('home'))
         self.assertContains(response, 'id="cat-catalog-nav"')
+        self.assertContains(response, 'Iniciar sesión')
+        self.assertContains(response, 'bn-utility--signin')

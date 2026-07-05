@@ -1,18 +1,18 @@
 {% load static %}
-{% comment %}Alibaba-style public navbar — home, catalog, and about pages.{% endcomment %}
-<header class="cat-nav" id="cat-catalog-nav">
+{% comment %}Navbar público estilo Alibaba — home, catálogo y about.{% endcomment %}
+<header class="cat-nav tf-nav-alibaba" id="cat-catalog-nav">
   <div class="navbar-primary">
-    <a class="navbar-logo" href="{% url 'home' %}">
+    <a class="navbar-logo" href="{% url 'home' %}" aria-label="TradeFlow Colón">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="navbar-logo__img" eager=1 %}
       <span class="logo-text">TradeFlow <span class="logo-accent">Colón</span></span>
     </a>
 
     <div class="search-container">
       <form class="search-bar" action="{% url 'catalogo_publico' %}" method="get" role="search" id="cat-nav-search-form">
-        <label class="visually-hidden" for="cat-nav-search">Search catalog</label>
+        <label class="visually-hidden" for="cat-nav-search">Buscar en el catálogo</label>
         <input type="search" id="cat-nav-search" name="buscar" value="{{ buscar|default:'' }}"
-               placeholder="Search {{ catalogo_stats.productos|default:stats.productos|default:'1,200+' }} CFZ products…" autocomplete="off">
-        <button type="button" class="btn-camera" aria-label="Image search">
+               placeholder="Buscar {{ catalogo_stats.productos|default:stats.productos|default:'1,200+' }} productos CFZ…" autocomplete="off">
+        <button type="button" class="btn-camera" aria-label="Buscar por imagen">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 0 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
             <circle cx="12" cy="13" r="4"/>
@@ -22,51 +22,94 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
           </svg>
-          <span class="btn-search-label">Search</span>
+          <span class="btn-search-label">Buscar</span>
         </button>
       </form>
     </div>
 
-    <button type="button" class="btn-hamburger" id="cat-nav-hamburger" aria-label="Open menu">
+    <button type="button" class="btn-hamburger" id="cat-nav-hamburger" aria-label="Abrir menú">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path d="M4 6h16M4 12h16M4 18h16"/>
       </svg>
     </button>
 
-    <div class="navbar-actions">
-      <span class="locale-flag">🇵🇦 PA</span>
-      <div class="lang-toggle">
-        <a href="{% url 'set_language' %}?language=es&amp;next={{ request.get_full_path|urlencode }}">ES</a>
-        <span>/</span>
-        <a href="{% url 'set_language' %}?language=en&amp;next={{ request.get_full_path|urlencode }}">EN</a>
-      </div>
-      <a href="{% url 'ver_carrito' %}" class="cart-btn" aria-label="Inquiry cart">
+    <div class="navbar-actions bn-actions">
+      <button type="button" class="bn-utility" title="Región de entrega" aria-label="Entregar en Panamá">
+        <span class="bn-utility__flag" aria-hidden="true">🇵🇦</span>
+        <span class="bn-utility__stack">
+          <span class="bn-utility__label">Entregar en:</span>
+          <span class="bn-utility__value">PA</span>
+        </span>
+      </button>
+
+      <button type="button" class="bn-utility bn-utility--lang" title="Idioma y moneda" aria-label="Idioma Español">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="bn-utility__value">Español · USD</span>
+      </button>
+
+      {% if request.user.is_authenticated %}
+      <a href="{% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="Mis cotizaciones" aria-label="Mis cotizaciones">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </a>
+
+      <a href="{% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="Pedidos y listas" aria-label="Pedidos y listas">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
+        </svg>
+      </a>
+      {% else %}
+      <a href="{% url 'login' %}?next={% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="Mensajes" aria-label="Mensajes">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </a>
+
+      <a href="{% url 'login' %}?next={% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="Pedidos y listas" aria-label="Pedidos y listas">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
+        </svg>
+      </a>
+      {% endif %}
+
+      <a href="{% url 'ver_carrito' %}" class="cart-btn" aria-label="Carrito de consultas">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
         </svg>
         <span class="cart-badge{% if carrito_count %} has-count{% endif %}" id="cat-inquiry-badge">{% firstof carrito_count 0 %}</span>
       </a>
+
       {% if request.user.is_authenticated %}
-      <a href="{% url 'mi_perfil' %}" class="link-signin">{{ request.user.get_full_name|default:request.user.username }}</a>
-      <a href="{% url 'logout' %}" class="btn-create-account" style="background:transparent;color:var(--tf-navy,#0F2A44);border:1.5px solid var(--tf-border-soft,#E5E7EB);">Sign out</a>
+      <a href="{% url 'mi_perfil' %}" class="bn-utility bn-utility--account" title="Mi cuenta">
+        <span class="bn-user-avatar" aria-hidden="true">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
+        <span class="bn-user-name">{{ request.user.get_full_name|default:request.user.username|truncatechars:14 }}</span>
+      </a>
       {% else %}
-      <a href="{% url 'login' %}" class="link-signin">Sign in</a>
-      <a href="{% url 'signup' %}" class="btn-create-account">Create account</a>
+      <a href="{% url 'login' %}" class="bn-utility bn-utility--signin" title="Iniciar sesión">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span class="bn-utility__signin-label">Iniciar sesión</span>
+      </a>
       {% endif %}
     </div>
   </div>
 
-  <nav class="navbar-secondary" aria-label="Marketplace shortcuts">
+  <nav class="navbar-secondary" aria-label="Accesos del marketplace">
     <div class="nav-secondary-inner">
       <div class="nav-secondary-left">
-        <button type="button" class="btn-all-categories" data-cat-modal-open data-cat-panel="discover">☰ All categories</button>
-        <a href="{% url 'catalogo_publico' %}?verificado=1">Verified suppliers</a>
-        <a href="{% url 'catalogo_publico' %}?orden=promo">Deals</a>
-        <a href="{% url 'acerca_tradeflow' %}"{% if marketplace_nav_active == 'about' %} class="is-active" aria-current="page"{% endif %}>About TradeFlow</a>
+        <button type="button" class="btn-all-categories" data-cat-modal-open data-cat-panel="discover">☰ Todas las categorías</button>
+        <a href="{% url 'catalogo_publico' %}?verificado=1">Fabricantes verificados</a>
+        <a href="{% url 'catalogo_publico' %}?orden=promo">Ofertas</a>
+        <a href="{% url 'acerca_tradeflow' %}"{% if marketplace_nav_active == 'about' %} class="is-active" aria-current="page"{% endif %}>Protección del pedido</a>
+        <a href="{% url 'acerca_tradeflow' %}">Acerca de TradeFlow Colón</a>
       </div>
       <div class="nav-secondary-right">
-        <a href="{% url 'acerca_tradeflow' %}">Help center</a>
+        <a href="{% url 'acerca_tradeflow' %}">Centro de ayuda</a>
         <a href="{% url 'signup' %}?role=seller">Vende en TradeFlow Colón</a>
       </div>
     </div>
