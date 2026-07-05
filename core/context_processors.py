@@ -154,6 +154,26 @@ def nav_header_categories(request):
     return {'nav_header_categories': cached_nav_categories()}
 
 
+def buyer_mega_menu_context(request):
+    """
+    Datos del mega menú «Todas las categorías» en el navbar comprador.
+
+    Solo se inyecta para usuarios autenticados con rol buyer (o sin perfil
+    en transición) para no cargar consultas extra en admin/seller.
+    """
+    if not request.user.is_authenticated:
+        return {}
+    try:
+        role = request.user.profile.role
+        if role not in (None, 'buyer'):
+            return {}
+    except Exception:
+        pass
+    from core.merchandising import buyer_mega_menu_panels
+
+    return {'buyer_mega_menu_panels': buyer_mega_menu_panels()}
+
+
 def social_auth_context(request):
     """OAuth providers enabled for login/signup templates."""
     from core.social_auth import provider_is_enabled, social_auth_enabled

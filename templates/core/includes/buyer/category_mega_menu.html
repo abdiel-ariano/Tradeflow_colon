@@ -1,36 +1,60 @@
-{% comment %}CategoryMegaMenu — panel hover en navbar nivel 2.{% endcomment %}
-<div class="bn-mega" id="bn-mega-menu" role="region" aria-label="Categorías">
+{% comment %}
+================================================================================
+CategoryMegaMenu — panel desplegable «Todas las categorías» (navbar comprador).
+
+Funcionalidad:
+  - Columna izquierda: categorías reales de la BD (sin emojis).
+  - Columna derecha: productos destacados de la categoría activa.
+  - Enlaces usan ?categoria=<id> (filtro exacto), no ?buscar= genérico.
+
+Contexto: buyer_mega_menu_context → buyer_mega_menu_panels
+  Cada panel: { category, products[] }
+
+JS: bn-mega-menu.js — alterna panel derecho al pasar el mouse (hover).
+================================================================================
+{% endcomment %}
+<div class="bn-mega" id="bn-mega-menu" role="region" aria-label="Categorías del marketplace">
+  {# ── Columna izquierda: lista de categorías ── #}
   <div class="bn-mega-left" id="bn-mega-left">
-    <a href="{% url 'tienda' %}?buscar=ropa" class="bn-mega-cat is-active" data-mega-panel="ropa">
-      <span>🎽 Ropa y accesorios</span>
+    {% for panel in buyer_mega_menu_panels %}
+    <a href="{% url 'tienda' %}?categoria={{ panel.category.pk }}"
+       class="bn-mega-cat{% if forloop.first %} is-active{% endif %}"
+       data-mega-panel="{{ panel.category.pk }}">
+      <span class="bn-mega-cat__label">{{ panel.category.name }}</span>
       {% include "core/includes/tf_icon.html" with name="chevron_right" class="bn-mega-chevron" %}
     </a>
-    <a href="{% url 'tienda' %}?buscar=electronica" class="bn-mega-cat" data-mega-panel="electronica">
-      <span>📱 Electrónica de consumo</span>
-      {% include "core/includes/tf_icon.html" with name="chevron_right" class="bn-mega-chevron" %}
+    {% empty %}
+    <a href="{% url 'tienda' %}" class="bn-mega-cat is-active">
+      <span class="bn-mega-cat__label">Ver catálogo completo</span>
     </a>
-    <a href="{% url 'tienda' %}?buscar=deportes" class="bn-mega-cat" data-mega-panel="deportes">
-      <span>🏋️ Deportes y entretenimiento</span>
-      {% include "core/includes/tf_icon.html" with name="chevron_right" class="bn-mega-chevron" %}
-    </a>
-    <a href="{% url 'tienda' %}?buscar=belleza" class="bn-mega-cat" data-mega-panel="belleza">
-      <span>💄 Belleza</span>
-      {% include "core/includes/tf_icon.html" with name="chevron_right" class="bn-mega-chevron" %}
-    </a>
-    <a href="{% url 'tienda' %}?buscar=joyeria" class="bn-mega-cat" data-mega-panel="joyeria">
-      <span>💎 Joyería, gafas y relojes</span>
-      {% include "core/includes/tf_icon.html" with name="chevron_right" class="bn-mega-chevron" %}
-    </a>
-    <a href="{% url 'tienda' %}?buscar=hogar" class="bn-mega-cat" data-mega-panel="hogar">
-      <span>🏠 Hogar y jardín</span>
-      {% include "core/includes/tf_icon.html" with name="chevron_right" class="bn-mega-chevron" %}
-    </a>
-    <a href="{% url 'tienda' %}?buscar=industrial" class="bn-mega-cat" data-mega-panel="industrial">
-      <span>⚡ Electrónica industrial</span>
-      {% include "core/includes/tf_icon.html" with name="chevron_right" class="bn-mega-chevron" %}
-    </a>
-    <a href="{% url 'tienda' %}?buscar=maquinaria" class="bn-mega-cat" data-mega-panel="maquinaria">
-      <span>🔧 Maquinaria</span>
-      {% include "core/includes/tf_icon.html" with name="chevron_right" class="bn-mega-chevron" %}
-    </a>
+    {% endfor %}
   </div>
+
+  {# ── Columna derecha: sub-productos de la categoría activa ── #}
+  <div class="bn-mega-right" id="bn-mega-right">
+    {% for panel in buyer_mega_menu_panels %}
+    <div class="bn-mega-panel{% if forloop.first %} is-active{% endif %}"
+         data-mega-panel="{{ panel.category.pk }}"
+         {% if not forloop.first %}hidden{% endif %}>
+      <h4 class="bn-mega-panel__title">{{ panel.category.name }}</h4>
+      <div class="bn-mega-subgrid">
+        {% for product in panel.products %}
+        <a class="bn-mega-sub"
+           href="{% url 'tienda' %}?categoria={{ panel.category.pk }}&buscar={{ product.name|urlencode }}">
+          {{ product.name|truncatechars:32 }}
+        </a>
+        {% empty %}
+        <a class="bn-mega-sub" href="{% url 'tienda' %}?categoria={{ panel.category.pk }}">
+          Explorar {{ panel.category.name }}
+        </a>
+        {% endfor %}
+      </div>
+      <a href="{% url 'tienda' %}?categoria={{ panel.category.pk }}" class="bn-mega-browse">
+        Ver todos en {{ panel.category.name|truncatechars:28 }} →
+      </a>
+    </div>
+    {% empty %}
+    <p class="bn-mega-empty">No hay categorías con productos activos.</p>
+    {% endfor %}
+  </div>
+</div>

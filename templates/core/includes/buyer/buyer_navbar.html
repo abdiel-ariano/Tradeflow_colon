@@ -1,18 +1,22 @@
 {% load static %}
 {% comment %}
 ================================================================================
-BuyerNavbar — estilo Alibaba.com (2 filas, fondo claro, sin Accio Work).
-Fila 1: logo + búsqueda + utilidades (entrega, idioma, pedidos, carrito, cuenta).
-Fila 2: categorías + enlaces CFZ | centro de ayuda + vender en TF.
+BuyerNavbar — navbar comprador estilo Alibaba (2 filas, fondo claro).
+
+Fila 1: logo TradeFlow Colón + búsqueda central + utilidades (PA, idioma, carrito).
+Fila 2: mega menú categorías + enlaces CFZ | ayuda + vender en TF Colón.
+
+Incluye: category_mega_menu.html (categorías reales, sin emojis).
 ================================================================================
 {% endcomment %}
 {% with is_auth=request.user.is_authenticated %}
 <header class="cat-nav bn-shell tf-nav-alibaba" id="bn-buyer-shell">
-  {# ── Fila superior ── #}
+
+  {# ── Fila 1: marca + búsqueda + cuenta ── #}
   <div class="navbar-primary">
     <a class="navbar-logo" href="{% url 'home' %}" aria-label="TradeFlow Colón">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="navbar-logo__img" eager=1 %}
-      <span class="logo-text">TradeFlow<span class="logo-accent">.com</span></span>
+      <span class="logo-text">TradeFlow <span class="logo-accent">Colón</span></span>
     </a>
 
     <div class="search-container bn-search-wrap">
@@ -74,29 +78,33 @@ Fila 2: categorías + enlaces CFZ | centro de ayuda + vender en TF.
     </div>
   </div>
 
-  {# ── Fila secundaria (sin Accio Work — solo ayuda + vender) ── #}
+  {# ── Fila 2: categorías + enlaces secundarios ── #}
   <nav class="navbar-secondary bn-l2" id="bn-l2" aria-label="Accesos del marketplace">
     <div class="nav-secondary-inner">
       <div class="nav-secondary-left">
         <div class="bn-cat-trigger-wrap">
           <button type="button" class="btn-all-categories bn-cat-trigger" id="bn-cat-trigger" aria-expanded="false" aria-controls="bn-mega-menu">
-            ☰ Todas las categorías
+            <svg class="bn-cat-trigger__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            Todas las categorías
           </button>
           {% include "core/includes/buyer/category_mega_menu.html" %}
         </div>
         <a href="{% url 'catalogo_publico' %}?verificado=1">Fabricantes verificados</a>
         <a href="{% url 'catalogo_publico' %}?orden=promo">Ofertas</a>
         <a href="{% url 'acerca_tradeflow' %}">Protección del pedido</a>
-        <a href="{% url 'acerca_tradeflow' %}">Acerca de TradeFlow</a>
+        <a href="{% url 'acerca_tradeflow' %}">Acerca de TradeFlow Colón</a>
       </div>
       <div class="nav-secondary-right">
         <a href="{% url 'acerca_tradeflow' %}">Centro de ayuda</a>
-        <a href="{% url 'signup' %}?role=seller">Vende en TradeFlow.com</a>
+        <a href="{% url 'signup' %}?role=seller">Vende en TradeFlow Colón</a>
       </div>
     </div>
   </nav>
 </header>
 
+<script src="{% static 'js/bn-mega-menu.js' %}?v={{ tf_asset_version|default:'1' }}" defer nonce="{{ csp_nonce }}"></script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var toggle = document.getElementById('bn-mobile-toggle');

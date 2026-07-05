@@ -1,30 +1,45 @@
 {% load static %}
-<section class="bh-welcome" id="bh-welcome" aria-labelledby="bh-welcome-title">
-  <h2 class="visually-hidden" id="bh-welcome-title">Bienvenido a TradeFlow CFZ</h2>
+{% comment %}
+================================================================================
+BuyerWelcomeZone — landing /tienda/ (zona de bienvenida estilo Alibaba).
 
+Layout 3 columnas:
+  - Sidebar categorías (enlaces ?categoria= reales, sin emojis).
+  - Centro: tarjetas «Búsquedas frecuentes» con imagen de producto.
+  - Derecha: promo de proveedores verificados CFZ.
+
+Contexto: category_spotlights, categorias, empresas_catalogo, spotlight_destacados.
+================================================================================
+{% endcomment %}
+<section class="bh-welcome" id="bh-welcome" aria-labelledby="bh-welcome-title">
+  <h2 class="visually-hidden" id="bh-welcome-title">Bienvenido a TradeFlow Colón</h2>
+
+  {# ── Sidebar: acceso rápido por categoría ── #}
   <aside class="bh-cat-sidebar" aria-label="Categorías">
     {% for row in category_spotlights|slice:":8" %}
     <a href="{% url 'tienda' %}?categoria={{ row.category.id }}" class="bh-cat-item">
-      <span class="material-symbols-rounded" aria-hidden="true">category</span>
+      {% include "core/includes/tf_icon.html" with name="storefront" class="bh-cat-icon" %}
       {{ row.category.name }}
       {% include "core/includes/tf_icon.html" with name="chevron_right" class="bh-cat-chevron" %}
     </a>
     {% empty %}
     {% for cat in categorias|slice:":8" %}
     <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="bh-cat-item">
-      <span class="material-symbols-rounded" aria-hidden="true">category</span>
+      {% include "core/includes/tf_icon.html" with name="storefront" class="bh-cat-icon" %}
       {{ cat.name }}
       {% include "core/includes/tf_icon.html" with name="chevron_right" class="bh-cat-chevron" %}
     </a>
     {% empty %}
     <a href="{% url 'tienda' %}?buscar=electronica" class="bh-cat-item">
-      <span class="material-symbols-rounded">devices</span> Electrónica
+      {% include "core/includes/tf_icon.html" with name="storefront" class="bh-cat-icon" %}
+      Electrónica
       {% include "core/includes/tf_icon.html" with name="chevron_right" class="bh-cat-chevron" %}
     </a>
     {% endfor %}
     {% endfor %}
   </aside>
 
+  {# ── Centro: búsquedas frecuentes con imagen de producto ── #}
   <div class="bh-center">
     {% for row in category_spotlights|slice:":2" %}
     <article class="bh-freq-card">
@@ -43,7 +58,7 @@
     <article class="bh-freq-card">
       <p class="bh-freq-label">Búsquedas frecuentes</p>
       <h3 class="bh-freq-title">{{ product.category.name|default:product.name }}</h3>
-      <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}">
+      <a href="{% url 'tienda' %}?categoria={{ product.category_id }}">
         <div class="bh-freq-img">
           {% include "core/includes/product_image_placeholder.html" with product=product %}
         </div>
@@ -72,6 +87,7 @@
     {% endfor %}
   </div>
 
+  {# ── Promo lateral: proveedores verificados ── #}
   <aside class="bh-promo" aria-label="Promoción">
     <div>
       <h3>Proveedores y productos populares en la Zona Libre</h3>

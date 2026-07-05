@@ -258,6 +258,11 @@
   color: var(--ds-gray-mid, #8A97A8);
   font-size: 18px;
 }
+.bh-cat-icon {
+  flex-shrink: 0;
+  color: var(--ds-orange, #E8490F);
+  font-size: 18px;
+}
 .bh-cat-item:hover .bh-cat-chevron {
   color: var(--ds-orange, #E8490F);
 }
