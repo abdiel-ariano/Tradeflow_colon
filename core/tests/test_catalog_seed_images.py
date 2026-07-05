@@ -38,9 +38,9 @@ class CatalogSeedImageTests(TestCase):
         data = catalog_seed_bytes('electronics')
         self.assertGreater(len(data), 1000)
 
-    def test_product_image_src_uses_category_icon_not_picsum(self):
+    def test_product_image_src_uses_catalog_seed_not_picsum(self):
         url = product_image_src(self.product)
-        self.assertIn('/static/images/category-icons/electronics.svg', url)
+        self.assertIn('/static/images/catalog-seeds/electronics.jpg', url)
         self.assertNotIn('picsum.photos', url)
 
     def test_category_seed_filter_returns_jpeg_path(self):

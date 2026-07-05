@@ -71,8 +71,8 @@ class ProductImageSrcPhase0Tests(TestCase):
             is_active=True,
         )
 
-    def test_product_image_src_uses_category_icon_without_upload(self):
+    def test_product_image_src_uses_catalog_seed_without_upload(self):
         from core.templatetags.tf_media import product_image_src
 
         url = product_image_src(self.product)
-        self.assertIn('/static/images/category-icons/electronics.svg', url)
+        self.assertIn('/static/images/catalog-seeds/electronics.jpg', url)
