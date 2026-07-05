@@ -1134,6 +1134,11 @@ show_cart_actions, tienda_params.
            data-buscar-active="{{ buscar|escapejs }}"
            data-tab-active="{{ tab_catalogo|escapejs }}"
            data-cur-page="{{ productos.number }}">
+      {% if featured_supplier %}
+      {% include "core/includes/tienda_featured_supplier.html" with company=featured_supplier %}
+      {% elif featured_category %}
+      {% include "core/includes/tienda_featured_category.html" %}
+      {% endif %}
       <div class="td-results-hdr">
         <div>
           <h1 id="td-results-title">

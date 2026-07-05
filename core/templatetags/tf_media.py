@@ -31,7 +31,7 @@ def product_image_src(product):
     from core.utils.demo_product_images import (
         ai_placeholder_file_exists,
         ai_placeholder_static_path,
-        category_icon_static_path,
+        catalog_seed_static_path,
         picsum_url,
         use_runtime_picsum,
     )
@@ -55,7 +55,7 @@ def product_image_src(product):
     if use_runtime_picsum():
         return picsum_url(product)
 
-    return static(category_icon_static_path(product))
+    return static(catalog_seed_static_path(product))
 
 
 @register.filter

@@ -387,6 +387,16 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
 }
 .bn-mega-sub:hover { color: var(--ds-orange, #E8490F); }
 
+.bn-mega-chevron {
+  flex-shrink: 0;
+  color: var(--ds-gray-mid, #8A97A8);
+  font-size: 16px;
+}
+.bn-mega-cat:hover .bn-mega-chevron,
+.bn-mega-cat.is-active .bn-mega-chevron {
+  color: var(--ds-orange, #E8490F);
+}
+
 .bn-mobile-toggle {
   display: none;
   flex-direction: column;

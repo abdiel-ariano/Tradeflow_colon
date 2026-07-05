@@ -3268,6 +3268,13 @@ def tienda(request):
 
     empresas = empresas_filtro
 
+    featured_supplier = None
+    featured_category_block = None
+    if empresa:
+        featured_supplier = merch.tienda_featured_supplier(empresa)
+    elif categoria:
+        featured_category_block = merch.tienda_featured_category(categoria)
+
     context = {
         'productos': page_obj,
         'categorias': categorias,
@@ -3312,6 +3319,8 @@ def tienda(request):
             and tab_catalogo in ('todos', '')
             and int(request.GET.get('page', 1) or 1) == 1
         ),
+        'featured_supplier': featured_supplier,
+        'featured_category': featured_category_block,
     }
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'

@@ -7,6 +7,11 @@
      data-buscar-active="{{ buscar|escapejs }}"
      data-tab-active="{{ tab_catalogo|escapejs }}"
      data-cur-page="{{ productos.number }}">
+  {% if featured_supplier %}
+  {% include "core/includes/tienda_featured_supplier.html" with company=featured_supplier %}
+  {% elif featured_category %}
+  {% include "core/includes/tienda_featured_category.html" %}
+  {% endif %}
   <div class="td-results-hdr">
     <div>
       <h1 id="td-results-title">
@@ -40,7 +45,7 @@
     <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}"
        class="td-pag-ajax td-pag-nav"
        aria-label="Previous page">
-      <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+      {% include "core/includes/tf_icon.html" with name="chevron_left" class="tf-icon--sm" %}
     </a>
     {% endif %}
     {% for slot in tienda_pagination_slots %}
@@ -57,7 +62,7 @@
     <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}"
        class="td-pag-ajax td-pag-nav"
        aria-label="Next page">
-      <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+      {% include "core/includes/tf_icon.html" with name="chevron_right" class="tf-icon--sm" %}
     </a>
     {% endif %}
   </nav>

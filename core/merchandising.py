@@ -213,6 +213,44 @@ def spotlight_products_for_companies(companies, limit_per: int = 3):
         emp.spotlight_products = product_map.get(emp.pk, [])
 
 
+def tienda_featured_supplier(company_id):
+    """Proveedor destacado para resultados filtrados (?empresa=) — estilo Alibaba."""
+    if not company_id:
+        return None
+    try:
+        company = (
+            Company.objects.annotate(
+                num_productos=Count('products', filter=Q(products__is_active=True)),
+            )
+            .get(pk=int(company_id))
+        )
+    except (Company.DoesNotExist, ValueError, TypeError):
+        return None
+    if company.num_productos <= 0:
+        return None
+    spotlight_products_for_companies([company], limit_per=5)
+    return company
+
+
+def tienda_featured_category(category_id, limit: int = 5):
+    """Categoría destacada para resultados filtrados (?categoria=)."""
+    if not category_id:
+        return None
+    try:
+        category = Category.objects.get(pk=int(category_id))
+    except (Category.DoesNotExist, ValueError, TypeError):
+        return None
+    products = list(
+        active_products_base()
+        .filter(category=category)
+        .select_related('company', 'category', 'inventory')
+        .order_by('-merchandising_priority', '-is_featured', '-created_at')[:limit]
+    )
+    if not products:
+        return None
+    return {'category': category, 'products': products}
+
+
 def carousel_products(limit: int = 12):
     """Productos para carrusel: promo, bestsellers o destacados."""
     deals = daily_deals(limit=limit)

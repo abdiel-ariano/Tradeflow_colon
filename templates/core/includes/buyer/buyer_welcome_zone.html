@@ -7,19 +7,19 @@
     <a href="{% url 'tienda' %}?categoria={{ row.category.id }}" class="bh-cat-item">
       <span class="material-symbols-rounded" aria-hidden="true">category</span>
       {{ row.category.name }}
-      <span class="material-symbols-rounded bh-cat-chevron" aria-hidden="true">chevron_right</span>
+      {% include "core/includes/tf_icon.html" with name="chevron_right" class="bh-cat-chevron" %}
     </a>
     {% empty %}
     {% for cat in categorias|slice:":8" %}
     <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="bh-cat-item">
       <span class="material-symbols-rounded" aria-hidden="true">category</span>
       {{ cat.name }}
-      <span class="material-symbols-rounded bh-cat-chevron" aria-hidden="true">chevron_right</span>
+      {% include "core/includes/tf_icon.html" with name="chevron_right" class="bh-cat-chevron" %}
     </a>
     {% empty %}
     <a href="{% url 'tienda' %}?buscar=electronica" class="bh-cat-item">
       <span class="material-symbols-rounded">devices</span> Electrónica
-      <span class="material-symbols-rounded bh-cat-chevron">chevron_right</span>
+      {% include "core/includes/tf_icon.html" with name="chevron_right" class="bh-cat-chevron" %}
     </a>
     {% endfor %}
     {% endfor %}
@@ -54,14 +54,18 @@
       <p class="bh-freq-label">Búsquedas frecuentes</p>
       <h3 class="bh-freq-title">Electrónica</h3>
       <a href="{% url 'tienda' %}?buscar=electronica">
-        <img class="bh-freq-img" src="https://picsum.photos/seed/electronics/400/400" alt="Electrónica" loading="lazy">
+        <div class="bh-freq-img">
+          <img src="{% static 'images/catalog-seeds/electronics.jpg' %}" alt="Electrónica" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
+        </div>
       </a>
     </article>
     <article class="bh-freq-card">
       <p class="bh-freq-label">Búsquedas frecuentes</p>
       <h3 class="bh-freq-title">Textiles</h3>
       <a href="{% url 'tienda' %}?buscar=textiles">
-        <img class="bh-freq-img" src="https://picsum.photos/seed/textiles/400/400" alt="Textiles" loading="lazy">
+        <div class="bh-freq-img">
+          <img src="{% static 'images/catalog-seeds/textiles.jpg' %}" alt="Textiles" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
+        </div>
       </a>
     </article>
     {% endfor %}
