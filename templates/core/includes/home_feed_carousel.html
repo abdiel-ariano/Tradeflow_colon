@@ -11,7 +11,7 @@
         {% for product in section.products %}
         <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-feed-carousel__item">
           <span class="hm-feed-carousel__media">
-            {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" img_class="hm-feed-carousel__img" object_fit="contain" %}
+            {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" img_class="hm-feed-carousel__img" object_fit="contain" width=185 height=200 %}
           </span>
         </a>
         {% endfor %}

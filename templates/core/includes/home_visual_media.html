@@ -6,7 +6,7 @@ Home marketplace visuals — catalog-seed photos for dimension reference (not SV
 <div class="hm-visual is-loaded{% if wrap_class %} {{ wrap_class }}{% endif %}" data-hm-media>
   <img src="{{ primary }}"
        alt="{% if decorative %}{% else %}{{ alt|default:product.name }}{% endif %}"
-       class="hm-visual__img product-img{% if img_class %} {{ img_class }}{% endif %}{% if decorative %} is-decorative{% endif %}"
+       class="hm-visual__img{% if product_card_img %} product-img{% endif %}{% if img_class %} {{ img_class }}{% endif %}{% if decorative %} is-decorative{% endif %}"
        loading="{{ loading|default:'lazy' }}"
        decoding="async"
        style="object-fit: {{ object_fit|default:'cover' }}; object-position: {{ focal }};"
