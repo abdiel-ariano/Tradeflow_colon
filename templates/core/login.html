@@ -11,7 +11,7 @@ Split-screen visual (45% brand / 55% form). Contrato funcional sin cambios.
 {% block footer %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
-<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/auth-oauth.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
 {% block content %}
@@ -53,15 +53,7 @@ Split-screen visual (45% brand / 55% form). Contrato funcional sin cambios.
       </div>
 
       <h1 class="login-form-title">Iniciar sesión</h1>
-
-      <div class="auth-toggle" id="auth-login-toggle" role="group" aria-label="Account type">
-        <button type="button" id="auth-toggle-customer" class="is-on">
-          <span class="material-symbols-rounded">person</span> Customer
-        </button>
-        <button type="button" id="auth-toggle-business">
-          <span class="material-symbols-rounded">store</span> Business
-        </button>
-      </div>
+      <p class="login-form-subtitle">Accede a tu cuenta de TradeFlow Colón</p>
 
       <form method="post" action="{% url 'login' %}" novalidate>
         {% csrf_token %}
@@ -90,7 +82,7 @@ Split-screen visual (45% brand / 55% form). Contrato funcional sin cambios.
       {% include "core/includes/oauth_buttons_login.html" %}
 
       <div class="auth-footer">
-        Don’t have an account? <a href="{% url 'signup_buyer' %}">Sign up for free</a>
+        Don’t have an account? <a href="{% url 'signup_buyer' %}">Create one</a>
       </div>
 
       <div class="auth-verify-banner" id="auth-verify-resend" hidden>
@@ -123,12 +115,6 @@ Split-screen visual (45% brand / 55% form). Contrato funcional sin cambios.
     if (em) em.value = pendingEmail;
   }
 
-  var a = document.getElementById('auth-toggle-customer');
-  var b = document.getElementById('auth-toggle-business');
-  if (a && b) {
-    a.addEventListener('click', function () { a.classList.add('is-on'); b.classList.remove('is-on'); });
-    b.addEventListener('click', function () { b.classList.add('is-on'); a.classList.remove('is-on'); });
-  }
 })();
 </script>
 {% endblock %}
