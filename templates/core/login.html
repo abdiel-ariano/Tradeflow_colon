@@ -11,12 +11,12 @@ Split-screen visual (45% brand / 55% form). Contrato funcional sin cambios.
 {% block footer %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
-<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'1' }}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/auth-oauth.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
 {% block content %}
 <div
-  class="auth-page login-page"
+  class="login-page"
   id="auth-login-root"
   data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
 >
