@@ -57,6 +57,11 @@ body.cat-catalog-page .tf-main {
   padding: 0;
 }
 
+/* Home welcome bar replaces the gray trust strip (same shortcuts, richer layout) */
+body.cat-catalog-page .hm-marketplace-trust {
+  display: none;
+}
+
 /* ── Welcome bar (Alibaba micro-nav) ── */
 .hm-welcome-bar {
   background: #fff;
@@ -66,99 +71,63 @@ body.cat-catalog-page .tf-main {
 .hm-welcome-bar__inner {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 10px 16px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 32px;
+}
+
+@media (min-width: 1024px) {
+  .hm-welcome-bar__inner {
+    padding: 16px 24px;
+    min-height: 72px;
+    gap: 48px;
+  }
 }
 
 .hm-welcome-bar__text {
-  font-size: 14px;
-  font-weight: 600;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--tf-navy, #0F2A44);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .hm-welcome-bar__text {
+    font-size: 17px;
+  }
+}
+
+.hm-welcome-bar__panel {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  column-gap: 32px;
+  row-gap: 8px;
+  align-items: center;
+  justify-items: start;
 }
 
 .hm-welcome-bar__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.hm-welcome-bar__right {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 20px 28px;
-  margin-left: auto;
-}
-
-.hm-welcome-bar__auth {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.hm-welcome-bar__auth-link {
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.hm-welcome-bar__auth-link--signin {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--tf-navy, #0F2A44);
-}
-
-.hm-welcome-bar__auth-link--signin:hover {
-  color: var(--tf-orange, #FF7A3D);
-}
-
-.hm-welcome-bar__auth-link--signup {
-  display: inline-flex;
-  align-items: center;
-  height: 32px;
-  padding: 0 14px;
-  border-radius: 6px;
-  background: var(--tf-navy, #0F2A44);
-  color: #fff;
-}
-
-.hm-welcome-bar__auth-link--signup:hover {
-  background: #163352;
-  color: #fff;
-}
-
-@media (max-width: 767px) {
-  .hm-welcome-bar__inner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .hm-welcome-bar__right {
-    width: 100%;
-    margin-left: 0;
-    justify-content: space-between;
-  }
-
-  .hm-welcome-bar__links {
-    gap: 12px 16px;
-  }
+  display: contents;
 }
 
 .hm-welcome-bar__link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 13px;
-  color: var(--tf-text, #111827);
+  font-weight: 500;
+  color: var(--tf-navy, #0F2A44);
   text-decoration: none;
+  line-height: 1.25;
+  white-space: nowrap;
 }
 
 .hm-welcome-bar__link:hover {
@@ -168,6 +137,87 @@ body.cat-catalog-page .tf-main {
 .hm-welcome-bar__link svg {
   color: var(--tf-navy, #0F2A44);
   flex-shrink: 0;
+  opacity: 0.92;
+}
+
+.hm-welcome-bar__link:hover svg {
+  color: var(--tf-orange, #FF7A3D);
+}
+
+.hm-welcome-bar__auth {
+  grid-column: 1;
+  grid-row: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hm-welcome-bar__auth-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tf-navy, #0F2A44);
+  text-decoration: none;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.hm-welcome-bar__auth-link span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.hm-welcome-bar__auth-link:hover,
+.hm-welcome-bar__auth-link:hover span {
+  color: var(--tf-orange, #FF7A3D);
+}
+
+.hm-welcome-bar__auth-link svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 991px) {
+  .hm-welcome-bar__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .hm-welcome-bar__panel {
+    margin-left: 0;
+    width: 100%;
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+  }
+
+  .hm-welcome-bar__links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 20px;
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .hm-welcome-bar__auth {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 575px) {
+  .hm-welcome-bar__links {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .hm-welcome-bar__auth {
+    flex-wrap: wrap;
+    gap: 10px 14px;
+  }
 }
 
 /* ── Bento hero ── */
