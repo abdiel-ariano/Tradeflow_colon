@@ -1,0 +1,281 @@
+/*
+TradeFlow — Figma Amazon-style hero + quad category cards
+Loaded on marketplace home only.
+*/
+
+.hm-welcome-bar__link--btn {
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hm-marketplace-hero {
+  background: var(--tf-surface, #F2F3F5);
+  padding: 0 0 8px;
+}
+
+.hm-hero-carousel {
+  position: relative;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.hm-hero-carousel__track {
+  position: relative;
+  height: clamp(220px, 32vw, 320px);
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--tf-navy) 0%, var(--tf-mid) 100%);
+}
+
+.hm-hero-carousel__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+
+.hm-hero-carousel__slide.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hm-hero-carousel__link {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.hm-hero-carousel__media {
+  position: relative;
+  min-height: 0;
+  background: var(--tf-white);
+}
+
+.hm-hero-carousel__media .hm-visual,
+.hm-hero-carousel__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hm-hero-carousel__copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 28px;
+  color: var(--tf-white);
+  background: linear-gradient(90deg, rgba(15, 42, 68, 0.15), rgba(15, 42, 68, 0.72));
+}
+
+.hm-hero-carousel__eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-orange-soft);
+}
+
+.hm-hero-carousel__title {
+  margin: 0 0 12px;
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--tf-white);
+}
+
+.hm-hero-carousel__cta {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tf-orange);
+}
+
+.hm-hero-carousel__nav {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  right: 16px;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.hm-hero-carousel__arrow {
+  pointer-events: auto;
+  width: 42px;
+  height: 84px;
+  border: none;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--tf-navy);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 42, 68, 0.12);
+}
+
+.hm-hero-carousel__arrow:hover {
+  background: var(--tf-white);
+}
+
+.hm-hero-carousel__dots {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+
+.hm-hero-carousel__dot {
+  width: 8px;
+  height: 8px;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+}
+
+.hm-hero-carousel__dot.is-active {
+  background: var(--tf-white);
+}
+
+.hm-quad-cards {
+  max-width: 1440px;
+  margin: -72px auto 0;
+  padding: 0 16px 12px;
+  position: relative;
+  z-index: 3;
+}
+
+.hm-quad-cards__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+}
+
+.hm-quad-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  padding: 0 10px;
+}
+
+.hm-quad-card__head {
+  padding: 20px 20px 10px;
+  background: var(--tf-white);
+}
+
+.hm-quad-card__title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--tf-navy);
+}
+
+.hm-quad-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.hm-quad-card__title a:hover {
+  color: var(--tf-orange);
+}
+
+.hm-quad-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--tf-white);
+  padding: 0 20px 15px;
+}
+
+.hm-quad-card__quad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 15px;
+  flex: 1;
+}
+
+.hm-quad-card__cell {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.hm-quad-card__media {
+  display: block;
+  flex: 1;
+  min-height: 116px;
+  overflow: hidden;
+  background: var(--tf-light);
+}
+
+.hm-quad-card__media .hm-visual,
+.hm-quad-card__img {
+  width: 100%;
+  height: 100%;
+  min-height: 116px;
+  object-fit: cover;
+}
+
+.hm-quad-card__label {
+  display: block;
+  padding: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--tf-text);
+}
+
+.hm-quad-card__cell:hover .hm-quad-card__label {
+  color: var(--tf-orange);
+}
+
+.hm-quad-card__more {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tf-orange);
+  text-decoration: none;
+}
+
+.hm-quad-card__more:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1100px) {
+  .hm-quad-cards__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hm-hero-carousel__link {
+    grid-template-columns: 1fr;
+  }
+
+  .hm-quad-cards {
+    margin-top: -40px;
+  }
+}
+
+@media (max-width: 560px) {
+  .hm-quad-cards__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hm-quad-card {
+    min-height: auto;
+  }
+}

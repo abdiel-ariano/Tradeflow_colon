@@ -666,6 +666,7 @@ def build_guest_home_context(lang: str) -> dict:
     )
 
     category_spotlight_rows = category_spotlights(4, 8, exclude_ids=seen)
+    home_quad_cards = category_spotlights(4, 4, exclude_ids=None)
     category_discover = _category_discover_items(
         marketplace_trending_categories,
         category_spotlight_rows,
@@ -705,6 +706,7 @@ def build_guest_home_context(lang: str) -> dict:
         'empresas_premium': empresas_premium,
         'empresas_standard': empresas_standard,
         'category_spotlights': category_spotlight_rows,
+        'home_quad_cards': home_quad_cards,
         'promo_sections': promo_sections,
         'show_daily_deals_strip': show_daily_deals_strip,
         'show_bestsellers_section': show_bestsellers_section,
