@@ -4,97 +4,97 @@
 ================================================================================
 templates/core/login.html — TradeFlow Colón
 Contexto: login_view; require_email_verification, email_pendiente.
-Split-screen visual (45% brand / 55% form). Contrato funcional sin cambios.
+Diseño Stripe (solo presentación). Contrato funcional sin cambios.
 ================================================================================
 {% endcomment %}
-{% block title %}Log in — TradeFlow Colón{% endblock %}
+{% block title %}Iniciar sesión — TradeFlow Colón{% endblock %}
 {% block footer %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
-<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'5' }}">
-<link rel="stylesheet" href="{% static 'css/auth-oauth.css' %}?v={{ tf_asset_version|default:'1' }}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'6' }}">
 {% endblock %}
 {% block content %}
-<div class="login-page-wrap">
-{% include "core/includes/auth_minimal_navbar.html" %}
-<div
-  class="login-page"
-  id="auth-login-root"
-  data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
->
-  <aside class="login-brand-panel" aria-label="TradeFlow Colón">
-    <div class="login-brand-inner">
-      <div class="login-brand-logo">
-        {% include "core/includes/tf_logo.html" with variant="icon-white" size="sm" class="login-brand-logo__img" eager=1 %}
-        <span class="login-brand-name">TradeFlow <span class="login-brand-accent">Colón</span></span>
-      </div>
-      <h2 class="login-brand-headline">Bienvenido de nuevo</h2>
-      <p class="login-brand-subline">
-        Accede al marketplace B2B de la Zona Libre de Colón — mayoristas verificados,
-        cotizaciones y compras protegidas en un solo lugar.
-      </p>
-      <div class="login-catalog-mosaic" aria-hidden="true">
-        <img src="{% static 'images/catalog-seeds/electronics.jpg' %}" alt="" width="160" height="160" loading="lazy" decoding="async">
-        <img src="{% static 'images/catalog-seeds/textiles.jpg' %}" alt="" width="160" height="160" loading="lazy" decoding="async">
-        <img src="{% static 'images/catalog-seeds/beauty.jpg' %}" alt="" width="160" height="160" loading="lazy" decoding="async">
-        <img src="{% static 'images/catalog-seeds/home_appliances.jpg' %}" alt="" width="160" height="160" loading="lazy" decoding="async">
-      </div>
-    </div>
-    <p class="login-brand-footer">Zona Libre de Colón · Panamá</p>
-  </aside>
+<div class="login-page-wrap login-page-wrap--stripe">
+  <header class="login-site-header" role="banner">
+    <a href="{% url 'home' %}" class="login-site-brand" aria-label="TradeFlow Colón">
+      TradeFlow <span class="login-site-accent">Colón</span>
+    </a>
+  </header>
 
-  <div class="login-form-panel">
-    <div class="login-form-shell">
-    <div class="auth-dev-banner" id="auth-dev-banner" hidden>
-      Email verification disabled for local testing.
-    </div>
+  <div
+    class="login-page"
+    id="auth-login-root"
+    data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
+  >
+    <div class="login-aurora" aria-hidden="true"></div>
 
-    <h1 class="login-form-title">Iniciar sesión</h1>
-    <p class="login-form-subtitle">Accede a tu cuenta de TradeFlow Colón</p>
+    <div class="login-layout">
+      <div class="login-card">
+        <div class="auth-dev-banner" id="auth-dev-banner" hidden>
+          Verificación de correo desactivada para pruebas locales.
+        </div>
 
-    <form method="post" action="{% url 'login' %}" novalidate>
-      {% csrf_token %}
-      <div class="auth-field">
-        <label class="tf-label" for="id_username">Username</label>
-        <div class="auth-input-wrap">
-          <span class="field-ico"><span class="material-symbols-rounded">person</span></span>
-          <input type="text" name="username" id="id_username" class="tf-input" placeholder="your_username" autocomplete="username" autofocus required>
+        <h1 class="login-card__title">Iniciar sesión en tu cuenta</h1>
+
+        <form method="post" action="{% url 'login' %}" novalidate class="login-form">
+          {% csrf_token %}
+
+          <div class="login-field">
+            <label class="login-label" for="id_username">Correo electrónico</label>
+            <input
+              type="text"
+              name="username"
+              id="id_username"
+              class="login-input tf-input"
+              placeholder="tu_correo@ejemplo.com"
+              autocomplete="username"
+              autofocus
+              required
+            >
+          </div>
+
+          <div class="login-field">
+            <div class="login-label-row">
+              <label class="login-label" for="id_password">Contraseña</label>
+              <a class="login-link" href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+            </div>
+            <input
+              type="password"
+              name="password"
+              id="id_password"
+              class="login-input tf-input"
+              placeholder="Contraseña"
+              autocomplete="current-password"
+              required
+            >
+          </div>
+
+          <label class="login-remember">
+            <input type="checkbox" class="login-remember__input" checked>
+            <span class="login-remember__box" aria-hidden="true"></span>
+            <span class="login-remember__text">Recordarme en este dispositivo</span>
+          </label>
+
+          <button type="submit" class="login-submit auth-submit">
+            Iniciar sesión
+          </button>
+        </form>
+
+        {% include "core/includes/oauth_buttons_login.html" %}
+
+        <div class="auth-verify-banner" id="auth-verify-resend" hidden>
+          <p style="margin:0 0 10px;">¿No recibiste el correo de verificación?</p>
+          <form method="post" action="{% url 'reenviar_verificacion_public' %}">
+            {% csrf_token %}
+            <input type="hidden" name="email" id="auth-pending-email" value="{{ email_pendiente|default:'' }}">
+            <button type="submit" class="login-submit login-submit--sm">
+              Reenviar correo de verificación
+            </button>
+          </form>
         </div>
       </div>
-      <div class="auth-field auth-field-password">
-        <div class="auth-forgot-row">
-          <a href="{% url 'password_reset' %}">Forgot your password?</a>
-        </div>
-        <label class="tf-label" for="id_password">Password</label>
-        <div class="auth-input-wrap">
-          <span class="field-ico"><span class="material-symbols-rounded">lock</span></span>
-          <input type="password" name="password" id="id_password" class="tf-input" placeholder="Password" autocomplete="current-password" required>
-        </div>
-      </div>
-      <button type="submit" class="auth-submit">
-        <span class="material-symbols-rounded" style="font-size:18px;">login</span> Sign in
-      </button>
-    </form>
-
-    {% include "core/includes/oauth_buttons_login.html" %}
-
-    <div class="auth-footer">
-      Don’t have an account? <a href="{% url 'signup_buyer' %}">Create one</a>
-    </div>
-
-    <div class="auth-verify-banner" id="auth-verify-resend" hidden>
-      <p style="margin:0 0 10px;">Didn't receive the verification email?</p>
-      <form method="post" action="{% url 'reenviar_verificacion_public' %}">
-        {% csrf_token %}
-        <input type="hidden" name="email" id="auth-pending-email" value="{{ email_pendiente|default:'' }}">
-        <button type="submit" class="auth-submit" style="margin-top:0;font-size:0.8125rem;padding:10px 14px;">
-          Resend verification email
-        </button>
-      </form>
-    </div>
     </div>
   </div>
-</div>
 </div>
 <script nonce="{{ csp_nonce }}">
 (function () {
@@ -112,7 +112,6 @@ Split-screen visual (45% brand / 55% form). Contrato funcional sin cambios.
     var em = document.getElementById('auth-pending-email');
     if (em) em.value = pendingEmail;
   }
-
 })();
 </script>
 {% endblock %}
