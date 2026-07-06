@@ -6,7 +6,7 @@
  * — same pattern as signup.css `main.tf-main > .signup-page`.
  */
 main.tf-main > .login-page {
-  min-height: calc(100vh - 64px);
+  min-height: 100vh;
   width: 100%;
   box-sizing: border-box;
   display: flex;
@@ -163,11 +163,8 @@ main.tf-main > .login-page {
 .login-form-shell {
   width: 100%;
   max-width: 420px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(13, 27, 61, 0.08);
-  border: 1px solid var(--login-border);
-  padding: clamp(1.75rem, 4vw, 2.25rem) clamp(1.5rem, 3vw, 2rem);
+  background: transparent;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -190,12 +187,19 @@ main.tf-main > .login-page {
 }
 
 .login-form-title {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.375rem;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 1.375rem;
   font-weight: 700;
   color: var(--login-navy);
   letter-spacing: -0.02em;
+}
+
+.login-form-subtitle {
+  margin: 0 0 1.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--login-muted);
 }
 
 /* ── Shared auth components (login scope) ── */
@@ -218,50 +222,6 @@ main.tf-main > .login-page {
   border-radius: 8px;
   font-size: 0.875rem;
   color: #1E40AF;
-}
-
-.login-page .auth-toggle {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  margin-bottom: 1.5rem;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--login-border);
-  background: #F8FAFC;
-  padding: 4px;
-}
-
-.login-page .auth-toggle button {
-  padding: 10px 12px;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--login-muted);
-  cursor: pointer;
-  transition: background 0.2s var(--login-ease), color 0.2s var(--login-ease);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.login-page .auth-toggle button.is-on {
-  background: var(--login-navy);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(13, 27, 61, 0.15);
-}
-
-.login-page .auth-toggle button .material-symbols-rounded {
-  font-size: 18px;
-}
-
-.login-page .auth-toggle button:focus-visible {
-  outline: 2px solid var(--login-orange);
-  outline-offset: 2px;
 }
 
 .login-page .auth-field {
@@ -406,7 +366,7 @@ main.tf-main > .login-page {
 @media (max-width: 991px) {
   main.tf-main > .login-page {
     flex-direction: column;
-    min-height: calc(100vh - 64px);
+    min-height: 100vh;
     background: #F8FAFC;
     padding: 0;
   }
@@ -424,10 +384,6 @@ main.tf-main > .login-page {
     padding: 1.5rem 1rem 2rem;
     align-items: flex-start;
     padding-top: clamp(2rem, 8vh, 3rem);
-  }
-
-  .login-form-shell {
-    box-shadow: 0 4px 20px rgba(13, 27, 61, 0.06);
   }
 
   .login-mobile-logo {
