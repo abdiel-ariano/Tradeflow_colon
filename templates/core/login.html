@@ -11,7 +11,7 @@ Split-screen visual (45% brand / 55% form). Contrato funcional sin cambios.
 {% block footer %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
-<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'4' }}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'5' }}">
 <link rel="stylesheet" href="{% static 'css/auth-oauth.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
 {% block content %}
@@ -44,6 +44,7 @@ Split-screen visual (45% brand / 55% form). Contrato funcional sin cambios.
   </aside>
 
   <div class="login-form-panel">
+    <div class="login-form-shell">
     <div class="auth-dev-banner" id="auth-dev-banner" hidden>
       Email verification disabled for local testing.
     </div>
@@ -90,6 +91,7 @@ Split-screen visual (45% brand / 55% form). Contrato funcional sin cambios.
           Resend verification email
         </button>
       </form>
+    </div>
     </div>
   </div>
 </div>

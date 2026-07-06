@@ -42,34 +42,46 @@ main.tf-main > .login-page-wrap {
 /* ── Minimal auth navbar (login only) ── */
 .auth-minimal-nav {
   flex: 0 0 auto;
+  width: 100%;
+  box-sizing: border-box;
   background: #fff;
-  border-bottom: 1px solid var(--login-border);
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .auth-minimal-nav__inner {
   display: flex;
   align-items: center;
-  min-height: 56px;
+  min-height: 64px;
   max-width: 1380px;
   margin-inline: auto;
-  padding: 0 clamp(16px, 3vw, 24px);
+  padding: 16px clamp(16px, 3vw, 24px);
+  box-sizing: border-box;
 }
 
-.auth-minimal-nav__brand {
+.login-page-wrap .auth-minimal-nav__brand,
+.login-page-wrap .auth-minimal-nav__brand:link,
+.login-page-wrap .auth-minimal-nav__brand:visited,
+.login-page-wrap .auth-minimal-nav__brand:hover,
+.login-page-wrap .auth-minimal-nav__brand:active,
+.login-page-wrap .auth-minimal-nav__brand:focus {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  color: var(--login-navy);
+  color: #0D1B3D;
+  line-height: 1.2;
 }
 
-.auth-minimal-nav__brand:hover .auth-minimal-nav__name {
-  color: var(--login-navy);
+.login-page-wrap .auth-minimal-nav__brand:hover,
+.login-page-wrap .auth-minimal-nav__brand:focus-visible {
+  text-decoration: none;
+  color: #0D1B3D;
 }
 
 .auth-minimal-nav__logo.tf-logo-icon {
-  height: 32px;
+  height: 40px !important;
   width: auto;
+  flex-shrink: 0;
 }
 
 .auth-minimal-nav__name {
@@ -77,11 +89,12 @@ main.tf-main > .login-page-wrap {
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--login-navy);
+  color: #0D1B3D;
 }
 
 .auth-minimal-nav__accent {
-  color: var(--login-orange);
+  color: #E8622C;
+  font-weight: 700;
 }
 
 /* ── Left brand panel (45%) ── */
@@ -204,17 +217,31 @@ main.tf-main > .login-page-wrap {
   flex: 1 1 55%;
   min-width: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: clamp(1.5rem, 4vw, 3rem);
   background: #fff;
 }
 
-.login-form-panel > * {
+.login-form-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   width: 100%;
   max-width: 420px;
+  margin: 0 auto;
+  padding: clamp(1.75rem, 4vw, 2.25rem) clamp(1.5rem, 3vw, 2rem);
   box-sizing: border-box;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.login-form-shell > form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 .login-form-title {
@@ -412,7 +439,12 @@ main.tf-main > .login-page-wrap {
   .login-form-panel {
     flex: 1;
     padding: 1.5rem 1rem 2rem;
-    align-items: flex-start;
+    align-items: center;
     padding-top: clamp(2rem, 8vh, 3rem);
+  }
+
+  .login-form-shell {
+    padding: 0;
+    max-width: 420px;
   }
 }
