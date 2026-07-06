@@ -11,7 +11,7 @@ Diseño Stripe (solo presentación). Contrato funcional sin cambios.
 {% block footer %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
-<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'8' }}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'9' }}">
 {% endblock %}
 {% block content %}
 <div class="login-page-wrap login-page-wrap--stripe">
@@ -26,15 +26,11 @@ Diseño Stripe (solo presentación). Contrato funcional sin cambios.
     id="auth-login-root"
     data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
   >
-    <div class="login-watermark" aria-hidden="true">
-      <img
-        src="{% static 'img/logo-icon-color.png' %}"
-        alt=""
-        class="login-watermark__img"
-        width="500"
-        height="500"
-        decoding="async"
-      >
+    <div class="login-aurora-bg" aria-hidden="true">
+      <div class="login-aurora-blob login-aurora-blob--1"></div>
+      <div class="login-aurora-blob login-aurora-blob--2"></div>
+      <div class="login-aurora-blob login-aurora-blob--3"></div>
+      <div class="login-aurora-blob login-aurora-blob--4"></div>
     </div>
 
     <div class="login-layout">
