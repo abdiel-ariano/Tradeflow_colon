@@ -77,7 +77,7 @@ main.tf-main > .login-page-wrap {
   box-sizing: border-box;
 }
 
-/* ── Animated aurora background (CSS only) ── */
+/* ── Diagonal aurora stripe (Stripe-style, CSS only) ── */
 .login-aurora-bg {
   position: fixed;
   inset: 0;
@@ -85,69 +85,51 @@ main.tf-main > .login-page-wrap {
   pointer-events: none;
   background: #fff;
   overflow: hidden;
-  filter: blur(75px);
 }
 
-.login-aurora-blob {
+.login-aurora-stripe {
   position: absolute;
-  border-radius: 50%;
-  will-change: transform;
-}
-
-.login-aurora-blob--1 {
-  width: min(58vw, 620px);
-  height: min(58vw, 620px);
   top: -12%;
-  right: -8%;
-  background: radial-gradient(circle, rgba(225, 103, 42, 0.72) 0%, rgba(225, 103, 42, 0.2) 42%, transparent 72%);
-  animation: login-aurora-drift-1 26s ease-in-out infinite alternate;
+  right: -28%;
+  width: 140vw;
+  height: 115vh;
+  transform: rotate(-30deg);
+  transform-origin: center center;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #bfd9f2 15%,
+    #e1672a 40%,
+    #d94f30 60%,
+    #e85a8a 80%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 20%,
+    #000 80%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 20%,
+    #000 80%,
+    transparent 100%
+  );
+  filter: blur(18px);
+  will-change: transform;
+  animation: login-aurora-stripe-drift 34s ease-in-out infinite alternate;
 }
 
-.login-aurora-blob--2 {
-  width: min(50vw, 540px);
-  height: min(50vw, 540px);
-  top: 28%;
-  right: 2%;
-  background: radial-gradient(circle, rgba(242, 166, 90, 0.68) 0%, rgba(242, 166, 90, 0.18) 45%, transparent 74%);
-  animation: login-aurora-drift-2 22s ease-in-out infinite alternate;
-}
-
-.login-aurora-blob--3 {
-  width: min(52vw, 560px);
-  height: min(52vw, 560px);
-  bottom: -10%;
-  right: -6%;
-  background: radial-gradient(circle, rgba(217, 79, 48, 0.65) 0%, rgba(217, 79, 48, 0.16) 44%, transparent 73%);
-  animation: login-aurora-drift-3 30s ease-in-out infinite alternate;
-}
-
-.login-aurora-blob--4 {
-  width: min(48vw, 500px);
-  height: min(48vw, 500px);
-  top: 52%;
-  right: 18%;
-  background: radial-gradient(circle, rgba(22, 40, 63, 0.35) 0%, rgba(22, 40, 63, 0.12) 48%, transparent 75%);
-  animation: login-aurora-drift-4 20s ease-in-out infinite alternate;
-}
-
-@keyframes login-aurora-drift-1 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-6%, 10%) scale(1.1); }
-}
-
-@keyframes login-aurora-drift-2 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-10%, -8%) scale(1.08); }
-}
-
-@keyframes login-aurora-drift-3 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-8%, -12%) scale(1.12); }
-}
-
-@keyframes login-aurora-drift-4 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-12%, 6%) scale(1.06); }
+@keyframes login-aurora-stripe-drift {
+  0% {
+    transform: rotate(-30deg) translate(0, 0);
+  }
+  100% {
+    transform: rotate(-30deg) translate(-3%, 2.5%);
+  }
 }
 
 .login-layout {
@@ -454,24 +436,11 @@ main.tf-main > .login-page-wrap {
     max-width: 100%;
   }
 
-  .login-aurora-blob--1 {
-    width: 85vw;
-    right: -25%;
-  }
-
-  .login-aurora-blob--2 {
-    width: 70vw;
-    right: -10%;
-  }
-
-  .login-aurora-blob--3 {
-    width: 75vw;
-    right: -20%;
-  }
-
-  .login-aurora-blob--4 {
-    width: 65vw;
-    right: 5%;
+  .login-aurora-stripe {
+    right: -40%;
+    width: 160vw;
+    height: 100vh;
+    filter: blur(16px);
   }
 }
 
@@ -486,7 +455,7 @@ main.tf-main > .login-page-wrap {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-aurora-blob {
+  .login-aurora-stripe {
     animation: none !important;
   }
 
