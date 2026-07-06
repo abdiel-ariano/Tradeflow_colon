@@ -28,7 +28,7 @@ main.tf-main > .login-page-wrap {
   background: #fff;
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  isolation: isolate;
 }
 
 /* ── Site header (outside card, top-left overlay) ── */
@@ -89,11 +89,11 @@ main.tf-main > .login-page-wrap {
 
 .login-aurora-stripe {
   position: absolute;
-  top: -12%;
-  right: -28%;
+  top: 50%;
+  left: 68%;
   width: 140vw;
-  height: 115vh;
-  transform: rotate(-30deg);
+  height: 72vh;
+  transform: translate(-50%, -50%) rotate(-30deg);
   transform-origin: center center;
   background: linear-gradient(
     90deg,
@@ -118,17 +118,32 @@ main.tf-main > .login-page-wrap {
     #000 80%,
     transparent 100%
   );
-  filter: blur(18px);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
   will-change: transform;
   animation: login-aurora-stripe-drift 34s ease-in-out infinite alternate;
 }
 
+/* Soft edge glow — separate layer so mask + filter never share one element */
+.login-aurora-stripe::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  background: inherit;
+  filter: blur(16px);
+  opacity: 0.75;
+  z-index: -1;
+  pointer-events: none;
+}
+
 @keyframes login-aurora-stripe-drift {
   0% {
-    transform: rotate(-30deg) translate(0, 0);
+    transform: translate(-50%, -50%) rotate(-30deg) translate(0, 0);
   }
   100% {
-    transform: rotate(-30deg) translate(-3%, 2.5%);
+    transform: translate(-50%, -50%) rotate(-30deg) translate(-2.5%, 2%);
   }
 }
 
@@ -437,10 +452,9 @@ main.tf-main > .login-page-wrap {
   }
 
   .login-aurora-stripe {
-    right: -40%;
+    left: 72%;
     width: 160vw;
-    height: 100vh;
-    filter: blur(16px);
+    height: 65vh;
   }
 }
 

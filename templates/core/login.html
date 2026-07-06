@@ -11,10 +11,14 @@ Diseño Stripe (solo presentación). Contrato funcional sin cambios.
 {% block footer %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
-<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'10' }}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version|default:'11' }}">
 {% endblock %}
 {% block content %}
 <div class="login-page-wrap login-page-wrap--stripe">
+  <div class="login-aurora-bg" aria-hidden="true">
+    <div class="login-aurora-stripe"></div>
+  </div>
+
   <header class="login-site-header" role="banner">
     <a href="{% url 'home' %}" class="login-site-brand" aria-label="TradeFlow Colón">
       TradeFlow <span class="login-site-accent">Colón</span>
@@ -26,10 +30,6 @@ Diseño Stripe (solo presentación). Contrato funcional sin cambios.
     id="auth-login-root"
     data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
   >
-    <div class="login-aurora-bg" aria-hidden="true">
-      <div class="login-aurora-stripe"></div>
-    </div>
-
     <div class="login-layout">
       <div class="login-card">
         <div class="auth-dev-banner" id="auth-dev-banner" hidden>
