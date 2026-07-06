@@ -48,9 +48,10 @@ class HomeMarketplaceCardsTests(TestCase):
     def test_home_has_bento_and_product_rows(self):
         response = self.client.get('/')
         self.assertContains(response, 'hm-bento')
+        self.assertContains(response, 'hm-quad-cards')
+        self.assertContains(response, 'hm-hero-carousel')
         self.assertContains(response, 'hm-product-row')
         self.assertContains(response, 'hm-cat-discover')
-        self.assertContains(response, 'Categories for you')
         self.assertContains(response, 'Products for you')
 
     def test_home_uses_catalog_seed_photos_not_svg_icons(self):

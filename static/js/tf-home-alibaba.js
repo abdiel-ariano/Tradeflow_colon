@@ -5,8 +5,8 @@
   'use strict';
 
   var modal = document.getElementById('hm-cat-modal');
-  if (!modal) return;
 
+  if (modal) {
   var backdrop = modal.querySelector('.hm-cat-modal__backdrop');
   var navBtns = modal.querySelectorAll('[data-cat-panel-select]');
   var views = modal.querySelectorAll('[data-cat-panel-view]');
@@ -83,8 +83,57 @@
   }
 
   document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape' && !modal.hidden) {
+    if (event.key === 'Escape' && modal && !modal.hidden) {
       closeModal();
     }
   });
+  }
+
+  /* Hero carousel */
+  var carousel = document.querySelector('[data-hm-hero-carousel]');
+  if (carousel) {
+    var slides = carousel.querySelectorAll('.hm-hero-carousel__slide');
+    var dots = carousel.querySelectorAll('[data-hm-hero-dot]');
+    var prev = carousel.querySelector('[data-hm-hero-prev]');
+    var next = carousel.querySelector('[data-hm-hero-next]');
+    var index = 0;
+    var timer = null;
+
+    function showSlide(i) {
+      if (!slides.length) return;
+      index = (i + slides.length) % slides.length;
+      slides.forEach(function (slide, idx) {
+        slide.classList.toggle('is-active', idx === index);
+      });
+      dots.forEach(function (dot) {
+        dot.classList.toggle('is-active', Number(dot.getAttribute('data-hm-hero-dot')) === index);
+      });
+    }
+
+    function startAuto() {
+      if (slides.length < 2) return;
+      stopAuto();
+      timer = window.setInterval(function () {
+        showSlide(index + 1);
+      }, 6000);
+    }
+
+    function stopAuto() {
+      if (timer) window.clearInterval(timer);
+      timer = null;
+    }
+
+    if (prev) prev.addEventListener('click', function () { showSlide(index - 1); startAuto(); });
+    if (next) next.addEventListener('click', function () { showSlide(index + 1); startAuto(); });
+    dots.forEach(function (dot) {
+      dot.addEventListener('click', function () {
+        showSlide(Number(dot.getAttribute('data-hm-hero-dot')));
+        startAuto();
+      });
+    });
+    carousel.addEventListener('mouseenter', stopAuto);
+    carousel.addEventListener('mouseleave', startAuto);
+    startAuto();
+  }
+
 })();
