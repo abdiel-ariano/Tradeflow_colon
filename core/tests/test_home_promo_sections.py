@@ -138,7 +138,9 @@ class HomePromoRenderingTests(TestCase):
         content = response.content.decode()
         sections = response.context.get('home_figma_sections', [])
         self.assertGreaterEqual(len(sections), 2)
-        self.assertIn('hm-feed-carousel', content)
+        self.assertIn('hm-product-row', content)
+        self.assertIn('product-card', content)
+        self.assertNotIn('hm-feed-carousel', content)
         self.assertIn('Top ZLC', content, msg='bestsellers title missing')
         self.assertIn('CMS Deals', content, msg='deals title missing')
 
