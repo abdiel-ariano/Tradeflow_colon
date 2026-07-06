@@ -1,7 +1,23 @@
 /*
  * TradeFlow Colón — login page only (/login/)
  * Split-screen: brand panel + form (visual only)
+ *
+ * Overrides base.html `main.tf-main > .auth-page` (column/centered/gray)
+ * — same pattern as signup.css `main.tf-main > .signup-page`.
  */
+main.tf-main > .login-page {
+  min-height: calc(100vh - 64px);
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+  margin: 0;
+  background: #fff;
+}
+
 .login-page {
   --login-navy: #0D1B3D;
   --login-orange: #E8622C;
@@ -10,8 +26,8 @@
   --login-border: #E5E7EB;
   --login-muted: #6B7A88;
   --login-ease: cubic-bezier(0.23, 1, 0.32, 1);
-  min-height: 100vh;
   width: 100%;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: row;
   box-sizing: border-box;
@@ -388,10 +404,15 @@
 
 /* ── Mobile: hide brand panel, show mobile logo ── */
 @media (max-width: 991px) {
+  main.tf-main > .login-page {
+    flex-direction: column;
+    min-height: calc(100vh - 64px);
+    background: #F8FAFC;
+    padding: 0;
+  }
+
   .login-page {
     flex-direction: column;
-    min-height: 100vh;
-    background: #F8FAFC;
   }
 
   .login-brand-panel {
