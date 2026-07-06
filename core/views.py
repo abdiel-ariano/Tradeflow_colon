@@ -413,6 +413,129 @@ def logout_view(request):
     return redirect('login')
 
 
+def _process_signup(request, forced_role=None, error_template='core/signup.html'):
+    first_name = escape(request.POST.get('first_name', '').strip())
+    last_name = escape(request.POST.get('last_name', '').strip())
+    username = escape(request.POST.get('username', '').strip())
+    email = request.POST.get('email', '').strip()
+    phone = escape(request.POST.get('phone', '').strip())
+    if forced_role is not None:
+        role = forced_role
+    else:
+        role = request.POST.get('role', 'buyer')
+    password1 = request.POST.get('password1', '')
+    password2 = request.POST.get('password2', '')
+
+    errores = []
+    signup_ctx = {
+        'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
+        'selected_role': role if role in ('buyer', 'seller') else 'buyer',
+        'form_first_name': request.POST.get('first_name', '').strip(),
+        'form_last_name': request.POST.get('last_name', '').strip(),
+        'form_email': email,
+        'form_phone': phone,
+    }
+
+    if not all([first_name, username, email, password1, password2]):
+        errores.append('All fields marked with * are required.')
+
+    if not NOMBRE_REGEX.match(first_name):
+        errores.append(
+            'First name may only contain letters and spaces '
+            '(minimum 2 characters, maximum 50).'
+        )
+
+    if last_name and not NOMBRE_REGEX.match(last_name):
+        errores.append('Last name may only contain letters and spaces.')
+
+    if not USERNAME_REGEX.match(username):
+        errores.append(
+            'Username must start with a letter and may only '
+            'contain letters, numbers, dots, and '
+            'underscores (3-30 characters).'
+        )
+
+    if not EMAIL_REGEX.match(email):
+        errores.append('Enter a valid email address.')
+
+    if len(password1) < 8:
+        errores.append('Password must be at least 8 characters.')
+
+    if password1.isdigit():
+        errores.append('Password cannot be numbers only.')
+
+    if password1.lower() in [
+        'password', '12345678', 'qwerty123',
+        'tradeflow', username.lower(),
+    ]:
+        errores.append(
+            'Password is too common. Choose a stronger one.'
+        )
+
+    if password1 != password2:
+        errores.append('Passwords do not match.')
+
+    if errores:
+        for error in errores:
+            messages.error(request, error)
+        return render(request, error_template, signup_ctx)
+
+    if User.objects.filter(username=username).exists():
+        messages.error(request, f'Username "{username}" already exists. Choose another.')
+        return render(request, error_template, signup_ctx)
+    if User.objects.filter(email=email).exists():
+        messages.error(request, 'An account with that email already exists.')
+        return render(request, error_template, signup_ctx)
+    if role not in ('buyer', 'seller'):
+        messages.error(request, 'Invalid account type.')
+        return render(request, error_template, signup_ctx)
+
+    # Crear usuario
+    user = User.objects.create_user(
+        username=username,
+        email=email,
+        password=password1,
+        first_name=first_name,
+        last_name=last_name,
+    )
+
+    from .models import UserProfile
+    profile, _ = UserProfile.objects.get_or_create(
+        user=user,
+        defaults={
+            'role': role,
+            'email_verificado': False,
+        }
+    )
+    profile.role = role
+    # Compradores nuevos deben completar el wizard de personalización post-registro
+    if role == 'buyer':
+        profile.onboarding_completed_at = None
+    profile.save()
+
+    # Create application record
+    from .models import UserApplication
+    UserApplication.objects.get_or_create(
+        user=user,
+        defaults={
+            'full_name': f"{first_name} {last_name}".strip(),
+            'email': email,
+            'phone': phone,
+            'role': role,
+            'company_name': '',
+            'message': '',
+            'status': 'approved' if role == 'buyer' else 'pending',
+        }
+    )
+
+    user.is_active = True
+    user.save(update_fields=['is_active'])
+    login(request, user, backend=AUTH_MODEL_BACKEND)
+    from core.views_onboarding import finalize_signup_with_otp
+
+    return finalize_signup_with_otp(request, user)
+
+
 def signup_view(request):
     """Public registration: creates User + UserProfile."""
     if request.user.is_authenticated:
@@ -429,123 +552,7 @@ def signup_view(request):
         })
 
     if request.method == 'POST':
-        first_name = escape(request.POST.get('first_name', '').strip())
-        last_name = escape(request.POST.get('last_name', '').strip())
-        username = escape(request.POST.get('username', '').strip())
-        email = request.POST.get('email', '').strip()
-        phone = escape(request.POST.get('phone', '').strip())
-        role = request.POST.get('role', 'buyer')
-        password1 = request.POST.get('password1', '')
-        password2 = request.POST.get('password2', '')
-
-        errores = []
-        signup_ctx = {
-            'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
-            'selected_role': role if role in ('buyer', 'seller') else 'buyer',
-            'form_first_name': request.POST.get('first_name', '').strip(),
-            'form_last_name': request.POST.get('last_name', '').strip(),
-            'form_email': email,
-            'form_phone': phone,
-        }
-
-        if not all([first_name, username, email, password1, password2]):
-            errores.append('All fields marked with * are required.')
-
-        if not NOMBRE_REGEX.match(first_name):
-            errores.append(
-                'First name may only contain letters and spaces '
-                '(minimum 2 characters, maximum 50).'
-            )
-
-        if last_name and not NOMBRE_REGEX.match(last_name):
-            errores.append('Last name may only contain letters and spaces.')
-
-        if not USERNAME_REGEX.match(username):
-            errores.append(
-                'Username must start with a letter and may only '
-                'contain letters, numbers, dots, and '
-                'underscores (3-30 characters).'
-            )
-
-        if not EMAIL_REGEX.match(email):
-            errores.append('Enter a valid email address.')
-
-        if len(password1) < 8:
-            errores.append('Password must be at least 8 characters.')
-
-        if password1.isdigit():
-            errores.append('Password cannot be numbers only.')
-
-        if password1.lower() in [
-            'password', '12345678', 'qwerty123',
-            'tradeflow', username.lower(),
-        ]:
-            errores.append(
-                'Password is too common. Choose a stronger one.'
-            )
-
-        if password1 != password2:
-            errores.append('Passwords do not match.')
-
-        if errores:
-            for error in errores:
-                messages.error(request, error)
-            return render(request, 'core/signup.html', signup_ctx)
-
-        if User.objects.filter(username=username).exists():
-            messages.error(request, f'Username "{username}" already exists. Choose another.')
-            return render(request, 'core/signup.html', signup_ctx)
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'An account with that email already exists.')
-            return render(request, 'core/signup.html', signup_ctx)
-        if role not in ('buyer', 'seller'):
-            messages.error(request, 'Invalid account type.')
-            return render(request, 'core/signup.html', signup_ctx)
-
-        # Crear usuario
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password1,
-            first_name=first_name,
-            last_name=last_name,
-        )
-
-        from .models import UserProfile
-        profile, _ = UserProfile.objects.get_or_create(
-            user=user,
-            defaults={
-                'role': role,
-                'email_verificado': False,
-            }
-        )
-        profile.role = role
-        # Compradores nuevos deben completar el wizard de personalización post-registro
-        if role == 'buyer':
-            profile.onboarding_completed_at = None
-        profile.save()
-
-        # Create application record
-        from .models import UserApplication
-        UserApplication.objects.get_or_create(
-            user=user,
-            defaults={
-                'full_name': f"{first_name} {last_name}".strip(),
-                'email': email,
-                'phone': phone,
-                'role': role,
-                'company_name': '',
-                'message': '',
-                'status': 'approved' if role == 'buyer' else 'pending',
-            }
-        )
-
-        user.is_active = True
-        user.save(update_fields=['is_active'])
-        login(request, user, backend=AUTH_MODEL_BACKEND)
-        from core.views_onboarding import finalize_signup_with_otp
-
-        return finalize_signup_with_otp(request, user)
+        return _process_signup(request)
 
     return render(request, 'core/signup.html', {
         'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
@@ -554,6 +561,26 @@ def signup_view(request):
         'form_last_name': '',
         'form_email': '',
         'form_phone': '',
+    })
+
+
+def signup_buyer_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    if request.method == 'POST':
+        return _process_signup(request, forced_role='buyer', error_template='core/signup_buyer.html')
+    return render(request, 'core/signup_buyer.html', {
+        'form_first_name': '', 'form_last_name': '', 'form_email': '', 'form_phone': '',
+    })
+
+
+def signup_seller_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    if request.method == 'POST':
+        return _process_signup(request, forced_role='seller', error_template='core/signup_seller.html')
+    return render(request, 'core/signup_seller.html', {
+        'form_first_name': '', 'form_last_name': '', 'form_email': '', 'form_phone': '',
     })
 
 

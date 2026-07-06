@@ -35,7 +35,7 @@
       <h3 class="hm-footer__col-title">Buyers</h3>
       <nav class="hm-footer__links" aria-label="Buyer links">
         <a href="{% url 'catalogo_publico' %}">Browse catalog</a>
-        <a href="{% url 'signup' %}">Create account</a>
+        <a href="{% url 'signup_buyer' %}">Create account</a>
         <a href="{% url 'login' %}">Sign in</a>
         <a href="{% url 'home' %}#como-funciona">How it works</a>
       </nav>
@@ -43,7 +43,7 @@
     <div>
       <h3 class="hm-footer__col-title">Sellers</h3>
       <nav class="hm-footer__links" aria-label="Seller links">
-        <a href="{% url 'signup' %}?role=seller">List your company</a>
+        <a href="{% url 'signup_seller' %}">List your company</a>
         <a href="{% url 'login' %}">Seller sign in</a>
         <a href="{% url 'catalogo_publico' %}?verificado=1">Verified suppliers</a>
         <a href="{% url 'home' %}#hm-suppliers">Featured suppliers</a>

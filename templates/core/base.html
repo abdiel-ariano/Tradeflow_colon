@@ -1103,7 +1103,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         </div>
       {% else %}
         <a href="{% url 'login' %}" class="tf-btn-outline-sm">Sign in</a>
-        <a href="{% url 'signup' %}" class="tf-btn-primary-sm">Create account</a>
+        <a href="{% url 'signup_buyer' %}" class="tf-btn-primary-sm">Create account</a>
       {% endif %}
     </div>
   </nav>
@@ -1231,7 +1231,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         <div class="tf-footer-col">
           <h2 class="tf-footer-col-title">Sellers</h2>
           <nav class="tf-footer-links" aria-label="Seller links">
-            <a href="{% url 'signup' %}?role=seller">Sell on TradeFlow</a>
+            <a href="{% url 'signup_seller' %}">Sell on TradeFlow</a>
             <a href="{% url 'solicitud_acceso' %}">CFZ requirements</a>
             <span class="tf-footer-link-soon">Pricing <em>(coming soon)</em></span>
             <a href="mailto:{{ tradeflow_contact_email }}">Contact</a>

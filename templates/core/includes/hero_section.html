@@ -14,10 +14,10 @@
         </p>
         <div class="hm-hero__ctas">
           <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta hm-btn--lg">Explore catalog →</a>
-          <a href="{% url 'signup' %}" class="hm-btn hm-btn--outline hm-btn--lg">Create buyer account</a>
+          <a href="{% url 'signup_buyer' %}" class="hm-btn hm-btn--outline hm-btn--lg">Create buyer account</a>
         </div>
         <p class="hm-hero__seller-link">
-          Supplier? <a href="{% url 'signup' %}?role=seller">List your company on TradeFlow</a>
+          Supplier? <a href="{% url 'signup_seller' %}">List your company on TradeFlow</a>
         </p>
         <p class="hm-hero__proof" role="status">
           <span class="hm-hero__proof-item"><strong>{{ stats.productos|default:0 }}</strong> active SKUs</span>

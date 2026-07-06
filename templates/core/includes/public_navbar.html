@@ -27,7 +27,7 @@
           <a href="{% url 'set_language' %}?language=en&amp;next={{ request.path }}" class="hm-nav__lang-link is-active" lang="en">EN</a>
         </div>
         <a href="{% url 'login' %}" class="hm-nav__btn hm-nav__btn--ghost">Sign in</a>
-        <a href="{% url 'signup' %}" class="hm-nav__btn hm-nav__btn--solid">Start buying</a>
+        <a href="{% url 'signup_buyer' %}" class="hm-nav__btn hm-nav__btn--solid">Start buying</a>
       </div>
     </div>
 
@@ -41,7 +41,7 @@
         <a href="{% url 'catalogo_publico' %}?buscar=beauty" class="hm-nav__pill">Beauty</a>
         <a href="{% url 'catalogo_publico' %}?buscar=home" class="hm-nav__pill">Home &amp; Kitchen</a>
         <a href="{% url 'catalogo_publico' %}?buscar=toys" class="hm-nav__pill">Toys</a>
-        <a href="{% url 'signup' %}?role=seller" class="hm-nav__pill hm-nav__pill--accent">Sell on TradeFlow</a>
+        <a href="{% url 'signup_seller' %}" class="hm-nav__pill hm-nav__pill--accent">Sell on TradeFlow</a>
       </div>
     </div>
   </nav>
