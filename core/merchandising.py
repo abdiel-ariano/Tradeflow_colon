@@ -680,7 +680,7 @@ def build_guest_home_context(lang: str) -> dict:
     promo_banner = _first_promo_banner_block(promo_sections)
     catalog_breadth_list = catalog_breadth_products(24, exclude_ids=seen)
     home_quad_card_rows = _home_quad_card_rows(max_rows=4, cats_per_row=4, products_per_cat=4)
-    home_feed_carousels = _home_feed_carousel_rows(
+    home_card_sections = _home_card_section_rows(
         lang=lang,
         daily_deals=daily_deals_list,
         bestsellers=bestsellers_list,
@@ -690,10 +690,7 @@ def build_guest_home_context(lang: str) -> dict:
         promo_sections=promo_sections,
         cms_types=cms_types,
     )
-    home_figma_sections = _build_home_figma_sections(
-        quad_rows=home_quad_card_rows,
-        carousels=home_feed_carousels,
-    )
+    home_figma_sections = _build_home_figma_sections(card_rows=home_card_sections)
 
     return {
         'stats': home_stats_uncached(),
@@ -713,7 +710,8 @@ def build_guest_home_context(lang: str) -> dict:
         'category_spotlights': category_spotlight_rows,
         'home_quad_cards': home_quad_cards,
         'home_quad_card_rows': home_quad_card_rows,
-        'home_feed_carousels': home_feed_carousels,
+        'home_card_sections': home_card_sections,
+        'home_feed_carousels': home_card_sections,
         'home_figma_sections': home_figma_sections,
         'home_product_rows': _build_home_product_rows(
             featured_list=featured_list,
@@ -917,7 +915,7 @@ def _home_quad_card_rows(
     return rows[:max_rows]
 
 
-def _home_feed_carousel_rows(
+def _home_card_section_rows(
     *,
     lang: str,
     daily_deals,
@@ -928,14 +926,22 @@ def _home_feed_carousel_rows(
     promo_sections,
     cms_types: set[str] | None = None,
 ) -> list[dict]:
-    """Figma desktop-N horizontal product feed carousels."""
+    """Home main content — product card rows (not horizontal carousels)."""
     rows: list[dict] = []
     used_ids: set[int] = set()
     cms_types = cms_types or set()
 
-    def _add(title: str, products, see_all_query: str = '', *, preserve_order: bool = False):
+    def _add(
+        title: str,
+        products,
+        see_all_query: str = '',
+        *,
+        slug: str | None = None,
+        preserve_order: bool = False,
+        min_products: int = 4,
+    ):
         if preserve_order:
-            picked = list(products)[:12]
+            picked = list(products)[:8]
         else:
             picked = []
             for product in products:
@@ -943,17 +949,21 @@ def _home_feed_carousel_rows(
                     continue
                 picked.append(product)
                 used_ids.add(product.pk)
-                if len(picked) >= 12:
+                if len(picked) >= 8:
                     break
-        if len(picked) >= 4:
-            rows.append({
-                'title': title,
-                'products': picked,
-                'see_all_query': see_all_query,
-            })
-            if preserve_order:
-                for product in picked:
-                    used_ids.add(product.pk)
+        if len(picked) < min_products:
+            return
+        row_slug = slug or f'section-{len(rows)}'
+        rows.append({
+            'slug': row_slug,
+            'dom_id': f'hm-row-{row_slug}',
+            'title': title,
+            'products': picked,
+            'see_all_query': see_all_query,
+        })
+        if preserve_order:
+            for product in picked:
+                used_ids.add(product.pk)
 
     deals_title = 'Today\'s wholesale deals' if lang == 'en' else 'Ofertas del día'
     best_title = 'Recommended for your business' if lang == 'en' else 'Recomendado para tu negocio'
@@ -968,14 +978,15 @@ def _home_feed_carousel_rows(
             block.get('title') or section.title_for_lang(lang),
             products,
             preserve_order=True,
+            slug=section.slug,
         )
 
     if 'daily_deals' not in cms_types and daily_deals:
-        _add(deals_title, daily_deals, 'orden=promo')
+        _add(deals_title, daily_deals, 'orden=promo', slug='deals')
     if 'bestsellers' not in cms_types and bestsellers:
-        _add(best_title, bestsellers, 'orden=novedades')
+        _add(best_title, bestsellers, 'orden=novedades', slug='bestsellers')
 
-    for cat in categories[:5]:
+    for cat in categories[:4]:
         cat_products = list(
             active_products_base()
             .filter(category=cat)
@@ -985,49 +996,22 @@ def _home_feed_carousel_rows(
             title = f'Top wholesale in {cat.name}'
         else:
             title = f'Mayoristas en {cat.name}'
-        _add(title, cat_products, f'categoria={cat.pk}')
+        _add(title, cat_products, f'categoria={cat.pk}', slug=f'cat-{cat.pk}')
 
     if catalog_breadth:
-        _add(browse_title, catalog_breadth)
+        _add(browse_title, catalog_breadth, slug='browse')
 
     featured_tail = list(featured_list[2:]) if len(featured_list) > 2 else list(featured_list)
     if featured_tail:
         for_you = 'Products for you' if lang == 'en' else 'Productos para ti'
-        _add(for_you, featured_tail)
+        _add(for_you, featured_tail, slug='for-you')
 
-    return rows[:7]
+    return rows[:6]
 
 
-def _build_home_figma_sections(
-    *,
-    quad_rows: list[list[dict]],
-    carousels: list[dict],
-) -> list[dict]:
-    """
-    Figma main-content rhythm: carousel → quad row → carousel → quad row …
-    First quad row is rendered above-the-fold (after hero).
-    """
-    sections: list[dict] = []
-    quad_tail = quad_rows[1:] if len(quad_rows) > 1 else []
-    quad_iter = iter(quad_tail)
-    carousel_iter = iter(carousels)
-
-    while True:
-        carousel = next(carousel_iter, None)
-        quad = next(quad_iter, None)
-        if carousel is None and quad is None:
-            break
-        if carousel:
-            sections.append({'type': 'carousel', **carousel})
-        if quad:
-            sections.append({'type': 'quad', 'cards': quad})
-
-    for carousel in carousel_iter:
-        sections.append({'type': 'carousel', **carousel})
-    for quad in quad_iter:
-        sections.append({'type': 'quad', 'cards': quad})
-
-    return sections
+def _build_home_figma_sections(*, card_rows: list[dict]) -> list[dict]:
+    """Main home scroll — stacked product card rows below hero."""
+    return [{'type': 'cards', **row} for row in card_rows]
 
 
 # =============================================================================
