@@ -1,0 +1,11 @@
+{% load static %}
+<header class="auth-minimal-nav" role="banner">
+  <div class="auth-minimal-nav__inner">
+    <a href="{% url 'home' %}" class="auth-minimal-nav__brand" aria-label="TradeFlow Colón">
+      {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="auth-minimal-nav__logo" eager=1 %}
+      <span class="auth-minimal-nav__name">
+        TradeFlow <span class="auth-minimal-nav__accent">Colón</span>
+      </span>
+    </a>
+  </div>
+</header>

@@ -5,12 +5,12 @@
  * Overrides base.html `main.tf-main > .auth-page` (column/centered/gray)
  * — same pattern as signup.css `main.tf-main > .signup-page`.
  */
-main.tf-main > .login-page {
+main.tf-main > .login-page-wrap {
   min-height: 100vh;
   width: 100%;
   box-sizing: border-box;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
   padding: 0;
@@ -18,7 +18,7 @@ main.tf-main > .login-page {
   background: #fff;
 }
 
-.login-page {
+.login-page-wrap {
   --login-navy: #0D1B3D;
   --login-orange: #E8622C;
   --login-orange-hover: #D55522;
@@ -26,12 +26,62 @@ main.tf-main > .login-page {
   --login-border: #E5E7EB;
   --login-muted: #6B7A88;
   --login-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  background: #fff;
+}
+
+.login-page {
   width: 100%;
   flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: row;
   box-sizing: border-box;
   background: #fff;
+}
+
+/* ── Minimal auth navbar (login only) ── */
+.auth-minimal-nav {
+  flex: 0 0 auto;
+  background: #fff;
+  border-bottom: 1px solid var(--login-border);
+}
+
+.auth-minimal-nav__inner {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  max-width: 1380px;
+  margin-inline: auto;
+  padding: 0 clamp(16px, 3vw, 24px);
+}
+
+.auth-minimal-nav__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--login-navy);
+}
+
+.auth-minimal-nav__brand:hover .auth-minimal-nav__name {
+  color: var(--login-navy);
+}
+
+.auth-minimal-nav__logo.tf-logo-icon {
+  height: 32px;
+  width: auto;
+}
+
+.auth-minimal-nav__name {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--login-navy);
+}
+
+.auth-minimal-nav__accent {
+  color: var(--login-orange);
 }
 
 /* ── Left brand panel (45%) ── */
@@ -154,36 +204,17 @@ main.tf-main > .login-page {
   flex: 1 1 55%;
   min-width: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: clamp(1.5rem, 4vw, 3rem);
   background: #fff;
 }
 
-.login-form-shell {
+.login-form-panel > * {
   width: 100%;
   max-width: 420px;
-  background: transparent;
-  padding: 0;
   box-sizing: border-box;
-}
-
-.login-mobile-logo {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 8px;
-  margin-bottom: 1.5rem;
-}
-
-.login-mobile-logo .tf-logo-icon {
-  height: 44px;
-}
-
-.login-mobile-logo__sub {
-  font-size: 0.8125rem;
-  color: var(--login-muted);
 }
 
 .login-form-title {
@@ -362,12 +393,11 @@ main.tf-main > .login-page {
   color: var(--login-orange-hover);
 }
 
-/* ── Mobile: hide brand panel, show mobile logo ── */
+/* ── Mobile: hide brand panel ── */
 @media (max-width: 991px) {
-  main.tf-main > .login-page {
-    flex-direction: column;
+  main.tf-main > .login-page-wrap {
     min-height: 100vh;
-    background: #F8FAFC;
+    background: #fff;
     padding: 0;
   }
 
@@ -384,9 +414,5 @@ main.tf-main > .login-page {
     padding: 1.5rem 1rem 2rem;
     align-items: flex-start;
     padding-top: clamp(2rem, 8vh, 3rem);
-  }
-
-  .login-mobile-logo {
-    display: flex;
   }
 }
