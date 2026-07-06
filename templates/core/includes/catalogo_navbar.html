@@ -48,7 +48,7 @@
         <span class="cart-badge{% if carrito_count %} has-count{% endif %}" id="cat-inquiry-badge">{% firstof carrito_count 0 %}</span>
       </a>
       <a href="{% url 'login' %}" class="link-signin">Sign in</a>
-      <a href="{% url 'signup' %}" class="btn-create-account">Create account</a>
+      <a href="{% url 'signup_buyer' %}" class="btn-create-account">Create account</a>
     </div>
   </div>
 
@@ -63,7 +63,7 @@
       </div>
       <div class="nav-secondary-right">
         Export docs included · Secure payments ·
-        <a href="{% url 'signup' %}?role=seller">Sell on TradeFlow</a>
+        <a href="{% url 'signup_seller' %}">Sell on TradeFlow</a>
       </div>
     </div>
   </nav>

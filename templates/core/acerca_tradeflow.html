@@ -19,7 +19,7 @@
       <p class="hm-about-hero__sub">The leading B2B online marketplace for the Colón Free Zone — connecting verified suppliers with buyers across 40+ countries.</p>
       <div class="hm-about-hero__ctas">
         <a href="{% url 'catalogo_publico' %}" class="hm-about-hero__btn hm-about-hero__btn--primary">Explore catalog →</a>
-        <a href="{% url 'signup' %}" class="hm-about-hero__btn hm-about-hero__btn--outline">Create buyer account</a>
+        <a href="{% url 'signup_buyer' %}" class="hm-about-hero__btn hm-about-hero__btn--outline">Create buyer account</a>
       </div>
     </div>
     <div class="hm-about-hero__visual" aria-hidden="true">
@@ -53,7 +53,7 @@
       <div class="hm-about-card__body">
         <h2 class="hm-about-card__title">Request for quotation &amp; order protection</h2>
         <p class="hm-about-card__text">Build inquiry carts, compare suppliers, and receive quotes before you commit. Export-ready documentation and CFZ-verified companies reduce risk on every order.</p>
-        <a href="{% url 'signup' %}" class="hm-about-card__link">Create buyer account →</a>
+        <a href="{% url 'signup_buyer' %}" class="hm-about-card__link">Create buyer account →</a>
       </div>
     </article>
 
@@ -61,7 +61,7 @@
       <div class="hm-about-card__body">
         <h2 class="hm-about-card__title">Sell on TradeFlow</h2>
         <p class="hm-about-card__text">List your company, manage inventory, and reach wholesale buyers worldwide. SaaS plans for sellers include storefront tools, analytics, and logistics integrations.</p>
-        <a href="{% url 'signup' %}?role=seller" class="hm-about-hero__btn hm-about-hero__btn--primary">Apply as supplier →</a>
+        <a href="{% url 'signup_seller' %}" class="hm-about-hero__btn hm-about-hero__btn--primary">Apply as supplier →</a>
       </div>
     </article>
   </section>

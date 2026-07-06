@@ -62,6 +62,8 @@ urlpatterns = [
     ),
     path('logout/',  views.logout_view, name='logout'),
     path('signup/',  views.signup_view, name='signup'),
+    path('signup/comprador/', views.signup_buyer_view, name='signup_buyer'),
+    path('signup/vendedor/', views.signup_seller_view, name='signup_seller'),
     path(
         'signup/oauth/begin/<str:provider>/',
         views_social.oauth_begin_signup,

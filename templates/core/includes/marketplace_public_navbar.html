@@ -95,7 +95,7 @@
         </svg>
         <span class="bn-utility__signin-label">Sign in</span>
       </a>
-      <a href="{% url 'signup' %}" class="btn-create-account bn-create-account">Create account</a>
+      <a href="{% url 'signup_buyer' %}" class="btn-create-account bn-create-account">Create account</a>
       {% endif %}
     </div>
   </div>
@@ -111,7 +111,7 @@
       </div>
       <div class="nav-secondary-right">
         <a href="{% url 'acerca_tradeflow' %}">Help center</a>
-        <a href="{% url 'signup' %}?role=seller">Sell on TradeFlow Colón</a>
+        <a href="{% url 'signup_seller' %}">Sell on TradeFlow Colón</a>
       </div>
     </div>
   </nav>
