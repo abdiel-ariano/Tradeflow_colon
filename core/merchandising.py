@@ -574,6 +574,23 @@ def build_guest_home_context(lang: str) -> dict:
             'company', 'category', 'inventory',
         ).order_by('-created_at')[:8]
     featured_list = list(featured_qs)
+
+    # Reserve bestsellers before featured fallback pollutes `seen` (recent SKUs overlap).
+    bestsellers_list = _pick_unique_products(bestsellers(24), seen, 8, diverse_images=True)
+    if len(bestsellers_list) < 4:
+        bestsellers_list = _pick_unique_products(bestsellers(24), seen, 8, diverse_images=False)
+    if not bestsellers_list:
+        bestsellers_list = _pick_unique_products(
+            active_products_base()
+            .select_related('company', 'category', 'inventory')
+            .order_by('-merchandising_priority', '-created_at'),
+            seen,
+            8,
+            diverse_images=False,
+        )
+    for product in bestsellers_list:
+        seen.add(product.pk)
+
     for product in featured_list:
         seen.add(product.pk)
 
@@ -607,17 +624,6 @@ def build_guest_home_context(lang: str) -> dict:
         'daily_deals' not in cms_types and len(daily_deals_list) >= 3
     )
     show_bestsellers_section = 'bestsellers' not in cms_types
-
-    bestsellers_list = _pick_unique_products(bestsellers(24), seen, 8, diverse_images=True)
-    if not bestsellers_list:
-        bestsellers_list = _pick_unique_products(
-            active_products_base()
-            .select_related('company', 'category', 'inventory')
-            .order_by('-merchandising_priority', '-created_at'),
-            seen,
-            8,
-            diverse_images=True,
-        )
 
     empresas_home = list(
         Company.objects.annotate(

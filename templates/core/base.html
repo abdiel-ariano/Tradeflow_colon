@@ -1018,12 +1018,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     /* === tf-public-shell.css (inline — static link fallback) === */
     {% inline_css 'css/tf-public-shell.css' %}
     {% endif %}
-    {% if request.resolver_match and request.resolver_match.url_name == 'home' %}
-    /* === tf-home-v2.css (inline — static link fallback) === */
-    {% inline_css 'css/tf-home-v2.css' %}
-    /* === tf-home-experience.css (motion, media, section choreography) === */
-    {% inline_css 'css/tf-home-experience.css' %}
-    {% endif %}
+    {# Marketplace home uses home-alibaba.css + catalog.css — skip legacy marketing home CSS #}
   </style>
   {% block extra_css %}{% endblock %}
 </head>
