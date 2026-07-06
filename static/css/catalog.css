@@ -209,6 +209,14 @@ body.cat-catalog-page .tf-main {
   white-space: nowrap;
 }
 
+@media (min-width: 768px) {
+  .cat-nav.tf-nav-alibaba .navbar-actions {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
 @media (min-width: 1024px) {
   .navbar-actions { display: flex; }
 }

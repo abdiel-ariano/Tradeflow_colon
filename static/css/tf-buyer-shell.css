@@ -811,13 +811,24 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
 }
 
 .tf-nav-alibaba .bn-utility--signin {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
   font-size: 13px;
   font-weight: 500;
   color: var(--tf-navy, #0F2A44);
+}
+
+.tf-nav-alibaba .bn-create-account,
+.tf-nav-alibaba .btn-create-account.bn-create-account {
+  display: inline-flex !important;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  margin-left: 2px;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 .tf-nav-alibaba .bn-utility--signin:hover {
