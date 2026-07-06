@@ -86,6 +86,72 @@ body.cat-catalog-page .tf-main {
   gap: 20px;
 }
 
+.hm-welcome-bar__right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px 28px;
+  margin-left: auto;
+}
+
+.hm-welcome-bar__auth {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.hm-welcome-bar__auth-link {
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.hm-welcome-bar__auth-link--signin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.hm-welcome-bar__auth-link--signin:hover {
+  color: var(--tf-orange, #FF7A3D);
+}
+
+.hm-welcome-bar__auth-link--signup {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 6px;
+  background: var(--tf-navy, #0F2A44);
+  color: #fff;
+}
+
+.hm-welcome-bar__auth-link--signup:hover {
+  background: #163352;
+  color: #fff;
+}
+
+@media (max-width: 767px) {
+  .hm-welcome-bar__inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hm-welcome-bar__right {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .hm-welcome-bar__links {
+    gap: 12px 16px;
+  }
+}
+
 .hm-welcome-bar__link {
   display: inline-flex;
   align-items: center;
