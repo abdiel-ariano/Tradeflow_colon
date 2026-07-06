@@ -20,7 +20,7 @@
           Supplier? <a href="{% url 'signup_seller' %}">List your company on TradeFlow</a>
         </p>
         <p class="hm-hero__proof" role="status">
-          <span class="hm-hero__proof-item"><strong>{{ stats.productos|default:0 }}</strong> active SKUs</span>
+          <span class="hm-hero__proof-item"><strong>{{ stats.productos|default:0 }}</strong> active products</span>
           <span class="hm-hero__proof-sep" aria-hidden="true">·</span>
           <span class="hm-hero__proof-item"><strong>{{ stats.empresas|default:0 }}</strong> verified companies</span>
           <span class="hm-hero__proof-sep" aria-hidden="true">·</span>
@@ -41,7 +41,7 @@
         </div>
         <div class="hm-hero__float hm-hero__float--stats">
           <span class="hm-hero__float-value">{{ stats.productos|default:"1,200+" }}</span>
-          <span class="hm-hero__float-label">Active SKUs</span>
+          <span class="hm-hero__float-label">Active products</span>
         </div>
         <div class="hm-hero__float hm-hero__float--verified">
           <span class="hm-hero__float-value">{{ stats.empresas|default:"50+" }}</span>

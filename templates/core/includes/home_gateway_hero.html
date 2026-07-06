@@ -1,0 +1,54 @@
+{% comment %}Home gateway — high-impact above-the-fold value proposition.{% endcomment %}
+<section class="hm-gateway" aria-labelledby="hm-gateway-title">
+  <div class="hm-gateway__bg" aria-hidden="true">
+    <span class="hm-gateway__orb hm-gateway__orb--1"></span>
+    <span class="hm-gateway__orb hm-gateway__orb--2"></span>
+    <span class="hm-gateway__grid"></span>
+  </div>
+  <div class="hm-gateway__inner">
+    <div class="hm-gateway__copy">
+      <p class="hm-gateway__kicker">Colón Free Zone · B2B wholesale</p>
+      <h1 class="hm-gateway__title" id="hm-gateway-title">The Americas' wholesale marketplace starts here</h1>
+      <p class="hm-gateway__sub">Browse verified CFZ suppliers, compare MOQs in USD, and request formal quotes — export-ready documentation included on every order.</p>
+      <div class="hm-gateway__actions">
+        <a href="{% url 'catalogo_publico' %}" class="hm-gateway__btn hm-gateway__btn--primary">Explore {{ stats.productos|default:0 }}+ products</a>
+        <a href="{% url 'signup_buyer' %}" class="hm-gateway__btn hm-gateway__btn--ghost">Create free buyer account</a>
+      </div>
+      <ul class="hm-gateway__pills" aria-label="Platform highlights">
+        <li class="hm-gateway__pill">
+          {% include "core/includes/tf_icon.html" with name="verified" class="hm-gateway__pill-icon" %}
+          CFZ verified suppliers
+        </li>
+        <li class="hm-gateway__pill">
+          {% include "core/includes/tf_icon.html" with name="description" class="hm-gateway__pill-icon" %}
+          RFQ before you buy
+        </li>
+        <li class="hm-gateway__pill">
+          {% include "core/includes/tf_icon.html" with name="local_shipping" class="hm-gateway__pill-icon" %}
+          Export docs included
+        </li>
+      </ul>
+    </div>
+
+    <aside class="hm-gateway__stats" aria-label="Marketplace scale" data-hm-gateway-metrics>
+      <ul class="hm-gateway__metrics">
+        <li class="hm-gateway__metric" style="--metric-i: 0">
+          <span class="hm-gateway__metric-value" data-count-to="{{ stats.productos|default:0 }}">0</span>
+          <span class="hm-gateway__metric-label">Active products</span>
+        </li>
+        <li class="hm-gateway__metric" style="--metric-i: 1">
+          <span class="hm-gateway__metric-value" data-count-to="{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}">0</span>
+          <span class="hm-gateway__metric-label">Verified suppliers</span>
+        </li>
+        <li class="hm-gateway__metric" style="--metric-i: 2">
+          <span class="hm-gateway__metric-value" data-count-to="{{ stats.categorias|default:0 }}">0</span>
+          <span class="hm-gateway__metric-label">Categories</span>
+        </li>
+        <li class="hm-gateway__metric hm-gateway__metric--accent" style="--metric-i: 3">
+          <span class="hm-gateway__metric-value" data-count-to="{{ stats.ordenes|default:0 }}">0</span>
+          <span class="hm-gateway__metric-label">Wholesale orders</span>
+        </li>
+      </ul>
+    </aside>
+  </div>
+</section>

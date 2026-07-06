@@ -4,35 +4,35 @@
       <div class="footer-col">
         <h4>About TradeFlow</h4>
         <ul>
-          <li><a href="{% url 'home' %}">Why TradeFlow Colón</a></li>
-          <li><a href="{% url 'home' %}#como-funciona">Colón Free Zone Guide</a></li>
+          <li><a href="{% url 'acerca_tradeflow' %}">Why TradeFlow Colón</a></li>
+          <li><a href="{% url 'acerca_tradeflow' %}#free-zone">Colón Free Zone Guide</a></li>
           <li><a href="{% url 'legal_privacidad' %}">Corporate responsibility</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Buyer Protection</h4>
         <ul>
-          <li><a href="{% url 'home' %}#como-funciona">Secure payments</a></li>
-          <li><a href="{% url 'legal_terminos' %}">Money-back guarantee</a></li>
-          <li><a href="{% url 'home' %}">Guaranteed delivery</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">Secure payments</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">Money-back guarantee</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">Guaranteed delivery</a></li>
           <li><a href="{% url 'legal_terminos' %}">After-sales protection</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Source from CFZ</h4>
         <ul>
-          <li><a href="{% url 'catalogo_publico' %}?verificado=1">CFZ Verified manufacturers</a></li>
-          <li><a href="{% url 'catalogo_publico' %}">Request for Quotation</a></li>
-          <li><a href="{% url 'home' %}">Export documentation</a></li>
+          <li><a href="{% url 'marketplace_verified_suppliers' %}">CFZ Verified manufacturers</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">Request for Quotation</a></li>
+          <li><a href="{% url 'acerca_tradeflow' %}#free-zone">Export documentation</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Help Center</h4>
         <ul>
-          <li><a href="{% url 'home' %}#como-funciona">For buyers</a></li>
-          <li><a href="mailto:{{ tradeflow_contact_email }}">Live chat</a></li>
+          <li><a href="{% url 'acerca_tradeflow' %}">For buyers</a></li>
+          <li><a href="mailto:{{ tradeflow_contact_email }}">Contact support</a></li>
           <li><a href="{% url 'legal_terminos' %}">Open a dispute</a></li>
-          <li><a href="{% url 'legal_terminos' %}">Refunds</a></li>
+          <li><a href="{% url 'signup_seller' %}">Sell on TradeFlow</a></li>
         </ul>
       </div>
     </div>

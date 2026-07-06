@@ -1,0 +1,28 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'13' }}">
+<link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
+<link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
+{% block marketplace_extra_head %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+{% if not request.user.is_authenticated %}
+  {% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active=marketplace_nav_active %}
+{% endif %}
+<main class="hm-marketplace-page" id="hm-marketplace-page">
+  {% block marketplace_main %}{% endblock %}
+</main>
+{% include "core/includes/home_categories_modal.html" %}
+{% endblock %}
+
+{% block footer %}
+  {% include "core/includes/catalogo_footer.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
+<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'2' }}"></script>
+{% block marketplace_extra_js %}{% endblock %}
+{% endblock %}

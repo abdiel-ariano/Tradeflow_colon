@@ -333,13 +333,26 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       }
     }
 
-    /* Fondos oscuros: títulos legibles sobre navy */
+/* Fondos oscuros: títulos y enlaces legibles sobre navy */
     .lp-hero h1,
     .lp-hero .lp-hero-title,
     section.lp-hero h1,
     .cat-hero h1,
-    .cat-hero p {
-      color: #ffffff !important;
+    .cat-hero p,
+    .hm-trust .hm-trust__link,
+    .hm-trust--compact .hm-trust__link {
+      color: rgba(255, 255, 255, 0.95) !important;
+    }
+
+    .hm-trust .hm-trust__link:hover,
+    .hm-trust--compact .hm-trust__link:hover {
+      color: #FFA15A !important;
+      text-decoration: none !important;
+    }
+
+    .hm-trust .hm-trust__icon,
+    .hm-trust--compact .hm-trust__icon {
+      color: #FF7A3D !important;
     }
 
     .material-symbols-rounded {
@@ -1023,6 +1036,22 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     {% inline_css 'css/tf-home-v2.css' %}
     /* === tf-home-experience.css (motion, media, section choreography) === */
     {% inline_css 'css/tf-home-experience.css' %}
+    /* Trust bar — must load after home bundles (dark links on navy) */
+    .hm-trust .hm-trust__link,
+    .hm-trust--compact .hm-trust__link {
+      color: rgba(255, 255, 255, 0.95) !important;
+      text-decoration: none !important;
+    }
+    .hm-trust .hm-trust__link:hover,
+    .hm-trust--compact .hm-trust__link:hover {
+      color: #FFA15A !important;
+      text-decoration: none !important;
+    }
+    .hm-trust .hm-trust__icon,
+    .hm-trust--compact .hm-trust__icon,
+    .hm-trust--compact .hm-trust__link .tf-icon {
+      color: #FF7A3D !important;
+    }
     {% endif %}
   </style>
   {% block extra_css %}{% endblock %}

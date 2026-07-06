@@ -31,7 +31,7 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
       <div class="adm-filter-grid">
         <div class="adm-field adm-field--grow">
           <label for="adm-prod-buscar">Search</label>
-          <input id="adm-prod-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Name, SKU, or description" autocomplete="off">
+          <input id="adm-prod-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Name, product code, or description" autocomplete="off">
         </div>
         <div class="adm-field">
           <label for="adm-prod-cat">Category</label>
@@ -72,7 +72,7 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
             <span class="adm-chip">Uncategorized</span>
             {% endif %}
             {% if p.sku %}
-            <span class="adm-chip">SKU {{ p.sku }}</span>
+            <span class="adm-chip">Code {{ p.sku }}</span>
             {% endif %}
           </div>
           <div class="adm-prod-foot">

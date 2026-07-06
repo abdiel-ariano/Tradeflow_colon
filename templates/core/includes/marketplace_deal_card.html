@@ -1,0 +1,34 @@
+{% load static tf_money %}
+{% comment %}Deal card — flash-sale styling for /deals/ page.{% endcomment %}
+<article class="mkt-deal-card{% if card_extra_class %} {{ card_extra_class }}{% endif %}" data-product-id="{{ product.pk }}">
+  <a href="{% url 'catalogo_producto_detail' product.pk %}" class="mkt-deal-card__media">
+    {% if product.is_on_promo_now %}
+    <span class="mkt-deal-card__badge">{{ product.discount_pct }}% off</span>
+    {% else %}
+    <span class="mkt-deal-card__badge mkt-deal-card__badge--pick">Wholesale pick</span>
+    {% endif %}
+    <div class="mkt-deal-card__image">
+      {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=card_index|default:99|yesno:"eager,lazy" img_class="mkt-deal-card__img" object_fit="cover" %}
+    </div>
+  </a>
+
+  <div class="mkt-deal-card__body">
+    <a href="{% url 'catalogo_producto_detail' product.pk %}" class="mkt-deal-card__name">{{ product.name|truncatechars:56 }}</a>
+
+    <div class="mkt-deal-card__price">
+      <span class="mkt-deal-card__price-main">{{ product.display_price|money_usd }}</span>
+      {% if product.is_on_promo_now %}
+      <span class="mkt-deal-card__price-was">{{ product.unit_price|money_usd }}</span>
+      {% endif %}
+    </div>
+
+    <p class="mkt-deal-card__supplier">
+      {{ product.company.name|truncatechars:22 }}
+      {% if product.company.is_verified %}· CFZ Verified{% endif %}
+    </p>
+
+    <button type="button" class="mkt-deal-card__btn" data-product-id="{{ product.pk }}">
+      + Add to inquiry
+    </button>
+  </div>
+</article>

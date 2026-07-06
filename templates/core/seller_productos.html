@@ -11,7 +11,7 @@
     <div class="seller-toolbar">
       <a href="{% url 'seller_producto_nuevo' %}" class="btn-seller-primary">Add product</a>
       <form class="seller-filters" method="get" action="">
-        <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Search name or SKU…">
+        <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Search name or product code…">
         <select class="tf-input" name="categoria" style="max-width:220px;">
           <option value="">All categories</option>
           {% for c in categorias %}
@@ -38,7 +38,7 @@
           <tr>
             <th></th>
             <th>Product</th>
-            <th>SKU</th>
+            <th>Code</th>
             <th>Price</th>
             <th>Stock</th>
             <th>Status</th>

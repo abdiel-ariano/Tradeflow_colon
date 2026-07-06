@@ -7,7 +7,7 @@
         <span class="hm-section__eyebrow">Limited offers</span>
         <h2 class="hm-section-title" id="hm-deals-title">Today's wholesale deals</h2>
       </div>
-      <a href="{% url 'catalogo_publico' %}?orden=promo" class="hm-deals__see-all">All deals →</a>
+      <a href="{% url 'marketplace_deals' %}" class="hm-deals__see-all">All deals →</a>
     </header>
     <div class="product-grid hm-deals__track" data-hm-stagger>
       {% for product in daily_deals|slice:":8" %}

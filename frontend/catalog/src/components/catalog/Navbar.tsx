@@ -56,7 +56,7 @@ export function Navbar({ inquiryCount }: NavbarProps) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
-                placeholder="Search wholesale products, suppliers, SKUs…"
+                placeholder="Search wholesale products, suppliers, product codes…"
                 className="min-w-0 flex-1 bg-white px-3 text-[14px] text-text-primary outline-none placeholder:text-text-muted focus:ring-1 focus:ring-navy"
               />
               <button

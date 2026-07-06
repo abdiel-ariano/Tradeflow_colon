@@ -45,7 +45,7 @@
   <div>
     <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
       <input type="text" name="buscar" value="{{ buscar }}" class="form-control"
-             placeholder="Search product or SKU..." style="flex:1;min-width:180px;">
+             placeholder="Search product or code..." style="flex:1;min-width:180px;">
       <select name="categoria" class="form-control" style="width:180px;">
         <option value="">All categories</option>
         {% for cat in categorias %}
@@ -62,7 +62,7 @@
       <div class="producto-card">
         <div class="nombre">{{ p.name }}</div>
         <div class="meta">{{ p.company.name }} {% if p.category %}· {{ p.category.name }}{% endif %}</div>
-        {% if p.sku %}<div class="meta">SKU: {{ p.sku }}</div>{% endif %}
+        {% if p.sku %}<div class="meta">Code: {{ p.sku }}</div>{% endif %}
         <div class="precio">{{ p.currency }} {{ p.unit_price }}</div>
 
         {% if p.available_qty > p.inventory.low_stock_alert %}

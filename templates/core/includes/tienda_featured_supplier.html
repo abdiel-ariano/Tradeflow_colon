@@ -20,7 +20,7 @@ Variables: company (con spotlight_products)
           {% endif %}
           <span class="td-featured__badge">🇵🇦 PA</span>
           {% if company.num_productos %}
-          <span class="td-featured__badge">{{ company.num_productos }} SKU{{ company.num_productos|pluralize }}</span>
+          <span class="td-featured__badge">{{ company.num_productos }} product{{ company.num_productos|pluralize }}</span>
           {% endif %}
         </div>
       </div>

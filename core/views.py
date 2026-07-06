@@ -3079,7 +3079,7 @@ def tienda(request):
 
     Funcionalidades:
         - Pestañas: por categoría (sidebar + grid) o por empresa (cards de empresa).
-        - Búsqueda por nombre, descripción o SKU; filtros por categoría y empresa.
+        - Búsqueda por nombre, descripción o código de producto; filtros por categoría y empresa.
         - Paginación de 12 productos por página.
         - Solo productos activos.
 
@@ -4151,7 +4151,7 @@ def _empresas_con_producto(base_product, limite=25):
 
     Como cada Product pertenece a una sola Company y no hay catálogo
     compartido, "el mismo producto" se determina por nombre normalizado o
-    por SKU exacto. Se elige, por empresa, el producto activo más barato.
+    por código de producto exacto. Se elige, por empresa, el producto activo más barato.
     """
     nombre_norm = _normalizar_nombre(base_product.name)
     sku_norm = (base_product.sku or '').strip().lower()
@@ -4842,8 +4842,80 @@ def acerca_tradeflow(request):
         {
             'stats': stats,
             'catalogo_stats': stats,
+            'marketplace_nav_active': 'about',
         },
     )
+
+
+def _marketplace_page_context(request):
+    """Shared context for public marketplace landing pages."""
+    from core.merchandising import home_stats_uncached
+
+    stats = home_stats_uncached()
+    return {
+        'stats': stats,
+        'catalogo_stats': stats,
+        'carrito_count': _contar_items(_get_carrito(request)),
+    }
+
+
+@catalog_access
+def marketplace_verified_suppliers(request):
+    """Dedicated page — CFZ verified supplier directory."""
+    from django.db.models import Count, Q
+
+    from core import merchandising as merch
+    from core.models import Company
+
+    ctx = _marketplace_page_context(request)
+    ctx['marketplace_nav_active'] = 'verified'
+    ctx.update(merch.marketplace_categories_context())
+
+    empresas = list(
+        Company.objects.filter(is_verified=True)
+        .annotate(num_productos=Count('products', filter=Q(products__is_active=True)))
+        .filter(num_productos__gt=0)
+        .order_by('-carousel_priority', '-num_productos', 'name')
+    )
+    if len(empresas) > 4:
+        destacadas = empresas[:3]
+        empresas_grid = empresas[3:]
+    else:
+        destacadas = []
+        empresas_grid = empresas
+    merch.spotlight_products_for_companies(empresas, limit_per=4)
+    ctx['empresas'] = empresas
+    ctx['empresas_destacadas'] = destacadas
+    ctx['empresas_grid'] = empresas_grid
+    return render(request, 'core/marketplace_verified_suppliers.html', ctx)
+
+
+@catalog_access
+def marketplace_deals(request):
+    """Dedicated page — active wholesale promotions."""
+    from core import merchandising as merch
+
+    ctx = _marketplace_page_context(request)
+    ctx['marketplace_nav_active'] = 'deals'
+    ctx.update(merch.marketplace_categories_context())
+    deals = merch.deals_page_products(48)
+    ctx['daily_deals'] = deals
+    ctx['spotlight_deals'] = deals[:8]
+    ctx['deal_count'] = len([p for p in deals if p.is_on_promo_now])
+    if ctx['deal_count'] == 0:
+        ctx['deal_count'] = len(deals)
+    return render(request, 'core/marketplace_deals.html', ctx)
+
+
+@catalog_access
+def marketplace_order_protection(request):
+    """Dedicated page — RFQ workflow and buyer protection program."""
+    from core import merchandising as merch
+
+    ctx = _marketplace_page_context(request)
+    ctx['marketplace_nav_active'] = 'protection'
+    ctx.update(merch.marketplace_categories_context())
+    return render(request, 'core/marketplace_order_protection.html', ctx)
 
 
 def legal_privacidad(request):

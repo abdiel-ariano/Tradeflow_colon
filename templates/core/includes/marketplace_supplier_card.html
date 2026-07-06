@@ -1,0 +1,37 @@
+{% comment %}Alibaba-style supplier storefront card — product preview + verified badge.{% endcomment %}
+<article class="mkt-vendor-card">
+  <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}&verificado=1" class="mkt-vendor-card__preview" aria-label="View {{ company.name }} storefront">
+    <div class="mkt-vendor-card__thumbs">
+      {% for product in company.spotlight_products|slice:":4" %}
+      <span class="mkt-vendor-card__thumb">
+        {% include "core/includes/home_visual_media.html" with product=product decorative=True loading="lazy" img_class="mkt-vendor-card__img" object_fit="cover" %}
+      </span>
+      {% empty %}
+      {% for i in "1234" %}
+      <span class="mkt-vendor-card__thumb mkt-vendor-card__thumb--empty" aria-hidden="true"></span>
+      {% endfor %}
+      {% endfor %}
+    </div>
+    <span class="mkt-vendor-card__verified">
+      {% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}
+      CFZ Verified
+    </span>
+  </a>
+
+  <div class="mkt-vendor-card__body">
+    <div class="mkt-vendor-card__identity">
+      {% include "core/includes/company_avatar.html" with company=company class="tf-co-avatar--vendor" %}
+      <div class="mkt-vendor-card__info">
+        <h3 class="mkt-vendor-card__name" title="{{ company.name }}">{{ company.name|truncatechars:40 }}</h3>
+        <p class="mkt-vendor-card__meta">
+          {% if company.num_productos == 1 %}{{ company.num_productos }} product{% else %}{{ company.num_productos }} products{% endif %}
+          · Colón Free Zone · PA
+        </p>
+      </div>
+    </div>
+    {% if company.tagline_es %}
+    <p class="mkt-vendor-card__tagline">{{ company.tagline_es|truncatechars:72 }}</p>
+    {% endif %}
+    <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}&verificado=1" class="mkt-vendor-card__btn">View storefront</a>
+  </div>
+</article>

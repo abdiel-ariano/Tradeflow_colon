@@ -5,7 +5,7 @@
     <header class="hm-section__head hm-wall__head">
       <div>
         <span class="hm-section__eyebrow">Full marketplace</span>
-        <h2 class="hm-section-title" id="hm-wall-title">Browse {{ stats.productos|default:0 }} SKUs from the Free Zone</h2>
+        <h2 class="hm-section-title" id="hm-wall-title">Browse {{ stats.productos|default:0 }} products from the Free Zone</h2>
         <p class="hm-section-sub">Live inventory across {{ stats.categorias|default:0 }} categories — price, MOQ, and supplier on every card.</p>
       </div>
       <a href="{% url 'catalogo_publico' %}" class="hm-wall__see-all">View full catalog →</a>
@@ -19,7 +19,7 @@
 
     <div class="hm-wall__footer">
       <p class="hm-wall__hint">
-        {{ catalog_breadth_products|length }} of <strong>{{ stats.productos|default:0 }}</strong> SKUs
+        {{ catalog_breadth_products|length }} of <strong>{{ stats.productos|default:0 }}</strong> products
         · <strong>{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}</strong> verified suppliers
       </p>
       <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--cta">Explore full catalog →</a>

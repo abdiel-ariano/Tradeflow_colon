@@ -579,7 +579,7 @@ def _seller_rag_answer(mensaje: str, ctx: dict, topic: str) -> tuple[list[str], 
         if encontrados:
             conf += 0.25
             for p in encontrados[:6]:
-                bullets.append(f'{p.name} — {_fmt_money(p.currency, p.display_price)} (SKU {p.sku or "—"})')
+                bullets.append(f'{p.name} — {_fmt_money(p.currency, p.display_price)} (code {p.sku or "—"})')
         elif tokens and not encontrados:
             conf -= 0.2
 

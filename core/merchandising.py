@@ -82,6 +82,53 @@ def daily_deals(limit: int = 8):
     )
 
 
+def ensure_marketplace_promos(minimum: int = 6) -> int:
+    """
+    Guarantee at least ``minimum`` active promo SKUs for public deals surfaces.
+
+    Idempotent: only assigns promos when the catalog has fewer active deals than
+    ``minimum`` (demo / fresh DB self-heal without a separate management command).
+    """
+    from decimal import Decimal
+
+    active = daily_deals(minimum)
+    if len(active) >= minimum:
+        return len(active)
+
+    now = timezone.now()
+    ends = now + timedelta(days=30)
+    needed = minimum - len(active)
+    existing_ids = {p.pk for p in active}
+    candidates = list(
+        active_products_base()
+        .exclude(pk__in=existing_ids)
+        .filter(
+            Q(promo_price__isnull=True)
+            | Q(promo_price__gte=models.F('unit_price'))
+        )
+        .order_by('-merchandising_priority', '-is_featured', '-created_at')[:needed]
+    )
+    for product in candidates:
+        product.promo_price = (product.unit_price * Decimal('0.85')).quantize(Decimal('0.01'))
+        product.promo_starts_at = now
+        product.promo_ends_at = ends
+        product.save(update_fields=['promo_price', 'promo_starts_at', 'promo_ends_at'])
+
+    return len(daily_deals(minimum))
+
+
+def deals_page_products(limit: int = 48):
+    """Products for the public /deals/ page — promos first, catalog fallback."""
+    ensure_marketplace_promos(min(6, limit))
+    deals = daily_deals(limit)
+    if len(deals) >= 3:
+        return deals
+    return list(
+        active_products_base()
+        .order_by('-merchandising_priority', '-is_bestseller', '-created_at')[:limit]
+    )
+
+
 def bestsellers(limit: int = 8, days: int = 30):
     """Top por unidades vendidas en ventana; fallback a flag is_bestseller."""
     since = timezone.now() - timedelta(days=days)

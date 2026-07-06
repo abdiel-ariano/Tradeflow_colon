@@ -1,0 +1,90 @@
+{% extends "core/marketplace_public_base.html" %}
+{% load static %}
+{% block title %}Wholesale Deals — TradeFlow Colón{% endblock %}
+{% block meta_description %}Today's wholesale deals from CFZ-verified suppliers — limited-time promo pricing, MOQ transparency, and export-ready documentation on TradeFlow Colón.{% endblock %}
+
+{% block marketplace_main %}
+<div id="hm-marketplace-config" hidden
+     data-inquiry-url="{% url 'catalogo_agregar_inquiry' 0 %}"></div>
+
+<div class="mkt-page-stack">
+
+  <header class="mkt-hero mkt-hero--deals" aria-labelledby="mkt-deals-title">
+    <div class="mkt-hero__accent" aria-hidden="true"></div>
+    <div class="mkt-hero__layout">
+      <div class="mkt-hero__main">
+        <p class="mkt-hero__kicker">Limited-time pricing</p>
+        <h1 class="mkt-hero__title" id="mkt-deals-title">Today's wholesale deals</h1>
+        <p class="mkt-hero__sub">Promotional products from Colón Free Zone suppliers. Add to your inquiry cart, compare quotes, and lock in export-ready orders.</p>
+        <div class="mkt-hero__actions">
+          <a href="{% url 'catalogo_publico' %}?on_sale=1" class="mkt-btn mkt-btn--primary">Filter deals in catalog</a>
+          <a href="{% url 'ver_carrito' %}" class="mkt-btn mkt-btn--ghost">View inquiry cart</a>
+        </div>
+      </div>
+      <aside class="mkt-hero__metrics" aria-label="Deals overview">
+        <div class="mkt-metric mkt-metric--hot"><strong>{{ deal_count }}</strong><span>Active deals</span></div>
+        <div class="mkt-metric"><strong>{{ stats.productos|default:0 }}</strong><span>Total products</span></div>
+        <div class="mkt-metric"><strong>15%</strong><span>Avg. savings</span></div>
+        <div class="mkt-metric"><strong>RFQ</strong><span>Quote first</span></div>
+      </aside>
+    </div>
+  </header>
+
+  {% if spotlight_deals %}
+  <section class="mkt-panel mkt-panel--flash" aria-labelledby="mkt-deals-flash-title">
+    <header class="mkt-panel__head mkt-panel__head--row">
+      <div>
+        <h2 class="mkt-panel__title" id="mkt-deals-flash-title">Flash deals</h2>
+        <p class="mkt-panel__sub">Best discounts · updated daily</p>
+      </div>
+      <span class="mkt-flash-tag">Hot</span>
+    </header>
+    <div class="mkt-deals-flash__rail">
+      {% for product in spotlight_deals|slice:":6" %}
+        {% include "core/includes/marketplace_deal_card.html" with product=product card_index=forloop.counter card_extra_class="mkt-deal-card--flash" %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="mkt-panel" aria-labelledby="mkt-deals-grid-title">
+    <header class="mkt-panel__head mkt-panel__head--row">
+      <div>
+        <h2 class="mkt-panel__title" id="mkt-deals-grid-title">All promo inventory</h2>
+        <p class="mkt-panel__sub">{{ daily_deals|length }} products with promotional or featured pricing</p>
+      </div>
+      <a href="{% url 'catalogo_publico' %}?on_sale=1" class="mkt-panel__link">See all in catalog →</a>
+    </header>
+
+    {% if daily_deals %}
+    <div class="mkt-deals-grid">
+      {% for product in daily_deals %}
+        {% include "core/includes/marketplace_deal_card.html" with product=product card_index=forloop.counter %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="mkt-empty-state">
+      <h3 class="mkt-empty-state__title">No active promotions right now</h3>
+      <p class="mkt-empty-state__text">Check back soon or browse the full wholesale catalog.</p>
+      <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--primary">Browse catalog</a>
+    </div>
+    {% endif %}
+  </section>
+
+  {% if daily_deals|length >= 4 %}
+  <section class="mkt-panel mkt-panel--tip" aria-labelledby="mkt-deals-tip-title">
+    <h2 class="mkt-panel__title" id="mkt-deals-tip-title">How B2B deals work</h2>
+    <ul class="mkt-tip-list">
+      <li>Promo prices are per product — MOQ and stock apply on the product page.</li>
+      <li>Add items to your inquiry cart to request a formal quotation.</li>
+      <li>CFZ verification and export docs are visible before you order.</li>
+    </ul>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block marketplace_extra_js %}
+<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-marketplace.js' %}?v={{ tf_asset_version|default:'4' }}"></script>
+{% endblock %}

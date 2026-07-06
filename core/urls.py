@@ -24,6 +24,9 @@ urlpatterns = [
     path('privacidad/', views.legal_privacidad, name='legal_privacidad'),
     path('cookies/', views.legal_cookies, name='legal_cookies'),
     path('acerca/', views.acerca_tradeflow, name='acerca_tradeflow'),
+    path('verified-suppliers/', views.marketplace_verified_suppliers, name='marketplace_verified_suppliers'),
+    path('deals/', views.marketplace_deals, name='marketplace_deals'),
+    path('order-protection/', views.marketplace_order_protection, name='marketplace_order_protection'),
 
     # ── Autenticación ─────────────────────────────────────────────────────
     path('login/',   views.login_view,  name='login'),

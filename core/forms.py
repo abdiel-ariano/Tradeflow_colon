@@ -48,7 +48,7 @@ class SellerProductForm(forms.ModelForm):
             'category':    forms.Select(attrs={'class': 'tf-input'}),
             'name':        forms.TextInput(attrs={'class': 'tf-input', 'placeholder': 'Product name'}),
             'description': forms.Textarea(attrs={'class': 'tf-input', 'rows': 4, 'placeholder': 'Description'}),
-            'sku':         forms.TextInput(attrs={'class': 'tf-input', 'placeholder': 'SKU (optional)'}),
+            'sku':         forms.TextInput(attrs={'class': 'tf-input', 'placeholder': 'Product code (optional)'}),
             'unit_price':  forms.NumberInput(attrs={'class': 'tf-input', 'step': '0.01', 'min': '0'}),
             'currency':    forms.Select(attrs={'class': 'tf-input'}),
             'image':       forms.ClearableFileInput(attrs={'class': 'tf-input'}),

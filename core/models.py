@@ -309,7 +309,7 @@ class Product(models.Model):
     )
     name        = models.CharField(max_length=200, verbose_name='Product name')
     description = models.TextField(blank=True, verbose_name='Description')
-    sku         = models.CharField(max_length=100, blank=True, verbose_name='SKU')
+    sku         = models.CharField(max_length=100, blank=True, verbose_name='Product code')
     unit_price  = models.DecimalField(max_digits=12, decimal_places=2, verbose_name='Unit price')
     currency    = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD')
     image       = models.ImageField(upload_to='products/', blank=True, null=True, verbose_name='Image')

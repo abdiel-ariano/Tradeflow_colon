@@ -506,7 +506,7 @@ def generar_packing_list_pdf(orden) -> bytes:
     pl_data = [
         [
             _table_header_cell(styles, "#"),
-            _table_header_cell(styles, "SKU"),
+            _table_header_cell(styles, "Code"),
             _table_header_cell(styles, "Description", align_center=False),
             _table_header_cell(styles, "ZLC supplier", align_center=False),
             _table_header_cell(styles, "Qty."),

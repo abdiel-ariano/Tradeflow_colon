@@ -1,41 +1,4 @@
-{% comment %}Welcome bar + bento — Alibaba above-the-fold (categories rail, search tiles, promo).{% endcomment %}
-<div class="hm-welcome-bar" aria-label="Marketplace shortcuts">
-  <div class="hm-welcome-bar__inner">
-    <p class="hm-welcome-bar__text">Welcome to TradeFlow Colón</p>
-
-    <div class="hm-welcome-bar__panel">
-      <nav class="hm-welcome-bar__links" aria-label="Quick marketplace links">
-        <a href="{% url 'catalogo_publico' %}" class="hm-welcome-bar__link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-          Request for Quotation
-        </a>
-        <a href="{% url 'catalogo_publico' %}?verificado=1" class="hm-welcome-bar__link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
-          Top ranked suppliers
-        </a>
-        <a href="{% url 'catalogo_publico' %}?orden=novedades" class="hm-welcome-bar__link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-          Fast customization
-        </a>
-      </nav>
-
-      {% if not request.user.is_authenticated %}
-      <div class="hm-welcome-bar__auth">
-        <a href="{% url 'login' %}" class="hm-welcome-bar__auth-link hm-welcome-bar__auth-link--signin">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-          </svg>
-          <span>Sign in</span>
-        </a>
-        <a href="{% url 'signup_buyer' %}" class="hm-welcome-bar__auth-link hm-welcome-bar__auth-link--signup">
-          <span>Create account</span>
-        </a>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-</div>
-
+{% comment %}Bento — Alibaba above-the-fold (categories rail, search tiles, promo).{% endcomment %}
 <section class="hm-bento" aria-label="Marketplace discovery">
   <div class="hm-bento__grid">
     <aside class="hm-bento__categories" aria-label="Categories">
@@ -70,7 +33,7 @@
       {% empty %}
       <a href="{% url 'catalogo_publico' %}" class="hm-bento__spotlight hm-bento__spotlight--empty">
         <span class="hm-bento__spotlight-label">Wholesale catalog</span>
-        <span class="hm-bento__spotlight-cat">Browse {{ stats.productos|default:0 }} SKUs</span>
+        <span class="hm-bento__spotlight-cat">Browse {{ stats.productos|default:0 }} products</span>
       </a>
       {% endfor %}
     </div>

@@ -11,7 +11,7 @@ Variables: company (with spotlight_products attached in home_view)
         <h3 class="hm-spotlight-unified__name">{{ company.name }}</h3>
         <span class="hm-spotlight-unified__badge">
           {% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}
-          CFZ Verified · {% if company.num_productos == 1 %}{{ company.num_productos }} SKU{% else %}{{ company.num_productos }} SKUs{% endif %}
+          CFZ Verified · {% if company.num_productos == 1 %}{{ company.num_productos }} product{% else %}{{ company.num_productos }} products{% endif %}
         </span>
       </div>
     </div>
