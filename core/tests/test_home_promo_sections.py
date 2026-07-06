@@ -136,10 +136,9 @@ class HomePromoRenderingTests(TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         content = response.content.decode()
-        rows = response.context.get('home_product_rows', [])
-        self.assertGreaterEqual(len(rows), 2, msg=[r.get('dom_id') for r in rows])
-        self.assertIn('hm-promo-cms-bestsellers', content, msg='bestsellers row missing')
-        self.assertIn('hm-promo-cms-deals', content, msg='deals row missing')
+        sections = response.context.get('home_figma_sections', [])
+        self.assertGreaterEqual(len(sections), 2)
+        self.assertIn('hm-feed-carousel', content)
         self.assertIn('Top ZLC', content, msg='bestsellers title missing')
         self.assertIn('CMS Deals', content, msg='deals title missing')
 
@@ -170,10 +169,11 @@ class HomePromoRenderingTests(TestCase):
             )
         response = self.client.get('/')
         self.assertTrue(response.context['show_bestsellers_section'])
-        self.assertIn('hm-bestsellers', response.content.decode())
+        self.assertIn('Recommended for your business', response.content.decode())
 
     def test_home_renders_alibaba_bento_layout(self):
         response = self.client.get('/')
         self.assertContains(response, 'hm-bento')
         self.assertContains(response, 'hm-alibaba')
+        self.assertContains(response, 'hm-figma-home')
         self.assertNotContains(response, 'id="hm-hero"')

@@ -1,0 +1,10 @@
+{% comment %}Figma div#main-content — alternating feed carousels and quad card rows.{% endcomment %}
+<div class="hm-figma-main">
+  {% for section in home_figma_sections %}
+    {% if section.type == 'carousel' %}
+      {% include "core/includes/home_feed_carousel.html" with section=section %}
+    {% elif section.type == 'quad' %}
+      {% include "core/includes/home_quad_cards.html" with quad_row=section.cards %}
+    {% endif %}
+  {% endfor %}
+</div>

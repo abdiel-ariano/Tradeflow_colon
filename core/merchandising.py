@@ -679,15 +679,20 @@ def build_guest_home_context(lang: str) -> dict:
     category_modal_panels = _category_modal_panels(sidebar_categories)
     promo_banner = _first_promo_banner_block(promo_sections)
     catalog_breadth_list = catalog_breadth_products(24, exclude_ids=seen)
-    home_product_rows = _build_home_product_rows(
-        featured_list=featured_list,
+    home_quad_card_rows = _home_quad_card_rows(max_rows=4, cats_per_row=4, products_per_cat=4)
+    home_feed_carousels = _home_feed_carousel_rows(
+        lang=lang,
         daily_deals=daily_deals_list,
         bestsellers=bestsellers_list,
         catalog_breadth=catalog_breadth_list,
+        featured_list=featured_list,
+        categories=marketplace_trending_categories,
         promo_sections=promo_sections,
-        show_daily_deals_strip=show_daily_deals_strip,
-        show_bestsellers_section=show_bestsellers_section,
-        lang=lang,
+        cms_types=cms_types,
+    )
+    home_figma_sections = _build_home_figma_sections(
+        quad_rows=home_quad_card_rows,
+        carousels=home_feed_carousels,
     )
 
     return {
@@ -707,6 +712,19 @@ def build_guest_home_context(lang: str) -> dict:
         'empresas_standard': empresas_standard,
         'category_spotlights': category_spotlight_rows,
         'home_quad_cards': home_quad_cards,
+        'home_quad_card_rows': home_quad_card_rows,
+        'home_feed_carousels': home_feed_carousels,
+        'home_figma_sections': home_figma_sections,
+        'home_product_rows': _build_home_product_rows(
+            featured_list=featured_list,
+            daily_deals=daily_deals_list,
+            bestsellers=bestsellers_list,
+            catalog_breadth=catalog_breadth_list,
+            promo_sections=promo_sections,
+            show_daily_deals_strip=show_daily_deals_strip,
+            show_bestsellers_section=show_bestsellers_section,
+            lang=lang,
+        ),
         'promo_sections': promo_sections,
         'show_daily_deals_strip': show_daily_deals_strip,
         'show_bestsellers_section': show_bestsellers_section,
@@ -716,7 +734,6 @@ def build_guest_home_context(lang: str) -> dict:
         'bento_spotlight_items': bento_spotlight_items,
         'category_modal_panels': category_modal_panels,
         'promo_banner': promo_banner,
-        'home_product_rows': home_product_rows,
     }
 
 
@@ -883,6 +900,134 @@ def _build_home_product_rows(
     _row('browse', 'hm-catalog-wall', browse_title, catalog_breadth)
 
     return rows
+
+
+def _home_quad_card_rows(
+    max_rows: int = 4,
+    cats_per_row: int = 4,
+    products_per_cat: int = 4,
+) -> list[list[dict]]:
+    """Figma gw-card-layout rows — each inner list has up to 4 quad cards."""
+    flat = category_spotlights(max_rows * cats_per_row, products_per_cat, exclude_ids=None)
+    rows: list[list[dict]] = []
+    for i in range(0, len(flat), cats_per_row):
+        chunk = flat[i:i + cats_per_row]
+        if chunk:
+            rows.append(chunk)
+    return rows[:max_rows]
+
+
+def _home_feed_carousel_rows(
+    *,
+    lang: str,
+    daily_deals,
+    bestsellers,
+    catalog_breadth,
+    featured_list,
+    categories,
+    promo_sections,
+    cms_types: set[str] | None = None,
+) -> list[dict]:
+    """Figma desktop-N horizontal product feed carousels."""
+    rows: list[dict] = []
+    used_ids: set[int] = set()
+    cms_types = cms_types or set()
+
+    def _add(title: str, products, see_all_query: str = '', *, preserve_order: bool = False):
+        if preserve_order:
+            picked = list(products)[:12]
+        else:
+            picked = []
+            for product in products:
+                if product.pk in used_ids:
+                    continue
+                picked.append(product)
+                used_ids.add(product.pk)
+                if len(picked) >= 12:
+                    break
+        if len(picked) >= 4:
+            rows.append({
+                'title': title,
+                'products': picked,
+                'see_all_query': see_all_query,
+            })
+            if preserve_order:
+                for product in picked:
+                    used_ids.add(product.pk)
+
+    deals_title = 'Today\'s wholesale deals' if lang == 'en' else 'Ofertas del día'
+    best_title = 'Recommended for your business' if lang == 'en' else 'Recomendado para tu negocio'
+    browse_title = 'More from the Colón Free Zone' if lang == 'en' else 'Más de la Zona Libre de Colón'
+
+    for block in promo_sections:
+        section = block['section']
+        products = block.get('products') or []
+        if section.section_type == 'seasonal_banner' or len(products) < 4:
+            continue
+        _add(
+            block.get('title') or section.title_for_lang(lang),
+            products,
+            preserve_order=True,
+        )
+
+    if 'daily_deals' not in cms_types and daily_deals:
+        _add(deals_title, daily_deals, 'orden=promo')
+    if 'bestsellers' not in cms_types and bestsellers:
+        _add(best_title, bestsellers, 'orden=novedades')
+
+    for cat in categories[:5]:
+        cat_products = list(
+            active_products_base()
+            .filter(category=cat)
+            .order_by('-merchandising_priority', '-created_at')[:16]
+        )
+        if lang == 'en':
+            title = f'Top wholesale in {cat.name}'
+        else:
+            title = f'Mayoristas en {cat.name}'
+        _add(title, cat_products, f'categoria={cat.pk}')
+
+    if catalog_breadth:
+        _add(browse_title, catalog_breadth)
+
+    featured_tail = list(featured_list[2:]) if len(featured_list) > 2 else list(featured_list)
+    if featured_tail:
+        for_you = 'Products for you' if lang == 'en' else 'Productos para ti'
+        _add(for_you, featured_tail)
+
+    return rows[:7]
+
+
+def _build_home_figma_sections(
+    *,
+    quad_rows: list[list[dict]],
+    carousels: list[dict],
+) -> list[dict]:
+    """
+    Figma main-content rhythm: carousel → quad row → carousel → quad row …
+    First quad row is rendered above-the-fold (after hero).
+    """
+    sections: list[dict] = []
+    quad_tail = quad_rows[1:] if len(quad_rows) > 1 else []
+    quad_iter = iter(quad_tail)
+    carousel_iter = iter(carousels)
+
+    while True:
+        carousel = next(carousel_iter, None)
+        quad = next(quad_iter, None)
+        if carousel is None and quad is None:
+            break
+        if carousel:
+            sections.append({'type': 'carousel', **carousel})
+        if quad:
+            sections.append({'type': 'quad', 'cards': quad})
+
+    for carousel in carousel_iter:
+        sections.append({'type': 'carousel', **carousel})
+    for quad in quad_iter:
+        sections.append({'type': 'quad', 'cards': quad})
+
+    return sections
 
 
 # =============================================================================
