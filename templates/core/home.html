@@ -1,12 +1,10 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% comment %}TradeFlow — Figma Amazon marketplace home + category circles hybrid.{% endcomment %}
+{% comment %}TradeFlow — Shopify landing (Figma 3321:1097) + catalog teaser.{% endcomment %}
 {% block title %}TradeFlow Colón — Wholesale Marketplace{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'12' }}">
-<link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'4' }}">
-<link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version }}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version }}">
 <link rel="stylesheet" href="{% static 'css/home-figma-hero.css' %}?v={{ tf_asset_version }}">
 {% endblock %}
 
@@ -14,26 +12,16 @@
 <div id="hm-marketplace-config" hidden
      data-inquiry-url="{% url 'catalogo_agregar_inquiry' 0 %}"></div>
 
-{% if not request.user.is_authenticated %}
-  {% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='home' %}
-{% endif %}
-
-<main class="hm-alibaba hm-marketplace hm-figma-home" id="hm-root">
-  {% include "core/includes/home_bento_hero.html" %}
-
-  <section class="hm-bento hm-marketplace-hero" aria-label="Featured marketplace">
-    {% include "core/includes/home_hero_carousel.html" %}
-    {% if home_quad_card_rows %}
-      {% include "core/includes/home_quad_cards.html" with quad_row=home_quad_card_rows.0 %}
-    {% endif %}
-  </section>
-
-  {% include "core/includes/home_category_discover.html" %}
-  {% include "core/includes/home_tradeflow_strip.html" %}
-  {% include "core/includes/home_figma_main.html" %}
+<main class="hm-shopify" id="hm-root">
+  {% include "core/includes/shopify_landing/header.html" %}
+  {% include "core/includes/shopify_landing/hero.html" %}
+  {% include "core/includes/shopify_landing/channels.html" %}
+  {% include "core/includes/shopify_landing/features.html" %}
+  {% include "core/includes/shopify_landing/rfq.html" %}
+  {% include "core/includes/shopify_landing/stats.html" %}
+  {% include "core/includes/shopify_landing/build.html" %}
+  {% include "core/includes/shopify_landing/catalog.html" %}
 </main>
-
-{% include "core/includes/home_categories_modal.html" %}
 {% endblock %}
 
 {% block footer %}
@@ -42,6 +30,5 @@
 
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
-<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-marketplace.js' %}?v={{ tf_asset_version|default:'4' }}"></script>
-<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'3' }}"></script>
+<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-marketplace.js' %}?v={{ tf_asset_version }}"></script>
 {% endblock %}

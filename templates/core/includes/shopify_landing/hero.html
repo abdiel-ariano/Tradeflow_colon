@@ -1,0 +1,17 @@
+{% load static %}
+<section class="sh-hero" aria-labelledby="sh-hero-title">
+  <div class="sh-hero__bg" aria-hidden="true">
+    <img src="{% static 'images/shopify-landing/hero-bg.jpg' %}" alt="" width="1920" height="1080" loading="eager" decoding="async">
+  </div>
+  <div class="sh-hero__overlay" aria-hidden="true"></div>
+  <div class="sh-hero__content">
+    <div>
+      <h1 class="sh-hero__title" id="sh-hero-title">Be the next<br>wholesale leader</h1>
+      <p class="sh-hero__subtitle">Dream big and source fast on TradeFlow Colón.<br>The wholesale marketplace of the Americas.</p>
+    </div>
+    <div>
+      <a href="{% url 'signup_buyer' %}" class="sh-btn-pill sh-btn-pill--white">Start for free</a>
+    </div>
+  </div>
+  <div class="sh-hero__curve" aria-hidden="true"></div>
+</section>
