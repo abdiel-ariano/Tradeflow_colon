@@ -1,13 +1,12 @@
 /*
  * TradeFlow Colón — login page only (/login/)
- * Stripe-inspired layout (visual only)
+ * Stripe-inspired layout + logo watermark (visual only)
  */
 main.tf-main > .login-page-wrap {
   min-height: 100vh;
   width: 100%;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  display: block;
   padding: 0;
   margin: 0;
   background: #fff;
@@ -28,15 +27,22 @@ main.tf-main > .login-page-wrap {
   color: var(--login-text);
   background: #fff;
   position: relative;
+  min-height: 100vh;
   overflow: hidden;
 }
 
-/* ── Site header (outside card) ── */
+/* ── Site header (outside card, top-left overlay) ── */
 .login-site-header {
-  position: relative;
-  z-index: 2;
-  flex: 0 0 auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
   padding: 20px clamp(20px, 4vw, 40px);
+  pointer-events: none;
+}
+
+.login-site-header .login-site-brand {
+  pointer-events: auto;
 }
 
 .login-page-wrap--stripe .login-site-brand,
@@ -59,51 +65,60 @@ main.tf-main > .login-page-wrap {
   font-weight: 600;
 }
 
-/* ── Page + aurora ── */
+/* ── Full-viewport centering layer ── */
 .login-page {
   position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
+  z-index: 1;
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
-.login-aurora {
-  position: absolute;
-  top: -5%;
-  right: -5%;
-  width: min(75vw, 880px);
-  height: min(100vh, 960px);
-  pointer-events: none;
+/* ── Logo watermark (replaces aurora) ── */
+.login-watermark {
+  position: fixed;
+  inset: 0;
   z-index: 0;
-  background:
-    radial-gradient(ellipse 85% 65% at 28% 18%, rgba(147, 197, 253, 0.78) 0%, transparent 58%),
-    radial-gradient(ellipse 75% 60% at 52% 42%, rgba(251, 146, 60, 0.72) 0%, transparent 54%),
-    radial-gradient(ellipse 70% 55% at 68% 62%, rgba(248, 113, 113, 0.68) 0%, transparent 55%),
-    radial-gradient(ellipse 65% 50% at 82% 78%, rgba(232, 121, 249, 0.62) 0%, transparent 52%);
-  filter: blur(42px);
-  transform: rotate(-18deg);
-  opacity: 1;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  overflow: hidden;
+}
+
+.login-watermark__img {
+  width: min(68vmin, 520px);
+  height: auto;
+  max-width: 90vw;
+  object-fit: contain;
+  opacity: 0.08;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .login-layout {
   position: relative;
-  z-index: 1;
-  flex: 1;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(1.5rem, 4vh, 2.5rem) clamp(1.25rem, 4vw, 2rem);
   width: 100%;
+  min-height: 100vh;
+  padding: clamp(5rem, 12vh, 7rem) clamp(1.25rem, 4vw, 2rem) clamp(2rem, 6vh, 3rem);
   box-sizing: border-box;
 }
 
-/* ── Login card ── */
+/* ── Login card (semi-transparent glass) ── */
 .login-card {
   width: 100%;
   max-width: 420px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.75);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   border: 1px solid #e8e8ed;
   border-radius: 12px;
   box-shadow:
@@ -186,7 +201,7 @@ main.tf-main > .login-page-wrap {
 }
 
 .login-input::placeholder {
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .login-input:focus {
@@ -318,7 +333,7 @@ main.tf-main > .login-page-wrap {
   padding: 0 16px;
   border: 1px solid var(--login-border);
   border-radius: 8px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   color: var(--login-text);
   font-family: inherit;
   font-size: 0.875rem;
@@ -338,7 +353,7 @@ main.tf-main > .login-page-wrap {
 
 .login-oauth-btn:not(:disabled):hover {
   border-color: #d1d5db;
-  background: #fafafa;
+  background: #fff;
 }
 
 .login-oauth-btn:focus-visible {
@@ -361,7 +376,7 @@ main.tf-main > .login-page-wrap {
 .login-page-wrap--stripe .auth-dev-banner {
   margin-bottom: 1rem;
   padding: 10px 12px;
-  background: #f0fdf4;
+  background: rgba(240, 253, 244, 0.95);
   border: 1px solid #bbf7d0;
   border-radius: 8px;
   font-size: 0.8125rem;
@@ -372,7 +387,7 @@ main.tf-main > .login-page-wrap {
 .login-page-wrap--stripe .auth-verify-banner {
   margin-top: 1.25rem;
   padding: 14px;
-  background: #eff6ff;
+  background: rgba(239, 246, 255, 0.95);
   border: 1px solid #bfdbfe;
   border-radius: 8px;
   font-size: 0.875rem;
@@ -382,22 +397,16 @@ main.tf-main > .login-page-wrap {
 /* ── Mobile ── */
 @media (max-width: 768px) {
   .login-layout {
-    justify-content: center;
-    padding: 1rem 1rem 2rem;
+    padding: clamp(4.5rem, 14vh, 6rem) 1rem 2rem;
   }
 
   .login-card {
     max-width: 100%;
   }
 
-  .login-aurora {
-    top: -8%;
-    right: -15%;
-    width: 130vw;
-    height: 55vh;
-    opacity: 0.92;
-    filter: blur(36px);
-    transform: rotate(-12deg);
+  .login-watermark__img {
+    width: min(80vmin, 420px);
+    opacity: 0.07;
   }
 }
 
@@ -408,5 +417,14 @@ main.tf-main > .login-page-wrap {
 
   .login-label-row {
     flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-input,
+  .login-submit,
+  .login-oauth-btn,
+  .login-remember__box {
+    transition: none;
   }
 }
