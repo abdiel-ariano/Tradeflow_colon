@@ -1,278 +1,239 @@
 /*
- * TradeFlow Colón — /login/ (Figma ntogzQw6rwqQzeC2SHwAjH · node 1:1810)
- * Stripe sign-in layout — visual only; form contract unchanged.
+ * TradeFlow Colón — /login/
+ * Figma C85mu7GOLfNLtNJGqH6BUw · node 8:3 (Stripe sign-in frame 1920×1200)
+ * Visual only — form contract unchanged.
  */
+
+/* Hide assistant FAB on login (not in Figma frame) */
+body:has(.login-page-wrap--figma) #tf-assistant {
+  display: none !important;
+}
+
 main.tf-main > .login-page-wrap {
   min-height: 100vh;
   width: 100%;
-  box-sizing: border-box;
-  display: block;
-  padding: 0;
   margin: 0;
+  padding: 0;
+  display: block;
+  box-sizing: border-box;
   background: #fff;
 }
 
-.login-page-wrap--stripe {
-  --login-text: #30313d;
-  --login-muted: #6a7383;
-  --login-border: #e0e6eb;
-  --login-lavender: #bcb2f9;
-  --login-lavender-hover: #a89cf5;
-  --login-lavender-ring: rgba(188, 178, 249, 0.35);
-  --login-indigo: #5b4fe0;
-  --login-indigo-hover: #4a3fd4;
-  --login-coral: #f26522;
-  --login-ease: cubic-bezier(0.23, 1, 0.32, 1);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  color: var(--login-text);
-  background: #fff;
+.login-page-wrap--figma {
+  --figma-text: #3c4257;
+  --figma-text-dark: #1a2c44;
+  --figma-muted: #414552;
+  --figma-link: #635bff;
+  --figma-link-footer: #533afd;
+  --figma-border: #d4dee9;
+  --figma-primary: #675dff;
+  --figma-focus-ring: #a497fc;
+  --figma-focus-glow: #e0d9fb;
+  --figma-oauth-text: #273951;
+  --figma-divider-text: #3c4f69;
   position: relative;
   min-height: 100vh;
   isolation: isolate;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  color: var(--figma-text);
+  overflow-x: hidden;
 }
 
-/* ── Top-left brand (Figma: 32px inset) ── */
-.login-site-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  padding: 32px;
-  pointer-events: none;
-}
-
-.login-site-header .login-site-brand {
-  pointer-events: auto;
-}
-
-.login-site-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: var(--login-text);
-}
-
-.login-site-brand__logo {
-  flex-shrink: 0;
-}
-
-.login-page-wrap--stripe .login-site-brand,
-.login-page-wrap--stripe .login-site-brand:link,
-.login-page-wrap--stripe .login-site-brand:visited,
-.login-page-wrap--stripe .login-site-brand:hover,
-.login-page-wrap--stripe .login-site-brand:active,
-.login-page-wrap--stripe .login-site-brand:focus {
-  text-decoration: none;
-  color: var(--login-text);
-}
-
-.login-site-brand__wordmark {
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.login-site-accent {
-  color: var(--login-coral);
-  font-weight: 600;
-}
-
-/* ── Full-viewport centering ── */
-.login-page {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-
-/* ── Diagonal aurora stripe (Figma / Stripe mesh band) ── */
-.login-aurora-bg {
+/* ── Background image (Figma asset) ── */
+.login-figma-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: #fff;
   overflow: hidden;
-}
-
-.login-aurora-stripe {
-  position: absolute;
-  top: -12%;
-  right: -28%;
-  width: 140vw;
-  height: 115vh;
-  transform: rotate(-30deg);
-  transform-origin: center center;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    #bfd9f2 15%,
-    #e1672a 40%,
-    #d94f30 60%,
-    #e85a8a 80%,
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    #000 20%,
-    #000 80%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    #000 20%,
-    #000 80%,
-    transparent 100%
-  );
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  filter: blur(18px);
-  will-change: transform;
-  animation: login-aurora-stripe-drift 34s ease-in-out infinite alternate;
-}
-
-@keyframes login-aurora-stripe-drift {
-  0% {
-    transform: rotate(-30deg) translate(0, 0);
-  }
-  100% {
-    transform: rotate(-30deg) translate(-3%, 2.5%);
-  }
-}
-
-.login-layout {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 100vh;
-  padding: 96px 24px 48px;
-  box-sizing: border-box;
-}
-
-/* ── Login card (Figma: 400px, 8px radius, solid white) ── */
-.login-card {
-  width: 100%;
-  max-width: 400px;
   background: #fff;
-  border: none;
-  border-radius: 8px;
-  box-shadow:
-    0 7px 14px rgba(60, 66, 87, 0.08),
-    0 3px 6px rgba(0, 0, 0, 0.04);
-  padding: 32px 40px 40px;
+}
+
+.login-figma-bg__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* ── Frame guides: side borders + top rule (Figma 8:9, 8:10) ── */
+.login-figma-frame {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.login-figma-frame__sides {
+  position: absolute;
+  top: 77px;
+  bottom: 0;
+  left: 16.5%;
+  right: 16.5%;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.login-figma-frame__rule {
+  position: absolute;
+  top: 76px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #1a2c44;
+  opacity: 0.08;
+}
+
+/* ── Header logo (Figma 8:11 — ~25px height) ── */
+.login-figma-header {
+  position: absolute;
+  z-index: 4;
+  top: 25.5px;
+  left: clamp(20px, 17.4%, 335px);
+}
+
+.login-figma-header__logo {
+  display: inline-block;
+  line-height: 0;
+  text-decoration: none;
+}
+
+.login-figma-header__logo-img {
+  display: block;
+  height: 25px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+}
+
+/* ── Centered card shell ── */
+.login-figma-main {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 192px 16px 120px;
   box-sizing: border-box;
 }
 
-.login-card__title {
-  margin: 0 0 24px;
-  font-size: 1.75rem;
-  font-weight: 600;
-  line-height: 1.286;
-  letter-spacing: -0.02em;
-  color: var(--login-text);
+.login-figma-card {
+  width: 100%;
+  max-width: 540px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.12),
+    0 15px 35px rgba(48, 49, 61, 0.08);
+  background: #fff;
+}
+
+.login-figma-card__body {
+  background: #fff;
+  padding: 48px 64px 32px;
+  box-sizing: border-box;
+}
+
+.login-figma-card__title {
+  margin: 0 0 32px;
+  font-size: 20.3px;
+  font-weight: 400;
+  line-height: 36px;
+  letter-spacing: -0.2px;
+  color: var(--figma-text);
 }
 
 /* ── Form ── */
-.login-form {
+.login-figma-form {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  width: 100%;
 }
 
-.login-field {
+.login-figma-field {
+  margin-bottom: 20px;
+}
+
+.login-figma-field--password {
   margin-bottom: 16px;
 }
 
-.login-label {
+.login-figma-label {
   display: block;
-  margin-bottom: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.25;
-  color: #414552;
+  margin-bottom: 12px;
+  font-size: 13.2px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--figma-text);
 }
 
-.login-label-row {
+.login-figma-label-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
 }
 
-.login-label-row .login-label {
+.login-figma-label-row .login-figma-label {
   margin-bottom: 0;
 }
 
-.login-page-wrap--stripe .login-link,
-.login-page-wrap--stripe .login-link:link,
-.login-page-wrap--stripe .login-link:visited {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--login-indigo);
+.login-figma-link {
+  font-size: 13.1px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--figma-link);
   text-decoration: none;
   white-space: nowrap;
 }
 
-.login-page-wrap--stripe .login-link:hover,
-.login-page-wrap--stripe .login-link:focus-visible {
-  color: var(--login-indigo-hover);
+.login-figma-link:hover,
+.login-figma-link:focus-visible {
   text-decoration: underline;
 }
 
-.login-page-wrap--stripe .login-input,
-.login-page-wrap--stripe .login-input.tf-input {
+.login-page-wrap--figma .login-figma-input,
+.login-page-wrap--figma .login-figma-input.tf-input {
   display: block;
   width: 100%;
   box-sizing: border-box;
-  min-height: 44px;
   height: 44px;
-  padding: 12px;
-  border: 1px solid var(--login-border);
+  padding: 11px 12px;
+  border: none;
   border-radius: 6px;
-  font-family: inherit;
-  font-size: 1rem;
-  line-height: 1.25;
-  color: var(--login-text);
   background: #fff;
-  transition: border-color 0.2s var(--login-ease), box-shadow 0.2s var(--login-ease);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 21px;
+  color: var(--figma-text-dark);
+  box-shadow: 0 0 0 1px var(--figma-border);
+  transition: box-shadow 0.15s ease;
 }
 
-.login-input::placeholder {
-  color: #6a7383;
+.login-figma-input::placeholder {
+  color: #8898aa;
 }
 
-.login-input:focus {
+.login-figma-input--focus:focus,
+.login-figma-input:focus {
   outline: none;
-  border-color: var(--login-lavender);
-  box-shadow: 0 0 0 3px var(--login-lavender-ring);
+  box-shadow:
+    0 0 0 1px var(--figma-focus-ring),
+    0 0 0 4px var(--figma-focus-glow);
 }
 
-/* ── Remember me (visual only — no name attr) ── */
-.login-remember {
+/* ── Remember me (visual only) ── */
+.login-figma-remember {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 4px 0 20px;
+  gap: 8px;
+  margin: 0 0 16px;
   cursor: pointer;
   user-select: none;
 }
 
-.login-remember__input {
+.login-figma-remember__input {
   position: absolute;
   opacity: 0;
   width: 1px;
@@ -280,220 +241,315 @@ main.tf-main > .login-page-wrap {
   pointer-events: none;
 }
 
-.login-remember__box {
+.login-figma-remember__box {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid var(--login-border);
+  width: 14px;
+  height: 14px;
   border-radius: 4px;
   background: #fff;
+  box-shadow:
+    0 0 0 1px var(--figma-border),
+    0 1px 1px rgba(0, 0, 0, 0.12),
+    0 2px 5px rgba(48, 49, 61, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s var(--login-ease), border-color 0.15s var(--login-ease);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.login-remember__input:checked + .login-remember__box {
-  background: var(--login-indigo);
-  border-color: var(--login-indigo);
+.login-figma-remember__input:checked + .login-figma-remember__box {
+  background: var(--figma-primary);
+  box-shadow:
+    0 0 0 1px var(--figma-primary),
+    0 1px 1px rgba(0, 0, 0, 0.12),
+    0 2px 5px rgba(48, 49, 61, 0.08);
 }
 
-.login-remember__input:checked + .login-remember__box::after {
+.login-figma-remember__input:checked + .login-figma-remember__box::after {
   content: '';
-  width: 5px;
-  height: 9px;
-  border: solid #fff;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg) translate(-1px, -1px);
+  width: 8px;
+  height: 6px;
+  background: url('../images/login-figma/icon-check.svg') center / contain no-repeat;
 }
 
-.login-remember__input:focus-visible + .login-remember__box {
-  box-shadow: 0 0 0 3px rgba(91, 79, 224, 0.25);
+.login-figma-remember__text {
+  font-size: 13.2px;
+  line-height: 20px;
+  color: var(--figma-text-dark);
 }
 
-.login-remember__text {
-  font-size: 0.875rem;
-  line-height: 1.25;
-  color: var(--login-text);
-}
-
-/* ── Submit (Figma: 44px, 6px radius, lavender) ── */
-.login-submit {
+/* ── Submit (Figma 8:41 — #675dff) ── */
+.login-figma-submit {
   width: 100%;
-  min-height: 44px;
   height: 44px;
+  margin-top: 8px;
   padding: 0 16px;
   border: none;
   border-radius: 6px;
+  background: var(--figma-primary);
+  box-shadow: 0 0 0 1px var(--figma-primary);
   font-family: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.25;
+  font-size: 15.1px;
+  font-weight: 500;
+  line-height: 24px;
   color: #fff;
-  background: var(--login-lavender);
   cursor: pointer;
-  transition: background 0.2s var(--login-ease), box-shadow 0.2s var(--login-ease);
+  transition: filter 0.15s ease;
 }
 
-.login-submit:hover {
-  background: var(--login-lavender-hover);
+.login-figma-submit:hover {
+  filter: brightness(1.05);
 }
 
-.login-submit:focus-visible {
+.login-figma-submit:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--login-lavender-ring);
+  box-shadow:
+    0 0 0 1px var(--figma-primary),
+    0 0 0 4px var(--figma-focus-glow);
 }
 
-.login-submit--sm {
-  font-size: 0.8125rem;
-  padding: 10px 14px;
-  min-height: auto;
+.login-figma-submit--sm {
+  font-size: 13px;
   height: auto;
+  min-height: 40px;
+  padding: 10px 14px;
 }
 
-/* ── OAuth block ── */
-.login-oauth {
+/* ── OAuth (Figma 8:48 — double border buttons) ── */
+.login-figma-oauth {
   margin-top: 24px;
 }
 
-.login-divider {
+.login-figma-divider {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  color: var(--login-muted);
-  font-size: 0.8125rem;
-  line-height: 1.25;
+  justify-content: center;
+  margin: 24px 0 16px;
+  height: 12px;
 }
 
-.login-divider::before,
-.login-divider::after {
+.login-figma-divider::before {
   content: '';
-  flex: 1;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
   height: 1px;
-  background: var(--login-border);
+  background: var(--figma-border);
 }
 
-.login-oauth__buttons {
+.login-figma-divider span {
+  position: relative;
+  z-index: 1;
+  padding: 0 10px;
+  background: #fff;
+  font-size: 11.1px;
+  line-height: 12px;
+  letter-spacing: -0.15px;
+  color: var(--figma-divider-text);
+}
+
+.login-figma-oauth__buttons {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.login-oauth-btn {
+.login-figma-oauth-btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  font: inherit;
+}
+
+.login-figma-oauth-btn__shell {
+  display: block;
+  height: 42px;
+  padding: 1px;
+  border-radius: 6px;
+  background: var(--figma-border);
+  box-sizing: border-box;
+}
+
+.login-figma-oauth-btn__inner {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 44px;
-  height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--login-border);
-  border-radius: 6px;
+  gap: 8px;
+  height: 40px;
+  border-radius: 5px;
   background: #fff;
-  color: var(--login-text);
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.25;
-  text-decoration: none;
-  cursor: pointer;
-  box-sizing: border-box;
-  transition: border-color 0.2s var(--login-ease), background 0.2s var(--login-ease);
+  font-size: 15px;
+  line-height: 16px;
+  color: var(--figma-oauth-text);
 }
 
-.login-page-wrap--stripe a.login-oauth-btn,
-.login-page-wrap--stripe a.login-oauth-btn:link,
-.login-page-wrap--stripe a.login-oauth-btn:visited {
-  color: var(--login-text);
-  text-decoration: none;
-}
-
-.login-oauth-btn:not(:disabled):hover {
-  border-color: #c9cfd6;
+.login-figma-oauth-btn:not(:disabled):hover .login-figma-oauth-btn__inner {
   background: #fafbfc;
 }
 
-.login-oauth-btn:focus-visible {
+.login-figma-oauth-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--login-lavender-ring);
 }
 
-.login-oauth-btn:disabled {
+.login-figma-oauth-btn:focus-visible .login-figma-oauth-btn__shell {
+  box-shadow: 0 0 0 3px var(--figma-focus-glow);
+}
+
+.login-figma-oauth-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-.login-oauth-btn__icon {
+.login-figma-oauth-btn__icon {
   flex-shrink: 0;
-  font-size: 20px;
-  line-height: 1;
+  display: block;
+}
+
+/* ── Card footer band (Figma 8:72–8:75) ── */
+.login-figma-card__footer {
+  min-height: 76px;
+  padding: 0;
+  border-top: 6px solid #fff;
+  background: rgba(245, 245, 245, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.login-figma-card__footer-text {
+  margin: 0;
+  font-size: 12.3px;
+  font-weight: 300;
+  line-height: normal;
+  color: var(--figma-muted);
+  text-align: center;
+}
+
+.login-figma-card__footer-link {
+  margin-left: 4px;
+  font-size: 12.1px;
+  font-weight: 400;
+  color: var(--figma-link-footer);
+  text-decoration: none;
+}
+
+.login-figma-card__footer-link:hover,
+.login-figma-card__footer-link:focus-visible {
+  text-decoration: underline;
+}
+
+/* ── Page footer (Figma 8:76–8:77) ── */
+.login-figma-page-footer {
+  position: absolute;
+  z-index: 4;
+  bottom: 39px;
+  left: clamp(20px, 18.4%, 354px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  font-size: 13.2px;
+  font-weight: 300;
+  line-height: normal;
+  color: var(--figma-oauth-text);
+}
+
+.login-figma-page-footer a {
+  color: var(--figma-oauth-text);
+  text-decoration: none;
+}
+
+.login-figma-page-footer a:hover,
+.login-figma-page-footer a:focus-visible {
+  text-decoration: underline;
 }
 
 /* ── Banners ── */
-.login-page-wrap--stripe .auth-dev-banner {
+.login-figma-dev-banner {
   margin-bottom: 16px;
   padding: 10px 12px;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
   border-radius: 6px;
-  font-size: 0.8125rem;
+  font-size: 12px;
   color: #166534;
-  line-height: 1.45;
 }
 
-.login-page-wrap--stripe .auth-verify-banner {
-  margin-top: 20px;
+.login-figma-verify-banner {
+  margin-top: 16px;
   padding: 14px;
   background: #eff6ff;
   border: 1px solid #bfdbfe;
   border-radius: 6px;
-  font-size: 0.875rem;
+  font-size: 14px;
   color: #1e40af;
 }
 
-/* ── Mobile ── */
-@media (max-width: 768px) {
-  .login-layout {
-    padding: 88px 16px 32px;
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .login-figma-frame__sides {
+    left: 8%;
+    right: 8%;
   }
 
-  .login-card {
-    max-width: 100%;
-    padding: 28px 24px 32px;
-  }
-
-  .login-aurora-stripe {
-    right: -35%;
-    width: 160vw;
-    height: 100vh;
+  .login-figma-main {
+    padding-top: 140px;
   }
 }
 
-@media (max-width: 480px) {
-  .login-site-header {
-    padding: 20px 16px;
+@media (max-width: 640px) {
+  .login-figma-frame__sides {
+    display: none;
   }
 
-  .login-card__title {
-    font-size: 1.5rem;
+  .login-figma-header {
+    left: 20px;
+    top: 20px;
   }
 
-  .login-label-row {
+  .login-figma-main {
+    padding: 100px 12px 100px;
+  }
+
+  .login-figma-card__body {
+    padding: 32px 24px 24px;
+  }
+
+  .login-figma-card__title {
+    font-size: 18px;
+    line-height: 28px;
+    margin-bottom: 24px;
+  }
+
+  .login-figma-page-footer {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    justify-content: center;
+    padding: 24px 16px 32px;
+    text-align: center;
+  }
+
+  .login-figma-label-row {
     flex-wrap: wrap;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-aurora-stripe {
-    animation: none !important;
-  }
-
-  .login-input,
-  .login-submit,
-  .login-oauth-btn,
-  .login-remember__box {
+  .login-figma-input,
+  .login-figma-submit,
+  .login-figma-oauth-btn__inner,
+  .login-figma-remember__box {
     transition: none;
   }
 }
