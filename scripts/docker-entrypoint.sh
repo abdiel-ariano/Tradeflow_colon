@@ -41,6 +41,11 @@ else
   exit 1
 fi
 
+if [ -x scripts/purge_cloudflare_cache.sh ]; then
+  echo "[tradeflow] cloudflare cache purge (optional)"
+  scripts/purge_cloudflare_cache.sh || echo "[tradeflow] WARN: cloudflare purge failed (non-fatal)"
+fi
+
 echo "[tradeflow] gunicorn 0.0.0.0:${PORT}"
 exec gunicorn tradeflow_colon.wsgi \
   --bind "0.0.0.0:${PORT}" \
