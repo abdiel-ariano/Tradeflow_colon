@@ -1,4 +1,4 @@
-"""Home CMS promo sections — rendering and deduplication."""
+"""Home CMS promo sections — context still built; Shopify landing uses bestsellers grid."""
 from datetime import timedelta
 from decimal import Decimal
 
@@ -132,26 +132,22 @@ class HomePromoRenderingTests(TestCase):
             for i in range(4)
         ])
 
-    def test_home_renders_cms_promo_sections(self):
+    def test_home_renders_shopify_landing_with_product_grid(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         content = response.content.decode()
-        rows = response.context.get('home_product_rows', [])
-        self.assertGreaterEqual(len(rows), 2, msg=[r.get('dom_id') for r in rows])
-        self.assertIn('hm-promo-cms-bestsellers', content, msg='bestsellers row missing')
-        self.assertIn('hm-promo-cms-deals', content, msg='deals row missing')
-        self.assertIn('Top ZLC', content, msg='bestsellers title missing')
-        self.assertIn('CMS Deals', content, msg='deals title missing')
+        self.assertIn('hm-shopify', content)
+        self.assertIn('sh-catalog', content)
+        self.assertIn('product-card', content)
+        self.assertIn('Trending in the Free Zone', content)
 
     def test_home_hides_fallback_deals_when_cms_has_daily_deals(self):
         response = self.client.get('/')
         self.assertFalse(response.context['show_daily_deals_strip'])
-        self.assertNotContains(response, 'id="hm-deals"')
 
     def test_home_hides_fallback_bestsellers_when_cms_has_bestsellers(self):
         response = self.client.get('/')
         self.assertFalse(response.context['show_bestsellers_section'])
-        self.assertNotContains(response, 'id="hm-bestsellers"')
 
     def test_home_shows_fallback_bestsellers_without_cms(self):
         from django.core.cache import cache
@@ -170,10 +166,8 @@ class HomePromoRenderingTests(TestCase):
             )
         response = self.client.get('/')
         self.assertTrue(response.context['show_bestsellers_section'])
-        self.assertIn('hm-bestsellers', response.content.decode())
 
-    def test_home_renders_alibaba_bento_layout(self):
+    def test_home_shopify_not_legacy_marketing_hero(self):
         response = self.client.get('/')
-        self.assertContains(response, 'hm-bento')
-        self.assertContains(response, 'hm-alibaba')
+        self.assertContains(response, 'sh-hero')
         self.assertNotContains(response, 'id="hm-hero"')

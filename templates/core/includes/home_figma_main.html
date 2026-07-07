@@ -1,0 +1,8 @@
+{% comment %}Home main scroll — product card rows (hero carousel stays above).{% endcomment %}
+<div class="hm-figma-main">
+  {% for section in home_figma_sections %}
+    {% if section.type == 'cards' %}
+      {% include "core/includes/home_product_row.html" with row=section %}
+    {% endif %}
+  {% endfor %}
+</div>

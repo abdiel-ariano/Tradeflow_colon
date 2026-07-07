@@ -1,0 +1,33 @@
+{% load static %}
+<section class="sh-section hm-shopify__container" aria-labelledby="sh-features-title">
+  <div class="sh-feature-head">
+    <h2 class="sh-feature-head__title" id="sh-features-title">Sell more in more places</h2>
+    <p class="sh-feature-head__desc">
+      <a href="{% url 'catalogo_publico' %}">Get a verified catalog</a> built to convert.
+      Browse MOQ-ready SKUs, request quotations, and export with documentation from the Colón Free Zone.
+    </p>
+  </div>
+  <div class="sh-panel sh-panel--hero">
+    <img src="{% static 'images/shopify-landing/feature-store.jpg' %}" alt="TradeFlow catalog and supplier storefront preview" loading="lazy" decoding="async">
+  </div>
+  <div class="sh-cards-3">
+    <article class="sh-card">
+      <div class="sh-card__body">
+        <h3 class="sh-card__title">Sell on every channel</h3>
+        <p class="sh-card__text">Put your SKUs where buyers search — catalog, RFQ, and verified supplier profiles across the CFZ.</p>
+      </div>
+    </article>
+    <article class="sh-card">
+      <div class="sh-card__body">
+        <h3 class="sh-card__title">Sell face to face</h3>
+        <p class="sh-card__text">Meet buyers at Expo ZLC and keep online inquiries in sync with your TradeFlow seller portal.</p>
+      </div>
+    </article>
+    <article class="sh-card">
+      <div class="sh-card__body">
+        <h3 class="sh-card__title">Sell to 40+ countries</h3>
+        <p class="sh-card__text">Reach importers across the Americas with export-ready documentation on every listing.</p>
+      </div>
+    </article>
+  </div>
+</section>

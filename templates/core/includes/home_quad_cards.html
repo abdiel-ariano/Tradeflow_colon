@@ -1,8 +1,9 @@
-{% comment %}Figma Amazon-style 4-up category cards — 2×2 product grid per category.{% endcomment %}
-{% if home_quad_cards %}
+{% comment %}Figma gw-card-layout — 4-up category cards with 2×2 product grid.{% endcomment %}
+{% with cards=quad_row|default:home_quad_cards %}
+{% if cards %}
 <section class="hm-quad-cards" aria-label="Shop by category">
   <div class="hm-quad-cards__grid">
-    {% for row in home_quad_cards|slice:":4" %}
+    {% for row in cards %}
     <article class="hm-quad-card">
       <header class="hm-quad-card__head">
         <h2 class="hm-quad-card__title">
@@ -29,3 +30,4 @@
   </div>
 </section>
 {% endif %}
+{% endwith %}

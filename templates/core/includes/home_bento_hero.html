@@ -1,4 +1,4 @@
-{% comment %}Above-the-fold — welcome bar + Figma Amazon-style hero + quad category cards.{% endcomment %}
+{% comment %}Above-the-fold — welcome bar only (hero + quad row wired in home.html).{% endcomment %}
 <div class="hm-welcome-bar" aria-label="Marketplace shortcuts">
   <div class="hm-welcome-bar__inner">
     <p class="hm-welcome-bar__text">Welcome to TradeFlow Colón</p>
@@ -35,8 +35,3 @@
     </div>
   </div>
 </div>
-
-<section class="hm-bento hm-marketplace-hero" aria-label="Marketplace discovery">
-  {% include "core/includes/home_hero_carousel.html" %}
-  {% include "core/includes/home_quad_cards.html" %}
-</section>

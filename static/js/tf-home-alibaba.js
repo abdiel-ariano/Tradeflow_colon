@@ -136,4 +136,34 @@
     startAuto();
   }
 
+  document.querySelectorAll('[data-hm-feed-carousel]').forEach(function (viewport) {
+    var track = viewport.querySelector('.hm-feed-carousel__track');
+    var prev = viewport.querySelector('[data-hm-feed-prev]');
+    var next = viewport.querySelector('[data-hm-feed-next]');
+    var thumb = viewport.querySelector('.hm-feed-carousel__thumb');
+    if (!track) return;
+
+    function scrollByPage(dir) {
+      track.scrollBy({ left: dir * Math.max(320, track.clientWidth * 0.75), behavior: 'smooth' });
+    }
+
+    function updateThumb() {
+      if (!thumb) return;
+      var max = track.scrollWidth - track.clientWidth;
+      if (max <= 0) {
+        thumb.style.width = '100%';
+        thumb.style.marginLeft = '0';
+        return;
+      }
+      var ratio = track.clientWidth / track.scrollWidth;
+      thumb.style.width = Math.max(20, ratio * 100) + '%';
+      thumb.style.marginLeft = (track.scrollLeft / max) * (100 - ratio * 100) + '%';
+    }
+
+    if (prev) prev.addEventListener('click', function () { scrollByPage(-1); });
+    if (next) next.addEventListener('click', function () { scrollByPage(1); });
+    track.addEventListener('scroll', updateThumb, { passive: true });
+    updateThumb();
+  });
+
 })();

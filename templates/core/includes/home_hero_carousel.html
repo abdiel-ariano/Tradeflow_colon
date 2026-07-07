@@ -1,27 +1,29 @@
-{% comment %}Figma Amazon-style hero carousel — TradeFlow promo / featured SKUs.{% endcomment %}
+{% comment %}Figma sp:feature:host-atf — full-bleed hero carousel (TradeFlow SKUs).{% endcomment %}
 {% if featured_products %}
 <section class="hm-hero-carousel" aria-label="Featured wholesale" data-hm-hero-carousel>
-  <div class="hm-hero-carousel__track">
-    {% for product in featured_products|slice:":5" %}
-    <article class="hm-hero-carousel__slide{% if forloop.first %} is-active{% endif %}">
-      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-hero-carousel__link">
-        <div class="hm-hero-carousel__media">
-          {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" img_class="hm-hero-carousel__img" object_fit="cover" %}
-        </div>
-        <div class="hm-hero-carousel__copy">
-          <p class="hm-hero-carousel__eyebrow">Colón Free Zone · B2B</p>
-          <h2 class="hm-hero-carousel__title">{{ product.name|truncatechars:56 }}</h2>
-          <p class="hm-hero-carousel__cta">Shop wholesale →</p>
-        </div>
-      </a>
-    </article>
-    {% endfor %}
-  </div>
-  {% if featured_products|length > 1 %}
-  <div class="hm-hero-carousel__nav" aria-hidden="true">
+  <div class="hm-hero-carousel__frame">
+    <div class="hm-hero-carousel__track">
+      {% for product in featured_products|slice:":5" %}
+      <article class="hm-hero-carousel__slide{% if forloop.first %} is-active{% endif %}">
+        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-hero-carousel__link">
+          <div class="hm-hero-carousel__media">
+            {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" img_class="hm-hero-carousel__img" object_fit="cover" %}
+          </div>
+          <div class="hm-hero-carousel__overlay">
+            <p class="hm-hero-carousel__eyebrow">TradeFlow Colón · Colón Free Zone</p>
+            <h2 class="hm-hero-carousel__title">{{ product.name|truncatechars:64 }}</h2>
+            <p class="hm-hero-carousel__cta">Shop wholesale →</p>
+          </div>
+        </a>
+      </article>
+      {% endfor %}
+    </div>
+    {% if featured_products|length > 1 %}
     <button type="button" class="hm-hero-carousel__arrow hm-hero-carousel__arrow--prev" data-hm-hero-prev aria-label="Previous slide">‹</button>
     <button type="button" class="hm-hero-carousel__arrow hm-hero-carousel__arrow--next" data-hm-hero-next aria-label="Next slide">›</button>
+    {% endif %}
   </div>
+  {% if featured_products|length > 1 %}
   <div class="hm-hero-carousel__dots" role="tablist" aria-label="Hero slides">
     {% for product in featured_products|slice:":5" %}
     <button type="button" class="hm-hero-carousel__dot{% if forloop.first %} is-active{% endif %}" data-hm-hero-dot="{{ forloop.counter0 }}" aria-label="Slide {{ forloop.counter }}"></button>
