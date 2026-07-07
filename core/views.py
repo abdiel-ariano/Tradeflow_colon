@@ -2321,11 +2321,18 @@ def seller_mis_productos(request):
         .defer('company__owner')
         .prefetch_related('inventory')
     )
+    base_products = Product.objects.filter(company=company)
+    count_all = base_products.count()
+    count_active = base_products.filter(is_active=True).count()
+    count_archived = base_products.filter(is_active=False).count()
     dash = seller_products_dashboard(company)
 
+    catalog_tab = request.GET.get('tab', 'products').strip() or 'products'
     buscar = request.GET.get('buscar', '').strip()
     categoria = request.GET.get('categoria', '').strip()
     estado = request.GET.get('estado', 'activo').strip() or 'activo'
+    if estado == 'archived':
+        estado = 'inactivo'
     stock_f = request.GET.get('stock', '').strip()
     orden = request.GET.get('orden', 'nombre')
 
@@ -2382,9 +2389,13 @@ def seller_mis_productos(request):
         'stock_filtro': stock_f,
         'orden': orden,
         'dash': dash,
+        'count_all': count_all,
+        'count_active': count_active,
+        'count_archived': count_archived,
+        'catalog_tab': catalog_tab,
         'chart_cat_labels_json': _json.dumps(dash['chart_cat_labels']),
         'chart_cat_values_json': _json.dumps(dash['chart_cat_values']),
-        'titulo_pagina': 'My products',
+        'titulo_pagina': 'Product catalog',
         'nav_activo': 'seller_productos',
     })
 

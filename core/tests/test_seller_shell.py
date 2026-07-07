@@ -47,3 +47,19 @@ class TestSellerShellPages(TestCase):
         r = self.client.get('/mi-tienda/balances/')
         self.assertEqual(r.status_code, 302)
         self.assertIn('/login/', r.url)
+
+    def test_product_catalog_stripe_layout(self):
+        self._login()
+        r = self.client.get('/mi-tienda/productos/')
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Product catalog')
+        self.assertContains(r, 'All products')
+        self.assertContains(r, 'Create product')
+
+    def test_payments_analytics_stripe_layout(self):
+        self._login()
+        r = self.client.get('/mi-tienda/reportes/')
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Payments analytics')
+        self.assertContains(r, 'Key metrics')
+        self.assertContains(r, 'Acceptance')
