@@ -9,14 +9,6 @@ body:has(.login-page-wrap--figma) #tf-assistant {
   display: none !important;
 }
 
-/* Login: lock viewport — no page scroll */
-html:has(.login-page-wrap--figma),
-body:has(.login-page-wrap--figma) {
-  overflow: hidden;
-  height: 100dvh;
-  max-height: 100dvh;
-}
-
 main.tf-main > .login-page-wrap {
   min-height: 100vh;
   width: 100%;
@@ -27,18 +19,7 @@ main.tf-main > .login-page-wrap {
   background: #fff;
 }
 
-main.tf-main:has(> .login-page-wrap--figma) {
-  overflow: hidden;
-  height: 100dvh;
-  max-height: 100dvh;
-  min-height: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
 .login-page-wrap--figma {
-  --login-card-surface: rgba(255, 255, 255, 0.88);
   --figma-text: #3c4257;
   --figma-text-dark: #1a2c44;
   --figma-muted: #414552;
@@ -51,16 +32,11 @@ main.tf-main:has(> .login-page-wrap--figma) {
   --figma-oauth-text: #273951;
   --figma-divider-text: #3c4f69;
   position: relative;
-  height: 100dvh;
-  max-height: 100dvh;
-  min-height: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  min-height: 100vh;
   isolation: isolate;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   color: var(--figma-text);
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* ── Background image (Figma asset) ── */
@@ -73,113 +49,73 @@ main.tf-main:has(> .login-page-wrap--figma) {
   background: #fff;
 }
 
-/* ── Diagonal aurora stripe — crisp Figma/Stripe bands, TF brand tokens ── */
-.login-aurora-stripe {
+.login-figma-bg__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* ── Frame guides: side borders + top rule (Figma 8:9, 8:10) ── */
+.login-figma-frame {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.login-figma-frame__sides {
   position: absolute;
-  top: 50%;
-  left: 68%;
-  width: 140vw;
-  height: 72vh;
-  transform: translate(-50%, -50%) rotate(-30deg);
-  transform-origin: center center;
-  filter: none;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    transparent 18%,
-    var(--tf-primary-light) 20%,
-    var(--tf-primary-light) 26%,
-    var(--tf-orange) 26%,
-    var(--tf-orange) 44%,
-    var(--tf-orange-h) 44%,
-    var(--tf-orange-h) 64%,
-    var(--tf-blue) 64%,
-    var(--tf-blue) 80%,
-    transparent 82%,
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    #000 1.5%,
-    #000 98.5%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    #000 1.5%,
-    #000 98.5%,
-    transparent 100%
-  );
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  will-change: transform;
-  animation: login-aurora-stripe-drift 34s ease-in-out infinite alternate;
+  top: 77px;
+  bottom: 0;
+  left: 16.5%;
+  right: 16.5%;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-@keyframes login-aurora-stripe-drift {
-  0% {
-    transform: translate(-50%, -50%) rotate(-30deg) translate(0, 0);
-  }
-  100% {
-    transform: translate(-50%, -50%) rotate(-30deg) translate(-2.5%, 2%);
-  }
+.login-figma-frame__rule {
+  position: absolute;
+  top: 76px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #1a2c44;
+  opacity: 0.08;
 }
 
-/* ── Header logo (icon + wordmark, same pattern as buyer navbar) ── */
+/* ── Header logo (Figma 8:11 — ~25px height) ── */
 .login-figma-header {
   position: absolute;
   z-index: 4;
-  top: 12px;
-  left: 16px;
+  top: 25.5px;
+  left: clamp(20px, 17.4%, 335px);
 }
 
 .login-figma-header__logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  display: inline-block;
+  line-height: 0;
   text-decoration: none;
-  color: inherit;
-  line-height: 1.2;
 }
 
-.login-figma-header__logo .login-figma-header__icon,
-.login-figma-header__logo .tf-logo-img {
-  height: 28px;
-  width: auto;
-  object-fit: contain;
+.login-figma-header__logo-img {
   display: block;
-  flex-shrink: 0;
-}
-
-.login-figma-header__wordmark {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--tf-navy);
-  letter-spacing: -0.02em;
-  white-space: nowrap;
-}
-
-.login-figma-header__accent {
-  color: var(--tf-orange);
-  font-weight: 600;
+  height: 25px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
 }
 
 /* ── Centered card shell ── */
 .login-figma-main {
   position: relative;
   z-index: 3;
-  flex: 1;
-  min-height: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 52px 16px 44px;
+  min-height: 100vh;
+  padding: 192px 16px 120px;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 .login-figma-card {
@@ -190,19 +126,17 @@ main.tf-main:has(> .login-page-wrap--figma) {
   box-shadow:
     0 5px 15px rgba(0, 0, 0, 0.12),
     0 15px 35px rgba(48, 49, 61, 0.08);
-  background: var(--login-card-surface);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: #fff;
 }
 
 .login-figma-card__body {
-  background: var(--login-card-surface);
-  padding: 40px 64px 28px;
+  background: #fff;
+  padding: 48px 64px 32px;
   box-sizing: border-box;
 }
 
 .login-figma-card__title {
-  margin: 0 0 24px;
+  margin: 0 0 32px;
   font-size: 20.3px;
   font-weight: 400;
   line-height: 36px;
@@ -409,7 +343,7 @@ main.tf-main:has(> .login-page-wrap--figma) {
   position: relative;
   z-index: 1;
   padding: 0 10px;
-  background: var(--login-card-surface);
+  background: #fff;
   font-size: 11.1px;
   line-height: 12px;
   letter-spacing: -0.15px;
@@ -478,29 +412,11 @@ main.tf-main:has(> .login-page-wrap--figma) {
   display: block;
 }
 
-/* Login only: hide inactive OAuth options (keep Google) */
-.login-page-wrap--figma .login-figma-oauth-btn:has(img[src*="icon-passkey"]),
-.login-page-wrap--figma .login-figma-oauth-btn:has(img[src*="icon-sso"]) {
-  display: none;
-}
-
-.login-page-wrap--figma .login-figma-oauth__buttons {
-  gap: 0;
-}
-
-.login-page-wrap--figma .login-figma-oauth {
-  margin-top: 20px;
-}
-
-.login-page-wrap--figma .login-figma-divider {
-  margin: 20px 0 12px;
-}
-
 /* ── Card footer band (Figma 8:72–8:75) ── */
 .login-figma-card__footer {
-  min-height: 64px;
+  min-height: 76px;
   padding: 0;
-  border-top: 6px solid var(--login-card-surface);
+  border-top: 6px solid #fff;
   background: rgba(245, 245, 245, 0.4);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -536,9 +452,8 @@ main.tf-main:has(> .login-page-wrap--figma) {
 .login-figma-page-footer {
   position: absolute;
   z-index: 4;
-  bottom: 12px;
-  left: 16px;
-  flex-shrink: 0;
+  bottom: 39px;
+  left: clamp(20px, 18.4%, 354px);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -582,23 +497,32 @@ main.tf-main:has(> .login-page-wrap--figma) {
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
+  .login-figma-frame__sides {
+    left: 8%;
+    right: 8%;
+  }
+
   .login-figma-main {
-    padding: 48px 12px 40px;
+    padding-top: 140px;
   }
 }
 
 @media (max-width: 640px) {
+  .login-figma-frame__sides {
+    display: none;
+  }
+
   .login-figma-header {
-    left: 12px;
-    top: 10px;
+    left: 20px;
+    top: 20px;
   }
 
   .login-figma-main {
-    padding: 44px 12px 36px;
+    padding: 100px 12px 100px;
   }
 
   .login-figma-card__body {
-    padding: 28px 24px 20px;
+    padding: 32px 24px 24px;
   }
 
   .login-figma-card__title {
@@ -608,12 +532,11 @@ main.tf-main:has(> .login-page-wrap--figma) {
   }
 
   .login-figma-page-footer {
-    position: absolute;
-    bottom: 10px;
-    left: 12px;
-    right: 12px;
+    position: relative;
+    bottom: auto;
+    left: auto;
     justify-content: center;
-    padding: 0;
+    padding: 24px 16px 32px;
     text-align: center;
   }
 
@@ -623,10 +546,6 @@ main.tf-main:has(> .login-page-wrap--figma) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-aurora-stripe {
-    animation: none;
-  }
-
   .login-figma-input,
   .login-figma-submit,
   .login-figma-oauth-btn__inner,
