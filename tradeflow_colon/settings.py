@@ -242,7 +242,9 @@ LOCALE_PATHS = [BASE_DIR / 'locale']
 STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-# Cache-bust query param for JS/CSS after deploy (set TRADEFLOW_ASSET_VERSION on Railway).
+# Cache-bust: production uses WhiteNoise CompressedManifestStaticFilesStorage
+# (content hash in filename, e.g. login.3a80a22efbb7.css). TRADEFLOW_ASSET_VERSION
+# remains for legacy ?v= query params on templates not yet migrated.
 TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='desktop-v6')
 # Runtime picsum URLs in templates (off in production — use bundled catalog seeds).
 TRADEFLOW_USE_PICSUM_RUNTIME = config('TRADEFLOW_USE_PICSUM_RUNTIME', default=False, cast=bool)
@@ -469,7 +471,7 @@ STORAGES = {
         'BACKEND': (
             'django.contrib.staticfiles.storage.StaticFilesStorage'
             if DEBUG
-            else 'whitenoise.storage.CompressedStaticFilesStorage'
+            else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
         ),
     },
 }

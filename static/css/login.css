@@ -107,15 +107,15 @@ main.tf-main > .login-page-wrap {
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    #000 20%,
-    #000 80%,
+    #000 12%,
+    #000 88%,
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    #000 20%,
-    #000 80%,
+    #000 12%,
+    #000 88%,
     transparent 100%
   );
   -webkit-mask-size: 100% 100%;
@@ -130,10 +130,10 @@ main.tf-main > .login-page-wrap {
 .login-aurora-stripe::after {
   content: '';
   position: absolute;
-  inset: -8px;
+  inset: -2px;
   background: inherit;
-  filter: blur(16px);
-  opacity: 0.75;
+  filter: blur(6px);
+  opacity: 0.4;
   z-index: -1;
   pointer-events: none;
 }
@@ -164,8 +164,6 @@ main.tf-main > .login-page-wrap {
   width: 100%;
   max-width: 420px;
   background: rgba(255, 255, 255, 0.75);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   border: 1px solid #e8e8ed;
   border-radius: 12px;
   box-shadow:

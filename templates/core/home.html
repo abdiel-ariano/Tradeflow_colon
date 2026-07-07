@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% comment %}TradeFlow — Shopify landing (Figma 3321:1097) + catalog teaser.{% endcomment %}
+{% comment %}TradeFlow — Amazon-style Figma hero + Shopify landing sections.{% endcomment %}
 {% block title %}TradeFlow Colón — Wholesale Marketplace{% endblock %}
 
 {% block extra_head %}
@@ -12,9 +12,8 @@
 <div id="hm-marketplace-config" hidden
      data-inquiry-url="{% url 'catalogo_agregar_inquiry' 0 %}"></div>
 
-<main class="hm-shopify" id="hm-root">
-  {% include "core/includes/shopify_landing/header.html" %}
-  {% include "core/includes/shopify_landing/hero.html" %}
+<main class="hm-shopify hm-shopify--amazon-atf" id="hm-root">
+  {% include "core/includes/marketplace_amazon_hero.html" %}
   {% include "core/includes/shopify_landing/channels.html" %}
   {% include "core/includes/shopify_landing/features.html" %}
   {% include "core/includes/shopify_landing/rfq.html" %}
@@ -31,4 +30,5 @@
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
 <script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-marketplace.js' %}?v={{ tf_asset_version }}"></script>
+<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'2' }}"></script>
 {% endblock %}
