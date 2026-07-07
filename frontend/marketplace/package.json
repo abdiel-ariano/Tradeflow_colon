@@ -1,0 +1,41 @@
+{
+  "name": "tradeflow-marketplace",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "tsr generate && tsc --noEmit && vite build",
+    "generate-routes": "tsr generate",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-tabs": "^1.1.3",
+    "@radix-ui/react-tooltip": "^1.1.8",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.8",
+    "@tanstack/react-query": "^5.80.7",
+    "@tanstack/react-router": "^1.168.27",
+    "@tanstack/react-start": "^1.168.27",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.511.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sonner": "^2.0.3",
+    "tailwind-merge": "^3.3.0",
+    "zod": "^3.25.56"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.7",
+    "@tanstack/router-cli": "^1.167.18",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.5.2",
+    "tailwindcss": "^4.1.7",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.0"
+  }
+}

@@ -30,8 +30,57 @@ Loaded on marketplace home only.
 }
 
 .hm-marketplace-hero {
-  background: var(--tf-surface, #F2F3F5);
+  background: var(--tf-light, #f2f3f5);
   padding: 0 0 8px;
+}
+
+/* Single Amazon ATF hero on Shopify landing home */
+.hm-shopify--amazon-atf .hm-marketplace-hero {
+  background: var(--tf-light, #f2f3f5);
+  color: var(--tf-navy, #0f2a44);
+  padding-bottom: 24px;
+}
+
+.hm-shopify--amazon-atf > .sh-section:first-of-type {
+  padding-top: 48px;
+}
+
+.hm-shopify--amazon-atf .hm-hero-carousel__dot.is-active {
+  background: var(--tf-orange, #f26522);
+}
+
+.hm-shopify--amazon-atf .hm-quad-card {
+  background: var(--tf-white, #fff);
+  border-radius: var(--tf-radius-sm, 8px);
+  box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
+}
+
+.hm-shopify--amazon-atf .hm-quad-card__title a {
+  color: var(--tf-navy, #0f2a44);
+}
+
+.hm-shopify--amazon-atf .hm-quad-card__title a:hover {
+  color: var(--tf-orange, #f26522);
+}
+
+.hm-shopify--amazon-atf .hm-quad-card__more {
+  color: var(--tf-blue, #2e5b8a);
+}
+
+.hm-shopify--amazon-atf .hm-quad-card__more:hover {
+  color: var(--tf-orange, #f26522);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .hm-hero-carousel {
@@ -121,31 +170,46 @@ Loaded on marketplace home only.
   color: var(--tf-white);
 }
 
-.hm-hero-carousel__cta {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--tf-orange);
-}
-
-.hm-hero-carousel__nav {
-  display: none;
-}
-
 .hm-hero-carousel__arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 3;
-  width: 45px;
-  height: 100px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 88px;
   border: none;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   color: var(--tf-navy);
-  font-size: 28px;
-  line-height: 1;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(15, 42, 68, 0.15);
+  box-shadow: 0 1px 3px rgba(15, 42, 68, 0.12);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.hm-hero-carousel__arrow:hover {
+  background: var(--tf-white);
+  color: var(--tf-orange);
+}
+
+.hm-hero-carousel__arrow svg {
+  display: block;
+  width: 28px;
+  height: 28px;
+}
+
+.hm-hero-carousel__cta {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tf-orange);
+}
+
+.hm-hero-carousel__cta-icon {
+  font-size: 18px;
 }
 
 .hm-hero-carousel__arrow--prev {
