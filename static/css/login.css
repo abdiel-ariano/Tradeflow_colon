@@ -20,15 +20,16 @@ main.tf-main > .login-page-wrap {
 }
 
 .login-page-wrap--figma {
-  --figma-text: #3c4257;
-  --figma-text-dark: #1a2c44;
-  --figma-muted: #414552;
-  --figma-link: #635bff;
-  --figma-link-footer: #533afd;
-  --figma-border: #d4dee9;
-  --figma-primary: #675dff;
-  --figma-focus-ring: #a497fc;
-  --figma-focus-glow: #e0d9fb;
+  --login-card-surface: rgba(255, 255, 255, 0.9);
+  --figma-text: var(--tf-body, #374151);
+  --figma-text-dark: var(--tf-navy, #0F2A44);
+  --figma-muted: var(--tf-text-2, #6B7280);
+  --figma-link: var(--tf-primary, #0057A8);
+  --figma-link-footer: var(--tf-primary-dark, #003D7A);
+  --figma-border: var(--tf-border, #D1D5DB);
+  --figma-primary: var(--tf-primary, #0057A8);
+  --figma-focus-ring: var(--tf-primary, #0057A8);
+  --figma-focus-glow: var(--tf-primary-light, #E8F1FB);
   --figma-oauth-text: #273951;
   --figma-divider-text: #3c4f69;
   position: relative;
@@ -56,54 +57,43 @@ main.tf-main > .login-page-wrap {
   object-position: center top;
 }
 
-/* ── Frame guides: side borders + top rule (Figma 8:9, 8:10) ── */
-.login-figma-frame {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.login-figma-frame__sides {
-  position: absolute;
-  top: 77px;
-  bottom: 0;
-  left: 16.5%;
-  right: 16.5%;
-  border-left: 1px solid rgba(0, 0, 0, 0.08);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.login-figma-frame__rule {
-  position: absolute;
-  top: 76px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: #1a2c44;
-  opacity: 0.08;
-}
-
-/* ── Header logo (Figma 8:11 — ~25px height) ── */
+/* ── Header logo (icon + wordmark, top-left) ── */
 .login-figma-header {
   position: absolute;
   z-index: 4;
-  top: 25.5px;
-  left: clamp(20px, 17.4%, 335px);
+  top: 12px;
+  left: 16px;
 }
 
 .login-figma-header__logo {
-  display: inline-block;
-  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   text-decoration: none;
+  color: inherit;
+  line-height: 1.2;
 }
 
-.login-figma-header__logo-img {
-  display: block;
-  height: 25px;
+.login-figma-header__logo .login-figma-header__icon,
+.login-figma-header__logo .tf-logo-img {
+  height: 28px;
   width: auto;
-  max-width: 140px;
   object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
+.login-figma-header__wordmark {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tf-navy, #0F2A44);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.login-figma-header__accent {
+  color: var(--tf-orange, #F26522);
+  font-weight: 600;
 }
 
 /* ── Centered card shell ── */
@@ -126,11 +116,13 @@ main.tf-main > .login-page-wrap {
   box-shadow:
     0 5px 15px rgba(0, 0, 0, 0.12),
     0 15px 35px rgba(48, 49, 61, 0.08);
-  background: #fff;
+  background: var(--login-card-surface);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .login-figma-card__body {
-  background: #fff;
+  background: var(--login-card-surface);
   padding: 48px 64px 32px;
   box-sizing: border-box;
 }
@@ -298,7 +290,8 @@ main.tf-main > .login-page-wrap {
 }
 
 .login-figma-submit:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.08);
+  background: var(--tf-primary-dark, #003D7A);
 }
 
 .login-figma-submit:focus-visible {
@@ -343,7 +336,7 @@ main.tf-main > .login-page-wrap {
   position: relative;
   z-index: 1;
   padding: 0 10px;
-  background: #fff;
+  background: var(--login-card-surface);
   font-size: 11.1px;
   line-height: 12px;
   letter-spacing: -0.15px;
@@ -412,11 +405,29 @@ main.tf-main > .login-page-wrap {
   display: block;
 }
 
+/* Login only: hide inactive OAuth (keep Google) */
+.login-page-wrap--figma .login-figma-oauth-btn:has(img[src*="icon-passkey"]),
+.login-page-wrap--figma .login-figma-oauth-btn:has(img[src*="icon-sso"]) {
+  display: none;
+}
+
+.login-page-wrap--figma .login-figma-oauth__buttons {
+  gap: 0;
+}
+
+.login-page-wrap--figma .login-figma-oauth {
+  margin-top: 20px;
+}
+
+.login-page-wrap--figma .login-figma-divider {
+  margin: 20px 0 12px;
+}
+
 /* ── Card footer band (Figma 8:72–8:75) ── */
 .login-figma-card__footer {
-  min-height: 76px;
+  min-height: 64px;
   padding: 0;
-  border-top: 6px solid #fff;
+  border-top: 6px solid var(--login-card-surface);
   background: rgba(245, 245, 245, 0.4);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -497,24 +508,15 @@ main.tf-main > .login-page-wrap {
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
-  .login-figma-frame__sides {
-    left: 8%;
-    right: 8%;
-  }
-
   .login-figma-main {
     padding-top: 140px;
   }
 }
 
 @media (max-width: 640px) {
-  .login-figma-frame__sides {
-    display: none;
-  }
-
   .login-figma-header {
-    left: 20px;
-    top: 20px;
+    left: 12px;
+    top: 10px;
   }
 
   .login-figma-main {
