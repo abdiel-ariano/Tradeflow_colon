@@ -98,24 +98,28 @@ main.tf-main > .login-page-wrap {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    #bfd9f2 15%,
-    #e1672a 40%,
-    #d94f30 60%,
+    #bfd9f2 20%,
+    #bfd9f2 26%,
+    #e1672a 36%,
+    #e1672a 44%,
+    #d94f30 56%,
+    #d94f30 64%,
+    #e85a8a 74%,
     #e85a8a 80%,
     transparent 100%
   );
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    #000 12%,
-    #000 88%,
+    #000 6%,
+    #000 94%,
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    #000 12%,
-    #000 88%,
+    #000 6%,
+    #000 94%,
     transparent 100%
   );
   -webkit-mask-size: 100% 100%;
@@ -126,17 +130,7 @@ main.tf-main > .login-page-wrap {
   animation: login-aurora-stripe-drift 34s ease-in-out infinite alternate;
 }
 
-/* Soft edge glow — separate layer so mask + filter never share one element */
-.login-aurora-stripe::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  background: inherit;
-  filter: blur(6px);
-  opacity: 0.4;
-  z-index: -1;
-  pointer-events: none;
-}
+/* Halo removed — crisp band edges only (no ::after blur layer) */
 
 @keyframes login-aurora-stripe-drift {
   0% {
