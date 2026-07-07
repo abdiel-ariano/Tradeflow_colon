@@ -5,17 +5,9 @@
     <div class="hm-hero-carousel__track">
       {% for product in featured_products|slice:":5" %}
       <article class="hm-hero-carousel__slide{% if forloop.first %} is-active{% endif %}">
-        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-hero-carousel__link">
+        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-hero-carousel__link" aria-label="{{ product.name|truncatechars:64 }}">
           <div class="hm-hero-carousel__media">
             {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" img_class="hm-hero-carousel__img" object_fit="cover" %}
-          </div>
-          <div class="hm-hero-carousel__overlay">
-            <p class="hm-hero-carousel__eyebrow">TradeFlow Colón · Colón Free Zone</p>
-            <h2 class="hm-hero-carousel__title">{{ product.name|truncatechars:64 }}</h2>
-            <p class="hm-hero-carousel__cta">
-              <span class="material-symbols-rounded hm-hero-carousel__cta-icon" aria-hidden="true">storefront</span>
-              Shop wholesale
-            </p>
           </div>
         </a>
       </article>
@@ -23,10 +15,14 @@
     </div>
     {% if featured_products|length > 1 %}
     <button type="button" class="hm-hero-carousel__arrow hm-hero-carousel__arrow--prev" data-hm-hero-prev aria-label="Previous slide">
-      <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
     </button>
     <button type="button" class="hm-hero-carousel__arrow hm-hero-carousel__arrow--next" data-hm-hero-next aria-label="Next slide">
-      <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
     </button>
     {% endif %}
   </div>

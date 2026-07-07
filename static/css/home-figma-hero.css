@@ -38,6 +38,11 @@ Loaded on marketplace home only.
 .hm-shopify--amazon-atf .hm-marketplace-hero {
   background: var(--tf-light, #f2f3f5);
   color: var(--tf-navy, #0f2a44);
+  padding-bottom: 24px;
+}
+
+.hm-shopify--amazon-atf > .sh-section:first-of-type {
+  padding-top: 48px;
 }
 
 .hm-shopify--amazon-atf .hm-hero-carousel__dot.is-active {
@@ -187,8 +192,10 @@ Loaded on marketplace home only.
   color: var(--tf-orange);
 }
 
-.hm-hero-carousel__arrow .material-symbols-rounded {
-  font-size: 28px;
+.hm-hero-carousel__arrow svg {
+  display: block;
+  width: 28px;
+  height: 28px;
 }
 
 .hm-hero-carousel__cta {
