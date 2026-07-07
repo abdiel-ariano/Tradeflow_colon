@@ -4,11 +4,13 @@ Algunas son funcionales; otras son base para features futuras.
 """
 from __future__ import annotations
 
+from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.db.models import Count, Q, Sum
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_GET
 
 from .decorators import seller_required
@@ -312,27 +314,39 @@ def seller_global_search(request):
 @seller_required
 @require_GET
 def seller_reporting(request):
-    """Reporting — redirige a insights si está habilitado."""
+    """Payments analytics — aceptación y rendimiento de pagos."""
+    import json as _json
+
     company, resp = _seller_company_or_response(request, 'seller_reporting')
     if resp:
         return resp
 
-    from core.context_processors import enterprise_saas
+    from .utils.seller_analytics import seller_payments_analytics
 
-    snap = enterprise_saas(request).get('saas_snapshot')
-    if snap and snap.get('predictive_ai_enabled'):
-        return redirect('seller_predictive_insights')
+    analytics_tab = request.GET.get('tab', 'acceptance').strip() or 'acceptance'
+    days = 90
+    try:
+        days = int(request.GET.get('days', '90'))
+    except (TypeError, ValueError):
+        days = 90
+    days = max(7, min(days, 365))
 
-    data = seller_portal_dashboard(company)
+    data = seller_payments_analytics(company, days=days)
+    period_end = timezone.now().date()
+    period_start = period_end - timedelta(days=days)
     return render(
         request,
-        'core/seller_reporting.html',
+        'core/seller_payments_analytics.html',
         _seller_ctx(
             company,
             'seller_reporting',
-            'Reporting',
-            ingresos_mes=data.get('ingresos_mes'),
-            ordenes_semana=data.get('ordenes_semana'),
-            productos_activos=data.get('productos_activos'),
+            'Payments analytics',
+            analytics_tab=analytics_tab,
+            analytics_days=days,
+            period_start=period_start,
+            period_end=period_end,
+            **data,
+            chart_labels_json=_json.dumps(data['chart_labels']),
+            chart_values_json=_json.dumps(data['chart_values']),
         ),
     )

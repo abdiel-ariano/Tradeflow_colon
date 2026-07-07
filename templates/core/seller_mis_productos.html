@@ -1,87 +1,181 @@
 {% extends "core/seller_layout.html" %}
 {% load static %}
-{% block title %}Products — TradeFlow{% endblock %}
-{% block seller_page_title %}My Products{% endblock %}
-{% block seller_page_sub %}<p class="sp-topbar-sub">Catalog and inventory</p>{% endblock %}
-{% block seller_topbar_actions %}
-<a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary"><span class="material-symbols-rounded" style="font-size:18px;">add</span>New</a>
-{% endblock %}
+{% block title %}Product catalog — TradeFlow{% endblock %}
+{% block seller_page_title %}{% endblock %}
+{% block seller_page_sub %}{% endblock %}
 
 {% block seller_content %}
-<div class="sp-kpi-grid" id="sp-product-kpis" data-filter-estado="{{ estado_filtro }}">
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Total</span><p class="sp-kpi-val" data-sp-kpi="total">{{ dash.kpi_total }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Active</span><p class="sp-kpi-val" data-sp-kpi="activos">{{ dash.kpi_activos }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">Low stock</span><p class="sp-kpi-val warn">{{ dash.kpi_bajo_stock }}</p></article>
-  <article class="sp-kpi"><span class="sp-kpi-lbl">No sales yet</span><p class="sp-kpi-val warn">{{ dash.kpi_sin_ventas }}</p></article>
+<div class="sp-stripe-page-head">
+  <h1>Product catalog</h1>
+  <div class="sp-stripe-page-actions">
+    <a href="{% url 'seller_reporting' %}" class="sp-btn sp-btn-secondary">
+      <span class="material-symbols-rounded" style="font-size:18px;">bar_chart</span>
+      Analyze
+    </a>
+    <a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary">
+      <span class="material-symbols-rounded" style="font-size:18px;">add</span>
+      Create product
+    </a>
+  </div>
 </div>
 
-<div class="sp-grid-2">
-  <section class="sp-card">
-    <div class="sp-card-head"><h2>By category</h2></div>
-    <div class="sp-chart-box sp-chart-box--compact">
-      <canvas id="sd-chart-cat"></canvas>
-    </div>
-  </section>
-  <section class="sp-card">
-    <form method="get" class="sp-filter-form" style="display:flex;flex-direction:column;gap:12px;">
-      <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Search…" maxlength="120">
-      <select class="tf-input" name="categoria">
-        <option value="">Category</option>
-        {% for c in categorias %}<option value="{{ c.pk }}" {% if cat_activa == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
-      </select>
-      <select class="tf-input" name="estado">
-        <option value="activo" {% if estado_filtro == 'activo' %}selected{% endif %}>Active</option>
-        <option value="inactivo" {% if estado_filtro == 'inactivo' %}selected{% endif %}>Inactive</option>
-        <option value="todos" {% if estado_filtro == 'todos' %}selected{% endif %}>All</option>
-      </select>
-      <button type="submit" class="sp-btn sp-btn-primary">Filter</button>
-    </form>
-  </section>
+<nav class="sp-stripe-subtabs" aria-label="Catalog sections">
+  <a href="{% url 'seller_mis_productos' %}?tab=products" class="sp-stripe-subtab {% if catalog_tab == 'products' %}is-active{% endif %}">All products</a>
+  <a href="{% url 'seller_mis_productos' %}?tab=features" class="sp-stripe-subtab {% if catalog_tab == 'features' %}is-active{% endif %}">Features</a>
+  <a href="{% url 'seller_mis_productos' %}?tab=coupons" class="sp-stripe-subtab {% if catalog_tab == 'coupons' %}is-active{% endif %}">Coupons</a>
+  <a href="{% url 'seller_mis_productos' %}?tab=shipping" class="sp-stripe-subtab {% if catalog_tab == 'shipping' %}is-active{% endif %}">Shipping rates</a>
+  <a href="{% url 'seller_mis_productos' %}?tab=tax" class="sp-stripe-subtab {% if catalog_tab == 'tax' %}is-active{% endif %}">Tax rates</a>
+  <a href="{% url 'seller_mis_productos' %}?tab=pricing" class="sp-stripe-subtab {% if catalog_tab == 'pricing' %}is-active{% endif %}">Pricing tables</a>
+</nav>
+
+{% if catalog_tab == 'products' %}
+<div class="sp-cat-status-row" role="group" aria-label="Product status">
+  <a href="{% url 'seller_mis_productos' %}?tab=products&amp;estado=todos" class="sp-cat-status-card {% if estado_filtro == 'todos' %}is-active{% endif %}">
+    <span>All</span>
+    <strong>{{ count_all }}</strong>
+  </a>
+  <a href="{% url 'seller_mis_productos' %}?tab=products&amp;estado=activo" class="sp-cat-status-card {% if estado_filtro == 'activo' %}is-active{% endif %}">
+    <span>Active</span>
+    <strong>{{ count_active }}</strong>
+  </a>
+  <a href="{% url 'seller_mis_productos' %}?tab=products&amp;estado=archived" class="sp-cat-status-card {% if estado_filtro == 'inactivo' %}is-active{% endif %}">
+    <span>Archived</span>
+    <strong>{{ count_archived }}</strong>
+  </a>
 </div>
 
-<div id="sp-product-list">
-{% for p in productos %}
-<article class="sp-product-row" data-product-id="{{ p.pk }}">
-  {% include "core/includes/product_image_placeholder.html" with product=p css_class="sp-product-img" %}
-  <div class="sp-product-info">
-    <div style="font-weight:700;color:var(--tf-navy);">{{ p.name }}</div>
-    <div style="font-size:12px;color:var(--tf-muted);">{{ p.sku|default:"—" }} · {{ p.category.name|default:"—" }}</div>
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;margin-top:6px;">{{ p.currency }} {{ p.display_price }}</div>
-    <div style="font-size:12px;margin-top:4px;">Stock: {% if p.inventory %}<span style="color:{% if p.inventory.is_low_stock %}#c62828{% else %}#2e7d32{% endif %};font-weight:700;">{{ p.inventory.stock_qty }}</span>{% else %}—{% endif %}</div>
+<div class="sp-cat-toolbar">
+  <div class="sp-cat-filter-row">
+    <span class="sp-cat-filter-tag sp-filter-pill is-muted" title="Coming soon">
+      <span class="material-symbols-rounded" style="font-size:16px;">add</span>
+      Created
+    </span>
+    {% if estado_filtro == 'activo' %}
+    <span class="sp-cat-filter-tag">
+      Status
+      <span aria-hidden="true">|</span>
+      Active
+      <span class="material-symbols-rounded" style="font-size:16px;">expand_more</span>
+    </span>
+    {% elif estado_filtro == 'inactivo' %}
+    <span class="sp-cat-filter-tag">
+      Status
+      <span aria-hidden="true">|</span>
+      Archived
+      <span class="material-symbols-rounded" style="font-size:16px;">expand_more</span>
+    </span>
+    {% endif %}
+    {% if buscar or cat_activa or estado_filtro != 'activo' or stock_filtro %}
+    <a href="{% url 'seller_mis_productos' %}?tab=products" class="sp-cat-clear">Clear filters</a>
+    {% endif %}
   </div>
-  <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
-    <span class="sp-status {% if p.is_active %}sp-status-delivered{% else %}sp-status-cancelled{% endif %}" data-sp-active-badge data-label-on="Active" data-label-off="Inactive">{% if p.is_active %}Active{% else %}Inactive{% endif %}</span>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <label class="sp-toggle" data-sp-product-toggle data-toggle-url="{% url 'seller_toggle_producto' p.pk %}" title="Activate or deactivate">
-        <input type="checkbox" {% if p.is_active %}checked{% endif %} aria-label="Product status">
-        <span class="sp-toggle-track"></span>
-        <span class="sp-toggle-thumb"></span>
-      </label>
-      <a href="{% url 'seller_editar_producto' p.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 12px;font-size:12px;">Edit</a>
-    </div>
+  <div class="sp-cat-table-actions">
+    <button type="button" class="sp-filter-pill" disabled title="Coming soon">
+      <span class="material-symbols-rounded" style="font-size:16px;">download</span>
+      Export prices
+    </button>
+    <button type="button" class="sp-filter-pill" disabled title="Coming soon">
+      <span class="material-symbols-rounded" style="font-size:16px;">download</span>
+      Export products
+    </button>
+    <button type="button" class="sp-filter-pill" disabled title="Coming soon">
+      <span class="material-symbols-rounded" style="font-size:16px;">view_column</span>
+      Edit columns
+    </button>
   </div>
-</article>
-{% empty %}
-<div class="sp-card sp-empty">No products yet</div>
-{% endfor %}
+</div>
+
+{% if productos %}
+<div style="overflow-x:auto;margin-bottom:16px;">
+  <table class="sp-product-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Pricing</th>
+        <th>Inventory</th>
+        <th>Status</th>
+        <th style="text-align:right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="sp-product-list">
+      {% for p in productos %}
+      <tr data-product-id="{{ p.pk }}">
+        <td>
+          <div class="sp-product-cell">
+            {% include "core/includes/product_image_placeholder.html" with product=p css_class="sp-product-thumb" %}
+            <div>
+              <div class="sp-product-name">{{ p.name }}</div>
+              <div class="sp-product-meta">{{ p.sku|default:"—" }} · {{ p.category.name|default:"Uncategorized" }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ p.currency }} {{ p.display_price }}</td>
+        <td>
+          {% if p.inventory %}
+          <span class="{% if p.inventory.is_low_stock %}text-danger{% endif %}" style="font-weight:600;">{{ p.inventory.stock_qty }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          <span class="sp-status {% if p.is_active %}sp-status-delivered{% else %}sp-status-cancelled{% endif %}" data-sp-active-badge data-label-on="Active" data-label-off="Archived">
+            {% if p.is_active %}Active{% else %}Archived{% endif %}
+          </span>
+        </td>
+        <td style="text-align:right;">
+          <div style="display:inline-flex;align-items:center;gap:10px;">
+            <label class="sp-toggle" data-sp-product-toggle data-toggle-url="{% url 'seller_toggle_producto' p.pk %}" title="Activate or archive">
+              <input type="checkbox" {% if p.is_active %}checked{% endif %} aria-label="Product status">
+              <span class="sp-toggle-track"></span>
+              <span class="sp-toggle-thumb"></span>
+            </label>
+            <a href="{% url 'seller_editar_producto' p.pk %}" class="sp-btn sp-btn-secondary" style="padding:6px 12px;font-size:12px;">Edit</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 {% if productos.has_other_pages %}
-<nav style="display:flex;gap:8px;justify-content:center;margin-top:20px;">
-  {% if productos.has_previous %}<a class="sp-btn sp-btn-secondary" href="?page={{ productos.previous_page_number }}">Previous</a>{% endif %}
-  {% if productos.has_next %}<a class="sp-btn sp-btn-secondary" href="?page={{ productos.next_page_number }}">Next</a>{% endif %}
+<nav style="display:flex;gap:8px;justify-content:center;margin-top:8px;">
+  {% if productos.has_previous %}<a class="sp-btn sp-btn-secondary" href="?tab=products&amp;page={{ productos.previous_page_number }}&amp;estado={{ estado_filtro }}&amp;buscar={{ buscar }}">Previous</a>{% endif %}
+  {% if productos.has_next %}<a class="sp-btn sp-btn-secondary" href="?tab=products&amp;page={{ productos.next_page_number }}&amp;estado={{ estado_filtro }}&amp;buscar={{ buscar }}">Next</a>{% endif %}
 </nav>
+{% endif %}
+
+{% else %}
+<div class="sp-stripe-empty">
+  <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+  <h3>Add your first product</h3>
+  <p>Products are what you sell to customers. They can be physical goods, digital services, or subscription plans for your Colón Free Zone store.</p>
+  <a href="#" class="sp-stripe-link" onclick="return false;">Learn more <span class="material-symbols-rounded" style="font-size:16px;">arrow_forward</span></a>
+  <div style="margin-top:20px;">
+    <a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary">
+      <span class="material-symbols-rounded" style="font-size:18px;">add</span>
+      Add a product
+    </a>
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="sp-stripe-empty">
+  <span class="material-symbols-rounded" aria-hidden="true">construction</span>
+  <h3>{{ catalog_tab|title }} — coming soon</h3>
+  <p>This section will be available in a future release. Manage your catalog from <strong>All products</strong> for now.</p>
+  <div style="margin-top:20px;">
+    <a href="{% url 'seller_mis_productos' %}?tab=products" class="sp-btn sp-btn-primary">Back to All products</a>
+  </div>
+</div>
 {% endif %}
 {% endblock %}
 
 {% block seller_extra_js %}
 <script nonce="{{ csp_nonce }}">
-window.SP_PRODUCTS = {
-  catLabels: {{ chart_cat_labels_json|safe }},
-  catValues: {{ chart_cat_values_json|safe }}
-};
 document.addEventListener('DOMContentLoaded', function () {
-  if (window.TFSeller) TFSeller.initProductsPage(window.SP_PRODUCTS);
+  if (window.TFSeller) {
+    TFSeller.bindProductToggles();
+  }
 });
 </script>
 {% endblock %}

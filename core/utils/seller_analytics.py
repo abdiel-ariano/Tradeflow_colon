@@ -252,3 +252,35 @@ def cotizacion_monto_estimado(cot):
         precio = it.precio_ofertado or getattr(it.product, 'display_price', None) or it.product.unit_price
         total += precio * it.cantidad_solicitada
     return total
+
+
+def seller_payments_analytics(company, days=90):
+    """Métricas para Payments analytics (tasas de éxito, volumen, gráfico)."""
+    now = timezone.now()
+    since = now - timedelta(days=days)
+    ordenes_qs = Order.objects.filter(
+        items__product__company=company,
+        created_at__gte=since,
+    ).distinct()
+
+    total = ordenes_qs.count()
+    success_statuses = ('paid', 'packed', 'shipped', 'delivered')
+    success = ordenes_qs.filter(status__in=success_statuses).count()
+    cancelled = ordenes_qs.filter(status='cancelled').count()
+    awaiting = ordenes_qs.filter(status__in=('awaiting_seller', 'pending')).count()
+    success_rate = round(100.0 * success / total, 1) if total else 0.0
+
+    sales = seller_sales_dashboard(company, days=min(days, 30))
+
+    return {
+        'days': days,
+        'total_orders': total,
+        'success_count': success,
+        'cancelled_count': cancelled,
+        'awaiting_count': awaiting,
+        'success_rate': success_rate,
+        'ingresos_period': sales['ingresos_mes'],
+        'chart_labels': sales['chart_line_labels'],
+        'chart_values': sales['chart_line_values'],
+        'has_chart_data': any(v > 0 for v in sales['chart_line_values']),
+    }
