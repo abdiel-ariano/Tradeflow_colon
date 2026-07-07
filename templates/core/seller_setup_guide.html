@@ -1,0 +1,32 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Setup guide — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Setup guide{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">{{ setup_done }} of {{ setup_total }} steps complete</p>{% endblock %}
+
+{% block seller_content %}
+<div class="sp-dash-hero">
+  <h2>Get your store ready</h2>
+  <p>Complete these steps to start receiving quotes and orders from buyers in the Colón Free Zone marketplace.</p>
+  <div style="margin-top:12px;height:8px;background:var(--tf-border);border-radius:999px;overflow:hidden;max-width:400px;">
+    <div style="height:100%;width:{% widthratio setup_done setup_total 100 %}%;background:var(--tf-orange);border-radius:999px;"></div>
+  </div>
+</div>
+
+<section class="sp-card">
+  <ul style="list-style:none;margin:0;padding:0;">
+    {% for step in setup_steps %}
+    <li style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--tf-border);">
+      <span class="material-symbols-rounded" style="color:{% if step.done %}var(--tf-orange){% else %}var(--tf-muted){% endif %};">
+        {% if step.done %}check_circle{% else %}radio_button_unchecked{% endif %}
+      </span>
+      <div style="flex:1;">
+        <strong style="color:var(--tf-navy);">{{ step.title }}</strong>
+      </div>
+      <a href="{% url step.url_name %}" class="sp-btn sp-btn-secondary" style="padding:6px 12px;font-size:12px;">
+        {% if step.done %}Review{% else %}Start{% endif %}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

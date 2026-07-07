@@ -1,0 +1,43 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Search — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Search{% endblock %}
+
+{% block seller_content %}
+<form method="get" action="{% url 'seller_global_search' %}" class="sp-dash-search" style="max-width:100%;margin-bottom:24px;height:40px;">
+  <span class="material-symbols-rounded" aria-hidden="true">search</span>
+  <input type="search" name="q" value="{{ search_q }}" placeholder="Search products and orders…" autofocus>
+</form>
+
+{% if search_q %}
+<div class="sp-grid-2">
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>Products</h2></div>
+    <ul class="sp-activity-feed">
+      {% for p in search_products %}
+      <li>
+        <a href="{% url 'seller_editar_producto' p.pk %}" style="font-weight:600;color:var(--tf-navy);text-decoration:none;">{{ p.name }}</a>
+        <span style="margin-left:8px;font-size:12px;color:var(--tf-muted);">{{ p.sku }}</span>
+      </li>
+      {% empty %}
+      <li class="sp-empty">No products match "{{ search_q }}"</li>
+      {% endfor %}
+    </ul>
+  </section>
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>Orders</h2></div>
+    <ul class="sp-activity-feed">
+      {% for o in search_orders %}
+      <li>
+        <a href="{% url 'seller_detalle_venta' o.pk %}" style="font-weight:600;color:var(--tf-navy);text-decoration:none;">{{ o.order_number }}</a>
+        <span style="margin-left:8px;font-size:12px;color:var(--tf-muted);">{{ o.buyer.username }}</span>
+      </li>
+      {% empty %}
+      <li class="sp-empty">No orders match "{{ search_q }}"</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% else %}
+<p style="color:var(--tf-muted);font-size:14px;">Search across your product catalog and order numbers.</p>
+{% endif %}
+{% endblock %}

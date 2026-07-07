@@ -1,0 +1,35 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Disputes — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Disputes{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Orders awaiting your confirmation or resolution</p>{% endblock %}
+
+{% block seller_content %}
+<section class="sp-card">
+  <div class="sp-table-wrap">
+    <table class="sp-table">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Customer</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in ordenes %}
+        <tr>
+          <td><strong>{{ o.order_number }}</strong></td>
+          <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
+          <td>USD {{ o.total }}</td>
+          <td><span class="sp-status sp-status-{{ o.status }}">{{ o.get_status_display }}</span></td>
+          <td><a href="{% url 'seller_detalle_venta' o.pk %}" class="sp-btn sp-btn-primary" style="padding:6px 12px;font-size:12px;">Resolve</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="sp-empty">No open disputes — you're all caught up.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

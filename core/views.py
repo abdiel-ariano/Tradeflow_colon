@@ -1958,7 +1958,7 @@ def seller_plan_consumo(request):
     ctx.update({
         'company': company,
         'titulo_pagina': _('TradeFlow growth'),
-        'nav_activo': 'mi_tienda',
+        'nav_activo': 'seller_plan',
         'saas_health': health,
         'saas_page_error': page_error,
     })

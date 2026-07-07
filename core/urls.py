@@ -7,6 +7,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
 from . import views
+from . import views_seller_pages
 from . import views_social
 from . import views_onboarding as onboarding
 from . import views_buyer_onboarding as buyer_onboarding
@@ -191,6 +192,15 @@ urlpatterns = [
     path('mi-tienda/plan/pago/pendiente/', views.seller_plan_checkout_resume, name='seller_plan_checkout_resume'),
     path('mi-tienda/plan/upgrade/', views.seller_upgrade_plan, name='seller_upgrade_plan'),
     path('mi-tienda/insights/', views.seller_predictive_insights, name='seller_predictive_insights'),
+    path('mi-tienda/balances/', views_seller_pages.seller_balances, name='seller_balances'),
+    path('mi-tienda/clientes/', views_seller_pages.seller_customers, name='seller_customers'),
+    path('mi-tienda/impuestos/', views_seller_pages.seller_tax, name='seller_tax'),
+    path('mi-tienda/datos/', views_seller_pages.seller_data_management, name='seller_data_management'),
+    path('mi-tienda/disputas/', views_seller_pages.seller_disputes, name='seller_disputes'),
+    path('mi-tienda/apps/', views_seller_pages.seller_apps, name='seller_apps'),
+    path('mi-tienda/configuracion/', views_seller_pages.seller_setup_guide, name='seller_setup_guide'),
+    path('mi-tienda/buscar/', views_seller_pages.seller_global_search, name='seller_global_search'),
+    path('mi-tienda/reportes/', views_seller_pages.seller_reporting, name='seller_reporting'),
     path('mi-tienda/ventas/<int:pk>/despachar/', views.seller_dispatch_order, name='seller_dispatch_order'),
 
     path('api/v1/health/', vapi.api_v1_health, name='api_v1_health'),

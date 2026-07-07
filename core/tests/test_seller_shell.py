@@ -1,0 +1,49 @@
+"""Tests del shell dashboard seller (rutas nuevas)."""
+from django.contrib.auth.models import User
+from django.test import TestCase, override_settings
+
+from core.models import Company, UserProfile
+
+
+@override_settings(
+    AXES_ENABLED=False,
+    REQUIRE_EMAIL_VERIFICATION=False,
+)
+class TestSellerShellPages(TestCase):
+    def setUp(self):
+        self.company = Company.objects.create(name='Demo Co', ruc='999', is_verified=True)
+        self.seller = User.objects.create_user(
+            username='shell_seller',
+            email='shell@seller.pa',
+            password='TestPass123!',
+        )
+        UserProfile.objects.create(user=self.seller, role='seller', email_verificado=True)
+        self.company.owner = self.seller
+        self.company.save(update_fields=['owner'])
+
+    def _login(self):
+        self.client.login(username='shell_seller', password='TestPass123!')
+
+    def test_seller_shell_routes_return_200(self):
+        self._login()
+        paths = [
+            '/mi-tienda/',
+            '/mi-tienda/balances/',
+            '/mi-tienda/clientes/',
+            '/mi-tienda/impuestos/',
+            '/mi-tienda/datos/',
+            '/mi-tienda/disputas/',
+            '/mi-tienda/apps/',
+            '/mi-tienda/configuracion/',
+            '/mi-tienda/buscar/',
+            '/mi-tienda/reportes/',
+            '/mi-tienda/qr/',
+        ]
+        for path in paths:
+            r = self.client.get(path)
+            self.assertEqual(r.status_code, 200, msg=path)
+
+    def test_guest_redirected_from_seller_shell(self):
+        r = self.client.get('/mi-tienda/balances/')
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('/login/', r.url)
