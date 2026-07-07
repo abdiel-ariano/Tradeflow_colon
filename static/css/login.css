@@ -63,28 +63,32 @@ main.tf-main > .login-page-wrap {
   z-index: 4;
   top: 12px;
   left: 16px;
+  padding: 4px 12px 12px 0;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
 }
 
 .login-figma-header__logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 30px;
   text-decoration: none;
   color: inherit;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .login-figma-header__logo .login-figma-header__icon,
 .login-figma-header__logo .tf-logo-img {
-  height: 28px;
+  height: 84px !important;
   width: auto;
+  max-width: none;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
 }
 
 .login-figma-header__wordmark {
-  font-size: 15px;
+  font-size: 45px;
   font-weight: 600;
   color: var(--tf-navy, #0F2A44);
   letter-spacing: -0.02em;
@@ -299,6 +303,23 @@ main.tf-main > .login-page-wrap {
   box-shadow:
     0 0 0 1px var(--figma-primary),
     0 0 0 4px var(--figma-focus-glow);
+}
+
+/* Main submit only — brand navy (logo blue), not --tf-primary */
+.login-figma-form > .login-figma-submit {
+  background: var(--tf-navy, #0F2A44);
+  box-shadow: 0 0 0 1px var(--tf-navy, #0F2A44);
+}
+
+.login-figma-form > .login-figma-submit:hover {
+  filter: none;
+  background: var(--tf-navy-hover, #1B3B63);
+}
+
+.login-figma-form > .login-figma-submit:focus-visible {
+  box-shadow:
+    0 0 0 1px var(--tf-navy, #0F2A44),
+    0 0 0 4px var(--tf-primary-light, #E8F1FB);
 }
 
 .login-figma-submit--sm {
@@ -517,6 +538,20 @@ main.tf-main > .login-page-wrap {
   .login-figma-header {
     left: 12px;
     top: 10px;
+    padding-right: 8px;
+  }
+
+  .login-figma-header__logo .login-figma-header__icon,
+  .login-figma-header__logo .tf-logo-img {
+    height: 56px !important;
+  }
+
+  .login-figma-header__wordmark {
+    font-size: 30px;
+  }
+
+  .login-figma-header__logo {
+    gap: 20px;
   }
 
   .login-figma-main {
