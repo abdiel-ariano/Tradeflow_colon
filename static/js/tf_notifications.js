@@ -105,8 +105,54 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFlashes);
+    document.addEventListener('DOMContentLoaded', onReady);
   } else {
+    onReady();
+  }
+
+  function patchChatWidget() {
+    var win = document.getElementById('tf-chat-window');
+    var toggle = document.getElementById('tf-chat-toggle');
+    if (!win || !toggle) return;
+
+    var closeBtn = document.getElementById('tf-chat-close');
+    var input = document.getElementById('tf-chat-input');
+    var chatOpen = false;
+
+    function setChatOpen(open) {
+      chatOpen = !!open;
+      win.style.display = chatOpen ? 'flex' : 'none';
+      toggle.setAttribute('aria-expanded', chatOpen ? 'true' : 'false');
+      toggle.setAttribute('aria-label', chatOpen ? 'Close assistant' : 'Open assistant');
+      if (chatOpen && input) {
+        window.requestAnimationFrame(function () { input.focus(); });
+      }
+    }
+
+    function onToggleClick(e) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      setChatOpen(!chatOpen);
+    }
+
+    var freshToggle = toggle.cloneNode(true);
+    toggle.parentNode.replaceChild(freshToggle, toggle);
+    toggle = freshToggle;
+    toggle.addEventListener('click', onToggleClick);
+
+    if (closeBtn) {
+      var freshClose = closeBtn.cloneNode(true);
+      closeBtn.parentNode.replaceChild(freshClose, closeBtn);
+      freshClose.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        setChatOpen(false);
+      });
+    }
+  }
+
+  function onReady() {
     initFlashes();
+    patchChatWidget();
   }
 })();
