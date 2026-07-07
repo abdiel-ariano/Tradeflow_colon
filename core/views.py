@@ -33,7 +33,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import escape
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
-from django.views.decorators.cache import cache_control
+from django.views.decorators.cache import cache_control, never_cache
 
 AUTH_MODEL_BACKEND = 'django.contrib.auth.backends.ModelBackend'
 
@@ -368,6 +368,7 @@ def _safe_next_url(request, raw_next: str = '') -> str:
     return next_url
 
 
+@never_cache
 def login_view(request):
     """Login con redirección inteligente según rol."""
     if request.user.is_authenticated:
@@ -536,6 +537,7 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
     return finalize_signup_with_otp(request, user)
 
 
+@never_cache
 def signup_view(request):
     """Public registration: creates User + UserProfile."""
     if request.user.is_authenticated:
@@ -564,6 +566,7 @@ def signup_view(request):
     })
 
 
+@never_cache
 def signup_buyer_view(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -574,6 +577,7 @@ def signup_buyer_view(request):
     })
 
 
+@never_cache
 def signup_seller_view(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -715,6 +719,7 @@ def reenviar_verificacion(request):
     return redirect('mi_perfil')
 
 
+@never_cache
 def reenviar_verificacion_public(request):
     """
     Reenvía verificación por email sin sesión (formulario en login).
