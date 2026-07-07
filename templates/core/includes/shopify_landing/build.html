@@ -1,0 +1,35 @@
+{% load static %}
+<section class="sh-build" aria-labelledby="sh-build-title">
+  <div class="hm-shopify__container">
+    <h2 class="sh-headline sh-headline--center" id="sh-build-title">Build fast on TradeFlow</h2>
+    <div class="sh-build__grid">
+      <div class="sh-build__photos">
+        <div class="sh-build__photo sh-build__photo--offset">
+          <img src="{% static 'images/shopify-landing/step-1.jpg' %}" alt="Supplier onboarding in Colón Free Zone" loading="lazy" decoding="async">
+        </div>
+        <div class="sh-build__photo">
+          <img src="{% static 'images/shopify-landing/step-2.jpg' %}" alt="Buyer sourcing wholesale catalog" loading="lazy" decoding="async">
+        </div>
+      </div>
+      <div>
+        <ol class="sh-steps">
+          <li class="sh-step">
+            <span class="sh-step__num">01</span>
+            <span class="sh-step__label">Browse verified catalog</span>
+          </li>
+          <li class="sh-step">
+            <span class="sh-step__num">02</span>
+            <span class="sh-step__label">Send your RFQ</span>
+          </li>
+          <li class="sh-step">
+            <span class="sh-step__num">03</span>
+            <span class="sh-step__label">Close with documentation</span>
+          </li>
+        </ol>
+        <div class="sh-build__cta">
+          <a href="{% url 'signup_buyer' %}" class="sh-btn-pill sh-btn-pill--white">Take your shot</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

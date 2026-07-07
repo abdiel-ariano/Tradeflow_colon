@@ -1,55 +1,27 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% comment %}TradeFlow — Alibaba-style unified marketplace home (products first).{% endcomment %}
+{% comment %}TradeFlow — Shopify landing (Figma 3321:1097) + catalog teaser.{% endcomment %}
 {% block title %}TradeFlow Colón — Wholesale Marketplace{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'12' }}">
-<link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'4' }}">
-<link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'8' }}">
-<link rel="stylesheet" href="{% static 'css/home-figma-hero.css' %}?v={{ tf_asset_version|default:'1' }}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version }}">
+<link rel="stylesheet" href="{% static 'css/home-figma-hero.css' %}?v={{ tf_asset_version }}">
 {% endblock %}
 
 {% block content %}
 <div id="hm-marketplace-config" hidden
      data-inquiry-url="{% url 'catalogo_agregar_inquiry' 0 %}"></div>
 
-{% if not request.user.is_authenticated %}
-  {% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='home' %}
-{% endif %}
-
-<div class="trust-strip hm-marketplace-trust" aria-label="TradeFlow guarantees">
-  <div class="trust-strip-inner">
-    <div class="trust-item">
-      <svg width="16" height="16" class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
-      </svg>
-      Request for Quotation
-    </div>
-    <div class="trust-item">
-      <svg width="16" height="16" class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
-      </svg>
-      CFZ Top Ranked Suppliers
-    </div>
-    <div class="trust-item">
-      <svg width="16" height="16" class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
-      </svg>
-      Export-Ready Documentation
-    </div>
-  </div>
-</div>
-
-<main class="hm-alibaba hm-marketplace" id="hm-root">
-  {% include "core/includes/home_bento_hero.html" %}
-  {% include "core/includes/home_category_discover.html" %}
-  {% for row in home_product_rows %}
-    {% include "core/includes/home_product_row.html" with row=row %}
-  {% endfor %}
+<main class="hm-shopify" id="hm-root">
+  {% include "core/includes/shopify_landing/header.html" %}
+  {% include "core/includes/shopify_landing/hero.html" %}
+  {% include "core/includes/shopify_landing/channels.html" %}
+  {% include "core/includes/shopify_landing/features.html" %}
+  {% include "core/includes/shopify_landing/rfq.html" %}
+  {% include "core/includes/shopify_landing/stats.html" %}
+  {% include "core/includes/shopify_landing/build.html" %}
+  {% include "core/includes/shopify_landing/catalog.html" %}
 </main>
-
-{% include "core/includes/home_categories_modal.html" %}
 {% endblock %}
 
 {% block footer %}
@@ -58,6 +30,5 @@
 
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
-<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-marketplace.js' %}?v={{ tf_asset_version|default:'4' }}"></script>
-<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'2' }}"></script>
+<script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-marketplace.js' %}?v={{ tf_asset_version }}"></script>
 {% endblock %}
