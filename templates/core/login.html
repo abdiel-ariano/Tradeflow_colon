@@ -4,7 +4,7 @@
 ================================================================================
 templates/core/login.html — TradeFlow Colón
 Contexto: login_view; require_email_verification, email_pendiente.
-Diseño Stripe (solo presentación). Contrato funcional sin cambios.
+Figma: ntogzQw6rwqQzeC2SHwAjH · node 1:1810 (Stripe sign-in). Solo presentación.
 ================================================================================
 {% endcomment %}
 {% block title %}Iniciar sesión — TradeFlow Colón{% endblock %}
@@ -21,7 +21,8 @@ Diseño Stripe (solo presentación). Contrato funcional sin cambios.
 
   <header class="login-site-header" role="banner">
     <a href="{% url 'home' %}" class="login-site-brand" aria-label="TradeFlow Colón">
-      TradeFlow <span class="login-site-accent">Colón</span>
+      {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="login-site-brand__logo" eager=1 %}
+      <span class="login-site-brand__wordmark">TradeFlow <span class="login-site-accent">Colón</span></span>
     </a>
   </header>
 
