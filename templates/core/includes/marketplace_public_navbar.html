@@ -4,7 +4,7 @@
   <div class="navbar-primary">
     <a class="navbar-logo" href="{% url 'home' %}" aria-label="TradeFlow Colón"{% if marketplace_nav_active == 'home' %} aria-current="page"{% endif %}>
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="navbar-logo__img" eager=1 %}
-      <span class="logo-text">TradeFlow <span class="logo-accent">Colón</span></span>
+      <span class="logo-text"><span class="logo-trade">Trade</span><span class="logo-flow">Flow</span> <span class="logo-accent">Colón</span></span>
     </a>
 
     <div class="search-container">

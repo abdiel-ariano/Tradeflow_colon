@@ -3,7 +3,7 @@
 {% block title %}Colón Free Zone Wholesale Catalog | TradeFlow Colón{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'13' }}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'16' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
 {% if productos %}
@@ -55,146 +55,100 @@
 
 <main class="catalog-main">
   <div class="catalog-container">
-    <aside class="catalog-sidebar" id="cat-sidebar" aria-label="Catalog filters">
-      <div class="sidebar-heading-row">
-        <h2 class="sidebar-heading">Filter results</h2>
-        <button type="button" class="sidebar-close" id="cat-sidebar-close" aria-label="Close filters">✕</button>
-      </div>
+    <aside class="catalog-sidebar cat-sidebar-ali" id="cat-sidebar" aria-label="Catalog filters">
       <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form" id="cat-filters-form">
         <input type="hidden" name="buscar" id="cat-filter-buscar" value="{{ buscar }}">
         <input type="hidden" name="empresa" id="cat-filter-empresa" value="{{ empresa }}">
 
-        <div class="filter-section">
-          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
-            Sort by
-            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="filter-section-body">
-            <select name="orden" class="filter-select cat-sort-select" aria-label="Sort results">
-              <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Relevance</option>
-              <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price ↑</option>
-              <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price ↓</option>
-              <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
-            </select>
+        <div class="ali-filter-block">
+          <p class="ali-filter-title">Sort by</p>
+          <select name="orden" id="cat-sort-select" class="ali-filter-select cat-sort-select" aria-label="Sort results">
+            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Best Match</option>
+            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price: low to high</option>
+            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price: high to low</option>
+            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
+          </select>
+        </div>
+
+        <div class="ali-filter-block">
+          <p class="ali-filter-title">Product features</p>
+          <label class="ali-filter-option">
+            <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
+            <span{% if solo_verificado %} class="is-active"{% endif %}>Verified supplier</span>
+          </label>
+          <label class="ali-filter-option">
+            <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
+            <span{% if solo_stock %} class="is-active"{% endif %}>In stock</span>
+          </label>
+          <label class="ali-filter-option">
+            <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
+            <span{% if solo_on_sale %} class="is-active"{% endif %}>On sale</span>
+          </label>
+        </div>
+
+        <div class="ali-filter-block">
+          <p class="ali-filter-title">
+            Category
+            <span class="filter-mini-spinner" data-spinner="categories" aria-hidden="true"></span>
+          </p>
+          <ul class="ali-filter-cats">
+            {% for cat in categorias %}
+            <li>
+              <label class="ali-filter-option">
+                <input type="checkbox" name="categoria" value="{{ cat.pk }}"
+                       {% if cat.pk|stringformat:'s' in categorias_sel %}checked{% endif %}>
+                <span{% if cat.pk|stringformat:'s' in categorias_sel %} class="is-active"{% endif %}>{{ cat.name }} ({{ cat.num_productos }})</span>
+              </label>
+            </li>
+            {% empty %}
+            <li class="filter-empty">No categories</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="ali-filter-block">
+          <p class="ali-filter-title">Supplier</p>
+          <ul class="ali-filter-cats ali-filter-cats--suppliers">
+            <li>
+              <button type="button" class="ali-filter-supplier{% if not empresa %} is-active{% endif %}"
+                      data-empresa-filter="">All suppliers</button>
+            </li>
+            {% for emp in empresas|slice:":12" %}
+            <li>
+              <button type="button" class="ali-filter-supplier{% if empresa == emp.pk|stringformat:'s' %} is-active{% endif %}"
+                      data-empresa-filter="{{ emp.pk }}">
+                {{ emp.name|truncatechars:28 }} ({{ emp.num_productos }})
+              </button>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="ali-filter-block">
+          <p class="ali-filter-title">
+            Price (US $)
+            <span class="filter-mini-spinner" data-spinner="price" aria-hidden="true"></span>
+          </p>
+          <div class="ali-price-row">
+            <input type="number" name="precio_min" min="0" step="0.01" placeholder="Min"
+                   value="{{ precio_min }}" aria-label="Minimum price" class="ali-price-input">
+            <span class="ali-price-sep" aria-hidden="true">-</span>
+            <input type="number" name="precio_max" min="0" step="0.01" placeholder="Max"
+                   value="{{ precio_max }}" aria-label="Maximum price" class="ali-price-input">
+            <button type="submit" class="ali-filter-ok">OK</button>
           </div>
         </div>
 
-        <div class="filter-section">
-          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
-            <span class="filter-section-label">
-              Categories
-              <span class="filter-mini-spinner" data-spinner="categories" aria-hidden="true"></span>
-            </span>
-            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="filter-section-body">
-            <ul class="filter-list">
-              {% for cat in categorias %}
-              <li>
-                <label class="filter-option">
-                  <input type="checkbox" name="categoria" value="{{ cat.pk }}"
-                         {% if cat.pk|stringformat:'s' in categorias_sel %}checked{% endif %}>
-                  <span{% if cat.pk|stringformat:'s' in categorias_sel %} class="is-active"{% endif %}>{{ cat.name }}</span>
-                  <span class="filter-count">{{ cat.num_productos }}</span>
-                </label>
-              </li>
-              {% empty %}
-              <li class="filter-empty">No categories</li>
-              {% endfor %}
-            </ul>
-          </div>
-        </div>
+        {% if solo_stock_low %}
+        <input type="hidden" name="stock_low" value="1" id="cat-filter-stock-low">
+        {% endif %}
 
-        <div class="filter-section">
-          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
-            Company
-            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="filter-section-body">
-            <ul class="filter-list filter-list--companies">
-              <li>
-                <button type="button" class="filter-company-link{% if not empresa %} is-active{% endif %}"
-                        data-empresa-filter="">All companies</button>
-              </li>
-              {% for emp in empresas|slice:":20" %}
-              <li>
-                <button type="button" class="filter-company-link{% if empresa == emp.pk|stringformat:'s' %} is-active{% endif %}"
-                        data-empresa-filter="{{ emp.pk }}">
-                  {{ emp.name }}
-                  <span class="filter-count">{{ emp.num_productos }}</span>
-                </button>
-              </li>
-              {% endfor %}
-            </ul>
-          </div>
-        </div>
-
-        <div class="filter-section">
-          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
-            <span class="filter-section-label">
-              Price range (USD)
-              <span class="filter-mini-spinner" data-spinner="price" aria-hidden="true"></span>
-            </span>
-            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="filter-section-body">
-            <div class="price-inputs">
-              <input type="number" name="precio_min" min="0" step="0.01" placeholder="Min PAB"
-                     value="{{ precio_min }}" aria-label="Minimum price" class="price-input">
-              <input type="number" name="precio_max" min="0" step="0.01" placeholder="Max PAB"
-                     value="{{ precio_max }}" aria-label="Maximum price" class="price-input">
-            </div>
-            <input type="range" min="0" max="500" step="5"
-                   value="{% if precio_max %}{{ precio_max }}{% else %}250{% endif %}"
-                   class="price-range" id="cat-price-range" aria-label="Price range slider">
-          </div>
-        </div>
-
-        <div class="filter-section">
-          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
-            <span class="filter-section-label">
-              Trust level
-              <span class="filter-mini-spinner" data-spinner="trust" aria-hidden="true"></span>
-            </span>
-            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="filter-section-body">
-            <label class="filter-option">
-              <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
-              <span>CFZ Verified only</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="filter-section">
-          <button type="button" class="filter-section-title" data-filter-toggle aria-expanded="true">
-            <span class="filter-section-label">
-              Availability
-              <span class="filter-mini-spinner" data-spinner="availability" aria-hidden="true"></span>
-            </span>
-            <svg class="filter-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="filter-section-body">
-            <label class="filter-option">
-              <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
-              <span>In stock</span>
-            </label>
-            <label class="filter-option">
-              <input type="checkbox" name="stock_low" value="1" {% if solo_stock_low %}checked{% endif %}>
-              <span>Low stock</span>
-            </label>
-            <label class="filter-option">
-              <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
-              <span>On sale</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="filter-actions">
-          <button type="submit" class="btn-apply-filters">Apply filters</button>
-          <a href="{% url 'catalogo_publico' %}" class="btn-clear-filters">Clear all</a>
+        <div class="ali-filter-block ali-filter-block--actions">
+          <button type="submit" class="ali-filter-ok ali-filter-ok--wide">Apply</button>
+          <a href="{% url 'catalogo_publico' %}" class="ali-btn-clear">Clear all</a>
         </div>
       </form>
+      <button type="button" class="sidebar-close" id="cat-sidebar-close" aria-label="Close filters">✕</button>
     </aside>
 
     <section class="catalog-content">

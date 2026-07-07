@@ -28,7 +28,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-public-shell.css' %}?v={{ tf_asset_version|default:'6' }}">
   <link rel="stylesheet" href="{% static 'css/tf-header.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-footer.css' %}?v={{ tf_asset_version|default:'2' }}">
-  <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'3' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'5' }}">
   {% if request.user.is_authenticated %}
     {% if request.user.profile.role == 'buyer' %}
   <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'13' }}">

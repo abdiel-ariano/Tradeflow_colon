@@ -5,6 +5,8 @@
     <div class="card-image">
       {% if product.is_on_promo_now %}
       <span class="badge-discount">{{ product.discount_pct }}% off</span>
+      {% elif product.is_bestseller %}
+      <span class="card-badge-hot">Best seller</span>
       {% endif %}
 
       {% if visual_image %}
