@@ -1,0 +1,4 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/tf-ai-search.css' %}?v={{ tf_asset_version }}">
+<script nonce="{{ csp_nonce }}">window.TF_AI_SEARCH_URL = "{% url 'api_search_suggest' %}";</script>
+<script src="{% static 'js/tf-ai-search.js' %}?v={{ tf_asset_version }}"></script>

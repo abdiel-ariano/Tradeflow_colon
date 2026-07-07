@@ -41,6 +41,7 @@
 
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
+{% include "core/includes/tf_ai_search_assets.html" %}
 <script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-marketplace.js' %}?v={{ tf_asset_version|default:'4' }}"></script>
 <script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'6' }}"></script>
 <script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home.js' %}?v={{ tf_asset_version|default:'3' }}"></script>

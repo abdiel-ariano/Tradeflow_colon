@@ -12,7 +12,8 @@ Vars: search_action (url name), input_id, value, input_name (default buscar)
          value="{{ value|default:'' }}"
          placeholder="{{ placeholder|default:'Search products, companies or categories…' }}"
          autocomplete="off"
-         enterkeyhint="search">
+         enterkeyhint="search"
+         data-tf-ai-search="{{ ai_scope|default:'public' }}">
   <button type="submit" class="tf-hdr-search-btn" aria-label="Search">
     <span class="tf-header-search__icon" aria-hidden="true">{% include "core/includes/tf_icon.html" with name="search" class="tf-icon--sm" %}</span>
   </button>

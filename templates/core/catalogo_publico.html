@@ -229,6 +229,7 @@
 
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
+{% include "core/includes/tf_ai_search_assets.html" %}
 <script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'10' }}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

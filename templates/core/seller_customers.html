@@ -5,7 +5,7 @@
 
 {% block seller_content %}
 <form method="get" class="sp-dash-pills" style="margin-bottom:20px;">
-  <input class="tf-input" type="search" name="q" value="{{ search_q }}" placeholder="Search customers…" style="max-width:280px;">
+  <input class="tf-input" type="search" name="q" value="{{ search_q }}" placeholder="Search customers…" style="max-width:280px;" data-tf-ai-search="seller" autocomplete="off">
   <button type="submit" class="sp-btn sp-btn-secondary">Search</button>
 </form>
 
@@ -19,6 +19,7 @@
           <th>Orders</th>
           <th>Quotes</th>
           <th>Total spent</th>
+          <th>Last order</th>
         </tr>
       </thead>
       <tbody>
@@ -29,9 +30,10 @@
           <td>{{ row.orders_count }}</td>
           <td>{{ row.quotes_count }}</td>
           <td>USD {{ row.total_spent }}</td>
+          <td>{% if row.last_order_at %}{{ row.last_order_at|date:"M j, Y" }}{% else %}—{% endif %}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="sp-empty">No customers yet — share your catalog QR to get started.</td></tr>
+        <tr><td colspan="6" class="sp-empty">No customers yet — share your catalog QR to get started.</td></tr>
         {% endfor %}
       </tbody>
     </table>

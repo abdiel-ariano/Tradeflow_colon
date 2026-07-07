@@ -1,0 +1,117 @@
+.tf-ai-search-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.tf-ai-search-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 120;
+  background: var(--tf-white);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 42, 68, 0.12);
+  max-height: 420px;
+  overflow: auto;
+  display: none;
+}
+
+.tf-ai-search-panel.is-open {
+  display: block;
+}
+
+.tf-ai-search-tip {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--tf-muted);
+  border-bottom: 1px solid var(--tf-border);
+  background: rgba(242, 101, 34, 0.06);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.tf-ai-search-tip .material-symbols-rounded {
+  font-size: 16px;
+  color: var(--tf-orange);
+  flex-shrink: 0;
+}
+
+.tf-ai-search-group-title {
+  padding: 8px 14px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-muted);
+}
+
+.tf-ai-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  text-decoration: none;
+  color: var(--tf-navy);
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.tf-ai-search-item:hover,
+.tf-ai-search-item.is-active {
+  background: rgba(15, 42, 68, 0.05);
+}
+
+.tf-ai-search-item .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--tf-muted);
+  flex-shrink: 0;
+}
+
+.tf-ai-search-item strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tf-ai-search-item span {
+  display: block;
+  font-size: 12px;
+  color: var(--tf-muted);
+  margin-top: 2px;
+}
+
+.tf-ai-search-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 14px 12px;
+  border-top: 1px solid var(--tf-border);
+}
+
+.tf-ai-search-related button {
+  border: 1px solid var(--tf-border);
+  background: var(--tf-light);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--tf-gray-700);
+  cursor: pointer;
+}
+
+.tf-ai-search-related button:hover {
+  border-color: var(--tf-orange);
+  color: var(--tf-orange);
+}
+
+.tf-ai-search-empty {
+  padding: 16px 14px;
+  font-size: 13px;
+  color: var(--tf-muted);
+}

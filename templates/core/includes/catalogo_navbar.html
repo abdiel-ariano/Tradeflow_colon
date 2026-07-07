@@ -11,7 +11,7 @@
       <form class="search-bar" action="{% url 'catalogo_publico' %}" method="get" role="search" id="cat-nav-search-form">
         <label class="visually-hidden" for="cat-nav-search">Search catalog</label>
         <input type="search" id="cat-nav-search" name="buscar" value="{{ buscar }}"
-               placeholder="Search {{ catalogo_stats.productos|default:'1,342' }} CFZ products…" autocomplete="off">
+               placeholder="Search {{ catalogo_stats.productos|default:'1,342' }} CFZ products…" autocomplete="off" data-tf-ai-search="public">
         <button type="button" class="btn-camera" aria-label="Image search">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 0 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>

@@ -12,7 +12,8 @@ Vars: variant (compact|hero), value, placeholder, form_id
   <input id="bsr-input-{{ form_id|default:'main' }}" class="bsr-input" type="search" name="buscar"
          value="{{ value|default:'' }}"
          placeholder="{{ placeholder|default:'Buscar empresas, productos, HS codes…' }}"
-         autocomplete="off">
+         autocomplete="off"
+         data-tf-ai-search="buyer">
   {% if variant == 'hero' %}
   <button type="button" class="bsr-hero-image-label" title="Búsqueda por imagen (próximamente)">
     <span class="material-symbols-rounded" style="font-size:20px;">photo_camera</span>
