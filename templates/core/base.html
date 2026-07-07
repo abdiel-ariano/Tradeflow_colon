@@ -1033,7 +1033,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   {% if not request.user.is_authenticated %}
     {% with nav_page=request.resolver_match.url_name|default:'' %}
-    {% if nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' and nav_page != 'home' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' %}
+    {% if nav_page == 'home' %}
+    {% include "core/includes/buyer/buyer_navbar.html" %}
+    {% elif nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' %}
     {% include "core/includes/public_navbar.html" %}
     {% endif %}
     {% endwith %}

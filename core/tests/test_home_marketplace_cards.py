@@ -39,7 +39,7 @@ class HomeMarketplaceCardsTests(TestCase):
         self.assertIn('hm-marketplace-hero', html)
         self.assertIn('hm-hero-carousel', html)
         self.assertIn('hm-quad-cards', html)
-        self.assertIn('sh-header', html)
+        self.assertNotIn('<header class="sh-header">', html)
         self.assertIn('sh-build', html)
         self.assertIn('product-card', html)
         self.assertIn('btn-inquiry', html)
@@ -55,7 +55,7 @@ class HomeMarketplaceCardsTests(TestCase):
         self.assertContains(response, 'sh-stats')
         self.assertContains(response, 'sh-catalog')
         self.assertContains(response, 'TradeFlow Colón')
-        self.assertContains(response, 'Start for free')
+        self.assertContains(response, 'Create account')
 
     def test_home_uses_catalog_seed_photos_not_svg_icons(self):
         response = self.client.get('/')
