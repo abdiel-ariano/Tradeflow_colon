@@ -31,6 +31,29 @@ Inline SVG icon component (no icon-font dependency on public surfaces).
   height: 1.5em;
 }
 
+/* Chat launcher: stay inside #tf-assistant (overrides legacy fixed positioning). */
+#tf-assistant #tf-chat-toggle {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  z-index: auto;
+  flex-shrink: 0;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+}
+
+#tf-assistant #tf-chat-toggle .tf-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#tf-assistant #tf-chat-toggle .tf-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
 /* Legacy material spans: hide ligature text if font fails to load */
 .material-symbols-rounded {
   overflow: hidden;
