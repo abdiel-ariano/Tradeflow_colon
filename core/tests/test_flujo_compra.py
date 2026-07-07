@@ -221,6 +221,13 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 302)
         self.assertIn('/mi-tienda/', r.url)
 
+    def test_home_redirige_seller_a_portal(self):
+        """Un seller autenticado en / no debe ver la landing del marketplace."""
+        self.client.login(username='seller_test', password='TestPass123!')
+        r = self.client.get('/')
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('/mi-tienda/', r.url)
+
     def test_acceso_sin_login_redirige(self):
         """Invitados exploran /tienda/ y pueden usar el carrito de sesión."""
         r = self.client.get('/tienda/')

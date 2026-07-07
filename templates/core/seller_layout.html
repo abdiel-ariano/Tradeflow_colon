@@ -9,87 +9,67 @@
 {% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
-  body.sp-stripe-dash {
-    --sd-bg: var(--tf-light, #F2F3F5);
-    --sd-surface: var(--tf-white, #fff);
-    --sd-border: var(--tf-border, #D1D5DB);
-    --sd-text: var(--tf-gray-700, #343A40);
-    --sd-text-dark: var(--tf-navy, #0F2A44);
-    --sd-muted: var(--tf-muted, #6B7A88);
-    --sd-purple: var(--figma-link, #635bff);
-    --sd-purple-hover: var(--figma-primary-hover, #5a51e6);
-    --sd-purple-soft: var(--figma-focus-glow, #e0d9fb);
-    --sd-radius: 8px;
-    --sd-radius-lg: 12px;
-    background: var(--sd-bg);
-    color: var(--sd-text);
-  }
-  body.sp-stripe-dash .tf-nav.tf-navbar { display: none !important; }
-  body.sp-stripe-dash main.tf-main { padding: 0; max-width: none; }
-  body.sp-stripe-dash .sp-shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; background: var(--sd-bg); }
-  body.sp-stripe-dash .sp-sidebar { background: var(--sd-surface); border-right: 1px solid var(--sd-border); padding: 12px 0 16px; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
-  body.sp-stripe-dash .sp-brand-logo { border-bottom: none; padding: 8px 16px 16px; margin: 0; display: flex; align-items: center; gap: 10px; }
-  body.sp-stripe-dash .sp-brand-logo-link { display: none; }
-  body.sp-stripe-dash .sp-brand-company { color: var(--sd-text-dark); font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; margin: 0; }
-  body.sp-stripe-dash .sp-brand-logo::before { content: "T"; width: 28px; height: 28px; border-radius: var(--sd-radius); background: var(--sd-purple); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
-  body.sp-stripe-dash .sp-nav-label { display: block; padding: 18px 18px 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--sd-muted); }
-  body.sp-stripe-dash .sp-nav { padding: 0 8px; }
-  body.sp-stripe-dash .sp-nav a { color: var(--sd-text); border-radius: var(--sd-radius); font-size: 14px; font-weight: 500; padding: 7px 10px; }
-  body.sp-stripe-dash .sp-nav a:hover { background: var(--sd-purple-soft); color: var(--sd-text-dark); }
-  body.sp-stripe-dash .sp-nav a.is-active { background: var(--sd-purple-soft); color: var(--sd-purple); font-weight: 600; }
-  body.sp-stripe-dash .sp-nav .material-symbols-rounded { font-size: 18px; color: var(--sd-muted); }
-  body.sp-stripe-dash .sp-nav a.is-active .material-symbols-rounded { color: var(--sd-purple); }
-  body.sp-stripe-dash .sp-sidebar-foot { border-top: none; margin-top: auto; padding: 16px 18px 0; color: var(--sd-muted); font-size: 12px; }
-  body.sp-stripe-dash .sp-main { display: flex; flex-direction: column; min-width: 0; min-height: 100vh; }
-  body.sp-stripe-dash .sp-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 28px; background: var(--sd-surface); border-bottom: 1px solid var(--sd-border); position: sticky; top: 0; z-index: 30; flex-wrap: wrap; }
-  body.sp-stripe-dash .sp-topbar-intro { display: none; }
-  body.sp-stripe-dash .sp-stripe-search { flex: 1; max-width: 420px; display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 36px; border: 1px solid var(--sd-border); border-radius: var(--sd-radius); background: var(--sd-bg); }
-  body.sp-stripe-dash .sp-stripe-search input { border: none; background: transparent; flex: 1; font-size: 14px; color: var(--sd-text-dark); outline: none; min-width: 0; }
-  body.sp-stripe-dash .sp-stripe-search input::placeholder { color: var(--sd-muted); }
-  body.sp-stripe-dash .sp-stripe-toolbar-right { display: flex; align-items: center; gap: 6px; }
-  body.sp-stripe-dash .sp-stripe-icon-btn { width: 32px; height: 32px; border-radius: var(--sd-radius); background: transparent; color: var(--sd-muted); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
-  body.sp-stripe-dash .sp-stripe-icon-btn:hover { background: var(--sd-bg); color: var(--sd-text-dark); }
-  body.sp-stripe-dash .sp-stripe-create-btn { width: 32px; height: 32px; border-radius: var(--sd-radius); background: var(--sd-purple); color: #fff; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
-  body.sp-stripe-dash .sp-stripe-create-btn:hover { background: var(--sd-purple-hover); color: #fff; }
-  body.sp-stripe-dash .sp-stripe-setup { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--sd-border); border-radius: 999px; background: var(--sd-surface); font-size: 13px; font-weight: 500; color: var(--sd-text); text-decoration: none; margin-left: 8px; }
-  body.sp-stripe-dash .sp-content { padding: 28px 32px 48px; max-width: 1280px; width: 100%; box-sizing: border-box; }
-  body.sp-stripe-dash .sp-topbar-actions { display: flex; align-items: center; gap: 8px; width: 100%; justify-content: space-between; }
-  body.sp-stripe-dash .sp-stripe-page-head { margin-bottom: 24px; }
-  body.sp-stripe-dash .sp-stripe-page-head h1 { margin: 0; font-size: 1.5rem; font-weight: 600; color: var(--sd-text-dark); letter-spacing: -0.02em; }
-  body.sp-stripe-dash .sp-stripe-page-head p { margin: 6px 0 0; font-size: 14px; color: var(--sd-muted); }
-  body.sp-stripe-dash .sp-stripe-page-head .sp-topbar-sub { margin: 6px 0 0; font-size: 14px; color: var(--sd-muted); }
-  body.sp-stripe-dash .sp-stripe-section { margin-bottom: 8px; }
-  body.sp-stripe-dash .sp-stripe-section-title { margin: 0 0 16px; font-size: 1.25rem; font-weight: 600; color: var(--sd-text-dark); }
-  body.sp-stripe-dash .sp-stripe-section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
-  body.sp-stripe-dash .sp-stripe-today-card { background: var(--sd-surface); border: 1px solid var(--sd-border); border-radius: var(--sd-radius-lg); padding: 20px; margin-bottom: 32px; }
-  body.sp-stripe-dash .sp-stripe-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-  body.sp-stripe-dash .sp-stripe-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--sd-border); border-radius: 999px; background: var(--sd-surface); font-size: 13px; font-weight: 500; color: var(--sd-text); text-decoration: none; }
-  body.sp-stripe-dash .sp-stripe-pill.is-on { border-color: var(--sd-purple); background: var(--sd-purple-soft); color: var(--sd-purple); }
-  body.sp-stripe-dash .sp-stripe-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
-  body.sp-stripe-dash .sp-stripe-metric { background: var(--sd-surface); border: 1px solid var(--sd-border); border-radius: var(--sd-radius-lg); padding: 16px 18px; min-height: 120px; }
-  body.sp-stripe-dash .sp-stripe-metric-head { display: flex; justify-content: space-between; font-size: 13px; color: var(--sd-muted); margin-bottom: 8px; }
-  body.sp-stripe-dash .sp-stripe-metric-val { font-size: 1.75rem; font-weight: 600; color: var(--sd-text-dark); margin: 0 0 6px; }
-  body.sp-stripe-dash .sp-stripe-metric-prev { font-size: 13px; color: var(--sd-muted); }
-  body.sp-stripe-dash .sp-kpi, body.sp-stripe-dash .sp-card, body.sp-stripe-dash .sp-plan-card, body.sp-stripe-dash .sp-product-row { background: var(--sd-surface); border-color: var(--sd-border); border-radius: var(--sd-radius-lg); box-shadow: none; }
-  body.sp-stripe-dash .sp-kpi-val { color: var(--sd-text-dark); font-weight: 600; }
-  body.sp-stripe-dash .sp-card-head h2 { color: var(--sd-text-dark); }
-  body.sp-stripe-dash .sp-card-head a { color: var(--sd-purple); }
-  body.sp-stripe-dash .sp-btn-primary { background: var(--sd-purple); border-radius: var(--sd-radius); }
-  body.sp-stripe-dash .sp-btn-primary:hover { background: var(--sd-purple-hover); }
-  body.sp-stripe-dash .sp-btn-secondary { border-color: var(--sd-border); border-radius: var(--sd-radius); }
-  body.sp-stripe-dash .sp-tab.is-on { background: var(--sd-purple); border-color: var(--sd-purple); }
-  body.sp-stripe-dash .sp-notice-soft { background: var(--sd-purple-soft); border: 1px solid var(--sd-border); border-radius: var(--sd-radius-lg); }
-  body.sp-stripe-dash .sp-notice-soft a { color: var(--sd-purple); }
-  @media (max-width: 1024px) { body.sp-stripe-dash .sp-stripe-metrics { grid-template-columns: 1fr; } }
   @media (max-width: 768px) {
-    body.sp-stripe-dash .sp-shell { grid-template-columns: 1fr; }
-    body.sp-stripe-dash .sp-sidebar { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--sd-border); }
-    body.sp-stripe-dash .sp-nav { display: flex; flex-wrap: wrap; gap: 4px; }
-    body.sp-stripe-dash .sp-nav-label { display: none; }
-    body.sp-stripe-dash .sp-content { padding: 20px 16px 40px; }
-    body.sp-stripe-dash .sp-topbar { padding: 12px 16px; }
-    body.sp-stripe-dash .sp-stripe-search { max-width: none; }
-    body.sp-stripe-dash .sp-stripe-setup { display: none; }
+    .seller-layout {
+      flex-direction: column !important;
+    }
+    .seller-sidebar {
+      width: 100% !important;
+      min-width: unset !important;
+      border-right: none !important;
+      border-bottom: 1px solid var(--tf-border);
+    }
+    .seller-main {
+      width: 100% !important;
+      padding: 16px !important;
+    }
+    .seller-nav-item {
+      display: inline-flex !important;
+      width: auto !important;
+    }
+    .seller-sidebar nav {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      padding: 12px !important;
+    }
+    .sp-shell {
+      display: flex !important;
+      flex-direction: column !important;
+      grid-template-columns: 1fr !important;
+    }
+    .sp-sidebar,
+    .seller-sidebar {
+      position: relative !important;
+      left: 0 !important;
+      width: 100% !important;
+      min-width: unset !important;
+      height: auto !important;
+      max-height: none !important;
+      border-right: none !important;
+      border-bottom: 1px solid var(--tf-border);
+      top: auto !important;
+    }
+    .sp-main,
+    .seller-main {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+    .sp-content {
+      padding: 16px !important;
+    }
+    .sp-nav a,
+    .seller-nav-item {
+      display: inline-flex !important;
+      width: auto !important;
+    }
+    .sp-nav,
+    .seller-sidebar nav {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      padding: 12px !important;
+    }
   }
 </style>
 {% block seller_extra_css %}{% endblock %}
@@ -101,59 +81,34 @@
       <a href="{% url 'portal_seller' %}" class="sp-brand-logo-link" aria-label="Seller dashboard">
         {% include "core/includes/tf_logo.html" with variant="icon-color" size="sidebar" class="sp-logo-wordmark" %}
       </a>
-      <span class="sp-brand-company">{{ company.name|default:"TradeFlow Colón" }}</span>
+      <span class="sp-brand-company">{{ company.name|default:"TradeFlow" }}</span>
     </div>
-    <nav class="sp-nav" aria-label="Main">
+    <nav class="sp-nav">
       <a href="{% url 'portal_seller' %}" data-sp-nav="mi_tienda">
-        <span class="material-symbols-rounded">home</span>Home
-      </a>
-      <a href="{% url 'seller_plan_consumo' %}" data-sp-nav="mi_tienda">
-        <span class="material-symbols-rounded">account_balance</span>Balances
-      </a>
-      <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas">
-        <span class="material-symbols-rounded">sync_alt</span>Transactions
-      </a>
-      <a href="{% url 'mi_perfil' %}" data-sp-nav="perfil">
-        <span class="material-symbols-rounded">group</span>Customers
+        <span class="material-symbols-rounded">dashboard</span>Dashboard
       </a>
       <a href="{% url 'seller_mis_productos' %}" data-sp-nav="seller_productos">
-        <span class="material-symbols-rounded">inventory_2</span>Product catalog
+        <span class="material-symbols-rounded">inventory_2</span>Products
       </a>
-    </nav>
-    <span class="sp-nav-label">Shortcuts</span>
-    <nav class="sp-nav" aria-label="Shortcuts">
-      <a href="{% url 'seller_company_qr' %}" data-sp-nav="seller_qr">
-        <span class="material-symbols-rounded">qr_code_2</span>Connect
+      <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas">
+        <span class="material-symbols-rounded">payments</span>My Sales
       </a>
       <a href="{% url 'seller_cotizaciones' %}" data-sp-nav="seller_cotizaciones">
-        <span class="material-symbols-rounded">description</span>Invoices
-      </a>
-      {% if saas_snapshot and saas_snapshot.predictive_ai_enabled %}
-      <a href="{% url 'seller_predictive_insights' %}" data-sp-nav="seller_insights">
-        <span class="material-symbols-rounded">insights</span>Analytics
-      </a>
-      {% else %}
-      <a href="{% url 'portal_seller' %}" data-sp-nav="mi_tienda">
-        <span class="material-symbols-rounded">monitoring</span>Analytics
-      </a>
-      {% endif %}
-      <a href="{% url 'seller_mis_ventas' %}?estado=awaiting_seller" data-sp-nav="seller_ventas">
-        <span class="material-symbols-rounded">gavel</span>Disputes
-      </a>
-    </nav>
-    <span class="sp-nav-label">Products</span>
-    <nav class="sp-nav" aria-label="Products">
-      <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas">
-        <span class="material-symbols-rounded">payments</span>Payments
-      </a>
-      <a href="{% url 'seller_plan_consumo' %}" data-sp-nav="mi_tienda">
-        <span class="material-symbols-rounded">receipt_long</span>Billing
-      </a>
-      <a href="{% url 'portal_seller' %}" data-sp-nav="mi_tienda">
-        <span class="material-symbols-rounded">bar_chart</span>Reporting
+        <span class="material-symbols-rounded">request_quote</span>Quotes
       </a>
       <a href="{% url 'seller_agregar_producto' %}" data-sp-nav="seller_productos">
         <span class="material-symbols-rounded">add_circle</span>Add product
+      </a>
+      <a href="{% url 'seller_plan_consumo' %}" data-sp-nav="mi_tienda">
+        <span class="material-symbols-rounded">workspace_premium</span>Plan
+      </a>
+      {% if saas_snapshot and saas_snapshot.predictive_ai_enabled %}
+      <a href="{% url 'seller_predictive_insights' %}" data-sp-nav="seller_insights">
+        <span class="material-symbols-rounded">insights</span>AI Insights
+      </a>
+      {% endif %}
+      <a href="{% url 'mi_perfil' %}" data-sp-nav="perfil">
+        <span class="material-symbols-rounded">business</span>Company profile
       </a>
     </nav>
     <div class="sp-sidebar-foot">Colón Free Zone</div>
@@ -161,41 +116,25 @@
   <div class="sp-main">
     {% block seller_topbar %}
     <header class="sp-topbar">
+      <div class="sp-topbar-intro">
+        <h1>{% block seller_page_title %}{{ titulo_pagina|default:"My Panel" }}{% endblock %}</h1>
+        {% block seller_page_sub %}{% endblock %}
+      </div>
       <div class="sp-topbar-actions">
-        <label class="sp-stripe-search">
-          <span class="material-symbols-rounded" aria-hidden="true">search</span>
-          <input type="search" placeholder="Search" autocomplete="off" aria-label="Search">
-        </label>
-        <div class="sp-stripe-toolbar-right">
-          {% block seller_topbar_actions %}
-          <a href="{% url 'home' %}" class="sp-stripe-icon-btn" title="Marketplace" aria-label="Marketplace">
-            <span class="material-symbols-rounded">apps</span>
-          </a>
-          <a href="{% url 'mi_perfil' %}" class="sp-stripe-icon-btn" title="Settings" aria-label="Settings">
-            <span class="material-symbols-rounded">settings</span>
-          </a>
-          <a href="{% url 'seller_agregar_producto' %}" class="sp-stripe-create-btn" title="Create" aria-label="Create">
-            <span class="material-symbols-rounded">add</span>
-          </a>
-          <a href="{% url 'seller_plan_consumo' %}" class="sp-stripe-setup">
-            <span class="material-symbols-rounded" style="font-size:16px;">track_changes</span>
-            Setup guide
-          </a>
-          {% endblock %}
-        </div>
+        {% block seller_topbar_actions %}
+        <a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary">
+          <span class="material-symbols-rounded" style="font-size:18px;">add</span>Add
+        </a>
+        {% endblock %}
       </div>
     </header>
     {% endblock %}
     <div class="sp-content">
-      <header class="sp-stripe-page-head">
-        <h1>{% block seller_page_title %}{{ titulo_pagina|default:"" }}{% endblock %}</h1>
-        {% block seller_page_sub %}{% endblock %}
-      </header>
       {% block seller_content %}{% endblock %}
     </div>
   </div>
 </div>
-<script nonce="{{ csp_nonce }}">document.body.classList.add('sp-mode', 'sp-stripe-dash');</script>
+<script nonce="{{ csp_nonce }}">document.body.classList.add('sp-mode');</script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var nav = '{{ nav_activo|default:""|escapejs }}';
