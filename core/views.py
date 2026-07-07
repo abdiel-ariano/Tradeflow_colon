@@ -375,7 +375,7 @@ def login_view(request):
         next_url = _safe_next_url(request)
         if next_url:
             return redirect(next_url)
-        return redirect('home')
+        return redirect(_redirect_by_role(request.user))
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
@@ -401,7 +401,7 @@ def login_view(request):
                         )
                         return redirect(gate_route)
                 return redirect(next_url)
-            return redirect('home')
+            return redirect(_redirect_by_role(user))
         else:
             messages.error(request, 'Incorrect username or password.')
 
