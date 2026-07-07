@@ -1,11 +1,8 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% comment %}
-================================================================================
-templates/core/login.html — TradeFlow Colón
-Contexto: login_view; require_email_verification, email_pendiente.
-Figma: ntogzQw6rwqQzeC2SHwAjH · node 1:1810 (Stripe sign-in). Solo presentación.
-================================================================================
+Figma C85mu7GOLfNLtNJGqH6BUw · node 8:3 — Stripe sign-in (TradeFlow Colón).
+Solo presentación; contrato del formulario sin cambios.
 {% endcomment %}
 {% block title %}Iniciar sesión — TradeFlow Colón{% endblock %}
 {% block footer %}{% endblock %}
@@ -14,41 +11,60 @@ Figma: ntogzQw6rwqQzeC2SHwAjH · node 1:1810 (Stripe sign-in). Solo presentació
 <link rel="stylesheet" href="{% static 'css/login.css' %}">
 {% endblock %}
 {% block content %}
-<div class="login-page-wrap login-page-wrap--stripe">
-  <div class="login-aurora-bg" aria-hidden="true">
-    <div class="login-aurora-stripe"></div>
+<div class="login-page-wrap login-page-wrap--figma" id="login-figma-root">
+  <div class="login-figma-bg" aria-hidden="true">
+    <img
+      class="login-figma-bg__img"
+      src="{% static 'images/login-figma/bg-wave.png' %}"
+      alt=""
+      width="1920"
+      height="1200"
+      decoding="async"
+      fetchpriority="high"
+    >
   </div>
 
-  <header class="login-site-header" role="banner">
-    <a href="{% url 'home' %}" class="login-site-brand" aria-label="TradeFlow Colón">
-      {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="login-site-brand__logo" eager=1 %}
-      <span class="login-site-brand__wordmark">TradeFlow <span class="login-site-accent">Colón</span></span>
+  <div class="login-figma-frame" aria-hidden="true">
+    <div class="login-figma-frame__sides"></div>
+    <div class="login-figma-frame__rule"></div>
+  </div>
+
+  <header class="login-figma-header" role="banner">
+    <a href="{% url 'home' %}" class="login-figma-header__logo" aria-label="TradeFlow Colón">
+      <img
+        src="{% static 'img/logo-wordmark-dark.png' %}"
+        alt="TradeFlow Colón"
+        class="login-figma-header__logo-img"
+        width="80"
+        height="25"
+        decoding="async"
+      >
     </a>
   </header>
 
   <div
-    class="login-page"
+    class="login-figma-main"
     id="auth-login-root"
     data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
   >
-    <div class="login-layout">
-      <div class="login-card">
-        <div class="auth-dev-banner" id="auth-dev-banner" hidden>
+    <div class="login-figma-card">
+      <div class="login-figma-card__body">
+        <div class="auth-dev-banner login-figma-dev-banner" id="auth-dev-banner" hidden>
           Verificación de correo desactivada para pruebas locales.
         </div>
 
-        <h1 class="login-card__title">Iniciar sesión en tu cuenta</h1>
+        <h1 class="login-figma-card__title">Inicia sesión en tu cuenta</h1>
 
-        <form method="post" action="{% url 'login' %}" novalidate class="login-form">
+        <form method="post" action="{% url 'login' %}" novalidate class="login-figma-form">
           {% csrf_token %}
 
-          <div class="login-field">
-            <label class="login-label" for="id_username">Correo electrónico</label>
+          <div class="login-figma-field">
+            <label class="login-figma-label" for="id_username">Correo electrónico</label>
             <input
               type="text"
               name="username"
               id="id_username"
-              class="login-input tf-input"
+              class="login-figma-input login-figma-input--focus tf-input"
               placeholder="tu_correo@ejemplo.com"
               autocomplete="username"
               autofocus
@@ -56,48 +72,60 @@ Figma: ntogzQw6rwqQzeC2SHwAjH · node 1:1810 (Stripe sign-in). Solo presentació
             >
           </div>
 
-          <div class="login-field">
-            <div class="login-label-row">
-              <label class="login-label" for="id_password">Contraseña</label>
-              <a class="login-link" href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+          <div class="login-figma-field login-figma-field--password">
+            <div class="login-figma-label-row">
+              <label class="login-figma-label" for="id_password">Contraseña</label>
+              <a class="login-figma-link" href="{% url 'password_reset' %}">¿No recuerdas la contraseña?</a>
             </div>
             <input
               type="password"
               name="password"
               id="id_password"
-              class="login-input tf-input"
+              class="login-figma-input tf-input"
               placeholder="Contraseña"
               autocomplete="current-password"
               required
             >
           </div>
 
-          <label class="login-remember">
-            <input type="checkbox" class="login-remember__input" checked>
-            <span class="login-remember__box" aria-hidden="true"></span>
-            <span class="login-remember__text">Recordarme en este dispositivo</span>
+          <label class="login-figma-remember">
+            <input type="checkbox" class="login-figma-remember__input" checked>
+            <span class="login-figma-remember__box" aria-hidden="true"></span>
+            <span class="login-figma-remember__text">Recuérdame en este dispositivo</span>
           </label>
 
-          <button type="submit" class="login-submit auth-submit">
+          <button type="submit" class="login-figma-submit auth-submit">
             Iniciar sesión
           </button>
         </form>
 
         {% include "core/includes/oauth_buttons_login.html" %}
 
-        <div class="auth-verify-banner" id="auth-verify-resend" hidden>
+        <div class="auth-verify-banner login-figma-verify-banner" id="auth-verify-resend" hidden>
           <p style="margin:0 0 10px;">¿No recibiste el correo de verificación?</p>
           <form method="post" action="{% url 'reenviar_verificacion_public' %}">
             {% csrf_token %}
             <input type="hidden" name="email" id="auth-pending-email" value="{{ email_pendiente|default:'' }}">
-            <button type="submit" class="login-submit login-submit--sm">
+            <button type="submit" class="login-figma-submit login-figma-submit--sm">
               Reenviar correo de verificación
             </button>
           </form>
         </div>
       </div>
+
+      <div class="login-figma-card__footer">
+        <p class="login-figma-card__footer-text">
+          ¿Eres nuevo en TradeFlow Colón?
+          <a href="{% url 'signup_buyer' %}" class="login-figma-card__footer-link">Crea una cuenta</a>
+        </p>
+      </div>
     </div>
   </div>
+
+  <footer class="login-figma-page-footer" role="contentinfo">
+    <span>© TradeFlow Colón</span>
+    <a href="{% url 'legal_privacidad' %}">Privacidad y condiciones</a>
+  </footer>
 </div>
 <script nonce="{{ csp_nonce }}">
 (function () {
