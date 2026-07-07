@@ -425,6 +425,28 @@ TRADEFLOW_CONTACT_EMAIL = normalize_contact_email(
 )
 PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
+
+def _build_csrf_trusted_origins():
+    """HTTPS origins for Django CSRF behind Railway/Cloudflare (www + apex)."""
+    origins = list(config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv()))
+    base = PUBLIC_BASE_URL.rstrip('/')
+    if not base.startswith('http'):
+        return origins
+    if base not in origins:
+        origins.append(base)
+    if base.startswith('https://www.'):
+        apex = base.replace('https://www.', 'https://', 1)
+        if apex not in origins:
+            origins.append(apex)
+    elif base.startswith('https://'):
+        www = base.replace('https://', 'https://www.', 1)
+        if www not in origins:
+            origins.append(www)
+    return origins
+
+
+CSRF_TRUSTED_ORIGINS = _build_csrf_trusted_origins()
+
 EMAIL_USE_REAL_SMTP = bool(RESEND_API_KEY)
 EMAIL_SMTP_CONFIGURED = EMAIL_USE_REAL_SMTP
 
