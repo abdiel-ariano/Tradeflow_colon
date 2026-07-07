@@ -110,10 +110,30 @@
     onReady();
   }
 
+  var ASSISTANT_ICON_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">' +
+    '<path fill="currentColor" d="M12 2.75a8 8 0 0 0-8 8c0 2.74 1.38 5.17 3.48 6.62L6.25 20.75l4.1-2.05a8.02 8.02 0 0 0 1.65.17 8 8 0 1 0 0-16Zm-3.1 8.35a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Zm3.1 0a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Zm3.1 0a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Z"/>' +
+    '<path fill="currentColor" d="M17.15 4.1a.55.55 0 0 1 .55.55v.95h.95a.55.55 0 0 1 0 1.1h-.95v.95a.55.55 0 0 1-1.1 0v-.95h-.95a.55.55 0 0 1 0-1.1h.95v-.95a.55.55 0 0 1 .55-.55Z"/>' +
+    '</svg>';
+
+  function renderAssistantIcon(el, sizeClass) {
+    if (!el || el.getAttribute('data-tf-assistant-icon') === '1') return;
+    el.setAttribute('data-tf-assistant-icon', '1');
+    el.classList.add('tf-icon');
+    if (sizeClass) el.classList.add(sizeClass);
+    el.innerHTML = ASSISTANT_ICON_SVG;
+  }
+
   function patchChatWidget() {
     var win = document.getElementById('tf-chat-window');
     var toggle = document.getElementById('tf-chat-toggle');
     if (!win || !toggle) return;
+
+    renderAssistantIcon(toggle.querySelector('.tf-icon'), 'tf-icon--chat');
+    renderAssistantIcon(
+      document.querySelector('#tf-assistant .tf-chat-header-avatar .tf-icon'),
+      'tf-icon--chat-header'
+    );
 
     var closeBtn = document.getElementById('tf-chat-close');
     var input = document.getElementById('tf-chat-input');

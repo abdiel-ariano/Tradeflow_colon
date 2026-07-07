@@ -1308,8 +1308,12 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-bot-card { font-size: 13px; line-height: 1.5; }
     .tf-bot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0F2A44; }
 #tf-chat-toggle .tf-icon svg {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
+}
+#tf-assistant .tf-chat-header-avatar .tf-icon svg {
+  width: 22px;
+  height: 22px;
 }
     .tf-bot-list { margin: 0 0 10px; padding-left: 18px; }
     .tf-bot-summary { margin: 0 0 8px; font-size: 12px; color: #6B7A88; font-style: italic; }
@@ -1510,12 +1514,12 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <!-- TF Assistant Widget -->
   <div id="tf-assistant" aria-live="polite">
     <button type="button" id="tf-chat-toggle" aria-label="Open assistant">
-      {% include "core/includes/tf_icon.html" with name="smart_toy" class="tf-icon--lg" %}
+      {% include "core/includes/tf_icon.html" with name="assistant" class="tf-icon--chat" %}
     </button>
     <div id="tf-chat-window" role="dialog" aria-label="TradeFlow Assistant">
       <header class="tf-chat-header">
         <div class="tf-chat-header-avatar" aria-hidden="true">
-          {% include "core/includes/tf_icon.html" with name="smart_toy" %}
+          {% include "core/includes/tf_icon.html" with name="assistant" class="tf-icon--chat-header" %}
         </div>
         <div class="tf-chat-header-text">
           <div class="tf-chat-header-title">TradeFlow Assistant</div>

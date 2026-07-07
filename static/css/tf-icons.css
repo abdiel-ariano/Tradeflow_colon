@@ -31,27 +31,71 @@ Inline SVG icon component (no icon-font dependency on public surfaces).
   height: 1.5em;
 }
 
-/* Chat launcher: stay inside #tf-assistant (overrides legacy fixed positioning). */
-#tf-assistant #tf-chat-toggle {
-  position: relative;
-  bottom: auto;
-  right: auto;
-  z-index: auto;
-  flex-shrink: 0;
-  padding: 0;
-  font-size: 26px;
-  line-height: 1;
+.tf-icon--chat {
+  width: 28px;
+  height: 28px;
 }
 
-#tf-assistant #tf-chat-toggle .tf-icon {
+.tf-icon--chat svg {
+  width: 28px;
+  height: 28px;
+  max-width: none;
+  max-height: none;
+  shape-rendering: geometricPrecision;
+}
+
+.tf-icon--chat-header {
+  width: 22px;
+  height: 22px;
+}
+
+.tf-icon--chat-header svg {
+  width: 22px;
+  height: 22px;
+  max-width: none;
+  max-height: none;
+  shape-rendering: geometricPrecision;
+}
+
+/* Chat launcher: stay inside #tf-assistant (overrides legacy fixed positioning). */
+#tf-assistant #tf-chat-toggle {
+  position: relative !important;
+  bottom: auto !important;
+  right: auto !important;
+  z-index: auto !important;
+  flex-shrink: 0;
+  padding: 0;
+  font-size: 28px;
+  line-height: 1;
+  overflow: visible;
+}
+
+#tf-assistant #tf-chat-toggle .tf-icon,
+#tf-assistant .tf-chat-header-avatar .tf-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 28px;
+  height: 28px;
 }
 
 #tf-assistant #tf-chat-toggle .tf-icon svg {
-  width: 26px;
-  height: 26px;
+  width: 28px !important;
+  height: 28px !important;
+  max-width: none;
+  max-height: none;
+  flex-shrink: 0;
+  shape-rendering: geometricPrecision;
+}
+
+#tf-assistant .tf-chat-header-avatar .tf-icon {
+  width: 22px;
+  height: 22px;
+}
+
+#tf-assistant .tf-chat-header-avatar .tf-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 /* Legacy material spans: hide ligature text if font fails to load */
