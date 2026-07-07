@@ -4,16 +4,11 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 
-@override_settings(
-    PUBLIC_BASE_URL='https://tradeflowcolon.com',
-    CSRF_TRUSTED_ORIGINS=[],
-    CSRF_COOKIE_SECURE=False,
-)
 class LoginCsrfSettingsTests(TestCase):
-    def test_csrf_trusted_origins_include_public_base_and_www(self):
-        from tradeflow_colon import settings
+    def test_csrf_trusted_origins_builder_adds_www_variant(self):
+        from tradeflow_colon.settings import _csrf_origins_for_base
 
-        origins = settings._build_csrf_trusted_origins()
+        origins = _csrf_origins_for_base('https://tradeflowcolon.com', [])
         self.assertIn('https://tradeflowcolon.com', origins)
         self.assertIn('https://www.tradeflowcolon.com', origins)
 
