@@ -49,42 +49,60 @@ main.tf-main > .login-page-wrap {
   background: #fff;
 }
 
-.login-figma-bg__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-}
-
-/* ── Frame guides: side borders + top rule (Figma 8:9, 8:10) ── */
-.login-figma-frame {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.login-figma-frame__sides {
+/* ── Diagonal aurora stripe (brand tokens from tf-design-tokens.css) ── */
+.login-aurora-stripe {
   position: absolute;
-  top: 77px;
-  bottom: 0;
-  left: 16.5%;
-  right: 16.5%;
-  border-left: 1px solid rgba(0, 0, 0, 0.08);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  top: 50%;
+  left: 68%;
+  width: 140vw;
+  height: 72vh;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  transform-origin: center center;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--tf-primary-light) 20%,
+    var(--tf-primary-light) 26%,
+    var(--tf-orange) 36%,
+    var(--tf-orange) 44%,
+    var(--tf-orange-h) 56%,
+    var(--tf-orange-h) 64%,
+    var(--tf-blue) 74%,
+    var(--tf-blue) 80%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  will-change: transform;
+  animation: login-aurora-stripe-drift 34s ease-in-out infinite alternate;
 }
 
-.login-figma-frame__rule {
-  position: absolute;
-  top: 76px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: #1a2c44;
-  opacity: 0.08;
+@keyframes login-aurora-stripe-drift {
+  0% {
+    transform: translate(-50%, -50%) rotate(-30deg) translate(0, 0);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(-30deg) translate(-2.5%, 2%);
+  }
 }
 
-/* ── Header logo (Figma 8:11 — ~25px height) ── */
+/* ── Header logo (icon + wordmark, same pattern as buyer navbar) ── */
 .login-figma-header {
   position: absolute;
   z-index: 4;
@@ -93,17 +111,34 @@ main.tf-main > .login-page-wrap {
 }
 
 .login-figma-header__logo {
-  display: inline-block;
-  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   text-decoration: none;
+  color: inherit;
+  line-height: 1.2;
 }
 
-.login-figma-header__logo-img {
-  display: block;
-  height: 25px;
+.login-figma-header__logo .login-figma-header__icon,
+.login-figma-header__logo .tf-logo-img {
+  height: 28px;
   width: auto;
-  max-width: 140px;
   object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
+.login-figma-header__wordmark {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tf-navy);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.login-figma-header__accent {
+  color: var(--tf-orange);
+  font-weight: 600;
 }
 
 /* ── Centered card shell ── */
@@ -497,21 +532,12 @@ main.tf-main > .login-page-wrap {
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
-  .login-figma-frame__sides {
-    left: 8%;
-    right: 8%;
-  }
-
   .login-figma-main {
     padding-top: 140px;
   }
 }
 
 @media (max-width: 640px) {
-  .login-figma-frame__sides {
-    display: none;
-  }
-
   .login-figma-header {
     left: 20px;
     top: 20px;
@@ -546,6 +572,10 @@ main.tf-main > .login-page-wrap {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .login-aurora-stripe {
+    animation: none;
+  }
+
   .login-figma-input,
   .login-figma-submit,
   .login-figma-oauth-btn__inner,
