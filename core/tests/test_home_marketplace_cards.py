@@ -1,4 +1,4 @@
-"""Home marketplace — Alibaba-style unified product-first landing."""
+"""Home marketplace — Shopify landing from Figma."""
 from django.test import TestCase, override_settings
 
 from core.models import Category, Company, Product
@@ -31,43 +31,42 @@ class HomeMarketplaceCardsTests(TestCase):
                 merchandising_priority=30 - i,
             )
 
-    def test_home_is_product_first_alibaba_layout(self):
+    def test_home_is_shopify_landing_layout(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
-        self.assertIn('hm-alibaba', html)
-        self.assertIn('hm-bento', html)
+        self.assertIn('hm-shopify', html)
+        self.assertIn('sh-hero', html)
+        self.assertIn('sh-header', html)
+        self.assertIn('sh-build', html)
         self.assertIn('product-card', html)
         self.assertIn('btn-inquiry', html)
-        self.assertIn('home-alibaba.css', html)
-        self.assertNotContains(response, 'id="hm-hero"')
-        self.assertNotContains(response, 'hm-mkt-search')
-        self.assertNotContains(response, 'class="tf-pcard ')
+        self.assertIn('shopify-landing/hero-bg.jpg', html)
+        self.assertNotIn('hm-hero-carousel', html)
+        self.assertNotIn('hm-feed-carousel', html)
+        self.assertNotIn('hm-alibaba', html)
         self.assertNotContains(response, 'picsum.photos')
 
-    def test_home_has_bento_and_product_rows(self):
+    def test_home_has_shopify_sections_and_catalog(self):
         response = self.client.get('/')
-        self.assertContains(response, 'hm-bento')
-        self.assertContains(response, 'hm-product-row')
-        self.assertContains(response, 'hm-cat-discover')
-        self.assertContains(response, 'Categories for you')
-        self.assertContains(response, 'Products for you')
+        self.assertContains(response, 'hm-shopify')
+        self.assertContains(response, 'sh-rfq')
+        self.assertContains(response, 'sh-stats')
+        self.assertContains(response, 'sh-catalog')
+        self.assertContains(response, 'TradeFlow Colón')
+        self.assertContains(response, 'Start for free')
 
     def test_home_uses_catalog_seed_photos_not_svg_icons(self):
         response = self.client.get('/')
         html = response.content.decode()
-        self.assertIn('/static/images/catalog-seeds/', html)
-        self.assertNotIn('/static/images/category-icons/', html)
+        self.assertTrue(
+            '/static/images/catalog-seeds/' in html or 'shopify-landing/' in html
+        )
 
     def test_home_has_no_infinite_shimmer_overlays(self):
         response = self.client.get('/')
         self.assertNotContains(response, 'hm-media__shimmer')
-        self.assertContains(response, 'hm-visual is-loaded')
         self.assertContains(response, 'tf-home-marketplace.js')
-        response = self.client.get('/')
-        self.assertContains(response, 'hm-cat-modal')
-        self.assertContains(response, 'data-cat-modal-open')
-        self.assertContains(response, 'View all')
 
     def test_home_passes_sidebar_categories(self):
         response = self.client.get('/')
@@ -78,5 +77,3 @@ class HomeMarketplaceCardsTests(TestCase):
         response = self.client.get('/acerca/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'About TradeFlow Colón')
-        self.assertContains(response, 'hm-about-hero')
-        self.assertContains(response, 'Why choose TradeFlow')

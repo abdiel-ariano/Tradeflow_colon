@@ -1,0 +1,33 @@
+{% comment %}Figma gw-card-layout — 4-up category cards with 2×2 product grid.{% endcomment %}
+{% with cards=quad_row|default:home_quad_cards %}
+{% if cards %}
+<section class="hm-quad-cards" aria-label="Shop by category">
+  <div class="hm-quad-cards__grid">
+    {% for row in cards %}
+    <article class="hm-quad-card">
+      <header class="hm-quad-card__head">
+        <h2 class="hm-quad-card__title">
+          <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}">{{ row.category.name|truncatechars:40 }}</a>
+        </h2>
+      </header>
+      <div class="hm-quad-card__body">
+        <div class="hm-quad-card__quad">
+          {% for product in row.products|slice:":4" %}
+          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-quad-card__cell">
+            <span class="hm-quad-card__media">
+              {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.parentloop.first|yesno:"eager,lazy" img_class="hm-quad-card__img" object_fit="cover" %}
+            </span>
+            <span class="hm-quad-card__label">{{ product.name|truncatechars:28 }}</span>
+          </a>
+          {% endfor %}
+        </div>
+        <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.pk }}" class="hm-quad-card__more">
+          Browse {{ row.category.name|truncatechars:24 }} →
+        </a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endwith %}

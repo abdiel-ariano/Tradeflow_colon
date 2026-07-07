@@ -8,7 +8,7 @@
       {% endif %}
 
       {% if visual_image %}
-        {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=card_index|default:99|yesno:"eager,lazy" img_class="card-image-img" wrap_class="product-img-wrap" %}
+        {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=card_index|default:99|yesno:"eager,lazy" img_class="card-image-img" wrap_class="product-img-wrap" product_card_img=True %}
       {% elif card_index and card_index <= 4 %}
         {% include "core/includes/product_image_placeholder.html" with product=product decorative=True loading="eager" img_class="card-image-img" %}
       {% else %}
