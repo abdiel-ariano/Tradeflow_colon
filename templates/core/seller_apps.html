@@ -1,0 +1,29 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Apps — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Apps{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Integrations for your TradeFlow store</p>{% endblock %}
+
+{% block seller_content %}
+<div class="sp-dash-hero">
+  <h2>Extend your seller workspace</h2>
+  <p>Connect logistics, accounting, and analytics tools to your CFZ catalog. More integrations are being added to the TradeFlow marketplace.</p>
+</div>
+
+<div class="sp-dash-feature-grid">
+  <article class="sp-dash-feature-card">
+    <h3>Catalog QR</h3>
+    <p>Share a scannable link to your public product catalog.</p>
+    <a href="{% url 'seller_company_qr' %}">Open Connect →</a>
+  </article>
+  <article class="sp-dash-feature-card">
+    <h3>Predictive insights</h3>
+    <p>AI forecasts and stock alerts for enterprise sellers.</p>
+    <a href="{% url 'seller_predictive_insights' %}">View insights →</a>
+  </article>
+  <article class="sp-dash-feature-card">
+    <h3>REST API</h3>
+    <p>Inventory and pricing sync for automation (plan required).</p>
+    <a href="{% url 'seller_plan_consumo' %}">Check API access →</a>
+  </article>
+</div>
+{% endblock %}

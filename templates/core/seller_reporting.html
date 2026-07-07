@@ -1,0 +1,30 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Reporting — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Reporting{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Performance snapshots for your store</p>{% endblock %}
+
+{% block seller_content %}
+<div class="sp-dash-metrics">
+  <article class="sp-dash-metric">
+    <div class="sp-dash-metric-lbl">Monthly revenue</div>
+    <p class="sp-dash-metric-val">USD {{ ingresos_mes }}</p>
+  </article>
+  <article class="sp-dash-metric">
+    <div class="sp-dash-metric-lbl">Weekly orders</div>
+    <p class="sp-dash-metric-val">{{ ordenes_semana }}</p>
+  </article>
+  <article class="sp-dash-metric">
+    <div class="sp-dash-metric-lbl">Active products</div>
+    <p class="sp-dash-metric-val">{{ productos_activos }}</p>
+  </article>
+</div>
+
+<div class="sp-dash-hero">
+  <h2>Advanced reporting</h2>
+  <p>Upgrade to an enterprise plan for predictive AI, exportable reports, and custom dashboards.</p>
+  <div class="sp-dash-hero-actions">
+    <a href="{% url 'portal_seller' %}" class="sp-btn sp-btn-primary">Open home dashboard</a>
+    <a href="{% url 'seller_predictive_insights' %}" class="sp-btn sp-btn-secondary">AI insights</a>
+  </div>
+</div>
+{% endblock %}

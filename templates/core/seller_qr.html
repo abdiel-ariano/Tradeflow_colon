@@ -1,38 +1,25 @@
-{% extends "core/base.html" %}
+{% extends "core/seller_layout.html" %}
 {% load static %}
-{% block title %}My Company QR — TradeFlow Colón{% endblock %}
-{% block content %}
-<div class="tf-centered-page" style="max-width:600px;">
-  <div class="tf-page-header">
-    <div>
-      <h1 class="tf-page-title">Company QR Code</h1>
-      <p class="tf-page-subtitle">Share this QR so buyers can access your catalog instantly</p>
-    </div>
+{% block title %}Company QR — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Connect{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Share your catalog with buyers via QR</p>{% endblock %}
+
+{% block seller_content %}
+<div class="sp-card" style="text-align:center;padding:40px;max-width:520px;margin:0 auto;">
+  <img src="data:image/png;base64,{{ qr_base64 }}"
+       alt="QR Code for {{ company.name }}"
+       width="240" height="240"
+       style="border-radius:12px;border:1px solid var(--tf-border);margin-bottom:20px;">
+  <h2 style="font-size:1.2rem;font-weight:600;color:var(--tf-navy);margin:0 0 8px;">{{ company.name }}</h2>
+  <p style="font-size:13px;color:var(--tf-muted);margin:0 0 20px;word-break:break-all;">{{ catalog_url }}</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <a href="{% url 'seller_download_qr' %}" class="sp-btn sp-btn-primary">
+      <span class="material-symbols-rounded" style="font-size:18px;">download</span>Download QR
+    </a>
+    <a href="{% url 'seller_mis_productos' %}" class="sp-btn sp-btn-secondary">Edit catalog</a>
   </div>
-  <div class="tf-card" style="text-align:center;padding:40px;">
-    <div style="margin-bottom:24px;">
-      <img src="data:image/png;base64,{{ qr_base64 }}"
-           alt="QR Code for {{ company.name }}"
-           style="width:240px;height:240px;border-radius:12px;border:1px solid var(--tf-border);">
-    </div>
-    <h2 style="font-size:1.25rem;font-weight:700;color:var(--tf-navy);margin:0 0 8px;">{{ company.name }}</h2>
-    <p style="font-size:13px;color:var(--tf-muted);margin:0 0 24px;word-break:break-all;">{{ catalog_url }}</p>
-    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-      <a href="{% url 'seller_download_qr' %}" class="btn-primary-tf">
-        <span class="material-symbols-rounded" style="font-size:18px;">download</span>
-        Download QR
-      </a>
-      <a href="{% url 'portal_seller' %}" class="btn-secondary-tf">
-        Back to panel
-      </a>
-    </div>
-  </div>
-  <div class="tf-card" style="margin-top:16px;background:#EFF6FF;border-color:#BFDBFE;">
-    <p style="font-size:13px;color:#1E40AF;margin:0;">
-      <strong>How to use:</strong> Print this QR and place it at your booth,
-      warehouse entrance, or business cards. Buyers scan it and go directly
-      to your product catalog on TradeFlow Colón.
-    </p>
-  </div>
+</div>
+<div class="sp-notice-soft" style="margin-top:20px;max-width:520px;margin-left:auto;margin-right:auto;">
+  <span>Place this QR at your booth or warehouse. Buyers scan it to open your TradeFlow catalog.</span>
 </div>
 {% endblock %}

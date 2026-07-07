@@ -245,7 +245,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # Cache-bust: production uses WhiteNoise CompressedManifestStaticFilesStorage
 # (content hash in filename, e.g. login.3a80a22efbb7.css). TRADEFLOW_ASSET_VERSION
 # remains for legacy ?v= query params on templates not yet migrated.
-TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='desktop-v10')
+TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='desktop-v11')
 # Runtime picsum URLs in templates (off in production — use bundled catalog seeds).
 TRADEFLOW_USE_PICSUM_RUNTIME = config('TRADEFLOW_USE_PICSUM_RUNTIME', default=False, cast=bool)
 

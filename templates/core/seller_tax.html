@@ -1,0 +1,46 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Tax — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Tax{% endblock %}
+
+{% block seller_content %}
+<nav class="sp-page-tabs" aria-label="Tax sections">
+  <a href="{% url 'seller_tax' %}?tab=overview" class="sp-page-tab {% if active_tab == 'overview' %}is-active{% endif %}">Overview</a>
+  <a href="{% url 'seller_tax' %}?tab=locations" class="sp-page-tab {% if active_tab == 'locations' %}is-active{% endif %}">Locations</a>
+</nav>
+
+{% if active_tab == 'locations' %}
+<div class="sp-dash-hero">
+  <h2>Tax locations</h2>
+  <p>Configure jurisdictions and export documentation rules for Colón Free Zone shipments. This module will connect with your order and invoice data.</p>
+  <p style="font-size:13px;color:var(--tf-muted);margin:0;">Coming soon — Panama / CFZ export presets.</p>
+</div>
+{% else %}
+<div class="sp-dash-hero">
+  <h2>CFZ export tax &amp; compliance</h2>
+  <p>Automate export documentation and tax reporting for wholesale orders leaving the Colón Free Zone. TradeFlow will calculate obligations from your confirmed sales.</p>
+  <div class="sp-dash-hero-actions">
+    <a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-primary">View transactions</a>
+    <a href="{% url 'seller_cotizaciones' %}" class="sp-btn sp-btn-secondary">View quotes</a>
+  </div>
+  <p style="font-size:13px;margin:16px 0 0;color:var(--tf-muted);">Pay as you go or bundle with your growth plan. <a href="{% url 'seller_plan_consumo' %}" style="color:var(--tf-blue);font-weight:600;">View plans</a></p>
+</div>
+
+<div class="sp-dash-feature-grid">
+  <article class="sp-dash-feature-card">
+    <h3>Export compliance</h3>
+    <p>Generate CFZ-ready export packs per order with invoices and packing lists.</p>
+    <a href="{% url 'seller_mis_ventas' %}">See what we offer →</a>
+  </article>
+  <article class="sp-dash-feature-card">
+    <h3>Automated reporting</h3>
+    <p>Monthly summaries of taxable volume and documentation status.</p>
+    <a href="{% url 'seller_reporting' %}">Learn about reporting →</a>
+  </article>
+  <article class="sp-dash-feature-card">
+    <h3>Obligation monitoring</h3>
+    <p>Alerts when orders need tax documentation before dispatch.</p>
+    <a href="{% url 'seller_disputes' %}">See pending actions →</a>
+  </article>
+</div>
+{% endif %}
+{% endblock %}

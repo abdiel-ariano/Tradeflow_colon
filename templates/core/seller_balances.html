@@ -1,0 +1,33 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Balances — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Balances{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Revenue summary and available operations</p>{% endblock %}
+
+{% block seller_content %}
+<div class="sp-dash-metrics">
+  <article class="sp-dash-metric">
+    <div class="sp-dash-metric-lbl">Monthly revenue</div>
+    <p class="sp-dash-metric-val">USD {{ ingresos_mes }}</p>
+    <p class="sp-dash-metric-hint">Delivered and in-progress lines</p>
+  </article>
+  <article class="sp-dash-metric">
+    <div class="sp-dash-metric-lbl">Orders this month</div>
+    <p class="sp-dash-metric-val">{{ ventas_mes }}</p>
+    <p class="sp-dash-metric-hint">Completed order count</p>
+  </article>
+  <article class="sp-dash-metric">
+    <div class="sp-dash-metric-lbl">Average ticket</div>
+    <p class="sp-dash-metric-val">USD {{ ticket_promedio }}</p>
+    <p class="sp-dash-metric-hint">Per order average</p>
+  </article>
+</div>
+
+<div class="sp-dash-hero">
+  <h2>Payouts &amp; plan limits</h2>
+  <p>Settlement and payout automation for CFZ sellers is rolling out. Review your SaaS plan usage and billing in the meantime.</p>
+  <div class="sp-dash-hero-actions">
+    <a href="{% url 'seller_plan_consumo' %}" class="sp-btn sp-btn-primary">View plan &amp; billing</a>
+    <a href="{% url 'seller_mis_ventas' %}" class="sp-btn sp-btn-secondary">View transactions</a>
+  </div>
+</div>
+{% endblock %}

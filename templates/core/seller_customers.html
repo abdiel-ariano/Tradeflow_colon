@@ -1,0 +1,40 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Customers — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Customers{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Buyers who quoted or purchased from your catalog</p>{% endblock %}
+
+{% block seller_content %}
+<form method="get" class="sp-dash-pills" style="margin-bottom:20px;">
+  <input class="tf-input" type="search" name="q" value="{{ search_q }}" placeholder="Search customers…" style="max-width:280px;">
+  <button type="submit" class="sp-btn sp-btn-secondary">Search</button>
+</form>
+
+<section class="sp-card">
+  <div class="sp-table-wrap">
+    <table class="sp-table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Email</th>
+          <th>Orders</th>
+          <th>Quotes</th>
+          <th>Total spent</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in customers %}
+        <tr>
+          <td><strong>{{ row.user.get_full_name|default:row.user.username }}</strong></td>
+          <td>{{ row.user.email }}</td>
+          <td>{{ row.orders_count }}</td>
+          <td>{{ row.quotes_count }}</td>
+          <td>USD {{ row.total_spent }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="sp-empty">No customers yet — share your catalog QR to get started.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

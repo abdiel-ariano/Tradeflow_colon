@@ -1,0 +1,40 @@
+{% extends "core/seller_layout.html" %}
+{% block title %}Data management — {{ company.name }}{% endblock %}
+{% block seller_page_title %}Data management{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Export and manage your seller data</p>{% endblock %}
+
+{% block seller_content %}
+<div class="sp-dash-metrics">
+  <article class="sp-dash-metric">
+    <div class="sp-dash-metric-lbl">Products</div>
+    <p class="sp-dash-metric-val">{{ product_count }}</p>
+  </article>
+  <article class="sp-dash-metric">
+    <div class="sp-dash-metric-lbl">Orders</div>
+    <p class="sp-dash-metric-val">{{ order_count }}</p>
+  </article>
+  <article class="sp-dash-metric">
+    <div class="sp-dash-metric-lbl">Exports</div>
+    <p class="sp-dash-metric-val">CSV</p>
+    <p class="sp-dash-metric-hint">Sales export available now</p>
+  </article>
+</div>
+
+<div class="sp-dash-feature-grid">
+  <article class="sp-dash-feature-card">
+    <h3>Export sales</h3>
+    <p>Download your order history as CSV for accounting or ERP import.</p>
+    <a href="{% url 'seller_export_ventas_csv' %}">Download CSV →</a>
+  </article>
+  <article class="sp-dash-feature-card">
+    <h3>Product catalog</h3>
+    <p>Manage and audit your active SKU list from the product catalog.</p>
+    <a href="{% url 'seller_mis_productos' %}">Open catalog →</a>
+  </article>
+  <article class="sp-dash-feature-card">
+    <h3>API &amp; webhooks</h3>
+    <p>Sync inventory and pricing with external systems (enterprise plans).</p>
+    <a href="{% url 'seller_plan_consumo' %}">View API access →</a>
+  </article>
+</div>
+{% endblock %}

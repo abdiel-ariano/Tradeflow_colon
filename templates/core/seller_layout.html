@@ -9,132 +9,138 @@
 {% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
+  body.sp-dash { background: var(--tf-light); }
+  body.sp-dash .tf-nav.tf-navbar { display: none !important; }
+  body.sp-dash main.tf-main { padding: 0; max-width: none; }
+  body.sp-dash .sp-dash-shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; background: var(--tf-light); }
+  body.sp-dash .sp-dash-side { background: var(--tf-white); border-right: 1px solid var(--tf-border); display: flex; flex-direction: column; padding: 12px 0 16px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  body.sp-dash .sp-dash-workspace { display: flex; align-items: center; gap: 10px; padding: 8px 16px 16px; }
+  body.sp-dash .sp-dash-workspace__mark { width: 28px; height: 28px; border-radius: 8px; background: var(--tf-navy); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+  body.sp-dash .sp-dash-workspace__mark .tf-logo-img { height: 22px; width: auto; }
+  body.sp-dash .sp-dash-workspace__name { display: block; font-size: 13px; font-weight: 600; color: var(--tf-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  body.sp-dash .sp-dash-workspace__sub { display: block; font-size: 12px; color: var(--tf-muted); }
+  body.sp-dash .sp-dash-nav-label { display: block; padding: 16px 18px 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--tf-muted); }
+  body.sp-dash .sp-dash-nav { padding: 0 8px; }
+  body.sp-dash .sp-dash-nav a { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; color: var(--tf-gray-700); text-decoration: none; font-size: 14px; font-weight: 500; }
+  body.sp-dash .sp-dash-nav a:hover { background: rgba(15, 42, 68, 0.06); color: var(--tf-navy); }
+  body.sp-dash .sp-dash-nav a.is-active { background: rgba(242, 101, 34, 0.1); color: var(--tf-orange); font-weight: 600; }
+  body.sp-dash .sp-dash-nav a .material-symbols-rounded { font-size: 18px; color: var(--tf-muted); }
+  body.sp-dash .sp-dash-nav a.is-active .material-symbols-rounded { color: var(--tf-orange); }
+  body.sp-dash .sp-dash-side-foot { margin-top: auto; padding: 16px 18px 0; font-size: 12px; color: var(--tf-muted); }
+  body.sp-dash .sp-dash-main { display: flex; flex-direction: column; min-width: 0; min-height: 100vh; }
+  body.sp-dash .sp-dash-toolbar { display: flex; align-items: center; gap: 16px; padding: 12px 28px; background: var(--tf-white); border-bottom: 1px solid var(--tf-border); position: sticky; top: 0; z-index: 30; flex-wrap: wrap; }
+  body.sp-dash .sp-dash-search { flex: 1; max-width: 420px; display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 36px; border: 1px solid var(--tf-border); border-radius: 8px; background: var(--tf-light); text-decoration: none; color: inherit; }
+  body.sp-dash .sp-dash-search input { border: none; background: transparent; flex: 1; font-size: 14px; color: var(--tf-navy); outline: none; min-width: 0; }
+  body.sp-dash .sp-dash-toolbar-right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  body.sp-dash .sp-dash-icon-btn { width: 32px; height: 32px; border-radius: 8px; color: var(--tf-muted); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+  body.sp-dash .sp-dash-icon-btn:hover { background: var(--tf-light); color: var(--tf-navy); }
+  body.sp-dash .sp-dash-create-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--tf-orange); color: var(--tf-white); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+  body.sp-dash .sp-dash-setup { display: inline-flex; align-items: center; gap: 8px; margin-left: 8px; padding: 6px 12px; border: 1px solid var(--tf-border); border-radius: 999px; background: var(--tf-white); font-size: 13px; font-weight: 500; color: var(--tf-gray-700); text-decoration: none; }
+  body.sp-dash .sp-dash-setup:hover { border-color: var(--tf-orange); color: var(--tf-orange); }
+  body.sp-dash .sp-content { padding: 28px 32px 48px; max-width: 1280px; width: 100%; box-sizing: border-box; }
+  body.sp-dash .sp-page-head { margin-bottom: 24px; }
+  body.sp-dash .sp-page-head h1 { margin: 0; font-size: 1.5rem; font-weight: 600; color: var(--tf-navy); }
+  body.sp-dash .sp-page-head .sp-topbar-sub { margin: 6px 0 0; font-size: 14px; color: var(--tf-muted); }
+  body.sp-dash .sp-page-head:has(h1:empty) { display: none; }
+  body.sp-dash .sp-page-tabs { display: flex; gap: 20px; border-bottom: 1px solid var(--tf-border); margin-bottom: 24px; }
+  body.sp-dash .sp-page-tab { padding: 10px 0; font-size: 14px; color: var(--tf-muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  body.sp-dash .sp-page-tab.is-active { color: var(--tf-navy); border-bottom-color: var(--tf-orange); font-weight: 600; }
+  body.sp-dash .sp-dash-hero { background: linear-gradient(135deg, rgba(15, 42, 68, 0.04), rgba(46, 91, 138, 0.08)); border: 1px solid var(--tf-border); border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; }
+  body.sp-dash .sp-dash-hero h2 { margin: 0 0 8px; font-size: 1.25rem; font-weight: 600; color: var(--tf-navy); }
+  body.sp-dash .sp-dash-hero p { margin: 0 0 16px; font-size: 14px; color: var(--tf-muted); line-height: 1.55; max-width: 560px; }
+  body.sp-dash .sp-dash-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  body.sp-dash .sp-dash-feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+  body.sp-dash .sp-dash-feature-card { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: 12px; padding: 20px; }
+  body.sp-dash .sp-dash-feature-card h3 { margin: 0 0 8px; font-size: 15px; font-weight: 600; color: var(--tf-navy); }
+  body.sp-dash .sp-dash-feature-card p { margin: 0 0 12px; font-size: 13px; color: var(--tf-muted); line-height: 1.5; }
+  body.sp-dash .sp-dash-feature-card a { font-size: 13px; font-weight: 600; color: var(--tf-blue); text-decoration: none; }
+  body.sp-dash .sp-dash-section-title { margin: 0 0 16px; font-size: 1.25rem; font-weight: 600; color: var(--tf-navy); }
+  body.sp-dash .sp-dash-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+  body.sp-dash .sp-dash-metric { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: 12px; padding: 16px 18px; }
+  body.sp-dash .sp-dash-metric-lbl { font-size: 13px; color: var(--tf-muted); margin-bottom: 8px; }
+  body.sp-dash .sp-dash-metric-val { font-size: 1.75rem; font-weight: 600; color: var(--tf-navy); margin: 0 0 6px; }
+  body.sp-dash .sp-dash-metric-hint { font-size: 13px; color: var(--tf-muted); }
+  body.sp-dash .sp-dash-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  body.sp-dash .sp-dash-pill { display: inline-flex; padding: 6px 12px; border: 1px solid var(--tf-border); border-radius: 999px; background: var(--tf-white); font-size: 13px; color: var(--tf-gray-700); text-decoration: none; }
+  body.sp-dash .sp-dash-pill.is-on { border-color: var(--tf-orange); background: rgba(242, 101, 34, 0.08); color: var(--tf-orange); }
+  body.sp-dash .sp-sidebar { display: none; }
+  body.sp-dash .sp-shell { display: contents; }
+  @media (max-width: 1024px) { body.sp-dash .sp-dash-metrics, body.sp-dash .sp-dash-feature-grid { grid-template-columns: 1fr; } }
   @media (max-width: 768px) {
-    .seller-layout {
-      flex-direction: column !important;
-    }
-    .seller-sidebar {
-      width: 100% !important;
-      min-width: unset !important;
-      border-right: none !important;
-      border-bottom: 1px solid var(--tf-border);
-    }
-    .seller-main {
-      width: 100% !important;
-      padding: 16px !important;
-    }
-    .seller-nav-item {
-      display: inline-flex !important;
-      width: auto !important;
-    }
-    .seller-sidebar nav {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      gap: 8px !important;
-      padding: 12px !important;
-    }
-    .sp-shell {
-      display: flex !important;
-      flex-direction: column !important;
-      grid-template-columns: 1fr !important;
-    }
-    .sp-sidebar,
-    .seller-sidebar {
-      position: relative !important;
-      left: 0 !important;
-      width: 100% !important;
-      min-width: unset !important;
-      height: auto !important;
-      max-height: none !important;
-      border-right: none !important;
-      border-bottom: 1px solid var(--tf-border);
-      top: auto !important;
-    }
-    .sp-main,
-    .seller-main {
-      width: 100% !important;
-      min-width: 0 !important;
-    }
-    .sp-content {
-      padding: 16px !important;
-    }
-    .sp-nav a,
-    .seller-nav-item {
-      display: inline-flex !important;
-      width: auto !important;
-    }
-    .sp-nav,
-    .seller-sidebar nav {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      gap: 8px !important;
-      padding: 12px !important;
-    }
+    body.sp-dash .sp-dash-shell { grid-template-columns: 1fr; }
+    body.sp-dash .sp-dash-side { position: relative; height: auto; border-bottom: 1px solid var(--tf-border); }
+    body.sp-dash .sp-dash-nav { display: flex; flex-wrap: wrap; }
+    body.sp-dash .sp-dash-nav-label { display: none; }
+    body.sp-dash .sp-content { padding: 20px 16px 40px; }
+    body.sp-dash .sp-dash-setup { display: none; }
   }
 </style>
 {% block seller_extra_css %}{% endblock %}
 {% endblock %}
 {% block content %}
-<div class="sp-shell" id="sp-shell">
-  <aside class="sp-sidebar" id="sp-sidebar" aria-label="Seller panel">
-    <div class="sp-brand-logo">
-      <a href="{% url 'portal_seller' %}" class="sp-brand-logo-link" aria-label="Seller dashboard">
-        {% include "core/includes/tf_logo.html" with variant="icon-color" size="sidebar" class="sp-logo-wordmark" %}
+<div class="sp-dash-shell" id="sp-shell">
+  <aside class="sp-dash-side" aria-label="Seller panel">
+    <div class="sp-dash-workspace">
+      <a href="{% url 'portal_seller' %}" class="sp-dash-workspace__mark" aria-label="Seller home">
+        {% include "core/includes/tf_logo.html" with variant="icon-color" size="sidebar" class="tf-logo-img" %}
       </a>
-      <span class="sp-brand-company">{{ company.name|default:"TradeFlow" }}</span>
-    </div>
-    <nav class="sp-nav">
-      <a href="{% url 'portal_seller' %}" data-sp-nav="mi_tienda">
-        <span class="material-symbols-rounded">dashboard</span>Dashboard
-      </a>
-      <a href="{% url 'seller_mis_productos' %}" data-sp-nav="seller_productos">
-        <span class="material-symbols-rounded">inventory_2</span>Products
-      </a>
-      <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas">
-        <span class="material-symbols-rounded">payments</span>My Sales
-      </a>
-      <a href="{% url 'seller_cotizaciones' %}" data-sp-nav="seller_cotizaciones">
-        <span class="material-symbols-rounded">request_quote</span>Quotes
-      </a>
-      <a href="{% url 'seller_agregar_producto' %}" data-sp-nav="seller_productos">
-        <span class="material-symbols-rounded">add_circle</span>Add product
-      </a>
-      <a href="{% url 'seller_plan_consumo' %}" data-sp-nav="mi_tienda">
-        <span class="material-symbols-rounded">workspace_premium</span>Plan
-      </a>
-      {% if saas_snapshot and saas_snapshot.predictive_ai_enabled %}
-      <a href="{% url 'seller_predictive_insights' %}" data-sp-nav="seller_insights">
-        <span class="material-symbols-rounded">insights</span>AI Insights
-      </a>
-      {% endif %}
-      <a href="{% url 'mi_perfil' %}" data-sp-nav="perfil">
-        <span class="material-symbols-rounded">business</span>Company profile
-      </a>
-    </nav>
-    <div class="sp-sidebar-foot">Colón Free Zone</div>
-  </aside>
-  <div class="sp-main">
-    {% block seller_topbar %}
-    <header class="sp-topbar">
-      <div class="sp-topbar-intro">
-        <h1>{% block seller_page_title %}{{ titulo_pagina|default:"My Panel" }}{% endblock %}</h1>
-        {% block seller_page_sub %}{% endblock %}
+      <div>
+        <span class="sp-dash-workspace__name">{{ company.name|default:"TradeFlow Colón" }}</span>
+        <span class="sp-dash-workspace__sub">Seller workspace</span>
       </div>
-      <div class="sp-topbar-actions">
+    </div>
+    <nav class="sp-dash-nav" aria-label="Main">
+      <a href="{% url 'portal_seller' %}" data-sp-nav="mi_tienda"><span class="material-symbols-rounded">home</span>Home</a>
+      <a href="{% url 'seller_balances' %}" data-sp-nav="seller_balances"><span class="material-symbols-rounded">account_balance</span>Balances</a>
+      <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas"><span class="material-symbols-rounded">sync_alt</span>Transactions</a>
+      <a href="{% url 'seller_customers' %}" data-sp-nav="seller_customers"><span class="material-symbols-rounded">group</span>Customers</a>
+      <a href="{% url 'seller_mis_productos' %}" data-sp-nav="seller_productos"><span class="material-symbols-rounded">inventory_2</span>Product catalog</a>
+    </nav>
+    <span class="sp-dash-nav-label">Shortcuts</span>
+    <nav class="sp-dash-nav" aria-label="Shortcuts">
+      <a href="{% url 'seller_company_qr' %}" data-sp-nav="seller_qr"><span class="material-symbols-rounded">qr_code_2</span>Connect</a>
+      <a href="{% url 'seller_cotizaciones' %}" data-sp-nav="seller_cotizaciones"><span class="material-symbols-rounded">description</span>Invoices</a>
+      <a href="{% url 'seller_tax' %}" data-sp-nav="seller_tax"><span class="material-symbols-rounded">percent</span>Tax</a>
+      <a href="{% url 'seller_data_management' %}" data-sp-nav="seller_data"><span class="material-symbols-rounded">database</span>Data management</a>
+      <a href="{% url 'seller_reporting' %}" data-sp-nav="seller_reporting"><span class="material-symbols-rounded">monitoring</span>Payments analytics</a>
+      <a href="{% url 'seller_disputes' %}" data-sp-nav="seller_disputes"><span class="material-symbols-rounded">gavel</span>Disputes</a>
+    </nav>
+    <span class="sp-dash-nav-label">Products</span>
+    <nav class="sp-dash-nav" aria-label="Products">
+      <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas"><span class="material-symbols-rounded">payments</span>Payments</a>
+      <a href="{% url 'seller_plan_consumo' %}" data-sp-nav="seller_plan"><span class="material-symbols-rounded">receipt_long</span>Billing</a>
+      <a href="{% url 'seller_reporting' %}" data-sp-nav="seller_reporting"><span class="material-symbols-rounded">bar_chart</span>Reporting</a>
+      <a href="{% url 'seller_apps' %}" data-sp-nav="seller_apps"><span class="material-symbols-rounded">extension</span>Apps</a>
+    </nav>
+    <div class="sp-dash-side-foot">Colón Free Zone</div>
+  </aside>
+  <div class="sp-dash-main">
+    {% block seller_topbar %}
+    <header class="sp-dash-toolbar">
+      <form class="sp-dash-search" method="get" action="{% url 'seller_global_search' %}">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input type="search" name="q" placeholder="Search" aria-label="Search" autocomplete="off">
+      </form>
+      <div class="sp-dash-toolbar-right">
         {% block seller_topbar_actions %}
-        <a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary">
-          <span class="material-symbols-rounded" style="font-size:18px;">add</span>Add
-        </a>
+        <a href="{% url 'seller_apps' %}" class="sp-dash-icon-btn" title="Apps" aria-label="Apps"><span class="material-symbols-rounded">apps</span></a>
+        <a href="{% url 'mi_perfil' %}" class="sp-dash-icon-btn" title="Settings" aria-label="Settings"><span class="material-symbols-rounded">settings</span></a>
+        <a href="{% url 'seller_agregar_producto' %}" class="sp-dash-create-btn" title="Create" aria-label="Create"><span class="material-symbols-rounded">add</span></a>
+        <a href="{% url 'seller_setup_guide' %}" class="sp-dash-setup"><span class="material-symbols-rounded" style="font-size:16px;">track_changes</span>Setup guide</a>
         {% endblock %}
       </div>
     </header>
     {% endblock %}
     <div class="sp-content">
+      <header class="sp-page-head">
+        <h1>{% block seller_page_title %}{{ titulo_pagina|default:"" }}{% endblock %}</h1>
+        {% block seller_page_sub %}{% endblock %}
+      </header>
       {% block seller_content %}{% endblock %}
     </div>
   </div>
 </div>
-<script nonce="{{ csp_nonce }}">document.body.classList.add('sp-mode');</script>
+<script nonce="{{ csp_nonce }}">document.body.classList.add('sp-mode', 'sp-dash');</script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var nav = '{{ nav_activo|default:""|escapejs }}';
