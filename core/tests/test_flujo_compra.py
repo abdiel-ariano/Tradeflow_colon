@@ -203,14 +203,23 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, self.product.name, count=n)
 
-    def test_login_redirige_a_home(self):
-        """Tras login sin ?next=, la landing sigue accesible."""
+    def test_login_redirige_buyer_a_tienda(self):
+        """Tras login sin ?next=, el buyer va al catálogo."""
         r = self.client.post(
             '/login/',
             {'username': 'buyer_test', 'password': 'TestPass123!'},
         )
         self.assertEqual(r.status_code, 302)
-        self.assertTrue(r.url.endswith('/'))
+        self.assertIn('/tienda/', r.url)
+
+    def test_login_redirige_seller_a_portal(self):
+        """Tras login sin ?next=, el seller va directo a /mi-tienda/."""
+        r = self.client.post(
+            '/login/',
+            {'username': 'seller_test', 'password': 'TestPass123!'},
+        )
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('/mi-tienda/', r.url)
 
     def test_acceso_sin_login_redirige(self):
         """Invitados exploran /tienda/ y pueden usar el carrito de sesión."""

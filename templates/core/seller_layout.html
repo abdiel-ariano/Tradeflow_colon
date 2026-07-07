@@ -4,11 +4,79 @@
 <link rel="stylesheet" href="{% static 'css/colors.css' %}">
 <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version }}">
 <link rel="stylesheet" href="{% static 'css/seller_portal_premium.css' %}?v={{ tf_asset_version }}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ tf_asset_version }}">
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 {% block seller_extra_head %}{% endblock %}
 {% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
+  body.sp-mode.sp-figma {
+    --figma-text: #3c4257;
+    --figma-text-dark: #1a2c44;
+    --figma-muted: #6b7280;
+    --figma-link: #635bff;
+    --figma-border: #d4dee9;
+    --figma-primary: #675dff;
+    --figma-primary-hover: #5a51e6;
+    --figma-focus-glow: #e0d9fb;
+    --figma-surface: #ffffff;
+    --figma-canvas: #f6f8fb;
+  }
+  body.sp-mode.sp-figma .tf-nav.tf-navbar {
+    background: var(--figma-surface) !important;
+    border-bottom: 1px solid var(--figma-border);
+    box-shadow: none;
+  }
+  body.sp-mode.sp-figma .tf-nav-links a.nav-link-tf { color: var(--figma-text) !important; }
+  body.sp-mode.sp-figma .tf-nav-links a.nav-link-tf:hover,
+  body.sp-mode.sp-figma .tf-nav-links a.nav-link-tf.active {
+    color: var(--figma-text-dark) !important;
+    background: var(--figma-focus-glow) !important;
+  }
+  body.sp-mode.sp-figma .tf-nav-user-name { color: var(--figma-text-dark) !important; }
+  body.sp-mode.sp-figma .tf-nav-divider { background: var(--figma-border) !important; }
+  body.sp-mode.sp-figma .tf-nav-avatar {
+    background: var(--figma-focus-glow) !important;
+    color: var(--figma-primary) !important;
+  }
+  body.sp-mode.sp-figma .sp-shell--figma { position: relative; isolation: isolate; background: var(--figma-canvas); }
+  body.sp-mode.sp-figma .sp-figma-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  body.sp-mode.sp-figma .sp-figma-bg__img { width: 100%; height: 280px; object-fit: cover; object-position: center top; opacity: 0.45; }
+  body.sp-mode.sp-figma .sp-sidebar, body.sp-mode.sp-figma .sp-main { position: relative; z-index: 1; }
+  body.sp-mode.sp-figma .sp-sidebar { background: var(--figma-surface); border-right: 1px solid var(--figma-border); }
+  body.sp-mode.sp-figma .sp-brand-logo { border-bottom-color: var(--figma-border); }
+  body.sp-mode.sp-figma .sp-brand-company { color: var(--figma-muted); text-transform: none; letter-spacing: 0; font-size: 12px; }
+  body.sp-mode.sp-figma .sp-nav a { color: var(--figma-text); border-radius: 8px; }
+  body.sp-mode.sp-figma .sp-nav a:hover { background: var(--figma-focus-glow); color: var(--figma-text-dark); }
+  body.sp-mode.sp-figma .sp-nav a.is-active { background: var(--figma-focus-glow); color: var(--figma-primary); font-weight: 600; }
+  body.sp-mode.sp-figma .sp-nav .material-symbols-rounded { color: var(--figma-muted); }
+  body.sp-mode.sp-figma .sp-nav a.is-active .material-symbols-rounded { color: var(--figma-primary); }
+  body.sp-mode.sp-figma .sp-sidebar-foot { border-top-color: var(--figma-border); color: var(--figma-muted); }
+  body.sp-mode.sp-figma .sp-topbar { background: var(--figma-surface); border-bottom: 1px solid var(--figma-border); }
+  body.sp-mode.sp-figma .sp-topbar h1 { color: var(--figma-text-dark); }
+  body.sp-mode.sp-figma .sp-topbar-sub { color: var(--figma-muted); }
+  body.sp-mode.sp-figma .sp-kpi, body.sp-mode.sp-figma .sp-card, body.sp-mode.sp-figma .sp-plan-card, body.sp-mode.sp-figma .sp-product-row {
+    background: var(--figma-surface); border-color: var(--figma-border); border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15, 42, 68, 0.04);
+  }
+  body.sp-mode.sp-figma .sp-kpi-val { color: var(--figma-text-dark); font-weight: 600; }
+  body.sp-mode.sp-figma .sp-card-head h2 { color: var(--figma-text-dark); }
+  body.sp-mode.sp-figma .sp-card-head a { color: var(--figma-link); }
+  body.sp-mode.sp-figma .sp-btn-primary { background: var(--figma-primary); border-radius: 8px; }
+  body.sp-mode.sp-figma .sp-btn-primary:hover { background: var(--figma-primary-hover); }
+  body.sp-mode.sp-figma .sp-btn-secondary { border-color: var(--figma-border); color: var(--figma-text-dark); border-radius: 8px; }
+  body.sp-mode.sp-figma .sp-btn-secondary:hover { border-color: var(--figma-primary); color: var(--figma-primary); }
+  body.sp-mode.sp-figma .sp-tab.is-on { background: var(--figma-primary); border-color: var(--figma-primary); }
+  body.sp-mode.sp-figma .sp-notice-soft { background: var(--figma-focus-glow); border: 1px solid var(--figma-border); border-radius: 12px; }
+  body.sp-mode.sp-figma .sp-notice-soft a { color: var(--figma-link); }
+  body.sp-mode.sp-figma .sp-banner-slim { background: linear-gradient(90deg, var(--figma-primary) 0%, var(--figma-link) 100%); }
+  body.sp-mode.sp-figma .sp-plan-card--featured { border-color: var(--figma-primary); }
+  body.sp-mode.sp-figma .sp-kanban-card a { color: var(--figma-link); }
+  body.sp-mode.sp-figma input:focus, body.sp-mode.sp-figma select:focus, body.sp-mode.sp-figma textarea:focus {
+    border-color: var(--figma-primary) !important;
+    box-shadow: 0 0 0 3px var(--figma-focus-glow) !important;
+    outline: none;
+  }
   @media (max-width: 768px) {
     .seller-layout {
       flex-direction: column !important;
@@ -75,7 +143,17 @@
 {% block seller_extra_css %}{% endblock %}
 {% endblock %}
 {% block content %}
-<div class="sp-shell" id="sp-shell">
+<div class="sp-shell sp-shell--figma" id="sp-shell">
+  <div class="sp-figma-bg" aria-hidden="true">
+    <img
+      class="sp-figma-bg__img"
+      src="{% static 'images/login-figma/bg-wave.png' %}"
+      alt=""
+      width="1920"
+      height="400"
+      decoding="async"
+    >
+  </div>
   <aside class="sp-sidebar" id="sp-sidebar" aria-label="Seller panel">
     <div class="sp-brand-logo">
       <a href="{% url 'portal_seller' %}" class="sp-brand-logo-link" aria-label="Seller dashboard">
@@ -134,7 +212,7 @@
     </div>
   </div>
 </div>
-<script nonce="{{ csp_nonce }}">document.body.classList.add('sp-mode');</script>
+<script nonce="{{ csp_nonce }}">document.body.classList.add('sp-mode', 'sp-figma');</script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var nav = '{{ nav_activo|default:""|escapejs }}';
