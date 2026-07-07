@@ -834,8 +834,18 @@ def home_view(request):
     """
     Landing pública PreExpo: merchandising ORM, secciones CMS y stats reales.
 
-    Invitados y usuarios autenticados ven la landing; no se fuerza redirección al panel.
+    Sellers y admins van a su panel; compradores e invitados ven la landing.
     """
+    if request.user.is_authenticated:
+        try:
+            role = request.user.profile.role
+        except Exception:
+            role = None
+        if request.user.is_superuser or role == 'admin':
+            return redirect('dashboard')
+        if role == 'seller':
+            return redirect('portal_seller')
+
     from core.utils.tradeflow_cache import cached_guest_home_context
 
     context = cached_guest_home_context()
