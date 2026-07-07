@@ -1,123 +1,156 @@
 {% extends "core/base.html" %}
-{% load static tf_media %}
-{% block title %}My Cart — TradeFlow Colón{% endblock %}
-{% block extra_css %}
-<style nonce="{{ csp_nonce }}">
-  .c-wrap { max-width: 1040px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1.5rem clamp(2rem, 4vw, 3rem); }
-  .c-title {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 1.75rem;
-    color: #0F2A44;
-    margin: 0 0 1.5rem;
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    text-align: center;
-  }
-  .c-title span { font-size: 0.875rem; font-weight: 500; color: #6B7A88; }
-  .c-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; align-items: start; max-width: 920px; margin: 0 auto; }
-  @media (max-width: 991px) { .c-grid { grid-template-columns: 1fr; } }
-  .c-list { display: flex; flex-direction: column; gap: 12px; }
-  .c-item {
-    display: flex; gap: 1rem; align-items: center; background: #fff; border: 1px solid #D1D5DB;
-    border-radius: 12px; padding: 1rem 1.15rem; transition: box-shadow 0.2s ease;
-  }
-  .c-item:hover { box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08); }
-  .c-img { width: 72px; height: 72px; border-radius: 8px; object-fit: cover; background: #F2F3F5; flex-shrink: 0; }
-  .c-ph { width: 72px; height: 72px; border-radius: 8px; background: #F2F3F5; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .c-info { flex: 1; min-width: 0; }
-  .c-name { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.95rem; color: #0F2A44; margin-bottom: 4px; }
-  .c-meta { font-size: 0.8125rem; color: #6B7A88; }
-  .c-sub { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1rem; color: #F26522; min-width: 88px; text-align: right; }
-  .c-remove { border: none; background: transparent; color: #6B7A88; cursor: pointer; padding: 6px; border-radius: 8px; transition: all 0.2s ease; }
-  .c-remove:hover { background: #FEF2F2; color: #EF4444; }
-  .c-sum { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.25rem; position: sticky; top: 72px; }
-  .c-sum h2 { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.8125rem; color: #6B7A88; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 1rem; }
-  .c-row { display: flex; justify-content: space-between; font-size: 0.875rem; color: #374151; margin-bottom: 8px; }
-  .c-total { display: flex; justify-content: space-between; border-top: 1px solid #D1D5DB; padding-top: 12px; margin-top: 12px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.05rem; color: #0F2A44; }
-  .c-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 16px;
-  }
-  .c-checkout {
-    width: 100%; padding: 13px 20px; border: none; border-radius: 10px; background: #F26522; color: #fff;
-    font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 15px; text-align: center; text-decoration: none;
-    display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s ease;
-    box-sizing: border-box;
-  }
-  .c-checkout:hover { background: #FF7A3D; color: #fff; }
-  .c-continue {
-    width: 100%; padding: 11px 20px; border-radius: 10px; background: transparent; color: #0F2A44;
-    font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 14px; text-align: center; text-decoration: none;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    border: 1.5px solid #D1D5DB; transition: all 0.2s ease; box-sizing: border-box;
-  }
-  .c-continue:hover { border-color: #F26522; color: #F26522; }
-  .c-empty { text-align: center; padding: 3rem 1rem; }
-  .c-qty { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.8125rem; color: #6B7A88; }
-  .c-qty span { font-weight: 600; color: #0F2A44; }
-</style>
+{% load static tf_media i18n %}
+{% block title %}{% trans "Mi carrito" %} — TradeFlow Colón{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/carrito.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
 {% block content %}
-<div class="c-wrap">
-  <h1 class="c-title">My Cart{% if carrito_count %} <span>{% if carrito_count == 1 %}{{ carrito_count }} item{% else %}{{ carrito_count }} items{% endif %}</span>{% endif %}</h1>
-  {% if carrito %}
-  <div class="c-grid">
-    <div class="c-list">
-      {% for entry in carrito_items %}
-      <div class="c-item">
-        {% if entry.product %}
-        {% include "core/includes/product_image_placeholder.html" with product=entry.product img_class="c-img" decorative=True %}
-        {% else %}
-        <div class="c-ph" aria-hidden="true"><span class="material-symbols-rounded" style="color:#D1D5DB;">inventory_2</span></div>
-        {% endif %}
-        <div class="c-info">
-          <div class="c-name">{{ entry.item.nombre }}</div>
-          <div class="c-meta">USD {{ entry.item.precio }} each</div>
-          <div class="c-qty"><span class="material-symbols-rounded" style="font-size:18px;">numbers</span> Quantity: <span>{{ entry.item.cantidad }}</span></div>
+<div class="cart-page">
+  <div class="cart-page__inner">
+    {% if carrito %}
+    <header class="cart-page__header">
+      <div>
+        <h1 class="cart-page__title">{% trans "Carrito de compras" %}</h1>
+        <p class="cart-page__count">
+          {% blocktrans count counter=carrito_count %}{{ counter }} artículo{% plural %}{{ counter }} artículos{% endblocktrans %}
+        </p>
+      </div>
+      <form method="post" action="{% url 'vaciar_carrito' %}">
+        {% csrf_token %}
+        <button type="submit" class="cart-page__clear">
+          <span class="material-symbols-rounded" style="font-size:18px" aria-hidden="true">delete_sweep</span>
+          {% trans "Vaciar carrito" %}
+        </button>
+      </form>
+    </header>
+
+    <div class="cart-page__grid">
+      <section class="cart-items" aria-label="{% trans 'Productos en el carrito' %}">
+        {% for entry in carrito_items %}
+        <article class="cart-item">
+          <div class="cart-item__media">
+            {% if entry.product %}
+            {% include "core/includes/product_image_placeholder.html" with product=entry.product img_class="cart-item__img" decorative=True %}
+            {% else %}
+            <div class="cart-item__placeholder" aria-hidden="true">
+              <span class="material-symbols-rounded">inventory_2</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="cart-item__body">
+            <h2 class="cart-item__title">{{ entry.item.nombre }}</h2>
+            {% if entry.product and entry.product.company %}
+            <p class="cart-item__seller">{% blocktrans with seller=entry.product.company.name %}Vendido por {{ seller }}{% endblocktrans %}</p>
+            {% endif %}
+            <p class="cart-item__unit">USD {{ entry.item.precio }} {% trans "c/u" %}</p>
+
+            <div class="cart-item__actions">
+              <form method="post" action="{% url 'actualizar_cantidad_carrito' entry.prod_id %}" class="cart-qty-form">
+                {% csrf_token %}
+                <div class="cart-qty">
+                  <button type="submit" name="cantidad" value="{{ entry.item.cantidad|add:'-1' }}" class="cart-qty__btn" aria-label="{% trans 'Disminuir cantidad' %}" {% if entry.item.cantidad <= 1 %}disabled{% endif %}>
+                    <span class="material-symbols-rounded" style="font-size:18px">remove</span>
+                  </button>
+                  <label class="visually-hidden" for="qty-{{ entry.prod_id }}">{% trans "Cantidad" %}</label>
+                  <input id="qty-{{ entry.prod_id }}" class="cart-qty__input" type="number" name="cantidad" min="1" max="{% if entry.product %}{{ entry.product.available_qty }}{% else %}999{% endif %}" value="{{ entry.item.cantidad }}" data-cart-qty-input>
+                  <button type="submit" name="cantidad" value="{{ entry.item.cantidad|add:'1' }}" class="cart-qty__btn" aria-label="{% trans 'Aumentar cantidad' %}" {% if entry.product and entry.item.cantidad >= entry.product.available_qty %}disabled{% endif %}>
+                    <span class="material-symbols-rounded" style="font-size:18px">add</span>
+                  </button>
+                </div>
+              </form>
+
+              <form method="post" action="{% url 'quitar_del_carrito' entry.prod_id %}">
+                {% csrf_token %}
+                <button type="submit" class="cart-item__remove" aria-label="{% trans 'Eliminar producto' %}">
+                  <span class="material-symbols-rounded" style="font-size:18px">delete</span>
+                  {% trans "Eliminar" %}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="cart-item__subtotal-col">
+            <p class="cart-item__subtotal">USD {{ entry.item.subtotal }}</p>
+          </div>
+        </article>
+        {% endfor %}
+      </section>
+
+      <aside class="cart-sidebar">
+        <div class="cart-card cart-sidebar__summary">
+          <h2 class="cart-card__title">{% trans "Resumen del pedido" %}</h2>
+          <div class="cart-summary__row">
+            <span>{% trans "Subtotal" %}</span>
+            <span>USD {{ subtotal }}</span>
+          </div>
+          <div class="cart-summary__row">
+            <span>{% trans "Envío" %}</span>
+            <span>{% if envio == 0 %}{% trans "Gratis" %}{% else %}USD {{ envio }}{% endif %}</span>
+          </div>
+          <div class="cart-summary__row">
+            <span>{% trans "Impuestos (16% IVA)" %}</span>
+            <span>USD {{ impuestos }}</span>
+          </div>
+          <div class="cart-summary__divider"></div>
+          <div class="cart-summary__total">
+            <span class="cart-summary__total-label">{% trans "Total" %}</span>
+            <span class="cart-summary__total-value">USD {{ total_general }}</span>
+          </div>
+
+          {% if user.is_authenticated %}
+          <a href="{% url 'checkout' %}" class="cart-btn-primary">
+            <span class="material-symbols-rounded" style="font-size:20px" aria-hidden="true">shopping_bag</span>
+            {% trans "Finalizar compra" %}
+          </a>
+          {% else %}
+          <a href="{% url 'login' %}?next={% url 'checkout' %}" class="cart-btn-primary">
+            <span class="material-symbols-rounded" style="font-size:20px" aria-hidden="true">login</span>
+            {% trans "Inicia sesión para pagar" %}
+          </a>
+          {% endif %}
+          <a href="{% url 'tienda' %}" class="cart-btn-secondary">
+            <span class="material-symbols-rounded" style="font-size:18px" aria-hidden="true">storefront</span>
+            {% trans "Seguir comprando" %}
+          </a>
         </div>
-        <div class="c-sub">USD {{ entry.item.subtotal }}</div>
-        <form method="post" action="{% url 'quitar_del_carrito' entry.prod_id %}">{% csrf_token %}
-          <button type="submit" class="c-remove" title="Remove" aria-label="Remove"><span class="material-symbols-rounded">delete</span></button>
-        </form>
-      </div>
-      {% endfor %}
+
+        <div class="cart-card">
+          <h2 class="cart-card__title">{% trans "Métodos de pago" %}</h2>
+          <div class="cart-payments__badges">
+            <span class="cart-payments__badge">Visa</span>
+            <span class="cart-payments__badge">Mastercard</span>
+            <span class="cart-payments__badge">Amex</span>
+            <span class="cart-payments__badge">PayPal</span>
+            <span class="cart-payments__badge">Apple Pay</span>
+            <span class="cart-payments__badge">Google Pay</span>
+          </div>
+          <p class="cart-payments__note">
+            <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+            {% trans "Pago 100% seguro y encriptado" %}
+          </p>
+          <p class="cart-payments__note">
+            <span class="material-symbols-rounded" aria-hidden="true">published_with_changes</span>
+            {% trans "30 días para devoluciones" %}
+          </p>
+        </div>
+      </aside>
     </div>
-    <aside class="c-sum">
-      <h2>Summary</h2>
-      <div class="c-row"><span>Subtotal</span><span>USD {{ total }}</span></div>
-      <div class="c-row"><span>Shipping</span><span>On confirmation</span></div>
-      <div class="c-total"><span>Total</span><span>USD {{ total }}</span></div>
-      <div class="c-actions">
-        {% if user.is_authenticated %}
-        <a href="{% url 'checkout' %}" class="c-checkout">
-          <span class="material-symbols-rounded" style="font-size:20px;" aria-hidden="true">shopping_bag</span>
-          Confirm order
-        </a>
-        {% else %}
-        <a href="{% url 'login' %}?next={% url 'checkout' %}" class="c-checkout">
-          <span class="material-symbols-rounded" style="font-size:20px;" aria-hidden="true">login</span>
-          Sign in to checkout
-        </a>
-        {% endif %}
-        <a href="{% url 'tienda' %}" class="c-continue">
-          <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">arrow_back</span>
-          Continue shopping
-        </a>
-      </div>
-    </aside>
+
+    {% else %}
+    <div class="cart-empty">
+      <span class="material-symbols-rounded cart-empty__icon" aria-hidden="true">shopping_cart</span>
+      <h1 class="cart-empty__title">{% trans "Tu carrito está vacío" %}</h1>
+      <p class="cart-empty__text">{% trans "Explora el catálogo y agrega productos para comenzar." %}</p>
+      <a href="{% url 'tienda' %}" class="cart-btn-primary" style="max-width:16rem;margin:0 auto;">
+        <span class="material-symbols-rounded" style="font-size:18px" aria-hidden="true">storefront</span>
+        {% trans "Ver productos" %}
+      </a>
+    </div>
+    {% endif %}
   </div>
-  {% else %}
-  <div class="c-empty">
-    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">Your cart is empty</p>
-    <p style="color:#6B7A88;margin:0;">Browse the store and add products.</p>
-    <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> Go to store</a>
-  </div>
-  {% endif %}
 </div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/carrito_page.js' %}?v={{ tf_asset_version|default:'1' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

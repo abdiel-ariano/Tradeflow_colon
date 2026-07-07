@@ -3659,15 +3659,80 @@ def ver_carrito(request):
     carrito = _get_carrito(request)
     total   = _calcular_total(carrito)
 
+    subtotal = total
+    envio = Decimal('0') if subtotal >= Decimal('500') or not carrito else Decimal('99')
+    impuestos = (subtotal * Decimal('0.16')).quantize(Decimal('0.01'))
+    total_general = (subtotal + envio + impuestos).quantize(Decimal('0.01'))
+
     context = {
         'carrito':       carrito,
         'carrito_items': _carrito_items_with_products(carrito),
         'total':         total,
+        'subtotal':      subtotal,
+        'envio':         envio,
+        'impuestos':     impuestos,
+        'total_general': total_general,
         'carrito_count': _contar_items(carrito),
         'titulo_pagina': 'My cart',
         'nav_activo':    'tienda',
     }
     return render(request, 'core/carrito.html', context)
+
+
+@guest_or_buyer_cart
+@require_POST
+def actualizar_cantidad_carrito(request, producto_id):
+    """Actualiza la cantidad de una línea del carrito (sesión)."""
+    try:
+        cantidad = int(request.POST.get('cantidad', 0))
+    except (TypeError, ValueError):
+        cantidad = 0
+
+    carrito = _get_carrito(request)
+    producto_key = str(producto_id)
+
+    if producto_key not in carrito:
+        messages.error(request, _('Product not found in cart.'))
+        return redirect('ver_carrito')
+
+    producto = get_object_or_404(
+        Product.objects.select_related('inventory'),
+        pk=producto_id,
+        is_active=True,
+    )
+    disponible = producto.available_qty
+
+    if cantidad <= 0:
+        nombre = carrito[producto_key]['nombre']
+        del carrito[producto_key]
+        _save_carrito(request, carrito)
+        messages.success(
+            request,
+            _('"%(name)s" removed from cart.') % {'name': nombre},
+        )
+        return redirect('ver_carrito')
+
+    if cantidad > disponible:
+        messages.error(
+            request,
+            _('Only %(qty)s units available.') % {'qty': disponible},
+        )
+        return redirect('ver_carrito')
+
+    precio = Decimal(carrito[producto_key]['precio'])
+    carrito[producto_key]['cantidad'] = cantidad
+    carrito[producto_key]['subtotal'] = str((precio * cantidad).quantize(Decimal('0.01')))
+    _save_carrito(request, carrito)
+    return redirect('ver_carrito')
+
+
+@guest_or_buyer_cart
+@require_POST
+def vaciar_carrito(request):
+    """Elimina todos los productos del carrito de sesión."""
+    _save_carrito(request, {})
+    messages.success(request, _('Cart cleared.'))
+    return redirect('ver_carrito')
 
 
 # ---------------------------------------------------------------------------
