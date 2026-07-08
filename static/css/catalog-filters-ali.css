@@ -1,164 +1,285 @@
-/* TradeFlow Colón — simple catalog filter sidebar */
+/* =============================================================================
+   TradeFlow Colón — Filtro catálogo estilo Alibaba
+   Simple de entender · pulido visualmente
+   ============================================================================= */
 
-.catalog-sidebar.cat-sidebar-simple {
-  width: 220px;
-  border: none;
-  border-right: 1px solid var(--tf-border-soft, #D1D5DB);
-  border-radius: 0;
-  padding: 0 16px 12px 0;
-  box-shadow: none;
-  background: transparent;
+.catalog-sidebar.cat-sidebar-ali {
+  width: 208px;
+  flex-shrink: 0;
   position: sticky;
-  font-size: 13px;
+  top: var(--cat-sticky-offset, 120px);
+  max-height: calc(100vh - var(--cat-sticky-offset, 120px) - 16px);
+  overflow-y: auto;
+  padding: 0 14px 12px 0;
+  background: var(--tf-white, #fff);
+  border-right: 1px solid #ebebeb;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
 }
 
-.cat-sidebar-simple .cat-filter-head {
+.catalog-sidebar.cat-sidebar-ali::-webkit-scrollbar {
+  width: 4px;
+}
+
+.catalog-sidebar.cat-sidebar-ali::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 4px;
+}
+
+/* ── Header ── */
+.cat-sidebar-ali .ali-filter-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 2px 0 12px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--tf-border-soft, #D1D5DB);
+  padding: 6px 0 12px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid #ebebeb;
+  position: sticky;
+  top: 0;
+  background: var(--tf-white, #fff);
+  z-index: 1;
 }
 
-.cat-sidebar-simple .cat-filter-head__title {
+.cat-sidebar-ali .ali-filter-head__title {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--tf-navy, #0F2A44);
+  color: #222;
+  letter-spacing: -0.01em;
 }
 
-.cat-sidebar-simple .cat-filter-head__clear {
+.cat-sidebar-ali .ali-filter-head__clear {
   font-size: 12px;
-  font-weight: 600;
-  color: var(--tf-primary, #0057A8);
+  font-weight: 500;
+  color: #0070cc;
   text-decoration: none;
+  white-space: nowrap;
 }
 
-.cat-sidebar-simple .cat-filter-head__clear:hover {
+.cat-sidebar-ali .ali-filter-head__clear:hover {
   text-decoration: underline;
 }
 
-.cat-sidebar-simple .cat-filter-group {
-  margin: 0;
+/* ── Bloques ── */
+.cat-sidebar-ali .ali-filter-block {
   padding: 12px 0;
-  border: none;
-  border-bottom: 1px solid var(--tf-surface, #F2F3F5);
+  border-bottom: 1px solid #ebebeb;
 }
 
-.cat-sidebar-simple .cat-filter-group--last {
+.cat-sidebar-ali .ali-filter-block--last {
   border-bottom: none;
-  padding-bottom: 0;
+  padding-bottom: 4px;
 }
 
-.cat-sidebar-simple .cat-filter-group__title {
-  display: block;
-  margin: 0 0 8px;
-  padding: 0;
+.cat-sidebar-ali .ali-filter-title {
   font-size: 12px;
-  font-weight: 700;
-  color: var(--tf-gray-700, #343A40);
-  letter-spacing: 0.01em;
-}
-
-.cat-sidebar-simple .cat-filter-check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-  font-size: 13px;
-  color: var(--tf-text, #343A40);
-  cursor: pointer;
-  line-height: 1.35;
-}
-
-.cat-sidebar-simple .cat-filter-check input {
-  width: 15px;
-  height: 15px;
-  margin: 0;
-  accent-color: var(--tf-orange, #F26522);
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.cat-sidebar-simple .cat-filter-check span {
-  flex: 1;
-  min-width: 0;
-}
-
-.cat-sidebar-simple .cat-filter-price {
+  font-weight: 600;
+  color: #222;
+  margin: 0 0 8px;
   display: flex;
   align-items: center;
   gap: 6px;
+  line-height: 1.3;
 }
 
-.cat-sidebar-simple .cat-filter-input {
+/* ── Opciones (checkbox) ── */
+.cat-sidebar-ali .ali-filter-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 5px 4px;
+  margin: 0 -4px;
+  font-size: 12px;
+  color: #444;
+  cursor: pointer;
+  line-height: 1.35;
+  border-radius: 4px;
+  transition: background 0.12s ease;
+}
+
+.cat-sidebar-ali .ali-filter-option:hover {
+  background: #f7f7f7;
+}
+
+.cat-sidebar-ali .ali-filter-option input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.cat-sidebar-ali .ali-filter-option__box {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  border: 1.5px solid #bbb;
+  border-radius: 2px;
+  background: #fff;
+  position: relative;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.cat-sidebar-ali .ali-filter-option input:checked + .ali-filter-option__box {
+  border-color: #ff6a00;
+  background: #ff6a00;
+}
+
+.cat-sidebar-ali .ali-filter-option input:checked + .ali-filter-option__box::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.cat-sidebar-ali .ali-filter-option__label {
   flex: 1;
   min-width: 0;
-  height: 34px;
-  padding: 0 10px;
-  border: 1px solid var(--tf-border-soft, #D1D5DB);
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--tf-text, #343A40);
-  background: var(--tf-white, #fff);
 }
 
-.cat-sidebar-simple .cat-filter-input:focus {
-  border-color: var(--tf-orange, #F26522);
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(242, 101, 34, 0.12);
+.cat-sidebar-ali .ali-filter-option__label.is-active {
+  font-weight: 600;
+  color: #ff6a00;
 }
 
-.cat-sidebar-simple .cat-filter-price__sep {
-  color: var(--tf-muted, #6B7A88);
+.cat-sidebar-ali .ali-filter-count {
+  font-style: normal;
+  font-weight: 400;
+  color: #999;
+}
+
+.cat-sidebar-ali .ali-filter-option__label.is-active .ali-filter-count {
+  color: #e8925c;
+}
+
+/* ── Lista categorías ── */
+.cat-sidebar-ali .ali-filter-cats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 132px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
+}
+
+.cat-sidebar-ali .ali-filter-cats::-webkit-scrollbar {
+  width: 3px;
+}
+
+.cat-sidebar-ali .ali-filter-cats::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 3px;
+}
+
+.cat-sidebar-ali .ali-filter-empty {
   font-size: 12px;
-  flex-shrink: 0;
+  color: #999;
+  padding: 2px 4px;
 }
 
-.cat-sidebar-simple .cat-filter-select {
+/* ── Precio (fila Alibaba) ── */
+.cat-sidebar-ali .ali-price-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cat-sidebar-ali .ali-price-input {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 14px;
+  font-size: 11px;
+  color: #333;
+  background: #fff;
+  transition: border-color 0.15s ease;
+}
+
+.cat-sidebar-ali .ali-price-input:focus {
+  border-color: #ff6a00;
+  outline: none;
+}
+
+.cat-sidebar-ali .ali-price-input::placeholder {
+  color: #aaa;
+}
+
+.cat-sidebar-ali .ali-filter-ok {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #222;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  color: #222;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.12s ease;
+}
+
+.cat-sidebar-ali .ali-filter-ok:hover {
+  background: #f5f5f5;
+}
+
+/* ── Select proveedor ── */
+.cat-sidebar-ali .ali-filter-select {
   width: 100%;
-  height: 34px;
-  padding: 0 28px 0 10px;
-  border: 1px solid var(--tf-border-soft, #D1D5DB);
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--tf-text, #343A40);
-  background: var(--tf-white, #fff) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7A88' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
+  height: 30px;
+  padding: 0 24px 0 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #333;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 6px center;
   appearance: none;
   cursor: pointer;
+  transition: border-color 0.15s ease;
 }
 
-.cat-sidebar-simple .cat-filter-select:focus {
-  border-color: var(--tf-orange, #F26522);
+.cat-sidebar-ali .ali-filter-select:focus {
+  border-color: #ff6a00;
   outline: none;
 }
 
-.cat-sidebar-simple .cat-filter-empty {
-  margin: 0;
-  font-size: 12px;
-  color: var(--tf-muted, #6B7A88);
-}
-
-.cat-sidebar-simple .sidebar-close {
+/* ── Cerrar móvil ── */
+.cat-sidebar-ali .sidebar-close {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
   width: 32px;
   height: 32px;
   display: grid;
   place-items: center;
+  border: none;
   border-radius: 50%;
-  background: var(--tf-surface, #F2F3F5);
+  background: #f5f5f5;
+  color: #666;
+  cursor: pointer;
+  font-size: 16px;
 }
 
-.catalog-container:has(.cat-sidebar-simple) {
-  gap: 20px;
+.catalog-container:has(.cat-sidebar-ali) {
+  gap: 18px;
 }
 
-/* Results toolbar sort */
+/* ── Toolbar ordenar ── */
 .results-sort-label {
   font-size: 13px;
   font-weight: 600;
@@ -169,40 +290,44 @@
 .results-sort-select {
   width: auto;
   min-width: 180px;
-  height: 36px;
-  padding: 0 28px 0 12px;
-  border: 1px solid var(--tf-border-soft, #D1D5DB);
-  border-radius: 8px;
-  font-size: 13px;
+  height: 32px;
+  padding: 0 28px 0 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--tf-text, #343A40);
-  background: var(--tf-white, #fff) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7A88' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+  color: #333;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
   appearance: none;
   cursor: pointer;
 }
 
 .results-sort-select:focus {
-  border-color: var(--tf-orange, #F26522);
+  border-color: #ff6a00;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(242, 101, 34, 0.15);
+  box-shadow: 0 0 0 2px rgba(255, 106, 0, 0.12);
 }
 
+/* ── Móvil ── */
 @media (max-width: 1023px) {
-  .catalog-sidebar.cat-sidebar-simple {
-    max-width: 300px;
-    width: min(88vw, 300px);
+  .catalog-sidebar.cat-sidebar-ali {
+    max-width: 288px;
+    width: min(86vw, 288px);
     padding: 48px 16px 20px;
     border-right: none;
-    background: var(--tf-white, #fff);
-    box-shadow: 4px 0 24px rgba(15, 42, 68, 0.12);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+    max-height: none;
   }
 
-  .cat-sidebar-simple .cat-filter-price {
-    flex-direction: column;
-    align-items: stretch;
+  .cat-sidebar-ali .ali-filter-head {
+    position: static;
   }
 
-  .cat-sidebar-simple .cat-filter-price__sep {
-    display: none;
+  .cat-sidebar-ali .ali-price-row {
+    flex-wrap: wrap;
+  }
+
+  .cat-sidebar-ali .ali-filter-ok {
+    margin-left: auto;
   }
 }

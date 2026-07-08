@@ -47,6 +47,17 @@
     novedades: 'Más recientes',
   };
 
+  function syncFilterLabels() {
+    if (!filtersForm) return;
+    filtersForm.querySelectorAll('.ali-filter-option').forEach(function (label) {
+      var input = label.querySelector('input[type="checkbox"]');
+      var text = label.querySelector('.ali-filter-option__label');
+      if (input && text) {
+        text.classList.toggle('is-active', input.checked);
+      }
+    });
+  }
+
   function syncStickyOffset() {
     var nav = document.getElementById('cat-catalog-nav');
     var height = nav ? Math.ceil(nav.getBoundingClientRect().height) : 0;
@@ -272,8 +283,9 @@
 
     filtersForm.querySelectorAll('input[name="categoria"]:checked').forEach(function (input) {
       var label = input.closest('label');
-      var text = label ? label.querySelector('span') : null;
-      chips.push({ key: 'categoria:' + input.value, label: text ? text.textContent.trim() : 'Categoría' });
+      var text = label ? label.querySelector('.ali-filter-option__label') : null;
+      var chipLabel = text ? text.childNodes[0].textContent.trim() : 'Categoría';
+      chips.push({ key: 'categoria:' + input.value, label: chipLabel });
     });
 
     if (filterEmpresa && filterEmpresa.value) {
@@ -294,7 +306,7 @@
       var input = filtersForm.querySelector('input[name="' + name + '"]:checked');
       if (!input) return;
       var label = input.closest('label');
-      var text = label ? label.querySelector('span') : null;
+      var text = label ? label.querySelector('.ali-filter-option__label') : null;
       chips.push({ key: name, label: text ? text.textContent.trim() : name });
     });
 
@@ -393,6 +405,7 @@
     if (ordenSelect) ordenSelect.value = orden;
 
     syncCompanyButtons();
+    syncFilterLabels();
   }
 
   function applyFiltersFromLink(href) {
@@ -521,6 +534,7 @@
 
     filtersForm.querySelectorAll('input[type="checkbox"], input[type="radio"], select').forEach(function (input) {
       input.addEventListener('change', function () {
+        syncFilterLabels();
         clearTimeout(debounceTimer);
         applyFilters({ spinner: spinnerForInput(input) });
       });
@@ -689,6 +703,7 @@
   }
 
   syncFormFromUrl();
+  syncFilterLabels();
   renderActiveFilters();
   bindInquiryButtons();
   bindPaginationLinks();
