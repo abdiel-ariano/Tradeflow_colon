@@ -23,6 +23,7 @@
   var navSearchInput = document.getElementById('cat-nav-search');
   var filterBuscar = document.getElementById('cat-filter-buscar');
   var filterEmpresa = document.getElementById('cat-filter-empresa');
+  var filterCategoria = document.getElementById('cat-filter-categoria');
 
   var currentController = null;
   var debounceTimer = null;
@@ -48,14 +49,7 @@
   };
 
   function syncFilterLabels() {
-    if (!filtersForm) return;
-    filtersForm.querySelectorAll('.ali-filter-option').forEach(function (label) {
-      var input = label.querySelector('input[type="checkbox"]');
-      var text = label.querySelector('.ali-filter-option__label');
-      if (input && text) {
-        text.classList.toggle('is-active', input.checked);
-      }
-    });
+    /* Chips y selects reflejan estado vía :checked / value */
   }
 
   function syncStickyOffset() {
@@ -281,11 +275,10 @@
       chips.push({ key: 'buscar', label: 'Search: ' + buscar });
     }
 
-    filtersForm.querySelectorAll('input[name="categoria"]:checked').forEach(function (input) {
-      var label = input.closest('label');
-      var nameEl = label ? label.querySelector('.ali-filter-name') : null;
-      chips.push({ key: 'categoria:' + input.value, label: nameEl ? nameEl.textContent.trim() : 'Categoría' });
-    });
+    if (filterCategoria && filterCategoria.value) {
+      var catOpt = filterCategoria.options[filterCategoria.selectedIndex];
+      chips.push({ key: 'categoria', label: catOpt ? catOpt.textContent.trim() : 'Categoría' });
+    }
 
     if (filterEmpresa && filterEmpresa.value) {
       var opt = filterEmpresa.options[filterEmpresa.selectedIndex];
@@ -305,7 +298,7 @@
       var input = filtersForm.querySelector('input[name="' + name + '"]:checked');
       if (!input) return;
       var label = input.closest('label');
-      var text = label ? label.querySelector('.ali-filter-option__label') : null;
+      var text = label ? label.querySelector('span') : null;
       chips.push({ key: name, label: text ? text.textContent.trim() : name });
     });
 
@@ -350,10 +343,8 @@
       if (navSearchInput) navSearchInput.value = '';
     } else if (key === 'empresa') {
       if (filterEmpresa) filterEmpresa.value = '';
-    } else if (key.indexOf('categoria:') === 0) {
-      var catId = key.split(':')[1];
-      var catInput = filtersForm.querySelector('input[name="categoria"][value="' + catId + '"]');
-      if (catInput) catInput.checked = false;
+    } else if (key === 'categoria' || key.indexOf('categoria:') === 0) {
+      if (filterCategoria) filterCategoria.value = '';
     } else if (key === 'precio_min' || key === 'precio_max') {
       var priceInput = filtersForm.querySelector('input[name="' + key + '"]');
       if (priceInput) priceInput.value = '';
@@ -381,9 +372,10 @@
       filterEmpresa.value = params.get('empresa') || '';
     }
 
-    filtersForm.querySelectorAll('input[name="categoria"]').forEach(function (input) {
-      input.checked = params.getAll('categoria').indexOf(input.value) >= 0;
-    });
+    if (filterCategoria) {
+      var catParams = params.getAll('categoria').filter(Boolean);
+      filterCategoria.value = catParams.length ? catParams[0] : '';
+    }
 
     ['verificado', 'stock', 'stock_low', 'on_sale'].forEach(function (name) {
       var input = filtersForm.querySelector('input[name="' + name + '"]');
@@ -449,6 +441,9 @@
     }
     if (filterEmpresa && !filterEmpresa.value.trim()) {
       params.delete('empresa');
+    }
+    if (filterCategoria && !filterCategoria.value.trim()) {
+      params.delete('categoria');
     }
 
     var qs = params.toString();
