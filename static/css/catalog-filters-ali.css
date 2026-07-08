@@ -3,14 +3,14 @@
    ============================================================================= */
 
 .catalog-sidebar.cat-sidebar-ali {
-  width: 200px;
+  width: 240px;
   flex-shrink: 0;
   position: sticky;
   top: var(--cat-sticky-offset, 120px);
   max-height: calc(100vh - var(--cat-sticky-offset, 120px) - 16px);
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 12px 12px 0;
+  padding: 0 14px 12px 0;
   background: transparent;
   border: none;
   border-right: 1px solid var(--tf-border-soft, #E5E7EB);
@@ -30,6 +30,57 @@
 .catalog-sidebar.cat-sidebar-ali::-webkit-scrollbar-thumb {
   background: var(--tf-border-soft, #D1D5DB);
   border-radius: 3px;
+}
+
+.ali-sidebar-market {
+  padding: 0 0 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--tf-border-soft, #E5E7EB);
+}
+
+.ali-sidebar-market__title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.ali-sidebar-market__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ali-sidebar-market__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  color: var(--tf-text, #343A40);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ali-sidebar-market__link:hover,
+.ali-sidebar-market__link.is-active {
+  background: rgba(15, 42, 68, 0.06);
+  color: var(--tf-navy, #0F2A44);
+}
+
+.ali-sidebar-market__count {
+  flex-shrink: 0;
+  min-width: 28px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--tf-surface, #F2F3F5);
+  color: var(--tf-muted, #6B7A88);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
 }
 
 .cat-sidebar-ali .cat-filters-form {
@@ -270,73 +321,237 @@
 }
 
 .catalog-container:has(.cat-sidebar-ali) {
-  max-width: 1320px;
+  max-width: 1340px;
   gap: 20px;
   align-items: start;
   padding-left: 18px;
   padding-right: 18px;
 }
 
-/* ── Catálogo: primera fila 4 cards, resto 5 columnas ── */
-.cat-product-grids {
+.ali-market-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.ali-market-hero__primary,
+.ali-market-hero__showcase {
+  min-width: 0;
+}
+
+.ali-market-hero__primary {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  justify-content: center;
+  min-height: 262px;
+  padding: 24px 26px;
+  border-radius: 18px;
+  color: #fff;
+  background:
+    radial-gradient(circle at top right, rgba(255, 122, 61, 0.3), transparent 34%),
+    linear-gradient(135deg, #123356 0%, #0F2A44 58%, #1B3B63 100%);
+  box-shadow: 0 18px 44px rgba(15, 42, 68, 0.16);
 }
 
-.cat-product-grids .cat-product-grid-top,
-.cat-product-grids .cat-product-grid-main {
+.ali-market-hero__eyebrow {
+  margin-bottom: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.ali-market-hero__title {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.ali-market-hero__copy {
+  margin: 12px 0 0;
+  max-width: 62ch;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.ali-market-hero__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.ali-market-hero__stat {
+  min-width: 120px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ali-market-hero__stat strong {
+  display: block;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.ali-market-hero__stat span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.ali-market-hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.ali-market-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ali-market-hero__showcase {
   display: grid;
-  gap: 16px;
-  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 14px;
 }
 
-.cat-product-grids .cat-product-grid-main:empty {
-  display: none;
+.ali-market-hero__banner {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 148px;
+  padding: 20px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    linear-gradient(130deg, rgba(255, 122, 61, 0.94), rgba(242, 101, 34, 0.82));
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 14px 34px rgba(242, 101, 34, 0.18);
 }
 
-@media (min-width: 480px) {
-  .cat-product-grids .cat-product-grid-top,
-  .cat-product-grids .cat-product-grid-main {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-  }
+.ali-market-hero__banner-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.82;
 }
 
-@media (min-width: 768px) {
-  .cat-product-grids .cat-product-grid-top {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .cat-product-grids .cat-product-grid-main {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.ali-market-hero__banner strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 22px;
+  line-height: 1.1;
 }
 
-@media (min-width: 1024px) {
-  .catalog-sidebar.cat-sidebar-ali {
-    width: 184px;
-  }
-
-  .cat-product-grids .cat-product-grid-top {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 15px;
-  }
-
-  .cat-product-grids .cat-product-grid-main {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
-  }
+.ali-market-hero__banner span:last-child {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.94;
 }
 
-@media (min-width: 1280px) {
-  .cat-product-grids .cat-product-grid-main {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 16px;
-  }
+.ali-market-hero__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.cat-product-grids.is-skeleton-exiting .product-card--skeleton {
+.ali-market-hero__tile {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--tf-border-soft, #D1D5DB);
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  text-decoration: none;
+  color: var(--tf-text, #343A40);
+  box-shadow: 0 10px 28px rgba(15, 42, 68, 0.06);
+}
+
+.ali-market-hero__tile-media {
+  height: 112px;
+  background: var(--tf-surface, #F2F3F5);
+}
+
+.ali-market-hero__tile-media img,
+.ali-market-hero__tile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ali-market-hero__tile-placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(15, 42, 68, 0.08), rgba(255, 122, 61, 0.12));
+}
+
+.ali-market-hero__tile-body {
+  padding: 12px;
+}
+
+.ali-market-hero__tile-body strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.25;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.ali-market-hero__tile-body span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--tf-muted, #6B7A88);
+}
+
+.ali-results-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 8px 0 16px;
+  color: var(--tf-muted, #6B7A88);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ali-results-divider::before,
+.ali-results-divider::after {
+  content: "";
+  flex: 1;
+  min-width: 48px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--tf-border-soft, #D1D5DB), transparent);
+}
+
+.product-grid.is-skeleton-exiting .product-card--skeleton {
   opacity: 0;
   transition: opacity 0.18s ease;
 }
@@ -388,6 +603,38 @@
 
   .cat-sidebar-ali .sidebar-close {
     display: grid;
+  }
+
+  .ali-market-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .ali-market-hero__title {
+    font-size: 28px;
+  }
+
+  .ali-market-hero__tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .catalog-container:has(.cat-sidebar-ali) {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .ali-market-hero__primary {
+    padding: 20px 18px;
+    min-height: 0;
+  }
+
+  .ali-market-hero__title {
+    font-size: 24px;
+  }
+
+  .ali-market-hero__tiles {
+    grid-template-columns: 1fr;
   }
 }
 

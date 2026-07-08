@@ -12,7 +12,7 @@
   var backdrop = document.getElementById('cat-sidebar-backdrop');
   var host = document.getElementById('cat-results-host');
   var filtersForm = document.getElementById('cat-filters-form');
-  var grids = document.getElementById('cat-product-grids');
+  var grid = document.getElementById('cat-product-grid');
   var resultsCountEl = document.querySelector('.results-count strong');
   var progressBar = document.getElementById('top-progress-bar');
   var activeFiltersEl = document.getElementById('cat-active-filters');
@@ -184,85 +184,63 @@
     return card;
   }
 
-  function createGridSection(id, className) {
-    var section = document.createElement('div');
-    section.className = 'product-grid cat-grid tf-pcard-grid ' + className;
-    section.id = id;
-    return section;
-  }
-
-  function ensureProductGrids() {
-    var gridsEl = document.getElementById('cat-product-grids');
-    if (gridsEl) return gridsEl;
+  function ensureProductGrid() {
+    var gridEl = document.getElementById('cat-product-grid');
+    if (gridEl) return gridEl;
 
     var root = document.getElementById('cat-results-root');
     if (!root) return null;
 
-    gridsEl = document.createElement('div');
-    gridsEl.className = 'cat-product-grids';
-    gridsEl.id = 'cat-product-grids';
-    gridsEl.appendChild(createGridSection('cat-product-grid-top', 'cat-product-grid-top'));
-    gridsEl.appendChild(createGridSection('cat-product-grid-main', 'cat-product-grid-main'));
+    gridEl = document.createElement('div');
+    gridEl.className = 'product-grid cat-grid tf-pcard-grid';
+    gridEl.id = 'cat-product-grid';
     root.innerHTML = '';
-    root.appendChild(gridsEl);
-    return gridsEl;
-  }
-
-  function fillSkeletonGrid(gridEl, count) {
-    if (!gridEl || count <= 0) {
-      if (gridEl) gridEl.innerHTML = '';
-      return;
-    }
-    var fragment = document.createDocumentFragment();
-    var i;
-    for (i = 0; i < count; i += 1) {
-      fragment.appendChild(buildSkeletonCard());
-    }
-    gridEl.innerHTML = '';
-    gridEl.appendChild(fragment);
+    root.appendChild(gridEl);
+    return gridEl;
   }
 
   function showSkeletonGrid(count) {
-    var gridsEl = ensureProductGrids();
-    if (!gridsEl) return;
+    var gridEl = ensureProductGrid();
+    if (!gridEl) return;
 
-    gridsEl.classList.remove('is-skeleton-exiting');
+    gridEl.classList.remove('is-skeleton-exiting');
 
     var pagination = document.querySelector('.pagination');
     if (pagination) pagination.remove();
 
+    gridEl.innerHTML = '';
+    var fragment = document.createDocumentFragment();
     var total = count || getSkeletonCount();
-    var topCount = Math.min(4, total);
-    var mainCount = Math.max(0, total - topCount);
-    var topGrid = document.getElementById('cat-product-grid-top');
-    var mainGrid = document.getElementById('cat-product-grid-main');
-    fillSkeletonGrid(topGrid, topCount);
-    fillSkeletonGrid(mainGrid, mainCount);
+    var i;
+    for (i = 0; i < total; i += 1) {
+      fragment.appendChild(buildSkeletonCard());
+    }
+    gridEl.appendChild(fragment);
   }
 
-  function renderResultsWithFade(gridsEl, newGridsHTML) {
-    if (!gridsEl) return;
-    if (typeof newGridsHTML === 'string') {
-      gridsEl.innerHTML = newGridsHTML;
+  function renderResultsWithFade(gridEl, newGridHTML) {
+    if (!gridEl) return;
+    if (typeof newGridHTML === 'string') {
+      gridEl.innerHTML = newGridHTML;
     }
-    gridsEl.querySelectorAll('.product-card').forEach(function (card, index) {
+    gridEl.querySelectorAll('.product-card').forEach(function (card, index) {
       card.style.opacity = '0';
       card.classList.add('is-entering');
       card.style.animationDelay = Math.min(index * 25, 200) + 'ms';
     });
   }
 
-  function transitionToResults(gridsEl, newGridsHTML) {
-    if (!gridsEl) return;
-    var hasSkeleton = gridsEl.querySelector('.product-card--skeleton');
+  function transitionToResults(gridEl, newGridHTML) {
+    if (!gridEl) return;
+    var hasSkeleton = gridEl.querySelector('.product-card--skeleton');
     if (!hasSkeleton) {
-      renderResultsWithFade(gridsEl, newGridsHTML);
+      renderResultsWithFade(gridEl, newGridHTML);
       return;
     }
-    gridsEl.classList.add('is-skeleton-exiting');
+    gridEl.classList.add('is-skeleton-exiting');
     setTimeout(function () {
-      gridsEl.classList.remove('is-skeleton-exiting');
-      renderResultsWithFade(gridsEl, newGridsHTML);
+      gridEl.classList.remove('is-skeleton-exiting');
+      renderResultsWithFade(gridEl, newGridHTML);
     }, 220);
   }
 
@@ -482,11 +460,11 @@
 
         var parser = new DOMParser();
         var doc = parser.parseFromString(html, 'text/html');
-        var newGrids = doc.getElementById('cat-product-grids');
+        var newGrid = doc.getElementById('cat-product-grid');
 
-        if (newGrids) {
-          var currentGrids = ensureProductGrids();
-          transitionToResults(currentGrids, newGrids.innerHTML);
+        if (newGrid) {
+          var currentGrid = ensureProductGrid();
+          transitionToResults(currentGrid, newGrid.innerHTML);
 
           var newPagination = doc.querySelector('.pagination');
           var currentPagination = document.querySelector('.pagination');
@@ -509,9 +487,9 @@
           }
         } else {
           host.innerHTML = html;
-          grids = document.getElementById('cat-product-grids');
-          if (grids) {
-            renderResultsWithFade(grids);
+          grid = document.getElementById('cat-product-grid');
+          if (grid) {
+            renderResultsWithFade(grid);
           }
         }
 
@@ -524,7 +502,7 @@
           window.history.pushState({}, '', url);
         }
 
-        grids = document.getElementById('cat-product-grids');
+        grid = document.getElementById('cat-product-grid');
         bindInquiryButtons();
         bindPaginationLinks();
         bindAjaxChips();
