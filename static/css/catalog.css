@@ -647,14 +647,17 @@ body.cat-catalog-page .tf-main {
   }
 
   .catalog-sidebar.cat-sidebar-ali {
-    max-width: 280px;
-    padding: 48px 16px 20px;
+    max-width: 300px;
+    padding: 16px 18px 24px;
     border-right: none;
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.12);
   }
 
   .catalog-sidebar.is-open { display: block; }
-  .sidebar-close { display: block; }
+
+  .catalog-sidebar.cat-sidebar-ali .sidebar-close {
+    display: grid;
+  }
 }
 
 .filter-section {

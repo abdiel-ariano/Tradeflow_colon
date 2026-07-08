@@ -4,7 +4,7 @@
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'18' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'4' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'6' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
 {% if productos %}
@@ -58,28 +58,39 @@
   <div class="catalog-container">
     <aside class="catalog-sidebar cat-sidebar-ali" id="cat-sidebar" aria-label="Filtros del catálogo">
       <div class="ali-filter-head">
-        <h2 class="ali-filter-head__title">Filtros</h2>
+        <div class="ali-filter-head__top">
+          <h2 class="ali-filter-head__title">Filtros</h2>
+          <button type="button" class="sidebar-close" id="cat-sidebar-close" aria-label="Cerrar filtros">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
         <a href="{% url 'catalogo_publico' %}" class="ali-filter-head__clear">Limpiar todo</a>
       </div>
-      <button type="button" class="sidebar-close" id="cat-sidebar-close" aria-label="Cerrar filtros">✕</button>
 
       <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form" id="cat-filters-form">
         <input type="hidden" name="buscar" id="cat-filter-buscar" value="{{ buscar }}">
 
         <div class="ali-filter-block">
-          <p class="ali-filter-title">Características del producto</p>
-          <label class="ali-filter-option">
-            <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
-            <span class="ali-filter-option__label{% if solo_verificado %} is-active{% endif %}">Proveedor verificado</span>
-          </label>
-          <label class="ali-filter-option">
-            <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
-            <span class="ali-filter-option__label{% if solo_stock %} is-active{% endif %}">En stock</span>
-          </label>
-          <label class="ali-filter-option">
-            <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
-            <span class="ali-filter-option__label{% if solo_on_sale %} is-active{% endif %}">En oferta</span>
-          </label>
+          <p class="ali-filter-title">Características</p>
+          <div class="ali-filter-options">
+            <label class="ali-filter-option">
+              <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
+              <span class="ali-check" aria-hidden="true"></span>
+              <span class="ali-filter-option__label{% if solo_verificado %} is-active{% endif %}">Proveedor verificado</span>
+            </label>
+            <label class="ali-filter-option">
+              <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
+              <span class="ali-check" aria-hidden="true"></span>
+              <span class="ali-filter-option__label{% if solo_stock %} is-active{% endif %}">En stock</span>
+            </label>
+            <label class="ali-filter-option">
+              <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
+              <span class="ali-check" aria-hidden="true"></span>
+              <span class="ali-filter-option__label{% if solo_on_sale %} is-active{% endif %}">En oferta</span>
+            </label>
+          </div>
         </div>
 
         <div class="ali-filter-block">
@@ -90,6 +101,7 @@
               <label class="ali-filter-option">
                 <input type="checkbox" name="categoria" value="{{ cat.pk }}"
                        {% if cat.pk|stringformat:'s' in categorias_sel %}checked{% endif %}>
+                <span class="ali-check" aria-hidden="true"></span>
                 <span class="ali-filter-option__label{% if cat.pk|stringformat:'s' in categorias_sel %} is-active{% endif %}">
                   <span class="ali-filter-name">{{ cat.name }}</span>
                   <span class="ali-filter-count">{{ cat.num_productos }}</span>
@@ -104,12 +116,15 @@
 
         <div class="ali-filter-block">
           <p class="ali-filter-title">Precio (US $)</p>
-          <div class="ali-price-row">
-            <input type="number" name="precio_min" min="0" step="0.01" placeholder="Mín."
-                   value="{{ precio_min }}" aria-label="Precio mínimo" class="ali-price-input">
-            <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx."
-                   value="{{ precio_max }}" aria-label="Precio máximo" class="ali-price-input">
-            <button type="submit" class="ali-filter-ok">OK</button>
+          <div class="ali-price-panel">
+            <div class="ali-price-row">
+              <input type="number" name="precio_min" min="0" step="0.01" placeholder="Mín."
+                     value="{{ precio_min }}" aria-label="Precio mínimo" class="ali-price-input">
+              <span class="ali-price-sep" aria-hidden="true">—</span>
+              <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx."
+                     value="{{ precio_max }}" aria-label="Precio máximo" class="ali-price-input">
+            </div>
+            <button type="submit" class="ali-filter-ok">Aplicar precio</button>
           </div>
         </div>
 
