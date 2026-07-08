@@ -283,9 +283,8 @@
 
     filtersForm.querySelectorAll('input[name="categoria"]:checked').forEach(function (input) {
       var label = input.closest('label');
-      var text = label ? label.querySelector('.ali-filter-option__label') : null;
-      var chipLabel = text ? text.childNodes[0].textContent.trim() : 'Categoría';
-      chips.push({ key: 'categoria:' + input.value, label: chipLabel });
+      var nameEl = label ? label.querySelector('.ali-filter-name') : null;
+      chips.push({ key: 'categoria:' + input.value, label: nameEl ? nameEl.textContent.trim() : 'Categoría' });
     });
 
     if (filterEmpresa && filterEmpresa.value) {
@@ -501,6 +500,7 @@
 
         updateResultsCount(doc);
         syncCompanyButtons();
+        syncFilterLabels();
         renderActiveFilters();
 
         if (!options.skipHistory && window.history && window.history.pushState) {

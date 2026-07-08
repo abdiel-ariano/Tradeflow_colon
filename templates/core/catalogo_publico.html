@@ -3,8 +3,8 @@
 {% block title %}Colón Free Zone Wholesale Catalog | TradeFlow Colón{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'17' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'3' }}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'18' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'4' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
 {% if productos %}
@@ -70,36 +70,29 @@
           <p class="ali-filter-title">Características del producto</p>
           <label class="ali-filter-option">
             <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
-            <span class="ali-filter-option__box" aria-hidden="true"></span>
             <span class="ali-filter-option__label{% if solo_verificado %} is-active{% endif %}">Proveedor verificado</span>
           </label>
           <label class="ali-filter-option">
             <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
-            <span class="ali-filter-option__box" aria-hidden="true"></span>
             <span class="ali-filter-option__label{% if solo_stock %} is-active{% endif %}">En stock</span>
           </label>
           <label class="ali-filter-option">
             <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
-            <span class="ali-filter-option__box" aria-hidden="true"></span>
             <span class="ali-filter-option__label{% if solo_on_sale %} is-active{% endif %}">En oferta</span>
           </label>
         </div>
 
         <div class="ali-filter-block">
-          <p class="ali-filter-title">
-            Categoría
-            <span class="filter-mini-spinner" data-spinner="categories" aria-hidden="true"></span>
-          </p>
+          <p class="ali-filter-title">Categoría</p>
           <ul class="ali-filter-cats">
             {% for cat in categorias|slice:":12" %}
             <li>
               <label class="ali-filter-option">
                 <input type="checkbox" name="categoria" value="{{ cat.pk }}"
                        {% if cat.pk|stringformat:'s' in categorias_sel %}checked{% endif %}>
-                <span class="ali-filter-option__box" aria-hidden="true"></span>
                 <span class="ali-filter-option__label{% if cat.pk|stringformat:'s' in categorias_sel %} is-active{% endif %}">
-                  {{ cat.name }}
-                  <em class="ali-filter-count">({{ cat.num_productos }})</em>
+                  <span class="ali-filter-name">{{ cat.name }}</span>
+                  <span class="ali-filter-count">{{ cat.num_productos }}</span>
                 </span>
               </label>
             </li>
@@ -110,10 +103,7 @@
         </div>
 
         <div class="ali-filter-block">
-          <p class="ali-filter-title">
-            Precio (US $)
-            <span class="filter-mini-spinner" data-spinner="price" aria-hidden="true"></span>
-          </p>
+          <p class="ali-filter-title">Precio (US $)</p>
           <div class="ali-price-row">
             <input type="number" name="precio_min" min="0" step="0.01" placeholder="Mín."
                    value="{{ precio_min }}" aria-label="Precio mínimo" class="ali-price-input">
