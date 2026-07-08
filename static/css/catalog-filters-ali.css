@@ -3,16 +3,18 @@
    ============================================================================= */
 
 .catalog-sidebar.cat-sidebar-ali {
-  width: 232px;
+  width: 248px;
   flex-shrink: 0;
   position: sticky;
   top: var(--cat-sticky-offset, 120px);
   max-height: calc(100vh - var(--cat-sticky-offset, 120px) - 16px);
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 14px 16px 0;
+  padding: 14px 14px 16px;
   background: var(--tf-white, #fff);
-  border-right: 1px solid var(--tf-border-soft, #E5E7EB);
+  border: 1px solid var(--tf-border-soft, #E5E7EB);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(15, 42, 68, 0.06);
   font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
   font-size: 13px;
   color: var(--tf-text, #343A40);
@@ -29,53 +31,79 @@
   border-radius: 4px;
 }
 
-/* ── Header ── */
-.cat-sidebar-ali .ali-filter-head {
+.cat-sidebar-ali .cat-filters-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 4px 0 14px;
-  margin-bottom: 2px;
+}
+
+/* ── Header ── */
+.cat-sidebar-ali .ali-filter-head {
+  padding: 0 0 14px;
+  margin-bottom: 4px;
   border-bottom: 1px solid var(--tf-border-soft, #E5E7EB);
   position: sticky;
-  top: 0;
+  top: -14px;
+  margin-top: -14px;
+  padding-top: 14px;
   background: var(--tf-white, #fff);
   z-index: 2;
 }
 
 .cat-sidebar-ali .ali-filter-head__top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  min-height: 32px;
+}
+
+.cat-sidebar-ali .ali-filter-head__brand {
+  min-width: 0;
 }
 
 .cat-sidebar-ali .ali-filter-head__title {
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--tf-navy, #0F2A44);
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
+.cat-sidebar-ali .ali-filter-head__hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tf-muted, #6B7A88);
+  line-height: 1.35;
+}
+
+.cat-sidebar-ali .ali-filter-head__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .cat-sidebar-ali .ali-filter-head__clear {
-  align-self: flex-start;
   font-size: 12px;
   font-weight: 600;
   color: var(--tf-primary, #0057A8);
   text-decoration: none;
-  padding: 2px 0;
-  line-height: 1.3;
+  padding: 6px 10px;
+  line-height: 1.2;
+  border-radius: 999px;
+  background: rgba(0, 87, 168, 0.06);
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
 .cat-sidebar-ali .ali-filter-head__clear:hover {
   color: var(--tf-navy-mid, #1B3B63);
-  text-decoration: underline;
+  background: rgba(0, 87, 168, 0.1);
+  text-decoration: none;
 }
 
-/* Cerrar — en fila con título, sin solapar "Limpiar todo" */
 .cat-sidebar-ali .sidebar-close {
   display: none;
   flex-shrink: 0;
@@ -99,25 +127,33 @@
   background: var(--tf-surface-hover, #E8EAEE);
 }
 
-/* ── Bloques ── */
+/* ── Bloques (tarjetas internas) ── */
 .cat-sidebar-ali .ali-filter-block {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--tf-surface, #F2F3F5);
+  padding: 12px;
+  border: 1px solid var(--tf-surface, #F2F3F5);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #FAFBFC 0%, #fff 100%);
 }
 
 .cat-sidebar-ali .ali-filter-block--last {
-  border-bottom: none;
-  padding-bottom: 6px;
+  margin-bottom: 0;
 }
 
 .cat-sidebar-ali .ali-filter-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--tf-navy, #0F2A44);
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   line-height: 1.3;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.cat-sidebar-ali .ali-filter-subtitle {
+  margin: -4px 0 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tf-muted, #6B7A88);
+  line-height: 1.35;
 }
 
 .cat-sidebar-ali .filter-mini-spinner {
@@ -127,7 +163,7 @@
 .cat-sidebar-ali .ali-filter-options {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 /* ── Opciones checkbox ── */
@@ -135,21 +171,26 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 7px 8px;
-  margin: 0 -8px;
+  padding: 8px 10px;
+  margin: 0;
   font-size: 13px;
   color: var(--tf-text, #343A40);
   cursor: pointer;
   line-height: 1.4;
-  border-radius: var(--tf-radius-sm, 8px);
-  transition: background 0.12s ease;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: background 0.12s ease, border-color 0.12s ease;
 }
 
 .cat-sidebar-ali .ali-filter-option:hover {
   background: var(--tf-surface, #F2F3F5);
 }
 
-/* Ocultar checkbox nativo; usar .ali-check */
+.cat-sidebar-ali .ali-filter-option:has(input[type="checkbox"]:checked) {
+  background: rgba(242, 101, 34, 0.08);
+  border-color: rgba(242, 101, 34, 0.18);
+}
+
 .cat-sidebar-ali .ali-filter-option input[type="checkbox"] {
   position: absolute;
   width: 1px;
@@ -219,22 +260,27 @@
 
 .cat-sidebar-ali .ali-filter-count {
   flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 500;
+  min-width: 22px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 700;
   color: var(--tf-muted, #6B7A88);
+  background: var(--tf-surface, #F2F3F5);
+  border-radius: 999px;
+  text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
 .cat-sidebar-ali .ali-filter-option__label.is-active {
   font-weight: 600;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.cat-sidebar-ali .ali-filter-option:has(input:checked) .ali-filter-count {
   color: var(--tf-orange, #F26522);
+  background: rgba(242, 101, 34, 0.12);
 }
 
-.cat-sidebar-ali .ali-filter-option__label.is-active .ali-filter-count {
-  color: var(--tf-orange-light, #FF7A3D);
-}
-
-/* Características: etiqueta en bloque simple */
 .cat-sidebar-ali .ali-filter-block:first-of-type .ali-filter-option__label {
   display: block;
 }
@@ -244,10 +290,11 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 160px;
+  max-height: 168px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--tf-border-soft, #D1D5DB) transparent;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 12px), transparent 100%);
 }
 
 .cat-sidebar-ali .ali-filter-cats::-webkit-scrollbar {
@@ -291,7 +338,7 @@
   height: 34px;
   padding: 0 10px;
   border: 1px solid var(--tf-border-soft, #D1D5DB);
-  border-radius: 17px;
+  border-radius: 8px;
   font-size: 12px;
   font-family: inherit;
   color: var(--tf-text, #343A40);
@@ -310,34 +357,42 @@
 }
 
 .cat-sidebar-ali .ali-filter-ok {
-  align-self: flex-start;
-  height: 32px;
+  width: 100%;
+  height: 34px;
   padding: 0 14px;
-  border: 1px solid var(--tf-navy, #0F2A44);
-  border-radius: 16px;
-  background: var(--tf-white, #fff);
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--tf-orange, #F26522) 0%, #FF7A3D 100%);
   font-size: 12px;
   font-weight: 700;
   font-family: inherit;
-  color: var(--tf-navy, #0F2A44);
+  color: #fff;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  box-shadow: 0 4px 12px rgba(242, 101, 34, 0.22);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
 
 .cat-sidebar-ali .ali-filter-ok:hover {
-  background: var(--tf-navy, #0F2A44);
-  color: var(--tf-white, #fff);
+  filter: brightness(1.03);
+  box-shadow: 0 6px 16px rgba(242, 101, 34, 0.28);
+  transform: translateY(-1px);
+}
+
+.cat-sidebar-ali .ali-filter-ok:focus-visible {
+  outline: 2px solid var(--tf-navy, #0F2A44);
+  outline-offset: 2px;
 }
 
 /* ── Select proveedor ── */
 .cat-sidebar-ali .ali-filter-select {
   width: 100%;
-  height: 36px;
+  height: 38px;
   padding: 0 30px 0 12px;
   border: 1px solid var(--tf-border-soft, #D1D5DB);
-  border-radius: var(--tf-radius-sm, 8px);
+  border-radius: 8px;
   font-size: 13px;
+  font-weight: 500;
   font-family: inherit;
   color: var(--tf-text, #343A40);
   background-color: var(--tf-white, #fff);
@@ -357,6 +412,7 @@
 
 .catalog-container:has(.cat-sidebar-ali) {
   gap: 24px;
+  align-items: start;
 }
 
 /* ── Toolbar ordenar ── */
@@ -395,17 +451,24 @@
 /* ── Móvil ── */
 @media (max-width: 1023px) {
   .catalog-sidebar.cat-sidebar-ali {
-    max-width: 300px;
-    width: min(88vw, 300px);
-    padding: 16px 18px 24px;
+    max-width: 320px;
+    width: min(88vw, 320px);
+    padding: 16px;
     border-right: none;
-    box-shadow: 4px 0 24px rgba(15, 42, 68, 0.14);
+    border-radius: 0 14px 14px 0;
+    box-shadow: 4px 0 28px rgba(15, 42, 68, 0.16);
     max-height: none;
   }
 
   .cat-sidebar-ali .ali-filter-head {
     position: static;
+    top: auto;
+    margin-top: 0;
     padding-top: 0;
+  }
+
+  .cat-sidebar-ali .ali-filter-head__hint {
+    display: none;
   }
 
   .cat-sidebar-ali .sidebar-close {
@@ -419,7 +482,12 @@
   .cat-sidebar-ali .ali-check::after,
   .cat-sidebar-ali .ali-price-input,
   .cat-sidebar-ali .ali-filter-ok,
-  .cat-sidebar-ali .ali-filter-select {
+  .cat-sidebar-ali .ali-filter-select,
+  .cat-sidebar-ali .ali-filter-head__clear {
     transition: none;
+  }
+
+  .cat-sidebar-ali .ali-filter-ok:hover {
+    transform: none;
   }
 }
