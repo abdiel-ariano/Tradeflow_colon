@@ -24,21 +24,10 @@ Solo presentación; contrato del formulario sin cambios.
     >
   </div>
 
-  <div class="login-figma-frame" aria-hidden="true">
-    <div class="login-figma-frame__sides"></div>
-    <div class="login-figma-frame__rule"></div>
-  </div>
-
   <header class="login-figma-header" role="banner">
     <a href="{% url 'home' %}" class="login-figma-header__logo" aria-label="TradeFlow Colón">
-      <img
-        src="{% static 'img/logo-wordmark-dark.png' %}"
-        alt="TradeFlow Colón"
-        class="login-figma-header__logo-img"
-        width="80"
-        height="25"
-        decoding="async"
-      >
+      {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="login-figma-header__icon" eager=1 %}
+      <span class="login-figma-header__wordmark">TradeFlow <span class="login-figma-header__accent">Colón</span></span>
     </a>
   </header>
 
@@ -53,7 +42,7 @@ Solo presentación; contrato del formulario sin cambios.
           Verificación de correo desactivada para pruebas locales.
         </div>
 
-        <h1 class="login-figma-card__title">Inicia sesión en tu cuenta</h1>
+        <h1 class="login-figma-card__title">Iniciar sesión en tu cuenta</h1>
 
         <form method="post" action="{% url 'login' %}" novalidate class="login-figma-form">
           {% csrf_token %}

@@ -605,6 +605,40 @@ def diversify_visible_order(products: list, *, window: int = 4) -> list:
     return ordered
 
 
+def gateway_carousel_products(
+    daily_deals_list,
+    bestsellers_list,
+    featured_list,
+    *,
+    limit: int = 6,
+) -> list:
+    """Hero ATF carousel — promos first, then bestsellers, then featured."""
+    out: list = []
+    seen: set[int] = set()
+    for product in daily_deals_list:
+        if product.pk in seen:
+            continue
+        out.append(product)
+        seen.add(product.pk)
+        if len(out) >= limit:
+            return out
+    for product in bestsellers_list:
+        if product.pk in seen:
+            continue
+        out.append(product)
+        seen.add(product.pk)
+        if len(out) >= limit:
+            return out
+    for product in featured_list:
+        if product.pk in seen:
+            continue
+        out.append(product)
+        seen.add(product.pk)
+        if len(out) >= limit:
+            return out
+    return out
+
+
 def build_guest_home_context(lang: str) -> dict:
     """
     Contexto completo de la landing pública (invitados).
@@ -738,6 +772,12 @@ def build_guest_home_context(lang: str) -> dict:
         cms_types=cms_types,
     )
     home_figma_sections = _build_home_figma_sections(card_rows=home_card_sections)
+    gateway_carousel_list = gateway_carousel_products(
+        daily_deals_list,
+        bestsellers_list,
+        featured_list,
+        limit=6,
+    )
 
     return {
         'stats': home_stats_uncached(),
@@ -745,6 +785,7 @@ def build_guest_home_context(lang: str) -> dict:
         'daily_deals': daily_deals_list,
         'bestsellers': bestsellers_list,
         'featured_products': featured_list,
+        'gateway_carousel_products': gateway_carousel_list,
         'trending_products': _pick_unique_products(
             trending_products(24), set(seen), 24, diverse_images=True,
         ),

@@ -28,7 +28,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-public-shell.css' %}?v={{ tf_asset_version|default:'6' }}">
   <link rel="stylesheet" href="{% static 'css/tf-header.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-footer.css' %}?v={{ tf_asset_version|default:'2' }}">
-  <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'3' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'5' }}">
   {% if request.user.is_authenticated %}
     {% if request.user.profile.role == 'buyer' %}
   <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'13' }}">
@@ -1067,9 +1067,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   {% if not request.user.is_authenticated %}
     {% with nav_page=request.resolver_match.url_name|default:'' %}
-    {% if nav_page == 'home' %}
-    {% include "core/includes/buyer/buyer_navbar.html" %}
-    {% elif nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' %}
+    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' %}
     {% include "core/includes/public_navbar.html" %}
     {% endif %}
     {% endwith %}

@@ -1,0 +1,334 @@
+/* =============================================================================
+   TradeFlow Colón — Filtro catálogo compacto (Alibaba · paleta TF)
+   ============================================================================= */
+
+.catalog-sidebar.cat-sidebar-ali {
+  width: 200px;
+  flex-shrink: 0;
+  position: sticky;
+  top: var(--cat-sticky-offset, 120px);
+  max-height: calc(100vh - var(--cat-sticky-offset, 120px) - 16px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 12px 12px 0;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--tf-border-soft, #E5E7EB);
+  border-radius: 0;
+  box-shadow: none;
+  font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
+  font-size: 12px;
+  color: var(--tf-text, #343A40);
+  scrollbar-width: thin;
+  scrollbar-color: var(--tf-border-soft, #D1D5DB) transparent;
+}
+
+.catalog-sidebar.cat-sidebar-ali::-webkit-scrollbar {
+  width: 3px;
+}
+
+.catalog-sidebar.cat-sidebar-ali::-webkit-scrollbar-thumb {
+  background: var(--tf-border-soft, #D1D5DB);
+  border-radius: 3px;
+}
+
+.cat-sidebar-ali .cat-filters-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Header ── */
+.cat-sidebar-ali .ali-filter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--tf-border-soft, #E5E7EB);
+  position: sticky;
+  top: 0;
+  background: var(--tf-white, #fff);
+  z-index: 2;
+}
+
+.cat-sidebar-ali .ali-filter-head__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tf-navy, #0F2A44);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.cat-sidebar-ali .ali-filter-head__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cat-sidebar-ali .ali-filter-head__clear {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-primary, #0057A8);
+  text-decoration: none;
+  line-height: 1.2;
+}
+
+.cat-sidebar-ali .ali-filter-head__clear:hover {
+  text-decoration: underline;
+}
+
+.cat-sidebar-ali .sidebar-close {
+  display: none;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--tf-surface, #F2F3F5);
+  color: var(--tf-navy, #0F2A44);
+  cursor: pointer;
+  place-items: center;
+}
+
+.cat-sidebar-ali .sidebar-close svg {
+  display: block;
+}
+
+/* ── Chips rápidos ── */
+.cat-sidebar-ali .ali-filter-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--tf-surface, #F2F3F5);
+}
+
+.cat-sidebar-ali .ali-quick-chip {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.cat-sidebar-ali .ali-quick-chip input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cat-sidebar-ali .ali-quick-chip span {
+  display: inline-block;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--tf-text, #343A40);
+  background: var(--tf-white, #fff);
+  border: 1px solid var(--tf-border-soft, #D1D5DB);
+  border-radius: 999px;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.cat-sidebar-ali .ali-quick-chip:hover span {
+  border-color: var(--tf-border-hover, #9CA3AF);
+  background: var(--tf-surface, #F2F3F5);
+}
+
+.cat-sidebar-ali .ali-quick-chip input:checked + span {
+  color: var(--tf-navy, #0F2A44);
+  background: rgba(255, 122, 61, 0.1);
+  border-color: rgba(255, 122, 61, 0.45);
+}
+
+.cat-sidebar-ali .ali-quick-chip input:focus-visible + span {
+  outline: 2px solid var(--tf-orange, #F26522);
+  outline-offset: 2px;
+}
+
+/* ── Campos apilados ── */
+.cat-sidebar-ali .ali-filter-field {
+  padding: 0 0 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--tf-surface, #F2F3F5);
+}
+
+.cat-sidebar-ali .ali-filter-field--last {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.cat-sidebar-ali .ali-filter-label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-navy, #0F2A44);
+  line-height: 1.2;
+}
+
+/* ── Selects ── */
+.cat-sidebar-ali .ali-filter-select {
+  width: 100%;
+  height: 32px;
+  padding: 0 26px 0 8px;
+  border: 1px solid var(--tf-border-soft, #D1D5DB);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--tf-text, #343A40);
+  background-color: var(--tf-white, #fff);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236B7A88' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cat-sidebar-ali .ali-filter-select:focus {
+  border-color: var(--tf-orange, #F26522);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(242, 101, 34, 0.12);
+}
+
+/* ── Precio inline ── */
+.cat-sidebar-ali .ali-price-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cat-sidebar-ali .ali-price-sep {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--tf-muted, #6B7A88);
+  user-select: none;
+}
+
+.cat-sidebar-ali .ali-price-input {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--tf-border-soft, #D1D5DB);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--tf-text, #343A40);
+  background: var(--tf-white, #fff);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cat-sidebar-ali .ali-price-input:focus {
+  border-color: var(--tf-orange, #F26522);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(242, 101, 34, 0.12);
+}
+
+.cat-sidebar-ali .ali-price-input::placeholder {
+  color: var(--tf-muted, #6B7A88);
+}
+
+.cat-sidebar-ali .ali-filter-ok {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--tf-navy, #0F2A44);
+  border-radius: 6px;
+  background: var(--tf-white, #fff);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--tf-navy, #0F2A44);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.cat-sidebar-ali .ali-filter-ok:hover {
+  background: var(--tf-navy, #0F2A44);
+  color: #fff;
+}
+
+.cat-sidebar-ali .ali-filter-ok:focus-visible {
+  outline: 2px solid var(--tf-orange, #F26522);
+  outline-offset: 2px;
+}
+
+.catalog-container:has(.cat-sidebar-ali) {
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── Toolbar ordenar ── */
+.results-sort-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tf-muted, #6B7A88);
+  white-space: nowrap;
+}
+
+.results-sort-select {
+  width: auto;
+  min-width: 180px;
+  height: 34px;
+  padding: 0 28px 0 12px;
+  border: 1px solid var(--tf-border-soft, #D1D5DB);
+  border-radius: var(--tf-radius-sm, 8px);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+  color: var(--tf-text, #343A40);
+  background-color: var(--tf-white, #fff);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7A88' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  appearance: none;
+  cursor: pointer;
+}
+
+.results-sort-select:focus {
+  border-color: var(--tf-orange, #F26522);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(242, 101, 34, 0.15);
+}
+
+/* ── Móvil ── */
+@media (max-width: 1023px) {
+  .catalog-sidebar.cat-sidebar-ali {
+    max-width: 280px;
+    width: min(84vw, 280px);
+    padding: 14px 16px 18px;
+    border-right: none;
+    background: var(--tf-white, #fff);
+    box-shadow: 4px 0 24px rgba(15, 42, 68, 0.14);
+    max-height: none;
+  }
+
+  .cat-sidebar-ali .sidebar-close {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-sidebar-ali .ali-quick-chip span,
+  .cat-sidebar-ali .ali-price-input,
+  .cat-sidebar-ali .ali-filter-ok,
+  .cat-sidebar-ali .ali-filter-select {
+    transition: none;
+  }
+}

@@ -708,12 +708,20 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
 .tf-nav-alibaba .logo-text {
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--tf-orange, #F26522);
+  color: var(--tf-navy, #0F2A44);
   letter-spacing: -0.02em;
 }
 
+.tf-nav-alibaba .logo-trade {
+  color: var(--tf-navy, #0F2A44);
+}
+
+.tf-nav-alibaba .logo-flow {
+  color: var(--tf-orange, #FF7A3D);
+}
+
 .tf-nav-alibaba .logo-accent {
-  color: var(--tf-orange, #F26522);
+  color: var(--tf-orange, #FF7A3D);
   font-weight: 800;
 }
 
@@ -735,38 +743,49 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
 }
 
 .tf-nav-alibaba .tf-hdr-search {
-  height: 40px;
+  height: 44px;
   max-width: 100%;
-  border: 2px solid var(--tf-navy, #0F2A44);
-  border-radius: 6px;
+  border: 2px solid #FF9A5C;
+  border-radius: 24px;
   margin: 0;
+  box-shadow: 0 0 0 1px rgba(255, 154, 92, 0.25);
 }
 
 .tf-nav-alibaba .tf-hdr-search:focus-within {
-  border-color: var(--tf-orange, #F26522);
-  box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.12);
+  border-color: #FF7A3D;
+  box-shadow: 0 0 0 3px rgba(255, 122, 61, 0.22);
 }
 
 .tf-nav-alibaba .tf-hdr-search-btn {
-  background: var(--tf-orange, #F26522);
+  margin: 2px 2px 2px 0;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #FF7A3D 0%, #FF9A5C 100%);
   color: #fff;
   border: none;
   padding: 0 18px;
+  box-shadow: 0 2px 8px rgba(255, 122, 61, 0.35);
 }
 
 .tf-nav-alibaba .tf-hdr-search-btn:hover {
-  background: var(--tf-orange-h, #FF7A3D);
+  filter: brightness(1.05);
+  background: linear-gradient(135deg, #FF7A3D 0%, #FF9A5C 100%);
 }
 
 .tf-nav-alibaba .navbar-actions {
-  gap: 4px;
+  gap: 12px;
+}
+
+@media (min-width: 1280px) {
+  .tf-nav-alibaba .navbar-actions {
+    gap: 16px;
+  }
 }
 
 .tf-nav-alibaba .bn-utility {
   display: none;
   align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
+  gap: 8px;
+  padding: 8px 12px;
   border: none;
   background: transparent;
   color: var(--tf-navy, #0F2A44);
