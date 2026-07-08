@@ -5,13 +5,9 @@ Unified Alibaba-style marketplace home + about page
 =============================================================================
 */
 
-body.cat-catalog-page #hm-public-nav {
-  display: none !important;
-}
-
-/* Logged-in buyers use buyer_navbar from base.html — avoid duplicate marketplace header */
-body:has(#bn-buyer-shell) #cat-catalog-nav,
-body:has(#bn-buyer-shell) #hm-public-nav {
+/* Home + catalog share marketplace_public_navbar — hide legacy shells from base */
+body.cat-catalog-page #hm-public-nav,
+body.cat-catalog-page #bn-buyer-shell {
   display: none !important;
 }
 

@@ -489,194 +489,6 @@ body.cat-catalog-page .tf-main {
   padding: 0;
 }
 
-/* ── Alibaba-style filter sidebar ── */
-.catalog-sidebar.cat-sidebar-ali {
-  width: 188px;
-  border: none;
-  border-right: 1px solid #ebebeb;
-  border-radius: 0;
-  padding: 0 12px 8px 0;
-  box-shadow: none;
-  font-size: 12px;
-  background: #fff;
-  position: sticky;
-}
-
-.cat-sidebar-ali .ali-filter-block {
-  padding: 10px 0;
-  border-bottom: 1px solid #ebebeb;
-}
-
-.cat-sidebar-ali .ali-filter-block--actions {
-  border-bottom: none;
-  padding-bottom: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.cat-sidebar-ali .ali-filter-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #222;
-  margin: 0 0 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.cat-sidebar-ali .ali-filter-option {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 0;
-  font-size: 12px;
-  color: #444;
-  cursor: pointer;
-  line-height: 1.3;
-}
-
-.cat-sidebar-ali .ali-filter-option input {
-  width: 14px;
-  height: 14px;
-  accent-color: #ff6a00;
-  cursor: pointer;
-  flex-shrink: 0;
-  margin: 0;
-}
-
-.cat-sidebar-ali .ali-filter-option span.is-active {
-  font-weight: 600;
-  color: #ff6a00;
-}
-
-.cat-sidebar-ali .ali-filter-cats {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-height: 96px;
-  overflow-y: auto;
-}
-
-.cat-sidebar-ali .ali-filter-cats--suppliers {
-  max-height: 120px;
-}
-
-.cat-sidebar-ali .ali-filter-supplier {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 2px 0;
-  border: none;
-  background: none;
-  font-size: 12px;
-  color: #444;
-  cursor: pointer;
-  line-height: 1.35;
-}
-
-.cat-sidebar-ali .ali-filter-supplier:hover,
-.cat-sidebar-ali .ali-filter-supplier.is-active {
-  color: #ff6a00;
-  font-weight: 600;
-}
-
-.cat-sidebar-ali .ali-filter-select {
-  width: 100%;
-  height: 28px;
-  padding: 0 24px 0 8px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  font-size: 12px;
-  color: #333;
-  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 6px center;
-  appearance: none;
-  cursor: pointer;
-}
-
-.cat-sidebar-ali .ali-price-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.cat-sidebar-ali .ali-price-row input,
-.cat-sidebar-ali .ali-price-input {
-  flex: 1;
-  min-width: 0;
-  width: 0;
-  height: 28px;
-  padding: 0 8px;
-  border: 1px solid #d9d9d9;
-  border-radius: 14px;
-  font-size: 11px;
-  color: #333;
-}
-
-.cat-sidebar-ali .ali-price-row input:focus,
-.cat-sidebar-ali .ali-price-input:focus {
-  border-color: #ff6a00;
-  outline: none;
-}
-
-.cat-sidebar-ali .ali-price-sep {
-  color: #999;
-  font-size: 11px;
-  flex-shrink: 0;
-}
-
-.cat-sidebar-ali .ali-filter-ok {
-  height: 28px;
-  padding: 0 10px;
-  border: 1px solid #222;
-  border-radius: 14px;
-  background: #fff;
-  font-size: 11px;
-  font-weight: 600;
-  color: #222;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.cat-sidebar-ali .ali-filter-ok:hover {
-  background: #f5f5f5;
-}
-
-.cat-sidebar-ali .ali-filter-ok--wide {
-  width: 100%;
-  height: 32px;
-  border-radius: 16px;
-}
-
-.cat-sidebar-ali .ali-btn-clear {
-  font-size: 12px;
-  color: #0070cc;
-  text-decoration: none;
-  text-align: center;
-}
-
-.cat-sidebar-ali .ali-btn-clear:hover {
-  text-decoration: underline;
-}
-
-.cat-sidebar-ali .filter-empty {
-  font-size: 12px;
-  color: #999;
-  padding: 2px 0;
-}
-
-.cat-sidebar-ali .sidebar-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
-}
-
-.catalog-container:has(.cat-sidebar-ali) {
-  gap: 16px;
-}
-
 .sidebar-heading,
 .filter-section,
 .filter-section-body,
@@ -835,14 +647,17 @@ body.cat-catalog-page .tf-main {
   }
 
   .catalog-sidebar.cat-sidebar-ali {
-    max-width: 280px;
-    padding: 48px 16px 20px;
+    max-width: 300px;
+    padding: 16px 18px 24px;
     border-right: none;
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.12);
   }
 
   .catalog-sidebar.is-open { display: block; }
-  .sidebar-close { display: block; }
+
+  .catalog-sidebar.cat-sidebar-ali .sidebar-close {
+    display: grid;
+  }
 }
 
 .filter-section {

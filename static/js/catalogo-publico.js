@@ -23,6 +23,7 @@
   var navSearchInput = document.getElementById('cat-nav-search');
   var filterBuscar = document.getElementById('cat-filter-buscar');
   var filterEmpresa = document.getElementById('cat-filter-empresa');
+  var filterCategoria = document.getElementById('cat-filter-categoria');
 
   var currentController = null;
   var debounceTimer = null;
@@ -37,14 +38,19 @@
     on_sale: 'availability',
     precio_min: 'price',
     precio_max: 'price',
+    empresa: null,
   };
 
   var SORT_LABELS = {
-    relevancia: 'Relevance',
-    precio_asc: 'Price ↑',
-    precio_desc: 'Price ↓',
-    novedades: 'Newest',
+    relevancia: 'Mejor coincidencia',
+    precio_asc: 'Precio ↑',
+    precio_desc: 'Precio ↓',
+    novedades: 'Más recientes',
   };
+
+  function syncFilterLabels() {
+    /* Chips y selects reflejan estado vía :checked / value */
+  }
 
   function syncStickyOffset() {
     var nav = document.getElementById('cat-catalog-nav');
@@ -257,12 +263,7 @@
   }
 
   function syncCompanyButtons() {
-    if (!filterEmpresa) return;
-    var current = filterEmpresa.value || '';
-    document.querySelectorAll('[data-empresa-filter]').forEach(function (btn) {
-      var val = btn.getAttribute('data-empresa-filter') || '';
-      btn.classList.toggle('is-active', val === current);
-    });
+    /* empresa is now a <select> — no button sync needed */
   }
 
   function renderActiveFilters() {
@@ -274,16 +275,14 @@
       chips.push({ key: 'buscar', label: 'Search: ' + buscar });
     }
 
-    filtersForm.querySelectorAll('input[name="categoria"]:checked').forEach(function (input) {
-      var label = input.closest('label');
-      var text = label ? label.querySelector('span') : null;
-      chips.push({ key: 'categoria:' + input.value, label: text ? text.textContent.trim() : 'Category' });
-    });
+    if (filterCategoria && filterCategoria.value) {
+      var catOpt = filterCategoria.options[filterCategoria.selectedIndex];
+      chips.push({ key: 'categoria', label: catOpt ? catOpt.textContent.trim() : 'Categoría' });
+    }
 
     if (filterEmpresa && filterEmpresa.value) {
-      var empBtn = document.querySelector('[data-empresa-filter="' + filterEmpresa.value + '"]');
-      var empName = empBtn ? empBtn.textContent.trim().replace(/\d+$/, '').trim() : 'Company';
-      chips.push({ key: 'empresa', label: empName });
+      var opt = filterEmpresa.options[filterEmpresa.selectedIndex];
+      chips.push({ key: 'empresa', label: opt ? opt.textContent.trim() : 'Proveedor' });
     }
 
     var precioMin = filtersForm.querySelector('input[name="precio_min"]');
@@ -303,7 +302,7 @@
       chips.push({ key: name, label: text ? text.textContent.trim() : name });
     });
 
-    var ordenSelect = filtersForm.querySelector('select[name="orden"]');
+    var ordenSelect = document.getElementById('cat-sort-select');
     if (ordenSelect && ordenSelect.value && ordenSelect.value !== 'relevancia') {
       chips.push({ key: 'orden', label: SORT_LABELS[ordenSelect.value] || ordenSelect.value });
     }
@@ -344,19 +343,15 @@
       if (navSearchInput) navSearchInput.value = '';
     } else if (key === 'empresa') {
       if (filterEmpresa) filterEmpresa.value = '';
-    } else if (key.indexOf('categoria:') === 0) {
-      var catId = key.split(':')[1];
-      var catInput = filtersForm.querySelector('input[name="categoria"][value="' + catId + '"]');
-      if (catInput) catInput.checked = false;
+    } else if (key === 'categoria' || key.indexOf('categoria:') === 0) {
+      if (filterCategoria) filterCategoria.value = '';
     } else if (key === 'precio_min' || key === 'precio_max') {
       var priceInput = filtersForm.querySelector('input[name="' + key + '"]');
       if (priceInput) priceInput.value = '';
       if (key === 'precio_max' && priceRange) priceRange.value = '250';
     } else if (key === 'orden') {
-      var ordenSelect = filtersForm.querySelector('select[name="orden"]');
+      var ordenSelect = document.getElementById('cat-sort-select');
       if (ordenSelect) ordenSelect.value = 'relevancia';
-      var mobileSort = document.querySelector('.results-sort-mobile');
-      if (mobileSort) mobileSort.value = 'relevancia';
     } else {
       var toggle = filtersForm.querySelector('input[name="' + key + '"]');
       if (toggle) toggle.checked = false;
@@ -377,9 +372,10 @@
       filterEmpresa.value = params.get('empresa') || '';
     }
 
-    filtersForm.querySelectorAll('input[name="categoria"]').forEach(function (input) {
-      input.checked = params.getAll('categoria').indexOf(input.value) >= 0;
-    });
+    if (filterCategoria) {
+      var catParams = params.getAll('categoria').filter(Boolean);
+      filterCategoria.value = catParams.length ? catParams[0] : '';
+    }
 
     ['verificado', 'stock', 'stock_low', 'on_sale'].forEach(function (name) {
       var input = filtersForm.querySelector('input[name="' + name + '"]');
@@ -396,12 +392,11 @@
     }
 
     var orden = params.get('orden') || 'relevancia';
-    var ordenSelect = filtersForm.querySelector('select[name="orden"]');
+    var ordenSelect = document.getElementById('cat-sort-select');
     if (ordenSelect) ordenSelect.value = orden;
-    var mobileSort = document.querySelector('.results-sort-mobile');
-    if (mobileSort) mobileSort.value = orden;
 
     syncCompanyButtons();
+    syncFilterLabels();
   }
 
   function applyFiltersFromLink(href) {
@@ -446,6 +441,9 @@
     }
     if (filterEmpresa && !filterEmpresa.value.trim()) {
       params.delete('empresa');
+    }
+    if (filterCategoria && !filterCategoria.value.trim()) {
+      params.delete('categoria');
     }
 
     var qs = params.toString();
@@ -497,6 +495,7 @@
 
         updateResultsCount(doc);
         syncCompanyButtons();
+        syncFilterLabels();
         renderActiveFilters();
 
         if (!options.skipHistory && window.history && window.history.pushState) {
@@ -530,10 +529,19 @@
 
     filtersForm.querySelectorAll('input[type="checkbox"], input[type="radio"], select').forEach(function (input) {
       input.addEventListener('change', function () {
+        syncFilterLabels();
         clearTimeout(debounceTimer);
         applyFilters({ spinner: spinnerForInput(input) });
       });
     });
+
+    var sortSelect = document.getElementById('cat-sort-select');
+    if (sortSelect) {
+      sortSelect.addEventListener('change', function () {
+        clearTimeout(debounceTimer);
+        applyFilters({ spinner: null });
+      });
+    }
 
     filtersForm.querySelectorAll('input[type="number"]').forEach(function (input) {
       input.addEventListener('input', function () {
@@ -560,15 +568,6 @@
     });
   }
 
-  document.querySelectorAll('[data-empresa-filter]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      if (!filterEmpresa) return;
-      filterEmpresa.value = btn.getAttribute('data-empresa-filter') || '';
-      syncCompanyButtons();
-      applyFilters({ spinner: null });
-    });
-  });
-
   document.querySelectorAll('.cat-nav-ajax-link').forEach(function (link) {
     link.addEventListener('click', function (e) {
       e.preventDefault();
@@ -583,15 +582,6 @@
         filterBuscar.value = navSearchInput.value.trim();
       }
       applyFilters({ spinner: null });
-    });
-  }
-
-  var mobileSort = document.querySelector('.results-sort-mobile');
-  var desktopSort = document.querySelector('.cat-sort-select');
-  if (mobileSort && desktopSort) {
-    mobileSort.addEventListener('change', function () {
-      desktopSort.value = mobileSort.value;
-      applyFilters();
     });
   }
 
@@ -708,6 +698,7 @@
   }
 
   syncFormFromUrl();
+  syncFilterLabels();
   renderActiveFilters();
   bindInquiryButtons();
   bindPaginationLinks();
