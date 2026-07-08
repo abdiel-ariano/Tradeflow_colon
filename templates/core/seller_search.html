@@ -5,8 +5,15 @@
 {% block seller_content %}
 <form method="get" action="{% url 'seller_global_search' %}" class="sp-dash-search" style="max-width:100%;margin-bottom:24px;height:40px;">
   <span class="material-symbols-rounded" aria-hidden="true">search</span>
-  <input type="search" name="q" value="{{ search_q }}" placeholder="Search products and orders…" autofocus>
+  <input type="search" name="q" value="{{ search_q }}" placeholder="Search products, orders, customers, quotes…" autofocus data-tf-ai-search="seller" autocomplete="off">
 </form>
+
+{% if ai_tip %}
+<div class="sp-analytics-ai-btn" style="margin-bottom:16px;">
+  <span class="material-symbols-rounded" style="font-size:18px;color:var(--tf-orange);">auto_awesome</span>
+  {{ ai_tip }}
+</div>
+{% endif %}
 
 {% if search_q %}
 <div class="sp-grid-2">
@@ -14,30 +21,44 @@
     <div class="sp-card-head"><h2>Products</h2></div>
     <ul class="sp-activity-feed">
       {% for p in search_products %}
-      <li>
-        <a href="{% url 'seller_editar_producto' p.pk %}" style="font-weight:600;color:var(--tf-navy);text-decoration:none;">{{ p.name }}</a>
-        <span style="margin-left:8px;font-size:12px;color:var(--tf-muted);">{{ p.sku }}</span>
-      </li>
-      {% empty %}
-      <li class="sp-empty">No products match "{{ search_q }}"</li>
-      {% endfor %}
+      <li><a href="{% url 'seller_editar_producto' p.pk %}">{{ p.name }}</a> <span style="color:var(--tf-muted);font-size:12px;">{{ p.sku }}</span></li>
+      {% empty %}<li class="sp-empty">No products match</li>{% endfor %}
     </ul>
   </section>
   <section class="sp-card">
     <div class="sp-card-head"><h2>Orders</h2></div>
     <ul class="sp-activity-feed">
       {% for o in search_orders %}
-      <li>
-        <a href="{% url 'seller_detalle_venta' o.pk %}" style="font-weight:600;color:var(--tf-navy);text-decoration:none;">{{ o.order_number }}</a>
-        <span style="margin-left:8px;font-size:12px;color:var(--tf-muted);">{{ o.buyer.username }}</span>
-      </li>
-      {% empty %}
-      <li class="sp-empty">No orders match "{{ search_q }}"</li>
-      {% endfor %}
+      <li><a href="{% url 'seller_detalle_venta' o.pk %}">{{ o.order_number }}</a> <span style="color:var(--tf-muted);font-size:12px;">{{ o.buyer.username }}</span></li>
+      {% empty %}<li class="sp-empty">No orders match</li>{% endfor %}
+    </ul>
+  </section>
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>Customers</h2></div>
+    <ul class="sp-activity-feed">
+      {% for u in search_customers %}
+      <li>{{ u.get_full_name|default:u.username }} <span style="color:var(--tf-muted);font-size:12px;">{{ u.email }}</span></li>
+      {% empty %}<li class="sp-empty">No customers match</li>{% endfor %}
+    </ul>
+  </section>
+  <section class="sp-card">
+    <div class="sp-card-head"><h2>Quotes</h2></div>
+    <ul class="sp-activity-feed">
+      {% for cot in search_quotes %}
+      <li><a href="{% url 'seller_responder_cotizacion' cot.pk %}">{{ cot.numero }}</a></li>
+      {% empty %}<li class="sp-empty">No quotes match</li>{% endfor %}
     </ul>
   </section>
 </div>
+{% if ai_related %}
+<div class="sp-analytics-related" style="margin-top:16px;">
+  <span style="font-size:13px;color:var(--tf-muted);margin-right:8px;">Related searches:</span>
+  {% for phrase in ai_related %}
+  <a href="{% url 'seller_global_search' %}?q={{ phrase|urlencode }}" class="sp-filter-pill">{{ phrase }}</a>
+  {% endfor %}
+</div>
+{% endif %}
 {% else %}
-<p style="color:var(--tf-muted);font-size:14px;">Search across your product catalog and order numbers.</p>
+<p style="color:var(--tf-muted);font-size:14px;">AI-powered search across catalog, orders, customers, and quotes. Start typing for recommendations.</p>
 {% endif %}
 {% endblock %}

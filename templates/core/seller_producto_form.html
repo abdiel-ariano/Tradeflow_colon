@@ -1,120 +1,47 @@
-{% extends "core/base.html" %}
+{% extends "core/seller_layout.html" %}
 {% load static tf_media %}
-{% block title %}{{ titulo_pagina }} — TradeFlow Colón{% endblock %}
-{% block extra_css %}
+{% block title %}{{ titulo_pagina }} — TradeFlow{% endblock %}
+{% block seller_page_title %}{% if es_edicion %}Edit product{% else %}Create product{% endif %}{% endblock %}
+{% block seller_page_sub %}<p class="sp-topbar-sub">Changes appear in the store when the product is active.</p>{% endblock %}
+{% block seller_topbar_actions %}
+<a href="{% url 'seller_mis_productos' %}" class="sp-btn sp-btn-secondary"><span class="material-symbols-rounded" style="font-size:18px;">close</span> Cancel</a>
+{% endblock %}
+{% block seller_extra_css %}
 <style nonce="{{ csp_nonce }}">
-  .spf-grid { display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; align-items: start; }
-  @media (max-width: 991px) { .spf-grid { grid-template-columns: 1fr; } }
-  .spf-preview { border: 1px dashed #D1D5DB; border-radius: 12px; padding: 1rem; text-align: center; background: #F2F3F5; }
-  .spf-preview img { max-width: 100%; border-radius: 8px; max-height: 220px; object-fit: contain; display: none; margin-top: 8px; }
-  .spf-preview img.is-on { display: inline-block; }
-  .spf-preview .ph { color: #6B7A88; font-size: 0.875rem; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 1rem 0; }
+  body.sp-dash .spf-grid { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:24px; }
+  body.sp-dash .spf-preview { border:1px dashed var(--tf-border); border-radius:12px; padding:16px; background:var(--tf-light); text-align:center; }
+  body.sp-dash .spf-preview img { max-width:100%; max-height:220px; border-radius:8px; object-fit:contain; }
 </style>
 {% endblock %}
-{% block content %}
-<div class="seller-layout">
-  <div class="seller-main">
-    <div class="tf-centered-form-wide">
-    <h1 id="spf-title">{% if es_edicion %}Edit product{% else %}Add product{% endif %}</h1>
-    <p class="seller-sub">Changes appear in the store when the product is active.</p>
-    <div class="seller-form-card">
-      <form method="post" enctype="multipart/form-data" novalidate class="spf-grid" id="spf-form">
-        {% csrf_token %}
-        <div>
-          <div class="tf-field">
-            <label class="tf-label" for="id_name">Product name</label>
-            {{ product_form.name }}
-            {% if product_form.name.errors %}<div style="color:#EF4444;font-size:0.8rem;margin-top:4px;">{{ product_form.name.errors.0 }}</div>{% endif %}
-          </div>
-          <div class="tf-field">
-            <label class="tf-label" for="id_category">Category</label>
-            {{ product_form.category }}
-          </div>
-          <div class="tf-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div>
-              <label class="tf-label" for="id_sku">Product code</label>
-              {{ product_form.sku }}
-            </div>
-            <div>
-              <label class="tf-label" for="id_currency">Currency</label>
-              {{ product_form.currency }}
-            </div>
-          </div>
-          <div class="tf-field">
-            <label class="tf-label" for="id_unit_price">Unit price</label>
-            {{ product_form.unit_price }}
-            {% if product_form.unit_price.errors %}<div style="color:#EF4444;font-size:0.8rem;margin-top:4px;">{{ product_form.unit_price.errors.0 }}</div>{% endif %}
-          </div>
-          <div class="tf-field">
-            <label class="tf-label" for="id_description">Description</label>
-            {{ product_form.description }}
-          </div>
-          <div class="tf-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div>
-              <label class="tf-label" for="id_stock_qty">Stock total</label>
-              {{ inv_form.stock_qty }}
-              {% if inv_form.stock_qty.errors %}<div style="color:#EF4444;font-size:0.8rem;">{{ inv_form.stock_qty.errors.0 }}</div>{% endif %}
-            </div>
-            <div>
-              <label class="tf-label" for="id_low_stock_alert">Low stock alert</label>
-              {{ inv_form.low_stock_alert }}
-            </div>
-          </div>
-          <div class="tf-field" style="display:flex;align-items:center;gap:10px;">
-            {{ product_form.is_active }}
-            <label class="tf-label" for="id_is_active" style="margin:0;">Available in store</label>
-          </div>
-          {% if product_form.non_field_errors %}
-          <div class="tf-flash tf-flash-danger" style="margin-top:8px;padding:12px;border-radius:8px;">{{ product_form.non_field_errors.0 }}</div>
-          {% endif %}
-          <div class="seller-form-actions">
-            <button type="submit" class="btn-seller-primary"><span class="material-symbols-rounded" style="font-size:18px;">save</span> Save</button>
-            <a href="{% url 'seller_mis_productos' %}" class="btn-seller-outline"><span class="material-symbols-rounded" style="font-size:18px;">close</span> Cancel</a>
-          </div>
-        </div>
-        <div>
-          <label class="tf-label" for="id_image">Image</label>
-          <div class="spf-preview">
-            <div class="ph" id="spf-ph">
-              <span class="material-symbols-rounded" style="font-size:40px;color:#D1D5DB;">add_photo_alternate</span>
-              <span>Preview</span>
-            </div>
-            <img id="spf-img-prev" alt="">
-            {{ product_form.image }}
-            {% if es_edicion %}{% if product.image %}
-            <p style="font-size:0.82rem;color:var(--tf-muted);margin-top:10px;text-align:left;">Current: {% if product.image %}<a href="{{ product|product_image_src }}" target="_blank" rel="noopener">view file</a>{% else %}no image{% endif %}</p>
-            {% endif %}{% endif %}
-          </div>
-        </div>
-      </form>
+{% block seller_content %}
+<section class="sp-card">
+  <form method="post" enctype="multipart/form-data" class="spf-grid" id="spf-form">
+    {% csrf_token %}
+    <div>
+      <div class="tf-field"><label class="tf-label" for="id_name">Product name</label>{{ product_form.name }}</div>
+      <div class="tf-field"><label class="tf-label" for="id_category">Category</label>{{ product_form.category }}</div>
+      <div class="tf-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><label class="tf-label" for="id_sku">Product code</label>{{ product_form.sku }}</div>
+        <div><label class="tf-label" for="id_currency">Currency</label>{{ product_form.currency }}</div>
+      </div>
+      <div class="tf-field"><label class="tf-label" for="id_unit_price">Unit price</label>{{ product_form.unit_price }}</div>
+      <div class="tf-field"><label class="tf-label" for="id_description">Description</label>{{ product_form.description }}</div>
+      <div class="tf-field" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><label class="tf-label" for="id_stock_qty">Stock total</label>{{ inv_form.stock_qty }}</div>
+        <div><label class="tf-label" for="id_low_stock_alert">Low stock alert</label>{{ inv_form.low_stock_alert }}</div>
+      </div>
+      <div class="tf-field" style="display:flex;align-items:center;gap:10px;">{{ product_form.is_active }}<label class="tf-label" for="id_is_active" style="margin:0;">Available in store</label></div>
+      <div style="display:flex;gap:10px;margin-top:16px;"><button type="submit" class="sp-btn sp-btn-primary">Save</button><a href="{% url 'seller_mis_productos' %}" class="sp-btn sp-btn-secondary">Cancel</a></div>
     </div>
+    <div>
+      <label class="tf-label" for="id_image">Image</label>
+      <div class="spf-preview" id="spf-preview">{% if es_edicion and product.image %}<img id="spf-img-prev" alt="Product preview" src="{{ product|product_image_src }}">{% else %}<span class="material-symbols-rounded" style="font-size:40px;color:var(--tf-muted);">add_photo_alternate</span>{% endif %}{{ product_form.image }}</div>
     </div>
-  </div>
-</div>
+  </form>
+</section>
+{% endblock %}
+{% block seller_extra_js %}
 <script nonce="{{ csp_nonce }}">
-(function () {
-  var inp = document.getElementById("id_image");
-  var img = document.getElementById("spf-img-prev");
-  var ph = document.getElementById("spf-ph");
-  if (!inp || !img) return;
-  function show(src) {
-    if (src) {
-      img.src = src;
-      img.classList.add("is-on");
-      if (ph) ph.style.display = "none";
-    } else {
-      img.removeAttribute("src");
-      img.classList.remove("is-on");
-      if (ph) ph.style.display = "flex";
-    }
-  }
-  inp.addEventListener("change", function () {
-    var f = inp.files && inp.files[0];
-    if (!f) { show(""); return; }
-    var r = new FileReader();
-    r.onload = function () { show(r.result); };
-    r.readAsDataURL(f);
-  });
-})();
+(function(){var i=document.getElementById('id_image'),p=document.getElementById('spf-preview');if(!i||!p)return;i.addEventListener('change',function(){var f=i.files&&i.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var img=p.querySelector('img')||document.createElement('img');img.id='spf-img-prev';img.alt='Product preview';img.src=r.result;p.prepend(img);};r.readAsDataURL(f);});})();
 </script>
 {% endblock %}

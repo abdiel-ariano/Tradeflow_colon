@@ -208,6 +208,8 @@ urlpatterns = [
     path('api/v1/pricing/sync/', vapi.api_v1_pricing_sync, name='api_v1_pricing_sync'),
     # Rutas solicitadas por especificación (nombres alternos)
     path('mi-tienda/productos/', views.seller_mis_productos, name='seller_mis_productos'),
+    path('mi-tienda/productos/exportar.csv', views.seller_export_productos_csv, name='seller_export_productos_csv'),
+    path('mi-tienda/productos/exportar-precios.csv', views.seller_export_precios_csv, name='seller_export_precios_csv'),
     path('mi-tienda/productos/nuevo/', views.seller_agregar_producto, name='seller_agregar_producto'),
     path('mi-tienda/productos/<int:pk>/editar/', views.seller_editar_producto, name='seller_editar_producto'),
     path('mi-tienda/productos/<int:pk>/toggle/', views.seller_toggle_producto, name='seller_toggle_producto'),
@@ -252,6 +254,7 @@ urlpatterns = [
     # ── API JSON ──────────────────────────────────────────────────────────
     path('api/productos/', views.api_productos, name='api_productos'),
     path('api/home-merchandising/', views.api_home_merchandising, name='api_home_merchandising'),
+    path('api/search/suggest/', views.api_search_suggest, name='api_search_suggest'),
     path('api/asistente/', views.api_asistente, name='api_asistente'),
 
     # ── Applications (admin approval) ────────────────────────────────────

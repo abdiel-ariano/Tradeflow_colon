@@ -31,7 +31,7 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
       <div class="adm-filter-grid">
         <div class="adm-field adm-field--grow">
           <label for="adm-prod-buscar">Search</label>
-          <input id="adm-prod-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Name, product code, or description" autocomplete="off">
+          <input id="adm-prod-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Name, product code, or description" autocomplete="off" data-tf-ai-search="admin">
         </div>
         <div class="adm-field">
           <label for="adm-prod-cat">Category</label>
@@ -131,5 +131,6 @@ Admin — catálogo de productos. Contexto: lista_productos en core/views.py
 </script>
 {% endblock %}
 {% block extra_js %}
+{% include "core/includes/tf_ai_search_assets.html" %}
 <script src="{% static 'js/admin_rail.js' %}"></script>
 {% endblock %}

@@ -63,3 +63,9 @@ class TestSellerShellPages(TestCase):
         self.assertContains(r, 'Payments analytics')
         self.assertContains(r, 'Key metrics')
         self.assertContains(r, 'Acceptance')
+
+    def test_catalog_features_tab(self):
+        self._login()
+        r = self.client.get('/mi-tienda/productos/?tab=pricing')
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Pricing tables')

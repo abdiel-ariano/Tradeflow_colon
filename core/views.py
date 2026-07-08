@@ -910,6 +910,42 @@ def _asistente_json_payload(respuesta: str, *, ok: bool = True, status: int = 20
     )
 
 
+@require_GET
+def api_search_suggest(request):
+    """Sugerencias de búsqueda con IA para todos los buscadores de la app."""
+    from .utils.ai_search import build_search_response
+
+    scope = (request.GET.get('scope') or 'public').strip().lower()
+    if scope not in ('public', 'seller', 'buyer', 'admin'):
+        scope = 'public'
+
+    if scope == 'seller':
+        if not request.user.is_authenticated:
+            return JsonResponse({'ok': False, 'error': 'auth_required'}, status=401)
+        try:
+            if request.user.profile.role != 'seller' and not request.user.is_superuser:
+                return JsonResponse({'ok': False, 'error': 'forbidden'}, status=403)
+        except Exception:
+            return JsonResponse({'ok': False, 'error': 'forbidden'}, status=403)
+    elif scope == 'admin':
+        if not request.user.is_authenticated or not (
+            request.user.is_superuser
+            or getattr(getattr(request.user, 'profile', None), 'role', None) == 'admin'
+        ):
+            return JsonResponse({'ok': False, 'error': 'forbidden'}, status=403)
+
+    q = (request.GET.get('q') or '').strip()
+    try:
+        limit = int(request.GET.get('limit', '8'))
+    except (TypeError, ValueError):
+        limit = 8
+    limit = max(1, min(limit, 12))
+
+    payload = build_search_response(scope, q, request, limit=limit)
+    status = 200 if payload.get('ok', True) else 403
+    return JsonResponse(payload, status=status)
+
+
 @require_POST
 def api_asistente(request):
     """
@@ -2335,47 +2371,116 @@ def seller_mis_productos(request):
         estado = 'inactivo'
     stock_f = request.GET.get('stock', '').strip()
     orden = request.GET.get('orden', 'nombre')
+    created_f = request.GET.get('created', '').strip()
 
-    if buscar:
-        productos = productos.filter(
-            Q(name__icontains=buscar)
-            | Q(description__icontains=buscar)
-            | Q(sku__icontains=buscar)
+    tab_products = []
+    tab_pricing_rows = []
+    tab_shipping_rows = []
+    tab_tax_rows = []
+
+    if catalog_tab == 'products':
+        if buscar:
+            productos = productos.filter(
+                Q(name__icontains=buscar)
+                | Q(description__icontains=buscar)
+                | Q(sku__icontains=buscar)
+            )
+        if categoria:
+            productos = productos.filter(category_id=categoria)
+        if estado == 'activo':
+            productos = productos.filter(is_active=True)
+        elif estado == 'inactivo':
+            productos = productos.filter(is_active=False)
+        elif estado != 'todos':
+            productos = productos.filter(is_active=True)
+            estado = 'activo'
+
+        if created_f in ('7', '7d'):
+            productos = productos.filter(created_at__gte=timezone.now() - timedelta(days=7))
+        elif created_f in ('30', '30d'):
+            productos = productos.filter(created_at__gte=timezone.now() - timedelta(days=30))
+        elif created_f in ('90', '90d'):
+            productos = productos.filter(created_at__gte=timezone.now() - timedelta(days=90))
+
+        vendidos_ids = set(
+            OrderItem.objects.filter(product__company=company)
+            .values_list('product_id', flat=True)
         )
-    if categoria:
-        productos = productos.filter(category_id=categoria)
-    if estado == 'activo':
-        productos = productos.filter(is_active=True)
-    elif estado == 'inactivo':
-        productos = productos.filter(is_active=False)
-    elif estado != 'todos':
-        productos = productos.filter(is_active=True)
-        estado = 'activo'
+        if stock_f == 'bajo':
+            low_ids = []
+            for inv in Inventory.objects.filter(product__company=company).select_related('product'):
+                if inv.is_low_stock:
+                    low_ids.append(inv.product_id)
+            productos = productos.filter(pk__in=low_ids or [0])
+        elif stock_f == 'sin_ventas':
+            productos = productos.exclude(pk__in=vendidos_ids)
 
-    vendidos_ids = set(
-        OrderItem.objects.filter(product__company=company)
-        .values_list('product_id', flat=True)
-    )
-    if stock_f == 'bajo':
-        low_ids = []
-        for inv in Inventory.objects.filter(product__company=company).select_related('product'):
-            if inv.is_low_stock:
-                low_ids.append(inv.product_id)
-        productos = productos.filter(pk__in=low_ids or [0])
-    elif stock_f == 'sin_ventas':
-        productos = productos.exclude(pk__in=vendidos_ids)
+        if orden == 'precio_asc':
+            productos = productos.order_by('unit_price')
+        elif orden == 'precio_desc':
+            productos = productos.order_by('-unit_price')
+        elif orden == 'stock':
+            productos = productos.order_by('inventory__stock_qty')
+        elif orden == 'created':
+            productos = productos.order_by('-created_at')
+        else:
+            productos = productos.order_by('name')
 
-    if orden == 'precio_asc':
-        productos = productos.order_by('unit_price')
-    elif orden == 'precio_desc':
-        productos = productos.order_by('-unit_price')
-    elif orden == 'stock':
-        productos = productos.order_by('inventory__stock_qty')
+        paginator = Paginator(productos, 15)
+        page_obj = paginator.get_page(request.GET.get('page', 1))
+    elif catalog_tab == 'features':
+        tab_products = list(
+            base_products.filter(Q(is_featured=True) | Q(is_bestseller=True))
+            .select_related('category')
+            .prefetch_related('inventory')
+            .order_by('-merchandising_priority', 'name')[:80]
+        )
+        page_obj = tab_products
+    elif catalog_tab == 'coupons':
+        promo_qs = base_products.filter(is_active=True).select_related('category').prefetch_related('inventory')
+        tab_products = [p for p in promo_qs.order_by('-discount_pct', 'name')[:120] if p.is_on_promo_now][:80]
+        page_obj = tab_products
+    elif catalog_tab == 'pricing':
+        from django.db.models import Avg, Max, Min
+
+        tab_pricing_rows = list(
+            base_products.filter(is_active=True, category__isnull=False)
+            .values('category__name')
+            .annotate(
+                products=Count('id'),
+                min_price=Min('unit_price'),
+                max_price=Max('unit_price'),
+                avg_price=Avg('unit_price'),
+            )
+            .order_by('category__name')
+        )
+        page_obj = []
+    elif catalog_tab == 'shipping':
+        from .models import Shipment
+
+        tab_shipping_rows = list(
+            Shipment.objects.filter(
+                order__items__product__company=company,
+            )
+            .values('status', 'courier_name')
+            .annotate(total=Count('id', distinct=True))
+            .order_by('-total')[:20]
+        )
+        page_obj = []
+    elif catalog_tab == 'tax':
+        tab_tax_rows = list(
+            base_products.filter(is_active=True, category__isnull=False)
+            .values('category__name')
+            .annotate(products=Count('id'), volume=Sum('unit_price'))
+            .order_by('-products')[:30]
+        )
+        page_obj = []
     else:
-        productos = productos.order_by('name')
+        page_obj = []
 
-    paginator = Paginator(productos, 15)
-    page_obj = paginator.get_page(request.GET.get('page', 1))
+    if catalog_tab != 'products':
+        buscar = ''
+        created_f = ''
 
     import json as _json
 
@@ -2393,6 +2498,11 @@ def seller_mis_productos(request):
         'count_active': count_active,
         'count_archived': count_archived,
         'catalog_tab': catalog_tab,
+        'created_filtro': created_f,
+        'tab_products': tab_products,
+        'tab_pricing_rows': tab_pricing_rows,
+        'tab_shipping_rows': tab_shipping_rows,
+        'tab_tax_rows': tab_tax_rows,
         'chart_cat_labels_json': _json.dumps(dash['chart_cat_labels']),
         'chart_cat_values_json': _json.dumps(dash['chart_cat_values']),
         'titulo_pagina': 'Product catalog',
@@ -2435,7 +2545,7 @@ def seller_producto_nuevo(request):
                 inv.reserved_qty = 0
                 inv.save()
             messages.success(request, f'Product "{product.name}" created successfully.')
-            return redirect('seller_productos')
+            return redirect('seller_mis_productos')
         messages.error(request, 'Please check the form data.')
 
     context = {
@@ -2488,7 +2598,7 @@ def seller_producto_editar(request, pk):
                 product.save()
                 inv_form.save()
             messages.success(request, 'Changes saved.')
-            return redirect('seller_productos')
+            return redirect('seller_mis_productos')
         messages.error(request, 'Please check the form data.')
 
     context = {
@@ -2676,6 +2786,70 @@ def seller_export_ventas_csv(request):
             o.get_order_type_display(),
         ])
     return response
+
+
+@seller_required
+@require_GET
+def seller_export_productos_csv(request):
+    """Exporta catálogo del vendedor a CSV."""
+    import csv
+
+    company, resp = _seller_company_or_response(request, 'seller_productos')
+    if resp:
+        return resp
+
+    estado = request.GET.get('estado', '').strip()
+    productos = Product.objects.filter(company=company).select_related('category').prefetch_related('inventory')
+    if estado == 'activo':
+        productos = productos.filter(is_active=True)
+    elif estado in ('inactivo', 'archived'):
+        productos = productos.filter(is_active=False)
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="productos_{company.pk}.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['SKU', 'Name', 'Category', 'Price', 'Currency', 'Stock', 'Status', 'Created'])
+    for p in productos.order_by('name')[:2000]:
+        stock = p.inventory.stock_qty if hasattr(p, 'inventory') and p.inventory else 0
+        writer.writerow([
+            p.sku or '',
+            p.name,
+            p.category.name if p.category else '',
+            p.unit_price,
+            p.currency,
+            stock,
+            'Active' if p.is_active else 'Archived',
+            p.created_at.strftime('%Y-%m-%d'),
+        ])
+    return response
+
+
+@seller_required
+@require_GET
+def seller_export_precios_csv(request):
+    """Exporta precios del catálogo a CSV."""
+    import csv
+
+    company, resp = _seller_company_or_response(request, 'seller_productos')
+    if resp:
+        return resp
+
+    productos = Product.objects.filter(company=company, is_active=True).order_by('name')
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="precios_{company.pk}.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['SKU', 'Name', 'Unit price', 'Currency', 'Promo price', 'Discount %'])
+    for p in productos[:2000]:
+        writer.writerow([
+            p.sku or '',
+            p.name,
+            p.unit_price,
+            p.currency,
+            p.display_price,
+            p.discount_pct if p.is_on_promo_now else 0,
+        ])
+    return response
+
 
 @seller_required
 def seller_venta_detalle(request, pk):

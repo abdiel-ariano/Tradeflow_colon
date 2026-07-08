@@ -23,9 +23,9 @@
   </div>
 
   <div class="sp-dash-pills" role="group" aria-label="Filters">
-    <span class="sp-dash-pill is-on">Date range: Last 7 days</span>
-    <span class="sp-dash-pill">Daily</span>
-    <span class="sp-dash-pill">Compare: Previous period</span>
+    <a href="{% url 'seller_mis_ventas' %}" class="sp-dash-pill is-on">Date range: Last 7 days</a>
+    <a href="{% url 'seller_reporting' %}?days=7" class="sp-dash-pill">Daily analytics</a>
+    <a href="{% url 'seller_reporting' %}?days=30" class="sp-dash-pill">Compare: 30 days</a>
   </div>
 
   <div class="sp-dash-metrics">
@@ -42,7 +42,7 @@
     <article class="sp-dash-metric">
       <div class="sp-dash-metric-lbl">Active catalog</div>
       <p class="sp-dash-metric-val">{{ productos_activos }}</p>
-      <p class="sp-dash-metric-hint">{{ low }} low stock</p>
+      <p class="sp-dash-metric-hint">{{ bajo_stock }} low stock</p>
     </article>
   </div>
 </section>

@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="{% static 'css/colors.css' %}">
 <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version }}">
 <link rel="stylesheet" href="{% static 'css/seller_portal_premium.css' %}?v={{ tf_asset_version }}">
+<link rel="stylesheet" href="{% static 'css/tf-ai-search.css' %}?v={{ tf_asset_version }}">
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 {% block seller_extra_head %}{% endblock %}
 {% endblock %}
@@ -172,7 +173,7 @@
     <header class="sp-dash-toolbar">
       <form class="sp-dash-search" method="get" action="{% url 'seller_global_search' %}">
         <span class="material-symbols-rounded" aria-hidden="true">search</span>
-        <input type="search" name="q" placeholder="Search" aria-label="Search" autocomplete="off">
+        <input type="search" name="q" placeholder="Search" aria-label="Search" autocomplete="off" data-tf-ai-search="seller">
       </form>
       <div class="sp-dash-toolbar-right">
         {% block seller_topbar_actions %}
@@ -205,6 +206,7 @@
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/tf-ai-search.js' %}?v={{ tf_asset_version }}"></script>
 <script src="{% static 'js/seller_portal.js' %}?v={{ tf_asset_version }}"></script>
 {% block seller_extra_js %}{% endblock %}
 {% endblock %}

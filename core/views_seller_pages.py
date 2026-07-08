@@ -8,7 +8,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Max, Q, Sum
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET
@@ -35,7 +35,17 @@ def seller_balances(request):
     company, resp = _seller_company_or_response(request, 'seller_balances')
     if resp:
         return resp
+    from .models import Payment
+
     sales = seller_sales_dashboard(company)
+    order_ids = OrderItem.objects.filter(product__company=company).values_list('order_id', flat=True).distinct()
+    payments = Payment.objects.filter(order_id__in=order_ids)
+    approved_total = payments.filter(status='approved').aggregate(t=Sum('amount'))['t'] or Decimal('0.00')
+    pending_total = payments.filter(status='pending').aggregate(t=Sum('amount'))['t'] or Decimal('0.00')
+    recent_payments = list(
+        payments.select_related('order', 'order__buyer')
+        .order_by('-paid_at', '-order__created_at')[:12]
+    )
     return render(
         request,
         'core/seller_balances.html',
@@ -46,6 +56,9 @@ def seller_balances(request):
             ingresos_mes=sales['ingresos_mes'],
             ventas_mes=sales['ventas_mes'],
             ticket_promedio=sales['ticket_promedio'],
+            approved_total=approved_total,
+            pending_total=pending_total,
+            recent_payments=recent_payments,
         ),
     )
 
@@ -64,7 +77,7 @@ def seller_customers(request):
         .annotate(
             orders_count=Count('id', distinct=True),
             total_spent=Sum('total'),
-            last_order=Count('id'),
+            last_order_at=Max('created_at'),
         )
     )
     buyer_stats: dict[int, dict] = {}
@@ -76,6 +89,7 @@ def seller_customers(request):
             'orders_count': row['orders_count'],
             'total_spent': row['total_spent'] or Decimal('0'),
             'quotes_count': 0,
+            'last_order_at': row.get('last_order_at'),
         }
 
     quote_rows = (
@@ -113,6 +127,7 @@ def seller_customers(request):
                 'orders_count': stats['orders_count'],
                 'quotes_count': stats['quotes_count'],
                 'total_spent': stats['total_spent'],
+                'last_order_at': stats.get('last_order_at'),
             })
     buyers.sort(key=lambda b: b['total_spent'], reverse=True)
 
@@ -273,28 +288,47 @@ def seller_setup_guide(request):
 @seller_required
 @require_GET
 def seller_global_search(request):
-    """Búsqueda global en productos y órdenes del seller."""
+    """Búsqueda global en productos, órdenes, clientes y cotizaciones del seller."""
     company, resp = _seller_company_or_response(request, 'seller_search')
     if resp:
         return resp
 
+    from .utils.ai_search import build_search_response
+
     q = request.GET.get('q', '').strip()
     products = []
     orders = []
+    customers = []
+    quotes = []
+    ai_payload = {}
     if q:
+        ai_payload = build_search_response('seller', q, request, limit=10)
         products = list(
             Product.objects.filter(company=company)
-            .filter(Q(name__icontains=q) | Q(sku__icontains=q))
+            .filter(Q(name__icontains=q) | Q(sku__icontains=q) | Q(description__icontains=q))
             .order_by('name')[:20]
         )
         orders = list(
             Order.objects.filter(
                 items__product__company=company,
-                order_number__icontains=q,
             )
+            .filter(Q(order_number__icontains=q) | Q(buyer__username__icontains=q) | Q(buyer__email__icontains=q))
             .distinct()
             .select_related('buyer')
             .order_by('-created_at')[:20]
+        )
+        quotes = list(
+            Cotizacion.objects.filter(empresa=company, numero__icontains=q)
+            .select_related('buyer')
+            .order_by('-created_at')[:15]
+        )
+        buyer_ids = set(
+            Order.objects.filter(items__product__company=company).values_list('buyer_id', flat=True)
+        )
+        customers = list(
+            User.objects.filter(pk__in=buyer_ids).filter(
+                Q(username__icontains=q) | Q(email__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q)
+            )[:15]
         )
 
     return render(
@@ -307,6 +341,11 @@ def seller_global_search(request):
             search_q=q,
             search_products=products,
             search_orders=orders,
+            search_customers=customers,
+            search_quotes=quotes,
+            ai_tip=ai_payload.get('tip', ''),
+            ai_related=ai_payload.get('related', []),
+            ai_suggestions=ai_payload.get('suggestions', []),
         ),
     )
 
@@ -348,5 +387,6 @@ def seller_reporting(request):
             **data,
             chart_labels_json=_json.dumps(data['chart_labels']),
             chart_values_json=_json.dumps(data['chart_values']),
+            chart_revenue_json=_json.dumps(data['chart_revenue_values']),
         ),
     )
