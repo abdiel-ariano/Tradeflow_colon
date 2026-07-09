@@ -4,7 +4,7 @@
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'18' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'17' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'18' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
 {% if productos %}
@@ -65,89 +65,122 @@
         <input type="hidden" name="buscar" id="cat-filter-buscar" value="{{ buscar }}">
 
         <div class="cat-filters-toolbar" id="cat-filters-toolbar">
-          <div class="cat-filters-toolbar__row cat-filters-toolbar__row--top">
-            <p class="cat-filters-toolbar__heading">
-              <span class="cat-filters-toolbar__heading-icon" aria-hidden="true">▾</span>
-              Refinar resultados
-            </p>
-            <div class="cat-filters-toolbar__quick" role="group" aria-label="Filtros rápidos">
-              <label class="ali-quick-chip">
-                <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
-                <span>Verificado</span>
-              </label>
-              <label class="ali-quick-chip">
-                <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
-                <span>En stock</span>
-              </label>
-              <label class="ali-quick-chip">
-                <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
-                <span>En oferta</span>
-              </label>
+          <header class="cat-filters-toolbar__header">
+            <div class="cat-filters-toolbar__title">
+              <span class="cat-filters-toolbar__title-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+              </span>
+              <span>Refinar búsqueda</span>
             </div>
-            <a href="{% url 'catalogo_publico' %}" class="cat-filters-toolbar__clear">Limpiar todo</a>
-          </div>
+            <a href="{% url 'catalogo_publico' %}" class="cat-filters-toolbar__clear">
+              <span aria-hidden="true">×</span> Limpiar filtros
+            </a>
+          </header>
 
-          <div class="cat-filters-toolbar__row cat-filters-toolbar__row--advanced">
-            <div class="cat-filter-group cat-filter-group--category">
-              <label class="cat-filter-group__label" for="cat-filter-categoria">Categoría</label>
-              <select name="categoria" id="cat-filter-categoria" class="ali-filter-select cat-filters-toolbar__select cat-filters-toolbar__select--category">
-                <option value="">Todas</option>
-                {% for cat in categorias %}
-                <option value="{{ cat.pk }}" {% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %}selected{% endif %}>
-                  {{ cat.name }} ({{ cat.num_productos }})
-                </option>
-                {% endfor %}
-              </select>
-            </div>
+          <div class="cat-filters-toolbar__body">
+            <section class="cat-filters-toolbar__section cat-filters-toolbar__section--quick" aria-label="Filtros rápidos">
+              <div class="cat-filters-toolbar__quick" role="group">
+                <label class="ali-quick-chip ali-quick-chip--verified">
+                  <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
+                  <span>Verificado</span>
+                </label>
+                <label class="ali-quick-chip ali-quick-chip--stock">
+                  <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
+                  <span>En stock</span>
+                </label>
+                <label class="ali-quick-chip ali-quick-chip--sale">
+                  <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
+                  <span>En oferta</span>
+                </label>
+              </div>
+            </section>
 
-            <div class="cat-filter-group cat-filter-group--empresa">
-              <label class="cat-filter-group__label" for="cat-filter-empresa">Proveedor</label>
-              <select name="empresa" id="cat-filter-empresa" class="ali-filter-select cat-filters-toolbar__select">
-                <option value="">Todos los proveedores</option>
-                {% for emp in empresas %}
-                <option value="{{ emp.pk }}" {% if empresa == emp.pk|stringformat:'s' %}selected{% endif %}>
-                  {{ emp.name|truncatechars:36 }}
-                </option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <div class="cat-filter-group cat-filter-group--price">
-              <span class="cat-filter-group__label">Precio (US $)</span>
-              <div class="cat-price-panel">
-                <div class="cat-price-panel__inputs">
-                  <div class="cat-price-field">
-                    <span class="cat-price-field__currency" aria-hidden="true">$</span>
-                    <input type="number" name="precio_min" id="cat-filter-precio-min" min="0" step="0.01" placeholder="Mín"
-                           value="{{ precio_min }}" aria-label="Precio mínimo" class="cat-price-field__input">
-                  </div>
-                  <span class="cat-price-panel__sep" aria-hidden="true">—</span>
-                  <div class="cat-price-field">
-                    <span class="cat-price-field__currency" aria-hidden="true">$</span>
-                    <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx"
-                           value="{{ precio_max }}" aria-label="Precio máximo" class="cat-price-field__input">
-                  </div>
-                  <button type="submit" class="cat-price-panel__apply">Aplicar</button>
+            <section class="cat-filters-toolbar__section cat-filters-toolbar__section--fields" aria-label="Filtros avanzados">
+              <div class="cat-filters-toolbar__field-grid">
+                <div class="cat-filter-group cat-filter-group--category">
+                  <label class="cat-filter-group__label" for="cat-filter-categoria">Categoría</label>
+                  <select name="categoria" id="cat-filter-categoria" class="ali-filter-select cat-filters-toolbar__select cat-filters-toolbar__select--category">
+                    <option value="">Todas las categorías</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.pk }}" {% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %}selected{% endif %}>
+                      {{ cat.name }} ({{ cat.num_productos }})
+                    </option>
+                    {% endfor %}
+                  </select>
                 </div>
-                <div class="cat-price-panel__presets" role="group" aria-label="Rangos de precio rápidos">
-                  <button type="button" class="cat-price-preset" data-precio-min="" data-precio-max="100">
-                    <span class="cat-price-preset__amount">Hasta $100</span>
-                  </button>
-                  <button type="button" class="cat-price-preset" data-precio-min="100" data-precio-max="500">
-                    <span class="cat-price-preset__amount">$100 – $500</span>
-                  </button>
-                  <button type="button" class="cat-price-preset" data-precio-min="500" data-precio-max="2500">
-                    <span class="cat-price-preset__amount">$500 – $2,500</span>
-                  </button>
-                  <button type="button" class="cat-price-preset" data-precio-min="2500" data-precio-max="10000">
-                    <span class="cat-price-preset__amount">$2,500 – $10k</span>
-                  </button>
-                  <button type="button" class="cat-price-preset" data-precio-min="10000" data-precio-max="">
-                    <span class="cat-price-preset__amount">$10,000+</span>
-                  </button>
+
+                <div class="cat-filter-group cat-filter-group--empresa">
+                  <label class="cat-filter-group__label" for="cat-filter-empresa">Proveedor</label>
+                  <select name="empresa" id="cat-filter-empresa" class="ali-filter-select cat-filters-toolbar__select">
+                    <option value="">Todos los proveedores</option>
+                    {% for emp in empresas %}
+                    <option value="{{ emp.pk }}" {% if empresa == emp.pk|stringformat:'s' %}selected{% endif %}>
+                      {{ emp.name|truncatechars:36 }}
+                    </option>
+                    {% endfor %}
+                  </select>
                 </div>
               </div>
-            </div>
+
+              <div class="cat-filter-group cat-filter-group--price">
+                <div class="cat-price-card">
+                  <div class="cat-price-card__header">
+                    <div class="cat-price-card__heading">
+                      <span class="cat-filter-group__label">Rango de precio</span>
+                      <span class="cat-price-card__badge">USD</span>
+                    </div>
+                    <p class="cat-price-card__hint">Precios mayoristas por unidad</p>
+                  </div>
+
+                  <div class="cat-price-range" role="group" aria-label="Rango de precio personalizado">
+                    <label class="cat-price-range__field">
+                      <span class="cat-price-range__label">Mínimo</span>
+                      <span class="cat-price-range__control">
+                        <span class="cat-price-range__currency" aria-hidden="true">$</span>
+                        <input type="number" name="precio_min" id="cat-filter-precio-min" min="0" step="0.01" placeholder="0"
+                               value="{{ precio_min }}" aria-label="Precio mínimo" class="cat-price-range__input">
+                      </span>
+                    </label>
+                    <span class="cat-price-range__connector" aria-hidden="true"></span>
+                    <label class="cat-price-range__field">
+                      <span class="cat-price-range__label">Máximo</span>
+                      <span class="cat-price-range__control">
+                        <span class="cat-price-range__currency" aria-hidden="true">$</span>
+                        <input type="number" name="precio_max" min="0" step="0.01" placeholder="Sin límite"
+                               value="{{ precio_max }}" aria-label="Precio máximo" class="cat-price-range__input">
+                      </span>
+                    </label>
+                    <button type="submit" class="cat-price-range__apply" aria-label="Aplicar rango de precio">
+                      <span>Aplicar</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </button>
+                  </div>
+
+                  <div class="cat-price-segments" role="group" aria-label="Rangos de precio rápidos">
+                    <button type="button" class="cat-price-preset" data-precio-min="" data-precio-max="100">
+                      <span class="cat-price-preset__tier">Entrada</span>
+                      <span class="cat-price-preset__amount">Hasta $100</span>
+                    </button>
+                    <button type="button" class="cat-price-preset" data-precio-min="100" data-precio-max="500">
+                      <span class="cat-price-preset__tier">Básico</span>
+                      <span class="cat-price-preset__amount">$100 – $500</span>
+                    </button>
+                    <button type="button" class="cat-price-preset" data-precio-min="500" data-precio-max="2500">
+                      <span class="cat-price-preset__tier">Medio</span>
+                      <span class="cat-price-preset__amount">$500 – $2.5k</span>
+                    </button>
+                    <button type="button" class="cat-price-preset" data-precio-min="2500" data-precio-max="10000">
+                      <span class="cat-price-preset__tier">Alto</span>
+                      <span class="cat-price-preset__amount">$2.5k – $10k</span>
+                    </button>
+                    <button type="button" class="cat-price-preset" data-precio-min="10000" data-precio-max="">
+                      <span class="cat-price-preset__tier">Premium</span>
+                      <span class="cat-price-preset__amount">$10k+</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
 
