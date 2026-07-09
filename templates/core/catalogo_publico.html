@@ -4,7 +4,7 @@
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'18' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'14' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'15' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
 {% if productos %}
@@ -138,6 +138,7 @@
     </div>
 
     <div class="cat-ali-body">
+      <div class="cat-ali-rail-slot" aria-hidden="true"></div>
       <aside class="cat-ali-category-rail" id="cat-sidebar" aria-label="Category navigation">
         <button type="button" class="cat-ali-category-rail__close sidebar-close" id="cat-sidebar-close" aria-label="Close categories">
           {% include "core/includes/tf_icon.html" with name="close" %}
@@ -161,6 +162,6 @@
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
 {% include "core/includes/tf_ai_search_assets.html" %}
-<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'19' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'20' }}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
