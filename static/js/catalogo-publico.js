@@ -43,10 +43,44 @@
 
   var SORT_LABELS = {
     relevancia: 'Mejor coincidencia',
-    precio_asc: 'Precio ↑',
-    precio_desc: 'Precio ↓',
+    precio_asc: 'Precio: menor a mayor',
+    precio_desc: 'Precio: mayor a menor',
     novedades: 'Más recientes',
   };
+
+  var CHIP_LABELS = {
+    verificado: 'Verificado',
+    stock: 'En stock',
+    stock_low: 'Stock bajo',
+    on_sale: 'En oferta',
+  };
+
+  function syncRailActiveState() {
+    var catId = filterCategoria ? filterCategoria.value : '';
+    document.querySelectorAll('.cat-ali-category-rail__item').forEach(function (item) {
+      var linkUrl;
+      try {
+        linkUrl = new URL(item.href, window.location.origin);
+      } catch (err) {
+        return;
+      }
+      var linkCat = linkUrl.searchParams.get('categoria') || '';
+      item.classList.toggle('is-active', linkCat === catId);
+    });
+  }
+
+  function updateFilterBadge(chipCount) {
+    var badge = document.getElementById('cat-filter-badge');
+    if (!badge) return;
+    if (chipCount > 0) {
+      badge.hidden = false;
+      badge.textContent = String(chipCount);
+      badge.setAttribute('aria-hidden', 'false');
+    } else {
+      badge.hidden = true;
+      badge.setAttribute('aria-hidden', 'true');
+    }
+  }
 
   function syncFilterLabels() {
     /* Chips y selects reflejan estado vía :checked / value */
@@ -292,7 +326,7 @@
     var chips = [];
     var buscar = filterBuscar ? filterBuscar.value.trim() : '';
     if (buscar) {
-      chips.push({ key: 'buscar', label: 'Search: ' + buscar });
+      chips.push({ key: 'buscar', label: 'Búsqueda: ' + buscar });
     }
 
     if (filterCategoria && filterCategoria.value) {
@@ -308,10 +342,10 @@
     var precioMin = filtersForm.querySelector('input[name="precio_min"]');
     var precioMax = filtersForm.querySelector('input[name="precio_max"]');
     if (precioMin && precioMin.value) {
-      chips.push({ key: 'precio_min', label: 'Min $' + precioMin.value });
+      chips.push({ key: 'precio_min', label: 'Mín. $' + precioMin.value });
     }
     if (precioMax && precioMax.value) {
-      chips.push({ key: 'precio_max', label: 'Max $' + precioMax.value });
+      chips.push({ key: 'precio_max', label: 'Máx. $' + precioMax.value });
     }
 
     ['verificado', 'stock', 'stock_low', 'on_sale'].forEach(function (name) {
@@ -319,7 +353,10 @@
       if (!input) return;
       var label = input.closest('label');
       var text = label ? label.querySelector('span') : null;
-      chips.push({ key: name, label: text ? text.textContent.trim() : name });
+      chips.push({
+        key: name,
+        label: text ? text.textContent.trim() : (CHIP_LABELS[name] || name),
+      });
     });
 
     var ordenSelect = document.getElementById('cat-sort-select');
@@ -330,6 +367,8 @@
     activeFiltersEl.innerHTML = '';
     if (!chips.length) {
       activeFiltersEl.hidden = true;
+      updateFilterBadge(0);
+      syncRailActiveState();
       return;
     }
 
@@ -349,11 +388,13 @@
     var clearAll = document.createElement('button');
     clearAll.type = 'button';
     clearAll.className = 'filter-chip filter-chip--clear';
-    clearAll.textContent = 'Clear all';
+    clearAll.textContent = 'Limpiar todo';
     clearAll.addEventListener('click', function () {
       window.location.href = pageConfig ? pageConfig.getAttribute('data-catalog-url') : '/catalogo/';
     });
     activeFiltersEl.appendChild(clearAll);
+    updateFilterBadge(chips.length);
+    syncRailActiveState();
   }
 
   function clearFilterChip(key) {
@@ -591,6 +632,7 @@
   document.querySelectorAll('.cat-nav-ajax-link').forEach(function (link) {
     link.addEventListener('click', function (e) {
       e.preventDefault();
+      setSidebarOpen(false);
       applyFiltersFromLink(link.href);
     });
   });
@@ -719,6 +761,7 @@
 
   syncFormFromUrl();
   syncFilterLabels();
+  syncRailActiveState();
   renderActiveFilters();
   bindInquiryButtons();
   bindPaginationLinks();

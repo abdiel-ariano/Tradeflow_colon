@@ -3101,6 +3101,14 @@ def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
     return slots
 
 
+def _catalogo_filter_querystring(request, *, omit=()):
+    """Query string de filtros activos (sin page/partial ni claves en omit)."""
+    qcopy = request.GET.copy()
+    for key in ('page', 'partial', *omit):
+        qcopy.pop(key, None)
+    return qcopy.urlencode()
+
+
 @catalog_access
 def catalogo_publico(request):
     """Catálogo público read-only (sin login) — filtros + grid de productos."""
@@ -3250,6 +3258,7 @@ def catalogo_publico(request):
         'solo_verificado': solo_verificado,
         'orden': orden_key,
         'catalogo_params': catalogo_params,
+        'catalogo_q_sin_categoria': _catalogo_filter_querystring(request, omit=('categoria',)),
         'catalogo_stats': stats,
         'verified_empresas': verified_empresas,
         'total_resultados': total_resultados,

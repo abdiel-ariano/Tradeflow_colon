@@ -1,14 +1,17 @@
 {% load tf_catalog %}
-<nav class="cat-ali-category-rail__nav" aria-label="All categories">
-  <a href="{% url 'catalogo_publico' %}"
-     class="cat-ali-category-rail__item{% if not categorias_sel and not buscar and not solo_verificado and not solo_stock and not solo_on_sale and not empresa and not precio_min and not precio_max %} is-active{% endif %}">
+<header class="cat-ali-category-rail__head">
+  <h2 class="cat-ali-category-rail__title">Categorías</h2>
+</header>
+<nav class="cat-ali-category-rail__nav" aria-label="Categorías del catálogo">
+  <a href="{% url 'catalogo_publico' %}{% if catalogo_q_sin_categoria %}?{{ catalogo_q_sin_categoria }}{% endif %}"
+     class="cat-ali-category-rail__item cat-nav-ajax-link{% if not categorias_sel %} is-active{% endif %}">
     {% include "core/includes/tf_icon.html" with name="travel_explore" class="cat-ali-category-rail__icon" %}
-    <span class="cat-ali-category-rail__label">Categories for you</span>
+    <span class="cat-ali-category-rail__label">Todas</span>
     {% include "core/includes/tf_icon.html" with name="chevron_right" class="cat-ali-category-rail__chevron" %}
   </a>
   {% for cat in sidebar_categories %}
-  <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}"
-     class="cat-ali-category-rail__item{% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %} is-active{% endif %}">
+  <a href="{% url 'catalogo_publico' %}?{% if catalogo_q_sin_categoria %}{{ catalogo_q_sin_categoria }}&{% endif %}categoria={{ cat.pk }}"
+     class="cat-ali-category-rail__item cat-nav-ajax-link{% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %} is-active{% endif %}">
     {% with icon=cat.name|category_icon %}
       {% if icon == "local_shipping" %}
         {% include "core/includes/tf_icon.html" with name="local_shipping" class="cat-ali-category-rail__icon" %}
@@ -18,8 +21,8 @@
         {% include "core/includes/tf_icon.html" with name="storefront" class="cat-ali-category-rail__icon" %}
       {% endif %}
     {% endwith %}
-    <span class="cat-ali-category-rail__label">{{ cat.name|category_label|truncatechars:28 }}</span>
-    {% include "core/includes/tf_icon.html" with name="chevron_right" class="cat-ali-category-rail__chevron" %}
+    <span class="cat-ali-category-rail__label">{{ cat.name|category_label|truncatechars:24 }}</span>
+    <span class="cat-ali-category-rail__count">{{ cat.n }}</span>
   </a>
   {% endfor %}
 </nav>
