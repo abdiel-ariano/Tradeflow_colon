@@ -42,7 +42,8 @@
   grid-column: 2;
   grid-row: 1;
   min-width: 0;
-  --cat-card-w: calc((100% - (3 * var(--cat-ali-gap))) / 4);
+  container-type: inline-size;
+  container-name: cat-results;
 }
 
 /* ── Sidebar categorías: compacto con scroll (referencia Alibaba) ── */
@@ -288,33 +289,38 @@
   display: none;
 }
 
-/* Fila 4 y 5: mismo ancho de card (--cat-card-w) en ambas filas */
+/* Fila 4 y 5: mismo ancho — 100cqw siempre = columna de resultados (no el breakout) */
 @media (min-width: 1024px) {
-  body.cat-catalog-page .cat-product-grids .cat-product-grid-top.product-grid,
-  body.cat-catalog-page .cat-product-grids .cat-product-grid-main.product-grid {
-    gap: var(--cat-ali-gap);
-  }
+  @container cat-results (min-width: 1px) {
+    body.cat-catalog-page .cat-product-grids .cat-product-grid-top.product-grid,
+    body.cat-catalog-page .cat-product-grids .cat-product-grid-main.product-grid {
+      gap: var(--cat-ali-gap);
+      --cat-card-w: calc((100cqw - (3 * var(--cat-ali-gap))) / 4);
+    }
 
-  body.cat-catalog-page .cat-product-grids .cat-product-grid-top.product-grid {
-    grid-template-columns: repeat(4, var(--cat-card-w));
-    width: 100%;
-    max-width: 100%;
-  }
+    body.cat-catalog-page .cat-product-grids .cat-product-grid-top.product-grid {
+      grid-template-columns: repeat(4, var(--cat-card-w));
+      width: 100%;
+      max-width: 100%;
+    }
 
-  /* Fila 5: debajo del rail, ancho completo, mismas cards */
-  body.cat-catalog-page .cat-product-grids .cat-product-grid-main.product-grid {
-    grid-template-columns: repeat(5, var(--cat-card-w));
-    width: calc(100% + var(--cat-ali-rail-width) + var(--cat-ali-gap));
-    max-width: calc(100% + var(--cat-ali-rail-width) + var(--cat-ali-gap));
-    margin-left: calc(-1 * (var(--cat-ali-rail-width) + var(--cat-ali-gap)));
-    justify-content: start;
+    /* Fila 5: debajo del rail; tracks iguales a fila 4 (no más anchos) */
+    body.cat-catalog-page .cat-product-grids .cat-product-grid-main.product-grid {
+      grid-template-columns: repeat(5, var(--cat-card-w));
+      width: calc(100cqw + var(--cat-ali-rail-width) + var(--cat-ali-gap));
+      max-width: calc(100cqw + var(--cat-ali-rail-width) + var(--cat-ali-gap));
+      margin-left: calc(-1 * (var(--cat-ali-rail-width) + var(--cat-ali-gap)));
+      justify-content: start;
+    }
   }
 }
 
-/* Cards llenan su celda — sin max-width que las estire verticalmente */
+/* Cards llenan su celda; en fila 5 no crecer más allá del track */
 body.cat-catalog-page .cat-product-grids .product-card {
   width: 100%;
   min-width: 0;
+  max-width: 100%;
+  justify-self: stretch;
 }
 
 .cat-product-grids.is-skeleton-exiting .product-card--skeleton {
