@@ -155,7 +155,9 @@ body.cat-catalog-page .tf-main {
   border: 2px solid #FF9A5C;
   border-radius: 24px;
   display: flex;
-  overflow: hidden;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 3px 3px 0;
   background: #fff;
   box-shadow: 0 0 0 1px rgba(255, 154, 92, 0.25);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -167,44 +169,66 @@ body.cat-catalog-page .tf-main {
 }
 
 .search-bar input {
-  flex: 1;
-  padding: 0 12px;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 6px 0 16px;
   font-size: 14px;
   border: none;
   outline: none;
   color: var(--tf-text);
-  min-width: 0;
+  background: transparent;
 }
 
-.search-bar input::placeholder { color: var(--tf-text-2); }
+.search-bar input::placeholder {
+  color: var(--tf-text-2);
+}
+
+.search-bar__divider {
+  flex: 0 0 1px;
+  align-self: center;
+  width: 1px;
+  height: 22px;
+  background: var(--tf-border-soft, #D1D5DB);
+}
 
 .btn-camera {
-  width: 40px;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   color: var(--tf-text-2);
   background: none;
   border: none;
-  border-left: 1px solid var(--tf-border-soft);
+  border-radius: 10px;
   cursor: pointer;
-  transition: color 0.15s;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
-.btn-camera:hover { color: var(--tf-navy); }
+.btn-camera:hover {
+  color: var(--tf-navy);
+  background: rgba(15, 42, 68, 0.04);
+}
 
 .btn-search {
-  height: calc(100% - 4px);
-  margin: 2px 2px 2px 0;
+  flex: 0 0 auto;
+  align-self: stretch;
+  height: auto;
+  margin: 0;
   padding: 0 18px;
   background: linear-gradient(135deg, #FF7A3D 0%, #FF9A5C 100%);
   color: #fff;
   border: none;
-  border-radius: 20px;
+  border-radius: 19px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 700;
-  display: flex;
+  line-height: 1;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   transition: filter 0.15s ease, box-shadow 0.15s ease;
   box-shadow: 0 2px 8px rgba(255, 122, 61, 0.35);
