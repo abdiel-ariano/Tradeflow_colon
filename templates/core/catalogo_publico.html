@@ -4,7 +4,7 @@
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'18' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'12' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'13' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
 {% if productos %}
@@ -59,7 +59,7 @@
       {% include "core/includes/catalogo_ali_category_sidebar.html" %}
     </aside>
 
-    <section class="catalog-content cat-ali-results">
+    <div class="cat-ali-head">
       <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form cat-filters-form--toolbar" id="cat-filters-form">
         <input type="hidden" name="buscar" id="cat-filter-buscar" value="{{ buscar }}">
 
@@ -134,11 +134,11 @@
           </select>
         </div>
       </div>
+    </div>
 
-      <div id="cat-results-host" aria-live="polite">
-        {% include "core/includes/catalogo_publico_results.html" %}
-      </div>
-    </section>
+    <div id="cat-results-host" class="cat-ali-results-host" aria-live="polite">
+      {% include "core/includes/catalogo_publico_results.html" %}
+    </div>
   </div>
 </main>
 {% include "core/includes/home_categories_modal.html" %}
@@ -151,6 +151,6 @@
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
 {% include "core/includes/tf_ai_search_assets.html" %}
-<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'17' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'18' }}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
