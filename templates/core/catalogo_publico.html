@@ -4,7 +4,7 @@
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'18' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'13' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'14' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
 {% if productos %}
@@ -52,13 +52,6 @@
 
 <main class="catalog-main">
   <div class="catalog-container cat-ali-layout">
-    <aside class="cat-ali-category-rail" id="cat-sidebar" aria-label="Category navigation">
-      <button type="button" class="cat-ali-category-rail__close sidebar-close" id="cat-sidebar-close" aria-label="Close categories">
-        {% include "core/includes/tf_icon.html" with name="close" %}
-      </button>
-      {% include "core/includes/catalogo_ali_category_sidebar.html" %}
-    </aside>
-
     <div class="cat-ali-head">
       <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form cat-filters-form--toolbar" id="cat-filters-form">
         <input type="hidden" name="buscar" id="cat-filter-buscar" value="{{ buscar }}">
@@ -136,8 +129,17 @@
       </div>
     </div>
 
-    <div id="cat-results-host" class="cat-ali-results-host" aria-live="polite">
-      {% include "core/includes/catalogo_publico_results.html" %}
+    <div class="cat-ali-body">
+      <aside class="cat-ali-category-rail" id="cat-sidebar" aria-label="Category navigation">
+        <button type="button" class="cat-ali-category-rail__close sidebar-close" id="cat-sidebar-close" aria-label="Close categories">
+          {% include "core/includes/tf_icon.html" with name="close" %}
+        </button>
+        {% include "core/includes/catalogo_ali_category_sidebar.html" %}
+      </aside>
+
+      <div id="cat-results-host" class="cat-ali-results-host" aria-live="polite">
+        {% include "core/includes/catalogo_publico_results.html" %}
+      </div>
     </div>
   </div>
 </main>
