@@ -4,7 +4,7 @@
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'18' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'16' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'17' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
 {% if productos %}
@@ -114,23 +114,40 @@
 
             <div class="cat-filter-group cat-filter-group--price">
               <span class="cat-filter-group__label">Precio (US $)</span>
-              <div class="ali-price-row cat-filters-toolbar__price">
-                <input type="number" name="precio_min" id="cat-filter-precio-min" min="0" step="0.01" placeholder="Mín"
-                       value="{{ precio_min }}" aria-label="Precio mínimo" class="ali-price-input">
-                <span class="ali-price-sep" aria-hidden="true">—</span>
-                <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx"
-                       value="{{ precio_max }}" aria-label="Precio máximo" class="ali-price-input">
-                <button type="submit" class="ali-filter-ok">Aplicar</button>
+              <div class="cat-price-panel">
+                <div class="cat-price-panel__inputs">
+                  <div class="cat-price-field">
+                    <span class="cat-price-field__currency" aria-hidden="true">$</span>
+                    <input type="number" name="precio_min" id="cat-filter-precio-min" min="0" step="0.01" placeholder="Mín"
+                           value="{{ precio_min }}" aria-label="Precio mínimo" class="cat-price-field__input">
+                  </div>
+                  <span class="cat-price-panel__sep" aria-hidden="true">—</span>
+                  <div class="cat-price-field">
+                    <span class="cat-price-field__currency" aria-hidden="true">$</span>
+                    <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx"
+                           value="{{ precio_max }}" aria-label="Precio máximo" class="cat-price-field__input">
+                  </div>
+                  <button type="submit" class="cat-price-panel__apply">Aplicar</button>
+                </div>
+                <div class="cat-price-panel__presets" role="group" aria-label="Rangos de precio rápidos">
+                  <button type="button" class="cat-price-preset" data-precio-min="" data-precio-max="100">
+                    <span class="cat-price-preset__amount">Hasta $100</span>
+                  </button>
+                  <button type="button" class="cat-price-preset" data-precio-min="100" data-precio-max="500">
+                    <span class="cat-price-preset__amount">$100 – $500</span>
+                  </button>
+                  <button type="button" class="cat-price-preset" data-precio-min="500" data-precio-max="2500">
+                    <span class="cat-price-preset__amount">$500 – $2,500</span>
+                  </button>
+                  <button type="button" class="cat-price-preset" data-precio-min="2500" data-precio-max="10000">
+                    <span class="cat-price-preset__amount">$2,500 – $10k</span>
+                  </button>
+                  <button type="button" class="cat-price-preset" data-precio-min="10000" data-precio-max="">
+                    <span class="cat-price-preset__amount">$10,000+</span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="cat-filters-toolbar__presets" role="group" aria-label="Rangos de precio rápidos">
-            <span class="cat-filters-toolbar__presets-label">Rangos:</span>
-            <button type="button" class="cat-price-preset" data-precio-min="" data-precio-max="50">Hasta $50</button>
-            <button type="button" class="cat-price-preset" data-precio-min="50" data-precio-max="200">$50 – $200</button>
-            <button type="button" class="cat-price-preset" data-precio-min="200" data-precio-max="500">$200 – $500</button>
-            <button type="button" class="cat-price-preset" data-precio-min="500" data-precio-max="">$500+</button>
           </div>
         </div>
 
@@ -172,6 +189,6 @@
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
 {% include "core/includes/tf_ai_search_assets.html" %}
-<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'20' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'21' }}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
