@@ -234,10 +234,8 @@
     var total = count || getSkeletonCount();
     var topCount = Math.min(4, total);
     var mainCount = Math.max(0, total - topCount);
-    var topGrid = document.getElementById('cat-product-grid-top');
-    var mainGrid = document.getElementById('cat-product-grid-main');
-    fillSkeletonGrid(topGrid, topCount);
-    fillSkeletonGrid(mainGrid, mainCount);
+    fillSkeletonGrid(document.getElementById('cat-product-grid-top'), topCount);
+    fillSkeletonGrid(document.getElementById('cat-product-grid-main'), mainCount);
   }
 
   function renderResultsWithFade(gridsEl, newGridsHTML) {
