@@ -165,9 +165,8 @@
 
 .cat-filters-toolbar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
+  flex-direction: column;
+  gap: 0;
   padding: 10px 12px;
   background: #fff;
   border: 1px solid var(--tf-border-soft, #D1D5DB);
@@ -175,9 +174,26 @@
   box-shadow: 0 2px 8px rgba(15, 42, 68, 0.04);
 }
 
+.cat-filters-toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+}
+
+.cat-filters-toolbar__row--top {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--tf-surface, #F2F3F5);
+}
+
+.cat-filters-toolbar__row--advanced {
+  padding-top: 10px;
+  gap: 10px 14px;
+}
+
 .cat-filters-toolbar__heading {
   margin: 0;
-  flex: 0 0 100%;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -206,14 +222,89 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.cat-filters-toolbar__fields {
+.cat-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cat-filter-group__label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tf-muted, #6B7A88);
+}
+
+.cat-filter-group--empresa .ali-filter-select {
+  min-width: 160px;
+  max-width: 220px;
+}
+
+.cat-filter-group--price .ali-price-row {
+  flex-wrap: wrap;
+}
+
+.cat-filters-toolbar__presets {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  width: 100%;
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px solid var(--tf-surface, #F2F3F5);
+}
+
+.cat-filters-toolbar__presets-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tf-muted, #6B7A88);
+  margin-right: 2px;
+}
+
+.cat-price-preset {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--tf-border-soft, #D1D5DB);
+  border-radius: 999px;
+  background: var(--tf-surface, #F2F3F5);
+  color: var(--tf-text, #343A40);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+.cat-price-preset:hover {
+  border-color: rgba(242, 101, 34, 0.45);
+  background: rgba(255, 122, 61, 0.08);
+  color: var(--tf-navy, #0F2A44);
+}
+
+.cat-price-preset.is-active {
+  border-color: rgba(242, 101, 34, 0.55);
+  background: rgba(255, 122, 61, 0.12);
+  color: var(--tf-navy, #0F2A44);
+}
+
+.cat-filters-toolbar__clear {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tf-primary, #0057A8);
+  text-decoration: none;
+  white-space: nowrap;
   margin-left: auto;
+}
+
+.cat-filters-toolbar__clear:hover {
+  text-decoration: underline;
 }
 
 .cat-filters-toolbar__select {
@@ -223,25 +314,9 @@
 }
 
 @media (min-width: 1024px) {
-  .cat-filters-toolbar__select--category {
+  .cat-filter-group--category {
     display: none;
   }
-
-  .cat-filters-toolbar__divider {
-    display: none;
-  }
-}
-
-.cat-filters-toolbar__clear {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--tf-primary, #0057A8);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.cat-filters-toolbar__clear:hover {
-  text-decoration: underline;
 }
 
 /* ── Resultados: grid responsivo estable (sin --cat-card-w frágil) ── */
@@ -450,34 +525,32 @@ body.cat-catalog-page .cat-product-grids .product-card {
 }
 
 @media (max-width: 1023px) {
-  .cat-filters-toolbar__heading {
-    flex: 1 1 auto;
-    width: auto;
+  .cat-filters-toolbar__row--top {
+    gap: 8px;
   }
 
-  .cat-filters-toolbar__divider {
-    display: none;
-  }
-
-  .cat-filters-toolbar__fields {
-    flex: 1 1 100%;
+  .cat-filters-toolbar__clear {
     margin-left: 0;
+    flex: 0 0 auto;
   }
 
-  .cat-filters-toolbar__select--category {
-    flex: 1 1 100%;
+  .cat-filters-toolbar__row--advanced {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cat-filter-group .ali-filter-select {
+    width: 100%;
     max-width: none;
     min-width: 0;
   }
 
-  .cat-filters-toolbar__select:not(.cat-filters-toolbar__select--category) {
-    flex: 1 1 calc(50% - 4px);
+  .cat-filter-group--empresa .ali-filter-select {
     max-width: none;
-    min-width: 0;
   }
 
   .cat-filters-toolbar__price {
-    flex: 1 1 100%;
+    width: 100%;
   }
 }
 
@@ -523,6 +596,11 @@ body.cat-catalog-page .cat-product-grids .product-card {
   .catalog-container.cat-ali-layout {
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  body.cat-catalog-page .cat-product-grids .cat-product-grid-top.product-grid,
+  body.cat-catalog-page .cat-product-grids .cat-product-grid-main.product-grid {
+    grid-template-columns: 1fr;
   }
 }
 

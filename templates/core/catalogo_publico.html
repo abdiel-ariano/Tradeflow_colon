@@ -4,7 +4,7 @@
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'18' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'15' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'16' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
 {% if productos %}
@@ -65,59 +65,72 @@
         <input type="hidden" name="buscar" id="cat-filter-buscar" value="{{ buscar }}">
 
         <div class="cat-filters-toolbar" id="cat-filters-toolbar">
-          <p class="cat-filters-toolbar__heading">
-            <span class="cat-filters-toolbar__heading-icon" aria-hidden="true">▾</span>
-            Refinar resultados
-          </p>
-
-          <div class="cat-filters-toolbar__quick" role="group" aria-label="Filtros rápidos">
-            <label class="ali-quick-chip">
-              <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
-              <span>Verificado</span>
-            </label>
-            <label class="ali-quick-chip">
-              <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
-              <span>En stock</span>
-            </label>
-            <label class="ali-quick-chip">
-              <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
-              <span>En oferta</span>
-            </label>
+          <div class="cat-filters-toolbar__row cat-filters-toolbar__row--top">
+            <p class="cat-filters-toolbar__heading">
+              <span class="cat-filters-toolbar__heading-icon" aria-hidden="true">▾</span>
+              Refinar resultados
+            </p>
+            <div class="cat-filters-toolbar__quick" role="group" aria-label="Filtros rápidos">
+              <label class="ali-quick-chip">
+                <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
+                <span>Verificado</span>
+              </label>
+              <label class="ali-quick-chip">
+                <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
+                <span>En stock</span>
+              </label>
+              <label class="ali-quick-chip">
+                <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
+                <span>En oferta</span>
+              </label>
+            </div>
+            <a href="{% url 'catalogo_publico' %}" class="cat-filters-toolbar__clear">Limpiar todo</a>
           </div>
 
-          <div class="cat-filters-toolbar__divider" aria-hidden="true"></div>
-
-          <div class="cat-filters-toolbar__fields">
-            <label class="visually-hidden" for="cat-filter-categoria">Categoría</label>
-            <select name="categoria" id="cat-filter-categoria" class="ali-filter-select cat-filters-toolbar__select cat-filters-toolbar__select--category">
-              <option value="">Todas las categorías</option>
-              {% for cat in categorias %}
-              <option value="{{ cat.pk }}" {% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %}selected{% endif %}>
-                {{ cat.name }} ({{ cat.num_productos }})
-              </option>
-              {% endfor %}
-            </select>
-
-            <label class="visually-hidden" for="cat-filter-empresa">Proveedor</label>
-            <select name="empresa" id="cat-filter-empresa" class="ali-filter-select cat-filters-toolbar__select">
-              <option value="">Todos los proveedores</option>
-              {% for emp in empresas|slice:":20" %}
-              <option value="{{ emp.pk }}" {% if empresa == emp.pk|stringformat:'s' %}selected{% endif %}>
-                {{ emp.name|truncatechars:28 }}
-              </option>
-              {% endfor %}
-            </select>
-
-            <div class="ali-price-row cat-filters-toolbar__price">
-              <input type="number" name="precio_min" id="cat-filter-precio-min" min="0" step="0.01" placeholder="Mín $"
-                     value="{{ precio_min }}" aria-label="Precio mínimo" class="ali-price-input">
-              <span class="ali-price-sep" aria-hidden="true">—</span>
-              <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx $"
-                     value="{{ precio_max }}" aria-label="Precio máximo" class="ali-price-input">
-              <button type="submit" class="ali-filter-ok">OK</button>
+          <div class="cat-filters-toolbar__row cat-filters-toolbar__row--advanced">
+            <div class="cat-filter-group cat-filter-group--category">
+              <label class="cat-filter-group__label" for="cat-filter-categoria">Categoría</label>
+              <select name="categoria" id="cat-filter-categoria" class="ali-filter-select cat-filters-toolbar__select cat-filters-toolbar__select--category">
+                <option value="">Todas</option>
+                {% for cat in categorias %}
+                <option value="{{ cat.pk }}" {% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %}selected{% endif %}>
+                  {{ cat.name }} ({{ cat.num_productos }})
+                </option>
+                {% endfor %}
+              </select>
             </div>
 
-            <a href="{% url 'catalogo_publico' %}" class="cat-filters-toolbar__clear">Limpiar</a>
+            <div class="cat-filter-group cat-filter-group--empresa">
+              <label class="cat-filter-group__label" for="cat-filter-empresa">Proveedor</label>
+              <select name="empresa" id="cat-filter-empresa" class="ali-filter-select cat-filters-toolbar__select">
+                <option value="">Todos los proveedores</option>
+                {% for emp in empresas %}
+                <option value="{{ emp.pk }}" {% if empresa == emp.pk|stringformat:'s' %}selected{% endif %}>
+                  {{ emp.name|truncatechars:36 }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="cat-filter-group cat-filter-group--price">
+              <span class="cat-filter-group__label">Precio (US $)</span>
+              <div class="ali-price-row cat-filters-toolbar__price">
+                <input type="number" name="precio_min" id="cat-filter-precio-min" min="0" step="0.01" placeholder="Mín"
+                       value="{{ precio_min }}" aria-label="Precio mínimo" class="ali-price-input">
+                <span class="ali-price-sep" aria-hidden="true">—</span>
+                <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx"
+                       value="{{ precio_max }}" aria-label="Precio máximo" class="ali-price-input">
+                <button type="submit" class="ali-filter-ok">Aplicar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cat-filters-toolbar__presets" role="group" aria-label="Rangos de precio rápidos">
+            <span class="cat-filters-toolbar__presets-label">Rangos:</span>
+            <button type="button" class="cat-price-preset" data-precio-min="" data-precio-max="50">Hasta $50</button>
+            <button type="button" class="cat-price-preset" data-precio-min="50" data-precio-max="200">$50 – $200</button>
+            <button type="button" class="cat-price-preset" data-precio-min="200" data-precio-max="500">$200 – $500</button>
+            <button type="button" class="cat-price-preset" data-precio-min="500" data-precio-max="">$500+</button>
           </div>
         </div>
 
@@ -133,12 +146,12 @@
           {% if buscar %}for &ldquo;<em>{{ buscar }}</em>&rdquo;{% endif %}
         </span>
         <div class="results-controls">
-          <label class="results-sort-label" for="cat-sort-select">Sort by</label>
-          <select name="orden" id="cat-sort-select" class="filter-select results-sort-select cat-sort-select" form="cat-filters-form" aria-label="Sort results">
-            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Best match</option>
-            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price: low to high</option>
-            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price: high to low</option>
-            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
+          <label class="results-sort-label" for="cat-sort-select">Ordenar</label>
+          <select name="orden" id="cat-sort-select" class="filter-select results-sort-select cat-sort-select" form="cat-filters-form" aria-label="Ordenar resultados">
+            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Mejor coincidencia</option>
+            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Precio: menor a mayor</option>
+            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Precio: mayor a menor</option>
+            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Más recientes</option>
           </select>
         </div>
       </div>
@@ -159,6 +172,6 @@
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
 {% include "core/includes/tf_ai_search_assets.html" %}
-<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'19' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'20' }}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
