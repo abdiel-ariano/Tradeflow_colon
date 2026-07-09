@@ -1,0 +1,25 @@
+{% load tf_catalog %}
+<nav class="cat-ali-category-rail__nav" aria-label="All categories">
+  <a href="{% url 'catalogo_publico' %}"
+     class="cat-ali-category-rail__item{% if not categorias_sel and not buscar and not solo_verificado and not solo_stock and not solo_on_sale and not empresa and not precio_min and not precio_max %} is-active{% endif %}">
+    {% include "core/includes/tf_icon.html" with name="travel_explore" class="cat-ali-category-rail__icon" %}
+    <span class="cat-ali-category-rail__label">Categories for you</span>
+    {% include "core/includes/tf_icon.html" with name="chevron_right" class="cat-ali-category-rail__chevron" %}
+  </a>
+  {% for cat in sidebar_categories %}
+  <a href="{% url 'catalogo_publico' %}?categoria={{ cat.pk }}"
+     class="cat-ali-category-rail__item{% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %} is-active{% endif %}">
+    {% with icon=cat.name|category_icon %}
+      {% if icon == "local_shipping" %}
+        {% include "core/includes/tf_icon.html" with name="local_shipping" class="cat-ali-category-rail__icon" %}
+      {% elif icon == "shopping_cart" or icon == "restaurant" %}
+        {% include "core/includes/tf_icon.html" with name="shopping_cart" class="cat-ali-category-rail__icon" %}
+      {% else %}
+        {% include "core/includes/tf_icon.html" with name="storefront" class="cat-ali-category-rail__icon" %}
+      {% endif %}
+    {% endwith %}
+    <span class="cat-ali-category-rail__label">{{ cat.name|category_label|truncatechars:28 }}</span>
+    {% include "core/includes/tf_icon.html" with name="chevron_right" class="cat-ali-category-rail__chevron" %}
+  </a>
+  {% endfor %}
+</nav>

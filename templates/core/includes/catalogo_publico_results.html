@@ -2,10 +2,21 @@
 {% comment %}Reusable fragment: catalog grid + empty state + pagination.{% endcomment %}
 <div id="cat-results-root" data-total="{{ total_resultados|default:0 }}">
   {% if productos %}
-  <div class="product-grid cat-grid tf-pcard-grid" id="cat-product-grid" aria-label="Catalog results">
-    {% for producto in productos %}
-      {% include "core/includes/catalogo_card.html" with product=producto card_index=forloop.counter %}
-    {% endfor %}
+  <div class="cat-product-grids" id="cat-product-grids">
+    <div class="product-grid cat-grid tf-pcard-grid cat-product-grid-top" id="cat-product-grid-top" aria-label="Featured results">
+      {% for producto in productos %}
+        {% if forloop.counter <= 4 %}
+          {% include "core/includes/catalogo_card.html" with product=producto card_index=forloop.counter %}
+        {% endif %}
+      {% endfor %}
+    </div>
+    <div class="product-grid cat-grid tf-pcard-grid cat-product-grid-main" id="cat-product-grid-main" aria-label="More results">
+      {% for producto in productos %}
+        {% if forloop.counter > 4 %}
+          {% include "core/includes/catalogo_card.html" with product=producto card_index=forloop.counter %}
+        {% endif %}
+      {% endfor %}
+    </div>
   </div>
 
   {% if productos.has_other_pages %}
