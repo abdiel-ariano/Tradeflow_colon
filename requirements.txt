@@ -25,7 +25,7 @@
 # =============================================================================
 
 # ── Framework principal ────────────────────────────────────────────────────
-Django==6.0.5                   # cierra GHSA-frmv (CRITICAL) + 5 HIGH + GHSA-w26r MEDIUM
+Django==6.0.7                   # cierra GHSA-frmv (CRITICAL) + 5 HIGH + GHSA-w26r MEDIUM
 
 # ── Base de datos ──────────────────────────────────────────────────────────
 psycopg2-binary>=2.9.9,<3.0     # driver PostgreSQL
