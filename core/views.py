@@ -5100,6 +5100,8 @@ def reject_application_view(request, pk):
 # PÁGINAS LEGALES (públicas)
 # =============================================================================
 
+@require_GET
+@cache_control(public=True, max_age=3600)
 def legal_terminos(request):
     """Terms of Use for the TradeFlow Colón marketplace."""
     return render(request, 'core/legal_terminos.html')
@@ -5192,11 +5194,15 @@ def marketplace_order_protection(request):
     return render(request, 'core/marketplace_order_protection.html', ctx)
 
 
+@require_GET
+@cache_control(public=True, max_age=3600)
 def legal_privacidad(request):
     """Privacy policy and data processing."""
     return render(request, 'core/legal_privacidad.html')
 
 
+@require_GET
+@cache_control(public=True, max_age=3600)
 def legal_cookies(request):
     """Cookie policy and similar technologies."""
     return render(request, 'core/legal_cookies.html')

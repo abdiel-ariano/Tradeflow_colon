@@ -41,18 +41,20 @@
     empresa: null,
   };
 
+  var I18N = window.TF_I18N || {};
+
   var SORT_LABELS = {
-    relevancia: 'Mejor coincidencia',
-    precio_asc: 'Precio: menor a mayor',
-    precio_desc: 'Precio: mayor a menor',
-    novedades: 'Más recientes',
+    relevancia: I18N.catalogSortRelevance || 'Best match',
+    precio_asc: I18N.catalogSortPriceAsc || 'Price: low to high',
+    precio_desc: I18N.catalogSortPriceDesc || 'Price: high to low',
+    novedades: I18N.catalogSortNewest || 'Newest',
   };
 
   var CHIP_LABELS = {
-    verificado: 'Verificado',
-    stock: 'En stock',
-    stock_low: 'Stock bajo',
-    on_sale: 'En oferta',
+    verificado: I18N.catalogChipVerified || 'Verified',
+    stock: I18N.catalogChipStock || 'In stock',
+    stock_low: I18N.catalogChipStockLow || 'Low stock',
+    on_sale: I18N.catalogChipOnSale || 'On sale',
   };
 
   function syncRailActiveState() {
@@ -139,7 +141,7 @@
   if (cameraBtn && navSearchInput) {
     cameraBtn.addEventListener('click', function () {
       navSearchInput.focus();
-      showToast('Image search coming soon — use text search for now.');
+      showToast(I18N.catalogImageSearchSoon || 'Image search coming soon — use text search for now.');
     });
   }
 
@@ -326,26 +328,26 @@
     var chips = [];
     var buscar = filterBuscar ? filterBuscar.value.trim() : '';
     if (buscar) {
-      chips.push({ key: 'buscar', label: 'Búsqueda: ' + buscar });
+      chips.push({ key: 'buscar', label: (I18N.catalogSearchPrefix || 'Search:') + ' ' + buscar });
     }
 
     if (filterCategoria && filterCategoria.value) {
       var catOpt = filterCategoria.options[filterCategoria.selectedIndex];
-      chips.push({ key: 'categoria', label: catOpt ? catOpt.textContent.trim() : 'Categoría' });
+      chips.push({ key: 'categoria', label: catOpt ? catOpt.textContent.trim() : (I18N.catalogCategoryFallback || 'Category') });
     }
 
     if (filterEmpresa && filterEmpresa.value) {
       var opt = filterEmpresa.options[filterEmpresa.selectedIndex];
-      chips.push({ key: 'empresa', label: opt ? opt.textContent.trim() : 'Proveedor' });
+      chips.push({ key: 'empresa', label: opt ? opt.textContent.trim() : (I18N.catalogSupplierFallback || 'Supplier') });
     }
 
     var precioMin = filtersForm.querySelector('input[name="precio_min"]');
     var precioMax = filtersForm.querySelector('input[name="precio_max"]');
     if (precioMin && precioMin.value) {
-      chips.push({ key: 'precio_min', label: 'Mín. $' + precioMin.value });
+      chips.push({ key: 'precio_min', label: (I18N.catalogPriceMinPrefix || 'Min. $') + precioMin.value });
     }
     if (precioMax && precioMax.value) {
-      chips.push({ key: 'precio_max', label: 'Máx. $' + precioMax.value });
+      chips.push({ key: 'precio_max', label: (I18N.catalogPriceMaxPrefix || 'Max. $') + precioMax.value });
     }
 
     ['verificado', 'stock', 'stock_low', 'on_sale'].forEach(function (name) {
@@ -388,7 +390,7 @@
     var clearAll = document.createElement('button');
     clearAll.type = 'button';
     clearAll.className = 'filter-chip filter-chip--clear';
-    clearAll.textContent = 'Limpiar todo';
+    clearAll.textContent = I18N.catalogClearAll || 'Clear all';
     clearAll.addEventListener('click', function () {
       window.location.href = pageConfig ? pageConfig.getAttribute('data-catalog-url') : '/catalogo/';
     });
@@ -517,7 +519,7 @@
     })
       .then(function (r) {
         if (r.status === 429) {
-          showToast('Too many requests — wait a moment and try again.');
+          showToast(I18N.catalogRateLimit || 'Too many requests — wait a moment and try again.');
           return null;
         }
         if (!r.ok) {
@@ -741,13 +743,13 @@
       .then(function (data) {
         if (data.ok) {
           updateCartBadges(data.carrito_count);
-          showToast(data.message || 'Added to inquiry cart');
+          showToast(data.message || I18N.catalogAddedToCart || 'Added to inquiry cart');
         } else {
-          showToast(data.message || 'Could not add to inquiry cart');
+          showToast(data.message || I18N.catalogCartError || 'Could not add to inquiry cart');
         }
       })
       .catch(function () {
-        showToast('Connection error — try again');
+        showToast(I18N.catalogNetworkError || 'Connection error — try again');
       })
       .finally(function () {
         if (btn) btn.disabled = false;

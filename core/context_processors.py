@@ -56,43 +56,67 @@ def tradeflow_contact(request):
 
 
 def tf_i18n(request):
-    """UI strings for client scripts (TF_I18N)."""
+    """UI strings for client scripts (TF_I18N), localized per active language."""
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
     from core.utils.contact import tradeflow_contact_email
 
     contact = tradeflow_contact_email()
-    payload = {
-        'contactEmail': contact,
-        'close': 'Close',
-        'cartTitle': 'Cart',
-        'slide': 'Slide',
-        'addedToCart': 'Product added to cart',
-        'cartAddedShort': 'Added to cart',
-        'cartError': 'Could not add to cart',
-        'networkError': 'Connection error',
-        'orders': 'Orders',
-        'products': 'Products',
-        'companies': 'Companies',
-        'emptySection': 'No products in this section yet.',
-        'chartOrders': 'Orders',
-        'chartUsd': 'USD',
-        'chartPending': 'Pending',
-        'chartPaid': 'Paid',
-        'chartShipped': 'Shipped',
-        'chartDelivered': 'Delivered',
-        'chartCancelled': 'Cancelled',
-        'chartLoadError': 'Could not load Chart.js. Reload the page.',
-        'chartDataError': 'Chart data is incomplete.',
-        'chartUpdateError': 'Could not update charts.',
-        'chartInitError': 'Could not initialize charts.',
-        'csvDownloaded': 'CSV file downloaded successfully.',
-        'geoConfirmed': 'Location confirmed.',
-        'geoDenied': 'Location permission denied.',
-        'geoUnsupported': 'Your browser does not support geolocation.',
-        'awaitingSeller': 'Awaiting company confirmation',
-        'orderUpdated': 'Order status updated',
-        'processing': 'Processing…',
-        'supportEmailPrompt': f'We will improve it. Email us at {contact}',
-    }
+    language = getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE)
+    with translation.override(language):
+        payload = {
+            'contactEmail': contact,
+            'close': _('Close'),
+            'cartTitle': _('Cart'),
+            'slide': _('Slide'),
+            'addedToCart': _('Product added to cart'),
+            'cartAddedShort': _('Added to cart'),
+            'cartError': _('Could not add to cart'),
+            'networkError': _('Connection error'),
+            'orders': _('Orders'),
+            'products': _('Products'),
+            'companies': _('Companies'),
+            'emptySection': _('No products in this section yet.'),
+            'chartOrders': _('Orders'),
+            'chartUsd': _('USD'),
+            'chartPending': _('Pending'),
+            'chartPaid': _('Paid'),
+            'chartShipped': _('Shipped'),
+            'chartDelivered': _('Delivered'),
+            'chartCancelled': _('Cancelled'),
+            'chartLoadError': _('Could not load Chart.js. Reload the page.'),
+            'chartDataError': _('Chart data is incomplete.'),
+            'chartUpdateError': _('Could not update charts.'),
+            'chartInitError': _('Could not initialize charts.'),
+            'csvDownloaded': _('CSV file downloaded successfully.'),
+            'geoConfirmed': _('Location confirmed.'),
+            'geoDenied': _('Location permission denied.'),
+            'geoUnsupported': _('Your browser does not support geolocation.'),
+            'awaitingSeller': _('Awaiting company confirmation'),
+            'orderUpdated': _('Order status updated'),
+            'processing': _('Processing…'),
+            'supportEmailPrompt': _('We will improve it. Email us at %(email)s') % {'email': contact},
+            'catalogSortRelevance': _('Best match'),
+            'catalogSortPriceAsc': _('Price: low to high'),
+            'catalogSortPriceDesc': _('Price: high to low'),
+            'catalogSortNewest': _('Newest'),
+            'catalogChipVerified': _('Verified'),
+            'catalogChipStock': _('In stock'),
+            'catalogChipStockLow': _('Low stock'),
+            'catalogChipOnSale': _('On sale'),
+            'catalogSearchPrefix': _('Search:'),
+            'catalogCategoryFallback': _('Category'),
+            'catalogSupplierFallback': _('Supplier'),
+            'catalogPriceMinPrefix': _('Min. $'),
+            'catalogPriceMaxPrefix': _('Max. $'),
+            'catalogClearAll': _('Clear all'),
+            'catalogRateLimit': _('Too many requests — wait a moment and try again.'),
+            'catalogImageSearchSoon': _('Image search coming soon — use text search for now.'),
+            'catalogAddedToCart': _('Added to inquiry cart'),
+            'catalogCartError': _('Could not add to inquiry cart'),
+            'catalogNetworkError': _('Connection error — try again'),
+        }
     return {'tf_i18n': payload}
 
 

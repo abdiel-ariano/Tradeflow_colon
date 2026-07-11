@@ -231,6 +231,7 @@ PASSWORD_HASHERS = [
 LANGUAGE_CODE = 'en'
 LANGUAGES = [
     ('en', 'English'),
+    ('es', 'Español'),
 ]
 TIME_ZONE     = 'America/Panama'
 USE_I18N      = True
