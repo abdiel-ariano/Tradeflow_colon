@@ -49,6 +49,7 @@
 
   {% else %}
   <div class="empty-state cat-empty" id="cat-empty-state">
+    <img src="{% static 'img/no_data_found.svg' %}" alt="" class="cat-empty__illus" width="280" height="187" loading="lazy" decoding="async">
     <h2>No products found{% if buscar %} for &ldquo;{{ buscar }}&rdquo;{% endif %}</h2>
     <p>Try these terms or adjust your filters:</p>
     <div class="cat-suggestions">
