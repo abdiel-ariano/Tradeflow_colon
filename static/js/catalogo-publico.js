@@ -90,20 +90,6 @@
     var nav = document.getElementById('cat-catalog-nav');
     var height = nav ? Math.ceil(nav.getBoundingClientRect().height) : 0;
     document.body.style.setProperty('--cat-nav-height', height + 'px');
-
-    var rail = document.getElementById('cat-sidebar');
-    var slot = document.querySelector('.cat-ali-rail-slot');
-    if (!rail || !slot || window.innerWidth < 1024) {
-      if (rail) {
-        rail.style.left = '';
-        rail.style.width = '';
-      }
-      return;
-    }
-
-    var rect = slot.getBoundingClientRect();
-    rail.style.left = Math.round(rect.left) + 'px';
-    rail.style.width = Math.round(rect.width) + 'px';
   }
 
   function getCookie(name) {
@@ -529,8 +515,18 @@
       signal: controller.signal,
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     })
-      .then(function (r) { return r.text(); })
+      .then(function (r) {
+        if (r.status === 429) {
+          showToast('Too many requests — wait a moment and try again.');
+          return null;
+        }
+        if (!r.ok) {
+          throw new Error('catalog_partial_failed');
+        }
+        return r.text();
+      })
       .then(function (html) {
+        if (!html) return;
         if (requestId !== activeRequestId || controller.signal.aborted) return;
 
         var parser = new DOMParser();
@@ -787,10 +783,6 @@
     var catalogNav = document.getElementById('cat-catalog-nav');
     if (catalogNav) {
       new ResizeObserver(syncStickyOffset).observe(catalogNav);
-    }
-    var railSlot = document.querySelector('.cat-ali-rail-slot');
-    if (railSlot) {
-      new ResizeObserver(syncStickyOffset).observe(railSlot);
     }
   }
 })();

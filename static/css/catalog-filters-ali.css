@@ -2,6 +2,11 @@
    TradeFlow Colón — Catálogo Alibaba: rail sticky + fila 4 + fila 5 full bleed
    ============================================================================= */
 
+/* overflow-x:hidden en body rompe position:sticky — solo en catálogo */
+body.cat-catalog-page {
+  overflow-x: visible;
+}
+
 .catalog-container.cat-ali-layout {
   --cat-ali-rail-width: 240px;
   --cat-ali-gap: 14px;
@@ -29,13 +34,13 @@
   width: 100%;
 }
 
-/* Reserva espacio en el grid; el rail real va position:fixed (desktop) */
+/* Rail sticky: dentro del slot (columna izquierda del grid) */
 .cat-ali-rail-slot {
   grid-column: 1;
   grid-row: 1;
   width: var(--cat-ali-rail-width);
-  min-height: var(--cat-ali-rail-height);
-  pointer-events: none;
+  align-self: start;
+  position: relative;
 }
 
 .cat-ali-results-host {
@@ -48,9 +53,8 @@
 
 /* ── Sidebar categorías: compacto con scroll (referencia Alibaba) ── */
 .cat-ali-category-rail {
-  width: var(--cat-ali-rail-width);
+  width: 100%;
   flex-shrink: 0;
-  align-self: start;
   z-index: 30;
   height: var(--cat-ali-rail-height);
   max-height: var(--cat-ali-rail-height);
@@ -65,9 +69,8 @@
 
 @media (min-width: 1024px) {
   .cat-ali-category-rail {
-    position: fixed;
+    position: sticky;
     top: var(--cat-sticky-offset, 112px);
-    left: 0;
   }
 }
 

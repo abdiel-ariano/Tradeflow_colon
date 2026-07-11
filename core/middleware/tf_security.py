@@ -8,7 +8,7 @@ import secrets
 import time
 
 from django.core.cache import cache
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, JsonResponse
 
 # Permite a vendor scripts (Leaflet, supabase-js, Bootstrap, Chart.js)
 # que cargamos vía <script src="https://..."></script> seguir funcionando
@@ -154,38 +154,88 @@ class SecurityEventLogMiddleware:
 
 
 class ApiRateLimitMiddleware:
-    """Límite simple por IP en rutas /api/ (anti-abuso)."""
+    """Límite por IP en APIs, búsqueda IA y partials AJAX del catálogo."""
 
-    LIMIT = 120
     WINDOW = 60
+    API_LIMIT = 120
+    SEARCH_LIMIT = 60
+    CATALOG_PARTIAL_LIMIT = 90
     SELLER_POST_LIMIT = 60
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
+        bucket, limit = self._resolve_bucket(request)
+        if not bucket:
+            return self.get_response(request)
+
+        ip = self._client_ip(request)
+        key = f'tf_rl:{bucket}:{ip}:{int(time.time()) // self.WINDOW}'
+        count = cache.get(key, 0)
+        if count >= limit:
+            return self._rate_limit_response(request, bucket)
+        cache.set(key, count + 1, self.WINDOW + 5)
+        return self.get_response(request)
+
+    def _resolve_bucket(self, request) -> tuple[str | None, int]:
         path = request.path
+
+        if path.endswith('/api/search/suggest/') or path.endswith('/api/search/suggest'):
+            return 'search', self.SEARCH_LIMIT
+
         is_api = (
             path.startswith('/api/')
             or path.startswith('/en/api/')
             or path.startswith('/es/api/')
             or '/api/v1/' in path
         )
-        is_seller_mutation = (
+        if is_api:
+            return 'api', self.API_LIMIT
+
+        if (
+            request.method == 'GET'
+            and (path.endswith('/catalogo/') or path.endswith('/catalogo'))
+            and request.GET.get('partial') == '1'
+        ):
+            return 'catalog_partial', self.CATALOG_PARTIAL_LIMIT
+
+        if (
             request.method == 'POST'
             and '/mi-tienda/productos/' in path
             and '/toggle' in path
-        )
-        if is_api or is_seller_mutation:
-            ip = self._client_ip(request)
-            bucket = 'seller' if is_seller_mutation else 'api'
-            limit = self.SELLER_POST_LIMIT if is_seller_mutation else self.LIMIT
-            key = f'tf_rl:{bucket}:{ip}:{int(time.time()) // self.WINDOW}'
-            count = cache.get(key, 0)
-            if count >= limit:
-                return HttpResponseForbidden('Rate limit exceeded')
-            cache.set(key, count + 1, self.WINDOW + 5)
-        return self.get_response(request)
+        ):
+            return 'seller_toggle', self.SELLER_POST_LIMIT
+
+        return None, 0
+
+    @staticmethod
+    def _wants_json(request) -> bool:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return True
+        accept = request.headers.get('Accept', '')
+        return 'application/json' in accept
+
+    def _rate_limit_response(self, request, bucket: str):
+        retry_after = self.WINDOW
+        if self._wants_json(request) or bucket in ('api', 'search', 'catalog_partial'):
+            response = JsonResponse(
+                {
+                    'ok': False,
+                    'error': 'rate_limit',
+                    'retry_after': retry_after,
+                    'message': 'Too many requests. Please wait and try again.',
+                },
+                status=429,
+            )
+        else:
+            response = HttpResponse(
+                'Rate limit exceeded. Please wait and try again.',
+                status=429,
+                content_type='text/plain; charset=utf-8',
+            )
+        response['Retry-After'] = str(retry_after)
+        return response
 
     @staticmethod
     def _client_ip(request):

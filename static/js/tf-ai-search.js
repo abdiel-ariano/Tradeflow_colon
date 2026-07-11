@@ -181,14 +181,40 @@
         signal: controller.signal,
       })
         .then(function (r) {
+          if (!r.ok) {
+            if (r.status === 429) {
+              return { ok: false, suggestions: [], related: [], query: q, _error: 'rate_limit' };
+            }
+            return r.json().catch(function () {
+              return { ok: false, suggestions: [], related: [], query: q, _error: 'http_' + r.status };
+            });
+          }
           return r.json();
         })
         .then(function (data) {
+          if (data && data._error) {
+            var errMsg = data._error === 'rate_limit'
+              ? 'Too many searches — wait a moment and try again.'
+              : 'Suggestions unavailable — press Enter to search.';
+            renderPanel(panel, { suggestions: [], related: [], query: q, tip: null }, navigate);
+            var emptyEl = panel.querySelector('.tf-ai-search-empty');
+            if (emptyEl) {
+              emptyEl.textContent = errMsg;
+            }
+            openPanel();
+            return;
+          }
           renderPanel(panel, data, navigate);
           openPanel();
         })
-        .catch(function () {
-          /* silent */
+        .catch(function (err) {
+          if (err && err.name === 'AbortError') return;
+          renderPanel(panel, { suggestions: [], related: [], query: q }, navigate);
+          var emptyEl = panel.querySelector('.tf-ai-search-empty');
+          if (emptyEl) {
+            emptyEl.textContent = 'Suggestions unavailable — press Enter to search.';
+          }
+          openPanel();
         });
     }
 
