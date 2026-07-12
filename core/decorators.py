@@ -133,7 +133,7 @@ def seller_required(view_func):
         if role == 'admin' or request.user.is_superuser:
             return view_func(request, *args, **kwargs)
         messages.error(request, 'This section is for sellers only.')
-        return redirect('/tienda/')
+        return redirect('catalogo_publico')
     return wrapper
 
 

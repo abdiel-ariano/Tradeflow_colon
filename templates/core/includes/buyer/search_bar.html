@@ -3,7 +3,7 @@ SearchBar — compact (navbar) or hero variant.
 Vars: variant (compact|hero), value, placeholder, form_id
 {% endcomment %}
 <form class="bsr-wrap{% if variant == 'hero' %} bsr-wrap--hero{% endif %}"
-      action="{% url 'tienda' %}" method="get" role="search"
+      action="{% url 'catalogo_publico' %}" method="get" role="search"
       {% if form_id %}id="{{ form_id }}"{% endif %}>
   <label class="visually-hidden" for="bsr-input-{{ form_id|default:'main' }}">Buscar</label>
   <select class="bsr-scope" name="scope" aria-label="Ámbito" disabled>

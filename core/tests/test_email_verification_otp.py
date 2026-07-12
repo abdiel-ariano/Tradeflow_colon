@@ -37,7 +37,7 @@ class EmailVerificationOtpTests(TestCase):
         ev.save(update_fields=['is_used'])
         self.assertFalse(ev.is_valid())
 
-    def test_verificar_codigo_post_redirects_tienda(self):
+    def test_verificar_codigo_post_redirects_catalogo(self):
         from django.utils import timezone
 
         # Cuenta con onboarding ya completado (equivalente a usuarios existentes)
@@ -52,7 +52,7 @@ class EmailVerificationOtpTests(TestCase):
         )
         self.assertEqual(resp.status_code, 302)
         self.assertTrue(
-            '/tienda' in resp['Location'] or resp['Location'].endswith('/tienda/'),
+            '/catalogo' in resp['Location'] or resp['Location'].endswith('/catalogo/'),
         )
         self.profile.refresh_from_db()
         self.assertTrue(self.profile.email_verified)

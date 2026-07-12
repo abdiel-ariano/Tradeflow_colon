@@ -375,7 +375,7 @@ def enviar_bienvenida(user: User) -> None:
             'user': user,
             'es_seller': es_seller,
             'site_url': base,
-            'url_tienda': base + reverse('tienda'),
+            'url_tienda': base + reverse('catalogo_publico'),
             'url_panel': base + reverse('portal_seller'),
         }),
     )
@@ -705,7 +705,7 @@ def enviar_carrito_abandonado(user: User, carrito: dict) -> bool:
             'extra_items_count': max(0, len(carrito) - len(preview)),
             'cart_total': f'{total:.2f}',
             'url_carrito': base + reverse('ver_carrito'),
-            'url_tienda': base + reverse('tienda'),
+            'url_tienda': base + reverse('catalogo_publico'),
         }),
     )
     plain = strip_tags(html_message)

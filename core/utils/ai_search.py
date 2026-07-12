@@ -105,7 +105,7 @@ def search_public(query: str, limit: int = 8) -> list[dict]:
             trending.append(_item(
                 'product',
                 p.name,
-                f"{reverse('tienda')}?buscar={p.name[:50]}",
+                f"{reverse('catalogo_publico')}?buscar={p.name[:50]}",
                 subtitle=_product_subtitle(p),
                 icon='inventory_2',
                 score=10,
@@ -116,7 +116,7 @@ def search_public(query: str, limit: int = 8) -> list[dict]:
             trending.append(_item(
                 'category',
                 cat.name,
-                f"{reverse('tienda')}?categoria={cat.pk}",
+                f"{reverse('catalogo_publico')}?categoria={cat.pk}",
                 subtitle=f'{cat.n} products',
                 icon='category',
                 score=5,
@@ -138,7 +138,7 @@ def search_public(query: str, limit: int = 8) -> list[dict]:
         _item(
             'product',
             p.name,
-            f"{reverse('tienda')}?buscar={p.name[:50]}",
+            f"{reverse('catalogo_publico')}?buscar={p.name[:50]}",
             subtitle=_product_subtitle(p),
             icon='inventory_2',
             score=100 - i,
@@ -152,7 +152,7 @@ def search_public(query: str, limit: int = 8) -> list[dict]:
             results.append(_item(
                 'category',
                 cat.name,
-                f"{reverse('tienda')}?categoria={cat.pk}",
+                f"{reverse('catalogo_publico')}?categoria={cat.pk}",
                 subtitle='Category',
                 icon='category',
                 score=40,
@@ -167,7 +167,7 @@ def search_public(query: str, limit: int = 8) -> list[dict]:
             results.append(_item(
                 'company',
                 co.name,
-                f"{reverse('tienda')}?empresa={co.pk}",
+                f"{reverse('catalogo_publico')}?empresa={co.pk}",
                 subtitle='Verified seller',
                 icon='storefront',
                 score=35,

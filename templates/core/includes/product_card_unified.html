@@ -16,7 +16,7 @@ Variables:
   {% if is_public %}
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__media">
   {% else %}
-  <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-pcard__media">
+  <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="tf-pcard__media">
   {% endif %}
     {% include "core/includes/product_image_placeholder.html" with product=product %}
     {% if not product.available_qty %}
@@ -41,7 +41,7 @@ Variables:
       {% if is_public %}
       <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
       {% else %}
-      <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="js-tienda-empresa-link" data-empresa-id="{{ product.company_id }}">{{ product.company.name }}</a>
+      <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="js-tienda-empresa-link" data-empresa-id="{{ product.company_id }}">{{ product.company.name }}</a>
       {% endif %}
     </p>
     {% endif %}
@@ -49,7 +49,7 @@ Variables:
       {% if is_public %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name }}</a>
       {% else %}
-      <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}">{{ product.name }}</a>
+      <a href="{% url 'catalogo_publico' %}?buscar={{ product.name|urlencode }}">{{ product.name }}</a>
       {% endif %}
     </h3>
     <div class="tf-pcard__price">

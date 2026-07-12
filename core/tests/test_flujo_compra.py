@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
+from django.urls import reverse
 
 from core.models import (
     Category,
@@ -98,10 +99,10 @@ class TestFlujoBuyer(TestCase):
         )
         UserProfile.objects.create(user=self.admin_user, role='admin', email_verificado=True)
 
-    def test_buyer_puede_ver_tienda(self):
-        """El buyer autenticado accede a /tienda/ con 200."""
+    def test_buyer_puede_ver_catalogo(self):
+        """El buyer autenticado accede a /catalogo/ con 200."""
         self.client.login(username='buyer_test', password='TestPass123!')
-        r = self.client.get('/tienda/')
+        r = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(r.status_code, 200)
 
     def test_agregar_producto_al_carrito(self):
@@ -203,14 +204,14 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, self.product.name, count=n)
 
-    def test_login_redirige_buyer_a_tienda(self):
+    def test_login_redirige_buyer_a_catalogo(self):
         """Tras login sin ?next=, el buyer va al catálogo."""
         r = self.client.post(
             '/login/',
             {'username': 'buyer_test', 'password': 'TestPass123!'},
         )
         self.assertEqual(r.status_code, 302)
-        self.assertIn('/tienda/', r.url)
+        self.assertIn('/catalogo/', r.url)
 
     def test_login_redirige_seller_a_portal(self):
         """Tras login sin ?next=, el seller va directo a /mi-tienda/."""
@@ -257,8 +258,8 @@ class TestFlujoBuyer(TestCase):
         self.assertNotContains(response, 'Confirm order')
 
     def test_acceso_sin_login_redirige(self):
-        """Invitados exploran /tienda/ y pueden usar el carrito de sesión."""
-        r = self.client.get('/tienda/')
+        """Invitados exploran /catalogo/ y pueden usar el carrito de sesión."""
+        r = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.context['show_cart_actions'])
 

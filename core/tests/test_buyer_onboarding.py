@@ -78,7 +78,7 @@ class BuyerOnboardingWizardTests(TestCase):
 
         resp = self.client.post('/onboarding/comprador/finalizar/', follow=False)
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/tienda', resp['Location'])
+        self.assertIn('/catalogo', resp['Location'])
         self.profile.refresh_from_db()
         self.assertIsNotNone(self.profile.onboarding_completed_at)
 
@@ -88,10 +88,11 @@ class BuyerOnboardingWizardTests(TestCase):
         self.profile.refresh_from_db()
         self.assertIsNotNone(self.profile.onboarding_completed_at)
 
-    def test_grandfathered_buyer_not_redirected(self):
+    def test_grandfathered_buyer_redirected_to_catalog(self):
         from django.utils import timezone
 
         self.profile.onboarding_completed_at = timezone.now()
         self.profile.save(update_fields=['onboarding_completed_at'])
         resp = self.client.get('/tienda/', follow=False)
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 301)
+        self.assertIn('/catalogo/', resp['Location'])

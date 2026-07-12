@@ -1,6 +1,7 @@
 """Buyer navbar mega menu — categorías reales, sin emojis, enlaces ?categoria=."""
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
+from django.urls import reverse
 
 from core.merchandising import buyer_mega_menu_panels
 from core.models import Category, Company, Product, UserProfile
@@ -41,14 +42,14 @@ class BuyerMegaMenuTests(TestCase):
         self.assertGreaterEqual(len(panels[0]['products']), 1)
 
     def test_navbar_shows_tradeflow_colon_branding(self):
-        resp = self.client.get('/tienda/')
+        resp = self.client.get(reverse('ver_carrito'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'TradeFlow')
         self.assertContains(resp, 'Colón')
         self.assertNotContains(resp, 'TradeFlow.com')
 
     def test_mega_menu_no_emojis_and_uses_categoria_links(self):
-        resp = self.client.get('/tienda/')
+        resp = self.client.get(reverse('ver_carrito'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'bn-mega-cat')
         self.assertContains(resp, f'?categoria={self.category.pk}')
@@ -56,13 +57,13 @@ class BuyerMegaMenuTests(TestCase):
         self.assertNotContains(resp, '📱')
 
     def test_category_filter_returns_products_not_zero(self):
-        resp = self.client.get(f'/tienda/?categoria={self.category.pk}')
+        resp = self.client.get(f'{reverse("catalogo_publico")}?categoria={self.category.pk}')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'USB Hub')
         self.assertNotContains(resp, 'No products found')
 
-    def test_recommended_uses_tf_pcard_not_bh_rec_item(self):
-        resp = self.client.get('/tienda/')
+    def test_catalog_uses_product_card_not_legacy_bh_rec(self):
+        resp = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'tf-pcard')
+        self.assertContains(resp, 'product-card')
         self.assertNotContains(resp, 'bh-rec-item')

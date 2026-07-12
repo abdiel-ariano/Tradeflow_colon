@@ -76,9 +76,9 @@ def buyer_onboarding_step1(request: HttpRequest) -> HttpResponse:
     """Paso 1/3 — ¿Compra para negocio o personal?"""
     profile = _get_buyer_profile(request.user)
     if not profile:
-        return redirect('tienda')
+        return redirect('catalogo_publico')
     if not buyer_onboarding_pending(request.user):
-        return redirect('tienda')
+        return redirect('catalogo_publico')
 
     ctx = {
         **_wizard_base_context(1),
@@ -92,7 +92,7 @@ def buyer_onboarding_step1(request: HttpRequest) -> HttpResponse:
 def buyer_onboarding_step1_post(request: HttpRequest) -> HttpResponse:
     profile = _get_buyer_profile(request.user)
     if not profile or not buyer_onboarding_pending(request.user):
-        return redirect('tienda')
+        return redirect('catalogo_publico')
 
     intent = (request.POST.get('purchase_intent') or '').strip()
     if intent not in ('business', 'personal'):
@@ -112,9 +112,9 @@ def buyer_onboarding_step2(request: HttpRequest) -> HttpResponse:
     """Paso 2/3 — grid de categorías (multi-select)."""
     profile = _get_buyer_profile(request.user)
     if not profile:
-        return redirect('tienda')
+        return redirect('catalogo_publico')
     if not buyer_onboarding_pending(request.user):
-        return redirect('tienda')
+        return redirect('catalogo_publico')
     if not profile.purchase_intent:
         return redirect('buyer_onboarding_step1')
 
@@ -142,7 +142,7 @@ def buyer_onboarding_step2(request: HttpRequest) -> HttpResponse:
 def buyer_onboarding_step2_post(request: HttpRequest) -> HttpResponse:
     profile = _get_buyer_profile(request.user)
     if not profile or not buyer_onboarding_pending(request.user):
-        return redirect('tienda')
+        return redirect('catalogo_publico')
 
     raw_ids = request.POST.getlist('categories')
     cat_ids = []
@@ -173,9 +173,9 @@ def buyer_onboarding_step3(request: HttpRequest) -> HttpResponse:
     """Paso 3/3 — Deep Search: sugerencias según categorías elegidas."""
     profile = _get_buyer_profile(request.user)
     if not profile:
-        return redirect('tienda')
+        return redirect('catalogo_publico')
     if not buyer_onboarding_pending(request.user):
-        return redirect('tienda')
+        return redirect('catalogo_publico')
     if not profile.preferred_categories.exists():
         return redirect('buyer_onboarding_step2')
 
@@ -199,7 +199,7 @@ def buyer_onboarding_finish(request: HttpRequest) -> HttpResponse:
     """Finaliza wizard — redirige al catálogo personalizado."""
     profile = _get_buyer_profile(request.user)
     if not profile:
-        return redirect('tienda')
+        return redirect('catalogo_publico')
 
     suggestion_pk = (request.POST.get('suggestion_category') or '').strip()
     buscar = (request.POST.get('buscar') or '').strip()
@@ -207,13 +207,13 @@ def buyer_onboarding_finish(request: HttpRequest) -> HttpResponse:
     _complete_onboarding(profile)
 
     if buscar:
-        return redirect(f"{reverse('tienda')}?buscar={buscar}")
+        return redirect(f"{reverse('catalogo_publico')}?buscar={buscar}")
     if suggestion_pk.isdigit():
-        return redirect(f"{reverse('tienda')}?categoria={suggestion_pk}")
+        return redirect(f"{reverse('catalogo_publico')}?categoria={suggestion_pk}")
     first_cat = profile.preferred_categories.first()
     if first_cat:
-        return redirect(f"{reverse('tienda')}?categoria={first_cat.pk}")
-    return redirect('tienda')
+        return redirect(f"{reverse('catalogo_publico')}?categoria={first_cat.pk}")
+    return redirect('catalogo_publico')
 
 
 @login_required
@@ -222,8 +222,8 @@ def buyer_onboarding_skip(request: HttpRequest) -> HttpResponse:
     """Omitir wizard — Alibaba-style skip link."""
     profile = _get_buyer_profile(request.user)
     if not profile:
-        return redirect('tienda')
+        return redirect('catalogo_publico')
     if buyer_onboarding_pending(request.user):
         _complete_onboarding(profile)
         messages.info(request, 'Puedes personalizar tu experiencia más tarde desde tu perfil.')
-    return redirect('tienda')
+    return redirect('catalogo_publico')
