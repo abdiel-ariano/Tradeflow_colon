@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TradeFlow Colón\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 18:41-0500\n"
+"POT-Creation-Date: 2026-07-11 19:12-0500\n"
 "PO-Revision-Date: 2026-05-12 12:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: English\n"
@@ -145,19 +145,19 @@ msgstr ""
 msgid "We will improve it. Email us at %(email)s"
 msgstr ""
 
-#: core/context_processors.py:100
+#: core/context_processors.py:100 templates/core/catalogo_publico.html:131
 msgid "Best match"
 msgstr ""
 
-#: core/context_processors.py:101
+#: core/context_processors.py:101 templates/core/catalogo_publico.html:132
 msgid "Price: low to high"
 msgstr ""
 
-#: core/context_processors.py:102
+#: core/context_processors.py:102 templates/core/catalogo_publico.html:133
 msgid "Price: high to low"
 msgstr ""
 
-#: core/context_processors.py:103
+#: core/context_processors.py:103 templates/core/catalogo_publico.html:134
 msgid "Newest"
 msgstr ""
 
@@ -939,6 +939,7 @@ msgid "Quick filters"
 msgstr "Apply filters"
 
 #: templates/core/catalogo_publico.html:86
+#: templates/core/includes/marketplace_public_navbar.html:123
 msgid "All categories"
 msgstr ""
 
@@ -966,6 +967,29 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
+#: templates/core/catalogo_publico.html:125
+#, fuzzy
+#| msgid "Fila de productos"
+msgid "wholesale products"
+msgstr "View products"
+
+#: templates/core/catalogo_publico.html:126
+#, python-format
+msgid "for “%(term)s”"
+msgstr ""
+
+#: templates/core/catalogo_publico.html:129
+msgid "Sort by"
+msgstr ""
+
+#: templates/core/catalogo_publico.html:130
+msgid "Sort results"
+msgstr ""
+
+#: templates/core/catalogo_publico.html:142
+msgid "Category navigation"
+msgstr ""
+
 #: templates/core/catalogo_publico.html:143
 #, fuzzy
 #| msgid "Ver categoría"
@@ -981,6 +1005,7 @@ msgid "All"
 msgstr ""
 
 #: templates/core/includes/catalogo_card.html:21
+#: templates/core/includes/marketplace_public_navbar.html:17
 msgid "Search by image"
 msgstr ""
 
@@ -1016,27 +1041,183 @@ msgstr ""
 msgid "Add to inquiry"
 msgstr ""
 
+#: templates/core/includes/catalogo_publico_results.html:7
+msgid "Featured results"
+msgstr ""
+
+#: templates/core/includes/catalogo_publico_results.html:14
+msgid "More results"
+msgstr ""
+
+#: templates/core/includes/catalogo_publico_results.html:24
+msgid "Catalog pagination"
+msgstr ""
+
+#: templates/core/includes/catalogo_publico_results.html:27
+msgid "Previous page"
+msgstr ""
+
+#: templates/core/includes/catalogo_publico_results.html:27
+#: templates/core/includes/catalogo_publico_results.html:29
+msgid "Prev"
+msgstr ""
+
+#: templates/core/includes/catalogo_publico_results.html:44
+msgid "Next page"
+msgstr ""
+
+#: templates/core/includes/catalogo_publico_results.html:44
+#: templates/core/includes/catalogo_publico_results.html:46
+msgid "Next"
+msgstr ""
+
+#: templates/core/includes/catalogo_publico_results.html:54
+#, python-format
+msgid "No products found for “%(term)s”"
+msgstr ""
+
+#: templates/core/includes/catalogo_publico_results.html:54
+#, fuzzy
+#| msgid "Ver productos"
+msgid "No products found"
+msgstr "View products"
+
+#: templates/core/includes/catalogo_publico_results.html:55
+msgid "Try these terms or adjust your filters:"
+msgstr ""
+
+#: templates/core/includes/catalogo_publico_results.html:62
+#, fuzzy
+#| msgid "Ver catálogo"
+msgid "View full catalog"
+msgstr "View catalog"
+
+#: templates/core/includes/marketplace_public_navbar.html:14
+#, fuzzy
+#| msgid "Ver catálogo"
+msgid "Search catalog"
+msgstr "View catalog"
+
+#: templates/core/includes/marketplace_public_navbar.html:16
+#, fuzzy, python-format
+#| msgid "%(counter)s producto"
+#| msgid_plural "%(counter)s productos"
+msgid "Search %(count)s CFZ products…"
+msgstr "%(counter)s product"
+
+#: templates/core/includes/marketplace_public_navbar.html:27
+msgid "Search"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:32
+msgid "Open menu"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:39
+msgid "Delivery region"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:39
+msgid "Deliver to Panama"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:42
+msgid "Deliver to:"
+msgstr ""
+
 #: templates/core/includes/marketplace_public_navbar.html:47
 msgid "Language and currency"
 msgstr ""
 
 #: templates/core/includes/marketplace_public_navbar.html:51
+#: templates/core/includes/public_navbar.html:30
 msgid "Language"
 msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:70
+#: templates/core/includes/marketplace_public_navbar.html:82
+msgid "Messages"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:76
+#: templates/core/includes/marketplace_public_navbar.html:88
+msgid "Orders and lists"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:95
+msgid "Inquiry cart"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:104
+msgid "My account"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:109
+#: templates/core/includes/marketplace_public_navbar.html:113
+msgid "Sign in"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:115
+#, fuzzy
+#| msgid "Crear cuenta"
+msgid "Create account"
+msgstr "Create account"
+
+#: templates/core/includes/marketplace_public_navbar.html:120
+msgid "Marketplace shortcuts"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:124
+msgid "Home"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:125
+msgid "Catalog"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:126
+msgid "Deals"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:127
+msgid "Verified suppliers"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:128
+#, fuzzy
+#| msgid "Ver productos"
+msgid "Order protection"
+msgstr "View products"
+
+#: templates/core/includes/marketplace_public_navbar.html:129
+#, fuzzy
+#| msgid "Confianza TradeFlow"
+msgid "About TradeFlow"
+msgstr "TradeFlow trust"
+
+#: templates/core/includes/marketplace_public_navbar.html:132
+msgid "Help center"
+msgstr ""
+
+#: templates/core/includes/marketplace_public_navbar.html:133
+#, fuzzy
+#| msgid "Empresas en TradeFlow"
+msgid "Sell on TradeFlow"
+msgstr "Companies on TradeFlow"
 
 #: templates/core/includes/product_image_placeholder.html:28
 msgid "Reference image"
 msgstr ""
 
-#: templates/core/legal_base.html:9 templates/core/legal_base.html:10
+#: templates/core/legal_base.html:10 templates/core/legal_base.html:11
 msgid "On this page"
 msgstr ""
 
-#: templates/core/legal_base.html:18
+#: templates/core/legal_base.html:19
 msgid "Last updated: June 2026"
 msgstr ""
 
-#: templates/core/legal_base.html:25
+#: templates/core/legal_base.html:26
 msgid "Back to home"
 msgstr ""
 
@@ -1190,9 +1371,6 @@ msgstr "Contact"
 #~ msgid "No se pudo cargar Chart.js. Recarga la página."
 #~ msgstr "Chart.js could not be loaded. Check your connection."
 
-#~ msgid "Fila de productos"
-#~ msgstr "View products"
-
 #~ msgid "Carrusel de productos"
 #~ msgstr "View products"
 
@@ -1267,9 +1445,6 @@ msgstr "Contact"
 
 #~ msgid "Iniciar sesión"
 #~ msgstr "Sign in"
-
-#~ msgid "Crear cuenta"
-#~ msgstr "Create account"
 
 #~ msgid "Marketplace B2B/B2C para la Zona Libre de Colón, Panamá."
 #~ msgstr "B2B/B2C marketplace for the Colón Free Zone, Panama."
@@ -1407,9 +1582,6 @@ msgstr "Contact"
 #~ "Carrusel con proveedores destacados y productos con promoción vigente."
 #~ msgstr "Carousel with featured suppliers and products on active promotion."
 
-#~ msgid "Ver catálogo"
-#~ msgstr "View catalog"
-
 #~ msgid "Sin ofertas activas en este momento. Vuelve pronto."
 #~ msgstr "No active deals right now. Check back soon."
 
@@ -1451,9 +1623,6 @@ msgstr "Contact"
 
 #~ msgid "Factura y packing list alineados a prácticas ZLC / ANA."
 #~ msgstr "Invoice and packing list aligned with CFZ / customs practices."
-
-#~ msgid "Confianza TradeFlow"
-#~ msgstr "TradeFlow trust"
 
 #~ msgid "Empresas ZLC"
 #~ msgstr "CFZ companies"
@@ -1664,12 +1833,6 @@ msgstr "Contact"
 #~ msgid "Catálogo TradeFlow"
 #~ msgstr "TradeFlow catalog"
 
-#, python-format
-#~ msgid "%(counter)s producto"
-#~ msgid_plural "%(counter)s productos"
-#~ msgstr[0] "%(counter)s product"
-#~ msgstr[1] "%(counter)s products"
-
 #~ msgid "Buscar productos, SKU…"
 #~ msgstr "Search products, SKU…"
 
@@ -1720,9 +1883,6 @@ msgstr "Contact"
 
 #~ msgid "Productos de la empresa"
 #~ msgstr "Company products"
-
-#~ msgid "Empresas en TradeFlow"
-#~ msgstr "Companies on TradeFlow"
 
 #~ msgid "Español"
 #~ msgstr "Spanish"

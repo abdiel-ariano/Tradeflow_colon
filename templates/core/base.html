@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-{% load static %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 {% load tf_csp %}
 {% load tf_static_inline %}
 {% comment %}
@@ -11,7 +12,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 (sin <link> a /static/css/*.css) para evitar regresiones por estáticos ausentes.
 ================================================================================
 {% endcomment %}
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

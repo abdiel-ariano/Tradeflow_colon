@@ -108,6 +108,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',       # ← sirve static en prod
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'core.middleware.tf_i18n.TfLanguagePrefixRedirectMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
