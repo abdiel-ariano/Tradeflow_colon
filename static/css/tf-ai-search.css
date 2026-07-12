@@ -13,6 +13,32 @@
   min-width: 0;
 }
 
+/* Allow dropdown to escape rounded search shells */
+.search-bar,
+.tf-hdr-search {
+  overflow: visible !important;
+}
+
+.search-container,
+.tf-nav-alibaba .search-container.bn-search-wrap {
+  position: relative;
+  overflow: visible;
+}
+
+.tf-hdr-search .tf-ai-search-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.tf-hdr-search .tf-ai-search-wrap input[type="search"],
+.tf-hdr-search .tf-ai-search-wrap input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
 .tf-ai-search-panel {
   position: absolute;
   top: calc(100% + 6px);
@@ -28,8 +54,22 @@
   display: none;
 }
 
+.tf-ai-search-panel.tf-ai-search-panel--floating {
+  position: fixed;
+  top: auto;
+  left: auto;
+  right: auto;
+  z-index: 10050;
+}
+
 .tf-ai-search-panel.is-open {
   display: block;
+}
+
+.tf-ai-search-loading {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--tf-muted);
 }
 
 .tf-ai-search-tip {

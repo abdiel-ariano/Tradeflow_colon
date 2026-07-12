@@ -6,6 +6,7 @@
 
   var DEBOUNCE_MS = 220;
   var MIN_CHARS = 1;
+  var PANEL_Z_INDEX = 10050;
 
   function i18n(key, fallback) {
     var bag = global.TF_I18N || {};
@@ -49,13 +50,30 @@
     return wrap;
   }
 
-  function buildPanel(wrap) {
+  function buildPanel(input) {
     var panel = document.createElement('div');
-    panel.className = 'tf-ai-search-panel';
+    panel.className = 'tf-ai-search-panel tf-ai-search-panel--floating';
     panel.setAttribute('role', 'listbox');
     panel.id = 'tf-ai-panel-' + Math.random().toString(36).slice(2, 8);
-    wrap.appendChild(panel);
+    panel.setAttribute('data-tf-ai-for', input.id || '');
+    document.body.appendChild(panel);
     return panel;
+  }
+
+  function positionPanel(input, panel) {
+    var rect = input.getBoundingClientRect();
+    var viewportWidth = global.innerWidth || document.documentElement.clientWidth || 0;
+    var width = Math.max(Math.round(rect.width), 240);
+    var left = Math.round(rect.left);
+    if (left + width > viewportWidth - 8) {
+      left = Math.max(8, viewportWidth - width - 8);
+    }
+    panel.style.position = 'fixed';
+    panel.style.top = Math.round(rect.bottom + 6) + 'px';
+    panel.style.left = left + 'px';
+    panel.style.width = width + 'px';
+    panel.style.right = 'auto';
+    panel.style.zIndex = String(PANEL_Z_INDEX);
   }
 
   function openAssistantWithQuery(query) {
@@ -64,11 +82,11 @@
       return;
     }
     var toggle = document.getElementById('tf-chat-toggle');
-    var input = document.getElementById('tf-chat-input');
+    var chatInput = document.getElementById('tf-chat-input');
     if (toggle) toggle.click();
-    if (input && query) {
-      input.value = query;
-      input.focus();
+    if (chatInput && query) {
+      chatInput.value = query;
+      chatInput.focus();
     }
   }
 
@@ -174,18 +192,29 @@
       (global.TF_AI_SEARCH_URL || '/api/search/suggest/');
     var wrap = ensureWrap(input);
     if (!wrap) return;
-    var panel = buildPanel(wrap);
+    var panel = buildPanel(input);
     var timer = null;
     var controller = null;
     var activeIndex = -1;
+    var isOpen = false;
 
     function closePanel() {
       panel.classList.remove('is-open');
+      panel.setAttribute('aria-hidden', 'true');
       activeIndex = -1;
+      isOpen = false;
     }
 
     function openPanel() {
+      positionPanel(input, panel);
       panel.classList.add('is-open');
+      panel.setAttribute('aria-hidden', 'false');
+      isOpen = true;
+    }
+
+    function syncPanelPosition() {
+      if (!isOpen) return;
+      positionPanel(input, panel);
     }
 
     function navigate(item) {
@@ -205,9 +234,18 @@
       }
     }
 
+    function showLoading(q) {
+      panel.innerHTML =
+        '<div class="tf-ai-search-loading">' +
+        i18n('aiSearchLoading', 'Searching…') +
+        '</div>';
+      openPanel();
+    }
+
     function fetchSuggestions(q) {
       if (controller) controller.abort();
       controller = new AbortController();
+      showLoading(q);
       var url =
         endpoint +
         '?q=' +
@@ -281,9 +319,11 @@
       if (!items.length) return;
       if (ev.key === 'ArrowDown') {
         ev.preventDefault();
+        if (!isOpen) openPanel();
         activeIndex = Math.min(activeIndex + 1, items.length - 1);
       } else if (ev.key === 'ArrowUp') {
         ev.preventDefault();
+        if (!isOpen) openPanel();
         activeIndex = Math.max(activeIndex - 1, 0);
       } else if (ev.key === 'Escape') {
         closePanel();
@@ -301,8 +341,13 @@
     });
 
     document.addEventListener('click', function (ev) {
-      if (!wrap.contains(ev.target)) closePanel();
+      if (!wrap.contains(ev.target) && !panel.contains(ev.target)) {
+        closePanel();
+      }
     });
+
+    global.addEventListener('resize', syncPanelPosition);
+    global.addEventListener('scroll', syncPanelPosition, true);
   }
 
   function initAll(root) {
