@@ -1,4 +1,4 @@
-{% load static i18n %}
+{% load static i18n tf_catalog %}
 {% get_current_language as CURRENT_LANG %}
 {% comment %}Public navbar — Alibaba-style home, catalog, and about pages (English).{% endcomment %}
 <header class="cat-nav tf-nav-alibaba" id="cat-catalog-nav">
@@ -50,14 +50,14 @@
         <div class="bn-lang-switch" role="group" aria-label="{% trans 'Language' %}">
           <form action="{% url 'set_language' %}" method="post" class="bn-lang-form">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <input type="hidden" name="next" value="{% tf_language_next 'es' %}">
             <input type="hidden" name="language" value="es">
             <button type="submit" class="bn-lang-link{% if CURRENT_LANG == 'es' %} is-active{% endif %}" lang="es">ES</button>
           </form>
           <span class="bn-lang-sep" aria-hidden="true">|</span>
           <form action="{% url 'set_language' %}" method="post" class="bn-lang-form">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <input type="hidden" name="next" value="{% tf_language_next 'en' %}">
             <input type="hidden" name="language" value="en">
             <button type="submit" class="bn-lang-link{% if CURRENT_LANG == 'en' %} is-active{% endif %}" lang="en">EN</button>
           </form>

@@ -1,5 +1,8 @@
-"""English display labels for catalog categories (UI layer)."""
+"""Locale-aware display labels for catalog categories (UI layer)."""
 from __future__ import annotations
+
+from django.conf import settings
+from django.utils.translation import get_language
 
 _CATEGORY_LABEL_EN = {
     'electrónica': 'Electronics',
@@ -10,11 +13,27 @@ _CATEGORY_LABEL_EN = {
     'perfumeria y cosmeticos': 'Perfumery & Cosmetics',
 }
 
+_CATEGORY_LABEL_ES = {
+    'Electronics & Office': 'Electrónica y oficina',
+    'Textiles & Uniforms': 'Textiles y uniformes',
+    'Accessories & Leather Goods': 'Accesorios y marroquinería',
+    'Home & Appliances': 'Hogar y electrodomésticos',
+    'Gaming & Peripherals': 'Gaming y periféricos',
+    'Logistics & Packaging': 'Logística y empaque',
+    'General Imports': 'Importaciones generales',
+    'Electronics': 'Electrónica',
+    'Textiles': 'Textiles',
+    'Perfumery & Cosmetics': 'Perfumería y cosméticos',
+}
 
-def category_display_name(name: str | None) -> str:
-    """Return English-facing category label; falls back to stored name."""
+
+def category_display_name(name: str | None, lang: str | None = None) -> str:
+    """Return locale-facing category label; falls back to stored name."""
     if not name:
         return ''
+    lang_code = (lang or get_language() or settings.LANGUAGE_CODE)[:2]
+    if lang_code == 'es':
+        return _CATEGORY_LABEL_ES.get(name.strip(), name)
     key = name.strip().lower()
     return _CATEGORY_LABEL_EN.get(key, name)
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 19:27-0500\n"
+"POT-Creation-Date: 2026-07-11 19:51-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -929,7 +929,6 @@ msgid "Sort by"
 msgstr "Ordenar por"
 
 #: templates/core/catalogo_publico.html:130
-#| msgid "Refine results"
 msgid "Sort results"
 msgstr "Refinar resultados"
 
@@ -938,8 +937,13 @@ msgid "Category navigation"
 msgstr "Navegación por categorías"
 
 #: templates/core/catalogo_publico.html:143
+#: templates/core/includes/home_categories_modal.html:7
 msgid "Close categories"
 msgstr "Cerrar categorías"
+
+#: templates/core/home.html:5
+msgid "TradeFlow Colón — Wholesale Marketplace"
+msgstr "TradeFlow Colón — Marketplace mayorista"
 
 #: templates/core/includes/catalogo_ali_category_sidebar.html:5
 msgid "Catalog categories"
@@ -1017,7 +1021,6 @@ msgid "Corporate responsibility"
 msgstr "Responsabilidad corporativa"
 
 #: templates/core/includes/catalogo_footer.html:14
-#| msgid "Order protection"
 msgid "Buyer Protection"
 msgstr "Protección al comprador"
 
@@ -1034,7 +1037,6 @@ msgid "Guaranteed delivery"
 msgstr "Entrega garantizada"
 
 #: templates/core/includes/catalogo_footer.html:19
-#| msgid "Order protection"
 msgid "After-sales protection"
 msgstr "Protección postventa"
 
@@ -1055,7 +1057,6 @@ msgid "Export documentation"
 msgstr "Documentación de exportación"
 
 #: templates/core/includes/catalogo_footer.html:31
-#| msgid "Help center"
 msgid "Help Center"
 msgstr "Centro de ayuda"
 
@@ -1064,12 +1065,10 @@ msgid "For buyers"
 msgstr "Para compradores"
 
 #: templates/core/includes/catalogo_footer.html:34
-#| msgid "Contact"
 msgid "Contact support"
 msgstr "Contactar soporte"
 
 #: templates/core/includes/catalogo_footer.html:35
-#| msgid "Orders, payments, and disputes"
 msgid "Open a dispute"
 msgstr "Abrir una disputa"
 
@@ -1087,7 +1086,6 @@ msgid "Bank Transfer (T/T)"
 msgstr "Transferencia bancaria (T/T)"
 
 #: templates/core/includes/catalogo_footer.html:51
-#| msgid "Privacy Policy"
 msgid "Privacy"
 msgstr "Privacidad"
 
@@ -1104,17 +1102,14 @@ msgid "Trade from the Colón Free Zone · Panama"
 msgstr "Comercia desde la Zona Libre de Colón · Panamá"
 
 #: templates/core/includes/catalogo_publico_results.html:7
-#| msgid "Refine results"
 msgid "Featured results"
 msgstr "Refinar resultados"
 
 #: templates/core/includes/catalogo_publico_results.html:14
-#| msgid "Refine results"
 msgid "More results"
 msgstr "Refinar resultados"
 
 #: templates/core/includes/catalogo_publico_results.html:24
-#| msgid "Catalog categories"
 msgid "Catalog pagination"
 msgstr "Categorías del catálogo"
 
@@ -1154,13 +1149,13 @@ msgid "View full catalog"
 msgstr "Ver catálogo completo"
 
 #: templates/core/includes/home_bento_hero.html:4
-#| msgid "Marketplace shortcuts"
 msgid "Marketplace discovery"
 msgstr "Descubrimiento del marketplace"
 
 #: templates/core/includes/home_bento_hero.html:11
+#: templates/core/includes/home_categories_modal.html:14
+#: templates/core/includes/home_categories_modal.html:29
 #: templates/core/includes/home_category_discover.html:8
-#| msgid "Categories"
 msgid "Categories for you"
 msgstr "Categorías para ti"
 
@@ -1169,7 +1164,6 @@ msgid "Frequently searched"
 msgstr "Búsquedas frecuentes"
 
 #: templates/core/includes/home_bento_hero.html:37
-#| msgid "Search catalog"
 msgid "Wholesale catalog"
 msgstr "Catálogo mayorista"
 
@@ -1193,13 +1187,27 @@ msgid "Colón Free Zone"
 msgstr "Zona Libre de Colón"
 
 #: templates/core/includes/home_bento_hero.html:61
-#| msgid "All suppliers"
 msgid "Discover verified wholesale suppliers"
 msgstr "Descubre proveedores mayoristas verificados"
 
 #: templates/core/includes/home_bento_hero.html:62
 msgid "New buyer favorites · export-ready · MOQ on every listing"
-msgstr "Favoritos de compradores · listo para exportar · MOQ en cada publicación"
+msgstr ""
+"Favoritos de compradores · listo para exportar · MOQ en cada publicación"
+
+#: templates/core/includes/home_categories_modal.html:9
+#, python-format
+msgid "Category filters"
+msgstr "Filtros de categoría"
+
+#: templates/core/includes/home_categories_modal.html:56
+msgid "No products in this category yet."
+msgstr "Aún no hay productos en esta categoría."
+
+#: templates/core/includes/home_categories_modal.html:59
+#, python-format
+msgid "Browse all in %(name)s →"
+msgstr "Ver todo en %(name)s →"
 
 #: templates/core/includes/home_category_discover.html:9
 msgid "View all"
@@ -1229,7 +1237,9 @@ msgstr "El marketplace mayorista de las Américas empieza aquí"
 msgid ""
 "Browse verified CFZ suppliers, compare MOQs in USD, and request formal "
 "quotes — export-ready documentation included on every order."
-msgstr "Explora proveedores verificados de la ZLC, compara MOQs en USD y solicita cotizaciones formales — documentación de exportación incluida en cada pedido."
+msgstr ""
+"Explora proveedores verificados de la ZLC, compara MOQs en USD y solicita "
+"cotizaciones formales — documentación de exportación incluida en cada pedido."
 
 #: templates/core/includes/home_gateway_hero.html:16
 #, fuzzy, python-format
@@ -1238,7 +1248,6 @@ msgid "Explore %(count)s+ products"
 msgstr "Explorar %(count)s+ productos"
 
 #: templates/core/includes/home_gateway_hero.html:17
-#| msgid "Create account"
 msgid "Create free buyer account"
 msgstr "Crear cuenta de comprador gratis"
 
@@ -1247,7 +1256,6 @@ msgid "Platform highlights"
 msgstr "Destacados de la plataforma"
 
 #: templates/core/includes/home_gateway_hero.html:22
-#| msgid "All suppliers"
 msgid "CFZ verified suppliers"
 msgstr "Proveedores verificados ZLC"
 
@@ -1261,7 +1269,6 @@ msgid "Export docs included"
 msgstr "Documentos de exportación incluidos"
 
 #: templates/core/includes/home_gateway_hero.html:35
-#| msgid "Marketplace shortcuts"
 msgid "Marketplace highlights"
 msgstr "Destacados del marketplace"
 
@@ -1270,22 +1277,18 @@ msgid "Deals and featured products"
 msgstr "Ofertas y productos destacados"
 
 #: templates/core/includes/home_gateway_hero.html:50
-#| msgid "wholesale products"
 msgid "Wholesale pick"
 msgstr "Selección mayorista"
 
 #: templates/core/includes/home_gateway_hero.html:73
-#| msgid "Previous page"
 msgid "Previous product"
 msgstr "Producto anterior"
 
 #: templates/core/includes/home_gateway_hero.html:76
-#| msgid "No products found"
 msgid "Next product"
 msgstr "Producto siguiente"
 
 #: templates/core/includes/home_gateway_hero.html:82
-#| msgid "Products"
 msgid "Product slides"
 msgstr "Diapositivas de productos"
 
@@ -1297,12 +1300,10 @@ msgstr "Producto %(num)s"
 
 #: templates/core/includes/home_gateway_hero.html:99
 #: templates/core/includes/marketplace_public_navbar.html:127
-#| msgid "All suppliers"
 msgid "Verified suppliers"
 msgstr "Proveedores verificados"
 
 #: templates/core/includes/home_gateway_hero.html:107
-#| msgid "wholesale products"
 msgid "Wholesale orders"
 msgstr "Pedidos mayoristas"
 
@@ -1311,12 +1312,10 @@ msgid "How it works"
 msgstr "Cómo funciona"
 
 #: templates/core/includes/home_how_section.html:8
-#| msgid "About TradeFlow"
 msgid "How TradeFlow works"
 msgstr "Cómo funciona TradeFlow"
 
 #: templates/core/includes/home_how_section.html:14
-#| msgid "Search catalog"
 msgid "Browse the catalog"
 msgstr "Explora el catálogo"
 
@@ -1325,7 +1324,6 @@ msgid "Browse verified suppliers — no account required."
 msgstr "Explora proveedores verificados — sin cuenta."
 
 #: templates/core/includes/home_how_section.html:20
-#| msgid "Create account"
 msgid "Create your account"
 msgstr "Crea tu cuenta"
 
@@ -1361,42 +1359,42 @@ msgstr "Únete a compradores en las Américas"
 msgid ""
 "Create a free account to save inquiry carts, track quotes, and checkout with "
 "export documentation — no subscription required to browse."
-msgstr "Crea una cuenta gratis para guardar carritos de consulta, seguir cotizaciones y pagar con documentación de exportación — no necesitas suscripción para explorar."
+msgstr ""
+"Crea una cuenta gratis para guardar carritos de consulta, seguir "
+"cotizaciones y pagar con documentación de exportación — no necesitas "
+"suscripción para explorar."
 
 #: templates/core/includes/home_join_band.html:11
 msgid "Get started free"
 msgstr "Empezar gratis"
 
 #: templates/core/includes/home_join_band.html:12
-#| msgid "About TradeFlow"
 msgid "Why TradeFlow"
 msgstr "Por qué TradeFlow"
 
 #: templates/core/includes/home_product_row.html:10
-#| msgid "Clear all"
 msgid "See all"
 msgstr "Ver todo"
 
 #: templates/core/includes/home_product_row.html:12
 #: templates/core/includes/home_suppliers_section.html:67
-#| msgid "View full catalog"
 msgid "View catalog"
 msgstr "Ver catálogo"
 
 #: templates/core/includes/home_suppliers_section.html:8
-#| msgid "All suppliers"
 msgid "Verified partners"
 msgstr "Socios verificados"
 
 #: templates/core/includes/home_suppliers_section.html:9
-#| msgid "All suppliers"
 msgid "Featured suppliers"
 msgstr "Proveedores destacados"
 
 #: templates/core/includes/home_suppliers_section.html:10
 msgid ""
 "CFZ-verified partners highlighted by catalog activity and visibility plans"
-msgstr "Socios verificados ZLC destacados por actividad en catálogo y planes de visibilidad"
+msgstr ""
+"Socios verificados ZLC destacados por actividad en catálogo y planes de "
+"visibilidad"
 
 #: templates/core/includes/home_suppliers_section.html:14
 msgid "How rankings work"
@@ -1406,20 +1404,19 @@ msgstr "Cómo funcionan los rankings"
 msgid ""
 "Companies are highlighted based on visibility plans and catalog activity. "
 "All are CFZ-verified."
-msgstr "Las empresas se destacan según planes de visibilidad y actividad en catálogo. Todas están verificadas por la ZLC."
+msgstr ""
+"Las empresas se destacan según planes de visibilidad y actividad en "
+"catálogo. Todas están verificadas por la ZLC."
 
 #: templates/core/includes/home_suppliers_section.html:30
-#| msgid "Companies"
 msgid "Top companies"
 msgstr "Empresas principales"
 
 #: templates/core/includes/home_suppliers_section.html:45
-#| msgid "All suppliers"
 msgid "More verified suppliers"
 msgstr "Más proveedores verificados"
 
 #: templates/core/includes/home_suppliers_section.html:47
-#| msgid "Previous page"
 msgid "Previous suppliers"
 msgstr "Proveedores anteriores"
 
@@ -1432,12 +1429,10 @@ msgstr[0] "Buscar %(count)s productos de la ZLC…"
 msgstr[1] "Buscar %(count)s productos de la ZLC…"
 
 #: templates/core/includes/home_suppliers_section.html:72
-#| msgid "All suppliers"
 msgid "Next suppliers"
 msgstr "Proveedores siguientes"
 
 #: templates/core/includes/home_suppliers_section.html:79
-#| msgid "All suppliers"
 msgid "More verified suppliers coming soon."
 msgstr "Pronto habrá más proveedores verificados."
 
@@ -1446,7 +1441,6 @@ msgid "Platform trust indicators"
 msgstr "Indicadores de confianza"
 
 #: templates/core/includes/home_trust_bar.html:9
-#| msgid "All suppliers"
 msgid "CFZ-verified suppliers"
 msgstr "Proveedores verificados ZLC"
 
@@ -1472,7 +1466,6 @@ msgid "Search %(count)s CFZ products…"
 msgstr "Buscar %(count)s productos de la ZLC…"
 
 #: templates/core/includes/marketplace_public_navbar.html:27
-#| msgid "Search:"
 msgid "Search"
 msgstr "Búsqueda:"
 
@@ -1481,7 +1474,6 @@ msgid "Open menu"
 msgstr "Abrir menú"
 
 #: templates/core/includes/marketplace_public_navbar.html:39
-#| msgid "Delivered"
 msgid "Delivery region"
 msgstr "Entregado"
 
@@ -1490,7 +1482,6 @@ msgid "Deliver to Panama"
 msgstr "Entregar en Panamá"
 
 #: templates/core/includes/marketplace_public_navbar.html:42
-#| msgid "Delivered"
 msgid "Deliver to:"
 msgstr "Entregar en:"
 
@@ -1510,12 +1501,10 @@ msgstr "Mensajes"
 
 #: templates/core/includes/marketplace_public_navbar.html:76
 #: templates/core/includes/marketplace_public_navbar.html:88
-#| msgid "Orders, payments, and disputes"
 msgid "Orders and lists"
 msgstr "Pedidos, pagos y disputas"
 
 #: templates/core/includes/marketplace_public_navbar.html:95
-#| msgid "Added to inquiry cart"
 msgid "Inquiry cart"
 msgstr "Agregado al carrito de consultas"
 

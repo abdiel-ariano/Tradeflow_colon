@@ -16,6 +16,7 @@ from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.utils.translation import get_language
 
+from core.utils.category_display import category_display_name
 from .models import Category, Company, HomePromoSection, OrderItem, Product
 
 
@@ -756,6 +757,7 @@ def build_guest_home_context(lang: str) -> dict:
     bento_spotlight_items = _bento_spotlight_items(
         featured_list,
         marketplace_trending_categories,
+        lang=lang,
     )
     category_modal_panels = _category_modal_panels(sidebar_categories)
     promo_banner = _first_promo_banner_block(promo_sections)
@@ -874,7 +876,7 @@ def _category_discover_badge(category_pk: int) -> str:
     return ''
 
 
-def _bento_spotlight_items(featured_list, trending_categories) -> list:
+def _bento_spotlight_items(featured_list, trending_categories, lang: str | None = None) -> list:
     """Two image-first tiles — category label + representative product."""
     items: list[dict] = []
     cats = list(trending_categories[:2])
@@ -888,14 +890,18 @@ def _bento_spotlight_items(featured_list, trending_categories) -> list:
                 .first()
             )
         if product:
-            items.append({'category': cat, 'product': product, 'label': cat.name})
+            items.append({
+                'category': cat,
+                'product': product,
+                'label': category_display_name(cat.name, lang=lang),
+            })
     idx = len(items)
     while len(items) < 2 and idx < len(featured_list):
         product = featured_list[idx]
         items.append({
             'category': product.category,
             'product': product,
-            'label': product.category.name if product.category else 'Featured',
+            'label': category_display_name(product.category.name, lang=lang) if product.category else 'Featured',
         })
         idx += 1
     return items[:2]
