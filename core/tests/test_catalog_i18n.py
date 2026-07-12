@@ -120,6 +120,47 @@ class CatalogI18nTests(TestCase):
         self.assertContains(response, 'Textiles y uniformes')
 
 
+    def test_spanish_deals_page(self):
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('marketplace_deals')},
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Ofertas mayoristas de hoy')
+        self.assertContains(response, 'Ofertas flash')
+
+    def test_spanish_verified_suppliers_page(self):
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('marketplace_verified_suppliers')},
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Proveedores verificados ZLC')
+        self.assertContains(response, 'Directorio de proveedores')
+
+    def test_spanish_about_page(self):
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('acerca_tradeflow')},
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'comercio mayorista no debería exigir un vuelo a Panamá')
+
+    def test_marketplace_pages_cache_headers(self):
+        for url_name in (
+            'marketplace_deals',
+            'marketplace_verified_suppliers',
+            'marketplace_order_protection',
+            'acerca_tradeflow',
+        ):
+            response = self.client.get(reverse(url_name))
+            self.assertEqual(response.status_code, 200)
+            self.assertIn('max-age=3600', response.get('Cache-Control', ''))
+
+
 @override_settings(LANGUAGE_CODE='en')
 class LegalPageShellTests(TestCase):
     def test_legal_privacy_uses_marketplace_shell(self):

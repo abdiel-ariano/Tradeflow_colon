@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TradeFlow Colón\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 19:51-0500\n"
+"POT-Creation-Date: 2026-07-11 20:08-0500\n"
 "PO-Revision-Date: 2026-05-12 12:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: English\n"
@@ -161,7 +161,8 @@ msgstr ""
 msgid "Newest"
 msgstr ""
 
-#: core/context_processors.py:104 templates/core/catalogo_publico.html:69
+#: core/context_processors.py:104 templates/core/acerca_tradeflow.html:57
+#: templates/core/catalogo_publico.html:69
 msgid "Verified"
 msgstr ""
 
@@ -789,6 +790,290 @@ msgstr ""
 msgid "Order rejected."
 msgstr ""
 
+#: templates/core/acerca_tradeflow.html:4
+#, fuzzy
+#| msgid "TradeFlow Colón — Compra, gestiona, exporta"
+msgid "About TradeFlow Colón — Wholesale Marketplace of the Americas"
+msgstr "TradeFlow Colón — Buy, manage, export"
+
+#: templates/core/acerca_tradeflow.html:5
+msgid ""
+"Learn why buyers and suppliers choose TradeFlow Colón — the B2B marketplace "
+"for the Colón Free Zone with verified companies, RFQ workflows, and export-"
+"ready documentation."
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:16
+msgid "Built for wholesale · Powered by the Free Zone"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:17
+msgid "Wholesale trade shouldn't require a flight to Panama"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:18
+msgid ""
+"TradeFlow Colón connects international buyers with verified Colón Free Zone "
+"suppliers — live inventory, transparent MOQs, and quote-first workflows "
+"designed for real B2B orders."
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:20
+msgid "Join as a buyer — it's free"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:21
+msgid "Browse without signing up"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:24
+#, fuzzy
+#| msgid "Plataforma"
+msgid "Platform reach"
+msgstr "Platform"
+
+#: templates/core/acerca_tradeflow.html:25
+#, fuzzy
+#| msgid "Productos"
+msgid "Products live now"
+msgstr "Products"
+
+#: templates/core/acerca_tradeflow.html:26
+msgid "Verified CFZ companies"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:27
+msgid "Countries served"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:31
+#, fuzzy
+#| msgid "Confianza TradeFlow"
+msgid "Why buyers trust TradeFlow"
+msgstr "TradeFlow trust"
+
+#: templates/core/acerca_tradeflow.html:32
+msgid "Trusted by importers, distributors & wholesale buyers"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:34
+msgid "Quote before you commit"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:35
+msgid "CFZ RUC verification on every supplier"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:36
+msgid "USD pricing & MOQ on every listing"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:37
+msgid "Invoice & packing list support"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:41
+msgid "About sections"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:42
+#: templates/core/includes/home_join_band.html:12
+#, fuzzy
+#| msgid "Confianza TradeFlow"
+msgid "Why TradeFlow"
+msgstr "TradeFlow trust"
+
+#: templates/core/acerca_tradeflow.html:43
+#, fuzzy
+#| msgid "Ver productos"
+msgid "Buyer protection"
+msgstr "View products"
+
+#: templates/core/acerca_tradeflow.html:44
+msgid "Sell with us"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:45
+msgid "The Free Zone"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:50
+msgid "We digitized the world's second-largest free trade zone"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:51
+msgid ""
+"For decades, sourcing from the Colón Free Zone meant phone calls, "
+"spreadsheets, and uncertainty. TradeFlow puts verified catalogs, live stock, "
+"and structured RFQs in one place — so you can compare suppliers, negotiate "
+"volume, and place export-ready orders from anywhere."
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:52
+msgid ""
+"Whether you're an importer in Miami, a distributor in Bogotá, or a retailer "
+"scaling across Central America — TradeFlow is your direct line to CFZ "
+"wholesale."
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:53
+#, fuzzy
+#| msgid "Ver catálogo"
+msgid "Start browsing the catalog"
+msgstr "View catalog"
+
+#: templates/core/acerca_tradeflow.html:58
+msgid "CFZ suppliers"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:61
+msgid "Live"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:62
+#, fuzzy, python-format
+#| msgid "%(counter)s artículo"
+#| msgid_plural "%(counter)s artículos"
+msgid "%(count)s products"
+msgstr "%(counter)s product"
+
+#: templates/core/acerca_tradeflow.html:65
+msgid "Export"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:66
+msgid "Docs ready"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:71
+#, fuzzy
+#| msgid "Confianza TradeFlow"
+msgid "What you get on TradeFlow"
+msgstr "TradeFlow trust"
+
+#: templates/core/acerca_tradeflow.html:74
+#, fuzzy
+#| msgid "Ver productos"
+msgid "Buyer protection built in"
+msgstr "View products"
+
+#: templates/core/acerca_tradeflow.html:75
+msgid ""
+"Build inquiry carts from multiple suppliers, receive formal quotations, and "
+"review terms before any payment moves. Every company profile shows CFZ "
+"verification status."
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:76
+msgid "See how protection works →"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:80
+msgid "Transparent wholesale pricing"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:81
+#, python-format
+msgid ""
+"MOQ, USD price, and stock visibility on every product. No hidden tiers — "
+"compare like-for-like across %(count)s categories before you request a quote."
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:82
+msgid "View today's deals →"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:86
+msgid "Grow as a CFZ supplier"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:87
+msgid ""
+"List your storefront, manage inventory, and reach wholesale buyers "
+"worldwide. Seller plans include analytics, visibility tools, and logistics "
+"integrations."
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:88
+msgid "Apply as supplier"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:93
+msgid "\\"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:95
+msgid "Wholesale buyer · Central America"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:96
+msgid "RFQ workflow"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:102
+msgid "Why the Colón Free Zone matters"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:103
+msgid "Duty-free re-export hub · logistics gateway · wholesale at scale"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:107
+msgid "Verified ecosystem"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:108
+msgid "CFZ companies with live catalogs and RUC checks on every profile"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:111
+msgid "Global reach"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:112
+msgid "Buyers in 40+ countries source re-export inventory through TradeFlow"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:115
+msgid "Quote-first culture"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:116
+msgid "Structured RFQs replace guesswork on volume, lead time, and shipping"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:119
+#, fuzzy
+#| msgid "Dashboard"
+msgid "Seller SaaS"
+msgstr "Dashboard"
+
+#: templates/core/acerca_tradeflow.html:120
+msgid ""
+"From starter storefronts to enterprise visibility — grow with the platform"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:129
+msgid "Ready to source smarter from the Free Zone?"
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:130
+msgid ""
+"Join thousands of wholesale buyers who use TradeFlow to discover suppliers, "
+"compare quotes, and place export-ready orders — without the overhead."
+msgstr ""
+
+#: templates/core/acerca_tradeflow.html:132
+#, fuzzy
+#| msgid "Crear cuenta"
+msgid "Create your free account"
+msgstr "Create account"
+
+#: templates/core/acerca_tradeflow.html:133
+#: templates/core/marketplace_order_protection.html:101
+msgid "Meet verified suppliers"
+msgstr ""
+
 #: templates/core/carrito.html:3
 msgid "Mi carrito"
 msgstr "Add to cart"
@@ -925,6 +1210,7 @@ msgstr "View products"
 #: templates/core/includes/catalogo_ali_category_sidebar.html:3
 #: templates/core/includes/home_bento_hero.html:6
 #: templates/core/includes/home_gateway_hero.html:103
+#: templates/core/marketplace_verified_suppliers.html:24
 #, fuzzy
 #| msgid "Categorías"
 msgid "Categories"
@@ -1016,6 +1302,7 @@ msgstr ""
 #: templates/core/includes/catalogo_card.html:8
 #: templates/core/includes/catalogo_card.html:49
 #: templates/core/includes/home_gateway_hero.html:46
+#: templates/core/includes/marketplace_deal_card.html:7
 #, python-format
 msgid "%(pct)s%% off"
 msgstr ""
@@ -1047,7 +1334,10 @@ msgid "piece"
 msgstr ""
 
 #: templates/core/includes/catalogo_card.html:66
+#: templates/core/includes/home_company_spotlight.html:15
 #: templates/core/includes/home_suppliers_section.html:60
+#: templates/core/includes/marketplace_deal_card.html:28
+#: templates/core/includes/marketplace_supplier_card.html:19
 msgid "CFZ Verified"
 msgstr ""
 
@@ -1117,10 +1407,12 @@ msgid "CFZ Verified manufacturers"
 msgstr ""
 
 #: templates/core/includes/catalogo_footer.html:26
+#: templates/core/marketplace_order_protection.html:28
 msgid "Request for Quotation"
 msgstr ""
 
 #: templates/core/includes/catalogo_footer.html:27
+#: templates/core/marketplace_order_protection.html:36
 #, fuzzy
 #| msgid "Exporta con documentación"
 msgid "Export documentation"
@@ -1268,6 +1560,7 @@ msgid "View more"
 msgstr ""
 
 #: templates/core/includes/home_bento_hero.html:60
+#: templates/core/includes/marketplace_supplier_card.html:30
 msgid "Colón Free Zone"
 msgstr ""
 
@@ -1298,11 +1591,49 @@ msgstr ""
 msgid "View all"
 msgstr ""
 
+#: templates/core/includes/home_company_spotlight.html:11
+msgid "Featured supplier"
+msgstr ""
+
+#: templates/core/includes/home_company_spotlight.html:15
+#: templates/core/includes/home_suppliers_section.html:65
+#: templates/core/includes/marketplace_supplier_card.html:29
+#, fuzzy, python-format
+#| msgid "%(counter)s artículo"
+#| msgid_plural "%(counter)s artículos"
+msgid "%(counter)s product"
+msgid_plural "%(counter)s products"
+msgstr[0] "%(counter)s product"
+msgstr[1] "%(counter)s products"
+
+#: templates/core/includes/home_company_spotlight.html:20
+msgid "Visit storefront"
+msgstr ""
+
+#: templates/core/includes/home_company_spotlight.html:44
+#, fuzzy
+#| msgid "Ver mis productos"
+msgid "Previous products"
+msgstr "View my products"
+
+#: templates/core/includes/home_company_spotlight.html:56
+#, fuzzy
+#| msgid "Ver productos"
+msgid "Next products"
+msgstr "View products"
+
+#: templates/core/includes/home_company_spotlight.html:64
+#, fuzzy
+#| msgid "Fila de productos"
+msgid "No featured products yet"
+msgstr "View products"
+
 #: templates/core/includes/home_deals_strip.html:9
 msgid "Limited offers"
 msgstr ""
 
 #: templates/core/includes/home_deals_strip.html:10
+#: templates/core/marketplace_deals.html:17
 msgid "Today's wholesale deals"
 msgstr ""
 
@@ -1332,6 +1663,7 @@ msgid "Explore %(count)s+ products"
 msgstr "%(counter)s product"
 
 #: templates/core/includes/home_gateway_hero.html:17
+#: templates/core/marketplace_order_protection.html:100
 #, fuzzy
 #| msgid "Crear cuenta"
 msgid "Create free buyer account"
@@ -1342,6 +1674,7 @@ msgid "Platform highlights"
 msgstr ""
 
 #: templates/core/includes/home_gateway_hero.html:22
+#: templates/core/marketplace_verified_suppliers.html:14
 msgid "CFZ verified suppliers"
 msgstr ""
 
@@ -1363,6 +1696,7 @@ msgid "Deals and featured products"
 msgstr ""
 
 #: templates/core/includes/home_gateway_hero.html:50
+#: templates/core/includes/marketplace_deal_card.html:9
 #, fuzzy
 #| msgid "Fila de productos"
 msgid "Wholesale pick"
@@ -1394,6 +1728,8 @@ msgstr "Products"
 
 #: templates/core/includes/home_gateway_hero.html:99
 #: templates/core/includes/marketplace_public_navbar.html:127
+#: templates/core/marketplace_order_protection.html:24
+#: templates/core/marketplace_verified_suppliers.html:22
 msgid "Verified suppliers"
 msgstr ""
 
@@ -1450,6 +1786,7 @@ msgid "Track delivery with export docs included."
 msgstr ""
 
 #: templates/core/includes/home_how_section.html:37
+#: templates/core/marketplace_order_protection.html:18
 msgid "Start browsing"
 msgstr ""
 
@@ -1467,12 +1804,6 @@ msgstr ""
 msgid "Get started free"
 msgstr ""
 
-#: templates/core/includes/home_join_band.html:12
-#, fuzzy
-#| msgid "Confianza TradeFlow"
-msgid "Why TradeFlow"
-msgstr "TradeFlow trust"
-
 #: templates/core/includes/home_product_row.html:10
 msgid "See all"
 msgstr ""
@@ -1489,6 +1820,7 @@ msgid "Verified partners"
 msgstr ""
 
 #: templates/core/includes/home_suppliers_section.html:9
+#: templates/core/marketplace_verified_suppliers.html:46
 msgid "Featured suppliers"
 msgstr ""
 
@@ -1519,15 +1851,6 @@ msgstr ""
 msgid "Previous suppliers"
 msgstr ""
 
-#: templates/core/includes/home_suppliers_section.html:65
-#, fuzzy, python-format
-#| msgid "%(counter)s artículo"
-#| msgid_plural "%(counter)s artículos"
-msgid "%(counter)s product"
-msgid_plural "%(counter)s products"
-msgstr[0] "%(counter)s product"
-msgstr[1] "%(counter)s products"
-
 #: templates/core/includes/home_suppliers_section.html:72
 msgid "Next suppliers"
 msgstr ""
@@ -1545,6 +1868,7 @@ msgid "CFZ-verified suppliers"
 msgstr ""
 
 #: templates/core/includes/home_trust_bar.html:23
+#: templates/core/marketplace_order_protection.html:32
 #, fuzzy
 #| msgid "Ir al checkout"
 msgid "Secure B2B checkout"
@@ -1556,6 +1880,10 @@ msgstr ""
 
 #: templates/core/includes/home_trust_bar.html:37
 msgid "Registered ZLC partners"
+msgstr ""
+
+#: templates/core/includes/marketplace_deal_card.html:32
+msgid "+ Add to inquiry"
 msgstr ""
 
 #: templates/core/includes/marketplace_public_navbar.html:14
@@ -1653,6 +1981,15 @@ msgstr "View products"
 
 #: templates/core/includes/marketplace_public_navbar.html:132
 msgid "Help center"
+msgstr ""
+
+#: templates/core/includes/marketplace_supplier_card.html:5
+#, python-format
+msgid "View %(name)s storefront"
+msgstr ""
+
+#: templates/core/includes/marketplace_supplier_card.html:37
+msgid "View storefront"
 msgstr ""
 
 #: templates/core/includes/product_image_placeholder.html:28
@@ -1788,6 +2125,332 @@ msgstr ""
 msgid "Contact"
 msgstr "Contact"
 
+#: templates/core/marketplace_deals.html:3
+#, fuzzy
+#| msgid "Crear cuenta — TradeFlow Colón"
+msgid "Wholesale Deals — TradeFlow Colón"
+msgstr "Store — TradeFlow Colón"
+
+#: templates/core/marketplace_deals.html:4
+msgid ""
+"Today's wholesale deals from CFZ-verified suppliers — limited-time promo "
+"pricing, MOQ transparency, and export-ready documentation on TradeFlow Colón."
+msgstr ""
+
+#: templates/core/marketplace_deals.html:16
+msgid "Limited-time pricing"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:18
+msgid ""
+"Promotional products from Colón Free Zone suppliers. Add to your inquiry "
+"cart, compare quotes, and lock in export-ready orders."
+msgstr ""
+
+#: templates/core/marketplace_deals.html:20
+#, fuzzy
+#| msgid "Ver catálogo"
+msgid "Filter deals in catalog"
+msgstr "View catalog"
+
+#: templates/core/marketplace_deals.html:21
+msgid "View inquiry cart"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:24
+msgid "Deals overview"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:25
+msgid "Active deals"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:26
+#, fuzzy
+#| msgid "Fila de productos"
+msgid "Total products"
+msgstr "View products"
+
+#: templates/core/marketplace_deals.html:27
+msgid "Avg. savings"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:28
+msgid "Quote first"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:37
+msgid "Flash deals"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:38
+msgid "Best discounts · updated daily"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:40
+msgid "Hot"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:53
+msgid "All promo inventory"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:54
+#, python-format
+msgid "%(count)s products with promotional or featured pricing"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:56
+#, fuzzy
+#| msgid "Ver catálogo"
+msgid "See all in catalog →"
+msgstr "View catalog"
+
+#: templates/core/marketplace_deals.html:67
+msgid "No active promotions right now"
+msgstr ""
+
+#: templates/core/marketplace_deals.html:68
+msgid "Check back soon or browse the full wholesale catalog."
+msgstr ""
+
+#: templates/core/marketplace_deals.html:69
+#, fuzzy
+#| msgid "Ver catálogo"
+msgid "Browse catalog"
+msgstr "View catalog"
+
+#: templates/core/marketplace_deals.html:76
+#, fuzzy
+#| msgid "Confianza TradeFlow"
+msgid "How B2B deals work"
+msgstr "TradeFlow trust"
+
+#: templates/core/marketplace_deals.html:78
+msgid "Promo prices are per product — MOQ and stock apply on the product page."
+msgstr ""
+
+#: templates/core/marketplace_deals.html:79
+msgid "Add items to your inquiry cart to request a formal quotation."
+msgstr ""
+
+#: templates/core/marketplace_deals.html:80
+msgid "CFZ verification and export docs are visible before you order."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:3
+#, fuzzy
+#| msgid "Crear cuenta — TradeFlow Colón"
+msgid "Order Protection & RFQ — TradeFlow Colón"
+msgstr "Store — TradeFlow Colón"
+
+#: templates/core/marketplace_order_protection.html:4
+msgid ""
+"TradeFlow buyer protection: request for quotation workflows, verified CFZ "
+"suppliers, secure B2B checkout, and export-ready documentation for wholesale "
+"buyers."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:13
+#, fuzzy
+#| msgid "Ver productos"
+msgid "Buyer protection program"
+msgstr "View products"
+
+#: templates/core/marketplace_order_protection.html:14
+#, fuzzy
+#| msgid "Ver productos"
+msgid "Order protection for wholesale buyers"
+msgstr "View products"
+
+#: templates/core/marketplace_order_protection.html:15
+msgid ""
+"Quote before you commit. Structured RFQ workflows, verified suppliers, and "
+"documentation built for international trade from the Colón Free Zone."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:17
+#: templates/core/marketplace_verified_suppliers.html:18
+#, fuzzy
+#| msgid "Crear cuenta"
+msgid "Create buyer account"
+msgstr "Create account"
+
+#: templates/core/marketplace_order_protection.html:21
+msgid "Protection highlights"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:44
+#, fuzzy
+#| msgid "Ver productos"
+msgid "How buyer protection works"
+msgstr "View products"
+
+#: templates/core/marketplace_order_protection.html:45
+msgid ""
+"From discovery to delivery — designed for importers and wholesale buyers"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:50
+msgid "Browse verified inventory"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:51
+msgid ""
+"Explore live products with MOQ and CFZ verification — no account required to "
+"start."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:55
+msgid "Build an inquiry cart"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:56
+msgid "Add products from multiple suppliers and request formal quotations."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:60
+msgid "Review quotes & terms"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:61
+msgid "Compare responses, lead times, and documentation before approving."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:65
+msgid "Checkout with docs"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:66
+msgid "Confirmed orders include invoice and packing list support for export."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:73
+msgid "What is covered"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:77
+msgid "Supplier verification"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:78
+msgid "CFZ status, RUC, and live catalog depth on every company profile."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:81
+msgid "Quote-first workflow"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:82
+msgid "Negotiate volume, shipping, and payment terms before funds move."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:85
+msgid "Order transparency"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:86
+msgid "Track status, seller confirmation, and logistics from your account."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:89
+msgid "Dispute & support"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:90
+msgid "Contact TradeFlow for order issues. Policies in our legal center."
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:91
+msgid "Read terms →"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:97
+msgid "Ready to source from the Free Zone?"
+msgstr ""
+
+#: templates/core/marketplace_order_protection.html:98
+msgid ""
+"Join buyers across the Americas who use TradeFlow for verified wholesale "
+"sourcing."
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:3
+#, fuzzy
+#| msgid "Crear cuenta — TradeFlow Colón"
+msgid "CFZ Verified Suppliers — TradeFlow Colón"
+msgstr "Store — TradeFlow Colón"
+
+#: templates/core/marketplace_verified_suppliers.html:4
+#, python-format
+msgid ""
+"Browse %(verified)s verified Colón Free Zone suppliers with live catalogs, "
+"export documentation, and transparent MOQ on TradeFlow."
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:13
+msgid "Supplier directory"
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:15
+msgid ""
+"Registered in the Colón Free Zone with live catalogs. Compare storefronts, "
+"build inquiry carts, and request quotes before you commit."
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:17
+#, fuzzy
+#| msgid "Ver catálogo"
+msgid "Browse verified catalog"
+msgstr "View catalog"
+
+#: templates/core/marketplace_verified_suppliers.html:21
+msgid "Marketplace stats"
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:23
+#, fuzzy
+#| msgid "Ver productos"
+msgid "Active products"
+msgstr "View products"
+
+#: templates/core/marketplace_verified_suppliers.html:25
+msgid "RUC checked"
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:34
+msgid "Top ranked suppliers"
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:35
+msgid "Featured storefronts with live inventory and export-ready listings"
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:65
+msgid "All verified suppliers"
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:66
+#, python-format
+msgid "%(count)s companies ready for wholesale inquiry"
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:68
+#, fuzzy
+#| msgid "Ver productos"
+msgid "View all products →"
+msgstr "View products"
+
+#: templates/core/marketplace_verified_suppliers.html:78
+msgid "Verified suppliers are being onboarded."
+msgstr ""
+
+#: templates/core/marketplace_verified_suppliers.html:78
+#, fuzzy
+#| msgid "Ver catálogo"
+msgid "Browse the full catalog"
+msgstr "View catalog"
+
 #~ msgid "Cerrar"
 #~ msgstr "Close"
 
@@ -1898,9 +2561,6 @@ msgstr "Contact"
 
 #~ msgid "Marketplace B2B/B2C para la Zona Libre de Colón, Panamá."
 #~ msgstr "B2B/B2C marketplace for the Colón Free Zone, Panama."
-
-#~ msgid "Plataforma"
-#~ msgstr "Platform"
 
 #~ msgid "Inicio"
 #~ msgstr "Home"
@@ -2228,9 +2888,6 @@ msgstr "Contact"
 #, python-format
 #~ msgid "Bienvenida, %(name)s"
 #~ msgstr "Welcome, %(name)s"
-
-#~ msgid "Crear cuenta — TradeFlow Colón"
-#~ msgstr "Store — TradeFlow Colón"
 
 #~ msgid "Crear tu cuenta"
 #~ msgstr "Create account"
