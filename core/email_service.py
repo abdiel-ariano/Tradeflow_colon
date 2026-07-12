@@ -21,16 +21,16 @@ class EmailSendResult:
 
 def _verification_html(code: str) -> str:
     return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:24px;background:#0F2A44;font-family:Montserrat,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;">
     <tr>
       <td style="background:#1B3B63;border-radius:16px;padding:32px;text-align:center;border:2px solid #2E5B8A;">
         <p style="color:#F2F3F5;font-size:14px;margin:0 0 8px;">TradeFlow Colón</p>
-        <h1 style="color:#ffffff;font-size:22px;margin:0 0 24px;">Your verification code</h1>
+        <h1 style="color:#ffffff;font-size:22px;margin:0 0 24px;">Tu código de verificación</h1>
         <p style="color:#F26522;font-size:48px;font-weight:700;letter-spacing:10px;margin:0 0 16px;">{code}</p>
-        <p style="color:#F2F3F5;font-size:13px;margin:0;">Valid for 10 minutes. Do not share this code.</p>
+        <p style="color:#F2F3F5;font-size:13px;margin:0;">Válido por 10 minutos. No compartas este código.</p>
       </td>
     </tr>
   </table>
@@ -114,11 +114,11 @@ def enviar_email_transaccional(
 
 def enviar_codigo_verificacion(email: str, code: str) -> EmailSendResult:
     """Send OTP code via Resend (console backend in DEBUG when key is missing)."""
-    subject = 'Your verification code — TradeFlow Colón'
+    subject = 'Tu código de verificación — TradeFlow Colón'
     text = (
-        f'Your TradeFlow Colón verification code is: {code}\n\n'
-        'Valid for 10 minutes.\n\n'
-        '— Colón Free Zone, Panama'
+        f'Tu código de verificación en TradeFlow Colón es: {code}\n\n'
+        'Válido por 10 minutos.\n\n'
+        '— Zona Libre de Colón, Panamá'
     )
     html = _verification_html(code)
     return enviar_email_transaccional(email, subject, html, text, tipo='verification_code')

@@ -18,7 +18,9 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
-from core.utils.access_gating import normalize_path, safe_intent_next
+from core.utils.access_gating import normalize_path, safe_intent_next, user_needs_otp_verification
+from core.utils.email_config import explain_email_failure
+from core.utils.otp_delivery import ensure_otp_sent
 
 from core.utils.email_sender import enviar_bienvenida
 from core.utils.otp_axes import (
@@ -143,7 +145,21 @@ def verify_otp_view(request: HttpRequest) -> HttpResponse:
         return otp_axes_lockout_response(request, username, as_json=_wants_json(request))
 
     if request.method == 'GET':
-        return render(request, 'core/verificar_codigo.html', _verify_context(request))
+        ctx = _verify_context(request)
+        ok, status = ensure_otp_sent(request, request.user)
+        if ok and status == 'sent':
+            from django.contrib import messages
+
+            messages.success(
+                request,
+                _('We sent a 6-digit code to %(email)s. Check your inbox and spam folder.')
+                % {'email': request.user.email},
+            )
+        elif not ok and status not in ('no_email',):
+            from django.contrib import messages
+
+            messages.error(request, explain_email_failure(status))
+        return render(request, 'core/verificar_codigo.html', ctx)
 
     raw = (request.POST.get('codigo') or request.POST.get('code') or '').strip()
     if not OTP_CODE_PATTERN.fullmatch(raw):

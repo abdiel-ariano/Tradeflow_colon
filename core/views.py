@@ -46,7 +46,7 @@ import qrcode
 from folium.plugins import MarkerCluster
 from django.core import signing
 
-from .decorators import admin_required, buyer_required, catalog_access, guest_or_buyer_cart, seller_required
+from .decorators import admin_required, buyer_checkout, buyer_required, catalog_access, guest_or_buyer_cart, seller_required
 from .forms import SellerProductForm, SellerInventoryForm
 from .email_service import enviar_codigo_verificacion as enviar_codigo_email
 from .models import (
@@ -396,11 +396,14 @@ def login_view(request):
                     gate_route = onboarding_redirect_name(user, scope='restricted')
                     if gate_route:
                         from urllib.parse import urlencode
+                        from core.utils.access_gating import normalize_path, should_inline_verify_at_checkout
 
                         messages.info(
                             request,
                             _('Verify your email to access checkout and orders.'),
                         )
+                        if should_inline_verify_at_checkout(next_url, gate_route):
+                            return redirect(next_url)
                         gate_target = reverse(gate_route)
                         if gate_route == 'verificar_codigo':
                             return redirect(f'{gate_target}?{urlencode({"next": next_url})}')
@@ -617,6 +620,8 @@ def _redirect_after_email_verified(user):
 def enviar_codigo(request):
     """Genera OTP, envía por Resend y redirige al formulario."""
     from core.auth_views import _email_verification_gate_active
+    from core.utils.email_config import explain_email_failure
+    from core.utils.otp_delivery import ensure_otp_sent
 
     if not _email_verification_gate_active(request.user):
         messages.info(request, 'Email verification is disabled in this environment.')
@@ -635,19 +640,15 @@ def enviar_codigo(request):
         messages.error(request, 'Your account has no email address.')
         return redirect('verificar_codigo')
 
-    verification = EmailVerification.generate_for(request.user)
-    result = enviar_codigo_email(request.user.email, verification.code)
-    if result.ok:
+    ok, status = ensure_otp_sent(request, request.user, force=True)
+    if ok:
         messages.success(
             request,
             _('We sent a 6-digit code to %(email)s. Check your inbox and spam folder.')
             % {'email': request.user.email},
         )
     else:
-        messages.error(
-            request,
-            _('We could not send the email. Try again in a moment.'),
-        )
+        messages.error(request, explain_email_failure(status))
     from urllib.parse import urlencode
 
     from core.utils.access_gating import safe_intent_next
@@ -3700,7 +3701,7 @@ def vaciar_carrito(request):
 # CHECKOUT — Confirmación de compra y creación de orden
 # ---------------------------------------------------------------------------
 
-@buyer_required
+@buyer_checkout
 def checkout(request):
     """
     Proceso de confirmación de compra y generación de la orden.
@@ -3721,6 +3722,8 @@ def checkout(request):
         - Se verifica el stock disponible producto a producto al crear
         - Si un producto quedó sin stock, se omite con un warning
     """
+    from core.utils.access_gating import user_needs_otp_verification
+
     carrito = _get_carrito(request)
 
     # Redirigir si el carrito está vacío
@@ -3912,6 +3915,28 @@ def checkout(request):
         'transportistas': transportistas,
         'checkout_auto_approve': auto_approve,
     }
+
+    if user_needs_otp_verification(request.user):
+        from core.auth_views import _verify_context
+        from core.utils.email_config import explain_email_failure
+        from core.utils.otp_delivery import ensure_otp_sent
+
+        verify_ctx = _verify_context(request)
+        verify_ctx['next_url'] = reverse('checkout')
+        verify_ctx['verify_for_checkout'] = True
+        verify_ctx['inline'] = True
+        ok, status = ensure_otp_sent(request, request.user)
+        if ok and status == 'sent':
+            messages.success(
+                request,
+                _('We sent a 6-digit code to %(email)s. Check your inbox and spam folder.')
+                % {'email': request.user.email},
+            )
+        elif not ok and status not in ('no_email',):
+            messages.error(request, explain_email_failure(status))
+        context['needs_email_verify'] = True
+        context.update(verify_ctx)
+
     return render(request, 'core/checkout.html', context)
 
 

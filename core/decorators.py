@@ -121,6 +121,29 @@ def guest_or_buyer_cart(view_func):
     return wrapper
 
 
+def buyer_checkout(view_func):
+    """Checkout: GET permite ver la página con verificación inline; POST exige email."""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect(f'/login/?next={request.path}')
+        scope = 'browse' if request.method == 'GET' else 'restricted'
+        blocked = _enforce_onboarding(request, scope=scope)
+        if blocked:
+            return blocked
+        role = _get_role(request.user)
+        if role in (None, 'buyer'):
+            return view_func(request, *args, **kwargs)
+        if role == 'seller':
+            messages.info(request, 'Go to your seller portal.')
+            return redirect('/mi-tienda/')
+        if role == 'admin' or request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+        messages.error(request, 'You do not have permission to access this section.')
+        return redirect('/')
+    return wrapper
+
+
 def buyer_required(view_func):
     """Checkout, pedidos y cotizaciones: login + verificación de email."""
     @wraps(view_func)

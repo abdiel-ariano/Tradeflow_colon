@@ -265,6 +265,23 @@ def _mask_email(email: str) -> str:
     return f'{visible}@{domain}'
 
 
+def should_inline_verify_at_checkout(path: str, route: str | None) -> bool:
+    """Checkout GET muestra verificación embebida en lugar de /verificar/."""
+    if route != 'verificar_codigo':
+        return False
+    return normalize_path(path).startswith('/checkout')
+
+
+def user_needs_otp_verification(user) -> bool:
+    """True si el usuario autenticado debe ingresar OTP antes de operar."""
+    if not email_verification_required(user):
+        return False
+    try:
+        return not user.profile.email_verificado
+    except UserProfile.DoesNotExist:
+        return True
+
+
 def safe_intent_next(request, *, raw: str = '') -> str:
     """Ruta interna segura para retomar checkout u otra acción tras verificar."""
     from django.urls import reverse

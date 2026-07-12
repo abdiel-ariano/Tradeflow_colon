@@ -412,9 +412,12 @@ EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default='django.core.mail.backends.console.EmailBackend',
 )
-_default_from = config(
-    'DEFAULT_FROM_EMAIL',
-    default='TradeFlow <noreply@tradeflow.pa>',
+_default_from = (
+    config('RESEND_FROM_EMAIL', default='').strip()
+    or config(
+        'DEFAULT_FROM_EMAIL',
+        default='TradeFlow Colón <no-reply@tradeflowcolon.com>',
+    ).strip()
 )
 if LEGACY_GMAIL_ACCOUNT in _default_from.lower():
     _default_from = _default_from.replace(LEGACY_GMAIL_ACCOUNT, TRADEFLOW_GMAIL_ACCOUNT).replace(
@@ -422,6 +425,7 @@ if LEGACY_GMAIL_ACCOUNT in _default_from.lower():
         TRADEFLOW_GMAIL_ACCOUNT,
     )
 DEFAULT_FROM_EMAIL = _default_from
+RESEND_FROM_EMAIL = _default_from
 TRADEFLOW_CONTACT_EMAIL = normalize_contact_email(
     config('TRADEFLOW_CONTACT_EMAIL', default=TRADEFLOW_GMAIL_ACCOUNT)
 )
