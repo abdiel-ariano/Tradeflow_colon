@@ -91,6 +91,8 @@ def tf_i18n(request):
             'chartInitError': _('Could not initialize charts.'),
             'csvDownloaded': _('CSV file downloaded successfully.'),
             'geoConfirmed': _('Location confirmed.'),
+            'geoGettingLocation': _('Getting location…'),
+            'geoConfirmRequired': _('You must confirm your location to continue.'),
             'geoDenied': _('Location permission denied.'),
             'geoUnsupported': _('Your browser does not support geolocation.'),
             'awaitingSeller': _('Awaiting company confirmation'),

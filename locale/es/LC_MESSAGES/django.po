@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 20:53-0500\n"
+"POT-Creation-Date: 2026-07-11 21:15-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -85,6 +85,12 @@ msgstr "Archivo CSV descargado correctamente."
 
 msgid "Location confirmed."
 msgstr "Ubicación confirmada."
+
+msgid "Getting location…"
+msgstr "Obteniendo ubicación…"
+
+msgid "You must confirm your location to continue."
+msgstr "Debes confirmar tu ubicación para continuar."
 
 msgid "Location permission denied."
 msgstr "Permiso de ubicación denegado."
@@ -503,6 +509,9 @@ msgstr ""
 msgid "Cart cleared."
 msgstr ""
 
+msgid "Your cart is empty."
+msgstr "Tu carrito está vacío."
+
 msgid "Select a carrier to continue."
 msgstr ""
 
@@ -513,6 +522,16 @@ msgid "Invalid location coordinates."
 msgstr ""
 
 #, python-format
+msgid "Insufficient stock for \"%(name)s\" — item skipped."
+msgstr "Stock insuficiente para \"%(name)s\" — artículo omitido."
+
+msgid "A product is no longer available and was skipped."
+msgstr "Un producto ya no está disponible y se omitió."
+
+msgid "Could not complete the order. Check product stock."
+msgstr "No se pudo completar el pedido. Verifica el stock de los productos."
+
+#, python-format
 msgid ""
 "Order %(num)s submitted. Awaiting company confirmation (deadline %(fecha)s)."
 msgstr ""
@@ -520,6 +539,9 @@ msgstr ""
 #, python-format
 msgid "Order %(num)s created successfully."
 msgstr ""
+
+msgid "Confirm order"
+msgstr "Confirmar pedido"
 
 msgid "Name and email are required."
 msgstr ""
@@ -977,7 +999,7 @@ msgid "Resumen del pedido"
 msgstr ""
 
 msgid "Subtotal"
-msgstr ""
+msgstr "Subtotal"
 
 msgid "Envío"
 msgstr ""
@@ -1153,6 +1175,35 @@ msgstr "Navegación por categorías"
 
 msgid "Close categories"
 msgstr "Cerrar categorías"
+
+msgid "Who transports your cargo?"
+msgstr "¿Quién transporta tu carga?"
+
+msgid "No active carriers."
+msgstr "No hay transportistas activos."
+
+msgid "Delivery location"
+msgstr "Ubicación de entrega"
+
+msgid "Use my current location"
+msgstr "Usar mi ubicación actual"
+
+msgid "Notes"
+msgstr "Notas"
+
+msgid "Delivery instructions…"
+msgstr "Instrucciones de entrega…"
+
+msgid ""
+"The company will confirm your order before charging (typical 48 h window)."
+msgstr ""
+"La empresa confirmará tu pedido antes de cobrar (ventana típica de 48 h)."
+
+msgid "Submit order"
+msgstr "Enviar pedido"
+
+msgid "Summary"
+msgstr "Resumen"
 
 msgid "TradeFlow Colón — Wholesale Marketplace"
 msgstr "TradeFlow Colón — Marketplace mayorista"

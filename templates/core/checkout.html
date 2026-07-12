@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% block title %}Confirm order — TradeFlow Colón{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Confirm order" %} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/tf_animations.css' %}">
 <style nonce="{{ csp_nonce }}">
@@ -19,14 +19,14 @@
 {% endblock %}
 {% block content %}
 <div class="tf-page co-wrap">
-  <h1 class="co-title">Confirm order</h1>
+  <h1 class="co-title">{% trans "Confirm order" %}</h1>
   <form method="post" id="co-form">
     {% csrf_token %}
     <input type="hidden" name="buyer_latitude" id="co-lat" value="">
     <input type="hidden" name="buyer_longitude" id="co-lng" value="">
 
     <div class="co-card">
-      <div class="co-sec">Who transports your cargo?</div>
+      <div class="co-sec">{% trans "Who transports your cargo?" %}</div>
       {% for t in transportistas %}
       <label class="co-carrier">
         <input type="radio" name="transport_carrier" value="{{ t.pk }}" required {% if forloop.first %}checked{% endif %}>
@@ -37,35 +37,35 @@
         <span style="font-weight:700;color:#F26522;">USD {{ t.base_shipping_cost }}</span>
       </label>
       {% empty %}
-      <p>No active carriers.</p>
+      <p>{% trans "No active carriers." %}</p>
       {% endfor %}
     </div>
 
     <div class="co-card">
-      <div class="co-sec">Delivery location</div>
+      <div class="co-sec">{% trans "Delivery location" %}</div>
       <button type="button" class="co-geo-btn" id="co-geo-btn">
         <span class="material-symbols-rounded">my_location</span>
-        Use my current location
+        {% trans "Use my current location" %}
       </button>
-      <p class="co-geo-status" id="co-geo-status">You must confirm your location to continue.</p>
+      <p class="co-geo-status" id="co-geo-status">{% trans "You must confirm your location to continue." %}</p>
     </div>
 
     <div class="co-card">
-      <div class="co-sec">Notes</div>
-      <textarea name="notas" class="tf-input" style="width:100%;min-height:80px;" placeholder="Delivery instructions…"></textarea>
+      <div class="co-sec">{% trans "Notes" %}</div>
+      <textarea name="notas" class="tf-input" style="width:100%;min-height:80px;" placeholder="{% trans 'Delivery instructions…' %}"></textarea>
       {% if not checkout_auto_approve %}
       <p style="font-size:0.85rem;color:#6B7A88;margin-top:10px;">
-        The company will confirm your order before charging (typical 48 h window).
+        {% trans "The company will confirm your order before charging (typical 48 h window)." %}
       </p>
       {% endif %}
       <button type="submit" class="co-submit" id="co-submit" disabled>
-        Submit order
+        {% trans "Submit order" %}
       </button>
     </div>
   </form>
 
   <div class="co-card">
-    <div class="co-sec">Summary</div>
+    <div class="co-sec">{% trans "Summary" %}</div>
     {% for prod_id, item in carrito.items %}
     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:14px;">
       <span>{{ item.nombre }} × {{ item.cantidad }}</span>
@@ -73,7 +73,7 @@
     </div>
     {% endfor %}
     <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:10px;color:#0F2A44;">
-      <span>Subtotal</span><span>USD {{ subtotal }}</span>
+      <span>{% trans "Subtotal" %}</span><span>USD {{ subtotal }}</span>
     </div>
   </div>
 </div>
@@ -111,7 +111,7 @@
       applyCoords(FALLBACK_LAT, FALLBACK_LNG);
       return;
     }
-    status.textContent = 'Getting location…';
+    status.textContent = I.geoGettingLocation || 'Getting location…';
     var settled = false;
     function finishWithFallback() {
       if (settled) return;
