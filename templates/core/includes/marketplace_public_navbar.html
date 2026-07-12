@@ -67,30 +67,24 @@
       </div>
 
       {% if request.user.is_authenticated %}
-      <a href="{% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="{% trans 'Messages' %}" aria-label="{% trans 'Messages' %}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-      </a>
-
-      <a href="{% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="{% trans 'Orders and lists' %}" aria-label="{% trans 'Orders and lists' %}">
+      <a href="{% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="{% trans 'My quotes' %}" aria-label="{% trans 'My quotes' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
         </svg>
       </a>
       {% else %}
-      <a href="{% url 'login' %}?next={% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="{% trans 'Messages' %}" aria-label="{% trans 'Messages' %}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-      </a>
-
-      <a href="{% url 'login' %}?next={% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="{% trans 'Orders and lists' %}" aria-label="{% trans 'Orders and lists' %}">
+      <a href="{% url 'login' %}?next={% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="{% trans 'My quotes' %}" aria-label="{% trans 'My quotes' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
         </svg>
       </a>
       {% endif %}
+
+      <a href="{% url 'mapa_zlc' %}" class="bn-utility bn-utility--icon" title="{% trans 'Company map' %}" aria-label="{% trans 'Company map' %}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>
+        </svg>
+      </a>
 
       <a href="{% url 'ver_carrito' %}" class="cart-btn" aria-label="{% trans 'Inquiry cart' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
@@ -123,6 +117,7 @@
         <button type="button" class="btn-all-categories" data-cat-modal-open data-cat-panel="discover">☰ {% trans "All categories" %}</button>
         <a href="{% url 'home' %}"{% if marketplace_nav_active == 'home' %} class="is-active" aria-current="page"{% endif %}>{% trans "Home" %}</a>
         <a href="{% url 'catalogo_publico' %}"{% if marketplace_nav_active == 'catalog' %} class="is-active" aria-current="page"{% endif %}>{% trans "Catalog" %}</a>
+        <a href="{% url 'mapa_zlc' %}"{% if marketplace_nav_active == 'map' %} class="is-active" aria-current="page"{% endif %}>{% trans "Map" %}</a>
         <a href="{% url 'marketplace_deals' %}"{% if marketplace_nav_active == 'deals' %} class="is-active" aria-current="page"{% endif %}>{% trans "Deals" %}</a>
         <a href="{% url 'marketplace_verified_suppliers' %}"{% if marketplace_nav_active == 'verified' %} class="is-active" aria-current="page"{% endif %}>{% trans "Verified suppliers" %}</a>
         <a href="{% url 'marketplace_order_protection' %}"{% if marketplace_nav_active == 'protection' %} class="is-active" aria-current="page"{% endif %}>{% trans "Order protection" %}</a>

@@ -56,18 +56,17 @@ class SecurityHeadersMiddleware:
 
         # ── Exclusiones de CSP strict ────────────────────────────────────
         # `/admin/`        -> Django admin tiene sus propios inline scripts/styles.
-        # `/mapa/` (Folium) -> genera iframe srcdoc con inline scripts/styles que
-        #                      no podemos noncear (libreria externa).
+        # `/mapa/` (Leaflet + OSM CDN) -> estilos inline en plantilla + tiles externos.
         _path = request.path
         _is_admin = _path.startswith('/admin/')
-        _is_folium_map = (
+        _is_leaflet_map = (
             _path == '/mapa/' or _path.startswith('/mapa/')
             or _path.startswith('/en/mapa/') or _path.startswith('/es/mapa/')
         )
         if not _is_admin:
             nonce = request.csp_nonce
-            if _is_folium_map:
-                # CSP relajado para que Folium pueda ejecutar su Leaflet inline.
+            if _is_leaflet_map:
+                # CSP relajado para Leaflet/OSM (CDN + tiles https).
                 response.headers.setdefault(
                     'Content-Security-Policy',
                     "default-src 'self'; "

@@ -20,7 +20,8 @@
       "templates/core/detalle_mi_orden.html",
       "templates/core/seleccionar_transportista.html",
       "templates/core/includes/buyer/buyer_navbar.html",
-      "templates/core/includes/public_navbar.html"
+      "templates/core/includes/public_navbar.html",
+      "templates/core/mapa_zlc.html"
     ],
     "ignoreValues": []
   }
