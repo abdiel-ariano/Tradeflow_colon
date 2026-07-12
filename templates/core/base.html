@@ -1132,8 +1132,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           </a>
         </div>
       {% else %}
-        <a href="{% url 'login' %}" class="tf-btn-outline-sm">Sign in</a>
-        <a href="{% url 'signup_buyer' %}" class="tf-btn-primary-sm">Create account</a>
+        <a href="{% url 'login' %}" class="tf-btn-outline-sm">{% trans "Sign in" %}</a>
+        <a href="{% url 'signup_buyer' %}" class="tf-btn-primary-sm">{% trans "Create account" %}</a>
       {% endif %}
     </div>
   </nav>
@@ -1228,61 +1228,61 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
             {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
           </a>
           <p class="tf-footer-tagline">
-            B2B wholesale marketplace for the Colón Free Zone. Verified catalog, quotes, and logistics in one place.
+            {% trans "B2B wholesale marketplace for the Colón Free Zone. Verified catalog, quotes, and logistics in one place." %}
           </p>
           <a href="mailto:{{ tradeflow_contact_email }}" class="tf-footer-email">
             <span class="material-symbols-rounded" aria-hidden="true">mail</span>
             {{ tradeflow_contact_email }}
           </a>
-          <div class="tf-footer-social" aria-label="Social media">
-            <span class="tf-footer-social-label">Follow us</span>
-            <span class="tf-footer-social-btn" title="LinkedIn (coming soon)" aria-label="LinkedIn — coming soon">
+          <div class="tf-footer-social" aria-label="{% trans 'Social media' %}">
+            <span class="tf-footer-social-label">{% trans "Follow us" %}</span>
+            <span class="tf-footer-social-btn" title="{% trans 'LinkedIn (coming soon)' %}" aria-label="{% trans 'LinkedIn — coming soon' %}">
               <span class="material-symbols-rounded" aria-hidden="true">work</span>
             </span>
-            <span class="tf-footer-social-btn" title="Instagram (coming soon)" aria-label="Instagram — coming soon">
+            <span class="tf-footer-social-btn" title="{% trans 'Instagram (coming soon)' %}" aria-label="{% trans 'Instagram — coming soon' %}">
               <span class="material-symbols-rounded" aria-hidden="true">photo_camera</span>
             </span>
-            <span class="tf-footer-social-btn" title="Facebook (coming soon)" aria-label="Facebook — coming soon">
+            <span class="tf-footer-social-btn" title="{% trans 'Facebook (coming soon)' %}" aria-label="{% trans 'Facebook — coming soon' %}">
               <span class="material-symbols-rounded" aria-hidden="true">groups</span>
             </span>
           </div>
         </div>
 
         <div class="tf-footer-col">
-          <h2 class="tf-footer-col-title">Buyers</h2>
-          <nav class="tf-footer-links" aria-label="Buyer links">
-            <a href="{% url 'home' %}#como-funciona">How to buy</a>
-            <a href="{% url 'catalogo_publico' %}">Catalog</a>
-            <a href="{% url 'catalogo_publico' %}?verificado=1">Verified companies</a>
-            <span class="tf-footer-link-soon">FAQ <em>(coming soon)</em></span>
+          <h2 class="tf-footer-col-title">{% trans "Buyers" %}</h2>
+          <nav class="tf-footer-links" aria-label="{% trans 'Buyer links' %}">
+            <a href="{% url 'home' %}#como-funciona">{% trans "How to buy" %}</a>
+            <a href="{% url 'catalogo_publico' %}">{% trans "Catalog" %}</a>
+            <a href="{% url 'catalogo_publico' %}?verificado=1">{% trans "Verified companies" %}</a>
+            <span class="tf-footer-link-soon">{% trans "FAQ" %} <em>{% trans "(coming soon)" %}</em></span>
           </nav>
         </div>
 
         <div class="tf-footer-col">
-          <h2 class="tf-footer-col-title">Sellers</h2>
-          <nav class="tf-footer-links" aria-label="Seller links">
-            <a href="{% url 'signup_seller' %}">Sell on TradeFlow</a>
-            <a href="{% url 'solicitud_acceso' %}">CFZ requirements</a>
-            <span class="tf-footer-link-soon">Pricing <em>(coming soon)</em></span>
-            <a href="mailto:{{ tradeflow_contact_email }}">Contact</a>
+          <h2 class="tf-footer-col-title">{% trans "Sellers" %}</h2>
+          <nav class="tf-footer-links" aria-label="{% trans 'Seller links' %}">
+            <a href="{% url 'signup_seller' %}">{% trans "Sell on TradeFlow" %}</a>
+            <a href="{% url 'solicitud_acceso' %}">{% trans "CFZ requirements" %}</a>
+            <span class="tf-footer-link-soon">{% trans "Pricing" %} <em>{% trans "(coming soon)" %}</em></span>
+            <a href="mailto:{{ tradeflow_contact_email }}">{% trans "Contact" %}</a>
           </nav>
         </div>
 
         <div class="tf-footer-col">
-          <h2 class="tf-footer-col-title">Legal</h2>
-          <nav class="tf-footer-links" aria-label="Legal links">
-            <a href="{% url 'legal_terminos' %}">Terms of use</a>
-            <a href="{% url 'legal_privacidad' %}">Privacy</a>
-            <a href="{% url 'legal_cookies' %}">Cookies</a>
-            <span class="tf-footer-link-soon">Sitemap <em>(coming soon)</em></span>
+          <h2 class="tf-footer-col-title">{% trans "Legal" %}</h2>
+          <nav class="tf-footer-links" aria-label="{% trans 'Legal links' %}">
+            <a href="{% url 'legal_terminos' %}">{% trans "Terms of use" %}</a>
+            <a href="{% url 'legal_privacidad' %}">{% trans "Privacy" %}</a>
+            <a href="{% url 'legal_cookies' %}">{% trans "Cookies" %}</a>
+            <span class="tf-footer-link-soon">{% trans "Sitemap" %} <em>{% trans "(coming soon)" %}</em></span>
           </nav>
         </div>
       </div>
 
       <div class="tf-footer-bottom">
         <div class="tf-footer-bottom-meta">
-          <span>© 2026 TradeFlow Colón. All rights reserved.</span>
-          <span><strong>Colón Free Zone, Panama</strong></span>
+          <span>{% blocktrans %}© 2026 TradeFlow Colón. All rights reserved.{% endblocktrans %}</span>
+          <span><strong>{% trans "Colón Free Zone, Panama" %}</strong></span>
         </div>
         <div class="tf-footer-lang" role="group" aria-label="Language selection">
           <span class="tf-footer-lang-flag" aria-hidden="true">🇵🇦</span>

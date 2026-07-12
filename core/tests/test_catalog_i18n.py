@@ -177,6 +177,34 @@ class CatalogI18nTests(TestCase):
         self.assertContains(response, 'Electrónica y oficina')
         self.assertNotContains(response, 'Sign up to view wholesale pricing')
 
+    def test_spanish_catalog_meta_description(self):
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('catalogo_publico')},
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'inventario transparente en TradeFlow',
+        )
+        self.assertNotContains(response, 'transparent inventory on TradeFlow')
+
+    def test_spanish_default_footer_on_product_detail(self):
+        product = Product.objects.first()
+        post_response = self.client.post(
+            reverse('set_language'),
+            {
+                'language': 'es',
+                'next': reverse('catalogo_producto_detail', args=[product.pk]),
+            },
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Cómo comprar')
+        self.assertContains(response, 'Empresas verificadas')
+        self.assertNotContains(response, 'How to buy')
+
 
 @override_settings(LANGUAGE_CODE='en')
 class LegalPageShellTests(TestCase):

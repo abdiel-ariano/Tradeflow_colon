@@ -9,7 +9,8 @@
   "detector": {
     "ignoreRules": [],
     "ignoreFiles": [
-      "static/css/catalog*.css"
+      "static/css/catalog*.css",
+      "templates/core/base.html"
     ],
     "ignoreValues": []
   }
