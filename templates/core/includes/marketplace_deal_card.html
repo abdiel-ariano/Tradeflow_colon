@@ -1,11 +1,11 @@
-{% load static tf_money %}
+{% load static tf_money i18n %}
 {% comment %}Deal card — flash-sale styling for /deals/ page.{% endcomment %}
 <article class="mkt-deal-card{% if card_extra_class %} {{ card_extra_class }}{% endif %}" data-product-id="{{ product.pk }}">
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="mkt-deal-card__media">
     {% if product.is_on_promo_now %}
-    <span class="mkt-deal-card__badge">{{ product.discount_pct }}% off</span>
+    <span class="mkt-deal-card__badge">{% blocktrans with pct=product.discount_pct %}{{ pct }}% off{% endblocktrans %}</span>
     {% else %}
-    <span class="mkt-deal-card__badge mkt-deal-card__badge--pick">Wholesale pick</span>
+    <span class="mkt-deal-card__badge mkt-deal-card__badge--pick">{% trans "Wholesale pick" %}</span>
     {% endif %}
     <div class="mkt-deal-card__image">
       {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=card_index|default:99|yesno:"eager,lazy" img_class="mkt-deal-card__img" object_fit="cover" %}
@@ -24,11 +24,11 @@
 
     <p class="mkt-deal-card__supplier">
       {{ product.company.name|truncatechars:22 }}
-      {% if product.company.is_verified %}· CFZ Verified{% endif %}
+      {% if product.company.is_verified %}· {% trans "CFZ Verified" %}{% endif %}
     </p>
 
     <button type="button" class="mkt-deal-card__btn" data-product-id="{{ product.pk }}">
-      + Add to inquiry
+      {% trans "+ Add to inquiry" %}
     </button>
   </div>
 </article>

@@ -5108,11 +5108,12 @@ def legal_terminos(request):
     return render(request, 'core/legal_terminos.html')
 
 
+@cache_control(public=True, max_age=3600)
 def acerca_tradeflow(request):
     """About TradeFlow — brand story, ZLC, buyer/seller programs (Alibaba-style)."""
-    from core.merchandising import home_stats_uncached
+    from core.merchandising import home_stats
 
-    stats = home_stats_uncached()
+    stats = home_stats()
     return render(
         request,
         'core/acerca_tradeflow.html',
@@ -5126,9 +5127,9 @@ def acerca_tradeflow(request):
 
 def _marketplace_page_context(request):
     """Shared context for public marketplace landing pages."""
-    from core.merchandising import home_stats_uncached
+    from core.merchandising import home_stats
 
-    stats = home_stats_uncached()
+    stats = home_stats()
     return {
         'stats': stats,
         'catalogo_stats': stats,
@@ -5136,6 +5137,7 @@ def _marketplace_page_context(request):
     }
 
 
+@cache_control(public=True, max_age=3600)
 @catalog_access
 def marketplace_verified_suppliers(request):
     """Dedicated page — CFZ verified supplier directory."""
@@ -5167,6 +5169,7 @@ def marketplace_verified_suppliers(request):
     return render(request, 'core/marketplace_verified_suppliers.html', ctx)
 
 
+@cache_control(public=True, max_age=3600)
 @catalog_access
 def marketplace_deals(request):
     """Dedicated page — active wholesale promotions."""
@@ -5184,6 +5187,7 @@ def marketplace_deals(request):
     return render(request, 'core/marketplace_deals.html', ctx)
 
 
+@cache_control(public=True, max_age=3600)
 @catalog_access
 def marketplace_order_protection(request):
     """Dedicated page — RFQ workflow and buyer protection program."""

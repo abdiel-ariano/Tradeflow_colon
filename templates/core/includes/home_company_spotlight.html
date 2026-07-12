@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}
 Unified company spotlight — description + product carousel in one card.
 Variables: company (with spotlight_products attached in home_view)
@@ -7,16 +8,16 @@ Variables: company (with spotlight_products attached in home_view)
     <div class="hm-spotlight-unified__identity">
       {% include "core/includes/company_avatar.html" with company=company class="tf-co-avatar hm-spotlight-unified__avatar" %}
       <div>
-        <span class="hm-spotlight-unified__rank">Featured supplier</span>
+        <span class="hm-spotlight-unified__rank">{% trans "Featured supplier" %}</span>
         <h3 class="hm-spotlight-unified__name">{{ company.name }}</h3>
         <span class="hm-spotlight-unified__badge">
           {% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}
-          CFZ Verified · {% if company.num_productos == 1 %}{{ company.num_productos }} product{% else %}{{ company.num_productos }} products{% endif %}
+          {% trans "CFZ Verified" %} · {% blocktrans count counter=company.num_productos %}{{ counter }} product{% plural %}{{ counter }} products{% endblocktrans %}
         </span>
       </div>
     </div>
     <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="hm-spotlight-unified__cta">
-      Visit storefront {% include "core/includes/tf_icon.html" with name="arrow_forward" class="tf-icon--sm" %}
+      {% trans "Visit storefront" %} {% include "core/includes/tf_icon.html" with name="arrow_forward" class="tf-icon--sm" %}
     </a>
   </header>
 
@@ -40,7 +41,7 @@ Variables: company (with spotlight_products attached in home_view)
     <div class="hm-spotlight-unified__products-body">
       {% if company.spotlight_products %}
       <div class="hm-slider hm-slider--spotlight" data-hm-slider data-hm-slider-visible="3">
-        <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous products">
+        <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="{% trans 'Previous products' %}">
           {% include "core/includes/tf_icon.html" with name="chevron_left" %}
         </button>
         <div class="hm-slider__viewport">
@@ -52,7 +53,7 @@ Variables: company (with spotlight_products attached in home_view)
             {% endfor %}
           </div>
         </div>
-        <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next products">
+        <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="{% trans 'Next products' %}">
           {% include "core/includes/tf_icon.html" with name="chevron_right" %}
         </button>
         <div class="hm-slider__dots" aria-hidden="true"></div>
@@ -60,7 +61,7 @@ Variables: company (with spotlight_products attached in home_view)
       {% else %}
       <p class="hm-spotlight-unified__products-empty" role="status">
         {% include "core/includes/tf_icon.html" with name="inventory_2" class="tf-icon--sm" %}
-        No featured products yet
+        {% trans "No featured products yet" %}
       </p>
       {% endif %}
     </div>
