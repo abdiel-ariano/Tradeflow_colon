@@ -228,6 +228,34 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 302)
         self.assertIn('/mi-tienda/', r.url)
 
+    def test_checkout_spanish_ui(self):
+        """Checkout page renders Spanish copy after language switch."""
+        from django.urls import reverse
+
+        self.client.login(username='buyer_test', password='TestPass123!')
+        session = self.client.session
+        session['carrito'] = {
+            str(self.product.pk): {
+                'nombre': self.product.name,
+                'precio': str(self.product.unit_price),
+                'cantidad': 1,
+                'subtotal': str(self.product.unit_price),
+                'imagen': '',
+            }
+        }
+        session.save()
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('checkout')},
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Confirmar pedido')
+        self.assertContains(response, 'Ubicación de entrega')
+        self.assertContains(response, 'Usar mi ubicación actual')
+        self.assertContains(response, 'Enviar pedido')
+        self.assertNotContains(response, 'Confirm order')
+
     def test_acceso_sin_login_redirige(self):
         """Invitados exploran /tienda/ y pueden usar el carrito de sesión."""
         r = self.client.get('/tienda/')

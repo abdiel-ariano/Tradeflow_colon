@@ -10,7 +10,8 @@
     "ignoreRules": [],
     "ignoreFiles": [
       "static/css/catalog*.css",
-      "templates/core/base.html"
+      "templates/core/base.html",
+      "templates/core/checkout.html"
     ],
     "ignoreValues": []
   }

@@ -3978,7 +3978,7 @@ def checkout(request):
 
     # Redirigir si el carrito está vacío
     if not carrito:
-        messages.warning(request, 'Your cart is empty.')
+        messages.warning(request, _('Your cart is empty.'))
         return redirect('tienda')
 
     subtotal = _calcular_total(carrito)
@@ -4051,14 +4051,15 @@ def checkout(request):
                 else:
                     messages.warning(
                         request,
-                        f'Insufficient stock for "{producto.name}" — item skipped.'
+                        _('Insufficient stock for "%(name)s" — item skipped.')
+                        % {'name': producto.name},
                     )
 
             except Product.DoesNotExist:
                 # El producto fue desactivado entre que se agregó y el checkout
                 messages.warning(
                     request,
-                    f'A product is no longer available and was skipped.'
+                    _('A product is no longer available and was skipped.'),
                 )
 
         if items_creados == 0:
@@ -4066,7 +4067,7 @@ def checkout(request):
             orden.delete()
             messages.error(
                 request,
-                'Could not complete the order. Check product stock.'
+                _('Could not complete the order. Check product stock.'),
             )
             return redirect('ver_carrito')
 
@@ -4159,7 +4160,7 @@ def checkout(request):
         'carrito': carrito,
         'subtotal': subtotal,
         'carrito_count': _contar_items(carrito),
-        'titulo_pagina': 'Confirm order',
+        'titulo_pagina': _('Confirm order'),
         'nav_activo': 'tienda',
         'transportistas': transportistas,
         'checkout_auto_approve': auto_approve,
