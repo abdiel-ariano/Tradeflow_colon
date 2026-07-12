@@ -34,7 +34,11 @@ class TestAiSearchSuggest(TestCase):
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertTrue(data['ok'])
-        self.assertTrue(any(s['type'] == 'product' for s in data['suggestions']))
+        products = [s for s in data['suggestions'] if s['type'] == 'product']
+        self.assertTrue(products)
+        self.assertIn('image_url', products[0])
+        self.assertIn('meta', products[0])
+        self.assertIn('price', products[0]['meta'])
 
     def test_public_search_empty_query_returns_trending(self):
         r = self.client.get(reverse('api_search_suggest'), {'q': '', 'scope': 'public'})

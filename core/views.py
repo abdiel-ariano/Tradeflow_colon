@@ -927,7 +927,23 @@ def _asistente_json_payload(respuesta: str, *, ok: bool = True, status: int = 20
 
 @require_GET
 def api_search_suggest(request):
-    """Sugerencias de búsqueda con IA para todos los buscadores de la app."""
+    """
+    JSON typeahead for all search bars (Google-style suggestions while typing).
+
+    Query params
+    ------------
+    q:     Search text (empty → trending / shortcuts for the scope).
+    scope: ``public`` | ``buyer`` | ``seller`` | ``admin`` (default ``public``).
+    limit: Max rows, 1–12 (default 8).
+
+    Response
+    --------
+    ``ok``, ``query``, ``scope``, ``suggestions[]``, optional ``tip`` / ``related``,
+    and ``ai_enabled`` when Groq enrichment is configured.
+
+    Wired from templates via ``data-tf-ai-search`` + ``tf-ai-search.js``.
+    See ``docs/AI_SEARCH.md``.
+    """
     from .utils.ai_search import build_search_response
 
     scope = (request.GET.get('scope') or 'public').strip().lower()

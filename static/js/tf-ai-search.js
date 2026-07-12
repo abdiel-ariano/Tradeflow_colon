@@ -1,5 +1,19 @@
 /**
- * TradeFlow AI Search — Google-style suggestions for all search bars.
+ * TradeFlow AI Search — Google-style typeahead for every search input.
+ *
+ * Usage (templates)
+ * -----------------
+ *   <input type="search" data-tf-ai-search="public" …>
+ *
+ * Scopes: public | buyer | seller | admin  →  GET /api/search/suggest/?q=&scope=
+ *
+ * Include once per page:
+ *   {% include "core/includes/tf_ai_search_assets.html" %}
+ *
+ * Programmatic re-init after dynamic DOM:
+ *   window.TFAiSearch.init(document.getElementById('my-root'));
+ *
+ * See docs/AI_SEARCH.md for architecture and extension notes.
  */
 (function (global) {
   'use strict';
@@ -13,15 +27,33 @@
     return bag[key] || fallback;
   }
 
-  function getCookie(name) {
-    var parts = document.cookie ? document.cookie.split(';') : [];
-    for (var i = 0; i < parts.length; i += 1) {
-      var chunk = parts[i].trim();
-      if (chunk.indexOf(name + '=') === 0) {
-        return decodeURIComponent(chunk.substring(name.length + 1));
-      }
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function highlightQuery(label, query) {
+    var text = String(label || '');
+    var q = (query || '').trim();
+    if (!q || q.length < 2) {
+      return escapeHtml(text);
     }
-    return '';
+    var lower = text.toLowerCase();
+    var needle = q.toLowerCase();
+    var idx = lower.indexOf(needle);
+    if (idx === -1) {
+      return escapeHtml(text);
+    }
+    return (
+      escapeHtml(text.slice(0, idx)) +
+      '<mark class="tf-ai-search-mark">' +
+      escapeHtml(text.slice(idx, idx + needle.length)) +
+      '</mark>' +
+      escapeHtml(text.slice(idx + needle.length))
+    );
   }
 
   function groupLabel(type) {
@@ -37,6 +69,7 @@
     return map[type] || i18n('aiSearchSuggestions', 'Suggestions');
   }
 
+  /** Wrap the native input so flex layouts in navbars keep working. */
   function ensureWrap(input) {
     var parent = input.parentElement;
     if (!parent) return null;
@@ -50,30 +83,52 @@
     return wrap;
   }
 
+  /** Outer orange shell (.search-bar or .tf-hdr-search) — used for connected dropdown layout. */
+  function findSearchShell(input) {
+    return (
+      input.closest('.search-bar') ||
+      input.closest('.tf-hdr-search') ||
+      input.form
+    );
+  }
+
+  /** Floating panel is portaled to <body> to escape overflow:hidden ancestors. */
   function buildPanel(input) {
     var panel = document.createElement('div');
     panel.className = 'tf-ai-search-panel tf-ai-search-panel--floating';
     panel.setAttribute('role', 'listbox');
     panel.id = 'tf-ai-panel-' + Math.random().toString(36).slice(2, 8);
     panel.setAttribute('data-tf-ai-for', input.id || '');
+    panel.setAttribute('aria-hidden', 'true');
     document.body.appendChild(panel);
     return panel;
   }
 
+  /** Align panel width to the full search shell (not just the text input). */
   function positionPanel(input, panel) {
-    var rect = input.getBoundingClientRect();
+    var shell = findSearchShell(input);
+    var rect = shell ? shell.getBoundingClientRect() : input.getBoundingClientRect();
     var viewportWidth = global.innerWidth || document.documentElement.clientWidth || 0;
-    var width = Math.max(Math.round(rect.width), 240);
+    var width = Math.max(Math.round(rect.width), 280);
     var left = Math.round(rect.left);
     if (left + width > viewportWidth - 8) {
       left = Math.max(8, viewportWidth - width - 8);
     }
     panel.style.position = 'fixed';
-    panel.style.top = Math.round(rect.bottom + 6) + 'px';
+    panel.style.top = Math.round(rect.bottom) + 'px';
     panel.style.left = left + 'px';
     panel.style.width = width + 'px';
     panel.style.right = 'auto';
     panel.style.zIndex = String(PANEL_Z_INDEX);
+    panel.classList.toggle('is-connected', !!shell);
+  }
+
+  function setShellActive(input, panel, active) {
+    var shell = findSearchShell(input);
+    if (shell) {
+      shell.classList.toggle('is-suggesting', active);
+    }
+    panel.classList.toggle('is-connected', active && !!shell);
   }
 
   function openAssistantWithQuery(query) {
@@ -90,6 +145,81 @@
     }
   }
 
+  function buildSuggestionButton(item, query, onPick) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tf-ai-search-item';
+    btn.setAttribute('role', 'option');
+
+    if (item.type === 'product') {
+      btn.classList.add('tf-ai-search-item--product');
+      var meta = item.meta || {};
+      var thumb = item.image_url
+        ? '<span class="tf-ai-search-thumb"><img src="' +
+          escapeHtml(item.image_url) +
+          '" alt="" loading="lazy" decoding="async"></span>'
+        : '<span class="tf-ai-search-thumb tf-ai-search-thumb--icon" aria-hidden="true">' +
+          '<span class="material-symbols-rounded">' +
+          escapeHtml(item.icon || 'inventory_2') +
+          '</span></span>';
+
+      var chips = '';
+      if (meta.company) {
+        chips += '<span class="tf-ai-search-meta-chip">' + escapeHtml(meta.company) + '</span>';
+      }
+      if (meta.category) {
+        chips += '<span class="tf-ai-search-meta-chip">' + escapeHtml(meta.category) + '</span>';
+      }
+
+      var price =
+        meta.price
+          ? '<span class="tf-ai-search-price">' +
+            escapeHtml(meta.currency || 'USD') +
+            ' ' +
+            escapeHtml(meta.price) +
+            '</span>'
+          : '';
+
+      btn.innerHTML =
+        thumb +
+        '<span class="tf-ai-search-item-body">' +
+        '<span class="tf-ai-search-item-top">' +
+        '<strong>' +
+        highlightQuery(item.label, query) +
+        '</strong>' +
+        price +
+        '</span>' +
+        (meta.sku
+          ? '<span class="tf-ai-search-sku">' + escapeHtml(meta.sku) + '</span>'
+          : '') +
+        (chips ? '<span class="tf-ai-search-meta">' + chips + '</span>' : '') +
+        '</span>';
+    } else {
+      btn.classList.add('tf-ai-search-item--compact');
+      btn.innerHTML =
+        '<span class="tf-ai-search-thumb tf-ai-search-thumb--icon tf-ai-search-thumb--' +
+        escapeHtml(item.type || 'action') +
+        '" aria-hidden="true">' +
+        '<span class="material-symbols-rounded">' +
+        escapeHtml(item.icon || 'search') +
+        '</span></span>' +
+        '<span class="tf-ai-search-item-body">' +
+        '<strong>' +
+        highlightQuery(item.label, query) +
+        '</strong>' +
+        (item.subtitle
+          ? '<span class="tf-ai-search-subtitle">' + escapeHtml(item.subtitle) + '</span>'
+          : '') +
+        '</span>';
+    }
+
+    btn.addEventListener('mousedown', function (ev) {
+      ev.preventDefault();
+      onPick(item);
+    });
+    return btn;
+  }
+
   function renderPanel(panel, data, onPick, query) {
     panel.innerHTML = '';
     var suggestions = (data && data.suggestions) || [];
@@ -98,12 +228,19 @@
     var aiEnabled = data && data.ai_enabled !== false;
     var q = (query || (data && data.query) || '').trim();
 
+    if (!q && suggestions.length) {
+      var header = document.createElement('div');
+      header.className = 'tf-ai-search-panel-header';
+      header.textContent = i18n('aiSearchPopular', 'Popular right now');
+      panel.appendChild(header);
+    }
+
     if (tip && aiEnabled) {
       var tipEl = document.createElement('div');
       tipEl.className = 'tf-ai-search-tip';
       tipEl.innerHTML =
         '<span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span><span>' +
-        tip.replace(/</g, '&lt;') +
+        escapeHtml(tip) +
         '</span>';
       panel.appendChild(tipEl);
     }
@@ -128,25 +265,7 @@
         title.textContent = groupLabel(key);
         panel.appendChild(title);
         groups[key].forEach(function (item) {
-          var btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'tf-ai-search-item';
-          btn.setAttribute('role', 'option');
-          btn.innerHTML =
-            '<span class="material-symbols-rounded" aria-hidden="true">' +
-            (item.icon || 'search') +
-            '</span><div><strong>' +
-            (item.label || '').replace(/</g, '&lt;') +
-            '</strong>' +
-            (item.subtitle
-              ? '<span>' + String(item.subtitle).replace(/</g, '&lt;') + '</span>'
-              : '') +
-            '</div>';
-          btn.addEventListener('mousedown', function (ev) {
-            ev.preventDefault();
-            onPick(item);
-          });
-          panel.appendChild(btn);
+          panel.appendChild(buildSuggestionButton(item, q, onPick));
         });
       });
     }
@@ -173,7 +292,9 @@
       ask.className = 'tf-ai-search-ask';
       ask.innerHTML =
         '<span class="material-symbols-rounded" aria-hidden="true">smart_toy</span>' +
-        '<span>' + i18n('aiSearchAskAbout', 'Ask AI about this search') + '</span>';
+        '<span>' +
+        i18n('aiSearchAskAbout', 'Ask AI about this search') +
+        '</span>';
       ask.addEventListener('mousedown', function (ev) {
         ev.preventDefault();
         openAssistantWithQuery(q);
@@ -182,6 +303,7 @@
     }
   }
 
+  /** Bind one search input: debounced fetch, keyboard nav, click-outside close. */
   function attach(input) {
     if (!input || input.dataset.tfAiBound === '1') return;
     input.dataset.tfAiBound = '1';
@@ -201,6 +323,7 @@
     function closePanel() {
       panel.classList.remove('is-open');
       panel.setAttribute('aria-hidden', 'true');
+      setShellActive(input, panel, false);
       activeIndex = -1;
       isOpen = false;
     }
@@ -209,6 +332,7 @@
       positionPanel(input, panel);
       panel.classList.add('is-open');
       panel.setAttribute('aria-hidden', 'false');
+      setShellActive(input, panel, true);
       isOpen = true;
     }
 
@@ -234,10 +358,12 @@
       }
     }
 
-    function showLoading(q) {
+    function showLoading() {
       panel.innerHTML =
         '<div class="tf-ai-search-loading">' +
-        i18n('aiSearchLoading', 'Searching…') +
+        '<div class="tf-ai-search-skeleton"></div>' +
+        '<div class="tf-ai-search-skeleton"></div>' +
+        '<div class="tf-ai-search-skeleton tf-ai-search-skeleton--short"></div>' +
         '</div>';
       openPanel();
     }
@@ -245,7 +371,7 @@
     function fetchSuggestions(q) {
       if (controller) controller.abort();
       controller = new AbortController();
-      showLoading(q);
+      showLoading();
       var url =
         endpoint +
         '?q=' +
@@ -270,9 +396,16 @@
         })
         .then(function (data) {
           if (data && data._error) {
-            var errMsg = data._error === 'rate_limit'
-              ? i18n('aiSearchRateLimit', 'Too many searches — wait a moment and try again.')
-              : i18n('aiSearchUnavailable', 'Suggestions unavailable — press Enter to search.');
+            var errMsg =
+              data._error === 'rate_limit'
+                ? i18n(
+                    'aiSearchRateLimit',
+                    'Too many searches — wait a moment and try again.'
+                  )
+                : i18n(
+                    'aiSearchUnavailable',
+                    'Suggestions unavailable — press Enter to search.'
+                  );
             renderPanel(panel, { suggestions: [], related: [], query: q, tip: null }, navigate, q);
             var emptyEl = panel.querySelector('.tf-ai-search-empty');
             if (emptyEl) {
@@ -341,7 +474,9 @@
     });
 
     document.addEventListener('click', function (ev) {
-      if (!wrap.contains(ev.target) && !panel.contains(ev.target)) {
+      var shell = findSearchShell(input);
+      var insideShell = shell && shell.contains(ev.target);
+      if (!wrap.contains(ev.target) && !panel.contains(ev.target) && !insideShell) {
         closePanel();
       }
     });
@@ -351,9 +486,7 @@
   }
 
   function initAll(root) {
-    (root || document)
-      .querySelectorAll('[data-tf-ai-search]')
-      .forEach(attach);
+    (root || document).querySelectorAll('[data-tf-ai-search]').forEach(attach);
   }
 
   global.TFAiSearch = { init: initAll, attach: attach };
