@@ -86,8 +86,12 @@
   }
 
   function updateCartBadges(count) {
+    if (typeof window.tfUpdateCartBadge === 'function') {
+      window.tfUpdateCartBadge(count);
+      return;
+    }
     var n = parseInt(count, 10) || 0;
-    document.querySelectorAll('#cat-inquiry-badge, #tf-nav-cart-badge, [data-cart-badge]').forEach(function (badge) {
+    document.querySelectorAll('#cat-inquiry-badge, #bn-cart-badge, .cart-badge, #tf-nav-cart-badge, [data-cart-badge]').forEach(function (badge) {
       badge.textContent = String(n);
       badge.classList.toggle('has-count', n > 0);
     });
@@ -104,24 +108,35 @@
 
     fetch(inquiryUrlFor(productId), {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
         'X-CSRFToken': getCookie('csrftoken'),
         'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
       },
       body: 'cantidad=1',
     })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (data.ok) {
-          updateCartBadges(data.carrito_count);
-          showToast(data.message || 'Added to inquiry cart');
-        } else {
-          showToast(data.message || 'Could not add to inquiry cart');
+      .then(function (r) {
+        var contentType = r.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error('non-json');
         }
+        return r.json().then(function (data) {
+          return { ok: r.ok, data: data };
+        });
+      })
+      .then(function (res) {
+        var data = res.data || {};
+        if (!res.ok || data.ok === false) {
+          showToast(data.message || (window.TF_I18N && window.TF_I18N.catalogCartError) || 'Could not add to inquiry cart');
+          return;
+        }
+        updateCartBadges(data.carrito_count);
+        showToast(data.message || (window.TF_I18N && window.TF_I18N.catalogAddedToCart) || 'Added to inquiry cart');
       })
       .catch(function () {
-        showToast('Could not add to inquiry cart');
+        showToast((window.TF_I18N && window.TF_I18N.catalogNetworkError) || 'Connection error — try again');
       })
       .finally(function () {
         if (btn) btn.disabled = false;

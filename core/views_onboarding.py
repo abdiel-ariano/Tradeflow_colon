@@ -186,7 +186,7 @@ def api_onboarding_verification_status(request):
         verified = False
     return JsonResponse({
         'verified': verified,
-        'redirect': reverse('tienda') if verified else '',
+        'redirect': reverse('catalogo_publico') if verified else '',
     })
 
 

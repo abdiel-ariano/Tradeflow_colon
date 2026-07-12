@@ -712,8 +712,12 @@
   }
 
   function updateCartBadges(count) {
+    if (typeof window.tfUpdateCartBadge === 'function') {
+      window.tfUpdateCartBadge(count);
+      return;
+    }
     var n = parseInt(count, 10) || 0;
-    document.querySelectorAll('#cat-inquiry-badge, #tf-nav-cart-badge, [data-cart-badge]').forEach(function (badge) {
+    document.querySelectorAll('#cat-inquiry-badge, #bn-cart-badge, .cart-badge, #tf-nav-cart-badge, [data-cart-badge]').forEach(function (badge) {
       badge.textContent = String(n);
       badge.classList.toggle('has-count', n > 0);
     });

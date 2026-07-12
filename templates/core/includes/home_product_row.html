@@ -13,7 +13,7 @@
     </header>
     <div class="product-grid hm-product-row__grid">
       {% for product in row.products %}
-        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter visual_image=True %}
+        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter visual_image=True show_cart_actions=show_cart_actions %}
       {% endfor %}
     </div>
   </div>

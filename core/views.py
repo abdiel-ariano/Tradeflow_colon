@@ -328,7 +328,7 @@ def _redirect_by_role(user):
         return reverse('dashboard')
     if role == 'seller':
         return reverse('portal_seller')
-    return reverse('tienda')
+    return reverse('catalogo_publico')
 
 
 # =============================================================================
@@ -597,7 +597,7 @@ def _redirect_after_email_verified(user):
     try:
         role = user.profile.role
     except UserProfile.DoesNotExist:
-        return redirect('tienda')
+        return redirect('catalogo_publico')
     if user.is_superuser or role == 'admin':
         return redirect('dashboard')
     if role == 'seller':
@@ -605,7 +605,7 @@ def _redirect_after_email_verified(user):
     buyer_route = buyer_onboarding_redirect_name(user)
     if buyer_route:
         return redirect(buyer_route)
-    return redirect('tienda')
+    return redirect('catalogo_publico')
 
 
 @login_required
@@ -615,13 +615,13 @@ def enviar_codigo(request):
 
     if not _email_verification_gate_active(request.user):
         messages.info(request, 'Email verification is disabled in this environment.')
-        return redirect('tienda')
+        return redirect('catalogo_publico')
 
     try:
         profile = request.user.profile
         if profile.email_verified:
             messages.info(request, 'Your email is already verified.')
-            return redirect('tienda')
+            return redirect('catalogo_publico')
     except UserProfile.DoesNotExist:
         messages.error(request, 'Profile not found.')
         return redirect('signup')
@@ -1065,7 +1065,7 @@ def mapa_zlc(request):
         nombre = html_module.escape(c.name)
         cat_txt_e = html_module.escape(cat_txt)
         catalog_url = request.build_absolute_uri(
-            reverse('tienda') + '?empresa=' + str(c.pk)
+            reverse('catalogo_publico') + '?empresa=' + str(c.pk)
         )
         catalog_url_e = html_module.escape(catalog_url)
         html_popup = (
@@ -1861,7 +1861,7 @@ def seller_company_qr(request):
         return redirect('portal_seller')
 
     catalog_url = request.build_absolute_uri(
-        reverse('tienda') + f'?empresa={company.pk}'
+        reverse('catalogo_publico') + f'?empresa={company.pk}'
     )
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
     qr.add_data(catalog_url)
@@ -1889,7 +1889,7 @@ def seller_download_qr(request):
         return redirect('portal_seller')
 
     catalog_url = request.build_absolute_uri(
-        reverse('tienda') + f'?empresa={company.pk}'
+        reverse('catalogo_publico') + f'?empresa={company.pk}'
     )
     qr = qrcode.QRCode(version=1, box_size=15, border=4)
     qr.add_data(catalog_url)
@@ -3110,6 +3110,46 @@ def _catalogo_filter_querystring(request, *, omit=()):
     return qcopy.urlencode()
 
 
+def _catalog_url_from_tienda_query(request):
+    """Map legacy /tienda/ query params to /catalogo/ equivalents."""
+    q = request.GET.copy()
+
+    def _first(value):
+        if value is None:
+            return None
+        if isinstance(value, list):
+            return value[0] if value else None
+        return value
+
+    tab = _first(q.pop('tab', None))
+    if tab is None:
+        if q.get('destacados') == '1':
+            tab = 'destacados'
+        elif q.get('ofertas') == '1':
+            tab = 'ofertas'
+    q.pop('destacados', None)
+    q.pop('ofertas', None)
+
+    if tab == 'ofertas':
+        q['on_sale'] = '1'
+    elif tab == 'destacados':
+        q['featured'] = '1'
+    elif tab == 'bestsellers':
+        q['bestseller'] = '1'
+
+    q.pop('vista', None)
+
+    orden = _first(q.pop('orden', None))
+    if orden and orden != 'nombre' and orden in (
+        'precio_asc', 'precio_desc', 'novedades', 'relevancia',
+    ):
+        q['orden'] = orden
+
+    qs = q.urlencode()
+    base = reverse('catalogo_publico')
+    return f'{base}?{qs}' if qs else base
+
+
 @catalog_access
 def catalogo_publico(request):
     """Catálogo público read-only (sin login) — filtros + grid de productos."""
@@ -3149,6 +3189,8 @@ def catalogo_publico(request):
     solo_stock_low = request.GET.get('stock_low', '') in ('1', 'true', 'on')
     solo_on_sale = request.GET.get('on_sale', '') in ('1', 'true', 'on')
     solo_verificado = request.GET.get('verificado', '') == '1'
+    solo_featured = request.GET.get('featured', '') in ('1', 'true', 'on')
+    solo_bestseller = request.GET.get('bestseller', '') in ('1', 'true', 'on')
     orden = request.GET.get('orden', 'relevancia').strip() or 'relevancia'
 
     productos = catalogo_base.annotate(
@@ -3195,6 +3237,12 @@ def catalogo_publico(request):
             promo_price__isnull=False,
             promo_price__lt=F('unit_price'),
         )
+
+    if solo_featured:
+        productos = productos.filter(is_featured=True)
+
+    if solo_bestseller:
+        productos = productos.filter(is_bestseller=True)
 
     if solo_verificado:
         productos = productos.filter(company__is_verified=True)
@@ -3297,333 +3345,8 @@ def catalogo_publico(request):
 
 @catalog_access
 def tienda(request):
-    """
-    Muestra el catálogo de productos disponibles para el comprador.
-
-    Funcionalidades:
-        - Pestañas: por categoría (sidebar + grid) o por empresa (cards de empresa).
-        - Búsqueda por nombre, descripción o código de producto; filtros por categoría y empresa.
-        - Paginación de 12 productos por página.
-        - Solo productos activos.
-
-    Contexto enviado al template:
-        productos, categorias, empresas_catalogo, empresas_filtro,
-        buscar, cat_activa, emp_activa, vista_tab, tienda_params,
-        carrito_count, titulo_pagina, nav_activo, tienda_stats, tab_urls,
-        show_spotlights, spotlight_*.
-    """
-    from . import merchandising as merch
-    from django.db import models as db_models
-
-    def _tienda_tab_url(tab_name):
-        q = request.GET.copy()
-        q.pop('page', None)
-        if tab_name == 'todos':
-            q.pop('tab', None)
-        else:
-            q['tab'] = tab_name
-        qs = q.urlencode()
-        return f"{reverse('tienda')}?{qs}" if qs else reverse('tienda')
-
-    is_guest = not request.user.is_authenticated
-    if is_guest:
-        role = None
-    else:
-        try:
-            role = request.user.profile.role
-        except Exception:
-            role = None
-    show_cart_actions = is_guest or role in ('buyer', 'admin') or request.user.is_superuser
-
-    catalogo_base = merch.active_products_base()
-    now = timezone.now()
-    promo_q = (
-        Q(promo_price__isnull=False)
-        & Q(promo_price__lt=db_models.F('unit_price'))
-        & (Q(promo_starts_at__isnull=True) | Q(promo_starts_at__lte=now))
-        & (Q(promo_ends_at__isnull=True) | Q(promo_ends_at__gte=now))
-    )
-    tienda_stats = {
-        'productos': catalogo_base.count(),
-        'empresas': catalogo_base.values('company_id').distinct().count(),
-        'categorias': catalogo_base.exclude(
-            category__isnull=True,
-        ).values('category_id').distinct().count(),
-        'ofertas': catalogo_base.filter(promo_q).count(),
-    }
-
-    productos = catalogo_base
-    tab_catalogo = request.GET.get('tab', '').strip()
-    if not tab_catalogo:
-        if request.GET.get('destacados') == '1':
-            tab_catalogo = 'destacados'
-        elif request.GET.get('ofertas') == '1':
-            tab_catalogo = 'ofertas'
-        else:
-            tab_catalogo = 'todos'
-    orden = request.GET.get('orden', 'nombre').strip() or 'nombre'
-
-    buscar    = request.GET.get('buscar', '').strip()
-    categoria = request.GET.get('categoria', '').strip()
-    empresa   = request.GET.get('empresa', '').strip()
-    vista_tab = request.GET.get('vista', 'categoria').strip() or 'categoria'
-    if request.GET.get('verificado') == '1':
-        vista_tab = 'empresa'
-    if vista_tab not in ('categoria', 'empresa'):
-        vista_tab = 'categoria'
-
-    if request.GET.get('verificado') == '1':
-        productos = productos.filter(company__is_verified=True)
-
-    if tab_catalogo == 'ofertas':
-        productos = productos.filter(promo_q)
-    elif tab_catalogo == 'bestsellers':
-        ids = [p.pk for p in merch.bestsellers(48)]
-        if ids:
-            productos = productos.filter(pk__in=ids)
-        else:
-            productos = productos.filter(is_bestseller=True)
-    elif tab_catalogo == 'destacados':
-        productos = productos.filter(is_featured=True)
-
-    from django.db.models import Case, When, DecimalField, F
-
-    productos = productos.annotate(
-        sort_price=Case(
-            When(
-                promo_price__isnull=False,
-                promo_price__lt=F('unit_price'),
-                then=F('promo_price'),
-            ),
-            default=F('unit_price'),
-            output_field=DecimalField(max_digits=12, decimal_places=2),
-        ),
-    )
-    orden_map = {
-        'precio_asc': 'sort_price',
-        'precio_desc': '-sort_price',
-        'nombre': 'name',
-        'novedades': '-created_at',
-    }
-    orden_key = orden if orden in orden_map else 'nombre'
-    if orden_key == 'nombre':
-        from .utils.ads_ranking import annotate_sponsored_score
-
-        productos = annotate_sponsored_score(productos).order_by('-sponsored_score', 'name')
-    else:
-        productos = productos.order_by(orden_map[orden_key])
-
-    promo_banner = merch.active_home_sections()
-    promo_banner = next(
-        (s for s in promo_banner if s.section_type == 'seasonal_banner'),
-        None,
-    )
-
-    if buscar:
-        productos = productos.filter(
-            Q(name__icontains=buscar)
-            | Q(description__icontains=buscar)
-            | Q(sku__icontains=buscar)
-        )
-
-    precio_min = request.GET.get('precio_min', '').strip()
-    precio_max = request.GET.get('precio_max', '').strip()
-    solo_verificado = request.GET.get('verificado') == '1'
-
-    if categoria:
-        productos = productos.filter(category__id=categoria)
-
-    if empresa:
-        productos = productos.filter(company__id=empresa)
-
-    if solo_verificado:
-        productos = productos.filter(company__is_verified=True)
-
-    try:
-        if precio_min:
-            productos = productos.filter(sort_price__gte=Decimal(precio_min))
-    except Exception:
-        precio_min = ''
-    try:
-        if precio_max:
-            productos = productos.filter(sort_price__lte=Decimal(precio_max))
-    except Exception:
-        precio_max = ''
-
-    show_spotlights = (
-        vista_tab == 'categoria'
-        and tab_catalogo == 'todos'
-        and not buscar
-        and not categoria
-        and not empresa
-    )
-    if show_spotlights:
-        _spot_seen: set[int] = set()
-        spotlight_ofertas = merch._pick_unique_products(
-            merch.daily_deals(12), _spot_seen, 4, diverse_images=True,
-        )
-        spotlight_bestsellers = merch._pick_unique_products(
-            merch.bestsellers(12), _spot_seen, 4, diverse_images=True,
-        )
-        spotlight_destacados = merch._pick_unique_products(
-            merch.featured_products(12), _spot_seen, 4, diverse_images=True,
-        )
-    else:
-        spotlight_ofertas = []
-        spotlight_bestsellers = []
-        spotlight_destacados = []
-
-    buyer_recommended_products = merch._pick_unique_products(
-        merch.featured_products(20),
-        set(),
-        5,
-        diverse_images=True,
-    )
-    if not is_guest:
-        try:
-            profile = request.user.profile
-            if profile.role == 'buyer' and profile.preferred_categories.exists():
-                buyer_recommended_products = merch.buyer_recommended_products(
-                    profile, limit=20, diverse=5,
-                )
-        except Exception:
-            pass
-
-    paginator = Paginator(productos, 12)
-    page_obj = paginator.get_page(request.GET.get('page', 1))
-    if page_obj.object_list:
-        page_obj.object_list = merch.diversify_visible_order(list(page_obj.object_list))
-
-    categorias = Category.objects.annotate(
-        num_productos=Count('products', filter=Q(products__is_active=True)),
-    ).order_by('name')
-    carrito = _get_carrito(request)
-
-    empresas_catalogo = (
-        Company.objects.annotate(
-            num_productos=Count('products', filter=Q(products__is_active=True)),
-        )
-        .filter(num_productos__gt=0)
-        .order_by('name')
-    )
-    if request.GET.get('verificado') == '1':
-        empresas_catalogo = empresas_catalogo.filter(is_verified=True)
-    empresas_filtro = empresas_catalogo
-
-    qcopy = request.GET.copy()
-    qcopy.pop('page', None)
-    if tab_catalogo and tab_catalogo != 'todos':
-        qcopy['tab'] = tab_catalogo
-    if orden and orden != 'nombre':
-        qcopy['orden'] = orden
-    if categoria:
-        qcopy['categoria'] = categoria
-    if empresa:
-        qcopy['empresa'] = empresa
-    if buscar:
-        qcopy['buscar'] = buscar
-    if precio_min:
-        qcopy['precio_min'] = precio_min
-    if precio_max:
-        qcopy['precio_max'] = precio_max
-    if solo_verificado:
-        qcopy['verificado'] = '1'
-    tienda_params = qcopy.urlencode()
-
-    q_cat = request.GET.copy()
-    for k in ('page', 'vista', 'empresa'):
-        q_cat.pop(k, None)
-    q_cat['vista'] = 'categoria'
-    url_tab_categoria = f"{reverse('tienda')}?{q_cat.urlencode()}"
-
-    q_emp = request.GET.copy()
-    for k in ('page', 'vista', 'categoria'):
-        q_emp.pop(k, None)
-    q_emp['vista'] = 'empresa'
-    url_tab_empresa = f"{reverse('tienda')}?{q_emp.urlencode()}"
-
-    empresas = empresas_filtro
-
-    featured_supplier = None
-    featured_category_block = None
-    if empresa:
-        featured_supplier = merch.tienda_featured_supplier(empresa)
-    elif categoria:
-        featured_category_block = merch.tienda_featured_category(categoria)
-
-    categoria_activa_obj = None
-    empresa_activa_obj = None
-    if categoria:
-        categoria_activa_obj = categorias.filter(pk=categoria).first()
-    if empresa:
-        empresa_activa_obj = empresas_filtro.filter(pk=empresa).first()
-
-    buyer_store_landing = (
-        not buscar
-        and not categoria
-        and not empresa
-        and not solo_verificado
-        and not precio_min
-        and not precio_max
-        and tab_catalogo in ('todos', '')
-        and int(request.GET.get('page', 1) or 1) == 1
-    )
-    tienda_filtered = not buyer_store_landing
-
-    context = {
-        'productos': page_obj,
-        'categorias': categorias,
-        'empresas': empresas,
-        'empresas_catalogo': empresas_catalogo,
-        'empresas_filtro': empresas_filtro,
-        'buscar': buscar,
-        'cat_activa': categoria,
-        'emp_activa': empresa,
-        'empresa_activa': empresa,
-        'vista_tab': vista_tab,
-        'tienda_params': tienda_params,
-        'url_tab_categoria': url_tab_categoria,
-        'url_tab_empresa': url_tab_empresa,
-        'carrito_count': _contar_items(carrito),
-        'titulo_pagina': 'TradeFlow store',
-        'nav_activo': 'tienda',
-        'tab_catalogo': tab_catalogo,
-        'orden_activo': orden,
-        'promo_banner': promo_banner,
-        'show_cart_actions': show_cart_actions,
-        'is_guest_catalog': is_guest,
-        'tienda_stats': tienda_stats,
-        'tab_urls': {
-            'todos': _tienda_tab_url('todos'),
-            'ofertas': _tienda_tab_url('ofertas'),
-            'bestsellers': _tienda_tab_url('bestsellers'),
-            'destacados': _tienda_tab_url('destacados'),
-        },
-        'show_spotlights': show_spotlights,
-        'spotlight_ofertas': spotlight_ofertas,
-        'spotlight_bestsellers': spotlight_bestsellers,
-        'spotlight_destacados': spotlight_destacados,
-        'productos_promo': merch.daily_deals(8),
-        'buyer_recommended_products': buyer_recommended_products,
-        'tienda_pagination_slots': _tienda_pagination_slots(page_obj),
-        'category_spotlights': merch.category_spotlights(4, 4),
-        'buyer_store_landing': buyer_store_landing,
-        'tienda_filtered': tienda_filtered,
-        'categoria_activa_obj': categoria_activa_obj,
-        'empresa_activa_obj': empresa_activa_obj,
-        'precio_min': precio_min,
-        'precio_max': precio_max,
-        'solo_verificado': solo_verificado,
-        'featured_supplier': featured_supplier if empresa else None,
-        'featured_category': None,
-    }
-    is_partial = (
-        request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        or request.GET.get('partial') == '1'
-    )
-    if is_partial:
-        return render(request, 'core/tienda_catalog_partial.html', context)
-    return render(request, 'core/tienda.html', context)
+    """Legacy /tienda/ URL — permanent redirect to the public catalog."""
+    return redirect(_catalog_url_from_tienda_query(request), permanent=True)
 
 
 @catalog_access
@@ -3815,7 +3538,7 @@ def agregar_al_carrito(request, producto_id):
     Agrega un producto al carrito o incrementa su cantidad si ya existe.
     """
     if request.method != 'POST':
-        return redirect('tienda')
+        return redirect('catalogo_publico')
 
     try:
         cantidad = int(request.POST.get('cantidad', 1))
@@ -3828,12 +3551,12 @@ def agregar_al_carrito(request, producto_id):
         if _request_wants_json(request):
             return JsonResponse({'ok': False, **payload}, status=status)
         messages.error(request, payload.get('message', ''))
-        return redirect('tienda')
+        return redirect('catalogo_publico')
 
     if _request_wants_json(request):
         return JsonResponse({'ok': True, **payload})
     messages.success(request, payload['message'])
-    return redirect('tienda')
+    return redirect('catalogo_publico')
 
 
 @guest_or_buyer_cart
@@ -3990,7 +3713,7 @@ def checkout(request):
     # Redirigir si el carrito está vacío
     if not carrito:
         messages.warning(request, _('Your cart is empty.'))
-        return redirect('tienda')
+        return redirect('catalogo_publico')
 
     subtotal = _calcular_total(carrito)
 
@@ -4507,7 +4230,7 @@ def solicitar_cotizacion_automatica(request, producto_id):
             request,
             'We found no companies selling this product to quote.',
         )
-        return redirect('tienda')
+        return redirect('catalogo_publico')
 
     lote = uuid.uuid4().hex[:12]
     nota_auto = 'Automatic quote generated with the current catalog price.'

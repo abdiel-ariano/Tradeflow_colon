@@ -17,14 +17,14 @@ JS: bn-mega-menu.js — alterna panel derecho al pasar el mouse (hover).
   {# ── Columna izquierda: lista de categorías ── #}
   <div class="bn-mega-left" id="bn-mega-left">
     {% for panel in buyer_mega_menu_panels %}
-    <a href="{% url 'tienda' %}?categoria={{ panel.category.pk }}"
+    <a href="{% url 'catalogo_publico' %}?categoria={{ panel.category.pk }}"
        class="bn-mega-cat{% if forloop.first %} is-active{% endif %}"
        data-mega-panel="{{ panel.category.pk }}">
       <span class="bn-mega-cat__label">{{ panel.category.name }}</span>
       {% include "core/includes/tf_icon.html" with name="chevron_right" class="bn-mega-chevron" %}
     </a>
     {% empty %}
-    <a href="{% url 'tienda' %}" class="bn-mega-cat is-active">
+    <a href="{% url 'catalogo_publico' %}" class="bn-mega-cat is-active">
       <span class="bn-mega-cat__label">Ver catálogo completo</span>
     </a>
     {% endfor %}
@@ -40,16 +40,16 @@ JS: bn-mega-menu.js — alterna panel derecho al pasar el mouse (hover).
       <div class="bn-mega-subgrid">
         {% for product in panel.products %}
         <a class="bn-mega-sub"
-           href="{% url 'tienda' %}?categoria={{ panel.category.pk }}&buscar={{ product.name|urlencode }}">
+           href="{% url 'catalogo_publico' %}?categoria={{ panel.category.pk }}&buscar={{ product.name|urlencode }}">
           {{ product.name|truncatechars:32 }}
         </a>
         {% empty %}
-        <a class="bn-mega-sub" href="{% url 'tienda' %}?categoria={{ panel.category.pk }}">
+        <a class="bn-mega-sub" href="{% url 'catalogo_publico' %}?categoria={{ panel.category.pk }}">
           Explorar {{ panel.category.name }}
         </a>
         {% endfor %}
       </div>
-      <a href="{% url 'tienda' %}?categoria={{ panel.category.pk }}" class="bn-mega-browse">
+      <a href="{% url 'catalogo_publico' %}?categoria={{ panel.category.pk }}" class="bn-mega-browse">
         Ver todos en {{ panel.category.name|truncatechars:28 }} →
       </a>
     </div>

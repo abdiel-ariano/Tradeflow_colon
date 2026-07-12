@@ -209,7 +209,7 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
 
     msg = mensaje_usuario.lower().strip()
     tokens = _tokens(mensaje_usuario)
-    tienda = reverse('tienda')
+    tienda = reverse('catalogo_publico')
     signup = reverse('signup')
 
     if _match_any(msg, ('hola', 'buenas', 'hello', 'hi', 'saludos', 'hey')):
@@ -699,7 +699,7 @@ def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
         conf = 0.55
 
     resumen = lines[0][:180] if lines else 'TradeFlow Colón catalog information.'
-    tienda = reverse('tienda')
+    tienda = reverse('catalogo_publico')
 
     if conf < 0.85:
         tema = _CATEGORY_META.get(topic, _CATEGORY_META['catalogo'])[1]
@@ -777,7 +777,7 @@ def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None
                     bullets,
                     groq_resp[:200] if len(groq_resp) > 200 else '',
                     'View store',
-                    reverse('tienda'),
+                    reverse('catalogo_publico'),
                 )
                 result['confianza'] = 0.9
         except Exception as exc:

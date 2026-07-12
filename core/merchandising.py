@@ -1177,7 +1177,7 @@ def buyer_deep_search_suggestions(profile, limit: int = 4, seed: int = 0) -> lis
             'product': product,
             'label': cat.name,
             'search_query': cat.name,
-            'url': f"{reverse('tienda')}?categoria={cat.pk}",
+            'url': f"{reverse('catalogo_publico')}?categoria={cat.pk}",
         })
     return suggestions
 

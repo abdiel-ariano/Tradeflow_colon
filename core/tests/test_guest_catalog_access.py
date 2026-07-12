@@ -26,13 +26,18 @@ class GuestCatalogAccessTests(TestCase):
         )
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
-    def test_guest_can_open_tienda(self):
-        response = self.client.get('/tienda/')
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'td-product-grid', status_code=200)
+    def test_tienda_redirects_to_catalogo(self):
+        response = self.client.get('/tienda/', follow=False)
+        self.assertEqual(response.status_code, 301)
+        self.assertIn('/catalogo/', response['Location'])
 
-    def test_guest_tienda_has_cart_actions(self):
-        response = self.client.get('/tienda/')
+    def test_tienda_tab_ofertas_maps_to_catalog_on_sale(self):
+        response = self.client.get('/tienda/', {'tab': 'ofertas'}, follow=False)
+        self.assertEqual(response.status_code, 301)
+        self.assertIn('on_sale=1', response['Location'])
+
+    def test_guest_catalog_has_cart_actions(self):
+        response = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
         self.assertTrue(response.context['is_guest_catalog'])
@@ -65,7 +70,7 @@ class GuestCatalogAccessTests(TestCase):
         self.assertContains(response, reverse('catalogo_publico'))
         self.assertNotContains(response, 'login/?next=/tienda/')
 
-    def test_unverified_buyer_can_browse_tienda(self):
+    def test_unverified_buyer_can_browse_catalog(self):
         unverified = User.objects.create_user(
             username='unverified_buyer',
             email='unverified@test.pa',
@@ -73,19 +78,20 @@ class GuestCatalogAccessTests(TestCase):
         )
         UserProfile.objects.create(user=unverified, role='buyer', email_verificado=False)
         self.client.force_login(unverified)
-        response = self.client.get('/tienda/')
+        response = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
 
     def test_buyer_still_has_cart_actions(self):
         self.client.force_login(self.buyer)
-        response = self.client.get('/tienda/')
+        response = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
 
-    def test_guest_verificado_filter(self):
-        response = self.client.get('/tienda/', {'verificado': '1'})
+    def test_guest_verificado_filter_via_redirect(self):
+        response = self.client.get('/tienda/', {'verificado': '1'}, follow=True)
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'cat-results-root')
 
     def test_authenticated_buyer_catalog_shows_marketplace_nav(self):
         self.client.force_login(self.buyer)
@@ -141,3 +147,29 @@ class GuestCatalogAccessTests(TestCase):
         data = response.json()
         self.assertTrue(data['ok'])
         self.assertIn('carrito', self.client.session)
+
+    def test_agregar_al_carrito_ajax_returns_count(self):
+        from core.models import Product, Company, Category, Inventory
+
+        company = Company.objects.create(name='Badge Co', is_verified=True)
+        cat = Category.objects.create(name='Electronics')
+        product = Product.objects.create(
+            name='Badge Product',
+            sku='BADGE-1',
+            company=company,
+            category=cat,
+            unit_price='9.00',
+            currency='USD',
+            is_active=True,
+        )
+        Inventory.objects.create(product=product, stock_qty=10, reserved_qty=0)
+        response = self.client.post(
+            reverse('agregar_al_carrito', kwargs={'producto_id': product.pk}),
+            {'cantidad': 2},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['ok'])
+        self.assertEqual(data['carrito_count'], 2)

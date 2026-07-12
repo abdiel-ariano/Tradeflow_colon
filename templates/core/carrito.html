@@ -109,7 +109,7 @@
             {% trans "Inicia sesión para pagar" %}
           </a>
           {% endif %}
-          <a href="{% url 'tienda' %}" class="cart-btn-secondary">
+          <a href="{% url 'catalogo_publico' %}" class="cart-btn-secondary">
             <span class="material-symbols-rounded" style="font-size:18px" aria-hidden="true">storefront</span>
             {% trans "Seguir comprando" %}
           </a>
@@ -142,7 +142,7 @@
       <span class="material-symbols-rounded cart-empty__icon" aria-hidden="true">shopping_cart</span>
       <h1 class="cart-empty__title">{% trans "Tu carrito está vacío" %}</h1>
       <p class="cart-empty__text">{% trans "Explora el catálogo y agrega productos para comenzar." %}</p>
-      <a href="{% url 'tienda' %}" class="cart-btn-primary" style="max-width:16rem;margin:0 auto;">
+      <a href="{% url 'catalogo_publico' %}" class="cart-btn-primary" style="max-width:16rem;margin:0 auto;">
         <span class="material-symbols-rounded" style="font-size:18px" aria-hidden="true">storefront</span>
         {% trans "Ver productos" %}
       </a>
