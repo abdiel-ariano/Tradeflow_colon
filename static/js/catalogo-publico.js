@@ -777,13 +777,14 @@
   function bindInquiryButtons() {
     document.querySelectorAll('.btn-inquiry').forEach(function (btn) {
       if (btn.dataset.bound) return;
+      if (btn.closest('form.js-cart-add-form')) return;
+      if (btn.type === 'submit') return;
+      if (!btn.getAttribute('data-product-id')) return;
       btn.dataset.bound = '1';
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        var productId = btn.getAttribute('data-product-id') ||
-          (btn.closest('[data-product-id]') && btn.closest('[data-product-id]').getAttribute('data-product-id'));
-        addToInquiry(productId, btn);
+        addToInquiry(btn.getAttribute('data-product-id'), btn);
       });
     });
   }

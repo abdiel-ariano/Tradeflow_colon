@@ -146,6 +146,9 @@
   document.addEventListener('click', function (event) {
     var btn = event.target.closest('.hm-marketplace .btn-inquiry');
     if (!btn) return;
+    if (btn.closest('form.js-cart-add-form')) return;
+    if (btn.type === 'submit') return;
+    if (!btn.getAttribute('data-product-id')) return;
     event.preventDefault();
     event.stopPropagation();
     addToInquiry(btn.getAttribute('data-product-id'), btn);
