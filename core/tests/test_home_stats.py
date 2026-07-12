@@ -13,6 +13,7 @@ from core.models import Category, Company, Inventory, Order, Product, UserProfil
 )
 class HomeStatsTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='CFZ Demo', is_verified=True)
         self.category = Category.objects.create(name='Electronics')
         self.product = Product.objects.create(
@@ -27,6 +28,7 @@ class HomeStatsTests(TestCase):
         Inventory.objects.create(product=self.product, stock_qty=10, reserved_qty=0)
 
     def test_home_stats_returns_real_counts(self):
+        """Test home stats returns real counts."""
         buyer = User.objects.create_user('buyer_stats', 'buyer@test.pa', 'Test1234!')
         UserProfile.objects.create(user=buyer, role='buyer', email_verificado=True)
         Order.objects.create(buyer=buyer, status='delivered', total='250.00')

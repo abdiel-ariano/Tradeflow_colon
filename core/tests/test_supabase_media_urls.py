@@ -21,6 +21,7 @@ from core.storage.supabase_media import (
 )
 class SupabaseMediaUrlTests(TestCase):
     def test_public_url_uses_native_endpoint(self):
+        """Test public url uses native endpoint."""
         path = 'productos/placeholders/placeholder_714_1I.png'
         url = supabase_public_url(path)
         self.assertEqual(
@@ -32,10 +33,12 @@ class SupabaseMediaUrlTests(TestCase):
         self.assertNotIn('/storage/v1/s3/', url)
 
     def test_supabase_media_url_delegates_to_public(self):
+        """Test supabase media url delegates to public."""
         url = supabase_media_url('productos/foo.png')
         self.assertIn('/storage/v1/object/public/media/', url)
 
     def test_storage_backend_url_override(self):
+        """Test storage backend url override."""
         storage = SupabaseMediaStorage()
         url = storage.url('productos/placeholders/placeholder_1_SS.png')
         self.assertIn('/storage/v1/object/public/media/', url)

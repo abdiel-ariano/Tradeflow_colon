@@ -21,6 +21,7 @@ class Command(BaseCommand):
     help = 'Send cart abandonment and company promotion emails via Resend.'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--cart-hours',
             type=float,
@@ -39,6 +40,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         sent_cart = self._send_cart_reminders(
             hours=options['cart_hours'],
             dry_run=options['dry_run'],

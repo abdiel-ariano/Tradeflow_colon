@@ -7,6 +7,7 @@ class Command(BaseCommand):
     help = 'Comprueba RESEND_API_KEY y DEFAULT_FROM_EMAIL'
 
     def handle(self, *args, **options):
+        """Handle."""
         key = (getattr(settings, 'RESEND_API_KEY', '') or '').strip()
         from_email = (getattr(settings, 'DEFAULT_FROM_EMAIL', '') or '').strip()
 

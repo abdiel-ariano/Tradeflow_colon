@@ -11,6 +11,7 @@ class Command(BaseCommand):
     help = 'Asigna is_staff y permisos core a usuarios con perfil role=admin'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--username',
             type=str,
@@ -18,6 +19,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         ensure_tradeflow_admin_group()
         qs = User.objects.select_related('profile')
         username = options.get('username')

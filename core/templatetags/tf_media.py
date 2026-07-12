@@ -1,3 +1,14 @@
+"""
+Django template tags — product images and media URLs.
+
+Filters/tags resolve the same image chain as the catalog:
+uploaded file → Supabase URL → AI placeholder WebP → category seed SVG → Picsum.
+
+Usage in templates:
+  {% load tf_media %}
+  {{ product|product_image_src }}
+  {% product_img product "card-image-img" %}
+"""
 from django import template
 from django.templatetags.static import static
 from django.utils.html import escape, format_html
@@ -9,6 +20,7 @@ register = template.Library()
 
 @register.simple_tag
 def product_img(product, css_class=''):
+    """Product img."""
     url = product_image_url(product) or static(PRODUCT_IMAGE_FALLBACK_STATIC)
     name = escape(getattr(product, 'name', 'Product'))
     fallback = static(PRODUCT_IMAGE_FALLBACK_STATIC)
@@ -60,6 +72,7 @@ def product_image_src(product):
 
 @register.filter
 def product_image_is_reference(product):
+    """Product image is reference."""
     from core.utils.demo_product_images import product_uses_ai_reference_image
 
     return product_uses_ai_reference_image(product)
@@ -67,6 +80,7 @@ def product_image_is_reference(product):
 
 @register.filter
 def product_image_category_icon_src(product):
+    """Product image category icon src."""
     from core.utils.demo_product_images import category_icon_static_path
 
     return static(category_icon_static_path(product)) if product else ''
@@ -82,6 +96,7 @@ def product_image_category_seed_src(product):
 
 @register.filter
 def product_image_picsum_src(product):
+    """Product image picsum src."""
     from core.utils.demo_product_images import picsum_url, use_runtime_picsum
 
     if not product or not use_runtime_picsum():

@@ -8,6 +8,7 @@ from core.models import Category, Company, Product, UserProfile
 
 class SellerProductsActiveFilterTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.client = Client()
         self.seller = User.objects.create_user(
             username='seller_prod',
@@ -49,6 +50,7 @@ class SellerProductsActiveFilterTests(TestCase):
         self.client.force_login(self.seller)
 
     def test_default_list_shows_only_active_products(self):
+        """Test default list shows only active products."""
         resp = self.client.get(reverse('seller_mis_productos'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Active One')
@@ -56,10 +58,12 @@ class SellerProductsActiveFilterTests(TestCase):
         self.assertNotContains(resp, 'Inactive One')
 
     def test_todos_filter_shows_inactive(self):
+        """Test todos filter shows inactive."""
         resp = self.client.get(reverse('seller_mis_productos'), {'estado': 'todos'})
         self.assertContains(resp, 'Inactive One')
 
     def test_toggle_returns_updated_active_count(self):
+        """Test toggle returns updated active count."""
         inactive = Product.objects.get(name='Inactive One')
         url = reverse('seller_toggle_producto', kwargs={'pk': inactive.pk})
         resp = self.client.post(

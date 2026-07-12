@@ -16,6 +16,7 @@ from core.models import UserProfile
 )
 class TiendaCatalogAjaxTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.buyer = User.objects.create_user(
             username='buyer_ajax',
             email='buyer_ajax@test.pa',
@@ -24,6 +25,7 @@ class TiendaCatalogAjaxTests(TestCase):
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
     def test_tienda_partial_redirects_to_catalog(self):
+        """Test tienda partial redirects to catalog."""
         self.client.force_login(self.buyer)
         response = self.client.get(
             '/tienda/',
@@ -36,6 +38,7 @@ class TiendaCatalogAjaxTests(TestCase):
         self.assertIn('partial=1', response['Location'])
 
     def test_catalog_partial_returns_markup(self):
+        """Test catalog partial returns markup."""
         self.client.force_login(self.buyer)
         response = self.client.get(
             '/catalogo/',

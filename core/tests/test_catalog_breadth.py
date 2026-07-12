@@ -7,6 +7,7 @@ from core.models import Category, Company, Product
 
 class CatalogBreadthProductsTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.company_a = Company.objects.create(name='Alpha Trading', is_verified=True)
         self.company_b = Company.objects.create(name='Beta Imports', is_verified=True)
         self.cat_electronics = Category.objects.create(name='Electronics')
@@ -25,6 +26,7 @@ class CatalogBreadthProductsTests(TestCase):
         )
 
     def test_returns_products_from_multiple_categories(self):
+        """Test returns products from multiple categories."""
         self._product(self.company_a, self.cat_electronics, 'USB Hub', 'E-1')
         self._product(self.company_a, self.cat_electronics, 'Cable Pack', 'E-2')
         self._product(self.company_b, self.cat_textiles, 'Cotton Roll', 'T-1')
@@ -37,6 +39,7 @@ class CatalogBreadthProductsTests(TestCase):
         self.assertGreaterEqual(len(category_ids), 3)
 
     def test_deduplicates_products(self):
+        """Test deduplicates products."""
         self._product(self.company_a, self.cat_electronics, 'Widget', 'W-1')
 
         items = catalog_breadth_products(limit=8, per_category=2)
@@ -45,6 +48,7 @@ class CatalogBreadthProductsTests(TestCase):
         self.assertEqual(len(pks), len(set(pks)))
 
     def test_fills_to_limit_when_few_categories(self):
+        """Test fills to limit when few categories."""
         for i in range(6):
             self._product(
                 self.company_a,

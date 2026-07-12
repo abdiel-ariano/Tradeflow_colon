@@ -58,6 +58,7 @@ def catalog_access(view_func):
     """Catálogo y carrito de sesión visibles para invitados y compradores."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Wrapper."""
         if not request.user.is_authenticated:
             return view_func(request, *args, **kwargs)
         blocked = _enforce_onboarding(request, scope='browse')
@@ -94,6 +95,7 @@ def guest_or_buyer_cart(view_func):
     """Carrito en sesión: invitados y usuarios autenticados (sin bloqueo por OTP)."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Wrapper."""
         if not request.user.is_authenticated:
             return view_func(request, *args, **kwargs)
         blocked = _enforce_onboarding(request, scope='browse')
@@ -125,6 +127,7 @@ def buyer_checkout(view_func):
     """Checkout: GET permite ver la página con verificación inline; POST exige email."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Wrapper."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         scope = 'browse' if request.method == 'GET' else 'restricted'
@@ -148,6 +151,7 @@ def buyer_required(view_func):
     """Checkout, pedidos y cotizaciones: login + verificación de email."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Wrapper."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         blocked = _enforce_onboarding(request, scope='restricted')
@@ -170,6 +174,7 @@ def seller_required(view_func):
     """Solo vendedores. Buyers son redirigidos a la tienda."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Wrapper."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         blocked = _enforce_onboarding(request, scope='restricted')
@@ -189,6 +194,7 @@ def admin_required(view_func):
     """Solo administradores."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Wrapper."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         role = _get_role(request.user)

@@ -36,6 +36,7 @@ class Command(BaseCommand):
     help = 'Download demo product images and assign to products without images'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--limit',
             type=int,
@@ -72,6 +73,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         limit = options['limit']
         dry_run = options['dry_run']
         force = options['force']

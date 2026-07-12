@@ -10,6 +10,7 @@ class Command(BaseCommand):
     help = 'Diagnóstico SaaS: planes, suscripciones, uso y migración checkout'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--seed',
             action='store_true',
@@ -17,6 +18,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         if options['seed']:
             health = bootstrap_saas_datastore(seed_subscriptions=True)
         else:

@@ -17,6 +17,7 @@ from core.utils.media_storage import local_media_file_exists
 
 class RegenerateProductImagesTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(
             name='Image Test Co',
             ruc='8-IMG-TEST-001',
@@ -35,6 +36,7 @@ class RegenerateProductImagesTests(TestCase):
         )
 
     def test_assign_product_image_writes_file(self):
+        """Test assign product image writes file."""
         rel = assign_product_image(self.product)
         self.assertTrue(rel.startswith('productos/'))
         self.assertTrue(local_media_file_exists(rel))
@@ -42,12 +44,14 @@ class RegenerateProductImagesTests(TestCase):
         self.assertGreater(full.stat().st_size, 0)
 
     def test_regenerate_product_images_command(self):
+        """Test regenerate product images command."""
         call_command('regenerate_product_images', '--limit', '1')
         self.product.refresh_from_db()
         self.assertTrue(self.product.image)
         self.assertTrue(local_media_file_exists(self.product.image.name))
 
     def test_verify_media_command(self):
+        """Test verify media command."""
         rel = assign_product_image(self.product)
         self.product.image = rel
         self.product.save(update_fields=['image'])
@@ -56,6 +60,7 @@ class RegenerateProductImagesTests(TestCase):
 
 class SeedEnterpriseYearImageTests(TestCase):
     def test_demo_seed_with_images(self):
+        """Test demo seed with images."""
         clear_enterprise_year_simulation()
         call_command(
             'seed_enterprise_year',

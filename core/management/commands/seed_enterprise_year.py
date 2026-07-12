@@ -27,6 +27,7 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--clear',
             action='store_true',
@@ -56,6 +57,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         self.stdout.write(self.style.NOTICE('TradeFlow — seed_enterprise_year'))
         skip_images = options['skip_images'] or not options['with_images']
         try:

@@ -12,6 +12,7 @@ from core.enterprise_models import AdCampaign, AdCreditAccount
 
 
 def active_boost_map() -> dict[int, Decimal]:
+    """Active boost map."""
     now = timezone.now()
     boosts = {}
     for row in (
@@ -42,6 +43,7 @@ def annotate_sponsored_score(queryset):
 
 
 def ensure_ad_credits(company, monthly_credits: int = 0):
+    """Ensure ad credits."""
     account, created = AdCreditAccount.objects.get_or_create(company=company)
     if created and monthly_credits:
         account.balance = monthly_credits

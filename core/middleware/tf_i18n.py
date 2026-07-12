@@ -22,6 +22,7 @@ class TfLanguagePrefixRedirectMiddleware(MiddlewareMixin):
     response_redirect_class = HttpResponseRedirect
 
     def process_request(self, request):
+        """Process request."""
         if request.method not in ('GET', 'HEAD'):
             return None
 

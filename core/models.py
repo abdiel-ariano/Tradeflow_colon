@@ -128,6 +128,7 @@ class UserProfile(models.Model):
 
     @email_verified.setter
     def email_verified(self, value: bool) -> None:
+        """Email verified."""
         self.email_verificado = value
 
 
@@ -273,11 +274,13 @@ class HomePromoSection(models.Model):
         return self.title_es or self.slug
 
     def title_for_lang(self, lang_code: str) -> str:
+        """Title for lang."""
         if lang_code == 'en' and self.title_en:
             return self.title_en
         return self.title_es
 
     def subtitle_for_lang(self, lang_code: str) -> str:
+        """Subtitle for lang."""
         if lang_code == 'en' and self.subtitle_en:
             return self.subtitle_en
         return self.subtitle_es
@@ -353,12 +356,14 @@ class Product(models.Model):
 
     @property
     def display_price(self) -> Decimal:
+        """Display price."""
         if self.is_on_promo_now:
             return self.promo_price
         return self.unit_price
 
     @property
     def discount_pct(self) -> int:
+        """Discount pct."""
         if not self.is_on_promo_now or self.unit_price <= 0:
             return 0
         pct = (Decimal('1') - (self.promo_price / self.unit_price)) * Decimal('100')
@@ -406,10 +411,12 @@ class Inventory(models.Model):
 
     @property
     def available(self):
+        """Available."""
         return max(0, self.stock_qty - self.reserved_qty)
 
     @property
     def is_low_stock(self):
+        """Is low stock."""
         return self.available <= self.low_stock_alert
 
     def reserve(self, qty):
@@ -459,6 +466,7 @@ class Address(models.Model):
 
     def save(self, *args, **kwargs):
         # Si se marca como predeterminada, quitar la marca de las demás del mismo usuario
+        """Save."""
         if self.is_default:
             Address.objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
         super().save(*args, **kwargs)
@@ -547,6 +555,7 @@ class UserApplication(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
+        """Save."""
         if not self.review_token:
             self.review_token = uuid.uuid4().hex
         super().save(*args, **kwargs)
@@ -658,6 +667,7 @@ class Order(models.Model):
 
     def save(self, *args, **kwargs):
         # Genera el número de orden automáticamente al crear
+        """Save."""
         if not self.order_number:
             self.order_number = self._generate_order_number()
         super().save(*args, **kwargs)
@@ -679,6 +689,7 @@ class Order(models.Model):
         self.save(update_fields=['subtotal', 'total', 'updated_at'])
 
     def get_status_color(self):
+        """Get status color."""
         colors = {
             'awaiting_seller': 'badge-warning',
             'pending':   'badge-warning',
@@ -730,6 +741,7 @@ class OrderItem(models.Model):
         verbose_name_plural = 'Order items'
 
     def save(self, *args, **kwargs):
+        """Save."""
         self.line_total = self.unit_price_snapshot * self.qty
         super().save(*args, **kwargs)
 
@@ -930,6 +942,7 @@ class Cotizacion(models.Model):
         return f'COT-{now.strftime("%Y%m")}-{suffix}'
 
     def save(self, *args, **kwargs):
+        """Save."""
         if not self.numero:
             self.numero = self._generate_numero()
         super().save(*args, **kwargs)
@@ -1089,6 +1102,7 @@ class EmailVerification(models.Model):
         return f'{self.user_id} · {self.code} · used={self.is_used}'
 
     def is_valid(self) -> bool:
+        """Is valid."""
         from core.utils.otp_handler import OTP_EXPIRY_MINUTES
 
         if self.is_used:

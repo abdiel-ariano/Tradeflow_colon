@@ -10,6 +10,7 @@ from core.utils.saas_billing import ensure_default_plans, get_or_create_subscrip
 
 class SaasAdminApiTests(TestCase):
     def setUp(self):
+        """Setup."""
         ensure_default_plans()
         self.admin = User.objects.create_user('admin_saas', password='x', is_staff=True)
         UserProfile.objects.create(user=self.admin, role='admin')
@@ -17,6 +18,7 @@ class SaasAdminApiTests(TestCase):
         self.client.force_login(self.admin)
 
     def test_stats_requires_admin(self):
+        """Test stats requires admin."""
         buyer = User.objects.create_user('buyer', password='x')
         UserProfile.objects.create(user=buyer, role='buyer')
         c = Client()
@@ -25,6 +27,7 @@ class SaasAdminApiTests(TestCase):
         self.assertIn(r.status_code, (302, 403))
 
     def test_stats_json_structure(self):
+        """Test stats json structure."""
         company = Company.objects.create(name='Empresa Test')
         get_or_create_subscription(company)
         r = self.client.get(reverse('api_admin_saas_stats'))
@@ -36,6 +39,7 @@ class SaasAdminApiTests(TestCase):
         self.assertIn('predicted_amount_usd', data['predictive'])
 
     def test_approve_commercial_request(self):
+        """Test approve commercial request."""
         plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
         company = Company.objects.create(name='Enterprise Co')
         get_or_create_subscription(company)

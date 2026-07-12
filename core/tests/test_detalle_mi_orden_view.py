@@ -25,6 +25,7 @@ from core.models import (
 )
 class DetalleMiOrdenViewTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='Co', ruc='1', is_verified=True)
         cat = Category.objects.create(name='Cat')
         self.product = Product.objects.create(
@@ -65,6 +66,7 @@ class DetalleMiOrdenViewTests(TestCase):
         self.client.force_login(self.buyer)
 
     def test_detalle_mi_orden_renders_200(self):
+        """Test detalle mi orden renders 200."""
         url = reverse('detalle_mi_orden', kwargs={'pk': self.orden.pk})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)

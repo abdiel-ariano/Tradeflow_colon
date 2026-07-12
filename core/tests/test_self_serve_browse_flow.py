@@ -16,6 +16,7 @@ from core.social_auth import user_needs_oauth_role
 )
 class OAuthSelfServeFlowTests(TestCase):
     def test_auto_activate_inactive_buyer_on_pre_login(self):
+        """Test auto activate inactive buyer on pre login."""
         from core.social_auth import TradeFlowAccountAdapter, activate_user_if_eligible
 
         user = User.objects.create_user(username='react', email='r@t.pa', password='x')
@@ -37,6 +38,7 @@ class OAuthSelfServeFlowTests(TestCase):
         self.assertTrue(user_needs_oauth_role(user))
 
     def test_browse_gate_only_for_missing_role(self):
+        """Test browse gate only for missing role."""
         from core.utils.access_gating import onboarding_redirect_name
 
         user = User.objects.create_user(username='browse_me', email='b@g.pa', password='x')
@@ -47,6 +49,7 @@ class OAuthSelfServeFlowTests(TestCase):
         self.assertEqual(onboarding_redirect_name(user, scope='restricted'), 'verificar_codigo')
 
     def test_authenticated_unverified_can_open_cart(self):
+        """Test authenticated unverified can open cart."""
         user = User.objects.create_user(username='cart_guest', email='c@g.pa', password='x')
         user.is_active = True
         user.save()

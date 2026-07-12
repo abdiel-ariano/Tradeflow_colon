@@ -64,6 +64,7 @@ PLAN_MRR_USD = {
 
 
 def plan_monthly_price(slug: str) -> Decimal:
+    """Plan monthly price."""
     return PLAN_MRR_USD.get(slug, Decimal('0'))
 
 
@@ -122,6 +123,7 @@ def ensure_default_plans() -> int:
 
 
 def get_or_create_subscription(company: Company) -> CompanySubscription:
+    """Get or create subscription."""
     ensure_default_plans()
     try:
         return company.subscription
@@ -154,6 +156,7 @@ def compute_monthly_volume(company: Company, now=None) -> tuple[Decimal, int]:
 
 
 def refresh_billing_usage(company: Company, now=None) -> CompanyBillingUsage:
+    """Refresh billing usage."""
     now = now or timezone.now()
     vol, orders = compute_monthly_volume(company, now)
     usage, _ = CompanyBillingUsage.objects.update_or_create(
@@ -411,6 +414,7 @@ def create_plan_checkout(company: Company, plan_slug: str) -> CompanyPlanCheckou
 
 
 def get_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
+    """Get pending checkout."""
     return _safe_pending_checkout(company)
 
 
@@ -640,6 +644,7 @@ def order_company_subtotal(order, company: Company) -> Decimal:
 
 
 def plan_allows_feature(company: Company, feature: str) -> bool:
+    """Plan allows feature."""
     snap = subscription_usage_snapshot(company)
     plan = snap['plan']
     if feature == 'api':

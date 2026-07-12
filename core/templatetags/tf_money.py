@@ -22,4 +22,5 @@ def money_amount_filter(value):
 
 @register.filter(name='quantize_money')
 def quantize_money_filter(value):
+    """Quantize money filter."""
     return quantize_money(value)

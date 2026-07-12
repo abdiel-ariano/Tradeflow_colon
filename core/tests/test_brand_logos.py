@@ -12,6 +12,7 @@ class BrandLogoAssetTests(SimpleTestCase):
         return hashlib.md5(path.read_bytes()).hexdigest()
 
     def test_wordmark_white_differs_from_dark(self):
+        """Test wordmark white differs from dark."""
         white = self._md5('logo-wordmark-white.png')
         dark = self._md5('logo-wordmark-dark.png')
         self.assertNotEqual(white, dark)

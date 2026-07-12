@@ -1,4 +1,5 @@
 {% extends "core/seller_layout.html" %}
+{% comment %}Template: core/seller_responder_cotizacion.html — review purpose and context vars.{% endcomment %}
 {% block title %}Respond to {{ cot.numero }} — TradeFlow{% endblock %}
 {% block seller_page_title %}Respond to quote{% endblock %}
 {% block seller_page_sub %}<p class="sp-topbar-sub">{{ cot.numero }} · {{ cot.buyer.get_full_name|default:cot.buyer.username }}</p>{% endblock %}

@@ -28,6 +28,7 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--limit',
             type=int,
@@ -46,6 +47,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         limit = int(options['limit'] or 0)
         force = bool(options['force'])
         missing_only = bool(options['missing_only']) or not force

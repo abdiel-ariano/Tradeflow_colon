@@ -22,6 +22,7 @@ class Command(BaseCommand):
     help = 'Remove lot-based product names and redistribute stock for seeded catalog credibility.'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--dry-run',
             action='store_true',
@@ -29,6 +30,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         dry_run = options['dry_run']
         rng = random.Random(42)
         renamed = 0

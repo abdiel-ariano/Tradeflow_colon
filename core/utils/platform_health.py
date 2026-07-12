@@ -12,6 +12,7 @@ from core.utils.email_delivery import validate_email_infrastructure
 
 
 def check_database() -> dict:
+    """Check database."""
     started = time.perf_counter()
     try:
         with connection.cursor() as cur:
@@ -29,6 +30,7 @@ def check_database() -> dict:
 
 
 def check_storage() -> dict:
+    """Check storage."""
     using_s3 = 'S3Boto3' in settings.STORAGES.get('default', {}).get('BACKEND', '')
     return {
         'ok': True,
@@ -39,6 +41,7 @@ def check_storage() -> dict:
 
 
 def platform_health_payload() -> dict:
+    """Platform health payload."""
     db = check_database()
     storage = check_storage()
     email_warnings = validate_email_infrastructure()

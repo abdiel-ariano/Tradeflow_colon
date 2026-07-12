@@ -31,6 +31,7 @@ class Command(BaseCommand):
     help = 'Generate 400×400 PNG placeholders with brand gradient and product initials'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--limit',
             type=int,
@@ -55,6 +56,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         limit = int(options['limit'] or 0)
         force = bool(options['force'])
         repair_missing = bool(options['repair_missing'])

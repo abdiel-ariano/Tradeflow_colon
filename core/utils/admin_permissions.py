@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 
 
 def user_is_tradeflow_admin(user) -> bool:
+    """User is tradeflow admin."""
     if not user.is_active:
         return False
     if user.is_superuser:

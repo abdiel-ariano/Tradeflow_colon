@@ -9,6 +9,7 @@ from core.models import Category, Company, Product, UserProfile
 @override_settings(AXES_ENABLED=False, REQUIRE_EMAIL_VERIFICATION=False)
 class TestAiSearchSuggest(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='Search Co', ruc='888', is_verified=True)
         self.cat = Category.objects.create(name='Electronics')
         Product.objects.create(
@@ -30,6 +31,7 @@ class TestAiSearchSuggest(TestCase):
         self.company.save(update_fields=['owner'])
 
     def test_public_search_returns_products(self):
+        """Test public search returns products."""
         r = self.client.get(reverse('api_search_suggest'), {'q': 'Laptop', 'scope': 'public'})
         self.assertEqual(r.status_code, 200)
         data = r.json()
@@ -41,6 +43,7 @@ class TestAiSearchSuggest(TestCase):
         self.assertIn('price', products[0]['meta'])
 
     def test_public_search_empty_query_returns_trending(self):
+        """Test public search empty query returns trending."""
         r = self.client.get(reverse('api_search_suggest'), {'q': '', 'scope': 'public'})
         self.assertEqual(r.status_code, 200)
         data = r.json()
@@ -48,10 +51,12 @@ class TestAiSearchSuggest(TestCase):
         self.assertTrue(len(data['suggestions']) > 0)
 
     def test_seller_search_requires_auth(self):
+        """Test seller search requires auth."""
         r = self.client.get(reverse('api_search_suggest'), {'q': 'Laptop', 'scope': 'seller'})
         self.assertEqual(r.status_code, 401)
 
     def test_seller_search_finds_own_product(self):
+        """Test seller search finds own product."""
         self.client.login(username='search_seller', password='TestPass123!')
         r = self.client.get(reverse('api_search_suggest'), {'q': 'Laptop', 'scope': 'seller'})
         self.assertEqual(r.status_code, 200)
@@ -61,6 +66,7 @@ class TestAiSearchSuggest(TestCase):
 @override_settings(AXES_ENABLED=False, REQUIRE_EMAIL_VERIFICATION=False)
 class TestSellerExports(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='Export Co', ruc='777', is_verified=True)
         self.seller = User.objects.create_user(
             username='export_seller',
@@ -80,6 +86,7 @@ class TestSellerExports(TestCase):
         )
 
     def test_export_productos_csv(self):
+        """Test export productos csv."""
         self.client.login(username='export_seller', password='TestPass123!')
         r = self.client.get(reverse('seller_export_productos_csv'))
         self.assertEqual(r.status_code, 200)

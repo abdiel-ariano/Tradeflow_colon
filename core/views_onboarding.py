@@ -162,6 +162,7 @@ def onboarding_solicitud_requerida(request):
 
 @login_required
 def onboarding_aplicacion_rechazada(request):
+    """Onboarding aplicacion rechazada."""
     bypass = _redirect_active_verified_user(request)
     if bypass:
         return bypass

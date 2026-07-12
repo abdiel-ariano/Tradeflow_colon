@@ -10,6 +10,7 @@ from core.utils.admin_permissions import sync_user_admin_access
 
 class AdminPermissionsTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.factory = RequestFactory()
         self.admin_user = User.objects.create_user(
             'tf_admin',
@@ -22,6 +23,7 @@ class AdminPermissionsTests(TestCase):
         self.company = Company.objects.create(name='Perm Co')
 
     def test_company_change_permission_for_tradeflow_admin(self):
+        """Test company change permission for tradeflow admin."""
         request = self.factory.get('/admin/core/company/1/change/')
         request.user = self.admin_user
         ma = CompanyAdmin(Company, admin.site)
@@ -29,6 +31,7 @@ class AdminPermissionsTests(TestCase):
         self.assertTrue(ma.has_view_permission(request, self.company))
 
     def test_staff_without_role_denied(self):
+        """Test staff without role denied."""
         user = User.objects.create_user('staff_only', password='x', is_staff=True)
         request = self.factory.get('/admin/')
         request.user = user

@@ -16,6 +16,7 @@ from core.models import Category, Company, Inventory, Product, UserProfile
 )
 class ProductCardUnifiedTests(TestCase):
     def setUp(self):
+        """Setup."""
         from django.core.cache import cache
         cache.clear()
         self.company = Company.objects.create(
@@ -65,6 +66,7 @@ class ProductCardUnifiedTests(TestCase):
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
     def test_guest_can_open_public_product_detail(self):
+        """Test guest can open public product detail."""
         response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Unified Widget')
@@ -77,11 +79,13 @@ class ProductCardUnifiedTests(TestCase):
         self.assertContains(response, 'Related products')
 
     def test_guest_breadcrumb_shows_category(self):
+        """Test guest breadcrumb shows category."""
         response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
         self.assertContains(response, 'Home')
         self.assertContains(response, 'Electronics')
 
     def test_home_uses_catalog_marketplace_cards(self):
+        """Test home uses catalog marketplace cards."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'hm-alibaba')
@@ -92,6 +96,7 @@ class ProductCardUnifiedTests(TestCase):
         self.assertNotContains(response, 'class="tf-pcard ')
 
     def test_buyer_product_detail_has_cart_actions(self):
+        """Test buyer product detail has cart actions."""
         self.client.force_login(self.buyer)
         response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
         self.assertEqual(response.status_code, 200)

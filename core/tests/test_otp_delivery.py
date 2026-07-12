@@ -15,6 +15,7 @@ from core.utils.otp_delivery import ensure_otp_sent, has_valid_otp
 )
 class OtpDeliveryTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.user = User.objects.create_user(
             username='otp_delivery_user',
             email='otp_delivery@test.pa',
@@ -25,6 +26,7 @@ class OtpDeliveryTests(TestCase):
 
     @patch('core.utils.otp_delivery.enviar_codigo_verificacion')
     def test_ensure_otp_sent_generates_and_sends(self, mock_send):
+        """Test ensure otp sent generates and sends."""
         from core.email_service import EmailSendResult
 
         mock_send.return_value = EmailSendResult(ok=True, channel='resend')
@@ -41,6 +43,7 @@ class OtpDeliveryTests(TestCase):
 
     @patch('core.utils.otp_delivery.enviar_codigo_verificacion')
     def test_ensure_otp_sent_reuses_valid_code(self, mock_send):
+        """Test ensure otp sent reuses valid code."""
         from core.utils.otp_handler import generate_user_otp
 
         generate_user_otp(self.user)

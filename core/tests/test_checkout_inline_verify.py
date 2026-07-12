@@ -28,6 +28,7 @@ from core.models import (
 )
 class CheckoutInlineVerifyTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='Co ZLC', ruc='999', is_verified=True)
         self.carrier = TransportCarrier.objects.create(
             code='inline-carrier',
@@ -69,6 +70,7 @@ class CheckoutInlineVerifyTests(TestCase):
         session.save()
 
     def test_checkout_get_renders_inline_verify_without_redirect(self):
+        """Test checkout get renders inline verify without redirect."""
         resp = self.client.get('/checkout/')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Verify your email')
@@ -76,6 +78,7 @@ class CheckoutInlineVerifyTests(TestCase):
 
     @patch('core.email_service._send_via_resend')
     def test_checkout_get_auto_sends_otp(self, mock_resend):
+        """Test checkout get auto sends otp."""
         from core.email_service import EmailSendResult
 
         mock_resend.return_value = EmailSendResult(ok=True, channel='resend', detail='test-id')
@@ -86,6 +89,7 @@ class CheckoutInlineVerifyTests(TestCase):
 
     @patch('core.email_service._send_via_resend')
     def test_verify_page_get_auto_sends_otp(self, mock_resend):
+        """Test verify page get auto sends otp."""
         from core.email_service import EmailSendResult
 
         mock_resend.return_value = EmailSendResult(ok=True, channel='resend', detail='test-id')
@@ -95,6 +99,7 @@ class CheckoutInlineVerifyTests(TestCase):
         mock_resend.assert_called_once()
 
     def test_checkout_post_still_requires_verification(self):
+        """Test checkout post still requires verification."""
         resp = self.client.post(
             '/checkout/',
             {

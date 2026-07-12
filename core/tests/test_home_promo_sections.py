@@ -16,6 +16,7 @@ from core.models import Category, Company, HomePromoSection, Product
 )
 class HomePromoSectionHelpersTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='ZLC Demo', is_verified=True)
         self.category = Category.objects.create(name='Electronics')
         self.products = []
@@ -34,6 +35,7 @@ class HomePromoSectionHelpersTests(TestCase):
             )
 
     def test_active_home_section_types(self):
+        """Test active home section types."""
         HomePromoSection.objects.create(
             slug='test-deals',
             section_type='daily_deals',
@@ -44,6 +46,7 @@ class HomePromoSectionHelpersTests(TestCase):
         self.assertIn('daily_deals', types)
 
     def test_resolve_section_products_manual_override(self):
+        """Test resolve section products manual override."""
         section = HomePromoSection.objects.create(
             slug='manual-row',
             section_type='product_row',
@@ -57,6 +60,7 @@ class HomePromoSectionHelpersTests(TestCase):
         self.assertEqual(resolved[0].pk, self.products[0].pk)
 
     def test_resolve_section_products_bestsellers_fallback(self):
+        """Test resolve section products bestsellers fallback."""
         section = HomePromoSection.objects.create(
             slug='auto-best',
             section_type='bestsellers',
@@ -75,6 +79,7 @@ class HomePromoSectionHelpersTests(TestCase):
 )
 class HomePromoRenderingTests(TestCase):
     def setUp(self):
+        """Setup."""
         from django.core.cache import cache
         cache.clear()
         now = timezone.now()
@@ -133,6 +138,7 @@ class HomePromoRenderingTests(TestCase):
         ])
 
     def test_home_renders_shopify_landing_with_product_grid(self):
+        """Test home renders shopify landing with product grid."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         content = response.content.decode()
@@ -142,14 +148,17 @@ class HomePromoRenderingTests(TestCase):
         self.assertIn('Trending in the Free Zone', content)
 
     def test_home_hides_fallback_deals_when_cms_has_daily_deals(self):
+        """Test home hides fallback deals when cms has daily deals."""
         response = self.client.get('/')
         self.assertFalse(response.context['show_daily_deals_strip'])
 
     def test_home_hides_fallback_bestsellers_when_cms_has_bestsellers(self):
+        """Test home hides fallback bestsellers when cms has bestsellers."""
         response = self.client.get('/')
         self.assertFalse(response.context['show_bestsellers_section'])
 
     def test_home_shows_fallback_bestsellers_without_cms(self):
+        """Test home shows fallback bestsellers without cms."""
         from django.core.cache import cache
         HomePromoSection.objects.all().delete()
         cache.clear()
@@ -168,6 +177,7 @@ class HomePromoRenderingTests(TestCase):
         self.assertTrue(response.context['show_bestsellers_section'])
 
     def test_home_shopify_not_legacy_marketing_hero(self):
+        """Test home shopify not legacy marketing hero."""
         response = self.client.get('/')
         self.assertContains(response, 'sh-hero')
         self.assertNotContains(response, 'id="hm-hero"')

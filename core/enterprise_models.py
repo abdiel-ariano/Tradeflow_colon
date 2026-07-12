@@ -46,6 +46,7 @@ class SaasPlan(models.Model):
 
     @property
     def is_unlimited(self) -> bool:
+        """Is unlimited."""
         return self.monthly_volume_limit_usd is None
 
 

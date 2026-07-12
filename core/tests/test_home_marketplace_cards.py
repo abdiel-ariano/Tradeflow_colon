@@ -13,6 +13,7 @@ from core.models import Category, Company, Product
 )
 class HomeMarketplaceCardsTests(TestCase):
     def setUp(self):
+        """Setup."""
         from django.core.cache import cache
         cache.clear()
         self.company = Company.objects.create(name='CFZ Trading', is_verified=True)
@@ -32,6 +33,7 @@ class HomeMarketplaceCardsTests(TestCase):
             )
 
     def test_home_is_shopify_landing_layout(self):
+        """Test home is shopify landing layout."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
@@ -49,6 +51,7 @@ class HomeMarketplaceCardsTests(TestCase):
         self.assertNotContains(response, 'picsum.photos')
 
     def test_home_has_shopify_sections_and_catalog(self):
+        """Test home has shopify sections and catalog."""
         response = self.client.get('/')
         self.assertContains(response, 'hm-shopify')
         self.assertContains(response, 'sh-rfq')
@@ -58,6 +61,7 @@ class HomeMarketplaceCardsTests(TestCase):
         self.assertContains(response, 'Create account')
 
     def test_home_uses_catalog_seed_photos_not_svg_icons(self):
+        """Test home uses catalog seed photos not svg icons."""
         response = self.client.get('/')
         html = response.content.decode()
         self.assertTrue(
@@ -65,16 +69,19 @@ class HomeMarketplaceCardsTests(TestCase):
         )
 
     def test_home_has_no_infinite_shimmer_overlays(self):
+        """Test home has no infinite shimmer overlays."""
         response = self.client.get('/')
         self.assertNotContains(response, 'hm-media__shimmer')
         self.assertContains(response, 'tf-home-marketplace.js')
 
     def test_home_passes_sidebar_categories(self):
+        """Test home passes sidebar categories."""
         response = self.client.get('/')
         categories = response.context.get('sidebar_categories', [])
         self.assertGreaterEqual(len(categories), 1)
 
     def test_about_tradeflow_page(self):
+        """Test about tradeflow page."""
         response = self.client.get('/acerca/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'About TradeFlow Colón')

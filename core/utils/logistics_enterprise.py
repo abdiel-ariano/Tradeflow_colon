@@ -20,6 +20,7 @@ log = logging.getLogger(__name__)
 
 
 def record_logistics_event(order: Order, event_type: str, label: str = '', payload=None, source='system'):
+    """Record logistics event."""
     return LogisticsEvent.objects.create(
         order=order,
         event_type=event_type,
@@ -30,10 +31,12 @@ def record_logistics_event(order: Order, event_type: str, label: str = '', paylo
 
 
 def sign_payload(secret: str, body: bytes) -> str:
+    """Sign payload."""
     return hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
 
 
 def build_dispatch_payload(order: Order, company) -> dict:
+    """Build dispatch payload."""
     shipment = getattr(order, 'shipment', None)
     lines = list(
         order.items.filter(product__company=company).select_related('product')[:50]
@@ -63,6 +66,7 @@ def build_dispatch_payload(order: Order, company) -> dict:
 
 
 def enqueue_dispatch(order: Order, company, actor_user=None) -> LogisticsDispatchQueue:
+    """Enqueue dispatch."""
     payload = build_dispatch_payload(order, company)
     body = json.dumps(payload, default=str).encode()
     webhook = (

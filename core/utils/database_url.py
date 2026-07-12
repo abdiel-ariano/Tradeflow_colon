@@ -31,6 +31,7 @@ def _clean_env(value: str) -> str:
 
 
 def infer_supabase_project_ref() -> str | None:
+    """Infer supabase project ref."""
     explicit = _clean_env(os.environ.get('SUPABASE_PROJECT_REF', ''))
     if explicit:
         return explicit
@@ -52,6 +53,7 @@ def _pooler_username(user: str, project_ref: str | None) -> str:
 
 
 def build_database_url_from_components() -> str:
+    """Build database url from components."""
     host = _clean_env(os.environ.get('SUPABASE_DB_HOST', ''))
     password = _clean_env(os.environ.get('SUPABASE_DB_PASSWORD', ''))
     if not host or not password:

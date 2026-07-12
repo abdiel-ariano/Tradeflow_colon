@@ -19,6 +19,7 @@ class Command(BaseCommand):
     help = 'Recalcula bestsellers (30 días) y limpia promociones vencidas.'
 
     def handle(self, *args, **options):
+        """Handle."""
         now = timezone.now()
         since = now - timedelta(days=30)
 

@@ -90,6 +90,7 @@ def buyer_onboarding_step1(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def buyer_onboarding_step1_post(request: HttpRequest) -> HttpResponse:
+    """Buyer onboarding step1 post."""
     profile = _get_buyer_profile(request.user)
     if not profile or not buyer_onboarding_pending(request.user):
         return redirect('catalogo_publico')
@@ -140,6 +141,7 @@ def buyer_onboarding_step2(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def buyer_onboarding_step2_post(request: HttpRequest) -> HttpResponse:
+    """Buyer onboarding step2 post."""
     profile = _get_buyer_profile(request.user)
     if not profile or not buyer_onboarding_pending(request.user):
         return redirect('catalogo_publico')

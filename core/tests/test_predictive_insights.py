@@ -18,6 +18,7 @@ from core.utils.saas_billing import ensure_default_plans, get_or_create_subscrip
 )
 class TestPredictiveInsightsAccess(TestCase):
     def setUp(self):
+        """Setup."""
         ensure_default_plans()
         self.client = Client()
         self.user = User.objects.create_user('ent_seller', 'ent@test.pa', 'pass')
@@ -31,12 +32,14 @@ class TestPredictiveInsightsAccess(TestCase):
         self.client.login(username='ent_seller', password='pass')
 
     def test_non_enterprise_sees_upgrade_page(self):
+        """Test non enterprise sees upgrade page."""
         get_or_create_subscription(self.company)
         resp = self.client.get(reverse('seller_predictive_insights'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Enterprise ecosystem')
 
     def test_enterprise_sees_insights_panel(self):
+        """Test enterprise sees insights panel."""
         sub = get_or_create_subscription(self.company)
         sub.plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
         sub.save(update_fields=['plan'])

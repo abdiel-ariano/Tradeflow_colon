@@ -1,6 +1,21 @@
 """
 =============================================================================
-TRADEFLOW COLÓN — core/urls.py  (v4 — Roles + Signup)
+TRADEFLOW COLÓN — core/urls.py
+=============================================================================
+App URL table mounted under ``i18n_patterns`` (see tradeflow_colon/urls.py).
+
+Groups (in file order):
+  - Legal / marketing pages
+  - Auth, signup, OAuth, password reset
+  - Email OTP verification
+  - Admin dashboard, orders wizard, products, companies
+  - Seller portal (/mi-tienda/…)
+  - Buyer catalog, cart, checkout, RFQ
+  - JSON APIs (/api/…)
+  - Enterprise API (/api/v1/…) via views_api_enterprise
+  - Transport carriers, onboarding wizards
+
+Name every ``path()`` — templates and emails depend on reverse().
 =============================================================================
 """
 from django.contrib.auth import views as auth_views

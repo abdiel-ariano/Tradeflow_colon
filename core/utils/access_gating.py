@@ -62,6 +62,7 @@ BROWSE_PATH_PREFIXES = (
 
 
 def normalize_path(path: str) -> str:
+    """Normalize path."""
     p = path or '/'
     if p.startswith('/en/'):
         return p[3:] or '/'
@@ -71,6 +72,7 @@ def normalize_path(path: str) -> str:
 
 
 def is_public_path(path: str) -> bool:
+    """Is public path."""
     p = normalize_path(path)
     if p in ('/', ''):
         return True
@@ -78,11 +80,13 @@ def is_public_path(path: str) -> bool:
 
 
 def is_protected_path(path: str) -> bool:
+    """Is protected path."""
     p = normalize_path(path)
     return any(p.startswith(pref) for pref in PROTECTED_PATH_PREFIXES)
 
 
 def user_is_platform_exempt(user) -> bool:
+    """User is platform exempt."""
     if not user or not user.is_authenticated:
         return True
     if user.is_superuser or user.is_staff:
@@ -96,6 +100,7 @@ def user_is_platform_exempt(user) -> bool:
 
 
 def latest_application_for_email(email: str) -> UserApplication | None:
+    """Latest application for email."""
     if not email:
         return None
     return (
@@ -155,11 +160,13 @@ def email_verification_required(user) -> bool:
 
 
 def is_protected_path(path: str) -> bool:
+    """Is protected path."""
     p = normalize_path(path)
     return any(p.startswith(pref) for pref in PROTECTED_PATH_PREFIXES)
 
 
 def is_browse_path(path: str) -> bool:
+    """Is browse path."""
     p = normalize_path(path)
     if p in ('/', ''):
         return True

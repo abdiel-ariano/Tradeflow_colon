@@ -1,0 +1,3 @@
+"""
+Django management command:   init  .
+"""

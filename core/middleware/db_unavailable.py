@@ -11,6 +11,7 @@ class DatabaseUnavailableMiddleware(MiddlewareMixin):
     """Catch DB connection errors and show a maintenance response."""
 
     def process_exception(self, request, exception):
+        """Process exception."""
         if not isinstance(exception, (OperationalError, DatabaseError)):
             return None
         message = str(exception).lower()

@@ -1,3 +1,6 @@
+"""
+Django template tags/filters — tf_brand.
+"""
 from django import template
 
 register = template.Library()
@@ -15,6 +18,7 @@ AVATAR_COLORS = (
 
 @register.filter
 def company_avatar_color(company) -> str:
+    """Company avatar color."""
     if not company or not getattr(company, 'pk', None):
         return AVATAR_COLORS[0]
     return AVATAR_COLORS[company.pk % len(AVATAR_COLORS)]

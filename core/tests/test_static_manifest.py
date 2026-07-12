@@ -15,12 +15,14 @@ MANIFEST_STORAGES = {
 @override_settings(DEBUG=False, STORAGES=MANIFEST_STORAGES)
 class LoginCssManifestTest(SimpleTestCase):
     def test_login_css_url_has_content_hash_in_filename(self):
+        """Test login css url has content hash in filename."""
         url = staticfiles_storage.url('css/login.css')
         self.assertIn('login.', url)
         self.assertTrue(url.endswith('.css'), url)
         self.assertNotEqual(url, '/static/css/login.css')
 
     def test_login_template_uses_manifest_static_url(self):
+        """Test login template uses manifest static url."""
         rendered = Template(
             '{% load static %}'
             '<link rel="stylesheet" href="{% static \'css/login.css\' %}">'

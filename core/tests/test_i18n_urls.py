@@ -9,15 +9,19 @@ from core.utils.i18n_urls import tf_translate_url
 @override_settings(LANGUAGE_CODE='en')
 class TfTranslateUrlTests(TestCase):
     def test_es_home_to_english(self):
+        """Test es home to english."""
         self.assertEqual(tf_translate_url('/es/', 'en'), '/')
 
     def test_es_catalog_to_english(self):
+        """Test es catalog to english."""
         self.assertEqual(tf_translate_url('/es/catalogo/', 'en'), '/catalogo/')
 
     def test_english_catalog_to_spanish(self):
+        """Test english catalog to spanish."""
         self.assertEqual(tf_translate_url('/catalogo/', 'es'), '/es/catalogo/')
 
     def test_preserves_querystring(self):
+        """Test preserves querystring."""
         url = tf_translate_url('/es/catalogo/?buscar=hub', 'en')
         self.assertEqual(url, '/catalogo/?buscar=hub')
 
@@ -25,12 +29,14 @@ class TfTranslateUrlTests(TestCase):
 @override_settings(LANGUAGE_CODE='en')
 class TfLanguageMiddlewareTests(TestCase):
     def test_default_language_strips_es_prefix_without_cookie(self):
+        """Test default language strips es prefix without cookie."""
         self.assertEqual(translation.get_language_from_path('/es/'), 'es')
         response = self.client.get('/es/', follow=False)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/')
 
     def test_prefixed_url_redirects_when_cookie_is_default_language(self):
+        """Test prefixed url redirects when cookie is default language."""
         self.client.post(
             reverse('set_language'),
             {'language': 'en', 'next': '/'},
@@ -41,6 +47,7 @@ class TfLanguageMiddlewareTests(TestCase):
         self.assertEqual(response.url, '/')
 
     def test_prefixed_catalog_redirects_when_cookie_is_default_language(self):
+        """Test prefixed catalog redirects when cookie is default language."""
         self.client.post(
             reverse('set_language'),
             {'language': 'en', 'next': '/catalogo/'},
@@ -50,6 +57,7 @@ class TfLanguageMiddlewareTests(TestCase):
         self.assertEqual(response.url, '/catalogo/')
 
     def test_set_language_en_from_es_home(self):
+        """Test set language en from es home."""
         self.client.cookies['django_language'] = 'es'
         response = self.client.post(
             reverse('set_language'),

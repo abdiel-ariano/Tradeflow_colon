@@ -21,4 +21,5 @@ def logo_static_path(filename: str) -> Path:
 
 
 def logo_icon_color_path() -> Path:
+    """Logo icon color path."""
     return logo_static_path(LOGO_ICON_COLOR)

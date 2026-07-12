@@ -7,6 +7,7 @@ from core.models import Order, OrderItem
 
 @receiver(post_save, sender=OrderItem)
 def refresh_billing_on_order_item(sender, instance, **kwargs):
+    """Refresh billing on order item."""
     if instance.order.status == 'cancelled':
         return
     try:
@@ -19,6 +20,7 @@ def refresh_billing_on_order_item(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Order)
 def refresh_billing_on_order_status(sender, instance, **kwargs):
+    """Refresh billing on order status."""
     if instance.status == 'cancelled':
         return
     try:

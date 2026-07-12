@@ -1,3 +1,7 @@
+/**
+ * TradeFlow Colón — carrito page
+ * Client script: static/js/carrito_page.js
+ */
 (function () {
   document.querySelectorAll('[data-cart-qty-input]').forEach(function (input) {
     var form = input.closest('form');
