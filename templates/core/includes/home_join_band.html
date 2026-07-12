@@ -1,13 +1,14 @@
+{% load i18n %}
 {% comment %}Home conversion band — join buyers sourcing from the Free Zone.{% endcomment %}
 <section class="hm-join-band" aria-labelledby="hm-join-title">
   <div class="hm-join-band__inner">
     <div class="hm-join-band__copy">
-      <h2 class="hm-join-band__title" id="hm-join-title">Join buyers across the Americas</h2>
-      <p class="hm-join-band__text">Create a free account to save inquiry carts, track quotes, and checkout with export documentation — no subscription required to browse.</p>
+      <h2 class="hm-join-band__title" id="hm-join-title">{% trans "Join buyers across the Americas" %}</h2>
+      <p class="hm-join-band__text">{% trans "Create a free account to save inquiry carts, track quotes, and checkout with export documentation — no subscription required to browse." %}</p>
     </div>
     <div class="hm-join-band__actions">
-      <a href="{% url 'signup_buyer' %}" class="hm-join-band__btn hm-join-band__btn--primary">Get started free</a>
-      <a href="{% url 'acerca_tradeflow' %}" class="hm-join-band__btn hm-join-band__btn--ghost">Why TradeFlow</a>
+      <a href="{% url 'signup_buyer' %}" class="hm-join-band__btn hm-join-band__btn--primary">{% trans "Get started free" %}</a>
+      <a href="{% url 'acerca_tradeflow' %}" class="hm-join-band__btn hm-join-band__btn--ghost">{% trans "Why TradeFlow" %}</a>
     </div>
   </div>
 </section>

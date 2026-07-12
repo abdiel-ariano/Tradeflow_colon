@@ -156,9 +156,9 @@ def cached_catalog_empresas() -> list:
 def cached_guest_home_context(lang: str | None = None) -> dict[str, Any]:
     from core import merchandising as merch
 
-    lang_code = (lang or get_language() or 'es')[:2]
+    lang_code = (lang or get_language() or settings.LANGUAGE_CODE)[:2]
     if lang_code not in _SUPPORTED_LANGS:
-        lang_code = 'es'
+        lang_code = settings.LANGUAGE_CODE[:2]
 
     return get_or_set(
         HOME_CTX_KEY.format(lang=lang_code),

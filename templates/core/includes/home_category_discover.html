@@ -1,10 +1,11 @@
+{% load i18n %}
 {% comment %}Circular category row + View all (opens categories modal).{% endcomment %}
 {% if category_discover %}
 <section class="hm-cat-discover" aria-labelledby="hm-cat-discover-title">
   <div class="hm-cat-discover__inner">
     <div class="hm-cat-discover__head">
-      <h2 class="hm-cat-discover__title" id="hm-cat-discover-title">{{ category_discover_title|default:"Categories for you" }}</h2>
-      <button type="button" class="hm-cat-discover__view-all" data-cat-modal-open data-cat-panel="discover">View all</button>
+      <h2 class="hm-cat-discover__title" id="hm-cat-discover-title">{% trans "Categories for you" %}</h2>
+      <button type="button" class="hm-cat-discover__view-all" data-cat-modal-open data-cat-panel="discover">{% trans "View all" %}</button>
     </div>
     <div class="hm-cat-discover__rail">
       {% for item in category_discover %}

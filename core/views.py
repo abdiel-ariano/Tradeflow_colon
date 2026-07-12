@@ -846,9 +846,10 @@ def home_view(request):
         if role == 'seller':
             return redirect('portal_seller')
 
+    from django.utils.translation import get_language
     from core.utils.tradeflow_cache import cached_guest_home_context
 
-    context = cached_guest_home_context()
+    context = cached_guest_home_context(get_language())
     context['show_cart_actions'] = True
     stats = context.get('stats') or {}
     context['catalogo_stats'] = stats
