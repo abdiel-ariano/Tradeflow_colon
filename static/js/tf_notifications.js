@@ -1,21 +1,56 @@
 /**
- * TradeFlow — toasts y flashes unificados (3s estándar, 5s crítico, fade 200ms).
+ * TradeFlow — toasts y flashes unificados (SVG icons, snackbar para carrito).
  */
 (function () {
   'use strict';
 
-  var DURATION = 4500;
+  var DURATION = 4000;
+  var CART_DURATION = 2400;
   var CRITICAL_DURATION = 5000;
   var FADE_MS = 200;
 
-  function iconFor(level) {
+  var SVG_ICONS = {
+    success:
+      '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">' +
+      '<path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1.2 14.2-4.2-4.2 1.4-1.4 2.8 2.8 5.8-5.8 1.4 1.4Z"/></svg>',
+    error:
+      '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">' +
+      '<path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 5v6h-2V7Zm0 8v2h-2v-2Z"/></svg>',
+    warning:
+      '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">' +
+      '<path fill="currentColor" d="M12 2 1 21h22L12 2Zm1 15h-2v-2h2Zm0-4h-2V9h2Z"/></svg>',
+    info:
+      '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">' +
+      '<path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 15h-2v-6h2Zm0-8h-2V7h2Z"/></svg>',
+    close:
+      '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">' +
+      '<path fill="currentColor" d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12l-4.89 4.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4Z"/></svg>',
+  };
+
+  function iconSvg(level) {
+    if (level === 'success') return SVG_ICONS.success;
+    if (level === 'error' || level === 'danger') return SVG_ICONS.error;
+    if (level === 'warning') return SVG_ICONS.warning;
+    return SVG_ICONS.info;
+  }
+
+  function iconForFlash(level) {
     if (level === 'success') return 'check_circle';
     if (level === 'error' || level === 'danger') return 'error';
     if (level === 'warning') return 'warning';
     return 'info';
   }
 
-  function dismissRow(row, root) {
+  function syncSnackbarRoot(root) {
+    if (!root) return;
+    if (root.querySelector('.tf-toast-compact')) {
+      root.classList.add('tf-toast-root--snackbar');
+    } else {
+      root.classList.remove('tf-toast-root--snackbar');
+    }
+  }
+
+  function dismissRow(row, root, opts) {
     if (!row || row._tfClosing) return;
     row._tfClosing = true;
     row.style.transition = 'opacity ' + FADE_MS + 'ms ease, transform ' + FADE_MS + 'ms ease';
@@ -23,31 +58,28 @@
     row.style.opacity = '0';
     setTimeout(function () {
       if (row.parentNode) row.parentNode.removeChild(row);
+      syncSnackbarRoot(root);
+      if (opts && typeof opts.onDismiss === 'function') opts.onDismiss();
     }, FADE_MS + 20);
   }
 
   function bindDismiss(row, root, opts) {
     opts = opts || {};
     var critical = opts.critical;
-    var duration = critical ? CRITICAL_DURATION : DURATION;
+    var duration = opts.duration || (critical ? CRITICAL_DURATION : DURATION);
     var closeBtn = row.querySelector('.tf-toast-close, .tf-flash-close');
 
-    row.style.cursor = 'pointer';
     row.addEventListener('click', function (e) {
       if (e.target.closest('a, button, .tf-notif-dismiss-check')) return;
-      dismissRow(row, root);
+      dismissRow(row, root, opts);
     });
     if (closeBtn) {
       closeBtn.addEventListener('click', function (e) {
         e.stopPropagation();
-        dismissRow(row, root);
+        dismissRow(row, root, opts);
       });
     }
-    if (!critical) {
-      setTimeout(function () { dismissRow(row, root); }, duration);
-    } else {
-      setTimeout(function () { dismissRow(row, root); }, duration);
-    }
+    setTimeout(function () { dismissRow(row, root, opts); }, duration);
   }
 
   window.tfNotify = function (message, level, options) {
@@ -57,15 +89,15 @@
     var row = document.createElement('div');
     var lvl = level || 'success';
     var critical = lvl === 'error' || options.critical;
+    var isCart = options.variant === 'cart';
     row.className = 'tf-toast tf-toast-' + (critical ? 'error' : lvl);
     if (critical) row.classList.add('tf-toast-critical');
+    if (isCart) row.classList.add('tf-toast-compact');
     row.innerHTML =
-      '<span class="material-symbols-rounded tf-toast-ico" aria-hidden="true">' +
-      iconFor(lvl) +
-      '</span>' +
+      '<span class="tf-toast-ico" aria-hidden="true">' + iconSvg(lvl) + '</span>' +
       '<span class="tf-toast-msg"></span>' +
       '<button type="button" class="tf-toast-close" aria-label="Close">' +
-      '<span class="material-symbols-rounded" style="font-size:18px;">close</span></button>';
+      SVG_ICONS.close + '</button>';
     row.querySelector('.tf-toast-msg').textContent = message;
     if (options.dismissKey) {
       var wrap = document.createElement('label');
@@ -84,11 +116,15 @@
       } catch (e) {}
     }
     root.appendChild(row);
+    syncSnackbarRoot(root);
     requestAnimationFrame(function () {
       row.classList.add('is-visible');
       row.style.opacity = '1';
     });
-    bindDismiss(row, root, { critical: critical });
+    bindDismiss(row, root, {
+      critical: critical,
+      duration: isCart ? CART_DURATION : (critical ? CRITICAL_DURATION : DURATION),
+    });
   };
 
   function initFlashes() {
@@ -97,8 +133,20 @@
     stack.querySelectorAll('.tf-flash').forEach(function (row) {
       var tags = (row.getAttribute('data-tf-tags') || '').toLowerCase();
       var ico = row.querySelector('.tf-flash-icon');
-      var lvl = tags.indexOf('error') !== -1 || tags.indexOf('danger') !== -1 ? 'error' : tags.indexOf('success') !== -1 ? 'success' : tags.indexOf('warning') !== -1 ? 'warning' : 'info';
-      if (ico) ico.textContent = iconFor(lvl);
+      var lvl = tags.indexOf('error') !== -1 || tags.indexOf('danger') !== -1
+        ? 'error'
+        : tags.indexOf('success') !== -1
+          ? 'success'
+          : tags.indexOf('warning') !== -1
+            ? 'warning'
+            : 'info';
+      if (ico) {
+        if (ico.classList.contains('material-symbols-rounded')) {
+          ico.textContent = iconForFlash(lvl);
+        } else {
+          ico.innerHTML = iconSvg(lvl);
+        }
+      }
       var critical = tags.indexOf('error') !== -1 || tags.indexOf('danger') !== -1;
       bindDismiss(row, stack, { critical: critical });
     });

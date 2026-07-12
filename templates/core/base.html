@@ -48,9 +48,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
-  {% if not request.resolver_match or request.resolver_match.url_name != 'home' %}
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block" rel="stylesheet">
-  {% endif %}
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
   <style nonce="{{ csp_nonce }}">
     /* ═══════════════════════════════════════════════════════════════════════════
        BLINDAJE — utilidades críticas (evita regresión de estilos)
@@ -1300,9 +1298,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           crossorigin="anonymous"></script>
   <script nonce="{{ csp_nonce }}">window.TF_STATIC_LOGO = "{% static 'img/logo-icon-color.png' %}";</script>
   <script src="{% static 'js/tf_animations.js' %}"></script>
-  <script src="{% static 'js/tf_notifications.js' %}"></script>
+  <script src="{% static 'js/tf_notifications.js' %}?v={{ tf_asset_version|default:'3' }}"></script>
   <script src="{% static 'js/tf-media-fallback.js' %}"></script>
-  <script src="{% static 'js/cart_ajax.js' %}"></script>
+  <script src="{% static 'js/cart_ajax.js' %}?v={{ tf_asset_version|default:'3' }}"></script>
   <style nonce="{{ csp_nonce }}">
     .tf-bot-card { font-size: 13px; line-height: 1.5; }
     .tf-bot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0F2A44; }

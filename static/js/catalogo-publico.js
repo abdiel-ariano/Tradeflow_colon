@@ -697,7 +697,11 @@
     applyFilters({ page: page, skipHistory: true, keepPage: true });
   });
 
-  function showToast(message) {
+  function showToast(message, level) {
+    if (window.tfNotify) {
+      window.tfNotify(message, level || 'success', { variant: 'cart' });
+      return;
+    }
     var toast = document.createElement('div');
     toast.className = 'inquiry-toast';
     toast.textContent = message;
@@ -708,7 +712,7 @@
     setTimeout(function () {
       toast.classList.remove('is-visible');
       setTimeout(function () { toast.remove(); }, 300);
-    }, 2500);
+    }, 2400);
   }
 
   function updateCartBadges(count) {
@@ -758,14 +762,14 @@
       .then(function (res) {
         var data = res.data || {};
         if (!res.ok || data.ok === false) {
-          showToast(data.message || I18N.catalogCartError || 'Could not add to inquiry cart');
+          showToast(data.message || I18N.catalogCartError || 'Could not add to cart', 'error');
           return;
         }
         updateCartBadges(data.carrito_count);
-        showToast(data.message || I18N.catalogAddedToCart || 'Added to inquiry cart');
+        showToast(data.message || I18N.catalogAddedToCart || 'Added to cart', 'success');
       })
       .catch(function () {
-        showToast(I18N.catalogNetworkError || 'Connection error — try again');
+        showToast(I18N.catalogNetworkError || 'Connection error — try again', 'error');
       })
       .finally(function () {
         if (btn) btn.disabled = false;
