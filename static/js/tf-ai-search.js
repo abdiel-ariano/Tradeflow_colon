@@ -7,6 +7,11 @@
   var DEBOUNCE_MS = 220;
   var MIN_CHARS = 1;
 
+  function i18n(key, fallback) {
+    var bag = global.TF_I18N || {};
+    return bag[key] || fallback;
+  }
+
   function getCookie(name) {
     var parts = document.cookie ? document.cookie.split(';') : [];
     for (var i = 0; i < parts.length; i += 1) {
@@ -20,15 +25,15 @@
 
   function groupLabel(type) {
     var map = {
-      product: 'Products',
-      category: 'Categories',
-      company: 'Companies',
-      order: 'Orders',
-      quote: 'Quotes',
-      customer: 'Customers',
-      action: 'Quick actions',
+      product: i18n('aiSearchProducts', 'Products'),
+      category: i18n('aiSearchCategories', 'Categories'),
+      company: i18n('aiSearchCompanies', 'Companies'),
+      order: i18n('aiSearchOrders', 'Orders'),
+      quote: i18n('aiSearchQuotes', 'Quotes'),
+      customer: i18n('aiSearchCustomers', 'Customers'),
+      action: i18n('aiSearchActions', 'Quick actions'),
     };
-    return map[type] || 'Suggestions';
+    return map[type] || i18n('aiSearchSuggestions', 'Suggestions');
   }
 
   function ensureWrap(input) {
@@ -53,13 +58,29 @@
     return panel;
   }
 
-  function renderPanel(panel, data, onPick) {
+  function openAssistantWithQuery(query) {
+    if (typeof global.TF_OPEN_ASSISTANT === 'function') {
+      global.TF_OPEN_ASSISTANT(query);
+      return;
+    }
+    var toggle = document.getElementById('tf-chat-toggle');
+    var input = document.getElementById('tf-chat-input');
+    if (toggle) toggle.click();
+    if (input && query) {
+      input.value = query;
+      input.focus();
+    }
+  }
+
+  function renderPanel(panel, data, onPick, query) {
     panel.innerHTML = '';
     var suggestions = (data && data.suggestions) || [];
     var related = (data && data.related) || [];
     var tip = data && data.tip;
+    var aiEnabled = data && data.ai_enabled !== false;
+    var q = (query || (data && data.query) || '').trim();
 
-    if (tip) {
+    if (tip && aiEnabled) {
       var tipEl = document.createElement('div');
       tipEl.className = 'tf-ai-search-tip';
       tipEl.innerHTML =
@@ -72,9 +93,9 @@
     if (!suggestions.length) {
       var empty = document.createElement('div');
       empty.className = 'tf-ai-search-empty';
-      empty.textContent = data && data.query
-        ? 'No suggestions — press Enter to search.'
-        : 'Start typing to see AI recommendations.';
+      empty.textContent = q
+        ? i18n('aiSearchEmpty', 'No suggestions — press Enter to search.')
+        : i18n('aiSearchStart', 'Start typing to see AI recommendations.');
       panel.appendChild(empty);
     } else {
       var groups = {};
@@ -127,6 +148,20 @@
       });
       panel.appendChild(rel);
     }
+
+    if (q.length >= 2) {
+      var ask = document.createElement('button');
+      ask.type = 'button';
+      ask.className = 'tf-ai-search-ask';
+      ask.innerHTML =
+        '<span class="material-symbols-rounded" aria-hidden="true">smart_toy</span>' +
+        '<span>' + i18n('aiSearchAskAbout', 'Ask AI about this search') + '</span>';
+      ask.addEventListener('mousedown', function (ev) {
+        ev.preventDefault();
+        openAssistantWithQuery(q);
+      });
+      panel.appendChild(ask);
+    }
   }
 
   function attach(input) {
@@ -157,7 +192,11 @@
       if (item._phrase) {
         input.value = item._phrase;
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.form && input.form.requestSubmit ? input.form.requestSubmit() : input.form && input.form.submit();
+        if (input.form && input.form.requestSubmit) {
+          input.form.requestSubmit();
+        } else if (input.form) {
+          input.form.submit();
+        }
         closePanel();
         return;
       }
@@ -194,9 +233,9 @@
         .then(function (data) {
           if (data && data._error) {
             var errMsg = data._error === 'rate_limit'
-              ? 'Too many searches — wait a moment and try again.'
-              : 'Suggestions unavailable — press Enter to search.';
-            renderPanel(panel, { suggestions: [], related: [], query: q, tip: null }, navigate);
+              ? i18n('aiSearchRateLimit', 'Too many searches — wait a moment and try again.')
+              : i18n('aiSearchUnavailable', 'Suggestions unavailable — press Enter to search.');
+            renderPanel(panel, { suggestions: [], related: [], query: q, tip: null }, navigate, q);
             var emptyEl = panel.querySelector('.tf-ai-search-empty');
             if (emptyEl) {
               emptyEl.textContent = errMsg;
@@ -204,15 +243,18 @@
             openPanel();
             return;
           }
-          renderPanel(panel, data, navigate);
+          renderPanel(panel, data, navigate, q);
           openPanel();
         })
         .catch(function (err) {
           if (err && err.name === 'AbortError') return;
-          renderPanel(panel, { suggestions: [], related: [], query: q }, navigate);
+          renderPanel(panel, { suggestions: [], related: [], query: q }, navigate, q);
           var emptyEl = panel.querySelector('.tf-ai-search-empty');
           if (emptyEl) {
-            emptyEl.textContent = 'Suggestions unavailable — press Enter to search.';
+            emptyEl.textContent = i18n(
+              'aiSearchUnavailable',
+              'Suggestions unavailable — press Enter to search.'
+            );
           }
           openPanel();
         });
@@ -235,7 +277,7 @@
     });
 
     input.addEventListener('keydown', function (ev) {
-      var items = panel.querySelectorAll('.tf-ai-search-item');
+      var items = panel.querySelectorAll('.tf-ai-search-item, .tf-ai-search-ask');
       if (!items.length) return;
       if (ev.key === 'ArrowDown') {
         ev.preventDefault();

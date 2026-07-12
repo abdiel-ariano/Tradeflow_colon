@@ -1663,6 +1663,16 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       });
     }
 
+    global.TF_OPEN_ASSISTANT = function (prefill) {
+      if (!tfChatOpen && toggle) toggleChat();
+      if (input && prefill) {
+        input.value = prefill;
+        input.focus();
+      } else if (input) {
+        input.focus();
+      }
+    };
+
   })();
   </script>
   <script nonce="{{ csp_nonce }}">

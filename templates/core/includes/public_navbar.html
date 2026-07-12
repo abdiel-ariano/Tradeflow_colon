@@ -11,7 +11,8 @@
       <form class="hm-nav__search" action="{% url 'catalogo_publico' %}" method="get" role="search">
         <label class="visually-hidden" for="hm-nav-search">Search</label>
         <input id="hm-nav-search" class="hm-nav__search-input" type="search" name="buscar"
-               placeholder="Search products, companies, categories..." autocomplete="off">
+               placeholder="{% trans 'Search products, companies, categories…' %}" autocomplete="off"
+               data-tf-ai-search="public">
         <button type="submit" class="hm-nav__search-btn" aria-label="Search">
           {% include "core/includes/tf_icon.html" with name="search" class="tf-icon--sm" %}
         </button>
@@ -61,6 +62,8 @@
     </div>
   </nav>
 </header>
+
+{% include "core/includes/tf_ai_search_assets.html" %}
 
 <script nonce="{{ csp_nonce }}">
 /* Pills row scrolls horizontally on mobile; no hamburger toggle required. */
