@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 18:41-0500\n"
+"POT-Creation-Date: 2026-07-11 19:12-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -139,19 +139,19 @@ msgstr "Procesando…"
 msgid "We will improve it. Email us at %(email)s"
 msgstr "Lo mejoraremos. Escríbenos a %(email)s"
 
-#: core/context_processors.py:100
+#: core/context_processors.py:100 templates/core/catalogo_publico.html:131
 msgid "Best match"
 msgstr "Mejor coincidencia"
 
-#: core/context_processors.py:101
+#: core/context_processors.py:101 templates/core/catalogo_publico.html:132
 msgid "Price: low to high"
 msgstr "Precio: menor a mayor"
 
-#: core/context_processors.py:102
+#: core/context_processors.py:102 templates/core/catalogo_publico.html:133
 msgid "Price: high to low"
 msgstr "Precio: mayor a menor"
 
-#: core/context_processors.py:103
+#: core/context_processors.py:103 templates/core/catalogo_publico.html:134
 msgid "Newest"
 msgstr "Más recientes"
 
@@ -885,6 +885,7 @@ msgid "Quick filters"
 msgstr "Filtros rápidos"
 
 #: templates/core/catalogo_publico.html:86
+#: templates/core/includes/marketplace_public_navbar.html:123
 msgid "All categories"
 msgstr "Todas las categorías"
 
@@ -912,6 +913,29 @@ msgstr "Precio máximo"
 msgid "Clear"
 msgstr "Limpiar"
 
+#: templates/core/catalogo_publico.html:125
+msgid "wholesale products"
+msgstr "productos mayoristas"
+
+#: templates/core/catalogo_publico.html:126
+#, python-format
+msgid "for “%(term)s”"
+msgstr "para “%(term)s”"
+
+#: templates/core/catalogo_publico.html:129
+msgid "Sort by"
+msgstr "Ordenar por"
+
+#: templates/core/catalogo_publico.html:130
+#, fuzzy
+#| msgid "Refine results"
+msgid "Sort results"
+msgstr "Refinar resultados"
+
+#: templates/core/catalogo_publico.html:142
+msgid "Category navigation"
+msgstr "Navegación por categorías"
+
 #: templates/core/catalogo_publico.html:143
 msgid "Close categories"
 msgstr "Cerrar categorías"
@@ -925,6 +949,7 @@ msgid "All"
 msgstr "Todas"
 
 #: templates/core/includes/catalogo_card.html:21
+#: templates/core/includes/marketplace_public_navbar.html:17
 msgid "Search by image"
 msgstr ""
 
@@ -960,27 +985,185 @@ msgstr ""
 msgid "Add to inquiry"
 msgstr ""
 
+#: templates/core/includes/catalogo_publico_results.html:7
+#, fuzzy
+#| msgid "Refine results"
+msgid "Featured results"
+msgstr "Refinar resultados"
+
+#: templates/core/includes/catalogo_publico_results.html:14
+#, fuzzy
+#| msgid "Refine results"
+msgid "More results"
+msgstr "Refinar resultados"
+
+#: templates/core/includes/catalogo_publico_results.html:24
+#, fuzzy
+#| msgid "Catalog categories"
+msgid "Catalog pagination"
+msgstr "Categorías del catálogo"
+
+#: templates/core/includes/catalogo_publico_results.html:27
+msgid "Previous page"
+msgstr "Página anterior"
+
+#: templates/core/includes/catalogo_publico_results.html:27
+#: templates/core/includes/catalogo_publico_results.html:29
+msgid "Prev"
+msgstr "Ant."
+
+#: templates/core/includes/catalogo_publico_results.html:44
+msgid "Next page"
+msgstr "Página siguiente"
+
+#: templates/core/includes/catalogo_publico_results.html:44
+#: templates/core/includes/catalogo_publico_results.html:46
+msgid "Next"
+msgstr "Sig."
+
+#: templates/core/includes/catalogo_publico_results.html:54
+#, python-format
+msgid "No products found for “%(term)s”"
+msgstr "No se encontraron productos para “%(term)s”"
+
+#: templates/core/includes/catalogo_publico_results.html:54
+msgid "No products found"
+msgstr "No se encontraron productos"
+
+#: templates/core/includes/catalogo_publico_results.html:55
+msgid "Try these terms or adjust your filters:"
+msgstr "Prueba estos términos o ajusta tus filtros:"
+
+#: templates/core/includes/catalogo_publico_results.html:62
+msgid "View full catalog"
+msgstr "Ver catálogo completo"
+
+#: templates/core/includes/marketplace_public_navbar.html:14
+msgid "Search catalog"
+msgstr "Buscar en el catálogo"
+
+#: templates/core/includes/marketplace_public_navbar.html:16
+#, python-format
+msgid "Search %(count)s CFZ products…"
+msgstr "Buscar %(count)s productos de la ZLC…"
+
+#: templates/core/includes/marketplace_public_navbar.html:27
+#, fuzzy
+#| msgid "Search:"
+msgid "Search"
+msgstr "Búsqueda:"
+
+#: templates/core/includes/marketplace_public_navbar.html:32
+msgid "Open menu"
+msgstr "Abrir menú"
+
+#: templates/core/includes/marketplace_public_navbar.html:39
+#, fuzzy
+#| msgid "Delivered"
+msgid "Delivery region"
+msgstr "Entregado"
+
+#: templates/core/includes/marketplace_public_navbar.html:39
+msgid "Deliver to Panama"
+msgstr "Entregar en Panamá"
+
+#: templates/core/includes/marketplace_public_navbar.html:42
+#, fuzzy
+#| msgid "Delivered"
+msgid "Deliver to:"
+msgstr "Entregado"
+
 #: templates/core/includes/marketplace_public_navbar.html:47
 msgid "Language and currency"
 msgstr "Idioma y moneda"
 
 #: templates/core/includes/marketplace_public_navbar.html:51
+#: templates/core/includes/public_navbar.html:30
 msgid "Language"
 msgstr "Idioma"
+
+#: templates/core/includes/marketplace_public_navbar.html:70
+#: templates/core/includes/marketplace_public_navbar.html:82
+msgid "Messages"
+msgstr "Mensajes"
+
+#: templates/core/includes/marketplace_public_navbar.html:76
+#: templates/core/includes/marketplace_public_navbar.html:88
+#, fuzzy
+#| msgid "Orders, payments, and disputes"
+msgid "Orders and lists"
+msgstr "Pedidos, pagos y disputas"
+
+#: templates/core/includes/marketplace_public_navbar.html:95
+#, fuzzy
+#| msgid "Added to inquiry cart"
+msgid "Inquiry cart"
+msgstr "Agregado al carrito de consultas"
+
+#: templates/core/includes/marketplace_public_navbar.html:104
+msgid "My account"
+msgstr "Mi cuenta"
+
+#: templates/core/includes/marketplace_public_navbar.html:109
+#: templates/core/includes/marketplace_public_navbar.html:113
+msgid "Sign in"
+msgstr "Iniciar sesión"
+
+#: templates/core/includes/marketplace_public_navbar.html:115
+msgid "Create account"
+msgstr "Crear cuenta"
+
+#: templates/core/includes/marketplace_public_navbar.html:120
+msgid "Marketplace shortcuts"
+msgstr "Accesos del marketplace"
+
+#: templates/core/includes/marketplace_public_navbar.html:124
+msgid "Home"
+msgstr "Inicio"
+
+#: templates/core/includes/marketplace_public_navbar.html:125
+msgid "Catalog"
+msgstr "Catálogo"
+
+#: templates/core/includes/marketplace_public_navbar.html:126
+msgid "Deals"
+msgstr "Ofertas"
+
+#: templates/core/includes/marketplace_public_navbar.html:127
+#, fuzzy
+#| msgid "All suppliers"
+msgid "Verified suppliers"
+msgstr "Todos los proveedores"
+
+#: templates/core/includes/marketplace_public_navbar.html:128
+msgid "Order protection"
+msgstr "Protección de pedidos"
+
+#: templates/core/includes/marketplace_public_navbar.html:129
+msgid "About TradeFlow"
+msgstr "Acerca de TradeFlow"
+
+#: templates/core/includes/marketplace_public_navbar.html:132
+msgid "Help center"
+msgstr "Centro de ayuda"
+
+#: templates/core/includes/marketplace_public_navbar.html:133
+msgid "Sell on TradeFlow"
+msgstr "Vender en TradeFlow"
 
 #: templates/core/includes/product_image_placeholder.html:28
 msgid "Reference image"
 msgstr ""
 
-#: templates/core/legal_base.html:9 templates/core/legal_base.html:10
+#: templates/core/legal_base.html:10 templates/core/legal_base.html:11
 msgid "On this page"
 msgstr "En esta página"
 
-#: templates/core/legal_base.html:18
+#: templates/core/legal_base.html:19
 msgid "Last updated: June 2026"
 msgstr "Última actualización: junio de 2026"
 
-#: templates/core/legal_base.html:25
+#: templates/core/legal_base.html:26
 msgid "Back to home"
 msgstr "Volver al inicio"
 

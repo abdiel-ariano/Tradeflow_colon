@@ -122,16 +122,16 @@
       <div class="active-filters" id="cat-active-filters" aria-live="polite" hidden></div>
       <div class="results-toolbar">
         <span class="results-count">
-          <strong>{{ total_resultados|default:catalogo_stats.productos }}</strong> wholesale products
-          {% if buscar %}for &ldquo;<em>{{ buscar }}</em>&rdquo;{% endif %}
+          <strong>{{ total_resultados|default:catalogo_stats.productos }}</strong> {% trans "wholesale products" %}
+          {% if buscar %}{% blocktrans with term=buscar %}for “{{ term }}”{% endblocktrans %}{% endif %}
         </span>
         <div class="results-controls">
-          <label class="results-sort-label" for="cat-sort-select">Sort by</label>
-          <select name="orden" id="cat-sort-select" class="filter-select results-sort-select cat-sort-select" form="cat-filters-form" aria-label="Sort results">
-            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Best match</option>
-            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price: low to high</option>
-            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price: high to low</option>
-            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Newest</option>
+          <label class="results-sort-label" for="cat-sort-select">{% trans "Sort by" %}</label>
+          <select name="orden" id="cat-sort-select" class="filter-select results-sort-select cat-sort-select" form="cat-filters-form" aria-label="{% trans 'Sort results' %}">
+            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>{% trans "Best match" %}</option>
+            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>{% trans "Price: low to high" %}</option>
+            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>{% trans "Price: high to low" %}</option>
+            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>{% trans "Newest" %}</option>
           </select>
         </div>
       </div>
@@ -139,7 +139,7 @@
 
     <div class="cat-ali-body">
       <div class="cat-ali-rail-slot">
-        <aside class="cat-ali-category-rail" id="cat-sidebar" aria-label="Category navigation">
+        <aside class="cat-ali-category-rail" id="cat-sidebar" aria-label="{% trans 'Category navigation' %}">
           <button type="button" class="cat-ali-category-rail__close sidebar-close" id="cat-sidebar-close" aria-label="{% trans 'Close categories' %}">
             {% include "core/includes/tf_icon.html" with name="close" %}
           </button>
