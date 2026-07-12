@@ -13,11 +13,13 @@ USO en views.py:
 =============================================================================
 """
 from functools import wraps
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.shortcuts import redirect
+from django.urls import reverse
 
-from core.utils.access_gating import onboarding_redirect_name
+from core.utils.access_gating import onboarding_redirect_name, safe_intent_next
 
 
 def _request_wants_json(request):
@@ -35,11 +37,20 @@ def _get_role(user):
         return None
 
 
+def _gated_redirect(request, route: str):
+    """Redirige a onboarding/verificación preservando ?next= cuando aplica."""
+    if route == 'verificar_codigo':
+        nxt = safe_intent_next(request)
+        if nxt:
+            return redirect(f"{reverse(route)}?{urlencode({'next': nxt})}")
+    return redirect(route)
+
+
 def _enforce_onboarding(request, scope='restricted'):
     """Redirige si el usuario no cumple requisitos del scope indicado."""
     route = onboarding_redirect_name(request.user, scope=scope)
     if route:
-        return redirect(route)
+        return _gated_redirect(request, route)
     return None
 
 
@@ -107,6 +118,29 @@ def guest_or_buyer_cart(view_func):
             messages.info(request, 'Go to your seller portal.')
             return redirect('/mi-tienda/')
         return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def buyer_checkout(view_func):
+    """Checkout: GET permite ver la página con verificación inline; POST exige email."""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect(f'/login/?next={request.path}')
+        scope = 'browse' if request.method == 'GET' else 'restricted'
+        blocked = _enforce_onboarding(request, scope=scope)
+        if blocked:
+            return blocked
+        role = _get_role(request.user)
+        if role in (None, 'buyer'):
+            return view_func(request, *args, **kwargs)
+        if role == 'seller':
+            messages.info(request, 'Go to your seller portal.')
+            return redirect('/mi-tienda/')
+        if role == 'admin' or request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+        messages.error(request, 'You do not have permission to access this section.')
+        return redirect('/')
     return wrapper
 
 

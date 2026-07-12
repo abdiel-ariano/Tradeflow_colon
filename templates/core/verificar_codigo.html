@@ -1,143 +1,67 @@
 {% extends "core/base.html" %}
-{% block title %}Verify email — TradeFlow Colón{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Verify your email" %} — TradeFlow Colón{% endblock %}
 
 {% block extra_head %}
 <style nonce="{{ csp_nonce }}">
-  .tf-verify-wrap {
-    min-height: calc(100vh - 200px);
+  .otp-page {
+    min-height: calc(100vh - 180px);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 48px 16px;
-    background: linear-gradient(160deg, #f8f6f2 0%, #e8ece9 45%, #d9cab3 100%);
+    padding: 40px 20px 64px;
+    background: linear-gradient(180deg, var(--tf-light, #f8f9fa) 0%, #fff 50%, var(--tf-orange-50, #fff7ed) 100%);
   }
-  .tf-verify-card {
+  .otp-card {
     width: 100%;
     max-width: 440px;
-    background: #404b57;
-    border-radius: 16px;
-    padding: 36px 28px;
-    box-shadow: 0 16px 48px rgba(64, 75, 87, 0.35);
-    border: 1px solid #62929a;
-  }
-  .tf-verify-card h1 {
-    color: #ffffff;
-    font-size: 1.5rem;
+    background: var(--tf-white, #fff);
+    border: 1px solid var(--tf-border, #d1d5db);
+    border-radius: var(--tf-radius-lg, 16px);
+    padding: 32px 28px 28px;
+    box-shadow: 0 12px 40px rgba(15, 42, 68, 0.08);
     text-align: center;
-    margin-bottom: 8px;
   }
-  .tf-verify-card .tf-sub {
-    color: #d9cab3;
-    text-align: center;
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-  }
-  .tf-msg-success {
-    background: rgba(40, 167, 69, 0.2);
-    border: 1px solid #28a745;
-    color: #d4edda;
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    font-size: 0.9rem;
-  }
-  .tf-msg-error {
-    background: rgba(220, 53, 69, 0.2);
-    border: 1px solid #dc3545;
-    color: #f8d7da;
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    font-size: 0.9rem;
-  }
-  .tf-code-input {
-    width: 100%;
-    max-width: 240px;
-    margin: 0 auto 20px;
-    display: block;
-    text-align: center;
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 0.35em;
-    color: #404b57;
-    background: #fff;
-    border: 2px solid #62929a;
-    border-radius: 12px;
-    padding: 14px 10px;
-  }
-  .tf-code-input:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(98, 146, 154, 0.45);
-  }
-  .btn-tf-verify {
-    width: 100%;
-    background: #62929a;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 12px;
-    font-weight: 600;
-    font-size: 1rem;
-  }
-  .btn-tf-verify:hover {
-    background: #527f86;
-    color: #fff;
-  }
-  .tf-resend {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 0.9rem;
-  }
-  .tf-resend a {
-    color: #d9cab3;
-    text-decoration: underline;
-  }
-  .tf-resend a:hover {
-    color: #ffffff;
-  }
+  .otp-panel__icon { width: 52px; height: 52px; margin: 0 auto 16px; border-radius: var(--tf-radius-md, 12px); display: flex; align-items: center; justify-content: center; background: rgba(255, 122, 61, 0.12); color: var(--tf-orange, #f26522); }
+  .otp-panel__title { margin: 0 0 8px; font-size: 1.5rem; font-weight: 700; color: var(--tf-navy, #0f2a44); }
+  .otp-panel__lead { margin: 0 0 8px; font-size: 0.9375rem; font-weight: 600; color: var(--tf-orange, #f26522); }
+  .otp-panel__sub { margin: 0 0 20px; font-size: 0.875rem; color: var(--tf-muted, #6b7a88); line-height: 1.5; }
+  .otp-panel__sub strong { color: var(--tf-navy, #0f2a44); }
+  .otp-msg { border-radius: var(--tf-radius-md, 12px); padding: 10px 14px; margin-bottom: 16px; font-size: 0.875rem; }
+  .otp-msg--success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+  .otp-msg--error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+  .otp-panel__input { display: block; width: 100%; max-width: 260px; margin: 0 auto 18px; text-align: center; font-size: 1.75rem; font-weight: 700; letter-spacing: 0.42em; padding: 14px 12px 14px 20px; color: var(--tf-navy, #0f2a44); border: 2px solid var(--tf-border, #d1d5db); border-radius: var(--tf-radius-md, 12px); }
+  .otp-panel__input:focus { outline: none; border-color: var(--tf-orange, #f26522); box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.18); }
+  .otp-panel__submit { display: block; width: 100%; border: none; border-radius: var(--tf-radius-md, 12px); padding: 13px 16px; font-size: 1rem; font-weight: 700; cursor: pointer; color: #fff; background: var(--tf-orange, #f26522); box-shadow: 0 6px 18px rgba(242, 101, 34, 0.28); }
+  .otp-panel__submit:hover { background: var(--tf-orange-hover, #e85a18); }
+  .otp-panel__resend { margin: 18px 0 0; font-size: 0.875rem; }
+  .otp-panel__resend a { color: var(--tf-navy, #0f2a44); font-weight: 600; text-decoration: underline; }
+  .otp-trust { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--tf-border-soft, #f1f3f5); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8125rem; color: var(--tf-muted, #6b7a88); }
+  .otp-trust svg { color: var(--tf-emerald, #15803d); flex-shrink: 0; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="tf-verify-wrap">
-  <div class="tf-verify-card">
-    <h1>Verify your email</h1>
-    <p class="tf-sub">
-      Code sent to {{ masked_email }}
-    </p>
-
+<div class="otp-page">
+  <div class="otp-card">
     {% if messages %}
       {% for message in messages %}
         {% if message.tags == 'success' %}
-          <div class="tf-msg-success">{{ message }}</div>
+          <div class="otp-msg otp-msg--success" role="status">{{ message }}</div>
         {% elif message.tags == 'danger' or message.tags == 'error' %}
-          <div class="tf-msg-error">{{ message }}</div>
+          <div class="otp-msg otp-msg--error" role="alert">{{ message }}</div>
         {% endif %}
       {% endfor %}
     {% endif %}
 
-    <form method="post" action="{% url 'verificar_codigo' %}">
-      {% csrf_token %}
-      <input
-        type="text"
-        name="codigo"
-        class="form-control tf-code-input"
-        inputmode="numeric"
-        pattern="[0-9]{6}"
-        maxlength="6"
-        minlength="6"
-        placeholder="000000"
-        autocomplete="one-time-code"
-        required
-        autofocus
-        aria-label="6-digit code"
-      />
-      <button type="submit" class="btn btn-tf-verify">Verify</button>
-    </form>
+    {% include "core/includes/verify_email_panel.html" %}
 
-    <p class="tf-resend">
-      <a href="{% url 'enviar_codigo' %}">Resend code</a>
-    </p>
+    <div class="otp-trust">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <span>{% trans "Your cart is saved while you verify" %}</span>
+    </div>
   </div>
 </div>
 {% endblock %}

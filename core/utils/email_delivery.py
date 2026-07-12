@@ -22,6 +22,12 @@ def validate_email_infrastructure() -> list[str]:
         warnings.append('RESEND_API_KEY no configurada; los correos no saldrán en producción.')
     if not getattr(settings, 'DEFAULT_FROM_EMAIL', ''):
         warnings.append('DEFAULT_FROM_EMAIL no está definido.')
+    from_addr = (getattr(settings, 'DEFAULT_FROM_EMAIL', '') or '').lower()
+    if 'tradeflow.pa' in from_addr and not settings.DEBUG:
+        warnings.append(
+            'DEFAULT_FROM_EMAIL usa tradeflow.pa; verifica ese dominio en Resend '
+            'o cambia a no-reply@tradeflowcolon.com (dominio verificado).'
+        )
     return warnings
 
 
