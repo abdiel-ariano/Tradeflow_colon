@@ -13,11 +13,13 @@ USO en views.py:
 =============================================================================
 """
 from functools import wraps
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.shortcuts import redirect
+from django.urls import reverse
 
-from core.utils.access_gating import onboarding_redirect_name
+from core.utils.access_gating import onboarding_redirect_name, safe_intent_next
 
 
 def _request_wants_json(request):
@@ -35,11 +37,20 @@ def _get_role(user):
         return None
 
 
+def _gated_redirect(request, route: str):
+    """Redirige a onboarding/verificación preservando ?next= cuando aplica."""
+    if route == 'verificar_codigo':
+        nxt = safe_intent_next(request)
+        if nxt:
+            return redirect(f"{reverse(route)}?{urlencode({'next': nxt})}")
+    return redirect(route)
+
+
 def _enforce_onboarding(request, scope='restricted'):
     """Redirige si el usuario no cumple requisitos del scope indicado."""
     route = onboarding_redirect_name(request.user, scope=scope)
     if route:
-        return redirect(route)
+        return _gated_redirect(request, route)
     return None
 
 

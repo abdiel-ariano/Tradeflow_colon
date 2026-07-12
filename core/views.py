@@ -395,10 +395,15 @@ def login_view(request):
                 if is_protected_path(next_url):
                     gate_route = onboarding_redirect_name(user, scope='restricted')
                     if gate_route:
+                        from urllib.parse import urlencode
+
                         messages.info(
                             request,
-                            'Verify your email to access checkout and orders.',
+                            _('Verify your email to access checkout and orders.'),
                         )
+                        gate_target = reverse(gate_route)
+                        if gate_route == 'verificar_codigo':
+                            return redirect(f'{gate_target}?{urlencode({"next": next_url})}')
                         return redirect(gate_route)
                 return redirect(next_url)
             return redirect(_redirect_by_role(user))
@@ -635,13 +640,21 @@ def enviar_codigo(request):
     if result.ok:
         messages.success(
             request,
-            f'We sent a 6-digit code to {request.user.email}. Check your inbox and spam folder.',
+            _('We sent a 6-digit code to %(email)s. Check your inbox and spam folder.')
+            % {'email': request.user.email},
         )
     else:
         messages.error(
             request,
-            'We could not send the email. Check RESEND_API_KEY and DEFAULT_FROM_EMAIL in .env.',
+            _('We could not send the email. Try again in a moment.'),
         )
+    from urllib.parse import urlencode
+
+    from core.utils.access_gating import safe_intent_next
+
+    next_url = safe_intent_next(request)
+    if next_url:
+        return redirect(f"{reverse('verificar_codigo')}?{urlencode({'next': next_url})}")
     return redirect('verificar_codigo')
 
 

@@ -15,7 +15,10 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
+
+from core.utils.access_gating import normalize_path, safe_intent_next
 
 from core.utils.email_sender import enviar_bienvenida
 from core.utils.otp_axes import (
@@ -66,7 +69,22 @@ def _verify_context(request: HttpRequest) -> dict[str, str]:
         local, domain = masked.split('@', 1)
         if len(local) > 2:
             masked = f'{local[0]}***{local[-1]}@{domain}'
-    return {'masked_email': masked}
+    next_url = safe_intent_next(request)
+    verify_for_checkout = bool(
+        next_url and normalize_path(next_url.split('?', 1)[0]).startswith('/checkout')
+    )
+    return {
+        'masked_email': masked,
+        'next_url': next_url,
+        'verify_for_checkout': verify_for_checkout,
+    }
+
+
+def _post_verify_destination(request: HttpRequest, user) -> str:
+    next_url = safe_intent_next(request)
+    if next_url:
+        return next_url
+    return _redirect_by_role(user)
 
 
 def _json_error(error_code: str, detail: str, status: int = 400) -> JsonResponse:
@@ -94,7 +112,7 @@ def verify_otp_view(request: HttpRequest) -> HttpResponse:
     - ``transaction.atomic()`` en ``verify_user_otp`` (consistencia perfil + OTP).
     """
     if not _email_verification_gate_active(request.user):
-        dest = _redirect_by_role(request.user)
+        dest = _post_verify_destination(request, request.user)
         if _wants_json(request):
             return JsonResponse({'ok': True, 'redirect': dest})
         return redirect(dest)
@@ -114,7 +132,7 @@ def verify_otp_view(request: HttpRequest) -> HttpResponse:
         return redirect('signup')
 
     if profile.email_verified:
-        dest = _redirect_by_role(request.user)
+        dest = _post_verify_destination(request, request.user)
         if _wants_json(request):
             return JsonResponse({'ok': True, 'redirect': dest, 'already_verified': True})
         return redirect(dest)
@@ -131,10 +149,10 @@ def verify_otp_view(request: HttpRequest) -> HttpResponse:
     if not OTP_CODE_PATTERN.fullmatch(raw):
         otp_axes_record_failure(request, username)
         if _wants_json(request):
-            return _json_error('invalid_format', 'Enter a 6-digit code.')
+            return _json_error('invalid_format', _('Enter a 6-digit code.'))
         from django.contrib import messages
 
-        messages.error(request, 'Enter a 6-digit code.')
+        messages.error(request, _('Enter a 6-digit code.'))
         return render(request, 'core/verificar_codigo.html', _verify_context(request))
 
     result = verify_user_otp(request.user, raw)
@@ -173,11 +191,11 @@ def verify_otp_view(request: HttpRequest) -> HttpResponse:
     except Exception:
         log.exception('welcome_email_after_otp user_id=%s', request.user.pk)
 
-    dest = _redirect_by_role(request.user)
+    dest = _post_verify_destination(request, request.user)
     from core.utils.access_gating import onboarding_redirect_name
 
     gate = onboarding_redirect_name(request.user, scope='restricted')
-    if gate:
+    if gate and not safe_intent_next(request):
         from django.urls import reverse
 
         dest = reverse(gate)
@@ -193,5 +211,5 @@ def verify_otp_view(request: HttpRequest) -> HttpResponse:
 
     from django.contrib import messages
 
-    messages.success(request, 'Email verified! You can continue now.')
+    messages.success(request, _('Email verified! You can continue now.'))
     return redirect(dest)

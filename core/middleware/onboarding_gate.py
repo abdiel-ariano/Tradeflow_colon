@@ -5,12 +5,14 @@ from __future__ import annotations
 
 from django.shortcuts import redirect
 from django.urls import reverse
+from urllib.parse import urlencode
 
 from core.utils.access_gating import (
     is_protected_path,
     is_public_path,
     normalize_path,
     onboarding_redirect_name,
+    safe_intent_next,
 )
 
 
@@ -29,6 +31,10 @@ class OnboardingGateMiddleware:
                 if route:
                     target = reverse(route)
                     if not request.path.startswith(target):
+                        if route == 'verificar_codigo':
+                            nxt = safe_intent_next(request)
+                            if nxt:
+                                return redirect(f"{target}?{urlencode({'next': nxt})}")
                         return redirect(route)
 
         return self.get_response(request)

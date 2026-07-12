@@ -38,6 +38,15 @@ class VerifyOtpViewTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Verify')
 
+    def test_post_valid_code_redirects_to_checkout_next(self):
+        code = generate_user_otp(self.user)
+        resp = self.client.post(
+            reverse('verificar_codigo') + '?next=/checkout/',
+            {'codigo': code, 'next': '/checkout/'},
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp['Location'], '/checkout/')
+
     def test_post_valid_code_json(self):
         code = generate_user_otp(self.user)
         resp = self.client.post(
