@@ -1,4 +1,4 @@
-{% load static i18n %}
+{% load static i18n tf_catalog %}
 {% get_current_language as CURRENT_LANG %}
 {% comment %}Public navbar — dual palette (navy + blue + orange accent).{% endcomment %}
 <header class="hm-nav-shell" id="hm-public-nav">
@@ -29,14 +29,14 @@
         <div class="hm-nav__lang" role="group" aria-label="{% trans 'Language' %}">
           <form action="{% url 'set_language' %}" method="post" class="hm-nav__lang-form">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <input type="hidden" name="next" value="{% tf_language_next 'es' %}">
             <input type="hidden" name="language" value="es">
             <button type="submit" class="hm-nav__lang-link{% if CURRENT_LANG == 'es' %} is-active{% endif %}" lang="es">ES</button>
           </form>
           <span class="hm-nav__lang-sep" aria-hidden="true">|</span>
           <form action="{% url 'set_language' %}" method="post" class="hm-nav__lang-form">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <input type="hidden" name="next" value="{% tf_language_next 'en' %}">
             <input type="hidden" name="language" value="en">
             <button type="submit" class="hm-nav__lang-link{% if CURRENT_LANG == 'en' %} is-active{% endif %}" lang="en">EN</button>
           </form>

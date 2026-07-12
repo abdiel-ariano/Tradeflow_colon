@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n tf_catalog %}
 {% comment %}Bento — Alibaba above-the-fold (categories rail, search tiles, promo).{% endcomment %}
 <section class="hm-bento" aria-label="{% trans 'Marketplace discovery' %}">
   <div class="hm-bento__grid">
@@ -14,7 +14,7 @@
         {% for cat in sidebar_categories %}
         <li>
           <button type="button" class="hm-bento__category-link" data-cat-modal-open data-cat-panel="{{ cat.pk }}">
-            <span class="hm-bento__category-name">{{ cat.name|truncatechars:26 }}</span>
+            <span class="hm-bento__category-name">{{ cat.name|category_label|truncatechars:26 }}</span>
             <span class="hm-bento__category-chevron" aria-hidden="true">›</span>
           </button>
         </li>

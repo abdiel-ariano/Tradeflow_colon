@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TradeFlow Colón\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 19:27-0500\n"
+"POT-Creation-Date: 2026-07-11 19:51-0500\n"
 "PO-Revision-Date: 2026-05-12 12:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: English\n"
@@ -993,10 +993,17 @@ msgid "Category navigation"
 msgstr ""
 
 #: templates/core/catalogo_publico.html:143
+#: templates/core/includes/home_categories_modal.html:7
 #, fuzzy
 #| msgid "Ver categoría"
 msgid "Close categories"
 msgstr "View category"
+
+#: templates/core/home.html:5
+#, fuzzy
+#| msgid "TradeFlow Colón — Compra, gestiona, exporta"
+msgid "TradeFlow Colón — Wholesale Marketplace"
+msgstr "TradeFlow Colón — Buy, manage, export"
 
 #: templates/core/includes/catalogo_ali_category_sidebar.html:5
 msgid "Catalog categories"
@@ -1226,6 +1233,8 @@ msgid "Marketplace discovery"
 msgstr ""
 
 #: templates/core/includes/home_bento_hero.html:11
+#: templates/core/includes/home_categories_modal.html:14
+#: templates/core/includes/home_categories_modal.html:29
 #: templates/core/includes/home_category_discover.html:8
 #, fuzzy
 #| msgid "Categorías"
@@ -1268,6 +1277,21 @@ msgstr ""
 
 #: templates/core/includes/home_bento_hero.html:62
 msgid "New buyer favorites · export-ready · MOQ on every listing"
+msgstr ""
+
+#: templates/core/includes/home_categories_modal.html:9
+#, fuzzy
+#| msgid "Categorías"
+msgid "Category filters"
+msgstr "Categories"
+
+#: templates/core/includes/home_categories_modal.html:56
+msgid "No products in this category yet."
+msgstr ""
+
+#: templates/core/includes/home_categories_modal.html:59
+#, python-format
+msgid "Browse all in %(name)s →"
 msgstr ""
 
 #: templates/core/includes/home_category_discover.html:9
@@ -1966,9 +1990,6 @@ msgstr "Contact"
 
 #~ msgid "Sin órdenes en este período"
 #~ msgstr "No orders in this period"
-
-#~ msgid "TradeFlow Colón — Compra, gestiona, exporta"
-#~ msgstr "TradeFlow Colón — Buy, manage, export"
 
 #~ msgid "Zona Libre de Colón · Panamá"
 #~ msgstr "Colón Free Trade Zone · Panama"
