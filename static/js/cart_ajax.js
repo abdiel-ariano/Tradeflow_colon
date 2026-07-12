@@ -67,76 +67,78 @@
   window.tfUpdateCartBadge = updateCartBadge;
   window.tfCartAjaxInit = bindCartForms;
 
-  function bindCartForms() {
-    document.querySelectorAll('form.js-cart-add-form').forEach(function (form) {
-      if (form.getAttribute('data-cart-bound') === '1') return;
-      form.setAttribute('data-cart-bound', '1');
-      form.addEventListener('submit', function (ev) {
-        ev.preventDefault();
-        var btn = form.querySelector('button[type="submit"]');
-        if (btn && btn.disabled) return;
-        if (btn) {
-          btn.disabled = true;
-          btn.classList.add('is-loading');
+  function submitCartForm(form) {
+    if (!form || form.getAttribute('data-cart-busy') === '1') return;
+    form.setAttribute('data-cart-busy', '1');
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.classList.add('is-loading');
+    }
+    var body = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: body,
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        Accept: 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+    })
+      .then(parseJsonResponse)
+      .then(function (res) {
+        var data = res.data || {};
+        if (!res.ok || data.ok === false) {
+          showToast(
+            data.message
+              || (window.TF_I18N && window.TF_I18N.cartError)
+              || 'Could not add to cart.',
+            'error'
+          );
+          return;
         }
-        var body = new FormData(form);
-        fetch(form.action, {
-          method: 'POST',
-          body: body,
-          credentials: 'same-origin',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            Accept: 'application/json',
-          },
-        })
-          .then(parseJsonResponse)
-          .then(function (res) {
-            var data = res.data || {};
-            if (!res.ok || data.ok === false) {
-              showToast(
-                data.message
-                  || (window.TF_I18N && window.TF_I18N.cartError)
-                  || 'Could not add to cart.',
-                'error'
-              );
-              return;
-            }
-            if (data.carrito_count !== undefined) {
-              updateCartBadge(data.carrito_count);
-            }
-            var msg = data.message || '';
-            if (msg.length > 48) {
-              msg = (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Added to cart';
-            }
-            showToast(msg, data.level || 'success');
-            if (btn) {
-              btn.classList.add('is-added');
-              setTimeout(function () {
-                btn.classList.remove('is-added');
-              }, 1200);
-            }
-          })
-          .catch(function () {
-            showToast(
-              (window.TF_I18N && window.TF_I18N.networkError)
-                || (window.TF_I18N && window.TF_I18N.catalogNetworkError)
-                || 'Connection error. Please try again.',
-              'error'
-            );
-          })
-          .finally(function () {
-            if (btn) {
-              btn.disabled = false;
-              btn.classList.remove('is-loading');
-            }
-          });
+        if (data.carrito_count !== undefined) {
+          updateCartBadge(data.carrito_count);
+        }
+        var msg = data.message || '';
+        if (msg.length > 48) {
+          msg = (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Added to cart';
+        }
+        showToast(msg, data.level || 'success');
+        if (btn) {
+          btn.classList.add('is-added');
+          setTimeout(function () {
+            btn.classList.remove('is-added');
+          }, 1200);
+        }
+      })
+      .catch(function () {
+        showToast(
+          (window.TF_I18N && window.TF_I18N.networkError)
+            || (window.TF_I18N && window.TF_I18N.catalogNetworkError)
+            || 'Connection error. Please try again.',
+          'error'
+        );
+      })
+      .finally(function () {
+        form.removeAttribute('data-cart-busy');
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('is-loading');
+        }
       });
-    });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindCartForms);
-  } else {
-    bindCartForms();
+  function bindCartForms() {
+    /* Legacy hook for pages that call tfCartAjaxInit after AJAX swaps. */
   }
+
+  document.addEventListener('submit', function (ev) {
+    var form = ev.target;
+    if (!form || !form.matches || !form.matches('form.js-cart-add-form')) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    submitCartForm(form);
+  }, true);
 })();

@@ -87,9 +87,23 @@ def guest_or_buyer_cart(view_func):
             return view_func(request, *args, **kwargs)
         blocked = _enforce_onboarding(request, scope='browse')
         if blocked:
+            if request.method == 'POST' and _request_wants_json(request):
+                from django.http import JsonResponse
+                from django.utils.translation import gettext as _
+                return JsonResponse(
+                    {'ok': False, 'message': _('Complete your account setup to continue.')},
+                    status=403,
+                )
             return blocked
         role = _get_role(request.user)
         if role == 'seller':
+            if request.method == 'POST' and _request_wants_json(request):
+                from django.http import JsonResponse
+                from django.utils.translation import gettext as _
+                return JsonResponse(
+                    {'ok': False, 'message': _('Go to your seller portal.')},
+                    status=403,
+                )
             messages.info(request, 'Go to your seller portal.')
             return redirect('/mi-tienda/')
         return view_func(request, *args, **kwargs)
