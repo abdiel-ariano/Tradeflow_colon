@@ -160,6 +160,23 @@ class CatalogI18nTests(TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertIn('max-age=3600', response.get('Cache-Control', ''))
 
+    def test_spanish_product_detail_page(self):
+        product = Product.objects.first()
+        post_response = self.client.post(
+            reverse('set_language'),
+            {
+                'language': 'es',
+                'next': reverse('catalogo_producto_detail', args=[product.pk]),
+            },
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Descripción')
+        self.assertContains(response, 'Especificaciones')
+        self.assertContains(response, 'Regístrate para ver precios mayoristas')
+        self.assertContains(response, 'Electrónica y oficina')
+        self.assertNotContains(response, 'Sign up to view wholesale pricing')
+
 
 @override_settings(LANGUAGE_CODE='en')
 class LegalPageShellTests(TestCase):
@@ -179,3 +196,34 @@ class LegalPageShellTests(TestCase):
         response = self.client.get(reverse('legal_privacidad'))
         self.assertContains(response, 'hm-marketplace-page--legal')
         self.assertNotContains(response, 'max-width: 1080px')
+
+    def test_spanish_legal_terms_body(self):
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('legal_terminos')},
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'El uso de la Plataforma implica')
+        self.assertContains(response, 'Descripción del servicio')
+        self.assertNotContains(response, 'Use of the Platform implies')
+
+    def test_spanish_legal_privacy_body(self):
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('legal_privacidad')},
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'TradeFlow Colón trata datos personales')
+        self.assertContains(response, 'Datos que recopilamos')
+
+    def test_spanish_legal_cookies_body(self):
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('legal_cookies')},
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Las cookies son archivos pequeños')
+        self.assertContains(response, 'Cookies esenciales')

@@ -3657,13 +3657,13 @@ def catalogo_producto_detail(request, pk):
     )
     if product.available_qty <= 0:
         stock_status = 'out'
-        stock_label = 'Out of stock'
+        stock_label = _('Out of stock')
     elif product.available_qty <= 5:
         stock_status = 'low'
-        stock_label = f'Low stock ({product.available_qty} units)'
+        stock_label = _('Low stock (%(qty)s units)') % {'qty': product.available_qty}
     else:
         stock_status = 'ok'
-        stock_label = f'In stock ({product.available_qty} units)'
+        stock_label = _('In stock (%(qty)s units)') % {'qty': product.available_qty}
 
     img = product_image_url(product)
     if img:
@@ -3674,7 +3674,9 @@ def catalogo_producto_detail(request, pk):
     meta_description = (
         product.description[:155].strip()
         if product.description
-        else f'{product.name} from {company.name} in the Colón Free Zone — TradeFlow Colón.'
+        else _(
+            '%(name)s from %(company)s in the Colón Free Zone — TradeFlow Colón.'
+        ) % {'name': product.name, 'company': company.name}
     )
 
     return render(

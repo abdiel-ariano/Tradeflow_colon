@@ -14,84 +14,71 @@
 <li><a href="#privacy-changes">{% trans "Changes and contact" %}</a></li>
 {% endblock %}
 {% block legal_body %}
-<h2 id="privacy-controller">1. Data controller</h2>
+<h2 id="privacy-controller">{% trans "1. Data controller" %}</h2>
 <p>
+  {% blocktrans trimmed %}
   TradeFlow Colón processes personal data in the context of its marketplace for the Colón Free Zone.
-  To exercise your rights or submit inquiries: <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>.
+  {% endblocktrans %}
+  {% blocktrans with email=tradeflow_contact_email %}To exercise your rights or submit inquiries: <a href="mailto:{{ email }}">{{ email }}</a>.{% endblocktrans %}
 </p>
 
-<h2 id="privacy-collect">2. Data we collect</h2>
+<h2 id="privacy-collect">{% trans "2. Data we collect" %}</h2>
 <ul>
-  <li><strong>Identity and contact:</strong> name, email address, phone number, username.</li>
-  <li><strong>Company (sellers):</strong> legal name, CFZ address, commercial contact details.</li>
-  <li><strong>Transactions:</strong> order history, quotes, statuses, amounts, and associated notes.</li>
-  <li><strong>Technical:</strong> IP address, browser user agent, access logs, and cookies (see the cookie policy).</li>
-  <li><strong>Location:</strong> coordinates when you voluntarily confirm them at checkout or in logistics.</li>
+  <li><strong>{% trans "Identity and contact:" %}</strong> {% trans "name, email address, phone number, username." %}</li>
+  <li><strong>{% trans "Company (sellers):" %}</strong> {% trans "legal name, CFZ address, commercial contact details." %}</li>
+  <li><strong>{% trans "Transactions:" %}</strong> {% trans "order history, quotes, statuses, amounts, and associated notes." %}</li>
+  <li><strong>{% trans "Technical:" %}</strong> {% trans "IP address, browser user agent, access logs, and cookies (see the cookie policy)." %}</li>
+  <li><strong>{% trans "Location:" %}</strong> {% trans "coordinates when you voluntarily confirm them at checkout or in logistics." %}</li>
 </ul>
 
-<h2 id="privacy-purposes">3. Purposes of use</h2>
+<h2 id="privacy-purposes">{% trans "3. Purposes of use" %}</h2>
 <ul>
-  <li>Create and manage your account (buyer, seller, or authorized administrator).</li>
-  <li>Process orders, quotes, simulated or real payments, and operational notifications.</li>
-  <li>Send transactional communications (confirmations, status changes, email verification).</li>
-  <li>Improve security, prevent fraud, and comply with applicable legal obligations.</li>
-  <li>Analyze aggregated Platform usage for performance and user experience.</li>
+  <li>{% trans "Create and manage your account (buyer, seller, or authorized administrator)." %}</li>
+  <li>{% trans "Process orders, quotes, simulated or real payments, and operational notifications." %}</li>
+  <li>{% trans "Send transactional communications (confirmations, status changes, email verification)." %}</li>
+  <li>{% trans "Improve security, prevent fraud, and comply with applicable legal obligations." %}</li>
+  <li>{% trans "Analyze aggregated Platform usage for performance and user experience." %}</li>
 </ul>
 
-<h2 id="privacy-sharing">4. Data sharing</h2>
-<p>
-  We do not sell or rent your personal data to third parties for advertising purposes.
-  We may share information only when necessary for:
-</p>
+<h2 id="privacy-sharing">{% trans "4. Data sharing" %}</h2>
+<p>{% trans "We do not sell or rent your personal data to third parties for advertising purposes. We may share information only when necessary for:" %}</p>
 <ul>
-  <li><strong>Payment providers</strong> or gateways enabled on the Platform.</li>
-  <li><strong>Logistics operators</strong> or carriers selected in the order flow.</li>
-  <li><strong>Technical infrastructure</strong> (hosting, email, databases) under confidentiality agreements.</li>
-  <li><strong>Authorities</strong> when required by Panamanian law.</li>
+  <li><strong>{% trans "Payment providers" %}</strong> {% trans "or gateways enabled on the Platform." %}</li>
+  <li><strong>{% trans "Logistics operators" %}</strong> {% trans "or carriers selected in the order flow." %}</li>
+  <li><strong>{% trans "Technical infrastructure" %}</strong> {% trans "(hosting, email, databases) under confidentiality agreements." %}</li>
+  <li><strong>{% trans "Authorities" %}</strong> {% trans "when required by Panamanian law." %}</li>
+</ul>
+<p>{% trans "Buyer and seller exchange the minimum data necessary to execute each operation (for example, contact details and order references)." %}</p>
+
+<h2 id="privacy-retention">{% trans "5. Retention" %}</h2>
+<p>{% trans "We retain data while your account remains active and for the period necessary for legal, accounting obligations, or dispute resolution. Order records may be kept for additional periods when regulation or audit requires it." %}</p>
+
+<h2 id="privacy-rights">{% trans "6. Your rights" %}</h2>
+<p>{% trans "Under applicable law, you may request:" %}</p>
+<ul>
+  <li><strong>{% trans "Access" %}</strong> {% trans "to the personal data we process about you." %}</li>
+  <li><strong>{% trans "Rectification" %}</strong> {% trans "of inaccurate or incomplete data." %}</li>
+  <li><strong>{% trans "Deletion" %}</strong> {% trans "when no longer necessary or you withdraw consent, except where legal retention applies." %}</li>
+  <li><strong>{% trans "Restriction or objection" %}</strong> {% trans "to processing in cases provided by regulation." %}</li>
 </ul>
 <p>
-  Buyer and seller exchange the minimum data necessary to execute each operation
-  (for example, contact details and order references).
+  {% blocktrans with email=tradeflow_contact_email %}Send your request to <a href="mailto:{{ email }}">{{ email }}</a> indicating your registered email.{% endblocktrans %}
+  {% trans "We will respond within a reasonable timeframe." %}
 </p>
 
-<h2 id="privacy-retention">5. Retention</h2>
-<p>
-  We retain data while your account remains active and for the period necessary for
-  legal, accounting obligations, or dispute resolution. Order records may be kept
-  for additional periods when regulation or audit requires it.
-</p>
+<h2 id="privacy-security">{% trans "7. Security" %}</h2>
+<p>{% trans "We apply technical and organizational measures appropriate to the risk (encryption in transit, access control, strong passwords). No system is infallible; we recommend using robust passwords and protecting your devices." %}</p>
 
-<h2 id="privacy-rights">6. Your rights</h2>
-<p>Under applicable law, you may request:</p>
-<ul>
-  <li><strong>Access</strong> to the personal data we process about you.</li>
-  <li><strong>Rectification</strong> of inaccurate or incomplete data.</li>
-  <li><strong>Deletion</strong> when no longer necessary or you withdraw consent, except where legal retention applies.</li>
-  <li><strong>Restriction or objection</strong> to processing in cases provided by regulation.</li>
-</ul>
-<p>
-  Send your request to <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a> indicating your registered email.
-  We will respond within a reasonable timeframe.
-</p>
+<h2 id="privacy-minors">{% trans "8. Minors" %}</h2>
+<p>{% trans "The Platform is intended for commercial operators and adult users. We do not knowingly collect data from minors." %}</p>
 
-<h2 id="privacy-security">7. Security</h2>
+<h2 id="privacy-changes">{% trans "9. Changes and contact" %}</h2>
 <p>
-  We apply technical and organizational measures appropriate to the risk (encryption in transit,
-  access control, strong passwords). No system is infallible; we recommend using robust passwords
-  and protecting your devices.
-</p>
-
-<h2 id="privacy-minors">8. Minors</h2>
-<p>
-  The Platform is intended for commercial operators and adult users. We do not knowingly
-  collect data from minors.
-</p>
-
-<h2 id="privacy-changes">9. Changes and contact</h2>
-<p>
-  We may update this policy; the “Last updated” date reflects the current version.
-  Contact: <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>.
-  See also <a href="{% url 'legal_cookies' %}">Cookie Policy</a>
-  and <a href="{% url 'legal_terminos' %}">Terms of Use</a>.
+  {% trans "We may update this policy; the “Last updated” date reflects the current version." %}
+  {% blocktrans with email=tradeflow_contact_email %}Contact: <a href="mailto:{{ email }}">{{ email }}</a>.{% endblocktrans %}
+  {% trans "See also" %}
+  <a href="{% url 'legal_cookies' %}">{% trans "Cookie Policy" %}</a>
+  {% trans "and" %}
+  <a href="{% url 'legal_terminos' %}">{% trans "Terms of Use" %}</a>.
 </p>
 {% endblock %}
