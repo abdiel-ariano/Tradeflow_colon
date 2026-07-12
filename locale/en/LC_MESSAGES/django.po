@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TradeFlow Colón\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 23:04-0500\n"
+"POT-Creation-Date: 2026-07-11 23:20-0500\n"
 "PO-Revision-Date: 2026-05-12 12:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: English\n"
@@ -1810,8 +1810,10 @@ msgstr ""
 #: templates/core/detalle_mi_orden.html:80
 #, fuzzy, python-format
 #| msgid "Productos"
-msgid "Products (%(counter)s)"
-msgstr "Products"
+msgid "Product (%(counter)s)"
+msgid_plural "Products (%(counter)s)"
+msgstr[0] "Products"
+msgstr[1] "Products"
 
 #: templates/core/detalle_mi_orden.html:87
 #, python-format

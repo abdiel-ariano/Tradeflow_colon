@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 23:04-0500\n"
+"POT-Creation-Date: 2026-07-11 23:20-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1399,6 +1399,7 @@ msgid "Products in cart"
 msgstr "Productos en el carrito"
 
 #: templates/core/carrito.html:44
+#, python-format
 msgid "Sold by %(seller)s"
 msgstr "Vendido por %(seller)s"
 
@@ -1734,8 +1735,10 @@ msgstr "Realizado el %(date)s"
 
 #: templates/core/detalle_mi_orden.html:80
 #, fuzzy, python-format
-msgid "Products (%(counter)s)"
-msgstr "Productos (%(counter)s)"
+msgid "Product (%(counter)s)"
+msgid_plural "Products (%(counter)s)"
+msgstr[0] "Productos (%(counter)s)"
+msgstr[1] "Productos (%(counter)s)"
 
 #: templates/core/detalle_mi_orden.html:87
 #, python-format

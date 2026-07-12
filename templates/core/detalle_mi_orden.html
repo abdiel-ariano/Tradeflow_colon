@@ -77,7 +77,7 @@
     {# ── Columna izquierda: items y notas ── #}
     <div>
       <div class="detalle-card">
-        <div class="detalle-card-title">{% blocktrans count counter=orden.items.count %}Products ({{ counter }}){% endblocktrans %}</div>
+        <div class="detalle-card-title">{% blocktrans count counter=orden.items.count %}Product ({{ counter }}){% plural %}Products ({{ counter }}){% endblocktrans %}</div>
         {% for item in orden.items.all %}
         <div class="item-row">
             {% include "core/includes/product_image_placeholder.html" with product=item.product css_class="item-img product-img" %}
