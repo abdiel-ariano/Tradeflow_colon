@@ -1,12 +1,12 @@
-{% load tf_catalog %}
+{% load tf_catalog i18n %}
 <header class="cat-ali-category-rail__head">
-  <h2 class="cat-ali-category-rail__title">Categorías</h2>
+  <h2 class="cat-ali-category-rail__title">{% trans "Categories" %}</h2>
 </header>
-<nav class="cat-ali-category-rail__nav" aria-label="Categorías del catálogo">
+<nav class="cat-ali-category-rail__nav" aria-label="{% trans 'Catalog categories' %}">
   <a href="{% url 'catalogo_publico' %}{% if catalogo_q_sin_categoria %}?{{ catalogo_q_sin_categoria }}{% endif %}"
      class="cat-ali-category-rail__item cat-nav-ajax-link{% if not categorias_sel %} is-active{% endif %}">
     {% include "core/includes/tf_icon.html" with name="travel_explore" class="cat-ali-category-rail__icon" %}
-    <span class="cat-ali-category-rail__label">Todas</span>
+    <span class="cat-ali-category-rail__label">{% trans "All" %}</span>
     {% include "core/includes/tf_icon.html" with name="chevron_right" class="cat-ali-category-rail__chevron" %}
   </a>
   {% for cat in sidebar_categories %}

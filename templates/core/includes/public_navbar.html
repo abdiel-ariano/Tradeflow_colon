@@ -1,4 +1,5 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as CURRENT_LANG %}
 {% comment %}Public navbar — dual palette (navy + blue + orange accent).{% endcomment %}
 <header class="hm-nav-shell" id="hm-public-nav">
   <nav class="hm-nav" aria-label="TradeFlow store">
@@ -21,10 +22,24 @@
       </button>
 
       <div class="hm-nav__actions">
-        <div class="hm-nav__lang" role="group" aria-label="Language">
-          <a href="{% url 'set_language' %}?language=es&amp;next={{ request.path }}" class="hm-nav__lang-link" lang="es">ES</a>
+        <style nonce="{{ csp_nonce }}">
+          .hm-nav__lang-form { display: inline; margin: 0; }
+          .hm-nav__lang-form .hm-nav__lang-link { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; }
+        </style>
+        <div class="hm-nav__lang" role="group" aria-label="{% trans 'Language' %}">
+          <form action="{% url 'set_language' %}" method="post" class="hm-nav__lang-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <input type="hidden" name="language" value="es">
+            <button type="submit" class="hm-nav__lang-link{% if CURRENT_LANG == 'es' %} is-active{% endif %}" lang="es">ES</button>
+          </form>
           <span class="hm-nav__lang-sep" aria-hidden="true">|</span>
-          <a href="{% url 'set_language' %}?language=en&amp;next={{ request.path }}" class="hm-nav__lang-link is-active" lang="en">EN</a>
+          <form action="{% url 'set_language' %}" method="post" class="hm-nav__lang-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <input type="hidden" name="language" value="en">
+            <button type="submit" class="hm-nav__lang-link{% if CURRENT_LANG == 'en' %} is-active{% endif %}" lang="en">EN</button>
+          </form>
         </div>
         <a href="{% url 'login' %}" class="hm-nav__btn hm-nav__btn--ghost">Sign in</a>
         <a href="{% url 'signup_buyer' %}" class="hm-nav__btn hm-nav__btn--solid">Start buying</a>

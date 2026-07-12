@@ -628,6 +628,45 @@ body.cat-catalog-page .tf-main {
   gap: 8px;
 }
 
+.cat-nav.tf-nav-alibaba .bn-utility--lang {
+  gap: 6px;
+}
+
+.cat-nav.tf-nav-alibaba .bn-lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cat-nav.tf-nav-alibaba .bn-lang-form {
+  display: inline;
+  margin: 0;
+}
+
+.cat-nav.tf-nav-alibaba .bn-lang-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tf-text-2);
+  text-decoration: none;
+  line-height: 1;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.cat-nav.tf-nav-alibaba .bn-lang-link.is-active,
+.cat-nav.tf-nav-alibaba .bn-lang-link:hover {
+  color: var(--tf-navy);
+}
+
+.cat-nav.tf-nav-alibaba .bn-lang-sep {
+  color: var(--tf-text-3);
+  font-size: 0.75rem;
+  user-select: none;
+}
+
 .cat-nav.tf-nav-alibaba .navbar-logo {
   flex-shrink: 0;
   margin-right: 4px;
