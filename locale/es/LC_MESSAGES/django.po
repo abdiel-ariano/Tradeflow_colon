@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 20:08-0500\n"
+"POT-Creation-Date: 2026-07-11 20:36-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -138,28 +138,28 @@ msgstr "Procesando…"
 msgid "We will improve it. Email us at %(email)s"
 msgstr "Lo mejoraremos. Escríbenos a %(email)s"
 
-#: core/context_processors.py:100 templates/core/catalogo_publico.html:131
+#: core/context_processors.py:100 templates/core/catalogo_publico.html:132
 msgid "Best match"
 msgstr "Mejor coincidencia"
 
-#: core/context_processors.py:101 templates/core/catalogo_publico.html:132
+#: core/context_processors.py:101 templates/core/catalogo_publico.html:133
 msgid "Price: low to high"
 msgstr "Precio: menor a mayor"
 
-#: core/context_processors.py:102 templates/core/catalogo_publico.html:133
+#: core/context_processors.py:102 templates/core/catalogo_publico.html:134
 msgid "Price: high to low"
 msgstr "Precio: mayor a menor"
 
-#: core/context_processors.py:103 templates/core/catalogo_publico.html:134
+#: core/context_processors.py:103 templates/core/catalogo_publico.html:135
 msgid "Newest"
 msgstr "Más recientes"
 
 #: core/context_processors.py:104 templates/core/acerca_tradeflow.html:57
-#: templates/core/catalogo_publico.html:69
+#: templates/core/catalogo_publico.html:70
 msgid "Verified"
 msgstr "Verificado"
 
-#: core/context_processors.py:105 templates/core/catalogo_publico.html:73
+#: core/context_processors.py:105 templates/core/catalogo_publico.html:74
 msgid "In stock"
 msgstr "En stock"
 
@@ -167,7 +167,7 @@ msgstr "En stock"
 msgid "Low stock"
 msgstr "Stock bajo"
 
-#: core/context_processors.py:107 templates/core/catalogo_publico.html:77
+#: core/context_processors.py:107 templates/core/catalogo_publico.html:78
 msgid "On sale"
 msgstr "En oferta"
 
@@ -175,11 +175,11 @@ msgstr "En oferta"
 msgid "Search:"
 msgstr "Búsqueda:"
 
-#: core/context_processors.py:109 templates/core/catalogo_publico.html:84
+#: core/context_processors.py:109 templates/core/catalogo_publico.html:85
 msgid "Category"
 msgstr "Categoría"
 
-#: core/context_processors.py:110 templates/core/catalogo_publico.html:94
+#: core/context_processors.py:110 templates/core/catalogo_publico.html:95
 msgid "Supplier"
 msgstr "Proveedor"
 
@@ -768,8 +768,8 @@ msgid ""
 "ready documentation."
 msgstr ""
 "Descubre por qué compradores y proveedores eligen TradeFlow Colón: el "
-"marketplace B2B de la Zona Libre de Colón con empresas verificadas, fl"
-"ujos RFQ y documentación lista para exportar."
+"marketplace B2B de la Zona Libre de Colón con empresas verificadas, flujos "
+"RFQ y documentación lista para exportar."
 
 #: templates/core/acerca_tradeflow.html:16
 msgid "Built for wholesale · Powered by the Free Zone"
@@ -785,9 +785,9 @@ msgid ""
 "suppliers — live inventory, transparent MOQs, and quote-first workflows "
 "designed for real B2B orders."
 msgstr ""
-"TradeFlow Colón conecta compradores internacionales con proveedores ve"
-"rificados de la Zona Libre de Colón: inventario activo, MOQ transparen"
-"tes y flujos de cotización primero diseñados para pedidos B2B reales."
+"TradeFlow Colón conecta compradores internacionales con proveedores "
+"verificados de la Zona Libre de Colón: inventario activo, MOQ transparentes "
+"y flujos de cotización primero diseñados para pedidos B2B reales."
 
 #: templates/core/acerca_tradeflow.html:20
 msgid "Join as a buyer — it's free"
@@ -819,7 +819,8 @@ msgstr "Por qué TradeFlow"
 
 #: templates/core/acerca_tradeflow.html:32
 msgid "Trusted by importers, distributors & wholesale buyers"
-msgstr "Con la confianza de importadores, distribuidores y compradores mayoristas"
+msgstr ""
+"Con la confianza de importadores, distribuidores y compradores mayoristas"
 
 #: templates/core/acerca_tradeflow.html:34
 msgid "Quote before you commit"
@@ -869,11 +870,11 @@ msgid ""
 "and structured RFQs in one place — so you can compare suppliers, negotiate "
 "volume, and place export-ready orders from anywhere."
 msgstr ""
-"Durante décadas, abastecerse desde la Zona Libre de Colón significó ll"
-"amadas, hojas de cálculo e incertidumbre. TradeFlow reúne catálogos ve"
-"rificados, stock activo y RFQ estructurados en un solo lugar para comp"
-"arar proveedores, negociar volumen y hacer pedidos listos para exporta"
-"r desde cualquier sitio."
+"Durante décadas, abastecerse desde la Zona Libre de Colón significó "
+"llamadas, hojas de cálculo e incertidumbre. TradeFlow reúne catálogos "
+"verificados, stock activo y RFQ estructurados en un solo lugar para comparar "
+"proveedores, negociar volumen y hacer pedidos listos para exportar desde "
+"cualquier sitio."
 
 #: templates/core/acerca_tradeflow.html:52
 msgid ""
@@ -881,9 +882,8 @@ msgid ""
 "scaling across Central America — TradeFlow is your direct line to CFZ "
 "wholesale."
 msgstr ""
-"Ya seas importador en Miami, distribuidor en Bogotá o retailer expandi"
-"éndote en Centroamérica, TradeFlow es tu línea directa al mayorista ZL"
-"C."
+"Ya seas importador en Miami, distribuidor en Bogotá o retailer expandiéndote "
+"en Centroamérica, TradeFlow es tu línea directa al mayorista ZLC."
 
 #: templates/core/acerca_tradeflow.html:53
 msgid "Start browsing the catalog"
@@ -925,8 +925,8 @@ msgid ""
 "verification status."
 msgstr ""
 "Arma carritos de consulta con varios proveedores, recibe cotizaciones "
-"formales y revisa términos antes de cualquier pago. Cada perfil muestr"
-"a el estado de verificación ZLC."
+"formales y revisa términos antes de cualquier pago. Cada perfil muestra el "
+"estado de verificación ZLC."
 
 #: templates/core/acerca_tradeflow.html:76
 msgid "See how protection works →"
@@ -942,8 +942,8 @@ msgid ""
 "MOQ, USD price, and stock visibility on every product. No hidden tiers — "
 "compare like-for-like across %(count)s categories before you request a quote."
 msgstr ""
-"MOQ, precio en USD y visibilidad de stock en cada producto. Sin nivele"
-"s ocultos: compara en %(count)s categorías antes de cotizar."
+"MOQ, precio en USD y visibilidad de stock en cada producto. Sin niveles "
+"ocultos: compara en %(count)s categorías antes de cotizar."
 
 #: templates/core/acerca_tradeflow.html:82
 msgid "View today's deals →"
@@ -959,9 +959,9 @@ msgid ""
 "worldwide. Seller plans include analytics, visibility tools, and logistics "
 "integrations."
 msgstr ""
-"Publica tu tienda, gestiona inventario y llega a compradores mayorista"
-"s en todo el mundo. Los planes incluyen analítica, visibilidad e integ"
-"raciones logísticas."
+"Publica tu tienda, gestiona inventario y llega a compradores mayoristas en "
+"todo el mundo. Los planes incluyen analítica, visibilidad e integraciones "
+"logísticas."
 
 #: templates/core/acerca_tradeflow.html:88
 msgid "Apply as supplier"
@@ -985,7 +985,9 @@ msgstr "Guía de la Zona Libre de Colón"
 
 #: templates/core/acerca_tradeflow.html:103
 msgid "Duty-free re-export hub · logistics gateway · wholesale at scale"
-msgstr "Hub de reexportación libre de impuestos · puerta logística · mayorista a escala"
+msgstr ""
+"Hub de reexportación libre de impuestos · puerta logística · mayorista a "
+"escala"
 
 #: templates/core/acerca_tradeflow.html:107
 msgid "Verified ecosystem"
@@ -1001,7 +1003,9 @@ msgstr "Alcance global"
 
 #: templates/core/acerca_tradeflow.html:112
 msgid "Buyers in 40+ countries source re-export inventory through TradeFlow"
-msgstr "Compradores en más de 40 países abastecen inventario de reexportación vía TradeFlow"
+msgstr ""
+"Compradores en más de 40 países abastecen inventario de reexportación vía "
+"TradeFlow"
 
 #: templates/core/acerca_tradeflow.html:115
 msgid "Quote-first culture"
@@ -1009,7 +1013,8 @@ msgstr "Cultura de cotizar primero"
 
 #: templates/core/acerca_tradeflow.html:116
 msgid "Structured RFQs replace guesswork on volume, lead time, and shipping"
-msgstr "Los RFQ estructurados reemplazan suposiciones sobre volumen, plazos y envío"
+msgstr ""
+"Los RFQ estructurados reemplazan suposiciones sobre volumen, plazos y envío"
 
 #: templates/core/acerca_tradeflow.html:119
 msgid "Seller SaaS"
@@ -1019,8 +1024,8 @@ msgstr "SaaS para vendedores"
 msgid ""
 "From starter storefronts to enterprise visibility — grow with the platform"
 msgstr ""
-"Desde tiendas iniciales hasta visibilidad enterprise — crece con la pl"
-"ataforma"
+"Desde tiendas iniciales hasta visibilidad enterprise — crece con la "
+"plataforma"
 
 #: templates/core/acerca_tradeflow.html:129
 msgid "Ready to source smarter from the Free Zone?"
@@ -1031,9 +1036,9 @@ msgid ""
 "Join thousands of wholesale buyers who use TradeFlow to discover suppliers, "
 "compare quotes, and place export-ready orders — without the overhead."
 msgstr ""
-"Únete a miles de compradores mayoristas que usan TradeFlow para descub"
-"rir proveedores, comparar cotizaciones y hacer pedidos listos para exp"
-"ortar — sin fricción."
+"Únete a miles de compradores mayoristas que usan TradeFlow para descubrir "
+"proveedores, comparar cotizaciones y hacer pedidos listos para exportar — "
+"sin fricción."
 
 #: templates/core/acerca_tradeflow.html:132
 msgid "Create your free account"
@@ -1158,7 +1163,19 @@ msgstr ""
 msgid "Ver productos"
 msgstr ""
 
-#: templates/core/catalogo_publico.html:49
+#: templates/core/catalogo_publico.html:3
+msgid "Colón Free Zone Wholesale Catalog | TradeFlow Colón"
+msgstr "Por qué TradeFlow Colón"
+
+#: templates/core/catalogo_publico.html:11
+msgid "Colón Free Zone Wholesale Catalog"
+msgstr "Zona Libre de Colón · Mayorista B2B"
+
+#: templates/core/catalogo_publico.html:37
+msgid "Colón Free Zone Catalog"
+msgstr "Zona Libre de Colón"
+
+#: templates/core/catalogo_publico.html:50
 #: templates/core/includes/catalogo_ali_category_sidebar.html:3
 #: templates/core/includes/home_bento_hero.html:6
 #: templates/core/includes/home_gateway_hero.html:103
@@ -1166,65 +1183,65 @@ msgstr ""
 msgid "Categories"
 msgstr "Categorías"
 
-#: templates/core/catalogo_publico.html:63
+#: templates/core/catalogo_publico.html:64
 msgid "Refine results"
 msgstr "Refinar resultados"
 
-#: templates/core/catalogo_publico.html:66
+#: templates/core/catalogo_publico.html:67
 msgid "Quick filters"
 msgstr "Filtros rápidos"
 
-#: templates/core/catalogo_publico.html:86
+#: templates/core/catalogo_publico.html:87
 #: templates/core/includes/marketplace_public_navbar.html:123
 msgid "All categories"
 msgstr "Todas las categorías"
 
-#: templates/core/catalogo_publico.html:96
+#: templates/core/catalogo_publico.html:97
 msgid "All suppliers"
 msgstr "Todos los proveedores"
 
-#: templates/core/catalogo_publico.html:105
+#: templates/core/catalogo_publico.html:106
 msgid "Min $"
 msgstr "Mín $"
 
-#: templates/core/catalogo_publico.html:106
+#: templates/core/catalogo_publico.html:107
 msgid "Minimum price"
 msgstr "Precio mínimo"
 
-#: templates/core/catalogo_publico.html:108
+#: templates/core/catalogo_publico.html:109
 msgid "Max $"
 msgstr "Máx $"
 
-#: templates/core/catalogo_publico.html:109
+#: templates/core/catalogo_publico.html:110
 msgid "Maximum price"
 msgstr "Precio máximo"
 
-#: templates/core/catalogo_publico.html:113
+#: templates/core/catalogo_publico.html:114
 msgid "Clear"
 msgstr "Limpiar"
 
-#: templates/core/catalogo_publico.html:125
+#: templates/core/catalogo_publico.html:126
 msgid "wholesale products"
 msgstr "productos mayoristas"
 
-#: templates/core/catalogo_publico.html:126
+#: templates/core/catalogo_publico.html:127
 #, python-format
 msgid "for “%(term)s”"
 msgstr "para “%(term)s”"
 
-#: templates/core/catalogo_publico.html:129
+#: templates/core/catalogo_publico.html:130
 msgid "Sort by"
 msgstr "Ordenar por"
 
-#: templates/core/catalogo_publico.html:130
+#: templates/core/catalogo_publico.html:131
 msgid "Sort results"
 msgstr "Refinar resultados"
 
-#: templates/core/catalogo_publico.html:142
+#: templates/core/catalogo_publico.html:143
 msgid "Category navigation"
 msgstr "Navegación por categorías"
 
-#: templates/core/catalogo_publico.html:143
+#: templates/core/catalogo_publico.html:144
 #: templates/core/includes/home_categories_modal.html:7
 msgid "Close categories"
 msgstr "Cerrar categorías"
@@ -1892,6 +1909,8 @@ msgid "Back to home"
 msgstr "Volver al inicio"
 
 #: templates/core/legal_cookies.html:3 templates/core/legal_cookies.html:4
+#: templates/core/legal_privacidad.html:80
+#: templates/core/legal_terminos.html:101
 msgid "Cookie Policy"
 msgstr "Política de cookies"
 
@@ -1905,7 +1924,7 @@ msgstr "Cookies esenciales"
 
 #: templates/core/legal_cookies.html:8
 msgid "Analytics cookies"
-msgstr "Cookies de analítica"
+msgstr "Cookies analíticas"
 
 #: templates/core/legal_cookies.html:9
 msgid "Functional cookies"
@@ -1917,14 +1936,195 @@ msgstr "Cookies de terceros"
 
 #: templates/core/legal_cookies.html:11
 msgid "How to manage or disable cookies"
-msgstr "Cómo gestionar o desactivar cookies"
+msgstr "Cómo gestionar o desactivar las cookies"
 
 #: templates/core/legal_cookies.html:12
 msgid "Updates and contact"
 msgstr "Actualizaciones y contacto"
 
-#: templates/core/legal_privacidad.html:3
-#: templates/core/legal_privacidad.html:4
+#: templates/core/legal_cookies.html:15
+msgid "1. What cookies are"
+msgstr "1. Qué son las cookies"
+
+#: templates/core/legal_cookies.html:16
+msgid ""
+"Cookies are small files that the site or associated services store in your "
+"browser to remember preferences, maintain sessions, or measure use of "
+"TradeFlow Colón. Similar technologies (local storage, pixels) are handled "
+"with the same transparency criteria."
+msgstr ""
+"Las cookies son archivos pequeños que el sitio o los servicios asociad"
+"os almacenan en su navegador para recordar preferencias, mantener sesi"
+"ones o medir el uso de TradeFlow Colón. Tecnologías similares (almacen"
+"amiento local, píxeles) se gestionan con los mismos criterios de trans"
+"parencia."
+
+#: templates/core/legal_cookies.html:18
+msgid "2. Essential cookies"
+msgstr "2. Cookies esenciales"
+
+#: templates/core/legal_cookies.html:19
+msgid ""
+"These are necessary for basic Platform operation. Without them you could "
+"not, for example:"
+msgstr ""
+"Son necesarias para el funcionamiento básico de la Plataforma. Sin ell"
+"as, por ejemplo, no podría:"
+
+#: templates/core/legal_cookies.html:21
+msgid "Maintain your"
+msgstr "Mantener su"
+
+#: templates/core/legal_cookies.html:21
+msgid "login session"
+msgstr "sesión iniciada"
+
+#: templates/core/legal_cookies.html:21
+msgid "securely."
+msgstr "de forma segura."
+
+#: templates/core/legal_cookies.html:22
+msgid "Store your"
+msgstr "Conservar su"
+
+#: templates/core/legal_cookies.html:22
+msgid "shopping cart"
+msgstr "carrito de compras"
+
+#: templates/core/legal_cookies.html:22
+msgid "while you browse."
+msgstr "mientras navega."
+
+#: templates/core/legal_cookies.html:23
+msgid "Apply CSRF protection on forms and security preferences."
+msgstr "Aplicar protección CSRF en formularios y preferencias de seguridad."
+
+#: templates/core/legal_cookies.html:25
+msgid ""
+"These cookies do not require prior consent to the extent they are strictly "
+"necessary."
+msgstr ""
+"Estas cookies no requieren consentimiento previo en la medida en que s"
+"ean estrictamente necesarias."
+
+#: templates/core/legal_cookies.html:27
+msgid "3. Analytics cookies"
+msgstr "3. Cookies analíticas"
+
+#: templates/core/legal_cookies.html:29
+msgid ""
+"These help us understand traffic and aggregated behavior (pages visited, "
+"duration, device). When enabled, we may use services such as"
+msgstr ""
+"Nos ayudan a comprender el tráfico y el comportamiento agregado (págin"
+"as visitadas, duración, dispositivo). Cuando estén habilitadas, podemo"
+"s utilizar servicios como"
+
+#: templates/core/legal_cookies.html:33
+msgid "Google Analytics"
+msgstr "Google Analytics"
+
+#: templates/core/legal_cookies.html:34
+msgid ""
+"or equivalent tools, always seeking configurations that limit direct "
+"identification."
+msgstr ""
+"u herramientas equivalentes, procurando siempre configuraciones que li"
+"miten la identificación directa."
+
+#: templates/core/legal_cookies.html:37
+msgid "4. Functional cookies"
+msgstr "4. Cookies funcionales"
+
+#: templates/core/legal_cookies.html:38
+msgid ""
+"These remember your choices to improve the experience: language, store "
+"filters, dismissed banners, or interface preferences in buyer and seller "
+"panels."
+msgstr ""
+"Recuerdan sus elecciones para mejorar la experiencia: idioma, filtros "
+"de tienda, banners descartados o preferencias de interfaz en los panel"
+"es de comprador y vendedor."
+
+#: templates/core/legal_cookies.html:40
+msgid "5. Third-party cookies"
+msgstr "5. Cookies de terceros"
+
+#: templates/core/legal_cookies.html:42
+msgid "When integrating"
+msgstr "Al integrar"
+
+#: templates/core/legal_cookies.html:45
+msgid "payment services"
+msgstr "servicios de pago"
+
+#: templates/core/legal_cookies.html:46
+msgid ""
+"maps, players, or external widgets, those providers may set their own "
+"cookies subject to their policies. TradeFlow does not fully control those "
+"technologies; we recommend reviewing the corresponding provider’s "
+"documentation when you complete a payment or use a linked service."
+msgstr ""
+"mapas, reproductores o widgets externos, esos proveedores pueden insta"
+"lar sus propias cookies sujetas a sus políticas. TradeFlow no controla"
+" plenamente esas tecnologías; recomendamos revisar la documentación de"
+"l proveedor correspondiente al completar un pago o utilizar un servici"
+"o vinculado."
+
+#: templates/core/legal_cookies.html:49
+msgid "6. How to manage or disable cookies"
+msgstr "6. Cómo gestionar o desactivar las cookies"
+
+#: templates/core/legal_cookies.html:50
+msgid "You can configure your browser to block or delete cookies:"
+msgstr "Puede configurar su navegador para bloquear o eliminar cookies:"
+
+#: templates/core/legal_cookies.html:52
+msgid "Chrome: Settings → Privacy and security → Cookies."
+msgstr "Chrome: Configuración → Privacidad y seguridad → Cookies."
+
+#: templates/core/legal_cookies.html:53
+msgid "Firefox: Options → Privacy & Security."
+msgstr "Firefox: Opciones → Privacidad y seguridad."
+
+#: templates/core/legal_cookies.html:54
+msgid "Safari: Preferences → Privacy."
+msgstr "Safari: Preferencias → Privacidad."
+
+#: templates/core/legal_cookies.html:55
+msgid "Edge: Settings → Cookies and site permissions."
+msgstr "Edge: Configuración → Cookies y permisos del sitio."
+
+#: templates/core/legal_cookies.html:57
+msgid ""
+"If you disable essential cookies, some features (login, cart, checkout) may "
+"stop working correctly."
+msgstr ""
+"Si desactiva las cookies esenciales, algunas funciones (inicio de sesi"
+"ón, carrito, checkout) pueden dejar de funcionar correctamente."
+
+#: templates/core/legal_cookies.html:59
+msgid "7. Updates and contact"
+msgstr "7. Actualizaciones y contacto"
+
+#: templates/core/legal_cookies.html:61
+msgid ""
+"This policy may be modified; the date above indicates the published version."
+msgstr ""
+"Esta política puede modificarse; la fecha indicada arriba señala la ve"
+"rsión publicada."
+
+#: templates/core/legal_cookies.html:62
+#, python-format
+msgid "Questions: <a href=\"mailto:%(email)s\">%(email)s</a>."
+msgstr "Consultas: <a href=\"mailto:%(email)s\">%(email)s</a>."
+
+#: templates/core/legal_cookies.html:63 templates/core/legal_privacidad.html:79
+msgid "See also"
+msgstr "Consulte también"
+
+#: templates/core/legal_cookies.html:64 templates/core/legal_privacidad.html:3
+#: templates/core/legal_privacidad.html:4 templates/core/legal_terminos.html:99
 msgid "Privacy Policy"
 msgstr "Política de privacidad"
 
@@ -1938,7 +2138,7 @@ msgstr "Datos que recopilamos"
 
 #: templates/core/legal_privacidad.html:8
 msgid "Purposes of use"
-msgstr "Finalidades del uso"
+msgstr "Finalidades del tratamiento"
 
 #: templates/core/legal_privacidad.html:9
 msgid "Data sharing"
@@ -1950,7 +2150,7 @@ msgstr "Conservación"
 
 #: templates/core/legal_privacidad.html:11
 msgid "Your rights"
-msgstr "Tus derechos"
+msgstr "Sus derechos"
 
 #: templates/core/legal_privacidad.html:12
 msgid "Security"
@@ -1958,13 +2158,309 @@ msgstr "Seguridad"
 
 #: templates/core/legal_privacidad.html:13
 msgid "Minors"
-msgstr "Menores"
+msgstr "Menores de edad"
 
 #: templates/core/legal_privacidad.html:14
 msgid "Changes and contact"
 msgstr "Cambios y contacto"
 
-#: templates/core/legal_terminos.html:3 templates/core/legal_terminos.html:4
+#: templates/core/legal_privacidad.html:17
+msgid "1. Data controller"
+msgstr "1. Responsable del tratamiento"
+
+#: templates/core/legal_privacidad.html:19
+msgid ""
+"TradeFlow Colón processes personal data in the context of its marketplace "
+"for the Colón Free Zone."
+msgstr ""
+"TradeFlow Colón trata datos personales en el marco de su marketplace p"
+"ara la Zona Libre de Colón."
+
+#: templates/core/legal_privacidad.html:22
+#, python-format
+msgid ""
+"To exercise your rights or submit inquiries: <a href=\"mailto:"
+"%(email)s\">%(email)s</a>."
+msgstr ""
+"Para ejercer sus derechos o formular consultas: <a href=\"mailto:%(emai"
+"l)s\">%(email)s</a>."
+
+#: templates/core/legal_privacidad.html:25
+msgid "2. Data we collect"
+msgstr "2. Datos que recopilamos"
+
+#: templates/core/legal_privacidad.html:27
+msgid "Identity and contact:"
+msgstr "Identidad y contacto:"
+
+#: templates/core/legal_privacidad.html:27
+msgid "name, email address, phone number, username."
+msgstr ""
+"nombre, dirección de correo electrónico, número de teléfono, nombre de"
+" usuario."
+
+#: templates/core/legal_privacidad.html:28
+msgid "Company (sellers):"
+msgstr "Empresa (vendedores):"
+
+#: templates/core/legal_privacidad.html:28
+msgid "legal name, CFZ address, commercial contact details."
+msgstr "razón social, dirección en la ZLC, datos de contacto comercial."
+
+#: templates/core/legal_privacidad.html:29
+msgid "Transactions:"
+msgstr "Transacciones:"
+
+#: templates/core/legal_privacidad.html:29
+msgid "order history, quotes, statuses, amounts, and associated notes."
+msgstr ""
+"historial de pedidos, cotizaciones, estados, importes y notas asociada"
+"s."
+
+#: templates/core/legal_privacidad.html:30
+msgid "Technical:"
+msgstr "Técnicos:"
+
+#: templates/core/legal_privacidad.html:30
+msgid ""
+"IP address, browser user agent, access logs, and cookies (see the cookie "
+"policy)."
+msgstr ""
+"dirección IP, agente de usuario del navegador, registros de acceso y c"
+"ookies (consulte la política de cookies)."
+
+#: templates/core/legal_privacidad.html:31
+msgid "Location:"
+msgstr "Ubicación:"
+
+#: templates/core/legal_privacidad.html:31
+msgid ""
+"coordinates when you voluntarily confirm them at checkout or in logistics."
+msgstr ""
+"coordenadas cuando las confirma voluntariamente en el checkout o en la"
+" logística."
+
+#: templates/core/legal_privacidad.html:34
+msgid "3. Purposes of use"
+msgstr "3. Finalidades del tratamiento"
+
+#: templates/core/legal_privacidad.html:36
+msgid ""
+"Create and manage your account (buyer, seller, or authorized administrator)."
+msgstr ""
+"Crear y administrar su cuenta (comprador, vendedor o administrador aut"
+"orizado)."
+
+#: templates/core/legal_privacidad.html:37
+msgid ""
+"Process orders, quotes, simulated or real payments, and operational "
+"notifications."
+msgstr ""
+"Procesar pedidos, cotizaciones, pagos simulados o reales y notificacio"
+"nes operativas."
+
+#: templates/core/legal_privacidad.html:38
+msgid ""
+"Send transactional communications (confirmations, status changes, email "
+"verification)."
+msgstr ""
+"Enviar comunicaciones transaccionales (confirmaciones, cambios de esta"
+"do, verificación de correo electrónico)."
+
+#: templates/core/legal_privacidad.html:39
+msgid ""
+"Improve security, prevent fraud, and comply with applicable legal "
+"obligations."
+msgstr ""
+"Mejorar la seguridad, prevenir el fraude y cumplir las obligaciones le"
+"gales aplicables."
+
+#: templates/core/legal_privacidad.html:40
+msgid "Analyze aggregated Platform usage for performance and user experience."
+msgstr ""
+"Analizar el uso agregado de la Plataforma para mejorar el rendimiento "
+"y la experiencia del usuario."
+
+#: templates/core/legal_privacidad.html:43
+msgid "4. Data sharing"
+msgstr "4. Compartición de datos"
+
+#: templates/core/legal_privacidad.html:44
+msgid ""
+"We do not sell or rent your personal data to third parties for advertising "
+"purposes. We may share information only when necessary for:"
+msgstr ""
+"No vendemos ni alquilamos sus datos personales a terceros con fines pu"
+"blicitarios. Podemos compartir información únicamente cuando sea neces"
+"ario para:"
+
+#: templates/core/legal_privacidad.html:46
+msgid "Payment providers"
+msgstr "Proveedores de pago"
+
+#: templates/core/legal_privacidad.html:46
+msgid "or gateways enabled on the Platform."
+msgstr "o pasarelas habilitadas en la Plataforma."
+
+#: templates/core/legal_privacidad.html:47
+msgid "Logistics operators"
+msgstr "Operadores logísticos"
+
+#: templates/core/legal_privacidad.html:47
+msgid "or carriers selected in the order flow."
+msgstr "o transportistas seleccionados en el flujo del pedido."
+
+#: templates/core/legal_privacidad.html:48
+msgid "Technical infrastructure"
+msgstr "Infraestructura técnica"
+
+#: templates/core/legal_privacidad.html:48
+msgid "(hosting, email, databases) under confidentiality agreements."
+msgstr ""
+"(alojamiento, correo electrónico, bases de datos) bajo acuerdos de con"
+"fidencialidad."
+
+#: templates/core/legal_privacidad.html:49
+msgid "Authorities"
+msgstr "Autoridades"
+
+#: templates/core/legal_privacidad.html:49
+msgid "when required by Panamanian law."
+msgstr "cuando lo exija la legislación panameña."
+
+#: templates/core/legal_privacidad.html:51
+msgid ""
+"Buyer and seller exchange the minimum data necessary to execute each "
+"operation (for example, contact details and order references)."
+msgstr ""
+"Comprador y vendedor intercambian los datos mínimos necesarios para ej"
+"ecutar cada operación (por ejemplo, datos de contacto y referencias de"
+"l pedido)."
+
+#: templates/core/legal_privacidad.html:53
+msgid "5. Retention"
+msgstr "5. Conservación"
+
+#: templates/core/legal_privacidad.html:54
+msgid ""
+"We retain data while your account remains active and for the period "
+"necessary for legal, accounting obligations, or dispute resolution. Order "
+"records may be kept for additional periods when regulation or audit requires "
+"it."
+msgstr ""
+"Conservamos los datos mientras su cuenta permanezca activa y durante e"
+"l plazo necesario para obligaciones legales, contables o resolución de"
+" disputas. Los registros de pedidos pueden conservarse por períodos ad"
+"icionales cuando lo exijan la normativa o una auditoría."
+
+#: templates/core/legal_privacidad.html:56
+msgid "6. Your rights"
+msgstr "6. Sus derechos"
+
+#: templates/core/legal_privacidad.html:57
+msgid "Under applicable law, you may request:"
+msgstr "Conforme a la legislación aplicable, puede solicitar:"
+
+#: templates/core/legal_privacidad.html:59
+msgid "Access"
+msgstr "Acceso"
+
+#: templates/core/legal_privacidad.html:59
+msgid "to the personal data we process about you."
+msgstr "a los datos personales que tratamos sobre usted."
+
+#: templates/core/legal_privacidad.html:60
+msgid "Rectification"
+msgstr "Rectificación"
+
+#: templates/core/legal_privacidad.html:60
+msgid "of inaccurate or incomplete data."
+msgstr "de datos inexactos o incompletos."
+
+#: templates/core/legal_privacidad.html:61
+msgid "Deletion"
+msgstr "Supresión"
+
+#: templates/core/legal_privacidad.html:61
+msgid ""
+"when no longer necessary or you withdraw consent, except where legal "
+"retention applies."
+msgstr ""
+"cuando ya no sean necesarios o retire su consentimiento, salvo cuando "
+"aplique una obligación legal de conservación."
+
+#: templates/core/legal_privacidad.html:62
+msgid "Restriction or objection"
+msgstr "Limitación u oposición"
+
+#: templates/core/legal_privacidad.html:62
+msgid "to processing in cases provided by regulation."
+msgstr "al tratamiento en los supuestos previstos por la normativa."
+
+#: templates/core/legal_privacidad.html:65
+#, python-format
+msgid ""
+"Send your request to <a href=\"mailto:%(email)s\">%(email)s</a> indicating "
+"your registered email."
+msgstr ""
+"Envíe su solicitud a <a href=\"mailto:%(email)s\">%(email)s</a> indicand"
+"o su correo electrónico registrado."
+
+#: templates/core/legal_privacidad.html:66
+msgid "We will respond within a reasonable timeframe."
+msgstr "Responderemos en un plazo razonable."
+
+#: templates/core/legal_privacidad.html:69
+msgid "7. Security"
+msgstr "7. Seguridad"
+
+#: templates/core/legal_privacidad.html:70
+msgid ""
+"We apply technical and organizational measures appropriate to the risk "
+"(encryption in transit, access control, strong passwords). No system is "
+"infallible; we recommend using robust passwords and protecting your devices."
+msgstr ""
+"Aplicamos medidas técnicas y organizativas acordes al riesgo (cifrado "
+"en tránsito, control de acceso, contraseñas robustas). Ningún sistema "
+"es infalible; recomendamos utilizar contraseñas seguras y proteger sus"
+" dispositivos."
+
+#: templates/core/legal_privacidad.html:72
+msgid "8. Minors"
+msgstr "8. Menores de edad"
+
+#: templates/core/legal_privacidad.html:73
+msgid ""
+"The Platform is intended for commercial operators and adult users. We do not "
+"knowingly collect data from minors."
+msgstr ""
+"La Plataforma está destinada a operadores comerciales y usuarios adult"
+"os. No recopilamos deliberadamente datos de menores de edad."
+
+#: templates/core/legal_privacidad.html:75
+msgid "9. Changes and contact"
+msgstr "9. Cambios y contacto"
+
+#: templates/core/legal_privacidad.html:77
+msgid ""
+"We may update this policy; the “Last updated” date reflects the current "
+"version."
+msgstr ""
+"Podemos actualizar esta política; la fecha de «Última actualización» r"
+"efleja la versión vigente."
+
+#: templates/core/legal_privacidad.html:78
+#, python-format
+msgid "Contact: <a href=\"mailto:%(email)s\">%(email)s</a>."
+msgstr "Contacto: <a href=\"mailto:%(email)s\">%(email)s</a>."
+
+#: templates/core/legal_privacidad.html:81
+#: templates/core/legal_terminos.html:100
+msgid "and"
+msgstr "y"
+
+#: templates/core/legal_privacidad.html:82 templates/core/legal_terminos.html:3
+#: templates/core/legal_terminos.html:4
 msgid "Terms of Use"
 msgstr "Términos de uso"
 
@@ -2004,6 +2500,296 @@ msgstr "Ley aplicable y jurisdicción"
 msgid "Contact"
 msgstr "Contacto"
 
+#: templates/core/legal_terminos.html:17
+msgid "1. Service description"
+msgstr "1. Descripción del servicio"
+
+#: templates/core/legal_terminos.html:19
+msgid ""
+"TradeFlow Colón (“TradeFlow”, “the Platform”) is a B2B and B2C intermediary "
+"marketplace focused on the Colón Free Zone (CFZ), Republic of Panama. "
+"TradeFlow facilitates contact, quoting, and order management between buyers "
+"and registered seller companies;"
+msgstr ""
+"TradeFlow Colón («TradeFlow», «la Plataforma») es un marketplace inter"
+"mediario B2B y B2C orientado a la Zona Libre de Colón (ZLC), República"
+" de Panamá. TradeFlow facilita el contacto, la cotización y la gestión"
+" de pedidos entre compradores y empresas vendedoras registradas;"
+
+#: templates/core/legal_terminos.html:24
+msgid "it does not act as the direct seller"
+msgstr "no actúa como vendedor directo"
+
+#: templates/core/legal_terminos.html:25
+msgid ""
+"of listed products or as a carrier, unless an additional contracted service "
+"is expressly indicated."
+msgstr ""
+"de los productos publicados ni como transportista, salvo que se indiqu"
+"e expresamente un servicio adicional contratado."
+
+#: templates/core/legal_terminos.html:30
+msgid ""
+"Use of the Platform implies acceptance of these Terms. If you do not agree, "
+"you must not register or use the services."
+msgstr ""
+"El uso de la Plataforma implica la aceptación de estos Términos. Si no"
+" está de acuerdo, no debe registrarse ni utilizar los servicios."
+
+#: templates/core/legal_terminos.html:32
+msgid "2. Registration and accounts"
+msgstr "2. Registro y cuentas"
+
+#: templates/core/legal_terminos.html:33
+msgid ""
+"To operate on TradeFlow you may register as a buyer or seller, according to "
+"the authorized role."
+msgstr ""
+"Para operar en TradeFlow puede registrarse como comprador o vendedor, "
+"según el rol autorizado."
+
+#: templates/core/legal_terminos.html:35
+msgid ""
+"You must provide truthful, complete, and up-to-date information (name, "
+"email, phone, and, where applicable, company details)."
+msgstr ""
+"Debe proporcionar información veraz, completa y actualizada (nombre, c"
+"orreo electrónico, teléfono y, cuando corresponda, datos de la empresa"
+")."
+
+#: templates/core/legal_terminos.html:36
+msgid ""
+"You are responsible for the confidentiality of your credentials and for all "
+"activity performed from your account."
+msgstr ""
+"Es responsable de la confidencialidad de sus credenciales y de toda ac"
+"tividad realizada desde su cuenta."
+
+#: templates/core/legal_terminos.html:37
+#, python-format
+msgid ""
+"You must immediately notify any unauthorized use to <a href=\"mailto:"
+"%(email)s\">%(email)s</a>."
+msgstr ""
+"Debe notificar de inmediato cualquier uso no autorizado a <a href=\"mai"
+"lto:%(email)s\">%(email)s</a>."
+
+#: templates/core/legal_terminos.html:38
+msgid ""
+"TradeFlow may suspend or cancel accounts that violate these Terms or CFZ "
+"requirements."
+msgstr ""
+"TradeFlow puede suspender o cancelar cuentas que infrinjan estos Térmi"
+"nos o los requisitos de la ZLC."
+
+#: templates/core/legal_terminos.html:41
+msgid "3. Seller obligations"
+msgstr "3. Obligaciones del vendedor"
+
+#: templates/core/legal_terminos.html:43
+msgid ""
+"Maintain accurate, up-to-date inventory; do not list products without "
+"reasonable availability."
+msgstr ""
+"Mantener un inventario preciso y actualizado; no publicar productos si"
+"n disponibilidad razonable."
+
+#: templates/core/legal_terminos.html:44
+msgid ""
+"Express prices in US dollars (USD), unless a different contractual "
+"indication is agreed with the buyer."
+msgstr ""
+"Expresar los precios en dólares estadounidenses (USD), salvo que se ac"
+"uerde con el comprador otra indicación contractual."
+
+#: templates/core/legal_terminos.html:45
+msgid ""
+"Comply with customs, tax, and commercial documentation applicable to "
+"operations in the CFZ and at the destination of the goods."
+msgstr ""
+"Cumplir con la documentación aduanera, fiscal y comercial aplicable a "
+"las operaciones en la ZLC y en el destino de las mercancías."
+
+#: templates/core/legal_terminos.html:46
+msgid ""
+"Confirm or reject orders within the deadlines shown on the Platform and "
+"communicate incidents diligently."
+msgstr ""
+"Confirmar o rechazar pedidos dentro de los plazos indicados en la Plat"
+"aforma y comunicar incidencias de forma diligente."
+
+#: templates/core/legal_terminos.html:47
+msgid ""
+"Do not publish unlawful, misleading content or content that infringes third-"
+"party rights."
+msgstr ""
+"No publicar contenido ilícito, engañoso o que infrinja derechos de ter"
+"ceros."
+
+#: templates/core/legal_terminos.html:50
+msgid "4. Buyer obligations"
+msgstr "4. Obligaciones del comprador"
+
+#: templates/core/legal_terminos.html:52
+msgid ""
+"Use the Platform for legitimate purchasing or commercial sourcing purposes."
+msgstr ""
+"Utilizar la Plataforma con fines legítimos de compra o abastecimiento "
+"comercial."
+
+#: templates/core/legal_terminos.html:53
+msgid "Provide truthful contact, delivery, and billing details."
+msgstr "Proporcionar datos veraces de contacto, entrega y facturación."
+
+#: templates/core/legal_terminos.html:54
+msgid ""
+"Review quotes and orders before confirming them; confirmations bind the "
+"parties according to the Platform flow."
+msgstr ""
+"Revisar cotizaciones y pedidos antes de confirmarlos; las confirmacion"
+"es vinculan a las partes conforme al flujo de la Plataforma."
+
+#: templates/core/legal_terminos.html:55
+msgid ""
+"Respect payment, receipt, and dispute deadlines established for each "
+"transaction."
+msgstr ""
+"Respetar los plazos de pago, recepción y disputa establecidos para cad"
+"a transacción."
+
+#: templates/core/legal_terminos.html:58
+msgid "5. Orders, payments, and disputes"
+msgstr "5. Pedidos, pagos y disputas"
+
+#: templates/core/legal_terminos.html:59
+msgid ""
+"Orders are created according to the flow visible on the Platform (cart, "
+"checkout, quotes, or administrative tools). The status of each order "
+"(pending, awaiting seller confirmation, paid, shipped, delivered, cancelled, "
+"etc.) is reflected in the corresponding panel."
+msgstr ""
+"Los pedidos se crean conforme al flujo visible en la Plataforma (carri"
+"to, checkout, cotizaciones o herramientas administrativas). El estado "
+"de cada pedido (pendiente, en espera de confirmación del vendedor, pag"
+"ado, enviado, entregado, cancelado, etc.) se refleja en el panel corre"
+"spondiente."
+
+#: templates/core/legal_terminos.html:60
+msgid ""
+"Payments may be processed through providers or methods enabled at any given "
+"time (including test or simulation mechanisms in demo environments). "
+"TradeFlow does not hold funds between parties unless a specific product "
+"indicates otherwise."
+msgstr ""
+"Los pagos pueden procesarse mediante proveedores o métodos habilitados"
+" en cada momento (incluidos mecanismos de prueba o simulación en entor"
+"nos de demostración). TradeFlow no retiene fondos entre las partes, sa"
+"lvo que un producto específico indique lo contrario."
+
+#: templates/core/legal_terminos.html:61
+msgid ""
+"Cancellations and disputes must first be handled between buyer and seller, "
+"using Platform channels and support email. TradeFlow may mediate in good "
+"faith but does not replace contractual obligations between the parties."
+msgstr ""
+"Las cancelaciones y disputas deben resolverse en primer lugar entre co"
+"mprador y vendedor, utilizando los canales de la Plataforma y el corre"
+"o de soporte. TradeFlow puede mediar de buena fe, pero no sustituye la"
+"s obligaciones contractuales entre las partes."
+
+#: templates/core/legal_terminos.html:63
+msgid "6. Intellectual property"
+msgstr "6. Propiedad intelectual"
+
+#: templates/core/legal_terminos.html:64
+msgid ""
+"The TradeFlow Colón name, logos, interface design, institutional text, and "
+"Platform software are owned by their holders or licensors. Unauthorized "
+"reproduction is prohibited. Sellers retain rights to their brands and "
+"product descriptions, and grant TradeFlow a limited license to display them "
+"on the marketplace."
+msgstr ""
+"El nombre TradeFlow Colón, los logotipos, el diseño de la interfaz, lo"
+"s textos institucionales y el software de la Plataforma pertenecen a s"
+"us titulares o licenciantes. Queda prohibida su reproducción no autori"
+"zada. Los vendedores conservan los derechos sobre sus marcas y descrip"
+"ciones de productos, y otorgan a TradeFlow una licencia limitada para "
+"mostrarlos en el marketplace."
+
+#: templates/core/legal_terminos.html:66
+msgid "7. Limitation of liability"
+msgstr "7. Limitación de responsabilidad"
+
+#: templates/core/legal_terminos.html:68
+msgid ""
+"TradeFlow seeks to keep the Platform available and secure, but does not "
+"guarantee uninterrupted or error-free operation."
+msgstr ""
+"TradeFlow procura mantener la Plataforma disponible y segura, pero no "
+"garantiza un funcionamiento ininterrumpido ni libre de errores."
+
+#: templates/core/legal_terminos.html:72
+msgid "It does not guarantee physical execution of the transaction"
+msgstr "No garantiza la ejecución material de la transacción"
+
+#: templates/core/legal_terminos.html:73
+msgid ""
+"between buyer and seller (quality, delivery, customs, payments outside the "
+"Platform). To the extent permitted by Panamanian law, TradeFlow shall not be "
+"liable for indirect damages, lost profits, or breaches attributable to third "
+"parties or to the parties themselves."
+msgstr ""
+"entre comprador y vendedor (calidad, entrega, aduanas, pagos fuera de "
+"la Plataforma). En la medida permitida por la legislación panameña, Tr"
+"adeFlow no será responsable de daños indirectos, lucro cesante o incum"
+"plimientos atribuibles a terceros o a las propias partes."
+
+#: templates/core/legal_terminos.html:81
+msgid "8. Governing law and jurisdiction"
+msgstr "8. Ley aplicable y jurisdicción"
+
+#: templates/core/legal_terminos.html:83
+msgid "These Terms are governed by the laws of the"
+msgstr "Estos Términos se rigen por las leyes de la"
+
+#: templates/core/legal_terminos.html:86
+msgid "Republic of Panama"
+msgstr "República de Panamá"
+
+#: templates/core/legal_terminos.html:87
+msgid ""
+"For disputes not resolved amicably, the parties submit to the jurisdiction "
+"of the competent courts in the"
+msgstr ""
+"Para controversias no resueltas amistosamente, las partes se someten a"
+" la jurisdicción de los tribunales competentes de la"
+
+#: templates/core/legal_terminos.html:91
+msgid "province of Colón"
+msgstr "provincia de Colón"
+
+#: templates/core/legal_terminos.html:92
+msgid "without prejudice to mandatory consumer rights that may apply."
+msgstr ""
+"sin perjuicio de los derechos imperativos del consumidor que pudieran "
+"aplicarse."
+
+#: templates/core/legal_terminos.html:95
+msgid "9. Contact"
+msgstr "9. Contacto"
+
+#: templates/core/legal_terminos.html:97
+#, python-format
+msgid ""
+"Questions about these Terms: <a href=\"mailto:%(email)s\">%(email)s</a>."
+msgstr ""
+"Consultas sobre estos Términos: <a href=\"mailto:%(email)s\">%(email)s</"
+"a>."
+
+#: templates/core/legal_terminos.html:98
+msgid "Related documents:"
+msgstr "Documentos relacionados:"
+
 #: templates/core/marketplace_deals.html:3
 msgid "Wholesale Deals — TradeFlow Colón"
 msgstr "Por qué TradeFlow Colón"
@@ -2013,8 +2799,8 @@ msgid ""
 "Today's wholesale deals from CFZ-verified suppliers — limited-time promo "
 "pricing, MOQ transparency, and export-ready documentation on TradeFlow Colón."
 msgstr ""
-"Ofertas mayoristas de hoy de proveedores verificados ZLC: precios prom"
-"ocionales por tiempo limitado, MOQ transparente y documentación lista "
+"Ofertas mayoristas de hoy de proveedores verificados ZLC: precios "
+"promocionales por tiempo limitado, MOQ transparente y documentación lista "
 "para exportar en TradeFlow Colón."
 
 #: templates/core/marketplace_deals.html:16
@@ -2026,9 +2812,9 @@ msgid ""
 "Promotional products from Colón Free Zone suppliers. Add to your inquiry "
 "cart, compare quotes, and lock in export-ready orders."
 msgstr ""
-"Productos promocionales de proveedores de la Zona Libre de Colón. Agre"
-"ga a tu carrito de consulta, compara cotizaciones y confirma pedidos l"
-"istos para exportar."
+"Productos promocionales de proveedores de la Zona Libre de Colón. Agrega a "
+"tu carrito de consulta, compara cotizaciones y confirma pedidos listos para "
+"exportar."
 
 #: templates/core/marketplace_deals.html:20
 msgid "Filter deals in catalog"
@@ -2101,15 +2887,21 @@ msgstr "Cómo funciona TradeFlow"
 
 #: templates/core/marketplace_deals.html:78
 msgid "Promo prices are per product — MOQ and stock apply on the product page."
-msgstr "Los precios promocionales son por producto — MOQ y stock aplican en la página del producto."
+msgstr ""
+"Los precios promocionales son por producto — MOQ y stock aplican en la "
+"página del producto."
 
 #: templates/core/marketplace_deals.html:79
 msgid "Add items to your inquiry cart to request a formal quotation."
-msgstr "Agrega artículos a tu carrito de consulta para solicitar una cotización formal."
+msgstr ""
+"Agrega artículos a tu carrito de consulta para solicitar una cotización "
+"formal."
 
 #: templates/core/marketplace_deals.html:80
 msgid "CFZ verification and export docs are visible before you order."
-msgstr "La verificación ZLC y los documentos de exportación son visibles antes de ordenar."
+msgstr ""
+"La verificación ZLC y los documentos de exportación son visibles antes de "
+"ordenar."
 
 #: templates/core/marketplace_order_protection.html:3
 msgid "Order Protection & RFQ — TradeFlow Colón"
@@ -2122,8 +2914,8 @@ msgid ""
 "buyers."
 msgstr ""
 "Protección al comprador TradeFlow: flujos de solicitud de cotización, "
-"proveedores ZLC verificados, checkout B2B seguro y documentación lista"
-" para exportar."
+"proveedores ZLC verificados, checkout B2B seguro y documentación lista para "
+"exportar."
 
 #: templates/core/marketplace_order_protection.html:13
 msgid "Buyer protection program"
@@ -2138,9 +2930,9 @@ msgid ""
 "Quote before you commit. Structured RFQ workflows, verified suppliers, and "
 "documentation built for international trade from the Colón Free Zone."
 msgstr ""
-"Cotiza antes de comprometerte. Flujos RFQ estructurados, proveedores v"
-"erificados y documentación diseñada para comercio internacional desde "
-"la Zona Libre de Colón."
+"Cotiza antes de comprometerte. Flujos RFQ estructurados, proveedores "
+"verificados y documentación diseñada para comercio internacional desde la "
+"Zona Libre de Colón."
 
 #: templates/core/marketplace_order_protection.html:17
 #: templates/core/marketplace_verified_suppliers.html:18
@@ -2159,8 +2951,8 @@ msgstr "Protección al comprador"
 msgid ""
 "From discovery to delivery — designed for importers and wholesale buyers"
 msgstr ""
-"Del descubrimiento a la entrega — diseñado para importadores y comprad"
-"ores mayoristas"
+"Del descubrimiento a la entrega — diseñado para importadores y compradores "
+"mayoristas"
 
 #: templates/core/marketplace_order_protection.html:50
 msgid "Browse verified inventory"
@@ -2171,8 +2963,8 @@ msgid ""
 "Explore live products with MOQ and CFZ verification — no account required to "
 "start."
 msgstr ""
-"Explora productos activos con MOQ y verificación ZLC — no necesitas cu"
-"enta para empezar."
+"Explora productos activos con MOQ y verificación ZLC — no necesitas cuenta "
+"para empezar."
 
 #: templates/core/marketplace_order_protection.html:55
 msgid "Build an inquiry cart"
@@ -2180,7 +2972,8 @@ msgstr "No se pudo agregar al carrito de consultas"
 
 #: templates/core/marketplace_order_protection.html:56
 msgid "Add products from multiple suppliers and request formal quotations."
-msgstr "Agrega productos de varios proveedores y solicita cotizaciones formales."
+msgstr ""
+"Agrega productos de varios proveedores y solicita cotizaciones formales."
 
 #: templates/core/marketplace_order_protection.html:60
 msgid "Review quotes & terms"
@@ -2188,7 +2981,8 @@ msgstr "Revisar cotizaciones y términos"
 
 #: templates/core/marketplace_order_protection.html:61
 msgid "Compare responses, lead times, and documentation before approving."
-msgstr "Compara respuestas, tiempos de entrega y documentación antes de aprobar."
+msgstr ""
+"Compara respuestas, tiempos de entrega y documentación antes de aprobar."
 
 #: templates/core/marketplace_order_protection.html:65
 msgid "Checkout with docs"
@@ -2196,7 +2990,8 @@ msgstr "Checkout con documentos"
 
 #: templates/core/marketplace_order_protection.html:66
 msgid "Confirmed orders include invoice and packing list support for export."
-msgstr "Los pedidos confirmados incluyen factura y packing list para exportación."
+msgstr ""
+"Los pedidos confirmados incluyen factura y packing list para exportación."
 
 #: templates/core/marketplace_order_protection.html:73
 msgid "What is covered"
@@ -2208,7 +3003,8 @@ msgstr "Verificación de proveedores"
 
 #: templates/core/marketplace_order_protection.html:78
 msgid "CFZ status, RUC, and live catalog depth on every company profile."
-msgstr "Estado ZLC, RUC y profundidad de catálogo activo en cada perfil de empresa."
+msgstr ""
+"Estado ZLC, RUC y profundidad de catálogo activo en cada perfil de empresa."
 
 #: templates/core/marketplace_order_protection.html:81
 msgid "Quote-first workflow"
@@ -2232,7 +3028,9 @@ msgstr "Disputas y soporte"
 
 #: templates/core/marketplace_order_protection.html:90
 msgid "Contact TradeFlow for order issues. Policies in our legal center."
-msgstr "Contacta a TradeFlow por problemas con pedidos. Políticas en nuestro centro legal."
+msgstr ""
+"Contacta a TradeFlow por problemas con pedidos. Políticas en nuestro centro "
+"legal."
 
 #: templates/core/marketplace_order_protection.html:91
 msgid "Read terms →"
@@ -2247,8 +3045,8 @@ msgid ""
 "Join buyers across the Americas who use TradeFlow for verified wholesale "
 "sourcing."
 msgstr ""
-"Únete a compradores en las Américas que usan TradeFlow para abastecimi"
-"ento mayorista verificado."
+"Únete a compradores en las Américas que usan TradeFlow para abastecimiento "
+"mayorista verificado."
 
 #: templates/core/marketplace_verified_suppliers.html:3
 msgid "CFZ Verified Suppliers — TradeFlow Colón"
@@ -2260,9 +3058,9 @@ msgid ""
 "Browse %(verified)s verified Colón Free Zone suppliers with live catalogs, "
 "export documentation, and transparent MOQ on TradeFlow."
 msgstr ""
-"Explora %(verified)s proveedores verificados de la Zona Libre de Colón"
-" con catálogos activos, documentación de exportación y MOQ transparent"
-"e en TradeFlow."
+"Explora %(verified)s proveedores verificados de la Zona Libre de Colón con "
+"catálogos activos, documentación de exportación y MOQ transparente en "
+"TradeFlow."
 
 #: templates/core/marketplace_verified_suppliers.html:13
 msgid "Supplier directory"
@@ -2296,7 +3094,8 @@ msgstr "Más proveedores verificados"
 
 #: templates/core/marketplace_verified_suppliers.html:35
 msgid "Featured storefronts with live inventory and export-ready listings"
-msgstr "Tiendas destacadas con inventario activo y listados listos para exportar"
+msgstr ""
+"Tiendas destacadas con inventario activo y listados listos para exportar"
 
 #: templates/core/marketplace_verified_suppliers.html:65
 msgid "All verified suppliers"
@@ -2318,3 +3117,4 @@ msgstr "Pronto habrá más proveedores verificados."
 #: templates/core/marketplace_verified_suppliers.html:78
 msgid "Browse the full catalog"
 msgstr "Explora el catálogo"
+

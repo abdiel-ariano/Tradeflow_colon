@@ -14,92 +14,90 @@
 <li><a href="#terms-contact">{% trans "Contact" %}</a></li>
 {% endblock %}
 {% block legal_body %}
-<h2 id="terms-service">1. Service description</h2>
+<h2 id="terms-service">{% trans "1. Service description" %}</h2>
 <p>
+  {% blocktrans trimmed %}
   TradeFlow Colón (“TradeFlow”, “the Platform”) is a B2B and B2C intermediary marketplace
   focused on the Colón Free Zone (CFZ), Republic of Panama. TradeFlow facilitates contact,
   quoting, and order management between buyers and registered seller companies;
-  <strong>it does not act as the direct seller</strong> of listed products or as a carrier,
+  {% endblocktrans %}
+  <strong>{% trans "it does not act as the direct seller" %}</strong>
+  {% blocktrans trimmed %}
+  of listed products or as a carrier,
   unless an additional contracted service is expressly indicated.
+  {% endblocktrans %}
 </p>
-<p>
-  Use of the Platform implies acceptance of these Terms. If you do not agree,
-  you must not register or use the services.
-</p>
+<p>{% trans "Use of the Platform implies acceptance of these Terms. If you do not agree, you must not register or use the services." %}</p>
 
-<h2 id="terms-accounts">2. Registration and accounts</h2>
-<p>To operate on TradeFlow you may register as a buyer or seller, according to the authorized role.</p>
+<h2 id="terms-accounts">{% trans "2. Registration and accounts" %}</h2>
+<p>{% trans "To operate on TradeFlow you may register as a buyer or seller, according to the authorized role." %}</p>
 <ul>
-  <li>You must provide truthful, complete, and up-to-date information (name, email, phone, and, where applicable, company details).</li>
-  <li>You are responsible for the confidentiality of your credentials and for all activity performed from your account.</li>
-  <li>You must immediately notify any unauthorized use to <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>.</li>
-  <li>TradeFlow may suspend or cancel accounts that violate these Terms or CFZ requirements.</li>
+  <li>{% trans "You must provide truthful, complete, and up-to-date information (name, email, phone, and, where applicable, company details)." %}</li>
+  <li>{% trans "You are responsible for the confidentiality of your credentials and for all activity performed from your account." %}</li>
+  <li>{% blocktrans with email=tradeflow_contact_email %}You must immediately notify any unauthorized use to <a href="mailto:{{ email }}">{{ email }}</a>.{% endblocktrans %}</li>
+  <li>{% trans "TradeFlow may suspend or cancel accounts that violate these Terms or CFZ requirements." %}</li>
 </ul>
 
-<h2 id="terms-sellers">3. Seller obligations</h2>
+<h2 id="terms-sellers">{% trans "3. Seller obligations" %}</h2>
 <ul>
-  <li>Maintain accurate, up-to-date inventory; do not list products without reasonable availability.</li>
-  <li>Express prices in US dollars (USD), unless a different contractual indication is agreed with the buyer.</li>
-  <li>Comply with customs, tax, and commercial documentation applicable to operations in the CFZ and at the destination of the goods.</li>
-  <li>Confirm or reject orders within the deadlines shown on the Platform and communicate incidents diligently.</li>
-  <li>Do not publish unlawful, misleading content or content that infringes third-party rights.</li>
+  <li>{% trans "Maintain accurate, up-to-date inventory; do not list products without reasonable availability." %}</li>
+  <li>{% trans "Express prices in US dollars (USD), unless a different contractual indication is agreed with the buyer." %}</li>
+  <li>{% trans "Comply with customs, tax, and commercial documentation applicable to operations in the CFZ and at the destination of the goods." %}</li>
+  <li>{% trans "Confirm or reject orders within the deadlines shown on the Platform and communicate incidents diligently." %}</li>
+  <li>{% trans "Do not publish unlawful, misleading content or content that infringes third-party rights." %}</li>
 </ul>
 
-<h2 id="terms-buyers">4. Buyer obligations</h2>
+<h2 id="terms-buyers">{% trans "4. Buyer obligations" %}</h2>
 <ul>
-  <li>Use the Platform for legitimate purchasing or commercial sourcing purposes.</li>
-  <li>Provide truthful contact, delivery, and billing details.</li>
-  <li>Review quotes and orders before confirming them; confirmations bind the parties according to the Platform flow.</li>
-  <li>Respect payment, receipt, and dispute deadlines established for each transaction.</li>
+  <li>{% trans "Use the Platform for legitimate purchasing or commercial sourcing purposes." %}</li>
+  <li>{% trans "Provide truthful contact, delivery, and billing details." %}</li>
+  <li>{% trans "Review quotes and orders before confirming them; confirmations bind the parties according to the Platform flow." %}</li>
+  <li>{% trans "Respect payment, receipt, and dispute deadlines established for each transaction." %}</li>
 </ul>
 
-<h2 id="terms-orders">5. Orders, payments, and disputes</h2>
-<p>
-  Orders are created according to the flow visible on the Platform (cart, checkout, quotes,
-  or administrative tools). The status of each order (pending, awaiting seller confirmation,
-  paid, shipped, delivered, cancelled, etc.) is reflected in the corresponding panel.
-</p>
-<p>
-  Payments may be processed through providers or methods enabled at any given time
-  (including test or simulation mechanisms in demo environments). TradeFlow does not
-  hold funds between parties unless a specific product indicates otherwise.
-</p>
-<p>
-  Cancellations and disputes must first be handled between buyer and seller, using
-  Platform channels and support email. TradeFlow may mediate in good faith but
-  does not replace contractual obligations between the parties.
-</p>
+<h2 id="terms-orders">{% trans "5. Orders, payments, and disputes" %}</h2>
+<p>{% trans "Orders are created according to the flow visible on the Platform (cart, checkout, quotes, or administrative tools). The status of each order (pending, awaiting seller confirmation, paid, shipped, delivered, cancelled, etc.) is reflected in the corresponding panel." %}</p>
+<p>{% trans "Payments may be processed through providers or methods enabled at any given time (including test or simulation mechanisms in demo environments). TradeFlow does not hold funds between parties unless a specific product indicates otherwise." %}</p>
+<p>{% trans "Cancellations and disputes must first be handled between buyer and seller, using Platform channels and support email. TradeFlow may mediate in good faith but does not replace contractual obligations between the parties." %}</p>
 
-<h2 id="terms-ip">6. Intellectual property</h2>
-<p>
-  The TradeFlow Colón name, logos, interface design, institutional text, and Platform
-  software are owned by their holders or licensors. Unauthorized reproduction is prohibited.
-  Sellers retain rights to their brands and product descriptions, and grant TradeFlow a
-  limited license to display them on the marketplace.
-</p>
+<h2 id="terms-ip">{% trans "6. Intellectual property" %}</h2>
+<p>{% trans "The TradeFlow Colón name, logos, interface design, institutional text, and Platform software are owned by their holders or licensors. Unauthorized reproduction is prohibited. Sellers retain rights to their brands and product descriptions, and grant TradeFlow a limited license to display them on the marketplace." %}</p>
 
-<h2 id="terms-liability">7. Limitation of liability</h2>
+<h2 id="terms-liability">{% trans "7. Limitation of liability" %}</h2>
 <p>
+  {% blocktrans trimmed %}
   TradeFlow seeks to keep the Platform available and secure, but does not guarantee
-  uninterrupted or error-free operation. <strong>It does not guarantee physical execution
-  of the transaction</strong> between buyer and seller (quality, delivery, customs,
+  uninterrupted or error-free operation.
+  {% endblocktrans %}
+  <strong>{% trans "It does not guarantee physical execution of the transaction" %}</strong>
+  {% blocktrans trimmed %}
+  between buyer and seller (quality, delivery, customs,
   payments outside the Platform). To the extent permitted by Panamanian law, TradeFlow
   shall not be liable for indirect damages, lost profits, or breaches attributable to
   third parties or to the parties themselves.
+  {% endblocktrans %}
 </p>
 
-<h2 id="terms-law">8. Governing law and jurisdiction</h2>
+<h2 id="terms-law">{% trans "8. Governing law and jurisdiction" %}</h2>
 <p>
-  These Terms are governed by the laws of the <strong>Republic of Panama</strong>.
+  {% blocktrans trimmed %}
+  These Terms are governed by the laws of the
+  {% endblocktrans %}
+  <strong>{% trans "Republic of Panama" %}</strong>.
+  {% blocktrans trimmed %}
   For disputes not resolved amicably, the parties submit to the jurisdiction of
-  the competent courts in the <strong>province of Colón</strong>, without prejudice
-  to mandatory consumer rights that may apply.
+  the competent courts in the
+  {% endblocktrans %}
+  <strong>{% trans "province of Colón" %}</strong>,
+  {% trans "without prejudice to mandatory consumer rights that may apply." %}
 </p>
 
-<h2 id="terms-contact">9. Contact</h2>
+<h2 id="terms-contact">{% trans "9. Contact" %}</h2>
 <p>
-  Questions about these Terms: <a href="mailto:{{ tradeflow_contact_email }}">{{ tradeflow_contact_email }}</a>.
-  Related documents: <a href="{% url 'legal_privacidad' %}">Privacy Policy</a>
-  and <a href="{% url 'legal_cookies' %}">Cookie Policy</a>.
+  {% blocktrans with email=tradeflow_contact_email %}Questions about these Terms: <a href="mailto:{{ email }}">{{ email }}</a>.{% endblocktrans %}
+  {% trans "Related documents:" %}
+  <a href="{% url 'legal_privacidad' %}">{% trans "Privacy Policy" %}</a>
+  {% trans "and" %}
+  <a href="{% url 'legal_cookies' %}">{% trans "Cookie Policy" %}</a>.
 </p>
 {% endblock %}
