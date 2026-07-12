@@ -65,9 +65,7 @@ NOMBRE_REGEX = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s'\-]{2,50}$")
 USERNAME_REGEX = re.compile(r"^[a-zA-Z][a-zA-Z0-9._]{2,29}$")
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
 
-import folium
 import qrcode
-from folium.plugins import MarkerCluster
 from django.core import signing
 
 from .decorators import admin_required, buyer_checkout, buyer_required, catalog_access, guest_or_buyer_cart, seller_required
@@ -1091,63 +1089,70 @@ def api_asistente(request):
 _QR_SALT = 'tradeflow.zlc.visitante'
 
 
-def mapa_zlc(request):
+_CFZ_DEFAULT_LAT = 9.3667
+_CFZ_DEFAULT_LNG = -79.9000
+
+
+def _cfz_map_marker_payload(request) -> dict:
     """
-    Mapa interactivo (Leaflet vía Folium) de empresas registradas en la ZLC.
+    Build Leaflet marker JSON for the free OSM company map (no paid API keys).
 
-    Centro en Zona Libre de Colón (9.3667, -79.9000). Cada empresa es un
-    marcador dentro de un cluster; color naranja si verificada y gris si no.
-    El popup incluye nombre, categorías de productos activos, conteo y enlace
-    al catálogo filtrado por empresa.
-
-    Args:
-        request: HttpRequest.
-
-    Returns:
-        HttpResponse: Plantilla con HTML del mapa embebido.
+    Companies without coordinates get a small jitter around the CFZ centroid so
+    markers do not stack on one point.
     """
-    m = folium.Map(location=[9.3667, -79.9000], zoom_start=13, tiles='OpenStreetMap')
-    cluster = MarkerCluster(name='Empresas ZLC').add_to(m)
+    markers = []
     empresas = Company.objects.annotate(
         n_activos=Count('products', filter=Q(products__is_active=True))
     ).order_by('name')
 
-    for c in empresas:
-        lat = float(c.latitud) if c.latitud is not None else 9.3667
-        lng = float(c.longitud) if c.longitud is not None else -79.9000
-        cats = Category.objects.filter(
-            products__company=c, products__is_active=True
-        ).distinct()[:12]
-        cat_txt = ', '.join(x.name for x in cats) or '—'
-        nombre = html_module.escape(c.name)
-        cat_txt_e = html_module.escape(cat_txt)
-        catalog_url = request.build_absolute_uri(
-            reverse('catalogo_publico') + '?empresa=' + str(c.pk)
-        )
-        catalog_url_e = html_module.escape(catalog_url)
-        html_popup = (
-            '<div style="min-width:220px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.45;">'
-            f'<strong style="color:#0F2A44;">{nombre}</strong><br>'
-            f'<span style="color:#6B7A88;">Active products:</span> {c.n_activos}<br>'
-            f'<span style="color:#6B7A88;">Categories:</span> {cat_txt_e}<br>'
-            f'<a href="{catalog_url_e}" target="_blank" rel="noopener noreferrer" '
-            'style="display:inline-block;margin-top:10px;padding:8px 14px;background:#F26522;'
-            'color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.85rem;">'
-            f'View catalog</a></div>'
-        )
-        icon_color = 'orange' if c.is_verified else 'gray'
-        folium.Marker(
-            location=[lat, lng],
-            popup=folium.Popup(html_popup, max_width=340),
-            tooltip=nombre,
-            icon=folium.Icon(color=icon_color),
-        ).add_to(cluster)
+    for company in empresas:
+        lat = float(company.latitud) if company.latitud is not None else _CFZ_DEFAULT_LAT
+        lng = float(company.longitud) if company.longitud is not None else _CFZ_DEFAULT_LNG
+        if lat == _CFZ_DEFAULT_LAT and lng == _CFZ_DEFAULT_LNG:
+            lat += ((company.pk % 17) - 8) * 0.00018
+            lng += ((company.pk % 23) - 11) * 0.00014
 
-    map_html = m._repr_html_()
+        cats = Category.objects.filter(
+            products__company=company, products__is_active=True
+        ).distinct()[:6]
+        cat_txt = ', '.join(c.name for c in cats) or ''
+        catalog_url = request.build_absolute_uri(
+            reverse('catalogo_publico') + '?empresa=' + str(company.pk)
+        )
+        markers.append({
+            'id': company.pk,
+            'name': company.name,
+            'lat': round(lat, 6),
+            'lng': round(lng, 6),
+            'verified': bool(company.is_verified),
+            'products': company.n_activos,
+            'categories': cat_txt,
+            'catalog_url': catalog_url,
+        })
+
+    return {
+        'center': {'lat': _CFZ_DEFAULT_LAT, 'lng': _CFZ_DEFAULT_LNG, 'zoom': 13},
+        'markers': markers,
+        'labels': {
+            'verified': _('Verified seller'),
+            'pending': _('Pending verification'),
+            'products': _('products'),
+            'view_catalog': _('View catalog'),
+        },
+    }
+
+
+def mapa_zlc(request):
+    """
+    Interactive CFZ company map — Leaflet + OpenStreetMap (100% free, no API key).
+
+    Marker data is passed to the client as JSON; tiles come from OSM volunteers.
+    """
     return render(request, 'core/mapa_zlc.html', {
-        'map_html': map_html,
+        'map_payload': _cfz_map_marker_payload(request),
         'titulo_pagina': 'CFZ Map',
         'nav_activo': 'mapa_zlc',
+        'marketplace_nav_active': 'map',
     })
 
 

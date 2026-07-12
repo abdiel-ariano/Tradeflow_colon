@@ -1,28 +1,123 @@
-{% extends "core/base.html" %}
-{% comment %}Template: core/mapa_zlc.html — review purpose and context vars.{% endcomment %}
-{% load static %}
-{% comment %}
-ACCIÓN: CREAR — templates/core/mapa_zlc.html
-Map Folium embebido; contexto: map_html, titulo_pagina, nav_activo.
-{% endcomment %}
-{% block title %}Map — Colón Free Zone — TradeFlow Colón{% endblock %}
-{% block extra_css %}
+{% extends "core/marketplace_public_base.html" %}
+{% load static i18n %}
+{% comment %}CFZ company map — Leaflet + OpenStreetMap (free, no API key).{% endcomment %}
+
+{% block title %}{% trans "Map" %} — {% trans "Colón Free Zone" %} — TradeFlow Colón{% endblock %}
+
+{% block marketplace_extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
 <style nonce="{{ csp_nonce }}">
-  .map-zlc-wrap { max-width: 1160px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1rem clamp(2.5rem, 5vw, 4rem); }
-  .map-zlc-head h1 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.5rem; color: #0F2A44; margin: 0 0 0.5rem; }
-  .map-zlc-head p { color: #6B7A88; font-size: 0.9rem; margin: 0 0 1.25rem; max-width: 60ch; }
-  .map-zlc-frame { border: 1px solid #D1D5DB; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 8px 24px rgba(15,42,68,0.08); }
-  .map-zlc-frame iframe, .map-zlc-frame .folium-map { width: 100% !important; min-height: 480px; }
+  .map-zlc-wrap {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 3vw, 2rem) 1rem clamp(2rem, 4vw, 3rem);
+  }
+  .map-zlc-head h1 {
+    font-family: var(--tf-font-display, var(--tf-font-body, system-ui, sans-serif));
+    font-weight: 700;
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    color: var(--tf-navy, #0F2A44);
+    margin: 0 0 0.5rem;
+  }
+  .map-zlc-head p {
+    color: var(--tf-muted, #6B7A88);
+    font-size: 0.9rem;
+    margin: 0 0 1rem;
+    max-width: 62ch;
+  }
+  .map-zlc-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--tf-muted, #6B7A88);
+  }
+  .map-zlc-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .map-zlc-legend i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .map-zlc-legend i.verified { background: var(--tf-orange, #F26522); }
+  .map-zlc-legend i.pending { background: var(--tf-text-3, #9CA3AF); }
+  .map-zlc-frame {
+    border: 1px solid var(--tf-border, #D1D5DB);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--tf-white, #fff);
+    box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08);
+  }
+  #tf-cfz-map {
+    width: 100%;
+    min-height: min(70vh, 560px);
+    z-index: 1;
+  }
+  .tf-cfz-marker-wrap { background: transparent; border: none; }
+  .tf-cfz-marker {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 2px solid var(--tf-white, #fff);
+    box-shadow: 0 2px 6px rgba(15, 42, 68, 0.35);
+  }
+  .tf-cfz-marker--verified { background: var(--tf-orange, #F26522); }
+  .tf-cfz-marker--pending { background: var(--tf-text-3, #9CA3AF); }
+  .tf-cfz-popup strong {
+    display: block;
+    color: var(--tf-navy, #0F2A44);
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .tf-cfz-popup__meta,
+  .tf-cfz-popup__cats {
+    margin: 0 0 6px;
+    font-size: 12px;
+    color: var(--tf-muted, #6B7A88);
+    line-height: 1.4;
+  }
+  .tf-cfz-popup__btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 14px;
+    background: var(--tf-orange, #F26522);
+    color: #fff !important;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 12px;
+  }
 </style>
 {% endblock %}
-{% block content %}
+
+{% block marketplace_main %}
 <div class="map-zlc-wrap">
   <header class="map-zlc-head">
-    <h1>Companies in the Colón Free Zone</h1>
-    <p>Browse verified sellers and their catalog. Orange markers: verified company; gray: pending verification.</p>
+    <h1>{% trans "Companies in the Colón Free Zone" %}</h1>
+    <p>{% trans "Explore verified sellers on the map. Tap a marker to open their catalog — powered by free OpenStreetMap data." %}</p>
+    <div class="map-zlc-legend" aria-hidden="true">
+      <span><i class="verified"></i> {% trans "Verified seller" %}</span>
+      <span><i class="pending"></i> {% trans "Pending verification" %}</span>
+    </div>
   </header>
   <div class="map-zlc-frame">
-    {{ map_html|safe }}
+    <div id="tf-cfz-map" role="application" aria-label="{% trans 'Interactive map of CFZ companies' %}"></div>
   </div>
+  {{ map_payload|json_script:"tf-cfz-map-data" }}
 </div>
+{% endblock %}
+
+{% block marketplace_extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/tf-cfz-map.js' %}?v={{ tf_asset_version }}"></script>
 {% endblock %}
