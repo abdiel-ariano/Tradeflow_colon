@@ -36,6 +36,13 @@ class TestAiSearchSuggest(TestCase):
         self.assertTrue(data['ok'])
         self.assertTrue(any(s['type'] == 'product' for s in data['suggestions']))
 
+    def test_public_search_empty_query_returns_trending(self):
+        r = self.client.get(reverse('api_search_suggest'), {'q': '', 'scope': 'public'})
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertTrue(data['ok'])
+        self.assertTrue(len(data['suggestions']) > 0)
+
     def test_seller_search_requires_auth(self):
         r = self.client.get(reverse('api_search_suggest'), {'q': 'Laptop', 'scope': 'seller'})
         self.assertEqual(r.status_code, 401)
