@@ -15,6 +15,7 @@ from core.models import Category, Company, Product, UserProfile
 )
 class BuyerMegaMenuTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.client = Client()
         self.user = User.objects.create_user(
             username='buyer_menu',
@@ -36,12 +37,14 @@ class BuyerMegaMenuTests(TestCase):
         self.client.force_login(self.user)
 
     def test_buyer_mega_menu_panels_from_db(self):
+        """Test buyer mega menu panels from db."""
         panels = buyer_mega_menu_panels()
         self.assertGreaterEqual(len(panels), 1)
         self.assertEqual(panels[0]['category'].name, 'Electronics & Office')
         self.assertGreaterEqual(len(panels[0]['products']), 1)
 
     def test_navbar_shows_tradeflow_colon_branding(self):
+        """Test navbar shows tradeflow colon branding."""
         resp = self.client.get(reverse('ver_carrito'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'TradeFlow')
@@ -49,6 +52,7 @@ class BuyerMegaMenuTests(TestCase):
         self.assertNotContains(resp, 'TradeFlow.com')
 
     def test_mega_menu_no_emojis_and_uses_categoria_links(self):
+        """Test mega menu no emojis and uses categoria links."""
         resp = self.client.get(reverse('ver_carrito'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'bn-mega-cat')
@@ -57,12 +61,14 @@ class BuyerMegaMenuTests(TestCase):
         self.assertNotContains(resp, '📱')
 
     def test_category_filter_returns_products_not_zero(self):
+        """Test category filter returns products not zero."""
         resp = self.client.get(f'{reverse("catalogo_publico")}?categoria={self.category.pk}')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'USB Hub')
         self.assertNotContains(resp, 'No products found')
 
     def test_catalog_uses_product_card_not_legacy_bh_rec(self):
+        """Test catalog uses product card not legacy bh rec."""
         resp = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'product-card')

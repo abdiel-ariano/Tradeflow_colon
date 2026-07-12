@@ -47,18 +47,23 @@ class TradeFlowModelAdmin(admin.ModelAdmin):
         return user_is_tradeflow_admin(request.user)
 
     def has_module_permission(self, request):
+        """Has module permission."""
         return self._tradeflow_admin_access(request)
 
     def has_view_permission(self, request, obj=None):
+        """Has view permission."""
         return self._tradeflow_admin_access(request)
 
     def has_add_permission(self, request):
+        """Has add permission."""
         return self._tradeflow_admin_access(request)
 
     def has_change_permission(self, request, obj=None):
+        """Has change permission."""
         return self._tradeflow_admin_access(request)
 
     def has_delete_permission(self, request, obj=None):
+        """Has delete permission."""
         return request.user.is_superuser
 
 
@@ -127,11 +132,13 @@ class InventoryInline(admin.StackedInline):
 
     # Auto-crear Inventory si no existe al abrir el producto
     def get_queryset(self, request):
+        """Get queryset."""
         qs = super().get_queryset(request)
         return qs
 
     def has_add_permission(self, request, obj=None):
         # Solo 1 inventario por producto
+        """Has add permission."""
         if obj and hasattr(obj, 'inventory'):
             return False
         return True
@@ -159,6 +166,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_per_page  = 25
 
     def stock_display(self, obj):
+        """Stock display."""
         if hasattr(obj, 'inventory'):
             return f'{obj.inventory.available} disponibles'
         return '—'
@@ -174,10 +182,12 @@ class InventoryAdmin(admin.ModelAdmin):
     list_per_page  = 25
 
     def available_display(self, obj):
+        """Available display."""
         return obj.available
     available_display.short_description = 'Disponible'
 
     def is_low_stock(self, obj):
+        """Is low stock."""
         return obj.is_low_stock
     is_low_stock.boolean = True
     is_low_stock.short_description = 'Stock bajo'
@@ -339,6 +349,7 @@ class UserApplicationAdmin(admin.ModelAdmin):
 
     @admin.action(description='Approve selected applications (activate + email)')
     def aprobar_solicitudes(self, request, queryset):
+        """Aprobar solicitudes."""
         from .utils.application_review import aprobar_solicitud, mensaje_fallo_correo
 
         count = 0
@@ -356,6 +367,7 @@ class UserApplicationAdmin(admin.ModelAdmin):
 
     @admin.action(description='Reject selected applications (email)')
     def rechazar_solicitudes(self, request, queryset):
+        """Rechazar solicitudes."""
         from .utils.application_review import mensaje_fallo_correo, rechazar_solicitud
 
         count = 0
@@ -448,6 +460,7 @@ class EmailDeliveryLogAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
 
     def has_add_permission(self, request):
+        """Has add permission."""
         return False
 
 

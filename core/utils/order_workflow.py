@@ -97,5 +97,6 @@ def expire_pending_orders() -> int:
 
 
 def seller_confirm_deadline(company):
+    """Seller portal view: confirm deadline."""
     hours = getattr(company, 'order_confirm_hours', None) or 48
     return timezone.now() + timedelta(hours=hours)

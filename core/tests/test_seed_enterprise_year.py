@@ -13,9 +13,11 @@ from core.utils.enterprise_year_simulator import (
 
 class SeedEnterpriseYearTests(TestCase):
     def test_schema_ready_after_migrate(self):
+        """Test schema ready after migrate."""
         ensure_database_schema_ready()
 
     def test_demo_seed_and_clear(self):
+        """Test demo seed and clear."""
         clear_enterprise_year_simulation()
         call_command(
             'seed_enterprise_year',

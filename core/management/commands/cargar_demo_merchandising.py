@@ -20,6 +20,7 @@ class Command(BaseCommand):
     help = 'Configura merchandising demo para PreExpo (promos, secciones home).'
 
     def handle(self, *args, **options):
+        """Handle."""
         now = timezone.now()
         ends = now + timedelta(days=45)
 

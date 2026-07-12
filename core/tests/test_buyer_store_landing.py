@@ -19,6 +19,7 @@ from core.models import Category, Company, Product, UserProfile
 )
 class BuyerStoreLandingTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='ZLC Trading', is_verified=True)
         self.electronics = Category.objects.create(name='Electronics & Office')
         self.gaming = Category.objects.create(name='Gaming & Peripherals')
@@ -42,12 +43,14 @@ class BuyerStoreLandingTests(TestCase):
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
     def test_tienda_redirects_to_catalog(self):
+        """Test tienda redirects to catalog."""
         self.client.login(username='store_buyer', password='TestPass123!')
         response = self.client.get('/tienda/', follow=False)
         self.assertEqual(response.status_code, 301)
         self.assertIn('/catalogo/', response['Location'])
 
     def test_catalog_shows_product_cards(self):
+        """Test catalog shows product cards."""
         self.client.login(username='store_buyer', password='TestPass123!')
         response = self.client.get(reverse('catalogo_publico'))
         html = response.content.decode()

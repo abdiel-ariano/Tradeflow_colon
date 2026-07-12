@@ -24,6 +24,7 @@ class Command(BaseCommand):
     help = 'Check Product.image paths, on-disk files, and resolvable image URLs'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--limit',
             type=int,
@@ -42,6 +43,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         limit = int(options['limit'] or 0)
         show_missing = bool(options['show_missing'])
         audit_placeholders = bool(options['audit_placeholders'])

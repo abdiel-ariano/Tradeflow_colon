@@ -18,6 +18,7 @@ from core.models import Category, Company, Inventory, Product, UserProfile
 )
 class CartProductImageTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='ZLC Trading', is_verified=True)
         self.category = Category.objects.create(name='Electronics')
         self.product = Product.objects.create(

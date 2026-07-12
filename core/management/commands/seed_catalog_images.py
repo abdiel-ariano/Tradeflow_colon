@@ -31,6 +31,7 @@ class Command(BaseCommand):
     help = 'Assign real category seed photos to products (bundled static assets, no runtime picsum).'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument('--limit', type=int, default=0, help='Max products (0 = all)')
         parser.add_argument('--force', action='store_true', help='Replace existing images')
         parser.add_argument(
@@ -42,6 +43,7 @@ class Command(BaseCommand):
         parser.add_argument('--dry-run', action='store_true')
 
     def handle(self, *args, **options):
+        """Handle."""
         limit = int(options['limit'] or 0)
         force = bool(options['force'])
         storage_mode = options['storage']

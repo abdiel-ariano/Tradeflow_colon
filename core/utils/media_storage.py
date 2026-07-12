@@ -20,11 +20,13 @@ PRODUCT_IMAGE_FALLBACK_STATIC = 'images/placeholder-producto.svg'
 
 
 def is_remote_media_storage() -> bool:
+    """Is remote media storage."""
     backend = settings.STORAGES.get('default', {}).get('BACKEND', '')
     return 's3boto3' in backend.lower() or 's3' in backend.lower()
 
 
 def local_media_file_exists(rel_path: str) -> bool:
+    """Local media file exists."""
     if not rel_path:
         return False
     return (Path(settings.MEDIA_ROOT) / rel_path).is_file()

@@ -455,6 +455,7 @@ def run_enterprise_year_seed(
     out: dict = {'ok': True, 'scale': scale, 'errors': []}
 
     def logmsg(msg: str) -> None:
+        """Logmsg."""
         if stdout_write:
             stdout_write(msg)
         else:

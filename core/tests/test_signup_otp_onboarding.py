@@ -19,6 +19,7 @@ from core.views_onboarding import SESSION_PENDING_VERIFY_USER_ID
 )
 class SignupOtpOnboardingTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.client = Client()
 
     def _signup_payload(self, username='demo_new'):
@@ -35,6 +36,7 @@ class SignupOtpOnboardingTests(TestCase):
 
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_signup_expo_demo_sends_otp_and_redirects_verificar(self, mock_send):
+        """Test signup expo demo sends otp and redirects verificar."""
         mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
 
         resp = self.client.post(reverse('signup'), self._signup_payload(), follow=False)
@@ -55,6 +57,7 @@ class SignupOtpOnboardingTests(TestCase):
 
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_signup_expo_demo_email_failure_still_redirects_with_warning(self, mock_send):
+        """Test signup expo demo email failure still redirects with warning."""
         mock_send.side_effect = RuntimeError('Resend API key invalid')
 
         resp = self.client.post(
@@ -71,6 +74,7 @@ class SignupOtpOnboardingTests(TestCase):
 
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_verificar_renders_without_redirect_loop_expo_demo(self, mock_send):
+        """Test verificar renders without redirect loop expo demo."""
         mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
         self.client.post(reverse('signup'), self._signup_payload(username='demo_loop'), follow=False)
         resp = self.client.get('/verificar/', follow=True)
@@ -81,6 +85,7 @@ class SignupOtpOnboardingTests(TestCase):
     @override_settings(EXPO_DEMO_MODE=False, REQUIRE_EMAIL_VERIFICATION=True)
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_signup_non_demo_redirects_to_verificar(self, mock_send):
+        """Test signup non demo redirects to verificar."""
         mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
         resp = self.client.post(reverse('signup'), self._signup_payload(username='classic'), follow=False)
 

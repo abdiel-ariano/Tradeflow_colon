@@ -21,6 +21,7 @@ from core.utils.saas_billing import plan_allows_feature
 
 @require_http_methods(['GET'])
 def api_v1_inventory(request):
+    """JSON API endpoint: v1 inventory."""
     key, err = authenticate_api_key(request)
     if err:
         return err
@@ -49,6 +50,7 @@ def api_v1_inventory(request):
 
 @require_http_methods(['POST'])
 def api_v1_pricing_sync(request):
+    """JSON API endpoint: v1 pricing sync."""
     key, err = authenticate_api_key(request)
     if err:
         return err
@@ -85,4 +87,5 @@ def api_v1_pricing_sync(request):
 
 @require_GET
 def api_v1_health(request):
+    """JSON API endpoint: v1 health."""
     return JsonResponse({'status': 'ok', 'service': 'tradeflow-api-v1'})

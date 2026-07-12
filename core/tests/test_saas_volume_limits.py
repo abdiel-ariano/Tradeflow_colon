@@ -32,6 +32,7 @@ from core.utils.saas_billing import compute_monthly_volume
 )
 class TestSaasVolumeLimits(TestCase):
     def setUp(self):
+        """Setup."""
         ensure_default_plans()
         self.seller = User.objects.create_user('seller_lim', 'seller_lim@test.pa', 'pass')
         UserProfile.objects.create(user=self.seller, role='seller', email_verificado=True)
@@ -97,6 +98,7 @@ class TestSaasVolumeLimits(TestCase):
         return order
 
     def test_digitalizate_blocks_confirm_over_limit(self):
+        """Test digitalizate blocks confirm over limit."""
         self._set_plan('digitalizate')
         self._paid_order(Decimal('15000.00'), 'TF-LIM-1')
         vol, _ = compute_monthly_volume(self.company)
@@ -107,6 +109,7 @@ class TestSaasVolumeLimits(TestCase):
             accept_seller_order(pending)
 
     def test_expansion_allows_under_50k(self):
+        """Test expansion allows under 50k."""
         self._set_plan('expansion')
         self._paid_order(Decimal('40000.00'), 'TF-EXP-1')
         pending = self._awaiting_order(Decimal('5000.00'), 'TF-EXP-2')
@@ -115,6 +118,7 @@ class TestSaasVolumeLimits(TestCase):
         self.assertEqual(pending.status, 'paid')
 
     def test_corporativo_pro_unlimited(self):
+        """Test corporativo pro unlimited."""
         self._set_plan('corporativo_pro')
         self._paid_order(Decimal('100000.00'), 'TF-PRO-1')
         pending = self._awaiting_order(Decimal('50000.00'), 'TF-PRO-2')
@@ -123,6 +127,7 @@ class TestSaasVolumeLimits(TestCase):
         self.assertEqual(pending.status, 'paid')
 
     def test_assert_within_volume_at_exact_limit(self):
+        """Test assert within volume at exact limit."""
         self._set_plan('digitalizate')
         self._paid_order(Decimal('15000.00'), 'TF-EX-1')
         assert_within_volume_limit(self.company, Decimal('0'))

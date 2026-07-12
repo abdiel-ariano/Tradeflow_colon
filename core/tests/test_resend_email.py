@@ -9,20 +9,24 @@ from core.utils.email_config import explain_email_failure, smtp_configured
 
 class ResendEmailTests(SimpleTestCase):
     def test_explain_resend_not_configured(self):
+        """Test explain resend not configured."""
         msg = explain_email_failure('resend_not_configured')
         self.assertIn('RESEND_API_KEY', msg)
 
     def test_explain_resend_sandbox(self):
+        """Test explain resend sandbox."""
         msg = explain_email_failure('only send testing emails resend.com/domains')
         self.assertIn('Resend', msg)
         self.assertIn('Domains', msg)
 
     def test_smtp_configured_with_resend_key(self):
+        """Test smtp configured with resend key."""
         with override_settings(RESEND_API_KEY='re_test', DEBUG=False):
             self.assertTrue(smtp_configured())
 
     @override_settings(RESEND_API_KEY='re_test', DEBUG=False, DEFAULT_FROM_EMAIL='TF <a@b.com>')
     def test_enviar_via_resend_success(self):
+        """Test enviar via resend success."""
         with patch('core.email_service.resend_sdk.Emails.send', return_value={'id': 'msg_123'}):
             result = enviar_email_transaccional(
                 'buyer@test.pa',
@@ -36,6 +40,7 @@ class ResendEmailTests(SimpleTestCase):
 
     @override_settings(RESEND_API_KEY='', DEBUG=False)
     def test_enviar_fails_without_key_in_production(self):
+        """Test enviar fails without key in production."""
         result = enviar_email_transaccional('buyer@test.pa', 'S', '<p>x</p>', 'x')
         self.assertFalse(result.ok)
         self.assertEqual(result.detail, 'resend_not_configured')
@@ -46,6 +51,7 @@ class ResendEmailTests(SimpleTestCase):
         EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
     )
     def test_debug_console_fallback(self):
+        """Test debug console fallback."""
         result = enviar_email_transaccional('buyer@test.pa', 'S', '<p>x</p>', 'x')
         self.assertTrue(result.ok)
         self.assertIn('django', result.channel)

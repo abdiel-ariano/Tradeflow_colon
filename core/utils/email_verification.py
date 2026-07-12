@@ -13,6 +13,7 @@ from core.models import UserProfile
 
 
 def generate_email_otp() -> str:
+    """Generate email otp."""
     return ''.join(random.choices(string.digits, k=6))
 
 

@@ -23,6 +23,7 @@ from core.models import (
 )
 class CartCheckoutI18nTests(TestCase):
     def setUp(self):
+        """Setup."""
         company = Company.objects.create(name='Co', ruc='1', is_verified=True)
         cat = Category.objects.create(name='Cat')
         self.product = Product.objects.create(
@@ -55,6 +56,7 @@ class CartCheckoutI18nTests(TestCase):
         session.save()
 
     def test_cart_renders_english_when_en_active(self):
+        """Test cart renders english when en active."""
         resp = self.client.get(reverse('ver_carrito'), HTTP_ACCEPT_LANGUAGE='en')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Shopping cart')
@@ -62,11 +64,13 @@ class CartCheckoutI18nTests(TestCase):
         self.assertNotContains(resp, 'Carrito de compras')
 
     def test_buyer_navbar_has_language_switcher(self):
+        """Test buyer navbar has language switcher."""
         resp = self.client.get(reverse('ver_carrito'))
         self.assertContains(resp, 'bn-lang-link')
         self.assertContains(resp, 'i18n/setlang')
 
     def test_cart_renders_spanish_under_es_prefix(self):
+        """Test cart renders spanish under es prefix."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('ver_carrito')},

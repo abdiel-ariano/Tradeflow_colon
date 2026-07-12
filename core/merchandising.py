@@ -170,6 +170,7 @@ def featured_products(limit: int = 8):
 
 
 def featured_companies_carousel(limit: int = 10):
+    """Featured companies carousel."""
     qs = (
         Company.objects.filter(is_featured=True)
         .annotate(num_productos=Count('products', filter=Q(products__is_active=True)))
@@ -362,6 +363,7 @@ def active_home_section_types(now=None) -> set[str]:
 
 
 def has_active_home_section(section_type: str, now=None) -> bool:
+    """Has active home section."""
     return section_type in active_home_section_types(now)
 
 
@@ -850,6 +852,7 @@ def marketplace_categories_context() -> dict:
 
 
 def localized_company_tagline(company: Company) -> str:
+    """Localized company tagline."""
     lang = (get_language() or 'es')[:2]
     if lang == 'en' and company.tagline_en:
         return company.tagline_en

@@ -6,6 +6,7 @@ from django.urls import reverse
 
 class LoginCsrfSettingsTests(TestCase):
     def test_csrf_trusted_origins_builder_adds_www_variant(self):
+        """Test csrf trusted origins builder adds www variant."""
         from tradeflow_colon.settings import _csrf_origins_for_base
 
         origins = _csrf_origins_for_base('https://tradeflowcolon.com', [])
@@ -16,6 +17,7 @@ class LoginCsrfSettingsTests(TestCase):
 @override_settings(CSRF_COOKIE_SECURE=False)
 class LoginViewCacheTests(TestCase):
     def test_login_get_is_not_publicly_cacheable(self):
+        """Test login get is not publicly cacheable."""
         response = self.client.get(reverse('login'))
         self.assertEqual(response.status_code, 200)
         cache_control = response.get('Cache-Control', '')
@@ -23,6 +25,7 @@ class LoginViewCacheTests(TestCase):
         self.assertIn('no-store', cache_control)
 
     def test_login_post_succeeds_with_csrf_token(self):
+        """Test login post succeeds with csrf token."""
         client = Client(enforce_csrf_checks=True)
         login_get = client.get(reverse('login'))
         self.assertEqual(login_get.status_code, 200)

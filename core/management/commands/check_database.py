@@ -9,6 +9,7 @@ class Command(BaseCommand):
     help = 'Verify PostgreSQL/Supabase connectivity before serving traffic.'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--quiet',
             action='store_true',
@@ -16,6 +17,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         quiet = bool(options['quiet'])
         result = check_database()
         if result['ok']:

@@ -59,6 +59,7 @@ BRAND_COLORS = [
 
 
 def category_keyword(product: Product) -> str:
+    """Category keyword."""
     if not product.category_id or not product.category:
         return 'general'
     cat_name = product.category.name.lower()
@@ -71,11 +72,13 @@ def category_keyword(product: Product) -> str:
 
 
 def seed_slug(product: Product) -> str:
+    """Seed slug."""
     raw = f'{product.pk}_{product.name[:40]}'
     return re.sub(r'[^a-zA-Z0-9_-]', '_', raw)
 
 
 def picsum_url(product: Product) -> str:
+    """Picsum url."""
     return f'https://picsum.photos/seed/{seed_slug(product)}/{PICSUM_SIZE}'
 
 
@@ -85,6 +88,7 @@ def use_runtime_picsum() -> bool:
 
 
 def catalog_seed_relative_path(keyword: str) -> str:
+    """Catalog seed relative path."""
     return CATALOG_SEED_FILES.get(keyword, CATALOG_SEED_FILES['general'])
 
 
@@ -107,10 +111,12 @@ def ai_placeholder_relative_path(product: Product) -> str:
 
 
 def ai_placeholder_static_path(product: Product) -> str:
+    """Ai placeholder static path."""
     return ai_placeholder_relative_path(product)
 
 
 def ai_placeholder_file_exists(product: Product) -> bool:
+    """Ai placeholder file exists."""
     rel = ai_placeholder_relative_path(product)
     return (Path(settings.BASE_DIR) / 'static' / rel).is_file()
 
@@ -198,6 +204,7 @@ def extract_initials(name: str) -> str:
 
 
 def placeholder_relative_path(product: Product) -> str:
+    """Placeholder relative path."""
     initials = extract_initials(product.name)
     return f'productos/placeholders/placeholder_{product.pk}_{initials}.png'
 
@@ -228,15 +235,18 @@ def assign_product_image(product: Product, *, log_fn=None) -> str:
 
 
 def relative_image_path(product: Product) -> str:
+    """Relative image path."""
     return f'products/demo/product_{product.pk}.jpg'
 
 
 def is_remote_storage() -> bool:
+    """Is remote storage."""
     backend = settings.STORAGES.get('default', {}).get('BACKEND', '')
     return 's3boto3' in backend.lower() or 's3' in backend.lower()
 
 
 def local_media_storage() -> FileSystemStorage:
+    """Local media storage."""
     return FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
 
@@ -371,6 +381,7 @@ def save_placeholder_for_product(
 
 
 def storage_mode_help() -> str:
+    """Storage mode help."""
     if is_remote_storage():
         return (
             'local (default): write to MEDIA_ROOT — safe in Docker/CI. '

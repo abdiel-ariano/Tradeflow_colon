@@ -30,6 +30,7 @@ _SUPPORTED_LANGS = ('es', 'en')
 
 
 def cache_ttl(setting_name: str, default: int) -> int:
+    """Cache ttl."""
     return int(getattr(settings, setting_name, default))
 
 
@@ -81,6 +82,7 @@ def invalidate_merchandising_cache() -> None:
 
 
 def cached_home_stats() -> dict[str, Any]:
+    """Cached home stats."""
     from core import merchandising as merch
 
     return get_or_set(
@@ -91,6 +93,7 @@ def cached_home_stats() -> dict[str, Any]:
 
 
 def cached_nav_categories() -> list:
+    """Cached nav categories."""
     from django.db.models import Count, Q
 
     from core.models import Category
@@ -112,6 +115,7 @@ def cached_nav_categories() -> list:
 
 
 def cached_catalog_categories() -> list:
+    """Cached catalog categories."""
     from django.db.models import Count, Q
 
     from core.models import Category
@@ -133,6 +137,7 @@ def cached_catalog_categories() -> list:
 
 
 def cached_catalog_empresas() -> list:
+    """Cached catalog empresas."""
     from django.db.models import Count, Q
 
     from core.models import Company
@@ -154,6 +159,7 @@ def cached_catalog_empresas() -> list:
 
 
 def cached_guest_home_context(lang: str | None = None) -> dict[str, Any]:
+    """Cached guest home context."""
     from core import merchandising as merch
 
     lang_code = (lang or get_language() or settings.LANGUAGE_CODE)[:2]
@@ -168,6 +174,7 @@ def cached_guest_home_context(lang: str | None = None) -> dict[str, Any]:
 
 
 def cached_api_home_merchandising() -> dict[str, Any]:
+    """Cached api home merchandising."""
     from core import merchandising as merch
 
     def _load():

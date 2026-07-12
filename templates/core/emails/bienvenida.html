@@ -1,4 +1,5 @@
 {% extends "core/emails/base_marketplace.html" %}
+{% comment %}Template: core/emails/bienvenida.html — review purpose and context vars.{% endcomment %}
 {% block email_title %}Bienvenido — TradeFlow Colón{% endblock %}
 {% block preheader %}Tu cuenta está lista. Explora proveedores verificados en la ZLC.{% endblock %}
 {% block hero_title %}¡Bienvenido, {{ user.first_name|default:user.username }}!{% endblock %}

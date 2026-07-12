@@ -19,10 +19,12 @@ SCOPE_WEBHOOKS = 'webhooks.receive'
 
 
 def hash_api_key(raw: str) -> str:
+    """Hash api key."""
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
 def authenticate_api_key(request) -> tuple[ApiKey | None, JsonResponse | None]:
+    """Authenticate api key."""
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return None, JsonResponse({'error': 'missing_token'}, status=401)
@@ -44,11 +46,13 @@ def authenticate_api_key(request) -> tuple[ApiKey | None, JsonResponse | None]:
 
 
 def require_scope(key: ApiKey, scope: str) -> bool:
+    """Require scope."""
     scopes = key.scopes or []
     return scope in scopes or '*' in scopes
 
 
 def audit_api_call(key: ApiKey | None, company, request, status_code: int):
+    """Audit api call."""
     ApiAuditLog.objects.create(
         api_key=key,
         company=company,

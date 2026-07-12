@@ -18,6 +18,7 @@ from core.utils.saas_billing import ensure_default_plans, get_or_create_subscrip
 )
 class SellerPlanCheckoutTests(TestCase):
     def setUp(self):
+        """Setup."""
         ensure_default_plans()
         self.user = User.objects.create_user('seller_chk', password='x', email='s@test.com')
         UserProfile.objects.create(user=self.user, role='seller')
@@ -27,6 +28,7 @@ class SellerPlanCheckoutTests(TestCase):
         self.client.force_login(self.user)
 
     def test_checkout_page_loads(self):
+        """Test checkout page loads."""
         url = reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'})
         r = self.client.get(url)
         self.assertEqual(r.status_code, 200)
@@ -40,6 +42,7 @@ class SellerPlanCheckoutTests(TestCase):
         )
 
     def test_payment_activates_plan(self):
+        """Test payment activates plan."""
         self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'}))
         pay_url = reverse('seller_plan_checkout_pay', kwargs={'plan_slug': 'expansion'})
         r = self.client.post(pay_url, {'payment_method': 'mock', 'card_name': 'Test User'})
@@ -50,6 +53,7 @@ class SellerPlanCheckoutTests(TestCase):
         self.assertEqual(checkout.status, 'paid')
 
     def test_upgrade_redirects_to_checkout(self):
+        """Test upgrade redirects to checkout."""
         r = self.client.post(
             reverse('seller_upgrade_plan'),
             {'plan_slug': 'expansion'},

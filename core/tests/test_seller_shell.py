@@ -11,6 +11,7 @@ from core.models import Company, UserProfile
 )
 class TestSellerShellPages(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='Demo Co', ruc='999', is_verified=True)
         self.seller = User.objects.create_user(
             username='shell_seller',
@@ -25,6 +26,7 @@ class TestSellerShellPages(TestCase):
         self.client.login(username='shell_seller', password='TestPass123!')
 
     def test_seller_shell_routes_return_200(self):
+        """Test seller shell routes return 200."""
         self._login()
         paths = [
             '/mi-tienda/',
@@ -44,11 +46,13 @@ class TestSellerShellPages(TestCase):
             self.assertEqual(r.status_code, 200, msg=path)
 
     def test_guest_redirected_from_seller_shell(self):
+        """Test guest redirected from seller shell."""
         r = self.client.get('/mi-tienda/balances/')
         self.assertEqual(r.status_code, 302)
         self.assertIn('/login/', r.url)
 
     def test_product_catalog_stripe_layout(self):
+        """Test product catalog stripe layout."""
         self._login()
         r = self.client.get('/mi-tienda/productos/')
         self.assertEqual(r.status_code, 200)
@@ -57,6 +61,7 @@ class TestSellerShellPages(TestCase):
         self.assertContains(r, 'Create product')
 
     def test_payments_analytics_stripe_layout(self):
+        """Test payments analytics stripe layout."""
         self._login()
         r = self.client.get('/mi-tienda/reportes/')
         self.assertEqual(r.status_code, 200)
@@ -65,6 +70,7 @@ class TestSellerShellPages(TestCase):
         self.assertContains(r, 'Acceptance')
 
     def test_catalog_features_tab(self):
+        """Test catalog features tab."""
         self._login()
         r = self.client.get('/mi-tienda/productos/?tab=pricing')
         self.assertEqual(r.status_code, 200)

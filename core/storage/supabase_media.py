@@ -83,6 +83,7 @@ class SupabaseMediaStorage(S3Boto3Storage):
     """Upload via S3-compatible API; serve via native Supabase Storage URLs."""
 
     def url(self, name: str, parameters: Any = None, expire: Any = None, http_method: Any = None) -> str:
+        """Url."""
         native = supabase_media_url(name)
         if native:
             return native

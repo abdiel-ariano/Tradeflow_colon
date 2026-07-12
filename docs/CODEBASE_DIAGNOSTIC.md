@@ -126,6 +126,14 @@ Nav is chosen in `base.html` from `request.user.profile.role`.
 | `REQUIRE_EMAIL_VERIFICATION` | OTP gate on checkout |
 | Supabase storage settings | Remote product images |
 
+## Related docs
+
+- `docs/CODE_DOCUMENTATION_STANDARD.md` — required comments/docstrings for all code
+- `scripts/document_codebase.py` — audit/fix missing documentation (`audit` | `fix`)
+- `docs/TEMPLATES.md` — template catalog
+- `docs/AI_SEARCH.md` — search typeahead stack
+- `docs/SUPABASE_GMAIL.md` (email/media)
+
 ---
 
 For feature-specific docs see also `docs/SUPABASE_GMAIL.md` and inline module docstrings in `core/utils/`.

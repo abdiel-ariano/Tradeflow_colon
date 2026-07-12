@@ -13,10 +13,12 @@ from core.utils.database_url import (
 
 class DatabaseUrlNormalizationTests(SimpleTestCase):
     def test_infer_project_ref_from_supabase_url(self):
+        """Test infer project ref from supabase url."""
         with patch.dict(os.environ, {'SUPABASE_URL': 'https://abcdefghijklmnop.supabase.co'}, clear=False):
             self.assertEqual(infer_supabase_project_ref(), 'abcdefghijklmnop')
 
     def test_pooler_user_postgres_gets_project_suffix(self):
+        """Test pooler user postgres gets project suffix."""
         env = {
             'SUPABASE_URL': 'https://myprojectref12.supabase.co',
         }
@@ -28,6 +30,7 @@ class DatabaseUrlNormalizationTests(SimpleTestCase):
         self.assertIn('pooler.supabase.com', url)
 
     def test_build_from_components_with_pooler(self):
+        """Test build from components with pooler."""
         env = {
             'SUPABASE_DB_HOST': 'aws-1-us-east-1.pooler.supabase.com',
             'SUPABASE_DB_PASSWORD': 'p@ss:word',
@@ -40,6 +43,7 @@ class DatabaseUrlNormalizationTests(SimpleTestCase):
         self.assertIn('p%40ss%3Aword', url)
 
     def test_database_password_override(self):
+        """Test database password override."""
         with patch.dict(os.environ, {'DATABASE_PASSWORD': 'new$ecret'}, clear=False):
             url = normalize_database_url(
                 'postgresql://postgres:old@db.example.com:5432/postgres'

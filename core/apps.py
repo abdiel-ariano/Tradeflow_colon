@@ -53,6 +53,7 @@ class CoreConfig(AppConfig):
     verbose_name = 'TradeFlow Core'
 
     def ready(self):
+        """Ready."""
         post_migrate.connect(_maybe_seed_demo, dispatch_uid='tradeflow_core_seed_demo_if_empty')
         from . import signals_enterprise  # noqa: F401
         from . import signals_cache  # noqa: F401

@@ -19,6 +19,7 @@ def _session_throttle_key(user_id: int) -> str:
 
 
 def has_valid_otp(user: User) -> bool:
+    """Has valid otp."""
     latest = (
         EmailVerification.objects.filter(user=user, is_used=False)
         .order_by('-created_at')

@@ -8,6 +8,7 @@ from core.utils.saas_billing import ensure_default_plans, get_or_create_subscrip
 
 class SellerFlowStepsTests(TestCase):
     def test_flow_steps_present(self):
+        """Test flow steps present."""
         ensure_default_plans()
         user = User.objects.create_user('f1', password='x')
         UserProfile.objects.create(user=user, role='seller')

@@ -16,6 +16,7 @@ from core.models import EmailVerification, UserProfile
 )
 class EmailVerificationOtpTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.user = User.objects.create_user(
             username='otp_buyer',
             email='otp@test.pa',
@@ -30,6 +31,7 @@ class EmailVerificationOtpTests(TestCase):
         self.client = Client()
 
     def test_generate_and_validate(self):
+        """Test generate and validate."""
         ev = EmailVerification.generate_for(self.user)
         self.assertEqual(len(ev.code), 6)
         self.assertTrue(ev.is_valid())
@@ -38,6 +40,7 @@ class EmailVerificationOtpTests(TestCase):
         self.assertFalse(ev.is_valid())
 
     def test_verificar_codigo_post_redirects_catalogo(self):
+        """Test verificar codigo post redirects catalogo."""
         from django.utils import timezone
 
         # Cuenta con onboarding ya completado (equivalente a usuarios existentes)
@@ -58,6 +61,7 @@ class EmailVerificationOtpTests(TestCase):
         self.assertTrue(self.profile.email_verified)
 
     def test_verificar_codigo_new_buyer_redirects_onboarding(self):
+        """Test verificar codigo new buyer redirects onboarding."""
         ev = EmailVerification.generate_for(self.user)
         self.client.force_login(self.user)
         resp = self.client.post(

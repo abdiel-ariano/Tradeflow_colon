@@ -10,6 +10,7 @@ class Command(BaseCommand):
     help = 'Comprueba RESEND_API_KEY y DEFAULT_FROM_EMAIL para envío de correos'
 
     def handle(self, *args, **options):
+        """Handle."""
         env_path = settings.BASE_DIR / '.env'
         self.stdout.write(f'.env existe: {env_path.is_file()} ({env_path})')
         key = (getattr(settings, 'RESEND_API_KEY', '') or '').strip()

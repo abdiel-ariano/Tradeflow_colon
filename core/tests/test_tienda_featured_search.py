@@ -14,6 +14,7 @@ from core.models import Category, Company, Inventory, Product, UserProfile
 )
 class TiendaFeaturedSearchTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.client = Client()
         self.user = User.objects.create_user(
             username='buyer_feat',
@@ -41,12 +42,14 @@ class TiendaFeaturedSearchTests(TestCase):
         self.client.force_login(self.user)
 
     def test_empresa_filter_shows_company_products(self):
+        """Test empresa filter shows company products."""
         resp = self.client.get(f'{reverse("catalogo_publico")}?empresa={self.company.pk}')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'CFZ Featured Co')
         self.assertContains(resp, 'Widget 0')
 
     def test_categoria_filter_shows_compact_catalog_cards(self):
+        """Test categoria filter shows compact catalog cards."""
         resp = self.client.get(f'{reverse("catalogo_publico")}?categoria={self.category.pk}')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'product-card')
@@ -57,6 +60,7 @@ class TiendaFeaturedSearchTests(TestCase):
         self.assertNotContains(resp, 'Chatea ahora')
 
     def test_tienda_partial_redirects_to_catalog(self):
+        """Test tienda partial redirects to catalog."""
         resp = self.client.get(
             f'/tienda/?empresa={self.company.pk}&partial=1',
             HTTP_X_REQUESTED_WITH='XMLHttpRequest',
@@ -67,6 +71,7 @@ class TiendaFeaturedSearchTests(TestCase):
         self.assertIn('partial=1', resp['Location'])
 
     def test_product_cards_use_catalog_seed_in_img_src(self):
+        """Test product cards use catalog seed in img src."""
         resp = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(resp.status_code, 200)
         html = resp.content.decode()

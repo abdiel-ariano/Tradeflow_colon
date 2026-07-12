@@ -11,10 +11,12 @@ class Command(BaseCommand):
     help = 'Envía email de verificación a un usuario (Resend)'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument('--email', type=str, help='Email del usuario en BD')
         parser.add_argument('--username', type=str, help='Username en BD')
 
     def handle(self, *args, **options):
+        """Handle."""
         email = (options.get('email') or '').strip()
         username = (options.get('username') or '').strip()
         if not email and not username:

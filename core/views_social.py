@@ -65,16 +65,19 @@ def redirect_accounts_inactive(request: HttpRequest) -> HttpResponse:
 
 @require_GET
 def redirect_accounts_login(request: HttpRequest) -> HttpResponse:
+    """Redirect accounts login."""
     return _redirect_with_query(request, 'login')
 
 
 @require_GET
 def redirect_accounts_signup(request: HttpRequest) -> HttpResponse:
+    """Redirect accounts signup."""
     return _redirect_with_query(request, 'signup')
 
 
 @require_GET
 def oauth_begin_signup(request: HttpRequest, provider: str) -> HttpResponse:
+    """Oauth begin signup."""
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         raise Http404
     if not provider_is_enabled(provider):
@@ -92,6 +95,7 @@ def oauth_begin_signup(request: HttpRequest, provider: str) -> HttpResponse:
 
 @require_GET
 def oauth_begin_login(request: HttpRequest, provider: str) -> HttpResponse:
+    """Oauth begin login."""
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         raise Http404
     if not provider_is_enabled(provider):

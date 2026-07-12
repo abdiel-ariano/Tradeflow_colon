@@ -61,9 +61,11 @@ class Command(BaseCommand):
     help = 'Generate static/images/catalog-seeds/*.jpg bundled assets.'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument('--force', action='store_true', help='Overwrite existing files')
 
     def handle(self, *args, **options):
+        """Handle."""
         force = bool(options['force'])
         out_dir = Path(settings.BASE_DIR) / 'static' / 'images' / 'catalog-seeds'
         out_dir.mkdir(parents=True, exist_ok=True)

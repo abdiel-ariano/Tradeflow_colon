@@ -19,6 +19,7 @@ from core.utils.demo_product_images import (
 )
 class CatalogSeedImageTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='Seed Co', is_verified=True)
         self.category = Category.objects.create(name='Electronics')
         self.product = Product.objects.create(
@@ -32,24 +33,29 @@ class CatalogSeedImageTests(TestCase):
         )
 
     def test_category_keyword_maps_electronics(self):
+        """Test category keyword maps electronics."""
         self.assertEqual(category_keyword(self.product), 'electronics')
 
     def test_catalog_seed_bytes_loads_bundled_file(self):
+        """Test catalog seed bytes loads bundled file."""
         data = catalog_seed_bytes('electronics')
         self.assertGreater(len(data), 1000)
 
     def test_product_image_src_uses_catalog_seed_not_picsum(self):
+        """Test product image src uses catalog seed not picsum."""
         url = product_image_src(self.product)
         self.assertIn('/static/images/catalog-seeds/electronics.jpg', url)
         self.assertNotIn('picsum.photos', url)
 
     def test_category_seed_filter_returns_jpeg_path(self):
+        """Test category seed filter returns jpeg path."""
         self.assertIn(
             '/static/images/catalog-seeds/electronics.jpg',
             product_image_category_seed_src(self.product),
         )
 
     def test_variant_bytes_differs_per_product_pk(self):
+        """Test variant bytes differs per product pk."""
         others = [
             Product.objects.create(
                 company=self.company,
@@ -69,6 +75,7 @@ class CatalogSeedImageTests(TestCase):
         )
 
     def test_assign_catalog_seed_image_writes_media_file(self):
+        """Test assign catalog seed image writes media file."""
         rel = assign_catalog_seed_image(self.product)
         self.product.refresh_from_db()
         self.assertEqual(self.product.image.name.replace('\\', '/'), rel)
@@ -76,5 +83,6 @@ class CatalogSeedImageTests(TestCase):
 
     @override_settings(DEBUG=True, TRADEFLOW_USE_PICSUM_RUNTIME=True)
     def test_picsum_enabled_in_debug_when_flag_set(self):
+        """Test picsum enabled in debug when flag set."""
         url = product_image_src(self.product)
         self.assertIn('picsum.photos', url)

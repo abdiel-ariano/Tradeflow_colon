@@ -1,3 +1,8 @@
+/*
+ * TradeFlow Colón — tf animations
+ * Stylesheet: static/css/tf_animations.css
+ */
+
 @media (prefers-reduced-motion: no-preference) {
   .tf-pulse-once {
     animation: tfPulseOnce 0.6s ease;

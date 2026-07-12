@@ -1,4 +1,5 @@
 {% extends "core/marketplace_public_base.html" %}
+{% comment %}Template: core/marketplace_verified_suppliers.html — review purpose and context vars.{% endcomment %}
 {% load static i18n %}
 {% block title %}{% trans "CFZ Verified Suppliers — TradeFlow Colón" %}{% endblock %}
 {% block meta_description %}{% blocktrans with verified=stats.empresas_verificadas|default:stats.empresas %}Browse {{ verified }} verified Colón Free Zone suppliers with live catalogs, export documentation, and transparent MOQ on TradeFlow.{% endblocktrans %}{% endblock %}

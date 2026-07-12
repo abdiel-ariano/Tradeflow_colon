@@ -20,6 +20,7 @@ from core.utils.otp_verification import verify_user_otp
 )
 class VerifyOtpViewTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.user = User.objects.create_user(
             username='otp_view_user',
             email='otp_view@test.pa',
@@ -34,11 +35,13 @@ class VerifyOtpViewTests(TestCase):
         self.client.force_login(self.user)
 
     def test_get_renders_form(self):
+        """Test get renders form."""
         resp = self.client.get(reverse('verificar_codigo'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Verify')
 
     def test_post_valid_code_redirects_to_checkout_next(self):
+        """Test post valid code redirects to checkout next."""
         code = generate_user_otp(self.user)
         resp = self.client.post(
             reverse('verificar_codigo') + '?next=/checkout/',
@@ -48,6 +51,7 @@ class VerifyOtpViewTests(TestCase):
         self.assertEqual(resp['Location'], '/checkout/')
 
     def test_post_valid_code_json(self):
+        """Test post valid code json."""
         code = generate_user_otp(self.user)
         resp = self.client.post(
             reverse('verificar_codigo') + '?format=json',
@@ -63,6 +67,7 @@ class VerifyOtpViewTests(TestCase):
         self.assertFalse(EmailVerification.objects.filter(user=self.user).exists())
 
     def test_post_invalid_code_returns_400_json(self):
+        """Test post invalid code returns 400 json."""
         generate_user_otp(self.user)
         resp = self.client.post(
             reverse('verificar_codigo') + '?format=json',
@@ -74,6 +79,7 @@ class VerifyOtpViewTests(TestCase):
         self.assertFalse(data['ok'])
 
     def test_expo_demo_mode_approves_application(self):
+        """Test expo demo mode approves application."""
         self.user.is_active = False
         self.user.save(update_fields=['is_active'])
         code = generate_user_otp(self.user)
@@ -86,6 +92,7 @@ class VerifyOtpViewTests(TestCase):
         self.assertTrue(self.user.is_active)
 
     def test_verify_deletes_token_replay_protection(self):
+        """Test verify deletes token replay protection."""
         code = generate_user_otp(self.user)
         first = verify_user_otp(self.user, code)
         self.assertTrue(first.ok)

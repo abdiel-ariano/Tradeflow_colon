@@ -19,6 +19,7 @@ from core.models import (
 
 class CheckoutEmailNonBlockingTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.buyer = User.objects.create_user(
             username='buyer_checkout_email',
             email='buyer@example.com',
@@ -48,6 +49,7 @@ class CheckoutEmailNonBlockingTests(TestCase):
         # `force_login` evita el backend de django-axes que requiere `request`
         # en authenticate(). En produccion el login real pasa por la vista
         # `login_view` que si tiene request, asi que esto es solo un test helper.
+        """Test checkout redirects when smtp unreachable."""
         self.client.force_login(self.buyer)
         session = self.client.session
         session['carrito'] = {

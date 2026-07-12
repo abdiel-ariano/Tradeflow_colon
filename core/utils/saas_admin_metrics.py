@@ -55,6 +55,7 @@ def _current_period_volume_by_company() -> dict[int, Decimal]:
 
 
 def build_saas_admin_payload() -> dict:
+    """Build saas admin payload."""
     ensure_default_plans()
     now = timezone.now()
     start_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)

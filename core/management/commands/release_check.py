@@ -12,6 +12,7 @@ class Command(BaseCommand):
     help = 'Comprueba que el entorno está listo para release (staging/prod).'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--allow-debug',
             action='store_true',
@@ -19,6 +20,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         errors = []
         warnings = validate_email_infrastructure()
 

@@ -17,6 +17,7 @@ from core.models import Category, Company, Inventory, Product, UserProfile
 )
 class MarketplaceEmailTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.user = User.objects.create_user(
             username='buyer1',
             email='buyer1@example.com',
@@ -45,6 +46,7 @@ class MarketplaceEmailTests(TestCase):
 
     @patch('core.utils.email_sender.send_mail', return_value=True)
     def test_enviar_bienvenida_uses_marketplace_template(self, mock_send):
+        """Test enviar bienvenida uses marketplace template."""
         from core.utils.email_sender import enviar_bienvenida
 
         enviar_bienvenida(self.user)
@@ -56,6 +58,7 @@ class MarketplaceEmailTests(TestCase):
 
     @patch('core.utils.email_sender.send_mail', return_value=True)
     def test_enviar_carrito_abandonado(self, mock_send):
+        """Test enviar carrito abandonado."""
         from core.utils.email_sender import enviar_carrito_abandonado
 
         carrito = {
@@ -74,6 +77,7 @@ class MarketplaceEmailTests(TestCase):
 
     @patch('core.utils.email_sender.send_mail', return_value=True)
     def test_enviar_promociones_empresas(self, mock_send):
+        """Test enviar promociones empresas."""
         from core.utils.email_sender import enviar_promociones_empresas
 
         ok = enviar_promociones_empresas(self.user)
@@ -85,6 +89,7 @@ class MarketplaceEmailTests(TestCase):
 
 class CartActivitySyncTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.client = Client()
         self.user = User.objects.create_user(
             username='cartbuyer',
@@ -108,6 +113,7 @@ class CartActivitySyncTests(TestCase):
         Inventory.objects.create(product=self.product, stock_qty=50, reserved_qty=0)
 
     def test_add_to_cart_updates_profile_activity(self):
+        """Test add to cart updates profile activity."""
         self.client.force_login(self.user)
         url = reverse('agregar_al_carrito', kwargs={'producto_id': self.product.pk})
         self.client.post(url, {'cantidad': 3})
@@ -117,6 +123,7 @@ class CartActivitySyncTests(TestCase):
         self.assertIsNone(profile.cart_reminder_sent_at)
 
     def test_empty_cart_clears_profile_snapshot(self):
+        """Test empty cart clears profile snapshot."""
         self.client.force_login(self.user)
         add_url = reverse('agregar_al_carrito', kwargs={'producto_id': self.product.pk})
         self.client.post(add_url, {'cantidad': 1})
@@ -129,6 +136,7 @@ class CartActivitySyncTests(TestCase):
 
 class HomeNavbarTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.buyer = User.objects.create_user(
             username='loggedbuyer',
             email='logged@example.com',
@@ -137,6 +145,7 @@ class HomeNavbarTests(TestCase):
         UserProfile.objects.filter(user=self.buyer).update(role='buyer', email_verificado=True)
 
     def test_home_hides_duplicate_marketplace_nav_when_authenticated(self):
+        """Test home hides duplicate marketplace nav when authenticated."""
         self.client.force_login(self.buyer)
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
@@ -145,6 +154,7 @@ class HomeNavbarTests(TestCase):
         self.assertNotIn('id="cat-catalog-nav"', html)
 
     def test_home_shows_marketplace_nav_for_guests(self):
+        """Test home shows marketplace nav for guests."""
         response = self.client.get(reverse('home'))
         self.assertContains(response, 'id="cat-catalog-nav"')
         self.assertContains(response, 'Sign in')

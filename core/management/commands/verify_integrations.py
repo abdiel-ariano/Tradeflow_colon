@@ -18,6 +18,7 @@ class Command(BaseCommand):
     help = 'Prueba DATABASE_URL (Supabase), storage y email (Resend).'
 
     def add_arguments(self, parser):
+        """Add arguments."""
         parser.add_argument(
             '--email',
             type=str,
@@ -31,6 +32,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Handle."""
         self.stdout.write('=== TradeFlow — verificación de integraciones ===\n')
 
         payload = platform_health_payload()

@@ -1,9 +1,33 @@
 """
 =============================================================================
-TRADEFLOW COLÓN — core/views.py  (v5 — Portal vendedor + Roles)
+TRADEFLOW COLÓN — core/views.py
 =============================================================================
-Incluye: autenticación, admin, portal comprador (tienda, carrito, checkout),
-portal vendedor (panel, productos, ventas) y API JSON de productos.
+Central HTTP layer: auth, admin dashboard, buyer catalog/cart/checkout, seller
+portal, JSON APIs (search, assistant, merchandising), and legal/marketing pages.
+
+Decorators (see core/decorators.py): admin_required, buyer_required,
+seller_required, buyer_checkout, catalog_access, guest_or_buyer_cart.
+
+SECTION INDEX (approximate line numbers — search for banner comments)
+---------------------------------------------------------------------
+  ~311  Auth helpers (_redirect_by_role, login/signup/logout)
+  ~620  Email verification (OTP, tokens, resend)
+  ~847  Home + merchandising API
+  ~929  AI search suggest + assistant chat API
+  ~1067 Map / visitor QR (ZLC)
+  ~1241 Admin dashboard + chart API
+  ~1460 Admin orders (list, detail, status)
+  ~1580 Admin order wizard (3 steps)
+  ~1800 Admin products + companies
+  ~1872 Buyer/seller portal entry + seller plan/billing
+  ~2281 Seller dashboard, products, sales, exports
+  ~2973 Legacy JSON product API
+  ~3002 Session cart helpers
+  ~3184 Public catalog (/catalogo/), product detail, inquiry cart
+  ~3625 Cart page, checkout, buyer orders, RFQ/cotizaciones
+  ~4000+ Legal pages, marketplace marketing, transport
+
+Templates live under templates/core/. URL names in core/urls.py.
 =============================================================================
 """
 from django.conf import settings
@@ -417,6 +441,7 @@ def login_view(request):
 
 
 def logout_view(request):
+    """HTTP view: logout."""
     logout(request)
     request.session.flush()
     return redirect('login')
@@ -576,6 +601,7 @@ def signup_view(request):
 
 @never_cache
 def signup_buyer_view(request):
+    """HTTP view: signup buyer."""
     if request.user.is_authenticated:
         return redirect('home')
     if request.method == 'POST':
@@ -587,6 +613,7 @@ def signup_buyer_view(request):
 
 @never_cache
 def signup_seller_view(request):
+    """HTTP view: signup seller."""
     if request.user.is_authenticated:
         return redirect('home')
     if request.method == 'POST':
@@ -1463,6 +1490,7 @@ def dashboard(request):
 
 @admin_required
 def lista_ordenes(request):
+    """View handler: lista ordenes."""
     ordenes = (
         Order.objects.select_related('buyer')
         .annotate(item_count=Count('items', distinct=True))
@@ -1515,6 +1543,7 @@ def lista_ordenes(request):
 
 @admin_required
 def detalle_orden(request, pk):
+    """View handler: detalle orden."""
     orden = get_object_or_404(
         Order.objects.select_related('buyer', 'ship_address').prefetch_related(
             Prefetch(
@@ -1553,6 +1582,7 @@ def detalle_orden(request, pk):
 
 @admin_required
 def cambiar_estado_orden(request, pk, estado):
+    """View handler: cambiar estado orden."""
     orden = get_object_or_404(Order, pk=pk)
     estados_validos = [e[0] for e in Order.STATUS_CHOICES]
 
@@ -1583,6 +1613,7 @@ def cambiar_estado_orden(request, pk, estado):
 
 @admin_required
 def nueva_orden_paso1(request):
+    """View handler: nueva orden paso1."""
     request.session.pop('wizard_buyer_id',   None)
     request.session.pop('wizard_order_type', None)
     request.session.pop('wizard_items',      None)
@@ -1610,6 +1641,7 @@ def nueva_orden_paso1(request):
 
 @admin_required
 def nueva_orden_paso2(request):
+    """View handler: nueva orden paso2."""
     if not request.session.get('wizard_buyer_id'):
         messages.error(request, 'Complete step 1 first.')
         return redirect('nueva_orden_paso1')
@@ -1705,6 +1737,7 @@ def nueva_orden_paso2(request):
 
 @admin_required
 def nueva_orden_paso3(request):
+    """View handler: nueva orden paso3."""
     from decimal import Decimal
     buyer_id   = request.session.get('wizard_buyer_id')
     order_type = request.session.get('wizard_order_type', 'b2c')
@@ -1800,6 +1833,7 @@ def nueva_orden_paso3(request):
 
 @admin_required
 def lista_productos(request):
+    """View handler: lista productos."""
     productos  = (
         Product.objects.select_related('company', 'category')
         .defer('company__owner')
@@ -1856,6 +1890,7 @@ def lista_productos(request):
 
 @admin_required
 def lista_empresas(request):
+    """View handler: lista empresas."""
     empresas  = Company.objects.annotate(
         total_productos=Count('products')
     ).order_by('name')
@@ -2974,6 +3009,7 @@ def seller_detalle_venta(request, pk):
 
 @login_required
 def api_productos(request):
+    """JSON API endpoint: productos."""
     productos = (
         Product.objects.filter(is_active=True)
         .select_related('category', 'company', 'inventory')

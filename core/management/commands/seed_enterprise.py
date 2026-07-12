@@ -11,6 +11,7 @@ class Command(BaseCommand):
     help = 'Inicializa planes enterprise y suscripciones por empresa'
 
     def handle(self, *args, **options):
+        """Handle."""
         health = bootstrap_saas_datastore(seed_subscriptions=True)
         count = health.get('companies_seeded', 0)
         if not health.get('ok'):

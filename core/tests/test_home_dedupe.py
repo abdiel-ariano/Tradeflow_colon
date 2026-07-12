@@ -15,6 +15,7 @@ from core.models import Category, Company, Product
 )
 class HomeProductDeduplicationTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='ZLC Trading', is_verified=True)
         self.category = Category.objects.create(name='Electronics')
         self.products = []
@@ -35,6 +36,7 @@ class HomeProductDeduplicationTests(TestCase):
             )
 
     def test_build_guest_home_context_deduplicates_scroll_products(self):
+        """Test build guest home context deduplicates scroll products."""
         ctx = merch.build_guest_home_context('en')
 
         featured_pks = {p.pk for p in ctx['featured_products']}
@@ -74,6 +76,7 @@ class HomeProductDeduplicationTests(TestCase):
         self.assertEqual(len(category_pks), len(set(category_pks)))
 
     def test_hero_collage_uses_featured_products(self):
+        """Test hero collage uses featured products."""
         ctx = merch.build_guest_home_context('en')
         collage = ctx.get('hero_collage_products', [])
         self.assertGreaterEqual(len(collage), 1)

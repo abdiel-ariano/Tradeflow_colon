@@ -10,6 +10,7 @@ from core.utils.order_permissions import get_seller_order_actions
 
 class TestOrderPermissions(TestCase):
     def setUp(self):
+        """Setup."""
         self.company = Company.objects.create(name='Co', ruc='1', is_verified=True)
         self.buyer = User.objects.create_user('b', 'b@t.pa', 'pass')
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
@@ -37,11 +38,13 @@ class TestOrderPermissions(TestCase):
         )
 
     def test_cancelled_order_cannot_dispatch(self):
+        """Test cancelled order cannot dispatch."""
         actions = get_seller_order_actions(self.order, self.company)
         self.assertFalse(actions['can_dispatch'])
         self.assertTrue(actions['read_only'])
 
     def test_paid_accepted_can_dispatch(self):
+        """Test paid accepted can dispatch."""
         self.order.status = 'paid'
         self.order.seller_confirmation_status = 'accepted'
         self.order.save()
@@ -49,6 +52,7 @@ class TestOrderPermissions(TestCase):
         self.assertTrue(actions['can_dispatch'])
 
     def test_awaiting_seller_cannot_dispatch(self):
+        """Test awaiting seller cannot dispatch."""
         self.order.status = 'awaiting_seller'
         self.order.seller_confirmation_status = 'pending'
         self.order.save()

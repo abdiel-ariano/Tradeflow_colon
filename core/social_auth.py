@@ -25,6 +25,7 @@ def resolve_oauth_provider(provider: str) -> str:
 
 
 def provider_is_enabled(provider: str) -> bool:
+    """Provider is enabled."""
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         return False
     resolved = resolve_oauth_provider(provider)
@@ -34,6 +35,7 @@ def provider_is_enabled(provider: str) -> bool:
 
 
 def social_auth_enabled() -> bool:
+    """Social auth enabled."""
     return any(provider_is_enabled(p) for p in ALLOWED_OAUTH_PROVIDERS)
 
 
@@ -95,6 +97,7 @@ def setup_profile_and_application(user: User, role: str, phone: str = '') -> Non
 
 
 def user_needs_oauth_role(user: User) -> bool:
+    """User needs oauth role."""
     from core.models import UserProfile
 
     try:
@@ -116,6 +119,7 @@ def should_auto_activate_user(user: User) -> bool:
 
 
 def activate_user_if_eligible(user: User) -> bool:
+    """Activate user if eligible."""
     if user.is_active or not should_auto_activate_user(user):
         return False
     user.is_active = True
@@ -128,12 +132,15 @@ class TradeFlowAccountAdapter(DefaultAccountAdapter):
     """Disable allauth email signup; custom /signup/ handles registration."""
 
     def is_open_for_signup(self, request):
+        """Is open for signup."""
         return False
 
     def get_signup_redirect_url(self, request):
+        """Get signup redirect url."""
         return reverse('signup')
 
     def get_login_redirect_url(self, request):
+        """Get login redirect url."""
         if request.session.get('oauth_needs_role'):
             return reverse('oauth_complete_signup')
         if request.session.get('oauth_signup_done'):
@@ -151,12 +158,14 @@ class TradeFlowAccountAdapter(DefaultAccountAdapter):
         signup=False,
         redirect_url=None,
     ):
+        """Pre login."""
         activate_user_if_eligible(user)
         if not user.is_active:
             return self.respond_user_inactive(request, user)
         return None
 
     def respond_user_inactive(self, request, user):
+        """Respond user inactive."""
         from django.shortcuts import redirect
 
         try:
@@ -186,6 +195,7 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
             request.session['oauth_needs_role'] = user.pk
 
     def populate_user(self, request, sociallogin, data):
+        """Populate user."""
         user = super().populate_user(request, sociallogin, data)
         extra = sociallogin.account.extra_data or {}
         email = user.email or data.get('email') or extra.get('email') or ''
@@ -210,6 +220,7 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
         return user
 
     def save_user(self, request, sociallogin, form=None):
+        """Save user."""
         user = sociallogin.user
         if not user.username and user.email:
             user.username = generate_username_from_email(user.email)
@@ -233,6 +244,7 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
         return user
 
     def get_signup_redirect_url(self, request, sociallogin):
+        """Get signup redirect url."""
         if request.session.get('oauth_signup_done'):
             return reverse('oauth_post_signup')
         if request.session.get('oauth_needs_role'):
@@ -240,6 +252,7 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
         return super().get_signup_redirect_url(request, sociallogin)
 
     def get_login_redirect_url(self, request):
+        """Get login redirect url."""
         if request.session.get('oauth_needs_role'):
             return reverse('oauth_complete_signup')
         if request.session.get('oauth_signup_done'):
@@ -247,4 +260,5 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
         return super().get_login_redirect_url(request)
 
     def is_open_for_signup(self, request, sociallogin):
+        """Is open for signup."""
         return social_auth_enabled()

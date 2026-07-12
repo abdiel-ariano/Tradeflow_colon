@@ -217,6 +217,7 @@ class Command(BaseCommand):
     help = 'Carga datos de demostración con imágenes para TradeFlow Colón'
 
     def handle(self, *args, **options):
+        """Handle."""
         self.stdout.write('=' * 60)
         self.stdout.write('TRADEFLOW — Cargando datos de demostración')
         self.stdout.write('=' * 60)

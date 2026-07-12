@@ -21,16 +21,19 @@ from core.social_auth import (
 )
 class OAuthHelpersTests(TestCase):
     def test_resolve_oauth_provider_linkedin_alias(self):
+        """Test resolve oauth provider linkedin alias."""
         self.assertEqual(resolve_oauth_provider('linkedin'), 'linkedin_oauth2')
         self.assertEqual(resolve_oauth_provider('google'), 'google')
 
     def test_generate_username_from_email_unique(self):
+        """Test generate username from email unique."""
         User.objects.create_user(username='john.doe', email='a@t.pa', password='x')
         name = generate_username_from_email('john.doe@example.com')
         self.assertNotEqual(name, 'john.doe')
         self.assertRegex(name, r'^[a-zA-Z][a-zA-Z0-9._]{2,29}$')
 
     def test_setup_profile_and_application(self):
+        """Test setup profile and application."""
         user = User.objects.create_user(username='oauthuser', email='o@t.pa', password='unused')
         setup_profile_and_application(user, 'seller')
         profile = UserProfile.objects.get(user=user)
@@ -39,6 +42,7 @@ class OAuthHelpersTests(TestCase):
         self.assertEqual(app.role, 'seller')
 
     def test_setup_profile_buyer_sets_onboarding_pending(self):
+        """Test setup profile buyer sets onboarding pending."""
         user = User.objects.create_user(username='buyer_oauth', email='b@t.pa', password='unused')
         setup_profile_and_application(user, 'buyer')
         profile = UserProfile.objects.get(user=user)
@@ -56,9 +60,11 @@ class OAuthHelpersTests(TestCase):
 )
 class OAuthFlowViewsTests(TestCase):
     def setUp(self):
+        """Setup."""
         self.client = Client()
 
     def test_oauth_begin_signup_stores_role_in_session(self):
+        """Test oauth begin signup stores role in session."""
         url = reverse('oauth_begin_signup', kwargs={'provider': 'google'})
         resp = self.client.get(url + '?role=seller')
         self.assertEqual(resp.status_code, 302)
@@ -66,6 +72,7 @@ class OAuthFlowViewsTests(TestCase):
         self.assertTrue(resp['Location'].endswith('/accounts/google/login/'))
 
     def test_oauth_begin_signup_linkedin_resolves_provider(self):
+        """Test oauth begin signup linkedin resolves provider."""
         with self.settings(
             SOCIALACCOUNT_PROVIDERS={
                 'google': {'APP': {'client_id': '', 'secret': ''}},
@@ -80,6 +87,7 @@ class OAuthFlowViewsTests(TestCase):
             self.assertTrue(resp['Location'].endswith('/accounts/linkedin_oauth2/login/'))
 
     def test_oauth_begin_signup_disabled_without_credentials(self):
+        """Test oauth begin signup disabled without credentials."""
         with self.settings(
             SOCIALACCOUNT_PROVIDERS={
                 'google': {'APP': {'client_id': '', 'secret': ''}},
@@ -90,18 +98,22 @@ class OAuthFlowViewsTests(TestCase):
             self.assertRedirects(resp, reverse('signup'))
 
     def test_accounts_login_redirects_to_custom_login(self):
+        """Test accounts login redirects to custom login."""
         resp = self.client.get('/accounts/login/')
         self.assertRedirects(resp, reverse('login'))
 
     def test_accounts_signup_redirects_to_custom_signup(self):
+        """Test accounts signup redirects to custom signup."""
         resp = self.client.get('/accounts/signup/')
         self.assertRedirects(resp, reverse('signup'))
 
     def test_accounts_inactive_redirects_anonymous_to_login(self):
+        """Test accounts inactive redirects anonymous to login."""
         resp = self.client.get('/accounts/inactive/')
         self.assertRedirects(resp, reverse('login'))
 
     def test_oauth_complete_signup_creates_profile(self):
+        """Test oauth complete signup creates profile."""
         user = User.objects.create_user(
             username='newoauth',
             email='new@oauth.pa',
@@ -119,6 +131,7 @@ class OAuthFlowViewsTests(TestCase):
         self.assertEqual(profile.role, 'buyer')
 
     def test_oauth_post_signup_redirects_buyer_to_onboarding(self):
+        """Test oauth post signup redirects buyer to onboarding."""
         user = User.objects.create_user(
             username='oauth_buyer',
             email='buyer@oauth.pa',
@@ -142,6 +155,7 @@ class OAuthFlowViewsTests(TestCase):
         self.assertIn('/onboarding/comprador', resp['Location'])
 
     def test_verificar_no_redirect_loop_without_profile(self):
+        """Test verificar no redirect loop without profile."""
         user = User.objects.create_user(
             username='loop_user',
             email='loop@test.pa',
