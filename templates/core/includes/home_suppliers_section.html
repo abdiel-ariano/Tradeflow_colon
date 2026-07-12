@@ -1,18 +1,19 @@
+{% load i18n %}
 {% comment %}Top companies — single auto-rotator (8s) with unified spotlight cards.{% endcomment %}
 <section class="hm-suppliers hm-section hm-section--surface" id="hm-suppliers" data-hm-section aria-labelledby="hm-suppliers-title">
   <div class="hm-section__inner hm-suppliers__inner">
     <header class="hm-section__head hm-suppliers__head">
       <div>
-        <span class="hm-section__eyebrow">Verified partners</span>
-        <h2 class="hm-section-title" id="hm-suppliers-title">Featured suppliers</h2>
-        <p class="hm-section-sub">CFZ-verified partners highlighted by catalog activity and visibility plans</p>
+        <span class="hm-section__eyebrow">{% trans "Verified partners" %}</span>
+        <h2 class="hm-section-title" id="hm-suppliers-title">{% trans "Featured suppliers" %}</h2>
+        <p class="hm-section-sub">{% trans "CFZ-verified partners highlighted by catalog activity and visibility plans" %}</p>
       </div>
       <button type="button" class="hm-info-btn" id="hm-rankings-info" aria-describedby="hm-rankings-tooltip" aria-expanded="false">
         {% include "core/includes/tf_icon.html" with name="info" class="hm-info-btn__icon" %}
-        How rankings work
+        {% trans "How rankings work" %}
       </button>
       <div class="hm-info-tooltip" id="hm-rankings-tooltip" role="tooltip" hidden>
-        Companies are highlighted based on visibility plans and catalog activity. All are CFZ-verified.
+        {% trans "Companies are highlighted based on visibility plans and catalog activity. All are CFZ-verified." %}
       </div>
     </header>
 
@@ -25,7 +26,7 @@
         </div>
         {% endfor %}
       </div>
-      <div class="hm-company-rotator__tabs" role="tablist" aria-label="Top companies">
+      <div class="hm-company-rotator__tabs" role="tablist" aria-label="{% trans 'Top companies' %}">
         {% for emp in empresas_carousel|slice:":5" %}
         <button type="button"
                 class="hm-company-rotator__tab{% if forloop.first %} is-active{% endif %}"
@@ -40,9 +41,9 @@
     </div>
 
     <div class="hm-suppliers__more">
-      <h3 class="hm-suppliers__more-title">More verified suppliers</h3>
+      <h3 class="hm-suppliers__more-title">{% trans "More verified suppliers" %}</h3>
       <div class="hm-slider hm-slider--companies" data-hm-slider data-hm-slider-visible="4">
-        <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="Previous suppliers">
+        <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="{% trans 'Previous suppliers' %}">
           {% include "core/includes/tf_icon.html" with name="chevron_left" %}
         </button>
         <div class="hm-slider__viewport">
@@ -55,26 +56,26 @@
                   <h3 class="hm-supplier-card__name" title="{{ emp.name }}">{{ emp.name }}</h3>
                   <span class="hm-supplier-card__verified">
                     {% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}
-                    CFZ Verified
+                    {% trans "CFZ Verified" %}
                   </span>
                 </div>
               </div>
               <p class="hm-supplier-card__count">
-                {% if emp.num_productos == 1 %}{{ emp.num_productos }} product{% else %}{{ emp.num_productos }} products{% endif %}
+                {% blocktrans count counter=emp.num_productos %}{{ counter }} product{% plural %}{{ counter }} products{% endblocktrans %}
               </p>
-              <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="hm-supplier-card__link">View catalog →</a>
+              <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="hm-supplier-card__link">{% trans "View catalog" %} →</a>
             </article>
             {% endfor %}
           </div>
         </div>
-        <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="Next suppliers">
+        <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="{% trans 'Next suppliers' %}">
           {% include "core/includes/tf_icon.html" with name="chevron_right" %}
         </button>
         <div class="hm-slider__dots" aria-hidden="true"></div>
       </div>
     </div>
     {% else %}
-    <p class="hm-empty">More verified suppliers coming soon.</p>
+    <p class="hm-empty">{% trans "More verified suppliers coming soon." %}</p>
     {% endif %}
   </div>
 </section>

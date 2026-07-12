@@ -1,13 +1,14 @@
+{% load i18n %}
 {% comment %}Compact promo row — catalog marketplace cards.{% endcomment %}
 {% if show_daily_deals_strip and daily_deals|length >= 3 %}
 <section class="hm-deals hm-section" id="hm-deals" data-hm-section aria-labelledby="hm-deals-title">
   <div class="hm-section__inner hm-deals__inner">
     <header class="hm-section__head hm-deals__head">
       <div>
-        <span class="hm-section__eyebrow">Limited offers</span>
-        <h2 class="hm-section-title" id="hm-deals-title">Today's wholesale deals</h2>
+        <span class="hm-section__eyebrow">{% trans "Limited offers" %}</span>
+        <h2 class="hm-section-title" id="hm-deals-title">{% trans "Today's wholesale deals" %}</h2>
       </div>
-      <a href="{% url 'marketplace_deals' %}" class="hm-deals__see-all">All deals →</a>
+      <a href="{% url 'marketplace_deals' %}" class="hm-deals__see-all">{% trans "All deals" %} →</a>
     </header>
     <div class="product-grid hm-deals__track" data-hm-stagger>
       {% for product in daily_deals|slice:":8" %}

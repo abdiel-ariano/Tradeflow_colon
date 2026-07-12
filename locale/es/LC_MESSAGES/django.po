@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 19:12-0500\n"
+"POT-Creation-Date: 2026-07-11 19:27-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -487,204 +487,204 @@ msgstr ""
 msgid "Last %(n)s days"
 msgstr ""
 
-#: core/views.py:1930
+#: core/views.py:1931
 msgid "Seller dashboard"
 msgstr ""
 
-#: core/views.py:1996
+#: core/views.py:1997
 msgid "TradeFlow growth"
 msgstr ""
 
-#: core/views.py:2038
+#: core/views.py:2039
 msgid ""
 "Dispatch recorded internally. Enable Corporate Pro for partner webhooks."
 msgstr ""
 
-#: core/views.py:2041
+#: core/views.py:2042
 msgid "Dispatch started. Tracking updated."
 msgstr ""
 
-#: core/views.py:2066
+#: core/views.py:2067
 msgid "Invalid plan."
 msgstr ""
 
-#: core/views.py:2069
+#: core/views.py:2070
 msgid "You already have this plan active."
 msgstr ""
 
-#: core/views.py:2072
+#: core/views.py:2073
 msgid "Select a plan higher than your current one."
 msgstr ""
 
-#: core/views.py:2080
+#: core/views.py:2081
 msgid "Could not start checkout."
 msgstr ""
 
-#: core/views.py:2085
+#: core/views.py:2086
 msgid "Plan payment"
 msgstr ""
 
-#: core/views.py:2101
+#: core/views.py:2102
 msgid "You have no pending payments."
 msgstr ""
 
-#: core/views.py:2118
+#: core/views.py:2119
 msgid "Invalid payment session. Choose your plan again."
 msgstr ""
 
-#: core/views.py:2130
+#: core/views.py:2131
 msgid "Payment could not be completed."
 msgstr ""
 
-#: core/views.py:2135
+#: core/views.py:2136
 #, python-format
 msgid "Payment confirmed. Plan %(name)s is active on your account."
 msgstr ""
 
-#: core/views.py:2167 core/views.py:2179
+#: core/views.py:2168 core/views.py:2180
 msgid "Predictive insights"
 msgstr ""
 
-#: core/views.py:2205
+#: core/views.py:2206
 #, python-format
 msgid "Imagen rechazada: %(detalle)s"
 msgstr ""
 
-#: core/views.py:2530
+#: core/views.py:2531
 msgid ""
 "You have reached your plan's monthly limit. Upgrade your plan before "
 "publishing new products."
 msgstr ""
 
-#: core/views.py:2631
+#: core/views.py:2632
 msgid "active"
 msgstr ""
 
-#: core/views.py:2631
+#: core/views.py:2632
 msgid "inactive"
 msgstr ""
 
-#: core/views.py:2642 core/views.py:2649
+#: core/views.py:2643 core/views.py:2650
 #, python-format
 msgid "Product \"%(name)s\" is now %(estado)s."
 msgstr ""
 
-#: core/views.py:2883
+#: core/views.py:2884
 msgid "Use the dispatch button in the logistics section."
 msgstr ""
 
-#: core/views.py:2896
+#: core/views.py:2897
 #, python-format
 msgid ""
 "Monthly plan limit reached (USD %(limit)s). Upgrade your plan to confirm "
 "this sale of USD %(add)s."
 msgstr ""
 
-#: core/views.py:2901
+#: core/views.py:2902
 msgid "Order confirmed. The buyer was notified."
 msgstr ""
 
-#: core/views.py:2909
+#: core/views.py:2910
 msgid "Order rejected. Reserved inventory was released."
 msgstr ""
 
-#: core/views.py:3725
+#: core/views.py:3726
 msgid "Quantity must be at least 1."
 msgstr ""
 
-#: core/views.py:3729
+#: core/views.py:3730
 #, python-format
 msgid "\"%(name)s\" has no stock available."
 msgstr ""
 
-#: core/views.py:3757
+#: core/views.py:3758
 #, python-format
 msgid "\"%(name)s\" added to cart."
 msgstr ""
 
-#: core/views.py:3770
+#: core/views.py:3771
 msgid "Method not allowed."
 msgstr ""
 
-#: core/views.py:3781
+#: core/views.py:3782
 #, python-format
 msgid "\"%(name)s\" added to inquiry cart."
 msgstr ""
 
-#: core/views.py:3841 core/views.py:3920
+#: core/views.py:3842 core/views.py:3921
 #, python-format
 msgid "\"%(name)s\" removed from cart."
 msgstr ""
 
-#: core/views.py:3904
+#: core/views.py:3905
 msgid "Product not found in cart."
 msgstr ""
 
-#: core/views.py:3927
+#: core/views.py:3928
 #, python-format
 msgid "Only %(qty)s units available."
 msgstr ""
 
-#: core/views.py:3943
+#: core/views.py:3944
 msgid "Cart cleared."
 msgstr ""
 
-#: core/views.py:3991
+#: core/views.py:3992
 msgid "Select a carrier to continue."
 msgstr ""
 
-#: core/views.py:4002
+#: core/views.py:4003
 msgid "Confirm your location with the Use my current location button."
 msgstr ""
 
-#: core/views.py:4007
+#: core/views.py:4008
 msgid "Invalid location coordinates."
 msgstr ""
 
-#: core/views.py:4097
+#: core/views.py:4098
 #, python-format
 msgid ""
 "Order %(num)s submitted. Awaiting company confirmation (deadline %(fecha)s)."
 msgstr ""
 
-#: core/views.py:4130
+#: core/views.py:4131
 #, python-format
 msgid "Order %(num)s created successfully."
 msgstr ""
 
-#: core/views.py:4820
+#: core/views.py:4821
 msgid "Name and email are required."
 msgstr ""
 
-#: core/views.py:4822
+#: core/views.py:4823
 msgid "Invalid role."
 msgstr ""
 
-#: core/views.py:4832
+#: core/views.py:4833
 msgid ""
 "You already have an application under review. We will email you when it is "
 "approved."
 msgstr ""
 
-#: core/views.py:4868
+#: core/views.py:4869
 msgid ""
 "Application saved, but email could not be sent. Configure RESEND_API_KEY and "
 "verify sender domain in Resend."
 msgstr ""
 
-#: core/views.py:4875
+#: core/views.py:4876
 msgid "Application submitted. Check your email for confirmation."
 msgstr ""
 
-#: core/views.py:4882
+#: core/views.py:4883
 msgid "Access application"
 msgstr ""
 
-#: core/views.py:4892 core/views_transportistas.py:109
+#: core/views.py:4893 core/views_transportistas.py:109
 msgid "This application has already been reviewed."
 msgstr ""
 
-#: core/views.py:4941
+#: core/views.py:4942
 msgid "Decision recorded and email sent to the applicant."
 msgstr ""
 
@@ -873,6 +873,8 @@ msgstr ""
 
 #: templates/core/catalogo_publico.html:49
 #: templates/core/includes/catalogo_ali_category_sidebar.html:3
+#: templates/core/includes/home_bento_hero.html:6
+#: templates/core/includes/home_gateway_hero.html:103
 msgid "Categories"
 msgstr "Categorías"
 
@@ -927,7 +929,6 @@ msgid "Sort by"
 msgstr "Ordenar por"
 
 #: templates/core/catalogo_publico.html:130
-#, fuzzy
 #| msgid "Refine results"
 msgid "Sort results"
 msgstr "Refinar resultados"
@@ -948,57 +949,171 @@ msgstr "Categorías del catálogo"
 msgid "All"
 msgstr "Todas"
 
+#: templates/core/includes/catalogo_card.html:8
+#: templates/core/includes/catalogo_card.html:49
+#: templates/core/includes/home_gateway_hero.html:46
+#, python-format
+msgid "%(pct)s%% off"
+msgstr "%(pct)s%% dto."
+
+#: templates/core/includes/catalogo_card.html:10
+#: templates/core/includes/home_gateway_hero.html:48
+msgid "Best seller"
+msgstr "Más vendido"
+
 #: templates/core/includes/catalogo_card.html:21
 #: templates/core/includes/marketplace_public_navbar.html:17
 msgid "Search by image"
-msgstr ""
+msgstr "Buscar por imagen"
 
 #: templates/core/includes/catalogo_card.html:39
 msgid "Reorder rate"
-msgstr ""
+msgstr "Tasa de recompra"
 
 #: templates/core/includes/catalogo_card.html:41
 msgid "Lower priced than similar"
-msgstr ""
+msgstr "Más barato que similares"
 
 #: templates/core/includes/catalogo_card.html:54
 msgid "MOQ"
-msgstr ""
+msgstr "MOQ"
 
 #: templates/core/includes/catalogo_card.html:54
 msgid "piece"
-msgstr ""
+msgstr "unidad"
 
 #: templates/core/includes/catalogo_card.html:66
+#: templates/core/includes/home_suppliers_section.html:60
 msgid "CFZ Verified"
-msgstr ""
+msgstr "Verificado ZLC"
 
 #: templates/core/includes/catalogo_card.html:77
 msgid "Add to cart"
-msgstr ""
+msgstr "Agregar al carrito"
 
 #: templates/core/includes/catalogo_card.html:80
 msgid "Out of stock"
-msgstr ""
+msgstr "Sin stock"
 
 #: templates/core/includes/catalogo_card.html:83
 msgid "Add to inquiry"
-msgstr ""
+msgstr "Agregar a consulta"
+
+#: templates/core/includes/catalogo_footer.html:6
+#: templates/core/includes/marketplace_public_navbar.html:129
+msgid "About TradeFlow"
+msgstr "Acerca de TradeFlow"
+
+#: templates/core/includes/catalogo_footer.html:8
+msgid "Why TradeFlow Colón"
+msgstr "Por qué TradeFlow Colón"
+
+#: templates/core/includes/catalogo_footer.html:9
+msgid "Colón Free Zone Guide"
+msgstr "Guía de la Zona Libre de Colón"
+
+#: templates/core/includes/catalogo_footer.html:10
+msgid "Corporate responsibility"
+msgstr "Responsabilidad corporativa"
+
+#: templates/core/includes/catalogo_footer.html:14
+#| msgid "Order protection"
+msgid "Buyer Protection"
+msgstr "Protección al comprador"
+
+#: templates/core/includes/catalogo_footer.html:16
+msgid "Secure payments"
+msgstr "Pagos seguros"
+
+#: templates/core/includes/catalogo_footer.html:17
+msgid "Money-back guarantee"
+msgstr "Garantía de devolución"
+
+#: templates/core/includes/catalogo_footer.html:18
+msgid "Guaranteed delivery"
+msgstr "Entrega garantizada"
+
+#: templates/core/includes/catalogo_footer.html:19
+#| msgid "Order protection"
+msgid "After-sales protection"
+msgstr "Protección postventa"
+
+#: templates/core/includes/catalogo_footer.html:23
+msgid "Source from CFZ"
+msgstr "Abastece desde la ZLC"
+
+#: templates/core/includes/catalogo_footer.html:25
+msgid "CFZ Verified manufacturers"
+msgstr "Fabricantes verificados ZLC"
+
+#: templates/core/includes/catalogo_footer.html:26
+msgid "Request for Quotation"
+msgstr "Solicitud de cotización"
+
+#: templates/core/includes/catalogo_footer.html:27
+msgid "Export documentation"
+msgstr "Documentación de exportación"
+
+#: templates/core/includes/catalogo_footer.html:31
+#| msgid "Help center"
+msgid "Help Center"
+msgstr "Centro de ayuda"
+
+#: templates/core/includes/catalogo_footer.html:33
+msgid "For buyers"
+msgstr "Para compradores"
+
+#: templates/core/includes/catalogo_footer.html:34
+#| msgid "Contact"
+msgid "Contact support"
+msgstr "Contactar soporte"
+
+#: templates/core/includes/catalogo_footer.html:35
+#| msgid "Orders, payments, and disputes"
+msgid "Open a dispute"
+msgstr "Abrir una disputa"
+
+#: templates/core/includes/catalogo_footer.html:36
+#: templates/core/includes/marketplace_public_navbar.html:133
+msgid "Sell on TradeFlow"
+msgstr "Vender en TradeFlow"
+
+#: templates/core/includes/catalogo_footer.html:41
+msgid "We accept:"
+msgstr "Aceptamos:"
+
+#: templates/core/includes/catalogo_footer.html:47
+msgid "Bank Transfer (T/T)"
+msgstr "Transferencia bancaria (T/T)"
+
+#: templates/core/includes/catalogo_footer.html:51
+#| msgid "Privacy Policy"
+msgid "Privacy"
+msgstr "Privacidad"
+
+#: templates/core/includes/catalogo_footer.html:51
+msgid "Terms"
+msgstr "Términos"
+
+#: templates/core/includes/catalogo_footer.html:51
+msgid "Legal Notice"
+msgstr "Aviso legal"
+
+#: templates/core/includes/catalogo_footer.html:52
+msgid "Trade from the Colón Free Zone · Panama"
+msgstr "Comercia desde la Zona Libre de Colón · Panamá"
 
 #: templates/core/includes/catalogo_publico_results.html:7
-#, fuzzy
 #| msgid "Refine results"
 msgid "Featured results"
 msgstr "Refinar resultados"
 
 #: templates/core/includes/catalogo_publico_results.html:14
-#, fuzzy
 #| msgid "Refine results"
 msgid "More results"
 msgstr "Refinar resultados"
 
 #: templates/core/includes/catalogo_publico_results.html:24
-#, fuzzy
 #| msgid "Catalog categories"
 msgid "Catalog pagination"
 msgstr "Categorías del catálogo"
@@ -1038,6 +1153,315 @@ msgstr "Prueba estos términos o ajusta tus filtros:"
 msgid "View full catalog"
 msgstr "Ver catálogo completo"
 
+#: templates/core/includes/home_bento_hero.html:4
+#| msgid "Marketplace shortcuts"
+msgid "Marketplace discovery"
+msgstr "Descubrimiento del marketplace"
+
+#: templates/core/includes/home_bento_hero.html:11
+#: templates/core/includes/home_category_discover.html:8
+#| msgid "Categories"
+msgid "Categories for you"
+msgstr "Categorías para ti"
+
+#: templates/core/includes/home_bento_hero.html:29
+msgid "Frequently searched"
+msgstr "Búsquedas frecuentes"
+
+#: templates/core/includes/home_bento_hero.html:37
+#| msgid "Search catalog"
+msgid "Wholesale catalog"
+msgstr "Catálogo mayorista"
+
+#: templates/core/includes/home_bento_hero.html:38
+#, fuzzy, python-format
+#| msgid "Search %(count)s CFZ products…"
+msgid "Browse %(count)s products"
+msgstr "Explorar %(count)s productos"
+
+#: templates/core/includes/home_bento_hero.html:46
+msgid "New season"
+msgstr "Nueva temporada"
+
+#: templates/core/includes/home_bento_hero.html:51
+#: templates/core/includes/home_bento_hero.html:63
+msgid "View more"
+msgstr "Ver más"
+
+#: templates/core/includes/home_bento_hero.html:60
+msgid "Colón Free Zone"
+msgstr "Zona Libre de Colón"
+
+#: templates/core/includes/home_bento_hero.html:61
+#| msgid "All suppliers"
+msgid "Discover verified wholesale suppliers"
+msgstr "Descubre proveedores mayoristas verificados"
+
+#: templates/core/includes/home_bento_hero.html:62
+msgid "New buyer favorites · export-ready · MOQ on every listing"
+msgstr "Favoritos de compradores · listo para exportar · MOQ en cada publicación"
+
+#: templates/core/includes/home_category_discover.html:9
+msgid "View all"
+msgstr "Ver todo"
+
+#: templates/core/includes/home_deals_strip.html:9
+msgid "Limited offers"
+msgstr "Ofertas limitadas"
+
+#: templates/core/includes/home_deals_strip.html:10
+msgid "Today's wholesale deals"
+msgstr "Ofertas mayoristas de hoy"
+
+#: templates/core/includes/home_deals_strip.html:12
+msgid "All deals"
+msgstr "Todas las ofertas"
+
+#: templates/core/includes/home_gateway_hero.html:12
+msgid "Colón Free Zone · B2B wholesale"
+msgstr "Zona Libre de Colón · Mayorista B2B"
+
+#: templates/core/includes/home_gateway_hero.html:13
+msgid "The Americas' wholesale marketplace starts here"
+msgstr "El marketplace mayorista de las Américas empieza aquí"
+
+#: templates/core/includes/home_gateway_hero.html:14
+msgid ""
+"Browse verified CFZ suppliers, compare MOQs in USD, and request formal "
+"quotes — export-ready documentation included on every order."
+msgstr "Explora proveedores verificados de la ZLC, compara MOQs en USD y solicita cotizaciones formales — documentación de exportación incluida en cada pedido."
+
+#: templates/core/includes/home_gateway_hero.html:16
+#, fuzzy, python-format
+#| msgid "Search %(count)s CFZ products…"
+msgid "Explore %(count)s+ products"
+msgstr "Explorar %(count)s+ productos"
+
+#: templates/core/includes/home_gateway_hero.html:17
+#| msgid "Create account"
+msgid "Create free buyer account"
+msgstr "Crear cuenta de comprador gratis"
+
+#: templates/core/includes/home_gateway_hero.html:19
+msgid "Platform highlights"
+msgstr "Destacados de la plataforma"
+
+#: templates/core/includes/home_gateway_hero.html:22
+#| msgid "All suppliers"
+msgid "CFZ verified suppliers"
+msgstr "Proveedores verificados ZLC"
+
+#: templates/core/includes/home_gateway_hero.html:26
+msgid "RFQ before you buy"
+msgstr "Cotiza antes de comprar"
+
+#: templates/core/includes/home_gateway_hero.html:30
+#: templates/core/includes/home_trust_bar.html:16
+msgid "Export docs included"
+msgstr "Documentos de exportación incluidos"
+
+#: templates/core/includes/home_gateway_hero.html:35
+#| msgid "Marketplace shortcuts"
+msgid "Marketplace highlights"
+msgstr "Destacados del marketplace"
+
+#: templates/core/includes/home_gateway_hero.html:38
+msgid "Deals and featured products"
+msgstr "Ofertas y productos destacados"
+
+#: templates/core/includes/home_gateway_hero.html:50
+#| msgid "wholesale products"
+msgid "Wholesale pick"
+msgstr "Selección mayorista"
+
+#: templates/core/includes/home_gateway_hero.html:73
+#| msgid "Previous page"
+msgid "Previous product"
+msgstr "Producto anterior"
+
+#: templates/core/includes/home_gateway_hero.html:76
+#| msgid "No products found"
+msgid "Next product"
+msgstr "Producto siguiente"
+
+#: templates/core/includes/home_gateway_hero.html:82
+#| msgid "Products"
+msgid "Product slides"
+msgstr "Diapositivas de productos"
+
+#: templates/core/includes/home_gateway_hero.html:84
+#, fuzzy, python-format
+#| msgid "Products"
+msgid "Product %(num)s"
+msgstr "Producto %(num)s"
+
+#: templates/core/includes/home_gateway_hero.html:99
+#: templates/core/includes/marketplace_public_navbar.html:127
+#| msgid "All suppliers"
+msgid "Verified suppliers"
+msgstr "Proveedores verificados"
+
+#: templates/core/includes/home_gateway_hero.html:107
+#| msgid "wholesale products"
+msgid "Wholesale orders"
+msgstr "Pedidos mayoristas"
+
+#: templates/core/includes/home_how_section.html:7
+msgid "How it works"
+msgstr "Cómo funciona"
+
+#: templates/core/includes/home_how_section.html:8
+#| msgid "About TradeFlow"
+msgid "How TradeFlow works"
+msgstr "Cómo funciona TradeFlow"
+
+#: templates/core/includes/home_how_section.html:14
+#| msgid "Search catalog"
+msgid "Browse the catalog"
+msgstr "Explora el catálogo"
+
+#: templates/core/includes/home_how_section.html:15
+msgid "Browse verified suppliers — no account required."
+msgstr "Explora proveedores verificados — sin cuenta."
+
+#: templates/core/includes/home_how_section.html:20
+#| msgid "Create account"
+msgid "Create your account"
+msgstr "Crea tu cuenta"
+
+#: templates/core/includes/home_how_section.html:21
+msgid "Sign up when you are ready to order or quote."
+msgstr "Regístrate cuando quieras pedir o cotizar."
+
+#: templates/core/includes/home_how_section.html:26
+msgid "Place your order"
+msgstr "Realiza tu pedido"
+
+#: templates/core/includes/home_how_section.html:27
+msgid "Cart, quotes, and secure B2B checkout."
+msgstr "Carrito, cotizaciones y checkout B2B seguro."
+
+#: templates/core/includes/home_how_section.html:32
+msgid "Receive your goods"
+msgstr "Recibe tu mercancía"
+
+#: templates/core/includes/home_how_section.html:33
+msgid "Track delivery with export docs included."
+msgstr "Sigue la entrega con documentos de exportación incluidos."
+
+#: templates/core/includes/home_how_section.html:37
+msgid "Start browsing"
+msgstr "Empezar a explorar"
+
+#: templates/core/includes/home_join_band.html:7
+msgid "Join buyers across the Americas"
+msgstr "Únete a compradores en las Américas"
+
+#: templates/core/includes/home_join_band.html:8
+msgid ""
+"Create a free account to save inquiry carts, track quotes, and checkout with "
+"export documentation — no subscription required to browse."
+msgstr "Crea una cuenta gratis para guardar carritos de consulta, seguir cotizaciones y pagar con documentación de exportación — no necesitas suscripción para explorar."
+
+#: templates/core/includes/home_join_band.html:11
+msgid "Get started free"
+msgstr "Empezar gratis"
+
+#: templates/core/includes/home_join_band.html:12
+#| msgid "About TradeFlow"
+msgid "Why TradeFlow"
+msgstr "Por qué TradeFlow"
+
+#: templates/core/includes/home_product_row.html:10
+#| msgid "Clear all"
+msgid "See all"
+msgstr "Ver todo"
+
+#: templates/core/includes/home_product_row.html:12
+#: templates/core/includes/home_suppliers_section.html:67
+#| msgid "View full catalog"
+msgid "View catalog"
+msgstr "Ver catálogo"
+
+#: templates/core/includes/home_suppliers_section.html:8
+#| msgid "All suppliers"
+msgid "Verified partners"
+msgstr "Socios verificados"
+
+#: templates/core/includes/home_suppliers_section.html:9
+#| msgid "All suppliers"
+msgid "Featured suppliers"
+msgstr "Proveedores destacados"
+
+#: templates/core/includes/home_suppliers_section.html:10
+msgid ""
+"CFZ-verified partners highlighted by catalog activity and visibility plans"
+msgstr "Socios verificados ZLC destacados por actividad en catálogo y planes de visibilidad"
+
+#: templates/core/includes/home_suppliers_section.html:14
+msgid "How rankings work"
+msgstr "Cómo funcionan los rankings"
+
+#: templates/core/includes/home_suppliers_section.html:17
+msgid ""
+"Companies are highlighted based on visibility plans and catalog activity. "
+"All are CFZ-verified."
+msgstr "Las empresas se destacan según planes de visibilidad y actividad en catálogo. Todas están verificadas por la ZLC."
+
+#: templates/core/includes/home_suppliers_section.html:30
+#| msgid "Companies"
+msgid "Top companies"
+msgstr "Empresas principales"
+
+#: templates/core/includes/home_suppliers_section.html:45
+#| msgid "All suppliers"
+msgid "More verified suppliers"
+msgstr "Más proveedores verificados"
+
+#: templates/core/includes/home_suppliers_section.html:47
+#| msgid "Previous page"
+msgid "Previous suppliers"
+msgstr "Proveedores anteriores"
+
+#: templates/core/includes/home_suppliers_section.html:65
+#, fuzzy, python-format
+#| msgid "Search %(count)s CFZ products…"
+msgid "%(counter)s product"
+msgid_plural "%(counter)s products"
+msgstr[0] "Buscar %(count)s productos de la ZLC…"
+msgstr[1] "Buscar %(count)s productos de la ZLC…"
+
+#: templates/core/includes/home_suppliers_section.html:72
+#| msgid "All suppliers"
+msgid "Next suppliers"
+msgstr "Proveedores siguientes"
+
+#: templates/core/includes/home_suppliers_section.html:79
+#| msgid "All suppliers"
+msgid "More verified suppliers coming soon."
+msgstr "Pronto habrá más proveedores verificados."
+
+#: templates/core/includes/home_trust_bar.html:4
+msgid "Platform trust indicators"
+msgstr "Indicadores de confianza"
+
+#: templates/core/includes/home_trust_bar.html:9
+#| msgid "All suppliers"
+msgid "CFZ-verified suppliers"
+msgstr "Proveedores verificados ZLC"
+
+#: templates/core/includes/home_trust_bar.html:23
+msgid "Secure B2B checkout"
+msgstr "Checkout B2B seguro"
+
+#: templates/core/includes/home_trust_bar.html:30
+msgid "Live wholesale inventory"
+msgstr "Inventario mayorista en vivo"
+
+#: templates/core/includes/home_trust_bar.html:37
+msgid "Registered ZLC partners"
+msgstr "Socios registrados ZLC"
+
 #: templates/core/includes/marketplace_public_navbar.html:14
 msgid "Search catalog"
 msgstr "Buscar en el catálogo"
@@ -1048,7 +1472,6 @@ msgid "Search %(count)s CFZ products…"
 msgstr "Buscar %(count)s productos de la ZLC…"
 
 #: templates/core/includes/marketplace_public_navbar.html:27
-#, fuzzy
 #| msgid "Search:"
 msgid "Search"
 msgstr "Búsqueda:"
@@ -1058,7 +1481,6 @@ msgid "Open menu"
 msgstr "Abrir menú"
 
 #: templates/core/includes/marketplace_public_navbar.html:39
-#, fuzzy
 #| msgid "Delivered"
 msgid "Delivery region"
 msgstr "Entregado"
@@ -1068,10 +1490,9 @@ msgid "Deliver to Panama"
 msgstr "Entregar en Panamá"
 
 #: templates/core/includes/marketplace_public_navbar.html:42
-#, fuzzy
 #| msgid "Delivered"
 msgid "Deliver to:"
-msgstr "Entregado"
+msgstr "Entregar en:"
 
 #: templates/core/includes/marketplace_public_navbar.html:47
 msgid "Language and currency"
@@ -1089,13 +1510,11 @@ msgstr "Mensajes"
 
 #: templates/core/includes/marketplace_public_navbar.html:76
 #: templates/core/includes/marketplace_public_navbar.html:88
-#, fuzzy
 #| msgid "Orders, payments, and disputes"
 msgid "Orders and lists"
 msgstr "Pedidos, pagos y disputas"
 
 #: templates/core/includes/marketplace_public_navbar.html:95
-#, fuzzy
 #| msgid "Added to inquiry cart"
 msgid "Inquiry cart"
 msgstr "Agregado al carrito de consultas"
@@ -1129,27 +1548,13 @@ msgstr "Catálogo"
 msgid "Deals"
 msgstr "Ofertas"
 
-#: templates/core/includes/marketplace_public_navbar.html:127
-#, fuzzy
-#| msgid "All suppliers"
-msgid "Verified suppliers"
-msgstr "Todos los proveedores"
-
 #: templates/core/includes/marketplace_public_navbar.html:128
 msgid "Order protection"
 msgstr "Protección de pedidos"
 
-#: templates/core/includes/marketplace_public_navbar.html:129
-msgid "About TradeFlow"
-msgstr "Acerca de TradeFlow"
-
 #: templates/core/includes/marketplace_public_navbar.html:132
 msgid "Help center"
 msgstr "Centro de ayuda"
-
-#: templates/core/includes/marketplace_public_navbar.html:133
-msgid "Sell on TradeFlow"
-msgstr "Vender en TradeFlow"
 
 #: templates/core/includes/product_image_placeholder.html:28
 msgid "Reference image"

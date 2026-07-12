@@ -33,6 +33,18 @@ class CatalogI18nTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.endswith('/es/catalogo/'))
 
+    def test_spanish_home_hero_and_cards(self):
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('home')},
+        )
+        response = self.client.get(post_response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'marketplace mayorista de las Américas')
+        self.assertContains(response, 'Proveedores verificados ZLC')
+        self.assertContains(response, 'Cómo funciona TradeFlow')
+        self.assertContains(response, 'Centro de ayuda')
+
     def test_marketplace_nav_language_switcher(self):
         response = self.client.get(reverse('catalogo_publico'))
         self.assertContains(response, 'bn-lang-switch')

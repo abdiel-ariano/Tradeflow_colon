@@ -4,9 +4,9 @@
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="card-image-link">
     <div class="card-image">
       {% if product.is_on_promo_now %}
-      <span class="badge-discount">{{ product.discount_pct }}% off</span>
+      <span class="badge-discount">{% blocktrans with pct=product.discount_pct %}{{ pct }}% off{% endblocktrans %}</span>
       {% elif product.is_bestseller %}
-      <span class="card-badge-hot">Best seller</span>
+      <span class="card-badge-hot">{% trans "Best seller" %}</span>
       {% endif %}
 
       {% if visual_image %}
@@ -45,7 +45,7 @@
       <span class="price-main">{{ product.display_price|money_usd }}</span>
       {% if product.is_on_promo_now %}
       <span class="price-original">{{ product.unit_price|money_usd }}</span>
-      <span class="price-discount">{{ product.discount_pct }}% off</span>
+      <span class="price-discount">{% blocktrans with pct=product.discount_pct %}{{ pct }}% off{% endblocktrans %}</span>
       {% endif %}
     </div>
 
