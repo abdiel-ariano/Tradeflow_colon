@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 22:23-0500\n"
+"POT-Creation-Date: 2026-07-11 23:04-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: core/auth_views.py:152 core/auth_views.py:155
+#: core/auth_views.py:155 core/views.py:647 core/views.py:3932
+#, python-format
+msgid "We sent a 6-digit code to %(email)s. Check your inbox and spam folder."
+msgstr "Enviamos un código de 6 dígitos a %(email)s. Revisa tu bandeja y spam."
+
+#: core/auth_views.py:168 core/auth_views.py:171
 msgid "Enter a 6-digit code."
 msgstr "Ingresa un código de 6 dígitos."
 
-#: core/auth_views.py:214
+#: core/auth_views.py:230
 msgid "Email verified! You can continue now."
 msgstr "¡Correo verificado! Ya puedes continuar."
 
@@ -54,14 +59,15 @@ msgid "Connection error"
 msgstr "Error de conexión"
 
 #: core/context_processors.py:77 core/context_processors.py:81
+#: core/context_processors.py:131
 msgid "Orders"
 msgstr "Órdenes"
 
-#: core/context_processors.py:78
+#: core/context_processors.py:78 core/context_processors.py:128
 msgid "Products"
 msgstr "Productos"
 
-#: core/context_processors.py:79
+#: core/context_processors.py:79 core/context_processors.py:130
 msgid "Companies"
 msgstr "Empresas"
 
@@ -125,7 +131,7 @@ msgstr "Ubicación confirmada."
 msgid "Getting location…"
 msgstr "Obteniendo ubicación…"
 
-#: core/context_processors.py:95 templates/core/checkout.html:50
+#: core/context_processors.py:95 templates/core/checkout.html:74
 msgid "You must confirm your location to continue."
 msgstr "Debes confirmar tu ubicación para continuar."
 
@@ -234,6 +240,64 @@ msgstr "No se pudo agregar al carrito de consultas"
 msgid "Connection error — try again"
 msgstr "Error de conexión — inténtalo de nuevo"
 
+#: core/context_processors.py:121
+msgid "Adding…"
+msgstr "Agregando…"
+
+#: core/context_processors.py:122
+msgid "No suggestions — press Enter to search."
+msgstr ""
+
+#: core/context_processors.py:123
+msgid "Start typing to see AI recommendations."
+msgstr ""
+
+#: core/context_processors.py:124
+msgid "Suggestions unavailable — press Enter to search."
+msgstr ""
+
+#: core/context_processors.py:125
+#, fuzzy
+#| msgid "Too many requests — wait a moment and try again."
+msgid "Too many searches — wait a moment and try again."
+msgstr "Demasiadas solicitudes — espera un momento e inténtalo de nuevo."
+
+#: core/context_processors.py:126
+msgid "Ask AI"
+msgstr ""
+
+#: core/context_processors.py:127
+msgid "Ask AI about this search"
+msgstr "Preguntar a la IA sobre esta búsqueda"
+
+#: core/context_processors.py:129 templates/core/catalogo_publico.html:48
+#: templates/core/includes/catalogo_ali_category_sidebar.html:3
+#: templates/core/includes/home_bento_hero.html:6
+#: templates/core/includes/home_gateway_hero.html:103
+#: templates/core/marketplace_verified_suppliers.html:24
+msgid "Categories"
+msgstr "Categorías"
+
+#: core/context_processors.py:132
+#, fuzzy
+#| msgid "Notes"
+msgid "Quotes"
+msgstr "Notas"
+
+#: core/context_processors.py:133
+msgid "Customers"
+msgstr ""
+
+#: core/context_processors.py:134
+#, fuzzy
+#| msgid "Quick filters"
+msgid "Quick actions"
+msgstr "Filtros rápidos"
+
+#: core/context_processors.py:135
+msgid "Suggestions"
+msgstr ""
+
 #: core/decorators.py:69 core/decorators.py:105
 #, fuzzy
 #| msgid "You must confirm your location to continue."
@@ -268,9 +332,9 @@ msgstr ""
 msgid "Personal purchase"
 msgstr ""
 
-#: core/models.py:225 core/models.py:226
+#: core/models.py:225 core/models.py:226 templates/core/carrito.html:147
 msgid "View products"
-msgstr ""
+msgstr "Ver productos"
 
 #: core/models.py:227
 msgid "By category"
@@ -425,6 +489,30 @@ msgstr ""
 msgid "On the way"
 msgstr ""
 
+#: core/utils/email_config.py:18
+msgid ""
+"RESEND_API_KEY is not configured. Create one at resend.com/api-keys and "
+"verify your sender domain in Resend → Domains."
+msgstr ""
+
+#: core/utils/email_config.py:23
+msgid ""
+"Resend is in test mode or the sender domain is not verified. Verify your "
+"domain in Resend → Domains and set DEFAULT_FROM_EMAIL accordingly."
+msgstr ""
+
+#: core/utils/email_config.py:28
+msgid ""
+"Resend rejected the send (403). Check that DEFAULT_FROM_EMAIL uses a "
+"verified domain and that RESEND_API_KEY is valid."
+msgstr ""
+
+#: core/utils/email_config.py:32
+msgid ""
+"We could not send the email. Check RESEND_API_KEY, DEFAULT_FROM_EMAIL, and "
+"logs at resend.com/emails."
+msgstr ""
+
 #: core/utils/order_permissions.py:24
 msgid "This order does not include products from your company."
 msgstr ""
@@ -516,121 +604,112 @@ msgstr ""
 msgid "Last %(n)s days"
 msgstr ""
 
-#: core/views.py:402
+#: core/views.py:403
 msgid "Verify your email to access checkout and orders."
 msgstr "Verifica tu correo para acceder al checkout y a tus pedidos."
 
-#: core/views.py:643
-#, python-format
-msgid "We sent a 6-digit code to %(email)s. Check your inbox and spam folder."
-msgstr "Enviamos un código de 6 dígitos a %(email)s. Revisa tu bandeja y spam."
-
-#: core/views.py:649
-msgid "We could not send the email. Try again in a moment."
-msgstr "No pudimos enviar el correo. Intenta de nuevo en un momento."
-
-#: core/views.py:1944
+#: core/views.py:1945
 msgid "Seller dashboard"
 msgstr ""
 
-#: core/views.py:2010
+#: core/views.py:2011
 msgid "TradeFlow growth"
 msgstr ""
 
-#: core/views.py:2052
+#: core/views.py:2053
 msgid ""
 "Dispatch recorded internally. Enable Corporate Pro for partner webhooks."
 msgstr ""
 
-#: core/views.py:2055
+#: core/views.py:2056
 msgid "Dispatch started. Tracking updated."
 msgstr ""
 
-#: core/views.py:2080
+#: core/views.py:2081
 msgid "Invalid plan."
 msgstr ""
 
-#: core/views.py:2083
+#: core/views.py:2084
 msgid "You already have this plan active."
 msgstr ""
 
-#: core/views.py:2086
+#: core/views.py:2087
 msgid "Select a plan higher than your current one."
 msgstr ""
 
-#: core/views.py:2094
+#: core/views.py:2095
 msgid "Could not start checkout."
 msgstr ""
 
-#: core/views.py:2099
+#: core/views.py:2100
 msgid "Plan payment"
 msgstr ""
 
-#: core/views.py:2115
+#: core/views.py:2116
 msgid "You have no pending payments."
 msgstr ""
 
-#: core/views.py:2132
+#: core/views.py:2133
 msgid "Invalid payment session. Choose your plan again."
 msgstr ""
 
-#: core/views.py:2144
+#: core/views.py:2145
 msgid "Payment could not be completed."
 msgstr ""
 
-#: core/views.py:2149
+#: core/views.py:2150
 #, python-format
 msgid "Payment confirmed. Plan %(name)s is active on your account."
 msgstr ""
 
-#: core/views.py:2181 core/views.py:2193
+#: core/views.py:2182 core/views.py:2194
 msgid "Predictive insights"
 msgstr ""
 
-#: core/views.py:2219
+#: core/views.py:2220
 #, python-format
 msgid "Imagen rechazada: %(detalle)s"
 msgstr ""
 
-#: core/views.py:2544
+#: core/views.py:2545
 msgid ""
 "You have reached your plan's monthly limit. Upgrade your plan before "
 "publishing new products."
 msgstr ""
 
-#: core/views.py:2645
+#: core/views.py:2646
 msgid "active"
 msgstr ""
 
-#: core/views.py:2645
+#: core/views.py:2646
 msgid "inactive"
 msgstr ""
 
-#: core/views.py:2656 core/views.py:2663
+#: core/views.py:2657 core/views.py:2664
 #, python-format
 msgid "Product \"%(name)s\" is now %(estado)s."
 msgstr ""
 
-#: core/views.py:2897
+#: core/views.py:2898
 msgid "Use the dispatch button in the logistics section."
 msgstr ""
 
-#: core/views.py:2910
+#: core/views.py:2911
 #, python-format
 msgid ""
 "Monthly plan limit reached (USD %(limit)s). Upgrade your plan to confirm "
 "this sale of USD %(add)s."
 msgstr ""
 
-#: core/views.py:2915
+#: core/views.py:2916
 msgid "Order confirmed. The buyer was notified."
 msgstr ""
 
-#: core/views.py:2923
+#: core/views.py:2924
 msgid "Order rejected. Reserved inventory was released."
 msgstr ""
 
-#: core/views.py:3312
+#: core/views.py:3313
 #, python-format
 msgid ""
 "Explore %(products)s wholesale products from %(companies)s verified Colón "
@@ -640,13 +719,13 @@ msgstr ""
 "verificadas de la Zona Libre de Colón. Catálogo B2B con inventario "
 "transparente en TradeFlow."
 
-#: core/views.py:3341 templates/core/base.html:1254
+#: core/views.py:3342 templates/core/base.html:1254
 #: templates/core/catalogo_producto_detail.html:31
 #: templates/core/includes/marketplace_public_navbar.html:125
 msgid "Catalog"
 msgstr "Catálogo"
 
-#: core/views.py:3409 templates/core/catalogo_producto_detail.html:117
+#: core/views.py:3410 templates/core/catalogo_producto_detail.html:117
 #: templates/core/includes/catalogo_card.html:80
 #: templates/core/includes/product_card_unified.html:23
 #: templates/core/includes/product_card_unified.html:88
@@ -654,140 +733,140 @@ msgstr "Catálogo"
 msgid "Out of stock"
 msgstr "Sin stock"
 
-#: core/views.py:3412
+#: core/views.py:3413
 #, python-format
 msgid "Low stock (%(qty)s units)"
 msgstr "Stock bajo (%(qty)s unidades)"
 
-#: core/views.py:3415
+#: core/views.py:3416
 #, python-format
 msgid "In stock (%(qty)s units)"
 msgstr "En stock (%(qty)s unidades)"
 
-#: core/views.py:3427
+#: core/views.py:3428
 #, python-format
 msgid "%(name)s from %(company)s in the Colón Free Zone — TradeFlow Colón."
 msgstr "%(name)s de %(company)s en la Zona Libre de Colón — TradeFlow Colón."
 
-#: core/views.py:3477
+#: core/views.py:3478
 msgid "Quantity must be at least 1."
 msgstr ""
 
-#: core/views.py:3481
+#: core/views.py:3482
 #, python-format
 msgid "\"%(name)s\" has no stock available."
 msgstr ""
 
-#: core/views.py:3509
+#: core/views.py:3510
 #, python-format
 msgid "\"%(name)s\" added to cart."
 msgstr ""
 
-#: core/views.py:3522
+#: core/views.py:3523
 msgid "Method not allowed."
 msgstr ""
 
-#: core/views.py:3533
+#: core/views.py:3534
 #, python-format
 msgid "\"%(name)s\" added to inquiry cart."
 msgstr ""
 
-#: core/views.py:3593 core/views.py:3672
+#: core/views.py:3594 core/views.py:3673
 #, python-format
 msgid "\"%(name)s\" removed from cart."
 msgstr ""
 
-#: core/views.py:3656
+#: core/views.py:3657
 msgid "Product not found in cart."
 msgstr ""
 
-#: core/views.py:3679
+#: core/views.py:3680
 #, python-format
 msgid "Only %(qty)s units available."
 msgstr ""
 
-#: core/views.py:3695
+#: core/views.py:3696
 msgid "Cart cleared."
 msgstr ""
 
-#: core/views.py:3728
+#: core/views.py:3731
 msgid "Your cart is empty."
 msgstr "Tu carrito está vacío."
 
-#: core/views.py:3743
+#: core/views.py:3746
 msgid "Select a carrier to continue."
 msgstr ""
 
-#: core/views.py:3754
+#: core/views.py:3757
 msgid "Confirm your location with the Use my current location button."
 msgstr ""
 
-#: core/views.py:3759
+#: core/views.py:3762
 msgid "Invalid location coordinates."
 msgstr ""
 
-#: core/views.py:3801
+#: core/views.py:3804
 #, python-format
 msgid "Insufficient stock for \"%(name)s\" — item skipped."
 msgstr "Stock insuficiente para \"%(name)s\" — artículo omitido."
 
-#: core/views.py:3809
+#: core/views.py:3812
 msgid "A product is no longer available and was skipped."
 msgstr "Un producto ya no está disponible y se omitió."
 
-#: core/views.py:3817
+#: core/views.py:3820
 msgid "Could not complete the order. Check product stock."
 msgstr "No se pudo completar el pedido. Verifica el stock de los productos."
 
-#: core/views.py:3850
+#: core/views.py:3853
 #, python-format
 msgid ""
 "Order %(num)s submitted. Awaiting company confirmation (deadline %(fecha)s)."
 msgstr ""
 
-#: core/views.py:3883
+#: core/views.py:3886
 #, python-format
 msgid "Order %(num)s created successfully."
 msgstr ""
 
-#: core/views.py:3910 templates/core/checkout.html:3
-#: templates/core/checkout.html:22
+#: core/views.py:3913 templates/core/checkout.html:3
+#: templates/core/checkout.html:35
 msgid "Confirm order"
 msgstr "Confirmar pedido"
 
-#: core/views.py:4573
+#: core/views.py:4598
 msgid "Name and email are required."
 msgstr ""
 
-#: core/views.py:4575
+#: core/views.py:4600
 msgid "Invalid role."
 msgstr ""
 
-#: core/views.py:4585
+#: core/views.py:4610
 msgid ""
 "You already have an application under review. We will email you when it is "
 "approved."
 msgstr ""
 
-#: core/views.py:4621
+#: core/views.py:4646
 msgid ""
 "Application saved, but email could not be sent. Configure RESEND_API_KEY and "
 "verify sender domain in Resend."
 msgstr ""
 
-#: core/views.py:4628
+#: core/views.py:4653
 msgid "Application submitted. Check your email for confirmation."
 msgstr ""
 
-#: core/views.py:4635
+#: core/views.py:4660
 msgid "Access application"
 msgstr ""
 
-#: core/views.py:4645 core/views_transportistas.py:109
+#: core/views.py:4670 core/views_transportistas.py:109
 msgid "This application has already been reviewed."
 msgstr ""
 
-#: core/views.py:4694
+#: core/views.py:4719
 msgid "Decision recorded and email sent to the applicant."
 msgstr ""
 
@@ -830,8 +909,9 @@ msgid "Carrier assigned successfully."
 msgstr ""
 
 #: core/views_transportistas.py:190
+#: templates/core/seleccionar_transportista.html:3
 msgid "Select carrier"
-msgstr ""
+msgstr "Seleccionar transportista"
 
 #: core/views_transportistas.py:203
 msgid "No linked company."
@@ -1154,6 +1234,8 @@ msgstr "Más proveedores verificados"
 
 #: templates/core/base.html:1134
 #: templates/core/catalogo_producto_detail.html:89
+#: templates/core/includes/buyer/buyer_navbar.html:80
+#: templates/core/includes/buyer/buyer_navbar.html:84
 #: templates/core/includes/marketplace_public_navbar.html:109
 #: templates/core/includes/marketplace_public_navbar.html:113
 msgid "Sign in"
@@ -1161,6 +1243,7 @@ msgstr "Iniciar sesión"
 
 #: templates/core/base.html:1135
 #: templates/core/catalogo_producto_detail.html:88
+#: templates/core/includes/buyer/buyer_navbar.html:86
 #: templates/core/includes/marketplace_public_navbar.html:115
 msgid "Create account"
 msgstr "Crear cuenta"
@@ -1292,118 +1375,117 @@ msgid "Colón Free Zone, Panama"
 msgstr "Zona Libre de Colón"
 
 #: templates/core/carrito.html:3
-msgid "Mi carrito"
-msgstr ""
+msgid "My cart"
+msgstr "Mi carrito"
 
 #: templates/core/carrito.html:13
-msgid "Carrito de compras"
-msgstr ""
+#: templates/core/includes/buyer/buyer_navbar.html:65
+msgid "Shopping cart"
+msgstr "Carrito de compras"
 
 #: templates/core/carrito.html:15
-#, python-format
-msgid "%(counter)s artículo"
-msgid_plural "%(counter)s artículos"
-msgstr[0] ""
-msgstr[1] ""
+#, fuzzy, python-format
+msgid "%(counter)s item"
+msgid_plural "%(counter)s items"
+msgstr[0] "Buscar %(count)s productos de la ZLC…"
+msgstr[1] "Buscar %(count)s productos de la ZLC…"
 
 #: templates/core/carrito.html:22
-msgid "Vaciar carrito"
-msgstr ""
+msgid "Clear cart"
+msgstr "Vaciar carrito"
 
 #: templates/core/carrito.html:28
-msgid "Productos en el carrito"
-msgstr ""
+msgid "Products in cart"
+msgstr "Productos en el carrito"
 
 #: templates/core/carrito.html:44
-#, python-format
-msgid "Vendido por %(seller)s"
-msgstr ""
+msgid "Sold by %(seller)s"
+msgstr "Vendido por %(seller)s"
 
 #: templates/core/carrito.html:46
-msgid "c/u"
-msgstr ""
+msgid "each"
+msgstr "c/u"
 
 #: templates/core/carrito.html:52
-msgid "Disminuir cantidad"
-msgstr ""
+msgid "Decrease quantity"
+msgstr "Disminuir cantidad"
 
 #: templates/core/carrito.html:55
-msgid "Cantidad"
+msgid "Quantity"
 msgstr ""
 
 #: templates/core/carrito.html:57
-msgid "Aumentar cantidad"
-msgstr ""
+msgid "Increase quantity"
+msgstr "Aumentar cantidad"
 
 #: templates/core/carrito.html:65
-msgid "Eliminar producto"
-msgstr ""
+msgid "Remove product"
+msgstr "Eliminar producto"
 
 #: templates/core/carrito.html:67
-msgid "Eliminar"
-msgstr ""
+msgid "Remove"
+msgstr "Eliminar"
 
 #: templates/core/carrito.html:82
-msgid "Resumen del pedido"
-msgstr ""
+msgid "Order summary"
+msgstr "Resumen del pedido"
 
-#: templates/core/carrito.html:84 templates/core/checkout.html:76
+#: templates/core/carrito.html:84 templates/core/checkout.html:100
+#: templates/core/detalle_mi_orden.html:111
 msgid "Subtotal"
 msgstr "Subtotal"
 
-#: templates/core/carrito.html:88
-msgid "Envío"
-msgstr ""
+#: templates/core/carrito.html:88 templates/core/detalle_mi_orden.html:112
+#, fuzzy
+#| msgid "Shipped"
+msgid "Shipping"
+msgstr "Enviado"
 
 #: templates/core/carrito.html:89
-msgid "Gratis"
-msgstr ""
+msgid "Free"
+msgstr "Gratis"
 
 #: templates/core/carrito.html:92
 #, python-format
-msgid "Impuestos (16%% IVA)"
+msgid "Tax (16%% VAT)"
 msgstr ""
 
-#: templates/core/carrito.html:97
+#: templates/core/carrito.html:97 templates/core/detalle_mi_orden.html:113
 msgid "Total"
 msgstr ""
 
 #: templates/core/carrito.html:104
-msgid "Finalizar compra"
-msgstr ""
+msgid "Proceed to checkout"
+msgstr "Finalizar compra"
 
 #: templates/core/carrito.html:109
-msgid "Inicia sesión para pagar"
-msgstr ""
+msgid "Log in to checkout"
+msgstr "Inicia sesión para pagar"
 
-#: templates/core/carrito.html:114
-msgid "Seguir comprando"
-msgstr ""
+#: templates/core/carrito.html:114 templates/core/detalle_mi_orden.html:142
+msgid "Continue shopping"
+msgstr "Seguir comprando"
 
 #: templates/core/carrito.html:119
-msgid "Métodos de pago"
-msgstr ""
+msgid "Payment methods"
+msgstr "Métodos de pago"
 
 #: templates/core/carrito.html:130
 #, python-format
-msgid "Pago 100%% seguro y encriptado"
+msgid "100%% secure encrypted payment"
 msgstr ""
 
 #: templates/core/carrito.html:134
-msgid "30 días para devoluciones"
-msgstr ""
+msgid "30-day returns"
+msgstr "30 días para devoluciones"
 
 #: templates/core/carrito.html:143
-msgid "Tu carrito está vacío"
-msgstr ""
+msgid "Your cart is empty"
+msgstr "Tu carrito está vacío"
 
 #: templates/core/carrito.html:144
-msgid "Explora el catálogo y agrega productos para comenzar."
-msgstr ""
-
-#: templates/core/carrito.html:147
-msgid "Ver productos"
-msgstr ""
+msgid "Browse the catalog and add products to get started."
+msgstr "Explora el catálogo y agrega productos para comenzar."
 
 #: templates/core/catalogo_producto_detail.html:24
 msgid "Breadcrumb"
@@ -1527,14 +1609,6 @@ msgstr "Zona Libre de Colón · Mayorista B2B"
 msgid "Colón Free Zone Catalog"
 msgstr "Zona Libre de Colón"
 
-#: templates/core/catalogo_publico.html:48
-#: templates/core/includes/catalogo_ali_category_sidebar.html:3
-#: templates/core/includes/home_bento_hero.html:6
-#: templates/core/includes/home_gateway_hero.html:103
-#: templates/core/marketplace_verified_suppliers.html:24
-msgid "Categories"
-msgstr "Categorías"
-
 #: templates/core/catalogo_publico.html:62
 msgid "Refine results"
 msgstr "Refinar resultados"
@@ -1544,6 +1618,7 @@ msgid "Quick filters"
 msgstr "Filtros rápidos"
 
 #: templates/core/catalogo_publico.html:85
+#: templates/core/includes/buyer/buyer_navbar.html:99
 #: templates/core/includes/marketplace_public_navbar.html:123
 msgid "All categories"
 msgstr "Todas las categorías"
@@ -1598,55 +1673,219 @@ msgstr "Navegación por categorías"
 msgid "Close categories"
 msgstr "Cerrar categorías"
 
-#: templates/core/checkout.html:29
+#: templates/core/checkout.html:41 templates/core/verificar_codigo.html:63
+msgid "Your cart is saved while you verify"
+msgstr "Tu carrito se guarda mientras verificas"
+
+#: templates/core/checkout.html:53
 msgid "Who transports your cargo?"
 msgstr "¿Quién transporta tu carga?"
 
-#: templates/core/checkout.html:40
+#: templates/core/checkout.html:64
 msgid "No active carriers."
 msgstr "No hay transportistas activos."
 
-#: templates/core/checkout.html:45
+#: templates/core/checkout.html:69
 msgid "Delivery location"
 msgstr "Ubicación de entrega"
 
-#: templates/core/checkout.html:48
+#: templates/core/checkout.html:72
+#: templates/core/seleccionar_transportista.html:48
 msgid "Use my current location"
 msgstr "Usar mi ubicación actual"
 
-#: templates/core/checkout.html:54
+#: templates/core/checkout.html:78
 msgid "Notes"
 msgstr "Notas"
 
-#: templates/core/checkout.html:55
+#: templates/core/checkout.html:79
 msgid "Delivery instructions…"
 msgstr "Instrucciones de entrega…"
 
-#: templates/core/checkout.html:58
+#: templates/core/checkout.html:82
 msgid ""
 "The company will confirm your order before charging (typical 48 h window)."
 msgstr ""
 "La empresa confirmará tu pedido antes de cobrar (ventana típica de 48 h)."
 
-#: templates/core/checkout.html:62
+#: templates/core/checkout.html:86
 msgid "Submit order"
 msgstr "Enviar pedido"
 
-#: templates/core/checkout.html:68
+#: templates/core/checkout.html:92
 msgid "Summary"
 msgstr "Resumen"
+
+#: templates/core/detalle_mi_orden.html:12
+#: templates/core/seleccionar_transportista.html:28
+#, fuzzy, python-format
+msgid "Order %(num)s"
+msgstr "Pedido %(num)s"
+
+#: templates/core/detalle_mi_orden.html:68 templates/core/mis_ordenes.html:3
+#: templates/core/mis_ordenes.html:33
+msgid "My orders"
+msgstr "Mis pedidos"
+
+#: templates/core/detalle_mi_orden.html:74
+#, python-format
+msgid "Placed on %(date)s"
+msgstr "Realizado el %(date)s"
+
+#: templates/core/detalle_mi_orden.html:80
+#, fuzzy, python-format
+msgid "Products (%(counter)s)"
+msgstr "Productos (%(counter)s)"
+
+#: templates/core/detalle_mi_orden.html:87
+#, python-format
+msgid "%(qty)s units × USD %(price)s"
+msgstr "%(qty)s unidades × USD %(price)s"
+
+#: templates/core/detalle_mi_orden.html:96
+#, fuzzy
+#| msgid "Orders"
+msgid "Order notes"
+msgstr "Notas del pedido"
+
+#: templates/core/detalle_mi_orden.html:105
+#: templates/core/detalle_mi_orden.html:120
+msgid "Status"
+msgstr ""
+
+#: templates/core/detalle_mi_orden.html:110
+msgid "Payment summary"
+msgstr "Resumen de pago"
+
+#: templates/core/detalle_mi_orden.html:118
+#, fuzzy
+#| msgid "Product information"
+msgid "Payment information"
+msgstr "Información de pago"
+
+#: templates/core/detalle_mi_orden.html:119
+msgid "Method"
+msgstr ""
+
+#: templates/core/detalle_mi_orden.html:122
+#, fuzzy
+#| msgid "Paid"
+msgid "Paid on"
+msgstr "Pagado"
+
+#: templates/core/detalle_mi_orden.html:125
+msgid "Reference"
+msgstr ""
+
+#: templates/core/detalle_mi_orden.html:132
+msgid "Download invoice PDF"
+msgstr "Descargar factura PDF"
+
+#: templates/core/detalle_mi_orden.html:137
+msgid "Packing list PDF"
+msgstr "Lista de empaque PDF"
 
 #: templates/core/home.html:5
 msgid "TradeFlow Colón — Wholesale Marketplace"
 msgstr "TradeFlow Colón — Marketplace mayorista"
+
+#: templates/core/includes/buyer/buyer_navbar.html:16
+msgid "Search products, companies or categories…"
+msgstr "Buscar productos, empresas o categorías…"
+
+#: templates/core/includes/buyer/buyer_navbar.html:20
+#: templates/core/includes/marketplace_public_navbar.html:32
+msgid "Open menu"
+msgstr "Abrir menú"
+
+#: templates/core/includes/buyer/buyer_navbar.html:27
+#: templates/core/includes/marketplace_public_navbar.html:39
+msgid "Delivery region"
+msgstr "Entregado"
+
+#: templates/core/includes/buyer/buyer_navbar.html:27
+#: templates/core/includes/marketplace_public_navbar.html:39
+msgid "Deliver to Panama"
+msgstr "Entregar en Panamá"
+
+#: templates/core/includes/buyer/buyer_navbar.html:30
+#: templates/core/includes/marketplace_public_navbar.html:42
+msgid "Deliver to:"
+msgstr "Entregar en:"
+
+#: templates/core/includes/buyer/buyer_navbar.html:35
+#: templates/core/includes/marketplace_public_navbar.html:47
+msgid "Language and currency"
+msgstr "Idioma y moneda"
+
+#: templates/core/includes/buyer/buyer_navbar.html:39
+#: templates/core/includes/marketplace_public_navbar.html:51
+#: templates/core/includes/public_navbar.html:31
+msgid "Language"
+msgstr "Idioma"
+
+#: templates/core/includes/buyer/buyer_navbar.html:58
+#, fuzzy
+#| msgid "Auto quote"
+msgid "My quotes"
+msgstr "Mis cotizaciones"
+
+#: templates/core/includes/buyer/buyer_navbar.html:74
+#: templates/core/includes/marketplace_public_navbar.html:104
+msgid "My account"
+msgstr "Mi cuenta"
+
+#: templates/core/includes/buyer/buyer_navbar.html:78
+msgid "Sign out"
+msgstr "Salir"
+
+#: templates/core/includes/buyer/buyer_navbar.html:91
+#, fuzzy
+#| msgid "Marketplace stats"
+msgid "Marketplace navigation"
+msgstr "Accesos del marketplace"
+
+#: templates/core/includes/buyer/buyer_navbar.html:103
+#, fuzzy
+#| msgid "CFZ Verified manufacturers"
+msgid "Verified manufacturers"
+msgstr "Fabricantes verificados"
+
+#: templates/core/includes/buyer/buyer_navbar.html:104
+#: templates/core/includes/marketplace_public_navbar.html:126
+msgid "Deals"
+msgstr "Ofertas"
+
+#: templates/core/includes/buyer/buyer_navbar.html:105
+#: templates/core/includes/marketplace_public_navbar.html:128
+msgid "Order protection"
+msgstr "Protección del pedido"
+
+#: templates/core/includes/buyer/buyer_navbar.html:106
+#, fuzzy
+#| msgid "About TradeFlow"
+msgid "About TradeFlow Colón"
+msgstr "Acerca de TradeFlow Colón"
+
+#: templates/core/includes/buyer/buyer_navbar.html:109
+#: templates/core/includes/marketplace_public_navbar.html:132
+msgid "Help center"
+msgstr "Centro de ayuda"
+
+#: templates/core/includes/buyer/buyer_navbar.html:110
+#, fuzzy
+#| msgid "Sell on TradeFlow"
+msgid "Sell on TradeFlow Colón"
+msgstr "Vende en TradeFlow Colón"
 
 #: templates/core/includes/catalogo_ali_category_sidebar.html:5
 msgid "Catalog categories"
 msgstr "Categorías del catálogo"
 
 #: templates/core/includes/catalogo_ali_category_sidebar.html:9
+#: templates/core/mis_ordenes.html:35
 msgid "All"
-msgstr "Todas"
+msgstr "Todos"
 
 #: templates/core/includes/catalogo_card.html:8
 #: templates/core/includes/catalogo_card.html:49
@@ -1804,8 +2043,9 @@ msgstr "Página siguiente"
 
 #: templates/core/includes/catalogo_publico_results.html:44
 #: templates/core/includes/catalogo_publico_results.html:46
+#: templates/core/mis_ordenes.html:62
 msgid "Next"
-msgstr "Sig."
+msgstr "Siguiente"
 
 #: templates/core/includes/catalogo_publico_results.html:54
 #, python-format
@@ -2172,31 +2412,6 @@ msgstr "Buscar %(count)s productos de la ZLC…"
 msgid "Search"
 msgstr "Búsqueda:"
 
-#: templates/core/includes/marketplace_public_navbar.html:32
-msgid "Open menu"
-msgstr "Abrir menú"
-
-#: templates/core/includes/marketplace_public_navbar.html:39
-msgid "Delivery region"
-msgstr "Entregado"
-
-#: templates/core/includes/marketplace_public_navbar.html:39
-msgid "Deliver to Panama"
-msgstr "Entregar en Panamá"
-
-#: templates/core/includes/marketplace_public_navbar.html:42
-msgid "Deliver to:"
-msgstr "Entregar en:"
-
-#: templates/core/includes/marketplace_public_navbar.html:47
-msgid "Language and currency"
-msgstr "Idioma y moneda"
-
-#: templates/core/includes/marketplace_public_navbar.html:51
-#: templates/core/includes/public_navbar.html:30
-msgid "Language"
-msgstr "Idioma"
-
 #: templates/core/includes/marketplace_public_navbar.html:70
 #: templates/core/includes/marketplace_public_navbar.html:82
 msgid "Messages"
@@ -2211,25 +2426,9 @@ msgstr "Pedidos, pagos y disputas"
 msgid "Inquiry cart"
 msgstr "Agregado al carrito de consultas"
 
-#: templates/core/includes/marketplace_public_navbar.html:104
-msgid "My account"
-msgstr "Mi cuenta"
-
 #: templates/core/includes/marketplace_public_navbar.html:120
 msgid "Marketplace shortcuts"
 msgstr "Accesos del marketplace"
-
-#: templates/core/includes/marketplace_public_navbar.html:126
-msgid "Deals"
-msgstr "Ofertas"
-
-#: templates/core/includes/marketplace_public_navbar.html:128
-msgid "Order protection"
-msgstr "Protección de pedidos"
-
-#: templates/core/includes/marketplace_public_navbar.html:132
-msgid "Help center"
-msgstr "Centro de ayuda"
 
 #: templates/core/includes/marketplace_supplier_card.html:5
 #, python-format
@@ -2299,6 +2498,44 @@ msgstr "Ver detalles →"
 #: templates/core/includes/product_image_placeholder.html:28
 msgid "Reference image"
 msgstr ""
+
+#: templates/core/includes/public_navbar.html:15
+msgid "Search products, companies, categories…"
+msgstr ""
+
+#: templates/core/includes/verify_email_panel.html:11
+#: templates/core/verificar_codigo.html:3
+msgid "Verify your email"
+msgstr "Verifica tu correo"
+
+#: templates/core/includes/verify_email_panel.html:14
+msgid "One quick step before checkout"
+msgstr "Un paso rápido antes de pagar"
+
+#: templates/core/includes/verify_email_panel.html:18
+#, python-format
+msgid ""
+"We sent a 6-digit code to <strong>%(email)s</strong>. Enter it below to "
+"continue."
+msgstr ""
+"Enviamos un código de 6 dígitos a <strong>%(email)s</strong>. Ingrésalo "
+"abajo para continuar."
+
+#: templates/core/includes/verify_email_panel.html:39
+msgid "6-digit code"
+msgstr "Código de 6 dígitos"
+
+#: templates/core/includes/verify_email_panel.html:43
+msgid "Verify and continue to checkout"
+msgstr "Verificar y continuar al checkout"
+
+#: templates/core/includes/verify_email_panel.html:45
+msgid "Verify and continue"
+msgstr "Verificar y continuar"
+
+#: templates/core/includes/verify_email_panel.html:52
+msgid "Resend code"
+msgstr "Reenviar código"
 
 #: templates/core/legal_base.html:10 templates/core/legal_base.html:11
 msgid "On this page"
@@ -3511,40 +3748,62 @@ msgstr "Pronto habrá más proveedores verificados."
 msgid "Browse the full catalog"
 msgstr "Explora el catálogo"
 
-#: templates/core/verificar_codigo.html:3
-#: templates/core/verificar_codigo.html:120
-msgid "Verify your email"
-msgstr "Verifica tu correo"
-
-#: templates/core/verificar_codigo.html:123
-msgid "One quick step before checkout"
-msgstr "Un paso rápido antes de pagar"
-
-#: templates/core/verificar_codigo.html:127
+#: templates/core/mis_ordenes.html:49
 #, python-format
-msgid ""
-"We sent a 6-digit code to <strong>%(email)s</strong>. Enter it below to "
-"continue."
+msgid "%(extra)s more item"
+msgid_plural "%(extra)s more items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/core/mis_ordenes.html:53
+#, fuzzy
+#| msgid "View details →"
+msgid "View details"
+msgstr "Ver detalles"
+
+#: templates/core/mis_ordenes.html:59
+#, fuzzy
+#| msgid "Previous page"
+msgid "Previous"
+msgstr "Anterior"
+
+#: templates/core/mis_ordenes.html:68
+msgid "You have no orders yet"
+msgstr "Aún no tienes pedidos"
+
+#: templates/core/mis_ordenes.html:69
+msgid "Browse the catalog and place your first order."
+msgstr "Explora el catálogo y realiza tu primer pedido."
+
+#: templates/core/mis_ordenes.html:70
+msgid "Go to catalog"
+msgstr "Ir al catálogo"
+
+#: templates/core/seleccionar_transportista.html:27
+msgid "Choose your carrier"
+msgstr "Elige tu transportista"
+
+#: templates/core/seleccionar_transportista.html:35
+msgid "1. Carrier"
+msgstr "1. Transportista"
+
+#: templates/core/seleccionar_transportista.html:44
+msgid "No carriers available."
 msgstr ""
-"Enviamos un código de 6 dígitos a <strong>%(email)s</strong>. Ingrésalo "
-"abajo para continuar."
 
-#: templates/core/verificar_codigo.html:158
-msgid "6-digit code"
-msgstr "Código de 6 dígitos"
+#: templates/core/seleccionar_transportista.html:47
+msgid "2. Pickup location"
+msgstr "2. Ubicación de recogida"
 
-#: templates/core/verificar_codigo.html:162
-msgid "Verify and continue to checkout"
-msgstr "Verificar y continuar al checkout"
+#: templates/core/seleccionar_transportista.html:52
+msgid "Notes (optional)"
+msgstr "Notas (opcional)"
 
-#: templates/core/verificar_codigo.html:164
-msgid "Verify and continue"
-msgstr "Verificar y continuar"
+#: templates/core/seleccionar_transportista.html:55
+#, fuzzy
+#| msgid "Confirm order"
+msgid "Confirm carrier"
+msgstr "Confirmar transportista"
 
-#: templates/core/verificar_codigo.html:171
-msgid "Resend code"
-msgstr "Reenviar código"
-
-#: templates/core/verificar_codigo.html:179
-msgid "Your cart is saved while you verify"
-msgstr "Tu carrito se guarda mientras verificas"
+#~ msgid "We could not send the email. Try again in a moment."
+#~ msgstr "No pudimos enviar el correo. Intenta de nuevo en un momento."

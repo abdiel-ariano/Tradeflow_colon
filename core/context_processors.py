@@ -118,6 +118,21 @@ def tf_i18n(request):
             'catalogAddedToCart': _('Added to inquiry cart'),
             'catalogCartError': _('Could not add to inquiry cart'),
             'catalogNetworkError': _('Connection error — try again'),
+            'cartAdding': _('Adding…'),
+            'aiSearchEmpty': _('No suggestions — press Enter to search.'),
+            'aiSearchStart': _('Start typing to see AI recommendations.'),
+            'aiSearchUnavailable': _('Suggestions unavailable — press Enter to search.'),
+            'aiSearchRateLimit': _('Too many searches — wait a moment and try again.'),
+            'aiSearchAsk': _('Ask AI'),
+            'aiSearchAskAbout': _('Ask AI about this search'),
+            'aiSearchProducts': _('Products'),
+            'aiSearchCategories': _('Categories'),
+            'aiSearchCompanies': _('Companies'),
+            'aiSearchOrders': _('Orders'),
+            'aiSearchQuotes': _('Quotes'),
+            'aiSearchCustomers': _('Customers'),
+            'aiSearchActions': _('Quick actions'),
+            'aiSearchSuggestions': _('Suggestions'),
         }
     return {'tf_i18n': payload}
 

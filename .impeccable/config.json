@@ -13,7 +13,13 @@
       "static/css/home-alibaba.css",
       "templates/core/base.html",
       "templates/core/checkout.html",
-      "templates/core/verificar_codigo.html"
+      "templates/core/verificar_codigo.html",
+      "templates/core/carrito.html",
+      "templates/core/mis_ordenes.html",
+      "templates/core/detalle_mi_orden.html",
+      "templates/core/seleccionar_transportista.html",
+      "templates/core/includes/buyer/buyer_navbar.html",
+      "templates/core/includes/public_navbar.html"
     ],
     "ignoreValues": []
   }

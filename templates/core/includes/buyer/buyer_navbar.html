@@ -1,18 +1,11 @@
-{% load static %}
+{% load static i18n tf_catalog %}
+{% get_current_language as CURRENT_LANG %}
 {% comment %}
-================================================================================
-BuyerNavbar — navbar comprador estilo Alibaba (2 filas, fondo claro).
-
-Fila 1: logo TradeFlow Colón + búsqueda central + utilidades (PA, idioma, carrito).
-Fila 2: mega menú categorías + enlaces CFZ | ayuda + vender en TF Colón.
-
-Incluye: category_mega_menu.html (categorías reales, sin emojis).
-================================================================================
+Buyer navbar — Alibaba-style two-row shell with AI search and language switcher.
 {% endcomment %}
 {% with is_auth=request.user.is_authenticated %}
 <header class="cat-nav bn-shell tf-nav-alibaba" id="bn-buyer-shell">
 
-  {# ── Fila 1: marca + búsqueda + cuenta ── #}
   <div class="navbar-primary">
     <a class="navbar-logo" href="{% url 'home' %}" aria-label="TradeFlow Colón">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="sm" class="navbar-logo__img" eager=1 %}
@@ -20,40 +13,56 @@ Incluye: category_mega_menu.html (categorías reales, sin emojis).
     </a>
 
     <div class="search-container bn-search-wrap">
-      {% include "core/includes/tf_header_search.html" with search_action="catalogo_publico" input_id="bn-search-input" form_id="bn-nav-search" value=request.GET.buscar placeholder="Buscar productos, empresas o categorías…" ai_scope="buyer" %}
+      {% trans "Search products, companies or categories…" as search_placeholder %}
+      {% include "core/includes/tf_header_search.html" with search_action="catalogo_publico" input_id="bn-search-input" form_id="bn-nav-search" value=request.GET.buscar placeholder=search_placeholder ai_scope="buyer" %}
     </div>
 
-    <button type="button" class="btn-hamburger bn-mobile-toggle" id="bn-mobile-toggle" aria-label="Abrir menú" aria-expanded="false">
+    <button type="button" class="btn-hamburger bn-mobile-toggle" id="bn-mobile-toggle" aria-label="{% trans 'Open menu' %}" aria-expanded="false">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path d="M4 6h16M4 12h16M4 18h16"/>
       </svg>
     </button>
 
     <div class="navbar-actions bn-actions">
-      <button type="button" class="bn-utility" title="Región de entrega" aria-label="Entregar en Panamá">
+      <button type="button" class="bn-utility" title="{% trans 'Delivery region' %}" aria-label="{% trans 'Deliver to Panama' %}">
         <span class="bn-utility__flag" aria-hidden="true">🇵🇦</span>
         <span class="bn-utility__stack">
-          <span class="bn-utility__label">Entregar en:</span>
+          <span class="bn-utility__label">{% trans "Deliver to:" %}</span>
           <span class="bn-utility__value">PA</span>
         </span>
       </button>
 
-      <button type="button" class="bn-utility bn-utility--lang" title="Idioma y moneda" aria-label="Idioma Español">
+      <div class="bn-utility bn-utility--lang" title="{% trans 'Language and currency' %}" aria-label="{% trans 'Language and currency' %}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
         </svg>
-        <span class="bn-utility__value">Español · USD</span>
-      </button>
+        <div class="bn-lang-switch" role="group" aria-label="{% trans 'Language' %}">
+          <form action="{% url 'set_language' %}" method="post" class="bn-lang-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% tf_language_next 'es' %}">
+            <input type="hidden" name="language" value="es">
+            <button type="submit" class="bn-lang-link{% if CURRENT_LANG == 'es' %} is-active{% endif %}" lang="es">ES</button>
+          </form>
+          <span class="bn-lang-sep" aria-hidden="true">|</span>
+          <form action="{% url 'set_language' %}" method="post" class="bn-lang-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% tf_language_next 'en' %}">
+            <input type="hidden" name="language" value="en">
+            <button type="submit" class="bn-lang-link{% if CURRENT_LANG == 'en' %} is-active{% endif %}" lang="en">EN</button>
+          </form>
+        </div>
+        <span class="bn-utility__value">USD</span>
+      </div>
 
       {% if is_auth %}
-      <a href="{% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="Mis cotizaciones" aria-label="Mis cotizaciones">
+      <a href="{% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="{% trans 'My quotes' %}" aria-label="{% trans 'My quotes' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
         </svg>
       </a>
       {% endif %}
 
-      <a href="{% url 'ver_carrito' %}" class="cart-btn" aria-label="Carrito de consultas">
+      <a href="{% url 'ver_carrito' %}" class="cart-btn" aria-label="{% trans 'Shopping cart' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
@@ -62,25 +71,24 @@ Incluye: category_mega_menu.html (categorías reales, sin emojis).
       </a>
 
       {% if is_auth %}
-      <a href="{% url 'mi_perfil' %}" class="bn-utility bn-utility--account" title="Mi cuenta">
+      <a href="{% url 'mi_perfil' %}" class="bn-utility bn-utility--account" title="{% trans 'My account' %}">
         <span class="bn-user-avatar" id="bn-user-avatar" aria-hidden="true"></span>
         <span class="bn-user-name">{{ request.user.get_full_name|default:request.user.username|truncatechars:14 }}</span>
       </a>
-      <a href="{% url 'logout' %}" class="link-signin bn-signout">Salir</a>
+      <a href="{% url 'logout' %}" class="link-signin bn-signout">{% trans "Sign out" %}</a>
       {% else %}
-      <a href="{% url 'login' %}" class="bn-utility bn-utility--signin" title="Sign in">
+      <a href="{% url 'login' %}" class="bn-utility bn-utility--signin" title="{% trans 'Sign in' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
         </svg>
-        <span class="bn-utility__signin-label">Sign in</span>
+        <span class="bn-utility__signin-label">{% trans "Sign in" %}</span>
       </a>
-      <a href="{% url 'signup_buyer' %}" class="btn-create-account bn-create-account">Create account</a>
+      <a href="{% url 'signup_buyer' %}" class="btn-create-account bn-create-account">{% trans "Create account" %}</a>
       {% endif %}
     </div>
   </div>
 
-  {# ── Fila 2: categorías + enlaces secundarios ── #}
-  <nav class="navbar-secondary bn-l2" id="bn-l2" aria-label="Accesos del marketplace">
+  <nav class="navbar-secondary bn-l2" id="bn-l2" aria-label="{% trans 'Marketplace navigation' %}">
     <div class="nav-secondary-inner">
       <div class="nav-secondary-left">
         <div class="bn-cat-trigger-wrap">
@@ -88,18 +96,18 @@ Incluye: category_mega_menu.html (categorías reales, sin emojis).
             <svg class="bn-cat-trigger__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
-            Todas las categorías
+            {% trans "All categories" %}
           </button>
           {% include "core/includes/buyer/category_mega_menu.html" %}
         </div>
-        <a href="{% url 'catalogo_publico' %}?verificado=1">Fabricantes verificados</a>
-        <a href="{% url 'catalogo_publico' %}?orden=promo">Ofertas</a>
-        <a href="{% url 'acerca_tradeflow' %}">Protección del pedido</a>
-        <a href="{% url 'acerca_tradeflow' %}">Acerca de TradeFlow Colón</a>
+        <a href="{% url 'catalogo_publico' %}?verificado=1">{% trans "Verified manufacturers" %}</a>
+        <a href="{% url 'catalogo_publico' %}?orden=promo">{% trans "Deals" %}</a>
+        <a href="{% url 'acerca_tradeflow' %}">{% trans "Order protection" %}</a>
+        <a href="{% url 'acerca_tradeflow' %}">{% trans "About TradeFlow Colón" %}</a>
       </div>
       <div class="nav-secondary-right">
-        <a href="{% url 'acerca_tradeflow' %}">Centro de ayuda</a>
-        <a href="{% url 'signup_seller' %}">Vende en TradeFlow Colón</a>
+        <a href="{% url 'acerca_tradeflow' %}">{% trans "Help center" %}</a>
+        <a href="{% url 'signup_seller' %}">{% trans "Sell on TradeFlow Colón" %}</a>
       </div>
     </div>
   </nav>
