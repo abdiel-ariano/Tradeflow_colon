@@ -62,7 +62,7 @@ class GuestCatalogAccessTests(TestCase):
     def test_guest_home_links_to_tienda_not_login_wall(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Browse catalog')
+        self.assertContains(response, reverse('catalogo_publico'))
         self.assertNotContains(response, 'login/?next=/tienda/')
 
     def test_unverified_buyer_can_browse_tienda(self):
@@ -86,3 +86,58 @@ class GuestCatalogAccessTests(TestCase):
     def test_guest_verificado_filter(self):
         response = self.client.get('/tienda/', {'verificado': '1'})
         self.assertEqual(response.status_code, 200)
+
+    def test_authenticated_buyer_catalog_shows_marketplace_nav(self):
+        self.client.force_login(self.buyer)
+        response = self.client.get(reverse('catalogo_publico'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="cat-catalog-nav"')
+        self.assertContains(response, 'Verified suppliers')
+
+    def test_authenticated_buyer_catalog_has_cart_form(self):
+        from core.models import Product, Company, Category, Inventory
+
+        company = Company.objects.create(name='Catalog Co', is_verified=True)
+        cat = Category.objects.create(name='Electronics')
+        product = Product.objects.create(
+            name='Catalog Product',
+            sku='CAT-1',
+            company=company,
+            category=cat,
+            unit_price='15.00',
+            currency='USD',
+            is_active=True,
+        )
+        Inventory.objects.create(product=product, stock_qty=25, reserved_qty=0)
+
+        self.client.force_login(self.buyer)
+        response = self.client.get(reverse('catalogo_publico'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['show_cart_actions'])
+        self.assertContains(response, 'js-cart-add-form')
+
+    def test_catalog_inquiry_ajax_returns_json(self):
+        from core.models import Product, Company, Category, Inventory
+
+        company = Company.objects.create(name='Ajax Co', is_verified=True)
+        cat = Category.objects.create(name='Electronics')
+        product = Product.objects.create(
+            name='Ajax Product',
+            sku='AJAX-1',
+            company=company,
+            category=cat,
+            unit_price='12.00',
+            currency='USD',
+            is_active=True,
+        )
+        Inventory.objects.create(product=product, stock_qty=20, reserved_qty=0)
+        response = self.client.post(
+            reverse('catalogo_agregar_inquiry', kwargs={'producto_id': product.pk}),
+            {'cantidad': 1},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['ok'])
+        self.assertIn('carrito', self.client.session)

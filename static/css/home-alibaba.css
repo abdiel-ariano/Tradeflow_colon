@@ -5,9 +5,9 @@ Unified Alibaba-style marketplace home + about page
 =============================================================================
 */
 
-/* Home + catalog share marketplace_public_navbar — hide legacy shells from base */
+/* Home + catalog share marketplace_public_navbar — hide legacy buyer shell when marketplace nav is present */
 body.cat-catalog-page #hm-public-nav,
-body.cat-catalog-page #bn-buyer-shell {
+body.cat-catalog-page:has(#cat-catalog-nav) #bn-buyer-shell {
   display: none !important;
 }
 

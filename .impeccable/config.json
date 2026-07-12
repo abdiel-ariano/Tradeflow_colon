@@ -10,6 +10,7 @@
     "ignoreRules": [],
     "ignoreFiles": [
       "static/css/catalog*.css",
+      "static/css/home-alibaba.css",
       "templates/core/base.html",
       "templates/core/checkout.html"
     ],

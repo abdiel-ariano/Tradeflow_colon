@@ -3125,6 +3125,15 @@ def catalogo_publico(request):
 
     catalogo_base = merch.active_products_base()
     stats = merch.home_stats()
+    is_guest = not request.user.is_authenticated
+    if is_guest:
+        role = None
+    else:
+        try:
+            role = request.user.profile.role
+        except Exception:
+            role = None
+    show_cart_actions = is_guest or role in ('buyer', 'admin') or request.user.is_superuser
     verified_empresas = (
         Company.objects.filter(is_verified=True, products__is_active=True)
         .distinct()
@@ -3272,6 +3281,8 @@ def catalogo_publico(request):
         'nav_activo': 'catalogo',
         'carrito_count': _contar_items(_get_carrito(request)),
         'category_spotlights': merch.category_spotlights(4, 4),
+        'show_cart_actions': show_cart_actions,
+        'is_guest_catalog': is_guest,
     }
     context.update(merch.marketplace_categories_context())
 
@@ -3633,7 +3644,7 @@ def catalogo_producto_detail(request, pk):
             role = request.user.profile.role
         except Exception:
             role = None
-    show_cart_actions = True
+    show_cart_actions = is_guest or role in ('buyer', 'admin') or request.user.is_superuser
 
     related_products = list(
         Product.objects.filter(is_active=True, category=product.category_id)

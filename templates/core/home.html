@@ -14,9 +14,7 @@
 <div id="hm-marketplace-config" hidden
      data-inquiry-url="{% url 'catalogo_agregar_inquiry' 0 %}"></div>
 
-{% if not request.user.is_authenticated %}
-  {% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='home' %}
-{% endif %}
+{% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='home' %}
 
 <main class="hm-alibaba hm-marketplace" id="hm-root">
   {% include "core/includes/home_gateway_hero.html" %}

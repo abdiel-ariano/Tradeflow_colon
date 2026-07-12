@@ -36,9 +36,7 @@
      data-catalog-url="{% url 'catalogo_publico' %}"></div>
 <h1 class="visually-hidden">{% trans "Colón Free Zone Catalog" %}</h1>
 
-{% if not request.user.is_authenticated %}
-  {% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='catalog' %}
-{% endif %}
+{% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='catalog' %}
 
 <button type="button" class="btn-filter-floating" id="cat-filter-open" aria-expanded="false" aria-controls="cat-sidebar">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
