@@ -20,6 +20,13 @@ from django.shortcuts import redirect
 from core.utils.access_gating import onboarding_redirect_name
 
 
+def _request_wants_json(request):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return True
+    accept = request.headers.get('Accept', '')
+    return 'application/json' in accept
+
+
 def _get_role(user):
     """Devuelve el rol del usuario o None si no tiene perfil."""
     try:
@@ -44,11 +51,25 @@ def catalog_access(view_func):
             return view_func(request, *args, **kwargs)
         blocked = _enforce_onboarding(request, scope='browse')
         if blocked:
+            if request.method == 'POST' and _request_wants_json(request):
+                from django.http import JsonResponse
+                from django.utils.translation import gettext as _
+                return JsonResponse(
+                    {'ok': False, 'message': _('Complete your account setup to continue.')},
+                    status=403,
+                )
             return blocked
         role = _get_role(request.user)
         if role in (None, 'buyer'):
             return view_func(request, *args, **kwargs)
         if role == 'seller':
+            if request.method == 'POST' and _request_wants_json(request):
+                from django.http import JsonResponse
+                from django.utils.translation import gettext as _
+                return JsonResponse(
+                    {'ok': False, 'message': _('Go to your seller portal.')},
+                    status=403,
+                )
             messages.info(request, 'Go to your seller portal.')
             return redirect('/mi-tienda/')
         if role == 'admin' or request.user.is_superuser:

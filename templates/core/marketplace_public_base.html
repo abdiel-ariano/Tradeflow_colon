@@ -8,9 +8,7 @@
 {% endblock %}
 
 {% block content %}
-{% if not request.user.is_authenticated %}
-  {% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active=marketplace_nav_active %}
-{% endif %}
+{% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active=marketplace_nav_active %}
 <main class="hm-marketplace-page" id="hm-marketplace-page">
   {% block marketplace_main %}{% endblock %}
 </main>

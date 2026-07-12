@@ -578,6 +578,7 @@
 
         grids = document.getElementById('cat-product-grids');
         bindInquiryButtons();
+        if (window.tfCartAjaxInit) window.tfCartAjaxInit();
         bindPaginationLinks();
         bindAjaxChips();
         finishProgressBar();
@@ -732,21 +733,32 @@
 
     fetch(inquiryUrlFor(productId), {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
         'X-CSRFToken': getCookie('csrftoken'),
         'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
       },
       body: 'cantidad=1',
     })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (data.ok) {
-          updateCartBadges(data.carrito_count);
-          showToast(data.message || I18N.catalogAddedToCart || 'Added to inquiry cart');
-        } else {
-          showToast(data.message || I18N.catalogCartError || 'Could not add to inquiry cart');
+      .then(function (r) {
+        var contentType = r.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error('non-json');
         }
+        return r.json().then(function (data) {
+          return { ok: r.ok, data: data };
+        });
+      })
+      .then(function (res) {
+        var data = res.data || {};
+        if (!res.ok || data.ok === false) {
+          showToast(data.message || I18N.catalogCartError || 'Could not add to inquiry cart');
+          return;
+        }
+        updateCartBadges(data.carrito_count);
+        showToast(data.message || I18N.catalogAddedToCart || 'Added to inquiry cart');
       })
       .catch(function () {
         showToast(I18N.catalogNetworkError || 'Connection error — try again');
