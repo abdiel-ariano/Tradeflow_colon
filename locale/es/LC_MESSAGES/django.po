@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 20:39-0500\n"
+"POT-Creation-Date: 2026-07-11 20:53-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -444,6 +444,18 @@ msgstr ""
 msgid "Order rejected. Reserved inventory was released."
 msgstr ""
 
+#, python-format
+msgid ""
+"Explore %(products)s wholesale products from %(companies)s verified Colón "
+"Free Zone companies. B2B catalog with transparent inventory on TradeFlow."
+msgstr ""
+"Explora %(products)s productos mayoristas de %(companies)s empresas "
+"verificadas de la Zona Libre de Colón. Catálogo B2B con inventario "
+"transparente en TradeFlow."
+
+msgid "Catalog"
+msgstr "Catálogo"
+
 msgid "Out of stock"
 msgstr "Sin stock"
 
@@ -822,6 +834,105 @@ msgstr "Crea tu cuenta"
 msgid "Meet verified suppliers"
 msgstr "Más proveedores verificados"
 
+msgid "Sign in"
+msgstr "Iniciar sesión"
+
+msgid "Create account"
+msgstr "Crear cuenta"
+
+msgid ""
+"B2B wholesale marketplace for the Colón Free Zone. Verified catalog, quotes, "
+"and logistics in one place."
+msgstr ""
+"Marketplace mayorista B2B para la Zona Libre de Colón. Catálogo verificado, "
+"cotizaciones y logística en un solo lugar."
+
+msgid "Social media"
+msgstr "Redes sociales"
+
+msgid "Follow us"
+msgstr "Síguenos"
+
+msgid "LinkedIn (coming soon)"
+msgstr "LinkedIn (próximamente)"
+
+msgid "LinkedIn — coming soon"
+msgstr "LinkedIn — próximamente"
+
+msgid "Instagram (coming soon)"
+msgstr "Instagram (próximamente)"
+
+msgid "Instagram — coming soon"
+msgstr "Instagram — próximamente"
+
+msgid "Facebook (coming soon)"
+msgstr "Facebook (próximamente)"
+
+msgid "Facebook — coming soon"
+msgstr "Facebook — próximamente"
+
+msgid "Buyers"
+msgstr "Compradores"
+
+msgid "Buyer links"
+msgstr "Enlaces para compradores"
+
+msgid "How to buy"
+msgstr "Cómo comprar"
+
+msgid "Verified companies"
+msgstr "Empresas verificadas"
+
+msgid "FAQ"
+msgstr "Preguntas frecuentes"
+
+msgid "(coming soon)"
+msgstr "(próximamente)"
+
+msgid "Sellers"
+msgstr "Vendedores"
+
+msgid "Seller links"
+msgstr "Enlaces para vendedores"
+
+msgid "Sell on TradeFlow"
+msgstr "Vender en TradeFlow"
+
+msgid "CFZ requirements"
+msgstr "Requisitos ZLC"
+
+msgid "Pricing"
+msgstr "Precios"
+
+msgid "Contact"
+msgstr "Contacto"
+
+msgid "Legal"
+msgstr "Legal"
+
+msgid "Legal links"
+msgstr "Enlaces legales"
+
+msgid "Terms of use"
+msgstr "Términos de uso"
+
+msgid "Privacy"
+msgstr "Privacidad"
+
+msgid "Cookies"
+msgstr "Cookies"
+
+msgid "Sitemap"
+msgstr "Mapa del sitio"
+
+msgid "© 2026 TradeFlow Colón. All rights reserved."
+msgstr "© 2026 TradeFlow Colón. Todos los derechos reservados."
+
+#, fuzzy
+#| msgid "Colón Free Zone"
+msgid "Colón Free Zone, Panama"
+msgstr "Zona Libre de Colón"
+
 msgid "Mi carrito"
 msgstr ""
 
@@ -915,9 +1026,6 @@ msgstr "Ruta de navegación"
 msgid "Home"
 msgstr "Inicio"
 
-msgid "Catalog"
-msgstr "Catálogo"
-
 msgid "Product badges"
 msgstr "Distintivos del producto"
 
@@ -933,12 +1041,6 @@ msgstr "Desde %(price)s"
 
 msgid "Sign up to view wholesale pricing"
 msgstr "Regístrate para ver precios mayoristas"
-
-msgid "Create account"
-msgstr "Crear cuenta"
-
-msgid "Sign in"
-msgstr "Iniciar sesión"
 
 msgid "Add to cart"
 msgstr "Agregar al carrito"
@@ -995,7 +1097,7 @@ msgid "View category →"
 msgstr "Ver categoría →"
 
 msgid "Colón Free Zone Wholesale Catalog | TradeFlow Colón"
-msgstr "Por qué TradeFlow Colón"
+msgstr "Catálogo mayorista ZLC | TradeFlow Colón"
 
 msgid "Colón Free Zone Wholesale Catalog"
 msgstr "Zona Libre de Colón · Mayorista B2B"
@@ -1137,17 +1239,11 @@ msgstr "Contactar soporte"
 msgid "Open a dispute"
 msgstr "Abrir una disputa"
 
-msgid "Sell on TradeFlow"
-msgstr "Vender en TradeFlow"
-
 msgid "We accept:"
 msgstr "Aceptamos:"
 
 msgid "Bank Transfer (T/T)"
 msgstr "Transferencia bancaria (T/T)"
-
-msgid "Privacy"
-msgstr "Privacidad"
 
 msgid "Terms"
 msgstr "Términos"
@@ -1493,6 +1589,50 @@ msgstr "Ver tienda de %(name)s"
 
 msgid "View storefront"
 msgstr "Ver más"
+
+msgid "Top CFZ"
+msgstr "Top ZLC"
+
+msgid "Featured"
+msgstr "Destacado"
+
+msgid "/ unit"
+msgstr "/ unidad"
+
+msgid "Marketplace product details"
+msgstr "Detalles del producto en el marketplace"
+
+#, python-format
+msgid "Low stock · %(counter)s unit"
+msgid_plural "Low stock · %(counter)s units"
+msgstr[0] "Stock bajo · %(counter)s unidad"
+msgstr[1] "Stock bajo · %(counter)s unidades"
+
+#, python-format
+msgid "In stock · %(counter)s unit"
+msgid_plural "In stock · %(counter)s units"
+msgstr[0] "En stock · %(counter)s unidad"
+msgstr[1] "En stock · %(counter)s unidades"
+
+#, python-format
+msgid "Confirms in %(hours)sh"
+msgstr "Confirma en %(hours)sh"
+
+#, python-format
+msgid "Ref. %(sku)s"
+msgstr "Ref. %(sku)s"
+
+msgid "View & quote →"
+msgstr "Ver y cotizar →"
+
+msgid "Add"
+msgstr "Agregar"
+
+msgid "Get automatic quotes from every company that sells this product"
+msgstr "Obtén cotizaciones automáticas de cada empresa que vende este producto"
+
+msgid "View details →"
+msgstr "Ver detalles →"
 
 msgid "Reference image"
 msgstr ""
@@ -1972,9 +2112,6 @@ msgstr "Limitación de responsabilidad"
 
 msgid "Governing law and jurisdiction"
 msgstr "Ley aplicable y jurisdicción"
-
-msgid "Contact"
-msgstr "Contacto"
 
 msgid "1. Service description"
 msgstr "1. Descripción del servicio"

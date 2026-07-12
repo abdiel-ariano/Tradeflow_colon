@@ -3238,11 +3238,13 @@ def catalogo_publico(request):
     qcopy.pop('partial', None)
     catalogo_params = qcopy.urlencode()
 
-    meta_description = (
-        f'Explore {stats["productos"]} wholesale products from '
-        f'{verified_empresas or stats["empresas"]} verified Colón Free Zone companies. '
-        f'B2B catalog with transparent inventory on TradeFlow.'
-    )
+    meta_description = _(
+        'Explore %(products)s wholesale products from %(companies)s verified '
+        'Colón Free Zone companies. B2B catalog with transparent inventory on TradeFlow.'
+    ) % {
+        'products': stats['productos'],
+        'companies': verified_empresas or stats['empresas'],
+    }
 
     context = {
         'productos': page_obj,
@@ -3266,7 +3268,7 @@ def catalogo_publico(request):
         'sugerencias': sugerencias,
         'pagination_slots': _tienda_pagination_slots(page_obj),
         'meta_description': meta_description,
-        'titulo_pagina': 'Catalog',
+        'titulo_pagina': _('Catalog'),
         'nav_activo': 'catalogo',
         'carrito_count': _contar_items(_get_carrito(request)),
         'category_spotlights': merch.category_spotlights(4, 4),
