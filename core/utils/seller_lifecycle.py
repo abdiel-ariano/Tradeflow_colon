@@ -432,6 +432,41 @@ def seller_portal_access(company: Company | None, *, route_name: str = '') -> st
     return None
 
 
+def mark_paid_period_elapsed(company) -> CompanySubscription | None:
+    """
+    Renovación sin Stripe: si ``active`` y ``current_period_end`` venció,
+    pasa a ``past_due`` con gracia para que el seller pague de nuevo (bank).
+
+    El plan recomendado queda como el plan actual (pueden renovar el mismo
+    o subir de tier; no downgrade).
+    """
+    try:
+        sub = company.subscription
+    except CompanySubscription.DoesNotExist:
+        return None
+
+    now = timezone.now()
+    if sub.status != 'active' or sub.current_period_end > now:
+        return None
+
+    with transaction.atomic():
+        sub.status = 'past_due'
+        sub.recommended_plan = sub.plan
+        sub.grace_ends_at = now + timedelta(days=seller_grace_days())
+        sub.auto_renew = False
+        sub.save(update_fields=[
+            'status', 'recommended_plan', 'grace_ends_at', 'auto_renew',
+        ])
+
+    log.info(
+        'paid_period_elapsed company_id=%s plan=%s grace_until=%s',
+        company.pk,
+        sub.plan.slug,
+        sub.grace_ends_at.isoformat(),
+    )
+    return sub
+
+
 def trial_days_remaining(sub: CompanySubscription, *, now=None) -> int:
     """Días enteros restantes de trial (0 si ya venció)."""
     now = now or timezone.now()

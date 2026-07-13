@@ -2212,44 +2212,80 @@ def seller_plan_checkout_resume(request):
 @seller_required
 @require_POST
 def seller_plan_checkout_pay(request, plan_slug: str):
-    """Confirma pago y activa plan en Supabase."""
+    """
+    Confirma método de pago del plan.
+
+    - mock (solo si ALLOW_MOCK_PLAN_PAYMENT): activa al instante.
+    - bank: registra transferencia y deja checkout ``pending`` hasta admin.
+    """
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
 
-    from .utils.saas_billing import complete_plan_checkout, get_pending_checkout
+    from .utils.saas_billing import (
+        allow_mock_plan_payment,
+        complete_plan_checkout,
+        get_pending_checkout,
+        submit_bank_transfer_payment,
+    )
 
     checkout = get_pending_checkout(company)
     if not checkout or checkout.target_plan.slug != plan_slug:
         messages.error(request, _('Invalid payment session. Choose your plan again.'))
         return redirect('seller_plan_consumo')
 
-    provider = request.POST.get('payment_method', 'mock').strip() or 'mock'
-    card_name = request.POST.get('card_name', '').strip()
-    txn_ref = ''
-    if provider == 'mock' and card_name:
-        txn_ref = f'MOCK-{checkout.pk}'
+    provider = (request.POST.get('payment_method') or '').strip() or 'bank'
+    if provider == 'stripe':
+        messages.error(request, _('Card payments via Stripe are not available. Use bank transfer.'))
+        return redirect('seller_plan_checkout', plan_slug=plan_slug)
 
+    if provider == 'mock':
+        if not allow_mock_plan_payment():
+            messages.error(request, _('Demo card payment is disabled. Use bank transfer.'))
+            return redirect('seller_plan_checkout', plan_slug=plan_slug)
+        card_name = request.POST.get('card_name', '').strip()
+        txn_ref = f'MOCK-{checkout.pk}' if card_name else f'MOCK-{checkout.pk}-demo'
+        try:
+            complete_plan_checkout(checkout, provider='mock', txn_ref=txn_ref)
+        except ValueError as exc:
+            if 'below_recommended' in str(exc):
+                messages.error(request, _('Payment rejected: plan below your recommended tier.'))
+            else:
+                messages.error(request, _('Payment could not be completed.'))
+            return redirect('seller_plan_checkout', plan_slug=plan_slug)
+        messages.success(
+            request,
+            _('Payment confirmed. Plan %(name)s is active on your account.')
+            % {'name': checkout.target_plan.name},
+        )
+        return redirect('portal_seller')
+
+    # bank transfer — stays pending
+    transfer_ref = request.POST.get('transfer_reference', '').strip()
+    seller_notes = request.POST.get('seller_notes', '').strip()
+    proof = request.FILES.get('proof_file')
     try:
-        complete_plan_checkout(checkout, provider=provider, txn_ref=txn_ref)
+        submit_bank_transfer_payment(
+            checkout,
+            transfer_reference=transfer_ref,
+            seller_notes=seller_notes,
+            proof_file=proof,
+        )
     except ValueError as exc:
-        if 'below_recommended' in str(exc):
+        code = str(exc)
+        if code == 'transfer_reference_required':
+            messages.error(request, _('Enter your bank transfer reference (min. 4 characters).'))
+        elif 'below_recommended' in code:
             messages.error(request, _('Payment rejected: plan below your recommended tier.'))
         else:
-            messages.error(request, _('Payment could not be completed.'))
+            messages.error(request, _('Could not submit bank transfer details.'))
         return redirect('seller_plan_checkout', plan_slug=plan_slug)
 
     messages.success(
         request,
-        _('Payment confirmed. Plan %(name)s is active on your account.')
-        % {'name': checkout.target_plan.name},
+        _('Transfer details received. Your plan activates after admin confirmation '
+          '(usually 1–2 business days).'),
     )
-    company.subscription.refresh_from_db()
-    if company.subscription.status == 'active':
-        from core.utils.saas_billing import get_company_subscription
-        sub = get_company_subscription(company)
-        if sub and sub.grace_ends_at is None:
-            return redirect('portal_seller')
     return redirect('seller_plan_consumo')
 
 

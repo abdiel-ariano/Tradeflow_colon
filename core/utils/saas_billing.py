@@ -11,12 +11,14 @@ MODOS DE CHECKOUT (CheckoutMode)
   (permite pagar Digitalízate aunque ya esté en trial con ese slug).
 - ``plan_upgrade``     — Cuenta active; upgrade a plan superior.
 
-PAGOS (MVP)
------------
-- ``mock`` — Tarjeta demo; activación inmediata al POST.
-- ``bank`` — Transferencia; activación inmediata en MVP (producción: pending + admin).
+PAGOS (sin Stripe — flujo propio)
+---------------------------------
+- ``mock`` — Solo si ``ALLOW_MOCK_PLAN_PAYMENT`` / DEBUG: activación inmediata.
+- ``bank`` — Transferencia: checkout queda ``pending`` hasta que un admin apruebe.
+  El seller envía referencia (+ comprobante opcional); admin usa
+  ``approve_plan_checkout`` / Django Admin.
 
-Stripe real → fase posterior (core/utils/stripe_billing.py).
+Stripe no está habilitado en este producto.
 
 SUSCRIPCIONES
 -------------
@@ -33,6 +35,7 @@ from calendar import monthrange
 from datetime import timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.db.models import Sum
 from django.db.utils import DatabaseError, OperationalError, ProgrammingError
 from django.utils import timezone
@@ -655,6 +658,146 @@ def get_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
     return _safe_pending_checkout(company)
 
 
+def allow_mock_plan_payment() -> bool:
+    """
+    True si se permite activar planes con tarjeta demo (mock).
+
+    Producción: False (solo transferencia bancaria pending + admin).
+    Local/CI: True vía DEBUG o ``ALLOW_MOCK_PLAN_PAYMENT=true``.
+    """
+    if getattr(settings, 'ALLOW_MOCK_PLAN_PAYMENT', None) is not None:
+        return bool(settings.ALLOW_MOCK_PLAN_PAYMENT)
+    return bool(getattr(settings, 'DEBUG', False))
+
+
+def bank_transfer_instructions() -> dict:
+    """Datos bancarios públicos para el checkout (config vía settings/.env)."""
+    return {
+        'bank_name': getattr(settings, 'SELLER_BANK_NAME', 'Banco General'),
+        'account_name': getattr(settings, 'SELLER_BANK_ACCOUNT_NAME', 'TradeFlow Colón'),
+        'account_number': getattr(settings, 'SELLER_BANK_ACCOUNT_NUMBER', ''),
+        'account_type': getattr(settings, 'SELLER_BANK_ACCOUNT_TYPE', 'Corriente'),
+        'swift': getattr(settings, 'SELLER_BANK_SWIFT', ''),
+        'currency': getattr(settings, 'SELLER_BANK_CURRENCY', 'USD'),
+        'instructions': getattr(
+            settings,
+            'SELLER_BANK_INSTRUCTIONS',
+            'Transfiere el monto exacto e indica el número de referencia del checkout '
+            'en el concepto. Un administrador confirmará el pago en 1–2 días hábiles.',
+        ),
+    }
+
+
+def submit_bank_transfer_payment(
+    checkout: CompanyPlanCheckout,
+    *,
+    transfer_reference: str,
+    seller_notes: str = '',
+    proof_file=None,
+) -> CompanyPlanCheckout:
+    """
+    Registra la transferencia del seller. El checkout **permanece pending**.
+
+    No activa el plan: eso lo hace ``approve_plan_checkout`` (admin).
+    """
+    if checkout.status != 'pending':
+        raise ValueError('checkout_not_pending')
+
+    ref = (transfer_reference or '').strip()
+    if len(ref) < 4:
+        raise ValueError('transfer_reference_required')
+
+    company = checkout.company
+    sub = get_company_subscription(company)
+    if not sub:
+        raise ValueError('no_subscription')
+
+    mode = resolve_checkout_mode(sub)
+    ok, err = can_select_plan_for_activation(
+        company,
+        checkout.target_plan.slug,
+        mode=mode,
+    )
+    if not ok:
+        raise ValueError(err)
+
+    checkout.provider = 'bank'
+    checkout.transfer_reference = ref[:120]
+    checkout.seller_notes = (seller_notes or '')[:255]
+    checkout.txn_ref = f'BANK-PENDING-{checkout.pk}'[:120]
+    update_fields = [
+        'provider', 'transfer_reference', 'seller_notes', 'txn_ref',
+    ]
+    if proof_file and getattr(proof_file, 'size', 0):
+        checkout.proof_file = proof_file
+        update_fields.append('proof_file')
+    checkout.save(update_fields=update_fields)
+    log.info(
+        'bank_transfer_submitted checkout_id=%s company_id=%s ref=%s',
+        checkout.pk,
+        company.pk,
+        checkout.transfer_reference,
+    )
+    return checkout
+
+
+def approve_plan_checkout(
+    checkout: CompanyPlanCheckout,
+    *,
+    reviewed_by=None,
+    review_notes: str = '',
+) -> CompanySubscription:
+    """
+    Admin confirma transferencia recibida → marca paid y activa el plan.
+    """
+    if checkout.status != 'pending':
+        raise ValueError('checkout_not_pending')
+    if checkout.provider != 'bank' and not allow_mock_plan_payment():
+        # Solo bank en producción; mock puede aprobarse en demo si quedó pending.
+        if checkout.provider != 'mock':
+            raise ValueError('checkout_provider_not_approvable')
+
+    txn = checkout.transfer_reference or checkout.txn_ref or f'ADMIN-{checkout.pk}'
+    sub = complete_plan_checkout(
+        checkout,
+        provider='bank' if checkout.provider == 'bank' else checkout.provider,
+        txn_ref=txn,
+    )
+    checkout.refresh_from_db()
+    checkout.reviewed_at = timezone.now()
+    checkout.reviewed_by = reviewed_by
+    checkout.review_notes = (review_notes or 'approved')[:255]
+    checkout.save(update_fields=['reviewed_at', 'reviewed_by', 'review_notes'])
+    log.info(
+        'plan_checkout_approved checkout_id=%s by=%s',
+        checkout.pk,
+        getattr(reviewed_by, 'pk', None),
+    )
+    return sub
+
+
+def reject_plan_checkout(
+    checkout: CompanyPlanCheckout,
+    *,
+    reviewed_by=None,
+    review_notes: str = '',
+) -> CompanyPlanCheckout:
+    """Admin rechaza comprobante/transferencia; el seller puede abrir un checkout nuevo."""
+    if checkout.status != 'pending':
+        raise ValueError('checkout_not_pending')
+    checkout.status = 'rejected'
+    checkout.reviewed_at = timezone.now()
+    checkout.reviewed_by = reviewed_by
+    checkout.review_notes = (review_notes or 'rejected')[:255]
+    checkout.save(update_fields=['status', 'reviewed_at', 'reviewed_by', 'review_notes'])
+    log.info(
+        'plan_checkout_rejected checkout_id=%s by=%s',
+        checkout.pk,
+        getattr(reviewed_by, 'pk', None),
+    )
+    return checkout
+
+
 def complete_plan_checkout(
     checkout: CompanyPlanCheckout,
     *,
@@ -726,6 +869,9 @@ def build_checkout_context(company: Company, plan_slug: str) -> dict:
         'checkout_mode': mode.value,
         'is_trial_activation': mode == CheckoutMode.TRIAL_ACTIVATION,
         'is_trial_upgrade': mode == CheckoutMode.TRIAL_UPGRADE,
+        'allow_mock_payment': allow_mock_plan_payment(),
+        'bank_transfer': bank_transfer_instructions(),
+        'transfer_already_submitted': bool(checkout.transfer_reference),
     }
 
 

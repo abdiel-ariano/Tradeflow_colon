@@ -1,9 +1,9 @@
 {% extends "core/seller_layout.html" %}
-{% comment %}Template: core/seller_plan_checkout.html — review purpose and context vars.{% endcomment %}
+{% comment %}Template: core/seller_plan_checkout.html — bank transfer pending + optional mock card.{% endcomment %}
 {% block title %}Plan payment — {{ target_plan.name }}{% endblock %}
 {% block seller_page_title %}Activate {{ target_plan.name }}{% endblock %}
 {% block seller_page_sub %}
-<p class="sp-topbar-sub">Secure TradeFlow checkout · your plan activates when payment is confirmed</p>
+<p class="sp-topbar-sub">TradeFlow checkout · plan activates when payment is confirmed</p>
 {% endblock %}
 
 {% block seller_extra_css %}
@@ -20,7 +20,7 @@
   min-width: 120px;
   text-align: center;
   padding: 12px 10px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--tf-sand);
   font-size: 11px;
   font-weight: 600;
@@ -34,7 +34,7 @@
 .sp-checkout-card {
   background: var(--tf-white);
   border: 1px solid var(--tf-sand2);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 24px;
 }
 .sp-checkout-card h3 { margin: 0 0 16px; font-size: 1rem; color: var(--tf-navy); }
@@ -44,7 +44,7 @@
   gap: 12px;
   padding: 14px 16px;
   border: 1px solid var(--tf-sand2);
-  border-radius: 10px;
+  border-radius: 12px;
   margin-bottom: 10px;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
@@ -55,12 +55,44 @@
 }
 .sp-pay-fields { display: grid; gap: 12px; margin-top: 16px; }
 .sp-pay-fields label { font-size: 12px; font-weight: 600; color: var(--tf-muted); display: block; margin-bottom: 4px; }
-.sp-pay-fields input {
+.sp-pay-fields input,
+.sp-pay-fields textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--tf-sand2);
   border-radius: 8px;
   font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.sp-pay-fields textarea { min-height: 72px; resize: vertical; }
+.sp-bank-box {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--tf-sand2);
+  border-radius: 12px;
+  background: rgba(46, 91, 138, 0.04);
+  font-size: 13px;
+  color: var(--tf-navy);
+  line-height: 1.5;
+}
+.sp-bank-box dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin: 0 0 12px;
+}
+.sp-bank-box dt { font-weight: 600; color: var(--tf-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.02em; }
+.sp-bank-box dd { margin: 0; font-weight: 600; word-break: break-word; }
+.sp-pending-banner {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(242, 101, 34, 0.35);
+  background: rgba(242, 101, 34, 0.08);
+  font-size: 13px;
+  color: var(--tf-navy);
+  line-height: 1.45;
 }
 .sp-checkout-summary-row {
   display: flex;
@@ -98,31 +130,50 @@
   <nav class="sp-checkout-steps" aria-label="Activation steps">
     <div class="sp-checkout-step is-done">1. Plan</div>
     <div class="sp-checkout-step is-current">2. Payment</div>
-    <div class="sp-checkout-step">3. Activation</div>
+    <div class="sp-checkout-step{% if transfer_already_submitted %} is-done{% endif %}">3. Activation</div>
   </nav>
 
   <div class="sp-checkout-grid">
     <div class="sp-checkout-card">
       <h3>Payment method</h3>
-      <form method="post" action="{% url 'seller_plan_checkout_pay' target_plan.slug %}" id="sp-checkout-form">
+
+      {% if transfer_already_submitted %}
+      <div class="sp-pending-banner" role="status">
+        <strong>Transfer under review.</strong>
+        Reference <code>{{ checkout.transfer_reference }}</code> was received.
+        Your plan activates after admin confirmation (usually 1–2 business days).
+        You can update the reference or upload a new proof below if needed.
+      </div>
+      {% endif %}
+
+      <form method="post"
+            action="{% url 'seller_plan_checkout_pay' target_plan.slug %}"
+            id="sp-checkout-form"
+            enctype="multipart/form-data">
         {% csrf_token %}
+
+        {% if allow_mock_payment %}
         <label class="sp-pay-method">
-          <input type="radio" name="payment_method" value="mock" checked>
+          <input type="radio" name="payment_method" value="mock" id="pay-mock">
           <span class="material-symbols-rounded" style="color:var(--tf-navy);">credit_card</span>
           <span>
             <strong>Credit or debit card</strong>
-            <span style="display:block;font-size:11px;color:var(--tf-muted);">Demo processing (no real charge)</span>
+            <span style="display:block;font-size:11px;color:var(--tf-muted);">Demo only — activates immediately (no real charge)</span>
           </span>
         </label>
+        {% endif %}
+
         <label class="sp-pay-method">
-          <input type="radio" name="payment_method" value="bank">
+          <input type="radio" name="payment_method" value="bank" id="pay-bank" checked>
           <span class="material-symbols-rounded" style="color:var(--tf-navy);">account_balance</span>
           <span>
             <strong>Bank transfer</strong>
-            <span style="display:block;font-size:11px;color:var(--tf-muted);">Confirmation within 24 h</span>
+            <span style="display:block;font-size:11px;color:var(--tf-muted);">Submit reference · admin confirms in 1–2 business days</span>
           </span>
         </label>
-        <div class="sp-pay-fields" id="sp-card-fields">
+
+        {% if allow_mock_payment %}
+        <div class="sp-pay-fields" id="sp-card-fields" hidden>
           <div>
             <label for="card_name">Name on card</label>
             <input type="text" id="card_name" name="card_name" placeholder="As shown on card" autocomplete="cc-name">
@@ -138,12 +189,60 @@
             </div>
           </div>
         </div>
+        {% endif %}
+
+        <div id="sp-bank-fields">
+          <div class="sp-bank-box">
+            <p style="margin:0 0 12px;font-weight:600;">Transfer details</p>
+            <dl>
+              <dt>Bank</dt>
+              <dd>{{ bank_transfer.bank_name }}</dd>
+              <dt>Account name</dt>
+              <dd>{{ bank_transfer.account_name }}</dd>
+              {% if bank_transfer.account_number %}
+              <dt>Account</dt>
+              <dd>{{ bank_transfer.account_number }} ({{ bank_transfer.account_type }})</dd>
+              {% endif %}
+              {% if bank_transfer.swift %}
+              <dt>SWIFT</dt>
+              <dd>{{ bank_transfer.swift }}</dd>
+              {% endif %}
+              <dt>Currency</dt>
+              <dd>{{ bank_transfer.currency }}</dd>
+              <dt>Checkout ID</dt>
+              <dd>#{{ checkout.pk }}</dd>
+            </dl>
+            <p style="margin:0;font-size:12px;color:var(--tf-muted);">{{ bank_transfer.instructions }}</p>
+          </div>
+          <div class="sp-pay-fields">
+            <div>
+              <label for="transfer_reference">Transfer reference *</label>
+              <input type="text"
+                     id="transfer_reference"
+                     name="transfer_reference"
+                     value="{{ checkout.transfer_reference }}"
+                     placeholder="Bank operation / reference number"
+                     minlength="4"
+                     required
+                     autocomplete="off">
+            </div>
+            <div>
+              <label for="seller_notes">Notes (optional)</label>
+              <textarea id="seller_notes" name="seller_notes" maxlength="255" placeholder="Bank used, transfer date…">{{ checkout.seller_notes }}</textarea>
+            </div>
+            <div>
+              <label for="proof_file">Proof (optional PDF/image)</label>
+              <input type="file" id="proof_file" name="proof_file" accept=".pdf,image/*">
+            </div>
+          </div>
+        </div>
+
         <button type="submit" id="sp-checkout-submit" class="sp-btn sp-btn-primary" style="width:100%;margin-top:20px;justify-content:center;padding:14px;">
-          Pay and activate plan
+          {% if allow_mock_payment %}Pay or submit transfer{% else %}Submit bank transfer{% endif %}
         </button>
         <p class="sp-secure-badge">
           <span class="material-symbols-rounded" style="font-size:18px;">lock</span>
-          Encrypted transaction · permanent record on your business account
+          Encrypted session · permanent record on your business account
         </p>
       </form>
       <p style="margin-top:16px;font-size:12px;">
@@ -178,7 +277,7 @@
         <span class="amount">USD {{ amount }}</span>
       </div>
       <p style="font-size:11px;color:var(--tf-muted);margin:12px 0 0;line-height:1.45;">
-        When you confirm, your subscription updates immediately on the platform. Auto-renews at period end.
+        Bank transfers stay pending until TradeFlow confirms receipt. Mock card (demo only) activates immediately.
       </p>
     </aside>
   </div>
@@ -192,10 +291,31 @@
   var form = document.getElementById('sp-checkout-form');
   var submit = document.getElementById('sp-checkout-submit');
   if (!form || !submit) return;
-  // Evita doble POST (doble cobro/activación): al enviar, deshabilita el botón.
+
+  var cardFields = document.getElementById('sp-card-fields');
+  var bankFields = document.getElementById('sp-bank-fields');
+  var transferRef = document.getElementById('transfer_reference');
+  var radios = form.querySelectorAll('input[name="payment_method"]');
+
+  function syncMethod() {
+    var method = 'bank';
+    radios.forEach(function (r) { if (r.checked) method = r.value; });
+    if (cardFields) cardFields.hidden = method !== 'mock';
+    if (bankFields) bankFields.hidden = method !== 'bank';
+    if (transferRef) {
+      transferRef.required = method === 'bank';
+    }
+    if (method === 'mock') {
+      submit.textContent = I.payActivate || 'Pay and activate plan';
+    } else {
+      submit.textContent = I.submitTransfer || 'Submit bank transfer';
+    }
+  }
+  radios.forEach(function (r) { r.addEventListener('change', syncMethod); });
+  syncMethod();
+
   var submitted = false;
   form.addEventListener('submit', function (e) {
-    // Respeta la validación nativa: si el form es inválido, no hacer nada.
     if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
       return;
     }
