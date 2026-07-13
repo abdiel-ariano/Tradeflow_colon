@@ -1,11 +1,18 @@
 """Auth pages respect the global language cookie without a local switcher."""
 
+from django.conf import settings
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import translation
 
 
 @override_settings(LANGUAGE_CODE='en')
 class AuthGlobalLanguageTests(TestCase):
+    def setUp(self):
+        # LocaleMiddleware leaves get_language() sticky across tests; reset so
+        # reverse() does not emit /es/... prefixes into the next case.
+        translation.activate(settings.LANGUAGE_CODE)
+
     def test_auth_pages_have_no_local_language_switcher(self):
         """Auth layouts rely on the global locale cookie, not a per-page switcher."""
         for name in ('login', 'password_reset', 'signup_buyer', 'signup_seller'):
