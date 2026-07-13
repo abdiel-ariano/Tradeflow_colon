@@ -1,12 +1,17 @@
 /**
  * TradeFlow Colón — CFZ company map (Leaflet + OpenStreetMap, no API key).
- * Reads marker payload from #tf-cfz-map-data (json_script from Django).
+ * Sidebar list syncs with map markers; filter by name and verified status.
  */
 (function () {
   'use strict';
 
   var dataEl = document.getElementById('tf-cfz-map-data');
   var mapEl = document.getElementById('tf-cfz-map');
+  var listEl = document.getElementById('tf-cfz-map-list');
+  var statsEl = document.getElementById('tf-cfz-map-stats');
+  var filterEl = document.getElementById('tf-cfz-map-filter');
+  var verifiedOnlyEl = document.getElementById('tf-cfz-verified-only');
+
   if (!dataEl || !mapEl || typeof L === 'undefined') {
     return;
   }
@@ -25,6 +30,13 @@
   var pendingLabel = labels.pending || 'Pending verification';
   var productsLabel = labels.products || 'products';
   var viewCatalogLabel = labels.view_catalog || 'View catalog';
+  var filterPlaceholder = labels.filter_placeholder || 'Filter companies…';
+  var verifiedOnlyLabel = labels.verified_only || 'Verified only';
+  var noResultsLabel = labels.no_results || 'No companies match your filter';
+
+  if (filterEl && !filterEl.getAttribute('placeholder')) {
+    filterEl.setAttribute('placeholder', filterPlaceholder);
+  }
 
   var map = L.map(mapEl, { scrollWheelZoom: true }).setView(
     [center.lat, center.lng],
@@ -45,7 +57,10 @@
       })
     : null;
 
+  var markerById = {};
+  var listItemById = {};
   var bounds = [];
+  var activeId = null;
 
   markers.forEach(function (item) {
     var lat = item.lat;
@@ -93,6 +108,12 @@
       className: 'tf-cfz-popup-shell',
     });
 
+    marker.on('click', function () {
+      setActiveItem(item.id);
+    });
+
+    markerById[item.id] = marker;
+
     if (cluster) {
       cluster.addLayer(marker);
     } else {
@@ -109,6 +130,145 @@
   } else if (bounds.length === 1) {
     map.setView(bounds[0], 15);
   }
+
+  function updateStats(visibleCount) {
+    if (!statsEl) {
+      return;
+    }
+    var total = markers.length;
+    var verified = markers.filter(function (m) { return m.verified; }).length;
+    if (visibleCount != null && visibleCount !== total) {
+      statsEl.textContent = visibleCount + ' / ' + total + ' · ' + verified + ' ' + verifiedLabel.toLowerCase();
+    } else {
+      statsEl.textContent = total + ' companies · ' + verified + ' ' + verifiedLabel.toLowerCase();
+    }
+  }
+
+  function setActiveItem(id) {
+    activeId = id;
+    Object.keys(listItemById).forEach(function (key) {
+      var li = listItemById[key];
+      if (li) {
+        li.classList.toggle('is-active', String(key) === String(id));
+      }
+    });
+    var activeLi = listItemById[id];
+    if (activeLi && typeof activeLi.scrollIntoView === 'function') {
+      activeLi.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+
+  function focusMarker(item) {
+    var marker = markerById[item.id];
+    if (!marker) {
+      return;
+    }
+    setActiveItem(item.id);
+
+    function openPopup() {
+      map.setView([item.lat, item.lng], Math.max(map.getZoom(), 15), { animate: true });
+      marker.openPopup();
+    }
+
+    if (cluster && typeof cluster.zoomToShowLayer === 'function') {
+      cluster.zoomToShowLayer(marker, openPopup);
+    } else {
+      openPopup();
+    }
+  }
+
+  function renderList(filtered) {
+    if (!listEl) {
+      return;
+    }
+
+    listEl.innerHTML = '';
+    listItemById = {};
+
+    if (!filtered.length) {
+      var empty = document.createElement('li');
+      empty.className = 'map-zlc-list__empty';
+      empty.textContent = noResultsLabel;
+      listEl.appendChild(empty);
+      updateStats(0);
+      return;
+    }
+
+    filtered.forEach(function (item) {
+      var li = document.createElement('li');
+      li.className = 'map-zlc-list__item';
+      li.setAttribute('role', 'listitem');
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'map-zlc-list__btn';
+      btn.innerHTML =
+        '<span class="map-zlc-list__name">' +
+        escapeHtml(item.name) +
+        '</span>' +
+        '<span class="map-zlc-list__meta">' +
+        item.products +
+        ' ' +
+        escapeHtml(productsLabel) +
+        (item.categories ? ' · ' + escapeHtml(item.categories) : '') +
+        '</span>' +
+        '<span class="map-zlc-list__badge map-zlc-list__badge--' +
+        (item.verified ? 'verified' : 'pending') +
+        '">' +
+        escapeHtml(item.verified ? verifiedLabel : pendingLabel) +
+        '</span>';
+
+      btn.addEventListener('click', function () {
+        focusMarker(item);
+      });
+
+      li.appendChild(btn);
+      listEl.appendChild(li);
+      listItemById[item.id] = li;
+
+      if (String(activeId) === String(item.id)) {
+        li.classList.add('is-active');
+      }
+    });
+
+    updateStats(filtered.length);
+  }
+
+  function applyFilters() {
+    var query = (filterEl && filterEl.value ? filterEl.value : '').trim().toLowerCase();
+    var verifiedOnly = verifiedOnlyEl && verifiedOnlyEl.checked;
+
+    var filtered = markers.filter(function (item) {
+      if (verifiedOnly && !item.verified) {
+        return false;
+      }
+      if (!query) {
+        return true;
+      }
+      var haystack = (item.name + ' ' + (item.categories || '')).toLowerCase();
+      return haystack.indexOf(query) !== -1;
+    });
+
+    renderList(filtered);
+  }
+
+  if (filterEl) {
+    filterEl.addEventListener('input', applyFilters);
+  }
+  if (verifiedOnlyEl) {
+    verifiedOnlyEl.addEventListener('change', applyFilters);
+  }
+
+  applyFilters();
+
+  /* Reflow map after split layout paints */
+  setTimeout(function () {
+    map.invalidateSize();
+  }, 120);
+
+  window.addEventListener('resize', function () {
+    map.invalidateSize();
+  });
 
   function escapeHtml(str) {
     return String(str || '')

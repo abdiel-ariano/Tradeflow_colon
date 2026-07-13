@@ -25,6 +25,8 @@ class MapaZlcTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'tf-cfz-map')
         self.assertContains(response, 'tf-cfz-map-data')
+        self.assertContains(response, 'map-zlc-layout')
+        self.assertContains(response, 'tf-cfz-map-list')
         self.assertContains(response, 'leaflet')
         self.assertContains(response, 'tf-cfz-map.js')
 

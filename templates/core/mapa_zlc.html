@@ -8,108 +8,32 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
-<style nonce="{{ csp_nonce }}">
-  .map-zlc-wrap {
-    max-width: 1160px;
-    margin: 0 auto;
-    padding: clamp(1.25rem, 3vw, 2rem) 1rem clamp(2rem, 4vw, 3rem);
-  }
-  .map-zlc-head h1 {
-    font-family: var(--tf-font-display, var(--tf-font-body, system-ui, sans-serif));
-    font-weight: 700;
-    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
-    color: var(--tf-navy, #0F2A44);
-    margin: 0 0 0.5rem;
-  }
-  .map-zlc-head p {
-    color: var(--tf-muted, #6B7A88);
-    font-size: 0.9rem;
-    margin: 0 0 1rem;
-    max-width: 62ch;
-  }
-  .map-zlc-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 20px;
-    margin-bottom: 12px;
-    font-size: 12px;
-    color: var(--tf-muted, #6B7A88);
-  }
-  .map-zlc-legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .map-zlc-legend i {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .map-zlc-legend i.verified { background: var(--tf-orange, #F26522); }
-  .map-zlc-legend i.pending { background: var(--tf-text-3, #9CA3AF); }
-  .map-zlc-frame {
-    border: 1px solid var(--tf-border, #D1D5DB);
-    border-radius: 12px;
-    overflow: hidden;
-    background: var(--tf-white, #fff);
-    box-shadow: 0 8px 24px rgba(15, 42, 68, 0.08);
-  }
-  #tf-cfz-map {
-    width: 100%;
-    min-height: min(70vh, 560px);
-    z-index: 1;
-  }
-  .tf-cfz-marker-wrap { background: transparent; border: none; }
-  .tf-cfz-marker {
-    display: block;
-    width: 18px;
-    height: 18px;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    border: 2px solid var(--tf-white, #fff);
-    box-shadow: 0 2px 6px rgba(15, 42, 68, 0.35);
-  }
-  .tf-cfz-marker--verified { background: var(--tf-orange, #F26522); }
-  .tf-cfz-marker--pending { background: var(--tf-text-3, #9CA3AF); }
-  .tf-cfz-popup strong {
-    display: block;
-    color: var(--tf-navy, #0F2A44);
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-  .tf-cfz-popup__meta,
-  .tf-cfz-popup__cats {
-    margin: 0 0 6px;
-    font-size: 12px;
-    color: var(--tf-muted, #6B7A88);
-    line-height: 1.4;
-  }
-  .tf-cfz-popup__btn {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 8px 14px;
-    background: var(--tf-orange, #F26522);
-    color: #fff !important;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 12px;
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/tf-cfz-map.css' %}?v={{ tf_asset_version }}">
 {% endblock %}
 
 {% block marketplace_main %}
-<div class="map-zlc-wrap">
-  <header class="map-zlc-head">
-    <h1>{% trans "Companies in the Colón Free Zone" %}</h1>
-    <p>{% trans "Explore verified sellers on the map. Tap a marker to open their catalog — powered by free OpenStreetMap data." %}</p>
-    <div class="map-zlc-legend" aria-hidden="true">
-      <span><i class="verified"></i> {% trans "Verified seller" %}</span>
-      <span><i class="pending"></i> {% trans "Pending verification" %}</span>
+<div class="map-zlc-layout">
+  <aside class="map-zlc-sidebar" aria-label="{% trans 'Company directory' %}">
+    <header class="map-zlc-sidebar__head">
+      <h1>{% trans "Companies in the Colón Free Zone" %}</h1>
+      <p>{% trans "Explore verified sellers on the map. Select a company to zoom in — powered by free OpenStreetMap data." %}</p>
+      <p class="map-zlc-stats" id="tf-cfz-map-stats" aria-live="polite"></p>
+      <div class="map-zlc-legend" aria-hidden="true">
+        <span><i class="verified"></i> {% trans "Verified seller" %}</span>
+        <span><i class="pending"></i> {% trans "Pending verification" %}</span>
+      </div>
+    </header>
+    <div class="map-zlc-controls">
+      <label class="visually-hidden" for="tf-cfz-map-filter">{% trans "Filter companies" %}</label>
+      <input type="search" class="map-zlc-filter" id="tf-cfz-map-filter" placeholder="{% trans 'Filter companies…' %}" autocomplete="off">
+      <label class="map-zlc-verified-toggle">
+        <input type="checkbox" id="tf-cfz-verified-only">
+        {% trans "Verified only" %}
+      </label>
     </div>
-  </header>
-  <div class="map-zlc-frame">
+    <ul class="map-zlc-list" id="tf-cfz-map-list" role="list"></ul>
+  </aside>
+  <div class="map-zlc-mapcol">
     <div id="tf-cfz-map" role="application" aria-label="{% trans 'Interactive map of CFZ companies' %}"></div>
   </div>
   {{ map_payload|json_script:"tf-cfz-map-data" }}

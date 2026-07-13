@@ -748,7 +748,9 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   border: 2px solid #FF9A5C;
   border-radius: 24px;
   margin: 0;
-  box-shadow: 0 0 0 1px rgba(255, 154, 92, 0.25);
+  overflow: hidden;
+  align-items: stretch;
+  background: #fff;
 }
 
 .tf-nav-alibaba .tf-hdr-search:focus-within {
@@ -756,14 +758,26 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   box-shadow: 0 0 0 3px rgba(255, 122, 61, 0.22);
 }
 
+.tf-nav-alibaba .tf-hdr-search-input {
+  border-radius: 22px 0 0 22px;
+  background: #fff;
+}
+
+.tf-nav-alibaba .tf-hdr-search .tf-ai-search-wrap {
+  border-radius: 22px 0 0 22px;
+  background: #fff;
+}
+
 .tf-nav-alibaba .tf-hdr-search-btn {
-  margin: 2px 2px 2px 0;
-  border-radius: 20px;
+  margin: 0;
+  border-radius: 0 22px 22px 0;
   background: linear-gradient(135deg, #FF7A3D 0%, #FF9A5C 100%);
   color: #fff;
   border: none;
   padding: 0 18px;
-  box-shadow: 0 2px 8px rgba(255, 122, 61, 0.35);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
 }
 
 .tf-nav-alibaba .tf-hdr-search-btn:hover {
