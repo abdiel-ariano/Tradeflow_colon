@@ -92,14 +92,14 @@ Incluye: category_mega_menu.html (categorías reales, sin emojis).
           </button>
           {% include "core/includes/buyer/category_mega_menu.html" %}
         </div>
-        <a href="{% url 'catalogo_publico' %}?verificado=1">Fabricantes verificados</a>
-        <a href="{% url 'catalogo_publico' %}?orden=promo">Ofertas</a>
-        <a href="{% url 'acerca_tradeflow' %}">Protección del pedido</a>
-        <a href="{% url 'acerca_tradeflow' %}">Acerca de TradeFlow Colón</a>
+        <a href="{% url 'tienda' %}?verificado=1">Fabricantes verificados</a>
+        <a href="{% url 'tienda' %}?on_sale=1">Ofertas</a>
+        <a href="{% url 'mis_ordenes' %}">Mis órdenes</a>
+        <a href="{% url 'mis_cotizaciones' %}">Mis cotizaciones</a>
       </div>
       <div class="nav-secondary-right">
-        <a href="{% url 'acerca_tradeflow' %}">Centro de ayuda</a>
-        <a href="{% url 'signup_seller' %}">Vende en TradeFlow Colón</a>
+        <a href="mailto:{{ tradeflow_contact_email }}">Soporte</a>
+        <a href="{% url 'mi_perfil' %}">Mi cuenta</a>
       </div>
     </div>
   </nav>

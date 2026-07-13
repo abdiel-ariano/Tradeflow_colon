@@ -4843,8 +4843,25 @@ def legal_terminos(request):
     return render(request, 'core/legal_terminos.html')
 
 
+def _redirect_authenticated_buyer_from_marketing(request):
+    """Marketing pages (About / Verified / Protection) are for guests only."""
+    if not request.user.is_authenticated:
+        return None
+    try:
+        role = request.user.profile.role
+    except Exception:
+        return None
+    if role == 'buyer':
+        return redirect('tienda')
+    return None
+
+
 def acerca_tradeflow(request):
     """About TradeFlow — brand story, ZLC, buyer/seller programs (Alibaba-style)."""
+    blocked = _redirect_authenticated_buyer_from_marketing(request)
+    if blocked:
+        return blocked
+
     from core.merchandising import home_stats_uncached
 
     stats = home_stats_uncached()
@@ -4874,6 +4891,10 @@ def _marketplace_page_context(request):
 @catalog_access
 def marketplace_verified_suppliers(request):
     """Dedicated page — CFZ verified supplier directory."""
+    blocked = _redirect_authenticated_buyer_from_marketing(request)
+    if blocked:
+        return blocked
+
     from django.db.models import Count, Q
 
     from core import merchandising as merch
@@ -4922,6 +4943,10 @@ def marketplace_deals(request):
 @catalog_access
 def marketplace_order_protection(request):
     """Dedicated page — RFQ workflow and buyer protection program."""
+    blocked = _redirect_authenticated_buyer_from_marketing(request)
+    if blocked:
+        return blocked
+
     from core import merchandising as merch
 
     ctx = _marketplace_page_context(request)

@@ -106,15 +106,22 @@
       <div class="nav-secondary-left">
         <button type="button" class="btn-all-categories" data-cat-modal-open data-cat-panel="discover">☰ All categories</button>
         <a href="{% url 'home' %}"{% if marketplace_nav_active == 'home' %} class="is-active" aria-current="page"{% endif %}>Home</a>
-        <a href="{% url 'catalogo_publico' %}"{% if marketplace_nav_active == 'catalog' %} class="is-active" aria-current="page"{% endif %}>Catalog</a>
+        <a href="{% url catalog_url_name|default:'catalogo_publico' %}"{% if marketplace_nav_active == 'catalog' %} class="is-active" aria-current="page"{% endif %}>Catalog</a>
         <a href="{% url 'marketplace_deals' %}"{% if marketplace_nav_active == 'deals' %} class="is-active" aria-current="page"{% endif %}>Deals</a>
+        {% if not request.user.is_authenticated %}
         <a href="{% url 'marketplace_verified_suppliers' %}"{% if marketplace_nav_active == 'verified' %} class="is-active" aria-current="page"{% endif %}>Verified suppliers</a>
         <a href="{% url 'marketplace_order_protection' %}"{% if marketplace_nav_active == 'protection' %} class="is-active" aria-current="page"{% endif %}>Order protection</a>
         <a href="{% url 'acerca_tradeflow' %}"{% if marketplace_nav_active == 'about' %} class="is-active" aria-current="page"{% endif %}>About TradeFlow</a>
+        {% endif %}
       </div>
       <div class="nav-secondary-right">
+        {% if not request.user.is_authenticated %}
         <a href="{% url 'acerca_tradeflow' %}">Help center</a>
         <a href="{% url 'signup_seller' %}">Sell on TradeFlow</a>
+        {% else %}
+        <a href="{% url 'mis_ordenes' %}">My orders</a>
+        <a href="{% url 'mi_perfil' %}">My account</a>
+        {% endif %}
       </div>
     </div>
   </nav>

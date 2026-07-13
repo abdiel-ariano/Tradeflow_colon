@@ -1,5 +1,33 @@
 <footer class="site-footer cat-site-footer" role="contentinfo">
   <div class="footer-inner">
+    {% if request.user.is_authenticated %}
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h4>Catalog</h4>
+        <ul>
+          <li><a href="{% url 'tienda' %}">Browse store</a></li>
+          <li><a href="{% url 'tienda' %}?verificado=1">Verified companies</a></li>
+          <li><a href="{% url 'tienda' %}?on_sale=1">Deals</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Buying</h4>
+        <ul>
+          <li><a href="{% url 'mis_ordenes' %}">My orders</a></li>
+          <li><a href="{% url 'mis_cotizaciones' %}">My quotes</a></li>
+          <li><a href="{% url 'ver_carrito' %}">Inquiry cart</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="{% url 'mi_perfil' %}">My profile</a></li>
+          <li><a href="mailto:{{ tradeflow_contact_email }}">Contact support</a></li>
+          <li><a href="{% url 'legal_terminos' %}">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    {% else %}
     <div class="footer-cols">
       <div class="footer-col">
         <h4>About TradeFlow</h4>
@@ -36,6 +64,7 @@
         </ul>
       </div>
     </div>
+    {% endif %}
     <div class="footer-payments">
       <span class="footer-payments-label">We accept:</span>
       <span class="payment-chip">Visa</span>
