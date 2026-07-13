@@ -391,3 +391,11 @@ body.cat-catalog-page .tf-main,
     max-width: none;
   }
 }
+
+.nav-label-short { display: none; }
+.nav-label-full { display: inline; }
+
+@media (max-width: 767px) {
+  .nav-label-short { display: inline; }
+  .nav-label-full { display: none; }
+}
