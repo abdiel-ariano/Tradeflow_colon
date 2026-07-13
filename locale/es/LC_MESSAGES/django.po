@@ -3810,3 +3810,147 @@ msgstr "Confirmar transportista"
 
 #~ msgid "We could not send the email. Try again in a moment."
 #~ msgstr "No pudimos enviar el correo. Intenta de nuevo en un momento."
+
+#: auth pages (login/recover/signup)
+msgid "Sign in — TradeFlow Colón"
+msgstr "Iniciar sesión — TradeFlow Colón"
+
+#: auth pages (login/recover/signup)
+msgid "Email verification disabled for local testing."
+msgstr "Verificación de correo desactivada para pruebas locales."
+
+#: auth pages (login/recover/signup)
+msgid "Sign in to your account"
+msgstr "Iniciar sesión en tu cuenta"
+
+#: auth pages (login/recover/signup)
+msgid "Email"
+msgstr "Correo electrónico"
+
+#: auth pages (login/recover/signup)
+msgid "you@example.com"
+msgstr "tu_correo@ejemplo.com"
+
+#: auth pages (login/recover/signup)
+msgid "Password"
+msgstr "Contraseña"
+
+#: auth pages (login/recover/signup)
+msgid "Forgot your password?"
+msgstr "¿No recuerdas la contraseña?"
+
+#: auth pages (login/recover/signup)
+msgid "Remember me on this device"
+msgstr "Recuérdame en este dispositivo"
+
+#: auth pages (login/recover/signup)
+msgid "Didn't receive the verification email?"
+msgstr "¿No recibiste el correo de verificación?"
+
+#: auth pages (login/recover/signup)
+msgid "Resend verification email"
+msgstr "Reenviar correo de verificación"
+
+#: auth pages (login/recover/signup)
+msgid "New to TradeFlow Colón?"
+msgstr "¿Eres nuevo en TradeFlow Colón?"
+
+#: auth pages (login/recover/signup)
+msgid "Create an account"
+msgstr "Crea una cuenta"
+
+#: auth pages (login/recover/signup)
+msgid "Privacy and terms"
+msgstr "Privacidad y condiciones"
+
+#: auth pages (login/recover/signup)
+msgid "Recover access — TradeFlow Colón"
+msgstr "Recuperar acceso — TradeFlow Colón"
+
+#: auth pages (login/recover/signup)
+msgid "Recover access"
+msgstr "Recuperar acceso"
+
+#: auth pages (login/recover/signup)
+msgid "We will send a secure link to your email."
+msgstr "Te enviaremos un enlace seguro a tu correo."
+
+#: auth pages (login/recover/signup)
+msgid "you@company.com"
+msgstr "tu_correo@empresa.com"
+
+#: auth pages (login/recover/signup)
+msgid "Send link"
+msgstr "Enviar enlace"
+
+#: auth pages (login/recover/signup)
+msgid "Back to sign in"
+msgstr "Volver a iniciar sesión"
+
+#: auth pages (login/recover/signup)
+msgid "Create account — TradeFlow Colón"
+msgstr "Crear cuenta — TradeFlow Colón"
+
+#: auth pages (login/recover/signup)
+msgid "Start buying on TradeFlow"
+msgstr "Empieza a comprar en TradeFlow"
+
+#: auth pages (login/recover/signup)
+msgid "Join for free in under 2 minutes."
+msgstr "Únete gratis en menos de 2 minutos."
+
+#: auth pages (login/recover/signup)
+msgid "Register your company on TradeFlow"
+msgstr "Registra tu empresa en TradeFlow"
+
+#: auth pages (login/recover/signup)
+msgid "First name"
+msgstr "Nombre"
+
+#: auth pages (login/recover/signup)
+msgid "Letters and spaces only (min. 2 characters)."
+msgstr "Solo letras y espacios (mín. 2 caracteres)."
+
+#: auth pages (login/recover/signup)
+msgid "Last name"
+msgstr "Apellido"
+
+#: auth pages (login/recover/signup)
+msgid "Phone"
+msgstr "Teléfono"
+
+#: auth pages (login/recover/signup)
+msgid "Username"
+msgstr "Usuario"
+
+#: auth pages (login/recover/signup)
+msgid "Letters, numbers, dots and underscores. Must start with a letter (3–30 characters)."
+msgstr "Letras, números, puntos y guiones bajos. Debe empezar con letra (3–30 caracteres)."
+
+#: auth pages (login/recover/signup)
+msgid "Confirm password"
+msgstr "Confirmar contraseña"
+
+#: auth pages (login/recover/signup)
+msgid "By selecting <strong>Create account</strong>, you accept our"
+msgstr "Al seleccionar <strong>Crear cuenta</strong>, aceptas nuestros"
+
+#: auth pages (login/recover/signup)
+msgid "Terms and privacy"
+msgstr "Términos y privacidad"
+
+#: auth pages (login/recover/signup)
+msgid "We will email you to verify your account."
+msgstr "Te enviaremos un correo para verificar tu cuenta."
+
+#: auth pages (login/recover/signup)
+msgid "Already have an account?"
+msgstr "¿Ya tienes cuenta?"
+
+#: auth pages (login/recover/signup)
+msgid "Or sign in with"
+msgstr "O iniciar sesión con"
+
+#: auth pages (login/recover/signup)
+msgid "Sign in with social account"
+msgstr "Iniciar sesión con cuenta social"
