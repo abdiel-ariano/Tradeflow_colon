@@ -2253,6 +2253,15 @@ def seller_plan_checkout_pay(request, plan_slug: str):
             else:
                 messages.error(request, _('Payment could not be completed.'))
             return redirect('seller_plan_checkout', plan_slug=plan_slug)
+        except Exception:
+            import logging
+            logging.getLogger('tradeflow.saas').exception(
+                'seller_plan_checkout_mock_unhandled company_id=%s plan=%s',
+                getattr(company, 'pk', None),
+                plan_slug,
+            )
+            messages.error(request, _('Payment could not be completed.'))
+            return redirect('seller_plan_checkout', plan_slug=plan_slug)
         messages.success(
             request,
             _('Payment confirmed. Plan %(name)s is active on your account.')
@@ -2275,10 +2284,30 @@ def seller_plan_checkout_pay(request, plan_slug: str):
         code = str(exc)
         if code == 'transfer_reference_required':
             messages.error(request, _('Enter your bank transfer reference (min. 4 characters).'))
+        elif code == 'proof_too_large':
+            messages.error(request, _('Proof file is too large (max 5 MB). Submit without it or use a smaller file.'))
+        elif code == 'bank_transfer_save_failed':
+            messages.error(
+                request,
+                _('Could not save transfer details. Confirm the reference and try again '
+                  '(you can skip the proof file).'),
+            )
         elif 'below_recommended' in code:
             messages.error(request, _('Payment rejected: plan below your recommended tier.'))
         else:
             messages.error(request, _('Could not submit bank transfer details.'))
+        return redirect('seller_plan_checkout', plan_slug=plan_slug)
+    except Exception:
+        import logging
+        logging.getLogger('tradeflow.saas').exception(
+            'seller_plan_checkout_pay_unhandled company_id=%s plan=%s',
+            getattr(company, 'pk', None),
+            plan_slug,
+        )
+        messages.error(
+            request,
+            _('Could not submit bank transfer details. Please try again or contact support.'),
+        )
         return redirect('seller_plan_checkout', plan_slug=plan_slug)
 
     messages.success(
