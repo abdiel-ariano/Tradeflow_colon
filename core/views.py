@@ -1138,6 +1138,10 @@ def _cfz_map_marker_payload(request) -> dict:
             'pending': _('Pending verification'),
             'products': _('products'),
             'view_catalog': _('View catalog'),
+            'filter_placeholder': _('Filter companies…'),
+            'verified_only': _('Verified only'),
+            'companies_count': _('%(count)s companies on map'),
+            'no_results': _('No companies match your filter'),
         },
     }
 

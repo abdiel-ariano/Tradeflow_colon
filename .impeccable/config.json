@@ -11,6 +11,8 @@
     "ignoreFiles": [
       "static/css/catalog*.css",
       "static/css/tf-ai-search.css",
+      "static/css/tf-buyer-shell.css",
+      "static/css/tf-cfz-map.css",
       "static/css/home-alibaba.css",
       "templates/core/base.html",
       "templates/core/checkout.html",

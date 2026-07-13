@@ -21,6 +21,11 @@
 /* Dropdown must escape rounded shells; connected mode flattens the bar bottom. */
 .search-bar,
 .tf-hdr-search {
+  overflow: hidden;
+}
+
+.search-bar.is-suggesting,
+.tf-hdr-search.is-suggesting {
   overflow: visible !important;
 }
 
