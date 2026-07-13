@@ -22,6 +22,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
 from . import views
+from . import views_password_reset
 from . import views_seller_pages
 from . import views_social
 from . import views_onboarding as onboarding
@@ -49,13 +50,7 @@ urlpatterns = [
     path('login/',   views.login_view,  name='login'),
     path(
         'recuperar-clave/',
-        auth_views.PasswordResetView.as_view(
-            template_name='registration/password_reset_form.html',
-            email_template_name='registration/password_reset_email.html',
-            html_email_template_name='registration/password_reset_email_html.html',
-            subject_template_name='registration/password_reset_subject.txt',
-            success_url='/recuperar-clave/enviado/',
-        ),
+        views_password_reset.TradeFlowPasswordResetView.as_view(),
         name='password_reset',
     ),
     path(
@@ -67,10 +62,7 @@ urlpatterns = [
     ),
     path(
         'recuperar-clave/confirmar/<uidb64>/<token>/',
-        auth_views.PasswordResetConfirmView.as_view(
-            template_name='registration/password_reset_confirm.html',
-            success_url='/recuperar-clave/completo/',
-        ),
+        views_password_reset.TradeFlowPasswordResetConfirmView.as_view(),
         name='password_reset_confirm',
     ),
     path(
