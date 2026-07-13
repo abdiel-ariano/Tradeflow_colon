@@ -170,10 +170,16 @@ def start_seller_trial(company: Company) -> CompanySubscription:
         CompanySubscription: Registro con ``status=trialing``, ``auto_renew=False``.
 
     Raises:
-        ValueError: Si la empresa ya tiene suscripción no cancelada incompatible.
+        ValueError: Si no existen planes SaaS sembrables.
+        DatabaseError: Si la migración de lifecycle no está aplicada en la BD.
     """
     ensure_default_plans()
-    digitalizate = SaasPlan.objects.get(slug=PLAN_SLUG_DIGITALIZATE)
+    try:
+        digitalizate = SaasPlan.objects.get(slug=PLAN_SLUG_DIGITALIZATE)
+    except SaasPlan.DoesNotExist as exc:
+        log.error('start_seller_trial_missing_plan company_id=%s', company.pk)
+        raise ValueError('saas_plan_digitalizate_missing') from exc
+
     now = timezone.now()
     trial_end = now + timedelta(days=seller_trial_days())
 

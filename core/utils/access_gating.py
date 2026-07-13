@@ -179,10 +179,12 @@ def is_browse_path(path: str) -> bool:
 
 def seller_company_pending(user) -> bool:
     """
-    True si el vendedor autenticado aún no tiene empresa vinculada (owner).
+    True si el vendedor autenticado aún no puede operar el portal.
 
-    Tras signup + OTP, debe completar el wizard en /onboarding/vendedor/
-    antes de acceder a /mi-tienda/.
+    Casos:
+    - Sin ``Company.owner`` → debe completar el wizard.
+    - Con empresa pero **sin** ``CompanySubscription`` (p. ej. fallo a mitad
+      del POST / migrate incompleto) → debe reintentar el wizard o arrancar trial.
     """
     if not user or not user.is_authenticated or user_is_platform_exempt(user):
         return False
@@ -194,9 +196,17 @@ def seller_company_pending(user) -> bool:
         return False
     if email_verification_required(user):
         return False
+    from core.enterprise_models import CompanySubscription
     from core.models import Company
 
-    return not Company.objects.filter(owner=user).exists()
+    company = Company.objects.filter(owner=user).first()
+    if not company:
+        return True
+    try:
+        company.subscription
+    except CompanySubscription.DoesNotExist:
+        return True
+    return False
 
 
 def seller_onboarding_redirect_name(user) -> str | None:
