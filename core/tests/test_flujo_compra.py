@@ -90,6 +90,7 @@ class TestFlujoBuyer(TestCase):
             password='TestPass123!',
         )
         UserProfile.objects.create(user=self.seller_user, role='seller', email_verificado=True)
+        # Seller sin empresa → wizard. Seller con empresa+trial → portal (tests abajo).
 
         self.admin_user = User.objects.create_user(
             username='admin_test',
@@ -213,8 +214,25 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 302)
         self.assertIn('/catalogo/', r.url)
 
-    def test_login_redirige_seller_a_portal(self):
-        """Tras login sin ?next=, el seller va directo a /mi-tienda/."""
+    def test_login_redirige_seller_sin_empresa_a_wizard(self):
+        """Tras login, seller sin Company.owner va al wizard de empresa (no al portal)."""
+        r = self.client.post(
+            '/login/',
+            {'username': 'seller_test', 'password': 'TestPass123!'},
+        )
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('/onboarding/vendedor/', r.url)
+
+    def test_login_redirige_seller_con_empresa_a_portal(self):
+        """Tras login, seller con empresa y trial activo va a /mi-tienda/."""
+        from core.utils.seller_lifecycle import start_seller_trial
+
+        company = Company.objects.create(
+            name='Seller Test Co',
+            ruc='8-ST-1',
+            owner=self.seller_user,
+        )
+        start_seller_trial(company)
         r = self.client.post(
             '/login/',
             {'username': 'seller_test', 'password': 'TestPass123!'},
@@ -222,12 +240,12 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 302)
         self.assertIn('/mi-tienda/', r.url)
 
-    def test_home_redirige_seller_a_portal(self):
-        """Un seller autenticado en / no debe ver la landing del marketplace."""
+    def test_home_redirige_seller_sin_empresa_a_wizard(self):
+        """Un seller sin empresa en / no ve la landing; va al wizard."""
         self.client.login(username='seller_test', password='TestPass123!')
         r = self.client.get('/')
         self.assertEqual(r.status_code, 302)
-        self.assertIn('/mi-tienda/', r.url)
+        self.assertIn('/onboarding/vendedor/', r.url)
 
     def test_checkout_spanish_ui(self):
         """Checkout page renders Spanish copy after language switch."""

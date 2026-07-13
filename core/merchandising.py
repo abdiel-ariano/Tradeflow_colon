@@ -60,9 +60,17 @@ def _sort_products_by_image_priority(products: list) -> list:
 
 
 def active_products_base():
-    """QuerySet base de productos activos con relaciones."""
+    """
+    QuerySet base de productos activos con relaciones.
+
+    Excluye productos de empresas en baja media (subscription cancelled) o sin
+    suscripción marketplace-visible. Ver ``company_marketplace_visible``.
+    """
+    from core.utils.seller_lifecycle import marketplace_active_company_ids
+
+    visible_ids = marketplace_active_company_ids()
     return (
-        Product.objects.filter(is_active=True)
+        Product.objects.filter(is_active=True, company_id__in=visible_ids)
         .select_related('company', 'category', 'inventory')
         .defer('company__owner')
     )

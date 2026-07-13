@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from core.models import Company, UserProfile
-from core.utils.saas_billing import ensure_default_plans, get_or_create_subscription, subscription_usage_snapshot
+from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscription, subscription_usage_snapshot
 
 
 class SellerFlowStepsTests(TestCase):
@@ -13,7 +13,7 @@ class SellerFlowStepsTests(TestCase):
         user = User.objects.create_user('f1', password='x')
         UserProfile.objects.create(user=user, role='seller')
         company = Company.objects.create(name='Flow Co', owner=user)
-        get_or_create_subscription(company)
+        ensure_demo_subscription(company)
         snap = subscription_usage_snapshot(company)
         self.assertIn('flow_steps', snap)
         self.assertGreaterEqual(len(snap['flow_steps']), 3)

@@ -52,7 +52,7 @@ from core.utils.product_seed_naming import build_seed_product_name
 from core.utils.product_stock_seed import realistic_stock_qty
 from core.utils.ads_ranking import ensure_ad_credits
 from core.utils.predictive_insights import get_predictive_dashboard
-from core.utils.saas_billing import get_or_create_subscription, refresh_billing_usage
+from core.utils.saas_billing import ensure_demo_subscription, refresh_billing_usage
 from core.utils.saas_platform import bootstrap_saas_datastore
 
 log = logging.getLogger('tradeflow.platform')
@@ -637,7 +637,7 @@ def run_enterprise_year_seed(
         # SaaS: solo empresas simuladas (no toca otras empresas en la misma BD)
         seeded_subs = 0
         for co in companies:
-            sub = get_or_create_subscription(co)
+            sub = ensure_demo_subscription(co)
             ensure_ad_credits(co, sub.plan.ad_credits_monthly)
             seeded_subs += 1
         logmsg(f'[saas] subscriptions ensured for {seeded_subs} simulated companies')

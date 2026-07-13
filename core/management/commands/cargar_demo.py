@@ -355,6 +355,10 @@ class Command(BaseCommand):
                 )
             else:
                 self.stdout.write(f'  {techzone.name} — ya vinculada a demo_seller')
+            from core.utils.saas_billing import ensure_demo_subscription
+
+            ensure_demo_subscription(techzone, status='active', plan_slug='digitalizate')
+            self.stdout.write('  Suscripción demo_seller → active (Digitalízate)')
         else:
             self.stdout.write(
                 self.style.WARNING('  No se pudo vincular demo_seller (usuario o empresa ausente).')

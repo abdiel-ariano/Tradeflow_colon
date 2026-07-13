@@ -171,7 +171,14 @@ def buyer_required(view_func):
 
 
 def seller_required(view_func):
-    """Solo vendedores. Buyers son redirigidos a la tienda."""
+    """
+    Solo vendedores con empresa y suscripción válida.
+
+    Cadena de gates (en orden):
+    1. Login + OTP + onboarding global (access_gating).
+    2. Wizard empresa si falta Company.owner.
+    3. Estado de suscripción (trial/gracia/cancelled) vía seller_portal_access.
+    """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         """Wrapper."""
@@ -181,12 +188,31 @@ def seller_required(view_func):
         if blocked:
             return blocked
         role = _get_role(request.user)
-        if role == 'seller':
-            return view_func(request, *args, **kwargs)
         if role == 'admin' or request.user.is_superuser:
             return view_func(request, *args, **kwargs)
-        messages.error(request, 'This section is for sellers only.')
-        return redirect('catalogo_publico')
+        if role != 'seller':
+            messages.error(request, 'This section is for sellers only.')
+            return redirect('catalogo_publico')
+
+        from core.models import Company
+        from core.utils.seller_lifecycle import seller_portal_access
+
+        company = Company.objects.filter(owner=request.user).first()
+        route_name = request.resolver_match.url_name if request.resolver_match else ''
+        portal_block = seller_portal_access(company, route_name=route_name)
+        if portal_block:
+            if portal_block == 'seller_onboarding_company':
+                messages.info(request, 'Completa los datos de tu empresa para continuar.')
+            elif portal_block == 'seller_trial_activation':
+                messages.warning(
+                    request,
+                    'Tu periodo de prueba terminó. Activa un plan para seguir operando.',
+                )
+            elif portal_block == 'seller_account_inactive':
+                messages.error(request, 'Tu cuenta seller está inactiva.')
+            return redirect(portal_block)
+
+        return view_func(request, *args, **kwargs)
     return wrapper
 
 

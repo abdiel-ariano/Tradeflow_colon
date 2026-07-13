@@ -376,6 +376,12 @@ REQUIRE_EMAIL_VERIFICATION = config(
     cast=bool,
 )
 
+# ── Seller SaaS trial lifecycle ─────────────────────────────────────────────
+# Duración del trial gratuito Digitalízate y gracia post-trial antes de baja media.
+# Ver core/utils/seller_lifecycle.py para la máquina de estados completa.
+SELLER_TRIAL_DAYS = config('SELLER_TRIAL_DAYS', default=30, cast=int)
+SELLER_GRACE_DAYS = config('SELLER_GRACE_DAYS', default=7, cast=int)
+
 # Solicitud de acceso: en producción exige UserApplication aprobada para rutas operativas.
 REQUIRE_APPROVED_APPLICATION = config(
     'REQUIRE_APPROVED_APPLICATION',

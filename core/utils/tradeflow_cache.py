@@ -143,8 +143,12 @@ def cached_catalog_empresas() -> list:
     from core.models import Company
 
     def _load():
+        from core.utils.seller_lifecycle import marketplace_active_company_ids
+
+        visible_ids = marketplace_active_company_ids()
         return list(
-            Company.objects.annotate(
+            Company.objects.filter(pk__in=visible_ids)
+            .annotate(
                 num_productos=Count('products', filter=Q(products__is_active=True)),
             )
             .filter(num_productos__gt=0)
