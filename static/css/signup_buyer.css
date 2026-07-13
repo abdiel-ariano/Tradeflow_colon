@@ -110,23 +110,6 @@ main.tf-main > .signup-buyer-page {
   object-position: center;
 }
 
-/* /signup/vendedor/ — banner lateral un poco más ancho y más bajo */
-#signup-seller-root .signup-buyer-hero {
-  flex: 0 0 52%;
-  max-width: 780px;
-  min-height: 0;
-  align-self: stretch;
-  max-height: min(640px, calc(100vh - 120px));
-}
-
-#signup-seller-root .signup-buyer-hero__img {
-  min-height: 0;
-  height: 100%;
-  max-height: min(640px, calc(100vh - 120px));
-  object-fit: cover;
-  object-position: center top;
-}
-
 .signup-buyer-form-col {
   flex: 1;
   display: flex;
@@ -497,15 +480,6 @@ main.tf-main > .signup-buyer-page {
 
   .signup-buyer-hero {
     flex: 0 0 40%;
-  }
-
-  #signup-seller-root .signup-buyer-hero {
-    flex: 0 0 46%;
-    max-height: min(520px, calc(100vh - 100px));
-  }
-
-  #signup-seller-root .signup-buyer-hero__img {
-    max-height: min(520px, calc(100vh - 100px));
   }
 }
 
