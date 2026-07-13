@@ -4,150 +4,121 @@
 {% block meta_description %}TradeFlow buyer protection: request for quotation workflows, verified CFZ suppliers, secure B2B checkout, and export-ready documentation for wholesale buyers.{% endblock %}
 
 {% block marketplace_extra_head %}
-<link rel="stylesheet" href="{% static 'css/marketplace-protection.css' %}?v={{ tf_asset_version|default:'1' }}">
+<link rel="stylesheet" href="{% static 'css/marketplace-verified.css' %}?v={{ tf_asset_version|default:'1' }}">
+<link rel="stylesheet" href="{% static 'css/marketplace-protection.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
 {% block marketplace_main %}
-<div class="mkt-page-stack mkt-page-stack--protection">
+<div class="mkt-page-stack mkt-page-stack--verified mkt-page-stack--protection">
 
-  <header class="op-hero" aria-labelledby="mkt-protection-title">
-    <div class="op-hero__field" aria-hidden="true">
-      <span class="op-hero__stamp"></span>
-      <span class="op-hero__rail"></span>
-      <span class="op-hero__dots"></span>
+  <header class="mkt-verified-hero mkt-protection-hero" aria-labelledby="mkt-protection-title">
+    <div class="mkt-verified-hero__atmosphere" aria-hidden="true">
+      <span class="mkt-verified-hero__glow mkt-verified-hero__glow--orange"></span>
+      <span class="mkt-verified-hero__glow mkt-verified-hero__glow--blue"></span>
+      <span class="mkt-verified-hero__grid"></span>
+      <span class="mkt-verified-hero__beam"></span>
     </div>
 
-    <div class="op-hero__layout">
-      <div class="op-hero__copy">
-        <p class="op-hero__brand">
-          <span class="op-hero__brand-mark">TradeFlow</span>
-          <span class="op-hero__brand-accent">Colón</span>
-        </p>
-        <p class="op-hero__kicker">Buyer protection · RFQ bond</p>
-        <h1 class="op-hero__title" id="mkt-protection-title">Quote first. Commit when terms are clear.</h1>
-        <p class="op-hero__lead">
-          Order protection on TradeFlow is a structured path from inquiry to export docs —
-          not a checkbox. You negotiate with CFZ-verified suppliers before money moves.
-        </p>
-        <div class="op-hero__actions">
-          <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--primary">Create buyer account</a>
-          <a href="{% url 'catalogo_publico' %}" class="mkt-btn op-btn--outline">Browse catalog</a>
-        </div>
+    <div class="mkt-verified-hero__content">
+      <p class="mkt-verified-hero__brand">
+        <span class="mkt-verified-hero__brand-mark">TradeFlow</span>
+        <span class="mkt-verified-hero__brand-accent">Colón</span>
+      </p>
+      <p class="mkt-verified-hero__kicker">Buyer protection · Colón Free Zone</p>
+      <h1 class="mkt-verified-hero__title" id="mkt-protection-title">Order protection for wholesale buyers</h1>
+      <p class="mkt-verified-hero__lead">
+        Quote before you commit. RFQ workflows, verified suppliers, and export-ready documentation —
+        built for international trade from the Free Zone.
+      </p>
+      <div class="mkt-verified-hero__actions">
+        <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--primary mkt-btn--on-dark">Create buyer account</a>
+        <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--ghost mkt-btn--on-dark">Browse catalog</a>
       </div>
-
-      <aside class="op-bond" aria-label="Protection bond summary">
-        <p class="op-bond__eyebrow">Instrument</p>
-        <p class="op-bond__serial">TF-OP · CFZ</p>
-        <h2 class="op-bond__title">Wholesale order protection</h2>
-        <ul class="op-bond__list">
-          <li>
-            <span class="op-bond__icon">{% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}</span>
-            <span>CFZ RUC-checked suppliers only</span>
-          </li>
-          <li>
-            <span class="op-bond__icon">{% include "core/includes/tf_icon.html" with name="description" class="tf-icon--sm" %}</span>
-            <span>Formal RFQ before purchase</span>
-          </li>
-          <li>
-            <span class="op-bond__icon">{% include "core/includes/tf_icon.html" with name="lock" class="tf-icon--sm" %}</span>
-            <span>Secure B2B checkout</span>
-          </li>
-          <li>
-            <span class="op-bond__icon">{% include "core/includes/tf_icon.html" with name="local_shipping" class="tf-icon--sm" %}</span>
-            <span>Invoice &amp; packing list support</span>
-          </li>
-        </ul>
-        <p class="op-bond__seal">Protected sourcing · Colón Free Zone</p>
-      </aside>
     </div>
   </header>
 
-  <section class="op-flow" aria-labelledby="op-flow-title">
-    <header class="op-section-head">
-      <p class="op-section-head__kicker">Process rail</p>
-      <h2 class="op-section-head__title" id="op-flow-title">How protection runs on every order</h2>
-      <p class="op-section-head__sub">Four checkpoints from discovery to export paperwork — built for importers and wholesale buyers.</p>
-    </header>
+  <section class="mkt-verified-trust" aria-label="Protection highlights">
+    <ul class="mkt-verified-trust__list">
+      <li class="mkt-verified-trust__item">
+        <span class="mkt-verified-trust__icon" aria-hidden="true">{% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}</span>
+        <span><strong>Verified suppliers</strong> CFZ RUC-checked companies only</span>
+      </li>
+      <li class="mkt-verified-trust__item">
+        <span class="mkt-verified-trust__icon" aria-hidden="true">{% include "core/includes/tf_icon.html" with name="description" class="tf-icon--sm" %}</span>
+        <span><strong>Request for Quotation</strong> Negotiate terms before you buy</span>
+      </li>
+      <li class="mkt-verified-trust__item">
+        <span class="mkt-verified-trust__icon" aria-hidden="true">{% include "core/includes/tf_icon.html" with name="lock" class="tf-icon--sm" %}</span>
+        <span><strong>Secure checkout</strong> Export docs on confirmed orders</span>
+      </li>
+    </ul>
+  </section>
 
-    <ol class="op-rail">
-      <li class="op-rail__item">
-        <span class="op-rail__marker" aria-hidden="true">01</span>
-        <div class="op-rail__body">
-          <h3 class="op-rail__title">Browse verified inventory</h3>
-          <p class="op-rail__text">Explore live SKUs with MOQ and CFZ verification. No account required to start researching.</p>
-        </div>
+  <section class="mkt-panel" aria-labelledby="mkt-protection-steps-title">
+    <header class="mkt-panel__head">
+      <div>
+        <h2 class="mkt-panel__title" id="mkt-protection-steps-title">How buyer protection works</h2>
+        <p class="mkt-panel__sub">From discovery to delivery — designed for importers and wholesale buyers</p>
+      </div>
+    </header>
+    <ol class="mkt-steps mkt-steps--protection">
+      <li class="mkt-step">
+        <span class="mkt-step__num" aria-hidden="true">1</span>
+        <h3 class="mkt-step__title">Browse verified inventory</h3>
+        <p class="mkt-step__text">Explore live products with MOQ and CFZ verification — no account required to start.</p>
       </li>
-      <li class="op-rail__item">
-        <span class="op-rail__marker" aria-hidden="true">02</span>
-        <div class="op-rail__body">
-          <h3 class="op-rail__title">Build an inquiry cart</h3>
-          <p class="op-rail__text">Collect products across suppliers and open a structured request for quotation.</p>
-        </div>
+      <li class="mkt-step">
+        <span class="mkt-step__num" aria-hidden="true">2</span>
+        <h3 class="mkt-step__title">Build an inquiry cart</h3>
+        <p class="mkt-step__text">Add products from multiple suppliers and request formal quotations.</p>
       </li>
-      <li class="op-rail__item">
-        <span class="op-rail__marker" aria-hidden="true">03</span>
-        <div class="op-rail__body">
-          <h3 class="op-rail__title">Review quotes &amp; terms</h3>
-          <p class="op-rail__text">Compare price, lead time, and documentation needs before you approve anything.</p>
-        </div>
+      <li class="mkt-step">
+        <span class="mkt-step__num" aria-hidden="true">3</span>
+        <h3 class="mkt-step__title">Review quotes &amp; terms</h3>
+        <p class="mkt-step__text">Compare responses, lead times, and documentation before approving.</p>
       </li>
-      <li class="op-rail__item">
-        <span class="op-rail__marker" aria-hidden="true">04</span>
-        <div class="op-rail__body">
-          <h3 class="op-rail__title">Checkout with export docs</h3>
-          <p class="op-rail__text">Confirmed orders carry invoice and packing-list support for international trade.</p>
-        </div>
+      <li class="mkt-step">
+        <span class="mkt-step__num" aria-hidden="true">4</span>
+        <h3 class="mkt-step__title">Checkout with docs</h3>
+        <p class="mkt-step__text">Confirmed orders include invoice and packing list support for export.</p>
       </li>
     </ol>
   </section>
 
-  <section class="op-ledger" aria-labelledby="op-ledger-title">
-    <header class="op-section-head op-section-head--on-ledger">
-      <p class="op-section-head__kicker">Coverage ledger</p>
-      <h2 class="op-section-head__title" id="op-ledger-title">What TradeFlow stands behind</h2>
+  <section class="mkt-panel" aria-labelledby="mkt-protection-coverage-title">
+    <header class="mkt-panel__head">
+      <div>
+        <h2 class="mkt-panel__title" id="mkt-protection-coverage-title">What is covered</h2>
+        <p class="mkt-panel__sub">The safeguards behind every TradeFlow wholesale order</p>
+      </div>
     </header>
-
-    <div class="op-ledger__sheet" role="list">
-      <article class="op-ledger__row" role="listitem">
-        <span class="op-ledger__code">A1</span>
-        <div class="op-ledger__copy">
-          <h3 class="op-ledger__title">Supplier verification</h3>
-          <p class="op-ledger__text">CFZ status, RUC, and live catalog depth on every company storefront.</p>
-        </div>
+    <div class="mkt-feature-grid">
+      <article class="mkt-feature">
+        <h3 class="mkt-feature__title">Supplier verification</h3>
+        <p class="mkt-feature__text">CFZ status, RUC, and live catalog depth on every company profile.</p>
       </article>
-      <article class="op-ledger__row" role="listitem">
-        <span class="op-ledger__code">A2</span>
-        <div class="op-ledger__copy">
-          <h3 class="op-ledger__title">Quote-first workflow</h3>
-          <p class="op-ledger__text">Negotiate volume, shipping, and payment terms before funds move.</p>
-        </div>
+      <article class="mkt-feature">
+        <h3 class="mkt-feature__title">Quote-first workflow</h3>
+        <p class="mkt-feature__text">Negotiate volume, shipping, and payment terms before funds move.</p>
       </article>
-      <article class="op-ledger__row" role="listitem">
-        <span class="op-ledger__code">A3</span>
-        <div class="op-ledger__copy">
-          <h3 class="op-ledger__title">Order transparency</h3>
-          <p class="op-ledger__text">Track seller confirmation, status, and logistics from your buyer account.</p>
-        </div>
+      <article class="mkt-feature">
+        <h3 class="mkt-feature__title">Order transparency</h3>
+        <p class="mkt-feature__text">Track status, seller confirmation, and logistics from your account.</p>
       </article>
-      <article class="op-ledger__row" role="listitem">
-        <span class="op-ledger__code">A4</span>
-        <div class="op-ledger__copy">
-          <h3 class="op-ledger__title">Dispute &amp; support</h3>
-          <p class="op-ledger__text">Escalate order issues to TradeFlow. Full policies live in the legal center.</p>
-          <a href="{% url 'legal_terminos' %}" class="op-ledger__link">Read terms →</a>
-        </div>
+      <article class="mkt-feature">
+        <h3 class="mkt-feature__title">Dispute &amp; support</h3>
+        <p class="mkt-feature__text">Contact TradeFlow for order issues. Policies live in our legal center.</p>
+        <a href="{% url 'legal_terminos' %}" class="mkt-feature__link">Read terms →</a>
       </article>
     </div>
   </section>
 
-  <section class="op-close" aria-labelledby="op-close-title">
-    <div class="op-close__inner">
-      <h2 class="op-close__title" id="op-close-title">Start protected sourcing from the Free Zone</h2>
-      <p class="op-close__text">Open a free buyer account and send your first RFQ with documentation already in the workflow.</p>
-      <div class="op-close__actions">
-        <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--primary">Create free buyer account</a>
-        <a href="{% url 'marketplace_verified_suppliers' %}" class="mkt-btn op-btn--ghost-dark">Meet verified suppliers</a>
-      </div>
+  <section class="mkt-banner-cta" aria-labelledby="mkt-protection-cta-title">
+    <h2 class="mkt-banner-cta__title" id="mkt-protection-cta-title">Ready to source from the Free Zone?</h2>
+    <p class="mkt-banner-cta__text">Join buyers across the Americas who use TradeFlow for verified wholesale sourcing.</p>
+    <div class="mkt-banner-cta__actions">
+      <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--primary mkt-btn--on-dark">Create free buyer account</a>
+      <a href="{% url 'marketplace_verified_suppliers' %}" class="mkt-btn mkt-btn--ghost mkt-btn--on-dark">Meet verified suppliers</a>
     </div>
   </section>
 
