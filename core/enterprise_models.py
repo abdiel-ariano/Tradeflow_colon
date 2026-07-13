@@ -51,7 +51,15 @@ class SaasPlan(models.Model):
 
 
 class CompanySubscription(models.Model):
-    """Active subscription for a seller company."""
+    """
+    Suscripción SaaS de una empresa vendedora.
+
+    Ciclo de vida (ver ``core/utils/seller_lifecycle.py``):
+    - ``trialing``: 30 días gratis en Digitalízate tras wizard de empresa.
+    - ``active``: plan pagado (upgrade durante trial o activación post-gracia).
+    - ``past_due``: trial vencido; 7 días de gracia para activar plan ≥ recomendado.
+    - ``cancelled``: baja media; portal bloqueado y productos fuera del marketplace.
+    """
 
     STATUS_CHOICES = [
         ('trialing', 'Trial'),
@@ -75,6 +83,29 @@ class CompanySubscription(models.Model):
     current_period_end = models.DateTimeField()
     auto_renew = models.BooleanField(default=True)
     upgraded_at = models.DateTimeField(null=True, blank=True)
+    # Snapshot al día 30: volumen USD facturable durante el trial.
+    trial_volume_usd = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text='USD vendidos durante el trial; fijado al finalizar el periodo.',
+    )
+    # Plan mínimo permitido en checkout post-trial (no downgrade).
+    recommended_plan = models.ForeignKey(
+        SaasPlan,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recommended_for_subscriptions',
+        help_text='Plan mínimo tras el trial según volumen; bloquea planes inferiores.',
+    )
+    # Fin de la ventana de gracia (past_due); tras esta fecha → baja media.
+    grace_ends_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Último día para activar plan antes de cancelación automática.',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

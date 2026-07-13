@@ -1,11 +1,36 @@
 """
-Facturación SaaS por empresa: planes, límites y uso mensual.
+=============================================================================
+TRADEFLOW COLÓN — core/utils/saas_billing.py
+=============================================================================
+Facturación SaaS por empresa: planes, límites, uso mensual y checkout.
+
+MODOS DE CHECKOUT (CheckoutMode)
+---------------------------------
+- ``trial_upgrade``    — Seller en trial elige plan superior (días 0–30).
+- ``trial_activation`` — Post-trial en gracia; activa plan ≥ recomendado
+  (permite pagar Digitalízate aunque ya esté en trial con ese slug).
+- ``plan_upgrade``     — Cuenta active; upgrade a plan superior.
+
+PAGOS (MVP)
+-----------
+- ``mock`` — Tarjeta demo; activación inmediata al POST.
+- ``bank`` — Transferencia; activación inmediata en MVP (producción: pending + admin).
+
+Stripe real → fase posterior (core/utils/stripe_billing.py).
+
+SUSCRIPCIONES
+-------------
+No crear suscripciones ``active`` gratis automáticamente. El trial inicia en
+``start_seller_trial()`` (wizard seller). Usar ``get_company_subscription()`` para
+lectura segura; ``get_or_create_subscription()`` solo tras pago o trial explícito.
+=============================================================================
 """
 from __future__ import annotations
 
+import enum
 import logging
 from calendar import monthrange
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 from django.db.models import Sum
@@ -54,13 +79,153 @@ PLAN_LIMITS = {
     'ecosistema_enterprise': None,
 }
 
-# Precio mensual público (checkout; Stripe futuro)
+# Precio mensual de checkout — alineado con copy comercial (saas_plan_catalog.py).
 PLAN_MRR_USD = {
-    'digitalizate': Decimal('40'),
-    'expansion': Decimal('200'),
-    'corporativo_pro': Decimal('800'),
-    'ecosistema_enterprise': Decimal('2500'),
+    'digitalizate': Decimal('49'),
+    'expansion': Decimal('149'),
+    'corporativo_pro': Decimal('349'),
+    'ecosistema_enterprise': Decimal('799'),
 }
+
+
+class CheckoutMode(enum.StrEnum):
+    """
+    Modo de sesión de pago según estado de la suscripción.
+
+    Determina validaciones en ``create_plan_checkout`` y copy en la UI.
+    """
+    TRIAL_UPGRADE = 'trial_upgrade'
+    TRIAL_ACTIVATION = 'trial_activation'
+    PLAN_UPGRADE = 'plan_upgrade'
+
+
+def resolve_checkout_mode(sub: CompanySubscription) -> CheckoutMode:
+    """
+    Infiere el modo de checkout según ``subscription.status``.
+
+    Raises:
+        ValueError: Si el estado no permite checkout self-serve.
+    """
+    if sub.status == 'trialing':
+        return CheckoutMode.TRIAL_UPGRADE
+    if sub.status == 'past_due':
+        return CheckoutMode.TRIAL_ACTIVATION
+    if sub.status == 'active':
+        return CheckoutMode.PLAN_UPGRADE
+    raise ValueError('checkout_not_allowed_for_status')
+
+
+def get_company_subscription(company: Company) -> CompanySubscription | None:
+    """Devuelve la suscripción existente o None (sin crear registros)."""
+    try:
+        return company.subscription
+    except CompanySubscription.DoesNotExist:
+        return None
+
+
+def get_or_create_subscription(company: Company) -> CompanySubscription:
+    """
+    Obtiene la suscripción de la empresa.
+
+    IMPORTANTE: ya no crea planes ``active`` gratis. El trial debe iniciarse con
+    ``start_seller_trial()`` tras el wizard seller, o ``activate_company_plan()``
+    tras un pago exitoso.
+
+    Raises:
+        CompanySubscription.DoesNotExist: Si la empresa no tiene suscripción.
+    """
+    sub = get_company_subscription(company)
+    if sub is None:
+        raise CompanySubscription.DoesNotExist(
+            f'Company {company.pk} has no subscription. '
+            'Use start_seller_trial() or complete a plan checkout first.'
+        )
+    return sub
+
+
+def ensure_demo_subscription(
+    company: Company,
+    *,
+    status: str = 'active',
+    plan_slug: str = 'digitalizate',
+) -> CompanySubscription:
+    """
+    Crea o actualiza suscripción para datos de demo / tests legacy.
+
+    Uso exclusivo en ``cargar_demo`` y tests que necesitan empresa operativa
+    sin pasar por el wizard completo.
+    """
+    ensure_default_plans()
+    plan = SaasPlan.objects.get(slug=plan_slug)
+    now = timezone.now()
+    _, month_end = _period_bounds(now)
+    sub = get_company_subscription(company)
+    if sub:
+        sub.plan = plan
+        sub.status = status
+        sub.current_period_start = now
+        sub.current_period_end = month_end + timedelta(days=32)
+        sub.auto_renew = status == 'active'
+        sub.save()
+        return sub
+    return CompanySubscription.objects.create(
+        company=company,
+        plan=plan,
+        status=status,
+        current_period_start=now,
+        current_period_end=month_end + timedelta(days=32),
+        auto_renew=status == 'active',
+    )
+
+
+def can_select_plan_for_activation(
+    company: Company,
+    target_slug: str,
+    *,
+    mode: CheckoutMode | None = None,
+) -> tuple[bool, str]:
+    """
+    Valida si el seller puede pagar ``target_slug`` según modo y recomendación.
+
+    Regla crítica post-trial: ``target.sort_order >= recommended.sort_order``
+    (no downgrade). Durante trial upgrade: solo planes superiores a Digitalízate.
+
+    Returns:
+        tuple[bool, str]: (permitido, mensaje_error_vacío_si_ok)
+    """
+    ensure_default_plans()
+    sub = get_company_subscription(company)
+    if not sub:
+        return False, 'no_subscription'
+
+    target = SaasPlan.objects.filter(slug=target_slug, is_active=True).first()
+    if not target:
+        return False, 'plan_not_found'
+
+    from core.utils.saas_plan_catalog import marketing_for_plan
+
+    if marketing_for_plan(target).get('cta') == 'commercial':
+        return False, 'plan_requires_commercial'
+
+    mode = mode or resolve_checkout_mode(sub)
+
+    if mode == CheckoutMode.TRIAL_UPGRADE:
+        if target.sort_order <= sub.plan.sort_order:
+            return False, 'upgrade_requires_higher_plan'
+        return True, ''
+
+    if mode == CheckoutMode.TRIAL_ACTIVATION:
+        recommended = sub.recommended_plan or sub.plan
+        if target.sort_order < recommended.sort_order:
+            return False, 'below_recommended_plan'
+        return True, ''
+
+    if mode == CheckoutMode.PLAN_UPGRADE:
+        if target.sort_order <= sub.plan.sort_order:
+            return False, 'upgrade_requires_higher_plan'
+        return True, ''
+
+    return False, 'invalid_mode'
 
 
 def plan_monthly_price(slug: str) -> Decimal:
@@ -122,22 +287,9 @@ def ensure_default_plans() -> int:
     return count
 
 
-def get_or_create_subscription(company: Company) -> CompanySubscription:
-    """Get or create subscription."""
-    ensure_default_plans()
-    try:
-        return company.subscription
-    except CompanySubscription.DoesNotExist:
-        plan = SaasPlan.objects.get(slug='digitalizate')
-        start, end = _period_bounds()
-        end = end + timedelta(days=32)
-        return CompanySubscription.objects.create(
-            company=company,
-            plan=plan,
-            status='active',
-            current_period_start=start,
-            current_period_end=end,
-        )
+def get_or_create_subscription_legacy(company: Company) -> CompanySubscription:
+    """Alias retrocompatible: delega a ``ensure_demo_subscription`` para tests."""
+    return ensure_demo_subscription(company)
 
 
 def compute_monthly_volume(company: Company, now=None) -> tuple[Decimal, int]:
@@ -149,7 +301,7 @@ def compute_monthly_volume(company: Company, now=None) -> tuple[Decimal, int]:
         order__created_at__lte=end,
         order__status__in=BILLABLE_ORDER_STATUSES,
     )
-    agg = qs.aggregate(vol=Sum('line_total'), n=Sum('order_id'))
+    agg = qs.aggregate(vol=Sum('line_total'))
     vol = agg['vol'] or Decimal('0.00')
     orders = qs.values('order_id').distinct().count()
     return vol.quantize(Decimal('0.01')), orders
@@ -170,7 +322,40 @@ def refresh_billing_usage(company: Company, now=None) -> CompanyBillingUsage:
 
 def subscription_usage_snapshot(company: Company) -> dict:
     """Contexto para UI seller: plan, uso, warnings, siguiente tier."""
-    sub = get_or_create_subscription(company)
+    sub = get_company_subscription(company)
+    if not sub:
+        ensure_default_plans()
+        digitalizate = SaasPlan.objects.get(slug='digitalizate')
+        return {
+            'subscription': None,
+            'plan': digitalizate,
+            'usage': None,
+            'volume_usd': Decimal('0.00'),
+            'limit_usd': digitalizate.monthly_volume_limit_usd,
+            'usage_pct': None,
+            'warning': None,
+            'is_unlimited': digitalizate.is_unlimited,
+            'next_plan': None,
+            'ad_credits_balance': digitalizate.ad_credits_monthly,
+            'api_enabled': False,
+            'webhooks_enabled': False,
+            'predictive_ai_enabled': False,
+            'volume_blocked': False,
+            'growth_signal': 'optimal',
+            'growth_message': 'Complete company setup to start your trial.',
+            'meter_width_pct': None,
+            'show_public_meter': False,
+            'pending_checkout': None,
+            'flow_steps': [],
+            'journey_pct': 0,
+            'activity_label': 'Setup pending',
+            'trial_days_left': 0,
+            'grace_days_left': 0,
+            'subscription_status': None,
+        }
+
+    from core.utils.seller_lifecycle import grace_days_remaining, trial_days_remaining
+
     usage = refresh_billing_usage(company)
     plan = sub.plan
     limit = plan.monthly_volume_limit_usd
@@ -183,11 +368,20 @@ def subscription_usage_snapshot(company: Company) -> dict:
             warning = 'limit'
         elif pct >= 80:
             warning = 'approaching'
-    next_plan = (
-        SaasPlan.objects.filter(sort_order__gt=plan.sort_order, is_active=True)
-        .order_by('sort_order')
-        .first()
-    )
+
+    # Durante trial solo se ofrecen upgrades; en active el siguiente tier habitual.
+    if sub.status == 'trialing':
+        next_plan = (
+            SaasPlan.objects.filter(sort_order__gt=plan.sort_order, is_active=True)
+            .order_by('sort_order')
+            .first()
+        )
+    else:
+        next_plan = (
+            SaasPlan.objects.filter(sort_order__gt=plan.sort_order, is_active=True)
+            .order_by('sort_order')
+            .first()
+        )
     try:
         ad_balance = company.ad_credits.balance
     except AdCreditAccount.DoesNotExist:
@@ -237,6 +431,9 @@ def subscription_usage_snapshot(company: Company) -> dict:
         'flow_steps': flow_steps,
         'journey_pct': journey_pct,
         'activity_label': _activity_label(activity_pct, warning),
+        'trial_days_left': trial_days_remaining(sub),
+        'grace_days_left': grace_days_remaining(sub),
+        'subscription_status': sub.status,
     }
 
 
@@ -331,11 +528,23 @@ def activate_company_plan(
     company: Company,
     plan_slug: str,
     *,
-    source: str = 'self_serve',
+    source: str = 'checkout',
     notes: str = '',
+    allow_same_plan: bool = False,
 ) -> CompanySubscription:
     """
-    Activa o actualiza plan en Supabase (CompanySubscription + historial + créditos ads).
+    Activa plan tras pago exitoso o aprobación comercial.
+
+    Efectos en la suscripción:
+    - ``status = active``
+    - ``auto_renew = True``
+    - ``current_period_end = now + 30 días`` (ciclo mensual)
+    - Limpia ``grace_ends_at`` y ``recommended_plan`` (fin de trial/gracia)
+    - Registra ``SubscriptionUpgradeLog`` y recarga créditos ads
+
+    Args:
+        allow_same_plan: True en ``trial_activation`` cuando el recomendado es
+            Digitalízate (mismo slug que el trial).
     """
     from django.db import transaction
 
@@ -352,19 +561,30 @@ def activate_company_plan(
     with transaction.atomic():
         sub = get_or_create_subscription(company)
         from_plan = sub.plan
-        if from_plan.pk == plan.pk:
-            return sub
+        if from_plan.pk == plan.pk and not allow_same_plan:
+            if sub.status == 'active':
+                return sub
+            # Mismo plan pero activación desde trial/gracia → continuar abajo.
+
+        now = timezone.now()
         sub.plan = plan
         sub.status = 'active'
-        sub.upgraded_at = timezone.now()
-        start, _ = _period_bounds()
-        sub.current_period_start = start
-        sub.save(update_fields=['plan', 'status', 'upgraded_at', 'current_period_start'])
+        sub.auto_renew = True
+        sub.upgraded_at = now
+        sub.current_period_start = now
+        sub.current_period_end = now + timedelta(days=30)
+        sub.grace_ends_at = None
+        sub.recommended_plan = None
+        sub.save(update_fields=[
+            'plan', 'status', 'auto_renew', 'upgraded_at',
+            'current_period_start', 'current_period_end',
+            'grace_ends_at', 'recommended_plan',
+        ])
         SubscriptionUpgradeLog.objects.create(
             company=company,
             from_plan=from_plan,
             to_plan=plan,
-            source=source,
+            source=source if source in ('self_serve', 'checkout', 'commercial', 'admin') else 'checkout',
             notes=notes[:255],
         )
         ensure_ad_credits(company, plan.ad_credits_monthly)
@@ -372,10 +592,17 @@ def activate_company_plan(
     return sub
 
 
-def create_plan_checkout(company: Company, plan_slug: str) -> CompanyPlanCheckout:
-    """Inicia checkout persistente para upgrade de plan."""
-    from datetime import timedelta
+def create_plan_checkout(
+    company: Company,
+    plan_slug: str,
+    *,
+    mode: CheckoutMode | None = None,
+) -> CompanyPlanCheckout:
+    """
+    Crea sesión de pago persistente (48h) según modo de checkout.
 
+    Validaciones por modo — ver ``can_select_plan_for_activation``.
+    """
     ensure_default_plans()
     from core.utils.saas_plan_catalog import marketing_for_plan
 
@@ -386,7 +613,17 @@ def create_plan_checkout(company: Company, plan_slug: str) -> CompanyPlanCheckou
         raise ValueError('plan_requires_commercial')
 
     sub = get_or_create_subscription(company)
-    if sub.plan.slug == plan_slug:
+    mode = mode or resolve_checkout_mode(sub)
+
+    ok, err = can_select_plan_for_activation(company, plan_slug, mode=mode)
+    if not ok:
+        raise ValueError(err)
+
+    # En upgrade/activation normal, mismo slug bloqueado salvo trial_activation.
+    if (
+        sub.plan.slug == plan_slug
+        and mode != CheckoutMode.TRIAL_ACTIVATION
+    ):
         raise ValueError('already_on_plan')
 
     try:
@@ -424,11 +661,32 @@ def complete_plan_checkout(
     provider: str = 'mock',
     txn_ref: str = '',
 ) -> CompanySubscription:
-    """Marca pago y activa plan (Supabase)."""
+    """
+    Marca pago como exitoso y activa el plan objetivo.
+
+    Re-valida permisos antes de activar (defensa en profundidad ante manipulación
+    de formularios). Tras éxito: ``auto_renew=True`` y ciclo mensual de 30 días.
+    """
     from django.db import transaction
 
     if checkout.status != 'pending':
         raise ValueError('checkout_not_pending')
+
+    company = checkout.company
+    sub = get_company_subscription(company)
+    if not sub:
+        raise ValueError('no_subscription')
+
+    mode = resolve_checkout_mode(sub)
+    ok, err = can_select_plan_for_activation(
+        company,
+        checkout.target_plan.slug,
+        mode=mode,
+    )
+    if not ok:
+        raise ValueError(err)
+
+    allow_same = mode == CheckoutMode.TRIAL_ACTIVATION
 
     with transaction.atomic():
         checkout.status = 'paid'
@@ -437,10 +695,11 @@ def complete_plan_checkout(
         checkout.paid_at = timezone.now()
         checkout.save(update_fields=['status', 'provider', 'txn_ref', 'paid_at'])
         return activate_company_plan(
-            checkout.company,
+            company,
             checkout.target_plan.slug,
-            source='self_serve',
-            notes=f'checkout:{checkout.pk}',
+            source='checkout',
+            notes=f'checkout:{checkout.pk};provider:{provider}',
+            allow_same_plan=allow_same,
         )
 
 
@@ -451,10 +710,11 @@ def build_checkout_context(company: Company, plan_slug: str) -> dict:
     ensure_default_plans()
     plan = SaasPlan.objects.get(slug=plan_slug, is_active=True)
     sub = get_or_create_subscription(company)
+    mode = resolve_checkout_mode(sub)
     marketing = marketing_for_plan(plan)
     checkout = get_pending_checkout(company)
     if not checkout or checkout.target_plan_id != plan.pk:
-        checkout = create_plan_checkout(company, plan_slug)
+        checkout = create_plan_checkout(company, plan_slug, mode=mode)
 
     return {
         'checkout': checkout,
@@ -463,6 +723,9 @@ def build_checkout_context(company: Company, plan_slug: str) -> dict:
         'marketing': marketing,
         'amount': checkout.amount_usd,
         'saas': subscription_usage_snapshot(company),
+        'checkout_mode': mode.value,
+        'is_trial_activation': mode == CheckoutMode.TRIAL_ACTIVATION,
+        'is_trial_upgrade': mode == CheckoutMode.TRIAL_UPGRADE,
     }
 
 
@@ -519,12 +782,25 @@ def build_plan_page_context(company: Company) -> dict:
 
     ensure_default_plans()
     snap = subscription_usage_snapshot(company)
+    sub = snap.get('subscription')
     current_slug = snap['plan'].slug
+    status = snap.get('subscription_status')
+    recommended = sub.recommended_plan if sub else None
+
     cards = []
     for plan in SaasPlan.objects.filter(is_active=True).order_by('sort_order'):
         m = marketing_for_plan(plan)
-        m['is_current'] = plan.slug == current_slug
-        m['can_upgrade'] = plan.sort_order > snap['plan'].sort_order
+        m['is_current'] = (
+            plan.slug == current_slug and status == 'active'
+        )
+        # Trial: solo planes superiores a Digitalízate.
+        if status == 'trialing':
+            m['can_upgrade'] = plan.sort_order > snap['plan'].sort_order
+        elif status == 'past_due' and recommended:
+            m['can_upgrade'] = plan.sort_order >= recommended.sort_order
+            m['is_recommended'] = plan.slug == recommended.slug
+        else:
+            m['can_upgrade'] = plan.sort_order > snap['plan'].sort_order
         m['monthly_price_usd'] = float(plan_monthly_price(plan.slug))
         cards.append(m)
 
@@ -599,8 +875,8 @@ def assert_within_volume_limit(company: Company, additional_usd: Decimal = Decim
 
     Planes ilimitados no aplican restricción.
     """
-    sub = get_or_create_subscription(company)
-    if sub.plan.is_unlimited:
+    sub = get_company_subscription(company)
+    if not sub or sub.plan.is_unlimited:
         return
     limit = sub.plan.monthly_volume_limit_usd
     if not limit or limit <= 0:
@@ -613,8 +889,8 @@ def assert_within_volume_limit(company: Company, additional_usd: Decimal = Decim
 
 def is_volume_limit_reached(company: Company) -> bool:
     """True si no queda margen para nuevas operaciones que incrementen volumen."""
-    sub = get_or_create_subscription(company)
-    if sub.plan.is_unlimited:
+    sub = get_company_subscription(company)
+    if not sub or sub.plan.is_unlimited:
         return False
     limit = sub.plan.monthly_volume_limit_usd
     if not limit:

@@ -1,0 +1,48 @@
+{% extends "core/seller_layout.html" %}
+{% comment %}
+Template: seller_trial_activation.html
+Post-trial (past_due): muestra volumen, plan recomendado y opciones de activación.
+{% endcomment %}
+{% load i18n %}
+{% block seller_content %}
+<section class="sp-page-head">
+  <h1>{% trans "Activate your plan" %}</h1>
+  <p class="sp-topbar-sub">
+    {% blocktrans with days=grace_days_left %}Your free trial ended. You have {{ days }} day(s) left to activate a plan.{% endblocktrans %}
+  </p>
+</section>
+
+<div class="sp-dash-hero" style="margin-bottom:24px;">
+  <h2>{% trans "Your trial results" %}</h2>
+  <p>
+    {% blocktrans with vol=trial_volume_usd %}Billable sales during your trial: <strong>USD {{ vol }}</strong>.{% endblocktrans %}
+    {% trans "Based on this volume, we recommend:" %}
+    <strong>{{ recommended_plan.name }}</strong>
+  </p>
+</div>
+
+<div class="sp-dash-feature-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+  {% for card in plan_cards %}
+  <article class="sp-dash-feature-card" style="{% if card.is_recommended %}border-color: var(--tf-orange);{% endif %}">
+    {% if card.is_recommended %}<span style="font-size:11px;font-weight:700;color:var(--tf-orange);">{% trans "Recommended" %}</span>{% endif %}
+    <h3>{{ card.name }}</h3>
+    <p>USD {{ card.monthly_price_usd }}/{% trans "month" %}</p>
+    <p style="font-size:12px;color:var(--tf-muted);">{{ card.tagline }}</p>
+    {% if card.can_select %}
+    <a href="{% url 'seller_plan_checkout' plan_slug=card.slug %}">{% trans "Activate" %} {{ card.name }}</a>
+    {% elif card.cta == 'commercial' %}
+    <a href="{% url 'solicitud_acceso' %}?plan=enterprise">{% trans "Contact sales" %}</a>
+    {% else %}
+    <span style="font-size:12px;color:var(--tf-muted);" title="{{ card.can_select_reason }}">{% trans "Not available" %}</span>
+    {% endif %}
+  </article>
+  {% endfor %}
+</div>
+
+<form method="post" action="{% url 'seller_decline_continue' %}" style="margin-top:2rem;">
+  {% csrf_token %}
+  <button type="submit" class="tf-btn-secondary" onclick="return confirm('{% trans "Your store will be removed from the marketplace. Continue?" %}');">
+    {% trans "Do not continue on TradeFlow" %}
+  </button>
+</form>
+{% endblock %}

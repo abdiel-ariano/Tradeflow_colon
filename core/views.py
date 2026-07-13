@@ -349,12 +349,16 @@ def _redirect_by_role(user):
     if user.is_superuser or role == 'admin':
         return reverse('dashboard')
     if role == 'seller':
+        from core.utils.access_gating import seller_onboarding_redirect_name
+        seller_route = seller_onboarding_redirect_name(user)
+        if seller_route:
+            return reverse(seller_route)
         return reverse('portal_seller')
+    from core.utils.access_gating import buyer_onboarding_redirect_name
+    buyer_route = buyer_onboarding_redirect_name(user)
+    if buyer_route:
+        return reverse(buyer_route)
     return reverse('catalogo_publico')
-
-
-# =============================================================================
-# AUTENTICACIÓN
 # =============================================================================
 
 def _login_template_context(**extra):
@@ -556,7 +560,7 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
             'role': role,
             'company_name': '',
             'message': '',
-            'status': 'approved' if role == 'buyer' else 'pending',
+            'status': 'approved',
         }
     )
 
@@ -1101,11 +1105,16 @@ def _cfz_map_marker_payload(request) -> dict:
     markers do not stack on one point.
     """
     markers = []
-    empresas = Company.objects.annotate(
+    from core.utils.seller_lifecycle import company_marketplace_visible, marketplace_active_company_ids
+
+    visible_ids = marketplace_active_company_ids()
+    empresas = Company.objects.filter(pk__in=visible_ids).annotate(
         n_activos=Count('products', filter=Q(products__is_active=True))
     ).order_by('name')
 
     for company in empresas:
+        if not company_marketplace_visible(company):
+            continue
         lat = float(company.latitud) if company.latitud is not None else _CFZ_DEFAULT_LAT
         lng = float(company.longitud) if company.longitud is not None else _CFZ_DEFAULT_LNG
         if lat == _CFZ_DEFAULT_LAT and lng == _CFZ_DEFAULT_LNG:
@@ -2053,6 +2062,12 @@ def seller_plan_consumo(request):
     if resp:
         return resp
 
+    from core.utils.saas_billing import get_company_subscription
+
+    sub = get_company_subscription(company)
+    if sub and sub.status == 'past_due':
+        return redirect('seller_trial_activation')
+
     from .utils.saas_billing import build_plan_page_context_safe
     from .utils.saas_platform import bootstrap_saas_for_company, get_saas_health
 
@@ -2123,7 +2138,7 @@ def seller_dispatch_order(request, pk):
 
 @seller_required
 def seller_plan_checkout(request, plan_slug: str):
-    """Pantalla de pago antes de activar un plan nuevo."""
+    """Pantalla de pago: upgrade en trial, activación post-trial o upgrade active."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
@@ -2131,20 +2146,33 @@ def seller_plan_checkout(request, plan_slug: str):
     if plan_slug == 'ecosistema_enterprise':
         return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
 
-    from .utils.saas_billing import build_checkout_context, get_or_create_subscription
+    from .utils.saas_billing import (
+        CheckoutMode,
+        build_checkout_context,
+        can_select_plan_for_activation,
+        get_or_create_subscription,
+        resolve_checkout_mode,
+    )
 
-    sub = get_or_create_subscription(company)
-    from .enterprise_models import SaasPlan
+    try:
+        sub = get_or_create_subscription(company)
+    except Exception:
+        messages.error(request, _('No active subscription. Complete company setup first.'))
+        return redirect('seller_onboarding_company')
 
-    target = SaasPlan.objects.filter(slug=plan_slug, is_active=True).first()
-    if not target:
-        messages.error(request, _('Invalid plan.'))
-        return redirect('seller_plan_consumo')
-    if sub.plan.slug == plan_slug:
-        messages.info(request, _('You already have this plan active.'))
-        return redirect('seller_plan_consumo')
-    if target.sort_order <= sub.plan.sort_order:
-        messages.info(request, _('Select a plan higher than your current one.'))
+    mode = resolve_checkout_mode(sub)
+    ok, err = can_select_plan_for_activation(company, plan_slug, mode=mode)
+    if not ok:
+        if err == 'below_recommended_plan':
+            messages.error(request, _('This plan is below your recommended tier based on trial sales.'))
+        elif err == 'upgrade_requires_higher_plan':
+            messages.info(request, _('Select a plan higher than your current one.'))
+        elif err == 'plan_requires_commercial':
+            return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
+        else:
+            messages.error(request, _('Could not start checkout for this plan.'))
+        if mode == CheckoutMode.TRIAL_ACTIVATION:
+            return redirect('seller_trial_activation')
         return redirect('seller_plan_consumo')
 
     try:
@@ -2153,11 +2181,13 @@ def seller_plan_checkout(request, plan_slug: str):
         if 'commercial' in str(exc):
             return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
         messages.error(request, _('Could not start checkout.'))
+        if mode == CheckoutMode.TRIAL_ACTIVATION:
+            return redirect('seller_trial_activation')
         return redirect('seller_plan_consumo')
 
     ctx.update({
         'company': company,
-        'titulo_pagina': _('Plan payment'),
+        'titulo_pagina': _('Activate your plan') if ctx.get('is_trial_activation') else _('Plan payment'),
         'nav_activo': 'mi_tienda',
     })
     return render(request, 'core/seller_plan_checkout.html', ctx)
@@ -2201,8 +2231,11 @@ def seller_plan_checkout_pay(request, plan_slug: str):
 
     try:
         complete_plan_checkout(checkout, provider=provider, txn_ref=txn_ref)
-    except ValueError:
-        messages.error(request, _('Payment could not be completed.'))
+    except ValueError as exc:
+        if 'below_recommended' in str(exc):
+            messages.error(request, _('Payment rejected: plan below your recommended tier.'))
+        else:
+            messages.error(request, _('Payment could not be completed.'))
         return redirect('seller_plan_checkout', plan_slug=plan_slug)
 
     messages.success(
@@ -2210,6 +2243,12 @@ def seller_plan_checkout_pay(request, plan_slug: str):
         _('Payment confirmed. Plan %(name)s is active on your account.')
         % {'name': checkout.target_plan.name},
     )
+    company.subscription.refresh_from_db()
+    if company.subscription.status == 'active':
+        from core.utils.saas_billing import get_company_subscription
+        sub = get_company_subscription(company)
+        if sub and sub.grace_ends_at is None:
+            return redirect('portal_seller')
     return redirect('seller_plan_consumo')
 
 
@@ -2224,6 +2263,57 @@ def seller_upgrade_plan(request):
     if not slug:
         return redirect('seller_plan_consumo')
     return redirect('seller_plan_checkout', plan_slug=slug)
+
+
+@seller_required
+def seller_trial_activation(request):
+    """
+    Pantalla obligatoria post-trial (past_due): volumen, plan recomendado y CTAs de pago.
+
+    Solo accesible en gracia; otras rutas del portal redirigen aquí vía seller_required.
+    """
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+
+    from core.utils.saas_billing import get_company_subscription
+    from core.utils.seller_lifecycle import build_trial_activation_context
+
+    sub = get_company_subscription(company)
+    if not sub or sub.status != 'past_due':
+        return redirect('seller_plan_consumo')
+
+    ctx = build_trial_activation_context(company)
+    ctx.update({
+        'titulo_pagina': _('Activate your TradeFlow plan'),
+        'nav_activo': 'seller_plan',
+    })
+    return render(request, 'core/seller_trial_activation.html', ctx)
+
+
+@seller_required
+@require_POST
+def seller_decline_continue(request):
+    """Baja voluntaria durante gracia — aplica churn medio inmediato."""
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+
+    from core.utils.seller_lifecycle import apply_medium_churn
+
+    apply_medium_churn(company)
+    messages.info(request, _('Your seller account has been deactivated. Your data is preserved.'))
+    return redirect('seller_account_inactive')
+
+
+@seller_required
+def seller_account_inactive(request):
+    """Cuenta seller cancelada (baja media); sin acceso operativo al portal."""
+    company = _get_seller_company(request.user)
+    return render(request, 'core/seller_account_inactive.html', {
+        'company': company,
+        'titulo_pagina': _('Account inactive'),
+    })
 
 
 @seller_required
@@ -2292,19 +2382,25 @@ def _get_seller_company(user):
 
 def _seller_company_or_response(request, nav_activo='mi_tienda'):
     """
-    Obtiene la empresa del vendedor o devuelve una respuesta HttpResponse
-    con la plantilla de aviso si no hay empresa vinculada.
+    Obtiene la empresa del vendedor o devuelve plantilla de aviso.
+
+    Nota: el wizard de empresa y gates de suscripción los maneja ``seller_required``;
+    esta función es defensa adicional para vistas que la invocan directamente.
     """
     company = _get_seller_company(request.user)
     if company:
         return company, None
+    from core.utils.access_gating import seller_company_pending
+
+    if seller_company_pending(request.user):
+        return None, redirect('seller_onboarding_company')
     messages.warning(
         request,
-        'Your account is not linked to a company yet. Please contact the administrator to assign your company.',
+        'Tu cuenta no está vinculada a una empresa. Completa el registro.',
     )
     ctx = {
         'titulo_pagina': 'My store',
-        'nav_activo':    nav_activo,
+        'nav_activo': nav_activo,
     }
     return None, render(request, 'core/seller_sin_empresa.html', ctx)
 

@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from core.enterprise_models import CompanyPlanCheckout
 from core.models import Company, UserProfile
-from core.utils.saas_billing import ensure_default_plans, get_or_create_subscription
+from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscription
 
 
 @override_settings(
@@ -23,7 +23,7 @@ class SellerPlanCheckoutTests(TestCase):
         self.user = User.objects.create_user('seller_chk', password='x', email='s@test.com')
         UserProfile.objects.create(user=self.user, role='seller')
         self.company = Company.objects.create(name='Checkout Co', owner=self.user)
-        get_or_create_subscription(self.company)
+        ensure_demo_subscription(self.company, status='active')
         self.client = Client()
         self.client.force_login(self.user)
 
