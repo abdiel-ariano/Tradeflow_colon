@@ -110,6 +110,18 @@ main.tf-main > .signup-buyer-page {
   object-position: center;
 }
 
+/* Seller only: same width as buyer, slightly shorter height to match form card */
+#signup-seller-root .signup-buyer-hero {
+  min-height: 520px;
+  align-self: flex-start;
+}
+
+#signup-seller-root .signup-buyer-hero__img {
+  min-height: 520px;
+  object-fit: cover;
+  object-position: center top;
+}
+
 .signup-buyer-form-col {
   flex: 1;
   display: flex;
