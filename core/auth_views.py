@@ -57,7 +57,7 @@ def _redirect_by_role(user) -> str:
     buyer_route = buyer_onboarding_redirect_name(user)
     if buyer_route:
         return reverse(buyer_route)
-    return reverse('tienda')
+    return reverse('catalogo_publico')
 
 
 def _verify_context(request: HttpRequest) -> dict[str, str]:

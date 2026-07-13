@@ -20,7 +20,7 @@ Incluye: category_mega_menu.html (categorías reales, sin emojis).
     </a>
 
     <div class="search-container bn-search-wrap">
-      {% include "core/includes/tf_header_search.html" with search_action="tienda" input_id="bn-search-input" form_id="bn-nav-search" value=request.GET.buscar placeholder="Buscar productos, empresas o categorías…" ai_scope="buyer" %}
+      {% include "core/includes/tf_header_search.html" with search_action="catalogo_publico" input_id="bn-search-input" form_id="bn-nav-search" value=request.GET.buscar placeholder="Buscar productos, empresas o categorías…" ai_scope="buyer" %}
     </div>
 
     <button type="button" class="btn-hamburger bn-mobile-toggle" id="bn-mobile-toggle" aria-label="Abrir menú" aria-expanded="false">

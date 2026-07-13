@@ -1,4 +1,4 @@
-"""Catálogo tienda: respuesta partial AJAX."""
+"""Catálogo unificado: respuesta partial AJAX en /catalogo/."""
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
@@ -23,15 +23,25 @@ class TiendaCatalogAjaxTests(TestCase):
         )
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
-    def test_tienda_partial_returns_catalog_markup(self):
+    def test_catalogo_partial_returns_catalog_markup(self):
+        self.client.force_login(self.buyer)
+        response = self.client.get(
+            '/catalogo/',
+            {'partial': '1'},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+        )
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn('id="cat-results-root"', content)
+        self.assertNotIn('<!DOCTYPE html>', content)
+
+    def test_tienda_partial_redirects_to_catalogo_partial(self):
         self.client.force_login(self.buyer)
         response = self.client.get(
             '/tienda/',
             {'partial': '1'},
             HTTP_X_REQUESTED_WITH='XMLHttpRequest',
         )
-        self.assertEqual(response.status_code, 200)
-        content = response.content.decode()
-        self.assertIn('id="td-product-grid"', content)
-        self.assertIn('t-prod-section', content)
-        self.assertNotIn('<!DOCTYPE html>', content)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/catalogo/', response.url)
+        self.assertIn('partial=1', response.url)

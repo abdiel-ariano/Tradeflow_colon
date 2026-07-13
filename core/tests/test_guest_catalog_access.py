@@ -1,4 +1,4 @@
-"""Catálogo público: invitados pueden explorar sin login."""
+"""Catálogo público: invitados y compradores comparten /catalogo/."""
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -26,16 +26,27 @@ class GuestCatalogAccessTests(TestCase):
         )
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
-    def test_guest_can_open_tienda(self):
-        response = self.client.get('/tienda/')
+    def test_guest_can_open_catalogo(self):
+        response = self.client.get('/catalogo/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'td-product-grid', status_code=200)
+        self.assertContains(response, 'cat-filters-toolbar', status_code=200)
 
-    def test_guest_tienda_has_cart_actions(self):
-        response = self.client.get('/tienda/')
+    def test_guest_catalogo_has_cart_actions(self):
+        response = self.client.get('/catalogo/')
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
         self.assertTrue(response.context['is_guest_catalog'])
+
+    def test_tienda_redirects_to_catalogo(self):
+        response = self.client.get('/tienda/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/catalogo/')
+
+    def test_tienda_ofertas_redirect_maps_on_sale(self):
+        response = self.client.get('/tienda/', {'tab': 'ofertas'})
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/catalogo/', response.url)
+        self.assertIn('on_sale=1', response.url)
 
     def test_guest_can_add_to_cart(self):
         from core.models import Product, Company, Category, Inventory
@@ -59,13 +70,13 @@ class GuestCatalogAccessTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertIn('carrito', self.client.session)
 
-    def test_guest_home_links_to_tienda_not_login_wall(self):
+    def test_guest_home_links_to_catalogo_not_login_wall(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Browse catalog')
+        self.assertContains(response, 'catalogo')
         self.assertNotContains(response, 'login/?next=/tienda/')
 
-    def test_unverified_buyer_can_browse_tienda(self):
+    def test_unverified_buyer_can_browse_catalogo(self):
         unverified = User.objects.create_user(
             username='unverified_buyer',
             email='unverified@test.pa',
@@ -73,16 +84,16 @@ class GuestCatalogAccessTests(TestCase):
         )
         UserProfile.objects.create(user=unverified, role='buyer', email_verificado=False)
         self.client.force_login(unverified)
-        response = self.client.get('/tienda/')
+        response = self.client.get('/catalogo/')
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
 
     def test_buyer_still_has_cart_actions(self):
         self.client.force_login(self.buyer)
-        response = self.client.get('/tienda/')
+        response = self.client.get('/catalogo/')
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
 
     def test_guest_verificado_filter(self):
-        response = self.client.get('/tienda/', {'verificado': '1'})
+        response = self.client.get('/catalogo/', {'verificado': '1'})
         self.assertEqual(response.status_code, 200)

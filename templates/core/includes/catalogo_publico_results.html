@@ -6,14 +6,14 @@
     <div class="product-grid cat-grid tf-pcard-grid cat-product-grid-top" id="cat-product-grid-top" aria-label="Featured results">
       {% for producto in productos %}
         {% if forloop.counter <= 4 %}
-          {% include "core/includes/catalogo_card.html" with product=producto card_index=forloop.counter %}
+          {% include "core/includes/catalogo_card.html" with product=producto show_cart_actions=show_cart_actions card_index=forloop.counter %}
         {% endif %}
       {% endfor %}
     </div>
     <div class="product-grid cat-grid tf-pcard-grid cat-product-grid-main" id="cat-product-grid-main" aria-label="More results">
       {% for producto in productos %}
         {% if forloop.counter > 4 %}
-          {% include "core/includes/catalogo_card.html" with product=producto card_index=forloop.counter %}
+          {% include "core/includes/catalogo_card.html" with product=producto show_cart_actions=show_cart_actions card_index=forloop.counter %}
         {% endif %}
       {% endfor %}
     </div>

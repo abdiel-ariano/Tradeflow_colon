@@ -78,7 +78,7 @@ class BuyerOnboardingWizardTests(TestCase):
 
         resp = self.client.post('/onboarding/comprador/finalizar/', follow=False)
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/tienda', resp['Location'])
+        self.assertIn('/catalogo', resp['Location'])
         self.profile.refresh_from_db()
         self.assertIsNotNone(self.profile.onboarding_completed_at)
 
@@ -93,5 +93,5 @@ class BuyerOnboardingWizardTests(TestCase):
 
         self.profile.onboarding_completed_at = timezone.now()
         self.profile.save(update_fields=['onboarding_completed_at'])
-        resp = self.client.get('/tienda/', follow=False)
+        resp = self.client.get('/catalogo/', follow=False)
         self.assertEqual(resp.status_code, 200)
