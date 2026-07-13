@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% comment %}Template: core/solicitud_acceso.html — access / enterprise commercial application.{% endcomment %}
+{% comment %}Template: core/solicitud_acceso.html — compact access / enterprise application.{% endcomment %}
 {% load static i18n %}
 {% block title %}
   {% if is_enterprise_intent %}{% trans "Enterprise application — TradeFlow Colón" %}{% else %}{% trans "Apply for access — TradeFlow Colón" %}{% endif %}
@@ -11,87 +11,46 @@
 {% endblock %}
 {% block content %}
 <div class="sa-page" id="solicitud-acceso-root">
-  <div class="sa-page__glow" aria-hidden="true"></div>
-
-  <header class="sa-header" role="banner">
-    <a href="{% url 'home' %}" class="sa-header__logo" aria-label="TradeFlow Colón">
-      {% include "core/includes/tf_logo.html" with variant="icon-white" size="sm" eager=1 %}
-      <span class="sa-header__wordmark">TradeFlow <span class="sa-header__accent">Colón</span></span>
-    </a>
-  </header>
-
-  <div class="sa-main">
-    <aside class="sa-aside">
+  <div class="sa-shell">
+    <header class="sa-intro">
       {% if is_enterprise_intent %}
-      <p class="sa-eyebrow">{% trans "Ecosistema Enterprise" %}</p>
-      <h1>{% trans "Scale with a commercial partnership" %}</h1>
-      <p class="sa-aside__lead">
-        {% trans "For ZLC operators ready for unlimited catalog capacity, priority support, and a dedicated TradeFlow relationship. Our team responds in 1–2 business days." %}
+      <p class="sa-badge">{% trans "Ecosistema Enterprise" %}</p>
+      <h1>{% trans "Contact sales" %}</h1>
+      <p class="sa-lead">
+        {% trans "Commercial review for unlimited capacity and priority support. Our team responds in 1–2 business days." %}
       </p>
-      <ul class="sa-points">
-        <li>
-          <span class="sa-points__dot" aria-hidden="true">1</span>
-          <div>
-            <strong>{% trans "Custom commercial review" %}</strong>
-            <span>{% trans "No self-serve checkout — we scope the fit with your team." %}</span>
-          </div>
-        </li>
-        <li>
-          <span class="sa-points__dot" aria-hidden="true">2</span>
-          <div>
-            <strong>{% trans "Verified CFZ focus" %}</strong>
-            <span>{% trans "Built for Colón Free Zone exporters and institutional buyers." %}</span>
-          </div>
-        </li>
-        <li>
-          <span class="sa-points__dot" aria-hidden="true">3</span>
-          <div>
-            <strong>{% trans "Priority activation" %}</strong>
-            <span>{% trans "Once approved, Enterprise unlocks on your seller account." %}</span>
-          </div>
-        </li>
-      </ul>
       {% else %}
-      <p class="sa-eyebrow">{% trans "TradeFlow access" %}</p>
-      <h1>{% trans "Apply to join the marketplace" %}</h1>
-      <p class="sa-aside__lead">
-        {% trans "For ZLC companies and verified buyers. Every application is reviewed by TradeFlow within 1–2 business days." %}
+      <p class="sa-badge">{% trans "TradeFlow access" %}</p>
+      <h1>{% trans "Apply for access" %}</h1>
+      <p class="sa-lead">
+        {% trans "For ZLC companies and verified buyers. Every application is reviewed within 1–2 business days." %}
       </p>
-      <ul class="sa-points">
-        <li>
-          <span class="sa-points__dot" aria-hidden="true">1</span>
-          <div>
-            <strong>{% trans "Business email preferred" %}</strong>
-            <span>{% trans "Helps us verify your company faster." %}</span>
-          </div>
-        </li>
-        <li>
-          <span class="sa-points__dot" aria-hidden="true">2</span>
-          <div>
-            <strong>{% trans "Buyer or seller" %}</strong>
-            <span>{% trans "Tell us how you operate in the Free Zone ecosystem." %}</span>
-          </div>
-        </li>
-        <li>
-          <span class="sa-points__dot" aria-hidden="true">3</span>
-          <div>
-            <strong>{% trans "Email confirmation" %}</strong>
-            <span>{% trans "You’ll get a receipt when we receive your application." %}</span>
-          </div>
-        </li>
-      </ul>
       {% endif %}
-    </aside>
+    </header>
+
+    {% if is_enterprise_intent %}
+    <ul class="sa-chips" aria-label="{% trans 'What you get' %}">
+      <li>{% trans "Custom commercial review" %}</li>
+      <li>{% trans "CFZ-verified operators" %}</li>
+      <li>{% trans "Priority activation" %}</li>
+    </ul>
+    {% else %}
+    <ul class="sa-chips" aria-label="{% trans 'What to expect' %}">
+      <li>{% trans "Work email preferred" %}</li>
+      <li>{% trans "Buyer or seller" %}</li>
+      <li>{% trans "Email confirmation" %}</li>
+    </ul>
+    {% endif %}
 
     <section class="sa-panel" aria-labelledby="sa-form-title">
       {% if is_enterprise_intent %}
-      <p class="sa-enterprise-tag">{% trans "Plan requested: Ecosistema Enterprise" %}</p>
+      <p class="sa-plan-line">{% trans "Plan requested: Ecosistema Enterprise" %}</p>
       {% endif %}
-      <h2 class="sa-panel__title" id="sa-form-title">
+      <h2 class="sa-panel__title" id="sa-form-title" hidden>
         {% if is_enterprise_intent %}{% trans "Contact sales" %}{% else %}{% trans "Access application" %}{% endif %}
       </h2>
       <p class="sa-panel__sub">
-        {% trans "Required fields are marked. We never share your details outside TradeFlow review." %}
+        {% trans "Required fields are marked. Details stay inside TradeFlow review." %}
       </p>
 
       <form method="post" action="{% url 'solicitud_acceso' %}{% if is_enterprise_intent %}?plan=enterprise{% endif %}" class="sa-form" novalidate>
@@ -118,7 +77,7 @@
           <input type="email" id="sa-email" name="email" required
                  value="{{ form_email|default:'' }}" autocomplete="email"
                  placeholder="name@company.com">
-          <p class="sa-hint">{% trans "Prefer a company domain (not personal Gmail) for faster verification." %}</p>
+          <p class="sa-hint">{% trans "Prefer a company domain for faster verification." %}</p>
         </div>
 
         <div class="sa-row">
@@ -145,19 +104,23 @@
 
         <div class="sa-field">
           <label for="sa-message">{% trans "Message" %}</label>
-          <textarea id="sa-message" name="message" rows="4"
-                    placeholder="{% if is_enterprise_intent %}{% trans 'Monthly volume, catalog size, and what you need from Enterprise…' %}{% else %}{% trans 'Tell us about your company and how you use TradeFlow…' %}{% endif %}">{{ form_message|default:'' }}</textarea>
+          <textarea id="sa-message" name="message" rows="3"
+                    placeholder="{% if is_enterprise_intent %}{% trans 'Monthly volume, catalog size, and what you need from Enterprise…' %}{% else %}{% trans 'Tell us about your company…' %}{% endif %}">{{ form_message|default:'' }}</textarea>
         </div>
 
         <button type="submit" class="sa-submit">
           {% if is_enterprise_intent %}{% trans "Submit enterprise application" %}{% else %}{% trans "Submit application" %}{% endif %}
         </button>
-        <p class="sa-trust">{% trans "Manual review by TradeFlow · confirmation email after submit" %}</p>
+        <p class="sa-trust">{% trans "Manual review · confirmation email after submit" %}</p>
       </form>
 
       <p class="sa-footer">
-        {% trans "Already have an account?" %}
-        <a href="{% url 'login' %}">{% trans "Sign in" %}</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'seller_plan_consumo' %}">{% trans "← Back to plans" %}</a>
+        {% else %}
+          {% trans "Already have an account?" %}
+          <a href="{% url 'login' %}">{% trans "Sign in" %}</a>
+        {% endif %}
       </p>
     </section>
   </div>
