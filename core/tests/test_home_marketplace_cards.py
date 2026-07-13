@@ -78,3 +78,7 @@ class HomeMarketplaceCardsTests(TestCase):
         response = self.client.get('/acerca/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'About TradeFlow Colón')
+        self.assertContains(response, 'marketplace-about.css')
+        self.assertContains(response, 'marketplace-about.js')
+        self.assertContains(response, 'mkt-about-cinematic')
+        self.assertContains(response, 'data-about-root')
