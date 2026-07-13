@@ -642,3 +642,17 @@
     transform: none;
   }
 }
+
+/* Brand-action CTAs on dark About surfaces */
+.mkt-page-stack--about .mkt-about-cinematic__actions .mkt-btn--on-dark.mkt-btn--primary,
+.mkt-page-stack--about .mkt-about-join__actions .mkt-btn--on-dark.mkt-btn--primary {
+  background: linear-gradient(135deg, var(--tf-orange, #F26522), var(--tf-orange-light, #FF7A3D));
+  color: var(--tf-white, #FFFFFF);
+  border: none;
+  box-shadow: 0 10px 24px rgba(242, 101, 34, 0.35);
+}
+
+.mkt-page-stack--about .mkt-about-cinematic__actions .mkt-btn--on-dark.mkt-btn--primary:hover,
+.mkt-page-stack--about .mkt-about-join__actions .mkt-btn--on-dark.mkt-btn--primary:hover {
+  color: var(--tf-white, #FFFFFF);
+}
