@@ -128,6 +128,48 @@ class SellerBankCheckoutTests(TestCase):
         self.company.subscription.refresh_from_db()
         self.assertEqual(self.company.subscription.plan.slug, 'digitalizate')
 
+    def test_bank_submit_survives_proof_storage_error(self):
+        """Si Storage falla al guardar el comprobante, la referencia bancaria sí se guarda."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from unittest.mock import patch
+
+        self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'corporativo_pro'}))
+        checkout = CompanyPlanCheckout.objects.filter(company=self.company).latest('created_at')
+        proof = SimpleUploadedFile('receipt.pdf', b'%PDF-1.4 fake', content_type='application/pdf')
+
+        real_save = CompanyPlanCheckout.save
+
+        def flaky_save(self, *args, **kwargs):
+            update_fields = kwargs.get('update_fields') or []
+            if update_fields and 'proof_file' in update_fields:
+                raise OSError('supabase upload failed')
+            return real_save(self, *args, **kwargs)
+
+        with patch.object(CompanyPlanCheckout, 'save', flaky_save):
+            submit_bank_transfer_payment(
+                checkout,
+                transfer_reference='STOR-FAIL-99',
+                proof_file=proof,
+            )
+
+        checkout.refresh_from_db()
+        self.assertEqual(checkout.status, 'pending')
+        self.assertEqual(checkout.transfer_reference, 'STOR-FAIL-99')
+        self.assertEqual(checkout.provider, 'bank')
+
+    def test_corporativo_pro_bank_http_no_500(self):
+        self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'corporativo_pro'}))
+        pay_url = reverse('seller_plan_checkout_pay', kwargs={'plan_slug': 'corporativo_pro'})
+        r = self.client.post(
+            pay_url,
+            {'payment_method': 'bank', 'transfer_reference': 'CORP-5555'},
+        )
+        self.assertEqual(r.status_code, 302)
+        self.assertNotIn('/confirmar/', r.url)
+        checkout = CompanyPlanCheckout.objects.filter(company=self.company).latest('created_at')
+        self.assertEqual(checkout.transfer_reference, 'CORP-5555')
+        self.assertEqual(checkout.status, 'pending')
+
     def test_admin_approve_activates_plan(self):
         self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'}))
         checkout = CompanyPlanCheckout.objects.filter(company=self.company).latest('created_at')

@@ -700,6 +700,8 @@ def submit_bank_transfer_payment(
 
     No activa el plan: eso lo hace ``approve_plan_checkout`` (admin).
     """
+    from django.db import DatabaseError, IntegrityError
+
     if checkout.status != 'pending':
         raise ValueError('checkout_not_pending')
 
@@ -728,10 +730,85 @@ def submit_bank_transfer_payment(
     update_fields = [
         'provider', 'transfer_reference', 'seller_notes', 'txn_ref',
     ]
+
+    # Comprobante es opcional: un fallo de Storage no debe tumbar todo el pago.
+    max_proof = 5 * 1024 * 1024
     if proof_file and getattr(proof_file, 'size', 0):
-        checkout.proof_file = proof_file
-        update_fields.append('proof_file')
-    checkout.save(update_fields=update_fields)
+        if proof_file.size > max_proof:
+            log.warning(
+                'bank_transfer_proof_too_large checkout_id=%s size=%s',
+                checkout.pk,
+                proof_file.size,
+            )
+            raise ValueError('proof_too_large')
+        try:
+            checkout.proof_file = proof_file
+            update_fields.append('proof_file')
+        except Exception as exc:
+            log.warning(
+                'bank_transfer_proof_assign_failed checkout_id=%s: %s',
+                checkout.pk,
+                exc,
+            )
+
+    try:
+        checkout.save(update_fields=update_fields)
+    except (OperationalError, ProgrammingError, DatabaseError, IntegrityError) as exc:
+        # Si falla por el archivo, reintentar sin proof (texto de referencia sí importa).
+        if 'proof_file' in update_fields:
+            log.warning(
+                'bank_transfer_save_with_proof_failed checkout_id=%s: %s — retry without proof',
+                checkout.pk,
+                exc,
+            )
+            checkout.proof_file = None
+            update_fields = [
+                'provider', 'transfer_reference', 'seller_notes', 'txn_ref',
+            ]
+            try:
+                checkout.save(update_fields=update_fields)
+            except (OperationalError, ProgrammingError, DatabaseError, IntegrityError) as exc2:
+                log.exception(
+                    'bank_transfer_save_failed checkout_id=%s: %s',
+                    checkout.pk,
+                    exc2,
+                )
+                raise ValueError('bank_transfer_save_failed') from exc2
+        else:
+            log.exception(
+                'bank_transfer_save_failed checkout_id=%s: %s',
+                checkout.pk,
+                exc,
+            )
+            raise ValueError('bank_transfer_save_failed') from exc
+    except Exception as exc:
+        # Storage backends a veces lanzan OSError / ClientError fuera de DatabaseError.
+        if 'proof_file' in update_fields:
+            log.warning(
+                'bank_transfer_storage_failed checkout_id=%s: %s — retry without proof',
+                checkout.pk,
+                exc,
+            )
+            try:
+                checkout.proof_file = None
+                checkout.save(update_fields=[
+                    'provider', 'transfer_reference', 'seller_notes', 'txn_ref',
+                ])
+            except Exception as exc2:
+                log.exception(
+                    'bank_transfer_save_failed checkout_id=%s: %s',
+                    checkout.pk,
+                    exc2,
+                )
+                raise ValueError('bank_transfer_save_failed') from exc2
+        else:
+            log.exception(
+                'bank_transfer_save_failed checkout_id=%s: %s',
+                checkout.pk,
+                exc,
+            )
+            raise ValueError('bank_transfer_save_failed') from exc
+
     log.info(
         'bank_transfer_submitted checkout_id=%s company_id=%s ref=%s',
         checkout.pk,
