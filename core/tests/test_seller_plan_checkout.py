@@ -46,6 +46,10 @@ class SellerPlanCheckoutTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'Bank transfer')
         self.assertContains(r, 'name="transfer_reference"')
+        self.assertContains(r, 'TF-CHECKOUT-')
+        self.assertContains(r, 'Order summary')
+        self.assertContains(r, 'Transfer instructions')
+        self.assertContains(r, 'Submit bank transfer')
         self.assertTrue(
             CompanyPlanCheckout.objects.filter(
                 company=self.company,
