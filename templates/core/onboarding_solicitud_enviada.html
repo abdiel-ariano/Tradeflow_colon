@@ -9,20 +9,13 @@
 {% endblock %}
 {% block content %}
 <div class="sa-page" id="solicitud-enviada-root">
-  <div class="sa-page__glow" aria-hidden="true"></div>
-  <header class="sa-header" role="banner">
-    <a href="{% url 'home' %}" class="sa-header__logo" aria-label="TradeFlow Colón">
-      {% include "core/includes/tf_logo.html" with variant="icon-white" size="sm" eager=1 %}
-      <span class="sa-header__wordmark">TradeFlow <span class="sa-header__accent">Colón</span></span>
-    </a>
-  </header>
-  <div class="sa-main" style="grid-template-columns:1fr;max-width:520px;">
-    <section class="sa-panel" style="text-align:center;">
-      <h1 class="sa-panel__title" style="font-size:1.35rem;margin-bottom:10px;">{% trans "Application received" %}</h1>
-      <p class="sa-panel__sub" style="margin-bottom:22px;">
-        {% trans "Check your email. When your access is approved, you can register or sign in with the same address." %}
+  <div class="sa-shell">
+    <section class="sa-panel sa-panel--center">
+      <h1 class="sa-confirm-title">{% trans "Application received" %}</h1>
+      <p class="sa-panel__sub">
+        {% trans "Check your email. When access is approved, sign in with the same address." %}
       </p>
-      <a href="{% url 'login' %}" class="sa-submit" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;width:auto;min-width:200px;">
+      <a href="{% url 'login' %}" class="sa-submit sa-confirm-cta">
         {% trans "Go to sign in" %}
       </a>
     </section>

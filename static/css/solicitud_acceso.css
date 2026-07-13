@@ -1,7 +1,7 @@
 /*
  * TradeFlow Colón — /solicitud-acceso/
- * Access / Enterprise commercial application (public + authenticated sellers).
- * Aligns with DESIGN.md: navy authority, orange CTA, Montserrat + DM Serif Display.
+ * Compact app-surface form (matches seller portal / auth density).
+ * DESIGN.md: navy, orange, surface #F2F3F5, Montserrat, radii 8/12/16.
  */
 
 body:has(.sa-page) #tf-assistant {
@@ -9,206 +9,124 @@ body:has(.sa-page) #tf-assistant {
 }
 
 main.tf-main > .sa-page {
-  min-height: 100vh;
+  min-height: auto;
   width: 100%;
   margin: 0;
   padding: 0;
   display: block;
   box-sizing: border-box;
+  background: var(--tf-surface, #F2F3F5);
 }
 
 .sa-page {
   --sa-navy: var(--tf-navy, #0F2A44);
-  --sa-navy-mid: var(--tf-navy-mid, #1B3B63);
   --sa-orange: var(--tf-orange, #F26522);
   --sa-surface: var(--tf-surface, #F2F3F5);
   --sa-border: var(--tf-border, #D1D5DB);
   --sa-muted: var(--tf-muted, #6B7A88);
-  --sa-text: var(--tf-gray-900, #111318);
   --sa-white: var(--tf-white, #FFFFFF);
   --sa-ease: cubic-bezier(0.23, 1, 0.32, 1);
-  position: relative;
-  isolation: isolate;
-  min-height: 100vh;
   font-family: var(--tf-font-body, 'Montserrat', sans-serif);
-  color: var(--sa-text);
-  background:
-    radial-gradient(1200px 600px at 12% -10%, rgba(46, 91, 138, 0.22), transparent 55%),
-    radial-gradient(900px 500px at 100% 0%, rgba(242, 101, 34, 0.12), transparent 50%),
-    linear-gradient(165deg, var(--sa-navy) 0%, var(--sa-navy-mid) 42%, var(--sa-navy) 100%);
-  overflow-x: hidden;
+  color: var(--tf-gray-900, #111318);
+  background: var(--sa-surface);
+  padding: 28px 20px 48px;
 }
 
-.sa-page__glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(15, 42, 68, 0.15) 0%, transparent 35%);
-  opacity: 0.55;
-  z-index: 0;
-}
-
-.sa-header {
-  position: relative;
-  z-index: 1;
-  padding: 20px 32px 0;
-}
-
-.sa-header__logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: var(--sa-white);
-  line-height: 1.15;
-}
-
-.sa-header__logo .tf-logo-img {
-  height: 40px !important;
-  width: auto;
-  display: block;
-}
-
-.sa-header__wordmark {
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--sa-white);
-}
-
-.sa-header__accent {
-  color: var(--sa-orange);
-}
-
-.sa-main {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 440px);
-  gap: 40px;
-  align-items: start;
-  max-width: 1080px;
+.sa-shell {
+  width: 100%;
+  max-width: 640px;
   margin: 0 auto;
-  padding: 36px 28px 64px;
 }
 
-@media (max-width: 900px) {
-  .sa-main {
-    grid-template-columns: 1fr;
-    gap: 28px;
-    padding: 24px 20px 48px;
-  }
-  .sa-aside { order: -1; }
-}
-
-.sa-aside {
-  color: var(--sa-white);
-  padding-top: 12px;
-}
-
-.sa-eyebrow {
-  display: inline-block;
+.sa-intro {
   margin: 0 0 14px;
-  padding: 6px 12px;
+}
+
+.sa-badge {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 5px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--sa-border);
+  background: var(--sa-white);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--sa-navy);
 }
 
-.sa-aside h1 {
-  margin: 0 0 12px;
-  font-family: 'DM Serif Display', Georgia, serif;
-  font-weight: 400;
-  font-size: clamp(1.85rem, 3.2vw, 2.45rem);
-  line-height: 1.15;
+.sa-intro h1 {
+  margin: 0 0 8px;
+  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
   letter-spacing: -0.02em;
+  color: var(--sa-navy);
   text-wrap: balance;
-  color: var(--sa-white);
 }
 
-.sa-aside__lead {
-  margin: 0 0 28px;
-  max-width: 42ch;
-  font-size: 15px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.sa-points {
-  list-style: none;
+.sa-lead {
   margin: 0;
+  max-width: 52ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--sa-muted);
+}
+
+.sa-chips {
+  list-style: none;
+  margin: 0 0 16px;
   padding: 0;
-  display: grid;
-  gap: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.sa-points li {
-  display: grid;
-  grid-template-columns: 28px 1fr;
-  gap: 12px;
-  align-items: start;
-}
-
-.sa-points__dot {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: rgba(242, 101, 34, 0.18);
-  color: var(--sa-orange);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.sa-points strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 2px;
-}
-
-.sa-points span {
-  display: block;
-  font-size: 13px;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.72);
+.sa-chips li {
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: var(--sa-white);
+  border: 1px solid var(--sa-border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sa-navy);
+  line-height: 1.3;
 }
 
 .sa-panel {
   background: var(--sa-white);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--sa-border);
   border-radius: 16px;
-  padding: 28px 28px 24px;
-  box-shadow: 0 24px 60px rgba(15, 42, 68, 0.35);
+  padding: 22px 24px 20px;
+  box-shadow: 0 8px 24px rgba(15, 42, 68, 0.06);
 }
 
-.sa-panel__title {
-  margin: 0 0 4px;
-  font-size: 1.05rem;
+.sa-panel--center {
+  text-align: center;
+}
+
+.sa-confirm-title {
+  margin: 0 0 10px;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--sa-navy);
 }
 
-.sa-panel__sub {
-  margin: 0 0 22px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--sa-muted);
-}
-
-.sa-enterprise-tag {
+.sa-confirm-cta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin: 0 0 16px;
-  padding: 8px 12px;
+  justify-content: center;
+  text-decoration: none;
+  width: auto;
+  min-width: 200px;
+}
+
+.sa-plan-line {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 6px 10px;
   border-radius: 8px;
   background: rgba(15, 42, 68, 0.06);
   border: 1px solid var(--sa-border);
@@ -217,19 +135,28 @@ main.tf-main > .sa-page {
   color: var(--sa-navy);
 }
 
+.sa-panel__sub {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sa-muted);
+}
+
 .sa-form {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .sa-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 12px;
 }
 
 @media (max-width: 560px) {
+  .sa-page { padding: 20px 16px 40px; }
   .sa-row { grid-template-columns: 1fr; }
+  .sa-panel { padding: 18px 16px 16px; }
 }
 
 .sa-field label {
@@ -237,7 +164,7 @@ main.tf-main > .sa-page {
   font-size: 12px;
   font-weight: 700;
   color: var(--sa-navy);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 .sa-field label .req {
@@ -250,7 +177,7 @@ main.tf-main > .sa-page {
   width: 100%;
   box-sizing: border-box;
   min-height: 44px;
-  padding: 11px 14px;
+  padding: 10px 12px;
   border: 1px solid var(--sa-border);
   border-radius: 8px;
   background: var(--sa-surface);
@@ -261,7 +188,7 @@ main.tf-main > .sa-page {
 }
 
 .sa-field textarea {
-  min-height: 96px;
+  min-height: 84px;
   resize: vertical;
 }
 
@@ -275,7 +202,7 @@ main.tf-main > .sa-page {
 }
 
 .sa-hint {
-  margin: 5px 0 0;
+  margin: 4px 0 0;
   font-size: 12px;
   color: var(--sa-muted);
   line-height: 1.4;
@@ -284,26 +211,22 @@ main.tf-main > .sa-page {
 .sa-submit {
   appearance: none;
   width: 100%;
-  margin-top: 6px;
+  margin-top: 4px;
   min-height: 48px;
-  padding: 14px 20px;
+  padding: 12px 18px;
   border: none;
   border-radius: 8px;
   background: var(--sa-orange);
   color: var(--sa-white);
   font-family: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s var(--sa-ease), transform 0.15s var(--sa-ease);
+  transition: background 0.15s var(--sa-ease);
 }
 
 .sa-submit:hover {
   background: var(--tf-orange-light, #FF7A3D);
-}
-
-.sa-submit:active {
-  transform: translateY(1px);
 }
 
 .sa-submit:focus-visible {
@@ -312,15 +235,17 @@ main.tf-main > .sa-page {
 }
 
 .sa-trust {
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   font-size: 12px;
   color: var(--sa-muted);
   text-align: center;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .sa-footer {
-  margin: 18px 0 0;
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--sa-border);
   text-align: center;
   font-size: 13px;
   color: var(--sa-muted);
