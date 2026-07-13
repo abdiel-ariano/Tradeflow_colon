@@ -4804,21 +4804,60 @@ def seller_responder_cotizacion(request, pk):
 
 def solicitud_acceso(request):
     """Formulario público de solicitud de acceso a TradeFlow."""
-    plan_intent = request.GET.get('plan', '').strip().lower()
-    if plan_intent == 'enterprise':
+    plan_intent = (request.GET.get('plan') or request.POST.get('requested_plan_slug') or '').strip().lower()
+    if plan_intent in ('enterprise', 'ecosistema_enterprise'):
         plan_intent = 'ecosistema_enterprise'
+    else:
+        plan_intent = plan_intent[:40]
+
+    form_defaults = {
+        'form_full_name': '',
+        'form_email': '',
+        'form_phone': '',
+        'form_company_name': '',
+        'form_ruc': '',
+        'form_message': '',
+        'form_role': 'seller' if plan_intent == 'ecosistema_enterprise' else 'buyer',
+    }
+    if request.user.is_authenticated:
+        full = (request.user.get_full_name() or '').strip()
+        form_defaults['form_full_name'] = full or request.user.username
+        form_defaults['form_email'] = (request.user.email or '').strip()
 
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
-        email = request.POST.get('email', '').strip().lower()
+        # Compat: plantillas antiguas usaban corporate_email
+        email = (
+            request.POST.get('email', '')
+            or request.POST.get('corporate_email', '')
+        ).strip().lower()
         phone = request.POST.get('phone', '').strip()
-        role = request.POST.get('role', 'buyer')
+        role = (request.POST.get('role') or 'buyer').strip()
         company_name = request.POST.get('company_name', '').strip()
         message = request.POST.get('message', '').strip()
-        req_plan = request.POST.get('requested_plan_slug', '').strip() or plan_intent
+        ruc = request.POST.get('ruc', '').strip()
+        req_plan = (request.POST.get('requested_plan_slug', '') or plan_intent).strip()
+        if req_plan in ('enterprise', 'ecosistema_enterprise'):
+            req_plan = 'ecosistema_enterprise'
+
+        form_defaults.update({
+            'form_full_name': full_name,
+            'form_email': email,
+            'form_phone': phone,
+            'form_company_name': company_name,
+            'form_ruc': ruc,
+            'form_message': message,
+            'form_role': role if role in ('buyer', 'seller') else form_defaults['form_role'],
+        })
 
         if not full_name or not email:
             messages.error(request, _('Name and email are required.'))
+        elif not company_name:
+            messages.error(request, _('Company name is required.'))
+        elif not phone:
+            messages.error(request, _('Phone is required.'))
+        elif not ruc:
+            messages.error(request, _('RUC is required.'))
         elif role not in ('buyer', 'seller'):
             messages.error(request, _('Invalid role.'))
         else:
@@ -4836,9 +4875,18 @@ def solicitud_acceso(request):
                 )
                 if request.user.is_authenticated:
                     return redirect('onboarding_espera_aprobacion')
-                return redirect('solicitud_acceso')
+                return redirect(
+                    f'{reverse("solicitud_acceso")}?plan=enterprise'
+                    if req_plan == 'ecosistema_enterprise'
+                    else 'solicitud_acceso'
+                )
+
+            if ruc:
+                ruc_line = f'RUC: {ruc}'
+                message = f'{ruc_line}\n{message}'.strip() if message else ruc_line
 
             app = UserApplication.objects.create(
+                user=request.user if request.user.is_authenticated else None,
                 full_name=full_name,
                 email=email,
                 phone=phone,
@@ -4851,13 +4899,17 @@ def solicitud_acceso(request):
             if req_plan == 'ecosistema_enterprise' and company_owner:
                 from .utils.saas_billing import create_enterprise_commercial_request
 
-                create_enterprise_commercial_request(
-                    company_owner,
-                    contact_name=full_name,
-                    contact_email=email,
-                    message=message,
-                    user_application=app,
-                )
+                try:
+                    create_enterprise_commercial_request(
+                        company_owner,
+                        contact_name=full_name,
+                        contact_email=email,
+                        message=message,
+                        user_application=app,
+                    )
+                except Exception:
+                    log.exception('enterprise_commercial_request_failed app_id=%s', app.pk)
+
             try:
                 enviar_solicitud_recibida(app)
                 enviar_solicitud_a_revisores(app)
@@ -4880,10 +4932,12 @@ def solicitud_acceso(request):
             return redirect('onboarding_solicitud_enviada')
 
     return render(request, 'core/solicitud_acceso.html', {
-        'titulo_pagina': _('Access application'),
+        'titulo_pagina': _('Enterprise application') if plan_intent == 'ecosistema_enterprise' else _('Access application'),
         'plan_intent': plan_intent,
         'is_enterprise_intent': plan_intent == 'ecosistema_enterprise',
+        **form_defaults,
     })
+
 
 
 def revisar_solicitud(request, token, accion):
