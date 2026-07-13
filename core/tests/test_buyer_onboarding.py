@@ -78,7 +78,7 @@ class BuyerOnboardingWizardTests(TestCase):
 
         resp = self.client.post('/onboarding/comprador/finalizar/', follow=False)
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/catalogo', resp['Location'])
+        self.assertIn('/tienda', resp['Location'])
         self.profile.refresh_from_db()
         self.assertIsNotNone(self.profile.onboarding_completed_at)
 

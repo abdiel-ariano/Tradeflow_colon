@@ -22,7 +22,7 @@
   {% if productos.has_other_pages %}
   <nav class="pagination cat-pagination" aria-label="Catalog pagination">
     {% if productos.has_previous %}
-    <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ productos.previous_page_number }}"
+    <a href="{% url catalog_url_name|default:'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ productos.previous_page_number }}"
        class="page-btn" aria-label="Previous page">← Prev</a>
     {% else %}
     <span class="page-btn page-btn--disabled" aria-hidden="true">← Prev</span>
@@ -32,14 +32,14 @@
       {% if slot.type == 'ellipsis' %}
       <span class="page-ellipsis" aria-hidden="true">…</span>
       {% else %}
-      <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ slot.num }}"
+      <a href="{% url catalog_url_name|default:'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ slot.num }}"
          class="page-btn{% if slot.num == productos.number %} page-btn--active{% endif %}"
          {% if slot.num == productos.number %}aria-current="page"{% endif %}>{{ slot.num }}</a>
       {% endif %}
     {% endfor %}
 
     {% if productos.has_next %}
-    <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ productos.next_page_number }}"
+    <a href="{% url catalog_url_name|default:'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ productos.next_page_number }}"
        class="page-btn" aria-label="Next page">Next →</a>
     {% else %}
     <span class="page-btn page-btn--disabled" aria-hidden="true">Next →</span>
@@ -53,11 +53,11 @@
     <p>Try these terms or adjust your filters:</p>
     <div class="cat-suggestions">
       {% for term in sugerencias %}
-      <a href="{% url 'catalogo_publico' %}?buscar={{ term|urlencode }}" class="cat-suggestion-chip cat-ajax-chip">{{ term }}</a>
+      <a href="{% url catalog_url_name|default:'catalogo_publico' %}?buscar={{ term|urlencode }}" class="cat-suggestion-chip cat-ajax-chip">{{ term }}</a>
       {% endfor %}
     </div>
     <p class="cat-empty-action">
-      <a href="{% url 'catalogo_publico' %}" class="btn-clear-filters">View full catalog</a>
+      <a href="{% url catalog_url_name|default:'catalogo_publico' %}" class="btn-clear-filters">View full catalog</a>
     </p>
   </div>
   {% endif %}

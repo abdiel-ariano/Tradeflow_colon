@@ -37,7 +37,7 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, 'tf-pcard')
         self.assertContains(response, 'Colón Free Zone Wholesale Catalog')
         self.assertNotContains(response, 'cat-sort-select--quick')
-        self.assertContains(response, 'CFZ Verified only')
+        self.assertContains(response, 'Verificado')
 
     def test_search_filter(self):
         response = self.client.get('/catalogo/', {'buscar': 'Wholesale'})

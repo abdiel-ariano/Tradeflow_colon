@@ -1,4 +1,4 @@
-"""Buyer store landing — recommended vitrine and spotlight image diversity."""
+"""Buyer store (/tienda/) — misma landing de catálogo público."""
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -40,19 +40,18 @@ class BuyerStoreLandingTests(TestCase):
         )
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
-    def test_tienda_landing_passes_diverse_recommended_products(self):
+    def test_tienda_renders_public_catalog_template(self):
         self.client.login(username='store_buyer', password='TestPass123!')
         response = self.client.get('/tienda/')
         self.assertEqual(response.status_code, 200)
-        products = response.context['buyer_recommended_products']
-        self.assertGreaterEqual(len(products), 2)
-        from core import merchandising as merch
-        fps = [merch._product_image_fingerprint(p) for p in products]
-        self.assertEqual(len(fps), len(set(fps)))
+        self.assertContains(response, 'cat-filters-toolbar')
+        self.assertEqual(response.context['catalog_url_name'], 'tienda')
+        self.assertGreaterEqual(response.context['total_resultados'], 2)
 
-    def test_recommended_section_hides_picsum_and_shows_names(self):
+    def test_tienda_shows_product_names_in_grid(self):
         self.client.login(username='store_buyer', password='TestPass123!')
         response = self.client.get('/tienda/')
         html = response.content.decode()
-        self.assertIn('bh-rec-name', html)
+        self.assertIn('Widget 0', html)
+        self.assertIn('tf-pcard', html)
         self.assertNotIn('picsum.photos', html)

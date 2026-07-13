@@ -1,4 +1,4 @@
-"""Tienda featured supplier/category blocks in filtered search results."""
+"""Tienda (/tienda/) — misma UI del catálogo público con filtros AJAX."""
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
 
@@ -39,34 +39,29 @@ class TiendaFeaturedSearchTests(TestCase):
             Inventory.objects.create(product=product, stock_qty=50)
         self.client.force_login(self.user)
 
-    def test_empresa_filter_shows_featured_supplier(self):
+    def test_empresa_filter_shows_supplier_products(self):
         resp = self.client.get(f'/tienda/?empresa={self.company.pk}')
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'td-featured--supplier')
         self.assertContains(resp, 'CFZ Featured Co')
-        self.assertContains(resp, 'Proveedor destacado')
+        self.assertContains(resp, 'Widget 0')
+        self.assertEqual(resp.context['catalog_url_name'], 'tienda')
 
-    def test_categoria_filter_shows_compact_catalog_cards(self):
+    def test_categoria_filter_shows_catalog_cards(self):
         resp = self.client.get(f'/tienda/?categoria={self.category.pk}')
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'ali-filters')
-        self.assertContains(resp, 'product-card')
+        self.assertContains(resp, 'cat-filters-toolbar')
+        self.assertContains(resp, 'tf-pcard')
         self.assertContains(resp, 'Electronics')
         self.assertContains(resp, 'MOQ')
         self.assertContains(resp, 'CFZ Verified')
-        self.assertNotContains(resp, 'ali-product-card')
-        self.assertNotContains(resp, 'Chatea ahora')
-        self.assertNotContains(resp, 'Añadir al carrito')
-        self.assertNotContains(resp, 'ali-filter-title">Empresa')
-        self.assertNotContains(resp, 'td-featured--category')
 
-    def test_partial_ajax_includes_featured_supplier(self):
+    def test_partial_ajax_returns_results_grid(self):
         resp = self.client.get(
             f'/tienda/?empresa={self.company.pk}&partial=1',
             HTTP_X_REQUESTED_WITH='XMLHttpRequest',
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'td-featured--supplier')
+        self.assertContains(resp, 'id="cat-results-root"')
 
     def test_product_cards_use_catalog_seed_in_img_src(self):
         resp = self.client.get('/tienda/')

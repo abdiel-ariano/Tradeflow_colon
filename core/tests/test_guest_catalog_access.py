@@ -1,4 +1,4 @@
-"""Catálogo público: invitados y compradores comparten /catalogo/."""
+"""Catálogo: /catalogo/ y /tienda/ comparten la misma UI pública."""
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -37,16 +37,16 @@ class GuestCatalogAccessTests(TestCase):
         self.assertTrue(response.context['show_cart_actions'])
         self.assertTrue(response.context['is_guest_catalog'])
 
-    def test_tienda_redirects_to_catalogo(self):
+    def test_tienda_renders_same_catalog_ui(self):
         response = self.client.get('/tienda/')
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/catalogo/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'cat-filters-toolbar', status_code=200)
+        self.assertEqual(response.context['catalog_url_name'], 'tienda')
 
-    def test_tienda_ofertas_redirect_maps_on_sale(self):
+    def test_tienda_ofertas_maps_on_sale(self):
         response = self.client.get('/tienda/', {'tab': 'ofertas'})
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/catalogo/', response.url)
-        self.assertIn('on_sale=1', response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['solo_on_sale'])
 
     def test_guest_can_add_to_cart(self):
         from core.models import Product, Company, Category, Inventory

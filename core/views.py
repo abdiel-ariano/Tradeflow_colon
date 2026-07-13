@@ -328,7 +328,7 @@ def _redirect_by_role(user):
         return reverse('dashboard')
     if role == 'seller':
         return reverse('portal_seller')
-    return reverse('catalogo_publico')
+    return reverse('tienda')
 
 
 # =============================================================================
@@ -597,7 +597,7 @@ def _redirect_after_email_verified(user):
     try:
         role = user.profile.role
     except UserProfile.DoesNotExist:
-        return redirect('catalogo_publico')
+        return redirect('tienda')
     if user.is_superuser or role == 'admin':
         return redirect('dashboard')
     if role == 'seller':
@@ -615,13 +615,13 @@ def enviar_codigo(request):
 
     if not _email_verification_gate_active(request.user):
         messages.info(request, 'Email verification is disabled in this environment.')
-        return redirect('catalogo_publico')
+        return redirect('tienda')
 
     try:
         profile = request.user.profile
         if profile.email_verified:
             messages.info(request, 'Your email is already verified.')
-            return redirect('catalogo_publico')
+            return redirect('tienda')
     except UserProfile.DoesNotExist:
         messages.error(request, 'Profile not found.')
         return redirect('signup')
@@ -3101,17 +3101,45 @@ def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
     return slots
 
 
-def _catalogo_filter_querystring(request, *, omit=()):
+def _catalogo_filter_querystring(request, *, omit=(), query=None):
     """Query string de filtros activos (sin page/partial ni claves en omit)."""
-    qcopy = request.GET.copy()
+    qcopy = (query if query is not None else request.GET).copy()
     for key in ('page', 'partial', *omit):
         qcopy.pop(key, None)
     return qcopy.urlencode()
 
 
-@catalog_access
-def catalogo_publico(request):
-    """Catálogo público read-only (sin login) — filtros + grid de productos."""
+def _normalize_tienda_query_params(query):
+    """Traduce filtros legacy de /tienda/ al formato del catálogo público."""
+    q = query.copy()
+
+    tab = (q.get('tab') or '').strip()
+    if tab == 'ofertas' or q.get('ofertas') == '1':
+        q['on_sale'] = '1'
+
+    orden = (q.get('orden') or '').strip()
+    if orden == 'promo':
+        q['on_sale'] = '1'
+        q.pop('orden', None)
+    elif orden == 'nombre':
+        q.pop('orden', None)
+    elif orden and orden not in ('relevancia', 'precio_asc', 'precio_desc', 'novedades'):
+        q['orden'] = 'relevancia'
+
+    for legacy_key in ('tab', 'vista', 'destacados', 'ofertas'):
+        q.pop(legacy_key, None)
+
+    return q
+
+
+def _catalogo_page_response(
+    request,
+    *,
+    catalog_url_name='catalogo_publico',
+    nav_activo='catalogo',
+    query=None,
+):
+    """Renderiza el catálogo público (misma UI para /catalogo/ y /tienda/)."""
     from decimal import Decimal, InvalidOperation
 
     from django.db.models import Case, DecimalField, F, IntegerField, When
@@ -3122,6 +3150,8 @@ def catalogo_publico(request):
         cached_catalog_empresas,
     )
 
+    params = query if query is not None else request.GET
+
     catalogo_base = merch.active_products_base()
     stats = merch.home_stats()
     verified_empresas = (
@@ -3130,16 +3160,16 @@ def catalogo_publico(request):
         .count()
     )
 
-    buscar = request.GET.get('buscar', '').strip()
-    categorias_sel = [c for c in request.GET.getlist('categoria') if c.strip()]
-    empresa = request.GET.get('empresa', '').strip()
-    precio_min = request.GET.get('precio_min', '').strip()
-    precio_max = request.GET.get('precio_max', '').strip()
-    solo_stock = request.GET.get('stock', '') in ('1', 'true', 'on')
-    solo_stock_low = request.GET.get('stock_low', '') in ('1', 'true', 'on')
-    solo_on_sale = request.GET.get('on_sale', '') in ('1', 'true', 'on')
-    solo_verificado = request.GET.get('verificado', '') == '1'
-    orden = request.GET.get('orden', 'relevancia').strip() or 'relevancia'
+    buscar = params.get('buscar', '').strip()
+    categorias_sel = [c for c in params.getlist('categoria') if c.strip()]
+    empresa = params.get('empresa', '').strip()
+    precio_min = params.get('precio_min', '').strip()
+    precio_max = params.get('precio_max', '').strip()
+    solo_stock = params.get('stock', '') in ('1', 'true', 'on')
+    solo_stock_low = params.get('stock_low', '') in ('1', 'true', 'on')
+    solo_on_sale = params.get('on_sale', '') in ('1', 'true', 'on')
+    solo_verificado = params.get('verificado', '') == '1'
+    orden = params.get('orden', 'relevancia').strip() or 'relevancia'
     if orden == 'promo':
         solo_on_sale = True
         orden = 'relevancia'
@@ -3230,7 +3260,7 @@ def catalogo_publico(request):
 
     total_resultados = productos.count()
     paginator = Paginator(productos, 24)
-    page_obj = paginator.get_page(request.GET.get('page', 1))
+    page_obj = paginator.get_page(params.get('page', 1))
 
     categorias = cached_catalog_categories()
     empresas = cached_catalog_empresas()
@@ -3245,7 +3275,7 @@ def catalogo_publico(request):
     if not sugerencias:
         sugerencias = ['Electronics', 'Textiles', 'Logistics', 'Spare parts']
 
-    qcopy = request.GET.copy()
+    qcopy = params.copy()
     qcopy.pop('page', None)
     qcopy.pop('partial', None)
     catalogo_params = qcopy.urlencode()
@@ -3271,7 +3301,10 @@ def catalogo_publico(request):
         'solo_verificado': solo_verificado,
         'orden': orden_key,
         'catalogo_params': catalogo_params,
-        'catalogo_q_sin_categoria': _catalogo_filter_querystring(request, omit=('categoria',)),
+        'catalog_url_name': catalog_url_name,
+        'catalogo_q_sin_categoria': _catalogo_filter_querystring(
+            request, omit=('categoria',), query=params,
+        ),
         'catalogo_stats': stats,
         'verified_empresas': verified_empresas,
         'total_resultados': total_resultados,
@@ -3279,7 +3312,7 @@ def catalogo_publico(request):
         'pagination_slots': _tienda_pagination_slots(page_obj),
         'meta_description': meta_description,
         'titulo_pagina': 'Catalog',
-        'nav_activo': 'catalogo',
+        'nav_activo': nav_activo,
         'show_cart_actions': show_cart_actions,
         'is_guest_catalog': is_guest,
         'carrito_count': _contar_items(_get_carrito(request)),
@@ -3289,47 +3322,34 @@ def catalogo_publico(request):
 
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        or request.GET.get('partial') == '1'
+        or params.get('partial') == '1'
     )
     if is_partial:
         return render(request, 'core/catalogo_publico_partial.html', context)
     return render(request, 'core/catalogo_publico.html', context)
 
 
-def _catalogo_url_from_tienda_query(request):
-    """Traduce parámetros legacy de /tienda/ a la URL canónica /catalogo/."""
-    q = request.GET.copy()
-
-    tab = (q.get('tab') or '').strip()
-    if tab == 'ofertas' or q.get('ofertas') == '1':
-        q['on_sale'] = '1'
-    if q.get('verificado') == '1':
-        q['verificado'] = '1'
-
-    orden = (q.get('orden') or '').strip()
-    if orden == 'promo':
-        q['on_sale'] = '1'
-        q.pop('orden', None)
-    elif orden == 'nombre':
-        q.pop('orden', None)
-    elif orden and orden not in ('relevancia', 'precio_asc', 'precio_desc', 'novedades'):
-        q['orden'] = 'relevancia'
-
-    for legacy_key in ('tab', 'vista', 'destacados', 'ofertas'):
-        q.pop(legacy_key, None)
-
-    qs = q.urlencode()
-    base = reverse('catalogo_publico')
-    return f'{base}?{qs}' if qs else base
+@catalog_access
+def catalogo_publico(request):
+    """Catálogo público — misma UI para invitados y compradores."""
+    return _catalogo_page_response(
+        request,
+        catalog_url_name='catalogo_publico',
+        nav_activo='catalogo',
+    )
 
 
 @catalog_access
 def tienda(request):
-    """Alias legacy — redirige al catálogo público unificado."""
-    return redirect(_catalogo_url_from_tienda_query(request))
+    """Catálogo del comprador — misma UI que /catalogo/, ruta /tienda/."""
+    return _catalogo_page_response(
+        request,
+        catalog_url_name='tienda',
+        nav_activo='tienda',
+        query=_normalize_tienda_query_params(request.GET),
+    )
 
 
-@catalog_access
 @catalog_access
 def catalogo_producto_detail(request, pk):
     """Vista pública de detalle de producto (sin login requerido)."""
@@ -3503,7 +3523,7 @@ def catalogo_agregar_inquiry(request, producto_id):
         if _request_wants_json(request):
             return JsonResponse({'ok': False, **payload}, status=status)
         messages.error(request, payload.get('message', ''))
-        return redirect('catalogo_publico')
+        return redirect('tienda')
 
     if _request_wants_json(request):
         return JsonResponse({'ok': True, **payload})
@@ -3517,7 +3537,7 @@ def agregar_al_carrito(request, producto_id):
     Agrega un producto al carrito o incrementa su cantidad si ya existe.
     """
     if request.method != 'POST':
-        return redirect('catalogo_publico')
+        return redirect('tienda')
 
     try:
         cantidad = int(request.POST.get('cantidad', 1))
@@ -3530,7 +3550,7 @@ def agregar_al_carrito(request, producto_id):
         if _request_wants_json(request):
             return JsonResponse({'ok': False, **payload}, status=status)
         messages.error(request, payload.get('message', ''))
-        return redirect('catalogo_publico')
+        return redirect('tienda')
 
     if _request_wants_json(request):
         return JsonResponse({'ok': True, **payload})
@@ -3692,7 +3712,7 @@ def checkout(request):
     # Redirigir si el carrito está vacío
     if not carrito:
         messages.warning(request, 'Your cart is empty.')
-        return redirect('catalogo_publico')
+        return redirect('tienda')
 
     subtotal = _calcular_total(carrito)
 
@@ -4208,7 +4228,7 @@ def solicitar_cotizacion_automatica(request, producto_id):
             request,
             'We found no companies selling this product to quote.',
         )
-        return redirect('catalogo_publico')
+        return redirect('tienda')
 
     lote = uuid.uuid4().hex[:12]
     nota_auto = 'Automatic quote generated with the current catalog price.'

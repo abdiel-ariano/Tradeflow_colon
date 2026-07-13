@@ -203,14 +203,14 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, self.product.name, count=n)
 
-    def test_login_redirige_buyer_a_catalogo(self):
-        """Tras login sin ?next=, el buyer va al catálogo."""
+    def test_login_redirige_buyer_a_tienda(self):
+        """Tras login sin ?next=, el buyer va a /tienda/ con la misma UI del catálogo."""
         r = self.client.post(
             '/login/',
             {'username': 'buyer_test', 'password': 'TestPass123!'},
         )
         self.assertEqual(r.status_code, 302)
-        self.assertIn('/catalogo/', r.url)
+        self.assertIn('/tienda/', r.url)
 
     def test_login_redirige_seller_a_portal(self):
         """Tras login sin ?next=, el seller va directo a /mi-tienda/."""
@@ -228,9 +228,9 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 302)
         self.assertIn('/mi-tienda/', r.url)
 
-    def test_guest_tienda_redirects_to_catalogo_with_cart(self):
-        """Invitados en /tienda/ van al catálogo y pueden usar el carrito de sesión."""
-        r = self.client.get('/tienda/', follow=True)
+    def test_guest_tienda_has_cart_actions(self):
+        """Invitados en /tienda/ ven el catálogo público y pueden usar el carrito de sesión."""
+        r = self.client.get('/tienda/')
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.context['show_cart_actions'])
 
