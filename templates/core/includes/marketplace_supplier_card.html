@@ -1,5 +1,5 @@
-{% comment %}Alibaba-style supplier storefront card — product preview + verified badge.{% endcomment %}
-<article class="mkt-vendor-card">
+{% comment %}Supplier storefront card — product mosaic + CFZ verified badge.{% endcomment %}
+<article class="mkt-vendor-card" data-vendor-name="{{ company.name|lower }}">
   <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}&verificado=1" class="mkt-vendor-card__preview" aria-label="View {{ company.name }} storefront">
     <div class="mkt-vendor-card__thumbs">
       {% for product in company.spotlight_products|slice:":4" %}
@@ -22,15 +22,15 @@
     <div class="mkt-vendor-card__identity">
       {% include "core/includes/company_avatar.html" with company=company class="tf-co-avatar--vendor" %}
       <div class="mkt-vendor-card__info">
-        <h3 class="mkt-vendor-card__name" title="{{ company.name }}">{{ company.name|truncatechars:40 }}</h3>
+        <h3 class="mkt-vendor-card__name" title="{{ company.name }}">{{ company.name|truncatechars:42 }}</h3>
         <p class="mkt-vendor-card__meta">
           {% if company.num_productos == 1 %}{{ company.num_productos }} product{% else %}{{ company.num_productos }} products{% endif %}
-          · Colón Free Zone · PA
+          · Colón Free Zone
         </p>
       </div>
     </div>
     {% if company.tagline_es %}
-    <p class="mkt-vendor-card__tagline">{{ company.tagline_es|truncatechars:72 }}</p>
+    <p class="mkt-vendor-card__tagline">{{ company.tagline_es|truncatechars:80 }}</p>
     {% endif %}
     <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}&verificado=1" class="mkt-vendor-card__btn">View storefront</a>
   </div>

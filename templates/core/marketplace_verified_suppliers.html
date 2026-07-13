@@ -3,36 +3,80 @@
 {% block title %}CFZ Verified Suppliers — TradeFlow Colón{% endblock %}
 {% block meta_description %}Browse {{ stats.empresas_verificadas|default:stats.empresas }} verified Colón Free Zone suppliers with live catalogs, export documentation, and transparent MOQ on TradeFlow.{% endblock %}
 
-{% block marketplace_main %}
-<div class="mkt-page-stack">
+{% block marketplace_extra_head %}
+<link rel="stylesheet" href="{% static 'css/marketplace-verified.css' %}?v={{ tf_asset_version|default:'1' }}">
+{% endblock %}
 
-  <header class="mkt-hero mkt-hero--verified" aria-labelledby="mkt-verified-title">
-    <div class="mkt-hero__accent" aria-hidden="true"></div>
-    <div class="mkt-hero__layout">
-      <div class="mkt-hero__main">
-        <p class="mkt-hero__kicker">Supplier directory</p>
-        <h1 class="mkt-hero__title" id="mkt-verified-title">CFZ verified suppliers</h1>
-        <p class="mkt-hero__sub">Registered in the Colón Free Zone with live catalogs. Compare storefronts, build inquiry carts, and request quotes before you commit.</p>
-        <div class="mkt-hero__actions">
-          <a href="{% url 'catalogo_publico' %}?verificado=1" class="mkt-btn mkt-btn--primary">Browse verified catalog</a>
-          <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--ghost">Create buyer account</a>
-        </div>
+{% block marketplace_main %}
+<div class="mkt-page-stack mkt-page-stack--verified">
+
+  <header class="mkt-verified-hero" aria-labelledby="mkt-verified-title">
+    <div class="mkt-verified-hero__atmosphere" aria-hidden="true">
+      <span class="mkt-verified-hero__glow mkt-verified-hero__glow--orange"></span>
+      <span class="mkt-verified-hero__glow mkt-verified-hero__glow--blue"></span>
+      <span class="mkt-verified-hero__grid"></span>
+      <span class="mkt-verified-hero__beam"></span>
+    </div>
+
+    <div class="mkt-verified-hero__content">
+      <p class="mkt-verified-hero__brand">
+        <span class="mkt-verified-hero__brand-mark">TradeFlow</span>
+        <span class="mkt-verified-hero__brand-accent">Colón</span>
+      </p>
+      <p class="mkt-verified-hero__kicker">Colón Free Zone · Supplier directory</p>
+      <h1 class="mkt-verified-hero__title" id="mkt-verified-title">CFZ verified suppliers</h1>
+      <p class="mkt-verified-hero__lead">
+        Every company here is RUC-checked in the Zona Libre de Colón — live catalogs, transparent MOQs, and quote-ready storefronts.
+      </p>
+      <div class="mkt-verified-hero__actions">
+        <a href="{% url 'catalogo_publico' %}?verificado=1" class="mkt-btn mkt-btn--primary mkt-btn--on-dark">Browse verified catalog</a>
+        <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--ghost mkt-btn--on-dark">Create buyer account</a>
       </div>
-      <aside class="mkt-hero__metrics" aria-label="Marketplace stats">
-        <div class="mkt-metric"><strong>{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}</strong><span>Verified suppliers</span></div>
-        <div class="mkt-metric"><strong>{{ stats.productos|default:0 }}</strong><span>Active products</span></div>
-        <div class="mkt-metric"><strong>{{ stats.categorias|default:0 }}</strong><span>Categories</span></div>
-        <div class="mkt-metric"><strong>100%</strong><span>RUC checked</span></div>
-      </aside>
     </div>
   </header>
 
+  <section class="mkt-verified-trust" aria-label="What verification means">
+    <ul class="mkt-verified-trust__list">
+      <li class="mkt-verified-trust__item">
+        <span class="mkt-verified-trust__icon" aria-hidden="true">{% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}</span>
+        <span><strong>RUC verified</strong> Panama tax ID matched to CFZ registration</span>
+      </li>
+      <li class="mkt-verified-trust__item">
+        <span class="mkt-verified-trust__icon" aria-hidden="true">{% include "core/includes/tf_icon.html" with name="inventory_2" class="tf-icon--sm" %}</span>
+        <span><strong>Live inventory</strong> Active wholesale SKUs with MOQ on every listing</span>
+      </li>
+      <li class="mkt-verified-trust__item">
+        <span class="mkt-verified-trust__icon" aria-hidden="true">{% include "core/includes/tf_icon.html" with name="description" class="tf-icon--sm" %}</span>
+        <span><strong>Export ready</strong> Quote, invoice, and packing-list workflows</span>
+      </li>
+    </ul>
+  </section>
+
+  <div class="mkt-verified-stats" aria-label="Directory size">
+    <div class="mkt-verified-stats__item">
+      <strong>{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}</strong>
+      <span>Verified suppliers</span>
+    </div>
+    <div class="mkt-verified-stats__item">
+      <strong>{{ stats.productos|default:0 }}</strong>
+      <span>Active products</span>
+    </div>
+    <div class="mkt-verified-stats__item">
+      <strong>{{ stats.categorias|default:0 }}</strong>
+      <span>Categories</span>
+    </div>
+    <div class="mkt-verified-stats__item">
+      <strong>100%</strong>
+      <span>RUC checked</span>
+    </div>
+  </div>
+
   {% if empresas_destacadas %}
-  <section class="mkt-panel" aria-labelledby="mkt-verified-featured-title">
+  <section class="mkt-panel mkt-panel--verified-featured" aria-labelledby="mkt-verified-featured-title">
     <header class="mkt-panel__head">
       <div>
-        <h2 class="mkt-panel__title" id="mkt-verified-featured-title">Top ranked suppliers</h2>
-        <p class="mkt-panel__sub">Featured storefronts with live inventory and export-ready listings</p>
+        <h2 class="mkt-panel__title" id="mkt-verified-featured-title">Featured storefronts</h2>
+        <p class="mkt-panel__sub">Top-ranked CFZ suppliers with live inventory for wholesale inquiry</p>
       </div>
     </header>
     <div class="hm-company-rotator mkt-vendor-rotator" data-hm-company-rotator aria-live="polite">
@@ -43,7 +87,7 @@
         </div>
         {% endfor %}
       </div>
-      <div class="hm-company-rotator__tabs" role="tablist" aria-label="Featured suppliers">
+      <div class="hm-company-rotator__tabs mkt-vendor-rotator__tabs" role="tablist" aria-label="Featured suppliers">
         {% for company in empresas_destacadas %}
         <button type="button"
                 class="hm-company-rotator__tab{% if forloop.first %} is-active{% endif %}"
@@ -59,21 +103,35 @@
   </section>
   {% endif %}
 
-  <section class="mkt-panel" aria-labelledby="mkt-verified-all-title">
-    <header class="mkt-panel__head mkt-panel__head--row">
+  <section class="mkt-panel mkt-panel--verified-directory" aria-labelledby="mkt-verified-all-title">
+    <header class="mkt-panel__head mkt-panel__head--row mkt-verified-directory__head">
       <div>
         <h2 class="mkt-panel__title" id="mkt-verified-all-title">All verified suppliers</h2>
-        <p class="mkt-panel__sub">{{ empresas_grid|length }} companies ready for wholesale inquiry</p>
+        <p class="mkt-panel__sub">
+          <span id="mkt-verified-count">{{ empresas_grid|length }}</span> companies ready for wholesale inquiry
+        </p>
       </div>
-      <a href="{% url 'catalogo_publico' %}?verificado=1" class="mkt-panel__link">View all products →</a>
+      <div class="mkt-verified-directory__tools">
+        <label class="mkt-verified-search" for="mkt-verified-filter">
+          <span class="visually-hidden">Filter suppliers</span>
+          <svg class="mkt-verified-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="search" id="mkt-verified-filter" name="q" placeholder="Search by company name…" autocomplete="off">
+        </label>
+        <a href="{% url 'catalogo_publico' %}?verificado=1" class="mkt-panel__link mkt-verified-directory__catalog-link">View all products →</a>
+      </div>
     </header>
 
     {% if empresas_grid %}
-    <div class="mkt-vendor-grid">
+    <div class="mkt-vendor-grid" id="mkt-vendor-grid">
       {% for company in empresas_grid %}
         {% include "core/includes/marketplace_supplier_card.html" with company=company %}
       {% endfor %}
     </div>
+    <p class="mkt-verified-empty" id="mkt-verified-filter-empty" hidden role="status">
+      No suppliers match that name. <button type="button" class="mkt-verified-empty__clear" id="mkt-verified-filter-clear">Clear search</button>
+    </p>
     {% else %}
     <p class="mkt-empty">Verified suppliers are being onboarded. <a href="{% url 'catalogo_publico' %}">Browse the full catalog</a>.</p>
     {% endif %}
@@ -84,4 +142,5 @@
 
 {% block marketplace_extra_js %}
 <script nonce="{{ csp_nonce }}" src="{% static 'js/tf-home.js' %}?v={{ tf_asset_version|default:'3' }}"></script>
+<script nonce="{{ csp_nonce }}" src="{% static 'js/marketplace-verified.js' %}?v={{ tf_asset_version|default:'1' }}"></script>
 {% endblock %}
