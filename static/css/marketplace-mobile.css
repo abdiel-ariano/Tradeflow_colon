@@ -1,0 +1,393 @@
+/* TradeFlow marketplace — phone / small-tablet responsive fixes
+   Contiene overflow del navbar, home, catalogo y landings mkt.
+   Tokens: DESIGN.md (navy / orange / neutrals / rounded sm|md|lg) */
+
+/* ── Global containment on marketplace shells ── */
+body.cat-catalog-page,
+body.tf-public-shell {
+  overflow-x: clip;
+}
+
+body.cat-catalog-page .tf-main,
+.hm-alibaba,
+.hm-marketplace-page,
+.mkt-page-stack {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* ── Navbar: stop Create account + utilities from blowing past the viewport ── */
+@media (max-width: 767px) {
+  .cat-nav.tf-nav-alibaba .navbar-primary {
+    padding: 0 12px;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .cat-nav.tf-nav-alibaba .navbar-logo {
+    min-width: 0;
+  }
+
+  .cat-nav.tf-nav-alibaba .logo-text {
+    font-size: 14px;
+  }
+
+  .cat-nav.tf-nav-alibaba .btn-hamburger {
+    margin-left: auto;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .cat-nav.tf-nav-alibaba .navbar-actions,
+  .cat-nav.tf-nav-alibaba.navbar-actions,
+  .tf-nav-alibaba .cat-nav .navbar-actions {
+    display: flex !important;
+    align-items: center;
+    gap: 2px;
+    margin-left: 0;
+    flex-shrink: 0;
+    max-width: none;
+  }
+
+  /* Hide bulky / text actions on phones */
+  .cat-nav.tf-nav-alibaba .bn-create-account,
+  .cat-nav.tf-nav-alibaba .btn-create-account.bn-create-account,
+  .tf-nav-alibaba .bn-create-account,
+  .tf-nav-alibaba .btn-create-account.bn-create-account {
+    display: none !important;
+  }
+
+  .cat-nav.tf-nav-alibaba .bn-utility:not(.bn-utility--signin):not(.bn-utility--account),
+  .cat-nav.tf-nav-alibaba .bn-utility--icon,
+  .cat-nav.tf-nav-alibaba .bn-utility--lang {
+    display: none !important;
+  }
+
+  .cat-nav.tf-nav-alibaba .bn-utility--signin {
+    display: inline-flex !important;
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .cat-nav.tf-nav-alibaba .bn-utility__signin-label,
+  .cat-nav.tf-nav-alibaba .bn-user-name {
+    display: none !important;
+  }
+
+  .cat-nav.tf-nav-alibaba .cart-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Compact secondary strip (was desktop-only) */
+  .cat-nav.tf-nav-alibaba .navbar-secondary {
+    display: block;
+    height: auto;
+    min-height: 40px;
+  }
+
+  .cat-nav.tf-nav-alibaba .nav-secondary-inner {
+    padding: 0 12px;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .cat-nav.tf-nav-alibaba .nav-secondary-inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cat-nav.tf-nav-alibaba .nav-secondary-left {
+    gap: 16px;
+    flex-wrap: nowrap;
+  }
+
+  .cat-nav.tf-nav-alibaba .nav-secondary-left a,
+  .cat-nav.tf-nav-alibaba .nav-secondary-left .btn-all-categories {
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .cat-nav.tf-nav-alibaba .nav-secondary-right {
+    display: none;
+  }
+}
+
+/* Tablet: keep create account but keep utilities from crowding */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cat-nav.tf-nav-alibaba .navbar-primary {
+    padding: 0 16px;
+    gap: 10px;
+  }
+
+  .cat-nav.tf-nav-alibaba .bn-utility:not(.bn-utility--signin):not(.bn-utility--account):not(.bn-utility--icon) {
+    display: none !important;
+  }
+
+  .cat-nav.tf-nav-alibaba .bn-utility__signin-label {
+    display: none;
+  }
+
+  .cat-nav.tf-nav-alibaba .bn-create-account,
+  .cat-nav.tf-nav-alibaba .btn-create-account.bn-create-account {
+    padding: 0 12px;
+    height: 34px;
+    font-size: 12px;
+  }
+
+  .cat-nav.tf-nav-alibaba .navbar-secondary {
+    display: block;
+    height: auto;
+  }
+
+  .cat-nav.tf-nav-alibaba .nav-secondary-inner {
+    padding: 0 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .cat-nav.tf-nav-alibaba .nav-secondary-right {
+    display: none;
+  }
+}
+
+/* Mobile search under primary (search bar is desktop-only by default) */
+@media (max-width: 1023px) {
+  .cat-nav.tf-nav-alibaba .search-container {
+    display: block;
+    flex: 1 1 100%;
+    max-width: none;
+    order: 5;
+    margin: 0;
+    padding: 0 0 10px;
+  }
+
+  .cat-nav.tf-nav-alibaba .navbar-primary {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 56px;
+    padding-top: 8px;
+  }
+
+  .cat-nav.tf-nav-alibaba .search-bar {
+    height: 40px;
+    border-radius: 999px;
+  }
+
+  .cat-nav.tf-nav-alibaba .btn-search-label {
+    display: none;
+  }
+
+  .cat-nav.tf-nav-alibaba .btn-search {
+    width: 40px;
+    min-width: 40px;
+    padding: 0;
+    border-radius: 999px;
+  }
+}
+
+/* ── Home gateway ── */
+@media (max-width: 900px) {
+  .hm-gateway__inner {
+    grid-template-columns: 1fr !important;
+    gap: 22px;
+  }
+
+  .hm-gateway__stats {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .hm-gateway__pulse-panel {
+    max-width: 100%;
+  }
+
+  .hm-gateway__carousel-meta {
+    min-width: 0;
+  }
+
+  .hm-gateway__carousel-name,
+  .hm-gateway__carousel-supplier {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .hm-gateway {
+    padding: 24px 14px 20px;
+  }
+
+  .hm-gateway__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hm-gateway__btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .hm-gateway__pills {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .hm-gateway__pill {
+    font-size: 12px;
+    padding: 10px 12px;
+    justify-content: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .hm-alibaba .hm-product-row {
+    margin: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .hm-product-row__head {
+    flex-wrap: wrap;
+  }
+
+  .hm-join-band {
+    margin: 0 12px 12px;
+    border-radius: 12px;
+  }
+
+  .hm-join-band__inner {
+    padding: 24px 16px;
+  }
+
+  .hm-join-band__actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hm-join-band__actions .mkt-btn,
+  .hm-join-band__btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .hm-trust {
+    margin: 0 12px 12px;
+    border-radius: 12px;
+  }
+
+  .hm-bento {
+    padding: 8px 0 12px;
+  }
+
+  .hm-bento__grid {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .mkt-page-stack {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .mkt-verified-trust__item {
+    padding: 14px 14px;
+    min-width: 0;
+  }
+
+  .mkt-verified-trust__item span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .mkt-verified-hero__actions {
+    flex-direction: column;
+  }
+
+  .mkt-verified-hero__actions .mkt-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cat-site-footer .footer-inner {
+    padding: 28px 16px;
+  }
+
+  .cat-site-footer .footer-cols {
+    gap: 20px;
+  }
+
+  .cat-site-footer .footer-payments {
+    gap: 8px;
+  }
+}
+
+/* Ensure horizontal carousels never expand document width */
+.hm-alibaba .hm-slider,
+.hm-alibaba .hm-deals-strip,
+.hm-alibaba .hm-cat-discover,
+.hm-marketplace .hm-slider {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.hm-alibaba .hm-slider__viewport,
+.hm-marketplace .hm-slider__viewport {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Decorative orbs / glows stay clipped */
+.hm-gateway,
+.mkt-about-cinematic,
+.mkt-verified-hero,
+.hm-join-band {
+  overflow: hidden;
+}
+
+/* Catalog toolbar denser but usable on phones */
+@media (max-width: 640px) {
+  .catalog-main {
+    padding-inline: 12px;
+  }
+
+  .cat-filters-toolbar--compact {
+    gap: 10px;
+  }
+
+  /* Categories chip above chat launcher */
+  .btn-filter-floating {
+    bottom: max(76px, calc(64px + env(safe-area-inset-bottom, 0px)));
+    right: 14px;
+    max-width: calc(100vw - 28px);
+  }
+
+  body.cat-catalog-page #tf-assistant {
+    bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+    right: max(12px, env(safe-area-inset-right, 0px)) !important;
+  }
+}
+
+/* Secondary nav labels: no forced ellipsis mid-word; allow full scroll */
+@media (max-width: 1023px) {
+  .cat-nav.tf-nav-alibaba .nav-secondary-left a {
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
+  }
+}

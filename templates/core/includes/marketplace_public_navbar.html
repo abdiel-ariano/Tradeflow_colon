@@ -28,7 +28,7 @@
       </form>
     </div>
 
-    <button type="button" class="btn-hamburger" id="cat-nav-hamburger" aria-label="Open menu">
+    <button type="button" class="btn-hamburger" id="cat-nav-hamburger" aria-label="Open menu" data-cat-modal-open data-cat-panel="discover">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path d="M4 6h16M4 12h16M4 18h16"/>
       </svg>
@@ -109,8 +109,8 @@
         <a href="{% url catalog_url_name|default:'catalogo_publico' %}"{% if marketplace_nav_active == 'catalog' %} class="is-active" aria-current="page"{% endif %}>Catalog</a>
         <a href="{% url 'marketplace_deals' %}"{% if marketplace_nav_active == 'deals' %} class="is-active" aria-current="page"{% endif %}>Deals</a>
         {% if not request.user.is_authenticated %}
-        <a href="{% url 'marketplace_verified_suppliers' %}"{% if marketplace_nav_active == 'verified' %} class="is-active" aria-current="page"{% endif %}>Verified suppliers</a>
-        <a href="{% url 'marketplace_order_protection' %}"{% if marketplace_nav_active == 'protection' %} class="is-active" aria-current="page"{% endif %}>Order protection</a>
+        <a href="{% url 'marketplace_verified_suppliers' %}"{% if marketplace_nav_active == 'verified' %} class="is-active" aria-current="page"{% endif %}><span class="nav-label-full">Verified suppliers</span><span class="nav-label-short">Verified</span></a>
+        <a href="{% url 'marketplace_order_protection' %}"{% if marketplace_nav_active == 'protection' %} class="is-active" aria-current="page"{% endif %}><span class="nav-label-full">Order protection</span><span class="nav-label-short">Protection</span></a>
         <a href="{% url 'acerca_tradeflow' %}"{% if marketplace_nav_active == 'about' %} class="is-active" aria-current="page"{% endif %}>About TradeFlow</a>
         {% endif %}
       </div>

@@ -841,13 +841,20 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
 
 .tf-nav-alibaba .bn-create-account,
 .tf-nav-alibaba .btn-create-account.bn-create-account {
-  display: inline-flex !important;
+  display: none;
   align-items: center;
   height: 34px;
   padding: 0 14px;
   margin-left: 2px;
   font-size: 13px;
   white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .tf-nav-alibaba .bn-create-account,
+  .tf-nav-alibaba .btn-create-account.bn-create-account {
+    display: inline-flex;
+  }
 }
 
 .tf-nav-alibaba .bn-utility--signin:hover {
@@ -874,9 +881,9 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   gap: 4px;
 }
 
-@media (min-width: 1024px) {
+@media (max-width: 767px) {
   .cat-nav.tf-nav-alibaba .navbar-actions {
-    display: flex;
+    gap: 2px;
   }
 }
 
@@ -937,7 +944,6 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
   font-weight: 700;
   color: var(--tf-navy, #0F2A44);
 }
