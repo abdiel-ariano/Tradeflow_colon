@@ -1,43 +1,49 @@
-"""Auth pages must expose the shared ES/EN language switcher."""
+"""Auth pages respect the global language cookie without a local switcher."""
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
 
 @override_settings(LANGUAGE_CODE='en')
-class AuthLangSwitcherTests(TestCase):
-    AUTH_URL_NAMES = (
-        'login',
-        'password_reset',
-        'signup_buyer',
-        'signup_seller',
-    )
+class AuthGlobalLanguageTests(TestCase):
+    def test_auth_pages_have_no_local_language_switcher(self):
+        """Auth layouts rely on the global locale cookie, not a per-page switcher."""
+        for name in ('login', 'password_reset', 'signup_buyer', 'signup_seller'):
+            with self.subTest(page=name):
+                response = self.client.get(reverse(name))
+                self.assertEqual(response.status_code, 200)
+                self.assertNotContains(response, 'auth-lang-switch')
 
-    def test_auth_pages_include_language_switcher(self):
-        """Each auth-only page renders the shared ES/EN switcher."""
-        for name in self.AUTH_URL_NAMES:
+    def test_login_copy_follows_language_cookie(self):
+        """Login title switches with django_language cookie."""
+        en = self.client.get(reverse('login'))
+        self.assertContains(en, 'Sign in to your account')
+        self.assertNotContains(en, 'Iniciar sesión en tu cuenta')
+
+        self.client.cookies['django_language'] = 'es'
+        es = self.client.get('/es' + reverse('login'))
+        self.assertEqual(es.status_code, 200)
+        self.assertContains(es, 'Iniciar sesión en tu cuenta')
+        self.assertNotContains(es, 'Sign in to your account')
+
+    def test_recover_copy_follows_language_cookie(self):
+        """Recover access title switches with django_language cookie."""
+        en = self.client.get(reverse('password_reset'))
+        self.assertContains(en, 'Recover access')
+        self.assertContains(en, 'Send link')
+
+        self.client.cookies['django_language'] = 'es'
+        es = self.client.get('/es' + reverse('password_reset'))
+        self.assertEqual(es.status_code, 200)
+        self.assertContains(es, 'Recuperar acceso')
+        self.assertContains(es, 'Enviar enlace')
+
+    def test_es_cookie_redirects_unprefixed_auth_urls(self):
+        """Cookie=es redirects unprefixed auth routes to /es/... (global preference)."""
+        self.client.cookies['django_language'] = 'es'
+        for name in ('login', 'password_reset', 'signup_buyer', 'signup_seller'):
             with self.subTest(page=name):
                 path = reverse(name)
-                response = self.client.get(path)
-                self.assertEqual(response.status_code, 200)
-                self.assertContains(response, 'auth-lang-switch')
-                self.assertContains(response, reverse('set_language'))
-                self.assertContains(response, f'name="next" value="{path}"')
-
-    def test_set_language_from_login_returns_to_login(self):
-        """Switching language from /login/ redirects back to the locale login URL."""
-        login_path = reverse('login')
-        response = self.client.post(
-            reverse('set_language'),
-            {'language': 'es', 'next': login_path},
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/es' + login_path)
-        self.assertEqual(self.client.cookies['django_language'].value, 'es')
-
-        response = self.client.post(
-            reverse('set_language'),
-            {'language': 'en', 'next': '/es' + login_path},
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, login_path)
+                response = self.client.get(path, follow=False)
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response.url, '/es' + path)
