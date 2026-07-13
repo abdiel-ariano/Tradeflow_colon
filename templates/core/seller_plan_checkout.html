@@ -1,184 +1,265 @@
 {% extends "core/seller_layout.html" %}
-{% comment %}Template: core/seller_plan_checkout.html — review purpose and context vars.{% endcomment %}
-{% block title %}Plan payment — {{ target_plan.name }}{% endblock %}
+{% comment %}Template: core/seller_plan_checkout.html — professional bank-first plan activation.{% endcomment %}
+{% block title %}Activate {{ target_plan.name }}{% endblock %}
 {% block seller_page_title %}Activate {{ target_plan.name }}{% endblock %}
 {% block seller_page_sub %}
-<p class="sp-topbar-sub">Secure TradeFlow checkout · your plan activates when payment is confirmed</p>
-{% endblock %}
-
-{% block seller_extra_css %}
-<style nonce="{{ csp_nonce }}">
-.sp-checkout-page { max-width: 920px; margin: 0 auto; padding: 0 8px 40px; }
-.sp-checkout-steps {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-}
-.sp-checkout-step {
-  flex: 1;
-  min-width: 120px;
-  text-align: center;
-  padding: 12px 10px;
-  border-radius: 10px;
-  background: var(--tf-sand);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--tf-muted);
-  border: 1px solid var(--tf-sand2);
-}
-.sp-checkout-step.is-done { background: rgba(46, 91, 138, 0.08); color: var(--tf-teal); border-color: rgba(46, 91, 138, 0.2); }
-.sp-checkout-step.is-current { background: rgba(242, 101, 34, 0.1); color: var(--tf-orange); border-color: var(--tf-orange); }
-.sp-checkout-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
-@media (max-width: 860px) { .sp-checkout-grid { grid-template-columns: 1fr; } }
-.sp-checkout-card {
-  background: var(--tf-white);
-  border: 1px solid var(--tf-sand2);
-  border-radius: 14px;
-  padding: 24px;
-}
-.sp-checkout-card h3 { margin: 0 0 16px; font-size: 1rem; color: var(--tf-navy); }
-.sp-pay-method {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border: 1px solid var(--tf-sand2);
-  border-radius: 10px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-}
-.sp-pay-method:has(input:checked) {
-  border-color: var(--tf-orange);
-  background: rgba(242, 101, 34, 0.06);
-}
-.sp-pay-fields { display: grid; gap: 12px; margin-top: 16px; }
-.sp-pay-fields label { font-size: 12px; font-weight: 600; color: var(--tf-muted); display: block; margin-bottom: 4px; }
-.sp-pay-fields input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--tf-sand2);
-  border-radius: 8px;
-  font-size: 14px;
-}
-.sp-checkout-summary-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  font-size: 14px;
-  border-bottom: 1px solid var(--tf-sand);
-}
-.sp-checkout-total {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 2px solid var(--tf-navy);
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--tf-navy);
-}
-.sp-checkout-total .amount { color: var(--tf-orange); }
-.sp-secure-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--tf-muted);
-  margin-top: 16px;
-}
-</style>
+<p class="sp-topbar-sub">
+  USD {{ amount }}/mo · {{ checkout.billing_label|default:"Monthly" }} · activates after payment confirmation
+</p>
 {% endblock %}
 
 {% block seller_content %}
-<div class="sp-checkout-page">
-  {% if saas %}{% include "core/includes/seller_saas_usage.html" with saas_snapshot=saas %}{% endif %}
+<div class="sp-checkout-page"
+     data-checkout-id="{{ checkout.pk }}"
+     data-amount="{{ amount }}"
+     data-currency="{{ bank_transfer.currency|default:'USD' }}">
 
-  <nav class="sp-checkout-steps" aria-label="Activation steps">
-    <div class="sp-checkout-step is-done">1. Plan</div>
-    <div class="sp-checkout-step is-current">2. Payment</div>
-    <div class="sp-checkout-step">3. Activation</div>
+  <nav class="sp-checkout-crumb" aria-label="Breadcrumb">
+    <a href="{% url 'seller_plan_consumo' %}">Plans</a>
+    <span class="sp-checkout-crumb-sep" aria-hidden="true">/</span>
+    <span class="sp-checkout-crumb-current">Activate {{ target_plan.name }}</span>
   </nav>
 
+  <header class="sp-checkout-intro">
+    <h2>
+      {% if is_trial_activation %}
+        Activate {{ target_plan.name }}
+      {% elif is_trial_upgrade %}
+        Upgrade to {{ target_plan.name }}
+      {% else %}
+        Expand to {{ target_plan.name }}
+      {% endif %}
+    </h2>
+    <p>
+      Transfer the exact amount using the details below, then submit your bank reference.
+      TradeFlow confirms receipt in 1–2 business days and activates your plan.
+    </p>
+  </header>
+
   <div class="sp-checkout-grid">
-    <div class="sp-checkout-card">
-      <h3>Payment method</h3>
-      <form method="post" action="{% url 'seller_plan_checkout_pay' target_plan.slug %}" id="sp-checkout-form">
+    <section class="sp-checkout-panel" aria-labelledby="sp-pay-heading">
+      <h3 class="sp-checkout-panel-title" id="sp-pay-heading">Bank transfer</h3>
+      <p class="sp-checkout-panel-sub">Primary payment method for seller plans. No automatic card charge.</p>
+
+      <ol class="sp-checkout-timeline" aria-label="Activation status">
+        <li class="is-done">
+          <span class="sp-checkout-tl-dot" aria-hidden="true"></span>
+          <span>
+            <span class="sp-checkout-tl-label">Plan selected</span>
+            <span class="sp-checkout-tl-detail">{{ target_plan.name }} · USD {{ amount }}/mo</span>
+          </span>
+        </li>
+        <li class="{% if transfer_already_submitted %}is-done{% else %}is-current{% endif %}">
+          <span class="sp-checkout-tl-dot" aria-hidden="true"></span>
+          <span>
+            <span class="sp-checkout-tl-label">Transfer &amp; submit reference</span>
+            <span class="sp-checkout-tl-detail">
+              {% if transfer_already_submitted %}
+                Reference {{ checkout.transfer_reference }} received
+              {% else %}
+                Use concept TF-CHECKOUT-{{ checkout.pk }}
+              {% endif %}
+            </span>
+          </span>
+        </li>
+        <li class="{% if transfer_already_submitted %}is-current{% endif %}">
+          <span class="sp-checkout-tl-dot" aria-hidden="true"></span>
+          <span>
+            <span class="sp-checkout-tl-label">TradeFlow confirmation</span>
+            <span class="sp-checkout-tl-detail">Manual review · usually 1–2 business days</span>
+          </span>
+        </li>
+        <li>
+          <span class="sp-checkout-tl-dot" aria-hidden="true"></span>
+          <span>
+            <span class="sp-checkout-tl-label">Plan active</span>
+            <span class="sp-checkout-tl-detail">Full seller tools and marketplace visibility</span>
+          </span>
+        </li>
+      </ol>
+
+      <form method="post"
+            action="{% url 'seller_plan_checkout_pay' target_plan.slug %}"
+            id="sp-checkout-form"
+            enctype="multipart/form-data">
         {% csrf_token %}
-        <label class="sp-pay-method">
-          <input type="radio" name="payment_method" value="mock" checked>
-          <span class="material-symbols-rounded" style="color:var(--tf-navy);">credit_card</span>
-          <span>
-            <strong>Credit or debit card</strong>
-            <span style="display:block;font-size:11px;color:var(--tf-muted);">Demo processing (no real charge)</span>
-          </span>
-        </label>
-        <label class="sp-pay-method">
-          <input type="radio" name="payment_method" value="bank">
-          <span class="material-symbols-rounded" style="color:var(--tf-navy);">account_balance</span>
-          <span>
-            <strong>Bank transfer</strong>
-            <span style="display:block;font-size:11px;color:var(--tf-muted);">Confirmation within 24 h</span>
-          </span>
-        </label>
-        <div class="sp-pay-fields" id="sp-card-fields">
-          <div>
-            <label for="card_name">Name on card</label>
-            <input type="text" id="card_name" name="card_name" placeholder="As shown on card" autocomplete="cc-name">
+        <input type="hidden" name="payment_method" id="payment_method" value="bank">
+
+        <div id="sp-bank-fields">
+          <div class="sp-bank-sheet" id="sp-bank-sheet"
+               data-bank="{{ bank_transfer.bank_name }}"
+               data-account-name="{{ bank_transfer.account_name }}"
+               data-account-number="{{ bank_transfer.account_number }}"
+               data-account-type="{{ bank_transfer.account_type }}"
+               data-swift="{{ bank_transfer.swift }}"
+               data-currency="{{ bank_transfer.currency }}"
+               data-amount="{{ amount }}"
+               data-concept="TF-CHECKOUT-{{ checkout.pk }}">
+            <div class="sp-bank-sheet-head">
+              <div>
+                <strong>Transfer instructions</strong>
+                <span>{{ bank_transfer.bank_name }} · {{ bank_transfer.currency|default:"USD" }}</span>
+              </div>
+              <button type="button" class="sp-bank-copy-all" id="sp-copy-all" data-label="Copy all">
+                Copy all
+              </button>
+            </div>
+            <dl class="sp-bank-rows">
+              <div class="sp-bank-row">
+                <dt>Amount</dt>
+                <dd class="is-amount" data-copy="USD {{ amount }}">USD {{ amount }}</dd>
+                <button type="button" class="sp-bank-copy" data-copy-target>Copy</button>
+              </div>
+              <div class="sp-bank-row">
+                <dt>Bank</dt>
+                <dd data-copy="{{ bank_transfer.bank_name }}">{{ bank_transfer.bank_name }}</dd>
+                <button type="button" class="sp-bank-copy" data-copy-target>Copy</button>
+              </div>
+              <div class="sp-bank-row">
+                <dt>Account name</dt>
+                <dd data-copy="{{ bank_transfer.account_name }}">{{ bank_transfer.account_name }}</dd>
+                <button type="button" class="sp-bank-copy" data-copy-target>Copy</button>
+              </div>
+              {% if bank_transfer.account_number %}
+              <div class="sp-bank-row">
+                <dt>Account</dt>
+                <dd class="is-mono" data-copy="{{ bank_transfer.account_number }}">
+                  {{ bank_transfer.account_number }}
+                  {% if bank_transfer.account_type %} · {{ bank_transfer.account_type }}{% endif %}
+                </dd>
+                <button type="button" class="sp-bank-copy" data-copy-target>Copy</button>
+              </div>
+              {% endif %}
+              {% if bank_transfer.swift %}
+              <div class="sp-bank-row">
+                <dt>SWIFT</dt>
+                <dd class="is-mono" data-copy="{{ bank_transfer.swift }}">{{ bank_transfer.swift }}</dd>
+                <button type="button" class="sp-bank-copy" data-copy-target>Copy</button>
+              </div>
+              {% endif %}
+              <div class="sp-bank-row">
+                <dt>Concept</dt>
+                <dd class="is-mono" data-copy="TF-CHECKOUT-{{ checkout.pk }}">TF-CHECKOUT-{{ checkout.pk }}</dd>
+                <button type="button" class="sp-bank-copy" data-copy-target>Copy</button>
+              </div>
+            </dl>
+            {% if bank_transfer.instructions %}
+            <p class="sp-bank-note">{{ bank_transfer.instructions }}</p>
+            {% endif %}
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+          <div class="sp-pay-fields">
             <div>
-              <label for="card_exp">Expiry</label>
-              <input type="text" id="card_exp" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp">
+              <label for="transfer_reference">
+                Transfer reference <span class="hint">(required)</span>
+              </label>
+              <input type="text"
+                     id="transfer_reference"
+                     name="transfer_reference"
+                     value="{{ checkout.transfer_reference }}"
+                     placeholder="Bank operation / reference number"
+                     minlength="4"
+                     required
+                     autocomplete="off">
             </div>
             <div>
-              <label for="card_cvc">CVC</label>
-              <input type="text" id="card_cvc" placeholder="•••" maxlength="4" autocomplete="cc-csc">
+              <label for="seller_notes">
+                Notes <span class="hint">(optional)</span>
+              </label>
+              <textarea id="seller_notes"
+                        name="seller_notes"
+                        maxlength="255"
+                        placeholder="Bank used, transfer date…">{{ checkout.seller_notes }}</textarea>
+            </div>
+            <div>
+              <label for="proof_file">
+                Proof of transfer <span class="hint">(optional PDF or image)</span>
+              </label>
+              <div class="sp-proof-drop" id="sp-proof-drop">
+                <input type="file" id="proof_file" name="proof_file" accept=".pdf,image/*">
+                <div class="sp-proof-drop-label" id="sp-proof-label">
+                  <strong>Drop file or click to upload</strong>
+                  PDF, JPG or PNG · max recommended 5 MB
+                </div>
+                <div class="sp-proof-filename" id="sp-proof-name" hidden></div>
+              </div>
             </div>
           </div>
         </div>
-        <button type="submit" id="sp-checkout-submit" class="sp-btn sp-btn-primary" style="width:100%;margin-top:20px;justify-content:center;padding:14px;">
-          Pay and activate plan
+
+        {% if allow_mock_payment %}
+        <details class="sp-checkout-demo" id="sp-demo-details">
+          <summary>Development only — demo card activation</summary>
+          <label class="sp-pay-method">
+            <input type="radio" name="demo_method" value="bank" id="demo-bank" checked>
+            <span>
+              <strong>Bank transfer</strong>
+              <span class="muted">Default · stays pending until admin approves</span>
+            </span>
+          </label>
+          <label class="sp-pay-method">
+            <input type="radio" name="demo_method" value="mock" id="demo-mock">
+            <span>
+              <strong>Demo card</strong>
+              <span class="muted">Activates immediately · no real charge</span>
+            </span>
+          </label>
+          <div class="sp-pay-fields" id="sp-card-fields" hidden>
+            <div>
+              <label for="card_name">Name on card</label>
+              <input type="text" id="card_name" name="card_name" placeholder="As shown on card" autocomplete="cc-name">
+            </div>
+          </div>
+        </details>
+        {% endif %}
+
+        <button type="submit" id="sp-checkout-submit" class="sp-btn sp-btn-primary sp-checkout-submit">
+          {% if transfer_already_submitted %}Update transfer details{% else %}Submit bank transfer{% endif %}
         </button>
-        <p class="sp-secure-badge">
-          <span class="material-symbols-rounded" style="font-size:18px;">lock</span>
-          Encrypted transaction · permanent record on your business account
+        <p class="sp-checkout-trust">
+          Confirmation is manual by TradeFlow · no automatic charge · record kept on your business account
         </p>
       </form>
-      <p style="margin-top:16px;font-size:12px;">
-        <a href="{% url 'seller_plan_consumo' %}" style="color:var(--tf-muted);">← Back to plans</a>
-      </p>
-    </div>
 
-    <aside class="sp-checkout-card">
-      <h3>Summary</h3>
+      <a class="sp-checkout-back" href="{% url 'seller_plan_consumo' %}">← Back to plans</a>
+    </section>
+
+    <aside class="sp-checkout-receipt" aria-labelledby="sp-receipt-heading">
+      <h3 class="sp-checkout-receipt-title" id="sp-receipt-heading">Order summary</h3>
+      <p class="sp-checkout-receipt-plan">{{ target_plan.name }}</p>
+
       <div class="sp-checkout-summary-row">
-        <span>Current plan</span>
-        <span>{{ from_plan.name }}</span>
+        <span>From</span>
+        <strong>{{ from_plan.name }}</strong>
       </div>
       <div class="sp-checkout-summary-row">
-        <span>New plan</span>
+        <span>To</span>
         <strong>{{ target_plan.name }}</strong>
       </div>
       <div class="sp-checkout-summary-row">
         <span>Billing</span>
-        <span>{{ checkout.billing_label }}</span>
+        <strong>{{ checkout.billing_label|default:"Monthly" }}</strong>
       </div>
-      <ul style="list-style:none;padding:0;margin:16px 0;font-size:12px;color:var(--tf-navy);">
-        {% for b in marketing.benefits %}
-        <li style="padding:4px 0 4px 20px;position:relative;">
-          <span class="material-symbols-rounded" style="position:absolute;left:0;top:2px;font-size:14px;color:var(--tf-teal);">check_circle</span>
-          {{ b }}
-        </li>
+      <div class="sp-checkout-summary-row">
+        <span>Checkout</span>
+        <strong>TF-CHECKOUT-{{ checkout.pk }}</strong>
+      </div>
+
+      <ul class="sp-checkout-benefits">
+        {% for b in marketing.benefits|slice:":3" %}
+        <li>{{ b }}</li>
+        {% empty %}
+        <li>Seller tools and catalog visibility for this tier</li>
         {% endfor %}
       </ul>
+
       <div class="sp-checkout-total">
-        <span>Total today</span>
+        <span>Due today</span>
         <span class="amount">USD {{ amount }}</span>
       </div>
-      <p style="font-size:11px;color:var(--tf-muted);margin:12px 0 0;line-height:1.45;">
-        When you confirm, your subscription updates immediately on the platform. Auto-renews at period end.
+      <p class="sp-checkout-receipt-foot">
+        Bank transfers remain pending until TradeFlow confirms funds.
+        Your plan renews monthly after activation.
       </p>
     </aside>
   </div>
@@ -192,10 +273,124 @@
   var form = document.getElementById('sp-checkout-form');
   var submit = document.getElementById('sp-checkout-submit');
   if (!form || !submit) return;
-  // Evita doble POST (doble cobro/activación): al enviar, deshabilita el botón.
+
+  var methodInput = document.getElementById('payment_method');
+  var bankFields = document.getElementById('sp-bank-fields');
+  var cardFields = document.getElementById('sp-card-fields');
+  var transferRef = document.getElementById('transfer_reference');
+  var demoRadios = form.querySelectorAll('input[name="demo_method"]');
+  var sheet = document.getElementById('sp-bank-sheet');
+
+  function setCopied(btn, label) {
+    if (!btn) return;
+    var prev = btn.getAttribute('data-label') || btn.textContent;
+    btn.classList.add('is-copied');
+    btn.textContent = I.copied || 'Copied';
+    window.setTimeout(function () {
+      btn.classList.remove('is-copied');
+      btn.textContent = label || prev;
+    }, 1600);
+  }
+
+  function copyText(text, btn, label) {
+    if (!text) return;
+    var done = function () { setCopied(btn, label); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+        done();
+      });
+    } else {
+      done();
+    }
+  }
+
+  form.querySelectorAll('.sp-bank-copy[data-copy-target]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var dd = btn.parentElement && btn.parentElement.querySelector('[data-copy]');
+      copyText(dd ? dd.getAttribute('data-copy') : '', btn, 'Copy');
+    });
+  });
+
+  var copyAll = document.getElementById('sp-copy-all');
+  if (copyAll && sheet) {
+    copyAll.addEventListener('click', function () {
+      var lines = [
+        'Bank: ' + (sheet.getAttribute('data-bank') || ''),
+        'Account name: ' + (sheet.getAttribute('data-account-name') || ''),
+        'Account: ' + (sheet.getAttribute('data-account-number') || ''),
+        'Type: ' + (sheet.getAttribute('data-account-type') || ''),
+        'SWIFT: ' + (sheet.getAttribute('data-swift') || ''),
+        'Amount: ' + (sheet.getAttribute('data-currency') || 'USD') + ' ' + (sheet.getAttribute('data-amount') || ''),
+        'Concept: ' + (sheet.getAttribute('data-concept') || '')
+      ].filter(function (line) {
+        return !/:\s*$/.test(line);
+      });
+      copyText(lines.join('\n'), copyAll, copyAll.getAttribute('data-label') || 'Copy all');
+    });
+  }
+
+  var drop = document.getElementById('sp-proof-drop');
+  var fileInput = document.getElementById('proof_file');
+  var proofLabel = document.getElementById('sp-proof-label');
+  var proofName = document.getElementById('sp-proof-name');
+  function syncProof() {
+    if (!drop || !fileInput) return;
+    var file = fileInput.files && fileInput.files[0];
+    if (file) {
+      drop.classList.add('has-file');
+      if (proofLabel) proofLabel.hidden = true;
+      if (proofName) {
+        proofName.hidden = false;
+        proofName.textContent = file.name;
+      }
+    } else {
+      drop.classList.remove('has-file');
+      if (proofLabel) proofLabel.hidden = false;
+      if (proofName) proofName.hidden = true;
+    }
+  }
+  if (fileInput) fileInput.addEventListener('change', syncProof);
+  if (drop) {
+    ['dragenter', 'dragover'].forEach(function (ev) {
+      drop.addEventListener(ev, function (e) {
+        e.preventDefault();
+        drop.classList.add('is-dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+      drop.addEventListener(ev, function (e) {
+        e.preventDefault();
+        drop.classList.remove('is-dragover');
+      });
+    });
+  }
+
+  function syncMethod() {
+    var method = 'bank';
+    demoRadios.forEach(function (r) { if (r.checked) method = r.value; });
+    if (methodInput) methodInput.value = method;
+    if (bankFields) bankFields.hidden = method !== 'bank';
+    if (cardFields) cardFields.hidden = method !== 'mock';
+    if (transferRef) transferRef.required = method === 'bank';
+    if (method === 'mock') {
+      submit.textContent = I.payActivate || 'Pay and activate plan';
+    } else if (transferRef && transferRef.value) {
+      submit.textContent = I.updateTransfer || 'Update transfer details';
+    } else {
+      submit.textContent = I.submitTransfer || 'Submit bank transfer';
+    }
+  }
+  demoRadios.forEach(function (r) { r.addEventListener('change', syncMethod); });
+  syncMethod();
+
   var submitted = false;
   form.addEventListener('submit', function (e) {
-    // Respeta la validación nativa: si el form es inválido, no hacer nada.
     if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
       return;
     }
@@ -205,7 +400,7 @@
     }
     submitted = true;
     submit.disabled = true;
-    submit.textContent = I.processing || 'Processing…';
+    submit.textContent = I.processing || 'Submitting…';
   });
 })();
 </script>

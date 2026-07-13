@@ -21,6 +21,7 @@ from core.utils.seller_lifecycle import finalize_trial_period, start_seller_tria
 @override_settings(
     REQUIRE_EMAIL_VERIFICATION=False,
     REQUIRE_APPROVED_APPLICATION=False,
+    ALLOW_MOCK_PLAN_PAYMENT=True,
 )
 class SellerPlanActivationTests(TestCase):
     def setUp(self):
