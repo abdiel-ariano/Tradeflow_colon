@@ -110,6 +110,12 @@ main.tf-main > .signup-buyer-page {
   object-position: center;
 }
 
+/* /signup/vendedor/ — banner lateral un poco más ancho */
+#signup-seller-root .signup-buyer-hero {
+  flex: 0 0 52%;
+  max-width: 780px;
+}
+
 .signup-buyer-form-col {
   flex: 1;
   display: flex;
@@ -480,6 +486,10 @@ main.tf-main > .signup-buyer-page {
 
   .signup-buyer-hero {
     flex: 0 0 40%;
+  }
+
+  #signup-seller-root .signup-buyer-hero {
+    flex: 0 0 46%;
   }
 }
 
