@@ -333,9 +333,11 @@ def company_marketplace_visible(company: Company, *, now=None) -> bool:
     Indica si la empresa debe aparecer en catálogo, mapa y merchandising.
 
     Reglas:
+    - Sin suscripción SaaS: **visible** (empresas legacy del catálogo seed /
+      demo sin portal seller aún vinculado).
     - ``trialing``, ``active``: visible.
     - ``past_due``: visible mientras ``grace_ends_at >= now`` (días 31–37).
-    - ``cancelled`` o sin suscripción: no visible.
+    - ``cancelled``: no visible (baja media).
 
     Args:
         company: Empresa vendedora.
@@ -348,7 +350,8 @@ def company_marketplace_visible(company: Company, *, now=None) -> bool:
     try:
         sub = company.subscription
     except CompanySubscription.DoesNotExist:
-        return False
+        # Grandfather: catálogo seed / empresas sin funnel seller siguen visibles.
+        return True
 
     if sub.status not in MARKETPLACE_VISIBLE_STATUSES:
         return False
@@ -364,16 +367,24 @@ def marketplace_active_company_ids(*, now=None) -> list[int]:
     """
     IDs de empresas visibles en superficies públicas del marketplace.
 
-    Usado por merchandising, catálogo y mapa ZLC para excluir churn.
+    Incluye:
+    - Empresas **sin** ``CompanySubscription`` (legacy / seed).
+    - Empresas con status trialing | active.
+    - Empresas past_due aún dentro de gracia.
+
+    Excluye ``cancelled`` y gracia vencida.
     """
     now = now or timezone.now()
-    qs = Company.objects.filter(
-        subscription__status__in=MARKETPLACE_VISIBLE_STATUSES,
-    ).filter(
-        Q(subscription__status__in=('trialing', 'active'))
-        | Q(subscription__grace_ends_at__gte=now)
+    cancelled_or_expired = Company.objects.filter(
+        Q(subscription__status='cancelled')
+        | Q(
+            subscription__status='past_due',
+            subscription__grace_ends_at__lt=now,
+        )
+    ).values_list('pk', flat=True)
+    return list(
+        Company.objects.exclude(pk__in=cancelled_or_expired).values_list('pk', flat=True)
     )
-    return list(qs.values_list('pk', flat=True))
 
 
 def seller_portal_access(company: Company | None, *, route_name: str = '') -> str | None:

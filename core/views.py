@@ -887,7 +887,8 @@ def home_view(request):
         if request.user.is_superuser or role == 'admin':
             return redirect('dashboard')
         if role == 'seller':
-            return redirect('portal_seller')
+            # Misma resolución que login: wizard si falta empresa/trial.
+            return redirect(_redirect_by_role(request.user))
 
     from django.utils.translation import get_language
     from core.utils.tradeflow_cache import cached_guest_home_context
