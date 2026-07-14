@@ -1,0 +1,210 @@
+<style>
+  .an-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  @media (max-width: 900px) { .an-grid { grid-template-columns: 1fr; } }
+
+  .an-card {
+    background: var(--tf-white);
+    border: 1px solid var(--tf-border);
+    border-radius: var(--tf-radius);
+    box-shadow: var(--tf-shadow);
+    padding: 16px 18px;
+  }
+  .an-chart-title {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--tf-navy-mid); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .an-chart-title::before {
+    content: ''; width: 9px; height: 9px; border-radius: 3px;
+    background: var(--tf-orange); flex: none;
+  }
+  #an-charts .an-card:nth-child(6n+2) .an-chart-title::before { background: #3FA796; }
+  #an-charts .an-card:nth-child(6n+3) .an-chart-title::before { background: #2E5B8A; }
+  #an-charts .an-card:nth-child(6n+4) .an-chart-title::before { background: #E8A33D; }
+  #an-charts .an-card:nth-child(6n+5) .an-chart-title::before { background: #A0506B; }
+  #an-charts .an-card:nth-child(6n+6) .an-chart-title::before { background: #7BAF5A; }
+  .an-chart { width: 100%; min-height: 360px; }
+
+  /* KPIs: un acento de color distinto por tarjeta (reparte el color, en vez de
+     que las 5 sean naranja idéntico). El borde superior y el valor comparten tono. */
+  .tf-metrics-grid .tf-metric-card { border-top: 3px solid var(--tf-orange); transition: transform .15s ease, box-shadow .15s ease; }
+  .tf-metrics-grid .tf-metric-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(15,42,68,.12); }
+  .tf-metrics-grid .tf-metric-card:nth-child(5n+2) { border-top-color: #3FA796; }
+  .tf-metrics-grid .tf-metric-card:nth-child(5n+3) { border-top-color: #2E5B8A; }
+  .tf-metrics-grid .tf-metric-card:nth-child(5n+4) { border-top-color: #E8A33D; }
+  .tf-metrics-grid .tf-metric-card:nth-child(5n+5) { border-top-color: #7BAF5A; }
+  .tf-metrics-grid .tf-metric-card:nth-child(5n+2) .tf-metric-value { color: #2E8B7E; }
+  .tf-metrics-grid .tf-metric-card:nth-child(5n+3) .tf-metric-value { color: #2E5B8A; }
+  .tf-metrics-grid .tf-metric-card:nth-child(5n+4) .tf-metric-value { color: #C77F1A; }
+  .tf-metrics-grid .tf-metric-card:nth-child(5n+5) .tf-metric-value { color: #5E9142; }
+
+  /* Tarjetas de gráfica: leve elevación al pasar el cursor */
+  .an-card { transition: box-shadow .15s ease; }
+  #an-charts .an-card:hover { box-shadow: 0 6px 18px rgba(15,42,68,.10); }
+
+  /* Fuente de datos */
+  .an-source-title {
+    display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .05em; color: var(--tf-muted);
+    margin-bottom: 14px;
+  }
+  .an-source-title .material-symbols-rounded { font-size: 17px; color: var(--tf-orange); }
+  .an-tabs {
+    display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap;
+    padding-bottom: 16px; border-bottom: 1px solid var(--tf-border);
+  }
+  .an-tab {
+    display: inline-flex; align-items: center; min-height: 40px;
+    border: 1.5px solid var(--tf-border); background: #fff; color: var(--tf-navy);
+    border-radius: var(--tf-radius-btn); padding: 8px 16px; font-weight: 600;
+    font-size: 13px; cursor: pointer; font-family: var(--tf-font-body);
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .an-tab.is-active { background: var(--tf-navy); color: #fff; border-color: var(--tf-navy); }
+  .an-panel { display: none; }
+  .an-panel.is-active { display: block; }
+  .an-row { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
+
+  /* Chat */
+  .an-chat-box { display: flex; flex-direction: column; height: 720px; }
+  @media (max-width: 575px) { .an-chat-box { height: 78vh; } }
+  .an-chat-msgs {
+    flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+    gap: 12px; padding: 6px 4px;
+  }
+  .an-bubble {
+    max-width: 88%; padding: 10px 14px; font-size: 14px; line-height: 1.5;
+    border-radius: 12px;
+  }
+  .an-bubble-user { align-self: flex-end; background: var(--tf-orange); color: #fff; border-bottom-right-radius: 2px; }
+  .an-bubble-bot  { align-self: flex-start; background: #F3F4F6; color: var(--tf-body); border-bottom-left-radius: 2px; }
+  .an-bubble-fig, .an-bubble-table { align-self: stretch; max-width: 100%; background: #fff; border: 1px solid var(--tf-border); }
+  .an-chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
+  .an-chat-input-row .tf-input { flex: 1; }
+
+  .an-table-scroll { overflow-x: auto; }
+  .an-table-scroll table.tf-table { min-width: 100%; }
+  .an-suggest { font-size: 12.5px; color: var(--tf-muted); margin-top: 8px;
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  /* Chips de sugerencia: botones reales (accesibles por teclado), objetivo táctil
+     cómodo. Reemplazan a los <code> clicables anteriores. */
+  .an-ex {
+    display: inline-flex; align-items: center;
+    font-family: var(--tf-font-body); font-size: 12.5px; line-height: 1.4;
+    background: #fff; border: 1px solid var(--tf-border); border-radius: 8px;
+    padding: 8px 12px; min-height: 36px; color: var(--tf-navy); cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .an-ex:hover { border-color: var(--tf-orange); background: #FFF6F1; }
+
+  /* Foco visible para todo lo interactivo (accesibilidad por teclado) */
+  .an-ex:focus-visible, .an-tab:focus-visible, .tf-btn:focus-visible,
+  .tf-input:focus-visible {
+    outline: 2px solid var(--tf-orange); outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+    .tf-metric-card:hover, #an-charts .an-card:hover { transform: none !important; }
+  }
+
+  /* ── Refinamientos data-dense (guía UI/UX Pro Max) ─────────────────────── */
+  /* Cifras tabulares: alinean en columnas y no "saltan" al cambiar de valor. */
+  .tf-metric-value, table.tf-table td, table.tf-table th { font-variant-numeric: tabular-nums; }
+  /* Hover de fila en tablas (modo claro), paridad con el modo oscuro. */
+  table.tf-table tbody tr { transition: background .12s ease; }
+  table.tf-table tbody tr:hover { background: #F5F8FC; }
+  /* Ritmo vertical consistente entre secciones (escala 8pt). */
+  .an-section { margin-top: 32px; }
+  .an-section-title { display: flex; align-items: center; gap: 8px; }
+  .an-section-hint { font-size: 13px; font-weight: 400; color: var(--tf-muted); }
+  /* Densidad cómoda en móvil sin scroll horizontal. */
+  @media (max-width: 575px) {
+    .tf-page { padding: 20px 14px; }
+    .an-card { padding: 14px; }
+  }
+
+  /* Tarjetas de proyección: acento semántico (no dependen solo del color — el
+     título e ícono ya dicen "al alza"/"a la baja") para escanear de un vistazo. */
+  .an-proj-card { border-left: 4px solid var(--tf-navy); }
+  .an-proj-card.an-proj-up { border-left-color: #2E8B57; }
+  .an-proj-card.an-proj-down { border-left-color: #D1495B; }
+  .an-proj-title {
+    display: flex; align-items: center; gap: 8px; font-weight: 700;
+    color: var(--tf-navy); margin-bottom: 10px; font-size: 14px;
+  }
+  .an-proj-title .material-symbols-rounded { font-size: 19px; }
+  .an-proj-up .an-proj-title .material-symbols-rounded { color: #2E8B57; }
+  .an-proj-down .an-proj-title .material-symbols-rounded { color: #D1495B; }
+  .an-proj-card:not(.an-proj-up):not(.an-proj-down) .an-proj-title .material-symbols-rounded { color: var(--tf-orange); }
+  .an-proj-note { font-size: 12px; color: var(--tf-muted); margin: 8px 0 0; }
+
+  /* Cabecera: separación clara del contenido que sigue */
+  .tf-page-header { padding-bottom: 20px; border-bottom: 1px solid var(--tf-border); }
+
+  /* "Ver datos": mismo lenguaje visual que las demás secciones colapsables */
+  .an-details-toggle {
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    font-weight: 700; color: var(--tf-navy); font-size: 13px; list-style: none;
+    padding: 4px 0; min-height: 40px;
+  }
+  .an-details-toggle::-webkit-details-marker { display: none; }
+  .an-details-toggle .material-symbols-rounded { font-size: 18px; transition: transform .15s ease; }
+  details[open] .an-details-toggle .material-symbols-rounded { transform: rotate(90deg); }
+  .an-details-toggle:focus-visible { outline: 2px solid var(--tf-orange); outline-offset: 2px; border-radius: 4px; }
+
+  /* Skeleton de carga para las gráficas: evita el vacío en blanco mientras
+     Plotly.js (bloqueante) termina de cargar y dibujar. */
+  .an-skel { padding: 16px 18px; }
+  .an-skel-title { height: 12px; width: 40%; border-radius: 4px; margin-bottom: 14px; }
+  .an-skel-body { height: 300px; border-radius: 8px; }
+  .an-skel-title, .an-skel-body {
+    background: linear-gradient(90deg, #EEF1F5 25%, #F7F9FB 37%, #EEF1F5 63%);
+    background-size: 400% 100%; animation: an-shimmer 1.4s ease infinite;
+  }
+  @keyframes an-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+  /* ── Modo oscuro (scope .an-dark) ─────────────────────────────────────── */
+  .an-dark { color: #E8ECF2; }
+  .an-dark .tf-page-title, .an-dark .tf-subtitle { color: #E8ECF2; }
+  .an-dark .tf-page-subtitle { color: #9DB0C2; }
+  .an-dark .an-card,
+  .an-dark .tf-metric-card { background: #15243A; border-color: #25374F; box-shadow: 0 2px 12px rgba(0,0,0,.35); }
+  .an-dark .tf-metric-value { color: #FF8A4D; }
+  .an-dark .tf-metrics-grid .tf-metric-card:nth-child(5n+2) .tf-metric-value { color: #4FC3B2; }
+  .an-dark .tf-metrics-grid .tf-metric-card:nth-child(5n+3) .tf-metric-value { color: #6FA0D8; }
+  .an-dark .tf-metrics-grid .tf-metric-card:nth-child(5n+4) .tf-metric-value { color: #F0B860; }
+  .an-dark .tf-metrics-grid .tf-metric-card:nth-child(5n+5) .tf-metric-value { color: #93C97A; }
+  .an-dark .tf-metric-label,
+  .an-dark .an-chart-title,
+  .an-dark .an-suggest { color: #9DB0C2; }
+  .an-dark .tf-input { background: #0E1B2A; border-color: #2C3E57; color: #E8ECF2; }
+  .an-dark .tf-input::placeholder { color: #6E8096; }
+  .an-dark .an-tab { background: #15243A; color: #D4DCE6; border-color: #2C3E57; }
+  .an-dark .an-tab.is-active { background: var(--tf-orange); color: #fff; border-color: var(--tf-orange); }
+  .an-dark .an-bubble-bot { background: #1C2E46; color: #E8ECF2; }
+  .an-dark .an-bubble-fig, .an-dark .an-bubble-table { background: #15243A; border-color: #25374F; }
+  .an-dark .an-ex { background: #15243A; border-color: #2C3E57; color: #E8ECF2; }
+  .an-dark .an-ex:hover { border-color: var(--tf-orange); background: #1C2E46; }
+  .an-dark details > summary { color: #E8ECF2; }
+  .an-dark .tf-alert-info { background: #15243A; border-color: #2C3E57; color: #9DB0C2; }
+  .an-dark .tf-alert-warning { background: #2A2110; border-color: #4D3C14; color: #F0B860; }
+  .an-dark table.tf-table thead th { background: #1C2E46; color: #9DB0C2; border-color: #2C3E57; }
+  .an-dark table.tf-table tbody td { color: #D4DCE6; border-color: #22344B; }
+  .an-dark table.tf-table tbody tr:hover { background: #1A2B42; }
+  .an-dark .an-proj-title { color: #E8ECF2; }
+  /* Tonos más claros/desaturados en oscuro (no invertir el color) para mantener
+     el mismo contraste perceptual que en modo claro. */
+  .an-dark .an-proj-card.an-proj-up { border-left-color: #4ADE94; }
+  .an-dark .an-proj-card.an-proj-down { border-left-color: #F1707F; }
+  .an-dark .an-proj-up .an-proj-title .material-symbols-rounded { color: #4ADE94; }
+  .an-dark .an-proj-down .an-proj-title .material-symbols-rounded { color: #F1707F; }
+  .an-dark .an-skel-title, .an-dark .an-skel-body {
+    background: linear-gradient(90deg, #182634 25%, #1C2E46 37%, #182634 63%);
+    background-size: 400% 100%;
+  }
+  .an-dark .tf-page-header { border-bottom-color: #25374F; }
+  .an-dark .an-source-title { color: #9DB0C2; }
+  .an-dark .an-tabs { border-bottom-color: #25374F; }
+  .an-dark .an-details-toggle { color: #E8ECF2; }
+</style>

@@ -216,6 +216,8 @@ urlpatterns = [
     path('mi-tienda/configuracion/', views_seller_pages.seller_setup_guide, name='seller_setup_guide'),
     path('mi-tienda/buscar/', views_seller_pages.seller_global_search, name='seller_global_search'),
     path('mi-tienda/reportes/', views_seller_pages.seller_reporting, name='seller_reporting'),
+    # Analítica IA (app 'analytics'): dashboard del vendedor + chat/export/plotly.js.
+    path('mi-tienda/analitica/', include('analytics.urls')),
     path('mi-tienda/ventas/<int:pk>/despachar/', views.seller_dispatch_order, name='seller_dispatch_order'),
 
     path('api/v1/health/', vapi.api_v1_health, name='api_v1_health'),

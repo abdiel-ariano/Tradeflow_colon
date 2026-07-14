@@ -1,0 +1,109 @@
+<script src="{% url 'analytics:plotlyjs' %}"></script>
+<script>
+(function () {
+  // ── Tabs de fuente de datos ──────────────────────────────────────────
+  document.querySelectorAll('.an-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = tab.getAttribute('data-panel');
+      document.querySelectorAll('.an-tab').forEach(function (t) { t.classList.remove('is-active'); });
+      document.querySelectorAll('.an-panel').forEach(function (p) {
+        p.classList.toggle('is-active', p.getAttribute('data-panel') === target);
+      });
+      tab.classList.add('is-active');
+    });
+  });
+
+  {% if has_data %}
+  // ── Render de gráficas del dashboard ───────────────────────────────
+  var dataEl = document.getElementById('an-charts-data');
+  var grid = document.getElementById('an-charts');
+  var charts = [];
+  try { charts = JSON.parse(dataEl.textContent || '[]'); } catch (e) { charts = []; }
+  grid.innerHTML = '';   // quita los skeletons de carga antes de dibujar
+  charts.forEach(function (item, i) {
+    var card = document.createElement('div'); card.className = 'an-card';
+    var title = document.createElement('div'); title.className = 'an-chart-title'; title.textContent = item.title;
+    var plot = document.createElement('div'); plot.className = 'an-chart'; plot.id = 'an-chart-' + i;
+    card.appendChild(title); card.appendChild(plot); grid.appendChild(card);
+    try {
+      var fig = JSON.parse(item.fig);
+      // La tarjeta ya muestra el título: quitamos el título interno de la gráfica
+      // (evita duplicado) y recuperamos ese espacio vertical.
+      if (fig.layout) {
+        fig.layout.title = { text: '' };
+        fig.layout.margin = Object.assign({}, fig.layout.margin, { t: 18 });
+      }
+      Plotly.newPlot(plot, fig.data, fig.layout, { displayModeBar: false, responsive: true });
+    } catch (e) { plot.textContent = 'No se pudo renderizar la gráfica.'; }
+  });
+
+  // ── Chat ───────────────────────────────────────────────────────────
+  var CHAT_URL = "{% url 'analytics:chat' %}";
+  var CSRF = "{{ csrf_token }}";
+  var msgs = document.getElementById('an-chat-msgs');
+  var input = document.getElementById('an-chat-input');
+  var sendBtn = document.getElementById('an-chat-send');
+  var history = [];
+  var busy = false;
+
+  function scrollDown() { msgs.scrollTop = msgs.scrollHeight; }
+
+  function bubble(text, cls) {
+    var d = document.createElement('div');
+    d.className = 'an-bubble ' + cls;
+    d.textContent = text;
+    msgs.appendChild(d); scrollDown();
+    return d;
+  }
+
+  function send() {
+    if (busy) return;
+    var msg = (input.value || '').trim();
+    if (!msg) return;
+    input.value = '';
+    busy = true;
+    bubble(msg, 'an-bubble-user');
+    history.push({ role: 'user', content: msg });
+    var loading = bubble('…', 'an-bubble-bot');
+
+    fetch(CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify({ message: msg, history: history.slice(-6) })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      loading.remove();
+      if (d.text) { bubble(d.text, 'an-bubble-bot'); history.push({ role: 'assistant', content: d.text }); }
+      if (d.fig) {
+        var wrap = document.createElement('div');
+        wrap.className = 'an-bubble an-bubble-fig';
+        wrap.style.padding = '8px';
+        var plot = document.createElement('div'); plot.style.minHeight = '360px';
+        wrap.appendChild(plot); msgs.appendChild(wrap);
+        try { var f = JSON.parse(d.fig); Plotly.newPlot(plot, f.data, f.layout, { displayModeBar: true, responsive: true }); } catch (e) {}
+        history.push({ role: 'assistant', content: '(gráfica generada)' });
+        scrollDown();
+      }
+      if (d.table) {
+        var t = document.createElement('div');
+        t.className = 'an-bubble an-bubble-table an-table-scroll';
+        t.innerHTML = d.table;
+        msgs.appendChild(t);
+        history.push({ role: 'assistant', content: '(tabla generada)' });
+        scrollDown();
+      }
+    })
+    .catch(function () { loading.remove(); bubble('Error de conexión.', 'an-bubble-bot'); })
+    .finally(function () { busy = false; });
+  }
+
+  if (sendBtn) sendBtn.addEventListener('click', send);
+  if (input) input.addEventListener('keydown', function (e) { if (e.key === 'Enter') send(); });
+
+  document.querySelectorAll('.an-ex').forEach(function (ex) {
+    ex.addEventListener('click', function () { input.value = ex.textContent; input.focus(); });
+  });
+  {% endif %}
+})();
+</script>

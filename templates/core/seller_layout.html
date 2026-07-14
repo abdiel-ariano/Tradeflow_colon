@@ -150,6 +150,7 @@
       <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas"><span class="material-symbols-rounded">sync_alt</span>Transactions</a>
       <a href="{% url 'seller_customers' %}" data-sp-nav="seller_customers"><span class="material-symbols-rounded">group</span>Customers</a>
       <a href="{% url 'seller_mis_productos' %}" data-sp-nav="seller_productos"><span class="material-symbols-rounded">inventory_2</span>Product catalog</a>
+      <a href="{% url 'analytics:seller_dashboard' %}" data-sp-nav="seller_analitica"{% if request.resolver_match.namespace == 'analytics' %} class="is-active"{% endif %}><span class="material-symbols-rounded">insights</span>Analytics</a>
     </nav>
     <span class="sp-dash-nav-label">Shortcuts</span>
     <nav class="sp-dash-nav" aria-label="Shortcuts">

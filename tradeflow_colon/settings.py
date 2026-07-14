@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.linkedin_oauth2',
     'core',
+    'analytics',
 ]
 
 # ── Middleware ─────────────────────────────────────────────────────────────
@@ -627,3 +628,14 @@ SEED_DEMO_IF_EMPTY = config('SEED_DEMO_IF_EMPTY', default=DEBUG, cast=bool)
 # ── Asistente IA (Groq API gratuita) ───────────────────────────────────────
 GROQ_API_KEY = config('GROQ_API_KEY', default='')
 GROQ_MODEL = config('GROQ_MODEL', default='llama-3.1-8b-instant')
+
+# ── Analítica IA (app 'analytics') ─────────────────────────────────────────
+# El chat de analítica reutiliza Groq (API compatible con OpenAI). Un modelo
+# más grande que el asistente general para mejor razonamiento sobre datos.
+# El motor (analytics/engine/ai_analyzer.py) lee esta config por variables de
+# entorno; el puente de abajo se las provee sin tocar el código del app.
+ANALYTICS_LLM_MODEL = config('ANALYTICS_LLM_MODEL', default='llama-3.3-70b-versatile')
+os.environ.setdefault('LLM_BASE_URL', 'https://api.groq.com/openai/v1')
+os.environ.setdefault('LLM_MODEL', ANALYTICS_LLM_MODEL)
+if GROQ_API_KEY:
+    os.environ.setdefault('LLM_API_KEY', GROQ_API_KEY)

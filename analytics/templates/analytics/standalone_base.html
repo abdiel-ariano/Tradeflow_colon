@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+{% load i18n %}
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Analytics IA{% endblock %}</title>
+  {% block extra_head %}{% endblock %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tf-navy:#0F2A44; --tf-navy-mid:#1B3B63; --tf-blue:#2E5B8A;
+      --tf-orange:#F26522; --tf-orange-h:#FF7A3D; --tf-light:#F2F3F5;
+      --tf-border:#D1D5DB; --tf-muted:#6B7A88; --tf-white:#FFFFFF;
+      --tf-body:#374151; --tf-danger:#EF4444;
+      --tf-radius:12px; --tf-radius-sm:8px; --tf-radius-btn:8px; --tf-radius-input:8px;
+      --tf-radius-badge:20px; --tf-shadow:0 2px 8px rgba(15,42,68,.08);
+      --tf-font-body:'Montserrat',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;}
+    body{margin:0;min-height:100vh;display:flex;flex-direction:column;
+         font-family:var(--tf-font-body);color:var(--tf-body);background:var(--tf-light);}
+    h1,.tf-page-title{font-family:var(--tf-font-body);font-weight:700;color:var(--tf-navy);margin:0;}
+    h2,.tf-subtitle{font-family:var(--tf-font-body);font-weight:600;color:var(--tf-navy-mid);margin:0 0 .75rem;}
+    .material-symbols-rounded{font-family:'Material Symbols Rounded';font-weight:normal;font-size:20px;
+      line-height:1;vertical-align:middle;display:inline-block;font-feature-settings:'liga';}
+    .tf-ms-18{font-size:18px;}
+
+    /* Top bar */
+    .sa-nav{height:60px;background:var(--tf-navy);display:flex;align-items:center;gap:10px;
+            padding:0 clamp(1rem,4vw,2rem);position:sticky;top:0;z-index:50;}
+    .sa-brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:1.15rem;}
+    .sa-brand .dot{width:30px;height:30px;border-radius:8px;background:var(--tf-orange);
+            display:flex;align-items:center;justify-content:center;}
+    .sa-brand .sub{font-size:.62rem;font-weight:500;color:rgba(255,255,255,.55);
+            text-transform:uppercase;letter-spacing:.05em;}
+    main.tf-main{flex:1;width:100%;}
+
+    /* Page */
+    .tf-page{max-width:1200px;margin:0 auto;padding:32px 24px;}
+    .tf-page-header{display:flex;align-items:flex-start;justify-content:space-between;
+            margin-bottom:28px;flex-wrap:wrap;gap:16px;}
+    .tf-page-title{font-size:28px;line-height:1.2;}
+    .tf-page-subtitle{font-size:14px;color:var(--tf-muted);margin:4px 0 0;}
+
+    /* Buttons */
+    .tf-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+            padding:10px 18px;font-family:var(--tf-font-body);font-size:.875rem;font-weight:600;
+            border-radius:var(--tf-radius-btn);border:none;cursor:pointer;text-decoration:none;
+            transition:all .2s ease;}
+    .tf-btn-primary{background:var(--tf-orange);color:#fff;}
+    .tf-btn-primary:hover{background:var(--tf-orange-h);color:#fff;}
+    .tf-btn-secondary{background:transparent;color:var(--tf-navy);border:1.5px solid var(--tf-border);}
+    .tf-btn-secondary:hover{background:var(--tf-white);border-color:var(--tf-muted);}
+    .tf-btn-danger{background:var(--tf-danger);color:#fff;}
+    .tf-btn-danger:hover{filter:brightness(.95);color:#fff;}
+
+    /* Inputs */
+    .tf-input{width:100%;padding:10px 14px;font-family:var(--tf-font-body);font-size:.9375rem;
+            color:var(--tf-body);background:var(--tf-white);border:1.5px solid var(--tf-border);
+            border-radius:var(--tf-radius-input);outline:none;transition:border-color .2s,box-shadow .2s;}
+    .tf-input:focus{border-color:var(--tf-orange);box-shadow:0 0 0 3px rgba(242,101,34,.15);}
+    .tf-input::placeholder{color:var(--tf-muted);}
+    .tf-label{font-weight:500;font-size:.8125rem;color:var(--tf-muted);margin-bottom:.35rem;display:block;}
+
+    /* Metrics */
+    .tf-metrics-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:28px;}
+    @media(max-width:991px){.tf-metrics-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:575px){.tf-metrics-grid{grid-template-columns:1fr;}}
+    .tf-metric-card{background:var(--tf-white);border:1px solid var(--tf-border);
+            border-radius:var(--tf-radius);padding:18px 20px;box-shadow:var(--tf-shadow);}
+    .tf-metric-value{font-size:30px;font-weight:800;color:var(--tf-orange);line-height:1;}
+    .tf-metric-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+            color:var(--tf-muted);margin-top:8px;}
+
+    /* Badge / alert / table */
+    .tf-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:.75rem;
+            font-weight:600;border-radius:var(--tf-radius-badge);}
+    .tf-badge-navy{background:rgba(15,42,68,.08);color:var(--tf-navy);}
+    .tf-alert{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;
+            border-radius:var(--tf-radius-sm);margin-bottom:8px;font-size:14px;}
+    .tf-alert-info{background:#EFF6FF;border:1px solid #93C5FD;color:#1E40AF;}
+    .tf-alert-warning{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E;}
+    table.tf-table{width:100%;border-collapse:collapse;}
+    table.tf-table thead th{background:#F9FAFB;padding:10px 16px;font-size:11px;font-weight:600;
+            text-transform:uppercase;letter-spacing:.05em;color:var(--tf-muted);text-align:left;
+            border-bottom:1px solid var(--tf-border);}
+    table.tf-table tbody td{padding:11px 16px;border-bottom:1px solid #F3F4F6;font-size:13px;color:#374151;}
+
+    /* Flash */
+    .sa-flash{max-width:1200px;margin:14px auto 0;padding:0 24px;display:flex;flex-direction:column;gap:8px;}
+    .sa-flash .tf-alert-success{background:#F0FDF4;border:1px solid #6EE7B7;color:#065F46;}
+    .sa-flash .tf-alert-danger,.sa-flash .tf-alert-error{background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B;}
+    .sa-flash .tf-alert-warning{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E;}
+
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+  <nav class="sa-nav">
+    <a class="sa-brand" href="{% url 'analytics:dashboard' %}" style="text-decoration:none;">
+      <span class="dot"><span class="material-symbols-rounded" style="color:#fff;" aria-hidden="true">analytics</span></span>
+      <span>Analytics IA <span class="sub">DataFlow · standalone</span></span>
+    </a>
+  </nav>
+
+  {% if messages %}
+  <div class="sa-flash">
+    {% for message in messages %}
+    <div class="tf-alert tf-alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main class="tf-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
