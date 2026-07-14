@@ -1074,7 +1074,7 @@ msgstr "Explora el catálogo"
 
 #: templates/core/acerca_tradeflow.html:58
 msgid "CFZ suppliers"
-msgstr "Todos los proveedores"
+msgstr "Proveedores de la ZLC"
 
 #: templates/core/acerca_tradeflow.html:61
 msgid "Live"
@@ -1134,7 +1134,7 @@ msgstr "Ver ofertas de hoy →"
 
 #: templates/core/acerca_tradeflow.html:86
 msgid "Grow as a CFZ supplier"
-msgstr "Proveedores anteriores"
+msgstr "Crece como proveedor de la ZLC"
 
 #: templates/core/acerca_tradeflow.html:87
 msgid ""
@@ -1148,7 +1148,10 @@ msgstr ""
 
 #: templates/core/acerca_tradeflow.html:88
 msgid "Apply as supplier"
-msgstr "Todos los proveedores"
+msgstr "Solicitar como proveedor"
+
+msgid "Apply as supplier →"
+msgstr "Solicitar como proveedor →"
 
 #: templates/core/acerca_tradeflow.html:93
 msgid "\\"
@@ -1384,11 +1387,11 @@ msgid "Shopping cart"
 msgstr "Carrito de compras"
 
 #: templates/core/carrito.html:15
-#, fuzzy, python-format
+#, python-format
 msgid "%(counter)s item"
 msgid_plural "%(counter)s items"
-msgstr[0] "Buscar %(count)s productos de la ZLC…"
-msgstr[1] "Buscar %(count)s productos de la ZLC…"
+msgstr[0] "%(counter)s artículo"
+msgstr[1] "%(counter)s artículos"
 
 #: templates/core/carrito.html:22
 msgid "Clear cart"
@@ -1413,7 +1416,7 @@ msgstr "Disminuir cantidad"
 
 #: templates/core/carrito.html:55
 msgid "Quantity"
-msgstr ""
+msgstr "Cantidad"
 
 #: templates/core/carrito.html:57
 msgid "Increase quantity"
@@ -1437,10 +1440,8 @@ msgid "Subtotal"
 msgstr "Subtotal"
 
 #: templates/core/carrito.html:88 templates/core/detalle_mi_orden.html:112
-#, fuzzy
-#| msgid "Shipped"
 msgid "Shipping"
-msgstr "Enviado"
+msgstr "Envío"
 
 #: templates/core/carrito.html:89
 msgid "Free"
@@ -1449,11 +1450,11 @@ msgstr "Gratis"
 #: templates/core/carrito.html:92
 #, python-format
 msgid "Tax (16%% VAT)"
-msgstr ""
+msgstr "Impuesto (16%% IVA)"
 
 #: templates/core/carrito.html:97 templates/core/detalle_mi_orden.html:113
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
 #: templates/core/carrito.html:104
 msgid "Proceed to checkout"
@@ -3707,7 +3708,7 @@ msgstr ""
 
 #: templates/core/marketplace_verified_suppliers.html:17
 msgid "Browse verified catalog"
-msgstr "Explora el catálogo"
+msgstr "Explorar catálogo verificado"
 
 #: templates/core/marketplace_verified_suppliers.html:21
 msgid "Marketplace stats"
@@ -3954,3 +3955,25 @@ msgstr "O iniciar sesión con"
 #: auth pages (login/recover/signup)
 msgid "Sign in with social account"
 msgstr "Iniciar sesión con cuenta social"
+
+msgid "Every wholesale path on TradeFlow stays quote-first: verified CFZ suppliers, formal RFQs, and export-ready docs before you commit."
+msgstr "Cada compra mayorista en TradeFlow empieza con cotización: proveedores ZLC verificados, RFQ formales y documentos de exportación antes de comprometerte."
+
+msgid "CFZ-verified supplier profiles with live catalog depth"
+msgstr "Perfiles de proveedores verificados ZLC con catálogo en vivo"
+
+msgid "Request for Quotation before payment"
+msgstr "Solicitud de cotización antes del pago"
+
+msgid "Secure B2B checkout with order transparency"
+msgstr "Checkout B2B seguro con transparencia de pedido"
+
+msgid "Invoice and packing-list support for export"
+msgstr "Factura y packing list para exportación"
+
+msgid "Open Specifications for SKU, stock, and pricing details, or visit the supplier catalog to compare related inventory."
+msgstr "Abre Especificaciones para SKU, stock y precios, o visita el catálogo del proveedor para comparar inventario relacionado."
+
+#, python-format
+msgid "%(name)s is listed by %(company)s for wholesale sourcing through TradeFlow Colón."
+msgstr "%(name)s está listado por %(company)s para compra mayorista en TradeFlow Colón."

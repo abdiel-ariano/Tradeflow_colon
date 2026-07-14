@@ -1,35 +1,8 @@
-{% comment %}Template: core/includes/marketplace_deal_card.html — review purpose and context vars.{% endcomment %}
-{% load static tf_money i18n %}
-{% comment %}Deal card — flash-sale styling for /deals/ page.{% endcomment %}
-<article class="mkt-deal-card{% if card_extra_class %} {{ card_extra_class }}{% endif %}" data-product-id="{{ product.pk }}">
-  <a href="{% url 'catalogo_producto_detail' product.pk %}" class="mkt-deal-card__media">
-    {% if product.is_on_promo_now %}
-    <span class="mkt-deal-card__badge">{% blocktrans with pct=product.discount_pct %}{{ pct }}% off{% endblocktrans %}</span>
-    {% else %}
-    <span class="mkt-deal-card__badge mkt-deal-card__badge--pick">{% trans "Wholesale pick" %}</span>
-    {% endif %}
-    <div class="mkt-deal-card__image">
-      {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=card_index|default:99|yesno:"eager,lazy" img_class="mkt-deal-card__img" object_fit="cover" %}
-    </div>
-  </a>
-
-  <div class="mkt-deal-card__body">
-    <a href="{% url 'catalogo_producto_detail' product.pk %}" class="mkt-deal-card__name">{{ product.name|truncatechars:56 }}</a>
-
-    <div class="mkt-deal-card__price">
-      <span class="mkt-deal-card__price-main">{{ product.display_price|money_usd }}</span>
-      {% if product.is_on_promo_now %}
-      <span class="mkt-deal-card__price-was">{{ product.unit_price|money_usd }}</span>
-      {% endif %}
-    </div>
-
-    <p class="mkt-deal-card__supplier">
-      {{ product.company.name|truncatechars:22 }}
-      {% if product.company.is_verified %}· {% trans "CFZ Verified" %}{% endif %}
-    </p>
-
-    <button type="button" class="mkt-deal-card__btn" data-product-id="{{ product.pk }}">
-      {% trans "+ Add to inquiry" %}
-    </button>
-  </div>
-</article>
+{% comment %}Template: core/includes/marketplace_deal_card.html — catalog product-card parity for /deals/.{% endcomment %}
+{% load i18n %}
+<div class="mkt-deal-wrap{% if card_extra_class %} {{ card_extra_class }}{% endif %}" data-product-id="{{ product.pk }}">
+  {% if not product.is_on_promo_now %}
+  <span class="mkt-deal-wrap__badge">{% trans "Wholesale pick" %}</span>
+  {% endif %}
+  {% include "core/includes/catalogo_card.html" with product=product card_index=card_index|default:99 card_extra_class="mkt-deal-product-card" %}
+</div>

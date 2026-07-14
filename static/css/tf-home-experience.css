@@ -707,6 +707,29 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   margin-bottom: 14px;
 }
 
+.hm-suppliers__chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hm-supplier-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--tf-gray-200, #E5E7EB);
+  border-radius: 10px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  min-height: 64px;
+}
+
+
 .hm-proof__head {
   margin-bottom: 20px !important;
 }

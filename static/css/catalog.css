@@ -8,11 +8,12 @@ Public wholesale catalog (/catalogo/) — Alibaba-density B2B layout
 body.cat-catalog-page {
   --tf-navy-hover: #1B3B63;
   --tf-navy-deep: #081E33;
-  --tf-orange: #FF7A3D;
-  --tf-orange-hover: #E5692E;
+  --tf-orange: #F26522;
+  --tf-orange-hover: #0057A8;
   --tf-orange-soft: #FFA15A;
   --tf-surface: #F2F3F5;
   --tf-surface-hover: #E8EAEE;
+  --tf-market-bg: #E8EEF5;
   --cat-card-radius: 12px;
   --cat-card-padding: 14px;
   --cat-card-image-height: 188px;
@@ -28,7 +29,8 @@ body.cat-catalog-page {
   --cat-nav-height: 64px;
   --cat-sticky-gap: 8px;
   --cat-sticky-offset: calc(var(--cat-nav-height) + var(--cat-sticky-gap));
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--tf-font-body, sans-serif);
+  background: var(--tf-market-bg, #E8EEF5);
 }
 
 @media (min-width: 768px) {
