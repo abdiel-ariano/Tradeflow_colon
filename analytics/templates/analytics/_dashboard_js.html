@@ -16,29 +16,41 @@
   {% if has_data %}
   // ── Render de gráficas del dashboard ───────────────────────────────
   var UI_EN = {% if seller_embedded %}true{% else %}false{% endif %};
-  var dataEl = document.getElementById('an-charts-data');
-  var grid = document.getElementById('an-charts');
-  var charts = [];
-  try { charts = JSON.parse(dataEl.textContent || '[]'); } catch (e) { charts = []; }
-  grid.innerHTML = '';   // quita los skeletons de carga antes de dibujar
-  charts.forEach(function (item, i) {
-    var card = document.createElement('div'); card.className = 'an-card';
-    var title = document.createElement('div'); title.className = 'an-chart-title'; title.textContent = item.title;
-    var plot = document.createElement('div'); plot.className = 'an-chart'; plot.id = 'an-chart-' + i;
-    card.appendChild(title); card.appendChild(plot); grid.appendChild(card);
-    try {
-      var fig = JSON.parse(item.fig);
-      // La tarjeta ya muestra el título: quitamos el título interno de la gráfica
-      // (evita duplicado) y recuperamos ese espacio vertical.
-      if (fig.layout) {
-        fig.layout.title = { text: '' };
-        fig.layout.margin = Object.assign({}, fig.layout.margin, { t: 18 });
+
+  function renderChartGrid(dataElId, gridId, idPrefix) {
+    var dataEl = document.getElementById(dataElId);
+    var grid = document.getElementById(gridId);
+    if (!grid) return;
+    var charts = [];
+    try { charts = JSON.parse((dataEl && dataEl.textContent) || '[]'); } catch (e) { charts = []; }
+    grid.innerHTML = '';
+    charts.forEach(function (item, i) {
+      var card = document.createElement('div');
+      card.className = 'an-card' + (idPrefix === 'an-fchart-' ? ' an-forecast-chart-card' : '');
+      var title = document.createElement('div');
+      title.className = 'an-chart-title';
+      title.textContent = item.title;
+      var plot = document.createElement('div');
+      plot.className = 'an-chart';
+      plot.id = idPrefix + i;
+      card.appendChild(title);
+      card.appendChild(plot);
+      grid.appendChild(card);
+      try {
+        var fig = JSON.parse(item.fig);
+        if (fig.layout) {
+          fig.layout.title = { text: '' };
+          fig.layout.margin = Object.assign({}, fig.layout.margin, { t: 18 });
+        }
+        Plotly.newPlot(plot, fig.data, fig.layout, { displayModeBar: false, responsive: true });
+      } catch (e) {
+        plot.textContent = UI_EN ? 'Could not render this chart.' : 'No se pudo renderizar la gráfica.';
       }
-      Plotly.newPlot(plot, fig.data, fig.layout, { displayModeBar: false, responsive: true });
-    } catch (e) {
-      plot.textContent = UI_EN ? 'Could not render this chart.' : 'No se pudo renderizar la gráfica.';
-    }
-  });
+    });
+  }
+
+  renderChartGrid('an-charts-data', 'an-charts', 'an-chart-');
+  renderChartGrid('an-forecast-charts-data', 'an-forecast-charts', 'an-fchart-');
 
   // ── Chat ───────────────────────────────────────────────────────────
   var CHAT_URL = "{% url 'analytics:chat' %}";

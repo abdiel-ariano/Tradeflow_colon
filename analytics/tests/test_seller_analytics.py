@@ -225,9 +225,13 @@ class TestSellerForecastAndGrowth(TestCase):
         # Rising / falling projection cards appear when change % is large enough
         body = r.content.decode()
         self.assertTrue(
-            'Rising products' in body or 'Falling products' in body or 'Forecast ·' in body,
-            msg='Expected at least one forecast chart/table in the HTML',
+            'Rising products' in body or 'Falling products' in body
+            or 'Forecast ·' in body or 'an-metric-list' in body
+            or 'an-forecast-block' in body,
+            msg='Expected forecast charts/tables block in the HTML',
         )
+        self.assertContains(r, 'an-forecast-block')
+        self.assertContains(r, 'an-data-table')
 
     def test_chat_forecast_and_declining_products(self):
         self.client.login(username='fc_seller', password='TestPass123!')

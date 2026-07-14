@@ -34,6 +34,7 @@ from .engine import (
     db_connector,
     forecasting,
     labels as L,
+    table_present as TP,
 )
 from . import data_source as ds
 
@@ -229,9 +230,7 @@ def seller_dashboard(request):
     ctx["ui_lang"] = "en"
     dash = _company_dashboard_context(df, dark, lang="en")
     ctx.update(dash)
-    ctx["forecast_available"] = bool(dash.get("proj_tables")) or any(
-        "forecast" in (c.get("title") or "").lower() for c in (dash.get("charts") or [])
-    )
+    ctx["forecast_available"] = bool(dash.get("proj_tables") or dash.get("forecast_charts"))
     return render(request, "analytics/seller_dashboard.html", ctx)
 
 
@@ -301,37 +300,47 @@ def _auto_projections(d, dark: bool = False, metric: str | None = None,
         cagr = f"{r['cagr']:+.1f}%" if r.get("cagr") is not None else ("n/a" if lang == "en" else "s/d")
         if lang == "en":
             conf = "high" if r["r2"] >= 0.7 else "medium" if r["r2"] >= 0.4 else "low"
+            summary_rows = [
+                {"label": f"{ml} in the last {per}", "value": fmt(r["last"]), "tone": "neutral"},
+                {"label": f"Forecast for next {per}", "value": fmt(r["proj_last"]), "tone": "neutral"},
+                {"label": "Estimated growth (next period)", "value": growth,
+                 "tone": "up" if str(growth).startswith("+") else "down" if str(growth).startswith("-") else "flat"},
+                {"label": "Historical CAGR", "value": cagr,
+                 "tone": "up" if str(cagr).startswith("+") else "down" if str(cagr).startswith("-") else "flat"},
+                {"label": f"Projected total ({periods} {per_pl})", "value": fmt(r["proj_total"]), "tone": "neutral"},
+                {"label": "Model confidence", "value": f"{conf} (R²={r['r2']:.2f})", "tone": "muted"},
+            ]
             summary = pd.DataFrame({
-                "Metric": [f"{ml} in the last {per}",
-                           f"Forecast for next {per}",
-                           "Estimated growth (next period)",
-                           "Historical CAGR",
-                           f"Projected total ({periods} {per_pl})",
-                           "Model confidence"],
-                "Value": [fmt(r["last"]), fmt(r["proj_last"]), growth, cagr,
-                          fmt(r["proj_total"]), f"{conf} (R²={r['r2']:.2f})"],
+                "Metric": [row["label"] for row in summary_rows],
+                "Value": [row["value"] for row in summary_rows],
             })
             tables.append({
                 "title": f"Forecast · {ml} — next {periods} {per_pl}",
-                "html": summary.to_html(classes="tf-table", index=False, border=0),
+                "html": TP.dataframe_html(summary),
+                "rows": summary_rows,
                 "note": "Linear trend on your history; the chart shows the likely range.",
                 "kind": "summary",
             })
         else:
             conf = "alta" if r["r2"] >= 0.7 else "media" if r["r2"] >= 0.4 else "baja"
+            summary_rows = [
+                {"label": f"{ml} en el último {per}", "value": fmt(r["last"]), "tone": "neutral"},
+                {"label": f"Proyección para el próximo {per}", "value": fmt(r["proj_last"]), "tone": "neutral"},
+                {"label": "Crecimiento estimado (próximo período)", "value": growth,
+                 "tone": "up" if str(growth).startswith("+") else "down" if str(growth).startswith("-") else "flat"},
+                {"label": "Crecimiento compuesto histórico (CAGR)", "value": cagr,
+                 "tone": "up" if str(cagr).startswith("+") else "down" if str(cagr).startswith("-") else "flat"},
+                {"label": f"Total proyectado ({periods} {per_pl})", "value": fmt(r["proj_total"]), "tone": "neutral"},
+                {"label": "Confianza del modelo", "value": f"{conf} (R²={r['r2']:.2f})", "tone": "muted"},
+            ]
             summary = pd.DataFrame({
-                "Indicador": [f"{ml} en el último {per}",
-                              f"Proyección para el próximo {per}",
-                              "Crecimiento estimado (próximo período)",
-                              "Crecimiento compuesto histórico (CAGR)",
-                              f"Total proyectado ({periods} {per_pl})",
-                              "Confianza del modelo"],
-                "Valor": [fmt(r["last"]), fmt(r["proj_last"]), growth, cagr,
-                          fmt(r["proj_total"]), f"{conf} (R²={r['r2']:.2f})"],
+                "Indicador": [row["label"] for row in summary_rows],
+                "Valor": [row["value"] for row in summary_rows],
             })
             tables.append({
                 "title": f"Proyección de {ml} — próximos {periods} {per_pl}",
-                "html": summary.to_html(classes="tf-table", index=False, border=0),
+                "html": TP.dataframe_html(summary),
+                "rows": summary_rows,
                 "note": "Tendencia lineal sobre el histórico; el rango probable se ve en la gráfica.",
                 "kind": "summary",
             })
@@ -349,13 +358,14 @@ def _auto_projections(d, dark: bool = False, metric: str | None = None,
                 x["cambio_pct"] = x["cambio_pct"].map(lambda v: f"{v:+.0f}%")
                 change_h = "Change %" if lang == "en" else "Cambio %"
                 x.columns = [L.pretty(item, lang=lang), f"{ml} (total)", change_h]
-                return x.to_html(classes="tf-table", index=False, border=0)
+                return TP.dataframe_html(x, delta_cols=[change_h])
             rising = tr[tr["cambio_pct"] > 8].sort_values("cambio_pct", ascending=False).head(5)
             falling = tr[tr["cambio_pct"] < -8].sort_values("cambio_pct").head(5)
             if not rising.empty:
                 tables.append({
                     "title": "Rising products (forecast)" if lang == "en" else "Productos al alza (proyección)",
                     "html": _tbl(rising),
+                    "rows": None,
                     "note": ("Fastest growth from first to second half of history."
                              if lang == "en" else
                              "Mayor crecimiento entre la 1ª y la 2ª mitad del histórico."),
@@ -365,6 +375,7 @@ def _auto_projections(d, dark: bool = False, metric: str | None = None,
                 tables.append({
                     "title": "Falling products (review)" if lang == "en" else "Productos a la baja (a revisar)",
                     "html": _tbl(falling),
+                    "rows": None,
                     "kind": "down",
                     "note": ("Largest sales drop — worth reviewing."
                              if lang == "en" else
@@ -403,14 +414,14 @@ def _dashboard_context(df, dark: bool = False) -> dict:
             continue
 
     proj_charts, proj_tables = _auto_projections(df, dark, money=False)
-    charts.extend(proj_charts)
 
     preview = df.head(100)
     return {
         "kpis": kpis,
         "charts": charts,
+        "forecast_charts": proj_charts,
         "proj_tables": proj_tables,
-        "preview_html": L.pretty_columns(preview).to_html(classes="tf-table", index=False, border=0),
+        "preview_html": TP.dataframe_html(L.pretty_columns(preview)),
         "n_preview": min(100, len(df)),
         "n_total": len(df),
     }
@@ -495,14 +506,14 @@ def _company_dashboard_context(df, dark: bool = False, lang: str = "es") -> dict
     proj_charts, proj_tables = _auto_projections(
         d, dark, metric="line_total", item="producto", lang=lang,
     )
-    charts.extend(proj_charts)
 
     preview = df.head(100)
     return {
         "kpis": kpis,
         "charts": charts,
+        "forecast_charts": proj_charts,
         "proj_tables": proj_tables,
-        "preview_html": L.pretty_columns(preview, lang=lang).to_html(classes="tf-table", index=False, border=0),
+        "preview_html": TP.dataframe_html(L.pretty_columns(preview, lang=lang)),
         "n_preview": min(100, len(df)),
         "n_total": len(df),
         "ui_lang": lang,
@@ -752,8 +763,8 @@ def chat(request):
     fig_json = pio.to_json(fig) if fig is not None else None
     table_html = None
     if table is not None and not table.empty:
-        table_html = L.pretty_columns(table.head(200), lang=ui_lang).to_html(
-            classes="tf-table", index=False, border=0,
+        table_html = TP.dataframe_html(
+            L.pretty_columns(table.head(200), lang=ui_lang),
         )
     return JsonResponse({"text": text, "fig": fig_json, "table": table_html})
 

@@ -83,7 +83,6 @@
   .an-chat-input-row .tf-input { flex: 1; }
 
   .an-table-scroll { overflow-x: auto; }
-  .an-table-scroll table.tf-table { min-width: 100%; }
   .an-suggest { font-size: 12.5px; color: var(--tf-muted); margin-top: 8px;
     display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   /* Chips de sugerencia: botones reales (accesibles por teclado), objetivo táctil
@@ -110,13 +109,14 @@
 
   /* ── Refinamientos data-dense (guía UI/UX Pro Max) ─────────────────────── */
   /* Cifras tabulares: alinean en columnas y no "saltan" al cambiar de valor. */
-  .tf-metric-value, table.tf-table td, table.tf-table th { font-variant-numeric: tabular-nums; }
+  .tf-metric-value, table.tf-table td, table.tf-table th,
+  .an-metric-val, .an-delta { font-variant-numeric: tabular-nums; }
   /* Hover de fila en tablas (modo claro), paridad con el modo oscuro. */
   table.tf-table tbody tr { transition: background .12s ease; }
   table.tf-table tbody tr:hover { background: #F5F8FC; }
   /* Ritmo vertical consistente entre secciones (escala 8pt). */
   .an-section { margin-top: 32px; }
-  .an-section-title { display: flex; align-items: center; gap: 8px; }
+  .an-section-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .an-section-hint { font-size: 13px; font-weight: 400; color: var(--tf-muted); }
   /* Densidad cómoda en móvil sin scroll horizontal. */
   @media (max-width: 575px) {
@@ -124,23 +124,141 @@
     .an-card { padding: 14px; }
   }
 
-  /* Tarjetas de proyección: acento semántico (no dependen solo del color — el
-     título e ícono ya dicen "al alza"/"a la baja") para escanear de un vistazo. */
-  .an-proj-card { border-left: 4px solid var(--tf-navy); }
-  .an-proj-card.an-proj-up { border-left-color: #2E8B57; }
-  .an-proj-card.an-proj-down { border-left-color: #D1495B; }
-  .an-proj-title {
-    display: flex; align-items: center; gap: 8px; font-weight: 700;
-    color: var(--tf-navy); margin-bottom: 10px; font-size: 14px;
+  /* ── Tablas de datos (predicciones, preview, chat) ──────────────────── */
+  .an-table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--tf-border);
+    border-radius: 12px;
+    background: var(--tf-white);
   }
-  .an-proj-title .material-symbols-rounded { font-size: 19px; }
-  .an-proj-up .an-proj-title .material-symbols-rounded { color: #2E8B57; }
-  .an-proj-down .an-proj-title .material-symbols-rounded { color: #D1495B; }
-  .an-proj-card:not(.an-proj-up):not(.an-proj-down) .an-proj-title .material-symbols-rounded { color: var(--tf-orange); }
-  .an-proj-note { font-size: 12px; color: var(--tf-muted); margin: 8px 0 0; }
+  table.an-data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  table.an-data-table thead th {
+    position: sticky; top: 0; z-index: 1;
+    background: var(--tf-light, #F2F3F5);
+    color: var(--tf-mid, #1B3B63);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .04em; text-transform: uppercase;
+    text-align: left; padding: 10px 12px;
+    border-bottom: 1px solid var(--tf-border);
+    white-space: nowrap;
+  }
+  table.an-data-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--tf-border);
+    color: var(--tf-gray-700, #343A40);
+    vertical-align: middle;
+  }
+  table.an-data-table tbody tr:last-child td { border-bottom: none; }
+  table.an-data-table th.is-num,
+  table.an-data-table td.is-num { text-align: right; font-weight: 600; }
+  .an-delta {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 3.25rem; padding: 2px 8px; border-radius: 8px;
+    font-size: 12px; font-weight: 700; line-height: 1.5;
+  }
+  .an-delta-up { background: var(--status-success-bg, #d4edda); color: var(--status-success-fg, #155724); }
+  .an-delta-down { background: var(--status-danger-bg, #f8d7da); color: var(--status-danger-fg, #721c24); }
+  .an-delta-flat { background: var(--status-neutral-bg, #e2e3e5); color: var(--status-neutral-fg, #383d41); }
+
+  /* ── Bloque de proyecciones (sin fringe lateral) ───────────────────── */
+  .an-forecast-block {
+    padding: 20px 18px 8px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(15, 42, 68, 0.035), rgba(15, 42, 68, 0.01));
+    border: 1px solid var(--tf-border);
+  }
+  .an-forecast-ico { color: var(--tf-orange); font-size: 22px; }
+  .an-forecast-charts { margin: 14px 0 18px; }
+  .an-forecast-chart-card { background: var(--tf-white); }
+  .an-proj-grid { margin-top: 4px; margin-bottom: 8px; }
+  .an-proj-card {
+    background: var(--tf-white);
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: none;
+  }
+  .an-proj-up {
+    background: var(--alert-success-bg, #edf7ee);
+    border-color: var(--alert-success-border, #9ecfa0);
+  }
+  .an-proj-down {
+    background: var(--alert-danger-bg, #fdecea);
+    border-color: var(--alert-danger-border, #f5a9a3);
+  }
+  .an-proj-title {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-weight: 700; color: var(--tf-navy); font-size: 14px; line-height: 1.35;
+    margin: 0;
+  }
+  .an-proj-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px; flex: none;
+    background: rgba(15, 42, 68, 0.08); color: var(--tf-navy);
+  }
+  .an-proj-badge .material-symbols-rounded { font-size: 18px; }
+  .an-proj-up .an-proj-badge {
+    background: var(--status-success-bg, #d4edda); color: var(--status-success-fg, #155724);
+  }
+  .an-proj-down .an-proj-badge {
+    background: var(--status-danger-bg, #f8d7da); color: var(--status-danger-fg, #721c24);
+  }
+  .an-proj-summary .an-proj-badge {
+    background: rgba(242, 101, 34, 0.12); color: var(--tf-orange);
+  }
+  .an-proj-title-text { padding-top: 5px; }
+  .an-proj-note { font-size: 12px; color: var(--tf-muted); margin: 0; line-height: 1.45; }
+  .an-forecast-empty { margin: 12px 0 8px; }
+
+  /* Lista métrica de resumen (forecast table as scannable rows) */
+  .an-metric-list { margin: 0; display: flex; flex-direction: column; gap: 0; }
+  .an-metric-row {
+    display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 12px; align-items: baseline;
+    padding: 10px 0; border-bottom: 1px solid var(--tf-border);
+  }
+  .an-metric-row:last-child { border-bottom: none; padding-bottom: 2px; }
+  .an-metric-row dt {
+    margin: 0; font-size: 12.5px; color: var(--tf-muted); font-weight: 500;
+  }
+  .an-metric-val {
+    margin: 0; text-align: right; font-size: 14px; font-weight: 700;
+    color: var(--tf-navy);
+  }
+  .an-metric-val.is-up { color: var(--status-success-fg, #155724); }
+  .an-metric-val.is-down { color: var(--status-danger-fg, #721c24); }
+  .an-metric-val.is-muted { color: var(--tf-muted); font-weight: 600; font-size: 13px; }
+
+  /* Chat tables share the same table language */
+  .an-bubble-table { padding: 0; overflow: hidden; }
+  .an-bubble-table .an-table-scroll,
+  .an-bubble-table table.an-data-table { border: none; border-radius: 0; }
+
+  /* Seller portal: avoid double padding / denser analytics surface */
+  body.sp-dash .sp-content .an-root.tf-page {
+    padding: 0; max-width: none;
+  }
+  body.sp-dash .an-forecast-block { margin-top: 28px; }
+  body.sp-dash .tf-metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  body.sp-dash .tf-metric-card { padding: 14px 16px; }
+  body.sp-dash .an-chat-box { height: min(640px, 70vh); }
+  body.sp-dash .sp-page-head h1 { letter-spacing: -0.01em; }
+  body.sp-dash .sp-dash-page-sub { max-width: 52ch; }
 
   /* Cabecera: separación clara del contenido que sigue */
   .tf-page-header { padding-bottom: 20px; border-bottom: 1px solid var(--tf-border); }
+  body.sp-dash .an-root .tf-page-header {
+    display: flex; justify-content: space-between; gap: 12px; align-items: flex-end;
+    margin-bottom: 18px;
+  }
+  body.sp-dash .an-root .tf-page-subtitle { font-size: 13px; color: var(--tf-muted); }
 
   /* "Ver datos": mismo lenguaje visual que las demás secciones colapsables */
   .an-details-toggle {
@@ -193,12 +311,34 @@
   .an-dark table.tf-table tbody td { color: #D4DCE6; border-color: #22344B; }
   .an-dark table.tf-table tbody tr:hover { background: #1A2B42; }
   .an-dark .an-proj-title { color: #E8ECF2; }
-  /* Tonos más claros/desaturados en oscuro (no invertir el color) para mantener
-     el mismo contraste perceptual que en modo claro. */
-  .an-dark .an-proj-card.an-proj-up { border-left-color: #4ADE94; }
-  .an-dark .an-proj-card.an-proj-down { border-left-color: #F1707F; }
-  .an-dark .an-proj-up .an-proj-title .material-symbols-rounded { color: #4ADE94; }
-  .an-dark .an-proj-down .an-proj-title .material-symbols-rounded { color: #F1707F; }
+  .an-dark .an-forecast-block {
+    background: linear-gradient(180deg, rgba(21, 36, 58, 0.9), rgba(21, 36, 58, 0.55));
+    border-color: #25374F;
+  }
+  .an-dark .an-proj-card { background: #15243A; border-color: #25374F; }
+  .an-dark .an-proj-up {
+    background: rgba(74, 222, 148, 0.08); border-color: rgba(74, 222, 148, 0.28);
+  }
+  .an-dark .an-proj-down {
+    background: rgba(241, 112, 127, 0.08); border-color: rgba(241, 112, 127, 0.28);
+  }
+  .an-dark .an-proj-badge { background: #1C2E46; color: #E8ECF2; }
+  .an-dark .an-proj-up .an-proj-badge { background: rgba(74, 222, 148, 0.16); color: #4ADE94; }
+  .an-dark .an-proj-down .an-proj-badge { background: rgba(241, 112, 127, 0.16); color: #F1707F; }
+  .an-dark .an-metric-row { border-bottom-color: #25374F; }
+  .an-dark .an-metric-row dt { color: #9DB0C2; }
+  .an-dark .an-metric-val { color: #E8ECF2; }
+  .an-dark .an-metric-val.is-up { color: #4ADE94; }
+  .an-dark .an-metric-val.is-down { color: #F1707F; }
+  .an-dark .an-metric-val.is-muted { color: #9DB0C2; }
+  .an-dark .an-table-scroll { background: #15243A; border-color: #25374F; }
+  .an-dark table.an-data-table thead th {
+    background: #1C2E46; color: #9DB0C2; border-color: #2C3E57;
+  }
+  .an-dark table.an-data-table tbody td { color: #D4DCE6; border-color: #22344B; }
+  .an-dark .an-delta-up { background: rgba(74, 222, 148, 0.16); color: #4ADE94; }
+  .an-dark .an-delta-down { background: rgba(241, 112, 127, 0.16); color: #F1707F; }
+  .an-dark .an-delta-flat { background: #1C2E46; color: #9DB0C2; }
   .an-dark .an-skel-title, .an-dark .an-skel-body {
     background: linear-gradient(90deg, #182634 25%, #1C2E46 37%, #182634 63%);
     background-size: 400% 100%;
