@@ -11,6 +11,42 @@ from __future__ import annotations
 import re
 
 # Nombres compuestos conocidos (esquema Tradeflow y afines)
+_ALIASES_EN = {
+    "line_total": "Sales",
+    "total_orden": "Order total",
+    "order_total": "Order total",
+    "unit_price_snapshot": "Unit price",
+    "unit_price": "Unit price",
+    "estado_orden": "Order status",
+    "tipo_orden": "Order type",
+    "order_number": "Order #",
+    "created_at": "Date",
+    "producto": "Product",
+    "categoria": "Category",
+    "orden": "Order",
+    "fecha": "Date",
+    "qty": "Units",
+    "dia": "Day",
+}
+
+_WORDS_EN = {
+    "producto": "product", "productos": "products", "product": "product",
+    "categoria": "category", "category": "category",
+    "orden": "order", "order": "order", "ordenes": "orders",
+    "estado": "status", "status": "status", "tipo": "type", "type": "type",
+    "fecha": "date", "date": "date", "dia": "day", "mes": "month",
+    "qty": "units", "cantidad": "quantity", "unidades": "units",
+    "precio": "price", "price": "price", "total": "total", "subtotal": "subtotal",
+    "sku": "SKU", "cliente": "customer", "customer": "customer",
+    "ventas": "sales", "venta": "sale", "ingreso": "revenue", "ingresos": "revenue",
+    "monto": "amount", "importe": "amount", "nombre": "name", "name": "name",
+    "empresa": "company", "company": "company", "id": "ID",
+}
+
+_AGG_EN = {"sum": "Total", "suma": "Total", "mean": "Average", "avg": "Average",
+          "promedio": "Average", "max": "Max", "maximo": "Max",
+          "min": "Min", "minimo": "Min", "count": "Count", "conteo": "Count"}
+
 _ALIASES = {
     "line_total": "Ventas",
     "total_orden": "Total de la orden",
@@ -48,44 +84,44 @@ def agg_label(agg: str) -> str:
     return _AGG.get(str(agg).strip().lower(), str(agg).capitalize())
 
 
-def pretty(name) -> str:
-    """Nombre de columna/medida → etiqueta legible en español."""
+def pretty(name, lang: str = "es") -> str:
+    """Column/metric name → human label (es|en)."""
     if name is None:
         return ""
     s = str(name).strip()
     if not s:
         return ""
     low = s.lower()
-    if low in _ALIASES:
-        return _ALIASES[low]
-    # Prefijo/sufijo de agregación: "sum_line_total" / "line_total_sum" → "Total de Ventas"
-    for agg, lab in _AGG.items():
+    aliases = _ALIASES_EN if lang == "en" else _ALIASES
+    words = _WORDS_EN if lang == "en" else _WORDS
+    aggs = _AGG_EN if lang == "en" else _AGG
+    if low in aliases:
+        return aliases[low]
+    for agg, lab in aggs.items():
         if low.startswith(agg + "_") and len(low) > len(agg) + 1:
-            return f"{lab} de {pretty(s[len(agg) + 1:])}"
+            join = " of " if lang == "en" else " de "
+            return f"{lab}{join}{pretty(s[len(agg) + 1:], lang=lang)}"
         if low.endswith("_" + agg) and len(low) > len(agg) + 1:
-            return f"{lab} de {pretty(s[:-(len(agg) + 1)])}"
-    # Sufijo _id → nombre de la entidad ("product_id" → "Producto")
+            join = " of " if lang == "en" else " de "
+            return f"{lab}{join}{pretty(s[:-(len(agg) + 1)], lang=lang)}"
     if low.endswith("_id") and len(low) > 3:
-        return pretty(s[:-3])
-    if low in _WORDS:
-        return _WORDS[low].capitalize()
-    # Nombre compuesto: traduce token por token y capitaliza la frase
+        return pretty(s[:-3], lang=lang)
+    if low in words:
+        return words[low].capitalize()
     parts = [p for p in re.split(r"[_\s]+", low) if p]
     if not parts:
         return s
-    words = [_WORDS.get(p, p) for p in parts]
-    label = " ".join(words)
-    return label[:1].upper() + label[1:]
+    out = " ".join(words.get(p, p) for p in parts)
+    return out[:1].upper() + out[1:]
 
 
-def pretty_columns(df):
-    """Devuelve una COPIA del DataFrame con columnas renombradas para mostrar.
-    Evita chocar nombres: si dos columnas mapean al mismo texto, desambigua."""
+def pretty_columns(df, lang: str = "es"):
+    """Return a COPY of df with display column names (es|en)."""
     seen: set[str] = set()
     rename = {}
     for c in df.columns:
-        label = pretty(c)
-        if label in seen:            # colisión → conserva el nombre real para distinguir
+        label = pretty(c, lang=lang)
+        if label in seen:
             label = f"{label} ({c})"
         seen.add(label)
         rename[c] = label

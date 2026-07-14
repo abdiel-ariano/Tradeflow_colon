@@ -62,7 +62,12 @@ class TestSellerAnalyticsAccess(TestCase):
         self.assertNotContains(r, 'name="model"')
         # CSP production: inline assets must carry the request nonce
         self.assertContains(r, 'nonce="')
-        self.assertContains(r, 'an-chat-input')
+        # English seller portal copy
+        self.assertContains(r, 'Talk to your data')
+        self.assertContains(r, 'Revenue')
+        self.assertContains(r, 'Forecasts')
+        # With a single order there isn't enough history for proj tables
+        self.assertContains(r, 'Forecasts need a date column')
 
     def test_buyer_cannot_open_seller_analytics(self):
         self.client.login(username='ai_buyer', password='TestPass123!')
@@ -81,7 +86,7 @@ class TestSellerAnalyticsAccess(TestCase):
         self.assertEqual(self.client.get(reverse('analytics:seller_dashboard')).status_code, 200)
         r = self.client.post(
             reverse('analytics:chat'),
-            data=json.dumps({'message': 'top 5 por producto', 'history': []}),
+            data=json.dumps({'message': 'top 5 products by sales', 'history': []}),
             content_type='application/json',
         )
         self.assertEqual(r.status_code, 200)
@@ -90,6 +95,20 @@ class TestSellerAnalyticsAccess(TestCase):
         if payload.get('table'):
             self.assertIn('tf-table', payload['table'])
             self.assertIn('Widget', payload['table'])
+            self.assertIn('Product', payload['table'])
+
+    def test_truncation_banner_when_over_limit(self):
+        from unittest import mock
+        from analytics import data_source as ds
+
+        self.client.login(username='ai_seller', password='TestPass123!')
+        fake_df = ds.load_company_sales_df(self.company.id)
+        with mock.patch.object(ds, 'company_sales_row_count', return_value=ds.COMPANY_SALES_LIMIT + 50), \
+             mock.patch.object(ds, 'load_company_sales_df', return_value=fake_df):
+            r = self.client.get(reverse('analytics:seller_dashboard'))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Showing the newest')
+        self.assertContains(r, str(ds.COMPANY_SALES_LIMIT))
 
 
 @override_settings(AXES_ENABLED=False, REQUIRE_EMAIL_VERIFICATION=False, LLM_OFFLINE='1')

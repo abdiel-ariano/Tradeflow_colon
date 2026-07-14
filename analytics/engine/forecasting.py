@@ -19,6 +19,8 @@ from . import labels as L
 _FREQ_RULE = {"D": "D", "W": "W-MON", "M": "MS", "Q": "QS", "Y": "YS"}
 _FREQ_LABEL = {"D": "día", "W": "semana", "M": "mes", "Q": "trimestre", "Y": "año"}
 _FREQ_LABEL_PL = {"D": "días", "W": "semanas", "M": "meses", "Q": "trimestres", "Y": "años"}
+_FREQ_LABEL_EN = {"D": "day", "W": "week", "M": "month", "Q": "quarter", "Y": "year"}
+_FREQ_LABEL_PL_EN = {"D": "days", "W": "weeks", "M": "months", "Q": "quarters", "Y": "years"}
 _DEFAULT_HORIZON = {"D": 14, "W": 8, "M": 6, "Q": 4, "Y": 3}
 _DATE_HINTS = ("fecha", "date", "created", "creado", "timestamp", "periodo",
                "emitida", "emision", "dia", "day", "mes", "month")
@@ -222,17 +224,45 @@ def item_trends(df: pd.DataFrame, item_col: str, date_col: str,
 
 
 # ── Resúmenes en lenguaje natural ───────────────────────────────────────────
-def _fmt(v) -> str:
+def _fmt(v, lang: str = "es") -> str:
     try:
         if v is None:
-            return "s/d"
+            return "n/a" if lang == "en" else "s/d"
         return f"{v:,.0f}" if abs(v) >= 100 else f"{v:,.1f}"
     except Exception:
         return str(v)
 
 
 def forecast_summary(r: dict, label: str, freq: str, periods: int,
-                     filtros: dict | None = None) -> str:
+                     filtros: dict | None = None, lang: str = "es") -> str:
+    if lang == "en":
+        per = _FREQ_LABEL_PL_EN.get(freq, "periods")
+        per_one = _FREQ_LABEL_EN.get(freq, "period")
+        filtro_txt = ""
+        if filtros:
+            filtro_txt = " (" + ", ".join(
+                f"{L.pretty(k, lang='en')}={v}" for k, v in filtros.items()
+            ) + ")"
+        trend = ("upward" if r["slope"] > 0 else
+                 "downward" if r["slope"] < 0 else "flat")
+        parts = [f"Forecast for {label}{filtro_txt} over the next {periods} {per}: "
+                 f"{trend} trend."]
+        if r.get("proj_growth_pct") is not None:
+            signo = "+" if r["proj_growth_pct"] >= 0 else ""
+            parts.append(
+                f"I expect {_fmt(r['last'], lang)} → {_fmt(r['proj_last'], lang)} "
+                f"per {per_one} ({signo}{r['proj_growth_pct']:.1f}%)."
+            )
+        if r.get("cagr") is not None:
+            parts.append(f"Historical CAGR: {r['cagr']:+.1f}% per {per_one}.")
+        parts.append(f"Projected total over the horizon: ~{_fmt(r['proj_total'], lang)}.")
+        conf = ("high" if r["r2"] >= 0.7 else "medium" if r["r2"] >= 0.4 else "low")
+        parts.append(
+            f"Fit confidence: {conf} (R²={r['r2']:.2f}); "
+            f"the shaded band is the likely range."
+        )
+        return " ".join(parts)
+
     per = _FREQ_LABEL_PL.get(freq, "períodos")
     filtro_txt = ""
     if filtros:
@@ -256,14 +286,24 @@ def forecast_summary(r: dict, label: str, freq: str, periods: int,
 
 
 def trends_summary(trends: pd.DataFrame, item_col: str, rising: bool,
-                   label: str | None = None, n: int = 5) -> str:
-    metric = label or "ventas"
+                   label: str | None = None, n: int = 5, lang: str = "es") -> str:
+    metric = label or ("sales" if lang == "en" else "ventas")
     df = trends.sort_values("cambio_pct", ascending=not rising)
     df = df[df["cambio_pct"] > 0] if rising else df[df["cambio_pct"] < 0]
     if df.empty:
+        if lang == "en":
+            which = "rising" if rising else "declining"
+            return f"No clearly {which} products in {metric} with the history available."
         cual = "en alza" if rising else "en caída"
         return f"No hay productos claramente {cual} en {metric} con la historia disponible."
     top = df.head(n)
+    if lang == "en":
+        verb = "rising" if rising else "declining"
+        items = "; ".join(
+            f"“{r[item_col]}” ({r['cambio_pct']:+.0f}%)" for _, r in top.iterrows()
+        )
+        return (f"Products {verb} in {metric} "
+                f"(1st vs 2nd half of history): {items}.")
     verbo = "subiendo" if rising else "bajando"
     items = "; ".join(f"«{r[item_col]}» ({r['cambio_pct']:+.0f}%)" for _, r in top.iterrows())
     return (f"Productos {verbo} en {metric} "

@@ -15,6 +15,7 @@
 
   {% if has_data %}
   // ── Render de gráficas del dashboard ───────────────────────────────
+  var UI_EN = {% if seller_embedded %}true{% else %}false{% endif %};
   var dataEl = document.getElementById('an-charts-data');
   var grid = document.getElementById('an-charts');
   var charts = [];
@@ -34,7 +35,9 @@
         fig.layout.margin = Object.assign({}, fig.layout.margin, { t: 18 });
       }
       Plotly.newPlot(plot, fig.data, fig.layout, { displayModeBar: false, responsive: true });
-    } catch (e) { plot.textContent = 'No se pudo renderizar la gráfica.'; }
+    } catch (e) {
+      plot.textContent = UI_EN ? 'Could not render this chart.' : 'No se pudo renderizar la gráfica.';
+    }
   });
 
   // ── Chat ───────────────────────────────────────────────────────────
@@ -82,7 +85,7 @@
         var plot = document.createElement('div'); plot.style.minHeight = '360px';
         wrap.appendChild(plot); msgs.appendChild(wrap);
         try { var f = JSON.parse(d.fig); Plotly.newPlot(plot, f.data, f.layout, { displayModeBar: true, responsive: true }); } catch (e) {}
-        history.push({ role: 'assistant', content: '(gráfica generada)' });
+        history.push({ role: 'assistant', content: UI_EN ? '(chart generated)' : '(gráfica generada)' });
         scrollDown();
       }
       if (d.table) {
@@ -90,11 +93,14 @@
         t.className = 'an-bubble an-bubble-table an-table-scroll';
         t.innerHTML = d.table;
         msgs.appendChild(t);
-        history.push({ role: 'assistant', content: '(tabla generada)' });
+        history.push({ role: 'assistant', content: UI_EN ? '(table generated)' : '(tabla generada)' });
         scrollDown();
       }
     })
-    .catch(function () { loading.remove(); bubble('Error de conexión.', 'an-bubble-bot'); })
+    .catch(function () {
+      loading.remove();
+      bubble(UI_EN ? 'Connection error.' : 'Error de conexión.', 'an-bubble-bot');
+    })
     .finally(function () { busy = false; });
   }
 

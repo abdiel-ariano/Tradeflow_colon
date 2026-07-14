@@ -177,17 +177,21 @@ def dashboard(request):
 
 def _load_seller_company_df(request):
     """Ventas (OrderItem unido) de la empresa del usuario con sesión iniciada.
-    Devuelve (df, company) o (None, company/None). NUNCA usa un id del request:
-    solo la empresa que el usuario posee (Company.owner) → sin fuga cross-tenant."""
+
+    Devuelve (df, company, load_meta). NUNCA usa un id del request: solo la
+    empresa que el usuario posee (Company.owner) → sin fuga cross-tenant.
+    load_meta incluye truncated/total_rows/limit para avisar en UI.
+    """
     company = ds.company_for_user(request.user)
     if not company:
-        return None, None
+        return None, None, {}
     try:
-        df = data_loader.clean(ds.load_company_sales_df(company["id"]))
+        df, load_meta = ds.load_company_sales_bundle(company["id"])
+        df = data_loader.clean(df)
     except Exception:
         logger.exception("seller analytics: fallo al cargar ventas de la empresa")
-        return None, company
-    return df, company
+        return None, company, {}
+    return df, company, load_meta
 
 
 @seller_required
@@ -207,7 +211,7 @@ def seller_dashboard(request):
         "nav_activo": "analytics",
         "has_data": False,
     }
-    df, company = _load_seller_company_df(request)
+    df, company, load_meta = _load_seller_company_df(request)
     ctx["company_name"] = company["name"] if company else ""
     if not company:
         ctx["no_company"] = True
@@ -216,10 +220,18 @@ def seller_dashboard(request):
         ctx["no_sales"] = True
         return render(request, "analytics/seller_dashboard.html", ctx)
 
-    ds.store_df(request, df, {"company": True, "origen": company["name"]})
+    ds.store_df(request, df, {"company": True, "origen": company["name"], **load_meta})
     ctx["has_data"] = True
-    ctx["meta"] = {"company": True, "origen": company["name"]}
-    ctx.update(_company_dashboard_context(df, dark))
+    ctx["meta"] = {"company": True, "origen": company["name"], **load_meta}
+    ctx["data_truncated"] = bool(load_meta.get("truncated"))
+    ctx["data_total_rows"] = load_meta.get("total_rows")
+    ctx["data_limit"] = load_meta.get("limit")
+    ctx["ui_lang"] = "en"
+    dash = _company_dashboard_context(df, dark, lang="en")
+    ctx.update(dash)
+    ctx["forecast_available"] = bool(dash.get("proj_tables")) or any(
+        "forecast" in (c.get("title") or "").lower() for c in (dash.get("charts") or [])
+    )
     return render(request, "analytics/seller_dashboard.html", ctx)
 
 
@@ -254,11 +266,8 @@ _PER_PL = {"D": "días", "W": "semanas", "M": "meses", "Q": "trimestres", "Y": "
 
 
 def _auto_projections(d, dark: bool = False, metric: str | None = None,
-                      item: str | None = None, money: bool = True):
-    """Proyecciones MÁS IMPORTANTES, generadas solas (sin pedirlas): una gráfica
-    de proyección de la métrica principal + hasta 3 tablas (resumen, productos al
-    alza, productos a la baja). Devuelve (charts, tables); vacío si no hay una
-    columna de fecha o datos insuficientes."""
+                      item: str | None = None, money: bool = True, lang: str = "es"):
+    """Auto forecasts: main metric chart + up to 3 tables. Empty if no date col."""
     charts, tables = [], []
     date_col = forecasting.find_date_column(d)
     num_cols = list(d.select_dtypes(include="number").columns)
@@ -266,41 +275,66 @@ def _auto_projections(d, dark: bool = False, metric: str | None = None,
         return charts, tables
     metric = metric if metric in d.columns else (
         "line_total" if "line_total" in d.columns else num_cols[0])
-    ml = L.pretty(metric)   # etiqueta legible de la métrica
+    ml = L.pretty(metric, lang=lang)
     freq = forecasting.auto_freq(d, date_col)
     periods = forecasting.default_horizon(freq)
-    per, per_pl = _PER.get(freq, "período"), _PER_PL.get(freq, "períodos")
+    if lang == "en":
+        per_map = {"D": "day", "W": "week", "M": "month", "Q": "quarter", "Y": "year"}
+        per_pl_map = {"D": "days", "W": "weeks", "M": "months", "Q": "quarters", "Y": "years"}
+        per, per_pl = per_map.get(freq, "period"), per_pl_map.get(freq, "periods")
+    else:
+        per, per_pl = _PER.get(freq, "período"), _PER_PL.get(freq, "períodos")
     fmt = (lambda v: f"${v:,.0f}") if money else (lambda v: f"{v:,.0f}")
 
     ts = forecasting.build_series(d, date_col, metric, freq=freq, agg="sum")
     r = forecasting.linear_forecast(ts, periods) if ts is not None else None
     if r:
         try:
-            fig = cg.forecast_chart(r, title=f"Proyección de {ml}", y_title=ml)
+            ftitle = f"Forecast · {ml}" if lang == "en" else f"Proyección de {ml}"
+            fig = cg.forecast_chart(r, title=ftitle, y_title=ml)
             if fig is not None:
-                charts.append({"title": f"Proyección de {ml}",
+                charts.append({"title": ftitle,
                                "fig": pio.to_json(cg.apply_theme(fig, dark))})
         except Exception:
             pass
-        growth = f"{r['proj_growth_pct']:+.1f}%" if r.get("proj_growth_pct") is not None else "s/d"
-        cagr = f"{r['cagr']:+.1f}%" if r.get("cagr") is not None else "s/d"
-        conf = "alta" if r["r2"] >= 0.7 else "media" if r["r2"] >= 0.4 else "baja"
-        summary = pd.DataFrame({
-            "Indicador": [f"{ml} en el último {per}",
-                          f"Proyección para el próximo {per}",
-                          "Crecimiento estimado (próximo período)",
-                          "Crecimiento compuesto histórico (CAGR)",
-                          f"Total proyectado ({periods} {per_pl})",
-                          "Confianza del modelo"],
-            "Valor": [fmt(r["last"]), fmt(r["proj_last"]), growth, cagr,
-                      fmt(r["proj_total"]), f"{conf} (R²={r['r2']:.2f})"],
-        })
-        tables.append({
-            "title": f"Proyección de {ml} — próximos {periods} {per_pl}",
-            "html": summary.to_html(classes="tf-table", index=False, border=0),
-            "note": "Tendencia lineal sobre el histórico; el rango probable se ve en la gráfica.",
-            "kind": "summary",
-        })
+        growth = f"{r['proj_growth_pct']:+.1f}%" if r.get("proj_growth_pct") is not None else ("n/a" if lang == "en" else "s/d")
+        cagr = f"{r['cagr']:+.1f}%" if r.get("cagr") is not None else ("n/a" if lang == "en" else "s/d")
+        if lang == "en":
+            conf = "high" if r["r2"] >= 0.7 else "medium" if r["r2"] >= 0.4 else "low"
+            summary = pd.DataFrame({
+                "Metric": [f"{ml} in the last {per}",
+                           f"Forecast for next {per}",
+                           "Estimated growth (next period)",
+                           "Historical CAGR",
+                           f"Projected total ({periods} {per_pl})",
+                           "Model confidence"],
+                "Value": [fmt(r["last"]), fmt(r["proj_last"]), growth, cagr,
+                          fmt(r["proj_total"]), f"{conf} (R²={r['r2']:.2f})"],
+            })
+            tables.append({
+                "title": f"Forecast · {ml} — next {periods} {per_pl}",
+                "html": summary.to_html(classes="tf-table", index=False, border=0),
+                "note": "Linear trend on your history; the chart shows the likely range.",
+                "kind": "summary",
+            })
+        else:
+            conf = "alta" if r["r2"] >= 0.7 else "media" if r["r2"] >= 0.4 else "baja"
+            summary = pd.DataFrame({
+                "Indicador": [f"{ml} en el último {per}",
+                              f"Proyección para el próximo {per}",
+                              "Crecimiento estimado (próximo período)",
+                              "Crecimiento compuesto histórico (CAGR)",
+                              f"Total proyectado ({periods} {per_pl})",
+                              "Confianza del modelo"],
+                "Valor": [fmt(r["last"]), fmt(r["proj_last"]), growth, cagr,
+                          fmt(r["proj_total"]), f"{conf} (R²={r['r2']:.2f})"],
+            })
+            tables.append({
+                "title": f"Proyección de {ml} — próximos {periods} {per_pl}",
+                "html": summary.to_html(classes="tf-table", index=False, border=0),
+                "note": "Tendencia lineal sobre el histórico; el rango probable se ve en la gráfica.",
+                "kind": "summary",
+            })
 
     item = item if item in d.columns else ("producto" if "producto" in d.columns else None)
     if item:
@@ -313,18 +347,29 @@ def _auto_projections(d, dark: bool = False, metric: str | None = None,
                 x = t[[item, "total", "cambio_pct"]].copy()
                 x["total"] = x["total"].map(fmt)            # formatear ANTES de renombrar
                 x["cambio_pct"] = x["cambio_pct"].map(lambda v: f"{v:+.0f}%")
-                x.columns = [L.pretty(item), f"{ml} (total)", "Cambio %"]
+                change_h = "Change %" if lang == "en" else "Cambio %"
+                x.columns = [L.pretty(item, lang=lang), f"{ml} (total)", change_h]
                 return x.to_html(classes="tf-table", index=False, border=0)
             rising = tr[tr["cambio_pct"] > 8].sort_values("cambio_pct", ascending=False).head(5)
             falling = tr[tr["cambio_pct"] < -8].sort_values("cambio_pct").head(5)
             if not rising.empty:
-                tables.append({"title": "Productos al alza (proyección)", "html": _tbl(rising),
-                               "note": "Mayor crecimiento entre la 1ª y la 2ª mitad del histórico.",
-                               "kind": "up"})
+                tables.append({
+                    "title": "Rising products (forecast)" if lang == "en" else "Productos al alza (proyección)",
+                    "html": _tbl(rising),
+                    "note": ("Fastest growth from first to second half of history."
+                             if lang == "en" else
+                             "Mayor crecimiento entre la 1ª y la 2ª mitad del histórico."),
+                    "kind": "up",
+                })
             if not falling.empty:
-                tables.append({"title": "Productos a la baja (a revisar)", "html": _tbl(falling),
-                               "kind": "down",
-                               "note": "Mayor caída de ventas — candidatos a revisar."})
+                tables.append({
+                    "title": "Falling products (review)" if lang == "en" else "Productos a la baja (a revisar)",
+                    "html": _tbl(falling),
+                    "kind": "down",
+                    "note": ("Largest sales drop — worth reviewing."
+                             if lang == "en" else
+                             "Mayor caída de ventas — candidatos a revisar."),
+                })
     return charts, tables
 
 
@@ -371,10 +416,8 @@ def _dashboard_context(df, dark: bool = False) -> dict:
     }
 
 
-def _company_dashboard_context(df, dark: bool = False) -> dict:
-    """Dashboard de NEGOCIO para una empresa: primero la vista general
-    (ingresos, órdenes, productos top, categorías, estados) construida
-    automáticamente desde las tablas ya unidas; lo específico se pide al chat."""
+def _company_dashboard_context(df, dark: bool = False, lang: str = "es") -> dict:
+    """Business dashboard for one company. lang=en for seller portal English UI."""
     d = df.copy()
     if "fecha" in d.columns:
         try:
@@ -390,13 +433,22 @@ def _company_dashboard_context(df, dark: bool = False) -> dict:
     unidades = int(d["qty"].sum()) if "qty" in d.columns else 0
     ticket = (ingresos / ordenes) if ordenes else 0.0
     productos = int(d["producto"].nunique()) if "producto" in d.columns else 0
-    kpis = [
-        ("Ingresos", f"${ingresos:,.0f}"),
-        ("Órdenes", f"{ordenes:,}"),
-        ("Unidades vendidas", f"{unidades:,}"),
-        ("Ticket promedio", f"${ticket:,.0f}"),
-        ("Productos vendidos", f"{productos:,}"),
-    ]
+    if lang == "en":
+        kpis = [
+            ("Revenue", f"${ingresos:,.0f}"),
+            ("Orders", f"{ordenes:,}"),
+            ("Units sold", f"{unidades:,}"),
+            ("Avg. order value", f"${ticket:,.0f}"),
+            ("Products sold", f"{productos:,}"),
+        ]
+    else:
+        kpis = [
+            ("Ingresos", f"${ingresos:,.0f}"),
+            ("Órdenes", f"{ordenes:,}"),
+            ("Unidades vendidas", f"{unidades:,}"),
+            ("Ticket promedio", f"${ticket:,.0f}"),
+            ("Productos vendidos", f"{productos:,}"),
+        ]
 
     charts: list[dict] = []
 
@@ -409,22 +461,40 @@ def _company_dashboard_context(df, dark: bool = False) -> dict:
             pass
 
     cols = set(d.columns)
-    if {"dia", "line_total"} <= cols:
-        add("Ingresos en el tiempo", lambda: cg.line_chart(d, "dia", "line_total"))
-    if {"producto", "line_total"} <= cols:
-        add("Top productos por ingresos", lambda: cg.grouped_bar(d, "producto", "line_total"))
-    if {"categoria", "line_total"} <= cols:
-        add("Ingresos por categoría", lambda: cg.grouped_bar(d, "categoria", "line_total"))
-    if {"estado_orden", "line_total"} <= cols:
-        add("Ventas por estado de la orden", lambda: cg.funnel(d, "estado_orden", "line_total"))
-    if "tipo_orden" in cols:
-        add("Proporción por tipo de orden", lambda: cg.pie_chart(d, "tipo_orden"))
-    if {"categoria", "producto", "line_total"} <= cols:
-        add("Composición categoría → producto", lambda: cg.treemap(d, ["categoria", "producto"], "line_total"))
-    if {"producto", "qty"} <= cols:
-        add("Unidades vendidas por producto", lambda: cg.grouped_bar(d, "producto", "qty"))
+    if lang == "en":
+        if {"dia", "line_total"} <= cols:
+            add("Revenue over time", lambda: cg.line_chart(d, "dia", "line_total"))
+        if {"producto", "line_total"} <= cols:
+            add("Top products by revenue", lambda: cg.grouped_bar(d, "producto", "line_total"))
+        if {"categoria", "line_total"} <= cols:
+            add("Revenue by category", lambda: cg.grouped_bar(d, "categoria", "line_total"))
+        if {"estado_orden", "line_total"} <= cols:
+            add("Sales by order status", lambda: cg.funnel(d, "estado_orden", "line_total"))
+        if "tipo_orden" in cols:
+            add("Mix by order type", lambda: cg.pie_chart(d, "tipo_orden"))
+        if {"categoria", "producto", "line_total"} <= cols:
+            add("Category → product composition", lambda: cg.treemap(d, ["categoria", "producto"], "line_total"))
+        if {"producto", "qty"} <= cols:
+            add("Units sold by product", lambda: cg.grouped_bar(d, "producto", "qty"))
+    else:
+        if {"dia", "line_total"} <= cols:
+            add("Ingresos en el tiempo", lambda: cg.line_chart(d, "dia", "line_total"))
+        if {"producto", "line_total"} <= cols:
+            add("Top productos por ingresos", lambda: cg.grouped_bar(d, "producto", "line_total"))
+        if {"categoria", "line_total"} <= cols:
+            add("Ingresos por categoría", lambda: cg.grouped_bar(d, "categoria", "line_total"))
+        if {"estado_orden", "line_total"} <= cols:
+            add("Ventas por estado de la orden", lambda: cg.funnel(d, "estado_orden", "line_total"))
+        if "tipo_orden" in cols:
+            add("Proporción por tipo de orden", lambda: cg.pie_chart(d, "tipo_orden"))
+        if {"categoria", "producto", "line_total"} <= cols:
+            add("Composición categoría → producto", lambda: cg.treemap(d, ["categoria", "producto"], "line_total"))
+        if {"producto", "qty"} <= cols:
+            add("Unidades vendidas por producto", lambda: cg.grouped_bar(d, "producto", "qty"))
 
-    proj_charts, proj_tables = _auto_projections(d, dark, metric="line_total", item="producto")
+    proj_charts, proj_tables = _auto_projections(
+        d, dark, metric="line_total", item="producto", lang=lang,
+    )
     charts.extend(proj_charts)
 
     preview = df.head(100)
@@ -432,9 +502,10 @@ def _company_dashboard_context(df, dark: bool = False) -> dict:
         "kpis": kpis,
         "charts": charts,
         "proj_tables": proj_tables,
-        "preview_html": L.pretty_columns(preview).to_html(classes="tf-table", index=False, border=0),
+        "preview_html": L.pretty_columns(preview, lang=lang).to_html(classes="tf-table", index=False, border=0),
         "n_preview": min(100, len(df)),
         "n_total": len(df),
+        "ui_lang": lang,
     }
 
 
@@ -637,10 +708,12 @@ def db_disconnect(request):
 def chat(request):
     # Non-staff sellers: always bind chat to their company sales (never reuse
     # a stale multi-source cache left by /admin/ tooling).
-    if not STANDALONE and not _is_staff_user(request.user):
-        df, company = _load_seller_company_df(request)
+    seller_ui = not STANDALONE and not _is_staff_user(request.user)
+    ui_lang = "en" if seller_ui else "es"
+    if seller_ui:
+        df, company, load_meta = _load_seller_company_df(request)
         if df is not None and not df.empty and company:
-            ds.store_df(request, df, {"company": True, "origen": company["name"]})
+            ds.store_df(request, df, {"company": True, "origen": company["name"], **load_meta})
         else:
             df = None
     else:
@@ -649,12 +722,13 @@ def chat(request):
             # Resiliencia multi-worker: si la caché de sesión no tiene el df (otro
             # worker Gunicorn con LocMem sin Redis), recargar las ventas de la empresa
             # del vendedor desde el ORM en vez de pedirle que "cargue datos".
-            df, company = _load_seller_company_df(request)
+            df, company, load_meta = _load_seller_company_df(request)
             if df is not None and not df.empty and company:
-                ds.store_df(request, df, {"company": True, "origen": company["name"]})
+                ds.store_df(request, df, {"company": True, "origen": company["name"], **load_meta})
     if df is None:
-        return JsonResponse({"text": "Primero carga datos para analizar.",
-                             "fig": None, "table": None})
+        msg = ("Load sales data first." if ui_lang == "en"
+               else "Primero carga datos para analizar.")
+        return JsonResponse({"text": msg, "fig": None, "table": None})
     try:
         body = json.loads(request.body or "{}")
     except Exception:
@@ -662,11 +736,14 @@ def chat(request):
     message = (body.get("message") or "").strip()
     history = body.get("history") or []
     if not message:
-        return JsonResponse({"text": "Escribe una pregunta o petición.",
-                             "fig": None, "table": None})
+        msg = ("Type a question or request." if ui_lang == "en"
+               else "Escribe una pregunta o petición.")
+        return JsonResponse({"text": msg, "fig": None, "table": None})
 
     try:
-        text, fig, table = ai_analyzer.chat(df, history, message, api_key=_api_key())
+        text, fig, table = ai_analyzer.chat(
+            df, history, message, api_key=_api_key(), lang=ui_lang,
+        )
     except Exception as e:
         return JsonResponse({"text": f"⚠ Error: {e}", "fig": None, "table": None})
 
@@ -675,7 +752,9 @@ def chat(request):
     fig_json = pio.to_json(fig) if fig is not None else None
     table_html = None
     if table is not None and not table.empty:
-        table_html = L.pretty_columns(table.head(200)).to_html(classes="tf-table", index=False, border=0)
+        table_html = L.pretty_columns(table.head(200), lang=ui_lang).to_html(
+            classes="tf-table", index=False, border=0,
+        )
     return JsonResponse({"text": text, "fig": fig_json, "table": table_html})
 
 
@@ -683,12 +762,12 @@ def chat(request):
 @_login
 def export(request, fmt):
     if not STANDALONE and not _is_staff_user(request.user):
-        df, company = _load_seller_company_df(request)
+        df, company, load_meta = _load_seller_company_df(request)
         if df is None or df.empty:
-            messages.error(request, "No hay datos para exportar.")
+            messages.error(request, "No data to export.")
             return redirect("analytics:seller_dashboard")
         if company:
-            ds.store_df(request, df, {"company": True, "origen": company["name"]})
+            ds.store_df(request, df, {"company": True, "origen": company["name"], **load_meta})
         redirect_name = "analytics:seller_dashboard"
     else:
         df, _meta = ds.get_df(request)
@@ -697,7 +776,8 @@ def export(request, fmt):
             messages.error(request, "No hay datos para exportar.")
             return redirect(redirect_name)
 
-    df = L.pretty_columns(df)   # nombres legibles también en el archivo descargado
+    export_lang = "en" if (not STANDALONE and not _is_staff_user(request.user)) else "es"
+    df = L.pretty_columns(df, lang=export_lang)
 
     if fmt == "csv":
         resp = HttpResponse(exporter.to_csv(df), content_type="text/csv")
