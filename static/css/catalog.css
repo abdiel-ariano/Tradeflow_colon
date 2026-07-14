@@ -476,6 +476,12 @@ body.cat-catalog-page .tf-main {
   align-items: flex-start;
 }
 
+/* Ali catalog uses its own 2-col grid (rail + main) in catalog-filters-ali.css */
+.catalog-container.cat-ali-layout {
+  display: grid;
+  gap: var(--cat-ali-gap, 12px);
+}
+
 @media (min-width: 1024px) {
   .catalog-container { padding: 24px; }
 }
