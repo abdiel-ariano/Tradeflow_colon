@@ -12,12 +12,14 @@ body.cat-catalog-page {
   --cat-ali-gap: 12px;
   --cat-ali-rail-height: auto;
   max-width: 1480px;
-  display: grid;
+  /* Beat catalog.css .catalog-container { display:flex } */
+  display: grid !important;
+  flex-direction: unset;
   grid-template-columns: var(--cat-ali-rail-width) minmax(0, 1fr);
+  grid-template-rows: auto;
   gap: var(--cat-ali-gap);
   align-items: start;
-  padding-left: 16px;
-  padding-right: 16px;
+  padding: 16px;
 }
 
 /* Left rail sits level with filters (not below them) */
@@ -48,6 +50,7 @@ body.cat-catalog-page {
 
 .cat-ali-results-host {
   min-width: 0;
+  overflow-x: clip;
   container-type: inline-size;
   container-name: cat-results;
 }
@@ -55,9 +58,9 @@ body.cat-catalog-page {
 .cat-ali-category-rail {
   width: 100%;
   flex-shrink: 0;
-  z-index: 30;
+  z-index: 2;
   height: auto;
-  max-height: min(70vh, 420px);
+  max-height: min(65vh, 380px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -307,28 +310,17 @@ body.cat-catalog-page {
   display: none;
 }
 
-/* Fila 4 y 5: mismo ancho — 100cqw siempre = columna de resultados (no el breakout) */
+/* All product rows stay in the results column — never slide under the category rail */
 @media (min-width: 1024px) {
   @container cat-results (min-width: 1px) {
     body.cat-catalog-page .cat-product-grids .cat-product-grid-top.product-grid,
     body.cat-catalog-page .cat-product-grids .cat-product-grid-main.product-grid {
       gap: var(--cat-ali-gap);
       --cat-card-w: calc((100cqw - (3 * var(--cat-ali-gap))) / 4);
-    }
-
-    body.cat-catalog-page .cat-product-grids .cat-product-grid-top.product-grid {
       grid-template-columns: repeat(4, var(--cat-card-w));
       width: 100%;
       max-width: 100%;
-    }
-
-    /* Fila 5: debajo del rail; tracks iguales a fila 4 (no más anchos) */
-    body.cat-catalog-page .cat-product-grids .cat-product-grid-main.product-grid {
-      grid-template-columns: repeat(5, var(--cat-card-w));
-      width: calc(100cqw + var(--cat-ali-rail-width) + var(--cat-ali-gap));
-      max-width: calc(100cqw + var(--cat-ali-rail-width) + var(--cat-ali-gap));
-      margin-left: calc(-1 * (var(--cat-ali-rail-width) + var(--cat-ali-gap)));
-      justify-content: start;
+      margin-left: 0;
     }
   }
 }
