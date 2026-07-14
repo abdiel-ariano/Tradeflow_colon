@@ -124,3 +124,136 @@ class TestAnalyticsTableEngine(TestCase):
         text, fig, table = ai_analyzer.chat(df, [], 'tabla top productos por line_total', api_key='')
         self.assertIsNotNone(table)
         self.assertFalse(table.empty)
+
+
+@override_settings(AXES_ENABLED=False, REQUIRE_EMAIL_VERIFICATION=False, LLM_OFFLINE='1')
+class TestSellerForecastAndGrowth(TestCase):
+    """End-to-end checks for projections / growth / rising+falling products.
+
+    Uses enough dated order history that the DataFlow forecasting engine
+    (linear forecast + item trends) can run — a single order is not enough.
+    """
+
+    def setUp(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        ensure_default_plans()
+        self.company = Company.objects.create(name='Forecast Co', ruc='FC-1', is_verified=True)
+        self.seller = User.objects.create_user(
+            username='fc_seller', email='fc@seller.pa', password='TestPass123!',
+        )
+        UserProfile.objects.create(user=self.seller, role='seller', email_verificado=True)
+        self.company.owner = self.seller
+        self.company.save(update_fields=['owner'])
+        start_seller_trial(self.company)
+
+        self.buyer = User.objects.create_user(
+            username='fc_buyer', email='fc@buyer.pa', password='TestPass123!',
+        )
+        UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
+
+        cat = Category.objects.create(name='Forecast Cat')
+        self.rising = Product.objects.create(
+            company=self.company, category=cat, name='RisingWidget', sku='RW-1',
+            unit_price=10, is_active=True,
+        )
+        self.falling = Product.objects.create(
+            company=self.company, category=cat, name='FallingGadget', sku='FG-1',
+            unit_price=20, is_active=True,
+        )
+
+        # 8 months of history so auto_freq lands on months (span > 210 days)
+        base = timezone.now() - timedelta(days=240)
+        for i in range(8):
+            when = base + timedelta(days=30 * i)
+            order = Order.objects.create(
+                buyer=self.buyer, status='paid', total=0, subtotal=0,
+                seller_confirmation_status='accepted', confirming_company=self.company,
+            )
+            Order.objects.filter(pk=order.pk).update(created_at=when)
+            # Rising product: growing qty
+            OrderItem.objects.create(
+                order=order, product=self.rising, qty=2 + i,
+                unit_price_snapshot=10,
+            )
+            # Falling product: shrinking qty
+            OrderItem.objects.create(
+                order=order, product=self.falling, qty=max(1, 12 - i),
+                unit_price_snapshot=20,
+            )
+
+    def test_horizon_english_tokens(self):
+        from analytics.engine.forecasting import parse_horizon
+
+        self.assertEqual(parse_horizon('next 6 months'), ('M', 6))
+        self.assertEqual(parse_horizon('growth next quarter'), ('M', 3))
+        self.assertEqual(parse_horizon('next 2 weeks'), ('W', 2))
+        self.assertEqual(parse_horizon('proximos 3 meses'), ('M', 3))
+
+    def test_linear_forecast_and_item_trends_engine(self):
+        from analytics import data_source as ds
+        from analytics.engine import data_loader, forecasting as F
+
+        df = data_loader.clean(ds.load_company_sales_df(self.company.id))
+        date_col = F.find_date_column(df)
+        self.assertEqual(date_col, 'fecha')
+        freq = F.auto_freq(df, date_col)
+        ts = F.build_series(df, date_col, 'line_total', freq=freq)
+        self.assertIsNotNone(ts)
+        result = F.linear_forecast(ts, F.default_horizon(freq))
+        self.assertIsNotNone(result)
+        self.assertIn('proj_growth_pct', result)
+        self.assertIn('cagr', result)
+        self.assertIn('forecast', result)
+        self.assertGreaterEqual(len(result['forecast']), 1)
+
+        trends = F.item_trends(df, 'producto', date_col, 'line_total', freq=freq)
+        self.assertIsNotNone(trends)
+        self.assertFalse(trends.empty)
+        names = set(trends['producto'])
+        self.assertIn('RisingWidget', names)
+        self.assertIn('FallingGadget', names)
+
+    def test_seller_dashboard_shows_forecast_section(self):
+        self.client.login(username='fc_seller', password='TestPass123!')
+        r = self.client.get(reverse('analytics:seller_dashboard'))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Forecast')
+        # Should NOT show the thin-history empty state once we have months of data
+        self.assertNotContains(r, 'Forecasts need a date column')
+        # Rising / falling projection cards appear when change % is large enough
+        body = r.content.decode()
+        self.assertTrue(
+            'Rising products' in body or 'Falling products' in body or 'Forecast ·' in body,
+            msg='Expected at least one forecast chart/table in the HTML',
+        )
+
+    def test_chat_forecast_and_declining_products(self):
+        self.client.login(username='fc_seller', password='TestPass123!')
+        self.assertEqual(self.client.get(reverse('analytics:seller_dashboard')).status_code, 200)
+
+        r = self.client.post(
+            reverse('analytics:chat'),
+            data=json.dumps({'message': 'forecast sales next quarter', 'history': []}),
+            content_type='application/json',
+        )
+        self.assertEqual(r.status_code, 200)
+        payload = r.json()
+        self.assertTrue(payload.get('fig'), msg=f'Expected forecast chart, got {payload.get("text")}')
+        text = (payload.get('text') or '').lower()
+        self.assertTrue(
+            'forecast' in text or 'growth' in text or 'cagr' in text,
+            msg=f'Expected growth/forecast prose, got: {payload.get("text")}',
+        )
+
+        r2 = self.client.post(
+            reverse('analytics:chat'),
+            data=json.dumps({'message': 'which products are declining?', 'history': []}),
+            content_type='application/json',
+        )
+        self.assertEqual(r2.status_code, 200)
+        p2 = r2.json()
+        self.assertTrue(p2.get('fig') or p2.get('text'))
+        blob = ((p2.get('text') or '') + (p2.get('table') or '')).lower()
+        self.assertIn('fallinggadget', blob)

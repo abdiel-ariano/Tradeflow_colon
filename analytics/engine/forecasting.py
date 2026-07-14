@@ -70,27 +70,40 @@ def default_horizon(freq: str) -> int:
 
 
 def parse_horizon(low_text: str) -> tuple[str | None, int | None]:
-    """'próximos 6 meses' → ('M', 6). Devuelve (None, None) si no lo especifica.
+    """'próximos 6 meses' / 'next 6 months' → ('M', 6).
+    Devuelve (None, None) si no lo especifica.
     (low_text ya viene normalizado: sin acentos, minúsculas.)"""
-    m = re.search(r"(\d+)\s*(dias?|semanas?|mes(?:es)?|trimestres?|anios?|anos?|years?)", low_text)
+    m = re.search(
+        r"(\d+)\s*(days?|dias?|weeks?|semanas?|months?|mes(?:es)?|"
+        r"quarters?|trimestres?|years?|anios?|anos?)",
+        low_text,
+    )
     if m:
         n = int(m.group(1))
         unit = m.group(2)
-        freq = ("D" if unit.startswith("dia") else
-                "W" if unit.startswith("semana") else
-                "Q" if unit.startswith("trimestre") else
-                "Y" if unit.startswith(("ani", "ano", "year")) else "M")
+        if unit.startswith(("day", "dia")):
+            freq = "D"
+        elif unit.startswith(("week", "semana")):
+            freq = "W"
+        elif unit.startswith(("quarter", "trimestre")):
+            freq = "Q"
+        elif unit.startswith(("year", "ani", "ano")):
+            freq = "Y"
+        else:
+            freq = "M"
         return freq, max(1, min(n, 60))
-    # Horizontes con nombre, sin número ("el próximo trimestre", "este año"):
+    # Horizontes con nombre, sin número ("el próximo trimestre", "next quarter"):
     # se proyectan en meses para que la línea tenga varios puntos.
-    if re.search(r"\btrimestre\b", low_text):
+    if re.search(r"\b(trimestre|quarter)\b", low_text):
         return "M", 3
-    if re.search(r"\bsemestre\b", low_text):
+    if re.search(r"\b(semestre|half.?year)\b", low_text):
         return "M", 6
     if re.search(r"\b(anual|ano|anio|year)\b", low_text):
         return "M", 12
-    if re.search(r"\bsemanas?\b", low_text):
+    if re.search(r"\b(semanas?|weeks?)\b", low_text):
         return "W", 8
+    if re.search(r"\b(meses?|months?)\b", low_text):
+        return "M", 6
     return None, None
 
 
