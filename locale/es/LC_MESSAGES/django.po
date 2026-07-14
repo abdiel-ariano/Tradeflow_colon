@@ -3977,3 +3977,24 @@ msgstr "Abre Especificaciones para SKU, stock y precios, o visita el catálogo d
 #, python-format
 msgid "%(name)s is listed by %(company)s for wholesale sourcing through TradeFlow Colón."
 msgstr "%(name)s está listado por %(company)s para compra mayorista en TradeFlow Colón."
+
+msgid "Wholesale listing from a Colón Free Zone supplier"
+msgstr "Listado mayorista de un proveedor de la Zona Libre de Colón"
+
+msgid "Create a free buyer account to unlock wholesale pricing and request quotations."
+msgstr "Crea una cuenta de comprador gratuita para ver precios mayoristas y solicitar cotizaciones."
+
+msgid "Key product facts"
+msgstr "Datos clave del producto"
+
+msgid "Stock"
+msgstr "Stock"
+
+msgid "Review specifications for SKU, stock, and pricing, or open the supplier catalog to compare related inventory."
+msgstr "Revisa especificaciones para SKU, stock y precios, o abre el catálogo del proveedor para comparar inventario relacionado."
+
+msgid "View supplier catalog"
+msgstr "Ver catálogo del proveedor"
+
+msgid "From"
+msgstr "Desde"
