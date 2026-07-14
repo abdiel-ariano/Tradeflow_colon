@@ -1287,3 +1287,35 @@ body.sp-dash .sp-content {
     transition: none;
   }
 }
+
+/* Dash surfaces — align premium cards with navy/orange shell */
+body.sp-dash .sp-card {
+  background: var(--tf-white, #FFFFFF);
+  border: 1px solid var(--tf-border, #D1D5DB);
+}
+body.sp-dash .sp-card-head {
+  border-bottom: 1px solid rgba(15, 42, 68, 0.08);
+}
+body.sp-dash .sp-card-head h2 {
+  color: var(--tf-navy, #0F2A44);
+  font-weight: 700;
+}
+body.sp-dash .sp-card-head a {
+  color: var(--tf-primary, #0057A8);
+  font-weight: 600;
+}
+body.sp-dash .sp-card-head a:hover {
+  color: var(--tf-orange, #F26522);
+}
+body.sp-dash .sp-analytics-row {
+  gap: 16px;
+}
+body.sp-dash .sp-status {
+  border-radius: 999px;
+  font-weight: 600;
+}
+body.sp-dash .sp-table thead th {
+  background: var(--tf-surface, #F2F3F5);
+  color: var(--tf-navy-mid, #1B3B63);
+  font-weight: 700;
+}
