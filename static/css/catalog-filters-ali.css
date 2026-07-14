@@ -191,6 +191,19 @@ body.cat-catalog-page {
   font-size: 12px;
 }
 
+
+/* Compact results bar under refine filters (ali layout) */
+.catalog-container.cat-ali-layout .results-toolbar {
+  margin-bottom: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(15, 42, 68, 0.04);
+}
+
+.catalog-container.cat-ali-layout .results-count strong {
+  font-size: 16px;
+}
+
 .cat-filters-form--toolbar {
   margin-bottom: 0;
 }
