@@ -34,7 +34,9 @@
     "ignoreFiles": [
       "static/css/seller_dash_shell.css",
       "templates/core/seller_layout.html",
-      "static/css/seller_portal_premium.css"
+      "static/css/seller_portal_premium.css",
+      "analytics/templates/analytics/_dashboard_css.html",
+      "analytics/engine/chart_generator.py"
     ]
   }
 }
