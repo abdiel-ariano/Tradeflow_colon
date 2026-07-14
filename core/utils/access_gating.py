@@ -110,11 +110,15 @@ def latest_application_for_email(email: str) -> UserApplication | None:
     )
 
 
-def application_gate_status(email: str) -> str | None:
+def application_gate_status(email: str, *, role: str | None = None) -> str | None:
     """
     None = acceso OK respecto a solicitud.
     Otros: pending, under_review, rejected, required.
+
+    Sellers quedan fuera del gate de aprobación manual (trial self-serve).
     """
+    if role == 'seller':
+        return None
     if not getattr(settings, 'REQUIRE_APPROVED_APPLICATION', False):
         return None
 
@@ -173,6 +177,45 @@ def is_browse_path(path: str) -> bool:
     return any(p == pref.rstrip('/') or p.startswith(pref) for pref in BROWSE_PATH_PREFIXES)
 
 
+def seller_company_pending(user) -> bool:
+    """
+    True si el vendedor autenticado aún no puede operar el portal.
+
+    Casos:
+    - Sin ``Company.owner`` → debe completar el wizard.
+    - Con empresa pero **sin** ``CompanySubscription`` (p. ej. fallo a mitad
+      del POST / migrate incompleto) → debe reintentar el wizard o arrancar trial.
+    """
+    if not user or not user.is_authenticated or user_is_platform_exempt(user):
+        return False
+    try:
+        profile = user.profile
+    except UserProfile.DoesNotExist:
+        return False
+    if profile.role != 'seller':
+        return False
+    if email_verification_required(user):
+        return False
+    from core.enterprise_models import CompanySubscription
+    from core.models import Company
+
+    company = Company.objects.filter(owner=user).first()
+    if not company:
+        return True
+    try:
+        company.subscription
+    except CompanySubscription.DoesNotExist:
+        return True
+    return False
+
+
+def seller_onboarding_redirect_name(user) -> str | None:
+    """Ruta del wizard empresa si el seller verificado no tiene Company.owner."""
+    if seller_company_pending(user):
+        return 'seller_onboarding_company'
+    return None
+
+
 def buyer_onboarding_pending(user) -> bool:
     """True si el comprador debe ver el wizard de personalización (cuentas nuevas)."""
     if not user or not user.is_authenticated or user_is_platform_exempt(user):
@@ -209,6 +252,9 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     if scope == 'browse':
         if user_needs_role_completion(user):
             return 'oauth_complete_signup'
+        seller_route = seller_onboarding_redirect_name(user)
+        if seller_route:
+            return seller_route
         buyer_route = buyer_onboarding_redirect_name(user)
         if buyer_route:
             return buyer_route
@@ -217,6 +263,9 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     try:
         profile = user.profile
         if user.is_active and profile.email_verificado and profile.role:
+            seller_route = seller_onboarding_redirect_name(user)
+            if seller_route:
+                return seller_route
             buyer_route = buyer_onboarding_redirect_name(user)
             if buyer_route:
                 return buyer_route
@@ -235,7 +284,11 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     if email_verification_required(user):
         return 'verificar_codigo'
 
-    gate = application_gate_status(user.email or '')
+    try:
+        profile_role = user.profile.role
+    except UserProfile.DoesNotExist:
+        profile_role = None
+    gate = application_gate_status(user.email or '', role=profile_role)
     if gate == 'required':
         return 'onboarding_solicitud_requerida'
     if gate in ('pending', 'under_review'):

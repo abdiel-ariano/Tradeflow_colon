@@ -1,0 +1,271 @@
+/*
+ * TradeFlow Colón — /solicitud-acceso/
+ * Compact app-surface form (matches seller portal / auth density).
+ * DESIGN.md: navy, orange, surface #F2F3F5, Montserrat, radii 8/12/16.
+ */
+
+body:has(.sa-page) #tf-assistant {
+  display: none !important;
+}
+
+main.tf-main > .sa-page {
+  min-height: auto;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: block;
+  box-sizing: border-box;
+  background: var(--tf-surface, #F2F3F5);
+}
+
+.sa-page {
+  --sa-navy: var(--tf-navy, #0F2A44);
+  --sa-orange: var(--tf-orange, #F26522);
+  --sa-surface: var(--tf-surface, #F2F3F5);
+  --sa-border: var(--tf-border, #D1D5DB);
+  --sa-muted: var(--tf-muted, #6B7A88);
+  --sa-white: var(--tf-white, #FFFFFF);
+  --sa-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+  color: var(--tf-gray-900, #111318);
+  background: var(--sa-surface);
+  padding: 28px 20px 48px;
+}
+
+.sa-shell {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.sa-intro {
+  margin: 0 0 14px;
+}
+
+.sa-badge {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--sa-border);
+  background: var(--sa-white);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sa-navy);
+}
+
+.sa-intro h1 {
+  margin: 0 0 8px;
+  font-family: var(--tf-font-body, 'Montserrat', sans-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--sa-navy);
+  text-wrap: balance;
+}
+
+.sa-lead {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--sa-muted);
+}
+
+.sa-chips {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sa-chips li {
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: var(--sa-white);
+  border: 1px solid var(--sa-border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sa-navy);
+  line-height: 1.3;
+}
+
+.sa-panel {
+  background: var(--sa-white);
+  border: 1px solid var(--sa-border);
+  border-radius: 16px;
+  padding: 22px 24px 20px;
+  box-shadow: 0 8px 24px rgba(15, 42, 68, 0.06);
+}
+
+.sa-panel--center {
+  text-align: center;
+}
+
+.sa-confirm-title {
+  margin: 0 0 10px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--sa-navy);
+}
+
+.sa-confirm-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  width: auto;
+  min-width: 200px;
+}
+
+.sa-plan-line {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(15, 42, 68, 0.06);
+  border: 1px solid var(--sa-border);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sa-navy);
+}
+
+.sa-panel__sub {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sa-muted);
+}
+
+.sa-form {
+  display: grid;
+  gap: 12px;
+}
+
+.sa-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 560px) {
+  .sa-page { padding: 20px 16px 40px; }
+  .sa-row { grid-template-columns: 1fr; }
+  .sa-panel { padding: 18px 16px 16px; }
+}
+
+.sa-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sa-navy);
+  margin-bottom: 5px;
+}
+
+.sa-field label .req {
+  color: var(--sa-orange);
+}
+
+.sa-field input,
+.sa-field select,
+.sa-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--sa-border);
+  border-radius: 8px;
+  background: var(--sa-surface);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--sa-navy);
+  transition: border-color 0.15s var(--sa-ease), box-shadow 0.15s var(--sa-ease), background 0.15s var(--sa-ease);
+}
+
+.sa-field textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.sa-field input:focus,
+.sa-field select:focus,
+.sa-field textarea:focus {
+  outline: none;
+  background: var(--sa-white);
+  border-color: var(--sa-navy);
+  box-shadow: 0 0 0 3px rgba(15, 42, 68, 0.12);
+}
+
+.sa-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--sa-muted);
+  line-height: 1.4;
+}
+
+.sa-submit {
+  appearance: none;
+  width: 100%;
+  margin-top: 4px;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
+  background: var(--sa-orange);
+  color: var(--sa-white);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s var(--sa-ease);
+}
+
+.sa-submit:hover {
+  background: var(--tf-orange-light, #FF7A3D);
+}
+
+.sa-submit:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.28);
+}
+
+.sa-trust {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--sa-muted);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.sa-footer {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--sa-border);
+  text-align: center;
+  font-size: 13px;
+  color: var(--sa-muted);
+}
+
+.sa-footer a {
+  color: var(--tf-primary, #0057A8);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sa-footer a:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sa-field input,
+  .sa-field select,
+  .sa-field textarea,
+  .sa-submit {
+    transition: none;
+  }
+}

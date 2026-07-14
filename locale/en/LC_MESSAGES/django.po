@@ -4374,3 +4374,147 @@ msgstr "Confirm carrier"
 
 #~ msgid "English"
 #~ msgstr "English"
+
+#: auth pages (login/recover/signup)
+msgid "Sign in — TradeFlow Colón"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Email verification disabled for local testing."
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Sign in to your account"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Email"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "you@example.com"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Password"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Forgot your password?"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Remember me on this device"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Didn't receive the verification email?"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Resend verification email"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "New to TradeFlow Colón?"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Create an account"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Privacy and terms"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Recover access — TradeFlow Colón"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Recover access"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "We will send a secure link to your email."
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "you@company.com"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Send link"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Back to sign in"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Create account — TradeFlow Colón"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Start buying on TradeFlow"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Join for free in under 2 minutes."
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Register your company on TradeFlow"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "First name"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Letters and spaces only (min. 2 characters)."
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Last name"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Phone"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Username"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Letters, numbers, dots and underscores. Must start with a letter (3–30 characters)."
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Confirm password"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "By selecting <strong>Create account</strong>, you accept our"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Terms and privacy"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "We will email you to verify your account."
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Already have an account?"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Or sign in with"
+msgstr ""
+
+#: auth pages (login/recover/signup)
+msgid "Sign in with social account"
+msgstr ""

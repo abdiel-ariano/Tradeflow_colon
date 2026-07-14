@@ -22,10 +22,12 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
 from . import views
+from . import views_password_reset
 from . import views_seller_pages
 from . import views_social
 from . import views_onboarding as onboarding
 from . import views_buyer_onboarding as buyer_onboarding
+from . import views_seller_onboarding as seller_onboarding
 from . import views_transportistas as vt
 from . import views_api_enterprise as vapi
 
@@ -48,13 +50,7 @@ urlpatterns = [
     path('login/',   views.login_view,  name='login'),
     path(
         'recuperar-clave/',
-        auth_views.PasswordResetView.as_view(
-            template_name='registration/password_reset_form.html',
-            email_template_name='registration/password_reset_email.html',
-            html_email_template_name='registration/password_reset_email_html.html',
-            subject_template_name='registration/password_reset_subject.txt',
-            success_url='/recuperar-clave/enviado/',
-        ),
+        views_password_reset.TradeFlowPasswordResetView.as_view(),
         name='password_reset',
     ),
     path(
@@ -66,10 +62,7 @@ urlpatterns = [
     ),
     path(
         'recuperar-clave/confirmar/<uidb64>/<token>/',
-        auth_views.PasswordResetConfirmView.as_view(
-            template_name='registration/password_reset_confirm.html',
-            success_url='/recuperar-clave/completo/',
-        ),
+        views_password_reset.TradeFlowPasswordResetConfirmView.as_view(),
         name='password_reset_confirm',
     ),
     path(
@@ -124,6 +117,9 @@ urlpatterns = [
     path('onboarding/comprador/busqueda/', buyer_onboarding.buyer_onboarding_step3, name='buyer_onboarding_step3'),
     path('onboarding/comprador/finalizar/', buyer_onboarding.buyer_onboarding_finish, name='buyer_onboarding_finish'),
     path('onboarding/comprador/omitir/', buyer_onboarding.buyer_onboarding_skip, name='buyer_onboarding_skip'),
+    # Wizard vendedor — empresa + trial Digitalízate (obligatorio)
+    path('onboarding/vendedor/', seller_onboarding.seller_onboarding_company, name='seller_onboarding_company'),
+    path('onboarding/vendedor/guardar/', seller_onboarding.seller_onboarding_company_post, name='seller_onboarding_company_post'),
     path(
         'solicitud-acceso/revisar/<str:token>/<str:accion>/',
         views.revisar_solicitud,
@@ -206,6 +202,9 @@ urlpatterns = [
     ),
     path('mi-tienda/plan/pago/pendiente/', views.seller_plan_checkout_resume, name='seller_plan_checkout_resume'),
     path('mi-tienda/plan/upgrade/', views.seller_upgrade_plan, name='seller_upgrade_plan'),
+    path('mi-tienda/plan/activar/', views.seller_trial_activation, name='seller_trial_activation'),
+    path('mi-tienda/plan/no-continuar/', views.seller_decline_continue, name='seller_decline_continue'),
+    path('mi-tienda/cuenta-inactiva/', views.seller_account_inactive, name='seller_account_inactive'),
     path('mi-tienda/insights/', views.seller_predictive_insights, name='seller_predictive_insights'),
     path('mi-tienda/balances/', views_seller_pages.seller_balances, name='seller_balances'),
     path('mi-tienda/clientes/', views_seller_pages.seller_customers, name='seller_customers'),

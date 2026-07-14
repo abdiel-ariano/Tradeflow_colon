@@ -827,3 +827,89 @@ def enviar_promociones_empresas(user: User) -> bool:
     except Exception as exc:
         log.exception('enviar_promociones_empresas falló: %s', exc)
         return False
+
+
+def enviar_trial_finalizado(company) -> bool:
+    """
+    Notifica al owner que el trial venció y debe activar un plan (gracia 7 días).
+
+    Args:
+        company: Empresa con suscripción en ``past_due`` recién finalizada.
+
+    Returns:
+        bool: True si el correo se encoló/envió correctamente.
+    """
+    owner = company.owner
+    if not owner or not owner.email:
+        return False
+    try:
+        sub = company.subscription
+        recommended = sub.recommended_plan.name if sub.recommended_plan else sub.plan.name
+    except Exception:
+        recommended = 'Digitalízate'
+
+    activation_url = _public_base_url() + reverse('seller_trial_activation')
+    subject = 'Tu prueba TradeFlow terminó — activa tu plan'
+    inner = (
+        f'<p>Hola { _h(owner.first_name or owner.username) },</p>'
+        f'<p>Tu periodo de prueba gratuita en TradeFlow Colón ha finalizado.</p>'
+        f'<p>Según tu volumen de ventas, recomendamos el plan <strong>{_h(recommended)}</strong>.</p>'
+        f'<p>Tienes 7 días para activar un plan igual o superior antes de que tu tienda '
+        f'deje de aparecer en el marketplace.</p>'
+        f'<p><a href="{_h(activation_url)}" style="color:#F26522;font-weight:600;">Activar mi plan</a></p>'
+    )
+    html_message = _render_email_shell('Trial finalizado', inner)
+    plain = strip_tags(html_message)
+    try:
+        return send_mail(
+            subject=subject,
+            message=plain,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'TradeFlow <no-reply@tradeflow.pa>'),
+            recipient_list=[owner.email],
+            html_message=html_message,
+            fail_silently=True,
+            email_type='seller_trial_ended',
+        )
+    except Exception as exc:
+        log.exception('enviar_trial_finalizado falló company_id=%s: %s', company.pk, exc)
+        return False
+
+
+def enviar_grace_recordatorio(company, days_left: int) -> bool:
+    """
+    Recordatorio durante gracia post-trial (típicamente días 4 y 1 restantes).
+
+    Args:
+        company: Empresa en ``past_due``.
+        days_left: Días enteros antes de baja media automática.
+
+    Returns:
+        bool: True si se envió el correo.
+    """
+    owner = company.owner
+    if not owner or not owner.email:
+        return False
+
+    activation_url = _public_base_url() + reverse('seller_trial_activation')
+    subject = f'Quedan {days_left} día(s) para activar tu plan TradeFlow'
+    inner = (
+        f'<p>Hola { _h(owner.first_name or owner.username) },</p>'
+        f'<p>Te quedan <strong>{days_left}</strong> día(s) para activar tu plan y mantener '
+        f'tu tienda visible en el catálogo y mapa de la ZLC.</p>'
+        f'<p><a href="{_h(activation_url)}" style="color:#F26522;font-weight:600;">Activar ahora</a></p>'
+    )
+    html_message = _render_email_shell('Recordatorio de activación', inner)
+    plain = strip_tags(html_message)
+    try:
+        return send_mail(
+            subject=subject,
+            message=plain,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'TradeFlow <no-reply@tradeflow.pa>'),
+            recipient_list=[owner.email],
+            html_message=html_message,
+            fail_silently=True,
+            email_type='seller_grace_reminder',
+        )
+    except Exception as exc:
+        log.exception('enviar_grace_recordatorio falló company_id=%s: %s', company.pk, exc)
+        return False

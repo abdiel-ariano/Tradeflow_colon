@@ -19,7 +19,7 @@ from core.utils.saas_billing import (
     VolumeLimitExceeded,
     assert_within_volume_limit,
     ensure_default_plans,
-    get_or_create_subscription,
+    ensure_demo_subscription,
 )
 from core.utils.saas_billing import compute_monthly_volume
 
@@ -57,7 +57,7 @@ class TestSaasVolumeLimits(TestCase):
         Inventory.objects.create(product=self.product, stock_qty=100, reserved_qty=0)
 
     def _set_plan(self, slug: str):
-        sub = get_or_create_subscription(self.company)
+        sub = ensure_demo_subscription(self.company)
         sub.plan = SaasPlan.objects.get(slug=slug)
         sub.save(update_fields=['plan'])
 

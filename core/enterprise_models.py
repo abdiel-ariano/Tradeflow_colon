@@ -51,7 +51,15 @@ class SaasPlan(models.Model):
 
 
 class CompanySubscription(models.Model):
-    """Active subscription for a seller company."""
+    """
+    Suscripción SaaS de una empresa vendedora.
+
+    Ciclo de vida (ver ``core/utils/seller_lifecycle.py``):
+    - ``trialing``: 30 días gratis en Digitalízate tras wizard de empresa.
+    - ``active``: plan pagado (upgrade durante trial o activación post-gracia).
+    - ``past_due``: trial vencido; 7 días de gracia para activar plan ≥ recomendado.
+    - ``cancelled``: baja media; portal bloqueado y productos fuera del marketplace.
+    """
 
     STATUS_CHOICES = [
         ('trialing', 'Trial'),
@@ -75,6 +83,29 @@ class CompanySubscription(models.Model):
     current_period_end = models.DateTimeField()
     auto_renew = models.BooleanField(default=True)
     upgraded_at = models.DateTimeField(null=True, blank=True)
+    # Snapshot al día 30: volumen USD facturable durante el trial.
+    trial_volume_usd = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text='USD vendidos durante el trial; fijado al finalizar el periodo.',
+    )
+    # Plan mínimo permitido en checkout post-trial (no downgrade).
+    recommended_plan = models.ForeignKey(
+        SaasPlan,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recommended_for_subscriptions',
+        help_text='Plan mínimo tras el trial según volumen; bloquea planes inferiores.',
+    )
+    # Fin de la ventana de gracia (past_due); tras esta fecha → baja media.
+    grace_ends_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Último día para activar plan antes de cancelación automática.',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -146,17 +177,25 @@ class SubscriptionUpgradeLog(models.Model):
 
 
 class CompanyPlanCheckout(models.Model):
-    """SaaS subscription checkout (simulated payment or future provider)."""
+    """
+    Sesión de pago SaaS (sin Stripe): mock demo o transferencia bancaria.
+
+    Flujo bank (producción):
+    1. Seller elige plan → checkout ``pending`` + ``provider=bank``.
+    2. Envía referencia/comprobante → permanece ``pending`` hasta revisión.
+    3. Admin aprueba → ``complete_plan_checkout`` → suscripción ``active``.
+    """
 
     STATUS_CHOICES = [
         ('pending', 'Payment pending'),
         ('paid', 'Paid'),
         ('cancelled', 'Cancelled'),
         ('expired', 'Expired'),
+        ('rejected', 'Rejected'),
     ]
     PROVIDER_CHOICES = [
         ('mock', 'Card (demo)'),
-        ('stripe', 'Stripe'),
+        ('stripe', 'Stripe (disabled)'),
         ('bank', 'Bank transfer'),
     ]
 
@@ -181,8 +220,30 @@ class CompanyPlanCheckout(models.Model):
     currency = models.CharField(max_length=3, default='USD')
     billing_label = models.CharField(max_length=40, default='Monthly')
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pending')
-    provider = models.CharField(max_length=12, choices=PROVIDER_CHOICES, default='mock')
+    provider = models.CharField(max_length=12, choices=PROVIDER_CHOICES, default='bank')
     txn_ref = models.CharField(max_length=120, blank=True)
+    # Referencia que el seller indica al transferir (número de operación bancaria).
+    transfer_reference = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text='Referencia / número de operación bancaria indicado por el seller.',
+    )
+    seller_notes = models.CharField(max_length=255, blank=True)
+    proof_file = models.FileField(
+        upload_to='plan_receipts/',
+        blank=True,
+        null=True,
+        help_text='Comprobante de transferencia (PDF/imagen).',
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_plan_checkouts',
+    )
+    review_notes = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)

@@ -45,6 +45,9 @@ def platform_health_payload() -> dict:
     db = check_database()
     storage = check_storage()
     email_warnings = validate_email_infrastructure()
+    # Not a secret — needed to confirm password-reset links point at prod, not localhost.
+    public_base = (getattr(settings, 'PUBLIC_BASE_URL', '') or '').strip().rstrip('/')
+    from_email = (getattr(settings, 'DEFAULT_FROM_EMAIL', '') or '').strip()
     return {
         'status': 'ok' if db['ok'] else 'degraded',
         'version': 'tradeflow-colon',
@@ -53,6 +56,8 @@ def platform_health_payload() -> dict:
         'storage': storage,
         'email': {
             'resend_ready': bool((getattr(settings, 'RESEND_API_KEY', '') or '').strip()),
+            'public_base_url': public_base,
+            'default_from_email': from_email,
             'warnings': email_warnings,
         },
         'supabase': {

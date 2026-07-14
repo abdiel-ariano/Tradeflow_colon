@@ -1,11 +1,11 @@
 {% extends "core/base.html" %}
 {% comment %}Template: core/signup_seller.html — review purpose and context vars.{% endcomment %}
-{% load static %}
+{% load static i18n %}
 {% comment %}
 Signup vendedor — mismo diseño visual que /signup/comprador/ (Figma 13:935).
 Solo presentación; contrato del formulario sin cambios.
 {% endcomment %}
-{% block title %}Crear cuenta — TradeFlow Colón{% endblock %}
+{% block title %}{% trans "Create account — TradeFlow Colón" %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 <link rel="stylesheet" href="{% static 'css/signup_buyer.css' %}?v={{ tf_asset_version|default:'1' }}">
@@ -27,7 +27,7 @@ Solo presentación; contrato del formulario sin cambios.
         class="signup-buyer-hero__img"
         src="{% static 'images/signup-figma/signup-seller.jpg' %}"
         alt=""
-        width="581"
+        width="720"
         height="960"
         decoding="async"
         loading="lazy"
@@ -44,8 +44,8 @@ Solo presentación; contrato del formulario sin cambios.
         </div>
 
         <header>
-          <h1 class="signup-buyer-title" id="signup-form-title">Registra tu empresa en TradeFlow</h1>
-          <p class="signup-buyer-subtitle">Únete gratis en menos de 2 minutos.</p>
+          <h1 class="signup-buyer-title" id="signup-form-title">{% trans "Register your company on TradeFlow" %}</h1>
+          <p class="signup-buyer-subtitle">{% trans "Join for free in under 2 minutes." %}</p>
         </header>
 
         <form method="post" action="{% url 'signup_seller' %}" novalidate autocomplete="off" class="signup-buyer-form signup-form">
@@ -68,9 +68,9 @@ Solo presentación; contrato del formulario sin cambios.
                     required
                     aria-describedby="hint-first-name"
                   >
-                  <label class="signup-buyer-float__label" for="id_first_name">Nombre <span class="req" aria-hidden="true">*</span></label>
+                  <label class="signup-buyer-float__label" for="id_first_name">{% trans "First name" %} <span class="req" aria-hidden="true">*</span></label>
                 </div>
-                <p class="auth-field-hint" id="hint-first-name">Solo letras y espacios (mín. 2 caracteres).</p>
+                <p class="auth-field-hint" id="hint-first-name">{% trans "Letters and spaces only (min. 2 characters)." %}</p>
               </div>
 
               <div class="signup-buyer-field tf-field">
@@ -83,7 +83,7 @@ Solo presentación; contrato del formulario sin cambios.
                     placeholder=" "
                     value="{{ form_last_name|default:'' }}"
                   >
-                  <label class="signup-buyer-float__label" for="id_last_name">Apellido</label>
+                  <label class="signup-buyer-float__label" for="id_last_name">{% trans "Last name" %}</label>
                 </div>
               </div>
             </div>
@@ -100,7 +100,7 @@ Solo presentación; contrato del formulario sin cambios.
                   autocomplete="off"
                   required
                 >
-                <label class="signup-buyer-float__label" for="id_email">Correo electrónico <span class="req" aria-hidden="true">*</span></label>
+                <label class="signup-buyer-float__label" for="id_email">{% trans "Email" %} <span class="req" aria-hidden="true">*</span></label>
               </div>
             </div>
 
@@ -114,7 +114,7 @@ Solo presentación; contrato del formulario sin cambios.
                   placeholder=" "
                   value="{{ form_phone|default:'' }}"
                 >
-                <label class="signup-buyer-float__label" for="id_phone">Teléfono</label>
+                <label class="signup-buyer-float__label" for="id_phone">{% trans "Phone" %}</label>
               </div>
             </div>
           </fieldset>
@@ -133,9 +133,9 @@ Solo presentación; contrato del formulario sin cambios.
                   required
                   aria-describedby="hint-username"
                 >
-                <label class="signup-buyer-float__label" for="id_username">Usuario <span class="req" aria-hidden="true">*</span></label>
+                <label class="signup-buyer-float__label" for="id_username">{% trans "Username" %} <span class="req" aria-hidden="true">*</span></label>
               </div>
-              <p class="auth-field-hint" id="hint-username">Letras, números, puntos y guiones bajos. Debe empezar con letra (3–30 caracteres).</p>
+              <p class="auth-field-hint" id="hint-username">{% trans "Letters, numbers, dots and underscores. Must start with a letter (3–30 characters)." %}</p>
             </div>
           </fieldset>
 
@@ -153,7 +153,7 @@ Solo presentación; contrato del formulario sin cambios.
                   autocomplete="new-password"
                   required
                 >
-                <label class="signup-buyer-float__label" for="id_password1">Contraseña <span class="req" aria-hidden="true">*</span></label>
+                <label class="signup-buyer-float__label" for="id_password1">{% trans "Password" %} <span class="req" aria-hidden="true">*</span></label>
                 <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Mostrar contraseña" aria-pressed="false" data-target="id_password1">
                   <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
                 </button>
@@ -176,7 +176,7 @@ Solo presentación; contrato del formulario sin cambios.
                   autocomplete="new-password"
                   required
                 >
-                <label class="signup-buyer-float__label" for="id_password2">Confirmar contraseña <span class="req" aria-hidden="true">*</span></label>
+                <label class="signup-buyer-float__label" for="id_password2">{% trans "Confirm password" %} <span class="req" aria-hidden="true">*</span></label>
                 <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Mostrar contraseña" aria-pressed="false" data-target="id_password2">
                   <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
                 </button>
@@ -185,22 +185,22 @@ Solo presentación; contrato del formulario sin cambios.
           </fieldset>
 
           <p class="signup-buyer-legal-inline">
-            Al seleccionar <strong>Crear cuenta</strong>, aceptas nuestros
-            <a href="{% url 'legal_privacidad' %}">Términos y privacidad</a>.
+            {% blocktrans trimmed %}By selecting <strong>Create account</strong>, you accept our{% endblocktrans %}
+            <a href="{% url 'legal_privacidad' %}">{% trans "Terms and privacy" %}</a>.
           </p>
 
           <button type="submit" class="auth-submit">
             <span class="material-symbols-rounded auth-submit-icon" aria-hidden="true">person_add</span>
-            Crear cuenta
+            {% trans "Create account" %}
           </button>
 
-          <p class="signup-buyer-verify">Te enviaremos un correo para verificar tu cuenta.</p>
+          <p class="signup-buyer-verify">{% trans "We will email you to verify your account." %}</p>
 
           {% include "core/includes/oauth_buttons_signup.html" %}
         </form>
 
         <div class="signup-buyer-footer auth-footer">
-          ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
+          {% trans "Already have an account?" %} <a href="{% url 'login' %}">{% trans "Sign in" %}</a>
         </div>
       </div>
     </div>
@@ -209,7 +209,7 @@ Solo presentación; contrato del formulario sin cambios.
   <footer class="signup-buyer-page-footer" role="contentinfo">
     <span>© TradeFlow Colón</span>
     ·
-    <a href="{% url 'legal_privacidad' %}">Privacidad y condiciones</a>
+    <a href="{% url 'legal_privacidad' %}">{% trans "Privacy and terms" %}</a>
   </footer>
 </div>
 <script nonce="{{ csp_nonce }}">

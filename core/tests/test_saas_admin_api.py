@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from core.enterprise_models import CompanyPlanCommercialRequest, SaasPlan
 from core.models import Company, UserProfile
-from core.utils.saas_billing import ensure_default_plans, get_or_create_subscription
+from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscription
 
 
 class SaasAdminApiTests(TestCase):
@@ -29,7 +29,7 @@ class SaasAdminApiTests(TestCase):
     def test_stats_json_structure(self):
         """Test stats json structure."""
         company = Company.objects.create(name='Empresa Test')
-        get_or_create_subscription(company)
+        ensure_demo_subscription(company)
         r = self.client.get(reverse('api_admin_saas_stats'))
         self.assertEqual(r.status_code, 200)
         data = r.json()
@@ -42,7 +42,7 @@ class SaasAdminApiTests(TestCase):
         """Test approve commercial request."""
         plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
         company = Company.objects.create(name='Enterprise Co')
-        get_or_create_subscription(company)
+        ensure_demo_subscription(company)
         req = CompanyPlanCommercialRequest.objects.create(
             company=company,
             requested_plan=plan,

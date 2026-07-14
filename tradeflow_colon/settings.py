@@ -377,6 +377,38 @@ REQUIRE_EMAIL_VERIFICATION = config(
     cast=bool,
 )
 
+# ── Seller SaaS trial lifecycle ─────────────────────────────────────────────
+# Duración del trial gratuito Digitalízate y gracia post-trial antes de baja media.
+# Ver core/utils/seller_lifecycle.py para la máquina de estados completa.
+SELLER_TRIAL_DAYS = config('SELLER_TRIAL_DAYS', default=30, cast=int)
+SELLER_GRACE_DAYS = config('SELLER_GRACE_DAYS', default=7, cast=int)
+
+# Pagos propios (sin Stripe): mock solo en local/demo.
+# Producción: ALLOW_MOCK_PLAN_PAYMENT=false → solo transferencia bancaria pending.
+ALLOW_MOCK_PLAN_PAYMENT = config(
+    'ALLOW_MOCK_PLAN_PAYMENT',
+    default=DEBUG,
+    cast=bool,
+)
+
+# Datos bancarios mostrados en /mi-tienda/plan/pago/...
+SELLER_BANK_NAME = config('SELLER_BANK_NAME', default='Banco General')
+SELLER_BANK_ACCOUNT_NAME = config('SELLER_BANK_ACCOUNT_NAME', default='TradeFlow Colón S.A.')
+SELLER_BANK_ACCOUNT_NUMBER = config('SELLER_BANK_ACCOUNT_NUMBER', default='')
+SELLER_BANK_ACCOUNT_TYPE = config('SELLER_BANK_ACCOUNT_TYPE', default='Corriente')
+SELLER_BANK_SWIFT = config('SELLER_BANK_SWIFT', default='')
+SELLER_BANK_CURRENCY = config('SELLER_BANK_CURRENCY', default='USD')
+SELLER_BANK_INSTRUCTIONS = config(
+    'SELLER_BANK_INSTRUCTIONS',
+    default=(
+        'Transfiere el monto exacto e indica el ID de checkout en el concepto. '
+        'Un administrador confirmará el pago en 1–2 días hábiles.'
+    ),
+)
+
+# Cron diario (Railway Cron Job): python manage.py process_seller_subscriptions
+# Schedule sugerido: 0 6 * * * (06:00 UTC)
+
 # Solicitud de acceso: en producción exige UserApplication aprobada para rutas operativas.
 REQUIRE_APPROVED_APPLICATION = config(
     'REQUIRE_APPROVED_APPLICATION',

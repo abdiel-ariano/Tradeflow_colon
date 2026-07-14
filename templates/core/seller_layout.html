@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% comment %}Template: core/seller_layout.html — review purpose and context vars.{% endcomment %}
-{% load static %}
+{% load static i18n %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/colors.css' %}">
 <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version }}">
@@ -187,6 +187,15 @@
       </div>
     </header>
     {% endblock %}
+    {% if saas_snapshot and saas_snapshot.trial_days_left %}
+    <div class="sp-trial-banner" style="background:rgba(242,101,34,.08);border-bottom:1px solid var(--tf-border);padding:10px 28px;font-size:13px;color:var(--tf-navy);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <span>
+        <strong>{% trans "Digitalízate trial" %}</strong> —
+        {% blocktrans with days=saas_snapshot.trial_days_left %}{{ days }} day(s) remaining{% endblocktrans %}
+      </span>
+      <a href="{% url 'seller_plan_consumo' %}" style="font-weight:600;color:var(--tf-orange);text-decoration:none;">{% trans "Upgrade plan" %}</a>
+    </div>
+    {% endif %}
     <div class="sp-content">
       <header class="sp-page-head">
         <h1>{% block seller_page_title %}{{ titulo_pagina|default:"" }}{% endblock %}</h1>

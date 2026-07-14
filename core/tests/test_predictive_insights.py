@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from core.enterprise_models import SaasPlan
 from core.models import Company, UserProfile
-from core.utils.saas_billing import ensure_default_plans, get_or_create_subscription
+from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscription
 
 
 @override_settings(
@@ -33,14 +33,14 @@ class TestPredictiveInsightsAccess(TestCase):
 
     def test_non_enterprise_sees_upgrade_page(self):
         """Test non enterprise sees upgrade page."""
-        get_or_create_subscription(self.company)
+        ensure_demo_subscription(self.company)
         resp = self.client.get(reverse('seller_predictive_insights'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Enterprise ecosystem')
 
     def test_enterprise_sees_insights_panel(self):
         """Test enterprise sees insights panel."""
-        sub = get_or_create_subscription(self.company)
+        sub = ensure_demo_subscription(self.company)
         sub.plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
         sub.save(update_fields=['plan'])
         resp = self.client.get(reverse('seller_predictive_insights'))

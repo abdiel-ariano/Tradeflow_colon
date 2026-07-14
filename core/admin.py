@@ -414,9 +414,73 @@ class SubscriptionUpgradeLogAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyPlanCheckout)
 class CompanyPlanCheckoutAdmin(admin.ModelAdmin):
-    list_display = ['company', 'target_plan', 'amount_usd', 'status', 'provider', 'created_at', 'paid_at']
+    """
+    Revisión de pagos propios (transferencia bancaria).
+
+    Acciones: aprobar → activa plan; rechazar → seller debe reenviar.
+    """
+
+    list_display = [
+        'company', 'target_plan', 'amount_usd', 'status', 'provider',
+        'transfer_reference', 'created_at', 'paid_at', 'reviewed_at',
+    ]
     list_filter = ['status', 'provider', 'target_plan']
-    search_fields = ['company__name', 'txn_ref']
+    search_fields = ['company__name', 'txn_ref', 'transfer_reference']
+    readonly_fields = [
+        'company', 'from_plan', 'target_plan', 'amount_usd', 'currency',
+        'billing_label', 'created_at', 'paid_at', 'expires_at',
+        'reviewed_at', 'reviewed_by',
+    ]
+    fields = [
+        'company', 'from_plan', 'target_plan', 'amount_usd', 'currency',
+        'billing_label', 'status', 'provider', 'txn_ref',
+        'transfer_reference', 'seller_notes', 'proof_file',
+        'review_notes', 'reviewed_at', 'reviewed_by',
+        'created_at', 'paid_at', 'expires_at',
+    ]
+    actions = ['approve_selected_transfers', 'reject_selected_transfers']
+
+    @admin.action(description='Approve bank transfer and activate plan')
+    def approve_selected_transfers(self, request, queryset):
+        from core.utils.saas_billing import approve_plan_checkout
+
+        ok = 0
+        for checkout in queryset.filter(status='pending'):
+            try:
+                approve_plan_checkout(
+                    checkout,
+                    reviewed_by=request.user,
+                    review_notes='admin_bulk_approve',
+                )
+                ok += 1
+            except ValueError as exc:
+                self.message_user(
+                    request,
+                    f'Checkout #{checkout.pk}: {exc}',
+                    level='ERROR',
+                )
+        self.message_user(request, f'Approved {ok} checkout(s).')
+
+    @admin.action(description='Reject bank transfer')
+    def reject_selected_transfers(self, request, queryset):
+        from core.utils.saas_billing import reject_plan_checkout
+
+        ok = 0
+        for checkout in queryset.filter(status='pending'):
+            try:
+                reject_plan_checkout(
+                    checkout,
+                    reviewed_by=request.user,
+                    review_notes='admin_bulk_reject',
+                )
+                ok += 1
+            except ValueError as exc:
+                self.message_user(
+                    request,
+                    f'Checkout #{checkout.pk}: {exc}',
+                    level='ERROR',
+                )
+        self.message_user(request, f'Rejected {ok} checkout(s).')
 
 
 @admin.register(CompanyPlanCommercialRequest)

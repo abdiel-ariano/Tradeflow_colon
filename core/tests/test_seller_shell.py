@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
 from core.models import Company, UserProfile
+from core.utils.saas_billing import ensure_default_plans
+from core.utils.seller_lifecycle import start_seller_trial
 
 
 @override_settings(
@@ -12,6 +14,7 @@ from core.models import Company, UserProfile
 class TestSellerShellPages(TestCase):
     def setUp(self):
         """Setup."""
+        ensure_default_plans()
         self.company = Company.objects.create(name='Demo Co', ruc='999', is_verified=True)
         self.seller = User.objects.create_user(
             username='shell_seller',
@@ -21,6 +24,8 @@ class TestSellerShellPages(TestCase):
         UserProfile.objects.create(user=self.seller, role='seller', email_verificado=True)
         self.company.owner = self.seller
         self.company.save(update_fields=['owner'])
+        # Portal exige suscripción trialing/active (gates de seller_required).
+        start_seller_trial(self.company)
 
     def _login(self):
         self.client.login(username='shell_seller', password='TestPass123!')

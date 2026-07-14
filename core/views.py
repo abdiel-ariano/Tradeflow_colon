@@ -349,12 +349,16 @@ def _redirect_by_role(user):
     if user.is_superuser or role == 'admin':
         return reverse('dashboard')
     if role == 'seller':
+        from core.utils.access_gating import seller_onboarding_redirect_name
+        seller_route = seller_onboarding_redirect_name(user)
+        if seller_route:
+            return reverse(seller_route)
         return reverse('portal_seller')
+    from core.utils.access_gating import buyer_onboarding_redirect_name
+    buyer_route = buyer_onboarding_redirect_name(user)
+    if buyer_route:
+        return reverse(buyer_route)
     return reverse('catalogo_publico')
-
-
-# =============================================================================
-# AUTENTICACIÓN
 # =============================================================================
 
 def _login_template_context(**extra):
@@ -556,7 +560,7 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
             'role': role,
             'company_name': '',
             'message': '',
-            'status': 'approved' if role == 'buyer' else 'pending',
+            'status': 'approved',
         }
     )
 
@@ -883,7 +887,8 @@ def home_view(request):
         if request.user.is_superuser or role == 'admin':
             return redirect('dashboard')
         if role == 'seller':
-            return redirect('portal_seller')
+            # Misma resolución que login: wizard si falta empresa/trial.
+            return redirect(_redirect_by_role(request.user))
 
     from django.utils.translation import get_language
     from core.utils.tradeflow_cache import cached_guest_home_context
@@ -1101,11 +1106,16 @@ def _cfz_map_marker_payload(request) -> dict:
     markers do not stack on one point.
     """
     markers = []
-    empresas = Company.objects.annotate(
+    from core.utils.seller_lifecycle import company_marketplace_visible, marketplace_active_company_ids
+
+    visible_ids = marketplace_active_company_ids()
+    empresas = Company.objects.filter(pk__in=visible_ids).annotate(
         n_activos=Count('products', filter=Q(products__is_active=True))
     ).order_by('name')
 
     for company in empresas:
+        if not company_marketplace_visible(company):
+            continue
         lat = float(company.latitud) if company.latitud is not None else _CFZ_DEFAULT_LAT
         lng = float(company.longitud) if company.longitud is not None else _CFZ_DEFAULT_LNG
         if lat == _CFZ_DEFAULT_LAT and lng == _CFZ_DEFAULT_LNG:
@@ -2053,6 +2063,12 @@ def seller_plan_consumo(request):
     if resp:
         return resp
 
+    from core.utils.saas_billing import get_company_subscription
+
+    sub = get_company_subscription(company)
+    if sub and sub.status == 'past_due':
+        return redirect('seller_trial_activation')
+
     from .utils.saas_billing import build_plan_page_context_safe
     from .utils.saas_platform import bootstrap_saas_for_company, get_saas_health
 
@@ -2123,7 +2139,7 @@ def seller_dispatch_order(request, pk):
 
 @seller_required
 def seller_plan_checkout(request, plan_slug: str):
-    """Pantalla de pago antes de activar un plan nuevo."""
+    """Pantalla de pago: upgrade en trial, activación post-trial o upgrade active."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
@@ -2131,20 +2147,33 @@ def seller_plan_checkout(request, plan_slug: str):
     if plan_slug == 'ecosistema_enterprise':
         return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
 
-    from .utils.saas_billing import build_checkout_context, get_or_create_subscription
+    from .utils.saas_billing import (
+        CheckoutMode,
+        build_checkout_context,
+        can_select_plan_for_activation,
+        get_or_create_subscription,
+        resolve_checkout_mode,
+    )
 
-    sub = get_or_create_subscription(company)
-    from .enterprise_models import SaasPlan
+    try:
+        sub = get_or_create_subscription(company)
+    except Exception:
+        messages.error(request, _('No active subscription. Complete company setup first.'))
+        return redirect('seller_onboarding_company')
 
-    target = SaasPlan.objects.filter(slug=plan_slug, is_active=True).first()
-    if not target:
-        messages.error(request, _('Invalid plan.'))
-        return redirect('seller_plan_consumo')
-    if sub.plan.slug == plan_slug:
-        messages.info(request, _('You already have this plan active.'))
-        return redirect('seller_plan_consumo')
-    if target.sort_order <= sub.plan.sort_order:
-        messages.info(request, _('Select a plan higher than your current one.'))
+    mode = resolve_checkout_mode(sub)
+    ok, err = can_select_plan_for_activation(company, plan_slug, mode=mode)
+    if not ok:
+        if err == 'below_recommended_plan':
+            messages.error(request, _('This plan is below your recommended tier based on trial sales.'))
+        elif err == 'upgrade_requires_higher_plan':
+            messages.info(request, _('Select a plan higher than your current one.'))
+        elif err == 'plan_requires_commercial':
+            return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
+        else:
+            messages.error(request, _('Could not start checkout for this plan.'))
+        if mode == CheckoutMode.TRIAL_ACTIVATION:
+            return redirect('seller_trial_activation')
         return redirect('seller_plan_consumo')
 
     try:
@@ -2153,11 +2182,13 @@ def seller_plan_checkout(request, plan_slug: str):
         if 'commercial' in str(exc):
             return redirect(f'{reverse("solicitud_acceso")}?plan=enterprise')
         messages.error(request, _('Could not start checkout.'))
+        if mode == CheckoutMode.TRIAL_ACTIVATION:
+            return redirect('seller_trial_activation')
         return redirect('seller_plan_consumo')
 
     ctx.update({
         'company': company,
-        'titulo_pagina': _('Plan payment'),
+        'titulo_pagina': _('Activate your plan') if ctx.get('is_trial_activation') else _('Plan payment'),
         'nav_activo': 'mi_tienda',
     })
     return render(request, 'core/seller_plan_checkout.html', ctx)
@@ -2181,34 +2212,108 @@ def seller_plan_checkout_resume(request):
 @seller_required
 @require_POST
 def seller_plan_checkout_pay(request, plan_slug: str):
-    """Confirma pago y activa plan en Supabase."""
+    """
+    Confirma método de pago del plan.
+
+    - mock (solo si ALLOW_MOCK_PLAN_PAYMENT): activa al instante.
+    - bank: registra transferencia y deja checkout ``pending`` hasta admin.
+    """
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
 
-    from .utils.saas_billing import complete_plan_checkout, get_pending_checkout
+    from .utils.saas_billing import (
+        allow_mock_plan_payment,
+        complete_plan_checkout,
+        get_pending_checkout,
+        submit_bank_transfer_payment,
+    )
 
     checkout = get_pending_checkout(company)
     if not checkout or checkout.target_plan.slug != plan_slug:
         messages.error(request, _('Invalid payment session. Choose your plan again.'))
         return redirect('seller_plan_consumo')
 
-    provider = request.POST.get('payment_method', 'mock').strip() or 'mock'
-    card_name = request.POST.get('card_name', '').strip()
-    txn_ref = ''
-    if provider == 'mock' and card_name:
-        txn_ref = f'MOCK-{checkout.pk}'
+    provider = (request.POST.get('payment_method') or '').strip() or 'bank'
+    if provider == 'stripe':
+        messages.error(request, _('Card payments via Stripe are not available. Use bank transfer.'))
+        return redirect('seller_plan_checkout', plan_slug=plan_slug)
 
+    if provider == 'mock':
+        if not allow_mock_plan_payment():
+            messages.error(request, _('Demo card payment is disabled. Use bank transfer.'))
+            return redirect('seller_plan_checkout', plan_slug=plan_slug)
+        card_name = request.POST.get('card_name', '').strip()
+        txn_ref = f'MOCK-{checkout.pk}' if card_name else f'MOCK-{checkout.pk}-demo'
+        try:
+            complete_plan_checkout(checkout, provider='mock', txn_ref=txn_ref)
+        except ValueError as exc:
+            if 'below_recommended' in str(exc):
+                messages.error(request, _('Payment rejected: plan below your recommended tier.'))
+            else:
+                messages.error(request, _('Payment could not be completed.'))
+            return redirect('seller_plan_checkout', plan_slug=plan_slug)
+        except Exception:
+            import logging
+            logging.getLogger('tradeflow.saas').exception(
+                'seller_plan_checkout_mock_unhandled company_id=%s plan=%s',
+                getattr(company, 'pk', None),
+                plan_slug,
+            )
+            messages.error(request, _('Payment could not be completed.'))
+            return redirect('seller_plan_checkout', plan_slug=plan_slug)
+        messages.success(
+            request,
+            _('Payment confirmed. Plan %(name)s is active on your account.')
+            % {'name': checkout.target_plan.name},
+        )
+        return redirect('portal_seller')
+
+    # bank transfer — stays pending
+    transfer_ref = request.POST.get('transfer_reference', '').strip()
+    seller_notes = request.POST.get('seller_notes', '').strip()
+    proof = request.FILES.get('proof_file')
     try:
-        complete_plan_checkout(checkout, provider=provider, txn_ref=txn_ref)
-    except ValueError:
-        messages.error(request, _('Payment could not be completed.'))
+        submit_bank_transfer_payment(
+            checkout,
+            transfer_reference=transfer_ref,
+            seller_notes=seller_notes,
+            proof_file=proof,
+        )
+    except ValueError as exc:
+        code = str(exc)
+        if code == 'transfer_reference_required':
+            messages.error(request, _('Enter your bank transfer reference (min. 4 characters).'))
+        elif code == 'proof_too_large':
+            messages.error(request, _('Proof file is too large (max 5 MB). Submit without it or use a smaller file.'))
+        elif code == 'bank_transfer_save_failed':
+            messages.error(
+                request,
+                _('Could not save transfer details. Confirm the reference and try again '
+                  '(you can skip the proof file).'),
+            )
+        elif 'below_recommended' in code:
+            messages.error(request, _('Payment rejected: plan below your recommended tier.'))
+        else:
+            messages.error(request, _('Could not submit bank transfer details.'))
+        return redirect('seller_plan_checkout', plan_slug=plan_slug)
+    except Exception:
+        import logging
+        logging.getLogger('tradeflow.saas').exception(
+            'seller_plan_checkout_pay_unhandled company_id=%s plan=%s',
+            getattr(company, 'pk', None),
+            plan_slug,
+        )
+        messages.error(
+            request,
+            _('Could not submit bank transfer details. Please try again or contact support.'),
+        )
         return redirect('seller_plan_checkout', plan_slug=plan_slug)
 
     messages.success(
         request,
-        _('Payment confirmed. Plan %(name)s is active on your account.')
-        % {'name': checkout.target_plan.name},
+        _('Transfer details received. Your plan activates after admin confirmation '
+          '(usually 1–2 business days).'),
     )
     return redirect('seller_plan_consumo')
 
@@ -2224,6 +2329,57 @@ def seller_upgrade_plan(request):
     if not slug:
         return redirect('seller_plan_consumo')
     return redirect('seller_plan_checkout', plan_slug=slug)
+
+
+@seller_required
+def seller_trial_activation(request):
+    """
+    Pantalla obligatoria post-trial (past_due): volumen, plan recomendado y CTAs de pago.
+
+    Solo accesible en gracia; otras rutas del portal redirigen aquí vía seller_required.
+    """
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+
+    from core.utils.saas_billing import get_company_subscription
+    from core.utils.seller_lifecycle import build_trial_activation_context
+
+    sub = get_company_subscription(company)
+    if not sub or sub.status != 'past_due':
+        return redirect('seller_plan_consumo')
+
+    ctx = build_trial_activation_context(company)
+    ctx.update({
+        'titulo_pagina': _('Activate your TradeFlow plan'),
+        'nav_activo': 'seller_plan',
+    })
+    return render(request, 'core/seller_trial_activation.html', ctx)
+
+
+@seller_required
+@require_POST
+def seller_decline_continue(request):
+    """Baja voluntaria durante gracia — aplica churn medio inmediato."""
+    company, resp = _seller_company_or_response(request, 'mi_tienda')
+    if resp:
+        return resp
+
+    from core.utils.seller_lifecycle import apply_medium_churn
+
+    apply_medium_churn(company)
+    messages.info(request, _('Your seller account has been deactivated. Your data is preserved.'))
+    return redirect('seller_account_inactive')
+
+
+@seller_required
+def seller_account_inactive(request):
+    """Cuenta seller cancelada (baja media); sin acceso operativo al portal."""
+    company = _get_seller_company(request.user)
+    return render(request, 'core/seller_account_inactive.html', {
+        'company': company,
+        'titulo_pagina': _('Account inactive'),
+    })
 
 
 @seller_required
@@ -2292,19 +2448,25 @@ def _get_seller_company(user):
 
 def _seller_company_or_response(request, nav_activo='mi_tienda'):
     """
-    Obtiene la empresa del vendedor o devuelve una respuesta HttpResponse
-    con la plantilla de aviso si no hay empresa vinculada.
+    Obtiene la empresa del vendedor o devuelve plantilla de aviso.
+
+    Nota: el wizard de empresa y gates de suscripción los maneja ``seller_required``;
+    esta función es defensa adicional para vistas que la invocan directamente.
     """
     company = _get_seller_company(request.user)
     if company:
         return company, None
+    from core.utils.access_gating import seller_company_pending
+
+    if seller_company_pending(request.user):
+        return None, redirect('seller_onboarding_company')
     messages.warning(
         request,
-        'Your account is not linked to a company yet. Please contact the administrator to assign your company.',
+        'Tu cuenta no está vinculada a una empresa. Completa el registro.',
     )
     ctx = {
         'titulo_pagina': 'My store',
-        'nav_activo':    nav_activo,
+        'nav_activo': nav_activo,
     }
     return None, render(request, 'core/seller_sin_empresa.html', ctx)
 
@@ -4642,21 +4804,60 @@ def seller_responder_cotizacion(request, pk):
 
 def solicitud_acceso(request):
     """Formulario público de solicitud de acceso a TradeFlow."""
-    plan_intent = request.GET.get('plan', '').strip().lower()
-    if plan_intent == 'enterprise':
+    plan_intent = (request.GET.get('plan') or request.POST.get('requested_plan_slug') or '').strip().lower()
+    if plan_intent in ('enterprise', 'ecosistema_enterprise'):
         plan_intent = 'ecosistema_enterprise'
+    else:
+        plan_intent = plan_intent[:40]
+
+    form_defaults = {
+        'form_full_name': '',
+        'form_email': '',
+        'form_phone': '',
+        'form_company_name': '',
+        'form_ruc': '',
+        'form_message': '',
+        'form_role': 'seller' if plan_intent == 'ecosistema_enterprise' else 'buyer',
+    }
+    if request.user.is_authenticated:
+        full = (request.user.get_full_name() or '').strip()
+        form_defaults['form_full_name'] = full or request.user.username
+        form_defaults['form_email'] = (request.user.email or '').strip()
 
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
-        email = request.POST.get('email', '').strip().lower()
+        # Compat: plantillas antiguas usaban corporate_email
+        email = (
+            request.POST.get('email', '')
+            or request.POST.get('corporate_email', '')
+        ).strip().lower()
         phone = request.POST.get('phone', '').strip()
-        role = request.POST.get('role', 'buyer')
+        role = (request.POST.get('role') or 'buyer').strip()
         company_name = request.POST.get('company_name', '').strip()
         message = request.POST.get('message', '').strip()
-        req_plan = request.POST.get('requested_plan_slug', '').strip() or plan_intent
+        ruc = request.POST.get('ruc', '').strip()
+        req_plan = (request.POST.get('requested_plan_slug', '') or plan_intent).strip()
+        if req_plan in ('enterprise', 'ecosistema_enterprise'):
+            req_plan = 'ecosistema_enterprise'
+
+        form_defaults.update({
+            'form_full_name': full_name,
+            'form_email': email,
+            'form_phone': phone,
+            'form_company_name': company_name,
+            'form_ruc': ruc,
+            'form_message': message,
+            'form_role': role if role in ('buyer', 'seller') else form_defaults['form_role'],
+        })
 
         if not full_name or not email:
             messages.error(request, _('Name and email are required.'))
+        elif not company_name:
+            messages.error(request, _('Company name is required.'))
+        elif not phone:
+            messages.error(request, _('Phone is required.'))
+        elif not ruc:
+            messages.error(request, _('RUC is required.'))
         elif role not in ('buyer', 'seller'):
             messages.error(request, _('Invalid role.'))
         else:
@@ -4674,9 +4875,18 @@ def solicitud_acceso(request):
                 )
                 if request.user.is_authenticated:
                     return redirect('onboarding_espera_aprobacion')
-                return redirect('solicitud_acceso')
+                return redirect(
+                    f'{reverse("solicitud_acceso")}?plan=enterprise'
+                    if req_plan == 'ecosistema_enterprise'
+                    else 'solicitud_acceso'
+                )
+
+            if ruc:
+                ruc_line = f'RUC: {ruc}'
+                message = f'{ruc_line}\n{message}'.strip() if message else ruc_line
 
             app = UserApplication.objects.create(
+                user=request.user if request.user.is_authenticated else None,
                 full_name=full_name,
                 email=email,
                 phone=phone,
@@ -4689,13 +4899,17 @@ def solicitud_acceso(request):
             if req_plan == 'ecosistema_enterprise' and company_owner:
                 from .utils.saas_billing import create_enterprise_commercial_request
 
-                create_enterprise_commercial_request(
-                    company_owner,
-                    contact_name=full_name,
-                    contact_email=email,
-                    message=message,
-                    user_application=app,
-                )
+                try:
+                    create_enterprise_commercial_request(
+                        company_owner,
+                        contact_name=full_name,
+                        contact_email=email,
+                        message=message,
+                        user_application=app,
+                    )
+                except Exception:
+                    log.exception('enterprise_commercial_request_failed app_id=%s', app.pk)
+
             try:
                 enviar_solicitud_recibida(app)
                 enviar_solicitud_a_revisores(app)
@@ -4718,10 +4932,12 @@ def solicitud_acceso(request):
             return redirect('onboarding_solicitud_enviada')
 
     return render(request, 'core/solicitud_acceso.html', {
-        'titulo_pagina': _('Access application'),
+        'titulo_pagina': _('Enterprise application') if plan_intent == 'ecosistema_enterprise' else _('Access application'),
         'plan_intent': plan_intent,
         'is_enterprise_intent': plan_intent == 'ecosistema_enterprise',
+        **form_defaults,
     })
+
 
 
 def revisar_solicitud(request, token, accion):

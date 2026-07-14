@@ -1,0 +1,56 @@
+{% extends "core/base.html" %}
+{% comment %}
+Template: seller_onboarding_company.html
+Wizard vendedor — vincula empresa y activa trial Digitalízate (30 días).
+{% endcomment %}
+{% load static %}
+{% block title %}Configura tu empresa — TradeFlow{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/colors.css' %}">
+<style nonce="{{ csp_nonce }}">
+  .so-wrap { max-width: 640px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .so-card { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: 12px; padding: 2rem; box-shadow: 0 8px 24px rgba(15,42,68,.08); }
+  .so-card h1 { margin: 0 0 .5rem; font-size: 1.5rem; color: var(--tf-navy); }
+  .so-lead { color: var(--tf-gray-700); margin: 0 0 1.5rem; line-height: 1.6; font-size: .9375rem; }
+  .so-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(242,101,34,.1); color: var(--tf-orange); font-size: 13px; font-weight: 600; margin-bottom: 1.25rem; }
+  .so-field { margin-bottom: 1rem; }
+  .so-field label { display: block; font-size: 13px; font-weight: 600; color: var(--tf-navy); margin-bottom: 6px; }
+  .so-field input, .so-field textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--tf-border); border-radius: 8px; font-size: 14px; }
+  .so-field textarea { min-height: 80px; resize: vertical; }
+  .so-actions { margin-top: 1.5rem; display: flex; gap: 12px; flex-wrap: wrap; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="so-wrap">
+  <div class="so-card">
+    <div class="so-badge"><span class="material-symbols-rounded" style="font-size:18px;">verified</span> 30 días gratis — Digitalízate</div>
+    <h1>{{ titulo_pagina }}</h1>
+    <p class="so-lead">
+      Para operar en TradeFlow necesitamos los datos de tu empresa en la Zona Libre de Colón.
+      Al guardar, activamos tu prueba gratuita de 30 días sin cobro.
+    </p>
+    <form method="post" action="{% url 'seller_onboarding_company_post' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="so-field">
+        <label for="name">Nombre comercial *</label>
+        <input type="text" id="name" name="name" required maxlength="200" value="{{ form_name }}" placeholder="Ej. TechZone Colón S.A.">
+      </div>
+      <div class="so-field">
+        <label for="ruc">RUC / Registro mercantil *</label>
+        <input type="text" id="ruc" name="ruc" required maxlength="50" value="{{ form_ruc }}" placeholder="8-NT-2-123456">
+      </div>
+      <div class="so-field">
+        <label for="address_text">Dirección en la ZLC *</label>
+        <textarea id="address_text" name="address_text" required placeholder="Edificio, local, referencia">{{ form_address }}</textarea>
+      </div>
+      <div class="so-field">
+        <label for="logo">Logo (opcional)</label>
+        <input type="file" id="logo" name="logo" accept="image/*">
+      </div>
+      <div class="so-actions">
+        <button type="submit" class="tf-btn-primary">Guardar y empezar prueba gratis</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
