@@ -1,5 +1,5 @@
-<script src="{% url 'analytics:plotlyjs' %}"></script>
-<script>
+<script nonce="{{ csp_nonce }}" src="{% url 'analytics:plotlyjs' %}"></script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   // ── Tabs de fuente de datos ──────────────────────────────────────────
   document.querySelectorAll('.an-tab').forEach(function (tab) {

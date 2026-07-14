@@ -60,6 +60,9 @@ class TestSellerAnalyticsAccess(TestCase):
         self.assertNotContains(r, 'data-panel="file"')
         self.assertNotContains(r, 'data-panel="db"')
         self.assertNotContains(r, 'name="model"')
+        # CSP production: inline assets must carry the request nonce
+        self.assertContains(r, 'nonce="')
+        self.assertContains(r, 'an-chat-input')
 
     def test_buyer_cannot_open_seller_analytics(self):
         self.client.login(username='ai_buyer', password='TestPass123!')
