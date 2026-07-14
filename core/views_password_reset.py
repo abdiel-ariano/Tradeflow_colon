@@ -1,6 +1,8 @@
 """Auth views specific to password recovery (Resend delivery + public domain links)."""
 from __future__ import annotations
 
+import logging
+
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
@@ -11,6 +13,8 @@ from core.forms_password_reset import (
     password_reset_domain_and_https,
     password_reset_extra_context,
 )
+
+log = logging.getLogger('tradeflow.email')
 
 
 class TradeFlowPasswordResetView(auth_views.PasswordResetView):
@@ -51,5 +55,25 @@ class TradeFlowPasswordResetView(auth_views.PasswordResetView):
 
 
 class TradeFlowPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
+    """
+    Magic-link confirm: set a new password, then sign the user in.
+
+    Uses ModelBackend explicitly so AxesStandaloneBackend (first in
+    AUTHENTICATION_BACKENDS) cannot break auth_login after reset.
+    """
+
     template_name = 'registration/password_reset_confirm.html'
     success_url = reverse_lazy('password_reset_complete')
+    post_reset_login = True
+    post_reset_login_backend = 'django.contrib.auth.backends.ModelBackend'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if not context.get('validlink'):
+            # Never log the raw token — only uid / user id for ops diagnostics.
+            log.warning(
+                'password_reset_confirm_rejected reason=invalid_or_expired uidb64=%s user_id=%s',
+                (self.kwargs.get('uidb64') or '')[:32],
+                getattr(getattr(self, 'user', None), 'pk', None),
+            )
+        return context
