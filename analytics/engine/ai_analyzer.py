@@ -173,6 +173,17 @@ SYSTEM_PROMPT = (
     "Si la pregunta no se puede responder con esos datos, dilo brevemente."
 )
 
+SYSTEM_PROMPT_EN = (
+    "You are an expert data analyst. ALWAYS reply in clear, concise English "
+    "(max 4 sentences). Base answers ONLY on the dataset context (schema, "
+    "stats, sample); use concrete numbers when helpful. If the question cannot "
+    "be answered from that data, say so briefly."
+)
+
+
+def _system_prompt(lang: str = "es") -> str:
+    return SYSTEM_PROMPT_EN if lang == "en" else SYSTEM_PROMPT
+
 # ── Palabras clave para detección rápida (sin LLM) ──────────────────────────
 _CHART_WORDS = {
     "gráfica", "grafica", "gráfico", "grafico", "chart", "plot",
@@ -748,7 +759,7 @@ def _fmt(v) -> str:
     return str(v)
 
 
-def _answer_question_offline(df: pd.DataFrame, msg: str) -> str | None:
+def _answer_question_offline(df: pd.DataFrame, msg: str, lang: str = "es") -> str | None:
     """Responde preguntas analíticas comunes con pandas (instantáneo, sin LLM ni
     tokens). Devuelve None si no la puede contestar (entonces se usa el LLM)."""
     low = _normalize(msg)
@@ -759,17 +770,35 @@ def _answer_question_offline(df: pd.DataFrame, msg: str) -> str | None:
     men_cat = [c for c in mentioned if c in cat_all]
     # Texto mencionado, incluida alta cardinalidad ('producto') que cat_all excluye
     men_txt = [c for c in mentioned if c not in num_all]
+    en = lang == "en"
+    agg_lab = (
+        {"mean": "average", "sum": "total", "max": "maximum", "min": "minimum"}
+        if en else
+        {"mean": "promedio", "sum": "total", "max": "máximo", "min": "mínimo"}
+    )
 
     # "cuántos/cuántas" (plural) = CONTEO; "cuánto/cuánta" (singular) = MONTO ($).
-    is_count = bool(re.search(r"\bcuant[ao]s\b", low)) or "cantidad de" in low or "numero de" in low
+    is_count = (
+        bool(re.search(r"\bcuant[ao]s\b", low))
+        or "cantidad de" in low
+        or "numero de" in low
+        or "how many" in low
+        or "number of" in low
+    )
     is_amount = bool(re.search(r"\bcuant[ao]\b", low)) or any(
         w in low for w in ("se perdio", "perdida", "perdido", "perdimos", "se gano",
                            "ganamos", "ganancia", "se vendio", "vendimos", "ingreso",
-                           "factur", "cuanto vale", "monto"))
-    sup_max = any(w in low for w in ("mas ", "mayor", "mejor", "top", "maximo", "alto", "vende mas"))
-    sup_min = any(w in low for w in ("menos", "menor", "peor", "minimo", "bajo"))
-    agg_words = is_amount or any(w in low for w in ("promedio", "media", "total", "suma",
-                                                    "maximo", "minimo", "mean", "average"))
+                           "factur", "cuanto vale", "monto", "how much", "revenue"))
+    sup_max = any(w in low for w in (
+        "mas ", "mayor", "mejor", "top", "maximo", "alto", "vende mas",
+        "most ", "highest", "best ", "sells the most",
+    ))
+    sup_min = any(w in low for w in (
+        "menos", "menor", "peor", "minimo", "bajo", "least", "lowest", "worst",
+    ))
+    agg_words = is_amount or any(w in low for w in (
+        "promedio", "media", "total", "suma", "maximo", "minimo", "mean", "average", "sum",
+    ))
 
     # 0) Filtro ("ventas solo en el oeste", "total donde region = norte"):
     #    se calcula al instante sobre los datos filtrados, sin LLM.
@@ -777,39 +806,45 @@ def _answer_question_offline(df: pd.DataFrame, msg: str) -> str | None:
     if filtros and not (sup_max or sup_min):
         sub = _apply_filters(df, filtros)
         desc = ", ".join(
-            f"{L.pretty(k)} {v['op']} {_fmt(v['val'])}" if isinstance(v, dict)
-            else f"{L.pretty(k)} = {v}"
+            f"{L.pretty(k, lang=lang)} {v['op']} {_fmt(v['val'])}" if isinstance(v, dict)
+            else f"{L.pretty(k, lang=lang)} = {v}"
             for k, v in filtros.items())
         if sub.empty:
-            return f"No hay filas que cumplan {desc}."
-        # Métrica: la nombrada, o la de dinero por defecto si preguntan un MONTO
-        # ("cuánto se perdió con los cancelados" → suma line_total del subconjunto).
+            return (f"No rows match {desc}." if en else f"No hay filas que cumplan {desc}.")
         num = men_num[0] if men_num else None
         if num is None and (is_amount or agg_words):
             num = _primary_metric(num_all) or (num_all[0] if num_all else None)
         if num:
             agg = _detect_agg(low)
             agg = "sum" if agg == "count" else agg
-            etiqueta = {"mean": "promedio", "sum": "total", "max": "máximo", "min": "mínimo"}[agg]
+            etiqueta = agg_lab[agg]
             val = getattr(sub[num], agg)()
+            if en:
+                return (f"The {etiqueta} of {L.pretty(num, lang=lang)} for {desc} is {_fmt(val)} "
+                        f"(on {len(sub):,} of {len(df):,} rows).")
             return (f"El {etiqueta} de {L.pretty(num)} para {desc} es {_fmt(val)} "
                     f"(sobre {len(sub):,} de {len(df):,} filas).")
+        if en:
+            return f"{len(sub):,} rows match {desc} (of {len(df):,})."
         return f"Hay {len(sub):,} filas que cumplen {desc} (de {len(df):,})."
 
     # 1) Conteo de filas
     if is_count and not men_cat and not men_num and any(
-            w in low for w in ("registro", "fila", "dato", "row", "hay en total", "total de")):
+            w in low for w in ("registro", "fila", "dato", "row", "hay en total", "total de",
+                               "rows", "in total")):
+        if en:
+            return f"The dataset has {len(df):,} rows and {df.shape[1]} columns."
         return f"El conjunto tiene {len(df):,} filas y {df.shape[1]} columnas."
 
-    # 2) Valores distintos de una categórica o texto (incl. 'producto', de alta
-    #    cardinalidad, que no está en cat_all)
-    if (is_count or "distint" in low) and men_txt:
+    # 2) Valores distintos
+    if (is_count or "distint" in low or "unique" in low) and men_txt:
         c = men_txt[0]
-        return f"Hay {df[c].nunique(dropna=True):,} valores distintos en «{L.pretty(c)}»."
+        n = df[c].nunique(dropna=True)
+        if en:
+            return f"There are {n:,} distinct values in “{L.pretty(c, lang=lang)}”."
+        return f"Hay {n:,} valores distintos en «{L.pretty(c)}»."
 
-    # 3) Superlativo: ¿cuál <cat> tiene más/menos <num>?  (usa men_txt para incluir
-    #    'producto' de alta cardinalidad; la métrica cae en la de dinero si no se
-    #    nombra: "¿cuál producto vende más?" → total de line_total por producto)
+    # 3) Superlativo
     if (sup_max or sup_min) and men_txt and (men_num or num_all):
         cat = men_txt[0]
         num = men_num[0] if men_num else (_primary_metric(num_all) or num_all[0])
@@ -819,51 +854,83 @@ def _answer_question_offline(df: pd.DataFrame, msg: str) -> str | None:
         try:
             g = df.groupby(cat)[num].agg(agg).sort_values(ascending=ascending)
             if not g.empty:
-                cual = "menor" if ascending else "mayor"
-                etiqueta = {"mean": "promedio", "sum": "total", "max": "máximo", "min": "mínimo"}.get(agg, agg)
-                return (f"«{g.index[0]}» tiene el {cual} {etiqueta} de {L.pretty(num)}: "
-                        f"{_fmt(g.iloc[0])}. (Siguiente: «{g.index[1]}» {_fmt(g.iloc[1])}.)"
-                        if len(g) > 1 else
-                        f"«{g.index[0]}» tiene el {cual} {etiqueta} de {L.pretty(num)}: {_fmt(g.iloc[0])}.")
+                cual = ("lowest" if ascending else "highest") if en else ("menor" if ascending else "mayor")
+                etiqueta = agg_lab.get(agg, agg)
+                lab = L.pretty(num, lang=lang)
+                if len(g) > 1:
+                    if en:
+                        return (f"“{g.index[0]}” has the {cual} {etiqueta} of {lab}: "
+                                f"{_fmt(g.iloc[0])}. (Next: “{g.index[1]}” {_fmt(g.iloc[1])}.)")
+                    return (f"«{g.index[0]}» tiene el {cual} {etiqueta} de {lab}: "
+                            f"{_fmt(g.iloc[0])}. (Siguiente: «{g.index[1]}» {_fmt(g.iloc[1])}.)")
+                if en:
+                    return f"“{g.index[0]}” has the {cual} {etiqueta} of {lab}: {_fmt(g.iloc[0])}."
+                return f"«{g.index[0]}» tiene el {cual} {etiqueta} de {lab}: {_fmt(g.iloc[0])}."
         except Exception:
             return None
 
-    # 4) Agregado de un numérico (promedio/total/máx/mín), opcional por categórica
+    # 4) Agregado de un numérico
     if men_num and (agg_words or is_count):
         num = men_num[0]
         agg = _detect_agg(low)
         agg = "mean" if agg == "count" else agg
-        etiqueta = {"mean": "promedio", "sum": "total", "max": "máximo", "min": "mínimo"}[agg]
+        etiqueta = agg_lab[agg]
         try:
             if men_cat:
                 cat = men_cat[0]
                 g = df.groupby(cat)[num].agg(agg).sort_values(ascending=False).head(5)
                 detalle = "; ".join(f"{i}: {_fmt(v)}" for i, v in g.items())
-                return f"{etiqueta.capitalize()} de {L.pretty(num)} por {L.pretty(cat)} (top 5) — {detalle}."
-            return f"El {etiqueta} de {L.pretty(num)} es {_fmt(getattr(df[num], agg)())}."
+                return (f"{etiqueta.capitalize()} of {L.pretty(num, lang=lang)} by "
+                        f"{L.pretty(cat, lang=lang)} (top 5) — {detalle}."
+                        if en else
+                        f"{etiqueta.capitalize()} de {L.pretty(num)} por {L.pretty(cat)} (top 5) — {detalle}.")
+            val = _fmt(getattr(df[num], agg)())
+            return (f"The {etiqueta} of {L.pretty(num, lang=lang)} is {val}."
+                    if en else
+                    f"El {etiqueta} de {L.pretty(num)} es {val}.")
         except Exception:
             return None
 
-    # 4b) Monto sin numérico nombrado: "cuánto se vendió/perdió" → suma la
-    #     métrica de dinero por defecto, opcionalmente por categoría.
+    # 4b) Monto sin numérico nombrado
     if (is_amount or agg_words) and not men_num and num_all:
         num = _primary_metric(num_all) or num_all[0]
         agg = _detect_agg(low)
         agg = "sum" if agg == "count" else agg
-        etiqueta = {"mean": "promedio", "sum": "total", "max": "máximo", "min": "mínimo"}[agg]
+        etiqueta = agg_lab[agg]
         try:
             if men_cat:
                 cat = men_cat[0]
                 g = df.groupby(cat)[num].agg(agg).sort_values(ascending=False).head(5)
                 detalle = "; ".join(f"{i}: {_fmt(v)}" for i, v in g.items())
-                return f"{etiqueta.capitalize()} de {L.pretty(num)} por {L.pretty(cat)} (top 5) — {detalle}."
-            return f"El {etiqueta} de {L.pretty(num)} es {_fmt(getattr(df[num], agg)())}."
+                return (f"{etiqueta.capitalize()} of {L.pretty(num, lang=lang)} by "
+                        f"{L.pretty(cat, lang=lang)} (top 5) — {detalle}."
+                        if en else
+                        f"{etiqueta.capitalize()} de {L.pretty(num)} por {L.pretty(cat)} (top 5) — {detalle}.")
+            val = _fmt(getattr(df[num], agg)())
+            return (f"The {etiqueta} of {L.pretty(num, lang=lang)} is {val}."
+                    if en else
+                    f"El {etiqueta} de {L.pretty(num)} es {val}.")
         except Exception:
             return None
 
     # 5) Resumen general del dataset
     if any(w in low for w in ("resumen", "resume", "describe", "overview", "de que trata",
-                              "que contiene", "que hay", "que datos")):
+                              "que contiene", "que hay", "que datos", "summary")):
+        if en:
+            parts = [f"{len(df):,} rows × {df.shape[1]} columns"]
+            if num_all:
+                try:
+                    c = df[num_all].std(numeric_only=True).idxmax()
+                    parts.append(f"{len(num_all)} numeric (largest variation in “{L.pretty(c, lang=lang)}”)")
+                except Exception:
+                    parts.append(f"{len(num_all)} numeric")
+            if cat_all:
+                parts.append(
+                    f"{len(cat_all)} categorical (e.g. {', '.join(L.pretty(c, lang=lang) for c in cat_all[:3])})"
+                )
+            nulls = int(df.isnull().sum().sum())
+            parts.append(f"{nulls:,} null values" if nulls else "no nulls")
+            return "The dataset has " + "; ".join(parts) + "."
         parts = [f"{len(df):,} filas × {df.shape[1]} columnas"]
         if num_all:
             try:
@@ -1143,13 +1210,15 @@ def _after_connector(text: str) -> str:
 _FORECAST_WORDS = ("proyec", "pronostic", "forecast", "futuro", "proxim",
                    "estimacion", "estimar", "prevision", "preve", "crecimiento",
                    "crecer", "creciendo", "crecera", "expansion", "escenario",
-                   "que esperar", "cuanto vendere", "cuanto vamos", "a la larga")
+                   "que esperar", "cuanto vendere", "cuanto vamos", "a la larga",
+                   "growth", "next quarter", "project sales", "predict")
 _DECLINE_WORDS = ("bajando", "declive", "cayendo", "caida", "disminuy", "decrecen",
                   "decreciendo", "a la baja", "perdiendo venta", "menos venta",
-                  "bajan", "van mal", "peor tendencia", "en picada")
+                  "bajan", "van mal", "peor tendencia", "en picada",
+                  "declining", "falling", "dropping", "downward")
 _RISE_WORDS = ("subiendo", "en alza", "al alza", "despegando", "ganando terreno",
                "mejor tendencia", "suben", "mas populares cada", "van mejor",
-               "creciente", "mas demanda")
+               "creciente", "mas demanda", "rising", "growing", "upward")
 
 
 def _is_forecast(text: str) -> bool:
@@ -1157,13 +1226,18 @@ def _is_forecast(text: str) -> bool:
     return any(w in low for w in _FORECAST_WORDS + _DECLINE_WORDS + _RISE_WORDS)
 
 
-def _forecast_reply(df: pd.DataFrame, user_message: str, filtros: dict | None = None
+def _forecast_reply(df: pd.DataFrame, user_message: str, filtros: dict | None = None,
+                    lang: str = "es"
                     ) -> tuple[str, object | None, pd.DataFrame | None]:
     """Proyección de una métrica a futuro, o ranking de productos que suben/bajan.
     Devuelve (texto, fig, tabla) — texto None si no aplica."""
     low = _normalize(user_message)
     date_col = forecasting.find_date_column(df)
     if not date_col:
+        if lang == "en":
+            return ("To forecast I need a date column (e.g. order date). With it I "
+                    "estimate future sales, growth, and which products are rising "
+                    "or declining.", None, None)
         return ("Para proyectar a futuro necesito una columna de fecha (p. ej. la "
                 "«fecha» de las órdenes). Con ella estimo ventas futuras, crecimiento "
                 "y qué productos suben o bajan.", None, None)
@@ -1185,26 +1259,40 @@ def _forecast_reply(df: pd.DataFrame, user_message: str, filtros: dict | None = 
     if declining or rising:
         item_col = _primary_dimension(data)
         if not item_col:
-            return ("No identifico una columna de producto/ítem para ver cuáles suben "
-                    "o bajan.", None, None)
+            msg = ("I can’t find a product/item column to rank rises and falls."
+                   if lang == "en" else
+                   "No identifico una columna de producto/ítem para ver cuáles suben "
+                   "o bajan.")
+            return (msg, None, None)
         trends = forecasting.item_trends(data, item_col, date_col, metric, freq=freq)
         if trends is None or trends.empty:
-            return ("No hay suficiente historia por producto (necesito ≥3 períodos con "
-                    "fecha) para separar los que suben de los que bajan.", None, None)
+            msg = ("Not enough per-product history (need ≥3 dated periods) to separate "
+                   "rises from declines."
+                   if lang == "en" else
+                   "No hay suficiente historia por producto (necesito ≥3 períodos con "
+                   "fecha) para separar los que suben de los que bajan.")
+            return (msg, None, None)
         fig = cg.trend_bar(trends, item_col, n=10, declining=declining)
-        txt = forecasting.trends_summary(trends, item_col, rising=rising, label=L.pretty(metric))
+        txt = forecasting.trends_summary(
+            trends, item_col, rising=rising,
+            label=L.pretty(metric, lang=lang), lang=lang,
+        )
         return txt, fig, None
 
     # 2) Proyección general de la métrica (crecimiento / ventas futuras)
     ts = forecasting.build_series(data, date_col, metric, freq=freq, agg="sum")
     result = forecasting.linear_forecast(ts, periods) if ts is not None else None
     if not result:
-        return ("Aún no hay suficientes períodos con fecha para proyectar de forma "
-                "fiable (necesito al menos 3). Prueba con un rango de fechas más amplio.",
-                None, None)
-    label = L.pretty(metric) if metric else "órdenes"
-    fig = cg.forecast_chart(result, title=f"Proyección de {label}", y_title=str(label))
-    txt = forecasting.forecast_summary(result, label, freq, periods, filtros)
+        msg = ("Not enough dated periods for a reliable forecast (need at least 3). "
+               "Try a wider date range."
+               if lang == "en" else
+               "Aún no hay suficientes períodos con fecha para proyectar de forma "
+               "fiable (necesito al menos 3). Prueba con un rango de fechas más amplio.")
+        return (msg, None, None)
+    label = L.pretty(metric, lang=lang) if metric else ("orders" if lang == "en" else "órdenes")
+    ftitle = f"Forecast · {label}" if lang == "en" else f"Proyección de {label}"
+    fig = cg.forecast_chart(result, title=ftitle, y_title=str(label))
+    txt = forecasting.forecast_summary(result, label, freq, periods, filtros, lang=lang)
     return txt, fig, None
 
 
@@ -1213,6 +1301,7 @@ def chat(
     history: list[dict],
     user_message: str,
     api_key: str = "",
+    lang: str = "es",
 ) -> tuple[str, object | None, pd.DataFrame | None]:
     """Returns (text, plotly_fig | None, dataframe | None).
 
@@ -1231,7 +1320,7 @@ def chat(
     # tiene su propio motor y gana antes del ruteo normal de gráfica/tabla, porque
     # "proyecta las ventas" también contiene palabras de gráfica/métrica.
     if _is_forecast(user_message):
-        f_txt, f_fig, f_tab = _forecast_reply(df, user_message)
+        f_txt, f_fig, f_tab = _forecast_reply(df, user_message, lang=lang)
         if f_fig is not None or f_tab is not None or f_txt:
             return f_txt, f_fig, f_tab
 
@@ -1278,7 +1367,7 @@ def chat(
         fig = build_chart_from_spec(df, spec)
         if fig is not None:
             return "", fig, None
-        return _llm_fallback(df, history, user_message, api_key)
+        return _llm_fallback(df, history, user_message, api_key, lang=lang)
 
     if intent == "table":
         spec = _fast_table_spec(spec_text, df)
@@ -1287,15 +1376,15 @@ def chat(
         table = build_table_from_spec(df, spec)
         if table is not None and not table.empty:
             return "", None, table
-        return _llm_fallback(df, history, user_message, api_key)
+        return _llm_fallback(df, history, user_message, api_key, lang=lang)
 
     # Pregunta: primero intenta responder con pandas (instantáneo, sin tokens)
-    offline = _answer_question_offline(df, user_message)
+    offline = _answer_question_offline(df, user_message, lang=lang)
     if offline:
         return offline, None, None
     # Si no, respuesta de texto del LLM (sin function-calling: más confiable en
     # modelos gratuitos, que devuelven vacío cuando se les fuerza una herramienta).
-    return _answer_with_llm(df, history, user_message, api_key), None, None
+    return _answer_with_llm(df, history, user_message, api_key, lang=lang), None, None
 
 
 _NO_KEY_MSG = (
@@ -1303,25 +1392,37 @@ _NO_KEY_MSG = (
     "y tablas al instante, y responder con números: «barras de <col>», «top 10 por "
     "<col>», «promedio de <col> por <col>», «¿cuál <categoría> tiene más <métrica>?»."
 )
+_NO_KEY_MSG_EN = (
+    "The AI model is offline (LLM_OFFLINE). I can still build charts and tables "
+    "instantly, and answer with numbers: “bars of <col>”, “top 10 by <col>”, "
+    "“average of <col> by <col>”, “which <category> has the most <metric>?”."
+)
 
 
 def _answer_with_llm(df: pd.DataFrame, history: list[dict],
-                     user_message: str, api_key: str = "") -> str:
+                     user_message: str, api_key: str = "", lang: str = "es") -> str:
     if not _llm_enabled():
-        return _NO_KEY_MSG
+        return _NO_KEY_MSG_EN if lang == "en" else _NO_KEY_MSG
     context = _build_context(df, max_rows=8)
-    messages = [{"role": "system", "content": f"{SYSTEM_PROMPT}\n\nDATASET:\n{context}"}]
+    messages = [{"role": "system", "content": f"{_system_prompt(lang)}\n\nDATASET:\n{context}"}]
     for m in history[-6:]:
         c = m.get("content") or ""
         if not c:
-            c = ("(gráfica generada)" if m.get("fig_spec")
-                 else "(tabla generada)" if m.get("table") else "")
+            if lang == "en":
+                c = ("(chart generated)" if m.get("fig_spec")
+                     else "(table generated)" if m.get("table") else "")
+            else:
+                c = ("(gráfica generada)" if m.get("fig_spec")
+                     else "(tabla generada)" if m.get("table") else "")
         if c:
             messages.append({"role": m["role"], "content": c})
     messages.append({"role": "user", "content": user_message})
     try:
         return _complete(api_key, messages, max_tokens=350)
     except Exception as e:
+        if lang == "en":
+            return (f"⚠ Couldn’t get a model reply ({str(e)[:80]}). "
+                    "Try again, or ask for a chart/table or a numeric question.")
         return (f"⚠ No pude obtener respuesta del modelo ({str(e)[:80]}). "
                 "Intenta de nuevo, o pídeme una gráfica/tabla o una pregunta con números.")
 
@@ -1331,11 +1432,19 @@ def _llm_fallback(
     history: list[dict],
     user_message: str,
     api_key: str = "",
+    lang: str = "es",
 ) -> tuple[str, object | None, pd.DataFrame | None]:
     """LLM with function-calling. Lets the model pick create_chart /
     create_table / answer_question. Degrades to plain text if the model
     doesn't support tools, and returns a friendly error on failure."""
     if not _llm_enabled():
+        if lang == "en":
+            return (
+                "The AI model is offline (LLM_OFFLINE). I can still build charts "
+                "and tables instantly: try “bars of <column>”, “top 10 by <column>”, "
+                "“pie by <column>”, or “statistics”.",
+                None, None,
+            )
         return (
             "El modelo de IA está desactivado (LLM_OFFLINE). Aun así puedo darte "
             "gráficas y tablas al instante: prueba «barras de <columna>», "
@@ -1344,14 +1453,18 @@ def _llm_fallback(
         )
 
     context  = _build_context(df, max_rows=5)
-    messages = [{"role": "system", "content": f"{SYSTEM_PROMPT}\n\nDATASET:\n{context}"}]
+    messages = [{"role": "system", "content": f"{_system_prompt(lang)}\n\nDATASET:\n{context}"}]
     for msg in history[-6:]:
         content = msg.get("content") or ""
         if not content:  # turnos donde se generó una gráfica/tabla (texto vacío)
             if msg.get("fig_spec"):
-                content = "(Generé una gráfica para la petición anterior.)"
+                content = ("(I generated a chart for the previous request.)"
+                           if lang == "en" else
+                           "(Generé una gráfica para la petición anterior.)")
             elif msg.get("table"):
-                content = "(Generé una tabla para la petición anterior.)"
+                content = ("(I generated a table for the previous request.)"
+                           if lang == "en" else
+                           "(Generé una tabla para la petición anterior.)")
         if content:
             messages.append({"role": msg["role"], "content": content})
     messages.append({"role": "user", "content": user_message})

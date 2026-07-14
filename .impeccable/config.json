@@ -23,7 +23,9 @@
       "templates/core/seleccionar_transportista.html",
       "templates/core/includes/buyer/buyer_navbar.html",
       "templates/core/includes/public_navbar.html",
-      "templates/core/mapa_zlc.html"
+      "templates/core/mapa_zlc.html",
+      "analytics/templates/analytics/_dashboard_css.html",
+      "static/css/seller_portal_premium.css"
     ],
     "ignoreValues": []
   }
