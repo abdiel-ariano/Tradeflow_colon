@@ -218,6 +218,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# Password-reset magic links (PasswordResetTokenGenerator). Default Django is 3 days.
+PASSWORD_RESET_TIMEOUT = 60 * 15  # 15 minutes
+
 # ── Hashing de contraseñas (OWASP A02:2021) ────────────────────────────────
 # Argon2 ganador del Password Hashing Competition (PHC). Resistente a GPU/ASIC.
 # PBKDF2/BCrypt mantenidos para verificar hashes legacy (Django rehashea al login).

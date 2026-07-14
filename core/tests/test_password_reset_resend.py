@@ -1,4 +1,4 @@
-"""Password reset must send mail via Resend (not Django console EMAIL_BACKEND)."""
+"""Password reset: Resend delivery, 15m timeout, autologin after set-password."""
 from unittest.mock import patch
 
 from django.conf import settings
@@ -21,6 +21,7 @@ User = get_user_model()
     DEFAULT_FROM_EMAIL='TradeFlow Colón <no-reply@tradeflowcolon.com>',
     RESEND_API_KEY='re_test_key',
     LANGUAGE_CODE='en',
+    PASSWORD_RESET_TIMEOUT=60 * 15,
 )
 class PasswordResetResendTests(TestCase):
     def setUp(self):
@@ -49,7 +50,9 @@ class PasswordResetResendTests(TestCase):
         self.assertIn('Restablecer', subject)
         self.assertIn('tradeflowcolon.com', text)
         self.assertIn('/recuperar-clave/confirmar/', text)
+        self.assertIn('15 minutes', text)
         self.assertIn('tradeflowcolon.com', html)
+        self.assertIn('/recuperar-clave/confirmar/', html)
         self.assertEqual(kwargs.get('tipo'), 'password_reset')
 
         self.assertEqual(
@@ -93,20 +96,20 @@ class PasswordResetResendTests(TestCase):
             ).exists()
         )
 
-    def test_confirm_token_allows_new_password(self):
-        """Token from Django generator still works end-to-end for set-password."""
+    def test_confirm_sets_password_and_autologin(self):
+        """Valid magic link → set password → session authenticated (no crash)."""
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         token = default_token_generator.make_token(self.user)
         confirm_url = reverse(
             'password_reset_confirm',
             kwargs={'uidb64': uid, 'token': token},
         )
-        # Django redirects to set-password session URL first.
         first = self.client.get(confirm_url)
         self.assertEqual(first.status_code, 302)
         set_url = first.url
         page = self.client.get(set_url)
         self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'New password')
 
         response = self.client.post(
             set_url,
@@ -119,3 +122,73 @@ class PasswordResetResendTests(TestCase):
         self.assertEqual(response.url, reverse('password_reset_complete'))
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('NewSecurePass456!'))
+        self.assertTrue(self.client.session.get('_auth_user_id'))
+        self.assertEqual(
+            str(self.client.session.get('_auth_user_id')),
+            str(self.user.pk),
+        )
+
+        complete = self.client.get(reverse('password_reset_complete'))
+        self.assertEqual(complete.status_code, 200)
+        self.assertContains(complete, 'You are signed in')
+
+    def test_invalid_token_shows_safe_page_not_500(self):
+        """Malformed/expired token must not crash; show request-again UI."""
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        confirm_url = reverse(
+            'password_reset_confirm',
+            kwargs={'uidb64': uid, 'token': 'invalid-token-value'},
+        )
+        response = self.client.get(confirm_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Link expired or invalid')
+        self.assertContains(response, 'Request a new link')
+        self.assertNotContains(response, 'new_password1')
+
+    def test_expired_token_rejected(self):
+        """PASSWORD_RESET_TIMEOUT=15m: an aged token fails check_token / UI."""
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        # Age the token far beyond 15 minutes without storing raw secrets in logs.
+        with patch.object(
+            default_token_generator,
+            '_num_seconds',
+            return_value=default_token_generator._num_seconds(
+                default_token_generator._now()
+            )
+            + (60 * 15)
+            + 5,
+        ):
+            self.assertFalse(default_token_generator.check_token(self.user, token))
+            confirm_url = reverse(
+                'password_reset_confirm',
+                kwargs={'uidb64': uid, 'token': token},
+            )
+            response = self.client.get(confirm_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Link expired or invalid')
+
+    def test_token_cannot_be_reused_after_password_change(self):
+        """After password set, the old magic-link token is invalid (single use)."""
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        confirm_url = reverse(
+            'password_reset_confirm',
+            kwargs={'uidb64': uid, 'token': token},
+        )
+        set_url = self.client.get(confirm_url).url
+        self.client.post(
+            set_url,
+            {
+                'new_password1': 'NewSecurePass456!',
+                'new_password2': 'NewSecurePass456!',
+            },
+        )
+        self.client.logout()
+        # Fresh client attempting old link again.
+        again = self.client.get(confirm_url)
+        self.assertEqual(again.status_code, 200)
+        self.assertContains(again, 'Link expired or invalid')
+
+    def test_password_reset_timeout_is_fifteen_minutes(self):
+        self.assertEqual(settings.PASSWORD_RESET_TIMEOUT, 60 * 15)
