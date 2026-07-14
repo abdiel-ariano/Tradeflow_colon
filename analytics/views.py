@@ -12,13 +12,14 @@ import io
 import json
 import logging
 import os
-from functools import lru_cache
+from functools import lru_cache, wraps
 
 import pandas as pd
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from core.decorators import seller_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
@@ -61,6 +62,30 @@ def config(key: str, default: str = "") -> str:
 def _login(view):
     """login_required salvo en modo standalone."""
     return view if STANDALONE else login_required(view)
+
+
+def _staff_required(view):
+    """Herramientas multi-fuente solo para staff/superuser (o standalone).
+
+    Evita que cualquier usuario autenticado use /mi-tienda/analitica/admin/,
+    load de modelos ORM, o db_connect bajo la URL del portal seller.
+    """
+    if STANDALONE:
+        return view
+
+    @login_required
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_staff or request.user.is_superuser:
+            return view(request, *args, **kwargs)
+        from django.contrib import messages as dj_messages
+        dj_messages.error(request, "Esta herramienta solo está disponible para administradores.")
+        return redirect("analytics:seller_dashboard")
+    return wrapper
+
+
+def _is_staff_user(user) -> bool:
+    return bool(getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
 
 
 def _api_key() -> str:
@@ -117,7 +142,7 @@ def _auto_connect_db(request) -> str | None:
         return f"{type(e).__name__}: {e}"
 
 
-@_login
+@_staff_required
 def dashboard(request):
     db_auto_error = _auto_connect_db(request)
     df, meta = ds.get_df(request)
@@ -165,7 +190,7 @@ def _load_seller_company_df(request):
     return df, company
 
 
-@login_required
+@seller_required
 def seller_dashboard(request):
     """Analítica IA embebida en el portal del vendedor (Mi Tienda).
 
@@ -414,7 +439,7 @@ def _company_dashboard_context(df, dark: bool = False) -> dict:
 
 
 # ── Carga de datos ───────────────────────────────────────────────────────────
-@_login
+@_staff_required
 @require_POST
 def load(request):
     source = request.POST.get("source")
@@ -498,7 +523,7 @@ def load(request):
     return redirect("analytics:dashboard")
 
 
-@_login
+@_staff_required
 @require_POST
 def clear(request):
     ds.clear_df(request)
@@ -507,7 +532,7 @@ def clear(request):
     return redirect("analytics:dashboard")
 
 
-@_login
+@_staff_required
 @require_POST
 def load_sheet(request):
     """Recarga otra hoja del último Excel subido (sin volver a subirlo)."""
@@ -531,7 +556,7 @@ def load_sheet(request):
 
 
 # ── Analytics acotado a una empresa ─────────────────────────────────────────
-@_login
+@_staff_required
 @require_POST
 def load_company(request):
     try:
@@ -572,7 +597,7 @@ def load_company(request):
 
 
 # ── Conexión a base de datos (Supabase/PostgreSQL) ──────────────────────────
-@_login
+@_staff_required
 @require_POST
 def db_connect(request):
     conn_str = db_connector.normalize_conn_str(request.POST.get("conn", ""))
@@ -598,7 +623,7 @@ def db_connect(request):
     return redirect("analytics:dashboard")
 
 
-@_login
+@_staff_required
 @require_POST
 def db_disconnect(request):
     ds.clear_db(request)
@@ -610,14 +635,23 @@ def db_disconnect(request):
 @_login
 @require_POST
 def chat(request):
-    df, _meta = ds.get_df(request)
-    if df is None and not STANDALONE:
-        # Resiliencia multi-worker: si la caché de sesión no tiene el df (otro
-        # worker Gunicorn con LocMem sin Redis), recargar las ventas de la empresa
-        # del vendedor desde el ORM en vez de pedirle que "cargue datos".
+    # Non-staff sellers: always bind chat to their company sales (never reuse
+    # a stale multi-source cache left by /admin/ tooling).
+    if not STANDALONE and not _is_staff_user(request.user):
         df, company = _load_seller_company_df(request)
         if df is not None and not df.empty and company:
             ds.store_df(request, df, {"company": True, "origen": company["name"]})
+        else:
+            df = None
+    else:
+        df, _meta = ds.get_df(request)
+        if df is None and not STANDALONE:
+            # Resiliencia multi-worker: si la caché de sesión no tiene el df (otro
+            # worker Gunicorn con LocMem sin Redis), recargar las ventas de la empresa
+            # del vendedor desde el ORM en vez de pedirle que "cargue datos".
+            df, company = _load_seller_company_df(request)
+            if df is not None and not df.empty and company:
+                ds.store_df(request, df, {"company": True, "origen": company["name"]})
     if df is None:
         return JsonResponse({"text": "Primero carga datos para analizar.",
                              "fig": None, "table": None})
@@ -648,10 +682,20 @@ def chat(request):
 # ── Exportación ──────────────────────────────────────────────────────────────
 @_login
 def export(request, fmt):
-    df, _meta = ds.get_df(request)
-    if df is None:
-        messages.error(request, "No hay datos para exportar.")
-        return redirect("analytics:dashboard")
+    if not STANDALONE and not _is_staff_user(request.user):
+        df, company = _load_seller_company_df(request)
+        if df is None or df.empty:
+            messages.error(request, "No hay datos para exportar.")
+            return redirect("analytics:seller_dashboard")
+        if company:
+            ds.store_df(request, df, {"company": True, "origen": company["name"]})
+        redirect_name = "analytics:seller_dashboard"
+    else:
+        df, _meta = ds.get_df(request)
+        redirect_name = "analytics:dashboard"
+        if df is None:
+            messages.error(request, "No hay datos para exportar.")
+            return redirect(redirect_name)
 
     df = L.pretty_columns(df)   # nombres legibles también en el archivo descargado
 
