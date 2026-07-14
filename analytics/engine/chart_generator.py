@@ -752,7 +752,7 @@ def forecast_chart(fc: dict, title: str = "Proyección", y_title: str = "valor")
     fig.add_trace(go.Scatter(
         x=list(high.index) + list(low.index[::-1]),
         y=list(high.values) + list(low.values[::-1]),
-        fill="toself", fillcolor=f"rgba({ACCENT_RGB},0.10)",
+        fill="toself", fillcolor=f"rgba({PRIMARY_RGB},0.10)",
         line=dict(width=0), hoverinfo="skip", showlegend=True, name="Rango probable",
     ))
     # Histórico
@@ -762,12 +762,12 @@ def forecast_chart(fc: dict, title: str = "Proyección", y_title: str = "valor")
         marker=dict(size=5, color=C4, line=dict(color="white", width=1)),
         hovertemplate="%{x|%b %Y}<br><b>%{y:,.0f}</b><extra>Histórico</extra>",
     ))
-    # Proyección — único acento naranja de la vista (contraste vs histórico azul)
+    # Proyección — acento naranja sobrio (línea fina, sin relleno naranja)
     fig.add_trace(go.Scatter(
         x=[hist.index[-1]] + list(fut.index), y=[hist.values[-1]] + list(fut.values),
         mode="lines+markers", name="Proyección",
-        line=dict(color=C1, width=2.6, dash="dash"),
-        marker=dict(size=6, color=C1, symbol="diamond", line=dict(color="white", width=1)),
+        line=dict(color=C1, width=2.2, dash="dash"),
+        marker=dict(size=5, color=C1, symbol="diamond", line=dict(color="white", width=1)),
         hovertemplate="%{x|%b %Y}<br><b>%{y:,.0f}</b><extra>Proyección</extra>",
     ))
     fig.update_layout(**_base_layout(title, bottom=64))
