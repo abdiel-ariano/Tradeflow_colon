@@ -53,98 +53,98 @@
 
 <main class="catalog-main">
   <div class="catalog-container cat-ali-layout">
-    <div class="cat-ali-head">
-      <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form cat-filters-form--toolbar" id="cat-filters-form">
-        <input type="hidden" name="buscar" id="cat-filter-buscar" value="{{ buscar }}">
-
-        <div class="cat-filters-toolbar" id="cat-filters-toolbar">
-          <p class="cat-filters-toolbar__heading">
-            <span class="cat-filters-toolbar__heading-icon" aria-hidden="true">▾</span>
-            {% trans "Refine results" %}
-          </p>
-
-          <div class="cat-filters-toolbar__quick" role="group" aria-label="{% trans 'Quick filters' %}">
-            <label class="ali-quick-chip">
-              <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
-              <span>{% trans "Verified" %}</span>
-            </label>
-            <label class="ali-quick-chip">
-              <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
-              <span>{% trans "In stock" %}</span>
-            </label>
-            <label class="ali-quick-chip">
-              <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
-              <span>{% trans "On sale" %}</span>
-            </label>
-          </div>
-
-          <div class="cat-filters-toolbar__divider" aria-hidden="true"></div>
-
-          <div class="cat-filters-toolbar__fields">
-            <label class="visually-hidden" for="cat-filter-categoria">{% trans "Category" %}</label>
-            <select name="categoria" id="cat-filter-categoria" class="ali-filter-select cat-filters-toolbar__select cat-filters-toolbar__select--category">
-              <option value="">{% trans "All categories" %}</option>
-              {% for cat in categorias %}
-              <option value="{{ cat.pk }}" {% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %}selected{% endif %}>
-                {{ cat.name }} ({{ cat.num_productos }})
-              </option>
-              {% endfor %}
-            </select>
-
-            <label class="visually-hidden" for="cat-filter-empresa">{% trans "Supplier" %}</label>
-            <select name="empresa" id="cat-filter-empresa" class="ali-filter-select cat-filters-toolbar__select">
-              <option value="">{% trans "All suppliers" %}</option>
-              {% for emp in empresas|slice:":20" %}
-              <option value="{{ emp.pk }}" {% if empresa == emp.pk|stringformat:'s' %}selected{% endif %}>
-                {{ emp.name|truncatechars:28 }}
-              </option>
-              {% endfor %}
-            </select>
-
-            <div class="ali-price-row cat-filters-toolbar__price">
-              <input type="number" name="precio_min" id="cat-filter-precio-min" min="0" step="0.01" placeholder="{% trans 'Min $' %}"
-                     value="{{ precio_min }}" aria-label="{% trans 'Minimum price' %}" class="ali-price-input">
-              <span class="ali-price-sep" aria-hidden="true">—</span>
-              <input type="number" name="precio_max" min="0" step="0.01" placeholder="{% trans 'Max $' %}"
-                     value="{{ precio_max }}" aria-label="{% trans 'Maximum price' %}" class="ali-price-input">
-              <button type="submit" class="ali-filter-ok">OK</button>
-            </div>
-
-            <a href="{% url 'catalogo_publico' %}" class="cat-filters-toolbar__clear">{% trans "Clear" %}</a>
-          </div>
-        </div>
-
-        {% if solo_stock_low %}
-        <input type="hidden" name="stock_low" value="1" id="cat-filter-stock-low">
-        {% endif %}
-      </form>
-
-      <div class="active-filters" id="cat-active-filters" aria-live="polite" hidden></div>
-      <div class="results-toolbar">
-        <span class="results-count">
-          <strong>{{ total_resultados|default:catalogo_stats.productos }}</strong> {% trans "wholesale products" %}
-          {% if buscar %}{% blocktrans with term=buscar %}for “{{ term }}”{% endblocktrans %}{% endif %}
-        </span>
-        <div class="results-controls">
-          <label class="results-sort-label" for="cat-sort-select">{% trans "Sort by" %}</label>
-          <select name="orden" id="cat-sort-select" class="filter-select results-sort-select cat-sort-select" form="cat-filters-form" aria-label="{% trans 'Sort results' %}">
-            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>{% trans "Best match" %}</option>
-            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>{% trans "Price: low to high" %}</option>
-            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>{% trans "Price: high to low" %}</option>
-            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>{% trans "Newest" %}</option>
-          </select>
-        </div>
-      </div>
+    <div class="cat-ali-rail-slot">
+      <aside class="cat-ali-category-rail" id="cat-sidebar" aria-label="{% trans 'Category navigation' %}">
+        <button type="button" class="cat-ali-category-rail__close sidebar-close" id="cat-sidebar-close" aria-label="{% trans 'Close categories' %}">
+          {% include "core/includes/tf_icon.html" with name="close" %}
+        </button>
+        {% include "core/includes/catalogo_ali_category_sidebar.html" %}
+      </aside>
     </div>
 
-    <div class="cat-ali-body">
-      <div class="cat-ali-rail-slot">
-        <aside class="cat-ali-category-rail" id="cat-sidebar" aria-label="{% trans 'Category navigation' %}">
-          <button type="button" class="cat-ali-category-rail__close sidebar-close" id="cat-sidebar-close" aria-label="{% trans 'Close categories' %}">
-            {% include "core/includes/tf_icon.html" with name="close" %}
-          </button>
-          {% include "core/includes/catalogo_ali_category_sidebar.html" %}
-        </aside>
+    <div class="cat-ali-main">
+      <div class="cat-ali-head">
+        <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form cat-filters-form--toolbar" id="cat-filters-form">
+          <input type="hidden" name="buscar" id="cat-filter-buscar" value="{{ buscar }}">
+
+          <div class="cat-filters-toolbar" id="cat-filters-toolbar">
+            <p class="cat-filters-toolbar__heading">
+              <span class="cat-filters-toolbar__heading-icon" aria-hidden="true">▾</span>
+              {% trans "Refine results" %}
+            </p>
+
+            <div class="cat-filters-toolbar__quick" role="group" aria-label="{% trans 'Quick filters' %}">
+              <label class="ali-quick-chip">
+                <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
+                <span>{% trans "Verified" %}</span>
+              </label>
+              <label class="ali-quick-chip">
+                <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
+                <span>{% trans "In stock" %}</span>
+              </label>
+              <label class="ali-quick-chip">
+                <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
+                <span>{% trans "On sale" %}</span>
+              </label>
+            </div>
+
+            <div class="cat-filters-toolbar__divider" aria-hidden="true"></div>
+
+            <div class="cat-filters-toolbar__fields">
+              <label class="visually-hidden" for="cat-filter-categoria">{% trans "Category" %}</label>
+              <select name="categoria" id="cat-filter-categoria" class="ali-filter-select cat-filters-toolbar__select cat-filters-toolbar__select--category">
+                <option value="">{% trans "All categories" %}</option>
+                {% for cat in categorias %}
+                <option value="{{ cat.pk }}" {% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %}selected{% endif %}>
+                  {{ cat.name }} ({{ cat.num_productos }})
+                </option>
+                {% endfor %}
+              </select>
+
+              <label class="visually-hidden" for="cat-filter-empresa">{% trans "Supplier" %}</label>
+              <select name="empresa" id="cat-filter-empresa" class="ali-filter-select cat-filters-toolbar__select">
+                <option value="">{% trans "All suppliers" %}</option>
+                {% for emp in empresas|slice:":20" %}
+                <option value="{{ emp.pk }}" {% if empresa == emp.pk|stringformat:'s' %}selected{% endif %}>
+                  {{ emp.name|truncatechars:28 }}
+                </option>
+                {% endfor %}
+              </select>
+
+              <div class="ali-price-row cat-filters-toolbar__price">
+                <input type="number" name="precio_min" id="cat-filter-precio-min" min="0" step="0.01" placeholder="{% trans 'Min $' %}"
+                       value="{{ precio_min }}" aria-label="{% trans 'Minimum price' %}" class="ali-price-input">
+                <span class="ali-price-sep" aria-hidden="true">—</span>
+                <input type="number" name="precio_max" min="0" step="0.01" placeholder="{% trans 'Max $' %}"
+                       value="{{ precio_max }}" aria-label="{% trans 'Maximum price' %}" class="ali-price-input">
+                <button type="submit" class="ali-filter-ok">OK</button>
+              </div>
+
+              <a href="{% url 'catalogo_publico' %}" class="cat-filters-toolbar__clear">{% trans "Clear" %}</a>
+            </div>
+          </div>
+
+          {% if solo_stock_low %}
+          <input type="hidden" name="stock_low" value="1" id="cat-filter-stock-low">
+          {% endif %}
+        </form>
+
+        <div class="active-filters" id="cat-active-filters" aria-live="polite" hidden></div>
+        <div class="results-toolbar">
+          <span class="results-count">
+            <strong>{{ total_resultados|default:catalogo_stats.productos }}</strong> {% trans "wholesale products" %}
+            {% if buscar %}{% blocktrans with term=buscar %}for “{{ term }}”{% endblocktrans %}{% endif %}
+          </span>
+          <div class="results-controls">
+            <label class="results-sort-label" for="cat-sort-select">{% trans "Sort by" %}</label>
+            <select name="orden" id="cat-sort-select" class="filter-select results-sort-select cat-sort-select" form="cat-filters-form" aria-label="{% trans 'Sort results' %}">
+              <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>{% trans "Best match" %}</option>
+              <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>{% trans "Price: low to high" %}</option>
+              <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>{% trans "Price: high to low" %}</option>
+              <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>{% trans "Newest" %}</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div id="cat-results-host" class="cat-ali-results-host" aria-live="polite">
