@@ -1454,14 +1454,12 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
 
 /* ── Marketplace program pages (unified layout) ── */
 .hm-marketplace-page {
-  --tf-surface: #dde3ea;
+  --tf-surface: var(--tf-market-bg, #E8EEF5);
   --mkt-card-bg: #ffffff;
   --mkt-card-border: rgba(15, 42, 68, 0.1);
   --mkt-card-shadow: 0 1px 2px rgba(15, 42, 68, 0.05), 0 6px 20px rgba(15, 42, 68, 0.09);
   --mkt-card-shadow-hover: 0 4px 8px rgba(15, 42, 68, 0.06), 0 16px 40px rgba(15, 42, 68, 0.12);
-  background:
-    radial-gradient(ellipse 90% 50% at 50% -5%, rgba(255, 122, 61, 0.06), transparent 50%),
-    linear-gradient(180deg, #e8edf3 0%, #dde3ea 100%);
+  background: var(--tf-market-bg, #E8EEF5);
   min-height: 50vh;
   padding-bottom: 48px;
 }
@@ -1643,12 +1641,14 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
 }
 
 .mkt-btn--primary {
-  background: var(--tf-orange, #FF7A3D);
+  background: var(--tf-orange, #F26522);
   color: #fff;
 }
 
-.mkt-btn--primary:hover {
-  background: #e5692e;
+.mkt-btn--primary:hover,
+.mkt-btn--primary:focus-visible,
+.mkt-btn--primary:active {
+  background: var(--tf-primary, #0057A8);
   color: #fff;
 }
 
@@ -1748,32 +1748,37 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
   border-radius: 999px;
 }
 
-/* Trust chips (protection hero) */
-.mkt-trust-row {
-  list-style: none;
+/* Trust benefits (protection hero) — editorial, not fake buttons */
+.mkt-trust-benefits {
   margin: 0;
-  padding: 0 20px 20px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  padding: 0 20px 24px;
+  max-width: 720px;
 }
 
-.mkt-trust-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: #f1f5f9;
-  border: 1px solid var(--tf-border-soft, #E5E7EB);
-  font-size: 13px;
-  font-weight: 600;
+.mkt-trust-benefits__lead {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--tf-text-2, #6B7280);
+}
+
+.mkt-trust-benefits__list {
+  margin: 0 0 16px;
+  padding-left: 1.15rem;
   color: var(--tf-navy, #0F2A44);
+  font-size: 14px;
+  line-height: 1.55;
 }
 
-.mkt-trust-chip__icon {
-  font-size: 16px;
-  line-height: 1;
+.mkt-trust-benefits__list li {
+  margin: 0 0 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.mkt-trust-benefits .mkt-btn {
+  margin-top: 4px;
 }
 
 /* Steps timeline */
@@ -2183,15 +2188,53 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
   -webkit-overflow-scrolling: touch;
 }
 
+.mkt-deals-flash__rail .mkt-deal-wrap--flash,
 .mkt-deals-flash__rail .mkt-deal-card--flash {
-  flex: 0 0 200px;
-  max-width: 200px;
+  flex: 0 0 220px;
+  max-width: 220px;
 }
 
 .mkt-deals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+@media (max-width: 1100px) {
+  .mkt-deals-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .mkt-deals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 480px) {
+  .mkt-deals-grid { grid-template-columns: 1fr; }
+}
+
+.mkt-deal-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.mkt-deal-wrap__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--tf-navy, #0F2A44);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.hm-marketplace-page .mkt-deal-wrap .product-card,
+body.cat-catalog-page .mkt-deal-wrap .product-card {
+  height: 348px;
+  width: 100%;
 }
 
 .mkt-deal-card {

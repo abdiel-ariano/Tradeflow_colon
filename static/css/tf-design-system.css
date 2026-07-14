@@ -76,9 +76,11 @@ body.tf-design-v2 {
   color: #fff;
   border-color: var(--ds-orange);
 }
-.ds-btn--primary:hover:not(:disabled) {
-  background: #c93d0c;
-  border-color: #c93d0c;
+.ds-btn--primary:hover:not(:disabled),
+.ds-btn--primary:focus-visible:not(:disabled),
+.ds-btn--primary:active:not(:disabled) {
+  background: var(--tf-primary, #0057A8);
+  border-color: var(--tf-primary, #0057A8);
   color: #fff;
 }
 

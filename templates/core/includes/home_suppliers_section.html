@@ -1,6 +1,6 @@
 {% comment %}Template: core/includes/home_suppliers_section.html — review purpose and context vars.{% endcomment %}
 {% load i18n %}
-{% comment %}Top companies — single auto-rotator (8s) with unified spotlight cards.{% endcomment %}
+{% comment %}Top companies — spotlight rotator + compact verified-supplier chips.{% endcomment %}
 <section class="hm-suppliers hm-section hm-section--surface" id="hm-suppliers" data-hm-section aria-labelledby="hm-suppliers-title">
   <div class="hm-section__inner hm-suppliers__inner">
     <header class="hm-section__head hm-suppliers__head">
@@ -41,40 +41,28 @@
       </div>
     </div>
 
+    {% if empresas_carousel|length > 5 %}
     <div class="hm-suppliers__more">
       <h3 class="hm-suppliers__more-title">{% trans "More verified suppliers" %}</h3>
-      <div class="hm-slider hm-slider--companies" data-hm-slider data-hm-slider-visible="4">
-        <button type="button" class="hm-slider__arrow hm-slider__arrow--prev" aria-label="{% trans 'Previous suppliers' %}">
-          {% include "core/includes/tf_icon.html" with name="chevron_left" %}
-        </button>
-        <div class="hm-slider__viewport">
-          <div class="hm-slider__track">
-            {% for emp in empresas_carousel|slice:"5:11" %}
-            <article class="hm-supplier-card hm-supplier-card--slide">
-              <div class="hm-supplier-card__top">
-                <span class="hm-supplier-card__avatar">{% include "core/includes/company_avatar.html" with company=emp %}</span>
-                <div>
-                  <h3 class="hm-supplier-card__name" title="{{ emp.name }}">{{ emp.name }}</h3>
-                  <span class="hm-supplier-card__verified">
-                    {% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}
-                    {% trans "CFZ Verified" %}
-                  </span>
-                </div>
-              </div>
-              <p class="hm-supplier-card__count">
-                {% blocktrans count counter=emp.num_productos %}{{ counter }} product{% plural %}{{ counter }} products{% endblocktrans %}
-              </p>
-              <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="hm-supplier-card__link">{% trans "View catalog" %} →</a>
-            </article>
-            {% endfor %}
-          </div>
-        </div>
-        <button type="button" class="hm-slider__arrow hm-slider__arrow--next" aria-label="{% trans 'Next suppliers' %}">
-          {% include "core/includes/tf_icon.html" with name="chevron_right" %}
-        </button>
-        <div class="hm-slider__dots" aria-hidden="true"></div>
-      </div>
+      <ul class="hm-suppliers__chips">
+        {% for emp in empresas_carousel|slice:"5:11" %}
+        <li>
+          <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="hm-supplier-chip" title="{{ emp.name }}">
+            <span class="hm-supplier-chip__avatar">{% include "core/includes/company_avatar.html" with company=emp class="tf-co-avatar--chip" %}</span>
+            <span class="hm-supplier-chip__body">
+              <span class="hm-supplier-chip__name">{{ emp.name|truncatechars:28 }}</span>
+              <span class="hm-supplier-chip__meta">
+                {% trans "CFZ Verified" %}
+                · {% blocktrans count counter=emp.num_productos %}{{ counter }} product{% plural %}{{ counter }} products{% endblocktrans %}
+              </span>
+            </span>
+            <span class="hm-supplier-chip__cta">{% trans "View catalog" %} →</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
     </div>
+    {% endif %}
     {% else %}
     <p class="hm-empty">{% trans "More verified suppliers coming soon." %}</p>
     {% endif %}

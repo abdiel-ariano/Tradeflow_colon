@@ -140,7 +140,10 @@
           {% if product.description %}
           <div class="cpd-prose">{{ product.description|linebreaks }}</div>
           {% else %}
-          <p class="cpd-muted">{% trans "No description is available for this product." %}</p>
+          <div class="cpd-prose cpd-prose--fallback">
+            <p>{% blocktrans with name=product.name company=product.company.name %}{{ name }} is listed by {{ company }} for wholesale sourcing through TradeFlow Colón.{% endblocktrans %}</p>
+            <p>{% trans "Open Specifications for SKU, stock, and pricing details, or visit the supplier catalog to compare related inventory." %}</p>
+          </div>
           {% endif %}
         </div>
 
@@ -150,6 +153,7 @@
             <div><dt>{% trans "Currency" %}</dt><dd>{{ product.currency }}</dd></div>
             <div><dt>{% trans "Category" %}</dt><dd>{% if product.category %}{{ product.category.name|category_label }}{% else %}—{% endif %}</dd></div>
             <div><dt>{% trans "Available stock" %}</dt><dd>{{ product.available_qty }}</dd></div>
+            <div><dt>{% trans "MOQ" %}</dt><dd>1 {% trans "piece" %}</dd></div>
             {% if product.is_on_promo_now %}
             <div><dt>{% trans "List price" %}</dt><dd>{{ product.unit_price|money_usd }}</dd></div>
             <div><dt>{% trans "Promo price" %}</dt><dd>{{ product.display_price|money_usd }}</dd></div>
@@ -174,10 +178,10 @@
             {% if company.address_text %}
             <p class="cpd-muted">{{ company.address_text }}</p>
             {% endif %}
-            {% if company.tagline_en %}
-            <p class="cpd-prose">{{ company.tagline_en }}</p>
-            {% elif company.tagline_es %}
+            {% if company.tagline_es %}
             <p class="cpd-prose">{{ company.tagline_es }}</p>
+            {% elif company.tagline_en %}
+            <p class="cpd-prose">{{ company.tagline_en }}</p>
             {% endif %}
             <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="ds-btn ds-btn--secondary">{% trans "View all products" %}</a>
           </div>

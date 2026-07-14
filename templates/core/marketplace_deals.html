@@ -42,7 +42,7 @@
     </header>
     <div class="mkt-deals-flash__rail">
       {% for product in spotlight_deals|slice:":6" %}
-        {% include "core/includes/marketplace_deal_card.html" with product=product card_index=forloop.counter card_extra_class="mkt-deal-card--flash" %}
+        {% include "core/includes/marketplace_deal_card.html" with product=product card_index=forloop.counter card_extra_class="mkt-deal-wrap--flash" %}
       {% endfor %}
     </div>
   </section>

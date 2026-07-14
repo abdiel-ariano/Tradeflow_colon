@@ -19,24 +19,16 @@
           <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--ghost">{% trans "Start browsing" %}</a>
         </div>
       </div>
-      <ul class="mkt-trust-row" aria-label="{% trans 'Protection highlights' %}">
-        <li class="mkt-trust-chip">
-          <span class="mkt-trust-chip__icon" aria-hidden="true">🛡️</span>
-          <span class="mkt-trust-chip__label">{% trans "Verified suppliers" %}</span>
-        </li>
-        <li class="mkt-trust-chip">
-          <span class="mkt-trust-chip__icon" aria-hidden="true">📋</span>
-          <span class="mkt-trust-chip__label">{% trans "Request for Quotation" %}</span>
-        </li>
-        <li class="mkt-trust-chip">
-          <span class="mkt-trust-chip__icon" aria-hidden="true">🔒</span>
-          <span class="mkt-trust-chip__label">{% trans "Secure B2B checkout" %}</span>
-        </li>
-        <li class="mkt-trust-chip">
-          <span class="mkt-trust-chip__icon" aria-hidden="true">📦</span>
-          <span class="mkt-trust-chip__label">{% trans "Export documentation" %}</span>
-        </li>
-      </ul>
+      <div class="mkt-trust-benefits" aria-label="{% trans 'Protection highlights' %}">
+        <p class="mkt-trust-benefits__lead">{% trans "Every wholesale path on TradeFlow stays quote-first: verified CFZ suppliers, formal RFQs, and export-ready docs before you commit." %}</p>
+        <ul class="mkt-trust-benefits__list">
+          <li>{% trans "CFZ-verified supplier profiles with live catalog depth" %}</li>
+          <li>{% trans "Request for Quotation before payment" %}</li>
+          <li>{% trans "Secure B2B checkout with order transparency" %}</li>
+          <li>{% trans "Invoice and packing-list support for export" %}</li>
+        </ul>
+        <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--primary">{% trans "Browse verified catalog" %}</a>
+      </div>
     </div>
   </header>
 

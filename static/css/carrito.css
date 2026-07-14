@@ -1,21 +1,21 @@
 /*
  * TradeFlow Colón — Cart page (/carrito/)
- * Visual system aligned with Figma marketplace tokens (tf-design-tokens / catalog).
+ * Palette: navy / orange / primary / market-bg (DESIGN.md + --tf-market-bg).
  */
 
 .cart-page {
-  --cart-bg: var(--color-background, var(--tf-light, #f7f8fa));
-  --cart-card: var(--color-surface, var(--tf-white, #fff));
-  --cart-border: var(--color-border, var(--tf-border, #e4e7eb));
-  --cart-text: var(--color-text-primary, var(--tf-navy, #0f2a44));
-  --cart-muted: var(--color-text-secondary, var(--tf-muted, #667085));
-  --cart-accent: var(--color-accent, var(--tf-orange, #f26522));
-  --cart-accent-hover: var(--tf-orange-h, #ff7a3d);
-  --cart-radius: var(--radius-card, 8px);
-  --cart-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 4px 16px rgba(16, 24, 40, 0.06);
+  --cart-bg: var(--tf-market-bg, var(--tf-primary-light, #E8F1FB));
+  --cart-card: var(--tf-white, #FFFFFF);
+  --cart-border: var(--tf-border, #D1D5DB);
+  --cart-text: var(--tf-navy, #0F2A44);
+  --cart-muted: var(--tf-muted, #6B7A88);
+  --cart-accent: var(--tf-orange, #F26522);
+  --cart-accent-hover: var(--tf-primary, #0057A8);
+  --cart-radius: 8px;
+  --cart-shadow: 0 1px 2px rgba(15, 42, 68, 0.05), 0 4px 16px rgba(15, 42, 68, 0.06);
   background: var(--cart-bg);
   min-height: calc(100vh - 64px);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--tf-font-body, sans-serif);
   color: var(--cart-text);
 }
 
@@ -82,7 +82,6 @@
   }
 }
 
-/* ── Line items ── */
 .cart-items {
   display: flex;
   flex-direction: column;
@@ -95,12 +94,13 @@
   gap: 1rem;
   padding: 1rem 0;
   border-bottom: 1px solid var(--cart-border);
+  align-items: start;
 }
 
 @media (min-width: 640px) {
   .cart-item {
     grid-template-columns: 96px minmax(0, 1fr) auto;
-    align-items: center;
+    align-items: start;
   }
 }
 
@@ -145,12 +145,18 @@
   font-weight: 600;
   line-height: 1.35;
   color: var(--cart-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.7em;
 }
 
 .cart-item__seller {
   margin: 0 0 0.35rem;
   font-size: 0.8125rem;
   color: var(--cart-muted);
+  min-height: 1.25em;
 }
 
 .cart-item__unit {
@@ -170,15 +176,23 @@
 }
 
 @media (min-width: 640px) {
+  .cart-item__body {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    min-height: 96px;
+  }
+
   .cart-item__actions {
-    grid-column: 2;
+    margin-top: auto;
+    align-self: end;
   }
 
   .cart-item__subtotal-col {
     grid-column: 3;
     grid-row: 1;
     text-align: right;
-    align-self: center;
+    align-self: start;
+    padding-top: 0.15rem;
   }
 }
 
@@ -243,13 +257,13 @@
   font-weight: 500;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: color 0.15s ease, background 0.15s ease;
 }
 
 .cart-item__remove:hover {
-  color: #dc2626;
-  background: #fef2f2;
+  color: var(--tf-navy, #0F2A44);
+  background: var(--tf-surface, #F2F3F5);
 }
 
 .cart-item__subtotal {
@@ -259,7 +273,6 @@
   white-space: nowrap;
 }
 
-/* ── Summary sidebar ── */
 .cart-sidebar {
   display: flex;
   flex-direction: column;
@@ -269,7 +282,7 @@
 .cart-card {
   background: var(--cart-card);
   border: 1px solid var(--cart-border);
-  border-radius: calc(var(--cart-radius) + 2px);
+  border-radius: 12px;
   box-shadow: var(--cart-shadow);
   padding: 1.25rem 1.35rem;
 }
@@ -340,7 +353,7 @@
   border-radius: var(--cart-radius);
   background: var(--cart-accent);
   color: #fff;
-  font-family: 'Montserrat', 'Inter', sans-serif;
+  font-family: var(--tf-font-body, sans-serif);
   font-size: 0.9375rem;
   font-weight: 700;
   text-decoration: none;
@@ -349,7 +362,9 @@
   box-sizing: border-box;
 }
 
-.cart-btn-primary:hover {
+.cart-btn-primary:hover,
+.cart-btn-primary:focus-visible,
+.cart-btn-primary:active {
   background: var(--cart-accent-hover);
   color: #fff;
 }
@@ -390,7 +405,7 @@
   align-items: center;
   padding: 0.25rem 0.625rem;
   border: 1px solid var(--cart-border);
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.6875rem;
   font-weight: 600;
   color: var(--cart-text);
@@ -440,7 +455,6 @@
   border: 0;
 }
 
-/* ── Empty state ── */
 .cart-empty {
   max-width: 28rem;
   margin: 3rem auto;
