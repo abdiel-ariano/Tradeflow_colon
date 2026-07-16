@@ -1,8 +1,8 @@
-"""Root URLConf for TradeFlow Colón.
+"""URLConf raíz de TradeFlow Colón.
 
-Mounts admin, i18n language switching, and health probes outside i18n
-patterns; marketplace routes live under optional /en/ prefixes with
-Spanish as the unprefixed default.
+Monta admin, cambio de idioma e health checks fuera de i18n; las rutas
+del marketplace van bajo prefijos /en/ opcionales, con español por
+defecto sin prefijo.
 """
 from django.contrib import admin
 from django.urls import path, include
@@ -28,5 +28,5 @@ urlpatterns += i18n_patterns(
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 elif getattr(settings, 'SERVE_LOCAL_MEDIA', False):
-    # Docker demo / local files when DEBUG=False (do not enable in production S3-only deploys).
+    # Demo Docker / archivos locales con DEBUG=False (no usar en prod solo-S3).
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

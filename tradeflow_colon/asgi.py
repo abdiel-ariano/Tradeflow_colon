@@ -1,7 +1,7 @@
-"""ASGI application entry for TradeFlow Colón.
+"""Entrada ASGI de TradeFlow Colón.
 
-Used by async-capable servers; loads tradeflow_colon.settings and exposes
-``application`` as the ASGI callable.
+La usan servidores con soporte async; carga tradeflow_colon.settings y
+expone ``application`` como callable ASGI.
 """
 import os
 from django.core.asgi import get_asgi_application

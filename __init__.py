@@ -1,4 +1,5 @@
-"""TradeFlow Colón repository package marker.
+"""Marcador de paquete del repositorio TradeFlow Colón.
 
-Keeps tooling that expects a root package importable in edge cases.
+Permite que herramientas que esperan un paquete raíz lo importen en
+casos límite de arranque o análisis estático.
 """
