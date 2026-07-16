@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="{% static 'admin-saas/admin-saas.css' %}">
 {% endblock %}
 {% block extra_css %}
-{% include "core/includes/static_css_bundle.html" %}
+{# Bundle CSS already inlined in base.html <style>; including it in extra_css dumps raw CSS as visible text. #}
 <style nonce="{{ csp_nonce }}">
   /* TradeFlow brand — SaaS admin shell */
   .adm-shell .adm-side {
