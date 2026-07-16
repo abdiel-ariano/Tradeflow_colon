@@ -1,6 +1,7 @@
-"""
-Enterprise models: SaaS plans, ads, logistics API, and API keys.
-Extends the existing architecture without replacing core models.
+"""Enterprise SaaS, ads, logistics API, and audit models for CFZ sellers.
+
+Extends core catalog/order tables without replacing them. Plans gate volume
+limits, ad credits, webhooks, and predictive AI for Zona Libre merchants.
 """
 from __future__ import annotations
 
@@ -14,7 +15,10 @@ from django.utils import timezone
 
 
 class SaasPlan(models.Model):
-    """Commercial TradeFlow plan (Digitalize → Enterprise)."""
+    """Commercial TradeFlow plan tier (Digitalize → Enterprise).
+
+    Volume caps and feature flags decide what each CFZ seller may use.
+    """
 
     slug = models.SlugField(max_length=40, unique=True)
     name = models.CharField(max_length=120)
@@ -46,19 +50,18 @@ class SaasPlan(models.Model):
 
     @property
     def is_unlimited(self) -> bool:
-        """Is unlimited."""
+        """True when monthly GMV is not capped."""
         return self.monthly_volume_limit_usd is None
 
 
 class CompanySubscription(models.Model):
-    """
-    Suscripción SaaS de una empresa vendedora.
+    """SaaS subscription lifecycle for one CFZ seller company.
 
-    Ciclo de vida (ver ``core/utils/seller_lifecycle.py``):
-    - ``trialing``: 30 días gratis en Digitalízate tras wizard de empresa.
-    - ``active``: plan pagado (upgrade durante trial o activación post-gracia).
-    - ``past_due``: trial vencido; 7 días de gracia para activar plan ≥ recomendado.
-    - ``cancelled``: baja media; portal bloqueado y productos fuera del marketplace.
+    Lifecycle (see ``core/utils/seller_lifecycle.py``):
+    - ``trialing``: 30-day free Digitalize after company wizard.
+    - ``active``: paid plan (upgrade in trial or after grace).
+    - ``past_due``: trial ended; 7-day grace to activate ≥ recommended.
+    - ``cancelled``: soft offboard; portal blocked, SKUs leave marketplace.
     """
 
     STATUS_CHOICES = [
@@ -83,7 +86,7 @@ class CompanySubscription(models.Model):
     current_period_end = models.DateTimeField()
     auto_renew = models.BooleanField(default=True)
     upgraded_at = models.DateTimeField(null=True, blank=True)
-    # Snapshot al día 30: volumen USD facturable durante el trial.
+    # Snapshot at day 30: billable USD volume during the trial.
     trial_volume_usd = models.DecimalField(
         max_digits=14,
         decimal_places=2,
@@ -91,7 +94,7 @@ class CompanySubscription(models.Model):
         blank=True,
         help_text='USD vendidos durante el trial; fijado al finalizar el periodo.',
     )
-    # Plan mínimo permitido en checkout post-trial (no downgrade).
+    # Minimum plan allowed at post-trial checkout (no downgrade).
     recommended_plan = models.ForeignKey(
         SaasPlan,
         on_delete=models.SET_NULL,
@@ -100,7 +103,7 @@ class CompanySubscription(models.Model):
         related_name='recommended_for_subscriptions',
         help_text='Plan mínimo tras el trial según volumen; bloquea planes inferiores.',
     )
-    # Fin de la ventana de gracia (past_due); tras esta fecha → baja media.
+    # End of past_due grace; after this date → soft cancellation.
     grace_ends_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -117,7 +120,7 @@ class CompanySubscription(models.Model):
 
 
 class CompanyBillingUsage(models.Model):
-    """Billable volume aggregated by company and month."""
+    """Billable GMV aggregated by company and calendar month."""
 
     company = models.ForeignKey(
         'core.Company',
@@ -140,7 +143,7 @@ class CompanyBillingUsage(models.Model):
 
 
 class SubscriptionUpgradeLog(models.Model):
-    """Persistent plan change history (Supabase / PostgreSQL)."""
+    """Persistent plan-change history (Supabase / PostgreSQL)."""
 
     SOURCE_CHOICES = [
         ('self_serve', 'Seller activation'),
@@ -177,13 +180,12 @@ class SubscriptionUpgradeLog(models.Model):
 
 
 class CompanyPlanCheckout(models.Model):
-    """
-    Sesión de pago SaaS (sin Stripe): mock demo o transferencia bancaria.
+    """SaaS plan payment session (mock demo or bank transfer, no Stripe).
 
-    Flujo bank (producción):
-    1. Seller elige plan → checkout ``pending`` + ``provider=bank``.
-    2. Envía referencia/comprobante → permanece ``pending`` hasta revisión.
-    3. Admin aprueba → ``complete_plan_checkout`` → suscripción ``active``.
+    Bank flow (production):
+    1. Seller picks plan → checkout ``pending`` + ``provider=bank``.
+    2. Submits transfer ref/proof → stays ``pending`` until review.
+    3. Admin approves → ``complete_plan_checkout`` → subscription ``active``.
     """
 
     STATUS_CHOICES = [
@@ -222,7 +224,7 @@ class CompanyPlanCheckout(models.Model):
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pending')
     provider = models.CharField(max_length=12, choices=PROVIDER_CHOICES, default='bank')
     txn_ref = models.CharField(max_length=120, blank=True)
-    # Referencia que el seller indica al transferir (número de operación bancaria).
+    # Reference the seller quotes when transferring (bank operation number).
     transfer_reference = models.CharField(
         max_length=120,
         blank=True,
@@ -258,7 +260,7 @@ class CompanyPlanCheckout(models.Model):
 
 
 class CompanyPlanCommercialRequest(models.Model):
-    """Enterprise commercial request linked to a company (persistent in Supabase)."""
+    """Enterprise commercial request linked to a company (Supabase-backed)."""
 
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -299,7 +301,7 @@ class CompanyPlanCommercialRequest(models.Model):
 
 
 class CompanyPredictiveSnapshot(models.Model):
-    """Predictive insights cache (Enterprise) by company and period."""
+    """Cached predictive insights (Enterprise) by company and period."""
 
     company = models.ForeignKey(
         'core.Company',
@@ -318,6 +320,8 @@ class CompanyPredictiveSnapshot(models.Model):
 
 
 class AdCreditAccount(models.Model):
+    """Seller ad-credit balance for marketplace boost campaigns."""
+
     company = models.OneToOneField(
         'core.Company',
         on_delete=models.CASCADE,
@@ -333,6 +337,8 @@ class AdCreditAccount(models.Model):
 
 
 class AdCampaign(models.Model):
+    """Paid placement that boosts a seller SKU on search/home/category."""
+
     PLACEMENT_CHOICES = [
         ('search', 'Search'),
         ('home', 'Home'),
@@ -372,6 +378,8 @@ class AdCampaign(models.Model):
 
 
 class LogisticsWebhookConfig(models.Model):
+    """Partner webhook endpoint for signed outbound logistics events."""
+
     company = models.ForeignKey(
         'core.Company',
         on_delete=models.CASCADE,
@@ -392,7 +400,7 @@ class LogisticsWebhookConfig(models.Model):
 
 
 class LogisticsEvent(models.Model):
-    """Timeline / logistics audit events."""
+    """Timeline / audit event for an order's logistics journey."""
 
     order = models.ForeignKey(
         'core.Order',
@@ -412,6 +420,8 @@ class LogisticsEvent(models.Model):
 
 
 class LogisticsDispatchQueue(models.Model):
+    """Outbound webhook delivery queue with retry metadata."""
+
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('sent', 'Sent'),
@@ -442,6 +452,8 @@ class LogisticsDispatchQueue(models.Model):
 
 
 class ApiKey(models.Model):
+    """Hashed seller API key for inventory/pricing/webhook integrations."""
+
     company = models.ForeignKey(
         'core.Company',
         on_delete=models.CASCADE,
@@ -475,6 +487,8 @@ class ApiKey(models.Model):
 
 
 class ApiAuditLog(models.Model):
+    """Request audit trail for seller API key usage."""
+
     api_key = models.ForeignKey(
         ApiKey,
         on_delete=models.SET_NULL,
@@ -500,7 +514,7 @@ class ApiAuditLog(models.Model):
 
 
 class EmailDeliveryLog(models.Model):
-    """Transactional email audit (deliverability / diagnostics)."""
+    """Transactional email audit for deliverability diagnostics."""
 
     STATUS_CHOICES = [
         ('sent', 'Sent'),
@@ -523,7 +537,7 @@ class EmailDeliveryLog(models.Model):
 
 
 def generate_api_key_pair() -> tuple[str, str, str]:
-    """Returns (raw_key, prefix, sha256_hash)."""
+    """Create a live API key triple: raw secret, prefix, and SHA-256 hash."""
     import hashlib
 
     raw = f'tf_live_{secrets.token_urlsafe(32)}'

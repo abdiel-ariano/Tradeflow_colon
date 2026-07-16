@@ -1,29 +1,12 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/models.py  (v2 — ERD Completo)
-=============================================================================
-Tablas implementadas (mapeadas exactamente al ERD del PDF):
-  UserProfile  → extiende el User de Django con rol y teléfono
-  Company      → empresa vendedora de la Zona Libre
-  Category     → categoría de producto
-  Product      → producto del catálogo
-  Inventory    → stock por producto (1-a-1 con Product)
-  Address      → dirección de envío del comprador
-  Order        → cabecera de la orden
-  OrderItem    → línea de detalle (producto + cantidad + precio snapshot)
-  Payment      → pago asociado a una orden
-  Shipment     → envío asociado a una orden
-  Document     → documentos generados (factura, packing list, etc.)
-  Cotizacion   → solicitud formal de precios (RFQ) buyer → empresa
-  CotizacionItem → líneas de cotización con cantidad y precio ofertado
-  python manage.py makemigrations
-  python manage.py migrate
-  python manage.py createsuperuser
-=============================================================================
+"""Core ORM for TradeFlow Colón CFZ B2B marketplace.
+
+Models cover seller companies, catalog inventory, buyer orders, RFQ quotes,
+carriers, and auth tokens. Enterprise SaaS/ads/API tables re-export from
+``enterprise_models`` so ``from core.models import …`` stays the single entry.
 """
 from decimal import Decimal
 import random
-import secrets   # OWASP A02: CSPRNG para OTP (random.randint es predecible)
+import secrets   # OWASP A02: CSPRNG for OTP (random.randint is predictable)
 
 from django.conf import settings
 from django.db import models
@@ -34,13 +17,15 @@ import uuid
 
 
 # =============================================================================
-# PERFIL DE USUARIO
+# USER PROFILE
 # =============================================================================
 
 class UserProfile(models.Model):
-    """
-    Extiende el User de Django con campos extras del ERD.
-    Relación 1-a-1 con User (se crea automáticamente al crear un User desde admin).
+    """Extend Django User with CFZ marketplace role and buyer prefs.
+
+    One-to-one with User. Role drives portal access (buyer/seller/admin/
+    carrier). Cart snapshots power abandonment reminders; onboarding fields
+    personalize the post-signup wizard.
     """
     ROLE_CHOICES = [
         ('buyer',  _('Buyer')),
@@ -87,7 +72,7 @@ class UserProfile(models.Model):
         blank=True,
         verbose_name='Last cart reminder sent',
     )
-    # ── Onboarding comprador (wizard post-registro estilo marketplace) ──
+    # Buyer onboarding (post-signup marketplace wizard).
     PURCHASE_INTENT_CHOICES = [
         ('business', _('Business purchase')),
         ('personal', _('Personal purchase')),
@@ -123,24 +108,24 @@ class UserProfile(models.Model):
 
     @property
     def email_verified(self) -> bool:
-        """Alias en inglés (API / vistas); persiste en ``email_verificado``."""
+        """Expose English alias; value lives in ``email_verificado``."""
         return self.email_verificado
 
     @email_verified.setter
     def email_verified(self, value: bool) -> None:
-        """Email verified."""
+        """Set the persisted Spanish-named verification flag."""
         self.email_verificado = value
 
 
 # =============================================================================
-# EMPRESA (COMPANY)
+# COMPANY (CFZ SELLER)
 # =============================================================================
 
 class Company(models.Model):
-    """
-    Empresa vendedora de la Zona Libre de Colón.
-    Un Product pertenece a una Company.
-    El campo owner identifica al usuario vendedor responsable del portal Mi Tienda.
+    """CFZ seller company storefront and verification record.
+
+    Products belong to a Company. ``owner`` is the seller who runs Mi Tienda.
+    Verification and featured flags drive trust badges and home carousels.
     """
     name         = models.CharField(max_length=200, verbose_name='Company name')
     ruc          = models.CharField(max_length=50, blank=True, verbose_name='RUC / Registration')
@@ -199,11 +184,11 @@ class Company(models.Model):
 
 
 # =============================================================================
-# CATEGORÍA
+# CATEGORY
 # =============================================================================
 
 class Category(models.Model):
-    """Categoría de productos."""
+    """Catalog category for CFZ product browsing and filters."""
     name = models.CharField(max_length=100, unique=True, verbose_name='Name')
 
     class Meta:
@@ -216,11 +201,15 @@ class Category(models.Model):
 
 
 # =============================================================================
-# SECCIONES PROMOCIONALES HOME (CMS ligero)
+# HOME PROMO SECTIONS (LIGHT CMS)
 # =============================================================================
 
 class HomePromoSection(models.Model):
-    """Bloque configurable en la landing sin redeploy (PreExpo / campañas)."""
+    """Configurable home landing block without redeploy.
+
+    Ops schedule PreExpo/campaign rows (deals, spotlights, banners) via
+    admin; merchandising resolves products from type and M2M links.
+    """
 
     SECTION_TYPES = [
         ('product_row', _('View products')),
@@ -274,27 +263,27 @@ class HomePromoSection(models.Model):
         return self.title_es or self.slug
 
     def title_for_lang(self, lang_code: str) -> str:
-        """Title for lang."""
+        """Return ES/EN title for the active UI locale."""
         if lang_code == 'en' and self.title_en:
             return self.title_en
         return self.title_es
 
     def subtitle_for_lang(self, lang_code: str) -> str:
-        """Subtitle for lang."""
+        """Return ES/EN subtitle for the active UI locale."""
         if lang_code == 'en' and self.subtitle_en:
             return self.subtitle_en
         return self.subtitle_es
 
 
 # =============================================================================
-# PRODUCTO
+# PRODUCT
 # =============================================================================
 
 class Product(models.Model):
-    """
-    Producto del catálogo.
-    Pertenece a una Company y a una Category.
-    Tiene un Inventory relacionado (1-a-1).
+    """CFZ catalog SKU owned by a seller Company.
+
+    Linked 1:1 to Inventory for stock. Promo windows and merchandising
+    priority shape public home/deals surfaces without changing list price.
     """
     CURRENCY_CHOICES = [
         ('USD', _('US Dollar (USD)')),
@@ -344,7 +333,7 @@ class Product(models.Model):
 
     @property
     def is_on_promo_now(self) -> bool:
-        """True si hay promo vigente y menor que precio lista."""
+        """True when promo price is live and below list price."""
         if self.promo_price is None or self.promo_price >= self.unit_price:
             return False
         now = timezone.now()
@@ -356,14 +345,14 @@ class Product(models.Model):
 
     @property
     def display_price(self) -> Decimal:
-        """Display price."""
+        """Buyer-facing unit price (promo when active, else list)."""
         if self.is_on_promo_now:
             return self.promo_price
         return self.unit_price
 
     @property
     def discount_pct(self) -> int:
-        """Discount pct."""
+        """Whole-percent savings vs list while a promo is active."""
         if not self.is_on_promo_now or self.unit_price <= 0:
             return 0
         pct = (Decimal('1') - (self.promo_price / self.unit_price)) * Decimal('100')
@@ -371,27 +360,28 @@ class Product(models.Model):
 
     @property
     def stock_qty(self):
-        """Acceso rápido al stock disponible desde el inventario relacionado."""
+        """Total on-hand units from related Inventory (0 if missing)."""
         if hasattr(self, 'inventory'):
             return self.inventory.stock_qty
         return 0
 
     @property
     def available_qty(self):
-        """Stock real disponible = stock_qty - reserved_qty."""
+        """Sellable units: stock minus reserved."""
         if hasattr(self, 'inventory'):
             return max(0, self.inventory.stock_qty - self.inventory.reserved_qty)
         return 0
 
 
 # =============================================================================
-# INVENTARIO
+# INVENTORY
 # =============================================================================
 
 class Inventory(models.Model):
-    """
-    Control de stock por producto.
-    Relación 1-a-1 con Product (un producto tiene exactamente un inventario).
+    """Per-SKU stock control for CFZ warehouse availability.
+
+    One-to-one with Product. Reservations hold units on order create;
+    confirm_sale commits on payment; release restores cancelled holds.
     """
     product         = models.OneToOneField(
         Product, on_delete=models.CASCADE,
@@ -411,16 +401,16 @@ class Inventory(models.Model):
 
     @property
     def available(self):
-        """Available."""
+        """Units free to sell after subtracting reservations."""
         return max(0, self.stock_qty - self.reserved_qty)
 
     @property
     def is_low_stock(self):
-        """Is low stock."""
+        """True when available stock is at or below the alert threshold."""
         return self.available <= self.low_stock_alert
 
     def reserve(self, qty):
-        """Reserva unidades al crear un pedido (no descuenta aún)."""
+        """Hold units when an order is placed (no stock decrement yet)."""
         if self.available >= qty:
             self.reserved_qty += qty
             self.save(update_fields=['reserved_qty', 'updated_at'])
@@ -428,23 +418,23 @@ class Inventory(models.Model):
         return False
 
     def confirm_sale(self, qty):
-        """Descuenta stock definitivamente al confirmar pago."""
+        """Commit reserved units after payment confirmation."""
         self.stock_qty   = max(0, self.stock_qty - qty)
         self.reserved_qty = max(0, self.reserved_qty - qty)
         self.save(update_fields=['stock_qty', 'reserved_qty', 'updated_at'])
 
     def release_reservation(self, qty):
-        """Libera reserva si se cancela la orden."""
+        """Free a reservation when an order is cancelled."""
         self.reserved_qty = max(0, self.reserved_qty - qty)
         self.save(update_fields=['reserved_qty', 'updated_at'])
 
 
 # =============================================================================
-# DIRECCIÓN
+# ADDRESS
 # =============================================================================
 
 class Address(models.Model):
-    """Address de envío de un comprador."""
+    """Buyer shipping address used at CFZ checkout."""
     user        = models.ForeignKey(
         User, on_delete=models.CASCADE,
         related_name='addresses', verbose_name='User'
@@ -465,19 +455,18 @@ class Address(models.Model):
         return f'{self.label or "Address"} — {self.city}, {self.country}'
 
     def save(self, *args, **kwargs):
-        # Si se marca como predeterminada, quitar la marca de las demás del mismo usuario
-        """Save."""
+        """Ensure only one default address per buyer."""
         if self.is_default:
             Address.objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
         super().save(*args, **kwargs)
 
 
 # =============================================================================
-# ORDEN
+# ORDER + ACCESS + CARRIERS
 # =============================================================================
 
 class TransportCarrier(models.Model):
-    """Transportista activo para checkout (ZLC / logística)."""
+    """Checkout carrier option for ZLC outbound logistics."""
 
     MODE_CHOICES = [
         ('maritime', _('Maritime')),
@@ -514,7 +503,7 @@ class TransportCarrier(models.Model):
 
 
 class UserApplication(models.Model):
-    """Solicitud de acceso a la plataforma (PreExpo / inversores)."""
+    """Access request for buyer/seller onboarding (PreExpo / investors)."""
     ROLE_CHOICES = [
         ('buyer', _('Buyer')),
         ('seller', _('Seller')),
@@ -555,7 +544,7 @@ class UserApplication(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        """Save."""
+        """Assign a unique review token on first save."""
         if not self.review_token:
             self.review_token = uuid.uuid4().hex
         super().save(*args, **kwargs)
@@ -565,9 +554,10 @@ class UserApplication(models.Model):
 
 
 class Order(models.Model):
-    """
-    Cabecera de una orden de compra.
-    Un buyer (User) hace una Order con una o más OrderItems.
+    """Buyer purchase header spanning CFZ B2B and B2C checkouts.
+
+    Lines live in OrderItem. Seller confirmation gates fulfillment when a
+    company must accept before packing; totals roll up from line snapshots.
     """
     STATUS_CHOICES = [
         ('awaiting_seller', _('Awaiting confirmation')),
@@ -666,15 +656,14 @@ class Order(models.Model):
         ordering            = ['-created_at']
 
     def save(self, *args, **kwargs):
-        # Genera el número de orden automáticamente al crear
-        """Save."""
+        """Mint ``order_number`` on create if missing."""
         if not self.order_number:
             self.order_number = self._generate_order_number()
         super().save(*args, **kwargs)
 
     @staticmethod
     def _generate_order_number():
-        """Formato: TF-YYYYMM-XXXX (ej: TF-202601-A3F2)"""
+        """Build TF-YYYYMM-XXXX identifiers for new orders."""
         now    = timezone.now()
         suffix = uuid.uuid4().hex[:4].upper()
         return f'TF-{now.strftime("%Y%m")}-{suffix}'
@@ -683,13 +672,13 @@ class Order(models.Model):
         return f'Orden {self.order_number} — {self.buyer.get_full_name() or self.buyer.username}'
 
     def recalculate_totals(self):
-        """Recalcula subtotal y total sumando los OrderItems."""
+        """Recompute subtotal and total from OrderItem line totals."""
         self.subtotal = sum(item.line_total for item in self.items.all())
         self.total    = self.subtotal + self.shipping_cost
         self.save(update_fields=['subtotal', 'total', 'updated_at'])
 
     def get_status_color(self):
-        """Get status color."""
+        """Map status to Bootstrap badge CSS class for dashboards."""
         colors = {
             'awaiting_seller': 'badge-warning',
             'pending':   'badge-warning',
@@ -702,7 +691,7 @@ class Order(models.Model):
         return colors.get(self.status, 'badge-secondary')
 
     def maps_url_buyer(self):
-        """Enlace a mapa con la ubicación del comprador."""
+        """Google Maps URL for the buyer's confirmed checkout pin."""
         if self.buyer_latitude is None or self.buyer_longitude is None:
             return ''
         return (
@@ -712,14 +701,13 @@ class Order(models.Model):
 
 
 # =============================================================================
-# ITEM DE ORDEN
+# ORDER ITEM
 # =============================================================================
 
 class OrderItem(models.Model):
-    """
-    Línea de detalle: qué producto, cuánto y a qué precio (snapshot del momento).
-    El precio se guarda como snapshot para que los cambios futuros no afecten
-    órdenes históricas.
+    """Order line with quantity and price snapshot at sale time.
+
+    Snapshotting protects historical totals when catalog prices change.
     """
     order              = models.ForeignKey(
         Order, on_delete=models.CASCADE,
@@ -741,7 +729,7 @@ class OrderItem(models.Model):
         verbose_name_plural = 'Order items'
 
     def save(self, *args, **kwargs):
-        """Save."""
+        """Keep ``line_total`` in sync with qty × snapshot price."""
         self.line_total = self.unit_price_snapshot * self.qty
         super().save(*args, **kwargs)
 
@@ -750,13 +738,14 @@ class OrderItem(models.Model):
 
 
 # =============================================================================
-# PAGO (PAYMENT)
+# PAYMENT
 # =============================================================================
 
 class Payment(models.Model):
-    """
-    Registro del pago de una orden.
-    Relación 1-a-1 con Order (una orden tiene un solo pago).
+    """Payment record for one Order (1:1).
+
+    Providers include mock (dev), bank transfer, and placeholders for
+    Stripe/PayPal. Status drives fulfillment transitions.
     """
     PROVIDER_CHOICES = [
         ('mock', _('Mock (development)')),
@@ -792,11 +781,11 @@ class Payment(models.Model):
 
 
 # =============================================================================
-# ENVÍO (SHIPMENT)
+# SHIPMENT
 # =============================================================================
 
 class Shipment(models.Model):
-    """Registro del envío físico de una orden."""
+    """Physical outbound shipment for a fulfilled CFZ order."""
     STATUS_CHOICES = [
         ('label', _('Label generated')),
         ('in_transit', _('In transit')),
@@ -837,14 +826,11 @@ class Shipment(models.Model):
 
 
 # =============================================================================
-# DOCUMENTO (DOCUMENT)
+# DOCUMENT
 # =============================================================================
 
 class Document(models.Model):
-    """
-    Documentos asociados a una orden (factura, packing list, etc.).
-    Una orden puede tener múltiples documentos.
-    """
+    """Trade document attached to an order (invoice, packing list, etc.)."""
     DOC_TYPE_CHOICES = [
         ('invoice',      _('Invoice')),
         ('packing_list', _('Packing List')),
@@ -869,13 +855,14 @@ class Document(models.Model):
 
 
 # =============================================================================
-# COTIZACIÓN (solicitud formal de precios antes de ordenar)
+# RFQ QUOTE (formal pricing before order)
 # =============================================================================
 
 class Cotizacion(models.Model):
-    """
-    Cotización: permite al comprador solicitar precio formal de uno o más
-    productos a una empresa antes de confirmar la orden.
+    """Buyer RFQ asking a CFZ seller for formal unit pricing.
+
+    Automatic quotes use catalog prices; manual ones wait for seller reply.
+    ``lote`` groups broadcast RFQs; accepted quotes may link to an Order.
     """
     ESTADO_CHOICES = [
         ('pendiente', _('Pending')),
@@ -936,13 +923,13 @@ class Cotizacion(models.Model):
 
     @staticmethod
     def _generate_numero():
-        """Formato COT-YYYYMM-XXXX (hex)."""
+        """Build COT-YYYYMM-XXXX identifiers for new quotes."""
         now = timezone.now()
         suffix = uuid.uuid4().hex[:4].upper()
         return f'COT-{now.strftime("%Y%m")}-{suffix}'
 
     def save(self, *args, **kwargs):
-        """Save."""
+        """Mint ``numero`` on create if missing."""
         if not self.numero:
             self.numero = self._generate_numero()
         super().save(*args, **kwargs)
@@ -952,7 +939,7 @@ class Cotizacion(models.Model):
 
 
 class CotizacionItem(models.Model):
-    """Ítem de una cotización con cantidad solicitada y precio ofertado opcional."""
+    """RFQ line with requested qty and optional seller offered price."""
 
     cotizacion = models.ForeignKey(
         Cotizacion,
@@ -984,18 +971,18 @@ class CotizacionItem(models.Model):
 
     @property
     def linea_total(self):
-        """Subtotal de línea si ya hay precio ofertado."""
+        """Line subtotal once the seller has offered a unit price."""
         if self.precio_ofertado is None:
             return None
         return self.precio_ofertado * self.cantidad_solicitada
 
 
 # =============================================================================
-# TRANSPORTISTAS (registro + asignación por orden)
+# CARRIERS (registration + per-order assignment)
 # =============================================================================
 
 class Transportista(models.Model):
-    """Transportista registrado; requiere aprobación admin."""
+    """Registered last-mile carrier; admin must approve before activation."""
 
     ESTADO_CHOICES = [
         ('pendiente', _('Pending review')),
@@ -1038,7 +1025,7 @@ class Transportista(models.Model):
 
 
 class AsignacionTransporte(models.Model):
-    """Asignación de transportista a una orden (buyer elige en checkout o paso dedicado)."""
+    """Carrier assignment for one order (buyer picks at checkout)."""
 
     ESTADO_CHOICES = [
         ('pendiente', _('Pending confirmation')),
@@ -1078,11 +1065,11 @@ class AsignacionTransporte(models.Model):
 
 
 # =============================================================================
-# VERIFICACIÓN DE EMAIL (OTP 6 dígitos — Supabase + fallback Django)
+# EMAIL VERIFICATION (6-digit OTP — Supabase + Django fallback)
 # =============================================================================
 
 class EmailVerification(models.Model):
-    """Código OTP de 6 dígitos; expira a los 10 minutos (ver ``otp_handler.OTP_EXPIRY_MINUTES``)."""
+    """Six-digit email OTP; expires after OTP_EXPIRY_MINUTES."""
 
     user = models.ForeignKey(
         User,
@@ -1102,7 +1089,7 @@ class EmailVerification(models.Model):
         return f'{self.user_id} · {self.code} · used={self.is_used}'
 
     def is_valid(self) -> bool:
-        """Is valid."""
+        """True when unused and still within the OTP TTL window."""
         from core.utils.otp_handler import OTP_EXPIRY_MINUTES
 
         if self.is_used:
@@ -1111,7 +1098,7 @@ class EmailVerification(models.Model):
 
     @classmethod
     def generate_for(cls, user: User) -> 'EmailVerification':
-        """Genera OTP seguro; delega en ``generate_user_otp``."""
+        """Create a secure OTP via ``generate_user_otp`` and return the row."""
         from core.utils.otp_handler import generate_user_otp
 
         code = generate_user_otp(user)
@@ -1119,11 +1106,10 @@ class EmailVerification(models.Model):
 
 
 class PasswordResetLink(models.Model):
-    """
-    Magic-link token for password recovery (mirrors EmailVerification pattern).
+    """DB magic-link token for password recovery (mirrors EmailVerification).
 
     Plain token is emailed once; rows are deleted after successful use.
-    TTL: ``password_reset_link.PASSWORD_RESET_LINK_EXPIRY_MINUTES`` (15).
+    TTL: ``PASSWORD_RESET_LINK_EXPIRY_MINUTES`` (15).
     """
 
     user = models.ForeignKey(
@@ -1144,6 +1130,7 @@ class PasswordResetLink(models.Model):
         return f'{self.user_id} · reset_link · used={self.is_used}'
 
     def is_valid(self) -> bool:
+        """True when unused and still within the reset-link TTL."""
         from core.utils.password_reset_link import PASSWORD_RESET_LINK_EXPIRY_MINUTES
 
         if self.is_used:
@@ -1153,7 +1140,7 @@ class PasswordResetLink(models.Model):
         )
 
 
-# Modelos enterprise (SaaS, ads, API, logística extendida)
+# Enterprise models (SaaS, ads, API, extended logistics)
 from .enterprise_models import (  # noqa: E402, F401
     AdCampaign,
     AdCreditAccount,
