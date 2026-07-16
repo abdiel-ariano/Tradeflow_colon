@@ -1,8 +1,11 @@
-"""
-Vistas de autenticación y verificación OTP.
+"""Email OTP verification for TradeFlow Colón marketplace access.
 
-Ubicación: ``core/auth_views.py`` (no ``core/views/auth.py`` — ``core/views.py``
-es módulo plano y no permite subpaquetes ``core.views.auth``).
+Hosts ``verify_otp_view`` (wired as ``verificar_codigo`` from
+``core.views``). Lives in this module because ``core/views.py`` is a
+flat file and cannot host a ``core.views.auth`` subpackage.
+
+OTP gates checkout, guest-to-buyer cart handoff, and seller portal
+entry after signup or OAuth.
 """
 from __future__ import annotations
 
@@ -39,6 +42,7 @@ OTP_CODE_PATTERN = re.compile(r'^\d{6}$')
 
 
 def _wants_json(request: HttpRequest) -> bool:
+    """Return True when the client expects a JSON OTP response."""
     if request.GET.get('format') == 'json':
         return True
     accept = request.headers.get('Accept', '')
@@ -46,7 +50,11 @@ def _wants_json(request: HttpRequest) -> bool:
 
 
 def _redirect_by_role(user) -> str:
-    """Destino post-verificación según rol (+ wizard comprador si aplica)."""
+    """Pick post-OTP home: admin dashboard, seller portal, or catalog.
+
+    Sellers and buyers may still need company or preference onboarding
+    before reaching marketplace routes.
+    """
     from django.urls import reverse
 
     from core.utils.access_gating import buyer_onboarding_redirect_name
@@ -70,6 +78,7 @@ def _redirect_by_role(user) -> str:
 
 
 def _verify_context(request: HttpRequest) -> dict[str, str]:
+    """Build template context for the OTP form (masked email, next)."""
     masked = request.user.email or ''
     if '@' in masked:
         local, domain = masked.split('@', 1)
@@ -87,6 +96,7 @@ def _verify_context(request: HttpRequest) -> dict[str, str]:
 
 
 def _post_verify_destination(request: HttpRequest, user) -> str:
+    """Prefer safe ``?next=``, else role-based marketplace home."""
     next_url = safe_intent_next(request)
     if next_url:
         return next_url
@@ -94,11 +104,12 @@ def _post_verify_destination(request: HttpRequest, user) -> str:
 
 
 def _json_error(error_code: str, detail: str, status: int = 400) -> JsonResponse:
+    """Return a structured OTP failure body for AJAX clients."""
     return JsonResponse({'ok': False, 'error': error_code, 'detail': detail}, status=status)
 
 
 def _email_verification_gate_active(user) -> bool:
-    """OTP requerido — misma regla que onboarding middleware y decoradores."""
+    """Return True when OTP is still required for this account."""
     from core.utils.access_gating import email_verification_required
 
     return email_verification_required(user)
@@ -108,14 +119,12 @@ def _email_verification_gate_active(user) -> bool:
 @axes_dispatch
 @require_http_methods(['GET', 'POST'])
 def verify_otp_view(request: HttpRequest) -> HttpResponse:
-    """
-    Verificación OTP por email (GET formulario / POST código).
+    """Verify the six-digit email OTP (GET form / POST code).
 
-    Seguridad:
-    - ``@login_required``: solo el titular de sesión puede verificar.
-    - ``@axes_dispatch``: bloqueo tras 5 fallos (``AXES_FAILURE_LIMIT``) + cooloff 1 h.
-    - Token de un solo uso: borrado en DB tras éxito (anti-replay).
-    - ``transaction.atomic()`` en ``verify_user_otp`` (consistencia perfil + OTP).
+    Used by marketplace routes named ``verificar_codigo`` and
+    ``verify_otp``. Axes locks after repeated failures; a successful
+    code is single-use. After verify, users continue to ``?next=``
+    (often checkout) or role onboarding / guest catalog.
     """
     if not _email_verification_gate_active(request.user):
         dest = _post_verify_destination(request, request.user)
@@ -199,7 +208,7 @@ def verify_otp_view(request: HttpRequest) -> HttpResponse:
     otp_axes_reset(username, request)
     login(request, request.user, backend=AUTH_MODEL_BACKEND)
 
-    # Refrescar ORM en memoria tras la transacción OTP (evita gate obsoleto).
+    # Refresh ORM after OTP transaction so access gates see verified state.
     request.user.refresh_from_db()
     try:
         request.user.profile.refresh_from_db()

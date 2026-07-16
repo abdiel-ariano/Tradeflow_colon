@@ -1,5 +1,8 @@
-"""
-OAuth entry points and post-signup role completion (/signup/, /login/).
+"""OAuth entry points and post-signup role completion for marketplace auth.
+
+Wraps django-allauth so Google/social flows land on TradeFlow login,
+signup, OTP verification, and buyer/seller onboarding instead of
+generic allauth templates.
 """
 from __future__ import annotations
 
@@ -20,13 +23,14 @@ from core.social_auth import (
 
 
 def _redirect_to_provider_login(provider: str) -> HttpResponse:
+    """Send the browser to allauth's provider login URL."""
     from core.social_auth import resolve_oauth_provider
 
     return redirect(f'/accounts/{resolve_oauth_provider(provider)}/login/')
 
 
 def _redirect_with_query(request: HttpRequest, route_name: str) -> HttpResponse:
-    """Send users to TradeFlow pages instead of default allauth templates."""
+    """Forward to a TradeFlow named route, preserving the query string."""
     url = reverse(route_name)
     qs = request.META.get('QUERY_STRING', '')
     if qs:
@@ -35,6 +39,7 @@ def _redirect_with_query(request: HttpRequest, route_name: str) -> HttpResponse:
 
 
 def _store_oauth_next(request: HttpRequest) -> None:
+    """Stash a same-origin ``?next=`` for post-OAuth marketplace return."""
     next_url = (request.GET.get('next') or '').strip()
     if next_url.startswith('/') and '://' not in next_url and not next_url.startswith('//'):
         request.session['oauth_next'] = next_url
@@ -43,7 +48,11 @@ def _store_oauth_next(request: HttpRequest) -> None:
 
 @require_GET
 def redirect_accounts_inactive(request: HttpRequest) -> HttpResponse:
-    """Evita la plantilla genérica de allauth para cuentas inactivas."""
+    """Replace allauth's inactive page with TradeFlow gating.
+
+    Eligible users are reactivated; sellers awaiting approval go to
+    ``pending_approval``; others continue OTP / post-signup.
+    """
     if request.user.is_authenticated:
         from core.social_auth import activate_user_if_eligible
 
@@ -65,19 +74,19 @@ def redirect_accounts_inactive(request: HttpRequest) -> HttpResponse:
 
 @require_GET
 def redirect_accounts_login(request: HttpRequest) -> HttpResponse:
-    """Redirect accounts login."""
+    """Map ``/accounts/login/`` to TradeFlow ``login``."""
     return _redirect_with_query(request, 'login')
 
 
 @require_GET
 def redirect_accounts_signup(request: HttpRequest) -> HttpResponse:
-    """Redirect accounts signup."""
+    """Map ``/accounts/signup/`` to TradeFlow ``signup``."""
     return _redirect_with_query(request, 'signup')
 
 
 @require_GET
 def oauth_begin_signup(request: HttpRequest, provider: str) -> HttpResponse:
-    """Oauth begin signup."""
+    """Start OAuth signup with buyer or seller role in session."""
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         raise Http404
     if not provider_is_enabled(provider):
@@ -95,7 +104,7 @@ def oauth_begin_signup(request: HttpRequest, provider: str) -> HttpResponse:
 
 @require_GET
 def oauth_begin_login(request: HttpRequest, provider: str) -> HttpResponse:
-    """Oauth begin login."""
+    """Start OAuth login without assigning a signup role."""
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         raise Http404
     if not provider_is_enabled(provider):
@@ -111,7 +120,11 @@ def oauth_begin_login(request: HttpRequest, provider: str) -> HttpResponse:
 @login_required
 @require_http_methods(['GET', 'POST'])
 def oauth_complete_signup(request: HttpRequest) -> HttpResponse:
-    """Registro OAuth como vendedor (comprador se asigna automáticamente en login)."""
+    """Collect marketplace role when OAuth left the profile incomplete.
+
+    Sellers need an explicit choice; buyers are the default. After
+    setup, ``oauth_post_signup`` issues OTP and routes onward.
+    """
     if not user_needs_oauth_role(request.user):
         request.session.pop('oauth_needs_role', None)
         return redirect('oauth_post_signup')
@@ -138,7 +151,12 @@ def oauth_complete_signup(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_GET
 def oauth_post_signup(request: HttpRequest) -> HttpResponse:
-    """Activa cuenta, envía OTP y redirige según verificación pendiente."""
+    """Activate the account, send OTP if needed, then redirect.
+
+    Unverified users enter ``finalize_signup_with_otp`` →
+    ``verificar_codigo``. Verified users resume ``oauth_next`` or the
+    role home (guest catalog / seller portal).
+    """
     from django.contrib.auth import login
 
     from core.utils.access_gating import email_verification_required

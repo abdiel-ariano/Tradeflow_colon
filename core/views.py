@@ -1,34 +1,13 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/views.py
-=============================================================================
-Central HTTP layer: auth, admin dashboard, buyer catalog/cart/checkout, seller
-portal, JSON APIs (search, assistant, merchandising), and legal/marketing pages.
+"""HTTP views for TradeFlow Colón CFZ B2B marketplace.
 
-Decorators (see core/decorators.py): admin_required, buyer_required,
-seller_required, buyer_checkout, catalog_access, guest_or_buyer_cart.
+Central layer for auth, email OTP, admin dashboard, guest catalog,
+session cart/checkout, RFQ, and the seller portal (``/mi-tienda/``).
+JSON helpers cover search suggest, merchandising, and the AI assistant.
 
-SECTION INDEX (approximate line numbers — search for banner comments)
----------------------------------------------------------------------
-  ~311  Auth helpers (_redirect_by_role, login/signup/logout)
-  ~620  Email verification (OTP, tokens, resend)
-  ~847  Home + merchandising API
-  ~929  AI search suggest + assistant chat API
-  ~1067 Map / visitor QR (ZLC)
-  ~1241 Admin dashboard + chart API
-  ~1460 Admin orders (list, detail, status)
-  ~1580 Admin order wizard (3 steps)
-  ~1800 Admin products + companies
-  ~1872 Buyer/seller portal entry + seller plan/billing
-  ~2281 Seller dashboard, products, sales, exports
-  ~2973 Legacy JSON product API
-  ~3002 Session cart helpers
-  ~3184 Public catalog (/catalogo/), product detail, inquiry cart
-  ~3625 Cart page, checkout, buyer orders, RFQ/cotizaciones
-  ~4000+ Legal pages, marketplace marketing, transport
-
-Templates live under templates/core/. URL names in core/urls.py.
-=============================================================================
+Access gates live in ``core.decorators`` (``admin_required``,
+``buyer_required``, ``seller_required``, ``catalog_access``,
+``guest_or_buyer_cart``, ``buyer_checkout``). URL names are in
+``core.urls``.
 """
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
@@ -104,15 +83,7 @@ log = logging.getLogger(__name__)
 
 
 def _normalize_dashboard_dias(raw):
-    """
-    Normaliza el período de gráficos del panel admin a 7, 30 o 90 días.
-
-    Args:
-        raw: Valor leído de query string (``días`` o ``periodo``), o None.
-
-    Returns:
-        int: 7, 30 o 90.
-    """
+    """Normalize admin chart period to 7, 30, or 90 days."""
     try:
         d = int(raw)
     except (TypeError, ValueError):
@@ -123,15 +94,7 @@ def _normalize_dashboard_dias(raw):
 
 
 def _parse_dashboard_dias(request):
-    """
-    Lee ``dias`` o, si falta, ``periodo`` (compatibilidad) del request GET.
-
-    Args:
-        request: HttpRequest.
-
-    Returns:
-        int: Días normalizados (7, 30 o 90).
-    """
+    """Read ``dias`` or legacy ``periodo`` from the request GET."""
     raw = request.GET.get('dias')
     if raw is None:
         raw = request.GET.get('periodo')
@@ -139,16 +102,7 @@ def _parse_dashboard_dias(request):
 
 
 def _dashboard_calendar_days(dias, now=None):
-    """
-    Genera ventanas [inicio, fin) por día natural en la zona horaria del proyecto.
-
-    Args:
-        dias: Número de días (7, 30 o 90).
-        now: Momento de referencia (aware); por defecto ``timezone.now()``.
-
-    Returns:
-        list[tuple]: Cada elemento es (day_start, day_end, label_str).
-    """
+    """Build local-midnight [start, end) windows for chart buckets."""
     if now is None:
         now = timezone.now()
     dias = _normalize_dashboard_dias(dias)
@@ -169,14 +123,10 @@ def _dashboard_calendar_days(dias, now=None):
 
 
 def _build_dashboard_charts_payload(dias, now=None):
-    """
-    Construye etiquetas y series diarias para Chart.js y conteos por estado.
-
-    Buckets por **medianoche local** (``TIME_ZONE``), no UTC naive con
-    ``replace(hour=0)`` sobre ``now`` aware.
-
-    ``estados_data`` agrupa órdenes **creadas** en la ventana de ``dias``;
-    ``paid`` incluye ``packed``.
+    """Build Chart.js labels, daily series, and status counts.
+    
+    Buckets use project ``TIME_ZONE`` midnights. ``estados_data``
+    counts orders created in the window; ``paid`` includes ``packed``.
     """
     if now is None:
         now = timezone.now()
@@ -295,16 +245,15 @@ def _build_dashboard_charts_payload(dias, now=None):
 
 
 def _charts_json(payload):
-    """Serializa el payload de gráficos del dashboard para plantilla o API."""
+    """Serialize the dashboard chart payload for templates or APIs."""
     return json.dumps(payload, ensure_ascii=False, cls=DjangoJSONEncoder)
 
 
 def _dashboard_revenue_qs():
-    """
-    QuerySet base para KPIs de ingresos del dashboard admin.
-
-    Si ``DASHBOARD_KPI_REVENUE_DELIVERED_ONLY`` es True, solo órdenes entregadas;
-    si False (modo pruebas), todas las no canceladas.
+    """Base queryset for admin revenue KPIs.
+    
+    When ``DASHBOARD_KPI_REVENUE_DELIVERED_ONLY`` is True, only
+    delivered orders; otherwise all non-cancelled.
     """
     if settings.DASHBOARD_KPI_REVENUE_DELIVERED_ONLY:
         return Order.objects.filter(status='delivered')
@@ -312,13 +261,7 @@ def _dashboard_revenue_qs():
 
 
 def _period_delta_pct(current, previous):
-    """
-    Texto corto de variación porcentual entre el período actual y el anterior.
-
-    Args:
-        current: Valor numérico del período reciente.
-        previous: Valor del período inmediatamente anterior (misma duración).
-    """
+    """Format percent change between the current and prior period."""
     try:
         cur = float(current)
         prev = float(previous)
@@ -335,11 +278,11 @@ def _period_delta_pct(current, previous):
 # =============================================================================
 
 def _redirect_by_role(user):
-    """
-    URL de inicio tras login o al visitar la home autenticado.
-
-    Los administradores deben ir a /dashboard/, nunca a / (home pública),
-    para evitar ERR_TOO_MANY_REDIRECTS (home redirige de nuevo al mismo rol).
+    """Home URL after login or when an authenticated user hits ``/``.
+    
+    Admins go to ``/dashboard/`` (never public home) to avoid
+    redirect loops. Sellers and buyers may still need onboarding
+    before the seller portal or guest catalog.
     """
     try:
         role = user.profile.role
@@ -362,15 +305,7 @@ def _redirect_by_role(user):
 # =============================================================================
 
 def _login_template_context(**extra):
-    """
-    Contexto común para la plantilla de login.
-
-    Args:
-        **extra: Claves adicionales (p. ej. mostrar_reenvio, email_pendiente).
-
-    Returns:
-        dict: Contexto para ``core/login.html``.
-    """
+    """Shared context for ``core/login.html`` (OTP gate flags, extras)."""
     ctx = {
         'require_email_verification': settings.REQUIRE_EMAIL_VERIFICATION,
     }
@@ -379,7 +314,7 @@ def _login_template_context(**extra):
 
 
 def _safe_next_url(request, raw_next: str = '') -> str:
-    """Normaliza ?next= evitando open redirects y bucles login/home."""
+    """Normalize ``?next=``, blocking open redirects and login/home loops."""
     next_url = (raw_next or request.GET.get('next') or '').strip()
     if not next_url.startswith('/') or next_url.startswith('//') or '://' in next_url:
         return ''
@@ -396,7 +331,11 @@ def _safe_next_url(request, raw_next: str = '') -> str:
 
 @never_cache
 def login_view(request):
-    """Login con redirección inteligente según rol."""
+    """Authenticate and route by role, OTP gate, or safe ``?next=``.
+    
+    Protected destinations may force ``verificar_codigo`` before
+    checkout or other marketplace routes.
+    """
     if request.user.is_authenticated:
         next_url = _safe_next_url(request)
         if next_url:
@@ -443,13 +382,18 @@ def login_view(request):
 
 
 def logout_view(request):
-    """HTTP view: logout."""
+    """Log out, flush the session, and return to login."""
     logout(request)
     request.session.flush()
     return redirect('login')
 
 
 def _process_signup(request, forced_role=None, error_template='core/signup.html'):
+    """Create User + UserProfile from signup POST and start OTP.
+    
+    ``forced_role`` locks buyer or seller signup URLs. On success,
+    ``finalize_signup_with_otp`` sends the six-digit code.
+    """
     first_name = escape(request.POST.get('first_name', '').strip())
     last_name = escape(request.POST.get('last_name', '').strip())
     username = escape(request.POST.get('username', '').strip())
@@ -574,7 +518,7 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
 
 @never_cache
 def signup_view(request):
-    """Public registration: creates User + UserProfile."""
+    """Public registration that creates User + UserProfile."""
     if request.user.is_authenticated:
         return redirect('home')
 
@@ -603,7 +547,7 @@ def signup_view(request):
 
 @never_cache
 def signup_buyer_view(request):
-    """HTTP view: signup buyer."""
+    """Buyer-only signup entry before OTP and catalog onboarding."""
     if request.user.is_authenticated:
         return redirect('home')
     if request.method == 'POST':
@@ -615,7 +559,7 @@ def signup_buyer_view(request):
 
 @never_cache
 def signup_seller_view(request):
-    """HTTP view: signup seller."""
+    """Seller-only signup entry before OTP and company onboarding."""
     if request.user.is_authenticated:
         return redirect('home')
     if request.method == 'POST':
@@ -626,7 +570,7 @@ def signup_seller_view(request):
 
 
 def _redirect_after_email_verified(user):
-    """Redirección post-verificación por rol (+ wizard comprador si aplica)."""
+    """Post-OTP destination by role, including buyer/seller wizards."""
     from django.urls import reverse
 
     from core.utils.access_gating import buyer_onboarding_redirect_name
@@ -647,7 +591,7 @@ def _redirect_after_email_verified(user):
 
 @login_required
 def enviar_codigo(request):
-    """Genera OTP, envía por Resend y redirige al formulario."""
+    """Generate a six-digit OTP, email it via Resend, and open the form."""
     from core.auth_views import _email_verification_gate_active
     from core.utils.email_config import explain_email_failure
     from core.utils.otp_delivery import ensure_otp_sent
@@ -697,12 +641,7 @@ from core.auth_views import verify_otp_view as verificar_codigo  # noqa: E402
 
 
 def verificar_email(request, token):
-    """
-    Activa la cuenta si el token de verificación es válido.
-
-    Si el email ya estaba verificado, informa al usuario. Invalida el token
-    tras uso exitoso y envía correo de bienvenida.
-    """
+    """Activate the account when a legacy email verification token is valid."""
     try:
         profile = UserProfile.objects.select_related('user').get(
             token_verificacion=token,
@@ -746,9 +685,7 @@ def verificar_email(request, token):
 
 @login_required
 def reenviar_verificacion(request):
-    """
-    Reenvía el correo de verificación al usuario autenticado no verificado.
-    """
+    """Resend verification email to the authenticated unverified user."""
     if not settings.REQUIRE_EMAIL_VERIFICATION:
         messages.info(
             request,
@@ -764,9 +701,7 @@ def reenviar_verificacion(request):
 
 @never_cache
 def reenviar_verificacion_public(request):
-    """
-    Reenvía verificación por email sin sesión (formulario en login).
-    """
+    """Resend verification by email without a session (login form)."""
     if not settings.REQUIRE_EMAIL_VERIFICATION:
         messages.info(
             request,
@@ -796,14 +731,7 @@ def reenviar_verificacion_public(request):
 
 @login_required
 def mi_perfil(request):
-    """
-    Vista del perfil del usuario autenticado.
-
-    GET: Muestra información actual del perfil.
-    POST: Actualiza nombre, apellido, email y teléfono, o cambia la contraseña.
-
-    Incluye resumen de actividad según rol (buyer, seller, admin).
-    """
+    """Show and update the authenticated user profile."""
     from django.contrib.auth import update_session_auth_hash
 
     profile = request.user.profile
@@ -874,11 +802,7 @@ def mi_perfil(request):
 
 
 def home_view(request):
-    """
-    Landing pública PreExpo: merchandising ORM, secciones CMS y stats reales.
-
-    Sellers y admins van a su panel; compradores e invitados ven la landing.
-    """
+    """Public PreExpo landing with merchandising, CMS, and live stats."""
     if request.user.is_authenticated:
         try:
             role = request.user.profile.role
@@ -903,18 +827,14 @@ def home_view(request):
 @require_GET
 @cache_control(public=True, max_age=60)
 def api_home_merchandising(request):
-    """
-    JSON público de merchandising home (cacheable) para integraciones ligeras.
-
-    Returns:
-        JsonResponse: ofertas, bestsellers, destacados y secciones CMS activas.
-    """
+    """Public JSON merchandising payload for lightweight home clients."""
     from core.utils.tradeflow_cache import cached_api_home_merchandising
 
     return JsonResponse(cached_api_home_merchandising())
 
 
 def _assistant_system_prompt() -> str:
+    """System prompt for the marketplace AI assistant (Groq)."""
     from core.utils.saas_plan_catalog import build_saas_plans_ai_context
 
     return (
@@ -936,6 +856,7 @@ _ASSISTANT_FALLBACK = (
 
 
 def _asistente_respuesta_html(text: str) -> str:
+    """Escape assistant text for safe HTML chat bubbles."""
     safe = escape(text).replace('\n', '<br>')
     return (
         '<div class="tf-bot-card">'
@@ -945,6 +866,7 @@ def _asistente_respuesta_html(text: str) -> str:
 
 
 def _asistente_json_payload(respuesta: str, *, ok: bool = True, status: int = 200):
+    """Wrap assistant text in the AJAX JSON response shape."""
     return JsonResponse(
         {
             'ok': ok,
@@ -957,23 +879,7 @@ def _asistente_json_payload(respuesta: str, *, ok: bool = True, status: int = 20
 
 @require_GET
 def api_search_suggest(request):
-    """
-    JSON typeahead for all search bars (Google-style suggestions while typing).
-
-    Query params
-    ------------
-    q:     Search text (empty → trending / shortcuts for the scope).
-    scope: ``public`` | ``buyer`` | ``seller`` | ``admin`` (default ``public``).
-    limit: Max rows, 1–12 (default 8).
-
-    Response
-    --------
-    ``ok``, ``query``, ``scope``, ``suggestions[]``, optional ``tip`` / ``related``,
-    and ``ai_enabled`` when Groq enrichment is configured.
-
-    Wired from templates via ``data-tf-ai-search`` + ``tf-ai-search.js``.
-    See ``docs/AI_SEARCH.md``.
-    """
+    """JSON typeahead for catalog and header search bars."""
     from .utils.ai_search import build_search_response
 
     scope = (request.GET.get('scope') or 'public').strip().lower()
@@ -1009,16 +915,7 @@ def api_search_suggest(request):
 
 @require_POST
 def api_asistente(request):
-    """
-    Endpoint AJAX para el chat del asistente IA (Groq).
-
-    POST body (JSON):
-        mensaje: Pregunta del usuario.
-        historial: Mensajes anteriores (opcional).
-
-    Returns:
-        JsonResponse: ``ok``, ``respuesta`` y ``respuesta_html``.
-    """
+    """AJAX chat endpoint for the CFZ marketplace AI assistant."""
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
@@ -1099,12 +996,7 @@ _CFZ_DEFAULT_LNG = -79.9000
 
 
 def _cfz_map_marker_payload(request) -> dict:
-    """
-    Build Leaflet marker JSON for the free OSM company map (no paid API keys).
-
-    Companies without coordinates get a small jitter around the CFZ centroid so
-    markers do not stack on one point.
-    """
+    """Build Leaflet marker JSON for the free OSM company map."""
     markers = []
     from core.utils.seller_lifecycle import company_marketplace_visible, marketplace_active_company_ids
 
@@ -1157,11 +1049,7 @@ def _cfz_map_marker_payload(request) -> dict:
 
 
 def mapa_zlc(request):
-    """
-    Interactive CFZ company map — Leaflet + OpenStreetMap (100% free, no API key).
-
-    Marker data is passed to the client as JSON; tiles come from OSM volunteers.
-    """
+    """Interactive CFZ company map (Leaflet + OpenStreetMap)."""
     return render(request, 'core/mapa_zlc.html', {
         'map_payload': _cfz_map_marker_payload(request),
         'titulo_pagina': 'CFZ Map',
@@ -1171,18 +1059,7 @@ def mapa_zlc(request):
 
 
 def visitante_zlc_verificacion(request):
-    """
-    Pantalla pública de verificación leyendo el token ``t`` firmado en la query.
-
-    Muestra nombre, usuario y correo del comprador asociado al QR si el token
-    es válido y no ha expirado.
-
-    Args:
-        request: HttpRequest (GET con ``t``).
-
-    Returns:
-        HttpResponse: Detalle o mensaje de error.
-    """
+    """Public visitor check-in page reading signed token ``t``."""
     token = (request.GET.get('t') or '').strip()
     if not token:
         return render(
@@ -1219,7 +1096,7 @@ def visitante_zlc_verificacion(request):
 
 
 def _visitante_qr_verify_url(request) -> str:
-    """Construye la URL absoluta firmada que se incrusta en el PNG del QR."""
+    """Absolute signed URL embedded in the visitor QR PNG."""
     from urllib.parse import urlencode
 
     token = signing.dumps({'uid': request.user.pk}, salt=_QR_SALT)
@@ -1228,7 +1105,7 @@ def _visitante_qr_verify_url(request) -> str:
 
 
 def _qr_png_bytes(payload: str) -> bytes:
-    """Genera imagen PNG del código QR con el texto o URL dado."""
+    """Render a QR code PNG for the given payload string."""
     qr = qrcode.QRCode(version=None, box_size=8, border=2)
     qr.add_data(payload)
     qr.make(fit=True)
@@ -1240,18 +1117,7 @@ def _qr_png_bytes(payload: str) -> bytes:
 
 @login_required
 def mi_qr(request):
-    """
-    Página del comprador con el QR grande, instrucciones y enlace de descarga.
-
-    El QR apunta a la URL de verificación firmada para agilizar ingreso o
-    validaciones en la Zona Libre de Colón.
-
-    Args:
-        request: HttpRequest (usuario autenticado).
-
-    Returns:
-        HttpResponse: Plantilla ``mi_qr.html``.
-    """
+    """Buyer page with large visitor QR, instructions, and download."""
     verify_url = _visitante_qr_verify_url(request)
     png = _qr_png_bytes(verify_url)
     b64 = base64.b64encode(png).decode('ascii')
@@ -1268,15 +1134,7 @@ def mi_qr(request):
 
 @login_required
 def generar_qr_visitante(request):
-    """
-    Devuelve la imagen PNG del QR de visitante para descargar o incrustar.
-
-    Args:
-        request: HttpRequest.
-
-    Returns:
-        HttpResponse: ``image/png`` con ``Content-Disposition: attachment``.
-    """
+    """Return the visitor QR PNG for download or embed."""
     verify_url = _visitante_qr_verify_url(request)
     png = _qr_png_bytes(verify_url)
     resp = HttpResponse(png, content_type='image/png')
@@ -1290,18 +1148,7 @@ def generar_qr_visitante(request):
 
 @admin_required
 def api_dashboard_stats(request):
-    """
-    Devuelve JSON con series diarias y conteos por estado para el dashboard admin.
-
-    Se usa con ``fetch`` desde el template para cambiar 7 / 30 / 90 días sin
-    recargar la página. Solo administradores autenticados.
-
-    Query parameters:
-        dias: 7, 30 o 90 (opcional; por defecto 7).
-
-    Returns:
-        JsonResponse: payload de :func:`_build_dashboard_charts_payload`.
-    """
+    """JSON daily series and status counts for the admin dashboard."""
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     dias = _normalize_dashboard_dias(request.GET.get('dias'))
@@ -1311,18 +1158,7 @@ def api_dashboard_stats(request):
 
 @admin_required
 def dashboard(request):
-    """
-    Panel de administración con KPIs, selector de período (7 / 30 / 90 días) y
-    gráficos Chart.js alimentados con datos reales del ORM.
-
-    Variables de gráficos en contexto (además de JSON para el cliente):
-    ``ordenes_por_dia``, ``ingresos_por_dia``, ``estados_data`` y
-    ``chart_labels``, derivadas de :func:`_build_dashboard_charts_payload`.
-
-    El parámetro GET ``dias`` (o ``periodo`` por compatibilidad) controla la
-    ventana de KPIs y la carga inicial de los gráficos; cambios posteriores
-    usan :func:`api_dashboard_stats` vía JavaScript.
-    """
+    """Admin panel with KPIs and 7/30/90-day Chart.js period selector."""
     hoy = timezone.now()
     dias = _parse_dashboard_dias(request)
 
@@ -1509,7 +1345,7 @@ def dashboard(request):
 
 @admin_required
 def lista_ordenes(request):
-    """View handler: lista ordenes."""
+    """Admin list of marketplace orders with filters and pagination."""
     ordenes = (
         Order.objects.select_related('buyer')
         .annotate(item_count=Count('items', distinct=True))
@@ -1562,7 +1398,7 @@ def lista_ordenes(request):
 
 @admin_required
 def detalle_orden(request, pk):
-    """View handler: detalle orden."""
+    """Admin detail for a single order, items, and logistics."""
     orden = get_object_or_404(
         Order.objects.select_related('buyer', 'ship_address').prefetch_related(
             Prefetch(
@@ -1601,7 +1437,7 @@ def detalle_orden(request, pk):
 
 @admin_required
 def cambiar_estado_orden(request, pk, estado):
-    """View handler: cambiar estado orden."""
+    """Admin transition of an order status with email side effects."""
     orden = get_object_or_404(Order, pk=pk)
     estados_validos = [e[0] for e in Order.STATUS_CHOICES]
 
@@ -1632,7 +1468,7 @@ def cambiar_estado_orden(request, pk, estado):
 
 @admin_required
 def nueva_orden_paso1(request):
-    """View handler: nueva orden paso1."""
+    """Admin new-order wizard step 1 — choose buyer/company."""
     request.session.pop('wizard_buyer_id',   None)
     request.session.pop('wizard_order_type', None)
     request.session.pop('wizard_items',      None)
@@ -1660,7 +1496,7 @@ def nueva_orden_paso1(request):
 
 @admin_required
 def nueva_orden_paso2(request):
-    """View handler: nueva orden paso2."""
+    """Admin new-order wizard step 2 — select catalog products."""
     if not request.session.get('wizard_buyer_id'):
         messages.error(request, 'Complete step 1 first.')
         return redirect('nueva_orden_paso1')
@@ -1756,7 +1592,7 @@ def nueva_orden_paso2(request):
 
 @admin_required
 def nueva_orden_paso3(request):
-    """View handler: nueva orden paso3."""
+    """Admin new-order wizard step 3 — confirm and create the order."""
     from decimal import Decimal
     buyer_id   = request.session.get('wizard_buyer_id')
     order_type = request.session.get('wizard_order_type', 'b2c')
@@ -1852,7 +1688,7 @@ def nueva_orden_paso3(request):
 
 @admin_required
 def lista_productos(request):
-    """View handler: lista productos."""
+    """Admin catalog product list across CFZ companies."""
     productos  = (
         Product.objects.select_related('company', 'category')
         .defer('company__owner')
@@ -1909,7 +1745,7 @@ def lista_productos(request):
 
 @admin_required
 def lista_empresas(request):
-    """View handler: lista empresas."""
+    """Admin directory of CFZ seller companies."""
     empresas  = Company.objects.annotate(
         total_productos=Count('products')
     ).order_by('name')
@@ -1929,7 +1765,7 @@ def lista_empresas(request):
 
 @buyer_required
 def portal_buyer(request):
-    """Portal del comprador — se completa el Lunes 14."""
+    """Buyer portal entry — redirects into the public catalog flow."""
     return render(request, 'core/portal_buyer_temp.html', {
         'titulo_pagina': 'TradeFlow store',
     })
@@ -1937,7 +1773,7 @@ def portal_buyer(request):
 
 @seller_required
 def seller_company_qr(request):
-    """QR code linking to the seller company catalog in the public store."""
+    """QR linking to this seller company in the public guest catalog."""
     try:
         company = Company.objects.get(owner=request.user)
     except Company.DoesNotExist:
@@ -1990,7 +1826,7 @@ def seller_download_qr(request):
 
 @seller_required
 def portal_seller(request):
-    """Dashboard premium del vendedor en /mi-tienda/."""
+    """Seller portal home at ``/mi-tienda/`` after company onboarding."""
     import json as _json
 
     from .utils.order_workflow import expire_pending_orders
@@ -2020,7 +1856,7 @@ def portal_seller(request):
 @seller_required
 @require_GET
 def api_seller_dashboard(request):
-    """Polling ligero para actualizaciones del panel seller."""
+    """Lightweight JSON polling for seller portal dashboard widgets."""
     from .utils.seller_analytics import seller_portal_dashboard
 
     company = _get_seller_company(request.user)
@@ -2037,7 +1873,7 @@ def api_seller_dashboard(request):
 @seller_required
 @require_GET
 def api_seller_order_timeline(request, pk):
-    """Timeline logística JSON para polling / Supabase Realtime complemento."""
+    """JSON logistics timeline for seller order polling / realtime."""
     company = _get_seller_company(request.user)
     if not company:
         return JsonResponse({'error': 'no_company'}, status=403)
@@ -2054,7 +1890,7 @@ def api_seller_order_timeline(request, pk):
 
 @seller_required
 def seller_plan_consumo(request):
-    """Dashboard de consumo SaaS y planes."""
+    """SaaS consumption dashboard and plan comparison for sellers."""
     import logging
 
     saas_log = logging.getLogger('tradeflow.saas')
@@ -2103,7 +1939,7 @@ def seller_plan_consumo(request):
 @seller_required
 @require_POST
 def seller_dispatch_order(request, pk):
-    """Despacho logístico 1-clic (webhook + timeline)."""
+    """One-click logistics dispatch (webhook + timeline update)."""
     company, resp = _seller_company_or_response(request, 'seller_ventas')
     if resp:
         return resp
@@ -2139,7 +1975,7 @@ def seller_dispatch_order(request, pk):
 
 @seller_required
 def seller_plan_checkout(request, plan_slug: str):
-    """Pantalla de pago: upgrade en trial, activación post-trial o upgrade active."""
+    """Plan payment screen for trial upgrade or post-trial activation."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
@@ -2196,7 +2032,7 @@ def seller_plan_checkout(request, plan_slug: str):
 
 @seller_required
 def seller_plan_checkout_resume(request):
-    """Retoma un checkout pendiente."""
+    """Resume a pending seller plan checkout session."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
@@ -2212,12 +2048,7 @@ def seller_plan_checkout_resume(request):
 @seller_required
 @require_POST
 def seller_plan_checkout_pay(request, plan_slug: str):
-    """
-    Confirma método de pago del plan.
-
-    - mock (solo si ALLOW_MOCK_PLAN_PAYMENT): activa al instante.
-    - bank: registra transferencia y deja checkout ``pending`` hasta admin.
-    """
+    """Confirm the selected payment method for a SaaS plan."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
@@ -2321,7 +2152,7 @@ def seller_plan_checkout_pay(request, plan_slug: str):
 @seller_required
 @require_POST
 def seller_upgrade_plan(request):
-    """Redirige al checkout (compatibilidad con formularios antiguos)."""
+    """Compatibility redirect from legacy upgrade forms to checkout."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
@@ -2333,11 +2164,7 @@ def seller_upgrade_plan(request):
 
 @seller_required
 def seller_trial_activation(request):
-    """
-    Pantalla obligatoria post-trial (past_due): volumen, plan recomendado y CTAs de pago.
-
-    Solo accesible en gracia; otras rutas del portal redirigen aquí vía seller_required.
-    """
+    """Required post-trial screen (volume, recommended plan, activate)."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
@@ -2360,7 +2187,7 @@ def seller_trial_activation(request):
 @seller_required
 @require_POST
 def seller_decline_continue(request):
-    """Baja voluntaria durante gracia — aplica churn medio inmediato."""
+    """Voluntary churn during grace — apply mid-tier cancel immediately."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
@@ -2374,7 +2201,7 @@ def seller_decline_continue(request):
 
 @seller_required
 def seller_account_inactive(request):
-    """Cuenta seller cancelada (baja media); sin acceso operativo al portal."""
+    """Inactive seller account page (no operational portal access)."""
     company = _get_seller_company(request.user)
     return render(request, 'core/seller_account_inactive.html', {
         'company': company,
@@ -2384,7 +2211,7 @@ def seller_account_inactive(request):
 
 @seller_required
 def seller_predictive_insights(request):
-    """Panel IA predictiva — solo Ecosistema Enterprise."""
+    """Predictive AI panel — Ecosistema Enterprise plan only."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
@@ -2413,14 +2240,7 @@ def seller_predictive_insights(request):
 
 
 def _optimize_product_image_from_request(request, product_form, product):
-    """Optimiza imagen subida antes de persistir (storage cloud-friendly).
-
-    Si la imagen falla las validaciones de seguridad de
-    `optimize_uploaded_image` (tamano > 10 MiB, formato no permitido,
-    decompression bomb, archivo malformado), se muestra un mensaje al
-    usuario y se guarda el producto SIN la imagen nueva (conservando la
-    anterior si esta editando). Asi evitamos un 500 ante uploads invalidos.
-    """
+    """Optimize an uploaded product image before cloud storage save."""
     if 'image' not in request.FILES:
         return product
     from django.core.exceptions import ValidationError as _ValidationError
@@ -2438,21 +2258,14 @@ def _optimize_product_image_from_request(request, product_form, product):
 
 
 def _get_seller_company(user):
-    """
-    Devuelve la empresa cuyo propietario es el usuario autenticado, o None.
-    """
+    """Return the Company owned by the user, or None."""
     if not user.is_authenticated:
         return None
     return Company.objects.filter(owner=user).first()
 
 
 def _seller_company_or_response(request, nav_activo='mi_tienda'):
-    """
-    Obtiene la empresa del vendedor o devuelve plantilla de aviso.
-
-    Nota: el wizard de empresa y gates de suscripción los maneja ``seller_required``;
-    esta función es defensa adicional para vistas que la invocan directamente.
-    """
+    """Resolve seller company or render a missing-company notice."""
     company = _get_seller_company(request.user)
     if company:
         return company, None
@@ -2472,9 +2285,7 @@ def _seller_company_or_response(request, nav_activo='mi_tienda'):
 
 
 def _seller_low_stock_count(company):
-    """
-    Cuenta cuántos productos de la empresa tienen inventario en nivel bajo.
-    """
+    """Count company products at or below low-stock threshold."""
     n = 0
     qs = Inventory.objects.filter(product__company=company).select_related('product')
     for inv in qs:
@@ -2485,9 +2296,7 @@ def _seller_low_stock_count(company):
 
 @seller_required
 def seller_dashboard(request):
-    """
-    Panel principal del vendedor: métricas de productos, stock y órdenes recientes.
-    """
+    """Seller metrics for products, stock, and recent orders."""
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
@@ -2539,9 +2348,7 @@ def seller_dashboard(request):
 
 @seller_required
 def seller_productos(request):
-    """
-    Lista los productos del catálogo de la empresa del vendedor con filtros y paginación.
-    """
+    """Legacy seller product list with filters for the company catalog."""
     company, resp = _seller_company_or_response(request, 'seller_productos')
     if resp:
         return resp
@@ -2581,7 +2388,7 @@ def seller_productos(request):
 
 @seller_required
 def seller_mis_productos(request):
-    """Dashboard de productos con KPIs, gráfico y tabla filtrable."""
+    """Seller products dashboard with KPIs, chart, and filterable table."""
     company, resp = _seller_company_or_response(request, 'seller_productos')
     if resp:
         return resp
@@ -2749,9 +2556,7 @@ def seller_mis_productos(request):
 
 @seller_required
 def seller_producto_nuevo(request):
-    """
-    Crea un producto nuevo e inventario asociado para la empresa del vendedor.
-    """
+    """Create a product and inventory row for the seller company."""
     company, resp = _seller_company_or_response(request, 'seller_productos')
     if resp:
         return resp
@@ -2797,15 +2602,13 @@ def seller_producto_nuevo(request):
 
 @seller_required
 def seller_agregar_producto(request):
-    """Alias de creación de producto para ruta solicitada por especificación."""
+    """Alias for product create used by the primary seller portal URL."""
     return seller_producto_nuevo(request)
 
 
 @seller_required
 def seller_producto_editar(request, pk):
-    """
-    Edita un producto existente de la empresa del vendedor y su inventario.
-    """
+    """Edit a seller company product and its inventory."""
     company, resp = _seller_company_or_response(request, 'seller_productos')
     if resp:
         return resp
@@ -2851,12 +2654,12 @@ def seller_producto_editar(request, pk):
 
 @seller_required
 def seller_editar_producto(request, pk):
-    """Alias de edición de producto para ruta solicitada por especificación."""
+    """Alias for product edit used by the primary seller portal URL."""
     return seller_producto_editar(request, pk)
 
 @seller_required
 def seller_toggle_producto(request, pk):
-    """Activa/desactiva un producto del vendedor (POST; JSON para AJAX)."""
+    """Activate or deactivate a seller product (POST; JSON for AJAX)."""
     if request.method != 'POST':
         return redirect('seller_mis_productos')
     company, resp = _seller_company_or_response(request, 'seller_productos')
@@ -2890,9 +2693,7 @@ def seller_toggle_producto(request, pk):
 
 @seller_required
 def seller_ventas(request):
-    """
-    Lista las órdenes que incluyen al menos un producto de la empresa del vendedor.
-    """
+    """Legacy list of orders that include this company's products."""
     company, resp = _seller_company_or_response(request, 'seller_ventas')
     if resp:
         return resp
@@ -2923,7 +2724,7 @@ def seller_ventas(request):
 
 @seller_required
 def seller_mis_ventas(request):
-    """Dashboard de ventas con métricas, gráfico y exportación."""
+    """Seller sales dashboard with metrics, chart, and CSV export."""
     company, resp = _seller_company_or_response(request, 'seller_ventas')
     if resp:
         return resp
@@ -2986,7 +2787,7 @@ def seller_mis_ventas(request):
 
 @seller_required
 def seller_export_ventas_csv(request):
-    """Exporta transacciones del vendedor a CSV."""
+    """Export seller sales transactions as CSV."""
     import csv
 
     company, resp = _seller_company_or_response(request, 'seller_ventas')
@@ -3028,7 +2829,7 @@ def seller_export_ventas_csv(request):
 @seller_required
 @require_GET
 def seller_export_productos_csv(request):
-    """Exporta catálogo del vendedor a CSV."""
+    """Export the seller catalog as CSV."""
     import csv
 
     company, resp = _seller_company_or_response(request, 'seller_productos')
@@ -3064,7 +2865,7 @@ def seller_export_productos_csv(request):
 @seller_required
 @require_GET
 def seller_export_precios_csv(request):
-    """Exporta precios del catálogo a CSV."""
+    """Export seller catalog prices as CSV."""
     import csv
 
     company, resp = _seller_company_or_response(request, 'seller_productos')
@@ -3090,9 +2891,7 @@ def seller_export_precios_csv(request):
 
 @seller_required
 def seller_venta_detalle(request, pk):
-    """
-    Muestra el detalle de una orden limitado a las líneas de la empresa del vendedor.
-    """
+    """Order detail limited to line items for this seller company."""
     company, resp = _seller_company_or_response(request, 'seller_ventas')
     if resp:
         return resp
@@ -3171,7 +2970,7 @@ def seller_venta_detalle(request, pk):
 
 @seller_required
 def seller_detalle_venta(request, pk):
-    """Alias de detalle de venta para el nombre solicitado en URLs."""
+    """Alias for sale detail used by the primary seller portal URL."""
     return seller_venta_detalle(request, pk)
 
 # =============================================================================
@@ -3180,7 +2979,7 @@ def seller_detalle_venta(request, pk):
 
 @login_required
 def api_productos(request):
-    """JSON API endpoint: productos."""
+    """Legacy JSON product listing for admin/integrations."""
     productos = (
         Product.objects.filter(is_active=True)
         .select_related('category', 'company', 'inventory')
@@ -3211,26 +3010,19 @@ def api_productos(request):
 # ---------------------------------------------------------------------------
 
 def _get_carrito(request):
-    """
-    Recupera el carrito desde la sesión.
-    Devuelve un diccionario vacío si no existe.
-    El ID del producto se usa como clave (string por limitación de JSON).
-    """
+    """Load the session cart dict for guest or buyer checkout."""
     return request.session.get('carrito', {})
 
 
 def _save_carrito(request, carrito):
-    """
-    Guarda el carrito en la sesión y marca la sesión como modificada.
-    Necesario para que Django persista los cambios en sesiones de tipo dict.
-    """
+    """Persist the session cart and mark the session modified."""
     request.session['carrito'] = carrito
     request.session.modified = True
     _sync_cart_activity_profile(request, carrito)
 
 
 def _sync_cart_activity_profile(request, carrito):
-    """Persist cart snapshot on buyer profile for abandonment reminders."""
+    """Mirror cart snapshot onto the buyer profile for abandonment mail."""
     user = getattr(request, 'user', None)
     if not user or not user.is_authenticated:
         return
@@ -3261,10 +3053,7 @@ def _sync_cart_activity_profile(request, carrito):
 
 
 def _calcular_total(carrito):
-    """
-    Suma los subtotales de todos los items del carrito.
-    Retorna un Decimal con 2 decimales.
-    """
+    """Sum line subtotals for the session cart."""
     total = Decimal('0.00')
     for item in carrito.values():
         total += Decimal(item['subtotal'])
@@ -3272,15 +3061,12 @@ def _calcular_total(carrito):
 
 
 def _contar_items(carrito):
-    """
-    Retorna la cantidad total de unidades en el carrito.
-    Usado para mostrar el badge del carrito en el navbar.
-    """
+    """Count total units across session cart lines."""
     return sum(item['cantidad'] for item in carrito.values())
 
 
 def _carrito_items_with_products(carrito):
-    """Enrich session cart lines with Product instances for image fallbacks."""
+    """Enrich session cart lines with Product rows for image fallbacks."""
     ids = []
     for key in carrito:
         try:
@@ -3308,7 +3094,7 @@ def _carrito_items_with_products(carrito):
 
 
 def _request_wants_json(request):
-    """True si el cliente espera respuesta JSON (fetch/AJAX)."""
+    """Return True when the client expects a JSON cart/API body."""
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return True
     accept = request.headers.get('Accept', '')
@@ -3320,11 +3106,7 @@ def _request_wants_json(request):
 # ---------------------------------------------------------------------------
 
 def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
-    """
-    Construye la lista de entradas para la paginación elidida del catálogo.
-
-    Cada elemento es ``{'type': 'page', 'num': int}`` o ``{'type': 'ellipsis'}``.
-    """
+    """Build elided page slots for the public catalog pager."""
     if not page_obj.has_other_pages():
         return []
     paginator = page_obj.paginator
@@ -3340,7 +3122,7 @@ def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
 
 
 def _catalogo_filter_querystring(request, *, omit=()):
-    """Query string de filtros activos (sin page/partial ni claves en omit)."""
+    """Active catalog filters as a query string (omit page/partial)."""
     qcopy = request.GET.copy()
     for key in ('page', 'partial', *omit):
         qcopy.pop(key, None)
@@ -3348,10 +3130,11 @@ def _catalogo_filter_querystring(request, *, omit=()):
 
 
 def _catalog_url_from_tienda_query(request):
-    """Map legacy /tienda/ query params to /catalogo/ equivalents."""
+    """Map legacy ``/tienda/`` query params to ``/catalogo/`` equivalents."""
     q = request.GET.copy()
 
     def _first(value):
+        """Return the first non-empty query value from a MultiValueDict."""
         if value is None:
             return None
         if isinstance(value, list):
@@ -3389,7 +3172,11 @@ def _catalog_url_from_tienda_query(request):
 
 @catalog_access
 def catalogo_publico(request):
-    """Catálogo público read-only (sin login) — filtros + grid de productos."""
+    """Public read-only guest catalog with filters and product grid.
+    
+    No login required; cart/inquiry actions use session storage
+    until OTP and checkout.
+    """
     from decimal import Decimal, InvalidOperation
 
     from django.db.models import Case, DecimalField, F, IntegerField, When
@@ -3582,13 +3369,13 @@ def catalogo_publico(request):
 
 @catalog_access
 def tienda(request):
-    """Legacy /tienda/ URL — permanent redirect to the public catalog."""
+    """Legacy ``/tienda/`` URL — permanent redirect to the guest catalog."""
     return redirect(_catalog_url_from_tienda_query(request), permanent=True)
 
 
 @catalog_access
 def catalogo_producto_detail(request, pk):
-    """Vista pública de detalle de producto (sin login requerido)."""
+    """Public product detail for the guest catalog (login optional)."""
     from django.templatetags.static import static
     from django.urls import reverse
 
@@ -3684,10 +3471,7 @@ catalogo_producto = catalogo_producto_detail
 # ---------------------------------------------------------------------------
 
 def _append_product_to_carrito(request, producto_id, cantidad=1, *, success_template=None):
-    """
-    Añade o incrementa un producto en el carrito de sesión.
-    Devuelve (ok: bool, payload: dict) para JSON o mensajes flash.
-    """
+    """Add or increment a product in the session cart."""
     cantidad = int(cantidad)
     producto = get_object_or_404(
         Product.objects.select_related('inventory'),
@@ -3741,7 +3525,7 @@ def _append_product_to_carrito(request, producto_id, cantidad=1, *, success_temp
 
 @catalog_access
 def catalogo_agregar_inquiry(request, producto_id):
-    """Añade al carrito de sesión desde el catálogo público (invitados incluidos)."""
+    """Add to the session inquiry cart from the guest catalog."""
     if request.method != 'POST':
         return JsonResponse({'ok': False, 'message': _('Method not allowed.')}, status=405)
 
@@ -3771,9 +3555,7 @@ def catalogo_agregar_inquiry(request, producto_id):
 
 @guest_or_buyer_cart
 def agregar_al_carrito(request, producto_id):
-    """
-    Agrega un producto al carrito o incrementa su cantidad si ya existe.
-    """
+    """Add a product to the cart or increase its quantity."""
     if request.method != 'POST':
         return redirect('catalogo_publico')
 
@@ -3798,12 +3580,7 @@ def agregar_al_carrito(request, producto_id):
 
 @guest_or_buyer_cart
 def quitar_del_carrito(request, producto_id):
-    """
-    Elimina un producto del carrito de compras.
-
-    Método: POST (formulario con botón eliminar en carrito.html)
-    Redirige de vuelta al carrito después de quitar.
-    """
+    """Remove a product line from the session cart."""
     if request.method != 'POST':
         return redirect('ver_carrito')
 
@@ -3830,17 +3607,7 @@ def quitar_del_carrito(request, producto_id):
 
 @guest_or_buyer_cart
 def ver_carrito(request):
-    """
-    Muestra el contenido actual del carrito de compras.
-
-    Si el carrito está vacío, muestra un mensaje y un botón
-    para volver a la tienda.
-
-    Contexto:
-        carrito      → dict con los items del carrito
-        total        → Decimal con el total a pagar
-        carrito_count→ Cantidad de unidades para el badge
-    """
+    """Render the current guest/buyer session cart."""
     carrito = _get_carrito(request)
     total   = _calcular_total(carrito)
 
@@ -3867,7 +3634,7 @@ def ver_carrito(request):
 @guest_or_buyer_cart
 @require_POST
 def actualizar_cantidad_carrito(request, producto_id):
-    """Actualiza la cantidad de una línea del carrito (sesión)."""
+    """Update quantity for one session cart line."""
     try:
         cantidad = int(request.POST.get('cantidad', 0))
     except (TypeError, ValueError):
@@ -3914,7 +3681,7 @@ def actualizar_cantidad_carrito(request, producto_id):
 @guest_or_buyer_cart
 @require_POST
 def vaciar_carrito(request):
-    """Elimina todos los productos del carrito de sesión."""
+    """Clear all products from the session cart."""
     _save_carrito(request, {})
     messages.success(request, _('Cart cleared.'))
     return redirect('ver_carrito')
@@ -3926,24 +3693,10 @@ def vaciar_carrito(request):
 
 @buyer_checkout
 def checkout(request):
-    """
-    Proceso de confirmación de compra y generación de la orden.
-
-    GET:  Muestra el formulario de checkout con resumen del carrito
-          y opciones de dirección de envío.
-
-    POST: Crea la orden, sus items, reserva el inventario y registra el pago.
-          Limpia el carrito de la sesión al finalizar.
-          Redirige a la confirmación de la orden creada.
-
-    Campos del formulario POST:
-        notas         → Instrucciones especiales (opcional)
-        shipping_cost → Costo de envío en USD (default 0)
-
-    Validaciones:
-        - El carrito no puede estar vacío
-        - Se verifica el stock disponible producto a producto al crear
-        - Si un producto quedó sin stock, se omite con un warning
+    """Confirm purchase and create the marketplace order.
+    
+    Requires verified buyer access (``buyer_checkout``); may
+    inline OTP when returning from ``verificar_codigo``.
     """
     from core.utils.access_gating import user_needs_otp_verification
 
@@ -4168,17 +3921,7 @@ def checkout(request):
 
 @buyer_required
 def mis_ordenes(request):
-    """
-    Muestra el historial de órdenes del comprador autenticado.
-
-    Solo muestra las órdenes que pertenecen al usuario actual.
-    Un buyer nunca puede ver las órdenes de otro usuario.
-
-    Filtros disponibles (GET params):
-        estado → Filtra por status de la orden
-
-    Paginación: 8 órdenes por página.
-    """
+    """Buyer order history for the authenticated account."""
     ordenes = (
         Order.objects
         .filter(buyer=request.user)
@@ -4208,13 +3951,7 @@ def mis_ordenes(request):
 
 @buyer_required
 def detalle_mi_orden(request, pk):
-    """
-    Muestra el detalle de una orden específica del comprador.
-
-    Seguridad: filtra por buyer=request.user para asegurarse
-    de que el comprador solo pueda ver sus propias órdenes.
-    Un usuario no puede acceder a la orden de otro con su ID.
-    """
+    """Buyer detail for one of their marketplace orders."""
     orden = get_object_or_404(
         Order.objects.select_related('buyer', 'ship_address').prefetch_related(
             Prefetch(
@@ -4240,12 +3977,7 @@ def detalle_mi_orden(request, pk):
 
 @login_required
 def descargar_factura(request, orden_pk):
-    """
-    Genera y descarga la factura PDF de una orden.
-
-    El comprador solo puede descargar sus propias órdenes. Los administradores
-    pueden descargar cualquier orden.
-    """
+    """Generate and download the order invoice PDF."""
     orden = get_object_or_404(
         Order.objects.select_related('buyer').prefetch_related('items__product__company'),
         pk=orden_pk,
@@ -4264,11 +3996,7 @@ def descargar_factura(request, orden_pk):
 
 @login_required
 def descargar_packing_list(request, orden_pk):
-    """
-    Descarga el packing list PDF de una orden.
-
-    Mismas reglas de acceso que descargar_factura.
-    """
+    """Download the packing-list PDF for an order."""
     orden = get_object_or_404(
         Order.objects.select_related('buyer').prefetch_related('items__product__company'),
         pk=orden_pk,
@@ -4287,9 +4015,7 @@ def descargar_packing_list(request, orden_pk):
 
 @login_required
 def descargar_cotizacion_pdf(request, pk):
-    """
-    Descarga la cotización formal en PDF (solo el comprador titular).
-    """
+    """Download the formal RFQ PDF (buyer owner only)."""
     cotizacion = get_object_or_404(
         Cotizacion.objects.select_related('buyer', 'empresa').prefetch_related(
             'items__product',
@@ -4311,13 +4037,7 @@ def descargar_cotizacion_pdf(request, pk):
 
 @buyer_required
 def solicitar_cotizacion(request):
-    """
-    El comprador solicita una cotización formal a una empresa.
-
-    GET con parámetro empresa: muestra productos de esa empresa para indicar cantidades.
-    POST: crea Cotizacion + CotizacionItem para cada línea con cantidad > 0.
-    Genera número COT-YYYYMM-XXXX automáticamente al guardar.
-    """
+    """Buyer requests a formal quote from a CFZ seller company."""
     empresas = (
         Company.objects.annotate(
             num_productos=Count('products', filter=Q(products__is_active=True)),
@@ -4408,11 +4128,7 @@ def solicitar_cotizacion(request):
 
 
 def _normalizar_nombre(texto):
-    """Normaliza un nombre para comparar 'el mismo producto' entre empresas.
-
-    Minúsculas, sin acentos y con espacios colapsados, de modo que
-    'Café Premium' y 'cafe  premium' se consideren equivalentes.
-    """
+    """Normalize a name to match the same SKU across companies."""
     base = (texto or '').strip().lower()
     base = ''.join(
         c for c in unicodedata.normalize('NFKD', base)
@@ -4422,12 +4138,7 @@ def _normalizar_nombre(texto):
 
 
 def _empresas_con_producto(base_product, limite=25):
-    """Devuelve [(company, product)] de empresas que venden el mismo producto.
-
-    Como cada Product pertenece a una sola Company y no hay catálogo
-    compartido, "el mismo producto" se determina por nombre normalizado o
-    por código de producto exacto. Se elige, por empresa, el producto activo más barato.
-    """
+    """Return [(company, product)] for sellers offering the same item."""
     nombre_norm = _normalizar_nombre(base_product.name)
     sku_norm = (base_product.sku or '').strip().lower()
 
@@ -4464,13 +4175,7 @@ def _empresas_con_producto(base_product, limite=25):
 @buyer_required
 @require_POST
 def solicitar_cotizacion_automatica(request, producto_id):
-    """Cotización automática: toda empresa que venda el producto responde sola.
-
-    A partir de un producto base, busca el mismo producto en todas las
-    empresas y crea una cotización ya respondida (estado='respondida') por
-    cada empresa, con el precio de catálogo vigente. El comprador las compara
-    al instante en lugar de esperar respuestas manuales.
-    """
+    """Auto-RFQ every company that sells the same product."""
     base = get_object_or_404(
         Product.objects.select_related('company'),
         pk=producto_id,
@@ -4526,7 +4231,7 @@ def solicitar_cotizacion_automatica(request, producto_id):
 
 @buyer_required
 def comparar_cotizaciones(request, lote):
-    """Comparativa de las cotizaciones automáticas creadas en un mismo lote."""
+    """Compare automatic quotes created in the same RFQ batch."""
     cots = (
         Cotizacion.objects.filter(buyer=request.user, lote=lote)
         .select_related('empresa', 'order')
@@ -4571,9 +4276,7 @@ def comparar_cotizaciones(request, lote):
 
 @buyer_required
 def mis_cotizaciones(request):
-    """
-    Lista todas las cotizaciones del comprador con empresa, estado y fecha.
-    """
+    """List the buyer's RFQs with company, status, and dates."""
     lista = (
         Cotizacion.objects.filter(buyer=request.user)
         .select_related('empresa', 'order')
@@ -4591,11 +4294,7 @@ def mis_cotizaciones(request):
 
 @buyer_required
 def detalle_cotizacion(request, pk):
-    """
-    Detalle de cotización con ítems. Si está respondida, muestra precios del vendedor.
-    Permite convertir en orden (POST acción convertir), rechazar (POST rechazar)
-    o aceptar tras conversión (orden vinculada).
-    """
+    """RFQ detail with line items and offered prices when answered."""
     cot = get_object_or_404(
         Cotizacion.objects.select_related('empresa', 'buyer', 'order').prefetch_related(
             Prefetch(
@@ -4707,7 +4406,7 @@ def detalle_cotizacion(request, pk):
 
 @seller_required
 def seller_cotizaciones(request):
-    """Pipeline Kanban + stats de cotizaciones del vendedor."""
+    """Seller RFQ Kanban pipeline and stats in the portal."""
     company, resp = _seller_company_or_response(request, 'seller_cotizaciones')
     if resp:
         return resp
@@ -4743,9 +4442,7 @@ def seller_cotizaciones(request):
 
 @seller_required
 def seller_responder_cotizacion(request, pk):
-    """
-    El vendedor responde con precio unitario ofertado por ítem y notas para el comprador.
-    """
+    """Seller replies with unit prices and notes per RFQ line."""
     company, resp = _seller_company_or_response(request, 'seller_cotizaciones')
     if resp:
         return resp
@@ -4803,7 +4500,7 @@ def seller_responder_cotizacion(request, pk):
 # =============================================================================
 
 def solicitud_acceso(request):
-    """Formulario público de solicitud de acceso a TradeFlow."""
+    """Public business access application for the marketplace."""
     plan_intent = (request.GET.get('plan') or request.POST.get('requested_plan_slug') or '').strip().lower()
     if plan_intent in ('enterprise', 'ecosistema_enterprise'):
         plan_intent = 'ecosistema_enterprise'
@@ -4941,7 +4638,7 @@ def solicitud_acceso(request):
 
 
 def revisar_solicitud(request, token, accion):
-    """Aprueba o rechaza solicitud desde enlace del correo."""
+    """Approve or reject an access application from an email link."""
     app = get_object_or_404(UserApplication, review_token=token)
     if app.status not in ('pending',):
         messages.info(request, _('This application has already been reviewed.'))
@@ -4999,7 +4696,7 @@ def revisar_solicitud(request, token, accion):
 
 @admin_required
 def admin_saas_dashboard(request):
-    """Panel React de planes SaaS, empresas e IA predictiva (admin)."""
+    """Admin React panel for SaaS plans, companies, and predictive AI."""
     import logging
 
     log = logging.getLogger('tradeflow.saas')
@@ -5030,7 +4727,7 @@ def admin_saas_dashboard(request):
 
 @admin_required
 def api_admin_saas_stats(request):
-    """JSON agregado desde Supabase/ORM para el dashboard admin SaaS."""
+    """Aggregated JSON for the admin SaaS dashboard."""
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     from .utils.saas_admin_metrics import build_saas_admin_payload
@@ -5040,7 +4737,7 @@ def api_admin_saas_stats(request):
 
 @admin_required
 def api_admin_saas_request_action(request, pk: int):
-    """Aprueba o rechaza solicitud comercial de plan (POST)."""
+    """Approve or reject a commercial plan request (POST)."""
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     import json
@@ -5082,13 +4779,13 @@ def api_admin_saas_request_action(request, pk: int):
 # ── Application approval views ────────────────────────────────────────────────
 
 def pending_approval_view(request):
-    """Page shown after signup while account is pending admin approval."""
+    """Waiting room after signup while admin approval is pending."""
     return render(request, 'core/pending_approval.html')
 
 
 @admin_required
 def admin_applications_view(request):
-    """Admin panel to review company access applications."""
+    """Admin list to review company access applications."""
     try:
         from .models import UserApplication
         status_filter = request.GET.get('status', '')
@@ -5109,7 +4806,7 @@ def admin_applications_view(request):
 
 @admin_required
 def approve_application_view(request, pk):
-    """Approve a company application, activate the account and notify the user."""
+    """Approve an application, activate the account, and notify."""
     from .models import UserApplication
     from .utils.application_review import aprobar_solicitud, mensaje_fallo_correo
     if request.method == 'POST':
@@ -5131,7 +4828,7 @@ def approve_application_view(request, pk):
 
 @admin_required
 def reject_application_view(request, pk):
-    """Reject a company application and notify the user."""
+    """Reject an application and notify the applicant."""
     from .models import UserApplication
     from .utils.application_review import mensaje_fallo_correo, rechazar_solicitud
     if request.method == 'POST':
@@ -5164,7 +4861,7 @@ def legal_terminos(request):
 
 @cache_control(public=True, max_age=3600)
 def acerca_tradeflow(request):
-    """About TradeFlow — brand story, ZLC, buyer/seller programs (Alibaba-style)."""
+    """About TradeFlow — brand, ZLC, and buyer/seller programs."""
     from core.merchandising import home_stats
 
     stats = home_stats()
@@ -5180,7 +4877,7 @@ def acerca_tradeflow(request):
 
 
 def _marketplace_page_context(request):
-    """Shared context for public marketplace landing pages."""
+    """Shared context for public marketplace marketing pages."""
     from core.merchandising import home_stats
 
     stats = home_stats()
@@ -5194,7 +4891,7 @@ def _marketplace_page_context(request):
 @cache_control(public=True, max_age=3600)
 @catalog_access
 def marketplace_verified_suppliers(request):
-    """Dedicated page — CFZ verified supplier directory."""
+    """CFZ verified supplier directory marketing page."""
     from django.db.models import Count, Q
 
     from core import merchandising as merch
@@ -5226,7 +4923,7 @@ def marketplace_verified_suppliers(request):
 @cache_control(public=True, max_age=3600)
 @catalog_access
 def marketplace_deals(request):
-    """Dedicated page — active wholesale promotions."""
+    """Active wholesale promotions marketing page."""
     from core import merchandising as merch
 
     ctx = _marketplace_page_context(request)
@@ -5244,7 +4941,7 @@ def marketplace_deals(request):
 @cache_control(public=True, max_age=3600)
 @catalog_access
 def marketplace_order_protection(request):
-    """Dedicated page — RFQ workflow and buyer protection program."""
+    """RFQ workflow and buyer protection program page."""
     from core import merchandising as merch
 
     ctx = _marketplace_page_context(request)
@@ -5256,12 +4953,12 @@ def marketplace_order_protection(request):
 @require_GET
 @cache_control(public=True, max_age=3600)
 def legal_privacidad(request):
-    """Privacy policy and data processing."""
+    """Privacy policy and data processing notice."""
     return render(request, 'core/legal_privacidad.html')
 
 
 @require_GET
 @cache_control(public=True, max_age=3600)
 def legal_cookies(request):
-    """Cookie policy and similar technologies."""
+    """Cookie policy and similar technologies notice."""
     return render(request, 'core/legal_cookies.html')

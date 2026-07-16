@@ -1,4 +1,9 @@
-"""Auth views for password recovery: Resend + DB magic links (PasswordResetLink)."""
+"""Password recovery via Resend email and DB-backed magic links.
+
+Uses ``PasswordResetLink`` rows instead of Django's default token
+generator so links can be audited, expired, and consumed once for
+marketplace accounts (buyers, sellers, and admins).
+"""
 from __future__ import annotations
 
 import logging
@@ -26,6 +31,7 @@ try:
     from django.contrib.auth.decorators import login_not_required
 except ImportError:  # pragma: no cover
     def login_not_required(view):
+        """No-op shim when Django lacks ``login_not_required``."""
         return view
 
 from core.forms_password_reset import (
@@ -43,7 +49,7 @@ UserModel = get_user_model()
 
 
 class TradeFlowPasswordResetView(PasswordResetView):
-    """Request form: create PasswordResetLink + email via Resend."""
+    """Collect email, create a magic link, and send it via Resend."""
 
     form_class = ResendPasswordResetForm
     template_name = 'registration/password_reset_form.html'
@@ -54,6 +60,7 @@ class TradeFlowPasswordResetView(PasswordResetView):
     from_email = None
 
     def form_valid(self, form):
+        """Persist the reset link and dispatch the Resend email."""
         domain, use_https = password_reset_domain_and_https(self.request)
         opts = {
             'use_https': use_https,
@@ -77,9 +84,11 @@ class TradeFlowPasswordResetView(PasswordResetView):
 @method_decorator(sensitive_post_parameters(), name='dispatch')
 @method_decorator(never_cache, name='dispatch')
 class TradeFlowPasswordResetConfirmView(PasswordContextMixin, FormView):
-    """
-    Validate DB magic link, then set password via Django ``SetPasswordForm`` only
-    (``form.save()`` → ``user.set_password`` — we never call hashers ourselves).
+    """Validate a DB magic link, then set a new password.
+
+    Password hashing goes only through Django ``SetPasswordForm.save()``
+    (``user.set_password``). Invalid or consumed links render the
+    unsuccessful state without building the form.
     """
 
     form_class = SetPasswordForm
@@ -91,6 +100,7 @@ class TradeFlowPasswordResetConfirmView(PasswordContextMixin, FormView):
     title = 'Enter new password'
 
     def dispatch(self, *args, **kwargs):
+        """Resolve uid/token, stash session token, or show invalid link."""
         if 'uidb64' not in kwargs or 'token' not in kwargs:
             raise ImproperlyConfigured(
                 "URL must contain 'uidb64' and 'token' parameters."
@@ -119,6 +129,7 @@ class TradeFlowPasswordResetConfirmView(PasswordContextMixin, FormView):
         return self.render_to_response(self.get_context_data())
 
     def get_user(self, uidb64):
+        """Decode uidb64 to a User, or None if the id is invalid."""
         try:
             uid = urlsafe_base64_decode(uidb64).decode()
             pk = UserModel._meta.pk.to_python(uid)
@@ -134,11 +145,13 @@ class TradeFlowPasswordResetConfirmView(PasswordContextMixin, FormView):
         return user
 
     def get_form_kwargs(self):
+        """Pass the resolved user into ``SetPasswordForm``."""
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.user
         return kwargs
 
     def form_valid(self, form):
+        """Consume the magic link, save password, and optionally log in."""
         session_token = self.request.session.get(INTERNAL_RESET_SESSION_TOKEN)
         consumed = consume_password_reset_link(
             user=self.user, raw_token=session_token or ''
@@ -151,7 +164,7 @@ class TradeFlowPasswordResetConfirmView(PasswordContextMixin, FormView):
             )
             return self.render_to_response(self.get_context_data())
 
-        # Django SetPasswordForm.save() → user.set_password(...) — not reimplemented here.
+        # Django SetPasswordForm.save() → user.set_password(...).
         user = form.save()
         del self.request.session[INTERNAL_RESET_SESSION_TOKEN]
         if self.post_reset_login:
@@ -159,8 +172,9 @@ class TradeFlowPasswordResetConfirmView(PasswordContextMixin, FormView):
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
+        """Expose ``validlink`` and suppress the form on bad tokens."""
         if not getattr(self, 'validlink', False):
-            # Pass form=None so FormMixin does not build SetPasswordForm on bad links.
+            # Pass form=None so FormMixin does not build SetPasswordForm.
             kwargs.setdefault('form', None)
             context = super().get_context_data(**kwargs)
             context.update(
