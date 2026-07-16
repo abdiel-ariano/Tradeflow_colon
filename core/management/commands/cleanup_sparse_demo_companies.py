@@ -1,8 +1,10 @@
-"""
-Delete classic 3-product demo companies from cargar_demo seed.
+"""Remove classic three-product demo companies from cargar_demo.
 
-Targets named demo trio only (never blind Count=3 deletes).
-Idempotent: safe to re-run when companies are already gone.
+Targets the named demo trio only (never blind Count=3 deletes).
+Idempotent and safe to re-run when companies are already gone.
+
+Ops: local/staging cleanup after cargar_demo. Avoid on production
+unless those exact demo company names were seeded by mistake.
 """
 from __future__ import annotations
 
@@ -21,12 +23,19 @@ SPARSE_DEMO_COMPANY_NAMES = (
 
 
 class Command(BaseCommand):
+    """Delete named sparse demo CFZ companies and their products.
+
+    Product rows must go first because ``Product.company`` uses PROTECT.
+    Use ``--dry-run`` to preview matches before writing.
+    """
+
     help = (
         'Delete named 3-product demo companies (TechZone / Textiles / Fragancias) '
         'and their products. Idempotent; use --dry-run to preview.'
     )
 
     def add_arguments(self, parser):
+        """Register dry-run and optional extra-name matching flags."""
         parser.add_argument(
             '--dry-run',
             action='store_true',
@@ -37,11 +46,13 @@ class Command(BaseCommand):
             action='store_true',
             help=(
                 'Also delete other companies that both match exactly 3 products '
-                'and whose name contains TechZone, Textiles Internacionales, or Fragancias del Mundo.'
+                'and whose name contains TechZone, Textiles Internacionales, or '
+                'Fragancias del Mundo.'
             ),
         )
 
     def handle(self, *args, **options):
+        """Delete matching sparse demo companies, or list them in dry-run."""
         dry_run = options['dry_run']
         include_extra = options['include_extra_named']
 

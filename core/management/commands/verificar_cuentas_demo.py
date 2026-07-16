@@ -1,9 +1,10 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/management/commands/verificar_cuentas_demo.py
-=============================================================================
-Marca cuentas demo (y opcionalmente todas) como email verificado para pruebas locales.
-=============================================================================
+"""Mark demo accounts as email-verified for local login testing.
+
+Default targets demo_buyer, demo_seller, and demo_admin so
+REQUIRE_EMAIL_VERIFICATION does not block walkthroughs.
+
+Ops: local DEBUG only. ``--todos`` marks every profile and requires
+``--force`` outside DEBUG — never use ``--todos --force`` on production.
 """
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -15,42 +16,32 @@ DEMO_USERNAMES = ('demo_buyer', 'demo_seller', 'demo_admin')
 
 
 class Command(BaseCommand):
-    """
-    Repara perfiles demo bloqueados por verificación de email pendiente.
+    """Repair demo profiles blocked by pending email verification.
 
-    Por defecto solo actualiza demo_buyer, demo_seller y demo_admin.
-    Con --todos marca todos los UserProfile (solo en DEBUG o con --force).
+    By default only updates the three demo usernames. ``--todos`` marks
+    all UserProfile rows (DEBUG or ``--force`` required).
     """
 
     help = (
-        'Marca email_verificado=True en cuentas demo (demo_buyer, demo_seller, '
-        'demo_admin). Opción --todos para todos los perfiles.'
+        'Set email_verificado=True on demo accounts (demo_buyer, demo_seller, '
+        'demo_admin). Option --todos for all profiles.'
     )
 
     def add_arguments(self, parser):
-        """Registra --todos y --force."""
+        """Register --todos and --force for bulk verification."""
         parser.add_argument(
             '--todos',
             action='store_true',
-            help='Marcar todos los perfiles existentes como verificados.',
+            help='Mark all existing profiles as verified.',
         )
         parser.add_argument(
             '--force',
             action='store_true',
-            help='Permitir --todos aunque DEBUG sea False.',
+            help='Allow --todos even when DEBUG is False.',
         )
 
     def handle(self, *args, **options):
-        """
-        Ejecuta la verificación masiva de perfiles.
-
-        Args:
-            *args: Argumentos posicionales de Django.
-            **options: ``todos``, ``force``.
-
-        Returns:
-            None
-        """
+        """Verify demo profiles, or all profiles when --todos is set."""
         marcar_todos = options['todos']
         force = options['force']
 

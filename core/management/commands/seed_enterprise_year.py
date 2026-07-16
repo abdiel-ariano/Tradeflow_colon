@@ -1,15 +1,11 @@
-"""
-Simulación persistente (PostgreSQL/Supabase vía ORM) de ~12 meses de operación
-marketplace: empresas ZLC, productos, órdenes con fechas distribuidas, logística,
-ads, SaaS y snapshots predictivos.
+"""Seed ~12 months of CFZ marketplace activity into PostgreSQL.
 
-Requisito: python manage.py migrate
+Creates ZLC companies, products, dated orders, logistics, ads, SaaS
+rows, and predictive snapshots via the enterprise year simulator.
 
-Uso típico (rápido, sin miles de descargas HTTP):
-    python manage.py seed_enterprise_year --clear --scale=standard
-
-Con imágenes locales (PNG bajo media/productos/ para todos los productos sembrados):
-    python manage.py seed_enterprise_year --clear --scale=standard --with-images
+Ops: local, CI, and disposable staging only. ``--clear`` deletes prior
+simulation markers (RUC 8-1Y-SIM-*, TF-1YSIM-*, sim1y_*). Never run
+``--clear`` against production buyer/seller data. Requires migrate.
 """
 from django.core.management.base import BaseCommand
 
@@ -20,44 +16,51 @@ from core.utils.enterprise_year_simulator import (
 
 
 class Command(BaseCommand):
+    """Generate a reproducible year of enterprise marketplace data.
+
+    Scale choices: demo (CI), standard, stress. Images stay off unless
+    ``--with-images`` is passed.
+    """
+
     help = (
-        'Genera datos enterprise de un año (empresas, productos, órdenes, logística, ads, SaaS). '
-        'Requiere migrate. Por defecto no descarga imágenes (use --with-images). '
-        'Marcadores: RUC 8-1Y-SIM-*, órdenes TF-1YSIM-*, usuarios sim1y_*.'
+        'Generate one year of enterprise data (companies, products, orders, '
+        'logistics, ads, SaaS). Requires migrate. Default skips images '
+        '(use --with-images). Markers: RUC 8-1Y-SIM-*, orders TF-1YSIM-*, '
+        'users sim1y_*.'
     )
 
     def add_arguments(self, parser):
-        """Add arguments."""
+        """Register clear, scale, seed, and image flags."""
         parser.add_argument(
             '--clear',
             action='store_true',
-            help='Elimina datos generados por simulaciones anteriores (mismos prefijos) antes de sembrar.',
+            help='Delete prior simulation rows (same prefixes) before seeding.',
         )
         parser.add_argument(
             '--scale',
             choices=['demo', 'standard', 'stress'],
             default='standard',
-            help='demo=ligero (CI), standard=equilibrado, stress=volumen alto.',
+            help='demo=light (CI), standard=balanced, stress=high volume.',
         )
         parser.add_argument(
             '--seed',
             type=int,
             default=42,
-            help='Semilla RNG para reproducibilidad.',
+            help='RNG seed for reproducibility.',
         )
         parser.add_argument(
             '--with-images',
             action='store_true',
-            help='Generate local PNG placeholders under media/productos/ for all seeded products.',
+            help='Generate local PNG placeholders under media/productos/.',
         )
         parser.add_argument(
             '--skip-images',
             action='store_true',
-            help='Forzar sin imágenes (comportamiento por defecto).',
+            help='Force no images (default behavior).',
         )
 
     def handle(self, *args, **options):
-        """Handle."""
+        """Run the year simulator and exit non-zero on schema or seed errors."""
         self.stdout.write(self.style.NOTICE('TradeFlow — seed_enterprise_year'))
         skip_images = options['skip_images'] or not options['with_images']
         try:

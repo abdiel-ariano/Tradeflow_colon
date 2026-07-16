@@ -1,26 +1,11 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/management/commands/cargar_demo.py
-=============================================================================
-Comando de Django para cargar datos de demostración en la base de datos.
-Descarga imágenes de placeholder desde picsum.photos y las guarda en /media/.
+"""Load lightweight CFZ marketplace demo data for local development.
 
-USO:
-    python manage.py cargar_demo
+Creates categories, three ZLC companies, nine products (picsum images),
+carrier options, and demo_buyer / demo_seller / demo_admin accounts.
 
-RESULTADO:
-    - 3 categorías (Electronics, Textiles, Perfumería)
-    - 3 empresas de la Zona Libre de Colón
-    - 9 productos con imágenes descargadas automáticamente
-    - 1 usuario buyer de demo  (usuario: demo_buyer  / clave: Demo1234!)
-    - 1 usuario seller de demo (usuario: demo_seller / clave: Demo1234!)
-    - 1 usuario admin de demo  (usuario: demo_admin  / clave: Demo1234!) → /dashboard/
-
-NOTAS:
-    - Requiere conexión a internet para descargar las imágenes.
-    - Si los datos ya existen, los omite (safe to re-run).
-    - Las imágenes se guardan en MEDIA_ROOT/products/
-=============================================================================
+Ops: local and disposable staging only. Do not run against production;
+demo passwords and sparse catalog companies are for walkthroughs.
+Idempotent: existing rows by name/SKU/username are skipped.
 """
 
 import urllib.request
@@ -210,14 +195,16 @@ USUARIOS_DEMO = [
 
 
 class Command(BaseCommand):
+    """Seed demo catalog, ZLC companies, and fixed test users.
+
+    Also links demo_seller to TechZone, ensures an active SaaS demo
+    subscription, and repairs demo_admin staff/admin permissions.
     """
-    Carga datos de demostración para TradeFlow Colón.
-    Crea categorías, empresas, productos con imágenes y usuarios de prueba.
-    """
-    help = 'Carga datos de demostración con imágenes para TradeFlow Colón'
+
+    help = 'Load demo data with images for TradeFlow Colón'
 
     def handle(self, *args, **options):
-        """Handle."""
+        """Create or skip demo entities and print login credentials."""
         self.stdout.write('=' * 60)
         self.stdout.write('TRADEFLOW — Cargando datos de demostración')
         self.stdout.write('=' * 60)

@@ -1,13 +1,19 @@
-"""Verifica que Resend esté configurado para envío de correo."""
+"""Check that Resend API key and from-address are set for edge delivery.
+
+Ops: safe read-only probe on any environment. Does not send mail; use
+``verify_integrations --email`` for a live send test.
+"""
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = 'Comprueba RESEND_API_KEY y DEFAULT_FROM_EMAIL'
+    """Validate RESEND_API_KEY and DEFAULT_FROM_EMAIL presence."""
+
+    help = 'Check RESEND_API_KEY and DEFAULT_FROM_EMAIL'
 
     def handle(self, *args, **options):
-        """Handle."""
+        """Print key/from status and setup hints when misconfigured."""
         key = (getattr(settings, 'RESEND_API_KEY', '') or '').strip()
         from_email = (getattr(settings, 'DEFAULT_FROM_EMAIL', '') or '').strip()
 
