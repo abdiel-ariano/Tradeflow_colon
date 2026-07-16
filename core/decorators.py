@@ -50,6 +50,7 @@ def catalog_access(view_func):
     """Allow guests and buyers on catalog/cart; send sellers to portal."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Gate the view to authenticated CFZ sellers only."""
         if not request.user.is_authenticated:
             return view_func(request, *args, **kwargs)
         blocked = _enforce_onboarding(request, scope='browse')
@@ -86,6 +87,7 @@ def guest_or_buyer_cart(view_func):
     """Allow guests and non-sellers on session cart endpoints."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Gate the view to buyers with an approved company path."""
         if not request.user.is_authenticated:
             return view_func(request, *args, **kwargs)
         blocked = _enforce_onboarding(request, scope='browse')
@@ -117,6 +119,7 @@ def buyer_checkout(view_func):
     """Gate checkout: GET uses browse scope; POST requires full verification."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Require verified email before the marketplace action runs."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         scope = 'browse' if request.method == 'GET' else 'restricted'
@@ -140,6 +143,7 @@ def buyer_required(view_func):
     """Require login and email verification for buyer orders and quotes."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Require an active seller SaaS plan for this portal page."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         blocked = _enforce_onboarding(request, scope='restricted')
@@ -166,6 +170,7 @@ def seller_required(view_func):
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Block trial-expired sellers from mutating storefront data."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         blocked = _enforce_onboarding(request, scope='restricted')
@@ -204,6 +209,7 @@ def admin_required(view_func):
     """Restrict the view to staff admins and superusers."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        """Restrict the view to staff or TradeFlow platform admins."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         role = _get_role(request.user)

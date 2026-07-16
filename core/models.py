@@ -100,10 +100,12 @@ class UserProfile(models.Model):
     )
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'User profile'
         verbose_name_plural = 'User profiles'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.user.get_full_name() or self.user.username} [{self.get_role_display()}]'
 
     @property
@@ -175,11 +177,13 @@ class Company(models.Model):
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'Company'
         verbose_name_plural = 'Companies'
         ordering            = ['name']
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return self.name
 
 
@@ -192,11 +196,13 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='Name')
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'Category'
         verbose_name_plural = 'Categories'
         ordering            = ['name']
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return self.name
 
 
@@ -255,11 +261,13 @@ class HomePromoSection(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = _('Home promotional section')
         verbose_name_plural = _('Home promotional sections')
         ordering = ['sort_order', 'slug']
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return self.title_es or self.slug
 
     def title_for_lang(self, lang_code: str) -> str:
@@ -324,11 +332,13 @@ class Product(models.Model):
     created_at  = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'Product'
         verbose_name_plural = 'Products'
         ordering            = ['-merchandising_priority', 'name']
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.name} — {self.currency} {self.unit_price}'
 
     @property
@@ -393,10 +403,12 @@ class Inventory(models.Model):
     updated_at      = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'Inventory'
         verbose_name_plural = 'Inventories'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'Inventario: {self.product.name} | Stock: {self.stock_qty}'
 
     @property
@@ -448,10 +460,12 @@ class Address(models.Model):
     is_default  = models.BooleanField(default=False, verbose_name='Default?')
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'Address'
         verbose_name_plural = 'Addresses'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.label or "Address"} — {self.city}, {self.country}'
 
     def save(self, *args, **kwargs):
@@ -494,11 +508,13 @@ class TransportCarrier(models.Model):
     )
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Transport carrier'
         verbose_name_plural = 'Transport carriers'
         ordering = ['sort_order', 'name']
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return self.name
 
 
@@ -539,6 +555,7 @@ class UserApplication(models.Model):
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Access request'
         verbose_name_plural = 'Access requests'
         ordering = ['-created_at']
@@ -550,6 +567,7 @@ class UserApplication(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.full_name} — {self.email} ({self.get_status_display()})'
 
 
@@ -651,6 +669,7 @@ class Order(models.Model):
     updated_at    = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'Order'
         verbose_name_plural = 'Orders'
         ordering            = ['-created_at']
@@ -669,6 +688,7 @@ class Order(models.Model):
         return f'TF-{now.strftime("%Y%m")}-{suffix}'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'Orden {self.order_number} — {self.buyer.get_full_name() or self.buyer.username}'
 
     def recalculate_totals(self):
@@ -725,6 +745,7 @@ class OrderItem(models.Model):
     line_total         = models.DecimalField(max_digits=14, decimal_places=2, default=0)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'Order item'
         verbose_name_plural = 'Order items'
 
@@ -734,6 +755,7 @@ class OrderItem(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.qty}x {self.product.name} en {self.order.order_number}'
 
 
@@ -773,10 +795,12 @@ class Payment(models.Model):
     txn_ref  = models.CharField(max_length=200, blank=True, verbose_name='Transaction reference')
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'Payment'
         verbose_name_plural = 'Payments'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'Pago [{self.get_status_display()}] — {self.order.order_number}'
 
 
@@ -818,10 +842,12 @@ class Shipment(models.Model):
     delivered_at    = models.DateTimeField(null=True, blank=True, verbose_name='Delivery date')
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'Shipment'
         verbose_name_plural = 'Shipments'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'Shipment [{self.get_status_display()}] — {self.order.order_number}'
 
 
@@ -847,10 +873,12 @@ class Document(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name        = 'Document'
         verbose_name_plural = 'Documents'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.get_doc_type_display()} {self.doc_number} — {self.order.order_number}'
 
 
@@ -917,6 +945,7 @@ class Cotizacion(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Quote'
         verbose_name_plural = 'Quotes'
         ordering = ['-created_at']
@@ -935,6 +964,7 @@ class Cotizacion(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return self.numero
 
 
@@ -963,10 +993,12 @@ class CotizacionItem(models.Model):
     notas = models.TextField(blank=True, verbose_name='Line notes')
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Quote item'
         verbose_name_plural = 'Quote items'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.cantidad_solicitada}× {self.product.name} ({self.cotizacion.numero})'
 
     @property
@@ -1016,10 +1048,12 @@ class Transportista(models.Model):
     activo = models.BooleanField(default=False)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Carrier'
         verbose_name_plural = 'Carriers'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         nombre = self.user.get_full_name() if self.user_id else self.empresa_nombre
         return f'{self.empresa_nombre} — {nombre}'
 
@@ -1057,10 +1091,12 @@ class AsignacionTransporte(models.Model):
     fecha_confirmacion = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Transport assignment'
         verbose_name_plural = 'Transport assignments'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.order.order_number} — {self.transportista.empresa_nombre}'
 
 
@@ -1081,11 +1117,13 @@ class EmailVerification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Email verification'
         verbose_name_plural = 'Email verifications'
         ordering = ['-created_at']
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.user_id} · {self.code} · used={self.is_used}'
 
     def is_valid(self) -> bool:
@@ -1122,11 +1160,13 @@ class PasswordResetLink(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Password reset link'
         verbose_name_plural = 'Password reset links'
         ordering = ['-created_at']
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.user_id} · reset_link · used={self.is_used}'
 
     def is_valid(self) -> bool:

@@ -11,6 +11,7 @@ class CompanyForm(forms.ModelForm):
     """Create or edit a CFZ seller company record."""
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model  = Company
         fields = ['name', 'ruc', 'address_text', 'is_verified']
         widgets = {
@@ -25,6 +26,7 @@ class ProductForm(forms.ModelForm):
     """Admin-style product form including company assignment."""
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model  = Product
         fields = ['company', 'category', 'name', 'description', 'sku', 'unit_price', 'currency', 'image', 'is_active']
         widgets = {
@@ -46,6 +48,7 @@ class SellerProductForm(forms.ModelForm):
     """
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model = Product
         fields = ['category', 'name', 'description', 'sku', 'unit_price', 'currency', 'image', 'is_active']
         widgets = {
@@ -64,6 +67,7 @@ class SellerInventoryForm(forms.ModelForm):
     """Seller-editable stock total and low-stock alert threshold."""
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model = Inventory
         fields = ['stock_qty', 'low_stock_alert']
         labels = {
@@ -80,6 +84,7 @@ class InventoryForm(forms.ModelForm):
     """Full inventory form including reserved quantity (ops/admin)."""
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model  = Inventory
         fields = ['stock_qty', 'reserved_qty', 'low_stock_alert']
         widgets = {
@@ -93,6 +98,7 @@ class OrderForm(forms.ModelForm):
     """Checkout/order header fields for type, ship-to, and freight."""
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model  = Order
         fields = ['order_type', 'ship_address', 'shipping_cost', 'notes']
         widgets = {

@@ -395,7 +395,7 @@ _OP_PATTERNS = [
 
 
 def _detect_filters(text: str, df: pd.DataFrame) -> dict:
-    """Detect natural-language filters like 'donde precio > 100' or
+    """Detect natural-language filters like 'donde precio > 100' or.
     'solo región Norte'. Returns {col: {op, val}} | {col: value}."""
     low = _normalize(text)
     filtros: dict = {}

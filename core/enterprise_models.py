@@ -41,11 +41,13 @@ class SaasPlan(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         ordering = ['sort_order', 'slug']
         verbose_name = 'SaaS plan'
         verbose_name_plural = 'SaaS plans'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return self.name
 
     @property
@@ -112,10 +114,12 @@ class CompanySubscription(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Company subscription'
         verbose_name_plural = 'Company subscriptions'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.company.name} — {self.plan.name}'
 
 
@@ -134,11 +138,13 @@ class CompanyBillingUsage(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         unique_together = [('company', 'period_year', 'period_month')]
         verbose_name = 'Monthly billing usage'
         verbose_name_plural = 'Monthly billing usage'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.company_id} {self.period_year}-{self.period_month:02d}'
 
 
@@ -174,6 +180,7 @@ class SubscriptionUpgradeLog(models.Model):
     notes = models.CharField(max_length=255, blank=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         ordering = ['-activated_at']
         verbose_name = 'Plan upgrade history'
         verbose_name_plural = 'Plan upgrade history'
@@ -251,11 +258,13 @@ class CompanyPlanCheckout(models.Model):
     expires_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         ordering = ['-created_at']
         verbose_name = 'SaaS plan checkout'
         verbose_name_plural = 'SaaS plan checkouts'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.company.name} → {self.target_plan.slug} [{self.status}]'
 
 
@@ -295,6 +304,7 @@ class CompanyPlanCommercialRequest(models.Model):
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         ordering = ['-created_at']
         verbose_name = 'Commercial plan request'
         verbose_name_plural = 'Commercial plan requests'
@@ -313,6 +323,7 @@ class CompanyPredictiveSnapshot(models.Model):
     computed_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         unique_together = [('company', 'period_key')]
         verbose_name = 'Predictive snapshot'
         verbose_name_plural = 'Predictive snapshots'
@@ -332,6 +343,7 @@ class AdCreditAccount(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Ad credits account'
         verbose_name_plural = 'Ad credits accounts'
 
@@ -370,10 +382,12 @@ class AdCampaign(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Ad campaign'
         verbose_name_plural = 'Ad campaigns'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return self.name
 
 
@@ -395,6 +409,7 @@ class LogisticsWebhookConfig(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Logistics webhook'
         verbose_name_plural = 'Logistics webhooks'
 
@@ -414,6 +429,7 @@ class LogisticsEvent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         ordering = ['created_at']
         verbose_name = 'Logistics event'
         verbose_name_plural = 'Logistics events'
@@ -447,6 +463,7 @@ class LogisticsDispatchQueue(models.Model):
     sent_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'Logistics dispatch queue'
         verbose_name_plural = 'Logistics dispatch queue'
 
@@ -479,10 +496,12 @@ class ApiKey(models.Model):
     last_used_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         verbose_name = 'API Key'
         verbose_name_plural = 'API Keys'
 
     def __str__(self):
+        """Return a short admin/debug label for this record."""
         return f'{self.name} ({self.key_prefix}…)'
 
 
@@ -508,6 +527,7 @@ class ApiAuditLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         ordering = ['-created_at']
         verbose_name = 'API audit log'
         verbose_name_plural = 'API audit logs'
@@ -531,6 +551,7 @@ class EmailDeliveryLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         ordering = ['-created_at']
         verbose_name = 'Email log'
         verbose_name_plural = 'Email logs'

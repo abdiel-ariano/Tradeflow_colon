@@ -151,6 +151,7 @@ class SellerBankCheckoutTests(TestCase):
         real_save = CompanyPlanCheckout.save
 
         def flaky_save(self, *args, **kwargs):
+            """Force a flaky save path used by the checkout test."""
             update_fields = kwargs.get('update_fields') or []
             if update_fields and 'proof_file' in update_fields:
                 raise OSError('supabase upload failed')

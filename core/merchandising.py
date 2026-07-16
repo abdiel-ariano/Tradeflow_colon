@@ -202,7 +202,7 @@ def trending_products(limit: int = 8):
 
 def home_company_tiers(premium_limit: int = 3, standard_limit: int = 5):
     """
-    Split home companies into premium featured (with product carousel)
+    Split home companies into premium featured (with product carousel).
     and standard grid cards.
     """
     base_qs = (
@@ -247,7 +247,7 @@ def home_company_tiers(premium_limit: int = 3, standard_limit: int = 5):
 
 def spotlight_products_for_companies(companies, limit_per: int = 3):
     """
-    Attach up to ``limit_per`` showcase products on each company for the home
+    Attach up to ``limit_per`` showcase products on each company for the home.
     spotlight mini-carousel (ordered by merchandising priority).
     """
     if not companies:
@@ -455,7 +455,7 @@ def catalog_breadth_products(
     exclude_ids: set[int] | None = None,
 ):
     """
-    Diverse home sample across top categories — one wall of SKUs that
+    Diverse home sample across top categories — one wall of SKUs that.
     reflects marketplace breadth instead of repeating the same few picks.
     """
     picked: list[Product] = []
@@ -951,6 +951,7 @@ def _build_home_product_rows(
     cms_types: set[str] = {block['section'].section_type for block in promo_sections}
 
     def _row(slug, dom_id, title, products, see_all_query='', min_products=2):
+        """Build one merchandising row dict for the caller."""
         if len(products) < min_products:
             return
         rows.append({
@@ -1041,6 +1042,7 @@ def _home_card_section_rows(
         preserve_order: bool = False,
         min_products: int = 4,
     ):
+        """Accumulate one item into the merchandising collection."""
         if preserve_order:
             picked = list(products)[:8]
         else:

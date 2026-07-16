@@ -23,9 +23,11 @@ class OnboardingGateMiddleware:
     """Send unfinished users to OTP or approval before protected GET pages."""
 
     def __init__(self, get_response):
+        """Initialize middleware with the next ASGI/WSGI callable."""
         self.get_response = get_response
 
     def __call__(self, request):
+        """Process one request through this middleware hook."""
         path = normalize_path(request.path)
 
         if request.method == 'GET' and request.user.is_authenticated:

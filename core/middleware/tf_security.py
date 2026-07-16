@@ -26,10 +26,12 @@ class SecurityHeadersMiddleware:
     """
 
     def __init__(self, get_response):
+        """Initialize middleware with the next ASGI/WSGI callable."""
         self.get_response = get_response
 
     def __call__(self, request):
         # Nonce before the view so context processors/templates can read it.
+        """Process one request through this middleware hook."""
         request.csp_nonce = secrets.token_urlsafe(16)
 
         response = self.get_response(request)
@@ -101,10 +103,12 @@ class SecurityEventLogMiddleware:
     SENSITIVE_PATHS = ('/admin/', '/api/admin/')
 
     def __init__(self, get_response):
+        """Initialize middleware with the next ASGI/WSGI callable."""
         self.get_response = get_response
         self.log = logging.getLogger('tradeflow.security')
 
     def __call__(self, request):
+        """Process one request through this middleware hook."""
         response = self.get_response(request)
         status = response.status_code
         path = request.path
@@ -147,9 +151,11 @@ class ApiRateLimitMiddleware:
     SELLER_POST_LIMIT = 60
 
     def __init__(self, get_response):
+        """Initialize middleware with the next ASGI/WSGI callable."""
         self.get_response = get_response
 
     def __call__(self, request):
+        """Process one request through this middleware hook."""
         bucket, limit = self._resolve_bucket(request)
         if not bucket:
             return self.get_response(request)

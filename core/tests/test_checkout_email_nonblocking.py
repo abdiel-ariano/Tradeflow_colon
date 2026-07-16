@@ -69,6 +69,7 @@ class CheckoutEmailNonBlockingTests(TestCase):
         session.save()
 
         def _smtp_down(*_args, **_kwargs):
+            """Simulate SMTP failure for the email nonblocking test."""
             raise OSError(101, 'Network is unreachable')
 
         with patch(
