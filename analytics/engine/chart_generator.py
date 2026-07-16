@@ -11,11 +11,12 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from . import labels as L
 
-# ── Paleta de marca Tradeflow Colón (navy / azul primero; naranja como acento) ─
-# Alineada con DESIGN.md: navy authority, orange action (≤10% en charts).
-C1 = "#F26522"   # naranja  (acento puntual: forecast / CTA en datos)
+# ── Paleta de marca Tradeflow Colón (variada, sin monopolio azul ni naranja) ─
+# Navy = autoridad en UI; en charts repartimos teal / ámbar / malva / verde /
+# azul / naranja para que cada serie se distinga a simple vista.
+C1 = "#F26522"   # naranja
 C2 = "#0F2A44"   # navy
-C3 = "#E8A33D"   # ámbar    (secundario cálido, uso moderado)
+C3 = "#E8A33D"   # ámbar
 C4 = "#2E5B8A"   # azul mid
 C5 = "#3FA796"   # teal
 C6 = "#A0506B"   # malva
@@ -23,19 +24,34 @@ C7 = "#5B7DB1"   # azul suave
 C8 = "#7BAF5A"   # verde
 C9 = "#0057A8"   # primary blue
 
-# Series múltiples: fríos primero para no saturar de naranja las vistas auto.
-PALETTE = [C4, C5, C9, C7, C8, C6, C3, C1, C2]
-PRIMARY_RGB = "46,91,138"   # C4 azul — rellenos de área / bandas base
-ACCENT_RGB = "242,101,34"   # naranja — solo acentos (proyección, umbral)
+# Alterna cálido/frío: evita rachas de azules o naranjas seguidos.
+PALETTE = [C5, C3, C6, C8, C4, C1, C7, C2, C9]
+PRIMARY_RGB = "63,167,150"    # teal — rellenos de área / bandas base
+ACCENT_RGB = "242,101,34"     # naranja — proyección / umbral
 
-# Ranking de una métrica: líder en navy-blue, resto en azul suave (sin naranja).
-BAR_HL = C4
-BAR_BASE = "#9DBBD6"
+# Barras de ranking: cada categoría un color distinto (no mono-azul).
+BAR_COLORS = [C5, C3, C6, C8, C4, C1, C7, C9]
+BAR_HL = C5
+BAR_BASE = C7
 
-# Escalas: secuencial azul; divergente azul↔ámbar (naranja solo en el extremo).
-SCALE_SEQ = [[0.0, "#E8F1FB"], [0.45, C7], [0.75, C4], [1.0, C2]]
-SCALE_DIV = [[0.0, C4], [0.25, "#9DBBD6"], [0.5, "#F2F3F5"],
+# Secuencial cálido→teal; divergente teal↔ámbar (identidad sin ahogar en azul).
+SCALE_SEQ = [[0.0, "#E6F5F2"], [0.35, C5], [0.7, C3], [1.0, C1]]
+SCALE_DIV = [[0.0, C5], [0.25, "#A8D9D0"], [0.5, "#F2F3F5"],
              [0.75, "#F5D4A8"], [1.0, C3]]
+
+
+def _bar_colors(n: int, *, highlight_last: bool = True) -> list[str]:
+    """n colores distintos para barras; el último (top) usa un tono no repetido."""
+    if n <= 0:
+        return []
+    if n == 1:
+        return [BAR_HL]
+    body = [BAR_COLORS[i % len(BAR_COLORS)] for i in range(n - 1)]
+    used = set(body)
+    top = next((c for c in BAR_COLORS if c not in used), BAR_HL)
+    if highlight_last:
+        return body + [top]
+    return [BAR_COLORS[i % len(BAR_COLORS)] for i in range(n)]
 
 BG        = "rgba(0,0,0,0)"   # transparente: combina con la tarjeta del dashboard
 GRID_COL  = "#E9EDF2"
@@ -186,7 +202,7 @@ def histogram(df: pd.DataFrame, col: str):
         nbinsx=30,
         name=L.pretty(col),
         marker=dict(
-            color=C4,
+            color=C5,
             opacity=0.85,
             line=dict(color="white", width=0.8),
         ),
@@ -213,8 +229,8 @@ def bar_top(df: pd.DataFrame, col: str, top_n: int = 15):
         return None
 
     n = len(counts)
-    # Horizontal ascendente → el mayor queda arriba; se destaca en azul mid.
-    colors = [BAR_HL if i == n - 1 else BAR_BASE for i in range(n)]
+    # Horizontal ascendente → el mayor queda arriba; colores distintos por barra.
+    colors = _bar_colors(n, highlight_last=True)
     xmax = float(counts["frecuencia"].max() or 1)
 
     fig = go.Figure(go.Bar(
@@ -441,7 +457,7 @@ def grouped_bar(df: pd.DataFrame, group_col: str, value_col: str, agg: str = "su
         return None
     n = len(grouped)
     # Horizontal evita ticks rotados solapados con el título del eje.
-    colors = [BAR_HL if i == n - 1 else BAR_BASE for i in range(n)]
+    colors = _bar_colors(n, highlight_last=True)
     labels = grouped[group_col].astype(str).map(
         lambda s: (s[:28] + "…") if len(s) > 30 else s
     )
@@ -528,7 +544,7 @@ def area_chart(df: pd.DataFrame, x: str, y: str):
         x=sorted_df[x], y=sorted_df[y],
         mode="lines",
         fill="tozeroy",
-        line=dict(color=C4, width=3, shape="spline"),
+        line=dict(color=C5, width=3, shape="spline"),
         fillgradient=dict(type="vertical",
                           colorscale=[[0, f"rgba({PRIMARY_RGB},0)"],
                                       [1, f"rgba({PRIMARY_RGB},0.42)"]]),
@@ -648,20 +664,20 @@ def gauge(value: float, title: str = "", max_value: float | None = None,
     fig = go.Figure(go.Indicator(
         mode=mode,
         value=value,
-        number={"font": {"color": C4, "size": 40}},
+        number={"font": {"color": C5, "size": 40}},
         delta=({"reference": ref} if ref is not None else None),
         title={"text": f"<b>{title}</b>", "font": {"size": 16, "color": TEXT_COL}},
         gauge={
             "axis": {"range": [0, max_value], "tickcolor": SUBTEXT, "tickwidth": 1},
-            "bar": {"color": C4, "thickness": 0.78},
+            "bar": {"color": C5, "thickness": 0.78},
             "bgcolor": "rgba(0,0,0,0)",
             "borderwidth": 0,
             "steps": [
-                {"range": [0, max_value * 0.5], "color": "rgba(46,91,138,0.12)"},
-                {"range": [max_value * 0.5, max_value * 0.8], "color": "rgba(46,91,138,0.22)"},
-                {"range": [max_value * 0.8, max_value], "color": "rgba(46,91,138,0.34)"},
+                {"range": [0, max_value * 0.5], "color": "rgba(63,167,150,0.12)"},
+                {"range": [max_value * 0.5, max_value * 0.8], "color": "rgba(232,163,61,0.18)"},
+                {"range": [max_value * 0.8, max_value], "color": "rgba(242,101,34,0.22)"},
             ],
-            "threshold": {"line": {"color": C1, "width": 3}, "value": value},
+            "threshold": {"line": {"color": C6, "width": 3}, "value": value},
         },
     ))
     fig.update_layout(**_base_layout(title or "Indicador", height=320))
@@ -778,11 +794,11 @@ def forecast_chart(fc: dict, title: str = "Proyección", y_title: str = "valor")
     # Histórico
     fig.add_trace(go.Scatter(
         x=list(hist.index), y=list(hist.values), mode="lines+markers", name="Histórico",
-        line=dict(color=C4, width=2.6, shape="spline"),
-        marker=dict(size=5, color=C4, line=dict(color="white", width=1)),
+        line=dict(color=C5, width=2.6, shape="spline"),
+        marker=dict(size=5, color=C5, line=dict(color="white", width=1)),
         hovertemplate="%{x|%b %Y}<br><b>%{y:,.0f}</b><extra>Histórico</extra>",
     ))
-    # Proyección — acento naranja sobrio (línea fina, sin relleno naranja)
+    # Proyección — acento naranja (contraste vs histórico teal)
     fig.add_trace(go.Scatter(
         x=[hist.index[-1]] + list(fut.index), y=[hist.values[-1]] + list(fut.values),
         mode="lines+markers", name="Proyección",
