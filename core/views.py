@@ -336,7 +336,11 @@ def login_view(request):
     Protected destinations may force ``verificar_codigo`` before
     checkout or other marketplace routes.
     """
+    from core.utils.access_gating import user_needs_role_completion
+
     if request.user.is_authenticated:
+        if user_needs_role_completion(request.user):
+            return redirect('oauth_complete_signup')
         next_url = _safe_next_url(request)
         if next_url:
             return redirect(next_url)
@@ -353,6 +357,11 @@ def login_view(request):
                 request,
                 f'Welcome, {user.first_name or user.username}!',
             )
+            # Incomplete OAuth/legacy accounts lack UserProfile — send them to
+            # role completion before any base.html shell that used to 500 on
+            # request.user.profile.
+            if user_needs_role_completion(user):
+                return redirect('oauth_complete_signup')
             next_url = _safe_next_url(request)
             if next_url:
                 from core.utils.access_gating import is_protected_path, onboarding_redirect_name
@@ -361,7 +370,7 @@ def login_view(request):
                     gate_route = onboarding_redirect_name(user, scope='restricted')
                     if gate_route:
                         from urllib.parse import urlencode
-                        from core.utils.access_gating import normalize_path, should_inline_verify_at_checkout
+                        from core.utils.access_gating import should_inline_verify_at_checkout
 
                         messages.info(
                             request,

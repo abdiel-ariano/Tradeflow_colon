@@ -190,6 +190,22 @@ def tf_asset_version(request):
     return {'tf_asset_version': getattr(settings, 'TRADEFLOW_ASSET_VERSION', '1')}
 
 
+def tf_user_role(request):
+    """Expose marketplace role without raising when ``UserProfile`` is missing.
+
+    ``base.html`` and shell templates must not touch
+    ``request.user.profile`` directly — a RelatedObjectDoesNotExist there
+    becomes HTTP 500 right after login/OAuth for incomplete accounts.
+    """
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return {'tf_user_role': '', 'tf_has_profile': False}
+    try:
+        role = request.user.profile.role or ''
+    except Exception:
+        return {'tf_user_role': '', 'tf_has_profile': False}
+    return {'tf_user_role': role, 'tf_has_profile': True}
+
+
 def nav_header_categories(request):
     """Cached top categories with active products for the public header."""
     from core.utils.tradeflow_cache import cached_nav_categories
@@ -210,7 +226,7 @@ def buyer_mega_menu_context(request):
         if role not in (None, 'buyer'):
             return {}
     except Exception:
-        pass
+        return {}
     from core.merchandising import buyer_mega_menu_panels
 
     return {'buyer_mega_menu_panels': buyer_mega_menu_panels()}
