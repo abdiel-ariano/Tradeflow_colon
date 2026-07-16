@@ -140,6 +140,7 @@ TEMPLATES = [
                 'core.context_processors.supabase_public',
                 'core.context_processors.enterprise_saas',
                 'core.context_processors.tf_asset_version',
+                'core.context_processors.tf_user_role',
                 'core.context_processors.nav_header_categories',
                 'core.context_processors.buyer_mega_menu_context',
                 'core.context_processors.social_auth_context',
