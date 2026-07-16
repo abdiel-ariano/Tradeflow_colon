@@ -1,4 +1,8 @@
-"""Rate limiting middleware — APIs, search suggest, catalog partials."""
+"""API rate limits for search suggest and catalog AJAX partials.
+
+Public CFZ catalog endpoints must return 429 JSON before abusive
+clients overwhelm search or partial rendering.
+"""
 import json
 
 from django.core.cache import cache
@@ -15,20 +19,23 @@ from core.middleware.tf_security import ApiRateLimitMiddleware
     }
 )
 class ApiRateLimitMiddlewareTests(SimpleTestCase):
+    """Assert ApiRateLimitMiddleware 429 responses."""
+
     def setUp(self):
-        """Setup."""
+        """Clear cache and wrap middleware with a 200 handler."""
         cache.clear()
         self.factory = RequestFactory()
         self.middleware = ApiRateLimitMiddleware(lambda request: self._ok(request))
 
     @staticmethod
     def _ok(request):
+        """Return a plain 200 response."""
         from django.http import HttpResponse
 
         return HttpResponse('ok')
 
     def test_search_suggest_returns_429_json_when_exceeded(self):
-        """Test search suggest returns 429 json when exceeded."""
+        """Block search suggest after SEARCH_LIMIT with rate_limit JSON."""
         for _ in range(ApiRateLimitMiddleware.SEARCH_LIMIT):
             response = self.middleware(self.factory.get('/api/search/suggest/?q=ups'))
             self.assertEqual(response.status_code, 200)
@@ -40,7 +47,7 @@ class ApiRateLimitMiddlewareTests(SimpleTestCase):
         self.assertIn('Retry-After', blocked)
 
     def test_catalog_partial_returns_429_json_when_exceeded(self):
-        """Test catalog partial returns 429 json when exceeded."""
+        """Block catalog AJAX partials after CATALOG_PARTIAL_LIMIT."""
         req = self.factory.get('/catalogo/?partial=1', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         for _ in range(ApiRateLimitMiddleware.CATALOG_PARTIAL_LIMIT):
             response = self.middleware(req)

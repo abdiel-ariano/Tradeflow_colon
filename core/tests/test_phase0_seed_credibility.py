@@ -1,4 +1,8 @@
-"""Phase 0 seed credibility — product naming and stock."""
+"""Phase 0 demo seed naming, stock buckets, and catalog images.
+
+Expo demos must look like real CFZ inventory: no lot suffixes,
+varied stock, and category seed photos when uploads are absent.
+"""
 from decimal import Decimal
 import random
 
@@ -10,15 +14,17 @@ from core.utils.product_stock_seed import realistic_stock_qty
 
 
 class ProductSeedNamingTests(TestCase):
+    """Assert seed product name builders."""
+
     def test_strip_lot_suffix(self):
-        """Test strip lot suffix."""
+        """Remove trailing lot NNN suffixes from titles."""
         self.assertEqual(
             strip_lot_suffix('Universal Docking Station — lot 284'),
             'Universal Docking Station',
         )
 
     def test_build_seed_product_name_has_no_lot(self):
-        """Test build seed product name has no lot."""
+        """Build seed names without lot markers in the title."""
         rng = random.Random(7)
         name = build_seed_product_name(
             company_name='Panamax Electronics B2B',
@@ -31,7 +37,7 @@ class ProductSeedNamingTests(TestCase):
         self.assertIn('Cat6 Wiring Kit', name)
 
     def test_different_companies_get_distinct_prefixes(self):
-        """Test different companies get distinct prefixes."""
+        """Differentiate same SKU titles across seller companies."""
         rng = random.Random(1)
         a = build_seed_product_name(
             company_name='Panamax Electronics B2B',
@@ -51,8 +57,10 @@ class ProductSeedNamingTests(TestCase):
 
 
 class ProductStockSeedTests(TestCase):
+    """Assert realistic_stock_qty spans low and high buckets."""
+
     def test_realistic_stock_spans_buckets(self):
-        """Test realistic stock spans buckets."""
+        """Sample both scarce and bulk stock quantities."""
         rng = random.Random(99)
         samples = [realistic_stock_qty(rng) for _ in range(200)]
         lows = [s for s in samples if s <= 15]
@@ -62,8 +70,10 @@ class ProductStockSeedTests(TestCase):
 
 
 class ProductImageSrcPhase0Tests(TestCase):
+    """Assert product_image_src falls back to catalog seeds."""
+
     def setUp(self):
-        """Setup."""
+        """Create active product without an uploaded image."""
         self.company = Company.objects.create(name='ZLC Trading', is_verified=True)
         self.category = Category.objects.create(name='Electronics & Office')
         self.product = Product.objects.create(
@@ -77,7 +87,7 @@ class ProductImageSrcPhase0Tests(TestCase):
         )
 
     def test_product_image_src_uses_catalog_seed_without_upload(self):
-        """Test product image src uses catalog seed without upload."""
+        """Serve electronics catalog-seed URL when no upload exists."""
         from core.templatetags.tf_media import product_image_src
 
         url = product_image_src(self.product)

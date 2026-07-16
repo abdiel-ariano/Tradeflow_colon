@@ -1,4 +1,8 @@
-"""Tarjeta de producto unificada y vista pública de detalle."""
+"""Unified product cards and public PDP for CFZ catalog.
+
+Guests see wholesale teasers without cart actions; verified
+buyers get cart/quote controls on the same detail template.
+"""
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
@@ -15,8 +19,10 @@ from core.models import Category, Company, Inventory, Product, UserProfile
     REQUIRE_APPROVED_APPLICATION=False,
 )
 class ProductCardUnifiedTests(TestCase):
+    """Assert PDP and home card markup for guests and buyers."""
+
     def setUp(self):
-        """Setup."""
+        """Seed featured products, related SKU, and verified buyer."""
         from django.core.cache import cache
         cache.clear()
         self.company = Company.objects.create(
@@ -66,7 +72,7 @@ class ProductCardUnifiedTests(TestCase):
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
     def test_guest_can_open_public_product_detail(self):
-        """Test guest can open public product detail."""
+        """Open PDP publicly with teaser pricing and related SKUs."""
         response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Unified Widget')
@@ -79,13 +85,13 @@ class ProductCardUnifiedTests(TestCase):
         self.assertContains(response, 'Related products')
 
     def test_guest_breadcrumb_shows_category(self):
-        """Test guest breadcrumb shows category."""
+        """Show Home and category crumbs on guest PDP."""
         response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
         self.assertContains(response, 'Home')
         self.assertContains(response, 'Electronics')
 
     def test_home_uses_catalog_marketplace_cards(self):
-        """Test home uses catalog marketplace cards."""
+        """Render marketplace product-card markup on home."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'hm-alibaba')
@@ -96,7 +102,7 @@ class ProductCardUnifiedTests(TestCase):
         self.assertNotContains(response, 'class="tf-pcard ')
 
     def test_buyer_product_detail_has_cart_actions(self):
-        """Test buyer product detail has cart actions."""
+        """Show cart and auto-quote actions for logged-in buyers."""
         self.client.force_login(self.buyer)
         response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
         self.assertEqual(response.status_code, 200)

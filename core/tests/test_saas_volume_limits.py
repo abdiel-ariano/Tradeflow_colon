@@ -1,4 +1,8 @@
-"""Tests de enforcement de límites SaaS mensuales."""
+"""Monthly SaaS volume limits on seller order confirmation.
+
+Digitalízate and Expansion caps block accept_seller_order once
+billable CFZ volume would exceed the plan ceiling.
+"""
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -31,8 +35,10 @@ from core.utils.saas_billing import compute_monthly_volume
     CHECKOUT_AUTO_APPROVE=False,
 )
 class TestSaasVolumeLimits(TestCase):
+    """Assert VolumeLimitExceeded across plan slugs."""
+
     def setUp(self):
-        """Setup."""
+        """Create seller, buyer, and high-priced SKU for volume tests."""
         ensure_default_plans()
         self.seller = User.objects.create_user('seller_lim', 'seller_lim@test.pa', 'pass')
         UserProfile.objects.create(user=self.seller, role='seller', email_verificado=True)
@@ -57,11 +63,13 @@ class TestSaasVolumeLimits(TestCase):
         Inventory.objects.create(product=self.product, stock_qty=100, reserved_qty=0)
 
     def _set_plan(self, slug: str):
+        """Assign company subscription to the given plan slug."""
         sub = ensure_demo_subscription(self.company)
         sub.plan = SaasPlan.objects.get(slug=slug)
         sub.save(update_fields=['plan'])
 
     def _paid_order(self, amount: Decimal, number: str) -> Order:
+        """Create a paid/accepted order at the given amount."""
         order = Order.objects.create(
             buyer=self.buyer,
             order_number=number,
@@ -80,6 +88,7 @@ class TestSaasVolumeLimits(TestCase):
         return order
 
     def _awaiting_order(self, amount: Decimal, number: str) -> Order:
+        """Create an awaiting_seller order pending confirmation."""
         order = Order.objects.create(
             buyer=self.buyer,
             order_number=number,
@@ -98,7 +107,7 @@ class TestSaasVolumeLimits(TestCase):
         return order
 
     def test_digitalizate_blocks_confirm_over_limit(self):
-        """Test digitalizate blocks confirm over limit."""
+        """Raise VolumeLimitExceeded when Digitalízate cap is exceeded."""
         self._set_plan('digitalizate')
         self._paid_order(Decimal('15000.00'), 'TF-LIM-1')
         vol, _ = compute_monthly_volume(self.company)
@@ -109,7 +118,7 @@ class TestSaasVolumeLimits(TestCase):
             accept_seller_order(pending)
 
     def test_expansion_allows_under_50k(self):
-        """Test expansion allows under 50k."""
+        """Allow Expansion confirms that stay under the 50k limit."""
         self._set_plan('expansion')
         self._paid_order(Decimal('40000.00'), 'TF-EXP-1')
         pending = self._awaiting_order(Decimal('5000.00'), 'TF-EXP-2')
@@ -118,7 +127,7 @@ class TestSaasVolumeLimits(TestCase):
         self.assertEqual(pending.status, 'paid')
 
     def test_corporativo_pro_unlimited(self):
-        """Test corporativo pro unlimited."""
+        """Allow large Corporativo Pro confirms without a volume cap."""
         self._set_plan('corporativo_pro')
         self._paid_order(Decimal('100000.00'), 'TF-PRO-1')
         pending = self._awaiting_order(Decimal('50000.00'), 'TF-PRO-2')
@@ -127,7 +136,7 @@ class TestSaasVolumeLimits(TestCase):
         self.assertEqual(pending.status, 'paid')
 
     def test_assert_within_volume_at_exact_limit(self):
-        """Test assert within volume at exact limit."""
+        """Allow zero delta at exact limit; reject any overage."""
         self._set_plan('digitalizate')
         self._paid_order(Decimal('15000.00'), 'TF-EX-1')
         assert_within_volume_limit(self.company, Decimal('0'))

@@ -1,4 +1,8 @@
-"""Tests de activación y checkout post-trial (sin downgrade)."""
+"""Post-trial plan activation without allowing downgrades.
+
+Past-due sellers may pay at or above the recommended plan so
+volume from the trial informs CFZ SaaS upgrades.
+"""
 from datetime import timedelta
 from decimal import Decimal
 
@@ -24,7 +28,10 @@ from core.utils.seller_lifecycle import finalize_trial_period, start_seller_tria
     ALLOW_MOCK_PLAN_PAYMENT=True,
 )
 class SellerPlanActivationTests(TestCase):
+    """Assert activation eligibility and checkout payment paths."""
+
     def setUp(self):
+        """Start a seller trial and log the owner in."""
         ensure_default_plans()
         self.user = User.objects.create_user('seller_act', password='x', email='act@test.com')
         UserProfile.objects.create(user=self.user, role='seller', email_verificado=True)
@@ -34,6 +41,7 @@ class SellerPlanActivationTests(TestCase):
         self.client.force_login(self.user)
 
     def _move_to_past_due_zero_sales(self):
+        """Expire trial and finalize into past_due with zero sales."""
         sub = self.company.subscription
         sub.current_period_end = timezone.now() - timedelta(hours=1)
         sub.save(update_fields=['current_period_end'])
@@ -41,6 +49,7 @@ class SellerPlanActivationTests(TestCase):
         self.company.subscription.refresh_from_db()
 
     def test_past_due_zero_sales_can_pay_digitalizate(self):
+        """Allow Digitalízate checkout when recommendation is entry."""
         self._move_to_past_due_zero_sales()
         ok, err = can_select_plan_for_activation(
             self.company,
@@ -52,6 +61,7 @@ class SellerPlanActivationTests(TestCase):
         self.assertEqual(r.status_code, 200)
 
     def test_past_due_high_volume_blocks_digitalizate(self):
+        """Block Digitalízate when Expansion is recommended."""
         self._move_to_past_due_zero_sales()
         sub = self.company.subscription
         expansion = SaasPlan.objects.get(slug='expansion')
@@ -67,6 +77,7 @@ class SellerPlanActivationTests(TestCase):
         self.assertEqual(err, 'below_recommended_plan')
 
     def test_trial_upgrade_payment_activates(self):
+        """complete_plan_checkout activates Expansion from trial."""
         from core.utils.saas_billing import create_plan_checkout, complete_plan_checkout, CheckoutMode
 
         checkout = create_plan_checkout(self.company, 'expansion', mode=CheckoutMode.TRIAL_UPGRADE)
@@ -77,6 +88,7 @@ class SellerPlanActivationTests(TestCase):
         self.assertEqual(checkout.status, 'paid')
 
     def test_trial_upgrade_http_payment_activates(self):
+        """HTTP mock pay activates Expansion and marks checkout paid."""
         get_r = self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'}))
         self.assertEqual(get_r.status_code, 200)
         pay_url = reverse('seller_plan_checkout_pay', kwargs={'plan_slug': 'expansion'})

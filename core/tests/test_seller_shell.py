@@ -1,4 +1,8 @@
-"""Tests del shell dashboard seller (rutas nuevas)."""
+"""Seller dashboard shell routes under /mi-tienda/.
+
+Trialing sellers reach Stripe-inspired catalog and analytics
+pages; guests must be sent to login.
+"""
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
@@ -12,8 +16,10 @@ from core.utils.seller_lifecycle import start_seller_trial
     REQUIRE_EMAIL_VERIFICATION=False,
 )
 class TestSellerShellPages(TestCase):
+    """Assert shell page status codes and catalog layout copy."""
+
     def setUp(self):
-        """Setup."""
+        """Attach seller as owner and start a Digitalízate trial."""
         ensure_default_plans()
         self.company = Company.objects.create(name='Demo Co', ruc='999', is_verified=True)
         self.seller = User.objects.create_user(
@@ -28,10 +34,11 @@ class TestSellerShellPages(TestCase):
         start_seller_trial(self.company)
 
     def _login(self):
+        """Log in as the shell seller fixture."""
         self.client.login(username='shell_seller', password='TestPass123!')
 
     def test_seller_shell_routes_return_200(self):
-        """Test seller shell routes return 200."""
+        """Return 200 for core /mi-tienda/ shell paths."""
         self._login()
         paths = [
             '/mi-tienda/',
@@ -52,13 +59,13 @@ class TestSellerShellPages(TestCase):
             self.assertEqual(r.status_code, 200, msg=path)
 
     def test_guest_redirected_from_seller_shell(self):
-        """Test guest redirected from seller shell."""
+        """Redirect anonymous users from shell to login."""
         r = self.client.get('/mi-tienda/balances/')
         self.assertEqual(r.status_code, 302)
         self.assertIn('/login/', r.url)
 
     def test_product_catalog_stripe_layout(self):
-        """Test product catalog stripe layout."""
+        """Render product catalog headings and create CTA."""
         self._login()
         r = self.client.get('/mi-tienda/productos/')
         self.assertEqual(r.status_code, 200)
@@ -67,7 +74,7 @@ class TestSellerShellPages(TestCase):
         self.assertContains(r, 'Create product')
 
     def test_payments_analytics_stripe_layout(self):
-        """Test payments analytics stripe layout."""
+        """Render payments analytics metrics sections."""
         self._login()
         r = self.client.get('/mi-tienda/reportes/')
         self.assertEqual(r.status_code, 200)
@@ -76,7 +83,7 @@ class TestSellerShellPages(TestCase):
         self.assertContains(r, 'Acceptance')
 
     def test_catalog_features_tab(self):
-        """Test catalog features tab."""
+        """Open pricing tab with pricing tables copy."""
         self._login()
         r = self.client.get('/mi-tienda/productos/?tab=pricing')
         self.assertEqual(r.status_code, 200)

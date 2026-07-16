@@ -1,4 +1,8 @@
-"""Password reset: DB magic links (PasswordResetLink) + Resend + autologin."""
+"""DB-backed password reset links with Resend delivery.
+
+Magic links are single-use and TTL-bound so CFZ operators and
+buyers can recover accounts without leaking email existence.
+"""
 from unittest.mock import patch
 
 from django.conf import settings
@@ -28,7 +32,10 @@ User = get_user_model()
     PASSWORD_RESET_TIMEOUT=60 * 15,
 )
 class PasswordResetDbLinkTests(TestCase):
+    """Assert PasswordResetLink create, consume, and expiry paths."""
+
     def setUp(self):
+        """Activate language and create a user with mixed-case email."""
         translation.activate(settings.LANGUAGE_CODE)
         self.user = User.objects.create_user(
             username='reset_user',
@@ -41,6 +48,7 @@ class PasswordResetDbLinkTests(TestCase):
         return_value=EmailSendResult(ok=True, channel='resend', detail='msg_reset'),
     )
     def test_reset_persists_db_token_and_sends_via_resend(self, mock_send):
+        """Persist token, email via Resend, and log delivery."""
         response = self.client.post(
             reverse('password_reset'),
             {'email': 'reset.user@example.com'},
@@ -66,6 +74,7 @@ class PasswordResetDbLinkTests(TestCase):
 
     @patch('core.email_service.enviar_email_transaccional')
     def test_unknown_email_still_shows_done_without_send(self, mock_send):
+        """Show done page for unknown emails without sending mail."""
         response = self.client.post(
             reverse('password_reset'),
             {'email': 'nobody@example.com'},
@@ -76,6 +85,7 @@ class PasswordResetDbLinkTests(TestCase):
         self.assertEqual(PasswordResetLink.objects.count(), 0)
 
     def test_confirm_sets_password_autologin_and_consumes_link(self):
+        """Set password, autologin, and delete the consumed link."""
         token = generate_password_reset_link(self.user)
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         confirm_url = reverse(
@@ -107,6 +117,7 @@ class PasswordResetDbLinkTests(TestCase):
         self.assertContains(complete, 'You are signed in')
 
     def test_invalid_token_shows_safe_page(self):
+        """Render expired/invalid messaging for bad tokens."""
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         url = reverse(
             'password_reset_confirm',
@@ -117,6 +128,7 @@ class PasswordResetDbLinkTests(TestCase):
         self.assertContains(response, 'Link expired or invalid')
 
     def test_expired_token_rejected(self):
+        """Reject tokens aged past PASSWORD_RESET_LINK_EXPIRY."""
         token = generate_password_reset_link(self.user)
         row = PasswordResetLink.objects.get(token=token)
         # Age created_at beyond TTL without storing secrets in logs.
@@ -138,6 +150,7 @@ class PasswordResetDbLinkTests(TestCase):
         self.assertContains(response, 'Link expired or invalid')
 
     def test_token_cannot_be_reused(self):
+        """Reject a second visit after successful password change."""
         token = generate_password_reset_link(self.user)
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         confirm_url = reverse(
@@ -158,6 +171,7 @@ class PasswordResetDbLinkTests(TestCase):
         self.assertContains(again, 'Link expired or invalid')
 
     def test_new_request_invalidates_previous_link(self):
+        """Invalidate prior unused links when a new reset is issued."""
         first = generate_password_reset_link(self.user)
         second = generate_password_reset_link(self.user)
         self.assertNotEqual(first, second)

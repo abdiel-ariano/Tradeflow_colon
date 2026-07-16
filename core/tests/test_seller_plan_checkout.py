@@ -1,4 +1,8 @@
-"""Checkout de planes seller (mock demo + transferencia bancaria pending)."""
+"""Seller plan checkout: mock pay, bank transfer, and renewals.
+
+Bank proof stays pending until admin approval; mock payments
+exist for demos. Renewal cron moves elapsed paid periods.
+"""
 from datetime import timedelta
 
 from django.contrib.auth.models import User
@@ -29,8 +33,10 @@ from core.utils.seller_lifecycle import mark_paid_period_elapsed, start_seller_t
     },
 )
 class SellerPlanCheckoutTests(TestCase):
+    """Assert checkout page and mock payment when allowed."""
+
     def setUp(self):
-        """Setup."""
+        """Create active seller subscription with mock pay enabled."""
         ensure_default_plans()
         self.user = User.objects.create_user('seller_chk', password='x', email='s@test.com')
         UserProfile.objects.create(user=self.user, role='seller')
@@ -40,7 +46,7 @@ class SellerPlanCheckoutTests(TestCase):
         self.client.force_login(self.user)
 
     def test_checkout_page_loads(self):
-        """Test checkout page loads with bank instructions."""
+        """Render bank transfer fields and pending checkout row."""
         url = reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'})
         r = self.client.get(url)
         self.assertEqual(r.status_code, 200)
@@ -59,7 +65,7 @@ class SellerPlanCheckoutTests(TestCase):
         )
 
     def test_mock_payment_activates_plan(self):
-        """Mock card activates immediately when ALLOW_MOCK_PLAN_PAYMENT=True."""
+        """Activate Expansion immediately via mock card payment."""
         self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'}))
         pay_url = reverse('seller_plan_checkout_pay', kwargs={'plan_slug': 'expansion'})
         r = self.client.post(pay_url, {'payment_method': 'mock', 'card_name': 'Test User'})
@@ -70,7 +76,7 @@ class SellerPlanCheckoutTests(TestCase):
         self.assertEqual(checkout.status, 'paid')
 
     def test_upgrade_redirects_to_checkout(self):
-        """Test upgrade redirects to checkout."""
+        """POST upgrade routes to /plan/pago/<slug>."""
         r = self.client.post(
             reverse('seller_upgrade_plan'),
             {'plan_slug': 'expansion'},
@@ -89,7 +95,10 @@ class SellerPlanCheckoutTests(TestCase):
     },
 )
 class SellerBankCheckoutTests(TestCase):
+    """Assert bank transfer pending flow and admin review."""
+
     def setUp(self):
+        """Create seller with mock pay disabled and a superuser."""
         ensure_default_plans()
         self.user = User.objects.create_user('seller_bank', password='x', email='bank@test.com')
         UserProfile.objects.create(user=self.user, role='seller')
@@ -100,6 +109,7 @@ class SellerBankCheckoutTests(TestCase):
         self.admin = User.objects.create_superuser('admin_bank', 'a@test.com', 'x')
 
     def test_mock_rejected_when_disabled(self):
+        """Keep checkout pending when mock payment is disabled."""
         self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'}))
         pay_url = reverse('seller_plan_checkout_pay', kwargs={'plan_slug': 'expansion'})
         r = self.client.post(pay_url, {'payment_method': 'mock', 'card_name': 'Nope'})
@@ -110,6 +120,7 @@ class SellerBankCheckoutTests(TestCase):
         self.assertEqual(self.company.subscription.plan.slug, 'digitalizate')
 
     def test_bank_submit_stays_pending(self):
+        """Store bank reference without activating the plan yet."""
         self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'}))
         pay_url = reverse('seller_plan_checkout_pay', kwargs={'plan_slug': 'expansion'})
         r = self.client.post(
@@ -129,7 +140,7 @@ class SellerBankCheckoutTests(TestCase):
         self.assertEqual(self.company.subscription.plan.slug, 'digitalizate')
 
     def test_bank_submit_survives_proof_storage_error(self):
-        """Si Storage falla al guardar el comprobante, la referencia bancaria sí se guarda."""
+        """Keep transfer reference if proof_file storage fails."""
         from django.core.files.uploadedfile import SimpleUploadedFile
         from unittest.mock import patch
 
@@ -158,6 +169,7 @@ class SellerBankCheckoutTests(TestCase):
         self.assertEqual(checkout.provider, 'bank')
 
     def test_corporativo_pro_bank_http_no_500(self):
+        """Accept Corporativo Pro bank POST without server errors."""
         self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'corporativo_pro'}))
         pay_url = reverse('seller_plan_checkout_pay', kwargs={'plan_slug': 'corporativo_pro'})
         r = self.client.post(
@@ -171,6 +183,7 @@ class SellerBankCheckoutTests(TestCase):
         self.assertEqual(checkout.status, 'pending')
 
     def test_admin_approve_activates_plan(self):
+        """Admin approve marks checkout paid and upgrades plan."""
         self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'}))
         checkout = CompanyPlanCheckout.objects.filter(company=self.company).latest('created_at')
         submit_bank_transfer_payment(
@@ -190,6 +203,7 @@ class SellerBankCheckoutTests(TestCase):
         self.assertEqual(checkout.reviewed_by_id, self.admin.pk)
 
     def test_admin_reject_keeps_subscription(self):
+        """Reject checkout without changing current plan."""
         self.client.get(reverse('seller_plan_checkout', kwargs={'plan_slug': 'expansion'}))
         checkout = CompanyPlanCheckout.objects.filter(company=self.company).latest('created_at')
         submit_bank_transfer_payment(checkout, transfer_reference='REJ-5555')
@@ -201,13 +215,17 @@ class SellerBankCheckoutTests(TestCase):
 
 
 class SellerRenewalCronTests(TestCase):
+    """Assert paid-period elapsed helpers and renewal command."""
+
     def setUp(self):
+        """Create seller company for renewal simulations."""
         ensure_default_plans()
         self.user = User.objects.create_user('seller_ren', password='x', email='ren@test.com')
         UserProfile.objects.create(user=self.user, role='seller', email_verificado=True)
         self.company = Company.objects.create(name='Ren Co', owner=self.user, ruc='8-REN-1')
 
     def test_mark_paid_period_elapsed(self):
+        """Move elapsed paid subscriptions to past_due with grace."""
         from core.utils.saas_billing import activate_company_plan
 
         start_seller_trial(self.company)
@@ -223,6 +241,7 @@ class SellerRenewalCronTests(TestCase):
         self.assertEqual(result.recommended_plan_id, result.plan_id)
 
     def test_process_seller_subscriptions_renewal(self):
+        """process_seller_subscriptions reports renewals=1."""
         from core.utils.saas_billing import activate_company_plan
         from io import StringIO
 

@@ -1,4 +1,8 @@
-"""Tests del comando seed_enterprise_year (escala demo, sin imágenes)."""
+"""seed_enterprise_year demo scale without product images.
+
+Operators need a fast CFZ year of simulated sellers/orders for
+analytics demos, with a clean clear path after the run.
+"""
 from django.core.management import call_command
 from django.test import TestCase
 
@@ -12,12 +16,14 @@ from core.utils.enterprise_year_simulator import (
 
 
 class SeedEnterpriseYearTests(TestCase):
+    """Assert schema readiness and demo seed/clear cycle."""
+
     def test_schema_ready_after_migrate(self):
-        """Test schema ready after migrate."""
+        """ensure_database_schema_ready succeeds after migrations."""
         ensure_database_schema_ready()
 
     def test_demo_seed_and_clear(self):
-        """Test demo seed and clear."""
+        """Seed demo companies/orders then remove simulation rows."""
         clear_enterprise_year_simulation()
         call_command(
             'seed_enterprise_year',

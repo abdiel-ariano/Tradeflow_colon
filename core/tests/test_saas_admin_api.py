@@ -1,4 +1,8 @@
-"""API panel admin SaaS."""
+"""Admin SaaS stats API and commercial request approval.
+
+TradeFlow admins monitor plan KPIs and approve Enterprise
+commercial requests that upgrade company subscriptions.
+"""
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -9,8 +13,10 @@ from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscripti
 
 
 class SaasAdminApiTests(TestCase):
+    """Assert admin SaaS API auth and approve action."""
+
     def setUp(self):
-        """Setup."""
+        """Log in staff admin with TradeFlow admin role."""
         ensure_default_plans()
         self.admin = User.objects.create_user('admin_saas', password='x', is_staff=True)
         UserProfile.objects.create(user=self.admin, role='admin')
@@ -18,7 +24,7 @@ class SaasAdminApiTests(TestCase):
         self.client.force_login(self.admin)
 
     def test_stats_requires_admin(self):
-        """Test stats requires admin."""
+        """Deny SaaS stats to non-admin buyers."""
         buyer = User.objects.create_user('buyer', password='x')
         UserProfile.objects.create(user=buyer, role='buyer')
         c = Client()
@@ -27,7 +33,7 @@ class SaasAdminApiTests(TestCase):
         self.assertIn(r.status_code, (302, 403))
 
     def test_stats_json_structure(self):
-        """Test stats json structure."""
+        """Return kpis, plan_usage, and predictive amount fields."""
         company = Company.objects.create(name='Empresa Test')
         ensure_demo_subscription(company)
         r = self.client.get(reverse('api_admin_saas_stats'))
@@ -39,7 +45,7 @@ class SaasAdminApiTests(TestCase):
         self.assertIn('predicted_amount_usd', data['predictive'])
 
     def test_approve_commercial_request(self):
-        """Test approve commercial request."""
+        """Approve request and move company onto enterprise plan."""
         plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
         company = Company.objects.create(name='Enterprise Co')
         ensure_demo_subscription(company)

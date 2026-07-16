@@ -1,4 +1,8 @@
-"""Tests del wizard de onboarding seller."""
+"""Seller company onboarding wizard and trial bootstrap.
+
+New CFZ sellers create a company + Digitalízate trial; DB and
+empty-logo errors must stay on the form instead of 500s.
+"""
 from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
@@ -14,7 +18,10 @@ from core.utils.saas_billing import ensure_default_plans
     REQUIRE_APPROVED_APPLICATION=True,
 )
 class SellerOnboardingTests(TestCase):
+    """Assert wizard POST, error handling, and portal redirect."""
+
     def setUp(self):
+        """Log in a seller without a company yet."""
         ensure_default_plans()
         self.user = User.objects.create_user('seller_ob', password='x', email='ob@test.com')
         UserProfile.objects.create(user=self.user, role='seller', email_verificado=True)
@@ -22,6 +29,7 @@ class SellerOnboardingTests(TestCase):
         self.client.force_login(self.user)
 
     def test_wizard_creates_company_and_trial(self):
+        """Create company and trialing subscription from wizard POST."""
         url = reverse('seller_onboarding_company_post')
         r = self.client.post(url, {
             'name': 'Nueva Empresa ZLC',
@@ -35,7 +43,7 @@ class SellerOnboardingTests(TestCase):
         self.assertEqual(sub.status, 'trialing')
 
     def test_wizard_survives_empty_logo_upload(self):
-        """POST con logo vacío no debe devolver 500."""
+        """Accept empty logo uploads without returning 500."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         empty = SimpleUploadedFile('logo.png', b'', content_type='image/png')
@@ -50,7 +58,7 @@ class SellerOnboardingTests(TestCase):
         self.assertTrue(Company.objects.filter(owner=self.user, ruc='8-OB-LOGO').exists())
 
     def test_wizard_db_error_renders_form_not_500(self):
-        """Errores de BD se muestran en el formulario (no Server Error)."""
+        """Show database error message on IntegrityError."""
         from unittest.mock import patch
 
         url = reverse('seller_onboarding_company_post')
@@ -67,6 +75,7 @@ class SellerOnboardingTests(TestCase):
         self.assertContains(r, 'error de base de datos')
 
     def test_pending_seller_redirected_to_wizard(self):
+        """Redirect sellers without companies to onboarding."""
         r = self.client.get(reverse('portal_seller'))
         self.assertEqual(r.status_code, 302)
         self.assertIn('/onboarding/vendedor/', r.url)

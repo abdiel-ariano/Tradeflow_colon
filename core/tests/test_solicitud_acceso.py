@@ -1,4 +1,8 @@
-"""Tests for /solicitud-acceso/ (access + enterprise commercial application)."""
+"""Access and Enterprise commercial application form.
+
+Guests open UserApplication rows; authenticated sellers create
+CompanyPlanCommercialRequest for Ecosistema Enterprise.
+"""
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import Client, TestCase, override_settings
@@ -19,11 +23,15 @@ from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscripti
     },
 )
 class SolicitudAccesoTests(TestCase):
+    """Assert solicitud-acceso GET/POST for guests and sellers."""
+
     def setUp(self):
+        """Ensure default plans and create a client."""
         ensure_default_plans()
         self.client = Client()
 
     def test_enterprise_page_loads(self):
+        """Render enterprise plan form with hidden plan slug."""
         r = self.client.get(reverse('solicitud_acceso'), {'plan': 'enterprise'})
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'Ecosistema Enterprise')
@@ -32,7 +40,7 @@ class SolicitudAccesoTests(TestCase):
         self.assertContains(r, 'value="ecosistema_enterprise"', html=False)
 
     def test_legacy_corporate_email_field_still_works(self):
-        """Bug fix: old template posted corporate_email; view must accept it."""
+        """Accept legacy corporate_email field into UserApplication."""
         r = self.client.post(
             reverse('solicitud_acceso') + '?plan=enterprise',
             {
@@ -53,6 +61,7 @@ class SolicitudAccesoTests(TestCase):
         self.assertIn('RUC: 15566890-1-2020', app.message)
 
     def test_email_field_submits_application(self):
+        """Create pending application from the email field."""
         r = self.client.post(
             reverse('solicitud_acceso') + '?plan=enterprise',
             {
@@ -75,6 +84,7 @@ class SolicitudAccesoTests(TestCase):
         )
 
     def test_authenticated_seller_creates_commercial_request(self):
+        """Create pending CompanyPlanCommercialRequest for sellers."""
         user = User.objects.create_user('ent_seller', password='x', email='ent@zlc.com')
         UserProfile.objects.create(user=user, role='seller', email_verificado=True)
         company = Company.objects.create(name='Ent Co', owner=user, ruc='8-ENT-1')
@@ -104,6 +114,7 @@ class SolicitudAccesoTests(TestCase):
         )
 
     def test_missing_email_does_not_create(self):
+        """Reject submissions without email and keep status 200."""
         r = self.client.post(
             reverse('solicitud_acceso'),
             {
