@@ -39,8 +39,20 @@
       try {
         var fig = JSON.parse(item.fig);
         if (fig.layout) {
+          // El card ya muestra el título; no dejar anotaciones de título Plotly.
           fig.layout.title = { text: '' };
-          fig.layout.margin = Object.assign({}, fig.layout.margin, { t: 18 });
+          var m = Object.assign({}, fig.layout.margin || {});
+          // t/r mínimos: evita cortar ticks o el borde del plot en 2 columnas.
+          m.t = Math.min(Math.max(m.t || 28, 20), 36);
+          m.r = Math.max(m.r || 28, 28);
+          fig.layout.margin = m;
+          // Anotaciones de referencia (Media/Mediana legacy) fuera del card.
+          if (Array.isArray(fig.layout.annotations)) {
+            fig.layout.annotations = fig.layout.annotations.filter(function (a) {
+              var t = (a && a.text) ? String(a.text) : '';
+              return !(t.indexOf('Media:') === 0 || t.indexOf('Mediana:') === 0);
+            });
+          }
         }
         Plotly.newPlot(plot, fig.data, fig.layout, { displayModeBar: false, responsive: true });
       } catch (e) {

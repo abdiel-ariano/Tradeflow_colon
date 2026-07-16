@@ -1,7 +1,7 @@
 """Plotly chart builders branded for TradeFlow Colón analytics.
 
-Navy/blue-first palette with orange accents for forecasts. Used by seller
-dashboards, staff auto-charts, and hybrid AI chart replies.
+Multi-hue palette (teal / amber / mauve / green / blue / orange) with orange
+forecast accents. Used by seller dashboards, staff auto-charts, and AI charts.
 """
 from __future__ import annotations
 import pandas as pd
@@ -94,8 +94,8 @@ def _base_layout(title: str = "", height: int = 420, *, bottom: int = 56) -> dic
             bordercolor=GRID_COL,
             font=dict(family=FONT, size=13, color=TEXT_COL),
         ),
-        # Deja aire entre etiquetas de datos "outside" y el borde del plot.
-        uniformtext=dict(minsize=10, mode="hide"),
+        # Sin forzar etiquetas de datos: los valores van en hover / ejes
+        # (uniformtext+outside generaba cifras flotando fuera del plot).
     )
 
 
@@ -208,10 +208,10 @@ def histogram(df: pd.DataFrame, col: str):
         ),
         hovertemplate=f"<b>{L.pretty(col)}:</b> %{{x}}<br><b>Frecuencia:</b> %{{y}}<extra></extra>",
     ))
-    fig.add_vline(x=mean_val, line=dict(color=C4, dash="dash", width=2),
-                  annotation=dict(text=f"Media: {mean_val:.2f}", font_color=C4, bgcolor="rgba(255,255,255,0.85)"))
-    fig.add_vline(x=median_val, line=dict(color=C3, dash="dot", width=2),
-                  annotation=dict(text=f"Mediana: {median_val:.2f}", font_color=C3, bgcolor="rgba(255,255,255,0.85)", yshift=-20))
+    # Solo líneas de referencia: el texto "Media/Mediana" se montaba sobre
+    # ticks o el título del card (sobre todo con margin.t reducido en el JS).
+    fig.add_vline(x=mean_val, line=dict(color=C4, dash="dash", width=2))
+    fig.add_vline(x=median_val, line=dict(color=C3, dash="dot", width=2))
 
     fig.update_layout(**_base_layout(f"Distribución — {L.pretty(col)}"))
     _style_axes(fig, x_title=L.pretty(col), y_title="Frecuencia")
@@ -238,16 +238,13 @@ def bar_top(df: pd.DataFrame, col: str, top_n: int = 15):
         y=counts[col].astype(str),
         orientation="h",
         marker=dict(color=colors, line=dict(color="white", width=0.5), cornerradius=5),
-        text=counts["frecuencia"],
-        textposition="outside",
-        textfont=dict(size=12, color=SUBTEXT),
-        cliponaxis=False,
+        # Valores solo en hover + eje X (text outside invadía márgenes / labels).
         hovertemplate=f"<b>%{{y}}</b><br>Frecuencia: <b>%{{x}}</b><extra></extra>",
     ))
     fig.update_layout(**_base_layout(f"Top {n} — {L.pretty(col)}", height=max(360, n * 34), bottom=40))
     # Sin título de eje: el card ya dice qué se mide; evita solapes con ticks.
     _style_axes(fig, x_title="", y_title="")
-    fig.update_xaxes(range=[0, xmax * 1.22], automargin=True)
+    fig.update_xaxes(range=[0, xmax * 1.08], automargin=True)
     fig.update_yaxes(
         tickfont=dict(size=11, color=TEXT_COL),
         automargin=True,
@@ -257,7 +254,7 @@ def bar_top(df: pd.DataFrame, col: str, top_n: int = 15):
     )
     # Margen izquierdo amplio: las categorías viven a la IZQUIERDA de las barras
     # (l bajo las montaba encima del trazo).
-    fig.update_layout(margin=dict(r=80, l=168))
+    fig.update_layout(margin=dict(r=36, l=168))
     return fig
 
 
@@ -292,7 +289,9 @@ def pie_chart(df: pd.DataFrame, col: str, top_n: int = 8,
             colors=PALETTE[:len(counts)],
             line=dict(color="white", width=2),
         ),
+        # % solo dentro del anillo cuando cabe; sin labels crudos en el borde.
         textinfo="percent",
+        textposition="inside",
         textfont=dict(size=12, color=TEXT_COL),
         insidetextorientation="horizontal",
         hovertemplate=hover,
@@ -300,6 +299,7 @@ def pie_chart(df: pd.DataFrame, col: str, top_n: int = 8,
     fig.update_layout(
         **_base_layout(title, bottom=40),
         showlegend=True,
+        uniformtext=dict(minsize=11, mode="hide"),
     )
     fig.update_layout(legend=dict(
         orientation="v", x=1.02, y=0.5,
@@ -309,7 +309,8 @@ def pie_chart(df: pd.DataFrame, col: str, top_n: int = 8,
     center_html = f"<b>{total:,}</b>" if len(counts) > 1 else f"<b>{total:,}</b><br><span style='font-size:11px;color:{SUBTEXT}'>{counts.index[0]}</span>"
     fig.add_annotation(
         text=center_html,
-        x=0.5, y=0.5, xanchor="center", yanchor="middle", showarrow=False,
+        x=0.5, y=0.5, xref="paper", yref="paper",
+        xanchor="center", yanchor="middle", showarrow=False,
         font=dict(size=20, family=FONT, color=TEXT_COL),
     )
     return fig
@@ -415,6 +416,9 @@ def correlation_heatmap(df: pd.DataFrame):
     numeric = df.select_dtypes(include="number")
     corr = numeric.corr().round(2)
     ticks = [L.pretty(c) for c in corr.columns]
+    n = len(corr.columns)
+    # Cifras en celda solo si la matriz es chica; si no, solo hover/color.
+    show_cell_text = n <= 6
 
     fig = go.Figure(go.Heatmap(
         z=corr.values,
@@ -423,15 +427,14 @@ def correlation_heatmap(df: pd.DataFrame):
         colorscale=SCALE_DIV,
         zmin=-1, zmax=1,
         xgap=2, ygap=2,
-        text=corr.values,
-        texttemplate="%{text}",
+        text=corr.values if show_cell_text else None,
+        texttemplate="%{z:.2f}" if show_cell_text else None,
         textfont=dict(size=11, family=FONT),
         hoverongaps=False,
         colorbar=dict(outlinewidth=0, tickfont=dict(size=10, color=SUBTEXT),
                       thickness=12, len=0.8),
         hovertemplate="<b>%{x}</b> × <b>%{y}</b><br>Correlación: <b>%{z}</b><extra></extra>",
     ))
-    n = len(corr.columns)
     fig.update_layout(
         **_base_layout("Mapa de correlación", height=max(400, n * 55 + 100)),
     )
@@ -467,10 +470,7 @@ def grouped_bar(df: pd.DataFrame, group_col: str, value_col: str, agg: str = "su
         y=labels,
         orientation="h",
         marker=dict(color=colors, line=dict(color="white", width=0.6), cornerradius=6),
-        text=[f"{v:,.0f}" for v in grouped[value_col]],
-        textposition="outside",
-        textfont=dict(size=11, color=SUBTEXT),
-        cliponaxis=False,
+        # Sin text outside: duplicaba el eje X y se cortaba / solapaba labels.
         hovertemplate=(
             f"<b>%{{y}}</b><br>{L.pretty(value_col)}: <b>%{{x:,.0f}}</b><extra></extra>"
         ),
@@ -483,7 +483,7 @@ def grouped_bar(df: pd.DataFrame, group_col: str, value_col: str, agg: str = "su
     # Títulos de eje omitidos: el encabezado del card ya informa métrica/categoría
     # (evita "Día"/"Ventas" montado sobre valores numéricos).
     _style_axes(fig, x_title="", y_title="")
-    fig.update_xaxes(range=[0, xmax * 1.22], automargin=True, title_text="")
+    fig.update_xaxes(range=[0, xmax * 1.08], automargin=True, title_text="")
     fig.update_yaxes(
         tickfont=dict(size=11, color=TEXT_COL),
         automargin=True,
@@ -491,7 +491,7 @@ def grouped_bar(df: pd.DataFrame, group_col: str, value_col: str, agg: str = "su
         ticklabelposition="outside",
         ticksuffix=" ",
     )
-    fig.update_layout(margin=dict(r=80, l=168))
+    fig.update_layout(margin=dict(r=36, l=168))
     return fig
 
 
@@ -592,6 +592,9 @@ def treemap(df: pd.DataFrame, path_cols: list[str], value_col: str | None = None
         tiling=dict(pad=4),
         textfont=dict(size=12, family=FONT, color=TEXT_COL),
         textposition="middle center",
+        # Solo nombre de categoría en celda; el valor numérico queda en hover.
+        textinfo="label",
+        texttemplate="%{label}",
         hovertemplate="<b>%{label}</b><br>" + L.pretty(vname) + ": %{value}<extra></extra>",
     )
     fig.update_layout(**_base_layout("Composición — " + " / ".join(L.pretty(p) for p in path)),
@@ -617,6 +620,7 @@ def sunburst(df: pd.DataFrame, path_cols: list[str], value_col: str | None = Non
     )
     fig.update_traces(
         marker=dict(line=dict(color="white", width=1.5)),
+        textinfo="label",
         hovertemplate="<b>%{label}</b><br>" + L.pretty(vname) + ": %{value}<extra></extra>",
     )
     fig.update_layout(**_base_layout("Jerarquía — " + " / ".join(L.pretty(p) for p in path)),
@@ -833,9 +837,7 @@ def trend_bar(trends: pd.DataFrame, item_col: str, n: int = 10, declining: bool 
     fig = go.Figure(go.Bar(
         x=df["cambio_pct"], y=df[item_col].astype(str), orientation="h",
         marker=dict(color=color, line=dict(color="white", width=0.5), cornerradius=5),
-        text=[f"{v:+.0f}%" for v in df["cambio_pct"]],
-        textposition="outside", textfont=dict(size=12, color=SUBTEXT),
-        cliponaxis=False,
+        # % solo en hover: outside con negativos se metía encima del eje Y.
         hovertemplate="<b>%{y}</b><br>Cambio: <b>%{x:+.1f}%</b><extra></extra>",
     ))
     titulo = ("Productos con ventas a la baja" if declining
@@ -844,7 +846,11 @@ def trend_bar(trends: pd.DataFrame, item_col: str, n: int = 10, declining: bool 
     _style_axes(fig, x_title="", y_title="")
     fig.update_yaxes(tickfont=dict(size=11), automargin=True)
     span = float(df["cambio_pct"].abs().max() or 1)
-    fig.update_xaxes(range=[-span * 1.35, span * 1.35] if declining else [0, span * 1.35], automargin=True)
-    fig.update_layout(margin=dict(r=80, l=168))
+    fig.update_xaxes(
+        range=[-span * 1.12, span * 0.08] if declining else [0, span * 1.12],
+        automargin=True,
+        ticksuffix="%",
+    )
+    fig.update_layout(margin=dict(r=36, l=168))
     fig.add_vline(x=0, line=dict(color=AXIS_COL, width=1))
     return fig
