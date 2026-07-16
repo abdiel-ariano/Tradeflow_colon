@@ -83,4 +83,4 @@ pandas>=2.2,<4.0
 numpy>=1.26,<3.0
 plotly>=5.20,<7.0
 XlsxWriter>=3.1,<4.0            # exportación Excel multi-hoja
-openai>=1.30,<3.0              # cliente compatible con la API de Groq
+openai>=2.45.0,<3.0              # cliente compatible con la API de Groq
