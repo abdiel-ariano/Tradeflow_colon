@@ -1,4 +1,8 @@
-"""Home marketplace — Shopify landing from Figma."""
+"""Home marketplace Shopify-style landing from the Figma shell.
+
+Guest home must ship hm-shopify sections, catalog seed photos, and
+TradeFlow Colón CTAs without legacy Alibaba/shimmer chrome.
+"""
 from django.test import TestCase, override_settings
 
 from core.models import Category, Company, Product
@@ -12,8 +16,10 @@ from core.models import Category, Company, Product
     STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage',
 )
 class HomeMarketplaceCardsTests(TestCase):
+    """Assert Shopify landing markup, media, categories, and about page."""
+
     def setUp(self):
-        """Setup."""
+        """Clear cache and seed featured bestsellers for the home grid."""
         from django.core.cache import cache
         cache.clear()
         self.company = Company.objects.create(name='CFZ Trading', is_verified=True)
@@ -33,7 +39,7 @@ class HomeMarketplaceCardsTests(TestCase):
             )
 
     def test_home_is_shopify_landing_layout(self):
-        """Test home is shopify landing layout."""
+        """Home uses hm-shopify shell with product cards, not legacy heroes."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
@@ -51,7 +57,7 @@ class HomeMarketplaceCardsTests(TestCase):
         self.assertNotContains(response, 'picsum.photos')
 
     def test_home_has_shopify_sections_and_catalog(self):
-        """Test home has shopify sections and catalog."""
+        """Home includes RFQ, stats, catalog blocks and TradeFlow Colón CTA."""
         response = self.client.get('/')
         self.assertContains(response, 'hm-shopify')
         self.assertContains(response, 'sh-rfq')
@@ -61,7 +67,7 @@ class HomeMarketplaceCardsTests(TestCase):
         self.assertContains(response, 'Create account')
 
     def test_home_uses_catalog_seed_photos_not_svg_icons(self):
-        """Test home uses catalog seed photos not svg icons."""
+        """Home media prefers catalog-seeds or shopify-landing assets."""
         response = self.client.get('/')
         html = response.content.decode()
         self.assertTrue(
@@ -69,19 +75,19 @@ class HomeMarketplaceCardsTests(TestCase):
         )
 
     def test_home_has_no_infinite_shimmer_overlays(self):
-        """Test home has no infinite shimmer overlays."""
+        """Home drops infinite shimmer overlays and loads marketplace JS."""
         response = self.client.get('/')
         self.assertNotContains(response, 'hm-media__shimmer')
         self.assertContains(response, 'tf-home-marketplace.js')
 
     def test_home_passes_sidebar_categories(self):
-        """Test home passes sidebar categories."""
+        """Home context includes at least one sidebar category for browse."""
         response = self.client.get('/')
         categories = response.context.get('sidebar_categories', [])
         self.assertGreaterEqual(len(categories), 1)
 
     def test_about_tradeflow_page(self):
-        """Test about tradeflow page."""
+        """/acerca/ renders the About TradeFlow Colón marketing page."""
         response = self.client.get('/acerca/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'About TradeFlow Colón')

@@ -1,4 +1,8 @@
-"""Public catalog — product cards and seed images."""
+"""Public catalog landing via /tienda/ → /catalogo/ redirect.
+
+Buyers must land on product-card grids with bundled seed photos, not
+external placeholder hosts, when browsing CFZ inventory.
+"""
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -18,8 +22,10 @@ from core.models import Category, Company, Product, UserProfile
     STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage',
 )
 class BuyerStoreLandingTests(TestCase):
+    """Assert store alias redirect and catalog card rendering."""
+
     def setUp(self):
-        """Setup."""
+        """Seed featured products across two categories and a buyer."""
         self.company = Company.objects.create(name='ZLC Trading', is_verified=True)
         self.electronics = Category.objects.create(name='Electronics & Office')
         self.gaming = Category.objects.create(name='Gaming & Peripherals')
@@ -43,14 +49,14 @@ class BuyerStoreLandingTests(TestCase):
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
     def test_tienda_redirects_to_catalog(self):
-        """Test tienda redirects to catalog."""
+        """Authenticated /tienda/ permanently redirects to /catalogo/."""
         self.client.login(username='store_buyer', password='TestPass123!')
         response = self.client.get('/tienda/', follow=False)
         self.assertEqual(response.status_code, 301)
         self.assertIn('/catalogo/', response['Location'])
 
     def test_catalog_shows_product_cards(self):
-        """Test catalog shows product cards."""
+        """Catalog HTML uses product-card markup without picsum URLs."""
         self.client.login(username='store_buyer', password='TestPass123!')
         response = self.client.get(reverse('catalogo_publico'))
         html = response.content.decode()

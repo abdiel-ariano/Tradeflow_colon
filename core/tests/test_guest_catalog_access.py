@@ -1,4 +1,8 @@
-"""Catálogo público: invitados pueden explorar sin login."""
+"""Guest catalog access without a login wall.
+
+Anonymous and unverified buyers must browse CFZ inventory, add to a
+session cart, and use AJAX cart badges before creating an account.
+"""
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -16,8 +20,10 @@ from core.models import UserProfile
     REQUIRE_APPROVED_APPLICATION=False,
 )
 class GuestCatalogAccessTests(TestCase):
+    """Assert guest browse, cart AJAX, and authenticated catalog chrome."""
+
     def setUp(self):
-        """Setup."""
+        """Clear cache and create a verified buyer for contrast cases."""
         from django.core.cache import cache
         cache.clear()
         self.buyer = User.objects.create_user(
@@ -28,26 +34,26 @@ class GuestCatalogAccessTests(TestCase):
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
     def test_tienda_redirects_to_catalogo(self):
-        """Test tienda redirects to catalogo."""
+        """Bare /tienda/ permanently redirects guests to /catalogo/."""
         response = self.client.get('/tienda/', follow=False)
         self.assertEqual(response.status_code, 301)
         self.assertIn('/catalogo/', response['Location'])
 
     def test_tienda_tab_ofertas_maps_to_catalog_on_sale(self):
-        """Test tienda tab ofertas maps to catalog on sale."""
+        """/tienda/?tab=ofertas maps onto catalog on_sale=1."""
         response = self.client.get('/tienda/', {'tab': 'ofertas'}, follow=False)
         self.assertEqual(response.status_code, 301)
         self.assertIn('on_sale=1', response['Location'])
 
     def test_guest_catalog_has_cart_actions(self):
-        """Test guest catalog has cart actions."""
+        """Guest catalog context enables cart actions and guest mode."""
         response = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
         self.assertTrue(response.context['is_guest_catalog'])
 
     def test_guest_can_add_to_cart(self):
-        """Test guest can add to cart."""
+        """Guests can POST add-to-cart and get a session carrito entry."""
         from core.models import Product, Company, Category, Inventory
 
         company = Company.objects.create(name='Guest Co', is_verified=True)
@@ -70,14 +76,14 @@ class GuestCatalogAccessTests(TestCase):
         self.assertIn('carrito', self.client.session)
 
     def test_guest_home_links_to_tienda_not_login_wall(self):
-        """Test guest home links to tienda not login wall."""
+        """Home links to catalog paths, not a login/?next=/tienda/ wall."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse('catalogo_publico'))
         self.assertNotContains(response, 'login/?next=/tienda/')
 
     def test_unverified_buyer_can_browse_catalog(self):
-        """Test unverified buyer can browse catalog."""
+        """Unverified buyers still browse catalog with cart actions on."""
         unverified = User.objects.create_user(
             username='unverified_buyer',
             email='unverified@test.pa',
@@ -90,20 +96,20 @@ class GuestCatalogAccessTests(TestCase):
         self.assertTrue(response.context['show_cart_actions'])
 
     def test_buyer_still_has_cart_actions(self):
-        """Test buyer still has cart actions."""
+        """Verified buyers keep show_cart_actions on the public catalog."""
         self.client.force_login(self.buyer)
         response = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
 
     def test_guest_verificado_filter_via_redirect(self):
-        """Test guest verificado filter via redirect."""
+        """Guest /tienda/?verificado=1 follows through to catalog results."""
         response = self.client.get('/tienda/', {'verificado': '1'}, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'cat-results-root')
 
     def test_authenticated_buyer_catalog_shows_marketplace_nav(self):
-        """Test authenticated buyer catalog shows marketplace nav."""
+        """Logged-in buyer catalog shows marketplace nav and verified link."""
         self.client.force_login(self.buyer)
         response = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(response.status_code, 200)
@@ -111,7 +117,7 @@ class GuestCatalogAccessTests(TestCase):
         self.assertContains(response, 'Verified suppliers')
 
     def test_authenticated_buyer_catalog_has_cart_form(self):
-        """Test authenticated buyer catalog has cart form."""
+        """Logged-in buyer catalog includes the JS add-to-cart form."""
         from core.models import Product, Company, Category, Inventory
 
         company = Company.objects.create(name='Catalog Co', is_verified=True)
@@ -134,7 +140,7 @@ class GuestCatalogAccessTests(TestCase):
         self.assertContains(response, 'js-cart-add-form')
 
     def test_catalog_inquiry_ajax_returns_json(self):
-        """Test catalog inquiry ajax returns json."""
+        """Catalog inquiry AJAX returns ok JSON and updates session cart."""
         from core.models import Product, Company, Category, Inventory
 
         company = Company.objects.create(name='Ajax Co', is_verified=True)
@@ -161,7 +167,7 @@ class GuestCatalogAccessTests(TestCase):
         self.assertIn('carrito', self.client.session)
 
     def test_agregar_al_carrito_ajax_returns_count(self):
-        """Test agregar al carrito ajax returns count."""
+        """AJAX add-to-cart returns carrito_count for the navbar badge."""
         from core.models import Product, Company, Category, Inventory
 
         company = Company.objects.create(name='Badge Co', is_verified=True)

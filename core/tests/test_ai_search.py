@@ -1,4 +1,8 @@
-"""Tests for AI search suggestions API."""
+"""AI typeahead search and seller CSV export endpoints.
+
+Buyers need fast product suggestions on the public catalog; sellers
+need scoped search and inventory exports for their own CFZ stock.
+"""
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -8,8 +12,10 @@ from core.models import Category, Company, Product, UserProfile
 
 @override_settings(AXES_ENABLED=False, REQUIRE_EMAIL_VERIFICATION=False)
 class TestAiSearchSuggest(TestCase):
+    """Cover public and seller scopes of api_search_suggest."""
+
     def setUp(self):
-        """Setup."""
+        """Seed a verified seller company with one searchable product."""
         self.company = Company.objects.create(name='Search Co', ruc='888', is_verified=True)
         self.cat = Category.objects.create(name='Electronics')
         Product.objects.create(
@@ -31,7 +37,7 @@ class TestAiSearchSuggest(TestCase):
         self.company.save(update_fields=['owner'])
 
     def test_public_search_returns_products(self):
-        """Test public search returns products."""
+        """Public scope returns product hits with image, meta, and price."""
         r = self.client.get(reverse('api_search_suggest'), {'q': 'Laptop', 'scope': 'public'})
         self.assertEqual(r.status_code, 200)
         data = r.json()
@@ -43,7 +49,7 @@ class TestAiSearchSuggest(TestCase):
         self.assertIn('price', products[0]['meta'])
 
     def test_public_search_empty_query_returns_trending(self):
-        """Test public search empty query returns trending."""
+        """Empty public query still returns trending suggestions."""
         r = self.client.get(reverse('api_search_suggest'), {'q': '', 'scope': 'public'})
         self.assertEqual(r.status_code, 200)
         data = r.json()
@@ -51,12 +57,12 @@ class TestAiSearchSuggest(TestCase):
         self.assertTrue(len(data['suggestions']) > 0)
 
     def test_seller_search_requires_auth(self):
-        """Test seller search requires auth."""
+        """Seller-scoped search rejects anonymous callers with 401."""
         r = self.client.get(reverse('api_search_suggest'), {'q': 'Laptop', 'scope': 'seller'})
         self.assertEqual(r.status_code, 401)
 
     def test_seller_search_finds_own_product(self):
-        """Test seller search finds own product."""
+        """Authenticated seller search finds products from their company."""
         self.client.login(username='search_seller', password='TestPass123!')
         r = self.client.get(reverse('api_search_suggest'), {'q': 'Laptop', 'scope': 'seller'})
         self.assertEqual(r.status_code, 200)
@@ -65,8 +71,10 @@ class TestAiSearchSuggest(TestCase):
 
 @override_settings(AXES_ENABLED=False, REQUIRE_EMAIL_VERIFICATION=False)
 class TestSellerExports(TestCase):
+    """Seller product CSV download for inventory handoff."""
+
     def setUp(self):
-        """Setup."""
+        """Seed a seller-owned company with one exportable SKU."""
         self.company = Company.objects.create(name='Export Co', ruc='777', is_verified=True)
         self.seller = User.objects.create_user(
             username='export_seller',
@@ -86,7 +94,7 @@ class TestSellerExports(TestCase):
         )
 
     def test_export_productos_csv(self):
-        """Test export productos csv."""
+        """Logged-in seller downloads a CSV that includes their products."""
         self.client.login(username='export_seller', password='TestPass123!')
         r = self.client.get(reverse('seller_export_productos_csv'))
         self.assertEqual(r.status_code, 200)

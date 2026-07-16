@@ -1,4 +1,8 @@
-"""Checkout inline email verification and OTP auto-send."""
+"""Checkout inline email verification and OTP auto-send.
+
+Unverified buyers can open checkout UI with an inline OTP panel, but
+POST still gates order placement until the email is confirmed.
+"""
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -27,8 +31,10 @@ from core.models import (
     EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
 )
 class CheckoutInlineVerifyTests(TestCase):
+    """Assert inline verify UI, auto OTP send, and POST gate."""
+
     def setUp(self):
-        """Setup."""
+        """Log in an unverified buyer with a cart line and carrier."""
         self.company = Company.objects.create(name='Co ZLC', ruc='999', is_verified=True)
         self.carrier = TransportCarrier.objects.create(
             code='inline-carrier',
@@ -70,7 +76,7 @@ class CheckoutInlineVerifyTests(TestCase):
         session.save()
 
     def test_checkout_get_renders_inline_verify_without_redirect(self):
-        """Test checkout get renders inline verify without redirect."""
+        """GET /checkout/ shows inline verify UI instead of bouncing away."""
         resp = self.client.get('/checkout/')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Verify your email')
@@ -78,7 +84,7 @@ class CheckoutInlineVerifyTests(TestCase):
 
     @patch('core.email_service._send_via_resend')
     def test_checkout_get_auto_sends_otp(self, mock_resend):
-        """Test checkout get auto sends otp."""
+        """GET /checkout/ auto-sends an OTP when Resend is configured."""
         from core.email_service import EmailSendResult
 
         mock_resend.return_value = EmailSendResult(ok=True, channel='resend', detail='test-id')
@@ -89,7 +95,7 @@ class CheckoutInlineVerifyTests(TestCase):
 
     @patch('core.email_service._send_via_resend')
     def test_verify_page_get_auto_sends_otp(self, mock_resend):
-        """Test verify page get auto sends otp."""
+        """GET verify page also auto-sends an OTP via Resend."""
         from core.email_service import EmailSendResult
 
         mock_resend.return_value = EmailSendResult(ok=True, channel='resend', detail='test-id')
@@ -99,7 +105,7 @@ class CheckoutInlineVerifyTests(TestCase):
         mock_resend.assert_called_once()
 
     def test_checkout_post_still_requires_verification(self):
-        """Test checkout post still requires verification."""
+        """POST checkout redirects to /verificar until email is confirmed."""
         resp = self.client.post(
             '/checkout/',
             {

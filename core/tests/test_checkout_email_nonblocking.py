@@ -1,4 +1,8 @@
-"""Checkout must redirect even when SMTP is unreachable (Railway network)."""
+"""Checkout redirects even when SMTP is unreachable on Railway.
+
+Order creation must not fail closed on mail delivery; CFZ buyers still
+need Order/Payment records when outbound email cannot connect.
+"""
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -18,8 +22,10 @@ from core.models import (
 
 
 class CheckoutEmailNonBlockingTests(TestCase):
+    """Assert checkout succeeds despite SMTP network failures."""
+
     def setUp(self):
-        """Setup."""
+        """Create a verified buyer, in-stock SKU, and active carrier."""
         self.buyer = User.objects.create_user(
             username='buyer_checkout_email',
             email='buyer@example.com',
@@ -46,10 +52,9 @@ class CheckoutEmailNonBlockingTests(TestCase):
 
     @override_settings(EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend')
     def test_checkout_redirects_when_smtp_unreachable(self):
-        # `force_login` evita el backend de django-axes que requiere `request`
-        # en authenticate(). En produccion el login real pasa por la vista
-        # `login_view` que si tiene request, asi que esto es solo un test helper.
-        """Test checkout redirects when smtp unreachable."""
+        """Checkout still redirects and persists Order/Payment if SMTP dies."""
+        # force_login avoids the django-axes authenticate() request requirement.
+        # Production login goes through login_view which has a real request.
         self.client.force_login(self.buyer)
         session = self.client.session
         session['carrito'] = {

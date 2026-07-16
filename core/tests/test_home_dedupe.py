@@ -1,4 +1,8 @@
-"""Home merchandising — product deduplication across scroll sections."""
+"""Home merchandising deduplicates products across scroll sections.
+
+Guest home must not repeat the same CFZ SKU in featured, deals,
+bestsellers, promo rows, breadth, and category spotlights.
+"""
 from decimal import Decimal
 
 from django.test import TestCase, override_settings
@@ -14,8 +18,10 @@ from core.models import Category, Company, Product
     TRADEFLOW_USE_PICSUM_RUNTIME=False,
 )
 class HomeProductDeduplicationTests(TestCase):
+    """Assert scroll-section uniqueness and hero collage sourcing."""
+
     def setUp(self):
-        """Setup."""
+        """Seed featured and bestseller products for home context."""
         self.company = Company.objects.create(name='ZLC Trading', is_verified=True)
         self.category = Category.objects.create(name='Electronics')
         self.products = []
@@ -36,7 +42,7 @@ class HomeProductDeduplicationTests(TestCase):
             )
 
     def test_build_guest_home_context_deduplicates_scroll_products(self):
-        """Test build guest home context deduplicates scroll products."""
+        """Guest home sections do not reuse product PKs across scroll rows."""
         ctx = merch.build_guest_home_context('en')
 
         featured_pks = {p.pk for p in ctx['featured_products']}
@@ -76,7 +82,7 @@ class HomeProductDeduplicationTests(TestCase):
         self.assertEqual(len(category_pks), len(set(category_pks)))
 
     def test_hero_collage_uses_featured_products(self):
-        """Test hero collage uses featured products."""
+        """Hero collage images are drawn from featured_products only."""
         ctx = merch.build_guest_home_context('en')
         collage = ctx.get('hero_collage_products', [])
         self.assertGreaterEqual(len(collage), 1)

@@ -1,4 +1,8 @@
-"""Cart and checkout i18n when English locale is active."""
+"""Cart and checkout copy under English and Spanish locales.
+
+Wholesale buyers switching language mid-session must see matching cart
+CTA copy so checkout feels native for CFZ and LatAm traffic.
+"""
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -22,8 +26,10 @@ from core.models import (
     LANGUAGE_CODE='en',
 )
 class CartCheckoutI18nTests(TestCase):
+    """Assert cart strings and the buyer navbar language switcher."""
+
     def setUp(self):
-        """Setup."""
+        """Log in a buyer with one in-stock line already in session cart."""
         company = Company.objects.create(name='Co', ruc='1', is_verified=True)
         cat = Category.objects.create(name='Cat')
         self.product = Product.objects.create(
@@ -56,7 +62,7 @@ class CartCheckoutI18nTests(TestCase):
         session.save()
 
     def test_cart_renders_english_when_en_active(self):
-        """Test cart renders english when en active."""
+        """English locale shows Shopping cart / Proceed to checkout copy."""
         resp = self.client.get(reverse('ver_carrito'), HTTP_ACCEPT_LANGUAGE='en')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Shopping cart')
@@ -64,13 +70,13 @@ class CartCheckoutI18nTests(TestCase):
         self.assertNotContains(resp, 'Carrito de compras')
 
     def test_buyer_navbar_has_language_switcher(self):
-        """Test buyer navbar has language switcher."""
+        """Buyer navbar exposes the setlang language switcher controls."""
         resp = self.client.get(reverse('ver_carrito'))
         self.assertContains(resp, 'bn-lang-link')
         self.assertContains(resp, 'i18n/setlang')
 
     def test_cart_renders_spanish_under_es_prefix(self):
-        """Test cart renders spanish under es prefix."""
+        """After switching to es, cart shows Spanish checkout CTAs."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('ver_carrito')},
