@@ -1,6 +1,8 @@
-"""
-Páginas del panel seller — shell tipo dashboard (Home, Balances, Tax, etc.).
-Algunas son funcionales; otras son base para features futuras.
+"""Seller portal shell pages beyond the main sales dashboard.
+
+Dashboard-style screens for CFZ sellers: balances, customers, tax
+stubs, disputes, setup guide, global search, and payment analytics.
+Some routes are fully wired; others scaffold future portal features.
 """
 from __future__ import annotations
 
@@ -20,6 +22,7 @@ from .utils.seller_analytics import seller_portal_dashboard, seller_sales_dashbo
 
 
 def _seller_ctx(company, nav_activo: str, titulo: str, **extra):
+    """Build shared template context for seller shell pages."""
     return {
         'company': company,
         'nav_activo': nav_activo,
@@ -31,7 +34,11 @@ def _seller_ctx(company, nav_activo: str, titulo: str, **extra):
 @seller_required
 @require_GET
 def seller_balances(request):
-    """Balances: ingresos y resumen financiero del seller."""
+    """Show monthly sales income and payment approval totals.
+
+    Aggregates approved vs pending Payment rows for the seller company
+    so CFZ merchants can reconcile marketplace cash flow.
+    """
     company, resp = _seller_company_or_response(request, 'seller_balances')
     if resp:
         return resp
@@ -66,7 +73,11 @@ def seller_balances(request):
 @seller_required
 @require_GET
 def seller_customers(request):
-    """Listado de compradores que han cotizado o comprado."""
+    """List buyers who quoted or purchased from this seller company.
+
+    Merges Order and Cotizacion activity per buyer so sellers see
+    spend, quote volume, and optional name/email search filters.
+    """
     company, resp = _seller_company_or_response(request, 'seller_customers')
     if resp:
         return resp
@@ -151,7 +162,7 @@ def seller_customers(request):
 @seller_required
 @require_GET
 def seller_tax(request):
-    """Tax — overview (CFZ export compliance; expansión futura)."""
+    """Render CFZ export tax overview tabs (scaffold for compliance)."""
     company, resp = _seller_company_or_response(request, 'seller_tax')
     if resp:
         return resp
@@ -166,7 +177,7 @@ def seller_tax(request):
 @seller_required
 @require_GET
 def seller_data_management(request):
-    """Exportación y gestión de datos del seller."""
+    """Show catalog and order counts for seller data export tooling."""
     company, resp = _seller_company_or_response(request, 'seller_data')
     if resp:
         return resp
@@ -190,7 +201,11 @@ def seller_data_management(request):
 @seller_required
 @require_GET
 def seller_disputes(request):
-    """Órdenes que requieren acción del seller (disputas / confirmación)."""
+    """List orders awaiting seller confirmation or dispute action.
+
+    Surfaces ``awaiting_seller`` / ``paid`` rows still pending
+    confirmation so merchants clear the post-payment SLA queue.
+    """
     company, resp = _seller_company_or_response(request, 'seller_disputes')
     if resp:
         return resp
@@ -214,7 +229,7 @@ def seller_disputes(request):
 @seller_required
 @require_GET
 def seller_apps(request):
-    """Marketplace de integraciones (base para futuras apps)."""
+    """Render the integrations marketplace shell for future seller apps."""
     company, resp = _seller_company_or_response(request, 'seller_apps')
     if resp:
         return resp
@@ -228,7 +243,11 @@ def seller_apps(request):
 @seller_required
 @require_GET
 def seller_setup_guide(request):
-    """Guía de configuración inicial del seller."""
+    """Checklist for first catalog publish, QR share, quotes, and sale.
+
+    Marks each onboarding step done from live Company/Product/Order
+    and Cotizacion state so new CFZ sellers see progress in-portal.
+    """
     company, resp = _seller_company_or_response(request, 'seller_setup')
     if resp:
         return resp
@@ -288,7 +307,11 @@ def seller_setup_guide(request):
 @seller_required
 @require_GET
 def seller_global_search(request):
-    """Búsqueda global en productos, órdenes, clientes y cotizaciones del seller."""
+    """Search products, orders, buyers, and quotes for one company.
+
+    Combines ORM filters with AI tip/suggestion payload so sellers
+    find catalog and CRM records from a single portal search box.
+    """
     company, resp = _seller_company_or_response(request, 'seller_search')
     if resp:
         return resp
@@ -353,7 +376,11 @@ def seller_global_search(request):
 @seller_required
 @require_GET
 def seller_reporting(request):
-    """Payments analytics — aceptación y rendimiento de pagos."""
+    """Payment acceptance analytics for a selectable day window.
+
+    Charts approval rates and revenue so sellers tune checkout
+    performance without leaving the portal shell.
+    """
     import json as _json
 
     company, resp = _seller_company_or_response(request, 'seller_reporting')
