@@ -1,8 +1,7 @@
-"""
-Generación segura de magic links de recuperación (modelo PasswordResetLink).
+"""Issue and consume opaque password-reset magic links.
 
-Mirrors ``otp_handler`` / EmailVerification: secrets CSPRNG, invalidate prior
-rows, persist one active token, TTL from ``PASSWORD_RESET_LINK_EXPIRY_MINUTES``.
+Mirrors OTP security: CSPRNG tokens, invalidate prior rows, short TTL
+aligned with ``PASSWORD_RESET_TIMEOUT``.
 """
 from __future__ import annotations
 
@@ -25,18 +24,12 @@ PASSWORD_RESET_TOKEN_BYTES = 32
 
 
 def _generate_secure_token() -> str:
-    """URL-safe opaque token (not a short OTP)."""
+    """Return a URL-safe opaque reset token (not a short OTP)."""
     return secrets.token_urlsafe(PASSWORD_RESET_TOKEN_BYTES)
 
 
 def generate_password_reset_link(user: User) -> str:
-    """
-    Invalidate prior reset links for ``user``, persist a new row, return the plain token.
-
-    Raises:
-        ValueError: user not persisted.
-        DatabaseError: DB failure.
-    """
+    """Invalidate prior links, persist a new token row, return the plain token."""
     if user.pk is None:
         raise ValueError('generate_password_reset_link requires a persisted User.')
 
@@ -66,11 +59,13 @@ def generate_password_reset_link(user: User) -> str:
 
 
 def link_expires_at(row: PasswordResetLink) -> datetime:
+    """Return expiry datetime for a password-reset link row."""
     return row.created_at + timedelta(minutes=PASSWORD_RESET_LINK_EXPIRY_MINUTES)
 
 
 @dataclass(frozen=True)
 class PasswordResetLinkResult:
+    """Frozen result of lookup/consume (ok, error, user, link)."""
     ok: bool
     error_code: str = ''
     user: User | None = None
@@ -78,11 +73,7 @@ class PasswordResetLinkResult:
 
 
 def lookup_password_reset_link(*, user: User, raw_token: str) -> PasswordResetLinkResult:
-    """
-    Validate token for ``user`` without consuming it (form GET / session handshake).
-
-    Does not log the raw token.
-    """
+    """Validate token for ``user`` without consuming it (GET handshake)."""
     token = (raw_token or '').strip()
     if not token or user.pk is None:
         return PasswordResetLinkResult(ok=False, error_code='invalid_or_expired')
@@ -103,9 +94,7 @@ def lookup_password_reset_link(*, user: User, raw_token: str) -> PasswordResetLi
 
 
 def consume_password_reset_link(*, user: User, raw_token: str) -> PasswordResetLinkResult:
-    """
-    Atomically validate and delete the link (single use), same idea as OTP success path.
-    """
+    """Atomically validate and delete the reset link (single use)."""
     token = (raw_token or '').strip()
     if not token or user.pk is None:
         return PasswordResetLinkResult(ok=False, error_code='invalid_or_expired')

@@ -1,14 +1,7 @@
-"""
-=============================================================================
-ACCIÓN: REEMPLAZAR
-DESTINO: core/utils/email_sender.py
-=============================================================================
-TradeFlow Colón — Notificaciones por correo al comprador (HTML + texto plano).
+"""Buyer and seller transactional emails for CFZ marketplace events.
 
-Dependencias: Django ``send_mail``, ``settings.DEFAULT_FROM_EMAIL``,
-``settings.PUBLIC_BASE_URL`` (URL absoluta para el botón "Ver mi orden").
-En desarrollo suele usarse ``EMAIL_BACKEND`` consola.
-=============================================================================
+Order confirmations, status changes, access decisions, cart reminders,
+and seller trial notices — HTML plus plain text with brand shell.
 """
 from __future__ import annotations
 
@@ -31,46 +24,24 @@ log = logging.getLogger(__name__)
 
 
 def _public_base_url() -> str:
-    """
-    Base pública del sitio para construir enlaces en correos (sin barra final).
-
-    Returns:
-        str: Valor de ``settings.PUBLIC_BASE_URL`` o ``http://127.0.0.1:8000``.
-    """
+    """Return PUBLIC_BASE_URL without a trailing slash for email links."""
     base = getattr(settings, "PUBLIC_BASE_URL", "http://127.0.0.1:8000")
     return (base or "http://127.0.0.1:8000").rstrip("/")
 
 
 def _order_detail_absolute_url(orden: Order) -> str:
-    """
-    URL absoluta a la vista ``detalle_mi_orden`` para el comprador.
-
-    Args:
-        orden: Orden con ``pk`` persistido.
-
-    Returns:
-        str: URL completa.
-    """
+    """Return absolute buyer order-detail URL for an order."""
     path = reverse("detalle_mi_orden", kwargs={"pk": orden.pk})
     return _public_base_url() + path
 
 
 def _h(s: str) -> str:
-    """Escapa texto para inserción segura en HTML."""
+    """Escape text for safe HTML email insertion."""
     return html_std.escape(str(s), quote=True)
 
 
 def _render_email_shell(title_inner: str, inner_html: str) -> str:
-    """
-    Envuelve fragmento HTML en un layout responsive simple con marca TradeFlow.
-
-    Args:
-        title_inner: Texto breve del bloque principal (ya escapado o seguro).
-        inner_html: Cuerpo HTML interior (filas, párrafos, etc.).
-
-    Returns:
-        str: Documento HTML completo del correo.
-    """
+    """Wrap inner HTML in the TradeFlow responsive email chrome."""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -111,17 +82,7 @@ def _render_email_shell(title_inner: str, inner_html: str) -> str:
 
 
 def _confirmacion_html(orden: Order, items: list, ver_orden_url: str) -> str:
-    """
-    HTML del correo de confirmación de orden con tabla de productos y totales.
-
-    Args:
-        orden: Orden con totales actualizados.
-        items: Lista de ``OrderItem`` con ``product`` cargado.
-        ver_orden_url: URL absoluta al detalle para el comprador.
-
-    Returns:
-        str: HTML completo.
-    """
+    """Build HTML order-confirmation body with line items and totals."""
     buyer = orden.buyer
     nombre = _h(buyer.get_full_name() or buyer.username)
     num = _h(orden.order_number)
@@ -164,7 +125,7 @@ def _confirmacion_html(orden: Order, items: list, ver_orden_url: str) -> str:
 
 
 def _confirmacion_plain(orden: Order, items: list, ver_orden_url: str) -> str:
-    """Versión texto plano del correo de confirmación (multipart/alternative)."""
+    """Build plain-text order-confirmation body (multipart alternative)."""
     buyer = orden.buyer
     lines = [
         f"Hello {buyer.get_full_name() or buyer.username},",
@@ -190,15 +151,7 @@ def _confirmacion_plain(orden: Order, items: list, ver_orden_url: str) -> str:
 
 
 def enviar_confirmacion_orden(orden: Order) -> None:
-    """
-    Envía email HTML al buyer cuando crea una orden.
-
-    Incluye: número orden, tabla de productos, subtotal, envío y total en USD.
-    Diseño con colores TradeFlow (cabecera #0F2A44, CTA naranja #F26522).
-
-    Args:
-        orden: Instancia de ``Order`` persistida con ítems y totales.
-    """
+    """Email the buyer an HTML order confirmation with USD line totals."""
     try:
         orden.refresh_from_db()
         items = list(orden.items.select_related("product").all())
@@ -235,16 +188,7 @@ def enviar_confirmacion_orden(orden: Order) -> None:
 
 
 def _mensaje_cambio_estado(orden: Order, estado_anterior: str) -> tuple[str, str]:
-    """
-    Devuelve asunto y HTML interior (sin wrapper) según el nuevo estado de la orden.
-
-    Args:
-        orden: Orden tras el cambio de estado.
-        estado_anterior: Código ``status`` previo.
-
-    Returns:
-        tuple: (asunto, documento HTML completo del correo).
-    """
+    """Return subject and full HTML for an order status-change notice."""
     num = _h(orden.order_number)
     buyer = orden.buyer
     nombre = _h(buyer.get_full_name() or buyer.username)
@@ -314,7 +258,7 @@ def _mensaje_cambio_estado(orden: Order, estado_anterior: str) -> tuple[str, str
 
 
 def _cambio_estado_plain(orden: Order, estado_anterior: str, headline: str) -> str:
-    """Texto plano para notificación de cambio de estado."""
+    """Build plain-text body for an order status-change notice."""
     buyer = orden.buyer
     prev_label = dict(Order.STATUS_CHOICES).get(estado_anterior, estado_anterior)
     lines = [
@@ -335,12 +279,7 @@ def _cambio_estado_plain(orden: Order, estado_anterior: str, headline: str) -> s
 
 
 def enviar_verificacion_email(user: User, request) -> dict:
-    """
-    Envía código OTP vía Resend (email_service); consola en DEBUG sin API key.
-
-    Returns:
-        dict: code, link, channel, recipient.
-    """
+    """Send email OTP via Resend (console fallback in DEBUG without API key)."""
     from core.email_service import enviar_codigo_verificacion
     from core.models import EmailVerification
 
@@ -358,11 +297,7 @@ def enviar_verificacion_email(user: User, request) -> dict:
 
 
 def enviar_bienvenida(user: User) -> None:
-    """
-    Email de bienvenida después de verificar el email.
-
-    Incluye enlaces para comenzar según el rol del usuario.
-    """
+    """Send welcome email after successful email verification."""
     base = _public_base_url()
     es_seller = False
     try:
@@ -397,16 +332,7 @@ def enviar_bienvenida(user: User) -> None:
 
 
 def enviar_cambio_estado(orden: Order, estado_anterior: str) -> None:
-    """
-    Notifica al buyer cuando su orden cambia de estado.
-
-    Mensajes destacados para ``paid``, ``shipped`` y ``delivered``; el resto
-    usa un aviso genérico con etiquetas legibles.
-
-    Args:
-        orden: Orden después de actualizar ``status``.
-        estado_anterior: Valor de ``status`` antes del cambio.
-    """
+    """Notify the buyer when order status changes (paid/shipped/delivered)."""
     if estado_anterior == orden.status:
         return
 
@@ -442,7 +368,7 @@ def enviar_cambio_estado(orden: Order, estado_anterior: str) -> None:
 
 
 def enviar_orden_pendiente_vendedor(orden: Order) -> None:
-    """Avisa al vendedor que hay una orden por confirmar."""
+    """Email the seller that a CFZ order awaits confirmation."""
     company = orden.confirming_company
     if not company or not company.owner or not company.owner.email:
         log.info('enviar_orden_pendiente_vendedor: sin email de vendedor')
@@ -478,7 +404,7 @@ def enviar_orden_pendiente_vendedor(orden: Order) -> None:
 
 
 def enviar_solicitud_recibida(app) -> None:
-    """Confirma al solicitante que recibimos su solicitud (vía Supabase)."""
+    """Confirm to the applicant that their access request was received."""
     from core.models import UserApplication
 
     if not isinstance(app, UserApplication):
@@ -504,7 +430,7 @@ def enviar_solicitud_recibida(app) -> None:
 
 
 def enviar_solicitud_a_revisores(app) -> None:
-    """Envía a administradores enlaces para aprobar o rechazar."""
+    """Email admins approve/reject magic links for a new application."""
     from core.models import UserApplication
 
     reviewers = list(getattr(settings, 'APPLICATION_REVIEW_EMAILS', []) or [])
@@ -547,7 +473,7 @@ def enviar_solicitud_a_revisores(app) -> None:
 
 
 def enviar_aplicacion_transportista_recibida(transportista) -> None:
-    """Confirma recepción de solicitud de transportista."""
+    """Confirm receipt of a carrier (transportista) application."""
     email = (transportista.email_contacto or '').strip()
     if not email:
         return
@@ -570,7 +496,7 @@ def enviar_aplicacion_transportista_recibida(transportista) -> None:
 
 
 def enviar_resultado_aplicacion_transportista(transportista, aprobado: bool) -> None:
-    """Notifica aprobación o rechazo de transportista."""
+    """Notify a carrier applicant of approval or rejection."""
     email = (transportista.email_contacto or '').strip()
     if not email:
         return
@@ -601,14 +527,7 @@ def enviar_resultado_aplicacion_transportista(transportista, aprobado: bool) -> 
 
 
 def enviar_solicitud_decision(app, aprobada: bool):
-    """Notifica al solicitante la decisión vía Resend.
-
-    Si ya existe una cuenta para el correo, el enlace de aprobación apunta a
-    iniciar sesión; si no, a registrarse con el mismo correo.
-
-    Returns:
-        EmailSendResult: resultado del envío (``ok=False`` si Resend rechaza).
-    """
+    """Notify the applicant of approval or rejection via Resend."""
     from core.email_service import EmailSendResult, enviar_email_transaccional
     base = _public_base_url()
     if aprobada:
@@ -662,7 +581,7 @@ def enviar_solicitud_decision(app, aprobada: bool):
 
 
 def _cart_preview_items(carrito: dict, limit: int = 3) -> list[dict]:
-    """First N cart lines for abandonment email preview."""
+    """Return first N cart lines for abandonment email preview."""
     preview = []
     for item in list(carrito.values())[:limit]:
         preview.append({
@@ -674,16 +593,7 @@ def _cart_preview_items(carrito: dict, limit: int = 3) -> list[dict]:
 
 
 def enviar_carrito_abandonado(user: User, carrito: dict) -> bool:
-    """
-    Email «¿Se te olvidó algo?» cuando el carrito lleva tiempo sin checkout.
-
-    Args:
-        user: Comprador autenticado con email verificado.
-        carrito: Dict de sesión ``{product_id: {nombre, cantidad, subtotal}}``.
-
-    Returns:
-        bool: True si el envío fue exitoso.
-    """
+    """Send abandoned-cart reminder when checkout has stalled."""
     if not carrito:
         return False
     to_email = (user.email or '').strip()
@@ -729,6 +639,7 @@ def enviar_carrito_abandonado(user: User, carrito: dict) -> bool:
 
 
 def _calcular_total_carrito(carrito: dict):
+    """Sum cart line subtots as Decimal for email copy."""
     from decimal import Decimal
     total = Decimal('0.00')
     for item in carrito.values():
@@ -737,7 +648,7 @@ def _calcular_total_carrito(carrito: dict):
 
 
 def _promociones_empresas_context(limit: int = 4) -> list[dict]:
-    """Featured companies with promo products for marketing email."""
+    """Build featured CFZ company promo rows for marketing email."""
     from django.db.models import Count, F, Q
 
     from core.models import Company, Product
@@ -788,12 +699,7 @@ def _promociones_empresas_context(limit: int = 4) -> list[dict]:
 
 
 def enviar_promociones_empresas(user: User) -> bool:
-    """
-    Email de promociones de empresas verificadas en la CFZ.
-
-    Returns:
-        bool: True si el envío fue exitoso.
-    """
+    """Email verified CFZ company promotions to a buyer."""
     to_email = (user.email or '').strip()
     if not to_email:
         return False
@@ -830,15 +736,7 @@ def enviar_promociones_empresas(user: User) -> bool:
 
 
 def enviar_trial_finalizado(company) -> bool:
-    """
-    Notifica al owner que el trial venció y debe activar un plan (gracia 7 días).
-
-    Args:
-        company: Empresa con suscripción en ``past_due`` recién finalizada.
-
-    Returns:
-        bool: True si el correo se encoló/envió correctamente.
-    """
+    """Notify the company owner that the seller trial ended (7-day grace)."""
     owner = company.owner
     if not owner or not owner.email:
         return False
@@ -876,16 +774,7 @@ def enviar_trial_finalizado(company) -> bool:
 
 
 def enviar_grace_recordatorio(company, days_left: int) -> bool:
-    """
-    Recordatorio durante gracia post-trial (típicamente días 4 y 1 restantes).
-
-    Args:
-        company: Empresa en ``past_due``.
-        days_left: Días enteros antes de baja media automática.
-
-    Returns:
-        bool: True si se envió el correo.
-    """
+    """Remind a past_due seller how many grace days remain before churn."""
     owner = company.owner
     if not owner or not owner.email:
         return False

@@ -1,6 +1,7 @@
-"""
-Centralized operational rules for orders (seller).
-Prevents UI/backend drift and invalid actions.
+"""Buyer and seller action flags for order detail screens.
+
+Derives which confirm, pay, and logistics buttons each role may see
+from order status and company ownership.
 """
 from __future__ import annotations
 
@@ -79,6 +80,7 @@ def get_seller_order_actions(order, company) -> dict:
 
 
 def _dispatch_permission(order, read_only: bool, seller_st: str) -> tuple[bool, str]:
+    """Compute whether the actor may dispatch logistics."""
     if read_only:
         return False, _('The order is closed or cancelled.')
     if seller_st in ('rejected', 'expired'):
@@ -109,6 +111,7 @@ def assert_can_dispatch(order, company) -> None:
 
 
 def _actions_false(reason: str) -> dict:
+    """Return an all-false action flags dict for denied views."""
     return {
         'can_confirm': False,
         'can_reject': False,

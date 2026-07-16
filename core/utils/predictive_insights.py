@@ -1,5 +1,7 @@
-"""
-IA predictiva Enterprise: forecast de ventas y alertas de stock (ORM, sin inventar cifras).
+"""Per-company sales forecast and stock-risk alerts (Enterprise plan).
+
+ORM-only math over recent CFZ orders; optional Groq narrative on top of
+already-computed figures.
 """
 from __future__ import annotations
 
@@ -21,12 +23,13 @@ CACHE_HOURS = 6
 
 
 def _period_key(now=None) -> str:
+    """Return YYYY-MM key for a datetime."""
     now = now or timezone.now()
     return now.strftime('%Y-%m')
 
 
 def _daily_revenue_series(company: Company, days: int = 60) -> list[tuple[str, float]]:
-    """Ingresos USD por día (últimos N días) para la empresa."""
+    """Return daily USD revenue for the company over N days."""
     now = timezone.now()
     start = (now - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -47,9 +50,7 @@ def _daily_revenue_series(company: Company, days: int = 60) -> list[tuple[str, f
 
 
 def _linear_forecast_30d(daily: list[tuple[str, float]]) -> dict:
-    """
-    Tendencia lineal simple sobre serie diaria → proyección 30 días.
-    """
+    """Project 30-day revenue from a simple linear fit on daily series."""
     if not daily:
         return {
             'forecast_total_usd': 0.0,
@@ -69,7 +70,7 @@ def _linear_forecast_30d(daily: list[tuple[str, float]]) -> dict:
             'confidence': 'low',
         }
 
-    # Regresión y = a + b*x sobre índices 0..n-1
+    # Regression y = a + b*x over indices 0..n-1
     xs = list(range(n))
     mean_x = sum(xs) / n
     mean_y = sum(values) / n
@@ -101,7 +102,7 @@ def _linear_forecast_30d(daily: list[tuple[str, float]]) -> dict:
 
 
 def _top_skus_forecast(company: Company, limit: int = 5) -> list[dict]:
-    """Top SKUs por volumen reciente con proyección lineal 30d."""
+    """Return top SKUs by recent volume with 30-day projections."""
     from django.db.models import Sum
 
     since = timezone.now() - timedelta(days=60)
@@ -118,7 +119,7 @@ def _top_skus_forecast(company: Company, limit: int = 5) -> list[dict]:
     out = []
     for r in rows:
         rev = float(r['revenue'] or 0)
-        # Proporción simple: extrapolar 30d desde ventana 60d
+        # Simple ratio: extrapolate 30d from a 60d window
         forecast = round(rev * 0.5, 2) if rev else 0.0
         out.append({
             'product_id': r['product_id'],
@@ -132,7 +133,7 @@ def _top_skus_forecast(company: Company, limit: int = 5) -> list[dict]:
 
 
 def _stock_alerts(company: Company) -> list[dict]:
-    """Días estimados hasta agotar stock por SKU."""
+    """Estimate days-to-stockout per SKU for the company."""
     since = timezone.now() - timedelta(days=30)
     alerts = []
     for inv in Inventory.objects.filter(product__company=company).select_related('product'):
@@ -182,7 +183,7 @@ def _stock_alerts(company: Company) -> list[dict]:
 
 
 def compute_predictive_payload(company: Company) -> dict:
-    """Calcula insights desde el ORM (sin LLM)."""
+    """Compute forecast and stock alerts from ORM only."""
     daily = _daily_revenue_series(company)
     forecast = _linear_forecast_30d(daily)
     chart_labels = [d[0] for d in daily[-30:]]
@@ -198,7 +199,7 @@ def compute_predictive_payload(company: Company) -> dict:
 
 
 def get_predictive_dashboard(company: Company, *, force_refresh: bool = False) -> dict:
-    """Devuelve payload cacheado o recalculado."""
+    """Return cached predictive payload or recompute when stale/forced."""
     key = _period_key()
     if not force_refresh:
         snap = CompanyPredictiveSnapshot.objects.filter(
@@ -221,9 +222,7 @@ def get_predictive_dashboard(company: Company, *, force_refresh: bool = False) -
 
 
 def optional_groq_narrative(payload: dict) -> str:
-    """
-    Narrativa opcional sobre cifras ya calculadas (Groq). No inventa métricas.
-    """
+    """Optional Groq narrative over already-computed figures (no invented numbers)."""
     from django.conf import settings
 
     api_key = getattr(settings, 'GROQ_API_KEY', '') or ''

@@ -1,5 +1,7 @@
-"""
-Envío de OTP con reutilización de código vigente y throttle por sesión.
+"""Send email OTP with reuse of a still-valid code and session throttle.
+
+Avoids flooding Resend when users refresh verification screens during
+CFZ onboarding.
 """
 from __future__ import annotations
 
@@ -15,11 +17,12 @@ OTP_RESEND_COOLDOWN_SECONDS = 60
 
 
 def _session_throttle_key(user_id: int) -> str:
+    """Session key used to throttle OTP resends per user."""
     return f'otp_sent_at_{user_id}'
 
 
 def has_valid_otp(user: User) -> bool:
-    """Has valid otp."""
+    """Return True when the user still has an unused valid OTP."""
     latest = (
         EmailVerification.objects.filter(user=user, is_used=False)
         .order_by('-created_at')
@@ -34,12 +37,11 @@ def ensure_otp_sent(
     *,
     force: bool = False,
 ) -> tuple[bool, str]:
-    """
-    Garantiza un OTP vigente y enviado por correo.
-
-    Returns:
-        (ok, status) — status: ``sent``, ``existing``, ``throttled``,
-        ``no_email``, o detalle de error del proveedor.
+    """Ensure a valid OTP exists and was emailed recently.
+    
+    
+    Returns ``(ok, status)`` where status is ``sent``, ``existing``,
+    ``throttled``, ``no_email``, or a provider error detail.
     """
     email = (user.email or '').strip()
     if not email:

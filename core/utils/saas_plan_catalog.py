@@ -1,9 +1,11 @@
-"""
-Catálogo comercial de planes (copy y UX) — los límites USD viven solo en SaasPlan ORM.
+"""Marketing copy for SaaS plans (limits stay in billing ORM).
+
+UI and AI prompts show feature stories without leaking USD volume caps
+that belong only in billing enforcement.
 """
 from __future__ import annotations
 
-# Referencia autoritativa para asistente IA (Groq) y copy público de planes vendedor.
+# Authoritative copy for AI assistant (Groq) and public seller plan marketing.
 SAAS_PLANS_AI_ROWS = (
     {
         'name': 'Digitalízate',
@@ -57,7 +59,7 @@ SAAS_PLANS_AI_ROWS = (
 
 
 def build_saas_plans_ai_context() -> str:
-    """Texto estructurado de planes para system prompts de Groq."""
+    """Build structured plan text for Groq system prompts (no volume caps)."""
     lines = [
         'Seller SaaS plans for TradeFlow Colón (use ONLY these figures; do not invent prices):',
         '',
@@ -144,7 +146,7 @@ PLAN_MARKETING = {
 
 
 def marketing_for_plan(plan) -> dict:
-    """Fusiona SaasPlan ORM con copy comercial (sin exponer topes USD)."""
+    """Merge SaasPlan ORM row with marketing copy for UI cards."""
     base = PLAN_MARKETING.get(plan.slug, {})
     return {
         'slug': plan.slug,

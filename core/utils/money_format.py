@@ -1,5 +1,7 @@
-"""
-Formateo monetario unificado (USD, 2 decimales, sin float en negocio).
+"""Format USD amounts for CFZ B2B catalog and email copy.
+
+Marketplace prices are USD; helpers keep two-decimal display consistent
+across templates and the AI assistant.
 """
 from __future__ import annotations
 
@@ -9,7 +11,7 @@ MONEY_QUANT = Decimal('0.01')
 
 
 def quantize_money(value) -> Decimal:
-    """Redondea a 2 decimales para montos USD."""
+    """Round a value to two decimal places for USD amounts."""
     if value is None:
         return Decimal('0.00')
     if isinstance(value, Decimal):
@@ -23,13 +25,7 @@ def quantize_money(value) -> Decimal:
 
 
 def format_money_usd(value, *, include_prefix: bool = True) -> str:
-    """
-    Devuelve ``USD 658,238.34`` (coma miles, punto decimal, un solo prefijo).
-
-    Args:
-        value: Monto numérico o Decimal.
-        include_prefix: Si False, solo el número formateado.
-    """
+    """Format an amount as a USD string with two decimal places."""
     dec = quantize_money(value)
     sign = '-' if dec < 0 else ''
     dec = abs(dec)
@@ -44,5 +40,5 @@ def format_money_usd(value, *, include_prefix: bool = True) -> str:
 
 
 def money_to_chart_float(value) -> float:
-    """Serializa montos para Chart.js (máx. 2 decimales)."""
+    """Serialize a money value as float for Chart.js (max two decimals)."""
     return float(quantize_money(value))

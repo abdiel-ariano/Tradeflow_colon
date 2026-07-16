@@ -1,5 +1,7 @@
-"""
-Verificación de OTP (EmailVerification) con mitigación de replay y bypass Expo.
+"""Validate and consume email OTP codes atomically.
+
+Single-use verification marks the profile email verified for gated
+CFZ routes.
 """
 from __future__ import annotations
 
@@ -20,7 +22,7 @@ log = logging.getLogger('tradeflow.auth')
 
 @dataclass(frozen=True)
 class OtpVerificationResult:
-    """Resultado estructurado de la verificación OTP."""
+    """Frozen result of an OTP verify attempt (ok, codes, user)."""
 
     ok: bool
     error_code: str = ''
@@ -29,21 +31,20 @@ class OtpVerificationResult:
 
 
 def otp_expires_at(verification: EmailVerification) -> datetime:
-    """Calcula ``expires_at`` a partir de ``created_at`` y el TTL del handler."""
+    """Return the expiry datetime for an OTP row."""
     return verification.created_at + timedelta(minutes=OTP_EXPIRY_MINUTES)
 
 
 def _apply_expo_demo_bypass(user: User) -> None:
-    """
-    Bypass de onboarding en demo Expo: solicitud aprobada + cuenta activa.
+    """Approve application and activate account for Expo demo bypass.
 
-    Mitiga bloqueos de ``pending_approval`` sin relajar flags globales en producción.
+    Avoids ``pending_approval`` dead-ends without relaxing production flags.
     """
     _apply_self_serve_activation(user, approve_all_roles=True)
 
 
 def _apply_self_serve_activation(user: User, *, approve_all_roles: bool = False) -> None:
-    """Compradores verificados quedan activos sin espera de aprobación manual."""
+    """Activate verified buyers without waiting for manual application approval."""
     profile = getattr(user, 'profile', None)
     role = profile.role if profile else 'buyer'
     if role != 'buyer' and not approve_all_roles:
@@ -65,14 +66,7 @@ def _apply_self_serve_activation(user: User, *, approve_all_roles: bool = False)
 
 
 def verify_user_otp(user: User, raw_code: str) -> OtpVerificationResult:
-    """
-    Valida OTP del usuario en transacción atómica.
-
-    Mitigaciones:
-    - ``select_for_update`` evita condiciones de carrera en doble POST.
-    - Borrado del token tras éxito previene replay (A07:2021).
-    - Expiración estricta vía ``expires_at`` / ``is_valid()``.
-    """
+    """Atomically validate and consume an OTP; mark email verified."""
     code = (raw_code or '').strip()
     if len(code) != 6 or not code.isdigit():
         return OtpVerificationResult(

@@ -1,4 +1,8 @@
-"""URL helpers for prefix_default_language=False (unprefixed default locale)."""
+"""Translate paths when the default locale has no URL prefix.
+
+Django ``translate_url`` breaks with ``prefix_default_language=False``;
+these helpers strip and re-add ``/es`` or ``/en`` safely.
+"""
 from __future__ import annotations
 
 from urllib.parse import urlsplit, urlunsplit
@@ -22,6 +26,7 @@ def _strip_language_prefix(path: str) -> tuple[str | None, str]:
 
 
 def _add_language_prefix(path: str, lang_code: str) -> str:
+    """Prefix path with locale unless it is the default LANGUAGE_CODE."""
     if lang_code == settings.LANGUAGE_CODE:
         return path
     if path == '/':
@@ -30,12 +35,11 @@ def _add_language_prefix(path: str, lang_code: str) -> str:
 
 
 def tf_translate_url(url: str, lang_code: str) -> str:
-    """
-    Translate a path to another locale when the default language has no URL prefix.
-
-    Django's translate_url() cannot resolve /es/... paths when prefix_default_language
-    is False, so we strip the active prefix before resolve/reverse and fall back to
-    manual prefix add/remove when resolve is unavailable during early middleware.
+    """Translate a path to another locale without default-language prefix.
+    
+    
+    Strips the active prefix before resolve/reverse and falls back to manual
+    prefix add/remove when resolve is unavailable in early middleware.
     """
     parsed = urlsplit(url)
     path = parsed.path or '/'

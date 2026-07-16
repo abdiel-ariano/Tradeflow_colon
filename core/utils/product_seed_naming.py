@@ -1,9 +1,7 @@
-"""
-Credible B2B product titles for enterprise seed data.
+"""Credible B2B product titles for enterprise seed data.
 
-Avoids detectable patterns such as random lot suffixes. Each supplier gets a
-consistent short brand derived from the company name so the same template
-catalog line reads distinct per vendor.
+Composes supplier brand, model code, and technical spec so demo
+catalogs read like real ZLC wholesale listings.
 """
 from __future__ import annotations
 
@@ -21,7 +19,7 @@ def strip_lot_suffix(name: str) -> str:
 
 
 def _brand_from_company(company_name: str) -> str:
-    """First meaningful token of the supplier name (stable per company)."""
+    """Return first meaningful token of the supplier name (stable per company)."""
     cleaned = re.sub(r'\b(S\.A\.|Ltda\.|Inc\.|Group|Wholesale|Imports|B2B)\b', '', company_name, flags=re.I)
     parts = [p for p in re.split(r'[\s,&]+', cleaned.strip()) if p]
     if not parts:
@@ -40,11 +38,7 @@ def build_seed_product_name(
     product_index: int,
     rng: random.Random,
 ) -> str:
-    """
-  Compose: supplier brand + model code + technical spec (no lot numbers).
-
-  Example: ``Panamax Pro284 Commercial 27" QHD LED Monitor – IPS panel, thin bezel``
-    """
+    """Compose supplier brand + model code + technical spec (no lot suffix)."""
     brand = _brand_from_company(company_name)
     model = f'{rng.choice(_MODEL_SUFFIXES)}{rng.randint(10, 99)}'
     spec = (description or '').split('.')[0].strip()

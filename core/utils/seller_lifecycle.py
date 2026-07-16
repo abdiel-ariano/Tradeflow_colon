@@ -1,47 +1,7 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/utils/seller_lifecycle.py
-=============================================================================
-Ciclo de vida de suscripciones seller: trial gratuito, recomendación de plan
-por volumen, gracia post-trial y baja media (churn).
+"""Seller trial, post-trial grace, plan recommendation, and churn.
 
-CONTEXTO DE NEGOCIO
--------------------
-Los vendedores nuevos reciben 30 días de prueba en el plan **Digitalízate**
-sin cobro. Al vencer el trial:
-
-1. Se calcula el volumen USD facturable vendido durante el periodo de prueba.
-2. Se recomienda un plan mínimo según umbrales comerciales acordados.
-3. La cuenta entra en **past_due** con 7 días de gracia para activar un plan
-   igual o superior al recomendado (pago mock/banco en MVP; Stripe en fase 3b).
-4. Si no pagan en la gracia, se aplica **baja media**: portal bloqueado,
-   productos desactivados y empresa fuera del catálogo/mapa (datos en BD).
-
-ESTADOS DE CompanySubscription.status
----------------------------------------
-- ``trialing``  — Prueba Digitalízate vigente (días 0–30).
-- ``active``    — Plan pagado y renovable.
-- ``past_due``  — Trial vencido; gracia de activación (días 31–37).
-- ``cancelled`` — Baja media; requiere reactivación comercial o nuevo pago.
-
-INTEGRACIÓN
------------
-- ``start_seller_trial()`` — llamado al completar wizard de empresa.
-- ``finalize_trial_period()`` — job diario al día 30.
-- ``apply_medium_churn()`` — job diario al día 37 o "No continuar".
-- ``seller_portal_access()`` — usado por ``seller_required`` decorator.
-- ``company_marketplace_visible()`` — catálogo, mapa, merchandising.
-
-CONFIGURACIÓN (settings.py)
------------------------------
-- ``SELLER_TRIAL_DAYS`` — duración del trial (default 30).
-- ``SELLER_GRACE_DAYS`` — días de gracia post-trial (default 7).
-
-AUDITORÍA
----------
-Cambios de plan y pagos se registran en ``SubscriptionUpgradeLog`` y
-``CompanyPlanCheckout`` (ver ``core/utils/saas_billing.py``).
-=============================================================================
+New CFZ sellers get 30 days on Digitalízate; unpaid grace ends in
+medium churn (portal blocked, products off marketplace).
 """
 from __future__ import annotations
 
@@ -61,14 +21,14 @@ from core.utils.saas_billing import BILLABLE_ORDER_STATUSES, ensure_default_plan
 log = logging.getLogger('tradeflow.seller_lifecycle')
 
 # -----------------------------------------------------------------------------
-# Umbrales de recomendación post-trial (USD facturable en el periodo trial)
+# Post-trial recommendation thresholds (billable USD during the trial)
 # -----------------------------------------------------------------------------
-# Regla de negocio acordada con producto:
-#   0 USD          → Digitalízate (sin ventas)
+# Product-agreed recommendation bands:
+#   0 USD          → Digitalízate (no sales)
 #   0.01–12 000    → Digitalízate
 #   12 001–40 000  → Expansión
 #   40 001–100 000 → Corporativo Pro
-#   > 100 000      → Ecosistema Enterprise (CTA comercial, sin self-serve)
+#   > 100 000      → Ecosistema Enterprise (commercial CTA, no self-serve)
 VOLUME_THRESHOLD_DIGITALIZATE_MAX = Decimal('12000.00')
 VOLUME_THRESHOLD_EXPANSION_MAX = Decimal('40000.00')
 VOLUME_THRESHOLD_CORPORATIVO_MAX = Decimal('100000.00')
@@ -79,10 +39,10 @@ PLAN_SLUG_EXPANSION = 'expansion'
 PLAN_SLUG_CORPORATIVO = 'corporativo_pro'
 PLAN_SLUG_ENTERPRISE = 'ecosistema_enterprise'
 
-# Estados que permiten visibilidad en marketplace público (incluye gracia).
+# Statuses that allow public marketplace visibility (includes grace).
 MARKETPLACE_VISIBLE_STATUSES = ('trialing', 'past_due', 'active')
 
-# Rutas del portal seller permitidas durante gracia (past_due).
+# Seller portal routes allowed during grace (past_due).
 # Cualquier otra ruta bajo /mi-tienda/ redirige a seller_trial_activation.
 GRACE_PERIOD_ROUTE_NAMES = frozenset({
     'seller_trial_activation',
@@ -96,30 +56,20 @@ GRACE_PERIOD_ROUTE_NAMES = frozenset({
 
 
 def seller_trial_days() -> int:
-    """Días de prueba gratuita Digitalízate (configurable vía SELLER_TRIAL_DAYS)."""
+    """Return free Digitalízate trial length (SELLER_TRIAL_DAYS)."""
     return int(getattr(settings, 'SELLER_TRIAL_DAYS', 30))
 
 
 def seller_grace_days() -> int:
-    """Días de gracia post-trial antes de baja media (SELLER_GRACE_DAYS)."""
+    """Return post-trial grace days before medium churn."""
     return int(getattr(settings, 'SELLER_GRACE_DAYS', 7))
 
 
 def recommend_plan_slug(volume_usd: Decimal) -> str:
-    """
-    Devuelve el slug del plan mínimo recomendado según volumen USD del trial.
-
-    Args:
-        volume_usd: Suma de ``OrderItem.line_total`` en estados facturables
-            durante el periodo de prueba. Debe ser >= 0.
-
-    Returns:
-        str: Slug de ``SaasPlan`` (digitalizate, expansion, corporativo_pro,
-            ecosistema_enterprise).
-
-    Notas:
-        - Volumen 0 → Digitalízate (seller sin ventas en trial).
-        - Enterprise (>100k) requiere activación comercial, no checkout self-serve.
+    """Return minimum recommended plan slug from trial billable USD volume.
+    
+    
+    Zero sales map to Digitalízate; >100k maps to Enterprise (commercial CTA).
     """
     vol = Decimal(volume_usd or 0).quantize(Decimal('0.01'))
     if vol <= VOLUME_THRESHOLD_DIGITALIZATE_MAX:
@@ -132,17 +82,7 @@ def recommend_plan_slug(volume_usd: Decimal) -> str:
 
 
 def compute_trial_volume(company: Company, sub: CompanySubscription) -> tuple[Decimal, int]:
-    """
-    Calcula volumen USD y conteo de órdenes facturables durante el trial.
-
-    Args:
-        company: Empresa vendedora.
-        sub: Suscripción en estado ``trialing`` o recién finalizada; usa
-            ``current_period_start`` y ``current_period_end`` como ventana.
-
-    Returns:
-        tuple[Decimal, int]: (volumen_usd, cantidad_órdenes_distintas).
-    """
+    """Return billable USD volume and distinct order count during the trial window."""
     period_start = sub.current_period_start
     period_end = sub.current_period_end
     qs = OrderItem.objects.filter(
@@ -158,20 +98,10 @@ def compute_trial_volume(company: Company, sub: CompanySubscription) -> tuple[De
 
 
 def start_seller_trial(company: Company) -> CompanySubscription:
-    """
-    Inicia el periodo de prueba Digitalízate para una empresa recién vinculada.
-
-    Idempotente: si ya existe suscripción, no sobrescribe una activa o en trial.
-
-    Args:
-        company: Empresa con ``owner`` asignado (post-wizard).
-
-    Returns:
-        CompanySubscription: Registro con ``status=trialing``, ``auto_renew=False``.
-
-    Raises:
-        ValueError: Si no existen planes SaaS sembrables.
-        DatabaseError: Si la migración de lifecycle no está aplicada en la BD.
+    """Start Digitalízate trial for a newly linked company.
+    
+    
+    Idempotent for trialing/active/past_due; may restart trial from cancelled.
     """
     ensure_default_plans()
     try:
@@ -197,7 +127,7 @@ def start_seller_trial(company: Company) -> CompanySubscription:
                     existing.status,
                 )
                 return existing
-            # Reactivación desde cancelled: reiniciar trial comercial según política.
+            # Reactivation from cancelled: restart commercial trial per policy.
             existing.plan = digitalizate
             existing.status = 'trialing'
             existing.current_period_start = now
@@ -235,20 +165,10 @@ def start_seller_trial(company: Company) -> CompanySubscription:
 
 
 def finalize_trial_period(company: Company) -> CompanySubscription | None:
-    """
-    Cierra el trial al vencer ``current_period_end`` sin pago previo.
-
-    Acciones:
-    1. Calcula volumen trial y plan recomendado.
-    2. Guarda snapshot en ``trial_volume_usd`` y FK ``recommended_plan``.
-    3. Cambia ``status`` a ``past_due``.
-    4. Establece ``grace_ends_at = now + SELLER_GRACE_DAYS``.
-
-    Args:
-        company: Empresa con suscripción ``trialing`` vencida.
-
-    Returns:
-        CompanySubscription actualizada, o None si no aplica (ya active/past_due).
+    """Close an expired trial: snapshot volume, recommend plan, enter grace.
+    
+    
+    Sets ``past_due`` and ``grace_ends_at`` when ``current_period_end`` has passed.
     """
     ensure_default_plans()
     try:
@@ -293,19 +213,10 @@ def finalize_trial_period(company: Company) -> CompanySubscription | None:
 
 
 def apply_medium_churn(company: Company) -> CompanySubscription | None:
-    """
-    Aplica baja media: cuenta inactiva, productos fuera del marketplace.
-
-    Acciones:
-    - ``subscription.status = cancelled``
-    - ``Product.is_active = False`` para todos los productos de la empresa
-    - Opcional: ``Company.is_verified = False`` (preserva datos en BD)
-
-    Args:
-        company: Empresa en ``past_due`` con gracia vencida, o cancelación voluntaria.
-
-    Returns:
-        CompanySubscription actualizada, o None si no había suscripción.
+    """Apply medium churn: cancel sub, deactivate products, clear verification.
+    
+    
+    Keeps company data in DB but removes CFZ marketplace visibility.
     """
     try:
         sub = company.subscription
@@ -335,28 +246,17 @@ def apply_medium_churn(company: Company) -> CompanySubscription | None:
 
 
 def company_marketplace_visible(company: Company, *, now=None) -> bool:
-    """
-    Indica si la empresa debe aparecer en catálogo, mapa y merchandising.
-
-    Reglas:
-    - Sin suscripción SaaS: **visible** (empresas legacy del catálogo seed /
-      demo sin portal seller aún vinculado).
-    - ``trialing``, ``active``: visible.
-    - ``past_due``: visible mientras ``grace_ends_at >= now`` (días 31–37).
-    - ``cancelled``: no visible (baja media).
-
-    Args:
-        company: Empresa vendedora.
-        now: Timestamp de referencia (útil en tests).
-
-    Returns:
-        bool: True si productos activos de la empresa pueden mostrarse al público.
+    """Return whether the company may appear in catalog, map, and merch.
+    
+    
+    Legacy companies without a subscription stay visible; cancelled or expired
+    grace do not.
     """
     now = now or timezone.now()
     try:
         sub = company.subscription
     except CompanySubscription.DoesNotExist:
-        # Grandfather: catálogo seed / empresas sin funnel seller siguen visibles.
+        # Grandfather: seed catalog / companies without seller funnel stay visible.
         return True
 
     if sub.status not in MARKETPLACE_VISIBLE_STATUSES:
@@ -370,16 +270,7 @@ def company_marketplace_visible(company: Company, *, now=None) -> bool:
 
 
 def marketplace_active_company_ids(*, now=None) -> list[int]:
-    """
-    IDs de empresas visibles en superficies públicas del marketplace.
-
-    Incluye:
-    - Empresas **sin** ``CompanySubscription`` (legacy / seed).
-    - Empresas con status trialing | active.
-    - Empresas past_due aún dentro de gracia.
-
-    Excluye ``cancelled`` y gracia vencida.
-    """
+    """Return company IDs still allowed on public marketplace surfaces."""
     now = now or timezone.now()
     cancelled_or_expired = Company.objects.filter(
         Q(subscription__status='cancelled')
@@ -394,21 +285,10 @@ def marketplace_active_company_ids(*, now=None) -> list[int]:
 
 
 def seller_portal_access(company: Company | None, *, route_name: str = '') -> str | None:
-    """
-    Determina si el vendedor puede acceder a la ruta solicitada del portal.
-
-    Args:
-        company: Empresa del seller (None si aún no completó wizard).
-        route_name: Nombre de ruta Django de la vista actual.
-
-    Returns:
-        str | None: Nombre de ruta de redirect, o None si el acceso está permitido.
-
-    Matriz de acceso:
-    - Sin empresa → ``seller_onboarding_company``
-    - ``trialing`` / ``active`` → acceso completo (None)
-    - ``past_due`` → solo rutas en GRACE_PERIOD_ROUTE_NAMES
-    - ``cancelled`` → ``seller_account_inactive``
+    """Return a redirect route name, or None if portal access is allowed.
+    
+    
+    ``past_due`` sellers may only hit grace activation/checkout routes.
     """
     if not company:
         return 'seller_onboarding_company'
@@ -428,18 +308,12 @@ def seller_portal_access(company: Company | None, *, route_name: str = '') -> st
             return None
         return 'seller_trial_activation'
 
-    # trialing y active: acceso completo
+    # trialing and active: full access
     return None
 
 
 def mark_paid_period_elapsed(company) -> CompanySubscription | None:
-    """
-    Renovación sin Stripe: si ``active`` y ``current_period_end`` venció,
-    pasa a ``past_due`` con gracia para que el seller pague de nuevo (bank).
-
-    El plan recomendado queda como el plan actual (pueden renovar el mismo
-    o subir de tier; no downgrade).
-    """
+    """Move expired active periods to past_due with grace for bank renewal."""
     try:
         sub = company.subscription
     except CompanySubscription.DoesNotExist:
@@ -468,7 +342,7 @@ def mark_paid_period_elapsed(company) -> CompanySubscription | None:
 
 
 def trial_days_remaining(sub: CompanySubscription, *, now=None) -> int:
-    """Días enteros restantes de trial (0 si ya venció)."""
+    """Return whole days left in trial (0 if not trialing)."""
     now = now or timezone.now()
     if sub.status != 'trialing':
         return 0
@@ -477,7 +351,7 @@ def trial_days_remaining(sub: CompanySubscription, *, now=None) -> int:
 
 
 def grace_days_remaining(sub: CompanySubscription, *, now=None) -> int:
-    """Días enteros restantes de gracia post-trial (0 si no aplica)."""
+    """Return whole days left in post-trial grace (0 if N/A)."""
     now = now or timezone.now()
     if sub.status != 'past_due' or not sub.grace_ends_at:
         return 0
@@ -486,11 +360,7 @@ def grace_days_remaining(sub: CompanySubscription, *, now=None) -> int:
 
 
 def build_trial_activation_context(company: Company) -> dict:
-    """
-    Contexto para la pantalla de activación post-trial (seller_trial_activation).
-
-    Incluye volumen, plan recomendado, planes seleccionables y días de gracia.
-    """
+    """Build context for the post-trial activation screen (selectable plans)."""
     from core.utils.saas_billing import plan_monthly_price
     from core.utils.saas_plan_catalog import marketing_for_plan
 
@@ -505,7 +375,7 @@ def build_trial_activation_context(company: Company) -> dict:
         marketing = marketing_for_plan(plan)
         is_recommended = plan.slug == rec_slug
         is_enterprise = marketing.get('cta') == 'commercial'
-        # No downgrade: solo plan recomendado o superior (sort_order).
+        # No downgrade: recommended plan or higher only (sort_order).
         can_select = plan.sort_order >= recommended.sort_order and not is_enterprise
         plan_cards.append({
             **marketing,

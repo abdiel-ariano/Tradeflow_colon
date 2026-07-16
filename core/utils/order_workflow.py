@@ -1,5 +1,7 @@
-"""
-Flujo de confirmación de órdenes por el vendedor y liberación de inventario.
+"""Seller confirm/reject flow and inventory reservation release.
+
+Accepting a CFZ B2B order checks SaaS volume caps, marks payment
+approved, and rejects free reserved stock on decline or expiry.
 """
 from __future__ import annotations
 
@@ -17,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 def release_order_inventory(orden: Order) -> None:
-    """Libera reservas de inventario de los ítems de la orden."""
+    """Release reserved inventory for each line on the order."""
     for item in orden.items.select_related('product__inventory'):
         inv = getattr(item.product, 'inventory', None)
         if inv:
@@ -25,7 +27,7 @@ def release_order_inventory(orden: Order) -> None:
 
 
 def accept_seller_order(orden: Order) -> None:
-    """Confirma orden: pasa a pagada y aprueba el pago."""
+    """Accept order: enforce volume caps, mark paid, approve payment."""
     from collections import defaultdict
 
     from core.utils.saas_billing import VolumeLimitExceeded, assert_within_volume_limit
@@ -62,7 +64,7 @@ def accept_seller_order(orden: Order) -> None:
 
 
 def reject_seller_order(orden: Order) -> None:
-    """Rechaza orden: cancela y libera stock."""
+    """Reject order: cancel, free stock, reject pending payment."""
     with transaction.atomic():
         orden.seller_confirmation_status = 'rejected'
         orden.confirmado_por_empresa = False
@@ -78,7 +80,7 @@ def reject_seller_order(orden: Order) -> None:
 
 
 def expire_pending_orders() -> int:
-    """Marca como expiradas órdenes awaiting_seller fuera de plazo."""
+    """Cancel awaiting_seller orders past ``seller_confirm_by``; return count."""
     now = timezone.now()
     qs = Order.objects.filter(
         status='awaiting_seller',
@@ -97,6 +99,6 @@ def expire_pending_orders() -> int:
 
 
 def seller_confirm_deadline(company):
-    """Seller portal view: confirm deadline."""
+    """Return the seller confirmation deadline datetime."""
     hours = getattr(company, 'order_confirm_hours', None) or 48
     return timezone.now() + timedelta(hours=hours)

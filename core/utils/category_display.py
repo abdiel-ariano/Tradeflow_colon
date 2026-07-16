@@ -1,4 +1,8 @@
-"""Locale-aware display labels for catalog categories (UI layer)."""
+"""Locale-aware display labels for catalog categories (UI layer).
+
+Seed data mixes English and Spanish names; the marketplace must show
+one language without rewriting stored Category rows.
+"""
 from __future__ import annotations
 
 from django.conf import settings
@@ -28,7 +32,7 @@ _CATEGORY_LABEL_ES = {
 
 
 def category_display_name(name: str | None, lang: str | None = None) -> str:
-    """Return locale-facing category label; falls back to stored name."""
+    """Return locale-facing category label; fall back to the stored name."""
     if not name:
         return ''
     lang_code = (lang or get_language() or settings.LANGUAGE_CODE)[:2]
@@ -39,7 +43,7 @@ def category_display_name(name: str | None, lang: str | None = None) -> str:
 
 
 def category_icon_name(name: str | None) -> str:
-    """Material Symbols icon for a category (header dropdown)."""
+    """Return Material Symbols icon name for a category header dropdown."""
     if not name:
         return 'category'
     key = name.strip().lower()
