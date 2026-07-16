@@ -1,7 +1,7 @@
-"""
-ASGI config para TradeFlow Colón.
-Expone la aplicación ASGI como variable de módulo llamada `application`.
-Documentación: https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
+"""ASGI application entry for TradeFlow Colón.
+
+Used by async-capable servers; loads tradeflow_colon.settings and exposes
+``application`` as the ASGI callable.
 """
 import os
 from django.core.asgi import get_asgi_application

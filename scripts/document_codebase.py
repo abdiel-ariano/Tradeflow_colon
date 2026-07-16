@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""
-Audit and auto-fix missing documentation headers across the TradeFlow codebase.
+"""Audit and auto-fix missing documentation headers in TradeFlow.
+
+Scans Python, JS, CSS, and templates under the marketplace tree so DOC
+coverage stays consistent without hand-editing every file.
 
 Usage:
     python3 scripts/document_codebase.py audit
     python3 scripts/document_codebase.py fix [--dry-run]
-
-See docs/CODE_DOCUMENTATION_STANDARD.md.
 """
 from __future__ import annotations
 
@@ -25,14 +25,17 @@ TEMPLATE_DIR = ROOT / 'templates'
 
 
 def _should_skip(path: Path) -> bool:
+    """Return True if any path segment is in SKIP_DIRS."""
     return any(part in SKIP_DIRS for part in path.parts)
 
 
 def _humanize_name(name: str) -> str:
+    """Turn snake_case identifiers into spaced words for guessed docs."""
     return name.replace('_', ' ').strip()
 
 
 def _guess_python_module_doc(path: Path) -> str:
+    """Infer a one-line module docstring from file location and name."""
     rel = path.relative_to(ROOT).as_posix()
     if 'tests/test_' in rel:
         test_name = path.stem.replace('test_', '').replace('_', ' ')
@@ -62,6 +65,7 @@ def _guess_python_module_doc(path: Path) -> str:
 
 
 def _guess_function_doc(name: str, module_path: str) -> str:
+    """Infer a one-line function docstring from naming conventions."""
     if name.endswith('_view'):
         action = _humanize_name(name[:-5])
         return f'HTTP view: {action}.'
@@ -75,6 +79,7 @@ def _guess_function_doc(name: str, module_path: str) -> str:
 
 
 def _has_module_docstring(text: str) -> bool:
+    """Return True if the file already starts with a string literal docstring."""
     stripped = text.lstrip()
     for prefix in ('"""', "'''", 'r"""', "r'''"):
         if stripped.startswith(prefix):
@@ -83,6 +88,7 @@ def _has_module_docstring(text: str) -> bool:
 
 
 def _python_files() -> list[Path]:
+    """Collect project Python files under PYTHON_ROOTS, skipping SKIP_DIRS."""
     files: list[Path] = []
     for base in PYTHON_ROOTS:
         if not base.exists():
@@ -95,6 +101,7 @@ def _python_files() -> list[Path]:
 
 
 def _parse_functions(path: Path) -> list[tuple[str, int, bool]]:
+    """List public functions with lineno and whether a docstring exists."""
     try:
         tree = ast.parse(path.read_text(encoding='utf-8', errors='replace'))
     except SyntaxError:
@@ -109,6 +116,10 @@ def _parse_functions(path: Path) -> list[tuple[str, int, bool]]:
 
 
 def audit() -> int:
+    """Print missing-doc counts across Python, JS, CSS, and templates.
+
+    Returns the total issue count (0 means fully documented).
+    """
     issues = 0
     py_missing_mod: list[str] = []
     py_missing_fn: list[str] = []
@@ -182,6 +193,7 @@ def audit() -> int:
 
 
 def _insert_module_docstring(text: str, doc: str) -> str:
+    """Prepend a module docstring after shebang/coding cookies if missing."""
     if _has_module_docstring(text):
         return text
     block = f'"""\n{doc}\n"""\n'
@@ -197,6 +209,7 @@ def _insert_module_docstring(text: str, doc: str) -> str:
 
 
 def _insert_function_docstrings(text: str, path: Path) -> str:
+    """Insert guessed one-line docs on public functions that lack them."""
     try:
         tree = ast.parse(text)
     except SyntaxError:
@@ -228,6 +241,7 @@ def _insert_function_docstrings(text: str, path: Path) -> str:
 
 
 def _js_header(path: Path) -> str:
+    """Build a JS block-comment header naming the TradeFlow client script."""
     name = path.stem.replace('_', ' ')
     return (
         f'/**\n'
@@ -238,6 +252,7 @@ def _js_header(path: Path) -> str:
 
 
 def _css_header(path: Path) -> str:
+    """Build a CSS block-comment header naming the stylesheet."""
     name = path.stem.replace('_', ' ')
     return (
         f'/*\n'
@@ -248,12 +263,13 @@ def _css_header(path: Path) -> str:
 
 
 def _template_header(path: Path) -> str:
+    """Build a Django comment header naming the template relative path."""
     rel = path.relative_to(TEMPLATE_DIR).as_posix()
     return f'{{% comment %}}Template: {rel} — review purpose and context vars.{{% endcomment %}}\n'
 
 
 def _apply_template_header(text: str, path: Path) -> str:
-    """Insert header without breaking Django extends-first rule."""
+    """Insert a header without breaking Django's extends-first rule."""
     stripped = text.lstrip()
     if stripped.startswith('{% comment %}') or stripped.startswith('{#') or stripped.startswith('<!--'):
         return text
@@ -268,6 +284,10 @@ def _apply_template_header(text: str, path: Path) -> str:
 
 
 def fix(dry_run: bool = False) -> int:
+    """Insert missing headers/docstrings; optionally report without writing.
+
+    Returns the number of files that would change or were written.
+    """
     changed = 0
     for path in _python_files():
         original = path.read_text(encoding='utf-8', errors='replace')
@@ -321,6 +341,7 @@ def fix(dry_run: bool = False) -> int:
 
 
 def main() -> int:
+    """Parse CLI args and run audit or fix; exit 1 when audit finds issues."""
     parser = argparse.ArgumentParser(description='TradeFlow documentation audit/fix')
     parser.add_argument('command', choices=['audit', 'fix'])
     parser.add_argument('--dry-run', action='store_true')
