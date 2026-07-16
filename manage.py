@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-"""Django CLI entrypoint for TradeFlow Colón.
+"""Punto de entrada CLI de Django para TradeFlow Colón.
 
-Sets DJANGO_SETTINGS_MODULE and delegates to Django's management runner
-so local and CI commands share one bootstrap path.
+Define DJANGO_SETTINGS_MODULE y delega al runner de management para que
+comandos locales y de CI compartan el mismo arranque.
 """
 import os
 import sys
 
 
 def main():
-    """Run a Django management command from sys.argv."""
+    """Ejecuta un comando de management de Django desde sys.argv."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tradeflow_colon.settings')
     try:
         from django.core.management import execute_from_command_line

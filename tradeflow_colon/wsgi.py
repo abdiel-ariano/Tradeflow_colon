@@ -1,7 +1,7 @@
-"""WSGI application entry for TradeFlow Colón.
+"""Entrada WSGI de TradeFlow Colón.
 
-Used by Gunicorn and similar sync servers; loads tradeflow_colon.settings
-and exposes ``application`` as the WSGI callable.
+La usan Gunicorn y servidores síncronos similares; carga
+tradeflow_colon.settings y expone ``application`` como callable WSGI.
 """
 import os
 from django.core.wsgi import get_wsgi_application

@@ -1,5 +1,5 @@
-"""Django project package for the TradeFlow Colón B2B marketplace.
+"""Paquete Django del marketplace B2B TradeFlow Colón.
 
-Holds settings, URL routing, and ASGI/WSGI entrypoints for the CFZ
-re-export platform.
+Contiene settings, enrutado URL y puntos de entrada ASGI/WSGI de la
+plataforma de reexportación de la Zona Libre de Colón.
 """

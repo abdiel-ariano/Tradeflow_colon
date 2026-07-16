@@ -1,7 +1,8 @@
-"""Django settings for TradeFlow Colón (CFZ B2B marketplace).
+"""Settings de Django para TradeFlow Colón (marketplace B2B ZLC).
 
-Reads secrets via python-decouple from a repo-root .env locally, or from
-process env on Railway. Defaults favor safe production (DEBUG off).
+Lee secretos con python-decouple desde .env en local, o desde el
+entorno del proceso en Railway. Los defaults priorizan producción segura
+(DEBUG apagado).
 """
 from pathlib import Path
 
@@ -12,34 +13,34 @@ try:
     from decouple import RepositoryDict
 except ImportError:
     class RepositoryDict:
-        """Minimal dict-backed env repository for older python-decouple."""
+        """Repositorio de entorno basado en dict para python-decouple viejo."""
 
         def __init__(self, mapping):
-            """Store a shallow copy of the key/value mapping."""
+            """Guarda una copia superficial del mapeo clave/valor."""
             self._data = dict(mapping)
 
         def __contains__(self, key):
-            """Return whether key exists in the mapping."""
+            """Indica si la clave existe en el mapeo."""
             return key in self._data
 
         def __getitem__(self, key):
-            """Return the raw string value for key."""
+            """Devuelve el valor crudo en string de la clave."""
             return self._data[key]
 
 from django.utils.translation import gettext_lazy as _
 
-# Paths: project root (parent of tradeflow_colon/).
+# Rutas: raíz del proyecto (padre de tradeflow_colon/).
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env with utf-8-sig so PowerShell BOM does not corrupt SECRET_KEY.
-# CI / Railway without .env fall through to process environment.
+# Carga .env con utf-8-sig para que el BOM de PowerShell no corrompa SECRET_KEY.
+# CI / Railway sin .env usan el entorno del proceso.
 
 
 def _parse_dotenv(path: Path) -> dict[str, str]:
-    """Parse KEY=VALUE lines from a .env file into a plain dict.
+    """Parsea líneas KEY=VALUE de un .env a un dict simple.
 
-    Skips blanks and comments; strips optional surrounding quotes so
-    Windows editors do not break SECRET_KEY or DATABASE_URL values.
+    Omite vacías y comentarios; quita comillas opcionales para que
+    editores Windows no rompan SECRET_KEY o DATABASE_URL.
     """
     data: dict[str, str] = {}
     if not path.is_file():
@@ -63,19 +64,19 @@ _ENV_FILE = BASE_DIR / '.env'
 _env_vars = _parse_dotenv(_ENV_FILE)
 config = Config(RepositoryDict(_env_vars)) if _env_vars else Config(RepositoryEmpty())
 
-# Core security: SECRET_KEY and host allowlist from env (never hardcode).
+# Seguridad base: SECRET_KEY y hosts desde env (nunca hardcode).
 SECRET_KEY = config('SECRET_KEY')
 
-# Local .env usually sets DEBUG=True; unset on Railway → False.
+# El .env local suele poner DEBUG=True; en Railway sin valor → False.
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# Comma-separated hosts; Railway healthchecks need *.railway.app suffixes.
+# Hosts separados por coma; healthchecks de Railway usan *.railway.app.
 ALLOWED_HOSTS = list(config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv()))
 for _railway_host in ('.up.railway.app', '.railway.app'):
     if _railway_host not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_railway_host)
 
-# Django apps: auth stack (axes, allauth) plus core marketplace and analytics.
+# Apps Django: auth (axes, allauth) más marketplace core y analytics.
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -95,7 +96,7 @@ INSTALLED_APPS = [
     'analytics',
 ]
 
-# Request pipeline: WhiteNoise, i18n, onboarding gate, CSP/security headers.
+# Pipeline: WhiteNoise, i18n, onboarding gate, CSP/cabeceras de seguridad.
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # serve static in prod
@@ -434,10 +435,10 @@ PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
 
 def _csrf_origins_for_base(base_url: str, extra_origins=None):
-    """Build HTTPS CSRF origins including apex and www variants.
+    """Arma orígenes CSRF HTTPS con variantes apex y www.
 
-    Railway/Cloudflare frontends may hit either host; Django needs both
-    listed or POSTs fail CSRF checks after redirect.
+    Frontends en Railway/Cloudflare pueden pegar a cualquiera; Django
+    necesita ambos listados o los POST fallan CSRF tras el redirect.
     """
     origins = list(extra_origins or [])
     base = (base_url or '').rstrip('/')
@@ -457,7 +458,7 @@ def _csrf_origins_for_base(base_url: str, extra_origins=None):
 
 
 def _build_csrf_trusted_origins():
-    """Merge PUBLIC_BASE_URL variants with CSRF_TRUSTED_ORIGINS from env."""
+    """Combina variantes de PUBLIC_BASE_URL con CSRF_TRUSTED_ORIGINS."""
     return _csrf_origins_for_base(
         PUBLIC_BASE_URL,
         config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv()),
@@ -469,7 +470,7 @@ CSRF_TRUSTED_ORIGINS = _build_csrf_trusted_origins()
 EMAIL_USE_REAL_SMTP = bool(RESEND_API_KEY)
 EMAIL_SMTP_CONFIGURED = EMAIL_USE_REAL_SMTP
 
-# Supabase: Postgres via DATABASE_URL; Storage via URL + service key (not email).
+# Supabase: Postgres vía DATABASE_URL; Storage con URL + service key (no email).
 SUPABASE_URL = config('SUPABASE_URL', default='').strip()
 SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='').strip()
 SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='').strip()
@@ -481,7 +482,7 @@ SUPABASE_SIGNED_URL_TTL = config('SUPABASE_SIGNED_URL_TTL', default=3600, cast=i
 
 import logging as _logging
 
-# Boot diagnostics for email/Supabase wiring (DEBUG only).
+# Diagnóstico de arranque email/Supabase (solo DEBUG).
 _boot_log = _logging.getLogger('tradeflow.boot')
 if DEBUG:
     if REQUIRE_EMAIL_VERIFICATION:
@@ -505,7 +506,7 @@ if DEBUG:
     elif 'console' in (EMAIL_BACKEND or '').lower():
         _boot_log.info('Email en consola (DEBUG + EMAIL_BACKEND console).')
 
-# Default storage: filesystem locally; WhiteNoise manifest for static in prod.
+# Storage default: filesystem en local; WhiteNoise manifest para static en prod.
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
@@ -557,7 +558,7 @@ AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = 'core/bloqueado.html'
 AXES_LOCKOUT_PARAMETERS = [['username'], ['ip_address']]
 
-# Cookie hardening (OWASP A05) — applies in all environments.
+# Endurecimiento de cookies (OWASP A05) — aplica en todos los entornos.
 SESSION_COOKIE_HTTPONLY = True        # JS cannot read session cookie
 SESSION_COOKIE_SAMESITE = 'Lax'       # basic CSRF mitigation
 CSRF_COOKIE_HTTPONLY = True           # JS cannot read CSRF cookie
@@ -571,7 +572,7 @@ SESSION_SAVE_EVERY_REQUEST = True     # sliding window
 # Referrer-Policy: avoid leaking internal URLs to third parties.
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
-# Production TLS/HSTS/cookie Secure flags (active only when DEBUG=False).
+# TLS/HSTS/cookies Secure en producción (solo con DEBUG=False).
 if not DEBUG:
     SECURE_SSL_REDIRECT          = True   # force HTTPS
     SECURE_HSTS_SECONDS          = 31536000  # 1 year HSTS
@@ -591,7 +592,7 @@ if not DEBUG:
     # Trust Railway reverse-proxy HTTPS indicator.
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Structured console logging for email, auth, media, SaaS, security.
+# Logging estructurado a consola: email, auth, media, SaaS, seguridad.
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -619,18 +620,18 @@ LOGGING = {
     },
 }
 
-# Default PK type for new models.
+# Tipo de PK por defecto en modelos nuevos.
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # After core migrate, run cargar_demo if product table is empty (new Postgres).
 # Defaults to DEBUG; override with SEED_DEMO_IF_EMPTY in .env.
 SEED_DEMO_IF_EMPTY = config('SEED_DEMO_IF_EMPTY', default=DEBUG, cast=bool)
 
-# Groq LLM key for the in-app assistant (free-tier API).
+# Clave Groq del asistente in-app (API free-tier).
 GROQ_API_KEY = config('GROQ_API_KEY', default='')
 GROQ_MODEL = config('GROQ_MODEL', default='llama-3.1-8b-instant')
 
-# Analytics chat: larger Groq model; bridge env vars for analytics/engine.
+# Chat analytics: modelo Groq mayor; puente de env hacia analytics/engine.
 ANALYTICS_LLM_MODEL = config('ANALYTICS_LLM_MODEL', default='llama-3.3-70b-versatile')
 os.environ.setdefault('LLM_BASE_URL', 'https://api.groq.com/openai/v1')
 os.environ.setdefault('LLM_MODEL', ANALYTICS_LLM_MODEL)
