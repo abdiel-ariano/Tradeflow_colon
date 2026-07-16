@@ -1,4 +1,8 @@
-"""Health payload exposes non-secret email config for ops checks."""
+"""Platform health payload email section for ops checks.
+
+Exposes non-secret Resend readiness and public from-address so
+deploy verification can confirm mail config without secrets.
+"""
 from django.test import SimpleTestCase, override_settings
 
 from core.utils.platform_health import platform_health_payload
@@ -11,7 +15,10 @@ from core.utils.platform_health import platform_health_payload
     DEBUG=False,
 )
 class PlatformHealthEmailConfigTests(SimpleTestCase):
+    """Assert email block of platform_health_payload."""
+
     def test_email_section_includes_public_base_and_from(self):
+        """Report resend_ready, PUBLIC_BASE_URL, and from address."""
         payload = platform_health_payload()
         self.assertTrue(payload['email']['resend_ready'])
         self.assertEqual(payload['email']['public_base_url'], 'https://tradeflowcolon.com')

@@ -1,10 +1,10 @@
-"""
-Verify product media files exist on disk and Product.image URLs resolve.
+"""Audit product media paths, on-disk files, and resolvable image URLs.
 
-Usage:
-    python manage.py verify_media
-    python manage.py verify_media --show-missing
-    python manage.py verify_media --audit-placeholders
+Detects missing ``Product.image`` values, absent local files, empty URLs,
+and legacy S3-signed Supabase links that break catalog cards.
+
+Ops: safe read-only check on any environment. Use before/after media
+migrations or when marketplace thumbnails look broken.
 """
 
 from __future__ import annotations
@@ -21,10 +21,12 @@ from core.utils.media_storage import is_remote_media_storage, local_media_file_e
 
 
 class Command(BaseCommand):
+    """Report product image health for local and remote storage backends."""
+
     help = 'Check Product.image paths, on-disk files, and resolvable image URLs'
 
     def add_arguments(self, parser):
-        """Add arguments."""
+        """Register limit, missing-detail, and placeholder audit flags."""
         parser.add_argument(
             '--limit',
             type=int,
@@ -43,7 +45,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Handle."""
+        """Scan products and print media storage diagnostics."""
         limit = int(options['limit'] or 0)
         show_missing = bool(options['show_missing'])
         audit_placeholders = bool(options['audit_placeholders'])

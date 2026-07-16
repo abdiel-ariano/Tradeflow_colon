@@ -1,4 +1,9 @@
-"""Custom locale switching for prefix_default_language=False."""
+"""Locale switcher for ``prefix_default_language=False`` URL layouts.
+
+Django's stock ``set_language`` cannot rewrite ``/es/...`` paths when
+the default language has no prefix. Marketplace pages (guest catalog,
+seller portal, OTP) keep the same route under the chosen locale.
+"""
 from __future__ import annotations
 
 from django.conf import settings
@@ -12,11 +17,11 @@ from core.utils.i18n_urls import tf_translate_url
 
 @require_http_methods(['GET', 'POST'])
 def set_language(request):
-    """
-    Set language cookie and redirect to the equivalent URL in the target locale.
+    """Set the language cookie and redirect to the matching locale URL.
 
-    Django's built-in view relies on translate_url(), which cannot resolve /es/...
-    paths when the default language has no prefix.
+    Accepts ``language`` and ``next`` from POST or GET. Rejects open
+    redirects, then uses ``tf_translate_url`` so CFZ marketplace paths
+    stay correct without a default-language prefix.
     """
     next_url = request.POST.get('next', request.GET.get('next'))
     if (

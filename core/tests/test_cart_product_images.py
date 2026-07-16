@@ -1,4 +1,8 @@
-"""Cart line images — product fallback pipeline, never raw session URLs."""
+"""Cart line images use the shared product fallback pipeline.
+
+Stale session imagen URLs must not leak broken hosts into the cart;
+CFZ buyers should always see catalog-seed or upload fallbacks.
+"""
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -17,8 +21,10 @@ from core.models import Category, Company, Inventory, Product, UserProfile
     STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage',
 )
 class CartProductImageTests(TestCase):
+    """Assert cart HTML ignores stale session image URLs."""
+
     def setUp(self):
-        """Setup."""
+        """Create a buyer and one in-stock product for the cart session."""
         self.company = Company.objects.create(name='ZLC Trading', is_verified=True)
         self.category = Category.objects.create(name='Electronics')
         self.product = Product.objects.create(

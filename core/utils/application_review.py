@@ -1,10 +1,7 @@
-"""
-Aprobación/rechazo centralizado de solicitudes de acceso (UserApplication).
+"""Approve or reject ``UserApplication`` rows and notify applicants.
 
-Un único punto de verdad para que TODOS los caminos de revisión (enlace de
-correo a revisores, panel /panel/applications/ y Django admin) tengan el mismo
-efecto: actualizar estado, activar/desactivar la cuenta y notificar al
-solicitante por correo (Resend).
+Centralizes buyer access decisions so Admin and magic-link reviewers
+activate accounts consistently for the gated CFZ marketplace.
 """
 from __future__ import annotations
 
@@ -17,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 def _vincular_cuenta(app):
-    """Devuelve el User ligado a la solicitud, enlazándolo por correo si falta."""
+    """Return the User linked to the application, attaching by email if needed."""
     user = app.user if getattr(app, 'user_id', None) else None
     if user is None:
         user = User.objects.filter(email__iexact=(app.email or '').strip()).first()
@@ -28,7 +25,7 @@ def _vincular_cuenta(app):
 
 
 def _activar_cuenta(app):
-    """Activa la cuenta del solicitante y marca su correo como verificado."""
+    """Activate the applicant account and mark email verified."""
     user = _vincular_cuenta(app)
     if user is None:
         return None
@@ -43,7 +40,7 @@ def _activar_cuenta(app):
 
 
 def mensaje_fallo_correo(email_result) -> str:
-    """Texto para admin cuando la solicitud se guardó pero el correo falló."""
+    """Admin-facing text when the decision saved but email delivery failed."""
     from core.utils.email_config import explain_email_failure
 
     if email_result is None or getattr(email_result, 'ok', True):
@@ -57,7 +54,7 @@ def mensaje_fallo_correo(email_result) -> str:
 
 
 def _notificar_decision(app, *, aprobada: bool):
-    """Envía correo de decisión; nunca lanza (la aprobación ya quedó guardada)."""
+    """Send decision email; never raise (approval already committed)."""
     try:
         from core.utils.email_sender import enviar_solicitud_decision
 
@@ -70,7 +67,7 @@ def _notificar_decision(app, *, aprobada: bool):
 
 
 def aprobar_solicitud(app, *, notificar: bool = True):
-    """Aprueba la solicitud: estado, fecha, activación de cuenta y aviso."""
+    """Approve application: status, timestamp, activate account, notify."""
     app.status = 'approved'
     app.reviewed_at = timezone.now()
     app.save(update_fields=['status', 'reviewed_at'])
@@ -82,7 +79,7 @@ def aprobar_solicitud(app, *, notificar: bool = True):
 
 
 def rechazar_solicitud(app, *, notificar: bool = True):
-    """Rechaza la solicitud: estado, fecha, desactivación de cuenta y aviso."""
+    """Reject application: status, timestamp, deactivate account, notify."""
     app.status = 'rejected'
     app.reviewed_at = timezone.now()
     app.save(update_fields=['status', 'reviewed_at'])

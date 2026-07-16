@@ -1,4 +1,8 @@
-"""Order detail page regression tests."""
+"""Buyer order detail page (detalle_mi_orden) regressions.
+
+Buyers must open their own paid CFZ orders with line items visible so
+post-checkout tracking stays trustworthy.
+"""
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -24,8 +28,10 @@ from core.models import (
     AXES_ENABLED=False,
 )
 class DetalleMiOrdenViewTests(TestCase):
+    """Assert order detail renders for the owning buyer."""
+
     def setUp(self):
-        """Setup."""
+        """Create a paid order with one line and approved payment."""
         self.company = Company.objects.create(name='Co', ruc='1', is_verified=True)
         cat = Category.objects.create(name='Cat')
         self.product = Product.objects.create(
@@ -66,7 +72,7 @@ class DetalleMiOrdenViewTests(TestCase):
         self.client.force_login(self.buyer)
 
     def test_detalle_mi_orden_renders_200(self):
-        """Test detalle mi orden renders 200."""
+        """Owning buyer gets 200 with order number and product name."""
         url = reverse('detalle_mi_orden', kwargs={'pk': self.orden.pk})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)

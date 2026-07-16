@@ -1,5 +1,7 @@
-"""
-Permisos del sitio Django Admin alineados con el rol ``admin`` de TradeFlow.
+"""Align Django Admin staff access with TradeFlow ``admin`` profiles.
+
+Operators need ``is_staff`` plus the TradeFlow Administradores group so
+CFZ support can review applications and plan checkouts in Admin.
 """
 from __future__ import annotations
 
@@ -8,7 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 
 
 def user_is_tradeflow_admin(user) -> bool:
-    """User is tradeflow admin."""
+    """Return True for active staff/superuser with TradeFlow admin role."""
     if not user.is_active:
         return False
     if user.is_superuser:
@@ -22,7 +24,7 @@ def user_is_tradeflow_admin(user) -> bool:
 
 
 def ensure_tradeflow_admin_group() -> Group:
-    """Grupo con todos los permisos de ``core`` para operadores TradeFlow."""
+    """Ensure Admin group with all ``core`` permissions for CFZ operators."""
     group, _ = Group.objects.get_or_create(name='TradeFlow Administradores')
     perms = Permission.objects.filter(content_type__app_label='core')
     group.permissions.set(perms)
@@ -30,8 +32,10 @@ def ensure_tradeflow_admin_group() -> Group:
 
 
 def sync_user_admin_access(user) -> None:
-    """
-    Staff + grupo de permisos para usuarios con rol admin en el perfil.
+    """Grant ``is_staff`` and Admin group when profile role is admin.
+    
+    
+    Keeps Django Admin usable for operators without manual permission edits.
     """
     if not hasattr(user, 'profile'):
         return

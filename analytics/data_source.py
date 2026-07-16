@@ -1,10 +1,8 @@
-"""
-Fuentes de datos para Analytics IA.
+"""Session-scoped data sources for TradeFlow Analytics IA.
 
-- Persistencia del DataFrame cargado entre requests, vía caché de Django,
-  con clave por sesión (Streamlit guardaba esto en session_state).
-- Carga directa desde los modelos ORM de Tradeflow (Order, Product, etc.)
-  sin necesidad de exportar archivos.
+Caches loaded DataFrames between requests (Django cache, keyed by
+session — Streamlit used session_state). Also loads CFZ seller sales
+directly from core ORM models without file export.
 """
 from __future__ import annotations
 import pandas as pd
@@ -13,24 +11,27 @@ from django.core.cache import cache
 
 CACHE_PREFIX = "analytics:df:"
 DB_PREFIX = "analytics:db:"
-CACHE_TIMEOUT = 60 * 60  # 1 hora
+CACHE_TIMEOUT = 60 * 60  # 1 hour
 
-# Modelos técnicos que no aporta nada analizar
+# Technical models that add no seller-analytics value
 _HIDE_MODELS = {"Session", "LogEntry", "AccessAttempt", "AccessLog",
                 "AccessFailureLog", "ContentType", "Permission"}
 
 
 def _sid(request) -> str:
+    """Ensure a session key exists and return it as a cache id."""
     if not request.session.session_key:
         request.session.save()
     return str(request.session.session_key)
 
 
 def store_df(request, df: pd.DataFrame, meta: dict | None = None) -> None:
+    """Persist the working DataFrame and meta for this browser session."""
     cache.set(f"{CACHE_PREFIX}{_sid(request)}", {"df": df, "meta": meta or {}}, CACHE_TIMEOUT)
 
 
 def get_df(request):
+    """Return (DataFrame, meta) for the session, or (None, {})."""
     payload = cache.get(f"{CACHE_PREFIX}{_sid(request)}")
     if not payload:
         return None, {}
@@ -38,12 +39,14 @@ def get_df(request):
 
 
 def clear_df(request) -> None:
+    """Drop the cached working DataFrame for this session."""
     cache.delete(f"{CACHE_PREFIX}{_sid(request)}")
 
 
-# ── Conexión a base de datos (Supabase/PostgreSQL) ──────────────────────────
+# ── Database connection (Supabase/PostgreSQL) ────────────────────────────────
 def store_db(request, conn_str: str, tables: list, schema: str = "public",
              fks: list | None = None) -> None:
+    """Cache a read-only DB connection handle and schema inventory."""
     cache.set(
         f"{DB_PREFIX}{_sid(request)}",
         {"conn": conn_str, "tables": tables, "schema": schema, "fks": fks or []},
@@ -52,33 +55,37 @@ def store_db(request, conn_str: str, tables: list, schema: str = "public",
 
 
 def get_db(request):
-    """Devuelve {'conn','tables','schema','fks'} o None."""
+    """Return cached DB payload {conn, tables, schema, fks} or None."""
     return cache.get(f"{DB_PREFIX}{_sid(request)}")
 
 
 def clear_db(request) -> None:
+    """Forget the cached database connection for this session."""
     cache.delete(f"{DB_PREFIX}{_sid(request)}")
 
 
-# ── Excel multi-hoja: recordar el archivo para cambiar de hoja sin re-subir ──
+# ── Multi-sheet Excel: keep bytes so sheet switches skip re-upload ───────────
 XLSX_PREFIX = "analytics:xlsx:"
 
 
 def store_excel(request, data: bytes, sheets: list, current: str) -> None:
+    """Cache uploaded workbook bytes and the active sheet name."""
     cache.set(f"{XLSX_PREFIX}{_sid(request)}",
               {"bytes": data, "sheets": sheets, "current": current}, CACHE_TIMEOUT)
 
 
 def get_excel(request):
-    """Devuelve {'bytes','sheets','current'} o None."""
+    """Return cached Excel payload {bytes, sheets, current} or None."""
     return cache.get(f"{XLSX_PREFIX}{_sid(request)}")
 
 
 def clear_excel(request) -> None:
+    """Drop cached Excel bytes for this session."""
     cache.delete(f"{XLSX_PREFIX}{_sid(request)}")
 
 
 def _core_models():
+    """List registered core app models, or [] if core is unavailable."""
     try:
         return list(apps.get_app_config("core").get_models())
     except LookupError:
@@ -86,7 +93,7 @@ def _core_models():
 
 
 def list_models() -> list[dict]:
-    """Modelos analizables de la app core: [{'value','label','count'}]."""
+    """Analyzable core models as [{value, label, count}]."""
     out = []
     for model in _core_models():
         if model.__name__ in _HIDE_MODELS:
@@ -104,7 +111,7 @@ def list_models() -> list[dict]:
 
 
 def load_model_df(model_name: str, limit: int = 5000) -> pd.DataFrame:
-    """Carga un modelo de core a DataFrame con .values() (FKs como <campo>_id)."""
+    """Load a core model into a DataFrame via .values() (FKs as *_id)."""
     target = next((m for m in _core_models() if m.__name__ == model_name), None)
     if target is None:
         raise ValueError(f"Modelo desconocido: {model_name}")
@@ -112,10 +119,9 @@ def load_model_df(model_name: str, limit: int = 5000) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# ── Analytics por empresa (modo integrado, vía ORM) ─────────────────────────
-# El objetivo del sistema: los gráficos se acotan siempre a UNA empresa — la
-# que tiene sesión iniciada en producción (Company.owner == request.user), o
-# la que elija un admin/superuser durante pruebas.
+# ── Per-company analytics (integrated mode, via ORM) ─────────────────────────
+# Charts always scope to ONE company — the signed-in owner's Company, or the
+# company a staff/superuser picks while testing.
 _SALES_RENAME = {
     "product__name": "producto", "product__sku": "sku",
     "product__category__name": "categoria",
@@ -126,7 +132,7 @@ _SALES_RENAME = {
 
 
 def list_companies() -> list[dict]:
-    """[{'id','name'}] ordenadas por nombre, o [] si el modelo no existe."""
+    """Return [{id, name}] sorted by name, or [] if Company is missing."""
     try:
         Company = apps.get_model("core", "Company")
     except LookupError:
@@ -135,7 +141,7 @@ def list_companies() -> list[dict]:
 
 
 def company_for_user(user) -> dict | None:
-    """{'id','name'} de la empresa que este usuario posee (Company.owner), o None."""
+    """Return {id, name} for Company.owner == user, or None."""
     if not getattr(user, "is_authenticated", False):
         return None
     try:
@@ -149,10 +155,9 @@ COMPANY_SALES_LIMIT = 20_000
 
 
 def load_company_sales_df(company_id: int, limit: int = COMPANY_SALES_LIMIT) -> pd.DataFrame:
-    """Líneas de venta (OrderItem) de los productos de una empresa, con datos
-    de producto y orden ya unidos — no IDs sueltos.
+    """Load OrderItem lines for a CFZ seller company with product/order joins.
 
-    Ordena por fecha de orden descendente para que el tope conserve lo más reciente.
+    Newest orders first so the row cap keeps recent marketplace activity.
     """
     OrderItem = apps.get_model("core", "OrderItem")
     rows = list(
@@ -170,13 +175,13 @@ def load_company_sales_df(company_id: int, limit: int = COMPANY_SALES_LIMIT) -> 
 
 
 def company_sales_row_count(company_id: int) -> int:
-    """Total de líneas de venta de la empresa (sin tope)."""
+    """Total OrderItem lines for the company (no load cap)."""
     OrderItem = apps.get_model("core", "OrderItem")
     return int(OrderItem.objects.filter(product__company_id=company_id).count())
 
 
 def load_company_sales_bundle(company_id: int, limit: int = COMPANY_SALES_LIMIT) -> tuple[pd.DataFrame, dict]:
-    """DataFrame + meta de truncado para avisar al seller en UI."""
+    """Return sales DataFrame plus truncation meta for seller UI banners."""
     limit = int(limit)
     total = company_sales_row_count(company_id)
     df = load_company_sales_df(company_id, limit=limit)
@@ -188,15 +193,15 @@ def load_company_sales_bundle(company_id: int, limit: int = COMPANY_SALES_LIMIT)
     }
 
 
-# ── Analytics por empresa (modo standalone, vía SQL directo) ────────────────
+# ── Per-company analytics (standalone mode, direct SQL) ─────────────────────
 def sql_has_tradeflow_schema(tables: list[dict]) -> bool:
-    """True si la BD conectada tiene el esquema de Tradeflow (para mostrar el
-    selector de empresa solo cuando tiene sentido)."""
+    """True when connected DB has TradeFlow core tables for company picker."""
     names = {t["name"] for t in tables}
     return {"core_company", "core_product", "core_orderitem", "core_order"}.issubset(names)
 
 
 def sql_list_companies(conn_str: str, schema: str = "public") -> list[dict]:
+    """List CFZ companies from a connected TradeFlow Postgres schema."""
     from .engine import db_connector
     df = db_connector.run_query(conn_str, f'SELECT id, name FROM "{schema}"."core_company" ORDER BY name')
     return df.to_dict("records") if not df.empty else []
@@ -204,8 +209,9 @@ def sql_list_companies(conn_str: str, schema: str = "public") -> list[dict]:
 
 def sql_load_company_sales(conn_str: str, company_id: int, schema: str = "public",
                            limit: int = 20000) -> pd.DataFrame:
+    """Load company sales via SQL with the same column aliases as ORM load."""
     from .engine import db_connector
-    cid = int(company_id)  # sanitiza: solo un entero puede llegar al SQL
+    cid = int(company_id)  # sanitize: only an int may reach the SQL
     sql = f"""
         SELECT oi.qty, oi.unit_price_snapshot, oi.line_total,
                p.name AS producto, p.sku AS sku, cat.name AS categoria,

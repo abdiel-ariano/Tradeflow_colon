@@ -1,11 +1,15 @@
+"""File and paste loaders that normalize seller/staff analytics uploads.
+
+Accepts CSV, Excel, JSON, and pasted text from CFZ ops exports and
+light-cleans columns so charts and forecasts see consistent dtypes.
+"""
 import io
 import json
 import pandas as pd
 
 
 def load_csv(file) -> pd.DataFrame:
-    """Lee CSV tolerando codificación (UTF-8/BOM/latin-1) y separador
-    (coma, punto y coma, tab, pipe)."""
+    """Read CSV tolerating UTF-8/BOM/latin-1 and comma/;/tab/pipe separators."""
     raw = file.read() if hasattr(file, "read") else file
     if isinstance(raw, str):
         raw = raw.encode("utf-8")
@@ -26,7 +30,7 @@ def load_csv(file) -> pd.DataFrame:
 
 
 def load_excel_sheets(file) -> dict[str, pd.DataFrame]:
-    """Load all sheets from an Excel file. Returns {sheet_name: DataFrame}."""
+    """Load all non-empty Excel sheets as {sheet_name: DataFrame}."""
     xl = pd.ExcelFile(file)
     sheets = {}
     for name in xl.sheet_names:
@@ -40,9 +44,7 @@ def load_excel_sheets(file) -> dict[str, pd.DataFrame]:
 
 
 def _sheet_score(df: pd.DataFrame) -> float:
-    """Puntúa una hoja por cantidad de datos tabulares utilizables. Penaliza
-    encabezados mal puestos (columnas 'Unnamed', típicas de pivotes/resúmenes
-    con filas de título arriba)."""
+    """Score a sheet by usable tabular cells; penalize Unnamed headers."""
     if df is None or df.empty:
         return -1
     unnamed = sum(1 for c in df.columns if str(c).startswith("Unnamed"))
@@ -51,9 +53,7 @@ def _sheet_score(df: pd.DataFrame) -> float:
 
 
 def load_excel(file) -> pd.DataFrame:
-    """Carga la hoja con MÁS datos reales (ignora hojas vacías y prioriza tablas
-    con encabezados correctos). Antes leía solo la primera hoja, que en archivos
-    con varias hojas suele estar vacía o ser una portada."""
+    """Load the sheet with the most real tabular data (skip empty covers)."""
     xl = pd.ExcelFile(file)
     best, best_score = None, -1.0
     for name in xl.sheet_names:
@@ -70,7 +70,7 @@ def load_excel(file) -> pd.DataFrame:
 
 
 def excel_sheet_names(file) -> list[str]:
-    """Nombres de las hojas con datos (omite vacías)."""
+    """Return names of sheets that contain at least one data row."""
     xl = pd.ExcelFile(file)
     out = []
     for name in xl.sheet_names:
@@ -83,7 +83,7 @@ def excel_sheet_names(file) -> list[str]:
 
 
 def best_sheet_name(file) -> str | None:
-    """Nombre de la hoja con más datos tabulares (la que elige load_excel)."""
+    """Return the sheet name that load_excel would choose."""
     xl = pd.ExcelFile(file)
     best, score = None, -1.0
     for name in xl.sheet_names:
@@ -97,11 +97,12 @@ def best_sheet_name(file) -> str | None:
 
 
 def load_excel_sheet(file, sheet: str) -> pd.DataFrame:
-    """Carga una hoja específica por nombre."""
+    """Load one Excel sheet by name into a DataFrame."""
     return pd.read_excel(file, sheet_name=sheet)
 
 
 def load_json(file) -> pd.DataFrame:
+    """Parse a JSON list or object into a flat DataFrame."""
     data = json.load(file)
     if isinstance(data, list):
         return pd.DataFrame(data)
@@ -114,7 +115,7 @@ def load_json(file) -> pd.DataFrame:
 
 
 def load_text(text: str) -> pd.DataFrame:
-    """Parse pasted text: tries CSV comma, then semicolon, then tab."""
+    """Parse pasted CSV-like text (comma, semicolon, tab, or pipe)."""
     text = text.strip()
     for sep in [",", ";", "\t", "|"]:
         try:
@@ -129,16 +130,16 @@ def load_text(text: str) -> pd.DataFrame:
 
 
 def clean(df: pd.DataFrame) -> pd.DataFrame:
-    """Light cleaning: normalize column names, infer numeric types."""
+    """Light clean: normalize column names and infer numeric object columns."""
     df = df.copy()
-    # Normalize column names: strip whitespace, lowercase, spaces → underscore
+    # Normalize column names: strip, lowercase, spaces/hyphens → underscore
     df.columns = [
         str(c).strip().lower().replace(" ", "_").replace("-", "_")
         for c in df.columns
     ]
     for col in df.columns:
         dtype = df[col].dtype
-        # Skip booleans, numerics, datetimes — only try to convert object columns
+        # Skip booleans, numerics, datetimes — only try object columns
         if dtype != object:
             continue
         # Skip columns where values are not string-like (e.g. mixed bool/None)

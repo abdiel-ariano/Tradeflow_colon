@@ -1,5 +1,7 @@
-"""
-Vistas de plataforma: health checks (sin i18n).
+"""Platform health endpoints for load balancers and deploys.
+
+Liveness and readiness probes stay outside i18n URL prefixes so
+orchestration (Railway, k8s) can hit them without a locale segment.
 """
 from __future__ import annotations
 
@@ -11,13 +13,17 @@ from core.utils.platform_health import platform_health_payload
 
 @require_GET
 def health_live(request):
-    """Liveness — proceso activo."""
+    """Confirm the Django process is accepting HTTP traffic."""
     return JsonResponse({'status': 'alive'})
 
 
 @require_GET
 def health_ready(request):
-    """Readiness — DB y configuración crítica."""
+    """Gate traffic until DB and critical settings are reachable.
+
+    Returns HTTP 503 when ``platform_health_payload`` reports failure so
+    the load balancer stops routing CFZ marketplace requests early.
+    """
     payload = platform_health_payload()
     code = 200 if payload['status'] == 'ok' else 503
     return JsonResponse(payload, status=code)

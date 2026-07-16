@@ -1,9 +1,7 @@
-"""
-TradeFlow — server-side cache helpers for public pages and merchandising.
+"""Server-side cache for public merchandising and guest home pages.
 
-Uses Django's cache framework (Redis when REDIS_URL is set, else DB or LocMem).
-Invalidate via signals when catalog, CMS, or order data changes.
-On backend errors (missing cache table, Redis down), falls back to uncached ORM.
+Redis when available; on cache backend failure falls back to uncached
+ORM so CFZ catalog stays up.
 """
 from __future__ import annotations
 
@@ -30,11 +28,12 @@ _SUPPORTED_LANGS = ('es', 'en')
 
 
 def cache_ttl(setting_name: str, default: int) -> int:
-    """Cache ttl."""
+    """Read an integer cache TTL from settings with a default fallback."""
     return int(getattr(settings, setting_name, default))
 
 
 def _cache_get(key: str) -> Any:
+    """Safe cache.get that returns None on backend errors."""
     try:
         return cache.get(key)
     except Exception as exc:
@@ -43,6 +42,7 @@ def _cache_get(key: str) -> Any:
 
 
 def _cache_set(key: str, value: Any, timeout: int) -> None:
+    """Safe cache.set that swallows backend errors."""
     try:
         cache.set(key, value, timeout)
     except Exception as exc:
@@ -50,6 +50,7 @@ def _cache_set(key: str, value: Any, timeout: int) -> None:
 
 
 def _cache_delete_many(keys: list[str]) -> None:
+    """Safe cache.delete_many that swallows backend errors."""
     if not keys:
         return
     try:
@@ -59,7 +60,7 @@ def _cache_delete_many(keys: list[str]) -> None:
 
 
 def get_or_set(key: str, timeout: int, factory: Callable[[], T]) -> T:
-    """Read-through cache with a callable producer; never raises on cache errors."""
+    """Read-through cache with a factory; never raises on cache errors."""
     cached = _cache_get(key)
     if cached is not None:
         return cached
@@ -69,7 +70,7 @@ def get_or_set(key: str, timeout: int, factory: Callable[[], T]) -> T:
 
 
 def invalidate_merchandising_cache() -> None:
-    """Drop merchandising and public-page cache entries."""
+    """Drop merchandising and public-page cache keys after catalog changes."""
     keys = [
         HOME_STATS_KEY,
         NAV_CATEGORIES_KEY,
@@ -82,7 +83,7 @@ def invalidate_merchandising_cache() -> None:
 
 
 def cached_home_stats() -> dict[str, Any]:
-    """Cached home stats."""
+    """Return cached guest home marketplace statistics."""
     from core import merchandising as merch
 
     return get_or_set(
@@ -93,12 +94,13 @@ def cached_home_stats() -> dict[str, Any]:
 
 
 def cached_nav_categories() -> list:
-    """Cached nav categories."""
+    """Return cached top categories for the header nav."""
     from django.db.models import Count, Q
 
     from core.models import Category
 
     def _load():
+        """Load top categories with active product counts."""
         return list(
             Category.objects.annotate(
                 num_productos=Count('products', filter=Q(products__is_active=True)),
@@ -115,12 +117,13 @@ def cached_nav_categories() -> list:
 
 
 def cached_catalog_categories() -> list:
-    """Cached catalog categories."""
+    """Return cached categories with active product counts."""
     from django.db.models import Count, Q
 
     from core.models import Category
 
     def _load():
+        """Load all categories that still have active products."""
         return list(
             Category.objects.annotate(
                 num_productos=Count('products', filter=Q(products__is_active=True)),
@@ -137,12 +140,13 @@ def cached_catalog_categories() -> list:
 
 
 def cached_catalog_empresas() -> list:
-    """Cached catalog empresas."""
+    """Return cached marketplace-visible companies with active products."""
     from django.db.models import Count, Q
 
     from core.models import Company
 
     def _load():
+        """Load marketplace-visible companies with active catalog products."""
         from core.utils.seller_lifecycle import marketplace_active_company_ids
 
         visible_ids = marketplace_active_company_ids()
@@ -163,7 +167,7 @@ def cached_catalog_empresas() -> list:
 
 
 def cached_guest_home_context(lang: str | None = None) -> dict[str, Any]:
-    """Cached guest home context."""
+    """Return cached guest home template context for a locale."""
     from core import merchandising as merch
 
     lang_code = (lang or get_language() or settings.LANGUAGE_CODE)[:2]
@@ -178,10 +182,11 @@ def cached_guest_home_context(lang: str | None = None) -> dict[str, Any]:
 
 
 def cached_api_home_merchandising() -> dict[str, Any]:
-    """Cached api home merchandising."""
+    """Return cached home merchandising payload for the public API."""
     from core import merchandising as merch
 
     def _load():
+        """Assemble home merchandising section and product-id payload."""
         sections = []
         for section in merch.active_home_sections():
             sections.append({

@@ -1,4 +1,8 @@
-"""OTP delivery helper tests."""
+"""OTP send helper that generates or reuses valid email codes.
+
+Verification pages must not spam Resend when a live code already
+exists for the buyer email gate.
+"""
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -14,8 +18,10 @@ from core.utils.otp_delivery import ensure_otp_sent, has_valid_otp
     RESEND_API_KEY='re_test',
 )
 class OtpDeliveryTests(TestCase):
+    """Assert ensure_otp_sent status paths."""
+
     def setUp(self):
-        """Setup."""
+        """Create unverified buyer and request factory."""
         self.user = User.objects.create_user(
             username='otp_delivery_user',
             email='otp_delivery@test.pa',
@@ -26,7 +32,7 @@ class OtpDeliveryTests(TestCase):
 
     @patch('core.utils.otp_delivery.enviar_codigo_verificacion')
     def test_ensure_otp_sent_generates_and_sends(self, mock_send):
-        """Test ensure otp sent generates and sends."""
+        """Generate OTP and call email sender when none is valid."""
         from core.email_service import EmailSendResult
 
         mock_send.return_value = EmailSendResult(ok=True, channel='resend')
@@ -43,7 +49,7 @@ class OtpDeliveryTests(TestCase):
 
     @patch('core.utils.otp_delivery.enviar_codigo_verificacion')
     def test_ensure_otp_sent_reuses_valid_code(self, mock_send):
-        """Test ensure otp sent reuses valid code."""
+        """Skip send and report existing when OTP is still valid."""
         from core.utils.otp_handler import generate_user_otp
 
         generate_user_otp(self.user)

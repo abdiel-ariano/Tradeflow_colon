@@ -1,5 +1,7 @@
-"""
-Capa de entrega de correo: logging y registro en EmailDeliveryLog (Resend).
+"""Deliver mail and persist ``EmailDeliveryLog`` rows via Resend.
+
+Wraps transactional sends so OTP, order, and SaaS notices leave an
+auditable trail for support.
 """
 from __future__ import annotations
 
@@ -13,7 +15,7 @@ log = logging.getLogger('tradeflow.email')
 
 
 def validate_email_infrastructure() -> list[str]:
-    """Devuelve lista de advertencias de configuración (vacía = OK)."""
+    """Return configuration warnings (empty list means email is ready)."""
     warnings = []
     base = (getattr(settings, 'PUBLIC_BASE_URL', '') or '').strip().rstrip('/')
     if not base or base.startswith('http://127.0.0.1') and not settings.DEBUG:
@@ -43,9 +45,7 @@ def deliver_mail(
     max_attempts: int = 2,
     **_kwargs,
 ) -> bool:
-    """
-    Envía correo con registro en ``EmailDeliveryLog`` vía ``enviar_email_transaccional``.
-    """
+    """Send mail and record ``EmailDeliveryLog`` via the transactional sender."""
     from core.email_service import enviar_email_transaccional
 
     recipients = [r for r in (recipient_list or []) if r]

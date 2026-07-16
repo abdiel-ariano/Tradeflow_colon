@@ -1,5 +1,7 @@
-"""
-Middleware de onboarding: verificación de email y solicitud aprobada.
+"""Redirect incomplete accounts away from protected marketplace routes.
+
+Authenticated buyers and sellers must finish email verification and
+application approval before operational CFZ paths are available.
 """
 from __future__ import annotations
 
@@ -18,12 +20,14 @@ from core.utils.access_gating import (
 
 
 class OnboardingGateMiddleware:
-    """Redirige usuarios incompletos fuera de rutas operativas."""
+    """Send unfinished users to OTP or approval before protected GET pages."""
 
     def __init__(self, get_response):
+        """Initialize middleware with the next ASGI/WSGI callable."""
         self.get_response = get_response
 
     def __call__(self, request):
+        """Process one request through this middleware hook."""
         path = normalize_path(request.path)
 
         if request.method == 'GET' and request.user.is_authenticated:

@@ -1,5 +1,8 @@
-"""
-Vistas de transportistas y asignación logística.
+"""Carrier applications, admin review, and order logistics assignment.
+
+Public apply flow, admin approve/reject with account provisioning,
+buyer pickup selection, and seller order accept/reject within the
+CFZ confirmation deadline.
 """
 from __future__ import annotations
 
@@ -44,7 +47,12 @@ _USERNAME_RE = re.compile(r'^[a-zA-Z][a-zA-Z0-9._]{2,29}$')
 
 
 def aplicar_transportista(request):
-    """Formulario público para aplicar como transportista."""
+    """Accept a public carrier application and email confirmation.
+
+    Blocks duplicate pending rows for the same contact email. Saves
+    the application even when outbound mail fails so logistics intake
+    is not blocked by SMTP misconfiguration.
+    """
     form = AplicacionTransportistaForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         email = form.cleaned_data['email'].strip().lower()
@@ -88,7 +96,7 @@ def aplicar_transportista(request):
 
 @admin_required
 def admin_transportistas(request):
-    """Lista solicitudes de transportistas."""
+    """List carrier applications filtered by review status."""
     estado = request.GET.get('estado', 'pendiente').strip()
     qs = Transportista.objects.select_related('user').order_by('-fecha_aplicacion')
     if estado:
@@ -103,7 +111,11 @@ def admin_transportistas(request):
 
 @admin_required
 def admin_aprobar_transportista(request, pk, decision):
-    """Aprueba o rechaza transportista; crea usuario si se aprueba."""
+    """Approve or reject a pending carrier; provision login on approve.
+
+    Approved carriers get a User + ``transportista`` profile so they
+    can participate in buyer pickup assignment for CFZ orders.
+    """
     t = get_object_or_404(Transportista, pk=pk)
     if t.estado != 'pendiente':
         messages.info(request, _('This application has already been reviewed.'))
@@ -143,7 +155,11 @@ def admin_aprobar_transportista(request, pk, decision):
 
 @buyer_required
 def seleccionar_transportista(request, order_pk):
-    """Buyer elige transportista aprobado y ubicación de pickup."""
+    """Let the buyer assign an approved carrier and pickup coordinates.
+
+    Writes ``AsignacionTransporte`` and folds the carrier base tariff
+    into order shipping/total before checkout continuation.
+    """
     orden = get_object_or_404(Order, pk=order_pk, buyer=request.user)
     transportistas = Transportista.objects.filter(estado='aprobado', activo=True).order_by(
         'empresa_nombre',
@@ -194,7 +210,11 @@ def seleccionar_transportista(request, order_pk):
 
 @seller_required
 def confirmar_orden_empresa(request, order_pk, decision):
-    """La empresa acepta o rechaza dentro del plazo (alias URL del sprint)."""
+    """Accept or reject an order within the seller confirmation window.
+
+    Sprint URL alias: enforces company line ownership, expires stale
+    pending orders, and gates accept on SaaS monthly volume limits.
+    """
     from .views import _get_seller_company
 
     company = _get_seller_company(request.user)

@@ -1,4 +1,8 @@
-"""Self-serve browse flow: OAuth login assigns buyer profile automatically."""
+"""Self-serve OAuth browse flow and soft email gates.
+
+Buyers may browse and open cart before OTP; restricted actions
+still force /verificar/ until email is confirmed.
+"""
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
 
@@ -15,8 +19,10 @@ from core.social_auth import user_needs_oauth_role
     },
 )
 class OAuthSelfServeFlowTests(TestCase):
+    """Assert activation, browse gates, and cart access."""
+
     def test_auto_activate_inactive_buyer_on_pre_login(self):
-        """Test auto activate inactive buyer on pre login."""
+        """Activate eligible buyers and detect missing OAuth roles."""
         from core.social_auth import TradeFlowAccountAdapter, activate_user_if_eligible
 
         user = User.objects.create_user(username='react', email='r@t.pa', password='x')
@@ -38,7 +44,7 @@ class OAuthSelfServeFlowTests(TestCase):
         self.assertTrue(user_needs_oauth_role(user))
 
     def test_browse_gate_only_for_missing_role(self):
-        """Test browse gate only for missing role."""
+        """Allow browse for unverified buyers; gate restricted scope."""
         from core.utils.access_gating import onboarding_redirect_name
 
         user = User.objects.create_user(username='browse_me', email='b@g.pa', password='x')
@@ -49,7 +55,7 @@ class OAuthSelfServeFlowTests(TestCase):
         self.assertEqual(onboarding_redirect_name(user, scope='restricted'), 'verificar_codigo')
 
     def test_authenticated_unverified_can_open_cart(self):
-        """Test authenticated unverified can open cart."""
+        """Serve /carrito/ to authenticated unverified buyers."""
         user = User.objects.create_user(username='cart_guest', email='c@g.pa', password='x')
         user.is_active = True
         user.save()

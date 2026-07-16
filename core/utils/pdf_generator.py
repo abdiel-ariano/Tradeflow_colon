@@ -1,23 +1,7 @@
-"""
-=============================================================================
-TradeFlow Colón — Generador PDF (ReportLab)
-=============================================================================
-Este módulo genera documentos PDF para el marketplace B2B/B2C de la Zona
-Libre de Colón (ZLC), Panamá: facturas comerciales, listas de empaque
-(alineadas a prácticas documentales ante la ANA / DUA) y cotizaciones
-formales (RFQ).
+"""Generate branded PDF order invoices and packing summaries.
 
-Contexto legal — Panamá ZLC:
-  · Ley 76 de 2002 y normativa conexa sobre el régimen de Zona Libre.
-  · Operaciones en ZLC: tratamiento fiscal distinto; la documentación debe
-    reflejar condiciones de ITBMS según el caso (muchas ventas ZLC/B2B
-    documentan exención o no sujeción — ver notas en cada PDF).
-  · ANA (Aduanas Nacional): facturas y packing lists sirven de soporte a
-    declaraciones DUA; los textos legales del pie no sustituyen asesoría
-    contable ni aduanera.
-
-Cada función devuelve ``bytes`` listos para ``HttpResponse`` o almacenamiento.
-=============================================================================
+Sellers and buyers download CFZ trade documents with TradeFlow navy
+headers and USD line totals.
 """
 
 from __future__ import annotations
@@ -56,9 +40,9 @@ _PAGE_FRAME_W = A4[0] - 4 * cm
 
 
 def _get_styles():
-    """
-    Estilos de párrafo personalizados con nombres únicos para el documento.
-    No usa ``textTransform`` (no soportado por ReportLab ParagraphStyle).
+    """Build ReportLab paragraph styles with unique names for this PDF.
+
+    Avoids ``textTransform`` (unsupported by ReportLab ParagraphStyle).
     """
     base = getSampleStyleSheet()
     sty = base
@@ -188,12 +172,13 @@ def _get_styles():
 
 
 def _table_header_cell(styles, text: str, align_center: bool = True) -> Paragraph:
-    """Celda de cabecera navy con texto blanco legible (Paragraph, no string plano)."""
+    """Return a navy header cell as Paragraph (readable white text, not plain)."""
     key = "TableHeaderWhite" if align_center else "TableHeaderWhiteLeft"
     return Paragraph(text, styles[key])
 
 
 def _format_dt(dt) -> str:
+    """Format a datetime for PDF document headers."""
     if dt is None:
         return "—"
     if timezone.is_aware(dt):
@@ -202,21 +187,18 @@ def _format_dt(dt) -> str:
 
 
 def _usd(amount: Decimal) -> str:
+    """Format a Decimal as a USD string for PDF cells."""
     q = amount.quantize(Decimal("0.01"))
     return f"{q:.2f}"
 
 
 def _usd_cell(amount: Decimal) -> str:
+    """Build a ReportLab table cell with a USD amount."""
     return f"USD {_usd(amount)}"
 
 
 def _meta_row_table(rows, styles) -> Table:
-    """
-    Tabla meta de dos columnas con labels cortos y valores en Paragraph (sin solapes).
-
-    Args:
-        rows: lista de tuplas (label_sin_dos_puntos, valor_html_escaped_o_texto).
-    """
+    """Build a two-column meta table with short labels and Paragraph values."""
     data = []
     for label, value in rows:
         label_para = Paragraph(
@@ -245,6 +227,7 @@ def _meta_row_table(rows, styles) -> Table:
 
 
 def _table_style_navy_header() -> TableStyle:
+    """Return ReportLab TableStyle for navy header rows."""
     return TableStyle(
         [
             ("BACKGROUND", (0, 0), (-1, 0), TF_NAVY),
@@ -265,6 +248,7 @@ def _table_style_navy_header() -> TableStyle:
 
 
 def _orange_rule():
+    """Append a brand-orange horizontal rule to the story."""
     return HRFlowable(
         width=_PAGE_FRAME_W,
         thickness=1.5,
@@ -275,9 +259,9 @@ def _orange_rule():
 
 
 def _story_brand_logo(styles) -> list:
-    """
-    Cabecera con logo oficial (icono TF azul/naranja).
-    Si falta el archivo en static/img, usa título textual de respaldo.
+    """Build PDF header with the official TF color icon logo.
+
+    Falls back to a text title when the static PNG is missing.
     """
     path = logo_icon_color_path()
     if path.is_file():
@@ -288,6 +272,7 @@ def _story_brand_logo(styles) -> list:
 
 
 def _story_doc_footer_legal(styles) -> list:
+    """Append CFZ legal footer lines to the PDF story."""
     return [
         Spacer(1, 0.4 * cm),
         _orange_rule(),
@@ -304,12 +289,10 @@ def _story_doc_footer_legal(styles) -> list:
 
 
 def generar_factura_pdf(orden) -> bytes:
-    """
-    Factura comercial en USD para una instancia de ``Order``.
+    """Build a commercial USD invoice PDF for an ``Order`` instance.
 
-    Usa ``orden.items.all()`` con datos snapshot del pedido (empresa del
-    producto, cantidades y precios). Meta y cabeceras de tabla evitan solapes
-    (labels cortos + Paragraph en ambas columnas).
+    Uses order line snapshots (company, qty, prices) with short meta labels
+    so table headers do not overlap on A4.
     """
     styles = _get_styles()
     buffer = io.BytesIO()
@@ -441,11 +424,10 @@ def generar_factura_pdf(orden) -> bytes:
 
 
 def generar_packing_list_pdf(orden) -> bytes:
-    """
-    Lista de empaque — formato útil como anexo para inspección y DUA (ANA).
+    """Build a packing-list PDF annex for ZLC inspection and DUA (ANA).
 
-    Incluye descripción de mercancía, cantidades y referencia de orden,
-    coherente con las mismas líneas que la factura.
+    Includes merchandise description, quantities, and order reference aligned
+    with the same lines as the commercial invoice.
     """
     styles = _get_styles()
     buffer = io.BytesIO()
@@ -562,9 +544,7 @@ def generar_packing_list_pdf(orden) -> bytes:
 
 
 def generar_cotizacion_pdf(cotizacion) -> bytes:
-    """
-    PDF formal de cotización (RFQ) con ítems, precios ofertados y notas.
-    """
+    """Build a formal RFQ quotation PDF with items, offered prices, and notes."""
     styles = _get_styles()
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(

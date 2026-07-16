@@ -1,4 +1,8 @@
-"""Tests for cleanup_sparse_demo_companies management command."""
+"""cleanup_sparse_demo_companies management command.
+
+Removes named sparse demo CFZ sellers so production-like seeds keep
+credible catalog density without leftover thin storefronts.
+"""
 from io import StringIO
 
 from django.core.management import call_command
@@ -8,7 +12,10 @@ from core.models import Company, Inventory, Product
 
 
 class CleanupSparseDemoCompaniesTests(TestCase):
+    """Assert dry-run safety, deletion scope, and idempotent reruns."""
+
     def setUp(self):
+        """Seed a keep company plus three named sparse demo companies."""
         self.keep = Company.objects.create(
             name='Keep Co ZLC',
             ruc='8-NT-9-999999',
@@ -44,12 +51,14 @@ class CleanupSparseDemoCompaniesTests(TestCase):
                 Inventory.objects.create(product=p, stock_qty=5)
 
     def test_dry_run_does_not_delete(self):
+        """Dry-run leaves demo companies and the keep company untouched."""
         out = StringIO()
         call_command('cleanup_sparse_demo_companies', dry_run=True, stdout=out)
         self.assertEqual(Company.objects.filter(name__in=self.demo_names).count(), 3)
         self.assertTrue(Company.objects.filter(pk=self.keep.pk).exists())
 
     def test_deletes_named_demo_companies_and_products(self):
+        """Live run deletes named demos but preserves denser keep stock."""
         out = StringIO()
         call_command('cleanup_sparse_demo_companies', stdout=out)
         self.assertEqual(Company.objects.filter(name__in=self.demo_names).count(), 0)
@@ -57,6 +66,7 @@ class CleanupSparseDemoCompaniesTests(TestCase):
         self.assertEqual(self.keep.products.count(), 5)
 
     def test_idempotent(self):
+        """Second run reports no matching sparse demos remain."""
         call_command('cleanup_sparse_demo_companies', stdout=StringIO())
         out = StringIO()
         call_command('cleanup_sparse_demo_companies', stdout=out)

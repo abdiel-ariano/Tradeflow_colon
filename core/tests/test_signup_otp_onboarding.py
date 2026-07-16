@@ -1,4 +1,8 @@
-"""Registro en EXPO_DEMO_MODE: OTP + correo + sesión + redirect a /verificar/."""
+"""Signup OTP onboarding in expo demo and classic modes.
+
+New buyers receive a six-digit code and session pending-verify
+id even when Resend fails, so /verificar/ stays reachable.
+"""
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -18,11 +22,14 @@ from core.views_onboarding import SESSION_PENDING_VERIFY_USER_ID
     AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
 )
 class SignupOtpOnboardingTests(TestCase):
+    """Assert signup redirects and OTP persistence."""
+
     def setUp(self):
-        """Setup."""
+        """Create a fresh test client."""
         self.client = Client()
 
     def _signup_payload(self, username='demo_new'):
+        """Build a valid buyer signup form payload."""
         return {
             'first_name': 'Demo',
             'last_name': 'User',
@@ -36,7 +43,7 @@ class SignupOtpOnboardingTests(TestCase):
 
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_signup_expo_demo_sends_otp_and_redirects_verificar(self, mock_send):
-        """Test signup expo demo sends otp and redirects verificar."""
+        """Create user, send OTP, and store pending verify session."""
         mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
 
         resp = self.client.post(reverse('signup'), self._signup_payload(), follow=False)
@@ -57,7 +64,7 @@ class SignupOtpOnboardingTests(TestCase):
 
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_signup_expo_demo_email_failure_still_redirects_with_warning(self, mock_send):
-        """Test signup expo demo email failure still redirects with warning."""
+        """Reach /verificar/ even when OTP email raises."""
         mock_send.side_effect = RuntimeError('Resend API key invalid')
 
         resp = self.client.post(
@@ -74,7 +81,7 @@ class SignupOtpOnboardingTests(TestCase):
 
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_verificar_renders_without_redirect_loop_expo_demo(self, mock_send):
-        """Test verificar renders without redirect loop expo demo."""
+        """Render verify page without a long redirect chain."""
         mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
         self.client.post(reverse('signup'), self._signup_payload(username='demo_loop'), follow=False)
         resp = self.client.get('/verificar/', follow=True)
@@ -85,7 +92,7 @@ class SignupOtpOnboardingTests(TestCase):
     @override_settings(EXPO_DEMO_MODE=False, REQUIRE_EMAIL_VERIFICATION=True)
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_signup_non_demo_redirects_to_verificar(self, mock_send):
-        """Test signup non demo redirects to verificar."""
+        """Redirect classic signup to /verificar/ after OTP create."""
         mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
         resp = self.client.post(reverse('signup'), self._signup_payload(username='classic'), follow=False)
 

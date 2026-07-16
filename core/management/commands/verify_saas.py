@@ -1,5 +1,8 @@
-"""
-Verifica datastore SaaS en PostgreSQL/Supabase y opcionalmente siembra datos.
+"""Diagnose SaaS datastore health and optionally seed default plans.
+
+Ops: safe health check on any environment. ``--seed`` writes plans and
+per-company subscriptions — use on local/staging or empty production
+bootstrap only, not as a routine prod cron.
 """
 from django.core.management.base import BaseCommand
 
@@ -7,18 +10,20 @@ from core.utils.saas_platform import bootstrap_saas_datastore, get_saas_health
 
 
 class Command(BaseCommand):
-    help = 'Diagnóstico SaaS: planes, suscripciones, uso y migración checkout'
+    """Report SaaS plans, subscriptions, usage, and checkout table readiness."""
+
+    help = 'SaaS diagnostics: plans, subscriptions, usage, and checkout migration'
 
     def add_arguments(self, parser):
-        """Add arguments."""
+        """Register optional bootstrap seeding of plans and subscriptions."""
         parser.add_argument(
             '--seed',
             action='store_true',
-            help='Ejecuta ensure_default_plans y suscripciones por empresa',
+            help='Run ensure_default_plans and per-company subscriptions',
         )
 
     def handle(self, *args, **options):
-        """Handle."""
+        """Print SaaS health; auto-bootstrap plans when count is zero."""
         if options['seed']:
             health = bootstrap_saas_datastore(seed_subscriptions=True)
         else:

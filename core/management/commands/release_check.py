@@ -1,5 +1,8 @@
-"""
-Validación pre-deploy: variables críticas, DB, SMTP y storage cloud.
+"""Pre-deploy gate for critical settings, DB, email, and storage.
+
+Ops: run in CI and before promoting staging to production. Fails on
+missing SECRET_KEY / PUBLIC_BASE_URL or unreachable DB. Use
+``--allow-debug`` only for local CI with DEBUG=True.
 """
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -9,18 +12,20 @@ from core.utils.platform_health import platform_health_payload
 
 
 class Command(BaseCommand):
-    help = 'Comprueba que el entorno está listo para release (staging/prod).'
+    """Validate environment readiness for staging or production release."""
+
+    help = 'Check that the environment is ready for release (staging/prod).'
 
     def add_arguments(self, parser):
-        """Add arguments."""
+        """Register allow-debug for local CI where DEBUG=True is expected."""
         parser.add_argument(
             '--allow-debug',
             action='store_true',
-            help='No tratar DEBUG=True como advertencia bloqueante en CI local.',
+            help='Do not treat DEBUG=True as a blocking warning in local CI.',
         )
 
     def handle(self, *args, **options):
-        """Handle."""
+        """Collect config warnings/errors and exit 1 when blockers remain."""
         errors = []
         warnings = validate_email_infrastructure()
 

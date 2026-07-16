@@ -1,24 +1,15 @@
 #!/usr/bin/env python
-"""
-=============================================================================
-TRADEFLOW COLÓN — manage.py
-=============================================================================
-Utilidad de línea de comandos de Django.
+"""Django CLI entrypoint for TradeFlow Colón.
 
-COMANDOS MÁS USADOS:
-  python manage.py runserver          → Inicia el servidor en http://127.0.0.1:8000
-  python manage.py migrate            → Aplica migraciones a la BD
-  python manage.py makemigrations     → Genera archivos de migración
-  python manage.py createsuperuser    → Crea usuario administrador
-  python manage.py shell              → Consola Python con contexto Django
-  python manage.py collectstatic      → Junta archivos estáticos (producción)
-=============================================================================
+Sets DJANGO_SETTINGS_MODULE and delegates to Django's management runner
+so local and CI commands share one bootstrap path.
 """
 import os
 import sys
 
 
 def main():
+    """Run a Django management command from sys.argv."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tradeflow_colon.settings')
     try:
         from django.core.management import execute_from_command_line

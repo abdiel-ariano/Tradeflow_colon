@@ -1,5 +1,6 @@
-"""
-Timeline logística para órdenes (seller / tracking).
+"""Build human-readable order progress steps for buyer/seller UI.
+
+Maps CFZ order statuses to a linear timeline with current-step index.
 """
 from __future__ import annotations
 
@@ -21,6 +22,7 @@ TIMELINE_STEPS = (
 
 
 def _step_index(status: str, shipment_status: str | None, cancelled: bool, has_dispatch: bool) -> int:
+    """Return the timeline step index for an order status code."""
     if cancelled or status == 'cancelled':
         return 8
     mapping = {

@@ -1,9 +1,8 @@
-"""
-Envía correos de marketing del marketplace: carrito abandonado y promociones CFZ.
+"""Send CFZ marketplace marketing mail: abandoned cart and promotions.
 
-Uso programado (cron/Railway):
-  python manage.py send_marketing_emails --cart-hours=1
-  python manage.py send_marketing_emails --promotions
+Ops: schedule via Railway/OS cron on staging or production when Resend
+is configured. Prefer ``--dry-run`` first. Cart reminders default after
+one hour of inactivity; ``--promotions`` fans out to verified buyers.
 """
 from __future__ import annotations
 
@@ -18,10 +17,12 @@ from core.utils.email_sender import enviar_carrito_abandonado, enviar_promocione
 
 
 class Command(BaseCommand):
+    """Dispatch cart abandonment and optional company promotion emails."""
+
     help = 'Send cart abandonment and company promotion emails via Resend.'
 
     def add_arguments(self, parser):
-        """Add arguments."""
+        """Register cart inactivity hours, promotions flag, and dry-run."""
         parser.add_argument(
             '--cart-hours',
             type=float,
@@ -40,7 +41,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Handle."""
+        """Send cart reminders and optional promotions; print send counts."""
         sent_cart = self._send_cart_reminders(
             hours=options['cart_hours'],
             dry_run=options['dry_run'],
@@ -55,6 +56,7 @@ class Command(BaseCommand):
         )
 
     def _send_cart_reminders(self, *, hours: float, dry_run: bool) -> int:
+        """Email verified buyers with stale non-empty carts."""
         cutoff = timezone.now() - timedelta(hours=hours)
         profiles = UserProfile.objects.filter(
             role='buyer',
@@ -87,6 +89,7 @@ class Command(BaseCommand):
         return sent
 
     def _send_promotions(self, *, dry_run: bool) -> int:
+        """Email verified active buyers with company promotion digests."""
         buyers = User.objects.filter(
             is_active=True,
             profile__role='buyer',

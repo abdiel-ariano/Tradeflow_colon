@@ -1,5 +1,8 @@
-"""
-Control de acceso enterprise: verificación de email y solicitud aprobada.
+"""Gate buyers and sellers behind email OTP and access applications.
+
+Public CFZ catalog browsing stays open; checkout, seller portal, and
+enterprise APIs require verified email and (for buyers) approval when
+``REQUIRE_APPROVED_APPLICATION`` is enabled.
 """
 from __future__ import annotations
 
@@ -8,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from core.models import UserApplication, UserProfile
 
-# Rutas siempre públicas (sin prefijo /en/)
+# Paths always public (locale prefix already stripped)
 PUBLIC_PATH_PREFIXES = (
     '/login',
     '/signup',
@@ -51,7 +54,7 @@ PROTECTED_PATH_PREFIXES = (
     '/api/dashboard-stats',
 )
 
-# Rutas de compra restringidas (login + verificación); catálogo/carrito son públicos.
+# Purchase paths need login + verification; catalog/cart stay public.
 BROWSE_PATH_PREFIXES = (
     '/',
     '/catalogo',
@@ -62,7 +65,7 @@ BROWSE_PATH_PREFIXES = (
 
 
 def normalize_path(path: str) -> str:
-    """Normalize path."""
+    """Strip /en/ or /es/ locale prefix for gating comparisons."""
     p = path or '/'
     if p.startswith('/en/'):
         return p[3:] or '/'
@@ -72,7 +75,7 @@ def normalize_path(path: str) -> str:
 
 
 def is_public_path(path: str) -> bool:
-    """Is public path."""
+    """Return True when the path needs no auth or application gate."""
     p = normalize_path(path)
     if p in ('/', ''):
         return True
@@ -80,13 +83,13 @@ def is_public_path(path: str) -> bool:
 
 
 def is_protected_path(path: str) -> bool:
-    """Is protected path."""
+    """Return True for checkout, orders, seller APIs, and other gated paths."""
     p = normalize_path(path)
     return any(p.startswith(pref) for pref in PROTECTED_PATH_PREFIXES)
 
 
 def user_is_platform_exempt(user) -> bool:
-    """User is platform exempt."""
+    """Return True for anonymous, staff, superuser, or profile role admin."""
     if not user or not user.is_authenticated:
         return True
     if user.is_superuser or user.is_staff:
@@ -100,7 +103,7 @@ def user_is_platform_exempt(user) -> bool:
 
 
 def latest_application_for_email(email: str) -> UserApplication | None:
-    """Latest application for email."""
+    """Return the newest ``UserApplication`` for ``email``, if any."""
     if not email:
         return None
     return (
@@ -111,11 +114,11 @@ def latest_application_for_email(email: str) -> UserApplication | None:
 
 
 def application_gate_status(email: str, *, role: str | None = None) -> str | None:
-    """
-    None = acceso OK respecto a solicitud.
-    Otros: pending, under_review, rejected, required.
-
-    Sellers quedan fuera del gate de aprobación manual (trial self-serve).
+    """Return application gate code, or None when access is allowed.
+    
+    
+    Sellers skip manual approval (self-serve trial). Buyers may see
+    ``pending``, ``rejected``, or ``required`` when gating is enabled.
     """
     if role == 'seller':
         return None
@@ -138,7 +141,7 @@ def application_gate_status(email: str, *, role: str | None = None) -> str | Non
 
 
 def user_needs_role_completion(user) -> bool:
-    """Perfil ausente o rol no asignado (p. ej. OAuth sin completar)."""
+    """Return True when profile is missing or role is not buyer/seller/admin."""
     if not user or not user.is_authenticated:
         return False
     try:
@@ -149,7 +152,7 @@ def user_needs_role_completion(user) -> bool:
 
 
 def email_verification_required(user) -> bool:
-    """True si el usuario debe completar verificación OTP antes de rutas operativas."""
+    """Return True when the user must finish email OTP before operational routes."""
     if not user or not user.is_authenticated or user_is_platform_exempt(user):
         return False
     if not (
@@ -164,13 +167,13 @@ def email_verification_required(user) -> bool:
 
 
 def is_protected_path(path: str) -> bool:
-    """Is protected path."""
+    """Return True for checkout, orders, seller APIs, and other gated paths."""
     p = normalize_path(path)
     return any(p.startswith(pref) for pref in PROTECTED_PATH_PREFIXES)
 
 
 def is_browse_path(path: str) -> bool:
-    """Is browse path."""
+    """Return True for public catalog, cart, and home browse surfaces."""
     p = normalize_path(path)
     if p in ('/', ''):
         return True
@@ -178,13 +181,11 @@ def is_browse_path(path: str) -> bool:
 
 
 def seller_company_pending(user) -> bool:
-    """
-    True si el vendedor autenticado aún no puede operar el portal.
-
-    Casos:
-    - Sin ``Company.owner`` → debe completar el wizard.
-    - Con empresa pero **sin** ``CompanySubscription`` (p. ej. fallo a mitad
-      del POST / migrate incompleto) → debe reintentar el wizard o arrancar trial.
+    """Return True when a seller cannot operate the portal yet.
+    
+    
+    Missing ``Company.owner`` or missing ``CompanySubscription`` both send
+    the user back through the company wizard / trial start.
     """
     if not user or not user.is_authenticated or user_is_platform_exempt(user):
         return False
@@ -210,17 +211,17 @@ def seller_company_pending(user) -> bool:
 
 
 def seller_onboarding_redirect_name(user) -> str | None:
-    """Ruta del wizard empresa si el seller verificado no tiene Company.owner."""
+    """Return company-wizard route name when seller onboarding is incomplete."""
     if seller_company_pending(user):
         return 'seller_onboarding_company'
     return None
 
 
 def buyer_onboarding_pending(user) -> bool:
-    """True si el comprador debe ver el wizard de personalización (cuentas nuevas)."""
+    """Return True when a verified buyer still needs personalization wizard."""
     if not user or not user.is_authenticated or user_is_platform_exempt(user):
         return False
-    # OTP primero — onboarding solo tras email verificado (o si la verificación está desactivada)
+    # OTP first — onboarding only after verified email (or if verification is off)
     if email_verification_required(user):
         return False
     try:
@@ -233,18 +234,18 @@ def buyer_onboarding_pending(user) -> bool:
 
 
 def buyer_onboarding_redirect_name(user) -> str | None:
-    """Ruta del paso 1 si el onboarding comprador está pendiente."""
+    """Return buyer onboarding step-1 route when personalization is pending."""
     if buyer_onboarding_pending(user):
         return 'buyer_onboarding_step1'
     return None
 
 
 def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
-    """
-    Nombre de ruta Django para redirigir, o None si el usuario puede continuar.
-
-    scope='browse' — catálogo, carrito, home (solo exige rol OAuth si falta).
-    scope='restricted' — checkout, pedidos, cotizaciones (email + solicitud).
+    """Return a Django redirect route name, or None if the user may continue.
+    
+    
+    ``browse`` only enforces OAuth role completion and seller/buyer wizards;
+    ``restricted`` also enforces email verification and application gates.
     """
     if not user.is_authenticated or user_is_platform_exempt(user):
         return None
@@ -303,7 +304,7 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
 
 
 def onboarding_context(user) -> dict:
-    """Contexto para pantallas de espera."""
+    """Build template context for pending-approval wait screens."""
     email = user.email or ''
     masked = _mask_email(email)
     app = latest_application_for_email(email)
@@ -315,6 +316,7 @@ def onboarding_context(user) -> dict:
 
 
 def _mask_email(email: str) -> str:
+    """Mask local-part of an email for display on wait screens."""
     if '@' not in email:
         return email
     local, domain = email.split('@', 1)
@@ -326,14 +328,14 @@ def _mask_email(email: str) -> str:
 
 
 def should_inline_verify_at_checkout(path: str, route: str | None) -> bool:
-    """Checkout GET muestra verificación embebida en lugar de /verificar/."""
+    """Return True to embed OTP on checkout GET instead of /verificar/."""
     if route != 'verificar_codigo':
         return False
     return normalize_path(path).startswith('/checkout')
 
 
 def user_needs_otp_verification(user) -> bool:
-    """True si el usuario autenticado debe ingresar OTP antes de operar."""
+    """Return True when an authenticated user still owes email OTP."""
     if not email_verification_required(user):
         return False
     try:
@@ -343,7 +345,7 @@ def user_needs_otp_verification(user) -> bool:
 
 
 def safe_intent_next(request, *, raw: str = '') -> str:
-    """Ruta interna segura para retomar checkout u otra acción tras verificar."""
+    """Return a safe internal next URL after OTP (checkout/cart only)."""
     from django.urls import reverse
 
     next_url = (raw or request.GET.get('next') or request.POST.get('next') or '').strip()

@@ -1,5 +1,7 @@
-"""
-TradeFlow Colón — OAuth helpers (Google / Outlook / LinkedIn via django-allauth).
+"""OAuth adapters and helpers for TradeFlow Colón social login.
+
+Google, Microsoft, and LinkedIn flows via django-allauth create
+UserProfile and UserApplication records matching the custom signup path.
 """
 from __future__ import annotations
 
@@ -20,12 +22,12 @@ OAUTH_PROVIDER_ALIASES = {'linkedin': 'linkedin_oauth2'}
 
 
 def resolve_oauth_provider(provider: str) -> str:
-    """Map public slug (linkedin) to django-allauth provider id."""
+    """Map a public provider slug to the django-allauth provider id."""
     return OAUTH_PROVIDER_ALIASES.get(provider, provider)
 
 
 def provider_is_enabled(provider: str) -> bool:
-    """Provider is enabled."""
+    """Return True when the provider has client_id and secret configured."""
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         return False
     resolved = resolve_oauth_provider(provider)
@@ -35,7 +37,7 @@ def provider_is_enabled(provider: str) -> bool:
 
 
 def social_auth_enabled() -> bool:
-    """Social auth enabled."""
+    """Return True when at least one OAuth provider is configured."""
     return any(provider_is_enabled(p) for p in ALLOWED_OAUTH_PROVIDERS)
 
 
@@ -60,7 +62,11 @@ def generate_username_from_email(email: str) -> str:
 
 
 def setup_profile_and_application(user: User, role: str, phone: str = '') -> None:
-    """Mirror signup_view profile + UserApplication creation (no activation)."""
+    """Create profile and UserApplication mirroring custom signup_view.
+
+    Buyers are auto-approved; sellers stay pending. New buyer profiles
+    leave onboarding incomplete so the wizard still runs.
+    """
     from core.models import UserApplication, UserProfile
 
     profile, created = UserProfile.objects.get_or_create(
@@ -70,7 +76,7 @@ def setup_profile_and_application(user: User, role: str, phone: str = '') -> Non
     profile.role = role
     if phone:
         profile.phone = phone
-    # OAuth alta comprador: wizard pendiente solo en perfil recién creado
+    # New buyer OAuth profiles must still complete the onboarding wizard.
     if role == 'buyer' and created:
         profile.onboarding_completed_at = None
     update_fields = ['role']
@@ -97,7 +103,7 @@ def setup_profile_and_application(user: User, role: str, phone: str = '') -> Non
 
 
 def user_needs_oauth_role(user: User) -> bool:
-    """User needs oauth role."""
+    """Return True when the user lacks a buyer or seller role."""
     from core.models import UserProfile
 
     try:
@@ -108,7 +114,7 @@ def user_needs_oauth_role(user: User) -> bool:
 
 
 def should_auto_activate_user(user: User) -> bool:
-    """Compradores (o sin perfil) no quedan bloqueados por is_active=False legacy."""
+    """Allow buyers (or profile-less users) past legacy is_active=False."""
     if not user or not user.pk:
         return False
     try:
@@ -119,7 +125,7 @@ def should_auto_activate_user(user: User) -> bool:
 
 
 def activate_user_if_eligible(user: User) -> bool:
-    """Activate user if eligible."""
+    """Set is_active=True for eligible buyers; return whether changed."""
     if user.is_active or not should_auto_activate_user(user):
         return False
     user.is_active = True
@@ -129,18 +135,18 @@ def activate_user_if_eligible(user: User) -> bool:
 
 
 class TradeFlowAccountAdapter(DefaultAccountAdapter):
-    """Disable allauth email signup; custom /signup/ handles registration."""
+    """Disable allauth email signup; custom /signup/ owns registration."""
 
     def is_open_for_signup(self, request):
-        """Is open for signup."""
+        """Block allauth-native email signup forms."""
         return False
 
     def get_signup_redirect_url(self, request):
-        """Get signup redirect url."""
+        """Send users to the TradeFlow custom signup page."""
         return reverse('signup')
 
     def get_login_redirect_url(self, request):
-        """Get login redirect url."""
+        """Route OAuth post-login through role-completion when needed."""
         if request.session.get('oauth_needs_role'):
             return reverse('oauth_complete_signup')
         if request.session.get('oauth_signup_done'):
@@ -158,14 +164,14 @@ class TradeFlowAccountAdapter(DefaultAccountAdapter):
         signup=False,
         redirect_url=None,
     ):
-        """Pre login."""
+        """Activate eligible buyers before allauth continues login."""
         activate_user_if_eligible(user)
         if not user.is_active:
             return self.respond_user_inactive(request, user)
         return None
 
     def respond_user_inactive(self, request, user):
-        """Respond user inactive."""
+        """Redirect inactive sellers to pending approval, others to post-signup."""
         from django.shortcuts import redirect
 
         try:
@@ -178,8 +184,10 @@ class TradeFlowAccountAdapter(DefaultAccountAdapter):
 
 
 class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
+    """Customize social login: usernames, roles, and redirect session flags."""
+
     def pre_social_login(self, request, sociallogin):
-        """Cuentas OAuth existentes: reactivar compradores y completar perfil."""
+        """Reactivate buyers and backfill profile on returning OAuth accounts."""
         if not sociallogin.is_existing:
             return
         user = sociallogin.user
@@ -195,7 +203,7 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
             request.session['oauth_needs_role'] = user.pk
 
     def populate_user(self, request, sociallogin, data):
-        """Populate user."""
+        """Fill username and names from provider payload when missing."""
         user = super().populate_user(request, sociallogin, data)
         extra = sociallogin.account.extra_data or {}
         email = user.email or data.get('email') or extra.get('email') or ''
@@ -220,7 +228,7 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
         return user
 
     def save_user(self, request, sociallogin, form=None):
-        """Save user."""
+        """Persist OAuth user with unusable password and role application."""
         user = sociallogin.user
         if not user.username and user.email:
             user.username = generate_username_from_email(user.email)
@@ -244,7 +252,7 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
         return user
 
     def get_signup_redirect_url(self, request, sociallogin):
-        """Get signup redirect url."""
+        """Send new social signups through post-signup or role completion."""
         if request.session.get('oauth_signup_done'):
             return reverse('oauth_post_signup')
         if request.session.get('oauth_needs_role'):
@@ -252,7 +260,7 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
         return super().get_signup_redirect_url(request, sociallogin)
 
     def get_login_redirect_url(self, request):
-        """Get login redirect url."""
+        """Honor OAuth session flags before the default login redirect."""
         if request.session.get('oauth_needs_role'):
             return reverse('oauth_complete_signup')
         if request.session.get('oauth_signup_done'):
@@ -260,5 +268,5 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
         return super().get_login_redirect_url(request)
 
     def is_open_for_signup(self, request, sociallogin):
-        """Is open for signup."""
+        """Allow social signup only when a provider is configured."""
         return social_auth_enabled()

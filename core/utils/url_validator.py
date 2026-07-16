@@ -1,23 +1,7 @@
-"""
-Validacion de URLs outbound para prevenir SSRF (OWASP A10:2021).
+"""Validate outbound URLs to block SSRF (OWASP A10:2021).
 
-Uso:
-    from core.utils.url_validator import validate_outbound_url
-
-    try:
-        validate_outbound_url(user_supplied_url)
-    except ValidationError as exc:
-        # Rechazar la URL
-        ...
-
-Bloquea:
-  - Esquemas no permitidos (solo http/https)
-  - Hostnames a IPs privadas (RFC 1918): 10.x, 172.16-31.x, 192.168.x
-  - Loopback: 127.x.x.x, localhost, ::1
-  - Link-local: 169.254.x (incluye AWS metadata 169.254.169.254)
-  - Multicast, broadcast, reserved
-  - IPv6 equivalentes de los anteriores
-  - Resolucion DNS a las mismas categorias (anti DNS rebinding)
+Seller-configured logistics webhooks must not hit private IPs or cloud
+metadata endpoints.
 """
 from __future__ import annotations
 
@@ -40,6 +24,7 @@ BLOCKED_HOSTNAMES = frozenset({
 
 
 def _is_blocked_ip(ip):
+    """Return True when the IP is private, loopback, or link-local."""
     if ip.is_loopback:
         return 'loopback (127.x / ::1)'
     if ip.is_private:
@@ -58,6 +43,7 @@ def _is_blocked_ip(ip):
 
 
 def _resolve_hostname(hostname):
+    """Resolve hostname to IP addresses for SSRF checks."""
     try:
         infos = socket.getaddrinfo(hostname, None)
     except socket.gaierror as exc:
@@ -71,16 +57,7 @@ def _resolve_hostname(hostname):
 
 
 def validate_outbound_url(url: str, *, allow_http: bool = False) -> None:
-    """
-    Valida que una URL sea segura para hacer un request outbound.
-
-    Args:
-        url: URL a validar.
-        allow_http: si False (default), solo se permite https://.
-
-    Raises:
-        ValidationError si la URL es invalida o apunta a recursos internos.
-    """
+    """Validate that a URL is safe for server-side outbound HTTP requests."""
     if not url or not isinstance(url, str):
         raise ValidationError('URL vacia o no es string.')
 

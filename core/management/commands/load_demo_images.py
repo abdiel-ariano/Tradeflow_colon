@@ -1,12 +1,8 @@
-"""
-Download demo product images and assign to products without images.
+"""Fill missing product images from catalog seeds, picsum, or placeholders.
 
-Usage:
-    python manage.py load_demo_images
-    python manage.py load_demo_images --limit 10
-    python manage.py load_demo_images --storage local
-    python manage.py load_demo_images --storage remote
-    python manage.py load_demo_images --fallback placeholders
+Ops: local and staging catalog polish. Prefer ``catalog-seeds`` (bundled)
+over runtime picsum. Use ``--dry-run`` first; avoid bulk ``--force`` on
+production catalogs with real seller uploads.
 """
 
 from __future__ import annotations
@@ -33,10 +29,12 @@ RATE_LIMIT_SECONDS = 0.5
 
 
 class Command(BaseCommand):
+    """Assign demo images to products that lack ``Product.image``."""
+
     help = 'Download demo product images and assign to products without images'
 
     def add_arguments(self, parser):
-        """Add arguments."""
+        """Register limit, dry-run, force, storage, source, and delay."""
         parser.add_argument(
             '--limit',
             type=int,
@@ -73,7 +71,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Handle."""
+        """Load or generate images for target products and report counts."""
         limit = options['limit']
         dry_run = options['dry_run']
         force = options['force']

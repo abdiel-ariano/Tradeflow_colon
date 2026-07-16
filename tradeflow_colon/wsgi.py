@@ -1,7 +1,7 @@
-"""
-WSGI config para TradeFlow Colón.
-Expone la aplicación WSGI como variable de módulo llamada `application`.
-Documentación: https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
+"""WSGI application entry for TradeFlow Colón.
+
+Used by Gunicorn and similar sync servers; loads tradeflow_colon.settings
+and exposes ``application`` as the WSGI callable.
 """
 import os
 from django.core.wsgi import get_wsgi_application

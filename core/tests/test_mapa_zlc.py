@@ -1,4 +1,8 @@
-"""Mapa CFZ: Leaflet + OpenStreetMap sin API key; acceso público."""
+"""Public CFZ map page with Leaflet markers for verified sellers.
+
+Importers browse Colon Free Zone company locations without an
+API key; navbar must expose the map without duplicate icons.
+"""
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -13,14 +17,16 @@ from core.models import Category, Company, Inventory, Product
     AXES_ENABLED=False,
 )
 class MapaZlcTests(TestCase):
+    """Assert mapa_zlc payload, Leaflet assets, and nav."""
+
     def setUp(self):
-        """Setup."""
+        """Clear cache so map payload is rebuilt fresh."""
         from django.core.cache import cache
 
         cache.clear()
 
     def test_map_page_is_public_and_renders_leaflet(self):
-        """Test map page is public and renders leaflet."""
+        """Serve map page publicly with Leaflet container and script."""
         response = self.client.get(reverse('mapa_zlc'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'tf-cfz-map')
@@ -31,7 +37,7 @@ class MapaZlcTests(TestCase):
         self.assertContains(response, 'tf-cfz-map.js')
 
     def test_map_payload_includes_company_markers(self):
-        """Test map payload includes company markers."""
+        """Include verified companies with coordinates in map markers."""
         company = Company.objects.create(
             name='Map Test Co',
             is_verified=True,
@@ -59,7 +65,7 @@ class MapaZlcTests(TestCase):
         self.assertIn('Map Test Co', names)
 
     def test_navbar_has_map_icon_without_duplicate_quotes(self):
-        """Test navbar has map icon without duplicate quotes."""
+        """Link map from home nav without duplicate utility icons."""
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse('mapa_zlc'))

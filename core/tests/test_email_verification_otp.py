@@ -1,5 +1,7 @@
-"""
-Verificación de email por código OTP de 6 dígitos (modelo EmailVerification).
+"""Email verification OTP (EmailVerification) for buyer signup.
+
+Six-digit codes unlock catalog or onboarding depending on whether the
+buyer already completed preferences after registering.
 """
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
@@ -15,8 +17,10 @@ from core.models import EmailVerification, UserProfile
     AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
 )
 class EmailVerificationOtpTests(TestCase):
+    """Assert OTP validity and post-verify redirect destinations."""
+
     def setUp(self):
-        """Setup."""
+        """Create an unverified buyer profile for OTP flows."""
         self.user = User.objects.create_user(
             username='otp_buyer',
             email='otp@test.pa',
@@ -31,7 +35,7 @@ class EmailVerificationOtpTests(TestCase):
         self.client = Client()
 
     def test_generate_and_validate(self):
-        """Test generate and validate."""
+        """Generated codes are 6 digits; used codes fail is_valid()."""
         ev = EmailVerification.generate_for(self.user)
         self.assertEqual(len(ev.code), 6)
         self.assertTrue(ev.is_valid())
@@ -40,10 +44,10 @@ class EmailVerificationOtpTests(TestCase):
         self.assertFalse(ev.is_valid())
 
     def test_verificar_codigo_post_redirects_catalogo(self):
-        """Test verificar codigo post redirects catalogo."""
+        """Verified buyers with completed onboarding go to /catalogo/."""
         from django.utils import timezone
 
-        # Cuenta con onboarding ya completado (equivalente a usuarios existentes)
+        # Account already completed onboarding (existing-user path).
         self.profile.onboarding_completed_at = timezone.now()
         self.profile.save(update_fields=['onboarding_completed_at'])
         ev = EmailVerification.generate_for(self.user)
@@ -61,7 +65,7 @@ class EmailVerificationOtpTests(TestCase):
         self.assertTrue(self.profile.email_verified)
 
     def test_verificar_codigo_new_buyer_redirects_onboarding(self):
-        """Test verificar codigo new buyer redirects onboarding."""
+        """Newly verified buyers without onboarding go to buyer wizard."""
         ev = EmailVerification.generate_for(self.user)
         self.client.force_login(self.user)
         resp = self.client.post(

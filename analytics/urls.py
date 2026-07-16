@@ -1,12 +1,17 @@
+"""URL routes for seller and staff Analytics IA dashboards.
+
+Seller portal mounts the embedded dashboard at the app root; staff
+admin paths cover multi-source load, DB connect, chat, and export.
+"""
 from django.urls import path
 from . import views
 
 app_name = "analytics"
 
 urlpatterns = [
-    # Analítica embebida en el portal del vendedor (auto-carga su empresa).
+    # Embedded seller portal analytics (auto-loads owner company).
     path("", views.seller_dashboard, name="seller_dashboard"),
-    # Dashboard multi-fuente (standalone / admin); requiere login en integrado.
+    # Multi-source dashboard (standalone / staff); login when integrated.
     path("admin/", views.dashboard, name="dashboard"),
     path("load/", views.load, name="load"),
     path("chat/", views.chat, name="chat"),

@@ -1,5 +1,7 @@
-"""
-Sincroniza permisos Django Admin para usuarios con rol admin en TradeFlow.
+"""Sync Django Admin staff flags for TradeFlow admin-role users.
+
+Ops: safe after promoting a UserProfile to role=admin, or in deploy
+hooks. Idempotent; may run on production when admin access drifts.
 """
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
@@ -8,18 +10,20 @@ from core.utils.admin_permissions import ensure_tradeflow_admin_group, sync_user
 
 
 class Command(BaseCommand):
-    help = 'Asigna is_staff y permisos core a usuarios con perfil role=admin'
+    """Grant is_staff and core.* permissions to role=admin profiles."""
+
+    help = 'Assign is_staff and core permissions to users with profile role=admin'
 
     def add_arguments(self, parser):
-        """Add arguments."""
+        """Register optional single-username filter."""
         parser.add_argument(
             '--username',
             type=str,
-            help='Solo este usuario (username Django)',
+            help='Only this Django username',
         )
 
     def handle(self, *args, **options):
-        """Handle."""
+        """Ensure admin group exists and sync matching admin users."""
         ensure_tradeflow_admin_group()
         qs = User.objects.select_related('profile')
         username = options.get('username')

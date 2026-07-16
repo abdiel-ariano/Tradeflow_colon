@@ -1,10 +1,11 @@
-r"""
-Anade `nonce="{{ csp_nonce }}"` a todos los <script> y <style> inline en
-las plantillas Django, de forma idempotente.
+"""Add CSP nonce attributes to inline script and style tags in templates.
 
-Uso:
-  python scripts/add_csp_nonce.py                # actualiza in-place
-  python scripts/add_csp_nonce.py --dry-run     # solo reporta
+Idempotent: skips tags that already have nonce= or external script src.
+Keeps Content-Security-Policy nonce mode workable without unsafe-inline.
+
+Usage:
+  python scripts/add_csp_nonce.py
+  python scripts/add_csp_nonce.py --dry-run
 """
 from __future__ import annotations
 
@@ -27,13 +28,19 @@ STYLE_RE = re.compile(
 
 
 def process_file(path: Path, dry_run: bool) -> int:
+    """Inject nonce attrs into inline script/style tags in one template.
+
+    Returns the number of tags updated (0 if already compliant).
+    """
     text = path.read_text(encoding='utf-8')
 
     def script_replacer(m):
+        """Rewrite a matched inline <script> opening tag with nonce."""
         attrs = m.group('attrs').rstrip()
         return f'<script {attrs} {NONCE_ATTR}>' if attrs else f'<script {NONCE_ATTR}>'
 
     def style_replacer(m):
+        """Rewrite a matched <style> opening tag with nonce."""
         attrs = m.group('attrs').rstrip()
         return f'<style {attrs} {NONCE_ATTR}>' if attrs else f'<style {NONCE_ATTR}>'
 
@@ -47,6 +54,7 @@ def process_file(path: Path, dry_run: bool) -> int:
 
 
 def main():
+    """Walk templates/, apply nonce injection, and print a change summary."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()

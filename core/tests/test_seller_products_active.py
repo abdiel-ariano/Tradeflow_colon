@@ -1,4 +1,8 @@
-"""Catálogo seller: solo activos por defecto y toggle actualiza KPIs."""
+"""Seller product list defaults to active SKUs and KPI toggles.
+
+Operators manage CFZ catalog visibility; AJAX toggles return
+updated active counts for dashboard KPIs.
+"""
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -7,8 +11,10 @@ from core.models import Category, Company, Product, UserProfile
 
 
 class SellerProductsActiveFilterTests(TestCase):
+    """Assert mis_productos filters and toggle JSON."""
+
     def setUp(self):
-        """Setup."""
+        """Create seller with two active and one inactive product."""
         self.client = Client()
         self.seller = User.objects.create_user(
             username='seller_prod',
@@ -50,7 +56,7 @@ class SellerProductsActiveFilterTests(TestCase):
         self.client.force_login(self.seller)
 
     def test_default_list_shows_only_active_products(self):
-        """Test default list shows only active products."""
+        """Hide inactive products on the default product list."""
         resp = self.client.get(reverse('seller_mis_productos'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Active One')
@@ -58,12 +64,12 @@ class SellerProductsActiveFilterTests(TestCase):
         self.assertNotContains(resp, 'Inactive One')
 
     def test_todos_filter_shows_inactive(self):
-        """Test todos filter shows inactive."""
+        """Include inactive products when estado=todos."""
         resp = self.client.get(reverse('seller_mis_productos'), {'estado': 'todos'})
         self.assertContains(resp, 'Inactive One')
 
     def test_toggle_returns_updated_active_count(self):
-        """Test toggle returns updated active count."""
+        """Return kpi_activos=3 after activating an inactive SKU."""
         inactive = Product.objects.get(name='Inactive One')
         url = reverse('seller_toggle_producto', kwargs={'pk': inactive.pk})
         resp = self.client.post(

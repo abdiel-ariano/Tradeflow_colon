@@ -1,14 +1,17 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/forms.py  (v2 — ERD Completo)
-=============================================================================
+"""Django forms for CFZ catalog, seller portal, orders, and carriers.
+
+ModelForms bind Company/Product/Inventory/Order fields for admin-style and
+Mi Tienda editing. Carrier applications feed the Transportista review queue.
 """
 from django import forms
 from .models import Company, Category, Product, Inventory, Address, Order, OrderItem
 
 
 class CompanyForm(forms.ModelForm):
+    """Create or edit a CFZ seller company record."""
+
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model  = Company
         fields = ['name', 'ruc', 'address_text', 'is_verified']
         widgets = {
@@ -20,7 +23,10 @@ class CompanyForm(forms.ModelForm):
 
 
 class ProductForm(forms.ModelForm):
+    """Admin-style product form including company assignment."""
+
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model  = Product
         fields = ['company', 'category', 'name', 'description', 'sku', 'unit_price', 'currency', 'image', 'is_active']
         widgets = {
@@ -36,12 +42,13 @@ class ProductForm(forms.ModelForm):
 
 
 class SellerProductForm(forms.ModelForm):
-    """
-    Formulario de producto para el portal vendedor (sin selector de empresa).
-    La empresa se asigna en la vista según la compañía del usuario.
+    """Seller-portal product form without a company selector.
+
+    Views assign ``company`` from the logged-in seller's owned Company.
     """
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model = Product
         fields = ['category', 'name', 'description', 'sku', 'unit_price', 'currency', 'image', 'is_active']
         widgets = {
@@ -57,11 +64,10 @@ class SellerProductForm(forms.ModelForm):
 
 
 class SellerInventoryForm(forms.ModelForm):
-    """
-    Campos de inventario editables por el vendedor (stock y umbral de alerta).
-    """
+    """Seller-editable stock total and low-stock alert threshold."""
 
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model = Inventory
         fields = ['stock_qty', 'low_stock_alert']
         labels = {
@@ -75,7 +81,10 @@ class SellerInventoryForm(forms.ModelForm):
 
 
 class InventoryForm(forms.ModelForm):
+    """Full inventory form including reserved quantity (ops/admin)."""
+
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model  = Inventory
         fields = ['stock_qty', 'reserved_qty', 'low_stock_alert']
         widgets = {
@@ -86,7 +95,10 @@ class InventoryForm(forms.ModelForm):
 
 
 class OrderForm(forms.ModelForm):
+    """Checkout/order header fields for type, ship-to, and freight."""
+
     class Meta:
+        """Django model options for admin, ordering, and constraints."""
         model  = Order
         fields = ['order_type', 'ship_address', 'shipping_cost', 'notes']
         widgets = {
@@ -98,6 +110,8 @@ class OrderForm(forms.ModelForm):
 
 
 class FiltroOrdenForm(forms.Form):
+    """Filter seller/admin order lists by text, status, and date range."""
+
     buscar = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={'class': 'filter-input', 'placeholder': 'Search by number or buyer...'})
@@ -118,7 +132,7 @@ class FiltroOrdenForm(forms.Form):
 
 
 class AplicacionTransportistaForm(forms.Form):
-    """Registro de nuevo transportista (revisión admin)."""
+    """Public carrier signup awaiting admin Transportista approval."""
 
     nombre_completo = forms.CharField(
         max_length=200,

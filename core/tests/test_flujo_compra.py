@@ -1,8 +1,7 @@
-"""
-=============================================================================
-ACCIÓN: CREAR — core/tests/test_flujo_compra.py
-=============================================================================
-Pruebas del flujo crítico del comprador (tienda, carrito, checkout, permisos).
+"""Critical buyer purchase flow: catalog, cart, checkout, and role gates.
+
+Covers CFZ wholesale order creation, inventory reservation, order
+privacy, and post-login routing for buyers vs sellers.
 """
 from decimal import Decimal
 
@@ -39,10 +38,10 @@ from core.models import (
     STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage',
 )
 class TestFlujoBuyer(TestCase):
-    """Tests del flujo completo del comprador."""
+    """End-to-end buyer marketplace path and role-based redirects."""
 
     def setUp(self):
-        """Crea usuario buyer, empresa, categoría, producto e inventario de prueba."""
+        """Seed buyer, other buyer, seller, admin, product, and carrier."""
         self.company = Company.objects.create(
             name='Empresa Demo ZLC',
             ruc='123456',
@@ -90,7 +89,7 @@ class TestFlujoBuyer(TestCase):
             password='TestPass123!',
         )
         UserProfile.objects.create(user=self.seller_user, role='seller', email_verificado=True)
-        # Seller sin empresa → wizard. Seller con empresa+trial → portal (tests abajo).
+        # Seller without company → wizard; with company+trial → portal (below).
 
         self.admin_user = User.objects.create_user(
             username='admin_test',
@@ -101,13 +100,13 @@ class TestFlujoBuyer(TestCase):
         UserProfile.objects.create(user=self.admin_user, role='admin', email_verificado=True)
 
     def test_buyer_puede_ver_catalogo(self):
-        """El buyer autenticado accede a /catalogo/ con 200."""
+        """Authenticated buyer reaches /catalogo/ with HTTP 200."""
         self.client.login(username='buyer_test', password='TestPass123!')
         r = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(r.status_code, 200)
 
     def test_agregar_producto_al_carrito(self):
-        """POST a agregar_al_carrito actualiza la sesión."""
+        """POST add-to-cart updates the session carrito quantity."""
         self.client.login(username='buyer_test', password='TestPass123!')
         url = f'/carrito/agregar/{self.product.pk}/'
         r = self.client.post(url, {'cantidad': 2})
@@ -118,7 +117,7 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(carrito[str(self.product.pk)]['cantidad'], 2)
 
     def test_checkout_crea_orden(self):
-        """POST a checkout crea Order, OrderItems y Payment."""
+        """Checkout POST creates Order, OrderItems, and Payment rows."""
         self.client.login(username='buyer_test', password='TestPass123!')
         session = self.client.session
         session['carrito'] = {
@@ -147,7 +146,7 @@ class TestFlujoBuyer(TestCase):
         self.assertTrue(Payment.objects.filter(order=orden).exists())
 
     def test_checkout_reserva_inventario(self):
-        """El stock reservado aumenta después del checkout."""
+        """Checkout increases reserved_qty to match ordered units."""
         self.client.login(username='buyer_test', password='TestPass123!')
         session = self.client.session
         session['carrito'] = {
@@ -173,7 +172,7 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(inv.reserved_qty, 3)
 
     def test_buyer_ve_solo_sus_ordenes(self):
-        """Un buyer no puede ver el detalle de órdenes de otro buyer."""
+        """Buyers cannot open another buyer's order detail (404)."""
         orden_otra = Order.objects.create(
             buyer=self.other,
             shipping_cost=Decimal('0'),
@@ -184,7 +183,7 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 404)
 
     def test_admin_detalle_orden_lista_todas_las_lineas(self):
-        """El detalle admin muestra todas las líneas OrderItem (órdenes grandes / seed)."""
+        """Admin order detail lists every OrderItem line for large orders."""
         orden = Order.objects.create(
             buyer=self.buyer,
             shipping_cost=Decimal('0'),
@@ -206,7 +205,7 @@ class TestFlujoBuyer(TestCase):
         self.assertContains(r, self.product.name, count=n)
 
     def test_login_redirige_buyer_a_catalogo(self):
-        """Tras login sin ?next=, el buyer va al catálogo."""
+        """Buyer login without ?next= redirects to the public catalog."""
         r = self.client.post(
             '/login/',
             {'username': 'buyer_test', 'password': 'TestPass123!'},
@@ -215,7 +214,7 @@ class TestFlujoBuyer(TestCase):
         self.assertIn('/catalogo/', r.url)
 
     def test_login_redirige_seller_sin_empresa_a_wizard(self):
-        """Tras login, seller sin Company.owner va al wizard de empresa (no al portal)."""
+        """Seller without a Company.owner link goes to seller onboarding."""
         r = self.client.post(
             '/login/',
             {'username': 'seller_test', 'password': 'TestPass123!'},
@@ -224,7 +223,7 @@ class TestFlujoBuyer(TestCase):
         self.assertIn('/onboarding/vendedor/', r.url)
 
     def test_login_redirige_seller_con_empresa_a_portal(self):
-        """Tras login, seller con empresa y trial activo va a /mi-tienda/."""
+        """Seller with company and active trial lands on /mi-tienda/."""
         from core.utils.seller_lifecycle import start_seller_trial
 
         company = Company.objects.create(
@@ -241,14 +240,14 @@ class TestFlujoBuyer(TestCase):
         self.assertIn('/mi-tienda/', r.url)
 
     def test_home_redirige_seller_sin_empresa_a_wizard(self):
-        """Un seller sin empresa en / no ve la landing; va al wizard."""
+        """Seller without a company hitting / is sent to the wizard."""
         self.client.login(username='seller_test', password='TestPass123!')
         r = self.client.get('/')
         self.assertEqual(r.status_code, 302)
         self.assertIn('/onboarding/vendedor/', r.url)
 
     def test_checkout_spanish_ui(self):
-        """Checkout page renders Spanish copy after language switch."""
+        """Checkout renders Spanish confirm/delivery copy after setlang."""
         from django.urls import reverse
 
         self.client.login(username='buyer_test', password='TestPass123!')
@@ -276,7 +275,7 @@ class TestFlujoBuyer(TestCase):
         self.assertNotContains(response, 'Confirm order')
 
     def test_acceso_sin_login_redirige(self):
-        """Invitados exploran /catalogo/ y pueden usar el carrito de sesión."""
+        """Guests browse catalog and cart; checkout still requires login."""
         r = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.context['show_cart_actions'])

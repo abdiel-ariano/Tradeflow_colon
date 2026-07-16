@@ -1,17 +1,21 @@
-"""Comprueba si hay canal de envío real (Resend o consola en DEBUG)."""
+"""Detect whether a real outbound email channel is configured.
+
+Resend is preferred in production; DEBUG may fall back to the console
+backend for local CFZ onboarding tests.
+"""
 from __future__ import annotations
 
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-# Cuenta Gmail del proyecto (contacto público). Sustituye infotradeflow@gmail.com.
+# Project Gmail (public contact). Replaces infotradeflow@gmail.com.
 TRADEFLOW_GMAIL_ACCOUNT = 'tradeflowcolon@gmail.com'
 LEGACY_GMAIL_ACCOUNT = 'infotradeflow@gmail.com'
 LEGACY_CONTACT_EMAIL = 'info@tradeflow.pa'
 
 
 def explain_email_failure(detail: str) -> str:
-    """Mensaje legible para admin según el error del proveedor."""
+    """Return an admin-readable message for a provider error."""
     d = (detail or '').lower()
     if 'resend_not_configured' in d:
         return _(
@@ -35,7 +39,7 @@ def explain_email_failure(detail: str) -> str:
 
 
 def normalize_project_gmail(email: str) -> str:
-    """Mapea el Gmail antiguo al oficial del proyecto."""
+    """Map legacy Gmail addresses to the official project inbox."""
     cleaned = (email or '').strip()
     if cleaned.lower() == LEGACY_GMAIL_ACCOUNT:
         return TRADEFLOW_GMAIL_ACCOUNT
@@ -43,7 +47,7 @@ def normalize_project_gmail(email: str) -> str:
 
 
 def normalize_contact_email(email: str) -> str:
-    """Correo público de contacto (footer, legales, soporte)."""
+    """Normalize the public contact address for footer/legal."""
     cleaned = normalize_project_gmail(email)
     if cleaned.lower() == LEGACY_CONTACT_EMAIL:
         return TRADEFLOW_GMAIL_ACCOUNT
@@ -51,7 +55,7 @@ def normalize_contact_email(email: str) -> str:
 
 
 def smtp_configured() -> bool:
-    """True si Resend está listo o DEBUG permite consola."""
+    """Return True when Resend is ready or DEBUG allows console delivery."""
     if (getattr(settings, 'RESEND_API_KEY', '') or '').strip():
         return True
     if settings.DEBUG:

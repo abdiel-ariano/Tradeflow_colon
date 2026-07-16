@@ -1,13 +1,8 @@
-"""
-TradeFlow Colón — wizard de onboarding comprador (3 pasos post-registro).
+"""Buyer preference wizard after signup and email OTP.
 
-Flujo inspirado en marketplaces B2B:
-  1. Intención de compra (negocio vs personal)
-  2. Selección de categorías de interés
-  3. Deep Search — sugerencias iniciales de búsqueda / catálogo
-
-Solo aplica a compradores nuevos (``onboarding_completed_at`` null).
-Las cuentas existentes se marcan completas en la migración 0029.
+Three optional steps personalize the guest catalog: purchase intent,
+preferred CFZ categories, and deep-search suggestions. Only buyers with
+``onboarding_completed_at`` null enter the flow; skip is allowed.
 """
 from __future__ import annotations
 
@@ -22,12 +17,13 @@ from django.views.decorators.http import require_GET, require_POST
 from core.models import Category, UserProfile
 from core.utils.access_gating import buyer_onboarding_pending
 
-# Claves de sesión — progreso del wizard entre pasos
+# Session keys — wizard progress between steps
 SESSION_ONBOARDING_INTENT = 'buyer_onboarding_intent'
 SESSION_ONBOARDING_CATEGORIES = 'buyer_onboarding_category_ids'
 
 
 def _get_buyer_profile(user) -> UserProfile | None:
+    """Return the buyer profile, or None for non-buyers."""
     try:
         profile = user.profile
     except UserProfile.DoesNotExist:
@@ -38,6 +34,7 @@ def _get_buyer_profile(user) -> UserProfile | None:
 
 
 def _wizard_base_context(step: int, total: int = 3) -> dict:
+    """Progress metadata shared by all buyer onboarding templates."""
     return {
         'onboarding_step': step,
         'onboarding_total': total,
@@ -46,7 +43,7 @@ def _wizard_base_context(step: int, total: int = 3) -> dict:
 
 
 def _category_icon_name(category_name: str) -> str:
-    """Icono Material Symbols según palabras clave del nombre de categoría."""
+    """Map category labels to Material Symbols icon names."""
     name = (category_name or '').lower()
     rules = (
         (('electr', 'tech', 'office', 'computer'), 'devices'),
@@ -65,7 +62,7 @@ def _category_icon_name(category_name: str) -> str:
 
 
 def _complete_onboarding(profile: UserProfile) -> None:
-    """Marca el wizard como terminado (completado u omitido)."""
+    """Mark buyer onboarding finished (completed or skipped)."""
     profile.onboarding_completed_at = timezone.now()
     profile.save(update_fields=['onboarding_completed_at'])
 
@@ -73,7 +70,7 @@ def _complete_onboarding(profile: UserProfile) -> None:
 @login_required
 @require_GET
 def buyer_onboarding_step1(request: HttpRequest) -> HttpResponse:
-    """Paso 1/3 — ¿Compra para negocio o personal?"""
+    """Step 1/3 — business vs personal purchase intent."""
     profile = _get_buyer_profile(request.user)
     if not profile:
         return redirect('catalogo_publico')
@@ -90,7 +87,7 @@ def buyer_onboarding_step1(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def buyer_onboarding_step1_post(request: HttpRequest) -> HttpResponse:
-    """Buyer onboarding step1 post."""
+    """Persist purchase intent and advance to category selection."""
     profile = _get_buyer_profile(request.user)
     if not profile or not buyer_onboarding_pending(request.user):
         return redirect('catalogo_publico')
@@ -110,7 +107,7 @@ def buyer_onboarding_step1_post(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_GET
 def buyer_onboarding_step2(request: HttpRequest) -> HttpResponse:
-    """Paso 2/3 — grid de categorías (multi-select)."""
+    """Step 2/3 — multi-select CFZ category preferences."""
     profile = _get_buyer_profile(request.user)
     if not profile:
         return redirect('catalogo_publico')
@@ -141,7 +138,7 @@ def buyer_onboarding_step2(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def buyer_onboarding_step2_post(request: HttpRequest) -> HttpResponse:
-    """Buyer onboarding step2 post."""
+    """Save preferred categories and advance to deep-search suggestions."""
     profile = _get_buyer_profile(request.user)
     if not profile or not buyer_onboarding_pending(request.user):
         return redirect('catalogo_publico')
@@ -172,7 +169,7 @@ def buyer_onboarding_step2_post(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_GET
 def buyer_onboarding_step3(request: HttpRequest) -> HttpResponse:
-    """Paso 3/3 — Deep Search: sugerencias según categorías elegidas."""
+    """Step 3/3 — deep-search catalog suggestions from preferences."""
     profile = _get_buyer_profile(request.user)
     if not profile:
         return redirect('catalogo_publico')
@@ -198,7 +195,7 @@ def buyer_onboarding_step3(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def buyer_onboarding_finish(request: HttpRequest) -> HttpResponse:
-    """Finaliza wizard — redirige al catálogo personalizado."""
+    """Complete the wizard and open the personalized public catalog."""
     profile = _get_buyer_profile(request.user)
     if not profile:
         return redirect('catalogo_publico')
@@ -221,7 +218,7 @@ def buyer_onboarding_finish(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def buyer_onboarding_skip(request: HttpRequest) -> HttpResponse:
-    """Omitir wizard — Alibaba-style skip link."""
+    """Skip the wizard and enter the guest catalog unpersonalized."""
     profile = _get_buyer_profile(request.user)
     if not profile:
         return redirect('catalogo_publico')

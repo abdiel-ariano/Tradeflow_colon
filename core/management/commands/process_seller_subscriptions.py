@@ -1,27 +1,11 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — process_seller_subscriptions
-=============================================================================
-Job diario de ciclo de vida SaaS seller (sin Stripe).
+"""Advance seller SaaS subscription lifecycle without Stripe.
 
-EJECUCIÓN (Railway Cron / cron del SO)
---------------------------------------
-    python manage.py process_seller_subscriptions
+Daily job for trial end, paid-period renewal into grace, medium churn,
+and grace reminder emails on the CFZ seller billing flow.
 
-Railway → New → Cron Job (servicio separado o cron schedule):
-    Schedule: 0 6 * * *   (06:00 UTC diario)
-    Start command: python manage.py process_seller_subscriptions
-
-LÓGICA IDEMPOTENTE
-------------------
-1. ``trialing`` con ``current_period_end < now`` → ``finalize_trial_period()``
-2. ``active`` con ``current_period_end < now`` → ``mark_paid_period_elapsed()``
-   (renovación: pasa a past_due + gracia; seller paga transferencia de nuevo)
-3. ``past_due`` con ``grace_ends_at < now`` → ``apply_medium_churn()``
-4. Emails de recordatorio de gracia (días restantes 4 y 1)
-
-Seguro re-ejecutar: cada paso verifica estado antes de mutar.
-=============================================================================
+Ops: schedule on Railway/OS cron (e.g. 06:00 UTC). Safe to re-run;
+each step checks status before mutating. Suitable for staging and
+production when seller subscriptions are live.
 """
 from __future__ import annotations
 
@@ -42,12 +26,22 @@ log = logging.getLogger('tradeflow.seller_lifecycle')
 
 
 class Command(BaseCommand):
+    """Process expired trials, renewals, grace windows, and reminders.
+
+    Idempotent steps:
+    1. ``trialing`` past ``current_period_end`` → finalize trial.
+    2. ``active`` past period end → past_due with grace.
+    3. ``past_due`` past ``grace_ends_at`` → medium churn.
+    4. Grace reminders when 4 or 1 days remain.
+    """
+
     help = (
-        'Procesa vencimientos de trial, renovación activa y gracia '
-        '(flujo propio sin Stripe).'
+        'Process trial expirations, active renewals, and grace churn '
+        '(in-house flow without Stripe).'
     )
 
     def handle(self, *args, **options):
+        """Run one full subscription lifecycle pass and print counts."""
         now = timezone.now()
         finalized = 0
         renewals = 0
@@ -107,6 +101,7 @@ class Command(BaseCommand):
         ))
 
     def _maybe_send_trial_ended_email(self, company) -> None:
+        """Send trial-ended mail; log and continue on failure."""
         try:
             from core.utils.email_sender import enviar_trial_finalizado
             enviar_trial_finalizado(company)
@@ -114,6 +109,7 @@ class Command(BaseCommand):
             log.warning('trial_ended_email_failed company_id=%s: %s', company.pk, exc)
 
     def _maybe_send_grace_reminder(self, company, days_left: int) -> bool:
+        """Send grace reminder; return False if delivery fails."""
         try:
             from core.utils.email_sender import enviar_grace_recordatorio
             return enviar_grace_recordatorio(company, days_left)

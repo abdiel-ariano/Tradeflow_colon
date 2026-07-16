@@ -1,6 +1,7 @@
-"""
-Métricas agregadas del panel admin SaaS (planes, empresas, solicitudes, ingresos).
-Fuente de verdad: Supabase/PostgreSQL vía ORM.
+"""Aggregate SaaS admin KPIs: plans, MRR proxy, GMV, and requests.
+
+Feeds the operator dashboard from PostgreSQL/Supabase ORM — source of
+truth for CFZ seller subscription health.
 """
 from __future__ import annotations
 
@@ -22,7 +23,7 @@ from core.models import Company, OrderItem
 from core.utils.platform_predictive import MONTHS_ES, build_platform_predictive_payload
 from core.utils.saas_billing import BILLABLE_ORDER_STATUSES, ensure_default_plans
 
-# MRR referencial por plan (hasta integración Stripe)
+# Referential MRR per plan (until Stripe integration)
 PLAN_MRR_USD = {
     'digitalizate': Decimal('40'),
     'expansion': Decimal('200'),
@@ -46,6 +47,7 @@ PLAN_CHART_COLORS = {
 
 
 def _current_period_volume_by_company() -> dict[int, Decimal]:
+    """Map company_id → billable USD volume for the current calendar month."""
     now = timezone.now()
     usage = CompanyBillingUsage.objects.filter(
         period_year=now.year,
@@ -55,7 +57,7 @@ def _current_period_volume_by_company() -> dict[int, Decimal]:
 
 
 def build_saas_admin_payload() -> dict:
-    """Build saas admin payload."""
+    """Build admin SaaS dashboard KPIs, plan occupancy, and request queues."""
     ensure_default_plans()
     now = timezone.now()
     start_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -136,7 +138,7 @@ def build_saas_admin_payload() -> dict:
 
     pending_count = len(requests_out)
 
-    # Ingreso mensual plataforma (MRR + volumen comercial del mes como referencia GMV)
+    # Platform monthly income (MRR + month commercial volume as GMV reference)
     gmv_month = (
         OrderItem.objects.filter(
             order__created_at__gte=start_month,
@@ -164,7 +166,7 @@ def build_saas_admin_payload() -> dict:
 
     predictive = build_platform_predictive_payload()
 
-    # Tendencia 9 meses para tab ingresos
+    # 9-month trend for the revenue tab
     from core.utils.platform_predictive import _platform_monthly_revenue
 
     sales_trend = _platform_monthly_revenue(9)

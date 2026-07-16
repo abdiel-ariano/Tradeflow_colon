@@ -1,5 +1,7 @@
-"""
-Context processors: cart badge, JS strings, and public Supabase config.
+"""Template context processors for TradeFlow Colón UI shells.
+
+Inject cart badges, CSP nonces, public Supabase keys, SaaS snapshots,
+and localized JS string maps into every rendered template.
 """
 from __future__ import annotations
 
@@ -7,17 +9,17 @@ from django.conf import settings
 
 
 def csp_nonce_context(request):
-    """Expone `csp_nonce` (string) en todas las plantillas.
+    """Expose the per-request CSP nonce for inline script/style tags.
 
-    `SecurityHeadersMiddleware` lo asigna a `request.csp_nonce` antes del
-    view. Las plantillas DEBEN renderizarlo en cada `<script>` y `<style>`
-    inline para que la CSP `'nonce-...'` los autorize.
+    SecurityHeadersMiddleware sets ``request.csp_nonce`` before the view.
+    Templates must render it on every inline ``<script>`` and ``<style>``
+    so the CSP ``'nonce-...'`` directive authorizes them.
     """
     return {'csp_nonce': getattr(request, 'csp_nonce', '')}
 
 
 def pending_applications_badge(request):
-    """Pending access applications count for admin navbar."""
+    """Count pending UserApplication rows for admin navbar badges."""
     if not request.user.is_authenticated:
         return {'pending_applications_count': 0}
     if not (request.user.is_superuser or getattr(request.user, 'is_staff', False)):
@@ -33,7 +35,7 @@ def pending_applications_badge(request):
 
 
 def cart_badge(request):
-    """Cart / inquiry count for navbar badge (session carrito)."""
+    """Session inquiry-cart line count for the buyer navbar badge."""
     carrito = request.session.get('carrito', {})
     count = sum(int(item.get('cantidad', 0) or 0) for item in carrito.values())
     if not request.user.is_authenticated:
@@ -48,7 +50,7 @@ def cart_badge(request):
 
 
 def tradeflow_contact(request):
-    """Public contact email (footer, legal pages, support links)."""
+    """Public support email for footer, legal pages, and contact links."""
     from core.utils.contact import tradeflow_contact_email
 
     email = tradeflow_contact_email()
@@ -56,7 +58,7 @@ def tradeflow_contact(request):
 
 
 def tf_i18n(request):
-    """UI strings for client scripts (TF_I18N), localized per active language."""
+    """Localized UI string map for client scripts (``TF_I18N`` payload)."""
     from django.utils import translation
     from django.utils.translation import gettext as _
 
@@ -138,7 +140,7 @@ def tf_i18n(request):
 
 
 def enterprise_saas(request):
-    """SaaS plan, monthly usage, and ad credits for seller portal."""
+    """Seller SaaS plan, monthly usage, and ad credits for the portal."""
     import logging
 
     log = logging.getLogger('tradeflow.saas')
@@ -173,7 +175,7 @@ def enterprise_saas(request):
 
 
 def supabase_public(request):
-    """Public Supabase keys for Realtime on the frontend."""
+    """Anon Supabase URL/key for browser Realtime subscriptions."""
     url = getattr(settings, 'SUPABASE_URL', '') or ''
     anon = getattr(settings, 'SUPABASE_ANON_KEY', '') or ''
     return {
@@ -184,23 +186,22 @@ def supabase_public(request):
 
 
 def tf_asset_version(request):
-    """Version string for static asset cache busting (?v=)."""
+    """Asset version string for static cache busting (``?v=``)."""
     return {'tf_asset_version': getattr(settings, 'TRADEFLOW_ASSET_VERSION', '1')}
 
 
 def nav_header_categories(request):
-    """Top categorías con productos activos — dropdown del header público."""
+    """Cached top categories with active products for the public header."""
     from core.utils.tradeflow_cache import cached_nav_categories
 
     return {'nav_header_categories': cached_nav_categories()}
 
 
 def buyer_mega_menu_context(request):
-    """
-    Datos del mega menú «Todas las categorías» en el navbar comprador.
+    """Buyer navbar mega-menu panels for authenticated buyers only.
 
-    Solo se inyecta para usuarios autenticados con rol buyer (o sin perfil
-    en transición) para no cargar consultas extra en admin/seller.
+    Skips the merchandising query for sellers and admins so portal pages
+    do not pay for catalog navigation data they never render.
     """
     if not request.user.is_authenticated:
         return {}
@@ -216,7 +217,7 @@ def buyer_mega_menu_context(request):
 
 
 def social_auth_context(request):
-    """OAuth providers enabled for login/signup templates."""
+    """Enabled OAuth provider slugs for login and signup templates."""
     from core.social_auth import provider_is_enabled, social_auth_enabled
 
     providers = []

@@ -1,4 +1,8 @@
-"""Tests de acceso a insights predictivos Enterprise."""
+"""Enterprise predictive insights portal access gates.
+
+Only Ecosistema Enterprise subscribers see forecasts; lower
+plans get an upgrade surface instead of empty analytics.
+"""
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -17,8 +21,10 @@ from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscripti
     STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage',
 )
 class TestPredictiveInsightsAccess(TestCase):
+    """Assert upgrade vs insights panel by SaaS plan."""
+
     def setUp(self):
-        """Setup."""
+        """Create verified seller company on a demo subscription."""
         ensure_default_plans()
         self.client = Client()
         self.user = User.objects.create_user('ent_seller', 'ent@test.pa', 'pass')
@@ -32,14 +38,14 @@ class TestPredictiveInsightsAccess(TestCase):
         self.client.login(username='ent_seller', password='pass')
 
     def test_non_enterprise_sees_upgrade_page(self):
-        """Test non enterprise sees upgrade page."""
+        """Show Enterprise upgrade messaging on non-enterprise plans."""
         ensure_demo_subscription(self.company)
         resp = self.client.get(reverse('seller_predictive_insights'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Enterprise ecosystem')
 
     def test_enterprise_sees_insights_panel(self):
-        """Test enterprise sees insights panel."""
+        """Render 30-day forecast panel for enterprise subscribers."""
         sub = ensure_demo_subscription(self.company)
         sub.plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
         sub.save(update_fields=['plan'])

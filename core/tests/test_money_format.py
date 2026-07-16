@@ -1,5 +1,7 @@
-"""
-Tests de formateo monetario y payload del dashboard API.
+"""USD money formatting and dashboard chart numeric precision.
+
+Seller analytics and admin KPIs must show two-decimal USD without
+double prefixes or float noise from Decimal conversions.
 """
 from decimal import Decimal
 
@@ -11,23 +13,25 @@ from core.utils.money_format import format_money_usd, money_to_chart_float, quan
 
 
 class MoneyFormatTests(TestCase):
+    """Assert format_money_usd and quantize helpers."""
+
     def test_format_usd_positive(self):
-        """Test format usd positive."""
+        """Format positive amounts with USD prefix and thousands."""
         self.assertEqual(format_money_usd(Decimal('658238.34')), 'USD 658,238.34')
 
     def test_format_usd_no_double_prefix(self):
-        """Test format usd no double prefix."""
+        """Avoid repeating the USD label in formatted output."""
         s = format_money_usd(Decimal('10'))
         self.assertEqual(s.count('USD'), 1)
         self.assertFalse(s.startswith('USD USD'))
 
     def test_quantize_two_decimals(self):
-        """Test quantize two decimals."""
+        """Round monetary values to exactly two decimal places."""
         self.assertEqual(quantize_money(Decimal('1.999')), Decimal('2.00'))
         self.assertEqual(quantize_money('658238.3400000000'), Decimal('658238.34'))
 
     def test_chart_float_max_two_decimals(self):
-        """Test chart float max two decimals."""
+        """Convert Decimal to chart float with at most two decimals."""
         f = money_to_chart_float(Decimal('10.999'))
         self.assertEqual(f, 11.0)
 
@@ -41,8 +45,10 @@ class MoneyFormatTests(TestCase):
     AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
 )
 class DashboardStatsApiMoneyTests(TestCase):
+    """Assert admin dashboard API income series stay two decimals."""
+
     def setUp(self):
-        """Setup."""
+        """Log in a TradeFlow admin for dashboard-stats API calls."""
         self.admin = User.objects.create_user(
             username='admin_money',
             email='admin@money.pa',
@@ -53,7 +59,7 @@ class DashboardStatsApiMoneyTests(TestCase):
         self.client.force_login(self.admin)
 
     def test_api_dashboard_ingresos_two_decimal_places(self):
-        """Test api dashboard ingresos two decimal places."""
+        """Keep ingresos_por_dia values within two fractional digits."""
         resp = self.client.get('/api/dashboard-stats/?dias=7')
         self.assertEqual(resp.status_code, 200)
         data = resp.json()

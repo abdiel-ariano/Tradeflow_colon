@@ -1,4 +1,8 @@
-"""Envía un correo de verificación de prueba (mismo flujo que registro)."""
+"""Send a registration-style verification email for one DB user.
+
+Ops: local/staging mail pipeline tests only. Target a controlled inbox;
+do not blast production buyers.
+"""
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 from django.test import RequestFactory
@@ -8,15 +12,17 @@ from core.utils.email_sender import enviar_verificacion_email
 
 
 class Command(BaseCommand):
-    help = 'Envía email de verificación a un usuario (Resend)'
+    """Deliver one verification email via the same path as signup."""
+
+    help = 'Send verification email to a user (Resend)'
 
     def add_arguments(self, parser):
-        """Add arguments."""
-        parser.add_argument('--email', type=str, help='Email del usuario en BD')
-        parser.add_argument('--username', type=str, help='Username en BD')
+        """Register email or username lookup for the recipient user."""
+        parser.add_argument('--email', type=str, help='User email in DB')
+        parser.add_argument('--username', type=str, help='Django username in DB')
 
     def handle(self, *args, **options):
-        """Handle."""
+        """Locate the user, build a fake request, and send verification."""
         email = (options.get('email') or '').strip()
         username = (options.get('username') or '').strip()
         if not email and not username:

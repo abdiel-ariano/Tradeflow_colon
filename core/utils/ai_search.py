@@ -1,23 +1,7 @@
-"""
-TradeFlow AI Search — backend suggestion engine.
+"""Typeahead suggestion engine for marketplace and workspace search.
 
-Architecture
-------------
-1. ``search_*`` functions query the ORM for the given scope (public, buyer, seller, admin).
-2. ``build_search_response`` assembles the JSON payload consumed by ``/api/search/suggest/``.
-3. Optional Groq enrichment adds a contextual tip and related phrases when ``GROQ_API_KEY`` is set.
-
-Client integration
-------------------
-Any ``<input>`` with ``data-tf-ai-search="<scope>"`` is wired by ``static/js/tf-ai-search.js``.
-See ``docs/AI_SEARCH.md`` for the full stack diagram and extension guide.
-
-Scopes
-------
-- ``public``  — marketplace catalog (guest + anyone)
-- ``buyer``   — authenticated buyer; empty query may return personalized picks
-- ``seller``  — seller workspace (orders, products, customers, quotes)
-- ``admin``   — staff product/company lookup
+Scopes (public, seller, buyer, admin) return products, companies, and
+orders so CFZ operators find inventory without full page reloads.
 """
 from __future__ import annotations
 
@@ -40,7 +24,7 @@ _STOPWORDS = frozenset({
 
 
 def _tokens(q: str) -> list[str]:
-    """Split a query into meaningful lowercase tokens (min length 2, no stopwords)."""
+    """Split a query into lowercase tokens (minimum length 2)."""
     raw = re.findall(r'[\wáéíóúüñ]+', (q or '').lower(), flags=re.UNICODE)
     return [t for t in raw if len(t) >= 2 and t not in _STOPWORDS]
 
@@ -56,12 +40,7 @@ def _item(
     image_url: str = '',
     meta: dict | None = None,
 ) -> dict:
-    """
-    Build one suggestion row for the typeahead JSON payload.
-
-    ``image_url`` and ``meta`` are used by the client for rich product cards;
-    other item types rely on ``icon`` + ``subtitle`` only.
-    """
+    """Build one suggestion row for the typeahead JSON payload."""
     row = {
         'type': kind,
         'label': label,
@@ -78,7 +57,7 @@ def _item(
 
 
 def _product_meta(product) -> dict:
-    """Structured fields for the typeahead product card (company, SKU, price, etc.)."""
+    """Structured fields for the typeahead product card (company, SKU)."""
     price = getattr(product, 'display_price', None) or getattr(product, 'unit_price', None)
     return {
         'sku': (getattr(product, 'sku', None) or '').strip(),
@@ -90,14 +69,14 @@ def _product_meta(product) -> dict:
 
 
 def _product_image_url(product) -> str:
-    """Resolve the same image chain as catalog cards (upload → AI placeholder → seed icon)."""
+    """Resolve the same image chain as catalog cards (upload → AI placeholder)."""
     from core.templatetags.tf_media import product_image_src
 
     return product_image_src(product) or ''
 
 
 def _product_item(product, url: str, *, score: int = 0, icon: str = 'inventory_2') -> dict:
-    """Product suggestion with thumbnail + structured meta for the typeahead UI."""
+    """Product suggestion with thumbnail and meta for the typeahead UI."""
     return _item(
         'product',
         product.name,
@@ -111,7 +90,7 @@ def _product_item(product, url: str, *, score: int = 0, icon: str = 'inventory_2
 
 
 def _product_subtitle(product) -> str:
-    """Legacy single-line subtitle (kept for non-JS consumers and seller/admin scopes)."""
+    """Legacy single-line subtitle for non-JS consumers and older clients."""
     parts = []
     if getattr(product, 'sku', None):
         parts.append(product.sku)
@@ -127,11 +106,7 @@ def _product_subtitle(product) -> str:
 
 
 def _groq_search_enrichment(query: str, local_labels: list[str], scope: str) -> dict:
-    """
-    Optional LLM enrichment: one tip sentence + up to 4 related search phrases.
-
-    Fails open (returns ``{}``) when Groq is unavailable or the API errors.
-    """
+    """Optional LLM tip sentence plus related query suggestions."""
     api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
     if not api_key or len(query.strip()) < 2:
         return {}
@@ -172,12 +147,7 @@ def _groq_search_enrichment(query: str, local_labels: list[str], scope: str) -> 
 
 
 def search_public(query: str, limit: int = 8) -> list[dict]:
-    """
-    Marketplace catalog suggestions.
-
-    Empty query → featured products + top categories (trending).
-    Non-empty → tokenized product name/SKU/description match, then categories and companies.
-    """
+    """Return marketplace catalog suggestions for guests and buyers."""
     from .. import merchandising as merch
     from ..models import Category, Company
 
@@ -263,7 +233,7 @@ def search_public(query: str, limit: int = 8) -> list[dict]:
 
 
 def search_seller(company, query: str, limit: int = 10) -> list[dict]:
-    """Seller workspace: products, orders, quotes, customers, or quick-action shortcuts."""
+    """Search seller workspace: products, orders, quotes, and customers."""
     from ..models import Cotizacion, Order, Product, User
 
     q = (query or '').strip()
@@ -345,12 +315,7 @@ def search_seller(company, query: str, limit: int = 10) -> list[dict]:
 
 
 def search_buyer(user, query: str, limit: int = 8) -> list[dict]:
-    """
-    Buyer navbar scope.
-
-    Empty query + authenticated profile → personalized picks from merchandising.
-    Otherwise delegates to ``search_public``.
-    """
+    """Search buyer navbar scope (orders and catalog hints)."""
     from .. import merchandising as merch
 
     q = (query or '').strip()
@@ -372,7 +337,7 @@ def search_buyer(user, query: str, limit: int = 8) -> list[dict]:
 
 
 def search_admin(query: str, limit: int = 8) -> list[dict]:
-    """Staff dashboard product/company lookup."""
+    """Staff dashboard product and company lookup suggestions."""
     from ..models import Company, Product
 
     q = (query or '').strip()
@@ -407,20 +372,7 @@ def search_admin(query: str, limit: int = 8) -> list[dict]:
 
 
 def build_search_response(scope: str, query: str, request, limit: int = 8) -> dict:
-    """
-    Assemble the JSON body for ``GET /api/search/suggest/``.
-
-    Parameters
-    ----------
-    scope:
-        One of ``public``, ``buyer``, ``seller``, ``admin``.
-    query:
-        Raw user input (trimmed server-side, max 120 chars).
-    request:
-        Django request — used for seller company resolution and buyer personalization.
-    limit:
-        Max suggestions (clamped 1–12 by the view).
-    """
+    """Assemble the JSON body for ``GET /api/search/suggest/``."""
     q = (query or '').strip()[:120]
     suggestions: list[dict] = []
 

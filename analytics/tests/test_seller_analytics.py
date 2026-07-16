@@ -1,4 +1,8 @@
-"""Access + table-chat wiring for seller Analytics IA."""
+"""Access, chat, and forecast coverage for seller Analytics IA.
+
+Guards CFZ marketplace tenancy (sellers only see their company sales)
+and keeps chat/forecast wiring stable under LLM offline mode.
+"""
 from __future__ import annotations
 
 import json
@@ -22,7 +26,10 @@ from core.utils.seller_lifecycle import start_seller_trial
 
 @override_settings(AXES_ENABLED=False, REQUIRE_EMAIL_VERIFICATION=False)
 class TestSellerAnalyticsAccess(TestCase):
+    """Seller portal access, tenancy, and chat table wiring."""
+
     def setUp(self):
+        """Create a verified seller company with one paid order line."""
         ensure_default_plans()
         self.company = Company.objects.create(name='AI Co', ruc='AI-1', is_verified=True)
         self.seller = User.objects.create_user(
@@ -52,6 +59,7 @@ class TestSellerAnalyticsAccess(TestCase):
         )
 
     def test_seller_dashboard_renders_and_hides_arbitrary_sources(self):
+        """Seller dashboard loads chat UI without multi-source panels."""
         self.client.login(username='ai_seller', password='TestPass123!')
         r = self.client.get(reverse('analytics:seller_dashboard'))
         self.assertEqual(r.status_code, 200)
@@ -70,17 +78,20 @@ class TestSellerAnalyticsAccess(TestCase):
         self.assertContains(r, 'Forecasts need a date column')
 
     def test_buyer_cannot_open_seller_analytics(self):
+        """Buyers are redirected away from seller analytics."""
         self.client.login(username='ai_buyer', password='TestPass123!')
         r = self.client.get(reverse('analytics:seller_dashboard'))
         self.assertEqual(r.status_code, 302)
 
     def test_non_staff_redirected_from_admin_dashboard(self):
+        """Non-staff sellers cannot open the multi-source admin dashboard."""
         self.client.login(username='ai_seller', password='TestPass123!')
         r = self.client.get(reverse('analytics:dashboard'))
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r.url, reverse('analytics:seller_dashboard'))
 
     def test_chat_returns_custom_table_for_top_request(self):
+        """Chat returns an HTML table for a top-products sales request."""
         self.client.login(username='ai_seller', password='TestPass123!')
         # Warm cache/session via dashboard
         self.assertEqual(self.client.get(reverse('analytics:seller_dashboard')).status_code, 200)
@@ -98,6 +109,7 @@ class TestSellerAnalyticsAccess(TestCase):
             self.assertIn('Product', payload['table'])
 
     def test_truncation_banner_when_over_limit(self):
+        """Dashboard shows a truncation banner when sales exceed the load cap."""
         from unittest import mock
         from analytics import data_source as ds
 
@@ -113,7 +125,10 @@ class TestSellerAnalyticsAccess(TestCase):
 
 @override_settings(AXES_ENABLED=False, REQUIRE_EMAIL_VERIFICATION=False, LLM_OFFLINE='1')
 class TestAnalyticsTableEngine(TestCase):
+    """Offline fast-path table engine without LLM calls."""
+
     def test_fast_path_groupby_table(self):
+        """Keyword chat builds a non-empty groupby table without the LLM."""
         from analytics.engine import ai_analyzer
 
         df = pd.DataFrame({
@@ -128,13 +143,14 @@ class TestAnalyticsTableEngine(TestCase):
 
 @override_settings(AXES_ENABLED=False, REQUIRE_EMAIL_VERIFICATION=False, LLM_OFFLINE='1')
 class TestSellerForecastAndGrowth(TestCase):
-    """End-to-end checks for projections / growth / rising+falling products.
+    """End-to-end projections, growth metrics, and rising/falling products.
 
     Uses enough dated order history that the DataFlow forecasting engine
     (linear forecast + item trends) can run — a single order is not enough.
     """
 
     def setUp(self):
+        """Seed eight months of rising and falling product order history."""
         from datetime import timedelta
         from django.utils import timezone
 
@@ -184,6 +200,7 @@ class TestSellerForecastAndGrowth(TestCase):
             )
 
     def test_horizon_english_tokens(self):
+        """parse_horizon accepts English and Spanish horizon phrases."""
         from analytics.engine.forecasting import parse_horizon
 
         self.assertEqual(parse_horizon('next 6 months'), ('M', 6))
@@ -192,6 +209,7 @@ class TestSellerForecastAndGrowth(TestCase):
         self.assertEqual(parse_horizon('proximos 3 meses'), ('M', 3))
 
     def test_linear_forecast_and_item_trends_engine(self):
+        """Company sales history yields forecasts and item trend rows."""
         from analytics import data_source as ds
         from analytics.engine import data_loader, forecasting as F
 
@@ -216,6 +234,7 @@ class TestSellerForecastAndGrowth(TestCase):
         self.assertIn('FallingGadget', names)
 
     def test_seller_dashboard_shows_forecast_section(self):
+        """Dashboard renders forecast blocks when history is thick enough."""
         self.client.login(username='fc_seller', password='TestPass123!')
         r = self.client.get(reverse('analytics:seller_dashboard'))
         self.assertEqual(r.status_code, 200)
@@ -234,6 +253,7 @@ class TestSellerForecastAndGrowth(TestCase):
         self.assertContains(r, 'an-data-table')
 
     def test_chat_forecast_and_declining_products(self):
+        """Chat returns a forecast chart and names declining products."""
         self.client.login(username='fc_seller', password='TestPass123!')
         self.assertEqual(self.client.get(reverse('analytics:seller_dashboard')).status_code, 200)
 

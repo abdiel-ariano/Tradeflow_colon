@@ -1,9 +1,8 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — urls.py (Raíz del proyecto)
-=============================================================================
-Incluye prefijos de idioma opcionales (es por defecto sin prefijo; en → /en/...).
-=============================================================================
+"""Root URLConf for TradeFlow Colón.
+
+Mounts admin, i18n language switching, and health probes outside i18n
+patterns; marketplace routes live under optional /en/ prefixes with
+Spanish as the unprefixed default.
 """
 from django.contrib import admin
 from django.urls import path, include

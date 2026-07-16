@@ -1,4 +1,8 @@
-"""Tests for locale redirect middleware and catalog i18n."""
+"""Locale redirect middleware and marketplace catalog i18n.
+
+Spanish and English buyers share one CFZ catalog; prefix redirects,
+filter copy, legal shells, and SEO meta must stay locale-consistent.
+"""
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -9,9 +13,11 @@ from core.models import Category, Company, Product
 
 @override_settings(LANGUAGE_CODE='en')
 class CatalogI18nTests(TestCase):
+    """Assert catalog/home locale switches, redirects, and Spanish copy."""
+
     @classmethod
     def setUpTestData(cls):
-        """Setuptestdata."""
+        """Seed featured products in two categories for locale pages."""
         company = Company.objects.create(name='CFZ Trading', is_verified=True)
         cls.electronics = Category.objects.create(name='Electronics & Office')
         cls.textiles = Category.objects.create(name='Textiles & Uniforms')
@@ -29,11 +35,12 @@ class CatalogI18nTests(TestCase):
             )
 
     def setUp(self):
-        """Setup."""
+        """Clear cache so locale-sensitive pages are not sticky."""
         from django.core.cache import cache
         cache.clear()
+
     def test_catalog_default_english_filters(self):
-        """Test catalog default english filters."""
+        """Default English catalog shows Refine results / Verified filters."""
         response = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Refine results')
@@ -41,7 +48,7 @@ class CatalogI18nTests(TestCase):
         self.assertNotContains(response, 'Refinar resultados')
 
     def test_catalog_spanish_via_language_switch(self):
-        """Test catalog spanish via language switch."""
+        """Language switch to es renders Spanish catalog filter copy."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('catalogo_publico')},
@@ -54,7 +61,7 @@ class CatalogI18nTests(TestCase):
         self.assertContains(response, 'Catálogo')
 
     def test_spanish_cookie_redirects_unprefixed_catalog(self):
-        """Test spanish cookie redirects unprefixed catalog."""
+        """Spanish cookie redirects bare /catalogo/ to the /es/ prefix."""
         self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('catalogo_publico')},
@@ -64,7 +71,7 @@ class CatalogI18nTests(TestCase):
         self.assertTrue(response.url.endswith('/es/catalogo/'))
 
     def test_spanish_home_hero_and_cards(self):
-        """Test spanish home hero and cards."""
+        """Spanish home shows ZLC wholesale hero and help CTAs."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('home')},
@@ -77,7 +84,7 @@ class CatalogI18nTests(TestCase):
         self.assertContains(response, 'Centro de ayuda')
 
     def test_marketplace_nav_language_switcher(self):
-        """Test marketplace nav language switcher."""
+        """Marketplace nav exposes the EN/ES language form controls."""
         response = self.client.get(reverse('catalogo_publico'))
         self.assertContains(response, 'bn-lang-switch')
         self.assertContains(response, 'name="language"')
@@ -85,7 +92,7 @@ class CatalogI18nTests(TestCase):
         self.assertContains(response, 'value="en"')
 
     def test_english_cookie_redirects_prefixed_home_to_unprefixed(self):
-        """Test english cookie redirects prefixed home to unprefixed."""
+        """Switching back to en strips /es/ and restores English home copy."""
         self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('home')},
@@ -106,7 +113,7 @@ class CatalogI18nTests(TestCase):
         self.assertNotContains(response, 'Proveedores verificados ZLC')
 
     def test_english_switch_from_es_catalog(self):
-        """Test english switch from es catalog."""
+        """EN switch from /es/catalogo/ lands on unprefixed /catalogo/."""
         self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('catalogo_publico')},
@@ -119,7 +126,7 @@ class CatalogI18nTests(TestCase):
         self.assertEqual(post_response.url, '/catalogo/')
 
     def test_spanish_home_category_labels(self):
-        """Test spanish home category labels."""
+        """Spanish home localizes category display names for navigation."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('home')},
@@ -129,9 +136,8 @@ class CatalogI18nTests(TestCase):
         self.assertContains(response, 'Electrónica y oficina')
         self.assertContains(response, 'Textiles y uniformes')
 
-
     def test_spanish_deals_page(self):
-        """Test spanish deals page."""
+        """Spanish deals page shows wholesale/flash offer headings."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('marketplace_deals')},
@@ -142,7 +148,7 @@ class CatalogI18nTests(TestCase):
         self.assertContains(response, 'Ofertas flash')
 
     def test_spanish_verified_suppliers_page(self):
-        """Test spanish verified suppliers page."""
+        """Spanish verified-suppliers page shows ZLC directory copy."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('marketplace_verified_suppliers')},
@@ -153,7 +159,7 @@ class CatalogI18nTests(TestCase):
         self.assertContains(response, 'Directorio de proveedores')
 
     def test_spanish_about_page(self):
-        """Test spanish about page."""
+        """Spanish about page keeps TradeFlow Colón positioning copy."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('acerca_tradeflow')},
@@ -163,7 +169,7 @@ class CatalogI18nTests(TestCase):
         self.assertContains(response, 'comercio mayorista no debería exigir un vuelo a Panamá')
 
     def test_marketplace_pages_cache_headers(self):
-        """Test marketplace pages cache headers."""
+        """Marketing marketplace pages advertise one-hour Cache-Control."""
         for url_name in (
             'marketplace_deals',
             'marketplace_verified_suppliers',
@@ -175,7 +181,7 @@ class CatalogI18nTests(TestCase):
             self.assertIn('max-age=3600', response.get('Cache-Control', ''))
 
     def test_spanish_product_detail_page(self):
-        """Test spanish product detail page."""
+        """Spanish PDP shows localized specs and wholesale signup CTA."""
         product = Product.objects.first()
         post_response = self.client.post(
             reverse('set_language'),
@@ -193,7 +199,7 @@ class CatalogI18nTests(TestCase):
         self.assertNotContains(response, 'Sign up to view wholesale pricing')
 
     def test_spanish_catalog_meta_description(self):
-        """Test spanish catalog meta description."""
+        """Spanish catalog meta description uses TradeFlow SEO phrasing."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('catalogo_publico')},
@@ -207,7 +213,7 @@ class CatalogI18nTests(TestCase):
         self.assertNotContains(response, 'transparent inventory on TradeFlow')
 
     def test_spanish_default_footer_on_product_detail(self):
-        """Test spanish default footer on product detail."""
+        """Spanish PDP footer uses Cómo comprar / Empresas verificadas."""
         product = Product.objects.first()
         post_response = self.client.post(
             reverse('set_language'),
@@ -225,8 +231,10 @@ class CatalogI18nTests(TestCase):
 
 @override_settings(LANGUAGE_CODE='en')
 class LegalPageShellTests(TestCase):
+    """Assert legal pages reuse marketplace shell and Spanish bodies."""
+
     def test_legal_privacy_uses_marketplace_shell(self):
-        """Test legal privacy uses marketplace shell."""
+        """Privacy page uses legal-shell plus marketplace nav chrome."""
         response = self.client.get(reverse('legal_privacidad'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'legal-shell')
@@ -234,19 +242,19 @@ class LegalPageShellTests(TestCase):
         self.assertIn('max-age=3600', response.get('Cache-Control', ''))
 
     def test_legal_terms_table_of_contents(self):
-        """Test legal terms table of contents."""
+        """Terms page includes an in-page table of contents anchors."""
         response = self.client.get(reverse('legal_terminos'))
         self.assertContains(response, 'legal-toc')
         self.assertContains(response, '#terms-service')
 
     def test_legal_page_full_width_shell(self):
-        """Test legal page full width shell."""
+        """Legal layout uses full-width shell, not a narrow content column."""
         response = self.client.get(reverse('legal_privacidad'))
         self.assertContains(response, 'hm-marketplace-page--legal')
         self.assertNotContains(response, 'max-width: 1080px')
 
     def test_spanish_legal_terms_body(self):
-        """Test spanish legal terms body."""
+        """Spanish terms body uses platform service copy, not English."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('legal_terminos')},
@@ -258,7 +266,7 @@ class LegalPageShellTests(TestCase):
         self.assertNotContains(response, 'Use of the Platform implies')
 
     def test_spanish_legal_privacy_body(self):
-        """Test spanish legal privacy body."""
+        """Spanish privacy body names TradeFlow Colón data handling."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('legal_privacidad')},
@@ -269,7 +277,7 @@ class LegalPageShellTests(TestCase):
         self.assertContains(response, 'Datos que recopilamos')
 
     def test_spanish_legal_cookies_body(self):
-        """Test spanish legal cookies body."""
+        """Spanish cookies page explains essential cookie categories."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('legal_cookies')},

@@ -1,8 +1,7 @@
-"""
-Password reset form that delivers mail via Resend (same path as OTP / transactional).
+"""Password reset via Resend using DB magic-link tokens.
 
-Tokens come from ``PasswordResetLink`` (DB, mirrors EmailVerification), not Django's
-HMAC PasswordResetTokenGenerator.
+Tokens come from ``PasswordResetLink`` (mirrors EmailVerification), not
+Django's HMAC PasswordResetTokenGenerator — same delivery path as OTP mail.
 """
 from __future__ import annotations
 
@@ -25,9 +24,10 @@ UserModel = get_user_model()
 
 
 def password_reset_domain_and_https(request=None) -> tuple[str | None, bool]:
-    """
-    Prefer PUBLIC_BASE_URL so reset links use the public host (not Site.domain /
-    example.com). Falls back to request host / Site via domain_override=None.
+    """Resolve public host and HTTPS for reset links.
+
+    Prefer PUBLIC_BASE_URL so emails use the real host (not Site.domain /
+    example.com). Falls back to request/Site when unset.
     """
     base = (getattr(settings, 'PUBLIC_BASE_URL', '') or '').strip().rstrip('/')
     use_https = bool(request and request.is_secure())
@@ -44,6 +44,7 @@ def password_reset_domain_and_https(request=None) -> tuple[str | None, bool]:
 
 
 def password_reset_extra_context() -> dict:
+    """Extra template context with the configured public base URL."""
     base = (getattr(settings, 'PUBLIC_BASE_URL', '') or '').strip().rstrip('/')
     return {'public_base_url': base}
 
@@ -60,6 +61,7 @@ class ResendPasswordResetForm(PasswordResetForm):
         to_email,
         html_email_template_name=None,
     ):
+        """Render templates and deliver via ``deliver_mail`` (Resend path)."""
         subject = loader.render_to_string(subject_template_name, context)
         subject = ''.join(subject.splitlines())
         body = loader.render_to_string(email_template_name, context)
@@ -98,8 +100,8 @@ class ResendPasswordResetForm(PasswordResetForm):
         html_email_template_name=None,
         extra_email_context=None,
     ):
-        """
-        Same contract as Django PasswordResetForm.save, but tokens are PasswordResetLink rows.
+        """Issue PasswordResetLink tokens and email them (Django save contract).
+
         Does not call User.set_password / make_password.
         """
         email = self.cleaned_data['email']

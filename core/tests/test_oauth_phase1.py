@@ -1,4 +1,8 @@
-"""OAuth phase 1 — Google / Outlook / LinkedIn signup helpers."""
+"""OAuth signup helpers and allauth redirect wiring.
+
+Google/Outlook/LinkedIn onboarding must assign buyer/seller roles
+and avoid redirect loops on /verificar/ for incomplete profiles.
+"""
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -20,20 +24,22 @@ from core.social_auth import (
     },
 )
 class OAuthHelpersTests(TestCase):
+    """Assert provider aliases, usernames, and profile setup."""
+
     def test_resolve_oauth_provider_linkedin_alias(self):
-        """Test resolve oauth provider linkedin alias."""
+        """Map linkedin alias to linkedin_oauth2 provider id."""
         self.assertEqual(resolve_oauth_provider('linkedin'), 'linkedin_oauth2')
         self.assertEqual(resolve_oauth_provider('google'), 'google')
 
     def test_generate_username_from_email_unique(self):
-        """Test generate username from email unique."""
+        """Generate a unique username when the local part is taken."""
         User.objects.create_user(username='john.doe', email='a@t.pa', password='x')
         name = generate_username_from_email('john.doe@example.com')
         self.assertNotEqual(name, 'john.doe')
         self.assertRegex(name, r'^[a-zA-Z][a-zA-Z0-9._]{2,29}$')
 
     def test_setup_profile_and_application(self):
-        """Test setup profile and application."""
+        """Create seller profile and matching UserApplication."""
         user = User.objects.create_user(username='oauthuser', email='o@t.pa', password='unused')
         setup_profile_and_application(user, 'seller')
         profile = UserProfile.objects.get(user=user)
@@ -42,7 +48,7 @@ class OAuthHelpersTests(TestCase):
         self.assertEqual(app.role, 'seller')
 
     def test_setup_profile_buyer_sets_onboarding_pending(self):
-        """Test setup profile buyer sets onboarding pending."""
+        """Leave buyer onboarding_completed_at unset after OAuth."""
         user = User.objects.create_user(username='buyer_oauth', email='b@t.pa', password='unused')
         setup_profile_and_application(user, 'buyer')
         profile = UserProfile.objects.get(user=user)
@@ -59,12 +65,14 @@ class OAuthHelpersTests(TestCase):
     },
 )
 class OAuthFlowViewsTests(TestCase):
+    """Assert OAuth begin/complete views and allauth redirects."""
+
     def setUp(self):
-        """Setup."""
+        """Create a Django test client."""
         self.client = Client()
 
     def test_oauth_begin_signup_stores_role_in_session(self):
-        """Test oauth begin signup stores role in session."""
+        """Persist oauth_signup_role and redirect to Google login."""
         url = reverse('oauth_begin_signup', kwargs={'provider': 'google'})
         resp = self.client.get(url + '?role=seller')
         self.assertEqual(resp.status_code, 302)
@@ -72,7 +80,7 @@ class OAuthFlowViewsTests(TestCase):
         self.assertTrue(resp['Location'].endswith('/accounts/google/login/'))
 
     def test_oauth_begin_signup_linkedin_resolves_provider(self):
-        """Test oauth begin signup linkedin resolves provider."""
+        """Resolve LinkedIn alias to linkedin_oauth2 login URL."""
         with self.settings(
             SOCIALACCOUNT_PROVIDERS={
                 'google': {'APP': {'client_id': '', 'secret': ''}},
@@ -87,7 +95,7 @@ class OAuthFlowViewsTests(TestCase):
             self.assertTrue(resp['Location'].endswith('/accounts/linkedin_oauth2/login/'))
 
     def test_oauth_begin_signup_disabled_without_credentials(self):
-        """Test oauth begin signup disabled without credentials."""
+        """Fall back to signup when provider credentials are empty."""
         with self.settings(
             SOCIALACCOUNT_PROVIDERS={
                 'google': {'APP': {'client_id': '', 'secret': ''}},
@@ -98,22 +106,22 @@ class OAuthFlowViewsTests(TestCase):
             self.assertRedirects(resp, reverse('signup'))
 
     def test_accounts_login_redirects_to_custom_login(self):
-        """Test accounts login redirects to custom login."""
+        """Send /accounts/login/ to TradeFlow login."""
         resp = self.client.get('/accounts/login/')
         self.assertRedirects(resp, reverse('login'))
 
     def test_accounts_signup_redirects_to_custom_signup(self):
-        """Test accounts signup redirects to custom signup."""
+        """Send /accounts/signup/ to TradeFlow signup."""
         resp = self.client.get('/accounts/signup/')
         self.assertRedirects(resp, reverse('signup'))
 
     def test_accounts_inactive_redirects_anonymous_to_login(self):
-        """Test accounts inactive redirects anonymous to login."""
+        """Send inactive allauth page to login for anonymous users."""
         resp = self.client.get('/accounts/inactive/')
         self.assertRedirects(resp, reverse('login'))
 
     def test_oauth_complete_signup_creates_profile(self):
-        """Test oauth complete signup creates profile."""
+        """POST oauth_complete_signup assigns buyer role."""
         user = User.objects.create_user(
             username='newoauth',
             email='new@oauth.pa',
@@ -131,7 +139,7 @@ class OAuthFlowViewsTests(TestCase):
         self.assertEqual(profile.role, 'buyer')
 
     def test_oauth_post_signup_redirects_buyer_to_onboarding(self):
-        """Test oauth post signup redirects buyer to onboarding."""
+        """Route post-OAuth buyers into comprador onboarding."""
         user = User.objects.create_user(
             username='oauth_buyer',
             email='buyer@oauth.pa',
@@ -155,7 +163,7 @@ class OAuthFlowViewsTests(TestCase):
         self.assertIn('/onboarding/comprador', resp['Location'])
 
     def test_verificar_no_redirect_loop_without_profile(self):
-        """Test verificar no redirect loop without profile."""
+        """Avoid long redirect chains when OAuth profile is missing."""
         user = User.objects.create_user(
             username='loop_user',
             email='loop@test.pa',

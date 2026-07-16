@@ -1,3 +1,8 @@
+"""Plotly chart builders branded for TradeFlow Colón analytics.
+
+Navy/blue-first palette with orange accents for forecasts. Used by seller
+dashboards, staff auto-charts, and hybrid AI chart replies.
+"""
 from __future__ import annotations
 import pandas as pd
 import numpy as np
@@ -48,6 +53,7 @@ DARK_AXIS = "rgba(255,255,255,0.20)"
 
 
 def _base_layout(title: str = "", height: int = 420, *, bottom: int = 56) -> dict:
+    """Shared Plotly layout (brand fonts, margins, hover) for all charts."""
     return dict(
         title=dict(
             text=f"<b>{title}</b>",
@@ -78,8 +84,8 @@ def _base_layout(title: str = "", height: int = 420, *, bottom: int = 56) -> dic
 
 
 def _style_axes(fig, x_title: str = "", y_title: str = "", tickangle: int = 0):
-    # Con ticks angulados, el título de X compite por el mismo espacio: lo omitimos
-    # (las categorías ya se leen en los ticks) y pedimos más margen inferior.
+    """Apply TradeFlow axis styling; drop X title when ticks are angled."""
+    # Angled ticks compete with the X title: omit it and enlarge bottom margin.
     x_title_final = "" if tickangle else x_title
     fig.update_xaxes(
         title_text=x_title_final,
@@ -119,9 +125,10 @@ def _style_axes(fig, x_title: str = "", y_title: str = "", tickangle: int = 0):
 
 
 def apply_theme(fig, dark: bool = False):
-    """Re-skin neutrals (texto/cuadrícula/ejes) para modo claro u oscuro.
-    Los colores de marca de las series no se tocan. El fondo queda transparente
-    en ambos modos (la tarjeta del dashboard aporta el color)."""
+    """Restyle neutrals for light/dark; keep brand series colors.
+
+    Plot background stays transparent so dashboard cards supply fill.
+    """
     if fig is None:
         return fig
     text = DARK_TEXT if dark else TEXT_COL
@@ -155,8 +162,7 @@ def apply_theme(fig, dark: bool = False):
 
 
 def _is_categorical(s: pd.Series, max_unique: int = 50) -> bool:
-    """Robust categorical detection across dtypes (object, arrow str, category,
-    bool). Numeric and datetime columns are never categorical here."""
+    """Detect categorical series (object/arrow/category/bool, low cardinality)."""
     if pd.api.types.is_bool_dtype(s):
         return True
     if pd.api.types.is_numeric_dtype(s) or pd.api.types.is_datetime64_any_dtype(s):
@@ -168,6 +174,7 @@ def _is_categorical(s: pd.Series, max_unique: int = 50) -> bool:
 
 
 def histogram(df: pd.DataFrame, col: str):
+    """Distribution histogram with mean/median reference lines."""
     if col not in df.columns or df[col].dropna().empty:
         return None
     mean_val = df[col].mean()
@@ -196,6 +203,7 @@ def histogram(df: pd.DataFrame, col: str):
 
 
 def bar_top(df: pd.DataFrame, col: str, top_n: int = 15):
+    """Horizontal top-N frequency bars with the leader highlighted."""
     if col not in df.columns or df[col].dropna().empty:
         return None
     counts = df[col].value_counts().head(top_n).reset_index()
@@ -239,6 +247,7 @@ def bar_top(df: pd.DataFrame, col: str, top_n: int = 15):
 
 def pie_chart(df: pd.DataFrame, col: str, top_n: int = 8,
               value_col: str | None = None, agg: str = "sum"):
+    """Donut share chart; optional metric weighting instead of row counts."""
     if col not in df.columns or df[col].dropna().empty:
         return None
     # Ponderar por una métrica (p. ej. suma de ventas por categoría/producto) si
@@ -291,6 +300,7 @@ def pie_chart(df: pd.DataFrame, col: str, top_n: int = 8,
 
 
 def scatter(df: pd.DataFrame, x: str, y: str, color_col: str | None = None):
+    """Scatter with OLS trendline; samples large frames for responsiveness."""
     sample = df.sample(min(2000, len(df)), random_state=42) if len(df) > 2000 else df
     # Renombrar a etiquetas legibles ANTES de graficar: así hasta la ecuación de
     # la línea de tendencia OLS sale con nombres bonitos (px no remapea eso con labels).
@@ -318,6 +328,7 @@ def scatter(df: pd.DataFrame, x: str, y: str, color_col: str | None = None):
 
 
 def line_chart(df: pd.DataFrame, x: str, y: str | list[str]):
+    """Time/series line chart aggregated by x to avoid vertical zigzags."""
     if x not in df.columns:
         return None
     ys = [c for c in ([y] if isinstance(y, str) else y) if c in df.columns]
@@ -358,6 +369,7 @@ def line_chart(df: pd.DataFrame, x: str, y: str | list[str]):
 
 
 def box_plot(df: pd.DataFrame, col: str, group_col: str | None = None):
+    """Box plot of a metric, optionally faceted by a category (max 12)."""
     fig = go.Figure()
     groups = df[group_col].unique() if group_col else [None]
 
@@ -383,6 +395,7 @@ def box_plot(df: pd.DataFrame, col: str, group_col: str | None = None):
 
 
 def correlation_heatmap(df: pd.DataFrame):
+    """Diverging heatmap of pairwise numeric correlations."""
     numeric = df.select_dtypes(include="number")
     corr = numeric.corr().round(2)
     ticks = [L.pretty(c) for c in corr.columns]
@@ -414,6 +427,7 @@ def correlation_heatmap(df: pd.DataFrame):
 
 def grouped_bar(df: pd.DataFrame, group_col: str, value_col: str, agg: str = "sum",
                 top_n: int = 20):
+    """Horizontal ranked bars of an aggregated metric by category."""
     if group_col not in df.columns or value_col not in df.columns:
         return None
     grouped = (
@@ -466,6 +480,7 @@ def grouped_bar(df: pd.DataFrame, group_col: str, value_col: str, agg: str = "su
 
 
 def multi_histogram(df: pd.DataFrame, cols: list[str]):
+    """Small-multiple histograms for up to six numeric columns."""
     cols = cols[:6]
     n = len(cols)
     n_cols = min(n, 3)
@@ -507,6 +522,7 @@ def multi_histogram(df: pd.DataFrame, cols: list[str]):
 
 
 def area_chart(df: pd.DataFrame, x: str, y: str):
+    """Filled area series for a single metric over x."""
     sorted_df = df.sort_values(x)
     fig = go.Figure(go.Scatter(
         x=sorted_df[x], y=sorted_df[y],
@@ -524,7 +540,7 @@ def area_chart(df: pd.DataFrame, x: str, y: str):
 
 
 def _hierarchy_data(df, path_cols, value_col, agg, top_n):
-    """Build aggregated data for treemap/sunburst. Returns (data, value_name)."""
+    """Aggregate hierarchy rows for treemap/sunburst; return (data, value)."""
     path = [c for c in path_cols if c in df.columns]
     if not path:
         return None, None
@@ -543,6 +559,7 @@ def _hierarchy_data(df, path_cols, value_col, agg, top_n):
 
 def treemap(df: pd.DataFrame, path_cols: list[str], value_col: str | None = None,
             agg: str = "sum", top_n: int = 200):
+    """Hierarchical treemap (e.g. category → product revenue mix)."""
     data, vname = _hierarchy_data(df, path_cols, value_col, agg, top_n)
     if data is None:
         return None
@@ -570,6 +587,7 @@ def treemap(df: pd.DataFrame, path_cols: list[str], value_col: str | None = None
 
 def sunburst(df: pd.DataFrame, path_cols: list[str], value_col: str | None = None,
              agg: str = "sum", top_n: int = 200):
+    """Radial hierarchy chart for nested marketplace dimensions."""
     data, vname = _hierarchy_data(df, path_cols, value_col, agg, top_n)
     if data is None:
         return None
@@ -592,6 +610,7 @@ def sunburst(df: pd.DataFrame, path_cols: list[str], value_col: str | None = Non
 
 def funnel(df: pd.DataFrame, stage_col: str, value_col: str | None = None,
            agg: str = "sum"):
+    """Funnel of stages (e.g. order status) by count or metric sum."""
     if stage_col not in df.columns:
         return None
     if (value_col and value_col in df.columns
@@ -620,6 +639,7 @@ def funnel(df: pd.DataFrame, stage_col: str, value_col: str | None = None,
 
 def gauge(value: float, title: str = "", max_value: float | None = None,
           ref: float | None = None):
+    """Single-value gauge indicator with optional delta reference."""
     if value is None:
         return None
     if max_value is None or max_value <= 0:
@@ -649,6 +669,7 @@ def gauge(value: float, title: str = "", max_value: float | None = None,
 
 
 def auto_charts(df: pd.DataFrame) -> list[tuple[str, object]]:
+    """Infer a useful chart set from dtypes for the staff auto dashboard."""
     charts = []
     num_cols = list(df.select_dtypes(include="number").columns)
     cat_cols = [c for c in df.columns if _is_categorical(df[c], max_unique=50)]
@@ -676,7 +697,7 @@ def auto_charts(df: pd.DataFrame) -> list[tuple[str, object]]:
             continue
 
     def add(title, fn):
-        """Agrega una gráfica; si su construcción falla, se omite (no tumba el resto)."""
+        """Append a chart; skip builders that fail without aborting others."""
         try:
             fig = fn()
             if fig is not None:
@@ -740,8 +761,7 @@ DOWN_RED = "#D1495B"   # caída
 
 
 def forecast_chart(fc: dict, title: str = "Proyección", y_title: str = "valor"):
-    """Histórico (línea sólida) + proyección (línea punteada) + banda de
-    incertidumbre sombreada. `fc` es el dict de forecasting.linear_forecast."""
+    """History + dashed forecast + shaded prediction band from linear_forecast."""
     if not fc:
         return None
     hist, fut = fc["history"], fc["forecast"]
@@ -782,8 +802,7 @@ def forecast_chart(fc: dict, title: str = "Proyección", y_title: str = "valor")
 
 
 def trend_bar(trends: pd.DataFrame, item_col: str, n: int = 10, declining: bool = True):
-    """Barras horizontales de los ítems que más suben o bajan (% de cambio),
-    en verde/rojo según la dirección. `trends` viene de forecasting.item_trends."""
+    """Horizontal bars of rising or falling items from item_trends."""
     if trends is None or trends.empty or item_col not in trends.columns:
         return None
     # declining → más negativos primero; rising → más positivos primero

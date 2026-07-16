@@ -1,5 +1,7 @@
-"""
-URLs y optimización de media enterprise (Supabase Storage / local fallback).
+"""Resolve and optimize product media for Supabase or local storage.
+
+Public catalog cards need stable URLs; uploads are resized and scanned
+before landing in CFZ seller inventories.
 """
 from __future__ import annotations
 
@@ -20,31 +22,32 @@ PRODUCT_IMAGE_FALLBACK_STATIC = 'images/placeholder-producto.svg'
 
 
 def is_remote_media_storage() -> bool:
-    """Is remote media storage."""
+    """Return True when default STORAGES backend is S3-compatible."""
     backend = settings.STORAGES.get('default', {}).get('BACKEND', '')
     return 's3boto3' in backend.lower() or 's3' in backend.lower()
 
 
 def local_media_file_exists(rel_path: str) -> bool:
-    """Local media file exists."""
+    """Return True when a relative media path exists on disk."""
     if not rel_path:
         return False
     return (Path(settings.MEDIA_ROOT) / rel_path).is_file()
 
-# ── Defensas contra uploads maliciosos ─────────────────────────────────────
+# ── Defenses against malicious uploads ───────────────────────────────────
 MAX_IMAGE_BYTES = 10 * 1024 * 1024  # 10 MiB
 MAX_IMAGE_PIXELS = 60_000_000        # anti decompression bomb
 ALLOWED_IMAGE_FORMATS = ('JPEG', 'JPG', 'PNG', 'WEBP', 'GIF')
 
 
 def _serve_local_media_urls() -> bool:
+    """Return True when local MEDIA_URL should be used for product images."""
     if settings.DEBUG or getattr(settings, 'SERVE_LOCAL_MEDIA', False):
         return True
     return not is_remote_media_storage()
 
 
 def product_image_url(product) -> str:
-    """Public product image URL, or empty string when unset or unavailable."""
+    """Return public product image URL, or empty string if unavailable."""
     try:
         if product.image and product.image.name:
             rel_path = product.image.name.replace('\\', '/')
@@ -60,18 +63,15 @@ def product_image_url(product) -> str:
 
 
 def optimize_uploaded_image(uploaded_file, max_side: int = 1200, quality: int = 85) -> ContentFile:
-    """
-    Redimensiona JPEG/PNG para catálogo con defensas integradas:
-      - Limite de bytes ANTES de decodificar (evita decoder abuse).
-      - Limite de pixeles (anti decompression bomb).
-      - Validacion de formato real via Pillow (rechaza ejecutables disfrazados).
-
-    Raises:
-        ValidationError si el archivo es demasiado grande o no es una imagen real.
+    """Resize and re-encode catalog uploads with size/format defenses.
+    
+    
+    Rejects oversized files, decompression bombs, and non-image payloads
+    before sellers publish CFZ catalog photos.
     """
     from PIL import Image, UnidentifiedImageError
 
-    # 1) Limite de tamano del archivo subido.
+    # 1) Uploaded file size limit.
     size = getattr(uploaded_file, 'size', None)
     if size is not None and size > MAX_IMAGE_BYTES:
         raise ValidationError(
@@ -79,7 +79,7 @@ def optimize_uploaded_image(uploaded_file, max_side: int = 1200, quality: int = 
             f'Maximo permitido: {MAX_IMAGE_BYTES / 1024 / 1024:.0f} MiB.'
         )
 
-    # 2) Aplica el limite anti-bomba de Pillow.
+    # 2) Apply Pillow anti-decompression-bomb limit.
     _prev_limit = Image.MAX_IMAGE_PIXELS
     Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
     try:
@@ -90,11 +90,11 @@ def optimize_uploaded_image(uploaded_file, max_side: int = 1200, quality: int = 
         except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
             raise ValidationError(f'Archivo no es una imagen valida: {exc}')
 
-        # verify() consume el stream — hay que reabrirlo.
+        # verify() consumes the stream — reopen it.
         uploaded_file.seek(0)
         img = Image.open(uploaded_file)
 
-        # 3) Validacion de formato real (por bytes, no por extension).
+        # 3) Validate real format (by bytes, not extension).
         fmt = (img.format or '').upper()
         if fmt not in ALLOWED_IMAGE_FORMATS:
             raise ValidationError(
@@ -102,7 +102,7 @@ def optimize_uploaded_image(uploaded_file, max_side: int = 1200, quality: int = 
                 f'Permitidos: {", ".join(ALLOWED_IMAGE_FORMATS)}.'
             )
 
-        # 4) Conversion + redimensionado.
+        # 4) Conversion + resize.
         if img.mode in ('RGBA', 'P'):
             img = img.convert('RGB')
         w, h = img.size

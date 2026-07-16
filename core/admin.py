@@ -1,10 +1,7 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/admin.py  (v2 — ERD Completo)
-=============================================================================
-Registra todos los modelos del ERD en el panel de administración Django.
-Acceso: http://127.0.0.1:8000/admin/
-=============================================================================
+"""Django admin registration for TradeFlow Colón ERD and enterprise models.
+
+Exposes CFZ sellers, catalog, orders, RFQs, carriers, SaaS billing, and
+email logs at /admin/. TradeFlowModelAdmin aligns staff role with model perms.
 """
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -36,42 +33,44 @@ from .utils.admin_permissions import user_is_tradeflow_admin
 
 
 class TradeFlowModelAdmin(admin.ModelAdmin):
-    """
-    Permisos del Django Admin para operadores con rol ``admin`` + ``is_staff``.
+    """Grant /admin/ CRUD to staff with TradeFlow ``admin`` role.
 
-    El panel custom (/dashboard/) usa UserProfile.role; el sitio /admin/ de Django
-    exige permisos de modelo (view/change) — este admin los alinea.
+    Custom /dashboard/ uses UserProfile.role; Django admin needs model
+    permissions — this base class maps that role onto view/add/change.
     """
 
     def _tradeflow_admin_access(self, request):
+        """True when the request user is a TradeFlow admin operator."""
         return user_is_tradeflow_admin(request.user)
 
     def has_module_permission(self, request):
-        """Has module permission."""
+        """Allow the app module index for TradeFlow admins."""
         return self._tradeflow_admin_access(request)
 
     def has_view_permission(self, request, obj=None):
-        """Has view permission."""
+        """Allow object list/detail for TradeFlow admins."""
         return self._tradeflow_admin_access(request)
 
     def has_add_permission(self, request):
-        """Has add permission."""
+        """Allow creates for TradeFlow admins."""
         return self._tradeflow_admin_access(request)
 
     def has_change_permission(self, request, obj=None):
-        """Has change permission."""
+        """Allow edits for TradeFlow admins."""
         return self._tradeflow_admin_access(request)
 
     def has_delete_permission(self, request, obj=None):
-        """Has delete permission."""
+        """Restrict deletes to Django superusers only."""
         return request.user.is_superuser
 
 
 # =============================================================================
-# PERFIL INLINE (aparece dentro del detalle de User)
+# USER PROFILE INLINE
 # =============================================================================
 
 class UserProfileInline(admin.StackedInline):
+    """Show role/phone on the Django User change form."""
+
     model          = UserProfile
     can_delete     = False
     verbose_name_plural = 'Perfil'
@@ -79,10 +78,12 @@ class UserProfileInline(admin.StackedInline):
 
 
 class UserAdmin(BaseUserAdmin):
+    """User admin with TradeFlow profile inline."""
+
     inlines = (UserProfileInline,)
 
 
-# Re-registrar User con el inline de perfil
+# Re-register User with the profile inline
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
@@ -93,9 +94,8 @@ admin.site.register(User, UserAdmin)
 
 @admin.register(Company)
 class CompanyAdmin(TradeFlowModelAdmin):
-    """
-    Administración de empresas; incluye propietario vendedor para el portal Mi Tienda.
-    """
+    """Manage CFZ seller companies and Mi Tienda owners."""
+
     list_display   = ['name', 'ruc', 'owner', 'is_verified', 'is_featured', 'created_at']
     list_filter    = ['is_verified', 'is_featured']
     search_fields  = ['name', 'ruc', 'owner__username', 'owner__email']
@@ -115,6 +115,8 @@ class CompanyAdmin(TradeFlowModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    """Manage catalog categories."""
+
     list_display  = ['name']
     search_fields = ['name']
 
@@ -124,21 +126,21 @@ class CategoryAdmin(admin.ModelAdmin):
 # =============================================================================
 
 class InventoryInline(admin.StackedInline):
+    """Edit the single Inventory row from the Product change page."""
+
     model      = Inventory
     can_delete = False
     verbose_name_plural = 'Inventario'
     fields     = ['stock_qty', 'reserved_qty', 'low_stock_alert']
     readonly_fields = ['updated_at']
 
-    # Auto-crear Inventory si no existe al abrir el producto
     def get_queryset(self, request):
-        """Get queryset."""
+        """Return the standard inventory queryset for the inline."""
         qs = super().get_queryset(request)
         return qs
 
     def has_add_permission(self, request, obj=None):
-        # Solo 1 inventario por producto
-        """Has add permission."""
+        """Block a second inventory when the product already has one."""
         if obj and hasattr(obj, 'inventory'):
             return False
         return True
@@ -146,6 +148,8 @@ class InventoryInline(admin.StackedInline):
 
 @admin.register(HomePromoSection)
 class HomePromoSectionAdmin(admin.ModelAdmin):
+    """Schedule home CMS promo sections without redeploy."""
+
     list_display = ['slug', 'section_type', 'title_es', 'is_active', 'sort_order', 'starts_at', 'ends_at']
     list_filter = ['section_type', 'is_active']
     search_fields = ['slug', 'title_es', 'title_en']
@@ -155,6 +159,8 @@ class HomePromoSectionAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    """Manage catalog SKUs with inline stock."""
+
     list_display   = [
         'name', 'company', 'unit_price', 'promo_price', 'currency',
         'is_active', 'is_featured', 'is_bestseller', 'stock_display',
@@ -166,7 +172,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_per_page  = 25
 
     def stock_display(self, obj):
-        """Stock display."""
+        """Show available units for the list column."""
         if hasattr(obj, 'inventory'):
             return f'{obj.inventory.available} disponibles'
         return '—'
@@ -175,6 +181,8 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Inventory)
 class InventoryAdmin(admin.ModelAdmin):
+    """Manage per-SKU stock, reservations, and low-stock flags."""
+
     list_display   = ['product', 'stock_qty', 'reserved_qty', 'available_display', 'is_low_stock', 'updated_at']
     list_filter    = []
     search_fields  = ['product__name']
@@ -182,12 +190,12 @@ class InventoryAdmin(admin.ModelAdmin):
     list_per_page  = 25
 
     def available_display(self, obj):
-        """Available display."""
+        """Expose Inventory.available on the changelist."""
         return obj.available
     available_display.short_description = 'Disponible'
 
     def is_low_stock(self, obj):
-        """Is low stock."""
+        """Boolean column for the low-stock threshold."""
         return obj.is_low_stock
     is_low_stock.boolean = True
     is_low_stock.short_description = 'Stock bajo'
@@ -199,6 +207,8 @@ class InventoryAdmin(admin.ModelAdmin):
 
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
+    """Manage buyer shipping addresses."""
+
     list_display  = ['user', 'label', 'city', 'country', 'is_default']
     list_filter   = ['country', 'is_default']
     search_fields = ['user__username', 'user__email', 'city', 'line1']
@@ -209,6 +219,8 @@ class AddressAdmin(admin.ModelAdmin):
 # =============================================================================
 
 class OrderItemInline(admin.TabularInline):
+    """Order line items with computed line totals."""
+
     model           = OrderItem
     extra           = 0
     readonly_fields = ['line_total']
@@ -216,6 +228,8 @@ class OrderItemInline(admin.TabularInline):
 
 
 class PaymentInline(admin.StackedInline):
+    """Payment status nested on the order change form."""
+
     model      = Payment
     can_delete = False
     extra      = 0
@@ -224,6 +238,8 @@ class PaymentInline(admin.StackedInline):
 
 
 class ShipmentInline(admin.StackedInline):
+    """Shipment tracking nested on the order change form."""
+
     model      = Shipment
     can_delete = False
     extra      = 0
@@ -231,6 +247,8 @@ class ShipmentInline(admin.StackedInline):
 
 
 class DocumentInline(admin.TabularInline):
+    """Trade documents attached to an order."""
+
     model  = Document
     extra  = 0
     fields = ['doc_type', 'doc_number', 'file_path']
@@ -238,6 +256,8 @@ class DocumentInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    """Manage buyer orders with payment, shipment, and document inlines."""
+
     list_display   = ['order_number', 'buyer', 'order_type', 'status', 'total', 'created_at']
     list_filter    = ['status', 'order_type']
     search_fields  = ['order_number', 'buyer__username', 'buyer__email']
@@ -247,11 +267,13 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 # =============================================================================
-# PAYMENT, SHIPMENT, DOCUMENT (vistas independientes)
+# PAYMENT, SHIPMENT, DOCUMENT (standalone)
 # =============================================================================
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
+    """Standalone payment list for reconciliation."""
+
     list_display  = ['order', 'provider', 'status', 'amount', 'currency', 'paid_at']
     list_filter   = ['provider', 'status']
     search_fields = ['order__order_number', 'txn_ref']
@@ -260,6 +282,8 @@ class PaymentAdmin(admin.ModelAdmin):
 
 @admin.register(Shipment)
 class ShipmentAdmin(admin.ModelAdmin):
+    """Standalone shipment tracking list."""
+
     list_display  = ['order', 'courier_name', 'tracking_number', 'status', 'shipped_at']
     list_filter   = ['status']
     search_fields = ['order__order_number', 'tracking_number']
@@ -267,12 +291,16 @@ class ShipmentAdmin(admin.ModelAdmin):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
+    """Standalone trade-document list."""
+
     list_display  = ['order', 'doc_type', 'doc_number', 'created_at']
     list_filter   = ['doc_type']
     search_fields = ['order__order_number', 'doc_number']
 
 
 class CotizacionItemInline(admin.TabularInline):
+    """RFQ line items on the quote change form."""
+
     model = CotizacionItem
     extra = 0
     raw_id_fields = ['product']
@@ -280,9 +308,8 @@ class CotizacionItemInline(admin.TabularInline):
 
 @admin.register(Cotizacion)
 class CotizacionAdmin(admin.ModelAdmin):
-    """
-    Administración de cotizaciones RFQ entre compradores y empresas.
-    """
+    """Manage buyer↔seller RFQ quotes and linked orders."""
+
     list_display = ['numero', 'buyer', 'empresa', 'estado', 'es_automatica', 'created_at', 'order']
     list_filter = ['estado', 'es_automatica', 'created_at']
     search_fields = ['numero', 'buyer__username', 'empresa__name', 'lote']
@@ -292,6 +319,8 @@ class CotizacionAdmin(admin.ModelAdmin):
 
 @admin.register(TransportCarrier)
 class TransportCarrierAdmin(admin.ModelAdmin):
+    """Manage checkout carrier options and base freight."""
+
     list_display = ['name', 'code', 'transport_mode', 'base_shipping_cost', 'sort_order', 'is_active']
     list_editable = ['sort_order', 'is_active']
     prepopulated_fields = {'code': ('name',)}
@@ -299,17 +328,23 @@ class TransportCarrierAdmin(admin.ModelAdmin):
 
 @admin.register(Transportista)
 class TransportistaAdmin(admin.ModelAdmin):
+    """Review and activate registered last-mile carriers."""
+
     list_display = ['empresa_nombre', 'email_contacto', 'estado', 'activo', 'tarifa_base']
     list_filter = ['estado', 'activo']
 
 
 @admin.register(AsignacionTransporte)
 class AsignacionTransporteAdmin(admin.ModelAdmin):
+    """View per-order carrier assignments."""
+
     list_display = ['order', 'transportista', 'estado', 'costo_transporte']
 
 
 @admin.register(UserApplication)
 class UserApplicationAdmin(admin.ModelAdmin):
+    """Approve or reject buyer/seller access applications."""
+
     list_display = ['full_name', 'email', 'role', 'status', 'created_at']
     list_filter = ['status', 'role']
     search_fields = ['full_name', 'email', 'company_name']
@@ -317,7 +352,7 @@ class UserApplicationAdmin(admin.ModelAdmin):
     actions = ['aprobar_solicitudes', 'rechazar_solicitudes']
 
     def save_model(self, request, obj, form, change):
-        """Editing the status to approved/rejected activates + notifies the user."""
+        """Activate and notify when status moves to approved/rejected."""
         from .utils.application_review import (
             aprobar_solicitud,
             mensaje_fallo_correo,
@@ -349,7 +384,7 @@ class UserApplicationAdmin(admin.ModelAdmin):
 
     @admin.action(description='Approve selected applications (activate + email)')
     def aprobar_solicitudes(self, request, queryset):
-        """Aprobar solicitudes."""
+        """Bulk-approve applications and send activation email."""
         from .utils.application_review import aprobar_solicitud, mensaje_fallo_correo
 
         count = 0
@@ -367,7 +402,7 @@ class UserApplicationAdmin(admin.ModelAdmin):
 
     @admin.action(description='Reject selected applications (email)')
     def rechazar_solicitudes(self, request, queryset):
-        """Rechazar solicitudes."""
+        """Bulk-reject applications and notify applicants."""
         from .utils.application_review import mensaje_fallo_correo, rechazar_solicitud
 
         count = 0
@@ -385,28 +420,36 @@ class UserApplicationAdmin(admin.ModelAdmin):
 
 
 # =============================================================================
-# PERSONALIZACIÓN DEL PANEL
+# ENTERPRISE / SAAS ADMIN
 # =============================================================================
 
 @admin.register(SaasPlan)
 class SaasPlanAdmin(admin.ModelAdmin):
+    """Manage SaaS plan catalog and feature flags."""
+
     list_display = ['name', 'slug', 'monthly_volume_limit_usd', 'predictive_ai', 'sort_order', 'is_active']
     prepopulated_fields = {'slug': ('name',)}
 
 
 @admin.register(CompanySubscription)
 class CompanySubscriptionAdmin(admin.ModelAdmin):
+    """View seller subscription status and period end."""
+
     list_display = ['company', 'plan', 'status', 'current_period_end']
     list_filter = ['status', 'plan']
 
 
 @admin.register(CompanyBillingUsage)
 class CompanyBillingUsageAdmin(admin.ModelAdmin):
+    """Inspect monthly billable GMV per company."""
+
     list_display = ['company', 'period_year', 'period_month', 'volume_usd', 'orders_count']
 
 
 @admin.register(SubscriptionUpgradeLog)
 class SubscriptionUpgradeLogAdmin(admin.ModelAdmin):
+    """Read-only history of plan upgrades."""
+
     list_display = ['company', 'from_plan', 'to_plan', 'source', 'activated_at']
     list_filter = ['source']
     readonly_fields = ['company', 'from_plan', 'to_plan', 'source', 'activated_at', 'notes']
@@ -414,10 +457,9 @@ class SubscriptionUpgradeLogAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyPlanCheckout)
 class CompanyPlanCheckoutAdmin(admin.ModelAdmin):
-    """
-    Revisión de pagos propios (transferencia bancaria).
+    """Review bank-transfer SaaS checkouts and activate plans.
 
-    Acciones: aprobar → activa plan; rechazar → seller debe reenviar.
+    Approve runs ``approve_plan_checkout``; reject asks the seller to resubmit.
     """
 
     list_display = [
@@ -442,6 +484,7 @@ class CompanyPlanCheckoutAdmin(admin.ModelAdmin):
 
     @admin.action(description='Approve bank transfer and activate plan')
     def approve_selected_transfers(self, request, queryset):
+        """Approve pending checkouts and activate the target plan."""
         from core.utils.saas_billing import approve_plan_checkout
 
         ok = 0
@@ -463,6 +506,7 @@ class CompanyPlanCheckoutAdmin(admin.ModelAdmin):
 
     @admin.action(description='Reject bank transfer')
     def reject_selected_transfers(self, request, queryset):
+        """Reject pending checkouts so the seller can resubmit proof."""
         from core.utils.saas_billing import reject_plan_checkout
 
         ok = 0
@@ -485,6 +529,8 @@ class CompanyPlanCheckoutAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyPlanCommercialRequest)
 class CompanyPlanCommercialRequestAdmin(admin.ModelAdmin):
+    """Track Enterprise commercial plan requests."""
+
     list_display = ['company', 'requested_plan', 'status', 'contact_email', 'created_at']
     list_filter = ['status', 'requested_plan']
     search_fields = ['contact_email', 'contact_name', 'company__name']
@@ -492,28 +538,38 @@ class CompanyPlanCommercialRequestAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyPredictiveSnapshot)
 class CompanyPredictiveSnapshotAdmin(admin.ModelAdmin):
+    """Inspect cached Enterprise predictive payloads."""
+
     list_display = ['company', 'period_key', 'computed_at']
     readonly_fields = ['company', 'period_key', 'payload', 'computed_at']
 
 
 @admin.register(AdCampaign)
 class AdCampaignAdmin(admin.ModelAdmin):
+    """Manage seller ad campaigns and placements."""
+
     list_display = ['name', 'company', 'product', 'placement', 'is_active', 'ends_at']
 
 
 @admin.register(ApiKey)
 class ApiKeyAdmin(admin.ModelAdmin):
+    """Manage seller API keys (hash/prefix read-only)."""
+
     list_display = ['name', 'company', 'key_prefix', 'is_active', 'last_used_at']
     readonly_fields = ['key_hash', 'key_prefix']
 
 
 @admin.register(LogisticsWebhookConfig)
 class LogisticsWebhookAdmin(admin.ModelAdmin):
+    """Manage logistics partner webhook endpoints."""
+
     list_display = ['name', 'company', 'endpoint_url', 'is_active']
 
 
 @admin.register(EmailDeliveryLog)
 class EmailDeliveryLogAdmin(admin.ModelAdmin):
+    """Read-only transactional email delivery audit."""
+
     list_display = ['created_at', 'email_type', 'recipient', 'subject', 'status']
     list_filter = ['status', 'email_type']
     search_fields = ['recipient', 'subject', 'error_message']
@@ -524,7 +580,7 @@ class EmailDeliveryLogAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
 
     def has_add_permission(self, request):
-        """Has add permission."""
+        """Disallow manual log inserts from the admin UI."""
         return False
 
 

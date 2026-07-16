@@ -1,4 +1,8 @@
-"""Tests for Supabase native media URL generation."""
+"""Supabase native public media URL builders.
+
+Catalog images must use /storage/v1/object/public/ URLs, not
+S3-signed query strings that leak credentials in HTML.
+"""
 from django.test import TestCase, override_settings
 
 from core.storage.supabase_media import (
@@ -20,8 +24,10 @@ from core.storage.supabase_media import (
     },
 )
 class SupabaseMediaUrlTests(TestCase):
+    """Assert public URL shape from helpers and storage backend."""
+
     def test_public_url_uses_native_endpoint(self):
-        """Test public url uses native endpoint."""
+        """Build native public object URL without AWS query params."""
         path = 'productos/placeholders/placeholder_714_1I.png'
         url = supabase_public_url(path)
         self.assertEqual(
@@ -33,12 +39,12 @@ class SupabaseMediaUrlTests(TestCase):
         self.assertNotIn('/storage/v1/s3/', url)
 
     def test_supabase_media_url_delegates_to_public(self):
-        """Test supabase media url delegates to public."""
+        """Delegate supabase_media_url to the public object path."""
         url = supabase_media_url('productos/foo.png')
         self.assertIn('/storage/v1/object/public/media/', url)
 
     def test_storage_backend_url_override(self):
-        """Test storage backend url override."""
+        """Storage.url returns public media paths without service_role."""
         storage = SupabaseMediaStorage()
         url = storage.url('productos/placeholders/placeholder_1_SS.png')
         self.assertIn('/storage/v1/object/public/media/', url)

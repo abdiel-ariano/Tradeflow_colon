@@ -1,4 +1,8 @@
-"""Diagnóstico y resiliencia SaaS."""
+"""SaaS datastore health and degraded plan-page resilience.
+
+Seller plan pages must render even when usage snapshots fail,
+so CFZ operators can still select a plan after schema drift.
+"""
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -20,8 +24,10 @@ from core.utils.saas_platform import bootstrap_saas_datastore, get_saas_health
     },
 )
 class SaasPlatformHealthTests(TestCase):
+    """Assert health, bootstrap, and safe plan context."""
+
     def setUp(self):
-        """Setup."""
+        """Create seller company and ensure default SaaS plans."""
         ensure_default_plans()
         self.user = User.objects.create_user('saas_h', password='x', email='h@test.com')
         UserProfile.objects.create(user=self.user, role='seller')
@@ -30,26 +36,26 @@ class SaasPlatformHealthTests(TestCase):
         self.client.force_login(self.user)
 
     def test_health_reports_plans(self):
-        """Test health reports plans."""
+        """Report at least four plans and ready checkout table."""
         health = get_saas_health()
         self.assertGreaterEqual(health['plans_count'], 4)
         self.assertTrue(health['checkout_table_ready'])
 
     def test_bootstrap_creates_plans_if_missing(self):
-        """Test bootstrap creates plans if missing."""
+        """Recreate default plans when the table is emptied."""
         SaasPlan.objects.all().delete()
         health = bootstrap_saas_datastore()
         self.assertGreaterEqual(health['plans_count'], 4)
 
     def test_plan_page_renders_with_content(self):
-        """Test plan page renders with content."""
+        """Render seller plan page with plan card markup."""
         r = self.client.get(reverse('seller_plan_consumo'))
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'sp-plans-page')
         self.assertContains(r, 'sp-plan-card-v2')
 
     def test_safe_context_on_snapshot_failure(self):
-        """Test safe context on snapshot failure."""
+        """Mark saas_degraded when usage snapshot raises DB errors."""
         from django.db.utils import OperationalError
 
         with patch(

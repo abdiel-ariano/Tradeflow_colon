@@ -1,28 +1,10 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/views_seller_onboarding.py
-=============================================================================
-Wizard de onboarding vendedor: vinculación de empresa y inicio del trial.
+"""Seller company onboarding and Digitalízate trial activation.
 
-FLUJO
------
-1. Seller completa signup + verificación OTP.
-2. Redirigido aquí si no tiene ``Company.owner``.
-3. Formulario: nombre, RUC, dirección, logo opcional.
-4. Lógica RUC:
-   - Empresa existente sin owner → asignar ``owner=request.user``.
-   - Empresa con otro owner → error (contactar soporte).
-   - RUC nuevo → ``Company.objects.create(owner=user, is_verified=False)``.
-5. ``start_seller_trial(company)`` → redirect a ``portal_seller``.
+After signup and OTP, sellers without a ``Company.owner`` link must
+register CFZ company details (name, RUC, address, optional logo), then
+``start_seller_trial`` unlocks the seller portal (``/mi-tienda/``).
 
-El wizard es obligatorio; no hay ruta de omitir (a diferencia del buyer).
-
-NOTAS DE PRODUCCIÓN
--------------------
-- El logo es opcional: fallos de Storage (Supabase) NO deben tumbar el registro.
-- Toda excepción no esperada se captura, se registra con ``exc_info`` y se
-  muestra un mensaje amigable (evita Server Error 500 opaco en el formulario).
-=============================================================================
+Unlike buyer onboarding, this wizard cannot be skipped.
 """
 from __future__ import annotations
 
@@ -42,11 +24,12 @@ from core.utils.seller_lifecycle import start_seller_trial
 
 log = logging.getLogger('tradeflow.seller_onboarding')
 
-# RUC / registro: letras, números, guiones, puntos y slash (formatos ZLC comunes).
+# RUC / registry: letters, digits, hyphens, dots, slash (common CFZ forms).
 RUC_PATTERN = re.compile(r'^[\w\-./]{5,50}$', re.UNICODE)
 
 
 def _get_seller_profile(user) -> UserProfile | None:
+    """Return the seller profile, or None for non-sellers."""
     try:
         profile = user.profile
     except UserProfile.DoesNotExist:
@@ -57,6 +40,7 @@ def _get_seller_profile(user) -> UserProfile | None:
 
 
 def _form_context(*, name='', ruc='', address='') -> dict:
+    """Build template context for the company onboarding form."""
     return {
         'titulo_pagina': 'Configura tu empresa',
         'form_name': name,
@@ -66,11 +50,10 @@ def _form_context(*, name='', ruc='', address='') -> dict:
 
 
 def _safe_logo_file(uploaded) -> object | None:
-    """
-    Devuelve el archivo solo si es un upload usable.
+    """Return the upload only when it has a usable name and size.
 
-    Evita 500 cuando el navegador envía un ``<input type="file">`` vacío o
-    cuando el backend de Storage no puede aceptar el archivo.
+    Empty file inputs and storage-rejected payloads must not 500 the
+    company registration step.
     """
     if not uploaded:
         return None
@@ -84,7 +67,7 @@ def _safe_logo_file(uploaded) -> object | None:
 
 
 def _attach_logo(company: Company, logo) -> None:
-    """Adjunta logo sin abortar el alta de empresa si el storage falla."""
+    """Attach a logo without failing company creation on storage errors."""
     logo = _safe_logo_file(logo)
     if not logo:
         return
@@ -103,11 +86,10 @@ def _attach_logo(company: Company, logo) -> None:
 @login_required
 @require_GET
 def seller_onboarding_company(request: HttpRequest) -> HttpResponse:
-    """
-    Paso único — datos de empresa y activación del trial Digitalízate.
+    """Show company form or resume a stuck trial into the seller portal.
 
-    GET: muestra formulario. Si ya hay empresa propia sin suscripción (POST
-    parcial fallido), arranca el trial automáticamente y entra al portal.
+    If the company exists but subscription/trial never persisted, start
+    the trial and redirect to ``portal_seller``.
     """
     profile = _get_seller_profile(request.user)
     if not profile:
@@ -116,7 +98,7 @@ def seller_onboarding_company(request: HttpRequest) -> HttpResponse:
     if not seller_company_pending(request.user):
         return redirect('portal_seller')
 
-    # Recuperación: empresa creada pero trial no persistido (500 intermedio).
+    # Recovery: company created but trial not persisted (partial failure).
     existing = Company.objects.filter(owner=request.user).first()
     if existing:
         from core.enterprise_models import CompanySubscription
@@ -160,11 +142,10 @@ def seller_onboarding_company(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
-    """
-    Procesa el formulario de empresa y arranca el trial de 30 días.
+    """Validate company fields, link or create by RUC, start the trial.
 
-    Nunca debe devolver 500 por errores de negocio o storage: captura, loguea
-    y re-renderiza el formulario con mensaje claro.
+    Business and storage errors re-render the form with messages instead
+    of returning a bare 500.
     """
     profile = _get_seller_profile(request.user)
     if not profile:
@@ -209,7 +190,7 @@ def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
             request=request,
         )
         if company is None:
-            # Error de negocio ya comunicado (RUC con otro owner).
+            # Business error already messaged (RUC owned by another user).
             return render(
                 request,
                 'core/seller_onboarding_company.html',
@@ -275,11 +256,10 @@ def _resolve_or_create_company(
     logo,
     request,
 ) -> Company | None:
-    """
-    Vincula o crea la empresa según RUC.
+    """Link an orphan RUC company or create a new unverified Company.
 
-    Returns:
-        Company o None si el RUC ya pertenece a otro usuario (mensaje en request).
+    Returns None when the RUC already belongs to another owner (message
+    already attached to ``request``).
     """
     existing = Company.objects.filter(ruc__iexact=ruc).first()
     if existing:

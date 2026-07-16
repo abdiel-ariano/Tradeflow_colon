@@ -1,10 +1,7 @@
-"""
-=============================================================================
-ACCIÓN: CREAR
-DESTINO: core/merchandising.py
-=============================================================================
-Helpers de merchandising para home, tienda y API (ofertas, bestsellers, CMS).
-=============================================================================
+"""Merchandising helpers for CFZ home, storefront, and catalog APIs.
+
+Builds deals, bestsellers, CMS sections, and guest-home context while
+hiding cancelled-seller SKUs and diversifying repeated demo imagery.
 """
 from __future__ import annotations
 
@@ -60,11 +57,10 @@ def _sort_products_by_image_priority(products: list) -> list:
 
 
 def active_products_base():
-    """
-    QuerySet base de productos activos con relaciones.
+    """Base queryset of marketplace-visible active products.
 
-    Excluye productos de empresas en baja media (subscription cancelled) o sin
-    suscripción marketplace-visible. Ver ``company_marketplace_visible``.
+    Hides SKUs from cancelled subscriptions or non-visible companies
+    (see ``marketplace_active_company_ids`` / seller lifecycle).
     """
     from core.utils.seller_lifecycle import marketplace_active_company_ids
 
@@ -77,7 +73,7 @@ def active_products_base():
 
 
 def daily_deals(limit: int = 8):
-    """Productos con promoción vigente, prioridad merchandising."""
+    """Return live promo SKUs ordered by merchandising priority."""
     now = timezone.now()
     return list(
         active_products_base()
@@ -139,7 +135,7 @@ def deals_page_products(limit: int = 48):
 
 
 def bestsellers(limit: int = 8, days: int = 30):
-    """Top por unidades vendidas en ventana; fallback a flag is_bestseller."""
+    """Rank SKUs by units sold in window; fall back to bestseller flags."""
     since = timezone.now() - timedelta(days=days)
     top_ids = (
         OrderItem.objects.filter(order__created_at__gte=since)
@@ -164,7 +160,7 @@ def bestsellers(limit: int = 8, days: int = 30):
 
 
 def featured_products(limit: int = 8):
-    """Destacados con fallback a productos activos recientes."""
+    """Return featured SKUs, falling back to newest active products."""
     qs = (
         active_products_base()
         .filter(is_featured=True)
@@ -178,7 +174,7 @@ def featured_products(limit: int = 8):
 
 
 def featured_companies_carousel(limit: int = 10):
-    """Featured companies carousel."""
+    """Featured CFZ sellers for home carousel (fallback: most SKUs)."""
     qs = (
         Company.objects.filter(is_featured=True)
         .annotate(num_productos=Count('products', filter=Q(products__is_active=True)))
@@ -206,7 +202,7 @@ def trending_products(limit: int = 8):
 
 def home_company_tiers(premium_limit: int = 3, standard_limit: int = 5):
     """
-    Split home companies into premium featured (with product carousel)
+    Split home companies into premium featured (with product carousel).
     and standard grid cards.
     """
     base_qs = (
@@ -251,7 +247,7 @@ def home_company_tiers(premium_limit: int = 3, standard_limit: int = 5):
 
 def spotlight_products_for_companies(companies, limit_per: int = 3):
     """
-    Attach up to ``limit_per`` showcase products on each company for the home
+    Attach up to ``limit_per`` showcase products on each company for the home.
     spotlight mini-carousel (ordered by merchandising priority).
     """
     if not companies:
@@ -271,11 +267,10 @@ def spotlight_products_for_companies(companies, limit_per: int = 3):
 
 
 def buyer_mega_menu_panels(limit_categories: int = 8, products_per: int = 6) -> list:
-    """
-    Paneles del mega menú comprador (navbar «Todas las categorías»).
+    """Build buyer navbar mega-menu panels from live categories.
 
-    Cada panel incluye la categoría real de la BD y productos destacados
-    como sub-enlaces — evita emojis hardcodeados y búsquedas ?buscar= vacías.
+    Each panel pairs a DB category with featured SKUs as sub-links —
+    avoids hardcoded emojis and empty ``?buscar=`` stubs.
     """
     from core.utils.tradeflow_cache import cached_nav_categories
 
@@ -293,7 +288,7 @@ def buyer_mega_menu_panels(limit_categories: int = 8, products_per: int = 6) -> 
 
 
 def tienda_featured_supplier(company_id):
-    """Proveedor destacado para resultados filtrados (?empresa=) — estilo Alibaba."""
+    """Resolve featured supplier card for ``?empresa=`` storefront filters."""
     if not company_id:
         return None
     try:
@@ -312,7 +307,7 @@ def tienda_featured_supplier(company_id):
 
 
 def tienda_featured_category(category_id, limit: int = 5):
-    """Categoría destacada para resultados filtrados (?categoria=)."""
+    """Resolve featured category strip for ``?categoria=`` filters."""
     if not category_id:
         return None
     try:
@@ -331,7 +326,7 @@ def tienda_featured_category(category_id, limit: int = 5):
 
 
 def carousel_products(limit: int = 12):
-    """Productos para carrusel: promo, bestsellers o destacados."""
+    """Pick carousel SKUs: deals, then bestsellers, then priority catalog."""
     deals = daily_deals(limit=limit)
     if len(deals) >= 4:
         return deals
@@ -344,6 +339,7 @@ def carousel_products(limit: int = 12):
 
 
 def _section_in_window(section: HomePromoSection, now=None) -> bool:
+    """True when the CMS section is active inside its schedule window."""
     if now is None:
         now = timezone.now()
     if not section.is_active:
@@ -356,7 +352,7 @@ def _section_in_window(section: HomePromoSection, now=None) -> bool:
 
 
 def active_home_sections(now=None):
-    """Secciones CMS activas ordenadas."""
+    """Return scheduled, active home CMS sections in sort order."""
     if now is None:
         now = timezone.now()
     sections = HomePromoSection.objects.prefetch_related(
@@ -366,17 +362,17 @@ def active_home_sections(now=None):
 
 
 def active_home_section_types(now=None) -> set[str]:
-    """Tipos de sección CMS activos en la landing (para evitar duplicados)."""
+    """Set of active CMS section types (avoids duplicate home strips)."""
     return {section.section_type for section in active_home_sections(now)}
 
 
 def has_active_home_section(section_type: str, now=None) -> bool:
-    """Has active home section."""
+    """True when a CMS section of this type is currently live."""
     return section_type in active_home_section_types(now)
 
 
 def resolve_section_products(section: HomePromoSection):
-    """Productos para una sección según tipo y M2M."""
+    """Resolve products for a CMS section from type and M2M links."""
     limit = section.max_items or 8
     manual = list(
         section.products.filter(is_active=True).select_related(
@@ -459,7 +455,7 @@ def catalog_breadth_products(
     exclude_ids: set[int] | None = None,
 ):
     """
-    Diverse home sample across top categories — one wall of SKUs that
+    Diverse home sample across top categories — one wall of SKUs that.
     reflects marketplace breadth instead of repeating the same few picks.
     """
     picked: list[Product] = []
@@ -512,7 +508,7 @@ def catalog_breadth_products(
 
 
 def home_stats_uncached():
-    """Estadísticas para hero y home (datos reales ORM, sin cache)."""
+    """Compute live hero/home marketplace stats from the ORM."""
     from .models import Order
 
     since = timezone.now() - timedelta(days=30)
@@ -554,7 +550,7 @@ def home_stats_uncached():
 
 
 def home_stats():
-    """Estadísticas para hero y home — cacheadas en producción."""
+    """Return hero/home stats (cached in production)."""
     from core.utils.tradeflow_cache import cached_home_stats
 
     return cached_home_stats()
@@ -590,10 +586,9 @@ def _pick_unique_products(
 
 
 def diversify_visible_order(products: list, *, window: int = 4) -> list:
-    """
-  Reorder a catalog page so identical image fingerprints are not adjacent.
+    """Reorder so identical image fingerprints are not adjacent.
 
-  Keeps all SKUs but breaks visual copy-paste patterns in the first screenful.
+    Keeps all SKUs but breaks visual copy-paste patterns above the fold.
     """
     if len(products) <= 1:
         return products
@@ -651,10 +646,10 @@ def gateway_carousel_products(
 
 
 def build_guest_home_context(lang: str) -> dict:
-    """
-    Contexto completo de la landing pública (invitados).
-    Usado por home_view con cache por idioma.
-    Product lists are deduplicated in scroll order so carousels do not repeat SKUs.
+    """Assemble full public guest-home template context for one locale.
+
+    Used by ``home_view`` (cached per language). Product lists dedupe in
+    scroll order so carousels do not repeat the same SKUs.
     """
     seen: set[int] = set()
 
@@ -860,7 +855,7 @@ def marketplace_categories_context() -> dict:
 
 
 def localized_company_tagline(company: Company) -> str:
-    """Localized company tagline."""
+    """Return ES/EN company tagline for the active UI language."""
     lang = (get_language() or 'es')[:2]
     if lang == 'en' and company.tagline_en:
         return company.tagline_en
@@ -933,6 +928,7 @@ def _category_modal_panels(categories, products_per: int = 18) -> list:
 
 
 def _first_promo_banner_block(promo_sections) -> dict | None:
+    """First seasonal_banner block from resolved promo sections, if any."""
     for block in promo_sections:
         if block['section'].section_type == 'seasonal_banner':
             return block
@@ -955,6 +951,7 @@ def _build_home_product_rows(
     cms_types: set[str] = {block['section'].section_type for block in promo_sections}
 
     def _row(slug, dom_id, title, products, see_all_query='', min_products=2):
+        """Build one merchandising row dict for the caller."""
         if len(products) < min_products:
             return
         rows.append({
@@ -1045,6 +1042,7 @@ def _home_card_section_rows(
         preserve_order: bool = False,
         min_products: int = 4,
     ):
+        """Accumulate one item into the merchandising collection."""
         if preserve_order:
             picked = list(products)[:8]
         else:
@@ -1120,13 +1118,13 @@ def _build_home_figma_sections(*, card_rows: list[dict]) -> list[dict]:
 
 
 # =============================================================================
-# Onboarding comprador — categorías y sugerencias Deep Search
+# Buyer onboarding — categories and Deep Search suggestions
 # =============================================================================
 
 def buyer_onboarding_category_choices(limit: int = 12) -> list[dict]:
-    """
-    Filas para el paso 2 del wizard — categorías con producto representativo.
-    Ordenadas por volumen de SKUs activos (las más relevantes primero).
+    """Wizard step-2 rows: categories with a representative product.
+
+    Ordered by active SKU volume so high-traffic CFZ categories appear first.
     """
     rows: list[dict] = []
     cats = (
@@ -1149,9 +1147,9 @@ def buyer_onboarding_category_choices(limit: int = 12) -> list[dict]:
 
 
 def buyer_deep_search_suggestions(profile, limit: int = 4, seed: int = 0) -> list[dict]:
-    """
-    Sugerencias paso 3 — productos/categorías según intereses del comprador.
-    ``seed`` rota el orden al pulsar «Mezclar sugerencias».
+    """Wizard step-3 suggestions from buyer preferred categories.
+
+    ``seed`` reshuffles order when the user taps “Mix suggestions”.
     """
     from django.urls import reverse
 
@@ -1194,9 +1192,9 @@ def buyer_deep_search_suggestions(profile, limit: int = 4, seed: int = 0) -> lis
 
 
 def buyer_recommended_products(profile, limit: int = 20, diverse: int = 5) -> list:
-    """
-    Recomendaciones personalizadas para /tienda/ según categorías preferidas.
-    Fallback a destacados globales si no hay preferencias.
+    """Personalize /tienda/ picks from preferred categories.
+
+    Falls back to global featured SKUs when the buyer has no prefs.
     """
     cat_ids = list(profile.preferred_categories.values_list('pk', flat=True))
     if not cat_ids:

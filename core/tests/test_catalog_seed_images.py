@@ -1,4 +1,8 @@
-"""Bundled catalog seed images — no runtime picsum in production."""
+"""Bundled catalog seed images instead of runtime picsum in production.
+
+Marketplace cards must stay on local CFZ category seeds so demos and
+production never depend on third-party placeholder hosts.
+"""
 from django.test import TestCase, override_settings
 
 from core.models import Category, Company, Product
@@ -18,8 +22,10 @@ from core.utils.demo_product_images import (
     AXES_ENABLED=False,
 )
 class CatalogSeedImageTests(TestCase):
+    """Assert seed mapping, bytes, variants, and optional picsum debug."""
+
     def setUp(self):
-        """Setup."""
+        """Create an electronics product without an uploaded image."""
         self.company = Company.objects.create(name='Seed Co', is_verified=True)
         self.category = Category.objects.create(name='Electronics')
         self.product = Product.objects.create(
@@ -33,29 +39,29 @@ class CatalogSeedImageTests(TestCase):
         )
 
     def test_category_keyword_maps_electronics(self):
-        """Test category keyword maps electronics."""
+        """Electronics products map to the electronics seed keyword."""
         self.assertEqual(category_keyword(self.product), 'electronics')
 
     def test_catalog_seed_bytes_loads_bundled_file(self):
-        """Test catalog seed bytes loads bundled file."""
+        """catalog_seed_bytes loads a non-trivial bundled JPEG payload."""
         data = catalog_seed_bytes('electronics')
         self.assertGreater(len(data), 1000)
 
     def test_product_image_src_uses_catalog_seed_not_picsum(self):
-        """Test product image src uses catalog seed not picsum."""
+        """product_image_src points at catalog-seeds, never picsum.photos."""
         url = product_image_src(self.product)
         self.assertIn('/static/images/catalog-seeds/electronics.jpg', url)
         self.assertNotIn('picsum.photos', url)
 
     def test_category_seed_filter_returns_jpeg_path(self):
-        """Test category seed filter returns jpeg path."""
+        """Category seed template filter returns the electronics JPEG path."""
         self.assertIn(
             '/static/images/catalog-seeds/electronics.jpg',
             product_image_category_seed_src(self.product),
         )
 
     def test_variant_bytes_differs_per_product_pk(self):
-        """Test variant bytes differs per product pk."""
+        """Per-PK crop variants differ so nearby cards do not look identical."""
         others = [
             Product.objects.create(
                 company=self.company,
@@ -75,7 +81,7 @@ class CatalogSeedImageTests(TestCase):
         )
 
     def test_assign_catalog_seed_image_writes_media_file(self):
-        """Test assign catalog seed image writes media file."""
+        """assign_catalog_seed_image persists a products/demo/ media path."""
         rel = assign_catalog_seed_image(self.product)
         self.product.refresh_from_db()
         self.assertEqual(self.product.image.name.replace('\\', '/'), rel)
@@ -83,6 +89,6 @@ class CatalogSeedImageTests(TestCase):
 
     @override_settings(DEBUG=True, TRADEFLOW_USE_PICSUM_RUNTIME=True)
     def test_picsum_enabled_in_debug_when_flag_set(self):
-        """Test picsum enabled in debug when flag set."""
+        """Debug + TRADEFLOW_USE_PICSUM_RUNTIME may still use picsum URLs."""
         url = product_image_src(self.product)
         self.assertIn('picsum.photos', url)

@@ -1,10 +1,7 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/apps.py
-=============================================================================
-Configuración de la aplicación 'core'.
-Opcional: sembrado automático de datos demo tras migrate si la BD está vacía.
-=============================================================================
+"""Django AppConfig for the TradeFlow Colón core application.
+
+Wires post-migrate demo seeding, enterprise/cache signal modules, and
+startup warnings for email and media storage misconfiguration.
 """
 import logging
 import sys
@@ -17,10 +14,7 @@ log = logging.getLogger(__name__)
 
 
 def _maybe_seed_demo(sender, **kwargs):
-    """
-    Tras migraciones de core, si SEED_DEMO_IF_EMPTY está activo y no hay
-    productos, ejecuta cargar_demo para tener catálogo y usuarios de prueba.
-    """
+    """Seed demo catalog after migrate when the product table is empty."""
     if kwargs.get('raw'):
         return
     if sender.name != 'core':
@@ -48,12 +42,14 @@ def _maybe_seed_demo(sender, **kwargs):
 
 
 class CoreConfig(AppConfig):
+    """Register core signals and optional empty-DB demo seeding."""
+
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'core'
     verbose_name = 'TradeFlow Core'
 
     def ready(self):
-        """Ready."""
+        """Connect seed hook and import side-effect signal modules."""
         post_migrate.connect(_maybe_seed_demo, dispatch_uid='tradeflow_core_seed_demo_if_empty')
         from . import signals_enterprise  # noqa: F401
         from . import signals_cache  # noqa: F401
@@ -61,6 +57,7 @@ class CoreConfig(AppConfig):
 
     @staticmethod
     def _log_platform_warnings():
+        """Warn on missing email infra or local-only media in production."""
         if 'runserver' not in sys.argv and 'migrate' not in sys.argv:
             return
         if 'test' in sys.argv or 'pytest' in sys.modules:

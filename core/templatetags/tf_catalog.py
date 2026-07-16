@@ -1,8 +1,7 @@
-"""
-Django template tags — catalog i18n and category display.
+"""Catalog i18n helpers for category labels and language switch URLs.
 
-- ``category_label`` / ``category_icon`` — localized category name and Material icon.
-- ``tf_language_next`` — builds ``next`` URL for ``/i18n/setlang/`` (EN unprefixed, ES /es/).
+Seed categories mix English and Spanish names; filters map them to the
+active UI locale without rewriting the database.
 """
 from django import template
 from core.utils.i18n_urls import tf_translate_url
@@ -13,19 +12,19 @@ register = template.Library()
 
 @register.filter(name='category_label')
 def category_label(value):
-    """Category label."""
+    """Localized category display name for the active UI language."""
     return category_display_name(value)
 
 
 @register.filter(name='category_icon')
 def category_icon(value):
-    """Category icon."""
+    """Material icon name associated with a category label."""
     return category_icon_name(value)
 
 
 @register.simple_tag(takes_context=True)
 def tf_language_next(context, lang_code):
-    """Translate current path to the target language for set_language redirects."""
+    """Build the ``next`` path for ``/i18n/setlang/`` in the target language."""
     request = context.get('request')
     if not request:
         return '/'

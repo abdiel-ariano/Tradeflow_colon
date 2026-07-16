@@ -1,21 +1,7 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — settings.py  (Producción-seguro)
-=============================================================================
-Usa python-decouple para leer variables desde .env en desarrollo
-y desde variables de entorno en Railway (producción).
+"""Django settings for TradeFlow Colón (CFZ B2B marketplace).
 
-SETUP LOCAL (PyCharm):
-  1. pip install -r requirements.txt
-  2. Copia .env.example → .env y rellena los valores
-  3. python manage.py migrate
-  4. python manage.py createsuperuser
-  5. python manage.py runserver
-
-DEPLOY RAILWAY:
-  git push → Railway lee las variables de entorno del panel
-  (Settings → Variables) y despliega automáticamente.
-=============================================================================
+Reads secrets via python-decouple from a repo-root .env locally, or from
+process env on Railway. Defaults favor safe production (DEBUG off).
 """
 from pathlib import Path
 
@@ -25,26 +11,36 @@ from decouple import Config, Csv, RepositoryEmpty
 try:
     from decouple import RepositoryDict
 except ImportError:
-    class RepositoryDict:  # noqa: D106 — compat decouple antiguo
+    class RepositoryDict:
+        """Minimal dict-backed env repository for older python-decouple."""
+
         def __init__(self, mapping):
+            """Store a shallow copy of the key/value mapping."""
             self._data = dict(mapping)
 
         def __contains__(self, key):
+            """Return whether key exists in the mapping."""
             return key in self._data
 
         def __getitem__(self, key):
+            """Return the raw string value for key."""
             return self._data[key]
 
 from django.utils.translation import gettext_lazy as _
 
-# ── Rutas ─────────────────────────────────────────────────────────────────
+# Paths: project root (parent of tradeflow_colon/).
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# .env en la raíz del repo (Windows/PyCharm); en CI sin .env → variables de entorno.
-# utf-8-sig: evita que PowerShell Set-Content -Encoding utf8 rompa SECRET_KEY (BOM).
+# Load .env with utf-8-sig so PowerShell BOM does not corrupt SECRET_KEY.
+# CI / Railway without .env fall through to process environment.
 
 
 def _parse_dotenv(path: Path) -> dict[str, str]:
+    """Parse KEY=VALUE lines from a .env file into a plain dict.
+
+    Skips blanks and comments; strips optional surrounding quotes so
+    Windows editors do not break SECRET_KEY or DATABASE_URL values.
+    """
     data: dict[str, str] = {}
     if not path.is_file():
         return data
@@ -67,23 +63,19 @@ _ENV_FILE = BASE_DIR / '.env'
 _env_vars = _parse_dotenv(_ENV_FILE)
 config = Config(RepositoryDict(_env_vars)) if _env_vars else Config(RepositoryEmpty())
 
-# ── Seguridad ─────────────────────────────────────────────────────────────
-# NUNCA hardcodear esto. Viene del archivo .env o de Railway → Variables.
+# Core security: SECRET_KEY and host allowlist from env (never hardcode).
 SECRET_KEY = config('SECRET_KEY')
 
-# En .env local: DEBUG=True
-# En Railway: DEBUG=False  (o simplemente no definir la variable → default False)
+# Local .env usually sets DEBUG=True; unset on Railway → False.
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# En .env local: ALLOWED_HOSTS=127.0.0.1,localhost
-# En Railway:    ALLOWED_HOSTS=web-production-xxxx.up.railway.app,tu-dominio.com
+# Comma-separated hosts; Railway healthchecks need *.railway.app suffixes.
 ALLOWED_HOSTS = list(config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv()))
-# Healthchecks internos de Railway usan subdominios *.up.railway.app
 for _railway_host in ('.up.railway.app', '.railway.app'):
     if _railway_host not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_railway_host)
 
-# ── Aplicaciones ──────────────────────────────────────────────────────────
+# Django apps: auth stack (axes, allauth) plus core marketplace and analytics.
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -103,10 +95,10 @@ INSTALLED_APPS = [
     'analytics',
 ]
 
-# ── Middleware ─────────────────────────────────────────────────────────────
+# Request pipeline: WhiteNoise, i18n, onboarding gate, CSP/security headers.
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',       # ← sirve static en prod
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # serve static in prod
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'core.middleware.tf_i18n.TfLanguagePrefixRedirectMiddleware',
@@ -126,7 +118,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'tradeflow_colon.urls'
 
-# ── Templates ──────────────────────────────────────────────────────────────
+# Template engine: project templates/ plus marketplace context processors.
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -157,19 +149,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tradeflow_colon.wsgi.application'
 
-# ── Base de datos ──────────────────────────────────────────────────────────
-# SQLite (por defecto): no definas DATABASE_URL en .env
-#
-# PostgreSQL remoto (Supabase, Neon, Railway, etc.):
-#   1. Crea el proyecto en Supabase y copia la URI (Settings → Database → URI).
-#   2. En .env: DATABASE_URL=postgresql://postgres:TU_CONTRASENA@db.ayyukcenmtujsshzoebp.supabase.co:5432/postgres
-#   3. pip install -r requirements.txt   (ya incluye psycopg2-binary y dj-database-url)
-#   4. python manage.py migrate
-#   5. Carga datos una vez: python manage.py cargar_demo  (o fixtures / SQL desde Supabase)
-# Supabase usa SSL; en local con DEBUG=True pon DB_SSL=false si el pooler da error de certificado.
-#
-# DATABASE_URL en Railway: la provee el addon PostgreSQL automáticamente.
-#
+# Database: DATABASE_URL → Postgres (Supabase/Railway); else local SQLite.
+# Set DB_SSL=false locally if the pooler rejects certificates.
 from core.utils.database_url import normalize_database_url
 
 _db_url = normalize_database_url(config('DATABASE_URL', default=''))
@@ -185,13 +166,13 @@ if _db_url:
         _db_cfg.setdefault('OPTIONS', {})
         _db_cfg['OPTIONS']['sslmode'] = config('DB_SSLMODE', default='require')
     _db_cfg.setdefault('OPTIONS', {})
-    # Evita que migrate/gunicorn cuelguen minutos si DATABASE_URL es incorrecta.
+    # Fail fast on bad DATABASE_URL instead of hanging migrate/gunicorn.
     _db_cfg['OPTIONS'].setdefault('connect_timeout', 15)
     DATABASES = {'default': _db_cfg}
     USING_SUPABASE = 'supabase' in _db_url.lower() or 'postgres' in _db_cfg.get('ENGINE', '')
 else:
     USING_SUPABASE = False
-    # Fallback SQLite solo para desarrollo inicial sin PostgreSQL
+    # SQLite fallback for early local work without Postgres.
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -199,15 +180,12 @@ else:
         }
     }
 
-# Indicador para comandos de verificación / logs
+# Short engine label for health/check commands and boot logs.
 DATABASE_ENGINE_LABEL = (
     DATABASES['default'].get('ENGINE', 'unknown').split('.')[-1]
 )
 
-# ── Validación de contraseñas (OWASP A07:2021) ────────────────────────────
-# Endurecido en auditoria 2026-06:
-#   - MinimumLength sube de 8 (default) a 12 caracteres.
-#   - CommonPassword sigue (lista de 20k passwords mas comunes integrada en Django).
+# Password validation (OWASP A07): min length 12 + Django common-password list.
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {
@@ -221,9 +199,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Password-reset magic links (PasswordResetTokenGenerator). Default Django is 3 days.
 PASSWORD_RESET_TIMEOUT = 60 * 15  # 15 minutes
 
-# ── Hashing de contraseñas (OWASP A02:2021) ────────────────────────────────
-# Argon2 ganador del Password Hashing Competition (PHC). Resistente a GPU/ASIC.
-# PBKDF2/BCrypt mantenidos para verificar hashes legacy (Django rehashea al login).
+# Password hashing (OWASP A02): Argon2 first; legacy hashers for rehash-on-login.
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
@@ -232,7 +208,7 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.ScryptPasswordHasher',
 ]
 
-# ── Internationalization ───────────────────────────────────────────────────
+# i18n: English default UI with Spanish; Panama timezone for CFZ ops.
 LANGUAGE_CODE = 'en'
 LANGUAGES = [
     ('en', 'English'),
@@ -244,21 +220,16 @@ USE_L10N      = True
 USE_TZ        = True
 LOCALE_PATHS = [BASE_DIR / 'locale']
 
-# ── Archivos estáticos ─────────────────────────────────────────────────────
+# Static files: collectstatic → staticfiles/; WhiteNoise serves in prod.
 STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-# Cache-bust: production uses WhiteNoise CompressedManifestStaticFilesStorage
-# (content hash in filename, e.g. login.3a80a22efbb7.css). TRADEFLOW_ASSET_VERSION
-# remains for legacy ?v= query params on templates not yet migrated.
+# Manifest hashing in prod; TRADEFLOW_ASSET_VERSION for legacy ?v= params.
 TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='desktop-v11')
-# Runtime picsum URLs in templates (off in production — use bundled catalog seeds).
+# Runtime picsum URLs in templates (off in production — use catalog seeds).
 TRADEFLOW_USE_PICSUM_RUNTIME = config('TRADEFLOW_USE_PICSUM_RUNTIME', default=False, cast=bool)
 
-# ── Cache (páginas públicas / merchandising) ───────────────────────────────
-# REDIS_URL en Railway → compartido entre workers Gunicorn (recomendado).
-# Sin Redis: LocMem por worker (default). USE_DB_CACHE=true + createcachetable
-# para cache compartida en PostgreSQL.
+# Public-page cache TTLs; backend prefers REDIS_URL, else DB or LocMem.
 CACHE_TTL_HOME = config('CACHE_TTL_HOME', default=120, cast=int)
 CACHE_TTL_STATS = config('CACHE_TTL_STATS', default=300, cast=int)
 CACHE_TTL_NAV = config('CACHE_TTL_NAV', default=600, cast=int)
@@ -292,13 +263,13 @@ else:
             }
         }
 
-# ── Archivos de medios (imágenes de productos) ────────────────────────────
+# Media: product images under MEDIA_ROOT; optional local serve when DEBUG=False.
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-# Serve /media/ from MEDIA_ROOT when DEBUG=False but files are stored locally (Docker demo).
+# Serve /media/ from disk when DEBUG=False (Docker demo; not S3-only prod).
 SERVE_LOCAL_MEDIA = config('SERVE_LOCAL_MEDIA', default=DEBUG, cast=bool)
 
-# ── Autenticación ──────────────────────────────────────────────────────────
+# Auth: axes + ModelBackend + allauth (Google / Microsoft / LinkedIn).
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
@@ -361,7 +332,7 @@ SOCIAL_AUTH_ENABLED = bool(
     or (_LINKEDIN_CLIENT_ID and _LINKEDIN_CLIENT_SECRET)
 )
 
-# ── Mensajes flash ─────────────────────────────────────────────────────────
+# Flash messages: map Django levels to Bootstrap-style CSS class names.
 from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.DEBUG:   'debug',
@@ -371,30 +342,26 @@ MESSAGE_TAGS = {
     messages.ERROR:   'danger',
 }
 
-# ── Email ──────────────────────────────────────────────────────────────────
-# Verificación de email activa por defecto (demo/local y producción).
-# Desactivar solo en CI o desarrollo ágil: REQUIRE_EMAIL_VERIFICATION=false en .env
+# Email verification gate; set REQUIRE_EMAIL_VERIFICATION=false for CI/agile.
 REQUIRE_EMAIL_VERIFICATION = config(
     'REQUIRE_EMAIL_VERIFICATION',
     default=False,
     cast=bool,
 )
 
-# ── Seller SaaS trial lifecycle ─────────────────────────────────────────────
-# Duración del trial gratuito Digitalízate y gracia post-trial antes de baja media.
-# Ver core/utils/seller_lifecycle.py para la máquina de estados completa.
+# Seller SaaS trial: free Digitalízate window + post-trial grace before downgrade.
+# State machine lives in core/utils/seller_lifecycle.py.
 SELLER_TRIAL_DAYS = config('SELLER_TRIAL_DAYS', default=30, cast=int)
 SELLER_GRACE_DAYS = config('SELLER_GRACE_DAYS', default=7, cast=int)
 
-# Pagos propios (sin Stripe): mock solo en local/demo.
-# Producción: ALLOW_MOCK_PLAN_PAYMENT=false → solo transferencia bancaria pending.
+# Plan payments without Stripe: mock allowed in DEBUG; prod uses bank transfer.
 ALLOW_MOCK_PLAN_PAYMENT = config(
     'ALLOW_MOCK_PLAN_PAYMENT',
     default=DEBUG,
     cast=bool,
 )
 
-# Datos bancarios mostrados en /mi-tienda/plan/pago/...
+# Bank details shown on /mi-tienda/plan/pago/... for manual plan settlement.
 SELLER_BANK_NAME = config('SELLER_BANK_NAME', default='Banco General')
 SELLER_BANK_ACCOUNT_NAME = config('SELLER_BANK_ACCOUNT_NAME', default='TradeFlow Colón S.A.')
 SELLER_BANK_ACCOUNT_NUMBER = config('SELLER_BANK_ACCOUNT_NUMBER', default='')
@@ -409,24 +376,22 @@ SELLER_BANK_INSTRUCTIONS = config(
     ),
 )
 
-# Cron diario (Railway Cron Job): python manage.py process_seller_subscriptions
-# Schedule sugerido: 0 6 * * * (06:00 UTC)
+# Daily cron: python manage.py process_seller_subscriptions (e.g. 06:00 UTC).
 
-# Solicitud de acceso: en producción exige UserApplication aprobada para rutas operativas.
+# Access gating: require approved UserApplication on operational routes.
 REQUIRE_APPROVED_APPLICATION = config(
     'REQUIRE_APPROVED_APPLICATION',
     default=True,
     cast=bool,
 )
-# Usuarios sin solicitud previa (cuentas antiguas) pueden operar si True.
+# Allow pre-gate legacy accounts to operate when True (defaults with DEBUG).
 ACCESS_GATING_GRANDFATHER_WITHOUT_APPLICATION = config(
     'ACCESS_GATING_GRANDFATHER_WITHOUT_APPLICATION',
     default=DEBUG,
     cast=bool,
 )
 
-# Dashboard KPI ingresos: False = suma órdenes no canceladas (modo pruebas PreExpo);
-# True = solo status=delivered (producción / cierre contable).
+# Dashboard revenue KPI: delivered-only vs all non-cancelled (PreExpo tests).
 DASHBOARD_KPI_REVENUE_DELIVERED_ONLY = config(
     'DASHBOARD_KPI_REVENUE_DELIVERED_ONLY',
     default=False,
@@ -439,7 +404,7 @@ from core.utils.email_config import (
     normalize_project_gmail,
 )
 
-# Correo transaccional vía Resend (core/email_service.py). Consola solo en DEBUG local.
+# Transactional email via Resend (core/email_service.py); console in local DEBUG.
 import os
 
 RESEND_API_KEY = config('RESEND_API_KEY', default=os.environ.get('RESEND_API_KEY', '')).strip()
@@ -469,7 +434,11 @@ PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
 
 
 def _csrf_origins_for_base(base_url: str, extra_origins=None):
-    """Pure helper — apex + www variants for HTTPS CSRF trust."""
+    """Build HTTPS CSRF origins including apex and www variants.
+
+    Railway/Cloudflare frontends may hit either host; Django needs both
+    listed or POSTs fail CSRF checks after redirect.
+    """
     origins = list(extra_origins or [])
     base = (base_url or '').rstrip('/')
     if not base.startswith('http'):
@@ -488,7 +457,7 @@ def _csrf_origins_for_base(base_url: str, extra_origins=None):
 
 
 def _build_csrf_trusted_origins():
-    """HTTPS origins for Django CSRF behind Railway/Cloudflare (www + apex)."""
+    """Merge PUBLIC_BASE_URL variants with CSRF_TRUSTED_ORIGINS from env."""
     return _csrf_origins_for_base(
         PUBLIC_BASE_URL,
         config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv()),
@@ -500,7 +469,7 @@ CSRF_TRUSTED_ORIGINS = _build_csrf_trusted_origins()
 EMAIL_USE_REAL_SMTP = bool(RESEND_API_KEY)
 EMAIL_SMTP_CONFIGURED = EMAIL_USE_REAL_SMTP
 
-# Supabase — Postgres (DATABASE_URL) y Storage (no email; ver RESEND_API_KEY)
+# Supabase: Postgres via DATABASE_URL; Storage via URL + service key (not email).
 SUPABASE_URL = config('SUPABASE_URL', default='').strip()
 SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='').strip()
 SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='').strip()
@@ -512,6 +481,7 @@ SUPABASE_SIGNED_URL_TTL = config('SUPABASE_SIGNED_URL_TTL', default=3600, cast=i
 
 import logging as _logging
 
+# Boot diagnostics for email/Supabase wiring (DEBUG only).
 _boot_log = _logging.getLogger('tradeflow.boot')
 if DEBUG:
     if REQUIRE_EMAIL_VERIFICATION:
@@ -535,6 +505,7 @@ if DEBUG:
     elif 'console' in (EMAIL_BACKEND or '').lower():
         _boot_log.info('Email en consola (DEBUG + EMAIL_BACKEND console).')
 
+# Default storage: filesystem locally; WhiteNoise manifest for static in prod.
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
@@ -563,7 +534,7 @@ if SUPABASE_SERVICE_KEY and SUPABASE_URL:
         },
     }
 
-# Revisores de solicitudes de acceso (lista separada por comas)
+# Access-application reviewers (comma-separated emails, normalized).
 _application_review_raw = config(
     'APPLICATION_REVIEW_EMAILS',
     default=TRADEFLOW_GMAIL_ACCOUNT,
@@ -573,57 +544,54 @@ APPLICATION_REVIEW_EMAILS = [
     normalize_project_gmail(addr) for addr in _application_review_raw if str(addr).strip()
 ] or [TRADEFLOW_GMAIL_ACCOUNT]
 
-# Checkout: True = flujo antiguo (pago inmediato). False = awaiting_seller (PreExpo).
+# Checkout: True = immediate pay; False = awaiting_seller (PreExpo flow).
 CHECKOUT_AUTO_APPROVE = config('CHECKOUT_AUTO_APPROVE', default=False, cast=bool)
 
-# Demo Expo: bypass onboarding gate tras OTP (UserApplication approved + is_active).
+# Expo demo: bypass onboarding gate after OTP (approved + active application).
 EXPO_DEMO_MODE = config('EXPO_DEMO_MODE', default=False, cast=bool)
 
-# ── django-axes (bloqueo por intentos fallidos de login) ──────────────────
+# django-axes: lock after failed logins (username or IP).
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = 'core/bloqueado.html'
 AXES_LOCKOUT_PARAMETERS = [['username'], ['ip_address']]
 
-# ── Seguridad de cookies (todos los entornos) ──────────────────────────────
-# OWASP A05:2021 — aplican siempre, no solo en produccion.
-SESSION_COOKIE_HTTPONLY = True        # JS no puede leer la cookie de sesion
-SESSION_COOKIE_SAMESITE = 'Lax'       # mitiga CSRF basico
-CSRF_COOKIE_HTTPONLY = True           # JS no puede leer la cookie CSRF
+# Cookie hardening (OWASP A05) — applies in all environments.
+SESSION_COOKIE_HTTPONLY = True        # JS cannot read session cookie
+SESSION_COOKIE_SAMESITE = 'Lax'       # basic CSRF mitigation
+CSRF_COOKIE_HTTPONLY = True           # JS cannot read CSRF cookie
 CSRF_COOKIE_SAMESITE = 'Lax'
 
-# Session timeout: expira a las 12 horas de inactividad (sliding window).
-# Reduce ventana de uso de cookies robadas.
-SESSION_COOKIE_AGE = 12 * 60 * 60     # 12 horas en segundos
+# Sliding session: expire after 12h idle; refresh age on each request.
+SESSION_COOKIE_AGE = 12 * 60 * 60     # 12 hours in seconds
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True     # sliding (extiende sesion en cada hit)
+SESSION_SAVE_EVERY_REQUEST = True     # sliding window
 
-# Referrer-Policy (privacy + no leak de URLs internas a sitios externos).
+# Referrer-Policy: avoid leaking internal URLs to third parties.
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
-# ── Seguridad en producción ────────────────────────────────────────────────
-# Estas opciones solo se activan cuando DEBUG=False
+# Production TLS/HSTS/cookie Secure flags (active only when DEBUG=False).
 if not DEBUG:
-    SECURE_SSL_REDIRECT          = True   # fuerza HTTPS
-    SECURE_HSTS_SECONDS          = 31536000  # 1 año de HSTS
+    SECURE_SSL_REDIRECT          = True   # force HTTPS
+    SECURE_HSTS_SECONDS          = 31536000  # 1 year HSTS
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD          = True
-    SESSION_COOKIE_SECURE        = True   # cookie de sesión solo por HTTPS
-    CSRF_COOKIE_SECURE           = True   # cookie CSRF solo por HTTPS
+    SESSION_COOKIE_SECURE        = True   # session cookie HTTPS-only
+    CSRF_COOKIE_SECURE           = True   # CSRF cookie HTTPS-only
     SECURE_BROWSER_XSS_FILTER   = True
     SECURE_CONTENT_TYPE_NOSNIFF  = True
     X_FRAME_OPTIONS              = 'DENY'
-    # El probe interno de Railway llega por HTTP sin X-Forwarded-Proto.
+    # Railway internal probes hit HTTP without X-Forwarded-Proto.
     SECURE_REDIRECT_EXEMPT = [
         r'^health/live/?$',
         r'^health/ready/?$',
     ]
 
-    # Railway usa un proxy inverso — esto confía en su header X-Forwarded-Proto
+    # Trust Railway reverse-proxy HTTPS indicator.
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# ── Logging estructurado (email, media, release) ───────────────────────────
+# Structured console logging for email, auth, media, SaaS, security.
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -645,30 +613,24 @@ LOGGING = {
         'tradeflow.media': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
         'tradeflow.platform': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
         'tradeflow.saas': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
-        # OWASP A09:2021 — log de eventos de seguridad (401/403/429/5xx, admin scans).
-        # En produccion, conectar a Sentry / Datadog / Loki redirigiendo el handler.
+        # OWASP A09: security events (401/403/429/5xx, admin scans).
+        # In production, ship this logger to Sentry/Datadog/Loki.
         'tradeflow.security': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
     },
 }
 
-# ── Campo de clave primaria ────────────────────────────────────────────────
+# Default PK type for new models.
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Si es True, tras migrar la app core y con la tabla de productos vacía, se ejecuta
-# automáticamente el comando cargar_demo (útil en Supabase / Postgres nuevo).
-# Por defecto sigue el valor de DEBUG (True en local .env, False en producción).
-# Fuerza con SEED_DEMO_IF_EMPTY=false o true en .env.
+# After core migrate, run cargar_demo if product table is empty (new Postgres).
+# Defaults to DEBUG; override with SEED_DEMO_IF_EMPTY in .env.
 SEED_DEMO_IF_EMPTY = config('SEED_DEMO_IF_EMPTY', default=DEBUG, cast=bool)
 
-# ── Asistente IA (Groq API gratuita) ───────────────────────────────────────
+# Groq LLM key for the in-app assistant (free-tier API).
 GROQ_API_KEY = config('GROQ_API_KEY', default='')
 GROQ_MODEL = config('GROQ_MODEL', default='llama-3.1-8b-instant')
 
-# ── Analítica IA (app 'analytics') ─────────────────────────────────────────
-# El chat de analítica reutiliza Groq (API compatible con OpenAI). Un modelo
-# más grande que el asistente general para mejor razonamiento sobre datos.
-# El motor (analytics/engine/ai_analyzer.py) lee esta config por variables de
-# entorno; el puente de abajo se las provee sin tocar el código del app.
+# Analytics chat: larger Groq model; bridge env vars for analytics/engine.
 ANALYTICS_LLM_MODEL = config('ANALYTICS_LLM_MODEL', default='llama-3.3-70b-versatile')
 os.environ.setdefault('LLM_BASE_URL', 'https://api.groq.com/openai/v1')
 os.environ.setdefault('LLM_MODEL', ANALYTICS_LLM_MODEL)

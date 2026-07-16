@@ -1,5 +1,7 @@
-"""
-Wizard onboarding comprador — 3 pasos post-registro (intención, categorías, Deep Search).
+"""Buyer onboarding wizard after signup (intent, categories, Deep Search).
+
+New CFZ buyers are guided through preferences before the catalog so
+merchandising and search start from declared wholesale intent.
 """
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
@@ -15,8 +17,10 @@ from core.models import Category, Company, Product, UserProfile
     AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
 )
 class BuyerOnboardingWizardTests(TestCase):
+    """Cover redirect gates, step posts, skip, and grandfathered buyers."""
+
     def setUp(self):
-        """Setup."""
+        """Create a verified buyer still pending onboarding completion."""
         self.client = Client()
         self.user = User.objects.create_user(
             username='new_buyer',
@@ -43,19 +47,19 @@ class BuyerOnboardingWizardTests(TestCase):
         self.client.force_login(self.user)
 
     def test_pending_buyer_redirected_from_tienda_to_step1(self):
-        """Test pending buyer redirected from tienda to step1."""
+        """Pending buyers hitting /tienda/ are sent to onboarding step 1."""
         resp = self.client.get('/tienda/', follow=False)
         self.assertEqual(resp.status_code, 302)
         self.assertIn('/onboarding/comprador', resp['Location'])
 
     def test_step1_renders(self):
-        """Test step1 renders."""
+        """Step 1 renders purchase-intent copy for TradeFlow Colón."""
         resp = self.client.get('/onboarding/comprador/')
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, '¿Para qué estás usando TradeFlow Colón?')
 
     def test_full_wizard_flow(self):
-        """Test full wizard flow."""
+        """Full wizard saves intent/categories and lands on /catalogo/."""
         resp = self.client.post(
             '/onboarding/comprador/paso-1/',
             {'purchase_intent': 'business'},
@@ -87,14 +91,14 @@ class BuyerOnboardingWizardTests(TestCase):
         self.assertIsNotNone(self.profile.onboarding_completed_at)
 
     def test_skip_marks_complete(self):
-        """Test skip marks complete."""
+        """Skipping onboarding still marks the buyer profile complete."""
         resp = self.client.post('/onboarding/comprador/omitir/', follow=False)
         self.assertEqual(resp.status_code, 302)
         self.profile.refresh_from_db()
         self.assertIsNotNone(self.profile.onboarding_completed_at)
 
     def test_grandfathered_buyer_redirected_to_catalog(self):
-        """Test grandfathered buyer redirected to catalog."""
+        """Completed buyers are redirected from /tienda/ to /catalogo/."""
         from django.utils import timezone
 
         self.profile.onboarding_completed_at = timezone.now()

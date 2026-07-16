@@ -1,4 +1,8 @@
-"""Tests for product image regeneration and enterprise seed images."""
+"""Product image assignment and enterprise-year seed media.
+
+Demo catalogs need local media files so CFZ storefronts are not
+blank during expo and operator verify_media checks.
+"""
 from pathlib import Path
 
 from django.conf import settings
@@ -16,8 +20,10 @@ from core.utils.media_storage import local_media_file_exists
 
 
 class RegenerateProductImagesTests(TestCase):
+    """Assert assign_product_image and management commands."""
+
     def setUp(self):
-        """Setup."""
+        """Create a company product ready for image assignment."""
         self.company = Company.objects.create(
             name='Image Test Co',
             ruc='8-IMG-TEST-001',
@@ -36,7 +42,7 @@ class RegenerateProductImagesTests(TestCase):
         )
 
     def test_assign_product_image_writes_file(self):
-        """Test assign product image writes file."""
+        """Write a non-empty productos/ media file for the SKU."""
         rel = assign_product_image(self.product)
         self.assertTrue(rel.startswith('productos/'))
         self.assertTrue(local_media_file_exists(rel))
@@ -44,14 +50,14 @@ class RegenerateProductImagesTests(TestCase):
         self.assertGreater(full.stat().st_size, 0)
 
     def test_regenerate_product_images_command(self):
-        """Test regenerate product images command."""
+        """regenerate_product_images fills product.image paths."""
         call_command('regenerate_product_images', '--limit', '1')
         self.product.refresh_from_db()
         self.assertTrue(self.product.image)
         self.assertTrue(local_media_file_exists(self.product.image.name))
 
     def test_verify_media_command(self):
-        """Test verify media command."""
+        """verify_media runs successfully against assigned files."""
         rel = assign_product_image(self.product)
         self.product.image = rel
         self.product.save(update_fields=['image'])
@@ -59,8 +65,10 @@ class RegenerateProductImagesTests(TestCase):
 
 
 class SeedEnterpriseYearImageTests(TestCase):
+    """Assert seed_enterprise_year --with-images creates media."""
+
     def test_demo_seed_with_images(self):
-        """Test demo seed with images."""
+        """Seed demo companies with product images, then clear."""
         clear_enterprise_year_simulation()
         call_command(
             'seed_enterprise_year',
