@@ -1,16 +1,7 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/decorators.py
-=============================================================================
-Decoradores de control de acceso por rol.
+"""Role and onboarding access decorators for TradeFlow Colón views.
 
-USO en views.py:
-    from .decorators import buyer_required, seller_required, admin_required
-
-    @buyer_required
-    def checkout(request):
-        ...
-=============================================================================
+Gates catalog, cart, checkout, seller portal, and admin routes by login,
+email verification, company onboarding, and SaaS subscription state.
 """
 from functools import wraps
 from urllib.parse import urlencode
@@ -23,6 +14,7 @@ from core.utils.access_gating import onboarding_redirect_name, safe_intent_next
 
 
 def _request_wants_json(request):
+    """Return True when the client expects a JSON error body."""
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return True
     accept = request.headers.get('Accept', '')
@@ -30,7 +22,7 @@ def _request_wants_json(request):
 
 
 def _get_role(user):
-    """Devuelve el rol del usuario o None si no tiene perfil."""
+    """Return the user's profile role, or None if missing."""
     try:
         return user.profile.role
     except Exception:
@@ -38,7 +30,7 @@ def _get_role(user):
 
 
 def _gated_redirect(request, route: str):
-    """Redirige a onboarding/verificación preservando ?next= cuando aplica."""
+    """Redirect to an onboarding route, preserving ``?next=`` for OTP."""
     if route == 'verificar_codigo':
         nxt = safe_intent_next(request)
         if nxt:
@@ -47,7 +39,7 @@ def _gated_redirect(request, route: str):
 
 
 def _enforce_onboarding(request, scope='restricted'):
-    """Redirige si el usuario no cumple requisitos del scope indicado."""
+    """Redirect when the user fails the given onboarding scope."""
     route = onboarding_redirect_name(request.user, scope=scope)
     if route:
         return _gated_redirect(request, route)
@@ -55,10 +47,9 @@ def _enforce_onboarding(request, scope='restricted'):
 
 
 def catalog_access(view_func):
-    """Catálogo y carrito de sesión visibles para invitados y compradores."""
+    """Allow guests and buyers on catalog/cart; send sellers to portal."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        """Wrapper."""
         if not request.user.is_authenticated:
             return view_func(request, *args, **kwargs)
         blocked = _enforce_onboarding(request, scope='browse')
@@ -92,10 +83,9 @@ def catalog_access(view_func):
 
 
 def guest_or_buyer_cart(view_func):
-    """Carrito en sesión: invitados y usuarios autenticados (sin bloqueo por OTP)."""
+    """Allow guests and non-sellers on session cart endpoints."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        """Wrapper."""
         if not request.user.is_authenticated:
             return view_func(request, *args, **kwargs)
         blocked = _enforce_onboarding(request, scope='browse')
@@ -124,10 +114,9 @@ def guest_or_buyer_cart(view_func):
 
 
 def buyer_checkout(view_func):
-    """Checkout: GET permite ver la página con verificación inline; POST exige email."""
+    """Gate checkout: GET uses browse scope; POST requires full verification."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        """Wrapper."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         scope = 'browse' if request.method == 'GET' else 'restricted'
@@ -148,10 +137,9 @@ def buyer_checkout(view_func):
 
 
 def buyer_required(view_func):
-    """Checkout, pedidos y cotizaciones: login + verificación de email."""
+    """Require login and email verification for buyer orders and quotes."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        """Wrapper."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         blocked = _enforce_onboarding(request, scope='restricted')
@@ -171,17 +159,13 @@ def buyer_required(view_func):
 
 
 def seller_required(view_func):
-    """
-    Solo vendedores con empresa y suscripción válida.
+    """Require a seller with company record and valid subscription access.
 
-    Cadena de gates (en orden):
-    1. Login + OTP + onboarding global (access_gating).
-    2. Wizard empresa si falta Company.owner.
-    3. Estado de suscripción (trial/gracia/cancelled) vía seller_portal_access.
+    Gate order: login/OTP/onboarding, then company wizard if missing
+    ``Company.owner``, then trial/grace/cancelled via ``seller_portal_access``.
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        """Wrapper."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         blocked = _enforce_onboarding(request, scope='restricted')
@@ -217,10 +201,9 @@ def seller_required(view_func):
 
 
 def admin_required(view_func):
-    """Solo administradores."""
+    """Restrict the view to staff admins and superusers."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        """Wrapper."""
         if not request.user.is_authenticated:
             return redirect(f'/login/?next={request.path}')
         role = _get_role(request.user)

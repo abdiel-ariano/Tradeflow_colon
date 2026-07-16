@@ -1,5 +1,7 @@
-"""
-Django template tags/filters — tf_brand.
+"""Brand helpers for deterministic company avatar colors.
+
+Storefront cards without logos still need a stable accent so the same
+CFZ seller always renders the same avatar background.
 """
 from django import template
 
@@ -18,7 +20,7 @@ AVATAR_COLORS = (
 
 @register.filter
 def company_avatar_color(company) -> str:
-    """Company avatar color."""
+    """Pick a stable accent hex from company primary key."""
     if not company or not getattr(company, 'pk', None):
         return AVATAR_COLORS[0]
     return AVATAR_COLORS[company.pk % len(AVATAR_COLORS)]

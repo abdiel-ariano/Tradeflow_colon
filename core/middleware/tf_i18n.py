@@ -1,7 +1,8 @@
-"""
-Locale helpers — Django forces LANGUAGE_CODE on unprefixed i18n URLs when
-prefix_default_language=False, ignoring the language cookie. Redirect users
-who chose a non-default language to the prefixed URL (e.g. /es/catalogo/).
+"""Redirect unprefixed i18n URLs to the user's language cookie prefix.
+
+Django forces LANGUAGE_CODE on unprefixed paths when
+``prefix_default_language=False``, ignoring the language cookie. Buyers
+who chose Spanish need ``/es/...`` so catalog copy stays consistent.
 """
 from __future__ import annotations
 
@@ -17,12 +18,12 @@ from core.utils.i18n_urls import tf_translate_url
 
 
 class TfLanguagePrefixRedirectMiddleware(MiddlewareMixin):
-    """Redirect unprefixed paths to the cookie language prefix when needed."""
+    """Align the request path with the language cookie for GET/HEAD."""
 
     response_redirect_class = HttpResponseRedirect
 
     def process_request(self, request):
-        """Process request."""
+        """Redirect when cookie language and URL prefix disagree."""
         if request.method not in ('GET', 'HEAD'):
             return None
 
@@ -35,7 +36,7 @@ class TfLanguagePrefixRedirectMiddleware(MiddlewareMixin):
         cookie_lang = request.COOKIES.get(settings.LANGUAGE_COOKIE_NAME) or settings.LANGUAGE_CODE
 
         if path_lang:
-            # Cookie wants default language but URL still has /es/ prefix (e.g. after EN switch).
+            # Cookie wants default language but URL still has /es/ prefix.
             if (
                 cookie_lang == settings.LANGUAGE_CODE
                 and path_lang != settings.LANGUAGE_CODE

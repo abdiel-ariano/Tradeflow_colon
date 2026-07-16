@@ -1,4 +1,8 @@
-"""Señales enterprise: actualización de uso SaaS."""
+"""Refresh SaaS billing usage when seller orders change.
+
+Order and OrderItem saves update monthly usage counters that gate
+seller plan limits in the CFZ marketplace portal.
+"""
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -7,7 +11,7 @@ from core.models import Order, OrderItem
 
 @receiver(post_save, sender=OrderItem)
 def refresh_billing_on_order_item(sender, instance, **kwargs):
-    """Refresh billing on order item."""
+    """Recompute company billing usage after a non-cancelled line item save."""
     if instance.order.status == 'cancelled':
         return
     try:
@@ -20,7 +24,7 @@ def refresh_billing_on_order_item(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Order)
 def refresh_billing_on_order_status(sender, instance, **kwargs):
-    """Refresh billing on order status."""
+    """Recompute usage for each seller company on the order."""
     if instance.status == 'cancelled':
         return
     try:

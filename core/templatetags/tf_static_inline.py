@@ -1,4 +1,8 @@
-"""Inline static CSS at render time when /static/ links are unavailable."""
+"""Inline static CSS/JS at render time when ``/static/`` links fail.
+
+Useful for CSP-nonce ``<style>`` / ``<script>`` blocks and environments
+where collected static URLs are unavailable during local preview.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -14,6 +18,7 @@ _JS_CACHE: dict[str, str] = {}
 
 
 def _read_static(static_path: str, cache: dict[str, str]) -> str:
+    """Load a static file once via finders and cache the text body."""
     if static_path in cache:
         return cache[static_path]
 
@@ -32,17 +37,13 @@ def _read_static(static_path: str, cache: dict[str, str]) -> str:
 
 @register.simple_tag
 def inline_css(static_path: str) -> str:
-    """
-    Return raw CSS from a static file for embedding in <style nonce="...">.
-
-    Uses staticfiles finders (STATICFILES_DIRS + collected staticfiles).
-    """
+    """Return raw CSS for embedding in a nonce-bearing ``<style>`` tag."""
     content = _read_static(static_path, _CACHE)
     return mark_safe(content) if content else ''
 
 
 @register.simple_tag
 def inline_js(static_path: str) -> str:
-    """Return raw JS from a static file for embedding in <script nonce=\"...\">."""
+    """Return raw JS for embedding in a nonce-bearing ``<script>`` tag."""
     content = _read_static(static_path, _JS_CACHE)
     return mark_safe(content) if content else ''

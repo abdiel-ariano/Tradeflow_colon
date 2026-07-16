@@ -1,13 +1,7 @@
-"""
-Django template tags — product images and media URLs.
+"""Product image URL filters and tags for catalog and home surfaces.
 
-Filters/tags resolve the same image chain as the catalog:
-uploaded file → Supabase URL → AI placeholder WebP → category seed SVG → Picsum.
-
-Usage in templates:
-  {% load tf_media %}
-  {{ product|product_image_src }}
-  {% product_img product "card-image-img" %}
+Resolve the same chain as the catalog: upload → Supabase URL → AI
+placeholder WebP → category seed → optional Picsum fallback.
 """
 from django import template
 from django.templatetags.static import static
@@ -20,7 +14,7 @@ register = template.Library()
 
 @register.simple_tag
 def product_img(product, css_class=''):
-    """Product img."""
+    """Render a lazy-loaded product ``<img>`` with onerror fallback."""
     url = product_image_url(product) or static(PRODUCT_IMAGE_FALLBACK_STATIC)
     name = escape(getattr(product, 'name', 'Product'))
     fallback = static(PRODUCT_IMAGE_FALLBACK_STATIC)
@@ -37,7 +31,7 @@ def product_img(product, css_class=''):
 
 @register.filter
 def product_image_src(product):
-    """Public image URL — upload, AI reference WebP, or category icon SVG."""
+    """Public image URL: upload, AI WebP, seed SVG/JPEG, or Picsum."""
     if not product:
         return ''
     from core.utils.demo_product_images import (
@@ -72,7 +66,7 @@ def product_image_src(product):
 
 @register.filter
 def product_image_is_reference(product):
-    """Product image is reference."""
+    """Return True when the product shows an AI reference placeholder."""
     from core.utils.demo_product_images import product_uses_ai_reference_image
 
     return product_uses_ai_reference_image(product)
@@ -80,7 +74,7 @@ def product_image_is_reference(product):
 
 @register.filter
 def product_image_category_icon_src(product):
-    """Product image category icon src."""
+    """Static category icon SVG path for product image fallbacks."""
     from core.utils.demo_product_images import category_icon_static_path
 
     return static(category_icon_static_path(product)) if product else ''
@@ -88,7 +82,7 @@ def product_image_category_icon_src(product):
 
 @register.filter
 def product_image_category_seed_src(product):
-    """Legacy intermediate fallback for broken remote uploads."""
+    """Legacy seed static path for broken remote upload fallbacks."""
     from core.utils.demo_product_images import catalog_seed_static_path
 
     return static(catalog_seed_static_path(product)) if product else ''
@@ -96,7 +90,7 @@ def product_image_category_seed_src(product):
 
 @register.filter
 def product_image_picsum_src(product):
-    """Product image picsum src."""
+    """Picsum URL when runtime photo placeholders are enabled."""
     from core.utils.demo_product_images import picsum_url, use_runtime_picsum
 
     if not product or not use_runtime_picsum():
@@ -106,7 +100,7 @@ def product_image_picsum_src(product):
 
 @register.filter
 def product_image_object_position(product):
-    """Offset crop focal point so same category seed JPEGs look distinct in grids."""
+    """Vary crop focal point so shared category seeds look distinct."""
     if not product or not getattr(product, 'pk', None):
         return '50% 50%'
     pk = product.pk
@@ -117,13 +111,13 @@ def product_image_object_position(product):
 
 @register.filter
 def catalog_card_image_src(product):
-    """Alias for product cards — same chain as product_image_src."""
+    """Alias for product cards — same chain as ``product_image_src``."""
     return product_image_src(product)
 
 
 @register.filter
 def marketplace_visual_image_src(product):
-    """Home bento / discover — photo-like catalog seeds instead of SVG icons."""
+    """Home bento/discover image URL preferring photo-like seeds."""
     if not product:
         return ''
     from core.utils.demo_product_images import (
