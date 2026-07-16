@@ -1,3 +1,8 @@
+"""Hybrid AI chat engine for TradeFlow seller and staff analytics.
+
+Routes CFZ marketplace questions through fast keyword chart/table paths,
+linear forecasts, offline pandas answers, then NVIDIA NIM LLM fallback.
+"""
 from __future__ import annotations
 import json
 import os
@@ -22,28 +27,24 @@ DEFAULT_LLM_MODEL    = "meta/llama-3.3-70b-instruct"
 
 
 def _base_url() -> str:
+    """OpenAI-compatible LLM base URL (local NIM or NVIDIA cloud)."""
     return os.getenv("LLM_BASE_URL", "").strip() or DEFAULT_LLM_BASE_URL
 
 
 def _llm_api_key(explicit: str = "") -> str:
-    # NIM self-hosted NO exige key (servidor local); el cliente OpenAI sí requiere
-    # un string no vacío, de ahí el placeholder "not-needed".
+    """Resolve API key; local NIM accepts the placeholder 'not-needed'."""
     return (explicit or os.getenv("LLM_API_KEY", "") or os.getenv("NVIDIA_API_KEY", "")
             or "not-needed")
 
 
 def _models() -> list[str]:
-    # El contenedor sirve UN modelo; se admite override y lista separada por comas
-    # (p. ej. para una cadena de fallback contra la API en la nube).
+    """Ordered LLM model ids from LLM_MODEL (comma-separated fallbacks)."""
     raw = os.getenv("LLM_MODEL", "").strip() or DEFAULT_LLM_MODEL
     return [m.strip() for m in raw.split(",") if m.strip()]
 
 
 def _llm_enabled() -> bool:
-    """True si hay un endpoint LLM configurado. Con NIM self-hosted siempre lo
-    hay; si el contenedor no está arriba, la llamada falla y se responde con un
-    aviso amable. Poner LLM_BASE_URL=' ' (vacío tras strip no aplica) no lo apaga:
-    para forzar modo offline, exportar LLM_OFFLINE=1."""
+    """True unless LLM_OFFLINE forces chart/table-only offline mode."""
     return os.getenv("LLM_OFFLINE", "").strip() not in ("1", "true", "True")
 
 # Frases que delatan que el modelo filtró su razonamiento interno (en inglés,
@@ -56,6 +57,7 @@ _REASONING_MARKERS = (
 
 
 def _looks_like_reasoning(text: str) -> bool:
+    """Detect leaked chain-of-thought instead of a final user answer."""
     low = (text or "").lower()
     return sum(1 for m in _REASONING_MARKERS if m in low) >= 2
 
@@ -182,6 +184,7 @@ SYSTEM_PROMPT_EN = (
 
 
 def _system_prompt(lang: str = "es") -> str:
+    """System prompt for LLM answers in Spanish or English."""
     return SYSTEM_PROMPT_EN if lang == "en" else SYSTEM_PROMPT
 
 # ── Palabras clave para detección rápida (sin LLM) ──────────────────────────
@@ -254,7 +257,7 @@ _QUESTION_OVERRIDE_WORDS = (
 
 
 def _detect_intent(text: str) -> str:
-    """Returns 'chart', 'table', or 'question'."""
+    """Classify user text as 'chart', 'table', or 'question'."""
     low = text.lower()
     # "gráfica/barras/pastel..." gana siempre (aunque diga 'top'): 'top' pasa a
     # ser un límite dentro de la gráfica, no un cambio a tabla.
@@ -278,6 +281,7 @@ def _detect_intent(text: str) -> str:
 
 
 def _detect_chart_type(text: str) -> str:
+    """Map keywords to a chart tipo (default barras)."""
     low = text.lower()
     for kw, tipo in _CHART_TYPE_MAP.items():
         if kw in low:
@@ -323,7 +327,7 @@ _CONCEPTS = [
 
 
 def _synonym_map(df: pd.DataFrame) -> dict:
-    """{palabra_usuario: columna_real} para las columnas presentes en df."""
+    """Map user business words to real columns present in df."""
     cols = list(df.columns)
     normcol = {_normalize(c): c for c in cols}
     out: dict = {}
@@ -339,9 +343,8 @@ def _synonym_map(df: pd.DataFrame) -> dict:
 def _find_columns(text: str, df: pd.DataFrame) -> list[str]:
     """Return column names mentioned in text, ordered by position.
 
-    1. Exact substring match on normalized forms ('nombre producto' → 'nombre_producto').
-    2. Business synonyms ('item'→producto, 'ventas'→line_total, etc.).
-    3. Fuzzy fallback for typos via difflib.
+    Exact normalized substring first, then business synonyms, then
+    difflib fuzzy fallback for typos.
     """
     low = _normalize(text)
     norm_map = {col: _normalize(col) for col in df.columns}
@@ -484,7 +487,7 @@ def _apply_filters(df: pd.DataFrame, filtros: dict | None) -> pd.DataFrame:
 
 
 def _cat_columns(df: pd.DataFrame) -> list[str]:
-    """Categóricas para graficar: no numéricas, no fecha, cardinalidad razonable."""
+    """Chartable categoricals: non-numeric/date with modest cardinality."""
     out = []
     for c in df.columns:
         s = df[c]
@@ -504,8 +507,7 @@ _METRIC_HINTS = ("line_total", "total", "ventas", "venta", "monto", "importe",
 
 
 def _primary_metric(num_all: list) -> str | None:
-    """La columna numérica que representa 'dinero/ventas' (para que 'por producto'
-    sea, por defecto, cuánto vendió cada uno — no la frecuencia)."""
+    """Prefer a money/sales numeric column over arbitrary numerics."""
     norm = {c: _normalize(c) for c in num_all}
     for hint in _METRIC_HINTS:
         for c in num_all:
@@ -526,9 +528,7 @@ _DIMENSION_HINTS = ("producto", "product", "articulo", "mercancia", "item",
 
 
 def _primary_dimension(df: pd.DataFrame) -> str | None:
-    """La columna de 'ítem' para rankear (producto/cliente/…). A diferencia de
-    _cat_columns, NO descarta por cardinalidad alta: 'top 10 más vendidos' rankea
-    productos individuales, no la categoría que los agrupa."""
+    """Item column to rank (product/customer), even at high cardinality."""
     text_cols = [c for c in df.columns
                  if not pd.api.types.is_numeric_dtype(df[c])
                  and not pd.api.types.is_datetime64_any_dtype(df[c])]
@@ -558,8 +558,9 @@ def _primary_dimension(df: pd.DataFrame) -> str | None:
 
 
 def _detect_agg(low: str) -> str:
-    # Con límites de palabra: evita que 'min' matchee dentro de 'gaMINg', etc.
+    """Detect sum/mean/max/min/count from normalized user text."""
     def has(*words):
+        """True if any whole-word token appears in low."""
         return any(re.search(rf"(?<![a-z0-9]){w}(?![a-z0-9])", low) for w in words)
     if has("promedio", "media", "mean", "average"):
         return "mean"
@@ -573,11 +574,11 @@ def _detect_agg(low: str) -> str:
 
 
 def _resolve_chart_shape(user_msg: str, df: pd.DataFrame) -> dict:
-    """Extrae *qué* se pide, independiente del tipo de gráfica: dimensión (por qué
-    desglosar), métrica (qué medir), agregación, límite y una 2ª dimensión. Todos
-    los tipos consumen esta misma resolución, así 'top 10 más vendidos', 'pastel
-    según las ventas' y 'treemap por categoría' eligen dimensión/métrica igual —
-    no hay reglas distintas escondidas en cada tipo."""
+    """Resolve dimension, metric, agg, top_N, and secondary dim from text.
+
+    Chart types share this shape so 'top 10 by sales' and 'pie by category'
+    pick the same business columns.
+    """
     low = user_msg.lower()
     mentioned = _find_columns(user_msg, df)
     num_all  = list(df.select_dtypes(include="number").columns)
@@ -629,9 +630,7 @@ def _resolve_chart_shape(user_msg: str, df: pd.DataFrame) -> dict:
 
 
 def _fast_chart_spec(user_msg: str, df: pd.DataFrame) -> dict:
-    """Construye el spec: primero resuelve la 'forma' semántica (dimensión,
-    métrica, agregación, límite) y luego el tipo de gráfica solo coloca esos
-    componentes — el tipo es *cómo* se dibuja, no *qué* se muestra."""
+    """Build a chart tool-spec from keywords without calling the LLM."""
     s = _resolve_chart_shape(user_msg, df)
     tipo = _detect_chart_type(user_msg)
     dim, dim2   = s["dim"], s["dim2"]
@@ -707,6 +706,7 @@ def _fast_chart_spec(user_msg: str, df: pd.DataFrame) -> dict:
 
 
 def _fast_table_spec(user_msg: str, df: pd.DataFrame) -> dict:
+    """Build a table tool-spec (sort/groupby/describe) from keywords."""
     low = user_msg.lower()
     all_mentioned = _find_columns(user_msg, df)
     num_cols = list(df.select_dtypes(include="number").columns)
@@ -749,6 +749,7 @@ def _fast_table_spec(user_msg: str, df: pd.DataFrame) -> dict:
 
 
 def _fmt(v) -> str:
+    """Format numbers for offline chat answers."""
     try:
         if isinstance(v, float):
             return f"{int(v):,}" if v == int(v) else f"{v:,.2f}"
@@ -760,8 +761,7 @@ def _fmt(v) -> str:
 
 
 def _answer_question_offline(df: pd.DataFrame, msg: str, lang: str = "es") -> str | None:
-    """Responde preguntas analíticas comunes con pandas (instantáneo, sin LLM ni
-    tokens). Devuelve None si no la puede contestar (entonces se usa el LLM)."""
+    """Answer common analytic questions with pandas; None → try LLM."""
     low = _normalize(msg)
     mentioned = _find_columns(msg, df)
     num_all = list(df.select_dtypes(include="number").columns)
@@ -948,6 +948,7 @@ def _answer_question_offline(df: pd.DataFrame, msg: str, lang: str = "es") -> st
 
 
 def _build_context(df: pd.DataFrame, max_rows: int = 10) -> str:
+    """Serialize schema, stats, and a sample for the LLM system prompt."""
     lines = [f"Dataset: {df.shape[0]} filas × {df.shape[1]} columnas\n\nColumnas "
              "(usa el nombre real solo para llamar herramientas/filtros; al "
              "escribirle al usuario, referite a la columna por su etiqueta):"]
@@ -970,6 +971,7 @@ def _build_context(df: pd.DataFrame, max_rows: int = 10) -> str:
 
 # ── Chart builder ──────────────────────────────────────────────────────────
 def build_chart_from_spec(df: pd.DataFrame, spec: dict):
+    """Materialize a Plotly figure from a create_chart tool-spec."""
     tipo     = spec.get("tipo", "barras")
     x        = spec.get("x")
     y        = spec.get("y")
@@ -988,6 +990,7 @@ def build_chart_from_spec(df: pd.DataFrame, spec: dict):
     cat_cols = [c for c in cols if df[c].dtype == object or df[c].nunique() < 30]
 
     def valid(c):
+        """Return column name if present in df, else None."""
         return c if c and c in cols else None
 
     x, y, color, agrupar = valid(x), valid(y), valid(color), valid(agrupar)
@@ -1062,6 +1065,7 @@ def build_chart_from_spec(df: pd.DataFrame, spec: dict):
 
 # ── Table builder ──────────────────────────────────────────────────────────
 def build_table_from_spec(df: pd.DataFrame, spec: dict) -> pd.DataFrame | None:
+    """Materialize a DataFrame from a create_table tool-spec."""
     try:
         op     = spec.get("operacion", "sort")
         result = _apply_filters(df.copy(), spec.get("filtros"))
@@ -1128,6 +1132,7 @@ def build_table_from_spec(df: pd.DataFrame, spec: dict) -> pd.DataFrame | None:
 # ── Public API ─────────────────────────────────────────────────────────────
 @lru_cache(maxsize=4)
 def _client(api_key: str = "") -> OpenAI:
+    """Cached OpenAI-compatible client pointed at the configured NIM URL."""
     return OpenAI(
         base_url=_base_url(),
         api_key=_llm_api_key(api_key),
@@ -1137,8 +1142,7 @@ def _client(api_key: str = "") -> OpenAI:
 
 
 def _complete(api_key: str, messages: list, max_tokens: int = 300) -> str:
-    """Texto del LLM con fallback robusto: prueba TODOS los modelos en orden y
-    salta el que falle (404/429/etc.) o devuelva vacío."""
+    """Complete chat text trying each model until one returns usable content."""
     client = _client(api_key)
     last_err = None
     for model in _models():   # normalmente 1 (el del contenedor); N si hay override
@@ -1162,6 +1166,7 @@ def _complete(api_key: str, messages: list, max_tokens: int = 300) -> str:
 
 
 def initial_analysis(df: pd.DataFrame, api_key: str = "") -> str:
+    """Two-sentence LLM overview of a newly loaded dataset."""
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": (
@@ -1182,7 +1187,7 @@ def _recent_user_text(history: list[dict], n: int = 2) -> str:
 
 
 def _prev_was_chart(history: list[dict]) -> bool:
-    """True si la última respuesta del asistente fue una gráfica."""
+    """True when the last assistant turn produced a chart spec."""
     for m in reversed(history):
         if m.get("role") == "assistant":
             return bool(m.get("fig_spec"))
@@ -1194,8 +1199,7 @@ _CORRECTION_WORDS = ("sino", "si no", "en vez", "en lugar", "no la ", "no el ",
 
 
 def _after_connector(text: str) -> str:
-    """Devuelve el texto tras un conector de corrección ('...sino Y' → 'Y').
-    Así 'no la categoría sino los items' se enfoca en 'los items'."""
+    """Keep text after a correction connector ('...sino Y' → 'Y')."""
     low = text.lower()
     best = 0
     for c in ("sino", "si no", "en vez de", "en lugar de", "en vez", "en lugar"):
@@ -1222,6 +1226,7 @@ _RISE_WORDS = ("subiendo", "en alza", "al alza", "despegando", "ganando terreno"
 
 
 def _is_forecast(text: str) -> bool:
+    """True when the user asks for forecasts or rising/falling products."""
     low = _normalize(text)
     return any(w in low for w in _FORECAST_WORDS + _DECLINE_WORDS + _RISE_WORDS)
 
@@ -1229,8 +1234,7 @@ def _is_forecast(text: str) -> bool:
 def _forecast_reply(df: pd.DataFrame, user_message: str, filtros: dict | None = None,
                     lang: str = "es"
                     ) -> tuple[str, object | None, pd.DataFrame | None]:
-    """Proyección de una métrica a futuro, o ranking de productos que suben/bajan.
-    Devuelve (texto, fig, tabla) — texto None si no aplica."""
+    """Forecast a metric or rank rising/falling products for chat."""
     low = _normalize(user_message)
     date_col = forecasting.find_date_column(df)
     if not date_col:
@@ -1303,18 +1307,10 @@ def chat(
     api_key: str = "",
     lang: str = "es",
 ) -> tuple[str, object | None, pd.DataFrame | None]:
-    """Returns (text, plotly_fig | None, dataframe | None).
+    """Route seller/staff chat to forecast, chart, table, or LLM answer.
 
-    Hybrid routing:
-      1. Keyword detection builds charts/tables instantly (no tokens, no latency).
-      2. Natural-language filters ('donde precio > 100', 'solo región Norte')
-         are detected and applied to the fast path.
-      3. Follow-ups inherit context: if the current message names no columns,
-         the previous user message's columns/filters are reused ('ahora en
-         pastel', 'y por categoría').
-      4. If the fast path can't build a result, the LLM with function-calling
-         is used as a fallback (when an API key is available).
-      5. Open questions go straight to the LLM (with recent history).
+    Fast keyword paths handle charts/tables/filters; follow-ups reuse prior
+    columns; open questions use offline pandas then NIM when enabled.
     """
     # Proyección a futuro (crecimiento, ventas futuras, productos que suben/bajan):
     # tiene su propio motor y gana antes del ruteo normal de gráfica/tabla, porque
@@ -1401,6 +1397,7 @@ _NO_KEY_MSG_EN = (
 
 def _answer_with_llm(df: pd.DataFrame, history: list[dict],
                      user_message: str, api_key: str = "", lang: str = "es") -> str:
+    """Plain-text LLM answer with dataset context (no tool calls)."""
     if not _llm_enabled():
         return _NO_KEY_MSG_EN if lang == "en" else _NO_KEY_MSG
     context = _build_context(df, max_rows=8)
@@ -1434,9 +1431,7 @@ def _llm_fallback(
     api_key: str = "",
     lang: str = "es",
 ) -> tuple[str, object | None, pd.DataFrame | None]:
-    """LLM with function-calling. Lets the model pick create_chart /
-    create_table / answer_question. Degrades to plain text if the model
-    doesn't support tools, and returns a friendly error on failure."""
+    """LLM tool-calling fallback for chart/table when fast path fails."""
     if not _llm_enabled():
         if lang == "en":
             return (
@@ -1505,6 +1500,7 @@ def _llm_fallback(
 
 
 def suggest_tables(df: pd.DataFrame, api_key: str = "") -> str:
+    """Ask the LLM which charts and tables would help for this dataset."""
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": (

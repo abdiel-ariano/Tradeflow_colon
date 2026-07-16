@@ -1,12 +1,15 @@
+"""Export helpers for seller analytics downloads (CSV / multi-sheet Excel).
+
+Normalizes Postgres/Supabase types so CFZ sellers can download dashboard
+snapshots without xlsxwriter type failures.
+"""
 from __future__ import annotations
 import io
 import pandas as pd
 
 
 def _excel_safe(df: pd.DataFrame) -> pd.DataFrame:
-    """Convierte tipos que xlsxwriter no soporta (datetimes con zona horaria,
-    dict/list de jsonb, UUID, bytea) a algo escribible. Necesario para datos de
-    Supabase/PostgreSQL."""
+    """Coerce tz-aware datetimes, jsonb, UUID, bytea into Excel-writable forms."""
     df = df.copy()
     for col in df.columns:
         s = df[col]
@@ -21,11 +24,12 @@ def _excel_safe(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def to_csv(df: pd.DataFrame) -> bytes:
+    """Encode a DataFrame as UTF-8-SIG CSV bytes for Excel-friendly download."""
     return df.to_csv(index=False).encode("utf-8-sig")
 
 
 def to_excel(sheets: dict[str, pd.DataFrame]) -> bytes:
-    """Export multiple DataFrames as sheets in a single Excel file."""
+    """Pack multiple DataFrames into one branded multi-sheet Excel workbook."""
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         workbook = writer.book

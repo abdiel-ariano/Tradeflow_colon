@@ -1,8 +1,6 @@
-"""
-Motor de análisis de DataFlow AI — agnóstico al framework.
+"""Framework-agnostic DataFlow analysis engine for TradeFlow Colón.
 
-Estos módulos (carga de datos, generación de tablas, gráficas Plotly y chat
-híbrido con IA) provienen del proyecto independiente DataFlow AI y se reutilizan
-tal cual dentro de Tradeflow Colón. No dependen de Django: reciben/devuelven
-DataFrames de pandas y figuras de Plotly.
+Loaders, Plotly charts, table builders, forecasts, and hybrid AI chat
+accept/return pandas DataFrames — reused inside Django without ORM
+coupling so CFZ seller analytics stay portable.
 """

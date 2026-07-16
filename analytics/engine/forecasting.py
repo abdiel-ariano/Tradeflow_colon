@@ -1,13 +1,9 @@
-"""
-Motor de proyecciones a futuro para Analytics IA.
+"""Sales forecast engine for TradeFlow Analytics IA.
 
-Sin dependencias nuevas (solo numpy + pandas). Entrega proyecciones honestas —
-tendencia lineal por mínimos cuadrados + banda de incertidumbre a partir de los
-residuos — más métricas de negocio (crecimiento %, CAGR) y detección de productos
-en alza / en caída.
-
-Todo es defensivo: devuelve None cuando no hay datos suficientes (mínimo ~3
-períodos) en vez de lanzar excepción, para que el chat degrade con un aviso.
+Uses only numpy + pandas: linear least-squares trend, residual prediction
+bands, growth % / CAGR, and rising/falling product detection for CFZ
+sellers. Returns None when history is thin (~3 periods) so chat degrades
+gracefully instead of raising.
 """
 from __future__ import annotations
 import re
@@ -28,8 +24,7 @@ _DATE_HINTS = ("fecha", "date", "created", "creado", "timestamp", "periodo",
 
 # ── Detección y preparación de la serie ─────────────────────────────────────
 def find_date_column(df: pd.DataFrame) -> str | None:
-    """Primera columna usable como eje temporal: datetime real, o texto/columna
-    parseable a fecha en >60% de sus valores."""
+    """First usable time axis: datetime dtype or >60% parseable date-like."""
     for c in df.columns:
         if pd.api.types.is_datetime64_any_dtype(df[c]):
             return c
@@ -42,6 +37,7 @@ def find_date_column(df: pd.DataFrame) -> str | None:
 
 
 def _to_dt(series: pd.Series) -> pd.Series:
+    """Coerce a series to timezone-naive datetimes."""
     s = pd.to_datetime(series, errors="coerce", utc=True)
     try:
         s = s.dt.tz_localize(None)
@@ -51,7 +47,7 @@ def _to_dt(series: pd.Series) -> pd.Series:
 
 
 def auto_freq(df: pd.DataFrame, date_col: str) -> str:
-    """Granularidad razonable según el rango de fechas de los datos."""
+    """Choose D/W/M/Q resample frequency from the date span."""
     s = _to_dt(df[date_col]).dropna()
     if s.empty:
         return "M"
@@ -66,13 +62,16 @@ def auto_freq(df: pd.DataFrame, date_col: str) -> str:
 
 
 def default_horizon(freq: str) -> int:
+    """Default forecast periods for a resample frequency."""
     return _DEFAULT_HORIZON.get(freq, 6)
 
 
 def parse_horizon(low_text: str) -> tuple[str | None, int | None]:
-    """'próximos 6 meses' / 'next 6 months' → ('M', 6).
-    Devuelve (None, None) si no lo especifica.
-    (low_text ya viene normalizado: sin acentos, minúsculas.)"""
+    """Parse 'next 6 months' / 'proximos 6 meses' into (freq, periods).
+
+    Returns (None, None) when unspecified. low_text is accent-stripped
+    lowercase.
+    """
     m = re.search(
         r"(\d+)\s*(days?|dias?|weeks?|semanas?|months?|mes(?:es)?|"
         r"quarters?|trimestres?|years?|anios?|anos?)",
@@ -109,7 +108,7 @@ def parse_horizon(low_text: str) -> tuple[str | None, int | None]:
 
 def build_series(df: pd.DataFrame, date_col: str, value_col: str | None,
                  freq: str = "M", agg: str = "sum") -> pd.Series | None:
-    """Serie temporal agregada por período. value_col=None → conteo de filas."""
+    """Aggregate a time series by period; value_col=None counts rows."""
     if date_col not in df.columns:
         return None
     cols = [date_col] + ([value_col] if value_col and value_col in df.columns else [])
@@ -131,9 +130,11 @@ def build_series(df: pd.DataFrame, date_col: str, value_col: str | None,
 
 # ── Proyección ──────────────────────────────────────────────────────────────
 def linear_forecast(ts: pd.Series, periods: int = 6) -> dict | None:
-    """Tendencia lineal (mínimos cuadrados) + banda de predicción ~95%.
-    Devuelve history/forecast/low/high (Series) y métricas: slope, r2,
-    growth_pct (histórico total), cagr (por período), proj_growth_pct."""
+    """Fit linear trend plus ~95% prediction band and growth metrics.
+
+    Returns history/forecast/low/high Series and slope, r2, growth_pct,
+    cagr, proj_growth_pct — or None if fewer than 3 periods.
+    """
     y = np.asarray(ts.values, dtype=float)
     n = len(y)
     if n < 3:
@@ -174,6 +175,7 @@ def linear_forecast(ts: pd.Series, periods: int = 6) -> dict | None:
 
 
 def _extend_index(index, periods: int) -> pd.DatetimeIndex:
+    """Build future DatetimeIndex continuing the series frequency."""
     idx = pd.DatetimeIndex(index)
     freq = pd.infer_freq(idx)
     if freq:
@@ -183,11 +185,12 @@ def _extend_index(index, periods: int) -> pd.DatetimeIndex:
 
 
 def _pct(a: float, b: float) -> float | None:
+    """Percent change from a to b, or None when a is zero."""
     return ((b - a) / abs(a) * 100) if a else None
 
 
 def _cagr(y) -> float | None:
-    """Crecimiento compuesto por período entre el primer y el último valor."""
+    """Compound growth per period between first and last positive values."""
     y = np.asarray(y, dtype=float)
     if len(y) < 2 or y[0] <= 0 or y[-1] <= 0:
         return None
@@ -198,8 +201,7 @@ def _cagr(y) -> float | None:
 def item_trends(df: pd.DataFrame, item_col: str, date_col: str,
                 value_col: str | None, freq: str = "M", agg: str = "sum",
                 min_periods: int = 3) -> pd.DataFrame | None:
-    """Por ítem: total, cambio % (1ª mitad vs 2ª mitad del histórico), pendiente
-    y dirección. Base para 'qué productos suben/bajan sus ventas'."""
+    """Per-item total, half-vs-half change %, slope, and direction label."""
     if item_col not in df.columns or date_col not in df.columns:
         return None
     cols = [item_col, date_col] + ([value_col] if value_col and value_col in df.columns else [])
@@ -238,6 +240,7 @@ def item_trends(df: pd.DataFrame, item_col: str, date_col: str,
 
 # ── Resúmenes en lenguaje natural ───────────────────────────────────────────
 def _fmt(v, lang: str = "es") -> str:
+    """Format a numeric forecast metric for prose summaries."""
     try:
         if v is None:
             return "n/a" if lang == "en" else "s/d"
@@ -248,6 +251,7 @@ def _fmt(v, lang: str = "es") -> str:
 
 def forecast_summary(r: dict, label: str, freq: str, periods: int,
                      filtros: dict | None = None, lang: str = "es") -> str:
+    """Build a short natural-language forecast blurb (es|en)."""
     if lang == "en":
         per = _FREQ_LABEL_PL_EN.get(freq, "periods")
         per_one = _FREQ_LABEL_EN.get(freq, "period")
@@ -300,6 +304,7 @@ def forecast_summary(r: dict, label: str, freq: str, periods: int,
 
 def trends_summary(trends: pd.DataFrame, item_col: str, rising: bool,
                    label: str | None = None, n: int = 5, lang: str = "es") -> str:
+    """Summarize top rising or declining products for chat replies."""
     metric = label or ("sales" if lang == "en" else "ventas")
     df = trends.sort_values("cambio_pct", ascending=not rising)
     df = df[df["cambio_pct"] > 0] if rising else df[df["cambio_pct"] < 0]

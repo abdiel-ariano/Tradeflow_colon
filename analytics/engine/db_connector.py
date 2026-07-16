@@ -1,12 +1,12 @@
-"""
-Conexión directa a bases de datos para Analytics IA — PostgreSQL/Supabase y
-MySQL/MariaDB. Detecta el dialecto por la URI:
+"""Read-only DB connectors for Analytics IA (Postgres/Supabase, MySQL).
+
+Dialect is inferred from the URI:
 
     postgresql://user:pass@host:5432/db      -> psycopg2
     mysql://user:pass@host:3306/db           -> pymysql
 
-Cada operación abre y cierra su propia conexión (stateless); solo se guarda la
-cadena de conexión (en caché de servidor, no en cookies). Lectura únicamente.
+Each call opens and closes its own connection (stateless); only the
+connection string is cached server-side. Used for staff multi-source loads.
 """
 from __future__ import annotations
 from urllib.parse import urlparse, unquote, quote
@@ -30,15 +30,16 @@ _LABEL_PREFER = ("name", "nombre", "title", "titulo", "label", "email", "sku",
 
 
 def available() -> bool:
+    """True when at least one DB driver (psycopg2 or pymysql) is installed."""
     return psycopg2 is not None or pymysql is not None
 
 
 def normalize_conn_str(conn_str: str) -> str:
-    """Percent-codifica usuario/contraseña si vienen sin codificar — p. ej. si
-    la contraseña real contiene '@' (muy común: rompe el parseo de la URI
-    porque el host se identifica por el ÚLTIMO '@', y una contraseña con '@'
-    sin codificar hace que se interprete un host equivocado). Idempotente: si
-    ya vienen codificados (%40...), no los toca de más."""
+    """Percent-encode user/password so literal '@' in passwords parses correctly.
+
+    Host is the segment after the last '@'; an unencoded '@' in the
+    password would shift the host. Idempotent when already percent-encoded.
+    """
     s = (conn_str or "").strip()
     if "://" not in s or "@" not in s:
         return s
@@ -62,6 +63,7 @@ def normalize_conn_str(conn_str: str) -> str:
 
 
 def _dialect(conn_str: str) -> str:
+    """Return 'mysql' or 'postgres' from the connection URI scheme."""
     s = (conn_str or "").strip().lower()
     if s.startswith(("mysql://", "mysql+pymysql://", "mariadb://")):
         return "mysql"
@@ -69,23 +71,25 @@ def _dialect(conn_str: str) -> str:
 
 
 def _mysql_db(conn_str: str) -> str:
+    """Database name from a MySQL URI path."""
     return (urlparse(normalize_conn_str(conn_str)).path or "/").lstrip("/")
 
 
 def _resolve_schema(conn_str: str, schema: str) -> str:
-    """En MySQL el 'esquema' es la base de datos: si viene 'public' (default de
-    Postgres) o vacío, se usa la base de la URI."""
+    """Map schema for MySQL (DB name) when callers pass Postgres 'public'."""
     if _dialect(conn_str) == "mysql" and (not schema or schema == "public"):
         return _mysql_db(conn_str)
     return schema or "public"
 
 
 def _q(dialect: str, *idents: str) -> str:
+    """Quote and join SQL identifiers for the active dialect."""
     ch = "`" if dialect == "mysql" else '"'
     return ".".join(f"{ch}{i}{ch}" for i in idents)
 
 
 def _connect(conn_str: str):
+    """Open a DB connection for the URI dialect (caller must close)."""
     s = normalize_conn_str(conn_str)
     if not s:
         raise ValueError("La cadena de conexión está vacía.")
@@ -104,11 +108,13 @@ def _connect(conn_str: str):
 
 
 def _df(cur) -> pd.DataFrame:
+    """Materialize the current cursor result set as a DataFrame."""
     cols = [d[0] for d in cur.description]
     return pd.DataFrame(cur.fetchall(), columns=cols)
 
 
 def test_connection(conn_str: str) -> None:
+    """Raise if the connection string cannot run SELECT 1."""
     conn = _connect(conn_str)
     try:
         with conn.cursor() as cur:
@@ -119,6 +125,7 @@ def test_connection(conn_str: str) -> None:
 
 
 def list_schemas(conn_str: str) -> list[str]:
+    """List non-system schemas (or MySQL databases) available to the user."""
     dia = _dialect(conn_str)
     conn = _connect(conn_str)
     try:
@@ -138,7 +145,7 @@ def list_schemas(conn_str: str) -> list[str]:
 
 
 def list_tables(conn_str: str, schema: str = "public") -> list[dict]:
-    """Tablas y vistas con estimación de filas: [{'name','rows'}]."""
+    """List tables/views with approximate row counts: [{name, rows}]."""
     dia = _dialect(conn_str)
     schema = _resolve_schema(conn_str, schema)
     conn = _connect(conn_str)
@@ -161,7 +168,7 @@ def list_tables(conn_str: str, schema: str = "public") -> list[dict]:
 
 
 def list_foreign_keys(conn_str: str, schema: str = "public") -> list[dict]:
-    """[{'table','column','ref_table','ref_column'}]."""
+    """List FK edges as [{table, column, ref_table, ref_column}]."""
     dia = _dialect(conn_str)
     schema = _resolve_schema(conn_str, schema)
     conn = _connect(conn_str)
@@ -195,6 +202,7 @@ def list_foreign_keys(conn_str: str, schema: str = "public") -> list[dict]:
 
 
 def _columns(conn_str: str, schema: str, table: str) -> list[dict]:
+    """Return [{name, type}] for columns of one table."""
     conn = _connect(conn_str)
     try:
         with conn.cursor() as cur:
@@ -208,6 +216,7 @@ def _columns(conn_str: str, schema: str, table: str) -> list[dict]:
 
 
 def _label_column(conn_str: str, schema: str, table: str, fallback: str) -> str:
+    """Pick a human-friendly text column for JOIN enrichment labels."""
     cols = _columns(conn_str, schema, table)
     text_cols = [c["name"] for c in cols if c["type"] in _TEXT_TYPES]
     for pref in _LABEL_PREFER:
@@ -219,6 +228,7 @@ def _label_column(conn_str: str, schema: str, table: str, fallback: str) -> str:
 
 def read_table(conn_str: str, table: str, schema: str = "public",
                limit: int = 5000) -> pd.DataFrame:
+    """SELECT * from a table/view capped at limit rows."""
     dia = _dialect(conn_str)
     schema = _resolve_schema(conn_str, schema)
     conn = _connect(conn_str)
@@ -232,8 +242,7 @@ def read_table(conn_str: str, table: str, schema: str = "public",
 
 def read_table_joined(conn_str: str, table: str, schema: str = "public",
                       limit: int = 5000) -> pd.DataFrame:
-    """Tabla enriquecida con columnas descriptivas de las tablas que referencia
-    por clave foránea (LEFT JOIN). Si no hay FKs, lee normal."""
+    """Read a table with LEFT JOIN label columns from referenced FK tables."""
     dia = _dialect(conn_str)
     schema = _resolve_schema(conn_str, schema)
     fks = [fk for fk in list_foreign_keys(conn_str, schema) if fk["table"] == table]
@@ -267,6 +276,7 @@ def read_table_joined(conn_str: str, table: str, schema: str = "public",
 
 
 def run_query(conn_str: str, sql: str, max_rows: int = 20000) -> pd.DataFrame:
+    """Run a read SQL statement and return at most max_rows as a DataFrame."""
     if not (sql or "").strip():
         raise ValueError("La consulta SQL está vacía.")
     dia = _dialect(conn_str)

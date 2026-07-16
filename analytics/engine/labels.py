@@ -1,16 +1,12 @@
-"""
-Etiquetas legibles para la UI: convierte nombres internos de columnas/tablas
-(line_total, estado_orden, sum_line_total…) en español natural (Ventas, Estado
-de la orden, Total de ventas…).
+"""Human-readable labels for analytics UI edges (charts, chat, tables).
 
-Se usa SOLO en los bordes de presentación (títulos de gráficas, ejes, texto del
-chat, encabezados de tablas). Nunca renombra el DataFrame de trabajo — la lógica
-sigue usando los nombres reales.
+Maps internal column/metric names (line_total, estado_orden, sum_*) to
+natural Spanish or English without renaming the working DataFrame.
 """
 from __future__ import annotations
 import re
 
-# Nombres compuestos conocidos (esquema Tradeflow y afines)
+# Known compound names (TradeFlow schema and aliases)
 _ALIASES_EN = {
     "line_total": "Sales",
     "total_orden": "Order total",
@@ -59,7 +55,7 @@ _ALIASES = {
     "created_at": "Fecha",
 }
 
-# Tokens sueltos (se traducen palabra por palabra en nombres no conocidos)
+# Loose tokens (word-by-word for unknown names)
 _WORDS = {
     "producto": "producto", "productos": "productos", "product": "producto",
     "categoria": "categoría", "category": "categoría",
@@ -74,18 +70,19 @@ _WORDS = {
     "empresa": "empresa", "company": "empresa", "id": "ID",
 }
 
-# Funciones de agregación → palabra de negocio
+# Aggregation verbs → business wording
 _AGG = {"sum": "Total", "suma": "Total", "mean": "Promedio", "avg": "Promedio",
         "promedio": "Promedio", "max": "Máximo", "maximo": "Máximo",
         "min": "Mínimo", "minimo": "Mínimo", "count": "Conteo", "conteo": "Conteo"}
 
 
 def agg_label(agg: str) -> str:
+    """Map an aggregation verb to a short business label."""
     return _AGG.get(str(agg).strip().lower(), str(agg).capitalize())
 
 
 def pretty(name, lang: str = "es") -> str:
-    """Column/metric name → human label (es|en)."""
+    """Map a column/metric name to a human label (es|en)."""
     if name is None:
         return ""
     s = str(name).strip()

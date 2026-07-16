@@ -1,11 +1,8 @@
-"""
-Vistas de Analytics IA (DataFlow migrado a Django).
+"""Django views for TradeFlow Analytics IA (DataFlow on Django).
 
-- dashboard: página principal (KPIs + gráficas Plotly + tablas + chat).
-- load:      carga datos (archivo / texto / modelo de Tradeflow) → caché de sesión.
-- chat:      endpoint AJAX del chat híbrido (gráficas/tablas/preguntas).
-- clear:     descarta el dataset cargado.
-- export:    descarga CSV o Excel multi-hoja.
+Seller Mi Tienda dashboard auto-loads owner company sales; staff admin
+dashboard supports multi-source load, hybrid chat, forecasts, and export
+for Colon Free Zone marketplace analytics.
 """
 from __future__ import annotations
 import io
@@ -41,15 +38,13 @@ from . import data_source as ds
 MAX_CHART_ROWS = 50_000
 logger = logging.getLogger("analytics")
 
-# En modo standalone (settings.ANALYTICS_STANDALONE) la página corre suelta,
-# sin login ni la base de Tradeflow.
+# Standalone mode (ANALYTICS_STANDALONE): no login / TradeFlow DB required.
 STANDALONE = getattr(settings, "ANALYTICS_STANDALONE", False)
 BASE_TEMPLATE = "analytics/standalone_base.html" if STANDALONE else "core/base.html"
 
 
 def config(key: str, default: str = "") -> str:
-    """Lee una variable de entorno, cargando el .env de BASE_DIR si existe.
-    Reemplaza python-decouple (evita una dependencia extra: dotenv ya está)."""
+    """Read an env var, loading BASE_DIR/.env once if needed (no decouple)."""
     if key not in os.environ:
         try:
             from dotenv import load_dotenv
@@ -61,15 +56,15 @@ def config(key: str, default: str = "") -> str:
 
 
 def _login(view):
-    """login_required salvo en modo standalone."""
+    """Apply login_required unless ANALYTICS_STANDALONE is enabled."""
     return view if STANDALONE else login_required(view)
 
 
 def _staff_required(view):
-    """Herramientas multi-fuente solo para staff/superuser (o standalone).
+    """Restrict multi-source tools to staff/superuser (or standalone).
 
-    Evita que cualquier usuario autenticado use /mi-tienda/analitica/admin/,
-    load de modelos ORM, o db_connect bajo la URL del portal seller.
+    Blocks ordinary sellers from admin dashboard, ORM model load, and
+    db_connect under the seller portal URL.
     """
     if STANDALONE:
         return view
@@ -77,6 +72,7 @@ def _staff_required(view):
     @login_required
     @wraps(view)
     def wrapper(request, *args, **kwargs):
+        """Allow staff through; redirect sellers to embedded analytics."""
         if request.user.is_staff or request.user.is_superuser:
             return view(request, *args, **kwargs)
         from django.contrib import messages as dj_messages
@@ -86,30 +82,33 @@ def _staff_required(view):
 
 
 def _is_staff_user(user) -> bool:
+    """True when the user is staff or superuser."""
     return bool(getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
 
 
 def _api_key() -> str:
-    # NIM self-hosted no requiere key (el motor usa "not-needed"); esta se usa
-    # solo si apuntas a la API en la nube de NVIDIA (NVIDIA_API_KEY).
+    """NVIDIA/LLM API key for cloud NIM; empty for local self-hosted."""
+    # Self-hosted NIM needs no key (engine uses "not-needed"); this is for
+    # NVIDIA cloud API (NVIDIA_API_KEY).
     return config("NVIDIA_API_KEY", default="") or config("LLM_API_KEY", default="")
 
 
 @lru_cache(maxsize=1)
 def _plotlyjs() -> str:
+    """Cached Plotly.js bundle for offline serving."""
     from plotly.offline import get_plotlyjs
     return get_plotlyjs()
 
 
 def plotlyjs(request):
-    """Sirve plotly.js empaquetado con la librería (sin depender del CDN)."""
+    """Serve bundled Plotly.js so dashboards work without a CDN."""
     resp = HttpResponse(_plotlyjs(), content_type="application/javascript")
     resp["Cache-Control"] = "public, max-age=86400"
     return resp
 
 
 def _is_dark(request) -> bool:
-    """Tema activo: ?theme=dark|light lo fija en sesión; persiste entre cargas."""
+    """Resolve dark theme from ?theme= and persist it in the session."""
     choice = request.GET.get("theme")
     if choice in ("dark", "light"):
         request.session["analytics_theme"] = choice
@@ -118,11 +117,10 @@ def _is_dark(request) -> bool:
 
 # ── Dashboard ────────────────────────────────────────────────────────────────
 def _auto_connect_db(request) -> str | None:
-    """En modo standalone, si hay ANALYTICS_DB_URL en el entorno y aún no hay
-    conexión, conecta automáticamente (para no pegar la URI en cada arranque).
-    Devuelve un mensaje de error si el intento falla (para avisar en pantalla en
-    vez de fallar en silencio — antes solo quedaba en el log del servidor), o
-    None si no hacía falta conectar o si conectó bien."""
+    """Standalone: auto-connect ANALYTICS_DB_URL when no DB is cached yet.
+
+    Returns an error string for the UI if connect fails; None on skip/success.
+    """
     if not STANDALONE or ds.get_db(request):
         return None
     uri = config("ANALYTICS_DB_URL", default="")
@@ -145,6 +143,7 @@ def _auto_connect_db(request) -> str | None:
 
 @_staff_required
 def dashboard(request):
+    """Staff multi-source Analytics dashboard (KPIs, charts, chat, DB)."""
     db_auto_error = _auto_connect_db(request)
     df, meta = ds.get_df(request)
     dark = _is_dark(request)
@@ -177,11 +176,10 @@ def dashboard(request):
 
 
 def _load_seller_company_df(request):
-    """Ventas (OrderItem unido) de la empresa del usuario con sesión iniciada.
+    """Load joined OrderItem sales for the signed-in seller's company.
 
-    Devuelve (df, company, load_meta). NUNCA usa un id del request: solo la
-    empresa que el usuario posee (Company.owner) → sin fuga cross-tenant.
-    load_meta incluye truncated/total_rows/limit para avisar en UI.
+    Returns (df, company, load_meta). Never trusts a company id from the
+    request — only Company.owner — to prevent cross-tenant leaks.
     """
     company = ds.company_for_user(request.user)
     if not company:
@@ -197,11 +195,11 @@ def _load_seller_company_df(request):
 
 @seller_required
 def seller_dashboard(request):
-    """Analítica IA embebida en el portal del vendedor (Mi Tienda).
+    """Embedded Mi Tienda Analytics IA for the signed-in CFZ seller.
 
-    Auto-carga SOLO las ventas de la empresa del vendedor con sesión iniciada
-    (fresco desde el ORM en cada visita → consistente aunque haya varios workers
-    Gunicorn con caché LocMem). Sin fuentes de datos arbitrarias (archivo/BD/SQL)."""
+    Reloads owner company sales from the ORM each visit (safe under multi-
+    worker LocMem). No arbitrary file/DB/SQL sources for sellers.
+    """
     dark = _is_dark(request)
     ctx = {
         "base_template": "core/seller_layout.html",
@@ -235,10 +233,11 @@ def seller_dashboard(request):
 
 
 def _company_context(request, db: dict | None) -> dict:
-    """El sistema grafica datos de UNA empresa: la del usuario con sesión
-    iniciada (Company.owner), o cualquiera si es admin/superuser (pruebas).
-    En modo standalone no hay login real de Tradeflow: se ofrece el selector
-    solo si la BD conectada tiene el esquema de Tradeflow."""
+    """Build company picker context for staff/standalone company-scoped loads.
+
+    Sellers get their owned company; staff may pick any; standalone shows
+    companies only when the connected DB has TradeFlow schema.
+    """
     empty = {"company_mode": None, "companies": [], "my_company": None, "is_company_admin": False}
     if STANDALONE:
         if db and ds.sql_has_tradeflow_schema(db["tables"]):
@@ -266,7 +265,7 @@ _PER_PL = {"D": "días", "W": "semanas", "M": "meses", "Q": "trimestres", "Y": "
 
 def _auto_projections(d, dark: bool = False, metric: str | None = None,
                       item: str | None = None, money: bool = True, lang: str = "es"):
-    """Auto forecasts: main metric chart + up to 3 tables. Empty if no date col."""
+    """Build auto forecast chart plus rising/falling product tables."""
     charts, tables = [], []
     date_col = forecasting.find_date_column(d)
     num_cols = list(d.select_dtypes(include="number").columns)
@@ -353,6 +352,7 @@ def _auto_projections(d, dark: bool = False, metric: str | None = None,
             tr = None
         if tr is not None and not tr.empty:
             def _tbl(t):
+                """Format a rising/falling product table as HTML."""
                 x = t[[item, "total", "cambio_pct"]].copy()
                 x["total"] = x["total"].map(fmt)            # formatear ANTES de renombrar
                 x["cambio_pct"] = x["cambio_pct"].map(lambda v: f"{v:+.0f}%")
@@ -385,6 +385,7 @@ def _auto_projections(d, dark: bool = False, metric: str | None = None,
 
 
 def _dashboard_context(df, dark: bool = False) -> dict:
+    """Generic multi-source dashboard KPIs, auto-charts, and forecasts."""
     num_cols = tg.detect_numeric_columns(df)
     cat_cols = tg.detect_categorical_columns(df)
     nulls = int(df.isnull().sum().sum())
@@ -428,7 +429,7 @@ def _dashboard_context(df, dark: bool = False) -> dict:
 
 
 def _company_dashboard_context(df, dark: bool = False, lang: str = "es") -> dict:
-    """Business dashboard for one company. lang=en for seller portal English UI."""
+    """CFZ company sales KPIs, charts, and forecasts (lang=en for sellers)."""
     d = df.copy()
     if "fecha" in d.columns:
         try:
@@ -464,6 +465,7 @@ def _company_dashboard_context(df, dark: bool = False, lang: str = "es") -> dict
     charts: list[dict] = []
 
     def add(title, fn):
+        """Append a themed chart JSON; skip failures without aborting."""
         try:
             fig = fn()
             if fig is not None:
@@ -524,6 +526,7 @@ def _company_dashboard_context(df, dark: bool = False, lang: str = "es") -> dict
 @_staff_required
 @require_POST
 def load(request):
+    """Load file/paste/ORM/DB data into the session working DataFrame."""
     source = request.POST.get("source")
     ds.clear_excel(request)   # cualquier carga nueva resetea el selector de hoja
     try:
@@ -608,6 +611,7 @@ def load(request):
 @_staff_required
 @require_POST
 def clear(request):
+    """Discard the session dataset and cached Excel workbook."""
     ds.clear_df(request)
     ds.clear_excel(request)
     messages.info(request, "Datos descartados.")
@@ -617,7 +621,7 @@ def clear(request):
 @_staff_required
 @require_POST
 def load_sheet(request):
-    """Recarga otra hoja del último Excel subido (sin volver a subirlo)."""
+    """Switch the working sheet from the cached multi-sheet Excel upload."""
     info = ds.get_excel(request)
     sheet = request.POST.get("sheet")
     try:
@@ -641,6 +645,7 @@ def load_sheet(request):
 @_staff_required
 @require_POST
 def load_company(request):
+    """Load one CFZ company's sales into the staff analytics session."""
     try:
         company_id = int(request.POST.get("company_id"))
     except (TypeError, ValueError):
@@ -682,6 +687,7 @@ def load_company(request):
 @_staff_required
 @require_POST
 def db_connect(request):
+    """Test and cache a read-only Postgres/MySQL connection for staff loads."""
     conn_str = db_connector.normalize_conn_str(request.POST.get("conn", ""))
     schema = request.POST.get("schema") or "public"
     try:
@@ -708,6 +714,7 @@ def db_connect(request):
 @_staff_required
 @require_POST
 def db_disconnect(request):
+    """Clear the cached database connection from the session."""
     ds.clear_db(request)
     messages.info(request, "Desconectado de la base de datos.")
     return redirect("analytics:dashboard")
@@ -717,8 +724,11 @@ def db_disconnect(request):
 @_login
 @require_POST
 def chat(request):
-    # Non-staff sellers: always bind chat to their company sales (never reuse
-    # a stale multi-source cache left by /admin/ tooling).
+    """Hybrid AJAX chat: charts, tables, forecasts, and LLM Q&A.
+
+    Non-staff sellers always bind to their company sales (never a stale
+    multi-source cache from /admin/ tooling).
+    """
     seller_ui = not STANDALONE and not _is_staff_user(request.user)
     ui_lang = "en" if seller_ui else "es"
     if seller_ui:
@@ -772,6 +782,7 @@ def chat(request):
 # ── Exportación ──────────────────────────────────────────────────────────────
 @_login
 def export(request, fmt):
+    """Download CSV or multi-sheet Excel of the active analytics dataset."""
     if not STANDALONE and not _is_staff_user(request.user):
         df, company, load_meta = _load_seller_company_df(request)
         if df is None or df.empty:

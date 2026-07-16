@@ -1,7 +1,7 @@
-"""Presentation helpers for Analytics tables (pandas → HTML with semantics).
+"""Presentation helpers for Analytics tables (pandas → semantic HTML).
 
-Keeps the DataFrame engine untouched: only formats the display edge for
-seller/staff dashboards and chat bubbles.
+Keeps the DataFrame engine untouched: formats only the display edge for
+seller/staff dashboards and chat bubbles in the CFZ marketplace UI.
 """
 from __future__ import annotations
 import re
@@ -11,6 +11,7 @@ import pandas as pd
 
 
 def _is_delta_series(s: pd.Series) -> bool:
+    """True when most non-null values look like percentage deltas (+12%)."""
     if s.dtype == object or str(s.dtype).startswith("string"):
         sample = s.dropna().astype(str).head(20)
         if sample.empty:
@@ -20,6 +21,7 @@ def _is_delta_series(s: pd.Series) -> bool:
 
 
 def _is_numeric_look(s: pd.Series) -> bool:
+    """True for numeric dtypes or string cells that look like money/percents."""
     if pd.api.types.is_numeric_dtype(s):
         return True
     sample = s.dropna().astype(str).head(20)
@@ -29,6 +31,7 @@ def _is_numeric_look(s: pd.Series) -> bool:
 
 
 def _cell(val, delta: bool = False) -> str:
+    """Escape a cell; wrap delta values with up/down/flat tone spans."""
     text = "" if val is None or (isinstance(val, float) and pd.isna(val)) else str(val)
     if not delta:
         return escape(text)
@@ -48,7 +51,7 @@ def dataframe_html(
     delta_cols: list[str] | None = None,
     max_rows: int = 200,
 ) -> str:
-    """Render a DataFrame as a compact, semantic HTML table."""
+    """Render a DataFrame as a compact, semantic HTML table for dashboards."""
     if df is None or df.empty:
         return ""
     view = df.head(int(max_rows)).copy()
