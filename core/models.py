@@ -1,8 +1,9 @@
-"""Core ORM for TradeFlow Colón CFZ B2B marketplace.
+"""ORM principal de TradeFlow Colón — marketplace B2B de la Zona Libre de Colón (ZLC).
 
-Models cover seller companies, catalog inventory, buyer orders, RFQ quotes,
-carriers, and auth tokens. Enterprise SaaS/ads/API tables re-export from
-``enterprise_models`` so ``from core.models import …`` stays the single entry.
+Incluye empresas vendedoras, catálogo e inventario, pedidos de compradores,
+cotizaciones RFQ, transportistas y tokens de autenticación. Las tablas
+empresariales de SaaS, anuncios y API se reexportan desde ``enterprise_models``
+para que ``from core.models import …`` siga siendo el punto de entrada único.
 """
 from decimal import Decimal
 import random
@@ -21,11 +22,12 @@ import uuid
 # =============================================================================
 
 class UserProfile(models.Model):
-    """Extend Django User with CFZ marketplace role and buyer prefs.
+    """Extiende el ``User`` de Django con rol y preferencias del comprador en la ZLC.
 
-    One-to-one with User. Role drives portal access (buyer/seller/admin/
-    carrier). Cart snapshots power abandonment reminders; onboarding fields
-    personalize the post-signup wizard.
+    Relación uno a uno con ``User``. El rol controla el acceso al portal
+    (comprador/vendedor/admin/transportista). Las instantáneas del carrito
+    alimentan recordatorios de abandono; los campos de onboarding personalizan
+    el asistente posterior al registro.
     """
     ROLE_CHOICES = [
         ('buyer',  _('Buyer')),
@@ -100,22 +102,22 @@ class UserProfile(models.Model):
     )
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para el perfil de usuario en el admin."""
         verbose_name        = 'User profile'
         verbose_name_plural = 'User profiles'
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Etiqueta corta del perfil para admin y depuración."""
         return f'{self.user.get_full_name() or self.user.username} [{self.get_role_display()}]'
 
     @property
     def email_verified(self) -> bool:
-        """Expose English alias; value lives in ``email_verificado``."""
+        """Alias en inglés; el valor persiste en ``email_verificado``."""
         return self.email_verificado
 
     @email_verified.setter
     def email_verified(self, value: bool) -> None:
-        """Set the persisted Spanish-named verification flag."""
+        """Asigna el flag de verificación persistido como ``email_verificado``."""
         self.email_verificado = value
 
 
@@ -124,10 +126,11 @@ class UserProfile(models.Model):
 # =============================================================================
 
 class Company(models.Model):
-    """CFZ seller company storefront and verification record.
+    """Empresa vendedora de la ZLC: vitrina y registro de verificación.
 
-    Products belong to a Company. ``owner`` is the seller who runs Mi Tienda.
-    Verification and featured flags drive trust badges and home carousels.
+    Los productos pertenecen a una ``Company``. ``owner`` es el vendedor que
+    administra Mi Tienda. Los flags de verificación y destacados impulsan
+    insignias de confianza y carruseles del home.
     """
     name         = models.CharField(max_length=200, verbose_name='Company name')
     ruc          = models.CharField(max_length=50, blank=True, verbose_name='RUC / Registration')
@@ -177,13 +180,13 @@ class Company(models.Model):
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para empresas vendedoras en el admin."""
         verbose_name        = 'Company'
         verbose_name_plural = 'Companies'
         ordering            = ['name']
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Nombre de la empresa para admin y depuración."""
         return self.name
 
 
@@ -192,17 +195,17 @@ class Company(models.Model):
 # =============================================================================
 
 class Category(models.Model):
-    """Catalog category for CFZ product browsing and filters."""
+    """Categoría del catálogo para navegación y filtros en la ZLC."""
     name = models.CharField(max_length=100, unique=True, verbose_name='Name')
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para categorías del catálogo."""
         verbose_name        = 'Category'
         verbose_name_plural = 'Categories'
         ordering            = ['name']
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Nombre de la categoría para admin y depuración."""
         return self.name
 
 
@@ -211,10 +214,11 @@ class Category(models.Model):
 # =============================================================================
 
 class HomePromoSection(models.Model):
-    """Configurable home landing block without redeploy.
+    """Bloque configurable del home sin redeploy.
 
-    Ops schedule PreExpo/campaign rows (deals, spotlights, banners) via
-    admin; merchandising resolves products from type and M2M links.
+    Operaciones programa filas PreExpo/campañas (ofertas, destacados, banners)
+    desde el admin; el merchandising resuelve productos según el tipo y los
+    vínculos M2M.
     """
 
     SECTION_TYPES = [
@@ -261,23 +265,23 @@ class HomePromoSection(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para secciones promocionales del home."""
         verbose_name = _('Home promotional section')
         verbose_name_plural = _('Home promotional sections')
         ordering = ['sort_order', 'slug']
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Título o slug de la sección promocional."""
         return self.title_es or self.slug
 
     def title_for_lang(self, lang_code: str) -> str:
-        """Return ES/EN title for the active UI locale."""
+        """Devuelve el título ES/EN según el idioma activo de la UI."""
         if lang_code == 'en' and self.title_en:
             return self.title_en
         return self.title_es
 
     def subtitle_for_lang(self, lang_code: str) -> str:
-        """Return ES/EN subtitle for the active UI locale."""
+        """Devuelve el subtítulo ES/EN según el idioma activo de la UI."""
         if lang_code == 'en' and self.subtitle_en:
             return self.subtitle_en
         return self.subtitle_es
@@ -288,10 +292,11 @@ class HomePromoSection(models.Model):
 # =============================================================================
 
 class Product(models.Model):
-    """CFZ catalog SKU owned by a seller Company.
+    """SKU del catálogo ZLC perteneciente a una ``Company`` vendedora.
 
-    Linked 1:1 to Inventory for stock. Promo windows and merchandising
-    priority shape public home/deals surfaces without changing list price.
+    Vinculado 1:1 con ``Inventory`` para el stock. Ventanas promocionales y
+    prioridad de merchandising dan forma al home y a las ofertas públicas
+    sin alterar el precio de lista.
     """
     CURRENCY_CHOICES = [
         ('USD', _('US Dollar (USD)')),
@@ -332,18 +337,18 @@ class Product(models.Model):
     created_at  = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para productos del catálogo."""
         verbose_name        = 'Product'
         verbose_name_plural = 'Products'
         ordering            = ['-merchandising_priority', 'name']
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Nombre y precio del producto para admin y depuración."""
         return f'{self.name} — {self.currency} {self.unit_price}'
 
     @property
     def is_on_promo_now(self) -> bool:
-        """True when promo price is live and below list price."""
+        """True cuando el precio promo está vigente y es menor al de lista."""
         if self.promo_price is None or self.promo_price >= self.unit_price:
             return False
         now = timezone.now()
@@ -355,14 +360,14 @@ class Product(models.Model):
 
     @property
     def display_price(self) -> Decimal:
-        """Buyer-facing unit price (promo when active, else list)."""
+        """Precio unitario visible al comprador (promo si aplica; si no, lista)."""
         if self.is_on_promo_now:
             return self.promo_price
         return self.unit_price
 
     @property
     def discount_pct(self) -> int:
-        """Whole-percent savings vs list while a promo is active."""
+        """Ahorro en porcentaje entero frente al precio de lista mientras hay promo."""
         if not self.is_on_promo_now or self.unit_price <= 0:
             return 0
         pct = (Decimal('1') - (self.promo_price / self.unit_price)) * Decimal('100')
@@ -370,14 +375,14 @@ class Product(models.Model):
 
     @property
     def stock_qty(self):
-        """Total on-hand units from related Inventory (0 if missing)."""
+        """Unidades en mano desde el ``Inventory`` relacionado (0 si no existe)."""
         if hasattr(self, 'inventory'):
             return self.inventory.stock_qty
         return 0
 
     @property
     def available_qty(self):
-        """Sellable units: stock minus reserved."""
+        """Unidades vendibles: stock menos reservado."""
         if hasattr(self, 'inventory'):
             return max(0, self.inventory.stock_qty - self.inventory.reserved_qty)
         return 0
@@ -388,10 +393,11 @@ class Product(models.Model):
 # =============================================================================
 
 class Inventory(models.Model):
-    """Per-SKU stock control for CFZ warehouse availability.
+    """Control de stock por SKU para disponibilidad en bodega ZLC.
 
-    One-to-one with Product. Reservations hold units on order create;
-    confirm_sale commits on payment; release restores cancelled holds.
+    Uno a uno con ``Product``. Las reservas retienen unidades al crear el
+    pedido; ``confirm_sale`` confirma al pagar; ``release_reservation``
+    libera cancelaciones.
     """
     product         = models.OneToOneField(
         Product, on_delete=models.CASCADE,
@@ -403,26 +409,26 @@ class Inventory(models.Model):
     updated_at      = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para inventario por SKU."""
         verbose_name        = 'Inventory'
         verbose_name_plural = 'Inventories'
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Resumen de stock del producto para admin y depuración."""
         return f'Inventario: {self.product.name} | Stock: {self.stock_qty}'
 
     @property
     def available(self):
-        """Units free to sell after subtracting reservations."""
+        """Unidades libres para vender tras restar reservas."""
         return max(0, self.stock_qty - self.reserved_qty)
 
     @property
     def is_low_stock(self):
-        """True when available stock is at or below the alert threshold."""
+        """True cuando el stock disponible está en o bajo el umbral de alerta."""
         return self.available <= self.low_stock_alert
 
     def reserve(self, qty):
-        """Hold units when an order is placed (no stock decrement yet)."""
+        """Retiene unidades al colocar un pedido (aún no descuenta stock)."""
         if self.available >= qty:
             self.reserved_qty += qty
             self.save(update_fields=['reserved_qty', 'updated_at'])
@@ -430,13 +436,13 @@ class Inventory(models.Model):
         return False
 
     def confirm_sale(self, qty):
-        """Commit reserved units after payment confirmation."""
+        """Confirma unidades reservadas tras la confirmación del pago."""
         self.stock_qty   = max(0, self.stock_qty - qty)
         self.reserved_qty = max(0, self.reserved_qty - qty)
         self.save(update_fields=['stock_qty', 'reserved_qty', 'updated_at'])
 
     def release_reservation(self, qty):
-        """Free a reservation when an order is cancelled."""
+        """Libera una reserva cuando se cancela un pedido."""
         self.reserved_qty = max(0, self.reserved_qty - qty)
         self.save(update_fields=['reserved_qty', 'updated_at'])
 
@@ -446,7 +452,7 @@ class Inventory(models.Model):
 # =============================================================================
 
 class Address(models.Model):
-    """Buyer shipping address used at CFZ checkout."""
+    """Dirección de envío del comprador usada en el checkout de la ZLC."""
     user        = models.ForeignKey(
         User, on_delete=models.CASCADE,
         related_name='addresses', verbose_name='User'
@@ -460,16 +466,16 @@ class Address(models.Model):
     is_default  = models.BooleanField(default=False, verbose_name='Default?')
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para direcciones de envío."""
         verbose_name        = 'Address'
         verbose_name_plural = 'Addresses'
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Etiqueta corta de la dirección para admin y depuración."""
         return f'{self.label or "Address"} — {self.city}, {self.country}'
 
     def save(self, *args, **kwargs):
-        """Ensure only one default address per buyer."""
+        """Asegura una sola dirección predeterminada por comprador."""
         if self.is_default:
             Address.objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
         super().save(*args, **kwargs)
@@ -480,7 +486,7 @@ class Address(models.Model):
 # =============================================================================
 
 class TransportCarrier(models.Model):
-    """Checkout carrier option for ZLC outbound logistics."""
+    """Opción de transportista en checkout para logística de salida de la ZLC."""
 
     MODE_CHOICES = [
         ('maritime', _('Maritime')),
@@ -508,18 +514,18 @@ class TransportCarrier(models.Model):
     )
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para transportistas de checkout."""
         verbose_name = 'Transport carrier'
         verbose_name_plural = 'Transport carriers'
         ordering = ['sort_order', 'name']
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Nombre del transportista para admin y depuración."""
         return self.name
 
 
 class UserApplication(models.Model):
-    """Access request for buyer/seller onboarding (PreExpo / investors)."""
+    """Solicitud de acceso para onboarding comprador/vendedor (PreExpo / inversionistas)."""
     ROLE_CHOICES = [
         ('buyer', _('Buyer')),
         ('seller', _('Seller')),
@@ -555,27 +561,28 @@ class UserApplication(models.Model):
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para solicitudes de acceso."""
         verbose_name = 'Access request'
         verbose_name_plural = 'Access requests'
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        """Assign a unique review token on first save."""
+        """Asigna un ``review_token`` único en el primer guardado."""
         if not self.review_token:
             self.review_token = uuid.uuid4().hex
         super().save(*args, **kwargs)
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Resumen de la solicitud de acceso para admin y depuración."""
         return f'{self.full_name} — {self.email} ({self.get_status_display()})'
 
 
 class Order(models.Model):
-    """Buyer purchase header spanning CFZ B2B and B2C checkouts.
+    """Cabecera de compra del comprador en checkouts B2B y B2C de la ZLC.
 
-    Lines live in OrderItem. Seller confirmation gates fulfillment when a
-    company must accept before packing; totals roll up from line snapshots.
+    Las líneas viven en ``OrderItem``. La confirmación del vendedor condiciona
+    el fulfillment cuando la empresa debe aceptar antes de empacar; los
+    totales se consolidan desde las instantáneas de línea.
     """
     STATUS_CHOICES = [
         ('awaiting_seller', _('Awaiting confirmation')),
@@ -669,36 +676,36 @@ class Order(models.Model):
     updated_at    = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para pedidos."""
         verbose_name        = 'Order'
         verbose_name_plural = 'Orders'
         ordering            = ['-created_at']
 
     def save(self, *args, **kwargs):
-        """Mint ``order_number`` on create if missing."""
+        """Genera ``order_number`` al crear si aún no existe."""
         if not self.order_number:
             self.order_number = self._generate_order_number()
         super().save(*args, **kwargs)
 
     @staticmethod
     def _generate_order_number():
-        """Build TF-YYYYMM-XXXX identifiers for new orders."""
+        """Construye identificadores TF-YYYYMM-XXXX para pedidos nuevos."""
         now    = timezone.now()
         suffix = uuid.uuid4().hex[:4].upper()
         return f'TF-{now.strftime("%Y%m")}-{suffix}'
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Número de pedido y comprador para admin y depuración."""
         return f'Orden {self.order_number} — {self.buyer.get_full_name() or self.buyer.username}'
 
     def recalculate_totals(self):
-        """Recompute subtotal and total from OrderItem line totals."""
+        """Recalcula subtotal y total a partir de los ``line_total`` de ``OrderItem``."""
         self.subtotal = sum(item.line_total for item in self.items.all())
         self.total    = self.subtotal + self.shipping_cost
         self.save(update_fields=['subtotal', 'total', 'updated_at'])
 
     def get_status_color(self):
-        """Map status to Bootstrap badge CSS class for dashboards."""
+        """Asocia el estado a la clase CSS de badge Bootstrap para paneles."""
         colors = {
             'awaiting_seller': 'badge-warning',
             'pending':   'badge-warning',
@@ -711,7 +718,7 @@ class Order(models.Model):
         return colors.get(self.status, 'badge-secondary')
 
     def maps_url_buyer(self):
-        """Google Maps URL for the buyer's confirmed checkout pin."""
+        """URL de Google Maps del pin de checkout confirmado del comprador."""
         if self.buyer_latitude is None or self.buyer_longitude is None:
             return ''
         return (
@@ -725,9 +732,10 @@ class Order(models.Model):
 # =============================================================================
 
 class OrderItem(models.Model):
-    """Order line with quantity and price snapshot at sale time.
+    """Línea de pedido con cantidad e instantánea de precio al momento de la venta.
 
-    Snapshotting protects historical totals when catalog prices change.
+    La instantánea protege los totales históricos cuando cambian los precios
+    del catálogo.
     """
     order              = models.ForeignKey(
         Order, on_delete=models.CASCADE,
@@ -745,17 +753,17 @@ class OrderItem(models.Model):
     line_total         = models.DecimalField(max_digits=14, decimal_places=2, default=0)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para ítems de pedido."""
         verbose_name        = 'Order item'
         verbose_name_plural = 'Order items'
 
     def save(self, *args, **kwargs):
-        """Keep ``line_total`` in sync with qty × snapshot price."""
+        """Mantiene ``line_total`` sincronizado con cantidad × precio instantáneo."""
         self.line_total = self.unit_price_snapshot * self.qty
         super().save(*args, **kwargs)
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Cantidad y producto de la línea para admin y depuración."""
         return f'{self.qty}x {self.product.name} en {self.order.order_number}'
 
 
@@ -764,10 +772,10 @@ class OrderItem(models.Model):
 # =============================================================================
 
 class Payment(models.Model):
-    """Payment record for one Order (1:1).
+    """Registro de pago para un ``Order`` (1:1).
 
-    Providers include mock (dev), bank transfer, and placeholders for
-    Stripe/PayPal. Status drives fulfillment transitions.
+    Proveedores: mock (desarrollo), transferencia bancaria y placeholders
+    para Stripe/PayPal. El estado impulsa las transiciones de fulfillment.
     """
     PROVIDER_CHOICES = [
         ('mock', _('Mock (development)')),
@@ -795,12 +803,12 @@ class Payment(models.Model):
     txn_ref  = models.CharField(max_length=200, blank=True, verbose_name='Transaction reference')
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para pagos de pedidos."""
         verbose_name        = 'Payment'
         verbose_name_plural = 'Payments'
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Estado del pago y número de pedido para admin y depuración."""
         return f'Pago [{self.get_status_display()}] — {self.order.order_number}'
 
 
@@ -809,7 +817,7 @@ class Payment(models.Model):
 # =============================================================================
 
 class Shipment(models.Model):
-    """Physical outbound shipment for a fulfilled CFZ order."""
+    """Envío físico de salida para un pedido ZLC cumplido."""
     STATUS_CHOICES = [
         ('label', _('Label generated')),
         ('in_transit', _('In transit')),
@@ -842,12 +850,12 @@ class Shipment(models.Model):
     delivered_at    = models.DateTimeField(null=True, blank=True, verbose_name='Delivery date')
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para envíos."""
         verbose_name        = 'Shipment'
         verbose_name_plural = 'Shipments'
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Estado del envío y número de pedido para admin y depuración."""
         return f'Shipment [{self.get_status_display()}] — {self.order.order_number}'
 
 
@@ -856,7 +864,7 @@ class Shipment(models.Model):
 # =============================================================================
 
 class Document(models.Model):
-    """Trade document attached to an order (invoice, packing list, etc.)."""
+    """Documento comercial adjunto a un pedido (factura, packing list, etc.)."""
     DOC_TYPE_CHOICES = [
         ('invoice',      _('Invoice')),
         ('packing_list', _('Packing List')),
@@ -873,12 +881,12 @@ class Document(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para documentos de pedido."""
         verbose_name        = 'Document'
         verbose_name_plural = 'Documents'
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Tipo y número de documento para admin y depuración."""
         return f'{self.get_doc_type_display()} {self.doc_number} — {self.order.order_number}'
 
 
@@ -887,10 +895,11 @@ class Document(models.Model):
 # =============================================================================
 
 class Cotizacion(models.Model):
-    """Buyer RFQ asking a CFZ seller for formal unit pricing.
+    """RFQ del comprador pidiendo precio unitario formal a un vendedor de la ZLC.
 
-    Automatic quotes use catalog prices; manual ones wait for seller reply.
-    ``lote`` groups broadcast RFQs; accepted quotes may link to an Order.
+    Las cotizaciones automáticas usan precios de catálogo; las manuales
+    esperan respuesta del vendedor. ``lote`` agrupa RFQ en difusión; las
+    aceptadas pueden vincularse a un ``Order``.
     """
     ESTADO_CHOICES = [
         ('pendiente', _('Pending')),
@@ -945,31 +954,31 @@ class Cotizacion(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para cotizaciones RFQ."""
         verbose_name = 'Quote'
         verbose_name_plural = 'Quotes'
         ordering = ['-created_at']
 
     @staticmethod
     def _generate_numero():
-        """Build COT-YYYYMM-XXXX identifiers for new quotes."""
+        """Construye identificadores COT-YYYYMM-XXXX para cotizaciones nuevas."""
         now = timezone.now()
         suffix = uuid.uuid4().hex[:4].upper()
         return f'COT-{now.strftime("%Y%m")}-{suffix}'
 
     def save(self, *args, **kwargs):
-        """Mint ``numero`` on create if missing."""
+        """Genera ``numero`` al crear si aún no existe."""
         if not self.numero:
             self.numero = self._generate_numero()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Número de cotización para admin y depuración."""
         return self.numero
 
 
 class CotizacionItem(models.Model):
-    """RFQ line with requested qty and optional seller offered price."""
+    """Línea de RFQ con cantidad solicitada y precio ofertado opcional del vendedor."""
 
     cotizacion = models.ForeignKey(
         Cotizacion,
@@ -993,17 +1002,17 @@ class CotizacionItem(models.Model):
     notas = models.TextField(blank=True, verbose_name='Line notes')
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para ítems de cotización."""
         verbose_name = 'Quote item'
         verbose_name_plural = 'Quote items'
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Cantidad y producto de la línea de cotización."""
         return f'{self.cantidad_solicitada}× {self.product.name} ({self.cotizacion.numero})'
 
     @property
     def linea_total(self):
-        """Line subtotal once the seller has offered a unit price."""
+        """Subtotal de línea una vez que el vendedor ofreció precio unitario."""
         if self.precio_ofertado is None:
             return None
         return self.precio_ofertado * self.cantidad_solicitada
@@ -1014,7 +1023,7 @@ class CotizacionItem(models.Model):
 # =============================================================================
 
 class Transportista(models.Model):
-    """Registered last-mile carrier; admin must approve before activation."""
+    """Transportista de última milla registrado; el admin debe aprobarlo antes de activarlo."""
 
     ESTADO_CHOICES = [
         ('pendiente', _('Pending review')),
@@ -1048,18 +1057,18 @@ class Transportista(models.Model):
     activo = models.BooleanField(default=False)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para transportistas registrados."""
         verbose_name = 'Carrier'
         verbose_name_plural = 'Carriers'
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Empresa y nombre del transportista para admin y depuración."""
         nombre = self.user.get_full_name() if self.user_id else self.empresa_nombre
         return f'{self.empresa_nombre} — {nombre}'
 
 
 class AsignacionTransporte(models.Model):
-    """Carrier assignment for one order (buyer picks at checkout)."""
+    """Asignación de transportista a un pedido (el comprador elige en checkout)."""
 
     ESTADO_CHOICES = [
         ('pendiente', _('Pending confirmation')),
@@ -1091,12 +1100,12 @@ class AsignacionTransporte(models.Model):
     fecha_confirmacion = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para asignaciones de transporte."""
         verbose_name = 'Transport assignment'
         verbose_name_plural = 'Transport assignments'
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Pedido y transportista asignado para admin y depuración."""
         return f'{self.order.order_number} — {self.transportista.empresa_nombre}'
 
 
@@ -1105,7 +1114,7 @@ class AsignacionTransporte(models.Model):
 # =============================================================================
 
 class EmailVerification(models.Model):
-    """Six-digit email OTP; expires after OTP_EXPIRY_MINUTES."""
+    """OTP de correo de seis dígitos; expira tras ``OTP_EXPIRY_MINUTES``."""
 
     user = models.ForeignKey(
         User,
@@ -1117,17 +1126,17 @@ class EmailVerification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para verificaciones OTP por correo."""
         verbose_name = 'Email verification'
         verbose_name_plural = 'Email verifications'
         ordering = ['-created_at']
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Resumen del OTP de correo para admin y depuración."""
         return f'{self.user_id} · {self.code} · used={self.is_used}'
 
     def is_valid(self) -> bool:
-        """True when unused and still within the OTP TTL window."""
+        """True si no se ha usado y sigue dentro de la ventana TTL del OTP."""
         from core.utils.otp_handler import OTP_EXPIRY_MINUTES
 
         if self.is_used:
@@ -1136,7 +1145,7 @@ class EmailVerification(models.Model):
 
     @classmethod
     def generate_for(cls, user: User) -> 'EmailVerification':
-        """Create a secure OTP via ``generate_user_otp`` and return the row."""
+        """Crea un OTP seguro vía ``generate_user_otp`` y devuelve el registro."""
         from core.utils.otp_handler import generate_user_otp
 
         code = generate_user_otp(user)
@@ -1144,10 +1153,10 @@ class EmailVerification(models.Model):
 
 
 class PasswordResetLink(models.Model):
-    """DB magic-link token for password recovery (mirrors EmailVerification).
+    """Token magic-link en BD para recuperación de contraseña (espejo de ``EmailVerification``).
 
-    Plain token is emailed once; rows are deleted after successful use.
-    TTL: ``PASSWORD_RESET_LINK_EXPIRY_MINUTES`` (15).
+    El token en claro se envía una sola vez por correo; las filas se eliminan
+    tras un uso exitoso. TTL: ``PASSWORD_RESET_LINK_EXPIRY_MINUTES`` (15).
     """
 
     user = models.ForeignKey(
@@ -1160,17 +1169,17 @@ class PasswordResetLink(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        """Django model options for admin, ordering, and constraints."""
+        """Opciones de modelo para enlaces de restablecimiento de contraseña."""
         verbose_name = 'Password reset link'
         verbose_name_plural = 'Password reset links'
         ordering = ['-created_at']
 
     def __str__(self):
-        """Return a short admin/debug label for this record."""
+        """Resumen del enlace de restablecimiento para admin y depuración."""
         return f'{self.user_id} · reset_link · used={self.is_used}'
 
     def is_valid(self) -> bool:
-        """True when unused and still within the reset-link TTL."""
+        """True si no se ha usado y sigue dentro del TTL del enlace de reset."""
         from core.utils.password_reset_link import PASSWORD_RESET_LINK_EXPIRY_MINUTES
 
         if self.is_used:
