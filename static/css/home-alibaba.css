@@ -2170,7 +2170,9 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
 .mkt-vendor-rotator .hm-spotlight-unified__products .hm-slider {
   position: relative;
   width: 100%;
+  /* Symmetric inset so the card group can center inside the navy panel */
   padding: 0 36px;
+  box-sizing: border-box;
 }
 
 .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__viewport,
@@ -2183,17 +2185,30 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
 .mkt-vendor-rotator .hm-spotlight-unified__products .hm-slider__track {
   display: flex;
   flex-direction: row;
+  flex-wrap: nowrap;
   align-items: stretch;
+  justify-content: flex-start; /* required for translateX scrolling */
   gap: 14px;
   transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   will-change: transform;
+}
+
+/* When JS marks the slider static (all cards fit), center the group */
+.hm-marketplace-page .hm-spotlight-unified__products .hm-slider--static .hm-slider__track,
+.mkt-vendor-rotator .hm-spotlight-unified__products .hm-slider--static .hm-slider__track {
+  justify-content: center;
+}
+
+.hm-marketplace-page .hm-spotlight-unified__products .hm-slider--static .hm-slider__arrow,
+.mkt-vendor-rotator .hm-spotlight-unified__products .hm-slider--static .hm-slider__arrow {
+  display: none;
 }
 
 .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__slide,
 .mkt-vendor-rotator .hm-spotlight-unified__products .hm-slider__slide {
   flex: 0 0 calc(33.333% - 10px);
   min-width: 160px;
-  max-width: 280px;
+  max-width: 260px;
   box-sizing: border-box;
 }
 
@@ -2278,12 +2293,13 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
 @media (max-width: 640px) {
   .hm-marketplace-page .hm-spotlight-unified__products .hm-slider,
   .mkt-vendor-rotator .hm-spotlight-unified__products .hm-slider {
-    padding: 0 4px;
+    padding: 0 12px;
   }
 
   .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__slide,
   .mkt-vendor-rotator .hm-spotlight-unified__products .hm-slider__slide {
     flex: 0 0 78%;
+    max-width: none;
   }
 
   .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__arrow,
