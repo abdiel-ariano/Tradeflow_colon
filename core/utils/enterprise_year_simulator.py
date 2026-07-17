@@ -1,7 +1,7 @@
-"""Seed ~12 months of CFZ marketplace activity for enterprise demos.
+"""Siembra ~12 meses de actividad del marketplace ZLC para demos enterprise.
 
-Creates marked companies, orders, logistics, and SaaS usage so admin
-dashboards and predictive charts look production-like.
+Crea empresas marcadas, pedidos, logística y uso SaaS para que dashboards
+admin y gráficas predictivas se vean como producción.
 """
 from __future__ import annotations
 
@@ -65,10 +65,10 @@ REQUIRED_TABLES = (
 )
 
 class DatabaseSchemaNotReadyError(RuntimeError):
-    """Raised when required core tables are missing (run migrate)."""
+    """Se lanza cuando faltan tablas core requeridas (ejecutar migrate)."""
 
 def ensure_database_schema_ready() -> None:
-    """Raise if core tables are missing; callers must migrate first."""
+    """Lanza si faltan tablas core; los llamadores deben migrar primero."""
     try:
         tables = set(connection.introspection.table_names())
     except (OperationalError, ProgrammingError) as exc:
@@ -100,7 +100,7 @@ TRANSPORT_DEFAULTS = [
 
 @dataclass(frozen=True)
 class ScaleConfig:
-    """Named seed scale: companies, products, buyers, and orders."""
+    """Escala de semilla nombrada: empresas, productos, compradores y pedidos."""
     companies: int
     products_min: int
     products_max: int
@@ -316,7 +316,7 @@ PRODUCT_TEMPLATES: dict[int, list[tuple[str, str, float, float]]] = {
 
 
 def clear_enterprise_year_simulation() -> dict[str, int]:
-    """Delete rows created by this simulator (FK-safe order)."""
+    """Elimina filas creadas por este simulador (orden seguro ante FK)."""
     ensure_database_schema_ready()
     deleted: dict[str, int] = {}
 
@@ -348,7 +348,7 @@ def clear_enterprise_year_simulation() -> dict[str, int]:
 
 
 def _ensure_transport_carriers() -> list[TransportCarrier]:
-    """Ensure default ZLC transport carriers exist."""
+    """Asegura que existan los transportistas ZLC por defecto."""
     out: list[TransportCarrier] = []
     for t in TRANSPORT_DEFAULTS:
         obj, _ = TransportCarrier.objects.get_or_create(
@@ -365,7 +365,7 @@ def _ensure_transport_carriers() -> list[TransportCarrier]:
 
 
 def _ensure_categories() -> list[Category]:
-    """Ensure seed category rows exist and return them."""
+    """Asegura filas de categoría semilla y las devuelve."""
     cats: list[Category] = []
     for name in CATEGORY_NAMES:
         c, _ = Category.objects.get_or_create(name=name)
@@ -374,7 +374,7 @@ def _ensure_categories() -> list[Category]:
 
 
 def _generate_product_image(product: Product) -> str | None:
-    """Write a local PNG under MEDIA_ROOT/productos/ and return its path."""
+    """Escribe un PNG local bajo MEDIA_ROOT/productos/ y devuelve su ruta."""
     try:
         return assign_product_image(product)
     except Exception as exc:
@@ -383,18 +383,18 @@ def _generate_product_image(product: Product) -> str | None:
 
 
 def _tier_weight(tier: int) -> float:
-    """Return sampling weight for a company tier (1=heaviest)."""
+    """Devuelve el peso de muestreo para un tier de empresa (1 = más pesado)."""
     return {1: 3.5, 2: 2.0, 3: 1.0}.get(tier, 1.0)
 
 
 def _pick_company_index(rng: random.Random, tiers: Sequence[int]) -> int:
-    """Pick a company index weighted by tier."""
+    """Elige un índice de empresa ponderado por tier."""
     weights = [_tier_weight(t) for t in tiers]
     return rng.choices(range(len(tiers)), weights=weights, k=1)[0]
 
 
 def _random_timestamp_in_year(rng: random.Random, start: datetime, end: datetime) -> datetime:
-    """Sample a business-hours timestamp biased toward recent dates."""
+    """Muestrea un timestamp en horario laboral sesgado hacia fechas recientes."""
     span_days = max(1, (end.date() - start.date()).days)
     u = rng.betavariate(2.0, 4.2)
     day_i = min(span_days - 1, int(u * span_days))
@@ -411,7 +411,7 @@ def _random_timestamp_in_year(rng: random.Random, start: datetime, end: datetime
 def _status_for_timestamp(
     rng: random.Random, created_at: datetime, now: datetime
 ) -> tuple[str, str, bool | None]:
-    """Pick order/seller-confirmation status based on age and RNG."""
+    """Elige estado de pedido/confirmación del vendedor según antigüedad y RNG."""
     age_days = (now - created_at).total_seconds() / 86400.0
     if age_days < 10 and rng.random() < 0.18:
         return 'awaiting_seller', 'pending', None
@@ -444,11 +444,11 @@ def run_enterprise_year_seed(
     clear: bool = False,
     stdout_write: Callable[[str], None] | None = None,
 ) -> dict:
-    """Run the full year simulation and return aggregate statistics."""
+    """Ejecuta la simulación anual completa y devuelve estadísticas agregadas."""
     out: dict = {'ok': True, 'scale': scale, 'errors': []}
 
     def logmsg(msg: str) -> None:
-        """Write a progress line to stdout callback or logger."""
+        """Escribe una línea de progreso al callback stdout o al logger."""
         if stdout_write:
             stdout_write(msg)
         else:

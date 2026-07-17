@@ -1,7 +1,7 @@
-"""Translate paths when the default locale has no URL prefix.
+"""Traduce rutas cuando el locale por defecto no tiene prefijo de URL.
 
-Django ``translate_url`` breaks with ``prefix_default_language=False``;
-these helpers strip and re-add ``/es`` or ``/en`` safely.
+Django ``translate_url`` falla con ``prefix_default_language=False``;
+estos helpers quitan y reponen ``/es`` o ``/en`` de forma segura.
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from django.utils.translation import get_language_from_path, override
 
 
 def _strip_language_prefix(path: str) -> tuple[str | None, str]:
-    """Return (language_code, path_without_prefix)."""
+    """Devuelve (language_code, path_without_prefix)."""
     lang = get_language_from_path(path)
     if not lang:
         return None, path
@@ -26,7 +26,7 @@ def _strip_language_prefix(path: str) -> tuple[str | None, str]:
 
 
 def _add_language_prefix(path: str, lang_code: str) -> str:
-    """Prefix path with locale unless it is the default LANGUAGE_CODE."""
+    """Antepone el locale a la ruta salvo que sea el LANGUAGE_CODE por defecto."""
     if lang_code == settings.LANGUAGE_CODE:
         return path
     if path == '/':
@@ -35,11 +35,11 @@ def _add_language_prefix(path: str, lang_code: str) -> str:
 
 
 def tf_translate_url(url: str, lang_code: str) -> str:
-    """Translate a path to another locale without default-language prefix.
-    
-    
-    Strips the active prefix before resolve/reverse and falls back to manual
-    prefix add/remove when resolve is unavailable in early middleware.
+    """Traduce una ruta a otro locale sin prefijo del idioma por defecto.
+
+
+    Quita el prefijo activo antes de resolve/reverse y cae a añadir/quitar
+    prefijo manualmente cuando resolve no está disponible en middleware temprano.
     """
     parsed = urlsplit(url)
     path = parsed.path or '/'

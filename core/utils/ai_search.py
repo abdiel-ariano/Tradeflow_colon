@@ -1,8 +1,4 @@
-"""Typeahead suggestion engine for marketplace and workspace search.
-
-Scopes (public, seller, buyer, admin) return products, companies, and
-orders so CFZ operators find inventory without full page reloads.
-"""
+"""Motor de sugerencias typeahead para búsqueda del marketplace y workspaces."""
 from __future__ import annotations
 
 import logging
@@ -24,7 +20,7 @@ _STOPWORDS = frozenset({
 
 
 def _tokens(q: str) -> list[str]:
-    """Split a query into lowercase tokens (minimum length 2)."""
+    """Divide una consulta en tokens en minúsculas (longitud mínima 2)."""
     raw = re.findall(r'[\wáéíóúüñ]+', (q or '').lower(), flags=re.UNICODE)
     return [t for t in raw if len(t) >= 2 and t not in _STOPWORDS]
 
@@ -40,7 +36,7 @@ def _item(
     image_url: str = '',
     meta: dict | None = None,
 ) -> dict:
-    """Build one suggestion row for the typeahead JSON payload."""
+    """Construye una fila de sugerencia para el payload JSON del typeahead."""
     row = {
         'type': kind,
         'label': label,
@@ -57,7 +53,7 @@ def _item(
 
 
 def _product_meta(product) -> dict:
-    """Structured fields for the typeahead product card (company, SKU)."""
+    """Campos estructurados para la tarjeta de producto del typeahead (empresa, SKU)."""
     price = getattr(product, 'display_price', None) or getattr(product, 'unit_price', None)
     return {
         'sku': (getattr(product, 'sku', None) or '').strip(),
@@ -69,14 +65,14 @@ def _product_meta(product) -> dict:
 
 
 def _product_image_url(product) -> str:
-    """Resolve the same image chain as catalog cards (upload → AI placeholder)."""
+    """Resuelve la misma cadena de imagen que las tarjetas del catálogo (subida → IA)."""
     from core.templatetags.tf_media import product_image_src
 
     return product_image_src(product) or ''
 
 
 def _product_item(product, url: str, *, score: int = 0, icon: str = 'inventory_2') -> dict:
-    """Product suggestion with thumbnail and meta for the typeahead UI."""
+    """Sugerencia de producto con miniatura y meta para el typeahead."""
     return _item(
         'product',
         product.name,
@@ -90,7 +86,7 @@ def _product_item(product, url: str, *, score: int = 0, icon: str = 'inventory_2
 
 
 def _product_subtitle(product) -> str:
-    """Legacy single-line subtitle for non-JS consumers and older clients."""
+    """Subtítulo legado de una línea para consumidores sin JS y clientes antiguos."""
     parts = []
     if getattr(product, 'sku', None):
         parts.append(product.sku)
@@ -106,7 +102,7 @@ def _product_subtitle(product) -> str:
 
 
 def _groq_search_enrichment(query: str, local_labels: list[str], scope: str) -> dict:
-    """Optional LLM tip sentence plus related query suggestions."""
+    """Tip opcional del LLM más sugerencias de consultas relacionadas."""
     api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
     if not api_key or len(query.strip()) < 2:
         return {}
@@ -147,7 +143,7 @@ def _groq_search_enrichment(query: str, local_labels: list[str], scope: str) -> 
 
 
 def search_public(query: str, limit: int = 8) -> list[dict]:
-    """Return marketplace catalog suggestions for guests and buyers."""
+    """Devuelve sugerencias del catálogo marketplace para invitados y compradores."""
     from .. import merchandising as merch
     from ..models import Category, Company
 
@@ -233,7 +229,7 @@ def search_public(query: str, limit: int = 8) -> list[dict]:
 
 
 def search_seller(company, query: str, limit: int = 10) -> list[dict]:
-    """Search seller workspace: products, orders, quotes, and customers."""
+    """Busca en el workspace del vendedor: productos, pedidos, cotizaciones y clientes."""
     from ..models import Cotizacion, Order, Product, User
 
     q = (query or '').strip()
@@ -315,7 +311,7 @@ def search_seller(company, query: str, limit: int = 10) -> list[dict]:
 
 
 def search_buyer(user, query: str, limit: int = 8) -> list[dict]:
-    """Search buyer navbar scope (orders and catalog hints)."""
+    """Busca en el alcance de la navbar del comprador (pedidos e indicios de catálogo)."""
     from .. import merchandising as merch
 
     q = (query or '').strip()
@@ -337,7 +333,7 @@ def search_buyer(user, query: str, limit: int = 8) -> list[dict]:
 
 
 def search_admin(query: str, limit: int = 8) -> list[dict]:
-    """Staff dashboard product and company lookup suggestions."""
+    """Sugerencias de productos y empresas para el dashboard de staff."""
     from ..models import Company, Product
 
     q = (query or '').strip()
@@ -372,7 +368,7 @@ def search_admin(query: str, limit: int = 8) -> list[dict]:
 
 
 def build_search_response(scope: str, query: str, request, limit: int = 8) -> dict:
-    """Assemble the JSON body for ``GET /api/search/suggest/``."""
+    """Arma el cuerpo JSON para ``GET /api/search/suggest/``."""
     q = (query or '').strip()[:120]
     suggestions: list[dict] = []
 

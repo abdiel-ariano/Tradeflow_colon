@@ -1,7 +1,7 @@
-"""Platform-level revenue forecast for the admin SaaS dashboard.
+"""Pronóstico de ingresos a nivel plataforma para el dashboard SaaS admin.
 
-Aggregates CFZ GMV monthly series and projects the next quarter with a
-simple linear model — no seller PII.
+Agrega la serie mensual de GMV ZLC y proyecta el próximo trimestre con un
+modelo lineal simple — sin PII de vendedores.
 """
 from __future__ import annotations
 
@@ -24,13 +24,13 @@ MONTHS_ES = MONTHS_EN
 
 
 def _month_start(year: int, month: int):
-    """Return timezone-aware first instant of the given month."""
+    """Devuelve el primer instante aware del mes dado."""
     tz = timezone.get_current_timezone()
     return timezone.make_aware(datetime(year, month, 1), tz)
 
 
 def _platform_monthly_revenue(months_back: int = 9) -> list[dict]:
-    """Return USD revenue by calendar month for non-cancelled orders."""
+    """Devuelve ingresos USD por mes calendario para pedidos no cancelados."""
     now = timezone.localtime(timezone.now())
     rows = []
     y, m = now.year, now.month
@@ -63,7 +63,7 @@ def _platform_monthly_revenue(months_back: int = 9) -> list[dict]:
 
 
 def _linear_regression_forecast(values: list[float], forecast_count: int = 3) -> list[float]:
-    """Fit y = a + b*x and return ``forecast_count`` projected points."""
+    """Ajusta y = a + b*x y devuelve ``forecast_count`` puntos proyectados."""
     n = len(values)
     if n == 0:
         return [0.0] * forecast_count
@@ -84,7 +84,7 @@ def _linear_regression_forecast(values: list[float], forecast_count: int = 3) ->
 
 
 def _confidence_pct(n_points: int, trend: str) -> int:
-    """Map series length/variance to a 0–100 confidence score."""
+    """Mapea longitud/varianza de la serie a un puntaje de confianza 0–100."""
     base = min(95, 55 + n_points * 4)
     if trend == 'flat':
         base -= 8
@@ -92,7 +92,7 @@ def _confidence_pct(n_points: int, trend: str) -> int:
 
 
 def build_platform_predictive_payload() -> dict:
-    """Build admin hero payload: 9 real months plus 3 projected months."""
+    """Construye payload hero admin: 9 meses reales más 3 meses proyectados."""
     history = _platform_monthly_revenue(9)
     values = [r['revenue_usd'] for r in history]
     forecasts = _linear_regression_forecast(values, 3)
@@ -180,5 +180,5 @@ def build_platform_predictive_payload() -> dict:
 
 
 def _period_key_now() -> str:
-    """Return YYYY-MM period key for the current month."""
+    """Devuelve la clave de periodo YYYY-MM del mes actual."""
     return timezone.now().strftime('%Y-%m')

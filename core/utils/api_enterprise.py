@@ -1,8 +1,4 @@
-"""Authenticate and audit enterprise API keys with scoped access.
-
-Higher SaaS tiers expose inventory and pricing APIs; each call is hashed
-and logged for CFZ seller integrations.
-"""
+"""Autentica y audita claves API enterprise con acceso por alcance (scopes)."""
 from __future__ import annotations
 
 import hashlib
@@ -21,12 +17,12 @@ SCOPE_WEBHOOKS = 'webhooks.receive'
 
 
 def hash_api_key(raw: str) -> str:
-    """Return a stable hash of the raw API key for storage lookup."""
+    """Devuelve un hash estable de la clave API en crudo para búsqueda en almacenamiento."""
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
 def authenticate_api_key(request) -> tuple[ApiKey | None, JsonResponse | None]:
-    """Resolve an API key header to company and scopes, or None."""
+    """Resuelve un header de clave API a empresa y scopes, o None."""
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return None, JsonResponse({'error': 'missing_token'}, status=401)
@@ -48,13 +44,13 @@ def authenticate_api_key(request) -> tuple[ApiKey | None, JsonResponse | None]:
 
 
 def require_scope(key: ApiKey, scope: str) -> bool:
-    """Raise if the authenticated key lacks the required scope."""
+    """Lanza si la clave autenticada carece del alcance requerido."""
     scopes = key.scopes or []
     return scope in scopes or '*' in scopes
 
 
 def audit_api_call(key: ApiKey | None, company, request, status_code: int):
-    """Persist an API audit row for the enterprise call."""
+    """Persiste una fila de auditoría API para la llamada enterprise."""
     ApiAuditLog.objects.create(
         api_key=key,
         company=company,

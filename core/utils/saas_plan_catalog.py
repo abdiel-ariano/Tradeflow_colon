@@ -1,7 +1,7 @@
-"""Marketing copy for SaaS plans (limits stay in billing ORM).
+"""Copy de marketing de planes SaaS (los límites viven en el ORM de billing).
 
-UI and AI prompts show feature stories without leaking USD volume caps
-that belong only in billing enforcement.
+UI y prompts de IA muestran beneficios sin filtrar topes de volumen USD
+que solo pertenecen al enforcement de facturación.
 """
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ SAAS_PLANS_AI_ROWS = (
 
 
 def build_saas_plans_ai_context() -> str:
-    """Build structured plan text for Groq system prompts (no volume caps)."""
+    """Construye texto estructurado de planes para prompts de sistema Groq (sin topes de volumen)."""
     lines = [
         'Seller SaaS plans for TradeFlow Colón (use ONLY these figures; do not invent prices):',
         '',
@@ -146,7 +146,7 @@ PLAN_MARKETING = {
 
 
 def marketing_for_plan(plan) -> dict:
-    """Merge SaasPlan ORM row with marketing copy for UI cards."""
+    """Combina la fila ORM SaasPlan con copy de marketing para tarjetas de UI."""
     base = PLAN_MARKETING.get(plan.slug, {})
     return {
         'slug': plan.slug,

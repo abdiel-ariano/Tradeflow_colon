@@ -1,4 +1,3 @@
-{% comment %}Template: core/includes/marketplace_deal_card.html — catalog product-card parity for /deals/.{% endcomment %}
 {% load i18n %}
 <div class="mkt-deal-wrap{% if card_extra_class %} {{ card_extra_class }}{% endif %}" data-product-id="{{ product.pk }}">
   {% if not product.is_on_promo_now %}

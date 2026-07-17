@@ -1,7 +1,7 @@
-"""Dispatch CFZ shipments, logistics events, and signed webhooks.
+"""Despacha envíos ZLC, eventos logísticos y webhooks firmados.
 
-Moves paid orders into packed/in-transit and notifies seller WMS
-endpoints with SSRF-safe outbound validation.
+Mueve pedidos pagados a empacado/en tránsito y notifica endpoints WMS
+del vendedor con validación saliente segura ante SSRF.
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 
 def record_logistics_event(order: Order, event_type: str, label: str = '', payload=None, source='system'):
-    """Persist a logistics timeline event for the order."""
+    """Persiste un evento de timeline logístico para el pedido."""
     return LogisticsEvent.objects.create(
         order=order,
         event_type=event_type,
@@ -33,12 +33,12 @@ def record_logistics_event(order: Order, event_type: str, label: str = '', paylo
 
 
 def sign_payload(secret: str, body: bytes) -> str:
-    """Return HMAC-SHA256 hex signature for webhook body bytes."""
+    """Devuelve la firma HMAC-SHA256 en hex del cuerpo del webhook."""
     return hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
 
 
 def build_dispatch_payload(order: Order, company) -> dict:
-    """Build JSON payload for a company order.dispatch webhook."""
+    """Construye el payload JSON para un webhook company order.dispatch."""
     shipment = getattr(order, 'shipment', None)
     lines = list(
         order.items.filter(product__company=company).select_related('product')[:50]
@@ -68,7 +68,7 @@ def build_dispatch_payload(order: Order, company) -> dict:
 
 
 def enqueue_dispatch(order: Order, company, actor_user=None) -> LogisticsDispatchQueue:
-    """Queue dispatch, advance order/shipment, and POST signed webhook."""
+    """Encola el despacho, avanza pedido/envío y hace POST del webhook firmado."""
     payload = build_dispatch_payload(order, company)
     body = json.dumps(payload, default=str).encode()
     webhook = (
@@ -108,7 +108,7 @@ def enqueue_dispatch(order: Order, company, actor_user=None) -> LogisticsDispatc
 
 
 def _process_dispatch_queue(dispatch: LogisticsDispatchQueue, webhook: LogisticsWebhookConfig | None):
-    """POST the dispatch payload or mark sent when no webhook is configured."""
+    """Hace POST del payload de despacho o marca enviado cuando no hay webhook configurado."""
     if not webhook or not webhook.endpoint_url:
         dispatch.status = 'sent'
         dispatch.sent_at = timezone.now()

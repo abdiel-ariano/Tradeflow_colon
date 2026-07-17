@@ -1,7 +1,8 @@
-"""Company SaaS billing: plans, volume caps, checkout, and bank pay.
+"""Facturación SaaS de empresa: planes, topes de volumen, checkout y pago bancario.
 
-CFZ sellers trial Digitalízate, then activate via bank transfer (admin
-approval) or mock pay in DEBUG. Volume limits gate new confirmed sales.
+Los vendedores ZLC prueban Digitalízate y luego activan vía transferencia
+bancaria (aprobación admin) o pago mock en DEBUG. Los límites de volumen
+controlan nuevas ventas confirmadas.
 """
 from __future__ import annotations
 
@@ -34,7 +35,7 @@ BILLABLE_ORDER_STATUSES = ('paid', 'packed', 'shipped', 'delivered')
 
 
 class VolumeLimitExceeded(Exception):
-    """Raised when a sale would exceed the company monthly plan cap."""
+    """Se lanza cuando una venta excedería el tope mensual del plan de la empresa."""
 
     def __init__(
         self,
@@ -43,7 +44,7 @@ class VolumeLimitExceeded(Exception):
         current: Decimal,
         additional: Decimal,
     ):
-        """Store limit breach details for seller volume-cap UI."""
+        """Guarda detalles de la violación de tope para la UI de volumen del vendedor."""
         self.company = company
         self.limit = limit
         self.current = current
@@ -69,14 +70,14 @@ PLAN_MRR_USD = {
 
 
 class CheckoutMode(enum.StrEnum):
-    """Checkout session mode derived from subscription status."""
+    """Modo de sesión de checkout derivado del estado de la suscripción."""
     TRIAL_UPGRADE = 'trial_upgrade'
     TRIAL_ACTIVATION = 'trial_activation'
     PLAN_UPGRADE = 'plan_upgrade'
 
 
 def resolve_checkout_mode(sub: CompanySubscription) -> CheckoutMode:
-    """Infer checkout mode from ``subscription.status`` or raise ValueError."""
+    """Infiere el modo de checkout desde ``subscription.status`` o lanza ValueError."""
     if sub.status == 'trialing':
         return CheckoutMode.TRIAL_UPGRADE
     if sub.status == 'past_due':
@@ -87,7 +88,7 @@ def resolve_checkout_mode(sub: CompanySubscription) -> CheckoutMode:
 
 
 def get_company_subscription(company: Company) -> CompanySubscription | None:
-    """Return existing subscription or None (never creates)."""
+    """Devuelve la suscripción existente o None (nunca crea)."""
     try:
         return company.subscription
     except CompanySubscription.DoesNotExist:
@@ -95,11 +96,11 @@ def get_company_subscription(company: Company) -> CompanySubscription | None:
 
 
 def get_or_create_subscription(company: Company) -> CompanySubscription:
-    """Return the company subscription or raise if missing.
-    
-    
-    Does not create free ``active`` plans; use ``start_seller_trial()`` or
-    ``activate_company_plan()`` after payment.
+    """Devuelve la suscripción de la empresa o lanza si falta.
+
+
+    No crea planes ``active`` gratuitos; usar ``start_seller_trial()`` o
+    ``activate_company_plan()`` tras el pago.
     """
     sub = get_company_subscription(company)
     if sub is None:
@@ -116,7 +117,7 @@ def ensure_demo_subscription(
     status: str = 'active',
     plan_slug: str = 'digitalizate',
 ) -> CompanySubscription:
-    """Create/update a subscription for demo seed and legacy tests only."""
+    """Crea/actualiza una suscripción solo para seed demo y tests legados."""
     ensure_default_plans()
     plan = SaasPlan.objects.get(slug=plan_slug)
     now = timezone.now()
@@ -146,11 +147,11 @@ def can_select_plan_for_activation(
     *,
     mode: CheckoutMode | None = None,
 ) -> tuple[bool, str]:
-    """Validate whether the seller may pay ``target_slug`` in this mode.
-    
-    
-    Post-trial activation requires ``target.sort_order >= recommended``;
-    trial upgrades require a strictly higher plan than Digitalízate.
+    """Valida si el vendedor puede pagar ``target_slug`` en este modo.
+
+
+    La activación post-trial exige ``target.sort_order >= recommended``;
+    los upgrades en trial exigen un plan estrictamente superior a Digitalízate.
     """
     ensure_default_plans()
     sub = get_company_subscription(company)
@@ -188,12 +189,12 @@ def can_select_plan_for_activation(
 
 
 def plan_monthly_price(slug: str) -> Decimal:
-    """Return list MRR USD for a plan slug (checkout display)."""
+    """Devuelve el MRR de lista en USD para un slug de plan (display de checkout)."""
     return PLAN_MRR_USD.get(slug, Decimal('0'))
 
 
 def _period_bounds(now=None):
-    """Return (month_start, month_end) datetimes for usage windows."""
+    """Devuelve (inicio_mes, fin_mes) datetimes para ventanas de uso."""
     now = now or timezone.now()
     start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     last_day = monthrange(start.year, start.month)[1]
@@ -202,7 +203,7 @@ def _period_bounds(now=None):
 
 
 def _safe_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
-    """Return pending checkout or None if migration 0017 is not applied."""
+    """Devuelve el checkout pendiente o None si la migración 0017 no está aplicada."""
     try:
         return (
             CompanyPlanCheckout.objects.filter(company=company, status='pending')
@@ -220,7 +221,7 @@ def _safe_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
 
 
 def ensure_default_plans() -> int:
-    """Upsert official SaaS plans; return active plan count."""
+    """Hace upsert de los planes SaaS oficiales; devuelve el conteo de planes activos."""
     defaults = [
         ('digitalizate', 'Digitalize', Decimal('15000'), 50, False, False, False, 1),
         ('expansion', 'Expansion', Decimal('50000'), 200, True, False, False, 2),
@@ -248,12 +249,12 @@ def ensure_default_plans() -> int:
 
 
 def get_or_create_subscription_legacy(company: Company) -> CompanySubscription:
-    """Legacy alias that delegates to ``ensure_demo_subscription``."""
+    """Alias legado que delega en ``ensure_demo_subscription``."""
     return ensure_demo_subscription(company)
 
 
 def compute_monthly_volume(company: Company, now=None) -> tuple[Decimal, int]:
-    """Return billable USD volume and distinct order count for the month."""
+    """Devuelve el volumen facturable USD y el conteo de pedidos distintos del mes."""
     start, end = _period_bounds(now)
     qs = OrderItem.objects.filter(
         product__company=company,
@@ -268,7 +269,7 @@ def compute_monthly_volume(company: Company, now=None) -> tuple[Decimal, int]:
 
 
 def refresh_billing_usage(company: Company, now=None) -> CompanyBillingUsage:
-    """Upsert ``CompanyBillingUsage`` for the current month."""
+    """Hace upsert de ``CompanyBillingUsage`` para el mes actual."""
     now = now or timezone.now()
     vol, orders = compute_monthly_volume(company, now)
     usage, _ = CompanyBillingUsage.objects.update_or_create(
@@ -281,7 +282,7 @@ def refresh_billing_usage(company: Company, now=None) -> CompanyBillingUsage:
 
 
 def subscription_usage_snapshot(company: Company) -> dict:
-    """Build seller UI context: plan, usage, warnings, and next tier."""
+    """Construye contexto UI del vendedor: plan, uso, avisos y siguiente tier."""
     sub = get_company_subscription(company)
     if not sub:
         ensure_default_plans()
@@ -398,7 +399,7 @@ def subscription_usage_snapshot(company: Company) -> dict:
 
 
 def _activity_label(pct: float, warning: str | None) -> str:
-    """Return a short activity label for the seller journey meter."""
+    """Devuelve una etiqueta corta de actividad para el medidor del journey del vendedor."""
     if warning == 'limit':
         return 'Period capacity at maximum'
     if warning == 'approaching':
@@ -416,7 +417,7 @@ def _build_seller_flow_steps(
     warning: str | None,
     pending_checkout: CompanyPlanCheckout | None,
 ) -> list[dict]:
-    """Build segmented seller journey steps for the plan UI."""
+    """Construye pasos segmentados del journey del vendedor para la UI de planes."""
     if pending_checkout:
         return [
             {
@@ -493,11 +494,11 @@ def activate_company_plan(
     notes: str = '',
     allow_same_plan: bool = False,
 ) -> CompanySubscription:
-    """Activate a paid plan after checkout or commercial approval.
-    
-    
-    Sets ``active``, clears grace/recommendation, logs upgrade, and tops up
-    ad credits for the new plan.
+    """Activa un plan de pago tras checkout o aprobación comercial.
+
+
+    Pone ``active``, limpia gracia/recomendación, registra upgrade y recarga
+    créditos publicitarios del plan nuevo.
     """
     from django.db import transaction
 
@@ -551,7 +552,7 @@ def create_plan_checkout(
     *,
     mode: CheckoutMode | None = None,
 ) -> CompanyPlanCheckout:
-    """Create a 48h pending checkout session for the selected plan mode."""
+    """Crea una sesión de checkout pendiente de 48h para el modo de plan seleccionado."""
     ensure_default_plans()
     from core.utils.saas_plan_catalog import marketing_for_plan
 
@@ -600,19 +601,19 @@ def create_plan_checkout(
 
 
 def get_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
-    """Return the company pending checkout, if any."""
+    """Devuelve el checkout pendiente de la empresa, si existe."""
     return _safe_pending_checkout(company)
 
 
 def allow_mock_plan_payment() -> bool:
-    """Return True when demo card activation is allowed (DEBUG/CI only)."""
+    """Devuelve True cuando se permite activación con tarjeta demo (solo DEBUG/CI)."""
     if getattr(settings, 'ALLOW_MOCK_PLAN_PAYMENT', None) is not None:
         return bool(settings.ALLOW_MOCK_PLAN_PAYMENT)
     return bool(getattr(settings, 'DEBUG', False))
 
 
 def bank_transfer_instructions() -> dict:
-    """Return public bank details for seller plan checkout transfers."""
+    """Devuelve datos bancarios públicos para transferencias de checkout de plan."""
     return {
         'bank_name': getattr(settings, 'SELLER_BANK_NAME', 'Banco General'),
         'account_name': getattr(settings, 'SELLER_BANK_ACCOUNT_NAME', 'TradeFlow Colón'),
@@ -636,7 +637,7 @@ def submit_bank_transfer_payment(
     seller_notes: str = '',
     proof_file=None,
 ) -> CompanyPlanCheckout:
-    """Record seller bank transfer proof; checkout stays pending for admin."""
+    """Registra el comprobante de transferencia del vendedor; el checkout queda pendiente de admin."""
     from django.db import DatabaseError, IntegrityError
 
     if checkout.status != 'pending':
@@ -761,7 +762,7 @@ def approve_plan_checkout(
     reviewed_by=None,
     review_notes: str = '',
 ) -> CompanySubscription:
-    """Admin confirms received transfer → mark paid and activate plan."""
+    """El admin confirma la transferencia recibida → marca pagado y activa el plan."""
     if checkout.status != 'pending':
         raise ValueError('checkout_not_pending')
     if checkout.provider != 'bank' and not allow_mock_plan_payment():
@@ -794,7 +795,7 @@ def reject_plan_checkout(
     reviewed_by=None,
     review_notes: str = '',
 ) -> CompanyPlanCheckout:
-    """Admin rejects transfer proof; seller may open a new checkout."""
+    """El admin rechaza el comprobante; el vendedor puede abrir un checkout nuevo."""
     if checkout.status != 'pending':
         raise ValueError('checkout_not_pending')
     checkout.status = 'rejected'
@@ -816,7 +817,7 @@ def complete_plan_checkout(
     provider: str = 'mock',
     txn_ref: str = '',
 ) -> CompanySubscription:
-    """Mark checkout paid and activate the target plan (re-validates mode)."""
+    """Marca el checkout como pagado y activa el plan objetivo (revalida el modo)."""
     from django.db import transaction
 
     if checkout.status != 'pending':
@@ -854,7 +855,7 @@ def complete_plan_checkout(
 
 
 def build_checkout_context(company: Company, plan_slug: str) -> dict:
-    """Build template context for the plan payment screen."""
+    """Construye el contexto de plantilla para la pantalla de pago del plan."""
     from core.utils.saas_plan_catalog import marketing_for_plan
 
     ensure_default_plans()
@@ -890,7 +891,7 @@ def create_enterprise_commercial_request(
     message: str = '',
     user_application=None,
 ) -> CompanyPlanCommercialRequest:
-    """Persist an Enterprise commercial request for sales follow-up."""
+    """Persiste una solicitud comercial Enterprise para seguimiento de ventas."""
     ensure_default_plans()
     plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
     return CompanyPlanCommercialRequest.objects.create(
@@ -906,7 +907,7 @@ def create_enterprise_commercial_request(
 
 
 def reject_commercial_request(req: CompanyPlanCommercialRequest, *, notes: str = '') -> CompanyPlanCommercialRequest:
-    """Mark a commercial Enterprise request as rejected."""
+    """Marca una solicitud comercial Enterprise como rechazada."""
     req.status = 'rejected'
     req.reviewed_at = timezone.now()
     req.save(update_fields=['status', 'reviewed_at'])
@@ -914,7 +915,7 @@ def reject_commercial_request(req: CompanyPlanCommercialRequest, *, notes: str =
 
 
 def approve_commercial_request(req: CompanyPlanCommercialRequest) -> CompanySubscription:
-    """Approve commercial request and activate the Enterprise plan."""
+    """Aprueba la solicitud comercial y activa el plan Enterprise."""
     from django.db import transaction
 
     with transaction.atomic():
@@ -930,7 +931,7 @@ def approve_commercial_request(req: CompanyPlanCommercialRequest) -> CompanySubs
 
 
 def build_plan_page_context(company: Company) -> dict:
-    """Build full plans page context (marketing cards without USD caps)."""
+    """Construye el contexto completo de la página de planes (tarjetas marketing sin topes USD)."""
     from core.utils.saas_plan_catalog import marketing_for_plan
 
     ensure_default_plans()
@@ -987,7 +988,7 @@ def build_plan_page_context(company: Company) -> dict:
 
 
 def build_plan_page_context_safe(company: Company) -> tuple[dict, str | None]:
-    """Build plans context or a degraded empty shell; never leave the view bare."""
+    """Construye el contexto de planes o un shell vacío degradado; nunca deja la vista en blanco."""
     try:
         return build_plan_page_context(company), None
     except (OperationalError, ProgrammingError, DatabaseError) as exc:
@@ -1020,7 +1021,7 @@ def build_plan_page_context_safe(company: Company) -> tuple[dict, str | None]:
 
 
 def assert_within_volume_limit(company: Company, additional_usd: Decimal = Decimal('0')) -> None:
-    """Raise ``VolumeLimitExceeded`` if month volume + additional exceeds cap."""
+    """Lanza ``VolumeLimitExceeded`` si el volumen del mes + additional excede el tope."""
     sub = get_company_subscription(company)
     if not sub or sub.plan.is_unlimited:
         return
@@ -1034,7 +1035,7 @@ def assert_within_volume_limit(company: Company, additional_usd: Decimal = Decim
 
 
 def is_volume_limit_reached(company: Company) -> bool:
-    """Return True when no headroom remains for new volume."""
+    """Devuelve True cuando no queda margen para volumen nuevo."""
     sub = get_company_subscription(company)
     if not sub or sub.plan.is_unlimited:
         return False
@@ -1049,7 +1050,7 @@ def would_exceed_volume_limit(
     company: Company,
     additional_usd: Decimal,
 ) -> tuple[bool, VolumeLimitExceeded | None]:
-    """Return (True, exc) when ``additional_usd`` would breach the cap."""
+    """Devuelve (True, exc) cuando ``additional_usd`` rompería el tope."""
     try:
         assert_within_volume_limit(company, additional_usd)
         return False, None
@@ -1058,7 +1059,7 @@ def would_exceed_volume_limit(
 
 
 def order_company_subtotal(order, company: Company) -> Decimal:
-    """Sum USD line totals for one company on an order."""
+    """Suma totales de línea USD de una empresa en un pedido."""
     total = Decimal('0.00')
     for item in order.items.filter(product__company=company):
         total += item.line_total
@@ -1066,7 +1067,7 @@ def order_company_subtotal(order, company: Company) -> Decimal:
 
 
 def plan_allows_feature(company: Company, feature: str) -> bool:
-    """Return whether the company plan includes ``feature``."""
+    """Devuelve si el plan de la empresa incluye ``feature``."""
     snap = subscription_usage_snapshot(company)
     plan = snap['plan']
     if feature == 'api':

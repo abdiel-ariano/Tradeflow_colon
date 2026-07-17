@@ -1,7 +1,7 @@
-"""Realistic inventory quantities for demo and enterprise seed data.
+"""Cantidades de inventario realistas para datos demo y semilla enterprise.
 
-Mixes low, medium, and high stock so CFZ dashboards show believable
-alerts and bestsellers.
+Mezcla stock bajo, medio y alto para que los dashboards ZLC muestren alertas
+y bestsellers creíbles.
 """
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import random
 
 
 def realistic_stock_qty(rng: random.Random, *, tier: int = 2) -> int:
-    """Sample low/medium/high stock quantities for believable CFZ demos."""
+    """Muestrea cantidades de stock bajo/medio/alto para demos ZLC creíbles."""
     roll = rng.random()
     if roll < 0.18:
         return rng.randint(3, 15)

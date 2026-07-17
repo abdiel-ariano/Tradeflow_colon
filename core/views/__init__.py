@@ -1,9 +1,9 @@
-"""HTTP views for TradeFlow Colón CFZ B2B marketplace.
+"""Vistas HTTP del marketplace B2B TradeFlow Colón (ZLC).
 
 Paquete modular que reexporta el API público de las vistas
 (auth, catálogo, carrito, portal vendedor, admin y páginas públicas).
 
-Access gates live in ``core.decorators``. URL names are in ``core.urls``.
+Las puertas de acceso viven en ``core.decorators``. Los nombres de URL están en ``core.urls``.
 """
 from __future__ import annotations
 

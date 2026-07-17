@@ -1,7 +1,7 @@
-"""Format USD amounts for CFZ B2B catalog and email copy.
+"""Formatea montos USD para catálogo B2B ZLC y copy de correo.
 
-Marketplace prices are USD; helpers keep two-decimal display consistent
-across templates and the AI assistant.
+Los precios del marketplace son USD; los helpers mantienen dos decimales
+consistentes en plantillas y el asistente de IA.
 """
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ MONEY_QUANT = Decimal('0.01')
 
 
 def quantize_money(value) -> Decimal:
-    """Round a value to two decimal places for USD amounts."""
+    """Redondea un valor a dos decimales para montos USD."""
     if value is None:
         return Decimal('0.00')
     if isinstance(value, Decimal):
@@ -25,7 +25,7 @@ def quantize_money(value) -> Decimal:
 
 
 def format_money_usd(value, *, include_prefix: bool = True) -> str:
-    """Format an amount as a USD string with two decimal places."""
+    """Formatea un monto como cadena USD con dos decimales."""
     dec = quantize_money(value)
     sign = '-' if dec < 0 else ''
     dec = abs(dec)
@@ -40,5 +40,5 @@ def format_money_usd(value, *, include_prefix: bool = True) -> str:
 
 
 def money_to_chart_float(value) -> float:
-    """Serialize a money value as float for Chart.js (max two decimals)."""
+    """Serializa un valor monetario como float para Chart.js (máx. dos decimales)."""
     return float(quantize_money(value))

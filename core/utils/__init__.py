@@ -1,5 +1,5 @@
-"""Shared helpers for TradeFlow Colón (PDF, email, OTP, SaaS, media).
+"""Utilidades compartidas de TradeFlow Colón (PDF, correo, OTP, SaaS, medios).
 
-Cross-cutting utilities for the CFZ B2B marketplace: billing, access
-gating, logistics, and merchandising cache — imported by views and jobs.
+Helpers transversales del marketplace B2B de la ZLC: facturación, control
+de acceso, logística y caché de merchandising — importados por vistas y jobs.
 """

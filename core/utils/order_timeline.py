@@ -1,6 +1,6 @@
-"""Build human-readable order progress steps for buyer/seller UI.
+"""Construye pasos legibles del progreso de pedido para UI comprador/vendedor.
 
-Maps CFZ order statuses to a linear timeline with current-step index.
+Mapea estados de pedido ZLC a una línea de tiempo lineal con índice del paso actual.
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ TIMELINE_STEPS = (
 
 
 def _step_index(status: str, shipment_status: str | None, cancelled: bool, has_dispatch: bool) -> int:
-    """Return the timeline step index for an order status code."""
+    """Devuelve el índice del paso del timeline para un código de estado de pedido."""
     if cancelled or status == 'cancelled':
         return 8
     mapping = {

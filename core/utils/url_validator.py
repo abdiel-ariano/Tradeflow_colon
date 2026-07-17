@@ -1,7 +1,7 @@
-"""Validate outbound URLs to block SSRF (OWASP A10:2021).
+"""Valida URLs de salida para bloquear SSRF (OWASP A10:2021).
 
-Seller-configured logistics webhooks must not hit private IPs or cloud
-metadata endpoints.
+Los webhooks logísticos configurados por el vendedor no deben alcanzar IPs
+privadas ni endpoints de metadata cloud.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ BLOCKED_HOSTNAMES = frozenset({
 
 
 def _is_blocked_ip(ip):
-    """Return True when the IP is private, loopback, or link-local."""
+    """Devuelve True cuando la IP es privada, loopback o link-local."""
     if ip.is_loopback:
         return 'loopback (127.x / ::1)'
     if ip.is_private:
@@ -43,7 +43,7 @@ def _is_blocked_ip(ip):
 
 
 def _resolve_hostname(hostname):
-    """Resolve hostname to IP addresses for SSRF checks."""
+    """Resuelve el hostname a direcciones IP para comprobaciones SSRF."""
     try:
         infos = socket.getaddrinfo(hostname, None)
     except socket.gaierror as exc:
@@ -57,7 +57,7 @@ def _resolve_hostname(hostname):
 
 
 def validate_outbound_url(url: str, *, allow_http: bool = False) -> None:
-    """Validate that a URL is safe for server-side outbound HTTP requests."""
+    """Valida que una URL sea segura para peticiones HTTP salientes del servidor."""
     if not url or not isinstance(url, str):
         raise ValidationError('URL vacia o no es string.')
 

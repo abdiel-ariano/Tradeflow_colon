@@ -1,7 +1,7 @@
-"""Seller confirm/reject flow and inventory reservation release.
+"""Flujo de confirmar/rechazar del vendedor y liberación de reserva de inventario.
 
-Accepting a CFZ B2B order checks SaaS volume caps, marks payment
-approved, and rejects free reserved stock on decline or expiry.
+Aceptar un pedido B2B ZLC verifica topes de volumen SaaS, marca el pago
+aprobado y libera stock reservado al rechazar o expirar.
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 def release_order_inventory(orden: Order) -> None:
-    """Release reserved inventory for each line on the order."""
+    """Libera el inventario reservado de cada línea del pedido."""
     for item in orden.items.select_related('product__inventory'):
         inv = getattr(item.product, 'inventory', None)
         if inv:
@@ -27,7 +27,7 @@ def release_order_inventory(orden: Order) -> None:
 
 
 def accept_seller_order(orden: Order) -> None:
-    """Accept order: enforce volume caps, mark paid, approve payment."""
+    """Acepta el pedido: aplica topes de volumen, marca pagado y aprueba el pago."""
     from collections import defaultdict
 
     from core.utils.saas_billing import VolumeLimitExceeded, assert_within_volume_limit
@@ -64,7 +64,7 @@ def accept_seller_order(orden: Order) -> None:
 
 
 def reject_seller_order(orden: Order) -> None:
-    """Reject order: cancel, free stock, reject pending payment."""
+    """Rechaza el pedido: cancela, libera stock y rechaza el pago pendiente."""
     with transaction.atomic():
         orden.seller_confirmation_status = 'rejected'
         orden.confirmado_por_empresa = False
@@ -80,7 +80,7 @@ def reject_seller_order(orden: Order) -> None:
 
 
 def expire_pending_orders() -> int:
-    """Cancel awaiting_seller orders past ``seller_confirm_by``; return count."""
+    """Cancela pedidos awaiting_seller pasados de ``seller_confirm_by``; devuelve el conteo."""
     now = timezone.now()
     qs = Order.objects.filter(
         status='awaiting_seller',
@@ -99,6 +99,6 @@ def expire_pending_orders() -> int:
 
 
 def seller_confirm_deadline(company):
-    """Return the seller confirmation deadline datetime."""
+    """Devuelve el datetime límite de confirmación del vendedor."""
     hours = getattr(company, 'order_confirm_hours', None) or 48
     return timezone.now() + timedelta(hours=hours)

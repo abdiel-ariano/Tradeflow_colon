@@ -1,7 +1,6 @@
-"""TF Assistant answers from live CFZ catalog and SaaS plan context.
+"""TF Assistant responde desde el catálogo ZLC en vivo y el contexto de planes SaaS.
 
-Uses ORM snapshots first; optional Groq enrichment when ``GROQ_API_KEY``
-is set. Never invents stock, prices, or customs timelines.
+Usa primero instantáneas ORM; enriquecimiento opcional con Groq cuando hay API key.
 """
 from __future__ import annotations
 
@@ -38,7 +37,7 @@ _STOPWORDS = frozenset({
 
 
 def _fmt_money(currency: str, amount) -> str:
-    """Format a price for assistant text (USD-normalized when possible)."""
+    """Formatea un precio para texto del asistente (normalizado a USD cuando es posible)."""
     from .money_format import format_money_usd
 
     cur = (currency or 'USD').strip().upper()
@@ -52,7 +51,7 @@ def _fmt_money(currency: str, amount) -> str:
 
 
 def _product_line(product, include_link_hint: bool = False) -> str:
-    """Format one public product line without sensitive fields."""
+    """Formatea una línea de producto público sin campos sensibles."""
     parts = [f'• {product.name}']
     parts.append(f'({_fmt_money(product.currency, product.display_price)})')
     parts.append(f'— {product.company.name}')
@@ -74,7 +73,7 @@ def _product_line(product, include_link_hint: bool = False) -> str:
 
 
 def build_catalog_snapshot(limit_products: int = 80) -> dict:
-    """Build live catalog context from the ORM for prompts."""
+    """Construye contexto de catálogo en vivo desde el ORM para prompts."""
     from .. import merchandising as merch
 
     productos_qs = merch.active_products_base()
@@ -134,7 +133,7 @@ def build_catalog_snapshot(limit_products: int = 80) -> dict:
 
 
 def _buscar_productos(terminos: list[str], limit: int = 8):
-    """Find active products matching keyword tokens."""
+    """Busca productos activos que coincidan con tokens de palabras clave."""
     from .. import merchandising as merch
 
     qs = merch.active_products_base()
@@ -158,13 +157,13 @@ def _buscar_productos(terminos: list[str], limit: int = 8):
 
 
 def _tokens(mensaje: str) -> list[str]:
-    """Extract useful search tokens from a user message."""
+    """Extrae tokens de búsqueda útiles de un mensaje de usuario."""
     raw = re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9]+', mensaje.lower())
     return [t for t in raw if t not in _STOPWORDS and len(t) >= 2]
 
 
 def _match_any(msg: str, keywords: tuple[str, ...]) -> bool:
-    """Match whole phrases or isolated words (avoid short false hits)."""
+    """Coincide frases completas o palabras aisladas (evita falsos positivos cortos)."""
     words = set(re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9]+', msg))
     for k in keywords:
         if ' ' in k:
@@ -176,7 +175,7 @@ def _match_any(msg: str, keywords: tuple[str, ...]) -> bool:
 
 
 def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -> str:
-    """Answer using catalog ORM data only (no external LLM)."""
+    """Responde solo con datos ORM del catálogo (sin LLM externo)."""
     if snapshot is None:
         snapshot = build_catalog_snapshot()
 
@@ -339,7 +338,7 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
 
 
 def _consultar_groq(mensaje_usuario: str, historial, snapshot: dict) -> str | None:
-    """Call Groq with catalog context when an API key is configured."""
+    """Llama a Groq con contexto de catálogo cuando hay API key configurada."""
     from groq import Groq
 
     from core.utils.saas_plan_catalog import build_saas_plans_ai_context
@@ -405,7 +404,7 @@ _TOPIC_KEYWORDS = {
 
 
 def _detect_topic(mensaje: str) -> str:
-    """Classify the user message into an assistant topic key."""
+    """Clasifica el mensaje del usuario en una clave de tema del asistente."""
     msg = mensaje.lower()
     scores = {k: 0 for k in _TOPIC_KEYWORDS}
     words = set(_tokens(mensaje))
@@ -420,7 +419,7 @@ def _detect_topic(mensaje: str) -> str:
 
 
 def _html_escape(text: str) -> str:
-    """Escape text for safe HTML assistant responses."""
+    """Escapa texto para respuestas HTML seguras del asistente."""
     return (
         str(text)
         .replace('&', '&amp;')
@@ -437,7 +436,7 @@ def format_structured_response(
     cta: str | None = None,
     cta_url: str | None = None,
 ) -> str:
-    """Build safe HTML with heading, bullets, summary, and optional CTA."""
+    """Construye HTML seguro con encabezado, viñetas, resumen y CTA opcional."""
     icon, title = _CATEGORY_META.get(categoria, _CATEGORY_META['general'])
     lines = [
         '<div class="tf-bot-card">',
@@ -462,7 +461,7 @@ def format_structured_response(
 
 
 def build_seller_rag_context(company) -> dict:
-    """Build seller RAG context from products, sales, and quotes ORM rows."""
+    """Construye contexto RAG del vendedor desde productos, ventas y cotizaciones ORM."""
     from datetime import timedelta
 
     from django.db.models import Count, Sum
@@ -522,7 +521,7 @@ def build_seller_rag_context(company) -> dict:
 
 
 def _seller_rag_answer(mensaje: str, ctx: dict, topic: str) -> tuple[list[str], str, float, str | None]:
-    """Produce bullets, summary, confidence, and topic for seller fallback."""
+    """Produce viñetas, resumen, confianza y tema para el flujo del vendedor."""
     tokens = _tokens(mensaje)
     bullets: list[str] = []
     conf = 0.45
@@ -590,7 +589,7 @@ def _seller_rag_answer(mensaje: str, ctx: dict, topic: str) -> tuple[list[str], 
 
 
 def responder_seller_rag(mensaje: str, company) -> dict:
-    """Structured seller answer with confidence threshold gating."""
+    """Respuesta estructurada del vendedor con umbral de confianza."""
     ctx = build_seller_rag_context(company)
     topic = _detect_topic(mensaje)
     bullets, resumen, conf, tema_label = _seller_rag_answer(mensaje, ctx, topic)
@@ -641,7 +640,7 @@ def responder_seller_rag(mensaje: str, company) -> dict:
 
 
 def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
-    """Convert a catalog text answer into structured assistant fields."""
+    """Convierte una respuesta de texto de catálogo en campos estructurados del asistente."""
     raw = responder_con_catalogo(mensaje, snapshot)
     topic = _detect_topic(mensaje)
     if topic in ('productos', 'ventas', 'cotizaciones'):
@@ -700,7 +699,7 @@ def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
 
 
 def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None):
-    """Run RAG + structured formatting; return text, HTML, and metadata."""
+    """Ejecuta RAG + formato estructurado; devuelve texto, HTML y metadatos."""
     mensaje = (mensaje_usuario or '').strip()
     if not mensaje:
         empty = 'Type your question and I will help you with the ZLC catalog.'
