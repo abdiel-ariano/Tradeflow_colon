@@ -1,7 +1,7 @@
-"""Send email OTP with reuse of a still-valid code and session throttle.
+"""Envía OTP por correo reutilizando un código aún válido y con throttle de sesión.
 
-Avoids flooding Resend when users refresh verification screens during
-CFZ onboarding.
+Evita saturar Resend cuando los usuarios refrescan pantallas de verificación
+durante el onboarding ZLC.
 """
 from __future__ import annotations
 
@@ -17,12 +17,12 @@ OTP_RESEND_COOLDOWN_SECONDS = 60
 
 
 def _session_throttle_key(user_id: int) -> str:
-    """Session key used to throttle OTP resends per user."""
+    """Clave de sesión usada para limitar reenvíos OTP por usuario."""
     return f'otp_sent_at_{user_id}'
 
 
 def has_valid_otp(user: User) -> bool:
-    """Return True when the user still has an unused valid OTP."""
+    """Devuelve True cuando el usuario aún tiene un OTP válido sin usar."""
     latest = (
         EmailVerification.objects.filter(user=user, is_used=False)
         .order_by('-created_at')
@@ -37,11 +37,11 @@ def ensure_otp_sent(
     *,
     force: bool = False,
 ) -> tuple[bool, str]:
-    """Ensure a valid OTP exists and was emailed recently.
-    
-    
-    Returns ``(ok, status)`` where status is ``sent``, ``existing``,
-    ``throttled``, ``no_email``, or a provider error detail.
+    """Asegura que exista un OTP válido y que se haya enviado por correo recientemente.
+
+
+    Devuelve ``(ok, status)`` donde status es ``sent``, ``existing``,
+    ``throttled``, ``no_email``, o el detalle de error del proveedor.
     """
     email = (user.email or '').strip()
     if not email:

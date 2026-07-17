@@ -1,7 +1,7 @@
-"""Detect whether a real outbound email channel is configured.
+"""Detecta si hay un canal real de correo saliente configurado.
 
-Resend is preferred in production; DEBUG may fall back to the console
-backend for local CFZ onboarding tests.
+Resend es preferido en producción; en DEBUG puede usarse el backend de consola
+para pruebas locales de onboarding ZLC.
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ LEGACY_CONTACT_EMAIL = 'info@tradeflow.pa'
 
 
 def explain_email_failure(detail: str) -> str:
-    """Return an admin-readable message for a provider error."""
+    """Devuelve un mensaje legible para admin ante un error del proveedor."""
     d = (detail or '').lower()
     if 'resend_not_configured' in d:
         return _(
@@ -39,7 +39,7 @@ def explain_email_failure(detail: str) -> str:
 
 
 def normalize_project_gmail(email: str) -> str:
-    """Map legacy Gmail addresses to the official project inbox."""
+    """Mapea direcciones Gmail legadas al buzón oficial del proyecto."""
     cleaned = (email or '').strip()
     if cleaned.lower() == LEGACY_GMAIL_ACCOUNT:
         return TRADEFLOW_GMAIL_ACCOUNT
@@ -47,7 +47,7 @@ def normalize_project_gmail(email: str) -> str:
 
 
 def normalize_contact_email(email: str) -> str:
-    """Normalize the public contact address for footer/legal."""
+    """Normaliza la dirección de contacto pública para pie/legal."""
     cleaned = normalize_project_gmail(email)
     if cleaned.lower() == LEGACY_CONTACT_EMAIL:
         return TRADEFLOW_GMAIL_ACCOUNT
@@ -55,7 +55,7 @@ def normalize_contact_email(email: str) -> str:
 
 
 def smtp_configured() -> bool:
-    """Return True when Resend is ready or DEBUG allows console delivery."""
+    """Devuelve True cuando Resend está listo o DEBUG permite entrega por consola."""
     if (getattr(settings, 'RESEND_API_KEY', '') or '').strip():
         return True
     if settings.DEBUG:

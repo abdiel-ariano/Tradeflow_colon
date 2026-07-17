@@ -1,7 +1,7 @@
-"""Generate and verify email OTP codes for account activation.
+"""Genera y verifica códigos OTP de correo para activación de cuenta.
 
-Short-lived codes gate checkout and seller portals when
-``REQUIRE_EMAIL_VERIFICATION`` is on.
+Códigos de corta vida que controlan checkout y portales de vendedor cuando
+``REQUIRE_EMAIL_VERIFICATION`` está activo.
 """
 from __future__ import annotations
 
@@ -15,12 +15,12 @@ from core.models import UserProfile
 
 
 def generate_email_otp() -> str:
-    """Create a fresh email verification code for the user."""
+    """Crea un código fresco de verificación de correo para el usuario."""
     return ''.join(random.choices(string.digits, k=6))
 
 
 def assign_email_verification_code(profile: UserProfile, *, hours: int = 24) -> str:
-    """Persist a fresh OTP on the profile; clear prior verification state."""
+    """Persiste un OTP nuevo en el perfil; limpia el estado de verificación previo."""
     code = generate_email_otp()
     profile.codigo_verificacion_email = code
     profile.codigo_verificacion_expira = timezone.now() + timedelta(hours=hours)
@@ -36,7 +36,7 @@ def assign_email_verification_code(profile: UserProfile, *, hours: int = 24) -> 
 
 
 def verify_email_code(profile: UserProfile, raw_code: str) -> tuple[bool, str]:
-    """Validate the submitted OTP and mark the email verified."""
+    """Valida el OTP enviado y marca el correo como verificado."""
     code = (raw_code or '').strip().replace(' ', '')
     if len(code) != 6 or not code.isdigit():
         return False, 'invalid_format'

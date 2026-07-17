@@ -1,7 +1,7 @@
-"""Locale-aware display labels for catalog categories (UI layer).
+"""Etiquetas de categoría del catálogo según idioma (capa de UI).
 
-Seed data mixes English and Spanish names; the marketplace must show
-one language without rewriting stored Category rows.
+Los datos semilla mezclan nombres en inglés y español; el marketplace debe
+mostrar un solo idioma sin reescribir las filas ``Category`` almacenadas.
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ _CATEGORY_LABEL_ES = {
 
 
 def category_display_name(name: str | None, lang: str | None = None) -> str:
-    """Return locale-facing category label; fall back to the stored name."""
+    """Devuelve la etiqueta de categoría para el locale; si no, el nombre guardado."""
     if not name:
         return ''
     lang_code = (lang or get_language() or settings.LANGUAGE_CODE)[:2]
@@ -43,7 +43,7 @@ def category_display_name(name: str | None, lang: str | None = None) -> str:
 
 
 def category_icon_name(name: str | None) -> str:
-    """Return Material Symbols icon name for a category header dropdown."""
+    """Devuelve el nombre de icono Material Symbols para el menú de categoría."""
     if not name:
         return 'category'
     key = name.strip().lower()

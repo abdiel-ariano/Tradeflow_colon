@@ -1,7 +1,7 @@
-"""Credible B2B product titles for enterprise seed data.
+"""Títulos B2B creíbles de producto para datos semilla enterprise.
 
-Composes supplier brand, model code, and technical spec so demo
-catalogs read like real ZLC wholesale listings.
+Compone marca del proveedor, código de modelo y especificación técnica para que
+los catálogos demo se lean como listados mayoristas reales de la ZLC.
 """
 from __future__ import annotations
 
@@ -14,12 +14,12 @@ _MODEL_SUFFIXES = ('100', '200', '300', 'Pro', 'Plus', 'Elite', 'X', 'G2', 'CFZ'
 
 
 def strip_lot_suffix(name: str) -> str:
-    """Remove legacy ``— lot NNN`` suffix from seeded product names."""
+    """Quita el sufijo legado ``— lot NNN`` de nombres de producto sembrados."""
     return _LOT_SUFFIX_RE.sub('', (name or '').strip()).strip()
 
 
 def _brand_from_company(company_name: str) -> str:
-    """Return first meaningful token of the supplier name (stable per company)."""
+    """Devuelve el primer token significativo del nombre del proveedor (estable por empresa)."""
     cleaned = re.sub(r'\b(S\.A\.|Ltda\.|Inc\.|Group|Wholesale|Imports|B2B)\b', '', company_name, flags=re.I)
     parts = [p for p in re.split(r'[\s,&]+', cleaned.strip()) if p]
     if not parts:
@@ -38,7 +38,7 @@ def build_seed_product_name(
     product_index: int,
     rng: random.Random,
 ) -> str:
-    """Compose supplier brand + model code + technical spec (no lot suffix)."""
+    """Compone marca del proveedor + código de modelo + spec técnica (sin sufijo de lote)."""
     brand = _brand_from_company(company_name)
     model = f'{rng.choice(_MODEL_SUFFIXES)}{rng.randint(10, 99)}'
     spec = (description or '').split('.')[0].strip()

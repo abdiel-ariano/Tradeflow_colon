@@ -1,6 +1,6 @@
-"""Filesystem paths to official TradeFlow Colón logo PNGs.
+"""Rutas de filesystem a los PNG oficiales del logo TradeFlow Colón.
 
-PDF and email generators need absolute paths under ``static/img/``.
+Los generadores de PDF y correo necesitan rutas absolutas bajo ``static/img/``.
 """
 
 from __future__ import annotations
@@ -17,10 +17,10 @@ LOGO_WORDMARK_WHITE = "logo-wordmark-white.png"
 
 
 def logo_static_path(filename: str) -> Path:
-    """Return absolute path to a brand PNG under ``static/img/``."""
+    """Devuelve la ruta absoluta a un PNG de marca bajo ``static/img/``."""
     return STATIC_IMG_DIR / filename
 
 
 def logo_icon_color_path() -> Path:
-    """Return absolute path to the color icon logo PNG."""
+    """Devuelve la ruta absoluta al PNG del icono a color."""
     return logo_static_path(LOGO_ICON_COLOR)

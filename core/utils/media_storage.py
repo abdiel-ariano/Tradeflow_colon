@@ -1,7 +1,7 @@
-"""Resolve and optimize product media for Supabase or local storage.
+"""Resuelve y optimiza media de productos para Supabase o almacenamiento local.
 
-Public catalog cards need stable URLs; uploads are resized and scanned
-before landing in CFZ seller inventories.
+Las tarjetas públicas del catálogo necesitan URLs estables; las subidas se
+redimensionan y escanean antes de entrar a inventarios de vendedores ZLC.
 """
 from __future__ import annotations
 
@@ -22,13 +22,13 @@ PRODUCT_IMAGE_FALLBACK_STATIC = 'images/placeholder-producto.svg'
 
 
 def is_remote_media_storage() -> bool:
-    """Return True when default STORAGES backend is S3-compatible."""
+    """Devuelve True cuando el backend STORAGES por defecto es compatible con S3."""
     backend = settings.STORAGES.get('default', {}).get('BACKEND', '')
     return 's3boto3' in backend.lower() or 's3' in backend.lower()
 
 
 def local_media_file_exists(rel_path: str) -> bool:
-    """Return True when a relative media path exists on disk."""
+    """Devuelve True cuando una ruta relativa de media existe en disco."""
     if not rel_path:
         return False
     return (Path(settings.MEDIA_ROOT) / rel_path).is_file()
@@ -40,14 +40,14 @@ ALLOWED_IMAGE_FORMATS = ('JPEG', 'JPG', 'PNG', 'WEBP', 'GIF')
 
 
 def _serve_local_media_urls() -> bool:
-    """Return True when local MEDIA_URL should be used for product images."""
+    """Devuelve True cuando debe usarse MEDIA_URL local para imágenes de producto."""
     if settings.DEBUG or getattr(settings, 'SERVE_LOCAL_MEDIA', False):
         return True
     return not is_remote_media_storage()
 
 
 def product_image_url(product) -> str:
-    """Return public product image URL, or empty string if unavailable."""
+    """Devuelve la URL pública de imagen del producto, o cadena vacía si no hay."""
     try:
         if product.image and product.image.name:
             rel_path = product.image.name.replace('\\', '/')
@@ -63,11 +63,11 @@ def product_image_url(product) -> str:
 
 
 def optimize_uploaded_image(uploaded_file, max_side: int = 1200, quality: int = 85) -> ContentFile:
-    """Resize and re-encode catalog uploads with size/format defenses.
-    
-    
-    Rejects oversized files, decompression bombs, and non-image payloads
-    before sellers publish CFZ catalog photos.
+    """Redimensiona y re-codifica subidas del catálogo con defensas de tamaño/formato.
+
+
+    Rechaza archivos demasiado grandes, bombas de descompresión y payloads no imagen
+    antes de que los vendedores publiquen fotos del catálogo ZLC.
     """
     from PIL import Image, UnidentifiedImageError
 

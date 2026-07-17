@@ -1,7 +1,7 @@
-"""Assign demo and seed product images for CFZ catalog fixtures.
+"""Asigna imágenes demo y semilla de productos para fixtures del catálogo ZLC.
 
-Prefers bundled category photos, then brand placeholders, so demos
-never show broken media on local or remote storage.
+Prefiere fotos de categoría empaquetadas y luego placeholders de marca, para que
+las demos nunca muestren media rota en almacenamiento local o remoto.
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ BRAND_COLORS = [
 
 
 def category_keyword(product: Product) -> str:
-    """Map a category name to a seed image keyword bucket."""
+    """Mapea un nombre de categoría a un bucket de palabra clave de imagen semilla."""
     if not product.category_id or not product.category:
         return 'general'
     cat_name = product.category.name.lower()
@@ -70,57 +70,57 @@ def category_keyword(product: Product) -> str:
 
 
 def seed_slug(product: Product) -> str:
-    """Slugify text for seed image filenames."""
+    """Convierte texto a slug para nombres de archivo de imagen semilla."""
     raw = f'{product.pk}_{product.name[:40]}'
     return re.sub(r'[^a-zA-Z0-9_-]', '_', raw)
 
 
 def picsum_url(product: Product) -> str:
-    """Build a deterministic Picsum URL for demo imagery."""
+    """Construye una URL Picsum determinista para imágenes demo."""
     return f'https://picsum.photos/seed/{seed_slug(product)}/{PICSUM_SIZE}'
 
 
 def use_runtime_picsum() -> bool:
-    """Return True only when remote Picsum is explicitly enabled for demos."""
+    """Devuelve True solo cuando Picsum remoto está explícitamente habilitado para demos."""
     return bool(getattr(settings, 'TRADEFLOW_USE_PICSUM_RUNTIME', False))
 
 
 def catalog_seed_relative_path(keyword: str) -> str:
-    """Return relative path for a bundled category seed JPEG."""
+    """Devuelve la ruta relativa de un JPEG semilla de categoría empaquetado."""
     return CATALOG_SEED_FILES.get(keyword, CATALOG_SEED_FILES['general'])
 
 
 def catalog_seed_static_path(product: Product) -> str:
-    """Return absolute path to bundled category photograph for seed commands."""
+    """Devuelve la ruta absoluta a la fotografía de categoría empaquetada para comandos seed."""
     return catalog_seed_relative_path(category_keyword(product))
 
 
 def category_icon_static_path(product: Product) -> str:
-    """Return category SVG icon path used as last public image fallback."""
+    """Devuelve la ruta del icono SVG de categoría usado como último fallback de imagen pública."""
     keyword = category_keyword(product)
     return CATEGORY_ICON_FILES.get(keyword, CATEGORY_ICON_FILES['general'])
 
 
 def ai_placeholder_relative_path(product: Product) -> str:
-    """Return relative AI placeholder path for a category keyword."""
+    """Devuelve la ruta relativa del placeholder IA para una palabra clave de categoría."""
     keyword = category_keyword(product)
     sku = re.sub(r'[^a-zA-Z0-9_-]', '-', (product.sku or f'p{product.pk}').lower())
     return f'assets/products/placeholder-ai/{keyword}-{sku}.webp'
 
 
 def ai_placeholder_static_path(product: Product) -> str:
-    """Return absolute AI placeholder path if present."""
+    """Devuelve la ruta absoluta del placeholder IA si existe."""
     return ai_placeholder_relative_path(product)
 
 
 def ai_placeholder_file_exists(product: Product) -> bool:
-    """Return True when the AI placeholder file exists."""
+    """Devuelve True cuando existe el archivo placeholder IA."""
     rel = ai_placeholder_relative_path(product)
     return (Path(settings.BASE_DIR) / 'static' / rel).is_file()
 
 
 def product_uses_ai_reference_image(product: Product) -> bool:
-    """Return True when the public card will show a generated reference WebP."""
+    """Devuelve True cuando la tarjeta pública mostrará un WebP de referencia generado."""
     if not product:
         return False
     from core.utils.media_storage import is_remote_media_storage, local_media_file_exists
@@ -134,7 +134,7 @@ def product_uses_ai_reference_image(product: Product) -> bool:
 
 
 def catalog_seed_bytes(keyword: str) -> bytes:
-    """Load bundled JPEG bytes for a category keyword."""
+    """Carga bytes JPEG empaquetados para una palabra clave de categoría."""
     rel = catalog_seed_relative_path(keyword)
     full = Path(settings.BASE_DIR) / 'static' / rel
     if not full.is_file():
@@ -143,7 +143,7 @@ def catalog_seed_bytes(keyword: str) -> bytes:
 
 
 def variant_image_bytes(product: Product, *, width: int = 800, height: int = 600) -> bytes:
-    """Crop/resize a category seed with a per-product offset for SKU variety."""
+    """Recorta/redimensiona una semilla de categoría con offset por producto para variedad de SKU."""
     from PIL import Image
 
     keyword = category_keyword(product)
@@ -172,7 +172,7 @@ def variant_image_bytes(product: Product, *, width: int = 800, height: int = 600
 
 
 def assign_catalog_seed_image(product: Product, *, log_fn=None) -> str:
-    """Persist a category seed variant as the product ImageField."""
+    """Persiste una variante semilla de categoría como ImageField del producto."""
     if not product.pk:
         raise ValueError('Product must be saved before assigning an image')
 
@@ -187,7 +187,7 @@ def assign_catalog_seed_image(product: Product, *, log_fn=None) -> str:
 
 
 def extract_initials(name: str) -> str:
-    """Return first letters of the first two words, or first two of one word."""
+    """Devuelve las primeras letras de las dos primeras palabras, o las dos primeras de una sola."""
     words = [w for w in (name or '').split() if w]
     if len(words) >= 2:
         return f'{words[0][0]}{words[1][0]}'.upper()
@@ -199,13 +199,13 @@ def extract_initials(name: str) -> str:
 
 
 def placeholder_relative_path(product: Product) -> str:
-    """Return MEDIA-relative path for a brand placeholder PNG."""
+    """Devuelve la ruta relativa a MEDIA de un PNG placeholder de marca."""
     initials = extract_initials(product.name)
     return f'productos/placeholders/placeholder_{product.pk}_{initials}.png'
 
 
 def assign_product_image(product: Product, *, log_fn=None) -> str:
-    """Generate a brand placeholder PNG under MEDIA_ROOT/productos/."""
+    """Genera un PNG placeholder de marca bajo MEDIA_ROOT/productos/."""
     if not product.pk:
         raise ValueError('Product must be saved before assigning an image')
 
@@ -226,23 +226,23 @@ def assign_product_image(product: Product, *, log_fn=None) -> str:
 
 
 def relative_image_path(product: Product) -> str:
-    """Return the relative media path for a product image name."""
+    """Devuelve la ruta relativa de media para un nombre de imagen de producto."""
     return f'products/demo/product_{product.pk}.jpg'
 
 
 def is_remote_storage() -> bool:
-    """Return True when default storage is an S3-compatible backend."""
+    """Devuelve True cuando el storage por defecto es un backend compatible con S3."""
     backend = settings.STORAGES.get('default', {}).get('BACKEND', '')
     return 's3boto3' in backend.lower() or 's3' in backend.lower()
 
 
 def local_media_storage() -> FileSystemStorage:
-    """Return a FileSystemStorage rooted at MEDIA_ROOT."""
+    """Devuelve un FileSystemStorage con raíz en MEDIA_ROOT."""
     return FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
 
 def write_local_image(rel_path: str, content: bytes) -> str:
-    """Write bytes to MEDIA_ROOT/rel_path (overwrites if present)."""
+    """Escribe bytes en MEDIA_ROOT/rel_path (sobrescribe si existe)."""
     full_path = Path(settings.MEDIA_ROOT) / rel_path
     full_path.parent.mkdir(parents=True, exist_ok=True)
     full_path.write_bytes(content)
@@ -250,7 +250,7 @@ def write_local_image(rel_path: str, content: bytes) -> str:
 
 
 def remote_command_storage():
-    """Return S3 storage for management commands (skip HeadObject via file)."""
+    """Devuelve storage S3 para management commands (omite HeadObject vía archivo)."""
     backend = settings.STORAGES['default']['BACKEND']
     options = dict(settings.STORAGES['default'].get('OPTIONS', {}))
     options['file_overwrite'] = True
@@ -267,7 +267,7 @@ def save_product_image_bytes(
     *,
     storage_mode: str = 'local',
 ) -> str:
-    """Persist image bytes and update ``Product.image``."""
+    """Persiste bytes de imagen y actualiza ``Product.image``."""
     rel_path = relative_image_path(product)
     file_obj = ContentFile(content)
 
@@ -294,7 +294,7 @@ def save_product_image_bytes(
 
 
 def generate_placeholder_bytes(product: Product) -> bytes:
-    """Build a 400×400 PNG with brand gradient and centered white initials."""
+    """Construye un PNG 400×400 con gradiente de marca e iniciales blancas centradas."""
     from PIL import Image, ImageDraw, ImageFont
 
     size = 400
@@ -339,7 +339,7 @@ def save_placeholder_for_product(
     *,
     storage_mode: str = 'local',
 ) -> str:
-    """Save PNG placeholder and assign ``product.image`` (idempotent path)."""
+    """Guarda el PNG placeholder y asigna ``product.image`` (ruta idempotente)."""
     rel_path = placeholder_relative_path(product)
 
     if storage_mode == 'local':
@@ -365,7 +365,7 @@ def save_placeholder_for_product(
 
 
 def storage_mode_help() -> str:
-    """Return a short help string describing active media storage."""
+    """Devuelve un texto corto de ayuda que describe el storage de media activo."""
     if is_remote_storage():
         return (
             'local (default): write to MEDIA_ROOT — safe in Docker/CI. '

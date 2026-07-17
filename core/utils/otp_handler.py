@@ -1,6 +1,6 @@
-"""Create and persist user OTP rows for email verification flows.
+"""Crea y persiste filas OTP de usuario para flujos de verificación por correo.
 
-Invalidates prior unused codes so only one active OTP exists per user.
+Invalida códigos previos sin usar para que solo exista un OTP activo por usuario.
 """
 from __future__ import annotations
 
@@ -21,12 +21,12 @@ OTP_EXPIRY_MINUTES = 10
 
 
 def _generate_secure_otp() -> str:
-    """Return a cryptographically secure 6-digit numeric OTP."""
+    """Devuelve un OTP numérico de 6 dígitos criptográficamente seguro."""
     return f'{secrets.randbelow(10 ** OTP_LENGTH):0{OTP_LENGTH}d}'
 
 
 def generate_user_otp(user: User) -> str:
-    """Invalidate prior OTPs and persist a new code for the user."""
+    """Invalida OTP previos y persiste un código nuevo para el usuario."""
     if user.pk is None:
         raise ValueError('generate_user_otp requires a persisted User instance.')
 

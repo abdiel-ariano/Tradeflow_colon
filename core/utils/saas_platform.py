@@ -1,7 +1,7 @@
-"""Diagnose and bootstrap SaaS tables on PostgreSQL/Supabase.
+"""Diagnostica e inicializa tablas SaaS en PostgreSQL/Supabase.
 
-Ensures default plans exist before seller wizards or year-seed demos
-touch subscriptions.
+Asegura que existan los planes por defecto antes de que wizards de vendedor
+o demos de year-seed toquen suscripciones.
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ log = logging.getLogger('tradeflow.saas')
 
 
 def _table_exists(table_name: str) -> bool:
-    """Return True when ``table_name`` exists in the connected database."""
+    """Devuelve True cuando ``table_name`` existe en la base conectada."""
     try:
         return table_name in connection.introspection.table_names()
     except DatabaseError as exc:
@@ -26,7 +26,7 @@ def _table_exists(table_name: str) -> bool:
 
 
 def get_saas_health() -> dict:
-    """Return live SaaS datastore health (plans, subs, checkout table)."""
+    """Devuelve la salud en vivo del datastore SaaS (planes, subs, tabla checkout)."""
     health = {
         'ok': True,
         'plans_count': 0,
@@ -55,7 +55,7 @@ def get_saas_health() -> dict:
 
 
 def bootstrap_saas_datastore(*, seed_subscriptions: bool = False) -> dict:
-    """Ensure default plans exist; optionally seed subscriptions for companies."""
+    """Asegura planes por defecto; opcionalmente siembra suscripciones para empresas."""
     from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscription
     from core.utils.ads_ranking import ensure_ad_credits
 
@@ -100,7 +100,7 @@ def bootstrap_saas_datastore(*, seed_subscriptions: bool = False) -> dict:
 
 
 def bootstrap_saas_for_company(company: Company) -> dict:
-    """Bootstrap global SaaS state and refresh the requesting company usage."""
+    """Inicializa el estado SaaS global y refresca el uso de la empresa solicitante."""
     health = bootstrap_saas_datastore(seed_subscriptions=False)
     if not health.get('ok'):
         return health

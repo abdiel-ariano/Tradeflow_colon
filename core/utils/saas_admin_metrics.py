@@ -1,7 +1,7 @@
-"""Aggregate SaaS admin KPIs: plans, MRR proxy, GMV, and requests.
+"""Agrega KPIs SaaS de admin: planes, proxy de MRR, GMV y solicitudes.
 
-Feeds the operator dashboard from PostgreSQL/Supabase ORM — source of
-truth for CFZ seller subscription health.
+Alimenta el dashboard de operadores desde el ORM PostgreSQL/Supabase — fuente
+de verdad de la salud de suscripciones de vendedores ZLC.
 """
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ PLAN_CHART_COLORS = {
 
 
 def _current_period_volume_by_company() -> dict[int, Decimal]:
-    """Map company_id → billable USD volume for the current calendar month."""
+    """Mapa company_id → volumen facturable USD del mes calendario actual."""
     now = timezone.now()
     usage = CompanyBillingUsage.objects.filter(
         period_year=now.year,
@@ -57,7 +57,7 @@ def _current_period_volume_by_company() -> dict[int, Decimal]:
 
 
 def build_saas_admin_payload() -> dict:
-    """Build admin SaaS dashboard KPIs, plan occupancy, and request queues."""
+    """Construye KPIs del dashboard SaaS admin, ocupación de planes y colas de solicitudes."""
     ensure_default_plans()
     now = timezone.now()
     start_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)

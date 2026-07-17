@@ -33,7 +33,8 @@ Thumbs.db
 desktop.ini
 ehthumbs.db
 
-# IDEs
+# IDEs / AI tooling
+.cursor/
 .vscode/
 .idea/
 *.swp
@@ -81,12 +82,6 @@ frontend/admin-saas/node_modules/
 frontend/admin-saas/dist/
 frontend/admin-saas/.vite/
 frontend/admin-saas/tsconfig.tsbuildinfo
-frontend/catalog/node_modules/
-frontend/catalog/dist/
-frontend/marketplace/node_modules/
-frontend/marketplace/dist/
-frontend/catalog/.vite/
-frontend/catalog/tsconfig.tsbuildinfo
 .parcel-cache/
 
 # Tools

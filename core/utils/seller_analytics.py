@@ -1,7 +1,6 @@
-"""Seller dashboard aggregates: products, sales, quotes, payments.
+"""Agregados del dashboard vendedor: productos, ventas, cotizaciones, pagos.
 
-Powers Mi Tienda KPIs for CFZ companies without exposing other sellers'
-data.
+Alimenta KPIs de Mi Tienda para empresas ZLC sin exponer datos de otros vendedores.
 """
 from __future__ import annotations
 
@@ -15,13 +14,13 @@ from ..models import Cotizacion, CotizacionItem, Inventory, Order, OrderItem, Pr
 
 
 def _month_start(now=None):
-    """Return timezone-aware start of the current calendar month."""
+    """Devuelve el inicio aware del mes calendario actual."""
     now = now or timezone.now()
     return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
 def seller_product_kpis(company) -> dict:
-    """Return live catalog KPI counts (total / active products)."""
+    """Devuelve conteos KPI del catálogo en vivo (total / productos activos)."""
     productos_qs = Product.objects.filter(company=company)
     return {
         'kpi_total': productos_qs.count(),
@@ -30,7 +29,7 @@ def seller_product_kpis(company) -> dict:
 
 
 def seller_products_dashboard(company):
-    """Build KPIs, categories, and product list context for seller products."""
+    """Construye KPIs, categorías y contexto de lista de productos del vendedor."""
     productos_qs = Product.objects.filter(company=company).select_related('category')
     kpis = seller_product_kpis(company)
     total = kpis['kpi_total']
@@ -72,7 +71,7 @@ def seller_products_dashboard(company):
 
 
 def seller_sales_dashboard(company, days=30):
-    """Build sales metrics, trend series, and filterable orders for the seller."""
+    """Construye métricas de ventas, series de tendencia y pedidos filtrables del vendedor."""
     now = timezone.now()
     month_start = _month_start(now)
     desde = now - timedelta(days=days)
@@ -130,7 +129,7 @@ def seller_sales_dashboard(company, days=30):
 
 
 def seller_quotes_dashboard(company):
-    """Build quote stats and Kanban columns for the seller."""
+    """Construye estadísticas de cotizaciones y columnas Kanban del vendedor."""
     qs = Cotizacion.objects.filter(empresa=company).select_related('buyer', 'order')
     now = timezone.now()
     month_start = _month_start(now)
@@ -166,7 +165,7 @@ def seller_quotes_dashboard(company):
 
 
 def seller_portal_dashboard(company, days=30):
-    """Build unified metrics for the main seller portal home."""
+    """Construye métricas unificadas para el home principal del portal vendedor."""
     sales = seller_sales_dashboard(company, days=days)
     products = seller_products_dashboard(company)
     quotes = seller_quotes_dashboard(company)
@@ -249,7 +248,7 @@ def seller_portal_dashboard(company, days=30):
 
 
 def cotizacion_monto_estimado(cot):
-    """Sum quote lines using offered price or catalog price fallback."""
+    """Suma líneas de cotización usando precio ofertado o fallback al precio de catálogo."""
     total = Decimal('0.00')
     for it in cot.items.select_related('product').all():
         precio = it.precio_ofertado or getattr(it.product, 'display_price', None) or it.product.unit_price
@@ -258,7 +257,7 @@ def cotizacion_monto_estimado(cot):
 
 
 def seller_payments_analytics(company, days=90):
-    """Build payment success rates, volume, and gaps for seller analytics."""
+    """Construye tasas de éxito de pago, volumen y brechas para analytics del vendedor."""
     from ..models import Payment
 
     now = timezone.now()

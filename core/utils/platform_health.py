@@ -1,7 +1,7 @@
-"""Deploy health payload for DB, storage, email, and Supabase flags.
+"""Payload de salud de deploy para BD, storage, correo y flags Supabase.
 
-Used by ``/health/`` so Railway and ops can spot CFZ infra drift before
-sellers hit checkout failures.
+Usado por ``/health/`` para que Railway y ops detecten deriva de infra ZLC
+antes de que los vendedores fallen en checkout.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from core.utils.email_delivery import validate_email_infrastructure
 
 
 def check_database() -> dict:
-    """Probe PostgreSQL with SELECT 1 and return latency metadata."""
+    """Sondea PostgreSQL con SELECT 1 y devuelve metadatos de latencia."""
     started = time.perf_counter()
     try:
         with connection.cursor() as cur:
@@ -32,7 +32,7 @@ def check_database() -> dict:
 
 
 def check_storage() -> dict:
-    """Report default media backend and whether cloud S3 is in use."""
+    """Reporta el backend de media por defecto y si se usa S3 en la nube."""
     using_s3 = 'S3Boto3' in settings.STORAGES.get('default', {}).get('BACKEND', '')
     return {
         'ok': True,
@@ -43,7 +43,7 @@ def check_storage() -> dict:
 
 
 def platform_health_payload() -> dict:
-    """Assemble deploy health JSON for DB, storage, email, and Supabase."""
+    """Arma el JSON de salud de deploy para BD, storage, correo y Supabase."""
     db = check_database()
     storage = check_storage()
     email_warnings = validate_email_infrastructure()
