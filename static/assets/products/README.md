@@ -1,41 +1,43 @@
-# AI product placeholder images
+# Product reference images
 
-TradeFlow uses consistent studio-style reference photos when suppliers have not uploaded real assets.
+TradeFlow uses consistent studio-style reference images when demo products do
+not yet have real supplier media. These assets describe a concrete product
+family; they are not presented as photos from a supplier.
 
-## Prompt base (all categories)
+## Prompt base
 
-- White or neutral gray background (`#F7F8FA`, matching `--color-background`)
-- Studio lighting, soft shadow
-- Product at 3/4 angle
-- No third-party watermarks
-- No overlaid text in the image file
+- White or neutral gray background (`#F7F8FA`)
+- Neutral commercial product photography
+- Studio lighting and a soft shadow
+- Product centered at a three-quarter angle
+- No logos, brands, watermarks, labels, or overlaid text
+- 4:3 landscape composition
 
 ## File convention
 
-Place WebP files under:
+Shared family references live under:
 
 ```
-static/assets/products/placeholder-ai/{categoria}-{sku}.webp
+static/assets/products/reference/<product-family>.webp
 ```
 
-Examples:
+The mapping from normalized product names to files is defined in
+`core.utils.demo_product_images.PRODUCT_REFERENCE_MATCHES`.
 
-- `electronics-elec-sony-002.webp`
-- `textiles-text-lino-001.webp`
-
-The `{categoria}` keyword matches `core.utils.demo_product_images.category_keyword()`:
-`electronics`, `textiles`, `beauty`, `home_appliances`, `toys`, `general`.
+Exact-SKU legacy assets under
+`static/assets/products/placeholder-ai/{category}-{sku}.webp` remain
+supported for backwards compatibility.
 
 ## Runtime resolution
 
-`product_image_src` resolves in order:
+`product_image_src` resolves in this order:
 
-1. Supplier upload (`Product.image`)
-2. AI placeholder WebP at the path above (if the file exists)
-3. Category SVG icon (`static/images/category-icons/{categoria}.svg`)
+1. A concrete family reference when the current image is missing or demo-generated
+2. A real supplier upload (`Product.image`)
+3. An exact-SKU legacy reference
+4. Optional Picsum only when explicitly enabled for development
+5. A category SVG icon, never an unrelated category photograph
 
-Cards show a discrete **"Reference image"** label when option 2 is used.
+Cards show a discrete **"Reference image"** label whenever a generated reference
+is used. A future supplier upload automatically replaces the reference.
 
-## Style rule
-
-Do not mix illustration, photo, and 3D-render styles within the same visible catalog row.
