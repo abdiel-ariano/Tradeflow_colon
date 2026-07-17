@@ -45,7 +45,8 @@ class CatalogoPublicoTests(TestCase):
         self.assertContains(response, 'tf-pcard')
         self.assertContains(response, 'Colón Free Zone Wholesale Catalog')
         self.assertNotContains(response, 'cat-sort-select--quick')
-        self.assertContains(response, 'CFZ Verified only')
+        # Verified-supplier filter (checkbox name=verificado), not legacy chip copy.
+        self.assertContains(response, 'name="verificado"')
 
     def test_search_filter(self):
         """buscar= query returns matching products and a correct count."""
