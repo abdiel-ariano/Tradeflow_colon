@@ -1,8 +1,9 @@
 """Email OTP verification for TradeFlow Colón marketplace access.
 
 Hosts ``verify_otp_view`` (wired as ``verificar_codigo`` from
-``core.views``). Lives in this module because ``core/views.py`` is a
-flat file and cannot host a ``core.views.auth`` subpackage.
+``core.views`` / ``core.views.auth_session``). Kept in this dedicated
+module so OTP/Axes concerns stay separate from the modular
+``core.views`` package.
 
 OTP gates checkout, guest-to-buyer cart handoff, and seller portal
 entry after signup or OAuth.
