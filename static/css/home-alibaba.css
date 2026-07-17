@@ -2165,6 +2165,12 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
   gap: 10px;
 }
 
+/* Center only when JS marks the slider static (all cards fit).
+   Always-on justify-content:center breaks flush-left translateX scroll. */
+.hm-spotlight-unified__products .hm-slider--static .hm-slider__track {
+  justify-content: center;
+}
+
 .hm-spotlight-unified .product-card {
   border-radius: 8px;
   overflow: hidden;
