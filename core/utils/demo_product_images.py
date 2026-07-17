@@ -1,7 +1,7 @@
-"""Asigna imágenes demo y semilla de productos para fixtures del catálogo ZLC.
+"""Gestiona imágenes demo y referencias visuales de productos del catálogo ZLC.
 
-Prefiere fotos de categoría empaquetadas y luego placeholders de marca, para que
-las demos nunca muestren media rota en almacenamiento local o remoto.
+Las referencias empaquetadas representan familias de producto concretas. Las
+cargas reales de proveedores siempre conservan prioridad sobre estos recursos.
 """
 
 from __future__ import annotations
@@ -47,6 +47,34 @@ CATEGORY_KEYWORDS = {
     'toys': ['toy', 'game', 'children'],
     'general': ['wholesale', 'bulk', 'merchandise', 'general'],
 }
+
+PRODUCT_REFERENCE_FILES = {
+    'ups_1500va': 'assets/products/reference/ups-1500va.webp',
+    'monitor_qhd_27': 'assets/products/reference/monitor-qhd-27.webp',
+    'usb_c_hub': 'assets/products/reference/usb-c-hub.webp',
+    'universal_docking_station': 'assets/products/reference/universal-docking-station.webp',
+    'mechanical_keyboard': 'assets/products/reference/mechanical-keyboard.webp',
+    'cat6_wiring_kit': 'assets/products/reference/cat6-wiring-kit.webp',
+    'vertical_ergonomic_mouse': 'assets/products/reference/vertical-ergonomic-mouse.webp',
+    'usb_condenser_microphone': 'assets/products/reference/usb-condenser-microphone.webp',
+}
+
+# Ordered from most specific to least specific. Values are normalized below.
+PRODUCT_REFERENCE_MATCHES = (
+    ('ups_1500va', ('1500va interactive ups', 'ups 1500va')),
+    ('monitor_qhd_27', ('commercial 27" qhd led monitor', '27" qhd led monitor')),
+    ('usb_c_hub', ('aluminum 11-in-1 usb-c hub', '11-in-1 usb-c hub')),
+    ('universal_docking_station', ('universal docking station',)),
+    ('mechanical_keyboard', ('hot-swap mechanical keyboard', 'mechanical keyboard')),
+    ('cat6_wiring_kit', ('cat6 wiring kit',)),
+    ('vertical_ergonomic_mouse', ('vertical ergonomic mouse',)),
+    ('usb_condenser_microphone', ('usb condenser microphone',)),
+)
+
+DEMO_IMAGE_PREFIXES = (
+    'products/demo/',
+    'productos/placeholders/',
+)
 
 BRAND_COLORS = [
     (15, 42, 68),
@@ -101,35 +129,98 @@ def category_icon_static_path(product: Product) -> str:
     return CATEGORY_ICON_FILES.get(keyword, CATEGORY_ICON_FILES['general'])
 
 
+def _normalized_product_name(value: str) -> str:
+    """Normaliza puntuación y espacios para resolver una familia de producto."""
+    normalized = (value or '').lower()
+    normalized = normalized.replace('“', '"').replace('”', '"').replace('″', '"')
+    return re.sub(r'\s+', ' ', normalized).strip()
+
+
+def product_reference_key(product: Product) -> str:
+    """Devuelve la familia de referencia visual que coincide con el producto."""
+    name = _normalized_product_name(getattr(product, 'name', ''))
+    for key, phrases in PRODUCT_REFERENCE_MATCHES:
+        if any(phrase in name for phrase in phrases):
+            return key
+    return ''
+
+
+def product_reference_relative_path(product: Product) -> str:
+    """Devuelve el WebP compartido para una familia de producto concreta."""
+    return PRODUCT_REFERENCE_FILES.get(product_reference_key(product), '')
+
+
+def product_reference_file_exists(product: Product) -> bool:
+    """Devuelve True cuando la referencia concreta está empaquetada."""
+    rel = product_reference_relative_path(product)
+    return bool(rel and (Path(settings.BASE_DIR) / 'static' / rel).is_file())
+
+
+def is_demo_generated_image(product: Product, rel_path: str = '') -> bool:
+    """Identifica media generada por fixtures, sin marcar cargas de proveedores."""
+    rel = (rel_path or '').replace('\\', '/').lstrip('/')
+    if any(rel.startswith(prefix) for prefix in DEMO_IMAGE_PREFIXES):
+        return True
+
+    company = getattr(product, 'company', None)
+    ruc = str(getattr(company, 'ruc', '') or '')
+    return ruc.startswith('8-1Y-SIM-')
+
+
+def should_use_product_reference(product: Product) -> bool:
+    """Decide si una referencia puede sustituir media ausente o generada por demo."""
+    if not product or not product_reference_file_exists(product):
+        return False
+
+    from core.utils.media_storage import is_remote_media_storage, local_media_file_exists
+
+    rel = ''
+    if getattr(product, 'image', None) and product.image.name:
+        rel = product.image.name.replace('\\', '/')
+
+    if not rel or is_demo_generated_image(product, rel):
+        return True
+    if is_remote_media_storage():
+        return False
+    return not local_media_file_exists(rel)
+
+
 def ai_placeholder_relative_path(product: Product) -> str:
-    """Devuelve la ruta relativa del placeholder IA para una palabra clave de categoría."""
+    """Devuelve una referencia familiar o el placeholder SKU heredado."""
+    reference = product_reference_relative_path(product)
+    if reference:
+        return reference
     keyword = category_keyword(product)
     sku = re.sub(r'[^a-zA-Z0-9_-]', '-', (product.sku or f'p{product.pk}').lower())
     return f'assets/products/placeholder-ai/{keyword}-{sku}.webp'
 
 
 def ai_placeholder_static_path(product: Product) -> str:
-    """Devuelve la ruta absoluta del placeholder IA si existe."""
+    """Devuelve la ruta estática de la referencia visual."""
     return ai_placeholder_relative_path(product)
 
 
 def ai_placeholder_file_exists(product: Product) -> bool:
-    """Devuelve True cuando existe el archivo placeholder IA."""
+    """Devuelve True cuando existe la referencia familiar o SKU heredada."""
     rel = ai_placeholder_relative_path(product)
     return (Path(settings.BASE_DIR) / 'static' / rel).is_file()
 
 
 def product_uses_ai_reference_image(product: Product) -> bool:
-    """Devuelve True cuando la tarjeta pública mostrará un WebP de referencia generado."""
+    """Devuelve True cuando la tarjeta pública mostrará un WebP de referencia."""
+    if should_use_product_reference(product):
+        return True
     if not product:
         return False
+
     from core.utils.media_storage import is_remote_media_storage, local_media_file_exists
 
     rel = ''
     if getattr(product, 'image', None) and product.image.name:
         rel = product.image.name.replace('\\', '/')
-    if rel and (local_media_file_exists(rel) or is_remote_media_storage()):
-        return False
+    if rel and not is_demo_generated_image(product, rel):
+        if local_media_file_exists(rel) or is_remote_media_storage():
+            return False
     return ai_placeholder_file_exists(product)
 
 
@@ -373,3 +464,4 @@ def storage_mode_help() -> str:
             'auto: remote with local fallback.'
         )
     return 'local (default). remote/auto only apply when S3 storage is configured.'
+
