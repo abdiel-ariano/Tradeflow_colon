@@ -244,6 +244,14 @@
       var next = root.querySelector('.hm-slider__arrow--next');
       if (!track || !viewport || !dotsWrap) return;
 
+      /* Marketplace Featured Supplier: CSS handles wrap + overflow-y; skip horizontal carousel. */
+      if (root.classList.contains('hm-slider--spotlight') && root.closest('.hm-marketplace-page')) {
+        root.classList.add('hm-slider--static');
+        track.style.transform = 'none';
+        track.style.transition = 'none';
+        return;
+      }
+
       var slides = Array.prototype.slice.call(track.children).filter(function (el) {
         return el.nodeType === 1;
       });
