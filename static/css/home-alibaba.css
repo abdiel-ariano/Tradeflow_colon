@@ -2183,40 +2183,23 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
   flex-wrap: wrap;
   justify-content: center;
   align-content: flex-start;
-  gap: 16px;
+  gap: 22px;
   transform: none !important;
   transition: none !important;
   will-change: auto;
 }
 .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__slide {
-  flex: 1 1 calc(25% - 12px); /* ~4 cards per row on desktop */
-  min-width: 180px;
-  max-width: none; /* remove 260px cap that left blue side gaps */
+  flex: 1 1 calc(33.333% - 15px);
+  min-width: 160px;
+  max-width: 260px;
   box-sizing: border-box;
-}
-/* Card fill — scoped to marketplace Featured Supplier track only */
-.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__track .product-card {
-  width: 100%;
-  max-width: 100%;
-}
-.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__track .product-card .card-image img,
-.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__track .product-card .card-image-img,
-.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__track .product-card .card-image .hm-visual__img,
-.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__track .product-card .card-image .product-img {
-  max-width: 100%;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__track .product-card .card-name {
-  overflow-wrap: anywhere;
 }
 @media (max-width: 900px) {
   .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__viewport {
     max-height: 460px;
   }
   .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__slide {
-    flex: 1 1 calc(50% - 8px);
+    flex: 1 1 calc(50% - 11px);
     max-width: none;
   }
 }
