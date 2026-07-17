@@ -111,10 +111,11 @@ def marketplace_verified_suppliers(request):
 
     from core import merchandising as merch
     from core.models import Company
+    from core.utils.tradeflow_cache import cached_marketplace_categories_context
 
     ctx = _marketplace_page_context(request)
     ctx['marketplace_nav_active'] = 'verified'
-    ctx.update(merch.marketplace_categories_context())
+    ctx.update(cached_marketplace_categories_context())
 
     empresas = list(
         Company.objects.filter(is_verified=True)
@@ -140,10 +141,11 @@ def marketplace_verified_suppliers(request):
 def marketplace_deals(request):
     """Active wholesale promotions marketing page."""
     from core import merchandising as merch
+    from core.utils.tradeflow_cache import cached_marketplace_categories_context
 
     ctx = _marketplace_page_context(request)
     ctx['marketplace_nav_active'] = 'deals'
-    ctx.update(merch.marketplace_categories_context())
+    ctx.update(cached_marketplace_categories_context())
     deals = merch.deals_page_products(48)
     ctx['daily_deals'] = deals
     ctx['spotlight_deals'] = deals[:8]
@@ -157,11 +159,11 @@ def marketplace_deals(request):
 @catalog_access
 def marketplace_order_protection(request):
     """RFQ workflow and buyer protection program page."""
-    from core import merchandising as merch
+    from core.utils.tradeflow_cache import cached_marketplace_categories_context
 
     ctx = _marketplace_page_context(request)
     ctx['marketplace_nav_active'] = 'protection'
-    ctx.update(merch.marketplace_categories_context())
+    ctx.update(cached_marketplace_categories_context())
     return render(request, 'core/marketplace_order_protection.html', ctx)
 
 

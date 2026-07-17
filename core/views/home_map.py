@@ -87,7 +87,10 @@ def home_view(request):
     context['show_cart_actions'] = True
     stats = context.get('stats') or {}
     context['catalogo_stats'] = stats
-    return render(request, 'core/home.html', context)
+    response = render(request, 'core/home.html', context)
+    # private: sesión/carrito de invitados; no compartir en CDN.
+    response['Cache-Control'] = 'private, max-age=60'
+    return response
 
 
 @require_GET

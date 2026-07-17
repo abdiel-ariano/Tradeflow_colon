@@ -231,7 +231,16 @@ TRADEFLOW_ASSET_VERSION = config('TRADEFLOW_ASSET_VERSION', default='desktop-v11
 # Runtime picsum URLs in templates (off in production — use catalog seeds).
 TRADEFLOW_USE_PICSUM_RUNTIME = config('TRADEFLOW_USE_PICSUM_RUNTIME', default=False, cast=bool)
 
-# Public-page cache TTLs; backend prefers REDIS_URL, else DB or LocMem.
+# ---------------------------------------------------------------------------
+# TTLs de caché de servidor (páginas públicas / merchandising).
+# Backend: REDIS_URL → Redis; USE_DB_CACHE → DatabaseCache; si no → LocMem.
+# Ajustar vía env sin redeploy de código. Ver docs/PAGE_CACHE.md.
+#   CACHE_TTL_HOME         — contexto home invitados + API merch (s)
+#   CACHE_TTL_STATS        — contadores marketplace home_stats (s)
+#   CACHE_TTL_NAV          — categorías del header (s)
+#   CACHE_TTL_CATALOG_META — categorías/empresas/conteos del catálogo (s)
+# HTTP Cache-Control en home/catálogo es private (sesión/carrito); no CDN.
+# ---------------------------------------------------------------------------
 CACHE_TTL_HOME = config('CACHE_TTL_HOME', default=120, cast=int)
 CACHE_TTL_STATS = config('CACHE_TTL_STATS', default=300, cast=int)
 CACHE_TTL_NAV = config('CACHE_TTL_NAV', default=600, cast=int)

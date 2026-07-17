@@ -259,6 +259,8 @@ def catalogo_publico(request):
     from core.utils.tradeflow_cache import (
         cached_catalog_categories,
         cached_catalog_empresas,
+        cached_marketplace_categories_context,
+        cached_verified_company_count,
     )
 
     catalogo_base = merch.active_products_base()
@@ -272,11 +274,7 @@ def catalogo_publico(request):
         except Exception:
             role = None
     show_cart_actions = is_guest or role in ('buyer', 'admin') or request.user.is_superuser
-    verified_empresas = (
-        Company.objects.filter(is_verified=True, products__is_active=True)
-        .distinct()
-        .count()
-    )
+    verified_empresas = cached_verified_company_count()
 
     buscar = request.GET.get('buscar', '').strip()
     categorias_sel = [c for c in request.GET.getlist('categoria') if c.strip()]
@@ -430,7 +428,7 @@ def catalogo_publico(request):
         'show_cart_actions': show_cart_actions,
         'is_guest_catalog': is_guest,
     }
-    context.update(merch.marketplace_categories_context())
+    context.update(cached_marketplace_categories_context())
 
     is_partial = (
         request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -438,7 +436,11 @@ def catalogo_publico(request):
     )
     if is_partial:
         return render(request, 'core/catalogo_publico_partial.html', context)
-    return render(request, 'core/catalogo_publico.html', context)
+    response = render(request, 'core/catalogo_publico.html', context)
+    if is_guest:
+        # private: carrito/sesión de invitados; no CDN compartida.
+        response['Cache-Control'] = 'private, max-age=30'
+    return response
 
 
 @catalog_access
