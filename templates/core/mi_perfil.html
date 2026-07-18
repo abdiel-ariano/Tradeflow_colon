@@ -274,6 +274,46 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
 
       <div class="perfil-card">
         <h2 class="perfil-card-title">
+          <span class="material-symbols-rounded">privacy_tip</span>
+          Privacy &amp; data
+        </h2>
+        <form method="post" action="{% url 'mi_perfil' %}" style="margin-bottom:18px;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="marketing_prefs">
+          <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;font-size:14px;color:var(--tf-body);">
+            <input type="checkbox" name="marketing_opt_in" value="1" {% if profile.marketing_opt_in %}checked{% endif %} style="margin-top:3px;">
+            <span>Send me cart reminders and occasional marketplace promotions.</span>
+          </label>
+          <button type="submit" class="perfil-btn-outline" style="margin-top:12px;">
+            <span class="material-symbols-rounded" style="font-size:18px;">mail</span>
+            Save preferences
+          </button>
+        </form>
+        <form method="post" action="{% url 'mi_perfil' %}" style="margin-bottom:18px;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="export_data">
+          <p style="font-size:13px;color:var(--tf-muted);margin:0 0 10px;">Download a JSON copy of your profile, addresses, and orders.</p>
+          <button type="submit" class="perfil-btn-outline">
+            <span class="material-symbols-rounded" style="font-size:18px;">download</span>
+            Export my data
+          </button>
+        </form>
+        <form method="post" action="{% url 'mi_perfil' %}" onsubmit="return confirm('This anonymizes your account permanently. Continue?');">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete_account">
+          <p style="font-size:13px;color:var(--tf-muted);margin:0 0 10px;">Anonymize your account (orders are retained without your personal details). Type <strong>DELETE</strong> to confirm.</p>
+          <div class="perfil-field">
+            <input type="text" name="confirm_delete" class="tf-input" placeholder="DELETE" autocomplete="off" required>
+          </div>
+          <button type="submit" class="perfil-btn-outline" style="color:#B91C1C;border-color:#FECACA;">
+            <span class="material-symbols-rounded" style="font-size:18px;">person_off</span>
+            Anonymize account
+          </button>
+        </form>
+      </div>
+
+      <div class="perfil-card">
+        <h2 class="perfil-card-title">
           <span class="material-symbols-rounded">lock</span>
           Security
         </h2>

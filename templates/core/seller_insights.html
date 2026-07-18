@@ -83,13 +83,16 @@
 {% endblock %}
 
 {% block seller_extra_js %}
+{% load tf_csp %}
+{% json_data_block chart_labels "sp-insights-labels" %}
+{% json_data_block chart_values "sp-insights-values" %}
 <script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function () {
   if (typeof Chart === 'undefined') return;
   var el = document.getElementById('sp-insights-chart');
   if (!el) return;
-  var labels = {{ chart_labels_json|safe }};
-  var values = {{ chart_values_json|safe }};
+  var labels = JSON.parse(document.getElementById('sp-insights-labels').textContent);
+  var values = JSON.parse(document.getElementById('sp-insights-values').textContent);
   new Chart(el, {
     type: 'line',
     data: {

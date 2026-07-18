@@ -284,12 +284,13 @@ def enviar_verificacion_email(user: User, request) -> dict:
     from core.models import EmailVerification
 
     verification = EmailVerification.generate_for(user)
+    plain = getattr(verification, 'plain_code', '') or ''
     verify_url = request.build_absolute_uri(reverse('verificar_codigo'))
-    result = enviar_codigo_verificacion(user.email, verification.code)
+    result = enviar_codigo_verificacion(user.email, plain)
     if not result.ok:
         raise RuntimeError(result.detail or 'email_send_failed')
     return {
-        'code': verification.code,
+        'code': plain,
         'link': verify_url,
         'channel': result.channel,
         'recipient': user.email,

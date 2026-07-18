@@ -27,8 +27,9 @@
   <li><strong>{% trans "Identity and contact:" %}</strong> {% trans "name, email address, phone number, username." %}</li>
   <li><strong>{% trans "Company (sellers):" %}</strong> {% trans "legal name, CFZ address, commercial contact details." %}</li>
   <li><strong>{% trans "Transactions:" %}</strong> {% trans "order history, quotes, statuses, amounts, and associated notes." %}</li>
-  <li><strong>{% trans "Technical:" %}</strong> {% trans "IP address, browser user agent, access logs, and cookies (see the cookie policy)." %}</li>
+  <li><strong>{% trans "Technical:" %}</strong> {% trans "IP address, browser user agent, access logs, and essential cookies (see the cookie policy)." %}</li>
   <li><strong>{% trans "Location:" %}</strong> {% trans "coordinates when you voluntarily confirm them at checkout or in logistics." %}</li>
+  <li><strong>{% trans "AI assistants:" %}</strong> {% trans "free-text questions you send to marketplace or analytics chat may be processed by our AI provider (currently Groq) to generate answers." %}</li>
 </ul>
 
 <h2 id="privacy-purposes">{% trans "3. Purposes of use" %}</h2>
@@ -37,7 +38,8 @@
   <li>{% trans "Process orders, quotes, simulated or real payments, and operational notifications." %}</li>
   <li>{% trans "Send transactional communications (confirmations, status changes, email verification)." %}</li>
   <li>{% trans "Improve security, prevent fraud, and comply with applicable legal obligations." %}</li>
-  <li>{% trans "Analyze aggregated Platform usage for performance and user experience." %}</li>
+  <li>{% trans "Analyze aggregated Platform usage for performance and user experience (first-party analytics; we do not use Google Analytics)." %}</li>
+  <li>{% trans "Send marketing or cart reminders only if you opt in (you can change this in My Profile)." %}</li>
 </ul>
 
 <h2 id="privacy-sharing">{% trans "4. Data sharing" %}</h2>
@@ -45,24 +47,25 @@
 <ul>
   <li><strong>{% trans "Payment providers" %}</strong> {% trans "or gateways enabled on the Platform." %}</li>
   <li><strong>{% trans "Logistics operators" %}</strong> {% trans "or carriers selected in the order flow." %}</li>
-  <li><strong>{% trans "Technical infrastructure" %}</strong> {% trans "(hosting, email, databases) under confidentiality agreements." %}</li>
+  <li><strong>{% trans "Technical infrastructure" %}</strong> {% trans "(hosting such as Supabase, email such as Resend, AI inference such as Groq) under confidentiality / processor terms." %}</li>
+  <li><strong>{% trans "OAuth identity providers" %}</strong> {% trans "(Google, Microsoft, LinkedIn) when you choose social sign-in." %}</li>
   <li><strong>{% trans "Authorities" %}</strong> {% trans "when required by Panamanian law." %}</li>
 </ul>
 <p>{% trans "Buyer and seller exchange the minimum data necessary to execute each operation (for example, contact details and order references)." %}</p>
 
 <h2 id="privacy-retention">{% trans "5. Retention" %}</h2>
-<p>{% trans "We retain data while your account remains active and for the period necessary for legal, accounting obligations, or dispute resolution. Order records may be kept for additional periods when regulation or audit requires it." %}</p>
+<p>{% trans "We retain data while your account remains active and for the period necessary for legal, accounting obligations, or dispute resolution. Order records may be kept for additional periods when regulation or audit requires it. Security and email delivery logs are purged on a rolling schedule (typically 90 days) unless a longer period is required for an investigation." %}</p>
 
 <h2 id="privacy-rights">{% trans "6. Your rights" %}</h2>
-<p>{% trans "Under applicable law, you may request:" %}</p>
+<p>{% trans "Under applicable law (including GDPR where it applies and Panama Law 81), you may request:" %}</p>
 <ul>
-  <li><strong>{% trans "Access" %}</strong> {% trans "to the personal data we process about you." %}</li>
-  <li><strong>{% trans "Rectification" %}</strong> {% trans "of inaccurate or incomplete data." %}</li>
-  <li><strong>{% trans "Deletion" %}</strong> {% trans "when no longer necessary or you withdraw consent, except where legal retention applies." %}</li>
-  <li><strong>{% trans "Restriction or objection" %}</strong> {% trans "to processing in cases provided by regulation." %}</li>
+  <li><strong>{% trans "Access / portability" %}</strong> {% trans "— download your data from My Profile → Export my data." %}</li>
+  <li><strong>{% trans "Rectification" %}</strong> {% trans "of inaccurate or incomplete data in My Profile." %}</li>
+  <li><strong>{% trans "Deletion / anonymization" %}</strong> {% trans "— use Anonymize account in My Profile (order history may be retained without personal identifiers)." %}</li>
+  <li><strong>{% trans "Restriction or objection" %}</strong> {% trans "to processing in cases provided by regulation, including withdrawing marketing consent." %}</li>
 </ul>
 <p>
-  {% blocktrans with email=tradeflow_contact_email %}Send your request to <a href="mailto:{{ email }}">{{ email }}</a> indicating your registered email.{% endblocktrans %}
+  {% blocktrans with email=tradeflow_contact_email %}You can also email <a href="mailto:{{ email }}">{{ email }}</a> indicating your registered email.{% endblocktrans %}
   {% trans "We will respond within a reasonable timeframe." %}
 </p>
 

@@ -61,9 +61,10 @@ jobs:
       - name: Install scanners
         run: pip install bandit pip-audit
       - name: Bandit (SAST)
-        # warn-only mientras se calibran false positives. Cambiar a `false` cuando estable.
-        continue-on-error: true
-        run: bandit -c .bandit -r core/ tradeflow_colon/
+        # Fail the job on HIGH findings (mediums tracked via .bandit skips / backlog).
+        continue-on-error: false
+        run: bandit -c .bandit -r core/ tradeflow_colon/ analytics/ -lll
       - name: pip-audit (CVE de dependencias)
-        continue-on-error: true
-        run: pip-audit -r requirements.txt
+        # Fail on known HIGH+ vulnerabilities in pinned requirements.
+        continue-on-error: false
+        run: pip-audit -r requirements.txt --severity-level high

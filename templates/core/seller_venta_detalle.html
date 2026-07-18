@@ -122,11 +122,13 @@
         integrity="sha384-GFr3yTh5lJznCbZfpTtXnwboFsxqtTQoeTZCRHhE0579KrRmlCzen5AA8ohaB5ug"
         crossorigin="anonymous" defer></script>
 {% endif %}
+{% load tf_csp %}
+{% json_data_block timeline_initial "sd-timeline-initial" %}
 <script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function () {
   if (!window.TFSeller) return;
   TFSeller.initOrderTimeline({
-    initial: {{ timeline_initial_json|safe }},
+    initial: JSON.parse(document.getElementById('sd-timeline-initial').textContent),
     pollUrl: "{% url 'api_seller_order_timeline' orden.pk %}",
     pollMs: 5000,
     orderId: {{ orden.pk }},

@@ -62,6 +62,18 @@ class SellerProductForm(forms.ModelForm):
             'is_active':   forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+    def clean_name(self):
+        from core.utils.security_input import sanitize_plain_text
+        return sanitize_plain_text(self.cleaned_data.get('name', ''), max_length=200)
+
+    def clean_description(self):
+        from core.utils.security_input import sanitize_plain_text
+        return sanitize_plain_text(self.cleaned_data.get('description', ''), max_length=5000)
+
+    def clean_sku(self):
+        from core.utils.security_input import sanitize_identifier
+        return sanitize_identifier(self.cleaned_data.get('sku', ''), max_length=80)
+
 
 class SellerInventoryForm(forms.ModelForm):
     """Seller-editable stock total and low-stock alert threshold."""

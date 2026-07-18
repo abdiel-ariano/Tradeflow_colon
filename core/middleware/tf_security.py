@@ -134,11 +134,9 @@ class SecurityEventLogMiddleware:
 
     @staticmethod
     def _client_ip(request):
-        """Best-effort client IP from X-Forwarded-For or REMOTE_ADDR."""
-        xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
-        if xff:
-            return xff.split(',')[0].strip()[:45]
-        return request.META.get('REMOTE_ADDR', '')[:45]
+        """Best-effort client IP (rightmost XFF hop; see client_ip helper)."""
+        from core.utils.client_ip import get_client_ip
+        return get_client_ip(request)
 
 
 class ApiRateLimitMiddleware:
@@ -232,8 +230,6 @@ class ApiRateLimitMiddleware:
 
     @staticmethod
     def _client_ip(request):
-        """Best-effort client IP from X-Forwarded-For or REMOTE_ADDR."""
-        xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
-        if xff:
-            return xff.split(',')[0].strip()[:45]
-        return request.META.get('REMOTE_ADDR', '')[:45]
+        """Best-effort client IP (rightmost XFF hop; see client_ip helper)."""
+        from core.utils.client_ip import get_client_ip
+        return get_client_ip(request)

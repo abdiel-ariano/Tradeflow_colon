@@ -211,6 +211,10 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
     if password1 != password2:
         errores.append('Passwords do not match.')
 
+    accept_privacy = request.POST.get('accept_privacy') in ('1', 'on', 'true', 'yes')
+    if not accept_privacy:
+        errores.append('You must accept the privacy policy to create an account.')
+
     if errores:
         for error in errores:
             messages.error(request, error)
@@ -247,6 +251,11 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
     # Compradores nuevos deben completar el wizard de personalización post-registro
     if role == 'buyer':
         profile.onboarding_completed_at = None
+    from core.utils.privacy import PRIVACY_POLICY_VERSION
+    from django.utils import timezone as _tz
+    profile.privacy_accepted_at = _tz.now()
+    profile.privacy_policy_version = PRIVACY_POLICY_VERSION
+    profile.marketing_opt_in = request.POST.get('marketing_opt_in') in ('1', 'on', 'true', 'yes')
     profile.save()
 
     # Create application record
@@ -521,6 +530,43 @@ def mi_perfil(request):
                 request.user.save()
                 update_session_auth_hash(request, request.user)
                 messages.success(request, 'Password changed successfully.')
+
+        elif action == 'marketing_prefs':
+            profile.marketing_opt_in = request.POST.get('marketing_opt_in') in (
+                '1', 'on', 'true', 'yes',
+            )
+            profile.save(update_fields=['marketing_opt_in'])
+            messages.success(request, 'Communication preferences saved.')
+
+        elif action == 'export_data':
+            from core.utils.privacy import export_user_json_bytes
+
+            payload = export_user_json_bytes(request.user)
+            response = HttpResponse(payload, content_type='application/json')
+            response['Content-Disposition'] = (
+                f'attachment; filename="tradeflow-data-{request.user.pk}.json"'
+            )
+            return response
+
+        elif action == 'delete_account':
+            confirm = (request.POST.get('confirm_delete') or '').strip().upper()
+            if confirm != 'DELETE':
+                messages.error(
+                    request,
+                    'Type DELETE to confirm account anonymization.',
+                )
+            else:
+                from django.contrib.auth import logout as auth_logout
+
+                from core.utils.privacy import anonymize_user
+
+                anonymize_user(request.user)
+                auth_logout(request)
+                messages.success(
+                    request,
+                    'Your account has been anonymized and signed out.',
+                )
+                return redirect('home')
 
         return redirect('mi_perfil')
 

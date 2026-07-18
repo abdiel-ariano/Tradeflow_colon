@@ -544,8 +544,9 @@ def detalle_orden(request, pk):
 
 
 @admin_required
+@require_POST
 def cambiar_estado_orden(request, pk, estado):
-    """Admin transition of an order status with email side effects."""
+    """Admin transition of an order status with email side effects (POST + CSRF)."""
     orden = get_object_or_404(Order, pk=pk)
     estados_validos = [e[0] for e in Order.STATUS_CHOICES]
 

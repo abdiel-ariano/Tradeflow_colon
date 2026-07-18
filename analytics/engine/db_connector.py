@@ -276,9 +276,10 @@ def read_table_joined(conn_str: str, table: str, schema: str = "public",
 
 
 def run_query(conn_str: str, sql: str, max_rows: int = 20000) -> pd.DataFrame:
-    """Run a read SQL statement and return at most max_rows as a DataFrame."""
-    if not (sql or "").strip():
-        raise ValueError("La consulta SQL está vacía.")
+    """Run a read-only SQL statement and return at most max_rows as a DataFrame."""
+    from core.utils.sql_guard import assert_readonly_sql
+
+    sql = assert_readonly_sql(sql)
     dia = _dialect(conn_str)
     conn = _connect(conn_str)
     try:

@@ -415,6 +415,22 @@ class LogisticsWebhookConfig(models.Model):
         verbose_name = 'Logistics webhook'
         verbose_name_plural = 'Logistics webhooks'
 
+    def clean(self):
+        """Reject private/metadata SSRF targets before the webhook is saved."""
+        from django.core.exceptions import ValidationError
+
+        from core.utils.url_validator import validate_outbound_url
+
+        try:
+            validate_outbound_url(self.endpoint_url)
+        except ValueError as exc:
+            raise ValidationError({'endpoint_url': str(exc)}) from exc
+
+    def save(self, *args, **kwargs):
+        """Run full_clean so admin/API saves cannot skip SSRF checks."""
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
 
 class LogisticsEvent(models.Model):
     """Evento de línea de tiempo / auditoría del recorrido logístico de un pedido."""

@@ -298,7 +298,8 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_LOGIN_ON_GET = True
+# OWASP A07: never start OAuth on a bare GET (login CSRF / link prefetch).
+SOCIALACCOUNT_LOGIN_ON_GET = False
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
@@ -353,10 +354,11 @@ MESSAGE_TAGS = {
     messages.ERROR:   'danger',
 }
 
-# Email verification gate; set REQUIRE_EMAIL_VERIFICATION=false for CI/agile.
+# Email verification gate. Default True for production safety; set
+# REQUIRE_EMAIL_VERIFICATION=false only for local CI / agile demos.
 REQUIRE_EMAIL_VERIFICATION = config(
     'REQUIRE_EMAIL_VERIFICATION',
-    default=False,
+    default=True,
     cast=bool,
 )
 
@@ -567,6 +569,14 @@ AXES_COOLOFF_TIME = 1
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = 'core/bloqueado.html'
 AXES_LOCKOUT_PARAMETERS = [['username'], ['ip_address']]
+# Prefer proxy-appended (rightmost) XFF hop — see core.utils.client_ip.
+AXES_CLIENT_IP_CALLABLE = 'core.utils.client_ip.get_client_ip'
+
+# Optional shared token for detailed /health/ready/?detail=1&token=…
+HEALTH_DETAIL_TOKEN = config('HEALTH_DETAIL_TOKEN', default='').strip()
+
+# Comma-separated extra DB hosts staff Analytics may connect to in production.
+ANALYTICS_DB_HOST_ALLOWLIST = config('ANALYTICS_DB_HOST_ALLOWLIST', default='').strip()
 
 # Endurecimiento de cookies (OWASP A05) — aplica en todos los entornos.
 SESSION_COOKIE_HTTPONLY = True        # JS cannot read session cookie

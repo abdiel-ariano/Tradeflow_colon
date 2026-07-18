@@ -42,17 +42,30 @@ def check_storage() -> dict:
     }
 
 
-def platform_health_payload() -> dict:
-    """Arma el JSON de salud de deploy para BD, storage, correo y Supabase."""
+def platform_health_payload(*, detailed: bool = False) -> dict:
+    """Arma el JSON de salud de deploy.
+
+    Por defecto (público / LB): solo status + latencia BD, sin filtrar
+    configuración interna (OWASP A05). ``detailed=True`` para ops/staff.
+    """
     db = check_database()
+    public = {
+        'status': 'ok' if db['ok'] else 'degraded',
+        'version': 'tradeflow-colon',
+        'database': {
+            'ok': db['ok'],
+            'latency_ms': db['latency_ms'],
+        },
+    }
+    if not detailed:
+        return public
+
     storage = check_storage()
     email_warnings = validate_email_infrastructure()
     # Not a secret — needed to confirm password-reset links point at prod, not localhost.
     public_base = (getattr(settings, 'PUBLIC_BASE_URL', '') or '').strip().rstrip('/')
     from_email = (getattr(settings, 'DEFAULT_FROM_EMAIL', '') or '').strip()
-    return {
-        'status': 'ok' if db['ok'] else 'degraded',
-        'version': 'tradeflow-colon',
+    public.update({
         'debug': settings.DEBUG,
         'database': db,
         'storage': storage,
@@ -69,4 +82,5 @@ def platform_health_payload() -> dict:
                 and getattr(settings, 'SUPABASE_URL', '')
             ),
         },
-    }
+    })
+    return public

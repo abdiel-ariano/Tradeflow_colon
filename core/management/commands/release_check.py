@@ -39,6 +39,19 @@ class Command(BaseCommand):
         if 'FileSystemStorage' in backend and not settings.DEBUG:
             warnings.append('Media en disco local; configure Supabase Storage para persistencia.')
 
+        if not settings.DEBUG and not getattr(settings, 'REQUIRE_EMAIL_VERIFICATION', True):
+            errors.append(
+                'REQUIRE_EMAIL_VERIFICATION=False en producción — active verificación de email.'
+            )
+
+        if not settings.DEBUG and getattr(settings, 'EXPO_DEMO_MODE', False):
+            errors.append('EXPO_DEMO_MODE=True en producción — desactive el bypass demo.')
+
+        if not settings.DEBUG and getattr(settings, 'SERVE_LOCAL_MEDIA', False):
+            warnings.append(
+                'SERVE_LOCAL_MEDIA=True en producción; prefiera Supabase/S3 Storage.'
+            )
+
         required = ['SECRET_KEY', 'PUBLIC_BASE_URL']
         for key in required:
             if not getattr(settings, key, None):
@@ -51,11 +64,15 @@ class Command(BaseCommand):
                     'Configure SUPABASE_SERVICE_KEY o EMAIL_BACKEND SMTP en producción.'
                 )
 
-        payload = platform_health_payload()
+        payload = platform_health_payload(detailed=True)
         if not payload['database']['ok']:
             from core.utils.database_url import database_connection_hint
 
-            errors.append(database_connection_hint(Exception(payload['database']['detail'])))
+            errors.append(
+                database_connection_hint(
+                    Exception(payload['database'].get('detail') or 'unreachable')
+                )
+            )
 
         for w in warnings:
             self.stdout.write(self.style.WARNING(f'  ⚠ {w}'))

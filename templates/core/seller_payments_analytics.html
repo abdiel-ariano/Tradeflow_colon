@@ -174,13 +174,16 @@
 
 {% block seller_extra_js %}
 {% if analytics_tab == 'acceptance' and has_chart_data %}
+{% load tf_csp %}
+{% json_data_block chart_labels "sp-pay-chart-labels" %}
+{% json_data_block chart_values "sp-pay-chart-values" %}
 <script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function () {
   if (!window.Chart || !window.TFSeller) return;
   var el = document.getElementById('sp-chart-acceptance');
   if (!el) return;
-  var labels = {{ chart_labels_json|safe }};
-  var values = {{ chart_values_json|safe }};
+  var labels = JSON.parse(document.getElementById('sp-pay-chart-labels').textContent);
+  var values = JSON.parse(document.getElementById('sp-pay-chart-values').textContent);
   new Chart(el.getContext('2d'), {
     type: 'line',
     data: {

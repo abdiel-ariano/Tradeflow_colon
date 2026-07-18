@@ -126,14 +126,21 @@
 {% endblock %}
 
 {% block seller_extra_js %}
+{% load tf_csp %}
+{% json_data_block chart_revenue_labels "sp-portal-rev-labels" %}
+{% json_data_block chart_revenue_values "sp-portal-rev-values" %}
+{% json_data_block chart_week_labels "sp-portal-week-labels" %}
+{% json_data_block chart_week_orders "sp-portal-week-orders" %}
+{% json_data_block chart_status_labels "sp-portal-status-labels" %}
+{% json_data_block chart_status_values "sp-portal-status-values" %}
 <script nonce="{{ csp_nonce }}">
 window.SP_PORTAL = {
-  revenueLabels: {{ chart_revenue_labels_json|safe }},
-  revenueValues: {{ chart_revenue_values_json|safe }},
-  weekLabels: {{ chart_week_labels_json|safe }},
-  weekOrders: {{ chart_week_orders_json|safe }},
-  statusLabels: {{ chart_status_labels_json|safe }},
-  statusValues: {{ chart_status_values_json|safe }},
+  revenueLabels: JSON.parse(document.getElementById('sp-portal-rev-labels').textContent),
+  revenueValues: JSON.parse(document.getElementById('sp-portal-rev-values').textContent),
+  weekLabels: JSON.parse(document.getElementById('sp-portal-week-labels').textContent),
+  weekOrders: JSON.parse(document.getElementById('sp-portal-week-orders').textContent),
+  statusLabels: JSON.parse(document.getElementById('sp-portal-status-labels').textContent),
+  statusValues: JSON.parse(document.getElementById('sp-portal-status-values').textContent),
   catLabels: [],
   catValues: [],
   pollUrl: "{% url 'api_seller_dashboard' %}"

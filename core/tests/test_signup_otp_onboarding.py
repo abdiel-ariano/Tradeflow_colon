@@ -39,6 +39,7 @@ class SignupOtpOnboardingTests(TestCase):
             'role': 'buyer',
             'password1': 'SecurePass1!',
             'password2': 'SecurePass1!',
+            'accept_privacy': '1',
         }
 
     @patch('core.views_onboarding.enviar_codigo_verificacion')

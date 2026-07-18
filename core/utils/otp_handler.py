@@ -13,6 +13,7 @@ from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from core.models import EmailVerification
+from core.utils.secret_hash import hash_secret
 
 log = logging.getLogger('tradeflow.auth')
 
@@ -26,7 +27,7 @@ def _generate_secure_otp() -> str:
 
 
 def generate_user_otp(user: User) -> str:
-    """Invalida OTP previos y persiste un código nuevo para el usuario."""
+    """Invalida OTP previos, persiste el hash y devuelve el código en claro."""
     if user.pk is None:
         raise ValueError('generate_user_otp requires a persisted User instance.')
 
@@ -43,7 +44,7 @@ def generate_user_otp(user: User) -> str:
                     removed,
                 )
 
-            EmailVerification.objects.create(user=user, code=plain_code)
+            EmailVerification.objects.create(user=user, code=hash_secret(plain_code))
     except DatabaseError:
         log.exception(
             'otp_persist_failed user_id=%s',

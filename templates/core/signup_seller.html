@@ -184,8 +184,19 @@ Solo presentación; contrato del formulario sin cambios.
           </fieldset>
 
           <p class="signup-buyer-legal-inline">
-            {% blocktrans trimmed %}By selecting <strong>Create account</strong>, you accept our{% endblocktrans %}
-            <a href="{% url 'legal_privacidad' %}">{% trans "Terms and privacy" %}</a>.
+            <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;">
+              <input type="checkbox" name="accept_privacy" value="1" required style="margin-top:3px;">
+              <span>
+                {% blocktrans trimmed %}I accept the{% endblocktrans %}
+                <a href="{% url 'legal_privacidad' %}" target="_blank" rel="noopener">{% trans "Privacy Policy" %}</a>
+                {% trans "and" %}
+                <a href="{% url 'legal_terminos' %}" target="_blank" rel="noopener">{% trans "Terms of use" %}</a>.
+              </span>
+            </label>
+            <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;margin-top:8px;">
+              <input type="checkbox" name="marketing_opt_in" value="1" style="margin-top:3px;">
+              <span>{% trans "Send me product tips and marketplace updates (optional)." %}</span>
+            </label>
           </p>
 
           <button type="submit" class="auth-submit">

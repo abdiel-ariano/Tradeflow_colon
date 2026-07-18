@@ -20,6 +20,7 @@ from core.utils.password_reset_link import (
     PASSWORD_RESET_LINK_EXPIRY_MINUTES,
     generate_password_reset_link,
 )
+from core.utils.secret_hash import hash_secret
 
 User = get_user_model()
 
@@ -61,9 +62,15 @@ class PasswordResetDbLinkTests(TestCase):
         args, kwargs = mock_send.call_args
         to_email, subject, html, text = args[:4]
         self.assertEqual(to_email.lower(), 'reset.user@example.com')
-        self.assertIn(link.token, text)
-        self.assertIn(link.token, html)
+        # Email carries the plaintext token; DB stores only the digest.
+        self.assertEqual(len(link.token), 64)
         self.assertIn('/recuperar-clave/confirmar/', text)
+        self.assertIn('/recuperar-clave/confirmar/', html)
+        # Extract token from confirm URL and verify it matches the stored hash.
+        import re
+        m = re.search(r'/recuperar-clave/confirmar/[^/]+/([^/\s]+)/?', text)
+        self.assertIsNotNone(m)
+        self.assertEqual(link.token, hash_secret(m.group(1)))
         self.assertEqual(kwargs.get('tipo'), 'password_reset')
         self.assertEqual(
             EmailDeliveryLog.objects.filter(
@@ -110,7 +117,9 @@ class PasswordResetDbLinkTests(TestCase):
         self.assertTrue(self.user.check_password('NewSecurePass456!'))
         self.assertEqual(str(self.client.session.get('_auth_user_id')), str(self.user.pk))
         self.assertFalse(
-            PasswordResetLink.objects.filter(user=self.user, token=token).exists()
+            PasswordResetLink.objects.filter(
+                user=self.user, token=hash_secret(token),
+            ).exists()
         )
 
         complete = self.client.get(reverse('password_reset_complete'))
@@ -130,7 +139,7 @@ class PasswordResetDbLinkTests(TestCase):
     def test_expired_token_rejected(self):
         """Reject tokens aged past PASSWORD_RESET_LINK_EXPIRY."""
         token = generate_password_reset_link(self.user)
-        row = PasswordResetLink.objects.get(token=token)
+        row = PasswordResetLink.objects.get(token=hash_secret(token))
         # Age created_at beyond TTL without storing secrets in logs.
         from django.utils import timezone
         from datetime import timedelta
@@ -175,5 +184,9 @@ class PasswordResetDbLinkTests(TestCase):
         first = generate_password_reset_link(self.user)
         second = generate_password_reset_link(self.user)
         self.assertNotEqual(first, second)
-        self.assertFalse(PasswordResetLink.objects.filter(token=first).exists())
-        self.assertTrue(PasswordResetLink.objects.filter(token=second).exists())
+        self.assertFalse(
+            PasswordResetLink.objects.filter(token=hash_secret(first)).exists()
+        )
+        self.assertTrue(
+            PasswordResetLink.objects.filter(token=hash_secret(second)).exists()
+        )
