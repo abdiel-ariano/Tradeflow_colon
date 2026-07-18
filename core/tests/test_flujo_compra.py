@@ -31,6 +31,7 @@ from core.models import (
     REQUIRE_EMAIL_VERIFICATION=False,
     REQUIRE_APPROVED_APPLICATION=False,
     CHECKOUT_AUTO_APPROVE=True,
+    STAFF_MFA_REQUIRED=False,
     EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
     AUTHENTICATION_BACKENDS=[
         'django.contrib.auth.backends.ModelBackend',
