@@ -30,11 +30,11 @@ class MarketplaceEmailTests(TestCase):
             password='pass12345',
             first_name='Ana',
         )
-        UserProfile.objects.filter(user=self.user).update(
-            role='buyer',
-            email_verificado=True,
-            marketing_opt_in=True,
-        )
+        profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        profile.role = 'buyer'
+        profile.email_verificado = True
+        profile.marketing_opt_in = True
+        profile.save(update_fields=['role', 'email_verificado', 'marketing_opt_in'])
         self.company = Company.objects.create(
             name='CFZ Demo Co',
             is_verified=True,
@@ -101,8 +101,9 @@ class MarketplaceEmailTests(TestCase):
             enviar_promociones_empresas,
         )
 
-        UserProfile.objects.filter(user=self.user).update(marketing_opt_in=False)
-        self.user.refresh_from_db()
+        profile = self.user.profile
+        profile.marketing_opt_in = False
+        profile.save(update_fields=['marketing_opt_in'])
         carrito = {'1': {'nombre': 'X', 'cantidad': 1, 'subtotal': '1.00'}}
         self.assertFalse(enviar_carrito_abandonado(self.user, carrito))
         self.assertFalse(enviar_promociones_empresas(self.user))
