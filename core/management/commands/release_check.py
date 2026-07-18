@@ -44,8 +44,12 @@ class Command(BaseCommand):
                 'REQUIRE_EMAIL_VERIFICATION=False en producción — active verificación de email.'
             )
 
-        if not settings.DEBUG and getattr(settings, 'EXPO_DEMO_MODE', False):
-            errors.append('EXPO_DEMO_MODE=True en producción — desactive el bypass demo.')
+        # Demo mode is intentional for investor/Expo deploys — warn, do not block.
+        if getattr(settings, 'EXPO_DEMO_MODE', False):
+            warnings.append(
+                'EXPO_DEMO_MODE=True (bypass post-OTP activo). OK para demo; '
+                'desactivar cuando el entorno sea solo producción real.'
+            )
 
         if not settings.DEBUG and getattr(settings, 'SERVE_LOCAL_MEDIA', False):
             warnings.append(
