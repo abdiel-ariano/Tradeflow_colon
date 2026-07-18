@@ -53,4 +53,7 @@ python manage.py release_check
 python manage.py purge_security_logs --days 90
 ```
 
+`EXPO_DEMO_MODE` remains supported for investor/Expo demos (`release_check` only warns).
+Turn it off when an environment is production-only.
+
 See also `SECURITY_AUDIT_2026-06.docx` for the earlier audit snapshot.
