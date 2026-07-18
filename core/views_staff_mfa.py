@@ -14,27 +14,34 @@ from core.utils.staff_mfa import (
     generate_totp_secret,
     mark_session_mfa_ok,
     provisioning_uri,
+    staff_mfa_required,
+    user_has_staff_totp,
+    user_is_staffish,
     user_needs_staff_mfa,
+    user_needs_staff_mfa_setup,
     verify_totp,
 )
 
 log = logging.getLogger('tradeflow.security')
 
 
-def _is_staffish(user) -> bool:
-    if user.is_staff or user.is_superuser:
-        return True
-    profile = getattr(user, 'profile', None)
-    return bool(profile and profile.role == 'admin')
-
-
 @login_required
 @require_http_methods(['GET', 'POST'])
 def staff_mfa_verify(request):
     """Challenge page after password login when staff TOTP is enabled."""
+    if user_needs_staff_mfa_setup(request.user):
+        next_url = request.GET.get('next') or ''
+        url = reverse('staff_mfa_setup')
+        if next_url.startswith('/') and not next_url.startswith('//'):
+            url = f'{url}?next={next_url}'
+        return redirect(url)
+
     if not user_needs_staff_mfa(request.user):
         mark_session_mfa_ok(request)
         return redirect('home')
+
+    if not user_has_staff_totp(request.user):
+        return redirect('staff_mfa_setup')
 
     if request.method == 'POST':
         code = (request.POST.get('code') or '').strip()
@@ -56,13 +63,14 @@ def staff_mfa_verify(request):
 @login_required
 @require_http_methods(['GET', 'POST'])
 def staff_mfa_setup(request):
-    """Enable/disable staff TOTP from My Profile (staff/admin only)."""
-    if not _is_staffish(request.user):
+    """Enable/disable staff TOTP (disable blocked when MFA is required)."""
+    if not user_is_staffish(request.user):
         messages.error(request, 'Only staff accounts can configure MFA.')
         return redirect('mi_perfil')
 
     profile = request.user.profile
     pending_secret = request.session.get('tf_totp_pending')
+    required = staff_mfa_required()
 
     if request.method == 'POST':
         action = request.POST.get('action', '')
@@ -78,7 +86,6 @@ def staff_mfa_setup(request):
             if not secret:
                 messages.error(request, 'Start MFA setup again.')
                 return redirect('staff_mfa_setup')
-            # Temporarily assign for verify helper — use plaintext against pyotp.
             import pyotp
             if not pyotp.TOTP(secret).verify(code, valid_window=1):
                 messages.error(request, 'Code did not match. Scan again and retry.')
@@ -89,9 +96,18 @@ def staff_mfa_setup(request):
             request.session.pop('tf_totp_pending', None)
             mark_session_mfa_ok(request)
             messages.success(request, 'Authenticator MFA enabled for your staff account.')
+            next_url = request.GET.get('next') or request.POST.get('next') or ''
+            if next_url.startswith('/') and not next_url.startswith('//'):
+                return redirect(next_url)
             return redirect('mi_perfil')
 
         if action == 'disable':
+            if required:
+                messages.error(
+                    request,
+                    'Staff MFA is required on this environment and cannot be disabled.',
+                )
+                return redirect('staff_mfa_setup')
             code = (request.POST.get('code') or '').strip()
             if profile.staff_totp_enabled and not verify_totp(request.user, code):
                 messages.error(request, 'Enter a valid code to disable MFA.')
@@ -109,4 +125,6 @@ def staff_mfa_setup(request):
         'enabled': profile.staff_totp_enabled,
         'pending_secret': pending_secret or '',
         'provisioning_uri': uri,
+        'mfa_required': required,
+        'next': request.GET.get('next', ''),
     })

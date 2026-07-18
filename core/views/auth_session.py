@@ -104,12 +104,21 @@ def login_view(request):
                 request,
                 f'Welcome, {user.first_name or user.username}!',
             )
-            from core.utils.staff_mfa import clear_session_mfa, user_needs_staff_mfa
+            from core.utils.staff_mfa import (
+                clear_session_mfa,
+                user_needs_staff_mfa,
+                user_needs_staff_mfa_setup,
+            )
 
             clear_session_mfa(request)
             if user_needs_staff_mfa(user):
                 next_url = _safe_next_url(request) or reverse('dashboard')
-                return redirect(reverse('staff_mfa_verify') + f'?next={next_url}')
+                mfa_name = (
+                    'staff_mfa_setup'
+                    if user_needs_staff_mfa_setup(user)
+                    else 'staff_mfa_verify'
+                )
+                return redirect(reverse(mfa_name) + f'?next={next_url}')
             # Incomplete OAuth/legacy accounts lack UserProfile — send them to
             # role completion before any base.html shell that used to 500 on
             # request.user.profile.

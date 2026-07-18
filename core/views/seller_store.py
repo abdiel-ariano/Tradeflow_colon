@@ -538,15 +538,23 @@ def seller_predictive_insights(request):
 
 
 def _optimize_product_image_from_request(request, product_form, product):
-    """Optimize an uploaded product image before cloud storage save."""
+    """Validate then optimize an uploaded product image before storage save."""
     if 'image' not in request.FILES:
         return product
     from django.core.exceptions import ValidationError as _ValidationError
 
     from ..utils.media_storage import optimize_uploaded_image
+    from ..utils.upload_security import UploadValidationError, validate_image_upload
 
+    uploaded = request.FILES['image']
     try:
-        product.image = optimize_uploaded_image(request.FILES['image'])
+        validate_image_upload(uploaded, max_bytes=5 * 1024 * 1024)
+        product.image = optimize_uploaded_image(uploaded)
+    except UploadValidationError as exc:
+        messages.error(
+            request,
+            _('Imagen rechazada: %(detalle)s') % {'detalle': str(exc)},
+        )
     except _ValidationError as exc:
         detalle = exc.message if hasattr(exc, 'message') else (
             exc.messages[0] if getattr(exc, 'messages', None) else str(exc)

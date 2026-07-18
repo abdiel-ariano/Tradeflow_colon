@@ -564,6 +564,9 @@ CHECKOUT_AUTO_APPROVE = config('CHECKOUT_AUTO_APPROVE', default=False, cast=bool
 # Expo demo: bypass onboarding gate after OTP (approved + active application).
 EXPO_DEMO_MODE = config('EXPO_DEMO_MODE', default=False, cast=bool)
 
+# Staff/admin must enroll TOTP (skipped automatically when EXPO_DEMO_MODE=True).
+STAFF_MFA_REQUIRED = config('STAFF_MFA_REQUIRED', default=True, cast=bool)
+
 # django-axes: lock after failed logins (username or IP).
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1

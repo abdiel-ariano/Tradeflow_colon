@@ -1211,29 +1211,47 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   <div id="tf-toast-root" class="tf-toast-root" aria-live="polite" aria-atomic="true"></div>
 
-  {# Essential-cookies notice — no tracking cookies today; dismiss stored in localStorage. #}
-  <div id="tf-cookie-notice" class="tf-cookie-notice" hidden role="dialog" aria-label="{% trans 'Cookie notice' %}">
-    <p>
-      {% blocktrans trimmed %}
-      We use essential cookies for login, cart, security, and language.
-      See our
-      {% endblocktrans %}
-      <a href="{% url 'legal_cookies' %}">{% trans "Cookie Policy" %}</a>.
-    </p>
-    <button type="button" id="tf-cookie-accept" class="tf-btn tf-btn-primary">{% trans "Got it" %}</button>
+  {# Cookie preferences (first-party only; no third-party trackers today). #}
+  <div id="tf-cookie-notice" class="tf-cookie-notice" hidden role="dialog" aria-label="{% trans 'Cookie preferences' %}">
+    <div class="tf-cookie-notice__copy">
+      <p>
+        {% blocktrans trimmed %}
+        We use essential cookies for login, cart, and security.
+        Optional preferences remember UI choices (language, dismissed banners).
+        See our
+        {% endblocktrans %}
+        <a href="{% url 'legal_cookies' %}">{% trans "Cookie Policy" %}</a>.
+      </p>
+      <label class="tf-cookie-notice__opt">
+        <input type="checkbox" id="tf-cookie-prefs" checked>
+        {% trans "Remember interface preferences" %}
+      </label>
+    </div>
+    <div class="tf-cookie-notice__actions">
+      <button type="button" id="tf-cookie-essential" class="tf-btn tf-btn-outline">{% trans "Essential only" %}</button>
+      <button type="button" id="tf-cookie-accept" class="tf-btn tf-btn-primary">{% trans "Save choices" %}</button>
+    </div>
   </div>
   <style nonce="{{ csp_nonce }}">
     .tf-cookie-notice {
       position: fixed; z-index: 1200; left: 16px; right: 16px; bottom: 16px;
-      max-width: 560px; margin: 0 auto; display: flex; gap: 12px; align-items: center;
+      max-width: 640px; margin: 0 auto; display: flex; gap: 14px; align-items: flex-start;
       flex-wrap: wrap; padding: 14px 16px; border-radius: 12px;
       background: #0F2A44; color: #fff; box-shadow: 0 8px 24px rgba(15,42,68,.28);
       font-size: 13px; line-height: 1.45;
     }
     .tf-cookie-notice[hidden] { display: none !important; }
-    .tf-cookie-notice p { margin: 0; flex: 1 1 220px; }
+    .tf-cookie-notice__copy { flex: 1 1 260px; }
+    .tf-cookie-notice__copy p { margin: 0 0 8px; }
     .tf-cookie-notice a { color: #FDBA74; }
+    .tf-cookie-notice__opt {
+      display: flex; gap: 8px; align-items: center; margin: 0; font-size: 12px; color: #E5E7EB;
+    }
+    .tf-cookie-notice__actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .tf-cookie-notice .tf-btn { flex: 0 0 auto; }
+    .tf-cookie-notice .tf-btn-outline {
+      background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.35);
+    }
   </style>
 
   <main class="tf-main" style="flex: 1;">
@@ -1568,16 +1586,41 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <script nonce="{{ csp_nonce }}">
   (function () {
     try {
-      var key = 'tf_cookie_notice_v1';
+      var key = 'tf_cookie_prefs_v1';
+      var legacy = 'tf_cookie_notice_v1';
       var box = document.getElementById('tf-cookie-notice');
-      var btn = document.getElementById('tf-cookie-accept');
-      if (box && btn && !window.localStorage.getItem(key)) {
+      var btnSave = document.getElementById('tf-cookie-accept');
+      var btnEssential = document.getElementById('tf-cookie-essential');
+      var prefBox = document.getElementById('tf-cookie-prefs');
+      if (!box || !btnSave || !btnEssential) return;
+      var existing = window.localStorage.getItem(key);
+      if (!existing && window.localStorage.getItem(legacy)) {
+        existing = JSON.stringify({ v: 1, essential: true, preferences: true, analytics: false });
+        window.localStorage.setItem(key, existing);
+      }
+      function savePrefs(preferences) {
+        window.localStorage.setItem(key, JSON.stringify({
+          v: 1,
+          essential: true,
+          preferences: !!preferences,
+          analytics: false
+        }));
+        box.hidden = true;
+      }
+      if (!existing) {
         box.hidden = false;
-        btn.addEventListener('click', function () {
-          window.localStorage.setItem(key, '1');
-          box.hidden = true;
+        btnSave.addEventListener('click', function () {
+          savePrefs(prefBox ? prefBox.checked : true);
+        });
+        btnEssential.addEventListener('click', function () {
+          if (prefBox) prefBox.checked = false;
+          savePrefs(false);
         });
       }
+      window.tfCookiePrefs = function () {
+        try { return JSON.parse(window.localStorage.getItem(key) || 'null'); }
+        catch (e) { return null; }
+      };
     } catch (e) {}
   })();
   </script>

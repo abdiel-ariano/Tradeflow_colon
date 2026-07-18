@@ -51,6 +51,7 @@ jobs:
           core.tests.test_flujo_compra
           core.tests.test_gdpr_owasp_hardening
           core.tests.test_gdpr_owasp_followup
+          core.tests.test_security_access_controls
           -v2
 
   security:

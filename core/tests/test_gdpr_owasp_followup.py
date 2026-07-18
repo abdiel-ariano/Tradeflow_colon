@@ -7,7 +7,7 @@ from unittest.mock import patch
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 
 from core.models import UserProfile
 from core.utils import staff_mfa, upload_security
@@ -93,8 +93,9 @@ class StaffMfaHelperTests(TestCase):
         self.profile.role = 'admin'
         self.profile.save()
 
-    def test_user_needs_mfa_only_when_enabled(self):
-        """MFA is optional until staff_totp_enabled is set."""
+    @override_settings(STAFF_MFA_REQUIRED=False, EXPO_DEMO_MODE=False)
+    def test_user_needs_mfa_only_when_enabled_if_not_required(self):
+        """When MFA is not required, only enrolled staff are challenged."""
         self.assertFalse(staff_mfa.user_needs_staff_mfa(self.user))
         secret = staff_mfa.generate_totp_secret()
         self.profile.staff_totp_secret = staff_mfa.encrypt_totp_secret(secret)
@@ -102,6 +103,18 @@ class StaffMfaHelperTests(TestCase):
         self.profile.save(update_fields=['staff_totp_secret', 'staff_totp_enabled'])
         self.user.refresh_from_db()
         self.assertTrue(staff_mfa.user_needs_staff_mfa(self.user))
+
+    @override_settings(STAFF_MFA_REQUIRED=True, EXPO_DEMO_MODE=False)
+    def test_staff_mfa_required_forces_setup(self):
+        """Required MFA challenges staff even before TOTP enrollment."""
+        self.assertTrue(staff_mfa.user_needs_staff_mfa(self.user))
+        self.assertTrue(staff_mfa.user_needs_staff_mfa_setup(self.user))
+
+    @override_settings(STAFF_MFA_REQUIRED=True, EXPO_DEMO_MODE=True)
+    def test_expo_demo_skips_forced_mfa(self):
+        """Expo demo mode keeps MFA optional for staff."""
+        self.assertFalse(staff_mfa.user_needs_staff_mfa(self.user))
+        self.assertFalse(staff_mfa.user_needs_staff_mfa_setup(self.user))
 
     def test_verify_totp_roundtrip(self):
         """A current TOTP code verifies against the encrypted secret."""

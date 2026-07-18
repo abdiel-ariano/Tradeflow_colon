@@ -8,6 +8,7 @@ import re
 from html import escape
 
 import pandas as pd
+from django.utils.safestring import mark_safe
 
 
 def _is_delta_series(s: pd.Series) -> bool:
@@ -83,4 +84,5 @@ def dataframe_html(
             parts.append(f"<td{td_cls}>{_cell(row[c], delta=is_delta)}</td>")
         parts.append("</tr>")
     parts.append("</tbody></table>")
-    return "".join(parts)
+    # Cells/headers already html.escape'd — SafeString avoids template |safe.
+    return mark_safe("".join(parts))

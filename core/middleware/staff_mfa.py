@@ -1,10 +1,14 @@
-"""Require staff TOTP verification when MFA is enabled on the profile."""
+"""Require staff TOTP setup/verify when MFA is required or already enabled."""
 from __future__ import annotations
 
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from core.utils.staff_mfa import session_mfa_ok, user_needs_staff_mfa
+from core.utils.staff_mfa import (
+    session_mfa_ok,
+    user_needs_staff_mfa,
+    user_needs_staff_mfa_setup,
+)
 
 # Paths that must remain reachable while MFA is pending.
 _MFA_ALLOW = (
@@ -19,7 +23,7 @@ _MFA_ALLOW = (
 
 
 class StaffMfaMiddleware:
-    """Redirect staff with TOTP enabled to the MFA challenge until verified."""
+    """Redirect staff to MFA setup or challenge until the session is verified."""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -34,5 +38,8 @@ class StaffMfaMiddleware:
             and not session_mfa_ok(request)
             and not any(path.startswith(p) for p in _MFA_ALLOW)
         ):
-            return redirect(reverse('staff_mfa_verify') + f'?next={path}')
+            next_q = f'?next={path}'
+            if user_needs_staff_mfa_setup(user):
+                return redirect(reverse('staff_mfa_setup') + next_q)
+            return redirect(reverse('staff_mfa_verify') + next_q)
         return self.get_response(request)
