@@ -104,6 +104,10 @@ def validate_uploaded_file(
     if ext == '.pdf':
         if not head.startswith(b'%PDF'):
             raise UploadValidationError('bad_magic')
+        # Reject obvious HTML/JS polyglots in the first chunk.
+        lowered = head.lower()
+        if b'<html' in lowered or b'<script' in lowered or b'javascript:' in lowered:
+            raise UploadValidationError('bad_magic')
         return uploaded
 
     kind = _sniff_image_kind(head)
@@ -132,11 +136,26 @@ def validate_image_upload(uploaded, *, max_bytes: int = 5 * 1024 * 1024):
 
 
 def validate_proof_upload(uploaded, *, max_bytes: int = 5 * 1024 * 1024):
-    """Validate a bank-transfer proof (image or PDF)."""
+    """Validate a bank-transfer proof (image or PDF).
+
+    Images require Pillow decode; PDFs require ``%PDF`` magic and no
+    trailing HTML/JS polyglot after the header sniff window.
+    """
+    name = (getattr(uploaded, 'name', '') or '').strip()
+    ext = _ext(name)
+    if ext == '.pdf':
+        return validate_uploaded_file(
+            uploaded,
+            max_bytes=max_bytes,
+            allowed_content_types=PROOF_CONTENT_TYPES,
+            allowed_exts=PROOF_EXTS,
+            require_image_decode=False,
+        )
+    # Image proofs: stricter decode path (same as product/logo images).
     return validate_uploaded_file(
         uploaded,
         max_bytes=max_bytes,
-        allowed_content_types=PROOF_CONTENT_TYPES,
-        allowed_exts=PROOF_EXTS,
-        require_image_decode=False,
+        allowed_content_types=IMAGE_CONTENT_TYPES,
+        allowed_exts=IMAGE_EXTS,
+        require_image_decode=True,
     )

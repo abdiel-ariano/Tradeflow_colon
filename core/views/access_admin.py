@@ -261,9 +261,9 @@ def revisar_solicitud(request, token, accion):
         rechazar_solicitud,
     )
     if aprobada:
-        _, email_result = aprobar_solicitud(app, notificar=True)
+        _app_result, email_result = aprobar_solicitud(app, notificar=True)
     else:
-        _, email_result = rechazar_solicitud(app, notificar=True)
+        _app_result, email_result = rechazar_solicitud(app, notificar=True)
 
     warn = mensaje_fallo_correo(email_result)
     if warn:

@@ -5,12 +5,19 @@
 <div class="tf-page" style="max-width:520px;margin:48px auto;padding:0 20px;">
   <h1 style="font-size:1.4rem;color:var(--tf-navy);margin:0 0 8px;">{% trans "Staff authenticator (MFA)" %}</h1>
   <p style="color:var(--tf-muted);font-size:14px;margin:0 0 18px;">
+    {% if mfa_required %}
+    {% trans "Staff and admin accounts must enable TOTP on this environment. Use Google Authenticator, 1Password, or similar." %}
+    {% else %}
     {% trans "Optional TOTP for staff/admin accounts. Use Google Authenticator, 1Password, or similar." %}
+    {% endif %}
   </p>
 
   {% if enabled %}
   <div class="perfil-card" style="padding:20px;margin-bottom:16px;">
     <p style="margin:0 0 12px;color:#15803d;font-weight:600;">{% trans "MFA is enabled on this account." %}</p>
+    {% if mfa_required %}
+    <p style="margin:0;font-size:13px;color:var(--tf-muted);">{% trans "Disable is not available while staff MFA is required." %}</p>
+    {% else %}
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="action" value="disable">
@@ -18,6 +25,7 @@
       <input type="text" name="code" id="mfa-disable" class="tf-input" inputmode="numeric" autocomplete="one-time-code" required>
       <button type="submit" class="tf-btn tf-btn-outline" style="margin-top:12px;">{% trans "Disable MFA" %}</button>
     </form>
+    {% endif %}
   </div>
   {% elif pending_secret %}
   <div class="perfil-card" style="padding:20px;margin-bottom:16px;">
@@ -29,6 +37,7 @@
     <form method="post" style="margin-top:14px;">
       {% csrf_token %}
       <input type="hidden" name="action" value="confirm">
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
       <label class="tf-label" for="mfa-confirm">{% trans "Confirmation code" %}</label>
       <input type="text" name="code" id="mfa-confirm" class="tf-input" inputmode="numeric" autocomplete="one-time-code" required>
       <button type="submit" class="tf-btn tf-btn-primary" style="margin-top:12px;">{% trans "Confirm and enable" %}</button>

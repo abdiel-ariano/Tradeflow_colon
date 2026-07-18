@@ -1,4 +1,4 @@
-"""Optional TOTP MFA for staff/admin accounts (pyotp)."""
+"""Staff/admin TOTP MFA helpers (required unless Expo demo / opt-out)."""
 from __future__ import annotations
 
 import base64
@@ -47,16 +47,45 @@ def decrypt_totp_secret(stored: str) -> str:
     return Fernet(_fernet_key()).decrypt(stored.encode('ascii')).decode('utf-8')
 
 
-def user_needs_staff_mfa(user: User) -> bool:
-    """True when the user is staff/admin and has TOTP enabled."""
+def user_is_staffish(user: User) -> bool:
+    """True for Django staff/superuser or profile role=admin."""
     if not user or not user.is_authenticated:
         return False
-    if not (user.is_staff or user.is_superuser):
-        profile = getattr(user, 'profile', None)
-        if not profile or profile.role != 'admin':
-            return False
+    if user.is_staff or user.is_superuser:
+        return True
+    profile = getattr(user, 'profile', None)
+    return bool(profile and profile.role == 'admin')
+
+
+def staff_mfa_required() -> bool:
+    """Whether staff must enroll+pass TOTP (off in Expo demo or explicit setting)."""
+    if getattr(settings, 'EXPO_DEMO_MODE', False):
+        return False
+    return bool(getattr(settings, 'STAFF_MFA_REQUIRED', True))
+
+
+def user_has_staff_totp(user: User) -> bool:
+    """True when the profile has an enabled TOTP secret."""
     profile = getattr(user, 'profile', None)
     return bool(profile and profile.staff_totp_enabled and profile.staff_totp_secret)
+
+
+def user_needs_staff_mfa_setup(user: User) -> bool:
+    """True when staff MFA is required but the user has not enrolled yet."""
+    return (
+        user_is_staffish(user)
+        and staff_mfa_required()
+        and not user_has_staff_totp(user)
+    )
+
+
+def user_needs_staff_mfa(user: User) -> bool:
+    """True when staff must complete MFA setup or challenge this session."""
+    if not user_is_staffish(user):
+        return False
+    if user_has_staff_totp(user):
+        return True
+    return staff_mfa_required()
 
 
 def session_mfa_ok(request) -> bool:

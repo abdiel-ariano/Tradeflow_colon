@@ -336,7 +336,7 @@
           {% endfor %}
         </dl>
         {% else %}
-        <div class="an-table-scroll">{{ t.html|safe }}</div>
+        <div class="an-table-scroll">{{ t.html }}</div>
         {% endif %}
         {% if t.note %}
         <p class="an-proj-note">{{ t.note }}</p>
@@ -412,7 +412,7 @@
         {% trans "Ver datos" %} ({{ n_preview }} {% trans "de" %} {{ n_total }} {% trans "filas" %})
         {% endif %}
       </summary>
-      <div class="an-table-scroll an-card" style="margin-top:10px;">{{ preview_html|safe }}</div>
+      <div class="an-table-scroll an-card" style="margin-top:10px;">{{ preview_html }}</div>
     </details>
 
     {{ charts|json_script:"an-charts-data" }}
