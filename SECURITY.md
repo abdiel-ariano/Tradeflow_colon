@@ -40,7 +40,7 @@ Estado actual (julio 2026) — no reclamar “100% cobertura”; priorizar remed
 | A03 Injection | ORM default path; Analytics SQL SELECT-only guard; CSP JSON blocks |
 | A04/A07 Auth | django-axes, email verification default on, OAuth not on bare GET |
 | A05 Misconfig | CSP/HSTS/Secure cookies; public `/health/ready/` without config leak |
-| A06 Components | CI Bandit + pip-audit (fail on HIGH) |
+| A06 Components | CI Bandit (HIGH) + pip-audit on pinned deps; Dependabot |
 | A08 Integrity | Signed logistics webhooks; SSRF URL validation on save + dispatch |
 | A09 Logging | Security event middleware; `purge_security_logs` retention job; optional Sentry (`SENTRY_DSN`) |
 | A10 SSRF | Outbound URL validator + DNS-pin `safe_outbound_request`; Analytics DB host allowlist |

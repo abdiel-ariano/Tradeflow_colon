@@ -593,9 +593,17 @@ def _cart_preview_items(carrito: dict, limit: int = 3) -> list[dict]:
     return preview
 
 
+def _user_allows_marketing(user: User) -> bool:
+    """GDPR: promotional / cart-reminder mail requires marketing_opt_in."""
+    profile = getattr(user, 'profile', None)
+    return bool(profile and profile.marketing_opt_in)
+
+
 def enviar_carrito_abandonado(user: User, carrito: dict) -> bool:
     """Envía recordatorio de carrito abandonado cuando el checkout se estancó."""
     if not carrito:
+        return False
+    if not _user_allows_marketing(user):
         return False
     to_email = (user.email or '').strip()
     if not to_email:
@@ -701,6 +709,8 @@ def _promociones_empresas_context(limit: int = 4) -> list[dict]:
 
 def enviar_promociones_empresas(user: User) -> bool:
     """Envía promociones de empresas ZLC verificadas a un comprador."""
+    if not _user_allows_marketing(user):
+        return False
     to_email = (user.email or '').strip()
     if not to_email:
         return False

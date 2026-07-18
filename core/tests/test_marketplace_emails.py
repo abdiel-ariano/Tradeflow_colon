@@ -33,6 +33,7 @@ class MarketplaceEmailTests(TestCase):
         UserProfile.objects.filter(user=self.user).update(
             role='buyer',
             email_verificado=True,
+            marketing_opt_in=True,
         )
         self.company = Company.objects.create(
             name='CFZ Demo Co',
@@ -91,6 +92,21 @@ class MarketplaceEmailTests(TestCase):
         html = mock_send.call_args.kwargs.get('html_message') or ''
         self.assertIn('CFZ Demo Co', html)
         self.assertIn('Promociones', html)
+
+    @patch('core.utils.email_sender.send_mail', return_value=True)
+    def test_marketing_skipped_without_opt_in(self, mock_send):
+        """Cart/promo mail must not send when marketing_opt_in is false."""
+        from core.utils.email_sender import (
+            enviar_carrito_abandonado,
+            enviar_promociones_empresas,
+        )
+
+        UserProfile.objects.filter(user=self.user).update(marketing_opt_in=False)
+        self.user.refresh_from_db()
+        carrito = {'1': {'nombre': 'X', 'cantidad': 1, 'subtotal': '1.00'}}
+        self.assertFalse(enviar_carrito_abandonado(self.user, carrito))
+        self.assertFalse(enviar_promociones_empresas(self.user))
+        mock_send.assert_not_called()
 
 
 class CartActivitySyncTests(TestCase):
