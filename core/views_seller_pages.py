@@ -412,8 +412,5 @@ def seller_reporting(request):
             period_start=period_start,
             period_end=period_end,
             **data,
-            chart_labels_json=_json.dumps(data['chart_labels']),
-            chart_values_json=_json.dumps(data['chart_values']),
-            chart_revenue_json=_json.dumps(data['chart_revenue_values']),
         ),
     )

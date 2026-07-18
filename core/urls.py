@@ -16,6 +16,7 @@ from . import views
 from . import views_password_reset
 from . import views_seller_pages
 from . import views_social
+from . import views_staff_mfa
 from . import views_onboarding as onboarding
 from . import views_buyer_onboarding as buyer_onboarding
 from . import views_seller_onboarding as seller_onboarding
@@ -39,6 +40,8 @@ urlpatterns = [
 
     # ── Auth ────────────────────────────────────────────────────────────────
     path('login/',   views.login_view,  name='login'),
+    path('staff-mfa/verify/', views_staff_mfa.staff_mfa_verify, name='staff_mfa_verify'),
+    path('staff-mfa/setup/', views_staff_mfa.staff_mfa_setup, name='staff_mfa_setup'),
     path(
         'recuperar-clave/',
         views_password_reset.TradeFlowPasswordResetView.as_view(),

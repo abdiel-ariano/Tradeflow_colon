@@ -364,8 +364,10 @@
         <div class="an-bubble an-bubble-bot">
           {% if seller_embedded %}
           Ask for charts ("bars of sales by category"), tables ("top 10 by total"), questions ("what is the average?"), or forecasts ("project sales", "which products are declining?").
+          <div style="margin-top:8px;font-size:12px;opacity:.85;">AI replies may be generated via Groq. Avoid pasting secrets or personal data you do not need to analyze.</div>
           {% else %}
           {% trans "Pídeme gráficas (\"barras de ventas por region\"), tablas (\"top 10 por total\"), preguntas (\"¿cuál es el promedio?\") o proyecciones a futuro (\"proyecta las ventas\", \"¿qué productos están bajando?\")." %}
+          <div style="margin-top:8px;font-size:12px;opacity:.85;">{% trans "Las respuestas de IA pueden generarse vía Groq. Evita pegar secretos o datos personales innecesarios." %}</div>
           {% endif %}
         </div>
       </div>

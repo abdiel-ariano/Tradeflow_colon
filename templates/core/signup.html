@@ -134,6 +134,15 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
           </div>
         </fieldset>
 
+        <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;margin:12px 0;font-size:13px;">
+          <input type="checkbox" name="accept_privacy" value="1" required style="margin-top:3px;">
+          <span>Acepto la <a href="{% url 'legal_privacidad' %}" target="_blank" rel="noopener">Política de privacidad</a> y los <a href="{% url 'legal_terminos' %}" target="_blank" rel="noopener">Términos</a>.</span>
+        </label>
+        <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;margin:0 0 12px;font-size:13px;">
+          <input type="checkbox" name="marketing_opt_in" value="1" style="margin-top:3px;">
+          <span>Quiero recordatorios de carrito y novedades del marketplace (opcional).</span>
+        </label>
+
         <button type="submit" class="auth-submit">
           <span class="material-symbols-rounded auth-submit-icon" aria-hidden="true">person_add</span>
           Crear cuenta

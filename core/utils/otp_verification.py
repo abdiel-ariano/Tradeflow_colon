@@ -16,6 +16,7 @@ from django.utils import timezone
 
 from core.models import EmailVerification, UserApplication, UserProfile
 from core.utils.otp_handler import OTP_EXPIRY_MINUTES
+from core.utils.secret_hash import hash_secret
 
 log = logging.getLogger('tradeflow.auth')
 
@@ -77,12 +78,21 @@ def verify_user_otp(user: User, raw_code: str) -> OtpVerificationResult:
 
     try:
         with transaction.atomic():
+            digest = hash_secret(code)
             verification = (
                 EmailVerification.objects.select_for_update()
-                .filter(user=user, code=code, is_used=False)
+                .filter(user=user, code=digest, is_used=False)
                 .order_by('-created_at')
                 .first()
             )
+            # Legacy plaintext OTP rows (pre-hash migration) — consume once.
+            if verification is None:
+                verification = (
+                    EmailVerification.objects.select_for_update()
+                    .filter(user=user, code=code, is_used=False)
+                    .order_by('-created_at')
+                    .first()
+                )
             now = timezone.now()
             if verification is None:
                 return OtpVerificationResult(

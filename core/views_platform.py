@@ -23,7 +23,19 @@ def health_ready(request):
 
     Returns HTTP 503 when ``platform_health_payload`` reports failure so
     the load balancer stops routing CFZ marketplace requests early.
+    Detailed config is staff-only (or ``?detail=1`` with shared token).
     """
-    payload = platform_health_payload()
+    from django.conf import settings
+
+    detail_token = (getattr(settings, 'HEALTH_DETAIL_TOKEN', '') or '').strip()
+    want_detail = False
+    if request.user.is_authenticated and (
+        request.user.is_staff or request.user.is_superuser
+    ):
+        want_detail = True
+    elif detail_token and request.GET.get('detail') == '1':
+        want_detail = request.GET.get('token', '') == detail_token
+
+    payload = platform_health_payload(detailed=want_detail)
     code = 200 if payload['status'] == 'ok' else 503
     return JsonResponse(payload, status=code)

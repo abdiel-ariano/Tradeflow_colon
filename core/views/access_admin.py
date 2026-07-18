@@ -205,8 +205,10 @@ def solicitud_acceso(request):
     })
 
 
+@login_required
+@admin_required
 def revisar_solicitud(request, token, accion):
-    """Approve or reject an access application from an email link."""
+    """Approve or reject an access application (staff + token; POST confirm)."""
     app = get_object_or_404(UserApplication, review_token=token)
     if app.status not in ('pending',):
         messages.info(request, _('This application has already been reviewed.'))
@@ -218,6 +220,15 @@ def revisar_solicitud(request, token, accion):
         aprobada = False
     else:
         raise Http404
+
+    # GET shows a confirmation screen so emailed links cannot mutate via prefetch.
+    if request.method != 'POST':
+        return render(request, 'core/revisar_solicitud_confirm.html', {
+            'app': app,
+            'accion': accion,
+            'aprobada': aprobada,
+            'titulo_pagina': _('Review application'),
+        })
 
     if aprobada and app.requested_plan_slug == 'ecosistema_enterprise':
         from ..models import Company

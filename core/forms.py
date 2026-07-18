@@ -62,6 +62,18 @@ class SellerProductForm(forms.ModelForm):
             'is_active':   forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+    def clean_name(self):
+        from core.utils.security_input import sanitize_plain_text
+        return sanitize_plain_text(self.cleaned_data.get('name', ''), max_length=200)
+
+    def clean_description(self):
+        from core.utils.security_input import sanitize_plain_text
+        return sanitize_plain_text(self.cleaned_data.get('description', ''), max_length=5000)
+
+    def clean_sku(self):
+        from core.utils.security_input import sanitize_identifier
+        return sanitize_identifier(self.cleaned_data.get('sku', ''), max_length=80)
+
 
 class SellerInventoryForm(forms.ModelForm):
     """Seller-editable stock total and low-stock alert threshold."""
@@ -183,3 +195,17 @@ class AplicacionTransportistaForm(forms.Form):
         required=True,
         label='I accept the terms and conditions of TradeFlow Colón',
     )
+
+    def clean_foto_licencia(self):
+        """Reject non-image / oversized license photos."""
+        uploaded = self.cleaned_data.get('foto_licencia')
+        if not uploaded:
+            return uploaded
+        from core.utils.upload_security import UploadValidationError, validate_image_upload
+
+        try:
+            return validate_image_upload(uploaded, max_bytes=5 * 1024 * 1024)
+        except UploadValidationError:
+            raise forms.ValidationError(
+                'License photo must be a JPG/PNG/WebP image under 5 MB.'
+            )

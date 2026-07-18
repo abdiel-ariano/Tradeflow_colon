@@ -46,7 +46,12 @@ jobs:
       - name: Release check
         run: python manage.py release_check --allow-debug
       - name: Tests
-        run: python manage.py test core.tests.test_flujo_compra -v2
+        run: >
+          python manage.py test
+          core.tests.test_flujo_compra
+          core.tests.test_gdpr_owasp_hardening
+          core.tests.test_gdpr_owasp_followup
+          -v2
 
   security:
     runs-on: ubuntu-latest
@@ -61,9 +66,11 @@ jobs:
       - name: Install scanners
         run: pip install bandit pip-audit
       - name: Bandit (SAST)
-        # warn-only mientras se calibran false positives. Cambiar a `false` cuando estable.
-        continue-on-error: true
-        run: bandit -c .bandit -r core/ tradeflow_colon/
+        # Fail the job on HIGH findings (mediums tracked via .bandit skips / backlog).
+        continue-on-error: false
+        run: bandit -c .bandit -r core/ tradeflow_colon/ analytics/ -lll
       - name: pip-audit (CVE de dependencias)
-        continue-on-error: true
+        # Stock pip-audit has no severity filter; fail on any known CVE in
+        # pinned requirements (Dependabot covers ongoing bumps).
+        continue-on-error: false
         run: pip-audit -r requirements.txt

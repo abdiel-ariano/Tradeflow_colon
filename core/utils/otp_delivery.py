@@ -57,7 +57,8 @@ def ensure_otp_sent(
         return True, 'throttled'
 
     verification = EmailVerification.generate_for(user)
-    result = enviar_codigo_verificacion(email, verification.code)
+    plain = getattr(verification, 'plain_code', '') or ''
+    result = enviar_codigo_verificacion(email, plain)
     if result.ok:
         request.session[key] = now
         request.session.modified = True

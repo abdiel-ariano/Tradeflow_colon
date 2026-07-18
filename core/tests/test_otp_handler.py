@@ -10,6 +10,7 @@ from datetime import timedelta
 
 from core.models import EmailVerification, UserProfile
 from core.utils.otp_handler import OTP_EXPIRY_MINUTES, generate_user_otp
+from core.utils.secret_hash import hash_secret
 
 
 class OtpHandlerTests(TestCase):
@@ -37,19 +38,19 @@ class OtpHandlerTests(TestCase):
         self.assertNotEqual(first, second)
         self.assertEqual(EmailVerification.objects.filter(user=self.user).count(), 1)
         self.assertFalse(
-            EmailVerification.objects.filter(user=self.user, code=first).exists()
+            EmailVerification.objects.filter(user=self.user, code=hash_secret(first)).exists()
         )
 
     def test_persisted_record_is_valid_within_ttl(self):
         """Mark freshly generated records as valid."""
         code = generate_user_otp(self.user)
-        record = EmailVerification.objects.get(user=self.user, code=code)
+        record = EmailVerification.objects.get(user=self.user, code=hash_secret(code))
         self.assertTrue(record.is_valid())
 
     def test_expired_record_is_invalid(self):
         """Treat records older than OTP_EXPIRY_MINUTES as invalid."""
         code = generate_user_otp(self.user)
-        record = EmailVerification.objects.get(user=self.user, code=code)
+        record = EmailVerification.objects.get(user=self.user, code=hash_secret(code))
         record.created_at = timezone.now() - timedelta(minutes=OTP_EXPIRY_MINUTES + 1)
         record.save(update_fields=['created_at'])
         self.assertFalse(record.is_valid())
@@ -57,5 +58,6 @@ class OtpHandlerTests(TestCase):
     def test_generate_for_delegates_to_handler(self):
         """EmailVerification.generate_for uses the secure handler."""
         ev = EmailVerification.generate_for(self.user)
-        self.assertEqual(len(ev.code), 6)
+        self.assertEqual(len(ev.plain_code), 6)
+        self.assertEqual(ev.code, hash_secret(ev.plain_code))
         self.assertTrue(ev.is_valid())

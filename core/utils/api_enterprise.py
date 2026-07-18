@@ -9,6 +9,7 @@ from django.core.cache import cache
 from django.http import JsonResponse
 
 from core.enterprise_models import ApiAuditLog, ApiKey
+from core.utils.client_ip import get_client_ip
 
 
 SCOPE_INVENTORY_READ = 'inventory.read'
@@ -57,5 +58,5 @@ def audit_api_call(key: ApiKey | None, company, request, status_code: int):
         method=request.method[:10],
         path=request.path[:255],
         status_code=status_code,
-        ip_address=request.META.get('REMOTE_ADDR'),
+        ip_address=get_client_ip(request),
     )

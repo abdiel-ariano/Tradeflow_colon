@@ -37,7 +37,7 @@ class EmailVerificationOtpTests(TestCase):
     def test_generate_and_validate(self):
         """Generated codes are 6 digits; used codes fail is_valid()."""
         ev = EmailVerification.generate_for(self.user)
-        self.assertEqual(len(ev.code), 6)
+        self.assertEqual(len(ev.plain_code), 6)
         self.assertTrue(ev.is_valid())
         ev.is_used = True
         ev.save(update_fields=['is_used'])
@@ -54,7 +54,7 @@ class EmailVerificationOtpTests(TestCase):
         self.client.force_login(self.user)
         resp = self.client.post(
             '/verificar/',
-            {'codigo': ev.code},
+            {'codigo': ev.plain_code},
             follow=False,
         )
         self.assertEqual(resp.status_code, 302)
@@ -70,7 +70,7 @@ class EmailVerificationOtpTests(TestCase):
         self.client.force_login(self.user)
         resp = self.client.post(
             '/verificar/',
-            {'codigo': ev.code},
+            {'codigo': ev.plain_code},
             follow=False,
         )
         self.assertEqual(resp.status_code, 302)

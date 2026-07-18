@@ -73,7 +73,7 @@ class CheckoutEmailNonBlockingTests(TestCase):
             raise OSError(101, 'Network is unreachable')
 
         with patch(
-            'core.utils.email_delivery.get_connection',
+            'core.views.catalog_cart.enviar_confirmacion_orden',
             side_effect=_smtp_down,
         ):
             response = self.client.post(
@@ -83,6 +83,7 @@ class CheckoutEmailNonBlockingTests(TestCase):
                     'transport_carrier': self.carrier.pk,
                     'buyer_latitude': '9.3667000',
                     'buyer_longitude': '-79.9000000',
+                    'location_consent': '1',
                 },
             )
 

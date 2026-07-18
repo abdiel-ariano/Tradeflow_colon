@@ -688,8 +688,28 @@ def load_company(request):
 @require_POST
 def db_connect(request):
     """Test and cache a read-only Postgres/MySQL connection for staff loads."""
+    from django.conf import settings
+    from urllib.parse import urlparse
+
     conn_str = db_connector.normalize_conn_str(request.POST.get("conn", ""))
     schema = request.POST.get("schema") or "public"
+    # Prod: only the app DB host (or ANALYTICS_DB_HOST_ALLOWLIST) — blocks SSRF.
+    if not settings.DEBUG:
+        host = (urlparse(conn_str).hostname or "").lower()
+        allowed = set()
+        db_host = (settings.DATABASES.get("default", {}).get("HOST") or "").lower()
+        if db_host:
+            allowed.add(db_host)
+        extra = (getattr(settings, "ANALYTICS_DB_HOST_ALLOWLIST", "") or "").strip()
+        for part in extra.split(","):
+            if part.strip():
+                allowed.add(part.strip().lower())
+        if not host or (allowed and host not in allowed):
+            messages.error(
+                request,
+                "En producción solo se permiten hosts de base de datos autorizados.",
+            )
+            return redirect("analytics:dashboard")
     try:
         db_connector.test_connection(conn_str)
         tables = db_connector.list_tables(conn_str, schema)

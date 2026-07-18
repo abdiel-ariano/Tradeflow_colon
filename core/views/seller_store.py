@@ -146,12 +146,6 @@ def portal_seller(request):
     return render(request, 'core/portal_seller.html', {
         'company': company,
         **data,
-        'chart_revenue_labels_json': _json.dumps(data['chart_revenue_labels']),
-        'chart_revenue_values_json': _json.dumps(data['chart_revenue_values']),
-        'chart_status_labels_json': _json.dumps(data['chart_status_labels']),
-        'chart_status_values_json': _json.dumps(data['chart_status_values']),
-        'chart_week_labels_json': _json.dumps(data['chart_week_labels']),
-        'chart_week_orders_json': _json.dumps(data['chart_week_orders']),
         'titulo_pagina': _('Seller dashboard'),
         'nav_activo': 'mi_tienda',
     })
@@ -536,8 +530,8 @@ def seller_predictive_insights(request):
         'company': company,
         'insights': dashboard,
         'narrative': narrative,
-        'chart_labels_json': _json.dumps(dashboard.get('daily_chart', {}).get('labels', [])),
-        'chart_values_json': _json.dumps(dashboard.get('daily_chart', {}).get('values', [])),
+        'chart_labels': dashboard.get('daily_chart', {}).get('labels', []),
+        'chart_values': dashboard.get('daily_chart', {}).get('values', []),
         'titulo_pagina': _('Predictive insights'),
         'nav_activo': 'seller_insights',
     })
@@ -852,8 +846,8 @@ def seller_mis_productos(request):
         'tab_pricing_rows': tab_pricing_rows,
         'tab_shipping_rows': tab_shipping_rows,
         'tab_tax_rows': tab_tax_rows,
-        'chart_cat_labels_json': _json.dumps(dash['chart_cat_labels']),
-        'chart_cat_values_json': _json.dumps(dash['chart_cat_values']),
+        'chart_cat_labels': dash['chart_cat_labels'],
+        'chart_cat_values': dash['chart_cat_values'],
         'titulo_pagina': 'Product catalog',
         'nav_activo': 'seller_productos',
     })
@@ -1087,8 +1081,8 @@ def seller_mis_ventas(request):
         'ventas_mes': dash['ventas_mes'],
         'ingresos_mes': dash['ingresos_mes'],
         'ticket_promedio': dash['ticket_promedio'],
-        'chart_line_labels_json': _json.dumps(dash['chart_line_labels']),
-        'chart_line_values_json': _json.dumps(dash['chart_line_values']),
+        'chart_line_labels': dash['chart_line_labels'],
+        'chart_line_values': dash['chart_line_values'],
         'titulo_pagina': 'Mis ventas',
         'nav_activo': 'seller_ventas',
     })
@@ -1273,7 +1267,7 @@ def seller_venta_detalle(request, pk):
         'maps_url': orden.maps_url_buyer(),
         'titulo_pagina': f'Sale {orden.order_number}',
         'nav_activo': 'seller_ventas',
-        'timeline_initial_json': json.dumps(build_order_timeline(orden)),
+        'timeline_initial': build_order_timeline(orden),
     }
     return render(request, 'core/seller_venta_detalle.html', context)
 

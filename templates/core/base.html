@@ -1211,6 +1211,31 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   <div id="tf-toast-root" class="tf-toast-root" aria-live="polite" aria-atomic="true"></div>
 
+  {# Essential-cookies notice — no tracking cookies today; dismiss stored in localStorage. #}
+  <div id="tf-cookie-notice" class="tf-cookie-notice" hidden role="dialog" aria-label="{% trans 'Cookie notice' %}">
+    <p>
+      {% blocktrans trimmed %}
+      We use essential cookies for login, cart, security, and language.
+      See our
+      {% endblocktrans %}
+      <a href="{% url 'legal_cookies' %}">{% trans "Cookie Policy" %}</a>.
+    </p>
+    <button type="button" id="tf-cookie-accept" class="tf-btn tf-btn-primary">{% trans "Got it" %}</button>
+  </div>
+  <style nonce="{{ csp_nonce }}">
+    .tf-cookie-notice {
+      position: fixed; z-index: 1200; left: 16px; right: 16px; bottom: 16px;
+      max-width: 560px; margin: 0 auto; display: flex; gap: 12px; align-items: center;
+      flex-wrap: wrap; padding: 14px 16px; border-radius: 12px;
+      background: #0F2A44; color: #fff; box-shadow: 0 8px 24px rgba(15,42,68,.28);
+      font-size: 13px; line-height: 1.45;
+    }
+    .tf-cookie-notice[hidden] { display: none !important; }
+    .tf-cookie-notice p { margin: 0; flex: 1 1 220px; }
+    .tf-cookie-notice a { color: #FDBA74; }
+    .tf-cookie-notice .tf-btn { flex: 0 0 auto; }
+  </style>
+
   <main class="tf-main" style="flex: 1;">
     {% block content %}{% endblock %}
   </main>
@@ -1518,7 +1543,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         </div>
         <div class="tf-chat-header-text">
           <div class="tf-chat-header-title">TradeFlow Assistant</div>
-          <div class="tf-chat-header-sub">Free Zone virtual assistant</div>
+          <div class="tf-chat-header-sub">Free Zone virtual assistant · AI replies via Groq</div>
         </div>
         <button type="button" id="tf-chat-close" aria-label="Close">
           {% include "core/includes/tf_icon.html" with name="close" %}
@@ -1527,6 +1552,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       <div id="tf-chat-messages">
         <div class="tf-msg-bot" id="tf-chat-welcome">
           Hi! I'm the TradeFlow Colón assistant. How can I help you today?
+          <div style="margin-top:8px;font-size:12px;opacity:.85;">
+            Messages you send here may be processed by our AI provider (Groq) to generate answers. Do not share passwords or secrets.
+          </div>
         </div>
       </div>
       <div class="tf-chat-compose">
@@ -1537,6 +1565,22 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       </div>
     </div>
   </div>
+  <script nonce="{{ csp_nonce }}">
+  (function () {
+    try {
+      var key = 'tf_cookie_notice_v1';
+      var box = document.getElementById('tf-cookie-notice');
+      var btn = document.getElementById('tf-cookie-accept');
+      if (box && btn && !window.localStorage.getItem(key)) {
+        box.hidden = false;
+        btn.addEventListener('click', function () {
+          window.localStorage.setItem(key, '1');
+          box.hidden = true;
+        });
+      }
+    } catch (e) {}
+  })();
+  </script>
   <script nonce="{{ csp_nonce }}">
   (function () {
     'use strict';

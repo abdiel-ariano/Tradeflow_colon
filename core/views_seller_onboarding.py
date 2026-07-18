@@ -50,20 +50,24 @@ def _form_context(*, name='', ruc='', address='') -> dict:
 
 
 def _safe_logo_file(uploaded) -> object | None:
-    """Return the upload only when it has a usable name and size.
+    """Return the upload only when it passes image security checks.
 
     Empty file inputs and storage-rejected payloads must not 500 the
     company registration step.
     """
     if not uploaded:
         return None
-    size = getattr(uploaded, 'size', None)
-    if size is None or size <= 0:
+    from core.utils.upload_security import UploadValidationError, validate_image_upload
+
+    try:
+        return validate_image_upload(uploaded, max_bytes=5 * 1024 * 1024)
+    except UploadValidationError:
+        log.warning(
+            'seller_onboarding_logo_rejected name=%s size=%s',
+            getattr(uploaded, 'name', ''),
+            getattr(uploaded, 'size', None),
+        )
         return None
-    name = (getattr(uploaded, 'name', '') or '').strip()
-    if not name:
-        return None
-    return uploaded
 
 
 def _attach_logo(company: Company, logo) -> None:

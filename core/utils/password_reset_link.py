@@ -15,6 +15,7 @@ from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from core.models import PasswordResetLink
+from core.utils.secret_hash import hash_secret
 
 log = logging.getLogger('tradeflow.auth')
 
@@ -45,7 +46,7 @@ def generate_password_reset_link(user: User) -> str:
                     user.pk,
                     removed,
                 )
-            PasswordResetLink.objects.create(user=user, token=plain)
+            PasswordResetLink.objects.create(user=user, token=hash_secret(plain))
     except DatabaseError:
         log.exception('password_reset_link_persist_failed user_id=%s', user.pk)
         raise
@@ -72,17 +73,26 @@ class PasswordResetLinkResult:
     link: PasswordResetLink | None = None
 
 
+def _find_reset_row(*, user: User, raw_token: str, for_update: bool = False):
+    """Locate a reset row by hash (or legacy plaintext) for ``user``."""
+    digest = hash_secret(raw_token)
+    qs = PasswordResetLink.objects.filter(user=user, is_used=False)
+    if for_update:
+        qs = qs.select_for_update()
+    row = qs.filter(token=digest).order_by('-created_at').first()
+    if row is None:
+        # Pre-hash migration compatibility (short-lived rows).
+        row = qs.filter(token=raw_token).order_by('-created_at').first()
+    return row
+
+
 def lookup_password_reset_link(*, user: User, raw_token: str) -> PasswordResetLinkResult:
     """Valida el token para ``user`` sin consumirlo (handshake GET)."""
     token = (raw_token or '').strip()
     if not token or user.pk is None:
         return PasswordResetLinkResult(ok=False, error_code='invalid_or_expired')
 
-    row = (
-        PasswordResetLink.objects.filter(user=user, token=token, is_used=False)
-        .order_by('-created_at')
-        .first()
-    )
+    row = _find_reset_row(user=user, raw_token=token)
     if row is None or not row.is_valid():
         log.warning(
             'password_reset_link_rejected reason=invalid_or_expired user_id=%s',
@@ -101,12 +111,7 @@ def consume_password_reset_link(*, user: User, raw_token: str) -> PasswordResetL
 
     try:
         with transaction.atomic():
-            row = (
-                PasswordResetLink.objects.select_for_update()
-                .filter(user=user, token=token, is_used=False)
-                .order_by('-created_at')
-                .first()
-            )
+            row = _find_reset_row(user=user, raw_token=token, for_update=True)
             if row is None or not row.is_valid():
                 log.warning(
                     'password_reset_link_consume_rejected user_id=%s',

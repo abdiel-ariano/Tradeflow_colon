@@ -100,6 +100,39 @@ class UserProfile(models.Model):
         verbose_name='Buyer onboarding completed',
         help_text='Null = wizard pending for new buyer signups; default now for legacy/test profiles.',
     )
+    # GDPR: marketing consent + recorded privacy acceptance + anonymization stamp.
+    marketing_opt_in = models.BooleanField(
+        default=False,
+        verbose_name='Marketing emails opt-in',
+        help_text='User consented to cart reminders / promotional emails.',
+    )
+    privacy_accepted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Privacy policy accepted at',
+    )
+    privacy_policy_version = models.CharField(
+        max_length=32,
+        blank=True,
+        default='',
+        verbose_name='Privacy policy version accepted',
+    )
+    account_anonymized_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Account anonymized at',
+    )
+    # Optional staff TOTP MFA (encrypted secret).
+    staff_totp_secret = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        verbose_name='Staff TOTP secret (encrypted)',
+    )
+    staff_totp_enabled = models.BooleanField(
+        default=False,
+        verbose_name='Staff TOTP MFA enabled',
+    )
 
     class Meta:
         """Opciones de modelo para el perfil de usuario en el admin."""
@@ -1114,14 +1147,15 @@ class AsignacionTransporte(models.Model):
 # =============================================================================
 
 class EmailVerification(models.Model):
-    """OTP de correo de seis dígitos; expira tras ``OTP_EXPIRY_MINUTES``."""
+    """OTP de correo de seis dígitos; en BD se guarda el hash SHA-256."""
 
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='email_verifications',
     )
-    code = models.CharField(max_length=6)
+    # SHA-256 hex digest of the 6-digit OTP (never store plaintext).
+    code = models.CharField(max_length=64, db_index=True)
     is_used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -1133,7 +1167,7 @@ class EmailVerification(models.Model):
 
     def __str__(self):
         """Resumen del OTP de correo para admin y depuración."""
-        return f'{self.user_id} · {self.code} · used={self.is_used}'
+        return f'{self.user_id} · otp_hash · used={self.is_used}'
 
     def is_valid(self) -> bool:
         """True si no se ha usado y sigue dentro de la ventana TTL del OTP."""
@@ -1145,18 +1179,25 @@ class EmailVerification(models.Model):
 
     @classmethod
     def generate_for(cls, user: User) -> 'EmailVerification':
-        """Crea un OTP seguro vía ``generate_user_otp`` y devuelve el registro."""
+        """Crea un OTP hasheado y adjunta ``plain_code`` efímero para el email."""
         from core.utils.otp_handler import generate_user_otp
+        from core.utils.secret_hash import hash_secret
 
-        code = generate_user_otp(user)
-        return cls.objects.filter(user=user, code=code, is_used=False).latest('created_at')
+        plain = generate_user_otp(user)
+        row = cls.objects.filter(
+            user=user, code=hash_secret(plain), is_used=False,
+        ).latest('created_at')
+        # Never persisted — only for the one-time email send path.
+        row.plain_code = plain
+        return row
 
 
 class PasswordResetLink(models.Model):
-    """Token magic-link en BD para recuperación de contraseña (espejo de ``EmailVerification``).
+    """Token magic-link hasheado en BD para recuperación de contraseña.
 
-    El token en claro se envía una sola vez por correo; las filas se eliminan
-    tras un uso exitoso. TTL: ``PASSWORD_RESET_LINK_EXPIRY_MINUTES`` (15).
+    El token en claro se envía una sola vez por correo; en BD solo vive el
+    digest SHA-256. Las filas se eliminan tras un uso exitoso.
+    TTL: ``PASSWORD_RESET_LINK_EXPIRY_MINUTES`` (15).
     """
 
     user = models.ForeignKey(
@@ -1164,6 +1205,7 @@ class PasswordResetLink(models.Model):
         on_delete=models.CASCADE,
         related_name='password_reset_links',
     )
+    # SHA-256 hex digest of the opaque URL token.
     token = models.CharField(max_length=64, unique=True, db_index=True)
     is_used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1176,7 +1218,7 @@ class PasswordResetLink(models.Model):
 
     def __str__(self):
         """Resumen del enlace de restablecimiento para admin y depuración."""
-        return f'{self.user_id} · reset_link · used={self.is_used}'
+        return f'{self.user_id} · reset_link_hash · used={self.is_used}'
 
     def is_valid(self) -> bool:
         """True si no se ha usado y sigue dentro del TTL del enlace de reset."""

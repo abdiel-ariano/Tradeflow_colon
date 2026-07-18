@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-La rama `main` es la única soportada. Patches críticos se aplican
+La rama `master` es la única soportada. Patches críticos se aplican
 hacia atrás solo cuando hay deploy activo en producción.
 
 ## Reporting a Vulnerability
@@ -29,7 +29,33 @@ Compromiso de respuesta:
 Si reportás algo válido, te incluimos en el `SECURITY.md` salvo que
 prefieras anonimato.
 
-## Última auditoría
+## Hardening baseline (OWASP Top 10 + GDPR)
 
-Junio 2026 — cobertura OWASP Top 10 (2021) al 100% en código.
-Ver `SECURITY_AUDIT_2026-06.docx` para el detalle.
+Estado actual (julio 2026) — no reclamar “100% cobertura”; priorizar remediación continua:
+
+| Área | Controles |
+|------|-----------|
+| A01 Access Control | Role decorators, seller tenancy, staff confirm for application review |
+| A02 Crypto | Argon2 passwords; OTP / password-reset tokens hashed at rest (SHA-256) |
+| A03 Injection | ORM default path; Analytics SQL SELECT-only guard; CSP JSON blocks |
+| A04/A07 Auth | django-axes, email verification default on, OAuth not on bare GET |
+| A05 Misconfig | CSP/HSTS/Secure cookies; public `/health/ready/` without config leak |
+| A06 Components | CI Bandit (HIGH) + pip-audit on pinned deps; Dependabot |
+| A08 Integrity | Signed logistics webhooks; SSRF URL validation on save + dispatch |
+| A09 Logging | Security event middleware; `purge_security_logs` retention job; optional Sentry (`SENTRY_DSN`) |
+| A10 SSRF | Outbound URL validator + DNS-pin `safe_outbound_request`; Analytics DB host allowlist |
+| GDPR | Consent at signup/checkout GPS; marketing opt-in; export + anonymize; essential cookie notice; AI/Groq disclosure; optional staff TOTP MFA |
+
+Ops checklist / legal templates: `docs/GDPR_DPA_DPIA.md`.
+
+Ops checks:
+
+```bash
+python manage.py release_check
+python manage.py purge_security_logs --days 90
+```
+
+`EXPO_DEMO_MODE` remains supported for investor/Expo demos (`release_check` only warns).
+Turn it off when an environment is production-only.
+
+See also `SECURITY_AUDIT_2026-06.docx` for the earlier audit snapshot.

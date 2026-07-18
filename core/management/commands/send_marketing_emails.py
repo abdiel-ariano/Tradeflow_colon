@@ -61,6 +61,8 @@ class Command(BaseCommand):
         profiles = UserProfile.objects.filter(
             role='buyer',
             email_verificado=True,
+            marketing_opt_in=True,
+            account_anonymized_at__isnull=True,
             cart_items_count__gt=0,
             cart_last_activity_at__lte=cutoff,
         ).select_related('user')
@@ -94,6 +96,8 @@ class Command(BaseCommand):
             is_active=True,
             profile__role='buyer',
             profile__email_verificado=True,
+            profile__marketing_opt_in=True,
+            profile__account_anonymized_at__isnull=True,
         ).select_related('profile')
         sent = 0
         for user in buyers:
