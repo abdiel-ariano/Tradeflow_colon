@@ -1,4 +1,4 @@
-"""Optional TOTP MFA for staff/admin accounts (pyotp)."""
+"""Staff/admin TOTP MFA helpers (required unless Expo demo / opt-out)."""
 from __future__ import annotations
 
 import base64
