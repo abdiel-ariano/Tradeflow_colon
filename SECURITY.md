@@ -42,9 +42,11 @@ Estado actual (julio 2026) — no reclamar “100% cobertura”; priorizar remed
 | A05 Misconfig | CSP/HSTS/Secure cookies; public `/health/ready/` without config leak |
 | A06 Components | CI Bandit + pip-audit (fail on HIGH) |
 | A08 Integrity | Signed logistics webhooks; SSRF URL validation on save + dispatch |
-| A09 Logging | Security event middleware; `purge_security_logs` retention job |
-| A10 SSRF | Outbound URL validator; Analytics DB host allowlist in production |
-| GDPR | Consent at signup, marketing opt-in, export + anonymize in My Profile |
+| A09 Logging | Security event middleware; `purge_security_logs` retention job; optional Sentry (`SENTRY_DSN`) |
+| A10 SSRF | Outbound URL validator + DNS-pin `safe_outbound_request`; Analytics DB host allowlist |
+| GDPR | Consent at signup/checkout GPS; marketing opt-in; export + anonymize; essential cookie notice; AI/Groq disclosure; optional staff TOTP MFA |
+
+Ops checklist / legal templates: `docs/GDPR_DPA_DPIA.md`.
 
 Ops checks:
 

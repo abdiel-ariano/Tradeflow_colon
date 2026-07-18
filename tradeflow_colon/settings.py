@@ -110,6 +110,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'axes.middleware.AxesMiddleware',
     'core.middleware.onboarding_gate.OnboardingGateMiddleware',
+    'core.middleware.staff_mfa.StaffMfaMiddleware',
     'core.middleware.db_unavailable.DatabaseUnavailableMiddleware',
     'core.middleware.tf_security.SecurityHeadersMiddleware',
     'core.middleware.tf_security.SecurityEventLogMiddleware',  # OWASP A09
@@ -657,3 +658,21 @@ os.environ.setdefault('LLM_BASE_URL', 'https://api.groq.com/openai/v1')
 os.environ.setdefault('LLM_MODEL', ANALYTICS_LLM_MODEL)
 if GROQ_API_KEY:
     os.environ.setdefault('LLM_API_KEY', GROQ_API_KEY)
+
+# Optional Sentry (OWASP A09) — no-op when SENTRY_DSN is empty.
+SENTRY_DSN = config('SENTRY_DSN', default='').strip()
+if SENTRY_DSN:
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.django import DjangoIntegration
+
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            integrations=[DjangoIntegration()],
+            traces_sample_rate=float(config('SENTRY_TRACES_SAMPLE_RATE', default='0.05')),
+            send_default_pii=False,
+            environment='debug' if DEBUG else 'production',
+        )
+    except Exception:
+        # Never block boot if the SDK is missing or misconfigured.
+        pass

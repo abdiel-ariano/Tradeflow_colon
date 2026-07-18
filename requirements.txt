@@ -65,6 +65,12 @@ django-allauth==65.18.0
 # ── Rate limiting login ────────────────────────────────────────────────────
 django-axes>=6.3,<7.0
 
+# ── Staff TOTP MFA (optional, staff/admin only) ────────────────────────────
+pyotp>=2.9,<3.0
+
+# ── Error monitoring (optional — set SENTRY_DSN) ───────────────────────────
+sentry-sdk>=2.0,<3.0
+
 # ── Asistente IA (Groq API) ────────────────────────────────────────────────
 groq>=0.9.0,<1.0
 

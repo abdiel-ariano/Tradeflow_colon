@@ -122,6 +122,17 @@ class UserProfile(models.Model):
         blank=True,
         verbose_name='Account anonymized at',
     )
+    # Optional staff TOTP MFA (encrypted secret).
+    staff_totp_secret = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        verbose_name='Staff TOTP secret (encrypted)',
+    )
+    staff_totp_enabled = models.BooleanField(
+        default=False,
+        verbose_name='Staff TOTP MFA enabled',
+    )
 
     class Meta:
         """Opciones de modelo para el perfil de usuario en el admin."""

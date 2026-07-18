@@ -72,6 +72,15 @@
         {% trans "Use my current location" %}
       </button>
       <p class="co-geo-status" id="co-geo-status">{% trans "You must confirm your location to continue." %}</p>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13px;color:#374151;cursor:pointer;">
+        <input type="checkbox" name="location_consent" id="co-location-consent" value="1" required style="margin-top:3px;">
+        <span>
+          {% blocktrans trimmed %}
+          I consent to TradeFlow storing these GPS coordinates for delivery and logistics on this order.
+          {% endblocktrans %}
+          <a href="{% url 'legal_privacidad' %}" target="_blank" rel="noopener">{% trans "Privacy Policy" %}</a>.
+        </span>
+      </label>
     </div>
 
     <div class="co-card">
@@ -117,12 +126,19 @@
   var btn = document.getElementById('co-geo-btn');
   var submit = document.getElementById('co-submit');
   var form = document.getElementById('co-form');
+  var consent = document.getElementById('co-location-consent');
+
+  function syncSubmit() {
+    var hasGeo = !!(lat && lat.value && lng && lng.value);
+    var okConsent = !!(consent && consent.checked);
+    if (submit) submit.disabled = !(hasGeo && okConsent);
+  }
 
   function setOk() {
     btn.classList.add('is-ok', 'tf-pulse-once');
-    submit.disabled = false;
     status.textContent = I.geoConfirmed || 'Location confirmed.';
     status.style.color = '#15803d';
+    syncSubmit();
   }
 
   function applyCoords(latVal, lngVal) {
@@ -130,6 +146,7 @@
     lng.value = lngVal;
     setOk();
   }
+  if (consent) consent.addEventListener('change', syncSubmit);
 
   function requestLocation() {
     if (!navigator.geolocation) {

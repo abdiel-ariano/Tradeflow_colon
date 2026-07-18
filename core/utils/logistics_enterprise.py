@@ -11,8 +11,6 @@ import json
 import logging
 from decimal import Decimal
 
-import urllib.request
-
 from django.utils import timezone
 
 from core.enterprise_models import LogisticsDispatchQueue, LogisticsEvent, LogisticsWebhookConfig
@@ -120,24 +118,12 @@ def _process_dispatch_queue(dispatch: LogisticsDispatchQueue, webhook: Logistics
     # services, sensitive ports, etc. BEFORE making the request.
     from django.core.exceptions import ValidationError as _ValidationError
 
-    from core.utils.url_validator import validate_outbound_url
-
-    try:
-        validate_outbound_url(webhook.endpoint_url)
-    except _ValidationError as exc:
-        dispatch.attempts += 1
-        dispatch.status = 'failed'
-        dispatch.last_error = f'SSRF rechazado: {exc.message if hasattr(exc, "message") else exc}'[:500]
-        dispatch.save(update_fields=['status', 'attempts', 'last_error'])
-        log.warning(
-            'Webhook URL bloqueada por SSRF guard webhook_id=%s url=%s reason=%s',
-            webhook.pk, webhook.endpoint_url, dispatch.last_error,
-        )
-        return
+    from core.utils.url_validator import safe_outbound_request
 
     body = json.dumps(dispatch.payload, default=str).encode()
     try:
-        req = urllib.request.Request(
+        # DNS-pin + SSRF checks happen inside safe_outbound_request.
+        status, _resp_body = safe_outbound_request(
             webhook.endpoint_url,
             data=body,
             headers={
@@ -146,16 +132,25 @@ def _process_dispatch_queue(dispatch: LogisticsDispatchQueue, webhook: Logistics
                 'X-TradeFlow-Event': 'order.dispatch',
             },
             method='POST',
+            timeout=8,
         )
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            if 200 <= resp.status < 300:
-                dispatch.status = 'sent'
-                dispatch.sent_at = timezone.now()
-            else:
-                dispatch.status = 'failed'
-                dispatch.last_error = f'HTTP {resp.status}'
+        if 200 <= status < 300:
+            dispatch.status = 'sent'
+            dispatch.sent_at = timezone.now()
+        else:
+            dispatch.status = 'failed'
+            dispatch.last_error = f'HTTP {status}'
         dispatch.attempts += 1
         dispatch.save(update_fields=['status', 'sent_at', 'attempts', 'last_error'])
+    except _ValidationError as exc:
+        dispatch.attempts += 1
+        dispatch.status = 'failed'
+        dispatch.last_error = f'SSRF rechazado: {exc}'[:500]
+        dispatch.save(update_fields=['status', 'attempts', 'last_error'])
+        log.warning(
+            'Webhook URL bloqueada por SSRF guard webhook_id=%s url=%s reason=%s',
+            webhook.pk, webhook.endpoint_url, dispatch.last_error,
+        )
     except Exception as exc:
         dispatch.attempts += 1
         dispatch.status = 'failed'

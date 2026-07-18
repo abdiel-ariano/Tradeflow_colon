@@ -137,6 +137,7 @@ class TestFlujoBuyer(TestCase):
                 'transport_carrier': self.carrier.pk,
                 'buyer_latitude': '9.3667000',
                 'buyer_longitude': '-79.9000000',
+                'location_consent': '1',
             },
         )
         self.assertEqual(r.status_code, 302)
@@ -166,6 +167,7 @@ class TestFlujoBuyer(TestCase):
                 'transport_carrier': self.carrier.pk,
                 'buyer_latitude': '9.3667000',
                 'buyer_longitude': '-79.9000000',
+                'location_consent': '1',
             },
         )
         inv = Inventory.objects.get(product=self.product)
@@ -271,8 +273,35 @@ class TestFlujoBuyer(TestCase):
         self.assertContains(response, 'Confirmar pedido')
         self.assertContains(response, 'Ubicación de entrega')
         self.assertContains(response, 'Usar mi ubicación actual')
+        self.assertContains(response, 'location_consent')
         self.assertContains(response, 'Enviar pedido')
         self.assertNotContains(response, 'Confirm order')
+
+    def test_checkout_requiere_consentimiento_ubicacion(self):
+        """Checkout without location_consent must not create an order."""
+        self.client.login(username='buyer_test', password='TestPass123!')
+        session = self.client.session
+        session['carrito'] = {
+            str(self.product.pk): {
+                'nombre': self.product.name,
+                'precio': str(self.product.unit_price),
+                'cantidad': 1,
+                'subtotal': str(self.product.unit_price),
+                'imagen': '',
+            }
+        }
+        session.save()
+        r = self.client.post(
+            '/checkout/',
+            {
+                'notas': 'Test',
+                'transport_carrier': self.carrier.pk,
+                'buyer_latitude': '9.3667000',
+                'buyer_longitude': '-79.9000000',
+            },
+        )
+        self.assertEqual(r.status_code, 302)
+        self.assertFalse(Order.objects.filter(buyer=self.buyer).exists())
 
     def test_acceso_sin_login_redirige(self):
         """Guests browse catalog and cart; checkout still requires login."""

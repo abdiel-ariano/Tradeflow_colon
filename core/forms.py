@@ -195,3 +195,17 @@ class AplicacionTransportistaForm(forms.Form):
         required=True,
         label='I accept the terms and conditions of TradeFlow Colón',
     )
+
+    def clean_foto_licencia(self):
+        """Reject non-image / oversized license photos."""
+        uploaded = self.cleaned_data.get('foto_licencia')
+        if not uploaded:
+            return uploaded
+        from core.utils.upload_security import UploadValidationError, validate_image_upload
+
+        try:
+            return validate_image_upload(uploaded, max_bytes=5 * 1024 * 1024)
+        except UploadValidationError:
+            raise forms.ValidationError(
+                'License photo must be a JPG/PNG/WebP image under 5 MB.'
+            )

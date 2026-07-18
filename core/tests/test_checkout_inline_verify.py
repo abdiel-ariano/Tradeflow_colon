@@ -113,6 +113,7 @@ class CheckoutInlineVerifyTests(TestCase):
                 'transport_carrier': self.carrier.pk,
                 'buyer_latitude': '9.3667000',
                 'buyer_longitude': '-79.9000000',
+                'location_consent': '1',
             },
         )
         self.assertEqual(resp.status_code, 302)

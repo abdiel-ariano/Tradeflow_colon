@@ -785,6 +785,7 @@ def checkout(request):
         carrier_id = request.POST.get('transport_carrier', '').strip()
         lat_raw = request.POST.get('buyer_latitude', '').strip()
         lng_raw = request.POST.get('buyer_longitude', '').strip()
+        location_consent = request.POST.get('location_consent') in ('1', 'on', 'true', 'yes')
 
         if not carrier_id:
             messages.error(request, _('Select a carrier to continue.'))
@@ -804,6 +805,14 @@ def checkout(request):
 
         if not (-90 <= float(buyer_lat) <= 90 and -180 <= float(buyer_lng) <= 180):
             messages.error(request, _('Invalid location coordinates.'))
+            return redirect('checkout')
+
+        # GDPR: do not persist precise GPS without explicit consent.
+        if not location_consent:
+            messages.error(
+                request,
+                _('Please accept location processing to place the order.'),
+            )
             return redirect('checkout')
 
         shipping_cost = carrier.base_shipping_cost

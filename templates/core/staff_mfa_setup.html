@@ -1,0 +1,47 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Staff MFA" %} — TradeFlow Colón{% endblock %}
+{% block content %}
+<div class="tf-page" style="max-width:520px;margin:48px auto;padding:0 20px;">
+  <h1 style="font-size:1.4rem;color:var(--tf-navy);margin:0 0 8px;">{% trans "Staff authenticator (MFA)" %}</h1>
+  <p style="color:var(--tf-muted);font-size:14px;margin:0 0 18px;">
+    {% trans "Optional TOTP for staff/admin accounts. Use Google Authenticator, 1Password, or similar." %}
+  </p>
+
+  {% if enabled %}
+  <div class="perfil-card" style="padding:20px;margin-bottom:16px;">
+    <p style="margin:0 0 12px;color:#15803d;font-weight:600;">{% trans "MFA is enabled on this account." %}</p>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="disable">
+      <label class="tf-label" for="mfa-disable">{% trans "Enter a code to disable MFA" %}</label>
+      <input type="text" name="code" id="mfa-disable" class="tf-input" inputmode="numeric" autocomplete="one-time-code" required>
+      <button type="submit" class="tf-btn tf-btn-outline" style="margin-top:12px;">{% trans "Disable MFA" %}</button>
+    </form>
+  </div>
+  {% elif pending_secret %}
+  <div class="perfil-card" style="padding:20px;margin-bottom:16px;">
+    <p style="font-size:14px;margin:0 0 10px;">{% trans "Add this account in your authenticator app, then confirm with a code:" %}</p>
+    <p style="font-family:ui-monospace,monospace;font-size:13px;word-break:break-all;background:#F3F4F6;padding:10px;border-radius:8px;">{{ pending_secret }}</p>
+    {% if provisioning_uri %}
+    <p style="font-size:12px;color:var(--tf-muted);word-break:break-all;">{{ provisioning_uri }}</p>
+    {% endif %}
+    <form method="post" style="margin-top:14px;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="confirm">
+      <label class="tf-label" for="mfa-confirm">{% trans "Confirmation code" %}</label>
+      <input type="text" name="code" id="mfa-confirm" class="tf-input" inputmode="numeric" autocomplete="one-time-code" required>
+      <button type="submit" class="tf-btn tf-btn-primary" style="margin-top:12px;">{% trans "Confirm and enable" %}</button>
+    </form>
+  </div>
+  {% else %}
+  <form method="post" class="perfil-card" style="padding:20px;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="start">
+    <button type="submit" class="tf-btn tf-btn-primary">{% trans "Set up authenticator" %}</button>
+  </form>
+  {% endif %}
+
+  <p style="margin-top:16px;"><a href="{% url 'mi_perfil' %}">{% trans "Back to profile" %}</a></p>
+</div>
+{% endblock %}

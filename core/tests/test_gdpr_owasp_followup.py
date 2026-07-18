@@ -1,0 +1,127 @@
+"""Follow-up GDPR/OWASP hardening: uploads, SSRF DNS-pin, staff MFA helpers."""
+from __future__ import annotations
+
+from io import BytesIO
+from unittest.mock import patch
+
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import RequestFactory, SimpleTestCase, TestCase
+
+from core.models import UserProfile
+from core.utils import staff_mfa, upload_security
+from core.utils.url_validator import SafeOutboundTarget, validate_outbound_url
+
+
+class UploadSecurityTests(SimpleTestCase):
+    """Assert image/PDF upload guards reject bad payloads."""
+
+    def test_accepts_png_image(self):
+        """Minimal valid PNG passes image validation."""
+        from PIL import Image
+
+        buf = BytesIO()
+        Image.new('RGB', (1, 1), color=(20, 40, 60)).save(buf, format='PNG')
+        png = buf.getvalue()
+        uploaded = SimpleUploadedFile('logo.png', png, content_type='image/png')
+        out = upload_security.validate_image_upload(uploaded)
+        self.assertIs(out, uploaded)
+
+    def test_rejects_exe_as_image(self):
+        """Non-image bytes with .png extension are rejected."""
+        uploaded = SimpleUploadedFile(
+            'evil.png', b'MZ\x90\x00not-an-image', content_type='image/png',
+        )
+        with self.assertRaises(upload_security.UploadValidationError):
+            upload_security.validate_image_upload(uploaded)
+
+    def test_accepts_pdf_proof(self):
+        """PDF magic header is required for proof uploads."""
+        uploaded = SimpleUploadedFile(
+            'proof.pdf', b'%PDF-1.4 fake', content_type='application/pdf',
+        )
+        out = upload_security.validate_proof_upload(uploaded)
+        self.assertIs(out, uploaded)
+
+    def test_rejects_oversized(self):
+        """Files above max_bytes are rejected."""
+        uploaded = SimpleUploadedFile(
+            'big.png', b'\x89PNG\r\n\x1a\n' + b'x' * 100, content_type='image/png',
+        )
+        with self.assertRaises(upload_security.UploadValidationError) as ctx:
+            upload_security.validate_image_upload(uploaded, max_bytes=20)
+        self.assertEqual(str(ctx.exception), 'too_large')
+
+
+class UrlValidatorSsrfTests(SimpleTestCase):
+    """Assert outbound URL validation blocks private targets."""
+
+    def test_blocks_metadata_ip(self):
+        """Cloud metadata IP must be rejected."""
+        with self.assertRaises(ValidationError):
+            validate_outbound_url('https://169.254.169.254/latest/meta-data/')
+
+    def test_blocks_localhost(self):
+        """localhost hostname must be rejected."""
+        with self.assertRaises(ValidationError):
+            validate_outbound_url('https://localhost/hook')
+
+    @patch('core.utils.url_validator._resolve_hostname')
+    def test_returns_safe_target_for_public_host(self, mock_resolve):
+        """Public resolution yields SafeOutboundTarget with pinned IPs."""
+        import ipaddress
+
+        mock_resolve.return_value = [ipaddress.ip_address('8.8.8.8')]
+        target = validate_outbound_url('https://hooks.example.com/dispatch')
+        self.assertIsInstance(target, SafeOutboundTarget)
+        self.assertEqual(target.hostname, 'hooks.example.com')
+        self.assertEqual(target.ips, ('8.8.8.8',))
+
+
+class StaffMfaHelperTests(TestCase):
+    """Assert TOTP enablement and verify helpers."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='staff_mfa',
+            email='staff@example.com',
+            password='TestPass123!',
+            is_staff=True,
+        )
+        self.profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        self.profile.role = 'admin'
+        self.profile.save()
+
+    def test_user_needs_mfa_only_when_enabled(self):
+        """MFA is optional until staff_totp_enabled is set."""
+        self.assertFalse(staff_mfa.user_needs_staff_mfa(self.user))
+        secret = staff_mfa.generate_totp_secret()
+        self.profile.staff_totp_secret = staff_mfa.encrypt_totp_secret(secret)
+        self.profile.staff_totp_enabled = True
+        self.profile.save(update_fields=['staff_totp_secret', 'staff_totp_enabled'])
+        self.user.refresh_from_db()
+        self.assertTrue(staff_mfa.user_needs_staff_mfa(self.user))
+
+    def test_verify_totp_roundtrip(self):
+        """A current TOTP code verifies against the encrypted secret."""
+        import pyotp
+
+        secret = staff_mfa.generate_totp_secret()
+        self.profile.staff_totp_secret = staff_mfa.encrypt_totp_secret(secret)
+        self.profile.staff_totp_enabled = True
+        self.profile.save(update_fields=['staff_totp_secret', 'staff_totp_enabled'])
+        code = pyotp.TOTP(secret).now()
+        self.assertTrue(staff_mfa.verify_totp(self.user, code))
+        self.assertFalse(staff_mfa.verify_totp(self.user, '000000'))
+
+    def test_session_mfa_flag(self):
+        """Session MFA ok flag can be set and cleared."""
+        factory = RequestFactory()
+        request = factory.get('/')
+        request.session = self.client.session
+        self.assertFalse(staff_mfa.session_mfa_ok(request))
+        staff_mfa.mark_session_mfa_ok(request)
+        self.assertTrue(staff_mfa.session_mfa_ok(request))
+        staff_mfa.clear_session_mfa(request)
+        self.assertFalse(staff_mfa.session_mfa_ok(request))

@@ -672,13 +672,20 @@ def submit_bank_transfer_payment(
     # Proof file is optional: a Storage failure must not abort the payment.
     max_proof = 5 * 1024 * 1024
     if proof_file and getattr(proof_file, 'size', 0):
-        if proof_file.size > max_proof:
+        from core.utils.upload_security import UploadValidationError, validate_proof_upload
+
+        try:
+            proof_file = validate_proof_upload(proof_file, max_bytes=max_proof)
+        except UploadValidationError as exc:
             log.warning(
-                'bank_transfer_proof_too_large checkout_id=%s size=%s',
+                'bank_transfer_proof_rejected checkout_id=%s reason=%s size=%s',
                 checkout.pk,
-                proof_file.size,
+                exc,
+                getattr(proof_file, 'size', None),
             )
-            raise ValueError('proof_too_large')
+            if str(exc) == 'too_large':
+                raise ValueError('proof_too_large') from exc
+            raise ValueError('proof_invalid') from exc
         try:
             checkout.proof_file = proof_file
             update_fields.append('proof_file')

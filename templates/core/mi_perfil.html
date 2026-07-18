@@ -272,6 +272,22 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
         </form>
       </div>
 
+      {% if show_admin or request.user.is_staff or request.user.is_superuser %}
+      <div class="perfil-card">
+        <h2 class="perfil-card-title">
+          <span class="material-symbols-rounded">phonelink_lock</span>
+          Staff MFA
+        </h2>
+        <p style="font-size:13px;color:var(--tf-muted);margin:0 0 12px;">
+          Optional authenticator app for staff/admin sign-in.
+        </p>
+        <a href="{% url 'staff_mfa_setup' %}" class="perfil-btn-outline" style="display:inline-flex;text-decoration:none;">
+          <span class="material-symbols-rounded" style="font-size:18px;">security</span>
+          Configure MFA
+        </a>
+      </div>
+      {% endif %}
+
       <div class="perfil-card">
         <h2 class="perfil-card-title">
           <span class="material-symbols-rounded">privacy_tip</span>

@@ -1,0 +1,18 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Two-factor authentication" %} — TradeFlow Colón{% endblock %}
+{% block content %}
+<div class="tf-page" style="max-width:420px;margin:48px auto;padding:0 20px;">
+  <h1 style="font-size:1.4rem;color:var(--tf-navy);margin:0 0 8px;">{% trans "Authenticator code" %}</h1>
+  <p style="color:var(--tf-muted);font-size:14px;margin:0 0 18px;">
+    {% trans "Enter the 6-digit code from your authenticator app to continue." %}
+  </p>
+  <form method="post" class="perfil-card" style="padding:20px;">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <label class="tf-label" for="mfa-code">{% trans "Code" %}</label>
+    <input type="text" name="code" id="mfa-code" class="tf-input" inputmode="numeric" autocomplete="one-time-code" maxlength="8" required autofocus>
+    <button type="submit" class="tf-btn tf-btn-primary" style="margin-top:14px;width:100%;">{% trans "Verify" %}</button>
+  </form>
+</div>
+{% endblock %}

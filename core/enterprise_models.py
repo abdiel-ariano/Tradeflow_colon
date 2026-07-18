@@ -423,8 +423,8 @@ class LogisticsWebhookConfig(models.Model):
 
         try:
             validate_outbound_url(self.endpoint_url)
-        except ValueError as exc:
-            raise ValidationError({'endpoint_url': str(exc)}) from exc
+        except ValidationError as exc:
+            raise ValidationError({'endpoint_url': exc.messages if hasattr(exc, 'messages') else [str(exc)]}) from exc
 
     def save(self, *args, **kwargs):
         """Run full_clean so admin/API saves cannot skip SSRF checks."""
