@@ -110,6 +110,17 @@ class OAuthFlowViewsTests(TestCase):
         resp = self.client.get('/accounts/login/')
         self.assertRedirects(resp, reverse('login'))
 
+    def test_google_login_confirmation_uses_tradeflow_shell(self):
+        """Brand allauth Google confirmation with login.css (not bare HTML)."""
+        resp = self.client.get('/accounts/google/login/')
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode('utf-8')
+        self.assertIn('login.css', body)
+        self.assertIn('login-figma', body)
+        self.assertIn('oauth-provider-continue', body)
+        self.assertIn('TradeFlow', body)
+        self.assertNotIn('Sign In Via Google', body)
+
     def test_accounts_signup_redirects_to_custom_signup(self):
         """Send /accounts/signup/ to TradeFlow signup."""
         resp = self.client.get('/accounts/signup/')

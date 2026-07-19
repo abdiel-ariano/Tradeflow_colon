@@ -1,0 +1,14 @@
+{% extends "socialaccount/base_entrance.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sign-in error — TradeFlow Colón" %}{% endblock %}
+{% block socialaccount_content %}
+  <h1 class="login-figma-card__title">{% trans "Could not sign in" %}</h1>
+  <p class="login-figma-oauth-lead">
+    {% trans "Something went wrong while signing in with your social account. Please try again, or use email and password." %}
+  </p>
+  <div class="login-figma-form">
+    <a href="{% url 'login' %}" class="login-figma-submit auth-submit" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+      {% trans "Back to sign in" %}
+    </a>
+  </div>
+{% endblock %}
