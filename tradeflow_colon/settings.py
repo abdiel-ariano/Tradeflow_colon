@@ -246,6 +246,11 @@ CACHE_TTL_HOME = config('CACHE_TTL_HOME', default=120, cast=int)
 CACHE_TTL_STATS = config('CACHE_TTL_STATS', default=300, cast=int)
 CACHE_TTL_NAV = config('CACHE_TTL_NAV', default=600, cast=int)
 CACHE_TTL_CATALOG_META = config('CACHE_TTL_CATALOG_META', default=300, cast=int)
+# Hot-path fragments (company visibility, spotlights, mega-menu, seller KPIs).
+CACHE_TTL_ACTIVE_COMPANIES = config('CACHE_TTL_ACTIVE_COMPANIES', default=120, cast=int)
+CACHE_TTL_SPOTLIGHTS = config('CACHE_TTL_SPOTLIGHTS', default=120, cast=int)
+CACHE_TTL_MEGA_MENU = config('CACHE_TTL_MEGA_MENU', default=180, cast=int)
+CACHE_TTL_SELLER_DASH = config('CACHE_TTL_SELLER_DASH', default=45, cast=int)
 
 _redis_url = config('REDIS_URL', default='')
 if _redis_url:
@@ -588,10 +593,11 @@ SESSION_COOKIE_SAMESITE = 'Lax'       # basic CSRF mitigation
 CSRF_COOKIE_HTTPONLY = True           # JS cannot read CSRF cookie
 CSRF_COOKIE_SAMESITE = 'Lax'
 
-# Sliding session: expire after 12h idle; refresh age on each request.
+# Session lifetime 12h. Default: save only when modified (avoids a DB write on
+# every HTML hit against remote Postgres). Opt into sliding saves via env.
 SESSION_COOKIE_AGE = 12 * 60 * 60     # 12 hours in seconds
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True     # sliding window
+SESSION_SAVE_EVERY_REQUEST = config('SESSION_SAVE_EVERY_REQUEST', default=False, cast=bool)
 
 # Referrer-Policy: avoid leaking internal URLs to third parties.
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'

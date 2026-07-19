@@ -268,8 +268,8 @@ def company_marketplace_visible(company: Company, *, now=None) -> bool:
     return True
 
 
-def marketplace_active_company_ids(*, now=None) -> list[int]:
-    """Devuelve IDs de empresas aún permitidas en superficies públicas del marketplace."""
+def marketplace_active_company_ids_uncached(*, now=None) -> list[int]:
+    """Consulta ORM de IDs de empresas visibles (sin caché)."""
     now = now or timezone.now()
     cancelled_or_expired = Company.objects.filter(
         Q(subscription__status='cancelled')
@@ -281,6 +281,15 @@ def marketplace_active_company_ids(*, now=None) -> list[int]:
     return list(
         Company.objects.exclude(pk__in=cancelled_or_expired).values_list('pk', flat=True)
     )
+
+
+def marketplace_active_company_ids(*, now=None) -> list[int]:
+    """Devuelve IDs de empresas visibles (caché corta vía tradeflow_cache)."""
+    if now is not None:
+        return marketplace_active_company_ids_uncached(now=now)
+    from core.utils.tradeflow_cache import cached_marketplace_active_company_ids
+
+    return cached_marketplace_active_company_ids()
 
 
 def seller_portal_access(company: Company | None, *, route_name: str = '') -> str | None:

@@ -410,8 +410,13 @@ def category_spotlights(
     max_cats: int = 4,
     exclude_ids: set[int] | None = None,
 ):
-    """Category rows for home — products not already shown in earlier scroll sections."""
+    """Category rows for home — products not already shown in earlier scroll sections.
+
+    Caps the ORM fetch per category (headroom for image-fingerprint dedupe)
+    instead of loading every active SKU in the category.
+    """
     seen = set(exclude_ids or [])
+    fetch_cap = max(limit_per_cat * 6, limit_per_cat)
     rows = []
     for cat in Category.objects.annotate(
         n=Count('products', filter=Q(products__is_active=True))
@@ -422,7 +427,7 @@ def category_spotlights(
             list(
                 active_products_base()
                 .filter(category=cat)
-                .order_by('-merchandising_priority', '-created_at')
+                .order_by('-merchandising_priority', '-created_at')[:fetch_cap]
             )
         ):
             if product.pk in seen:
@@ -469,6 +474,7 @@ def catalog_breadth_products(
         .order_by('-n')[:max_categories]
     )
 
+    fetch_cap = max(per_category * 6, per_category)
     for cat in cats:
         bucket = 0
         row_fingerprints: set[str] = set()
@@ -476,7 +482,7 @@ def catalog_breadth_products(
             list(
                 active_products_base()
                 .filter(category=cat)
-                .order_by('-merchandising_priority', '-created_at')
+                .order_by('-merchandising_priority', '-created_at')[:fetch_cap]
             )
         ):
             if product.pk in seen:

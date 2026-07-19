@@ -36,8 +36,27 @@ TTLs: `tradeflow_colon/settings.py` (`CACHE_TTL_*`)
 | `merch:catalog_market_ctx` | Rail/modal categorías marketplace | `CACHE_TTL_CATALOG_META` (300 s) |
 | `merch:verified_companies_count` | Conteo empresas verificadas con productos activos | `CACHE_TTL_CATALOG_META` (300 s) |
 | `merch:api_home_v2` | JSON API home merchandising | `CACHE_TTL_HOME` (120 s) |
+| `merch:active_company_ids` | Empresas visibles en marketplace | `CACHE_TTL_ACTIVE_COMPANIES` (120 s) |
+| `merch:spotlights:{per}:{cats}` | Filas spotlight catálogo | `CACHE_TTL_SPOTLIGHTS` (120 s) |
+| `merch:buyer_mega:{cats}:{per}` | Mega-menú buyer | `CACHE_TTL_MEGA_MENU` (180 s) |
+| `seller:dash:{company_id}:{days}` | KPIs home `/mi-tienda/` | `CACHE_TTL_SELLER_DASH` (45 s) |
 
 Prefijo Django adicional: con Redis, `KEY_PREFIX=tf` (settings).
+
+## Sesión y latencia de origen
+
+Por defecto `SESSION_SAVE_EVERY_REQUEST=false` (override con env). Así se evita
+un `UPDATE` de sesión en Postgres remoto en **cada** HTML. La cookie sigue
+caducando a `SESSION_COOKIE_AGE` (12 h) desde el último save (login, carrito, etc.).
+
+Para sliding window estricto (reescribir sesión en cada request):
+
+```bash
+SESSION_SAVE_EVERY_REQUEST=true
+```
+
+**Producción:** definir `REDIS_URL` para que workers Gunicorn compartan `merch:*`
+y `seller:dash:*`. Sin Redis, LocMem es por proceso y el warm-up se repite.
 
 ## Invalidación
 
@@ -82,10 +101,15 @@ CACHE_TTL_HOME=120
 CACHE_TTL_STATS=300
 CACHE_TTL_NAV=600
 CACHE_TTL_CATALOG_META=300
+CACHE_TTL_ACTIVE_COMPANIES=120
+CACHE_TTL_SPOTLIGHTS=120
+CACHE_TTL_MEGA_MENU=180
+CACHE_TTL_SELLER_DASH=45
 ```
 
 Recomendaciones:
 
+- **Obligatorio en prod con varios workers:** `REDIS_URL=...`
 - Subir `CACHE_TTL_CATALOG_META` si el catálogo meta cambia poco.
 - Bajar `CACHE_TTL_HOME` durante campañas con promos muy dinámicas.
 - Tras un deploy que cambie la forma del contexto, reiniciar workers o

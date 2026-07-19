@@ -133,15 +133,17 @@ def portal_seller(request):
     """Seller portal home at ``/mi-tienda/`` after company onboarding."""
     import json as _json
 
-    from ..utils.order_workflow import expire_pending_orders
-    from ..utils.seller_analytics import seller_portal_dashboard
+    from ..utils.tradeflow_cache import (
+        cached_seller_portal_dashboard,
+        maybe_expire_pending_orders,
+    )
 
     company, resp = _seller_company_or_response(request, 'mi_tienda')
     if resp:
         return resp
 
-    expire_pending_orders()
-    data = seller_portal_dashboard(company)
+    maybe_expire_pending_orders(min_interval=60)
+    data = cached_seller_portal_dashboard(company.pk)
 
     return render(request, 'core/portal_seller.html', {
         'company': company,
@@ -155,12 +157,12 @@ def portal_seller(request):
 @require_GET
 def api_seller_dashboard(request):
     """Lightweight JSON polling for seller portal dashboard widgets."""
-    from ..utils.seller_analytics import seller_portal_dashboard
+    from ..utils.tradeflow_cache import cached_seller_portal_dashboard
 
     company = _get_seller_company(request.user)
     if not company:
         return JsonResponse({'error': 'no_company'}, status=403)
-    data = seller_portal_dashboard(company)
+    data = cached_seller_portal_dashboard(company.pk)
     return JsonResponse({
         'pending_confirm': data['pending_confirm'],
         'ordenes_semana': data['ordenes_semana'],
