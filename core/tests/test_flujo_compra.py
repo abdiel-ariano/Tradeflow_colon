@@ -242,12 +242,11 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 302)
         self.assertIn('/mi-tienda/', r.url)
 
-    def test_home_redirige_seller_sin_empresa_a_wizard(self):
-        """Seller without a company hitting / is sent to the wizard."""
+    def test_home_permite_seller_sin_empresa_salir_del_wizard(self):
+        """Seller without a company can open public home (escape the wizard)."""
         self.client.login(username='seller_test', password='TestPass123!')
         r = self.client.get('/')
-        self.assertEqual(r.status_code, 302)
-        self.assertIn('/onboarding/vendedor/', r.url)
+        self.assertEqual(r.status_code, 200)
 
     def test_checkout_spanish_ui(self):
         """Checkout renders Spanish confirm/delivery copy after setlang."""
