@@ -5,6 +5,8 @@ import base64
 import hashlib
 import hmac
 import logging
+import secrets
+import string
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -12,7 +14,10 @@ from django.contrib.auth.models import User
 log = logging.getLogger('tradeflow.security')
 
 SESSION_MFA_OK = 'tf_staff_mfa_ok'
+SESSION_BACKUP_CODES = 'tf_mfa_backup_codes_once'
 ISSUER = 'TradeFlow Colón'
+BACKUP_CODE_COUNT = 8
+BACKUP_CODE_LEN = 10
 
 
 def _fernet_key() -> bytes:
@@ -121,6 +126,60 @@ def provisioning_uri(user: User, plain_secret: str) -> str:
     )
 
 
+def hash_backup_code(code: str) -> str:
+    """SHA-256 hex digest of a normalized backup code (not tied to SECRET_KEY)."""
+    normalized = (code or '').strip().upper().replace(' ', '').replace('-', '')
+    return hashlib.sha256(normalized.encode('utf-8')).hexdigest()
+
+
+def generate_backup_codes(count: int = BACKUP_CODE_COUNT) -> list[str]:
+    """Return plaintext one-time backup codes (show once to the user)."""
+    alphabet = string.ascii_uppercase + string.digits
+    # Avoid ambiguous characters.
+    alphabet = alphabet.replace('O', '').replace('0', '').replace('I', '').replace('1', '')
+    codes: list[str] = []
+    for _ in range(count):
+        raw = ''.join(secrets.choice(alphabet) for _ in range(BACKUP_CODE_LEN))
+        codes.append(f'{raw[:5]}-{raw[5:]}')
+    return codes
+
+
+def store_backup_code_hashes(profile, plain_codes: list[str]) -> None:
+    """Persist SHA-256 hashes of backup codes on the profile."""
+    profile.staff_totp_backup_hashes = [hash_backup_code(c) for c in plain_codes]
+    profile.save(update_fields=['staff_totp_backup_hashes'])
+
+
+def remaining_backup_codes(profile) -> int:
+    """Count unused backup code hashes."""
+    hashes = getattr(profile, 'staff_totp_backup_hashes', None) or []
+    return len(hashes) if isinstance(hashes, list) else 0
+
+
+def consume_backup_code(user: User, code: str) -> bool:
+    """Validate and consume one backup code. Survives SECRET_KEY rotation."""
+    profile = getattr(user, 'profile', None)
+    if not profile or not profile.staff_totp_enabled:
+        return False
+    hashes = list(profile.staff_totp_backup_hashes or [])
+    if not hashes:
+        return False
+    digest = hash_backup_code(code)
+    match_idx = None
+    for i, stored in enumerate(hashes):
+        if hmac.compare_digest(str(stored), digest):
+            match_idx = i
+            break
+    if match_idx is None:
+        log.warning('staff_mfa_backup_failed user_id=%s', user.pk)
+        return False
+    hashes.pop(match_idx)
+    profile.staff_totp_backup_hashes = hashes
+    profile.save(update_fields=['staff_totp_backup_hashes'])
+    log.info('staff_mfa_backup_ok user_id=%s remaining=%s', user.pk, len(hashes))
+    return True
+
+
 def verify_totp(user: User, code: str) -> bool:
     """Validate a 6-digit TOTP code against the user's stored secret."""
     import pyotp
@@ -139,6 +198,42 @@ def verify_totp(user: User, code: str) -> bool:
     else:
         log.warning('staff_mfa_failed user_id=%s', user.pk)
     return ok
+
+
+def totp_decrypt_broken(user: User) -> bool:
+    """True when an enabled secret cannot be decrypted (e.g. SECRET_KEY rotated)."""
+    profile = getattr(user, 'profile', None)
+    if not profile or not profile.staff_totp_enabled or not profile.staff_totp_secret:
+        return False
+    try:
+        secret = decrypt_totp_secret(profile.staff_totp_secret)
+        return not bool(secret)
+    except Exception:
+        return True
+
+
+def verify_staff_mfa_code(user: User, code: str) -> bool:
+    """Accept a TOTP code or a one-time backup code."""
+    raw = (code or '').strip()
+    if not raw:
+        return False
+    # Backup codes look like XXXXX-XXXXX (longer than 6 digits).
+    if len(raw.replace('-', '').replace(' ', '')) > 6:
+        return consume_backup_code(user, raw)
+    if verify_totp(user, raw):
+        return True
+    # Allow backup codes without dashes typed as continuous strings too.
+    return consume_backup_code(user, raw)
+
+
+def clear_staff_mfa(profile) -> None:
+    """Wipe TOTP secret, flag, and backup hashes (ops recovery)."""
+    profile.staff_totp_secret = ''
+    profile.staff_totp_enabled = False
+    profile.staff_totp_backup_hashes = []
+    profile.save(update_fields=[
+        'staff_totp_secret', 'staff_totp_enabled', 'staff_totp_backup_hashes',
+    ])
 
 
 def constant_time_equals(a: str, b: str) -> bool:

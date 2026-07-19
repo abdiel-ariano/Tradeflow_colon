@@ -30,6 +30,16 @@ Railway: create Cron Jobs with the schedules documented in `.env.example`.
 ## 3. Secrets hygiene
 
 - Rotate `SECRET_KEY` if leaked; invalidate sessions after rotation.
+- Staff TOTP secrets are wrapped with `SECRET_KEY`. After rotation, authenticator
+  codes stop working — staff should sign in with a **backup code**, then re-enroll.
+  Backup code hashes are SHA-256 and **do not** depend on `SECRET_KEY`.
+- If backup codes are exhausted after a rotation:
+
+  ```bash
+  python manage.py reset_staff_mfa <username> --yes
+  ```
+
+  Then the user enrolls again at `/staff-mfa/setup/`.
 - Store Resend / Groq / Supabase / Sentry keys only in the host secret store.
 - Prefer short-lived tokens for OAuth apps; revoke unused IdP credentials.
 - Never commit `.env`; keep `.env.example` as the non-secret template.
