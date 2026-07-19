@@ -161,7 +161,8 @@ def enterprise_saas(request):
     try:
         from core.utils.saas_billing import subscription_usage_snapshot
 
-        snap = subscription_usage_snapshot(company)
+        # Read-mostly on HTML: avoid recomputing monthly volume every request.
+        snap = subscription_usage_snapshot(company, refresh=False)
         return {'saas_snapshot': snap, 'saas_company': company}
     except Exception as exc:
         log.warning(
@@ -250,9 +251,9 @@ def buyer_mega_menu_context(request):
             return {}
     except Exception:
         return {}
-    from core.merchandising import buyer_mega_menu_panels
+    from core.utils.tradeflow_cache import cached_buyer_mega_menu_panels
 
-    return {'buyer_mega_menu_panels': buyer_mega_menu_panels()}
+    return {'buyer_mega_menu_panels': cached_buyer_mega_menu_panels()}
 
 
 def social_auth_context(request):

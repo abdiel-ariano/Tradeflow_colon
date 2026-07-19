@@ -281,8 +281,12 @@ def refresh_billing_usage(company: Company, now=None) -> CompanyBillingUsage:
     return usage
 
 
-def subscription_usage_snapshot(company: Company) -> dict:
-    """Construye contexto UI del vendedor: plan, uso, avisos y siguiente tier."""
+def subscription_usage_snapshot(company: Company, *, refresh: bool = True) -> dict:
+    """Construye contexto UI del vendedor: plan, uso, avisos y siguiente tier.
+
+    ``refresh=False`` reutiliza ``CompanyBillingUsage`` del mes si existe
+    (evita aggregate + update_or_create en cada HTML del portal).
+    """
     sub = get_company_subscription(company)
     if not sub:
         ensure_default_plans()
@@ -317,7 +321,17 @@ def subscription_usage_snapshot(company: Company) -> dict:
 
     from core.utils.seller_lifecycle import grace_days_remaining, trial_days_remaining
 
-    usage = refresh_billing_usage(company)
+    now = timezone.now()
+    if refresh:
+        usage = refresh_billing_usage(company, now=now)
+    else:
+        usage = CompanyBillingUsage.objects.filter(
+            company=company,
+            period_year=now.year,
+            period_month=now.month,
+        ).first()
+        if usage is None:
+            usage = refresh_billing_usage(company, now=now)
     plan = sub.plan
     limit = plan.monthly_volume_limit_usd
     vol = usage.volume_usd

@@ -36,6 +36,11 @@ CATALOG_EMPRESAS_KEY = 'merch:catalog_empresas'
 CATALOG_MARKET_CTX_KEY = 'merch:catalog_market_ctx'
 VERIFIED_COMPANIES_KEY = 'merch:verified_companies_count'
 API_HOME_MERCH_KEY = 'merch:api_home_v2'
+ACTIVE_COMPANY_IDS_KEY = 'merch:active_company_ids'
+SPOTLIGHTS_KEY = 'merch:spotlights:{per}:{cats}'
+MEGA_MENU_KEY = 'merch:buyer_mega:{cats}:{per}'
+SELLER_DASH_KEY = 'seller:dash:{company_id}:{days}'
+EXPIRE_PENDING_ORDERS_KEY = 'ops:expire_pending_orders'
 
 _SUPPORTED_LANGS = ('es', 'en')
 
@@ -92,9 +97,75 @@ def invalidate_merchandising_cache() -> None:
         CATALOG_MARKET_CTX_KEY,
         VERIFIED_COMPANIES_KEY,
         API_HOME_MERCH_KEY,
+        ACTIVE_COMPANY_IDS_KEY,
+        # Default catalog/home spotlight + mega-menu shapes.
+        SPOTLIGHTS_KEY.format(per=4, cats=4),
+        MEGA_MENU_KEY.format(cats=8, per=6),
         *[HOME_CTX_KEY.format(lang=lang) for lang in _SUPPORTED_LANGS],
     ]
     _cache_delete_many(keys)
+
+
+def cached_marketplace_active_company_ids() -> list[int]:
+    """IDs de empresas visibles en marketplace (caché corto, compartido)."""
+    from core.utils.seller_lifecycle import marketplace_active_company_ids_uncached
+
+    return get_or_set(
+        ACTIVE_COMPANY_IDS_KEY,
+        cache_ttl('CACHE_TTL_ACTIVE_COMPANIES', 120),
+        marketplace_active_company_ids_uncached,
+    )
+
+
+def cached_category_spotlights(limit_per_cat: int = 4, max_cats: int = 4) -> list:
+    """Filas spotlight del catálogo/home (caché; sin exclude_ids)."""
+    from core import merchandising as merch
+
+    return get_or_set(
+        SPOTLIGHTS_KEY.format(per=limit_per_cat, cats=max_cats),
+        cache_ttl('CACHE_TTL_SPOTLIGHTS', 120),
+        lambda: merch.category_spotlights(limit_per_cat, max_cats),
+    )
+
+
+def cached_buyer_mega_menu_panels(
+    limit_categories: int = 8,
+    products_per: int = 6,
+) -> list:
+    """Paneles del mega-menú buyer (caché)."""
+    from core import merchandising as merch
+
+    return get_or_set(
+        MEGA_MENU_KEY.format(cats=limit_categories, per=products_per),
+        cache_ttl('CACHE_TTL_MEGA_MENU', 180),
+        lambda: merch.buyer_mega_menu_panels(limit_categories, products_per),
+    )
+
+
+def cached_seller_portal_dashboard(company_id: int, days: int = 30) -> dict[str, Any]:
+    """KPIs del home ``/mi-tienda/`` por empresa (caché corto)."""
+    from core.models import Company
+    from core.utils.seller_analytics import seller_portal_dashboard
+
+    def _load():
+        company = Company.objects.get(pk=company_id)
+        return seller_portal_dashboard(company, days=days)
+
+    return get_or_set(
+        SELLER_DASH_KEY.format(company_id=company_id, days=days),
+        cache_ttl('CACHE_TTL_SELLER_DASH', 45),
+        _load,
+    )
+
+
+def maybe_expire_pending_orders(*, min_interval: int = 60) -> None:
+    """Ejecuta ``expire_pending_orders`` como máximo una vez por intervalo."""
+    if _cache_get(EXPIRE_PENDING_ORDERS_KEY) is not None:
+        return
+    from core.utils.order_workflow import expire_pending_orders
+
+    expire_pending_orders()
+    _cache_set(EXPIRE_PENDING_ORDERS_KEY, 1, min_interval)
 
 
 def cached_home_stats() -> dict[str, Any]:

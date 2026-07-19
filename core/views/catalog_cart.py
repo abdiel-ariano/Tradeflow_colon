@@ -259,6 +259,7 @@ def catalogo_publico(request):
     from core.utils.tradeflow_cache import (
         cached_catalog_categories,
         cached_catalog_empresas,
+        cached_category_spotlights,
         cached_marketplace_categories_context,
         cached_verified_company_count,
     )
@@ -424,7 +425,7 @@ def catalogo_publico(request):
         'titulo_pagina': _('Catalog'),
         'nav_activo': 'catalogo',
         'carrito_count': _contar_items(_get_carrito(request)),
-        'category_spotlights': merch.category_spotlights(4, 4),
+        'category_spotlights': cached_category_spotlights(4, 4),
         'show_cart_actions': show_cart_actions,
         'is_guest_catalog': is_guest,
     }
