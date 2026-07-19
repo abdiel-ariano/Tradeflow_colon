@@ -1,5 +1,11 @@
 {% extends "core/base.html" %}
 {% load static i18n %}
+{% comment %}
+Portal seller — workspace shell only (sidebar + toolbar).
+No navy tf-nav from base; marketplace chrome stays on public pages.
+{% endcomment %}
+{% block body_shell_class %} sp-mode sp-dash{% endblock %}
+{% block site_navbar %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/colors.css' %}">
 <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version }}">
@@ -64,10 +70,12 @@
       </form>
       <div class="sp-dash-toolbar-right">
         {% block seller_topbar_actions %}
+        <a href="{% url 'home' %}" class="sp-dash-icon-btn" title="{% trans 'Marketplace' %}" aria-label="{% trans 'Marketplace' %}"><span class="material-symbols-rounded">storefront</span></a>
         <a href="{% url 'seller_apps' %}" class="sp-dash-icon-btn" title="Apps" aria-label="Apps"><span class="material-symbols-rounded">apps</span></a>
         <a href="{% url 'mi_perfil' %}" class="sp-dash-icon-btn" title="Settings" aria-label="Settings"><span class="material-symbols-rounded">settings</span></a>
         <a href="{% url 'seller_agregar_producto' %}" class="sp-dash-create-btn" title="Create" aria-label="Create"><span class="material-symbols-rounded">add</span></a>
         <a href="{% url 'seller_setup_guide' %}" class="sp-dash-setup"><span class="material-symbols-rounded" style="font-size:16px;">track_changes</span>Setup guide</a>
+        <a href="{% url 'logout' %}" class="sp-dash-setup" title="{% trans 'Sign out' %}"><span class="material-symbols-rounded" style="font-size:16px;">logout</span>{% trans "Sign out" %}</a>
         {% endblock %}
       </div>
     </header>
@@ -90,7 +98,6 @@
     </div>
   </div>
 </div>
-<script nonce="{{ csp_nonce }}">document.body.classList.add('sp-mode', 'sp-dash');</script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var nav = '{{ nav_activo|default:""|escapejs }}';

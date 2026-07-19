@@ -1053,7 +1053,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </style>
   {% block extra_css %}{% endblock %}
 </head>
-<body class="tf-design-v2{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif not request.user.is_superuser and tf_user_role != 'admin' and tf_user_role != 'seller' %} tf-public-shell{% elif tf_seller_onboarding_pending %} tf-public tf-public-shell{% endif %}">
+<body class="tf-design-v2{% block body_shell_class %}{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif request.user.is_superuser or tf_user_role == 'admin' %}{% elif tf_user_role == 'seller' %} tf-public tf-public-shell{% else %} tf-public-shell{% endif %}{% endblock %}">
   {% if request.user.is_authenticated %}
   <div id="tf-nav-meta" class="d-none"
        data-role="{{ tf_user_role }}"
@@ -1063,21 +1063,22 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
        data-seller-pending="{% if tf_seller_onboarding_pending %}1{% else %}0{% endif %}"></div>
   {% endif %}
 
+  {% block site_navbar %}
   {% if not request.user.is_authenticated %}
     {% with nav_page=request.resolver_match.url_name|default:'' %}
     {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' and nav_page != 'password_reset' and nav_page != 'google_login' and nav_page != 'microsoft_login' and nav_page != 'linkedin_oauth2_login' and nav_page != 'socialaccount_login_cancelled' and nav_page != 'socialaccount_login_error' and nav_page != 'socialaccount_signup' and nav_page != 'oauth_complete_signup' %}
     {% include "core/includes/public_navbar.html" %}
     {% endif %}
     {% endwith %}
-  {% elif tf_seller_onboarding_pending %}
-    {# Vendedor sin empresa: shell marketplace (home/catálogo traen su navbar). #}
+  {% elif tf_user_role == 'seller' %}
+    {# Sellers: marketplace chrome only (navy tf-nav-seller retired). Portal uses seller_layout. #}
     {% with nav_page=request.resolver_match.url_name|default:'' %}
     {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' %}
     {% include "core/includes/marketplace_public_navbar.html" %}
     {% endif %}
     {% endwith %}
-  {% elif request.user.is_superuser or tf_user_role == 'admin' or tf_user_role == 'seller' %}
-  {# Admin/seller operativo: navbar por rol (tf-nav). Map oculto hasta fix mapa_zlc. #}
+  {% elif request.user.is_superuser or tf_user_role == 'admin' %}
+  {# Admin: navbar operativa (tf-nav). Map oculto hasta fix mapa_zlc. #}
   <nav class="tf-nav tf-navbar" aria-label="Principal">
     <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="nav" class="tf-nav-logo-img" eager=1 %}
@@ -1090,61 +1091,38 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     </button>
 
     <div class="tf-nav-links">
-      {# Map disabled temporarily — production errors (mapa_zlc) #}
       {% comment %}
       <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>Map</a>
       {% endcomment %}
-      {% if request.user.is_authenticated %}
-        <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
-          <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
-          <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>Orders</a>
-          <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
-          <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>Companies</a>
-          <a href="{% url 'admin_applications' %}" class="nav-link-tf" data-tf-nav="admin_applications">
-            <span class="material-symbols-rounded tf-ms-nav">assignment_ind</span>Applications
-            {% if pending_applications_count %}
-            <span style="background:var(--tf-orange);color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px;">{{ pending_applications_count }}</span>
-            {% endif %}
-          </a>
-        </div>
-        <div class="tf-nav-group" id="tf-nav-buyer" data-tf-nav-group="buyer">
-          <a href="{% url 'catalogo_publico' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Store</a>
-          <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>My orders</a>
-          <a href="{% url 'mis_cotizaciones' %}" class="nav-link-tf" data-tf-nav="mis_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">description</span>My quotes</a>
-          <a href="{% url 'ver_carrito' %}" class="tf-nav-cart" id="tf-nav-cart-link" title="Cart" data-tf-nav="carrito">
-            <span class="material-symbols-rounded">shopping_cart</span>
-            <span class="tf-nav-cart-badge" id="tf-nav-cart-badge">0</span>
-          </a>
-        </div>
-        <div class="tf-nav-group" id="tf-nav-seller" data-tf-nav-group="seller">
-          <a href="{% url 'portal_seller' %}" class="nav-link-tf" data-tf-nav="mi_tienda"><span class="material-symbols-rounded tf-ms-nav">store</span>My Dashboard</a>
-          <a href="{% url 'seller_mis_productos' %}" class="nav-link-tf" data-tf-nav="seller_productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
-          <a href="{% url 'seller_mis_ventas' %}" class="nav-link-tf" data-tf-nav="seller_ventas"><span class="material-symbols-rounded tf-ms-nav">payments</span>My sales</a>
-          <a href="{% url 'seller_cotizaciones' %}" class="nav-link-tf" data-tf-nav="seller_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">request_quote</span>Quotes</a>
-          <a href="{% url 'seller_company_qr' %}" class="nav-link-tf" data-tf-nav="seller_qr">
-            <span class="material-symbols-rounded tf-ms-nav">qr_code_2</span>My QR
-          </a>
-        </div>
-        <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
-        <div class="tf-nav-user-block">
-          <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link">
-            <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
-            <span class="tf-nav-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
-          </a>
-          <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
-            <span class="material-symbols-rounded tf-ms-18">logout</span>Sign out
-          </a>
-        </div>
-      {% else %}
-        <a href="{% url 'login' %}" class="tf-btn-outline-sm">{% trans "Sign in" %}</a>
-        <a href="{% url 'signup_buyer' %}" class="tf-btn-primary-sm">{% trans "Create account" %}</a>
-      {% endif %}
+      <div class="tf-nav-group is-visible" id="tf-nav-admin" data-tf-nav-group="admin">
+        <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
+        <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>Orders</a>
+        <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
+        <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>Companies</a>
+        <a href="{% url 'admin_applications' %}" class="nav-link-tf" data-tf-nav="admin_applications">
+          <span class="material-symbols-rounded tf-ms-nav">assignment_ind</span>Applications
+          {% if pending_applications_count %}
+          <span style="background:var(--tf-orange);color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px;">{{ pending_applications_count }}</span>
+          {% endif %}
+        </a>
+      </div>
+      <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
+      <div class="tf-nav-user-block">
+        <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link">
+          <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
+          <span class="tf-nav-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+        </a>
+        <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
+          <span class="material-symbols-rounded tf-ms-18">logout</span>Sign out
+        </a>
+      </div>
     </div>
   </nav>
   {% else %}
-    {# Buyer autenticado: buyer/buyer_navbar.html (3 niveles + búsqueda tf-hdr-search → tienda) #}
+    {# Buyer autenticado: buyer/buyer_navbar.html #}
     {% include "core/includes/buyer/buyer_navbar.html" %}
   {% endif %}
+  {% endblock site_navbar %}
 
   <script nonce="{{ csp_nonce }}">
   (function () {
@@ -1172,10 +1150,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
     if (isSuper || role === 'admin') {
       showGroup('tf-nav-admin');
-    } else if (role === 'buyer') {
-      showGroup('tf-nav-buyer');
-    } else if (role === 'seller') {
-      showGroup('tf-nav-seller');
     }
 
     var u = document.querySelector('.tf-nav-user-name');
