@@ -196,14 +196,37 @@ def tf_user_role(request):
     ``base.html`` and shell templates must not touch
     ``request.user.profile`` directly — a RelatedObjectDoesNotExist there
     becomes HTTP 500 right after login/OAuth for incomplete accounts.
+
+    Also exposes ``tf_seller_onboarding_pending`` so marketplace home/catalog
+    can use the public shell instead of stacking the seller dashboard nav.
     """
     if not getattr(request, 'user', None) or not request.user.is_authenticated:
-        return {'tf_user_role': '', 'tf_has_profile': False}
+        return {
+            'tf_user_role': '',
+            'tf_has_profile': False,
+            'tf_seller_onboarding_pending': False,
+        }
     try:
         role = request.user.profile.role or ''
     except Exception:
-        return {'tf_user_role': '', 'tf_has_profile': False}
-    return {'tf_user_role': role, 'tf_has_profile': True}
+        return {
+            'tf_user_role': '',
+            'tf_has_profile': False,
+            'tf_seller_onboarding_pending': False,
+        }
+    pending = False
+    if role == 'seller':
+        try:
+            from core.utils.access_gating import seller_company_pending
+
+            pending = seller_company_pending(request.user)
+        except Exception:
+            pending = False
+    return {
+        'tf_user_role': role,
+        'tf_has_profile': True,
+        'tf_seller_onboarding_pending': pending,
+    }
 
 
 def nav_header_categories(request):

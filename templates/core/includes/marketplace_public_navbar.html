@@ -124,7 +124,12 @@
       </div>
       <div class="nav-secondary-right">
         <a href="{% url 'acerca_tradeflow' %}">{% trans "Help center" %}</a>
+        {% if tf_seller_onboarding_pending %}
+        <a href="{% url 'seller_onboarding_company' %}">{% trans "Complete company setup" %}</a>
+        <a href="{% url 'logout' %}">{% trans "Sign out" %}</a>
+        {% else %}
         <a href="{% url 'signup_seller' %}">{% trans "Sell on TradeFlow" %}</a>
+        {% endif %}
       </div>
     </div>
   </nav>

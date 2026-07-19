@@ -48,6 +48,17 @@ class SellerOnboardingEscapeTests(TestCase):
         self.assertEqual(catalog.status_code, 200)
         self.assertNotIn('/onboarding/vendedor/', catalog.get('Location', ''))
 
+    def test_home_uses_marketplace_shell_not_seller_dashboard_nav(self):
+        """Escaped sellers see one marketplace header, not stacked seller nav."""
+        home = self.client.get('/')
+        self.assertEqual(home.status_code, 200)
+        body = home.content.decode('utf-8')
+        self.assertIn('cat-catalog-nav', body)
+        self.assertNotIn('id="tf-nav-seller"', body)
+        self.assertNotIn('My Dashboard', body)
+        self.assertNotIn('Create free buyer account', body)
+        self.assertIn('Complete company setup', body)
+
     def test_portal_still_requires_company_wizard(self):
         """Seller portal keeps forcing company onboarding."""
         portal = self.client.get(reverse('portal_seller'))

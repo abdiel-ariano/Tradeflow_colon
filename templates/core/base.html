@@ -1053,13 +1053,14 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </style>
   {% block extra_css %}{% endblock %}
 </head>
-<body class="tf-design-v2{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif not request.user.is_superuser and tf_user_role != 'admin' and tf_user_role != 'seller' %} tf-public-shell{% endif %}">
+<body class="tf-design-v2{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif not request.user.is_superuser and tf_user_role != 'admin' and tf_user_role != 'seller' %} tf-public-shell{% elif tf_seller_onboarding_pending %} tf-public tf-public-shell{% endif %}">
   {% if request.user.is_authenticated %}
   <div id="tf-nav-meta" class="d-none"
        data-role="{{ tf_user_role }}"
        data-superuser="{{ request.user.is_superuser|yesno:'1,0' }}"
        data-nav-active="{{ nav_activo|default:'' }}"
-       data-cart-count="{% firstof carrito_count 0 %}"></div>
+       data-cart-count="{% firstof carrito_count 0 %}"
+       data-seller-pending="{% if tf_seller_onboarding_pending %}1{% else %}0{% endif %}"></div>
   {% endif %}
 
   {% if not request.user.is_authenticated %}
@@ -1068,8 +1069,15 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     {% include "core/includes/public_navbar.html" %}
     {% endif %}
     {% endwith %}
+  {% elif tf_seller_onboarding_pending %}
+    {# Vendedor sin empresa: shell marketplace (home/catálogo traen su navbar). #}
+    {% with nav_page=request.resolver_match.url_name|default:'' %}
+    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' %}
+    {% include "core/includes/marketplace_public_navbar.html" %}
+    {% endif %}
+    {% endwith %}
   {% elif request.user.is_superuser or tf_user_role == 'admin' or tf_user_role == 'seller' %}
-  {# Admin/seller: navbar por rol (tf-nav). Map oculto hasta fix mapa_zlc. #}
+  {# Admin/seller operativo: navbar por rol (tf-nav). Map oculto hasta fix mapa_zlc. #}
   <nav class="tf-nav tf-navbar" aria-label="Principal">
     <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">
       {% include "core/includes/tf_logo.html" with variant="icon-color" size="nav" class="tf-nav-logo-img" eager=1 %}
