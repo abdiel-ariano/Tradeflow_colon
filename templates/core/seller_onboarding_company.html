@@ -49,8 +49,13 @@ Wizard vendedor — vincula empresa y activa trial Digitalízate (30 días).
       </div>
       <div class="so-actions">
         <button type="submit" class="tf-btn-primary">Guardar y empezar prueba gratis</button>
+        <a href="{% url 'home' %}" class="tf-btn-secondary">Continuar más tarde</a>
       </div>
     </form>
+    <p class="so-lead" style="margin-top:1.25rem;margin-bottom:0;font-size:.875rem;">
+      ¿No quieres configurar la empresa ahora?
+      <a href="{% url 'logout' %}">Cerrar sesión</a>
+    </p>
   </div>
 </div>
 {% endblock %}

@@ -77,8 +77,12 @@ def home_view(request):
         if request.user.is_superuser or role == 'admin':
             return redirect('dashboard')
         if role == 'seller':
-            # Misma resolución que login: wizard si falta empresa/trial.
-            return redirect(_redirect_by_role(request.user))
+            # Portal solo si ya puede operar; si falta empresa, mostrar home
+            # pública para poder salir del wizard sin bucle de redirección.
+            from core.utils.access_gating import seller_onboarding_redirect_name
+
+            if not seller_onboarding_redirect_name(request.user):
+                return redirect('portal_seller')
 
     from django.utils.translation import get_language
     from core.utils.tradeflow_cache import cached_guest_home_context

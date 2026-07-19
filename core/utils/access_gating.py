@@ -239,14 +239,11 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
         return None
 
     if scope == 'browse':
+        # Catálogo/home/carrito: no atrapar en wizards. Solo falta de rol OAuth.
+        # Empresa vendedor y personalización comprador se exigen en scope restricted
+        # (portal, checkout, APIs) y al entrar por login.
         if user_needs_role_completion(user):
             return 'oauth_complete_signup'
-        seller_route = seller_onboarding_redirect_name(user)
-        if seller_route:
-            return seller_route
-        buyer_route = buyer_onboarding_redirect_name(user)
-        if buyer_route:
-            return buyer_route
         return None
 
     try:

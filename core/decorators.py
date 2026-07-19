@@ -10,7 +10,11 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from core.utils.access_gating import onboarding_redirect_name, safe_intent_next
+from core.utils.access_gating import (
+    onboarding_redirect_name,
+    safe_intent_next,
+    seller_company_pending,
+)
 
 
 def _request_wants_json(request):
@@ -67,6 +71,10 @@ def catalog_access(view_func):
         if role in (None, 'buyer'):
             return view_func(request, *args, **kwargs)
         if role == 'seller':
+            # Vendedor sin empresa: puede explorar el marketplace (salir del wizard).
+            # Con empresa, el catálogo público redirige al portal.
+            if seller_company_pending(request.user):
+                return view_func(request, *args, **kwargs)
             if request.method == 'POST' and _request_wants_json(request):
                 from django.http import JsonResponse
                 from django.utils.translation import gettext as _
@@ -102,6 +110,8 @@ def guest_or_buyer_cart(view_func):
             return blocked
         role = _get_role(request.user)
         if role == 'seller':
+            if seller_company_pending(request.user):
+                return view_func(request, *args, **kwargs)
             if request.method == 'POST' and _request_wants_json(request):
                 from django.http import JsonResponse
                 from django.utils.translation import gettext as _
