@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
@@ -153,15 +154,19 @@ class StaffMfaLocaleMiddlewareTests(TestCase):
         UserProfile.objects.filter(user=self.admin).update(role='admin')
 
     def test_es_staff_mfa_setup_does_not_loop(self):
-        """Prefixed setup path is allowlisted and returns 200."""
+        """Prefixed setup path is allowlisted and returns 200 with ES cookie."""
         self.client.force_login(self.admin)
+        self.client.cookies[settings.LANGUAGE_COOKIE_NAME] = 'es'
         resp = self.client.get('/es/staff-mfa/setup/')
         self.assertEqual(resp.status_code, 200)
-        self.assertNotIn('/staff-mfa/setup/', resp.get('Location', ''))
 
     def test_es_dashboard_redirects_to_setup_once(self):
         """Spanish dashboard redirects to MFA setup without looping on itself."""
         self.client.force_login(self.admin)
+        self.client.cookies[settings.LANGUAGE_COOKIE_NAME] = 'es'
         resp = self.client.get('/es/dashboard/', follow=False)
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/staff-mfa/setup/', resp['Location'])
+        loc = resp['Location']
+        self.assertIn('/staff-mfa/setup/', loc)
+        # Must not bounce setup back onto itself.
+        self.assertFalse(loc.startswith('/es/dashboard'))
