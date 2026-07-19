@@ -15,6 +15,13 @@ from django.http import HttpResponse, JsonResponse
 # Vendor CDNs used by Leaflet, supabase-js, Bootstrap, and Chart.js.
 _CSP_SCRIPT_CDN = "https://cdn.jsdelivr.net https://unpkg.com"
 _CSP_STYLE_CDN = "https://fonts.googleapis.com https://cdn.jsdelivr.net"
+# OAuth authorize endpoints (allauth POST → 302). Browsers enforce form-action
+# on the redirect chain, so 'self' alone blocks Google/Microsoft/LinkedIn login.
+_CSP_FORM_ACTION_OAUTH = (
+    "https://accounts.google.com "
+    "https://login.microsoftonline.com "
+    "https://www.linkedin.com"
+)
 
 
 class SecurityHeadersMiddleware:
@@ -69,7 +76,7 @@ class SecurityHeadersMiddleware:
                     "connect-src 'self' https: wss:; "
                     "frame-ancestors 'none'; "
                     "base-uri 'self'; "
-                    "form-action 'self';",
+                    f"form-action 'self' {_CSP_FORM_ACTION_OAUTH};",
                 )
             else:
                 # Strict nonce-based CSP for marketplace pages.
@@ -83,7 +90,7 @@ class SecurityHeadersMiddleware:
                     "connect-src 'self' https: wss:; "
                     "frame-ancestors 'none'; "
                     "base-uri 'self'; "
-                    "form-action 'self';",
+                    f"form-action 'self' {_CSP_FORM_ACTION_OAUTH};",
                 )
         if request.is_secure():
             response.headers.setdefault(
