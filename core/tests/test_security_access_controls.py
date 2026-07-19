@@ -4,9 +4,10 @@ from __future__ import annotations
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
+from core.middleware.staff_mfa import _path_without_lang
 from core.models import (
     Category,
     Company,
@@ -116,3 +117,51 @@ class AdminMutationMethodTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.app.refresh_from_db()
         self.assertNotEqual(self.app.status, 'pending')
+
+
+class StaffMfaLocalePathTests(SimpleTestCase):
+    """Locale-prefixed MFA URLs must not redirect-loop."""
+
+    def test_strips_language_prefix(self):
+        """``/es/staff-mfa/setup/`` normalizes to ``/staff-mfa/setup/``."""
+        self.assertEqual(_path_without_lang('/es/staff-mfa/setup/'), '/staff-mfa/setup/')
+        self.assertEqual(_path_without_lang('/staff-mfa/verify/'), '/staff-mfa/verify/')
+        self.assertEqual(_path_without_lang('/es/logout/'), '/logout/')
+
+
+@override_settings(
+    STAFF_MFA_REQUIRED=True,
+    EXPO_DEMO_MODE=False,
+    AXES_ENABLED=False,
+    ALLOWED_HOSTS=['testserver', 'localhost', '127.0.0.1'],
+)
+class StaffMfaLocaleMiddlewareTests(TestCase):
+    """Middleware allowlist honors Spanish URL prefixes."""
+
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            username='mfa_locale_admin',
+            email='mfa_locale@example.com',
+            password='TestPass123!',
+            is_staff=True,
+            is_superuser=True,
+        )
+        UserProfile.objects.get_or_create(
+            user=self.admin,
+            defaults={'role': 'admin', 'email_verificado': True},
+        )
+        UserProfile.objects.filter(user=self.admin).update(role='admin')
+
+    def test_es_staff_mfa_setup_does_not_loop(self):
+        """Prefixed setup path is allowlisted and returns 200."""
+        self.client.force_login(self.admin)
+        resp = self.client.get('/es/staff-mfa/setup/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn('/staff-mfa/setup/', resp.get('Location', ''))
+
+    def test_es_dashboard_redirects_to_setup_once(self):
+        """Spanish dashboard redirects to MFA setup without looping on itself."""
+        self.client.force_login(self.admin)
+        resp = self.client.get('/es/dashboard/', follow=False)
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/staff-mfa/setup/', resp['Location'])

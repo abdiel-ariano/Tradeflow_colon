@@ -538,18 +538,29 @@ def seller_predictive_insights(request):
 
 
 def _optimize_product_image_from_request(request, product_form, product):
-    """Validate then optimize an uploaded product image before storage save."""
+    """Validate then optimize an uploaded product image before storage save.
+
+    Returns ``(product, ok)``. When ``ok`` is False the caller must not save.
+    """
     if 'image' not in request.FILES:
-        return product
+        return product, True
     from django.core.exceptions import ValidationError as _ValidationError
 
+    from ..models import Product
     from ..utils.media_storage import optimize_uploaded_image
     from ..utils.upload_security import UploadValidationError, validate_image_upload
+
+    previous_name = ''
+    if product.pk:
+        previous_name = (
+            Product.objects.filter(pk=product.pk).values_list('image', flat=True).first() or ''
+        )
 
     uploaded = request.FILES['image']
     try:
         validate_image_upload(uploaded, max_bytes=5 * 1024 * 1024)
         product.image = optimize_uploaded_image(uploaded)
+        return product, True
     except UploadValidationError as exc:
         messages.error(
             request,
@@ -560,7 +571,12 @@ def _optimize_product_image_from_request(request, product_form, product):
             exc.messages[0] if getattr(exc, 'messages', None) else str(exc)
         )
         messages.error(request, _('Imagen rechazada: %(detalle)s') % {'detalle': detalle})
-    return product
+
+    if previous_name:
+        product.image = previous_name
+    else:
+        product.image = None
+    return product, False
 
 
 def _get_seller_company(user):
@@ -884,18 +900,24 @@ def seller_producto_nuevo(request):
         product_form = SellerProductForm(request.POST, request.FILES)
         inv_form     = SellerInventoryForm(request.POST)
         if product_form.is_valid() and inv_form.is_valid():
-            with transaction.atomic():
-                product = product_form.save(commit=False)
-                product.company = company
-                product = _optimize_product_image_from_request(request, product_form, product)
-                product.save()
-                inv = inv_form.save(commit=False)
-                inv.product = product
-                inv.reserved_qty = 0
-                inv.save()
-            messages.success(request, f'Product "{product.name}" created successfully.')
-            return redirect('seller_mis_productos')
-        messages.error(request, 'Please check the form data.')
+            product = product_form.save(commit=False)
+            product.company = company
+            product, img_ok = _optimize_product_image_from_request(
+                request, product_form, product,
+            )
+            if not img_ok:
+                messages.error(request, 'Please check the form data.')
+            else:
+                with transaction.atomic():
+                    product.save()
+                    inv = inv_form.save(commit=False)
+                    inv.product = product
+                    inv.reserved_qty = 0
+                    inv.save()
+                messages.success(request, f'Product "{product.name}" created successfully.')
+                return redirect('seller_mis_productos')
+        else:
+            messages.error(request, 'Please check the form data.')
 
     context = {
         'company':        company,
@@ -940,13 +962,16 @@ def seller_producto_editar(request, pk):
 
     if request.method == 'POST':
         if product_form.is_valid() and inv_form.is_valid():
-            with transaction.atomic():
-                product = product_form.save(commit=False)
-                product = _optimize_product_image_from_request(request, product_form, product)
-                product.save()
-                inv_form.save()
-            messages.success(request, 'Changes saved.')
-            return redirect('seller_mis_productos')
+            product = product_form.save(commit=False)
+            product, img_ok = _optimize_product_image_from_request(
+                request, product_form, product,
+            )
+            if img_ok:
+                with transaction.atomic():
+                    product.save()
+                    inv_form.save()
+                messages.success(request, 'Changes saved.')
+                return redirect('seller_mis_productos')
         messages.error(request, 'Please check the form data.')
 
     context = {
