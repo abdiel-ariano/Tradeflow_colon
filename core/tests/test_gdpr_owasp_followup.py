@@ -138,3 +138,36 @@ class StaffMfaHelperTests(TestCase):
         self.assertTrue(staff_mfa.session_mfa_ok(request))
         staff_mfa.clear_session_mfa(request)
         self.assertFalse(staff_mfa.session_mfa_ok(request))
+
+    def test_backup_codes_consume_once_and_survive_key_change(self):
+        """Backup codes work once and remain valid after SECRET_KEY rotation."""
+        secret = staff_mfa.generate_totp_secret()
+        self.profile.staff_totp_secret = staff_mfa.encrypt_totp_secret(secret)
+        self.profile.staff_totp_enabled = True
+        self.profile.save(update_fields=['staff_totp_secret', 'staff_totp_enabled'])
+        codes = staff_mfa.generate_backup_codes(count=2)
+        staff_mfa.store_backup_code_hashes(self.profile, codes)
+        self.assertEqual(staff_mfa.remaining_backup_codes(self.profile), 2)
+
+        with override_settings(SECRET_KEY='rotated-secret-key-for-mfa-test-32b'):
+            # TOTP decrypt fails after rotation; backup still works.
+            self.assertTrue(staff_mfa.totp_decrypt_broken(self.user))
+            self.assertTrue(staff_mfa.verify_staff_mfa_code(self.user, codes[0]))
+            self.profile.refresh_from_db()
+            self.assertEqual(staff_mfa.remaining_backup_codes(self.profile), 1)
+            self.assertFalse(staff_mfa.consume_backup_code(self.user, codes[0]))
+
+    def test_reset_staff_mfa_command(self):
+        """Management command clears TOTP and backup hashes."""
+        from django.core.management import call_command
+
+        secret = staff_mfa.generate_totp_secret()
+        self.profile.staff_totp_secret = staff_mfa.encrypt_totp_secret(secret)
+        self.profile.staff_totp_enabled = True
+        self.profile.save(update_fields=['staff_totp_secret', 'staff_totp_enabled'])
+        staff_mfa.store_backup_code_hashes(self.profile, staff_mfa.generate_backup_codes(2))
+        call_command('reset_staff_mfa', self.user.username, yes=True)
+        self.profile.refresh_from_db()
+        self.assertFalse(self.profile.staff_totp_enabled)
+        self.assertEqual(self.profile.staff_totp_secret, '')
+        self.assertEqual(self.profile.staff_totp_backup_hashes, [])

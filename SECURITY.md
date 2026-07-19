@@ -38,7 +38,7 @@ Estado actual (julio 2026) — no reclamar “100% cobertura”; priorizar remed
 | A01 Access Control | Role decorators, seller tenancy, staff confirm for application review |
 | A02 Crypto | Argon2 passwords; OTP / password-reset tokens hashed at rest (SHA-256) |
 | A03 Injection | ORM default path; Analytics SQL SELECT-only guard; CSP JSON blocks |
-| A04/A07 Auth | django-axes, email verification default on, OAuth not on bare GET; staff TOTP required (`STAFF_MFA_REQUIRED`, skipped in Expo demo) |
+| A04/A07 Auth | django-axes, email verification default on, OAuth not on bare GET; staff TOTP + backup codes (`STAFF_MFA_REQUIRED`, skipped in Expo demo; `reset_staff_mfa` recovery) |
 | A05 Misconfig | CSP/HSTS/Secure cookies; public `/health/ready/` without config leak |
 | A06 Components | CI Bandit (HIGH) + pip-audit on pinned deps; Dependabot |
 | A08 Integrity | Signed logistics webhooks; SSRF URL validation on save + dispatch |

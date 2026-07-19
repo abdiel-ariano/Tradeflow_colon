@@ -122,7 +122,7 @@ class UserProfile(models.Model):
         blank=True,
         verbose_name='Account anonymized at',
     )
-    # Optional staff TOTP MFA (encrypted secret).
+    # Staff TOTP MFA (encrypted secret) + hashed one-time backup codes.
     staff_totp_secret = models.CharField(
         max_length=255,
         blank=True,
@@ -132,6 +132,12 @@ class UserProfile(models.Model):
     staff_totp_enabled = models.BooleanField(
         default=False,
         verbose_name='Staff TOTP MFA enabled',
+    )
+    staff_totp_backup_hashes = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name='Staff MFA backup code hashes',
+        help_text='SHA-256 hashes of one-time backup codes (survive SECRET_KEY rotation).',
     )
 
     class Meta:

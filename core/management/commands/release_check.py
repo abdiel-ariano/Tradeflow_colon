@@ -50,6 +50,15 @@ class Command(BaseCommand):
                 'EXPO_DEMO_MODE=True (bypass post-OTP activo). OK para demo; '
                 'desactivar cuando el entorno sea solo producción real.'
             )
+        if (
+            not getattr(settings, 'EXPO_DEMO_MODE', False)
+            and not getattr(settings, 'STAFF_MFA_REQUIRED', True)
+            and not settings.DEBUG
+        ):
+            warnings.append(
+                'STAFF_MFA_REQUIRED=False fuera de Expo demo. '
+                'En producción real conviene exigir TOTP al staff.'
+            )
 
         if not settings.DEBUG and getattr(settings, 'SERVE_LOCAL_MEDIA', False):
             warnings.append(

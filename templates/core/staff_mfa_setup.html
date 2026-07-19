@@ -12,9 +12,37 @@
     {% endif %}
   </p>
 
+  {% if backup_codes_once %}
+  <div class="perfil-card" style="padding:20px;margin-bottom:16px;border:1px solid #F59E0B;">
+    <p style="margin:0 0 10px;font-weight:600;color:#92400E;">
+      {% trans "Save these backup codes now — they will not be shown again." %}
+    </p>
+    <ul style="font-family:ui-monospace,monospace;font-size:14px;margin:0;padding-left:18px;">
+      {% for code in backup_codes_once %}
+      <li style="margin:4px 0;">{{ code }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
   {% if enabled %}
   <div class="perfil-card" style="padding:20px;margin-bottom:16px;">
     <p style="margin:0 0 12px;color:#15803d;font-weight:600;">{% trans "MFA is enabled on this account." %}</p>
+    {% if decrypt_broken %}
+    <p style="margin:0 0 12px;font-size:13px;color:#B45309;">
+      {% trans "Authenticator secret is unreadable. Use a backup code on the verify screen, then start setup again." %}
+    </p>
+    {% endif %}
+    <p style="margin:0 0 14px;font-size:13px;color:var(--tf-muted);">
+      {% blocktrans count counter=backups_left %}{{ counter }} backup code left.{% plural %}{{ counter }} backup codes left.{% endblocktrans %}
+    </p>
+    <form method="post" style="margin-bottom:16px;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="regenerate_backups">
+      <label class="tf-label" for="mfa-regen">{% trans "Code to regenerate backup codes" %}</label>
+      <input type="text" name="code" id="mfa-regen" class="tf-input" autocomplete="one-time-code" required>
+      <button type="submit" class="tf-btn tf-btn-outline" style="margin-top:12px;">{% trans "Generate new backup codes" %}</button>
+    </form>
     {% if mfa_required %}
     <p style="margin:0;font-size:13px;color:var(--tf-muted);">{% trans "Disable is not available while staff MFA is required." %}</p>
     {% else %}
@@ -22,7 +50,7 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="disable">
       <label class="tf-label" for="mfa-disable">{% trans "Enter a code to disable MFA" %}</label>
-      <input type="text" name="code" id="mfa-disable" class="tf-input" inputmode="numeric" autocomplete="one-time-code" required>
+      <input type="text" name="code" id="mfa-disable" class="tf-input" autocomplete="one-time-code" required>
       <button type="submit" class="tf-btn tf-btn-outline" style="margin-top:12px;">{% trans "Disable MFA" %}</button>
     </form>
     {% endif %}
