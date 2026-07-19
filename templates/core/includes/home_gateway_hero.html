@@ -13,7 +13,11 @@
       <p class="hm-gateway__sub">{% trans "Browse verified CFZ suppliers, compare MOQs in USD, and request formal quotes — export-ready documentation included on every order." %}</p>
       <div class="hm-gateway__actions">
         <a href="{% url 'catalogo_publico' %}" class="hm-gateway__btn hm-gateway__btn--primary">{% blocktrans with count=stats.productos|default:0 %}Explore {{ count }}+ products{% endblocktrans %}</a>
+        {% if tf_seller_onboarding_pending %}
+        <a href="{% url 'seller_onboarding_company' %}" class="hm-gateway__btn hm-gateway__btn--ghost">{% trans "Complete company setup" %}</a>
+        {% elif not request.user.is_authenticated %}
         <a href="{% url 'signup_buyer' %}" class="hm-gateway__btn hm-gateway__btn--ghost">{% trans "Create free buyer account" %}</a>
+        {% endif %}
       </div>
       <ul class="hm-gateway__pills" aria-label="{% trans 'Platform highlights' %}">
         <li class="hm-gateway__pill">
