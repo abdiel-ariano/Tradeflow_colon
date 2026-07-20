@@ -27,6 +27,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-public-shell.css' %}?v={{ tf_asset_version|default:'6' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-demo-notice.css' %}?v={{ tf_asset_version|default:'1' }}">
   <link rel="stylesheet" href="{% static 'css/tf-header.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-footer.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'5' }}">
@@ -1236,6 +1237,24 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
   </style>
 
+  {% if demo_catalog_enabled %}
+  <aside class="tf-demo-notice" role="note"
+         aria-label="{% if LANGUAGE_CODE|slice:':2' == 'es' %}Aviso de datos simulados{% else %}Simulated data notice{% endif %}">
+    <span class="tf-demo-notice__badge" aria-hidden="true">DEMO</span>
+    <p class="tf-demo-notice__copy">
+      {% if LANGUAGE_CODE|slice:":2" == "es" %}
+      <strong>Catálogo de demostración.</strong>
+      Las empresas, el inventario, los precios y las métricas son simulados;
+      todavía no representan proveedores comerciales activos.
+      {% else %}
+      <strong>Demonstration catalog.</strong>
+      Companies, inventory, prices, and performance metrics are simulated;
+      they do not yet represent active commercial suppliers.
+      {% endif %}
+    </p>
+  </aside>
+  {% endif %}
+
   <main class="tf-main" style="flex: 1;">
     {% block content %}{% endblock %}
   </main>
@@ -1730,7 +1749,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       });
     }
 
-    global.TF_OPEN_ASSISTANT = function (prefill) {
+    window.TF_OPEN_ASSISTANT = function (prefill) {
       if (!tfChatOpen && toggle) toggleChat();
       if (input && prefill) {
         input.value = prefill;
@@ -1759,3 +1778,4 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </script>
 </body>
 </html>
+
