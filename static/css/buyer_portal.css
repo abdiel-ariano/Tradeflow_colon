@@ -260,11 +260,11 @@
 }
 .bh-cat-icon {
   flex-shrink: 0;
-  color: var(--ds-orange, #E8490F);
+  color: var(--ds-orange, #F26522);
   font-size: 18px;
 }
 .bh-cat-item:hover .bh-cat-chevron {
-  color: var(--ds-orange, #E8490F);
+  color: var(--ds-orange, #F26522);
 }
 .bh-freq-img {
   aspect-ratio: 1;

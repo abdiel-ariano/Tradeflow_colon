@@ -620,95 +620,14 @@ def _seller_low_stock_count(company):
 
 @seller_required
 def seller_dashboard(request):
-    """Seller metrics for products, stock, and recent orders."""
-    company, resp = _seller_company_or_response(request, 'mi_tienda')
-    if resp:
-        return resp
-
-    hoy         = timezone.now()
-    hace_7_dias = hoy - timedelta(days=7)
-
-    productos_qs = Product.objects.filter(company=company)
-    total_productos  = productos_qs.count()
-    activos          = productos_qs.filter(is_active=True).count()
-    bajo_stock       = _seller_low_stock_count(company)
-
-    ordenes_recientes = (
-        Order.objects.filter(items__product__company=company)
-        .distinct()
-        .select_related('buyer')
-        .order_by('-created_at')[:6]
-    )
-
-    ordenes_semana = (
-        Order.objects.filter(
-            items__product__company=company,
-            created_at__gte=hace_7_dias,
-        )
-        .distinct()
-        .count()
-    )
-
-    ventas_items = OrderItem.objects.filter(
-        product__company=company,
-        order__status__in=('paid', 'packed', 'shipped', 'delivered'),
-        order__created_at__gte=hace_7_dias,
-    )
-    ventas_semana = ventas_items.aggregate(t=Sum('line_total'))['t'] or Decimal('0.00')
-
-    context = {
-        'company':           company,
-        'total_productos':   total_productos,
-        'productos_activos': activos,
-        'bajo_stock':        bajo_stock,
-        'ordenes_semana':    ordenes_semana,
-        'ventas_semana':     ventas_semana,
-        'ordenes_recientes': ordenes_recientes,
-        'titulo_pagina':     'Seller dashboard',
-        'nav_activo':        'mi_tienda',
-    }
-    return render(request, 'core/seller_dashboard.html', context)
+    """Legacy ``/mi-tienda/panel/`` → current seller portal home."""
+    return redirect('portal_seller')
 
 
 @seller_required
 def seller_productos(request):
-    """Legacy seller product list with filters for the company catalog."""
-    company, resp = _seller_company_or_response(request, 'seller_productos')
-    if resp:
-        return resp
-
-    productos = (
-        Product.objects.filter(company=company, is_active=True)
-        .select_related('category', 'company')
-        .defer('company__owner')
-        .prefetch_related('inventory')
-        .order_by('name')
-    )
-
-    buscar    = request.GET.get('buscar', '').strip()
-    categoria = request.GET.get('categoria', '').strip()
-    if buscar:
-        productos = productos.filter(
-            Q(name__icontains=buscar)
-            | Q(description__icontains=buscar)
-            | Q(sku__icontains=buscar)
-        )
-    if categoria:
-        productos = productos.filter(category_id=categoria)
-
-    paginator = Paginator(productos, 12)
-    page_obj  = paginator.get_page(request.GET.get('page', 1))
-
-    context = {
-        'company':       company,
-        'productos':     page_obj,
-        'categorias':    Category.objects.all().order_by('name'),
-        'buscar':        buscar,
-        'cat_activa':    categoria,
-        'titulo_pagina': 'My products',
-        'nav_activo':    'seller_productos',
-    }
-    return render(request, 'core/seller_productos.html', context)
+    """Legacy product list → ``seller_mis_productos`` portal catalog."""
+    return redirect('seller_mis_productos')
 
 
 @seller_required
@@ -1030,34 +949,8 @@ def seller_toggle_producto(request, pk):
 
 @seller_required
 def seller_ventas(request):
-    """Legacy list of orders that include this company's products."""
-    company, resp = _seller_company_or_response(request, 'seller_ventas')
-    if resp:
-        return resp
-
-    ordenes = (
-        Order.objects.filter(items__product__company=company)
-        .distinct()
-        .select_related('buyer')
-        .order_by('-created_at')
-    )
-
-    estado = request.GET.get('estado', '').strip()
-    if estado:
-        ordenes = ordenes.filter(status=estado)
-
-    paginator = Paginator(ordenes, 10)
-    page_obj  = paginator.get_page(request.GET.get('page', 1))
-
-    context = {
-        'company':        company,
-        'ordenes':        page_obj,
-        'estado_actual':  estado,
-        'status_choices': Order.STATUS_CHOICES,
-        'titulo_pagina':  'My sales',
-        'nav_activo':     'seller_ventas',
-    }
-    return render(request, 'core/seller_ventas.html', context)
+    """Legacy sales list → ``seller_mis_ventas`` portal transactions."""
+    return redirect('seller_mis_ventas')
 
 
 @seller_required

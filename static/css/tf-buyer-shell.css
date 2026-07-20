@@ -19,13 +19,13 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .bsr-wrap:focus-within {
-  border-color: var(--ds-orange, #E8490F);
+  border-color: var(--ds-orange, #F26522);
   box-shadow: 0 0 0 3px rgba(232, 73, 15, 0.12);
 }
 .bsr-wrap--hero {
   height: 64px;
   border-radius: 12px;
-  border: 2px solid var(--ds-orange, #E8490F);
+  border: 2px solid var(--ds-orange, #F26522);
   box-shadow: 0 8px 24px rgba(13, 27, 42, 0.08);
   max-width: 900px;
   margin: 0 auto;
@@ -37,7 +37,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   border: none;
   border-right: 1px solid var(--ds-gray-border, #E2E8F0);
   background: transparent;
-  color: var(--ds-navy, #0D1B2A);
+  color: var(--ds-navy, #0F2A44);
   font-size: 13px;
   padding: 0 12px;
   min-width: 72px;
@@ -49,7 +49,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   border: none;
   padding: 0 14px;
   font-size: 14px;
-  color: var(--ds-navy, #0D1B2A);
+  color: var(--ds-navy, #0F2A44);
   min-width: 0;
   background: transparent;
 }
@@ -66,13 +66,13 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   color: var(--ds-gray-mid, #8A97A8);
   cursor: pointer;
 }
-.bsr-camera:hover { color: var(--ds-orange, #E8490F); }
+.bsr-camera:hover { color: var(--ds-orange, #F26522); }
 .bsr-submit {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   border: none;
-  background: var(--ds-orange, #E8490F);
+  background: var(--ds-orange, #F26522);
   color: #fff;
   font-size: 14px;
   font-weight: 700;
@@ -110,7 +110,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   gap: 14px;
   min-height: 52px;
   padding: 0 clamp(12px, 3vw, 40px);
-  background: var(--ds-navy, #0D1B2A);
+  background: var(--ds-navy, #0F2A44);
   color: #fff;
 }
 .bn-l2 {
@@ -120,8 +120,8 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   gap: 8px 22px;
   min-height: 36px;
   padding: 0 clamp(12px, 3vw, 40px);
-  background: var(--ds-navy-mid, #1A2D42);
-  border-bottom: 1px solid var(--ds-navy-light, #243852);
+  background: var(--ds-navy-mid, #1B3B63);
+  border-bottom: 1px solid var(--ds-navy-light, #2E5B8A);
   font-size: 13px;
 }
 .bn-l3 {
@@ -141,18 +141,18 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   padding: 12px 20px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--ds-navy, #0D1B2A);
+  color: var(--ds-navy, #0F2A44);
   text-decoration: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
 }
-.bn-l3-tab:hover { color: var(--ds-orange, #E8490F); }
+.bn-l3-tab:hover { color: var(--ds-orange, #F26522); }
 .bn-l3-tab.is-active {
-  color: var(--ds-orange, #E8490F);
-  border-bottom-color: var(--ds-orange, #E8490F);
+  color: var(--ds-orange, #F26522);
+  border-bottom-color: var(--ds-orange, #F26522);
 }
 .bn-l3-sep { color: var(--ds-gray-border, #E2E8F0); padding: 0 4px; user-select: none; }
-.bn-l3-star { color: var(--ds-orange, #E8490F); font-size: 12px; }
+.bn-l3-star { color: var(--ds-orange, #F26522); font-size: 12px; }
 
 .bn-brand {
   display: inline-flex;
@@ -166,7 +166,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: var(--ds-orange, #E8490F);
+  background: var(--ds-orange, #F26522);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -197,7 +197,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   font-size: 10px;
   color: var(--ds-gray-mid, #8A97A8);
 }
-.bn-deliver-top .material-symbols-rounded { font-size: 14px; color: var(--ds-orange, #E8490F); }
+.bn-deliver-top .material-symbols-rounded { font-size: 14px; color: var(--ds-orange, #F26522); }
 .bn-deliver-val {
   font-size: 13px;
   font-weight: 700;
@@ -228,7 +228,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   cursor: pointer;
   position: relative;
 }
-.bn-icon-btn:hover { color: var(--ds-orange, #E8490F); }
+.bn-icon-btn:hover { color: var(--ds-orange, #F26522); }
 .bn-icon-btn .material-symbols-rounded { font-size: 22px; }
 .bn-badge {
   position: absolute;
@@ -241,7 +241,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   font-weight: 700;
   line-height: 18px;
   text-align: center;
-  background: var(--ds-orange, #E8490F);
+  background: var(--ds-orange, #F26522);
   color: #fff;
   border-radius: 999px;
 }
@@ -251,7 +251,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   display: inline-flex;
   padding: 8px 20px;
   border-radius: 999px;
-  background: var(--ds-orange, #E8490F);
+  background: var(--ds-orange, #F26522);
   color: #fff;
   font-size: 14px;
   font-weight: 700;
@@ -272,7 +272,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   text-decoration: none;
   white-space: nowrap;
 }
-.bn-auth-link:hover { color: var(--ds-orange, #E8490F); }
+.bn-auth-link:hover { color: var(--ds-orange, #F26522); }
 .bn-auth-link--muted { color: var(--ds-gray-mid, #8A97A8); }
 .bn-user {
   display: inline-flex;
@@ -285,7 +285,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--ds-orange, #E8490F);
+  background: var(--ds-orange, #F26522);
   font-size: 12px;
   font-weight: 700;
   display: flex;
@@ -315,7 +315,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   font-size: 13px;
 }
 .bn-cat-trigger:hover,
-.bn-cat-trigger.is-open { color: var(--ds-orange, #E8490F); }
+.bn-cat-trigger.is-open { color: var(--ds-orange, #F26522); }
 .bn-l2-link {
   color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
@@ -323,7 +323,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   white-space: nowrap;
 }
 .bn-l2-link:hover,
-.bn-l2-link.is-active { color: var(--ds-orange, #E8490F); }
+.bn-l2-link.is-active { color: var(--ds-orange, #F26522); }
 
 /* Mega menu */
 .bn-mega {
@@ -356,15 +356,15 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   border: none;
   background: transparent;
   font-size: 13px;
-  color: var(--ds-navy, #0D1B2A);
+  color: var(--ds-navy, #0F2A44);
   text-align: left;
   cursor: pointer;
   text-decoration: none;
 }
 .bn-mega-cat:hover,
 .bn-mega-cat.is-active {
-  background: var(--ds-orange-light, #FDE8DF);
-  color: var(--ds-orange, #E8490F);
+  background: var(--ds-orange-light, rgba(242, 101, 34, 0.12));
+  color: var(--ds-orange, #F26522);
 }
 .bn-mega-right {
   padding: 20px 24px;
@@ -373,7 +373,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   margin: 0 0 14px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--ds-navy, #0D1B2A);
+  color: var(--ds-navy, #0F2A44);
 }
 .bn-mega-subgrid {
   display: grid;
@@ -385,7 +385,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   color: var(--ds-gray-text, #4A5568);
   text-decoration: none;
 }
-.bn-mega-sub:hover { color: var(--ds-orange, #E8490F); }
+.bn-mega-sub:hover { color: var(--ds-orange, #F26522); }
 
 /* Panel derecho del mega menú — una categoría visible a la vez */
 .bn-mega-panel { display: none; }
@@ -394,14 +394,14 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
   margin: 0 0 14px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--ds-navy, #0D1B2A);
+  color: var(--ds-navy, #0F2A44);
 }
 .bn-mega-browse {
   display: inline-block;
   margin-top: 14px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--ds-orange, #E8490F);
+  color: var(--ds-orange, #F26522);
   text-decoration: none;
 }
 .bn-mega-browse:hover { text-decoration: underline; }
@@ -420,7 +420,7 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
 }
 .bn-mega-cat:hover .bn-mega-chevron,
 .bn-mega-cat.is-active .bn-mega-chevron {
-  color: var(--ds-orange, #E8490F);
+  color: var(--ds-orange, #F26522);
 }
 
 .bn-mobile-toggle {
@@ -458,7 +458,7 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ds-orange, #E8490F);
+  color: var(--ds-orange, #F26522);
   margin: 0 0 20px;
 }
 .bh-mode-tabs {
@@ -471,14 +471,14 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
 .bh-mode-tab {
   font-size: 14px;
   font-weight: 600;
-  color: var(--ds-navy, #0D1B2A);
+  color: var(--ds-navy, #0F2A44);
   text-decoration: none;
   padding: 4px 8px;
   border-bottom: 2px solid transparent;
 }
 .bh-mode-tab.is-active {
-  color: var(--ds-orange, #E8490F);
-  border-bottom-color: var(--ds-orange, #E8490F);
+  color: var(--ds-orange, #F26522);
+  border-bottom-color: var(--ds-orange, #F26522);
 }
 .bh-chips {
   display: flex;
@@ -493,13 +493,13 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   border: 1px solid var(--ds-gray-border, #E2E8F0);
   background: #fff;
   font-size: 12px;
-  color: var(--ds-navy, #0D1B2A);
+  color: var(--ds-navy, #0F2A44);
   text-decoration: none;
   transition: border-color 150ms, color 150ms;
 }
 .bh-chip:hover {
-  border-color: var(--ds-orange, #E8490F);
-  color: var(--ds-orange, #E8490F);
+  border-color: var(--ds-orange, #F26522);
+  color: var(--ds-orange, #F26522);
 }
 
 /* ── Welcome zone (3 columns) ── */
@@ -527,7 +527,7 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   gap: 10px;
   padding: 10px 16px;
   font-size: 14px;
-  color: var(--ds-navy, #0D1B2A);
+  color: var(--ds-navy, #0F2A44);
   text-decoration: none;
   transition: background 150ms, color 150ms;
 }
@@ -536,10 +536,10 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   color: var(--ds-gray-mid, #8A97A8);
 }
 .bh-cat-item:hover {
-  background: var(--ds-orange-light, #FDE8DF);
-  color: var(--ds-orange, #E8490F);
+  background: var(--ds-orange-light, rgba(242, 101, 34, 0.12));
+  color: var(--ds-orange, #F26522);
 }
-.bh-cat-item:hover .material-symbols-rounded { color: var(--ds-orange, #E8490F); }
+.bh-cat-item:hover .material-symbols-rounded { color: var(--ds-orange, #F26522); }
 .bh-cat-chevron { margin-left: auto; font-size: 18px; opacity: 0.5; }
 
 .bh-center { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -564,7 +564,7 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
 .bh-freq-title {
   font-size: 18px;
   font-weight: 700;
-  color: var(--ds-navy, #0D1B2A);
+  color: var(--ds-navy, #0F2A44);
   margin: 0 0 14px;
 }
 .bh-freq-img {
@@ -578,7 +578,7 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
 .bh-promo {
   border-radius: 12px;
   padding: 24px 20px;
-  background: linear-gradient(135deg, #dbeafe 0%, #2E6BE6 55%, #1A2D42 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #2E6BE6 55%, #1B3B63 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -602,7 +602,7 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   margin-top: 16px;
   padding: 10px 24px;
   border-radius: 999px;
-  background: var(--ds-navy-mid, #1A2D42);
+  background: var(--ds-navy-mid, #1B3B63);
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -647,7 +647,7 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
 }
 .bh-value-item .material-symbols-rounded {
   font-size: 16px;
-  color: var(--ds-orange, #E8490F);
+  color: var(--ds-orange, #F26522);
 }
 .bh-value-sep { color: var(--ds-gray-border, #E2E8F0); }
 

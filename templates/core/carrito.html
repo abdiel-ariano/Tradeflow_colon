@@ -151,6 +151,9 @@
   </div>
 </div>
 {% endblock %}
+{% block footer %}
+  {% include "core/includes/catalogo_footer.html" %}
+{% endblock %}
 {% block extra_js %}
 <script src="{% static 'js/carrito_page.js' %}?v={{ tf_asset_version|default:'1' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
