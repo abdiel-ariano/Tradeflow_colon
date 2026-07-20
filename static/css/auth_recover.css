@@ -69,17 +69,30 @@
 }
 
 #auth-recover-root .login-figma-form .login-figma-input,
-#auth-recover-root .login-figma-form .login-figma-input.tf-input {
+#auth-recover-root .login-figma-form .login-figma-input.tf-input,
+#auth-recover-root .login-figma-form input[type='password'],
+#auth-recover-root .login-figma-form input[type='text'],
+#auth-recover-root .login-figma-form input[type='email'] {
   height: 46px;
-  padding: 11px 14px 11px 44px;
+  width: 100%;
+  padding: 11px 14px;
   border: none;
-  border-radius: var(--tf-radius-input);
-  box-shadow: 0 0 0 1.5px var(--tf-border-hover);
+  border-radius: var(--tf-radius-input, 8px);
+  box-shadow: 0 0 0 1.5px var(--tf-border-hover, #9CA3AF);
   font-family: inherit;
+  box-sizing: border-box;
+}
+
+#auth-recover-root .login-figma-form .login-figma-input-wrap .login-figma-input,
+#auth-recover-root .login-figma-form .login-figma-input-wrap .login-figma-input.tf-input {
+  padding: 11px 14px 11px 44px;
 }
 
 #auth-recover-root .login-figma-form .login-figma-input:focus,
-#auth-recover-root .login-figma-form .login-figma-input--focus:focus {
+#auth-recover-root .login-figma-form .login-figma-input--focus:focus,
+#auth-recover-root .login-figma-form input[type='password']:focus,
+#auth-recover-root .login-figma-form input[type='text']:focus,
+#auth-recover-root .login-figma-form input[type='email']:focus {
   outline: none;
   box-shadow:
     0 0 0 1.5px var(--tf-orange),

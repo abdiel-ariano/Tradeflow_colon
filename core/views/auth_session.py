@@ -304,31 +304,17 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
 
 @never_cache
 def signup_view(request):
-    """Public registration that creates User + UserProfile."""
+    """Legacy ``/signup/`` → Figma buyer signup (seller uses ``/signup/vendedor/``)."""
     if request.user.is_authenticated:
         return redirect('home')
-
-    if request.method == 'GET':
-        return render(request, 'core/signup.html', {
-            'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
-            'selected_role': 'buyer',
-            'form_first_name': '',
-            'form_last_name': '',
-            'form_email': '',
-            'form_phone': '',
-        })
-
     if request.method == 'POST':
-        return _process_signup(request)
-
-    return render(request, 'core/signup.html', {
-        'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
-        'selected_role': 'buyer',
-        'form_first_name': '',
-        'form_last_name': '',
-        'form_email': '',
-        'form_phone': '',
-    })
+        role = (request.POST.get('role') or 'buyer').strip().lower()
+        if role == 'seller':
+            return redirect('signup_seller')
+        return _process_signup(
+            request, forced_role='buyer', error_template='core/signup_buyer.html'
+        )
+    return redirect('signup_buyer')
 
 
 @never_cache

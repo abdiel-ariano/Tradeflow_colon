@@ -31,9 +31,9 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: #F26522;
+    background: var(--tf-orange, #F26522);
     color: #fff;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
     font-weight: 700;
     font-size: 32px;
     display: flex;
@@ -44,14 +44,14 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
   }
   .perfil-hero-text { flex: 1; min-width: 200px; }
   .perfil-name {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
     font-weight: 700;
     font-size: 24px;
     color: #fff;
     margin: 0 0 4px;
   }
   .perfil-email {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
     font-weight: 400;
     font-size: 14px;
     color: rgba(255, 255, 255, 0.7);
@@ -66,8 +66,8 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
     color: #fff;
     margin-right: 8px;
   }
-  .perfil-badge-buyer { background: #F26522; }
-  .perfil-badge-seller { background: #0D9488; }
+  .perfil-badge-buyer { background: var(--tf-orange, #F26522); }
+  .perfil-badge-seller { background: var(--tf-navy, #0F2A44); }
   .perfil-badge-admin { background: #16A34A; }
   .perfil-since {
     font-size: 12px;
@@ -95,7 +95,7 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
     display: flex;
     align-items: center;
     gap: 10px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
     font-weight: 700;
     font-size: 1rem;
     color: var(--tf-navy, #0F2A44);
@@ -121,9 +121,9 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
     padding: 10px 20px;
     border: none;
     border-radius: 8px;
-    background: #F26522;
+    background: var(--tf-orange, #F26522);
     color: #fff;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
@@ -139,7 +139,7 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
     border-radius: 8px;
     background: transparent;
     color: var(--tf-navy, #0F2A44);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;

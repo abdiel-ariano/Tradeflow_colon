@@ -27,15 +27,15 @@ main.tf-main > .login-page-wrap {
   --figma-link: var(--tf-primary, #0057A8);
   --figma-link-footer: var(--tf-primary-dark, #003D7A);
   --figma-border: var(--tf-border, #D1D5DB);
-  --figma-primary: var(--tf-primary, #0057A8);
-  --figma-focus-ring: var(--tf-primary, #0057A8);
-  --figma-focus-glow: var(--tf-primary-light, #E8F1FB);
+  --figma-primary: var(--tf-navy, #0F2A44);
+  --figma-focus-ring: var(--tf-blue, #2E5B8A);
+  --figma-focus-glow: rgba(46, 91, 138, 0.14);
   --figma-oauth-text: #273951;
   --figma-divider-text: #3c4f69;
   position: relative;
   min-height: 100vh;
   isolation: isolate;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  font-family: var(--tf-font-body, 'Montserrat', system-ui, -apple-system, sans-serif);
   color: var(--figma-text);
   overflow-x: hidden;
 }
@@ -281,7 +281,7 @@ main.tf-main > .login-page-wrap {
   margin-top: 8px;
   padding: 0 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--figma-primary);
   box-shadow: 0 0 0 1px var(--figma-primary);
   font-family: inherit;

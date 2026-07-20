@@ -31,9 +31,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-header.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-footer.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'5' }}">
-  {% if request.user.is_authenticated and tf_user_role == 'buyer' %}
+  {# Marketplace Alibaba chrome (nav/search) — guests, buyers, and sellers on public pages. #}
   <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'13' }}">
-  {% endif %}
   <link rel="stylesheet" href="{% static 'css/tf-icons.css' %}?v={{ tf_asset_version|default:'2' }}">
   {% if request.resolver_match and request.resolver_match.url_name == 'home' %}
   <link rel="preload" href="{% static 'img/logo-wordmark-white.png' %}?v={{ tf_asset_version|default:'6' }}" as="image" type="image/png" fetchpriority="high">
@@ -1066,15 +1065,16 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   {% block site_navbar %}
   {% if not request.user.is_authenticated %}
+    {# Guests: one Alibaba marketplace shell (not the legacy navy public_navbar). #}
     {% with nav_page=request.resolver_match.url_name|default:'' %}
-    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' and nav_page != 'password_reset' and nav_page != 'google_login' and nav_page != 'microsoft_login' and nav_page != 'linkedin_oauth2_login' and nav_page != 'socialaccount_login_cancelled' and nav_page != 'socialaccount_login_error' and nav_page != 'socialaccount_signup' and nav_page != 'oauth_complete_signup' %}
-    {% include "core/includes/public_navbar.html" %}
+    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' and nav_page != 'password_reset' and nav_page != 'password_reset_done' and nav_page != 'password_reset_confirm' and nav_page != 'password_reset_complete' and nav_page != 'google_login' and nav_page != 'microsoft_login' and nav_page != 'linkedin_oauth2_login' and nav_page != 'socialaccount_login_cancelled' and nav_page != 'socialaccount_login_error' and nav_page != 'socialaccount_signup' and nav_page != 'oauth_complete_signup' and nav_page != 'staff_mfa_setup' and nav_page != 'staff_mfa_verify' %}
+    {% include "core/includes/marketplace_public_navbar.html" %}
     {% endif %}
     {% endwith %}
   {% elif tf_user_role == 'seller' %}
-    {# Sellers: marketplace chrome only (navy tf-nav-seller retired). Portal uses seller_layout. #}
+    {# Sellers on public pages: marketplace chrome (portal uses seller_layout → empty nav). #}
     {% with nav_page=request.resolver_match.url_name|default:'' %}
-    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' %}
+    {% if nav_page != 'home' and nav_page != 'catalogo_publico' %}
     {% include "core/includes/marketplace_public_navbar.html" %}
     {% endif %}
     {% endwith %}
