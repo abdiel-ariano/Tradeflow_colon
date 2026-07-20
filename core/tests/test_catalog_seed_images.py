@@ -96,6 +96,42 @@ class CatalogSeedImageTests(TestCase):
                     product_image_src(self.product),
                 )
 
+    def test_extended_textile_references_cover_remaining_families(self):
+        cases = (
+            (
+                '300-Thread Hospitality Set — lot 201',
+                'hospitality_set_300_thread',
+                'hospitality-set-300-thread.webp',
+            ),
+            (
+                'Rigid Executive Briefcase — lot 202',
+                'rigid_executive_briefcase',
+                'rigid-executive-briefcase.webp',
+            ),
+            (
+                'Top-Grain Leather Belt — lot 203',
+                'top_grain_leather_belt',
+                'top-grain-leather-belt.webp',
+            ),
+            (
+                'Travel Organizer Set — lot 204',
+                'travel_organizer_set',
+                'travel-organizer-set.webp',
+            ),
+        )
+
+        for name, expected_key, filename in cases:
+            with self.subTest(name=name):
+                self.product.name = name
+                self.assertEqual(
+                    product_reference_key(self.product),
+                    expected_key,
+                )
+                self.assertIn(
+                    f'/static/assets/products/reference/{filename}',
+                    product_image_src(self.product),
+                )
+
     def test_concrete_reference_replaces_generated_demo_media(self):
         self.product.name = '1500VA Interactive UPS — lot 204'
         self.product.save(update_fields=['name'])
