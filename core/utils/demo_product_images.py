@@ -57,6 +57,15 @@ PRODUCT_REFERENCE_FILES = {
     'cat6_wiring_kit': 'assets/products/reference/cat6-wiring-kit.webp',
     'vertical_ergonomic_mouse': 'assets/products/reference/vertical-ergonomic-mouse.webp',
     'usb_condenser_microphone': 'assets/products/reference/usb-condenser-microphone.webp',
+    'industrial_cargo_pants': (
+        'assets/products/reference/industrial-cargo-pants.webp'
+    ),
+    'corporate_dry_fit_polo': (
+        'assets/products/reference/corporate-dry-fit-polo.webp'
+    ),
+    'staff_waterproof_jacket': (
+        'assets/products/reference/staff-waterproof-jacket.webp'
+    ),
 }
 
 # Ordered from most specific to least specific. Values are normalized below.
@@ -69,6 +78,15 @@ PRODUCT_REFERENCE_MATCHES = (
     ('cat6_wiring_kit', ('cat6 wiring kit',)),
     ('vertical_ergonomic_mouse', ('vertical ergonomic mouse',)),
     ('usb_condenser_microphone', ('usb condenser microphone',)),
+    ('industrial_cargo_pants', ('industrial cargo pants',)),
+    (
+        'corporate_dry_fit_polo',
+        ('corporate dry-fit polo', 'dry-fit polo'),
+    ),
+    (
+        'staff_waterproof_jacket',
+        ('staff waterproof jacket', 'waterproof staff jacket'),
+    ),
 )
 
 DEMO_IMAGE_PREFIXES = (
