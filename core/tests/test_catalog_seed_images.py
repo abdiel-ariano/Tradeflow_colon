@@ -65,6 +65,37 @@ class CatalogSeedImageTests(TestCase):
         )
         self.assertTrue(product_image_is_reference(self.product))
 
+    def test_textile_reference_matches_clothing_families(self):
+        cases = (
+            (
+                'Industrial Cargo Pants — lot 101',
+                'industrial_cargo_pants',
+                'industrial-cargo-pants.webp',
+            ),
+            (
+                'Corporate Dry-Fit Polo — lot 102',
+                'corporate_dry_fit_polo',
+                'corporate-dry-fit-polo.webp',
+            ),
+            (
+                'Staff Waterproof Jacket — lot 103',
+                'staff_waterproof_jacket',
+                'staff-waterproof-jacket.webp',
+            ),
+        )
+
+        for name, expected_key, filename in cases:
+            with self.subTest(name=name):
+                self.product.name = name
+                self.assertEqual(
+                    product_reference_key(self.product),
+                    expected_key,
+                )
+                self.assertIn(
+                    f'/static/assets/products/reference/{filename}',
+                    product_image_src(self.product),
+                )
+
     def test_concrete_reference_replaces_generated_demo_media(self):
         self.product.name = '1500VA Interactive UPS — lot 204'
         self.product.save(update_fields=['name'])
