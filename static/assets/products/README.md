@@ -58,3 +58,18 @@ Clothing references use a ghost-mannequin composition. Linen and accessory
 references use isolated product compositions without visible people, logos,
 text, labels, or brand marks. This keeps the demo commercially neutral
 until real suppliers provide approved product photography.
+
+## Current appliance, desk, and packaging coverage
+
+The following demo families also resolve to packaged product photography:
+
+- `industrial-blender-2l.webp`: 2L Industrial Blender.
+- `digital-air-fryer-8l.webp`: 8L Digital Air Fryer.
+- `adjustable-led-floor-lamp.webp`: Adjustable LED Floor Lamp.
+- `xl-stitched-edge-pad.webp`: XL Stitched Edge Pad.
+- `clear-pp-packing-tape.webp`: 48mm x 150m Clear PP Tape.
+- `manual-stretch-film-20.webp`: 20-inch Manual Stretch Film.
+
+These references use isolated, unbranded product compositions. They prevent
+empty catalog cards when simulated media files are unavailable in a deployment.
+Real supplier uploads continue to take precedence.
