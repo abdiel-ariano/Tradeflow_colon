@@ -96,6 +96,18 @@ PRODUCT_REFERENCE_FILES = {
     'manual_stretch_film_20': (
         'assets/products/reference/manual-stretch-film-20.webp'
     ),
+    'cardboard_corner_protectors': (
+        'assets/products/reference/cardboard-corner-protectors.webp'
+    ),
+    'q4_retail_assortment_kit': (
+        'assets/products/reference/q4-retail-assortment-kit.webp'
+    ),
+    'modular_pos_display': (
+        'assets/products/reference/modular-pos-display.webp'
+    ),
+    'assorted_sku_master_carton': (
+        'assets/products/reference/assorted-sku-master-carton.webp'
+    ),
 }
 
 # Ordered from most specific to least specific. Values are normalized below.
@@ -133,6 +145,16 @@ PRODUCT_REFERENCE_MATCHES = (
         ('48mm x 150m clear pp tape', 'clear pp tape'),
     ),
     ('manual_stretch_film_20', ('20" manual stretch film',)),
+    (
+        'cardboard_corner_protectors',
+        ('l-shaped cardboard corner protectors', 'corner protectors'),
+    ),
+    ('q4_retail_assortment_kit', ('q4 retail assortment kit',)),
+    (
+        'modular_pos_display',
+        ('modular point-of-sale display', 'modular pos display'),
+    ),
+    ('assorted_sku_master_carton', ('assorted sku master carton',)),
 )
 
 DEMO_IMAGE_PREFIXES = (
