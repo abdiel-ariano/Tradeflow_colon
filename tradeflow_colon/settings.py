@@ -475,16 +475,59 @@ def _csrf_origins_for_base(base_url: str, extra_origins=None):
     return origins
 
 
+def _csrf_origins_for_host(host: str, *, allow_http: bool = False):
+    """Build scheme://host CSRF origins for one concrete hostname."""
+    host = (host or '').strip().lower().rstrip('.')
+    if not host or host.startswith('.') or '*' in host or '/' in host:
+        return []
+    origins = [f'https://{host}']
+    if allow_http:
+        origins.append(f'http://{host}')
+    return origins
+
+
 def _build_csrf_trusted_origins():
-    """Combina variantes de PUBLIC_BASE_URL con CSRF_TRUSTED_ORIGINS."""
-    return _csrf_origins_for_base(
+    """Combina PUBLIC_BASE_URL, hosts concretos y CSRF_TRUSTED_ORIGINS.
+
+    Incluye dominios Railway públicos cuando existen, para que un POST
+    desde ``*.up.railway.app`` no falle Origin check si el proxy mezcla
+    Host/X-Forwarded-Proto.
+    """
+    origins = _csrf_origins_for_base(
         PUBLIC_BASE_URL,
         config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv()),
     )
+    allow_http = bool(DEBUG)
+    for host in ALLOWED_HOSTS:
+        for origin in _csrf_origins_for_host(host, allow_http=allow_http):
+            if origin not in origins:
+                origins.append(origin)
+            # www variant for bare domains (skip localhost / IPs / railway wildcards).
+            if (
+                origin.startswith('https://')
+                and not origin.startswith('https://www.')
+                and host.count('.') >= 1
+                and not host.replace('.', '').isdigit()
+                and 'localhost' not in host
+            ):
+                www_origin = origin.replace('https://', 'https://www.', 1)
+                if www_origin not in origins:
+                    origins.append(www_origin)
+    for env_key in ('RAILWAY_PUBLIC_DOMAIN', 'RAILWAY_STATIC_URL'):
+        raw = config(env_key, default='').strip()
+        if not raw:
+            continue
+        if raw.startswith('http'):
+            origins = _csrf_origins_for_base(raw, origins)
+        else:
+            for origin in _csrf_origins_for_host(raw, allow_http=False):
+                if origin not in origins:
+                    origins.append(origin)
+    return origins
 
 
 CSRF_TRUSTED_ORIGINS = _build_csrf_trusted_origins()
-
+CSRF_FAILURE_VIEW = 'core.views.csrf.csrf_failure'
 EMAIL_USE_REAL_SMTP = bool(RESEND_API_KEY)
 EMAIL_SMTP_CONFIGURED = EMAIL_USE_REAL_SMTP
 
@@ -590,7 +633,9 @@ ANALYTICS_DB_HOST_ALLOWLIST = config('ANALYTICS_DB_HOST_ALLOWLIST', default='').
 # Endurecimiento de cookies (OWASP A05) — aplica en todos los entornos.
 SESSION_COOKIE_HTTPONLY = True        # JS cannot read session cookie
 SESSION_COOKIE_SAMESITE = 'Lax'       # basic CSRF mitigation
-CSRF_COOKIE_HTTPONLY = True           # JS cannot read CSRF cookie
+# CSRF cookie stays readable by same-origin JS (cart/AJAX). The session
+# cookie remains HttpOnly; XSS can already read {% csrf_token %} from DOM.
+CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Session lifetime 12h. Default: save only when modified (avoids a DB write on
