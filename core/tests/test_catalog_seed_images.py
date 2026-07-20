@@ -132,6 +132,52 @@ class CatalogSeedImageTests(TestCase):
                     product_image_src(self.product),
                 )
 
+    def test_appliance_and_packaging_reference_families(self):
+        cases = (
+            (
+                '2L Industrial Blender — lot 301',
+                'industrial_blender_2l',
+                'industrial-blender-2l.webp',
+            ),
+            (
+                '8L Digital Air Fryer — lot 302',
+                'digital_air_fryer_8l',
+                'digital-air-fryer-8l.webp',
+            ),
+            (
+                'Adjustable LED Floor Lamp — lot 303',
+                'adjustable_led_floor_lamp',
+                'adjustable-led-floor-lamp.webp',
+            ),
+            (
+                'XL Stitched Edge Pad — lot 304',
+                'xl_stitched_edge_pad',
+                'xl-stitched-edge-pad.webp',
+            ),
+            (
+                '48mm x 150m Clear PP Tape — lot 305',
+                'clear_pp_packing_tape',
+                'clear-pp-packing-tape.webp',
+            ),
+            (
+                '20" Manual Stretch Film — lot 306',
+                'manual_stretch_film_20',
+                'manual-stretch-film-20.webp',
+            ),
+        )
+
+        for name, expected_key, filename in cases:
+            with self.subTest(name=name):
+                self.product.name = name
+                self.assertEqual(
+                    product_reference_key(self.product),
+                    expected_key,
+                )
+                self.assertIn(
+                    f'/static/assets/products/reference/{filename}',
+                    product_image_src(self.product),
+                )
+
     def test_concrete_reference_replaces_generated_demo_media(self):
         self.product.name = '1500VA Interactive UPS — lot 204'
         self.product.save(update_fields=['name'])
