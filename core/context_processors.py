@@ -18,6 +18,16 @@ def csp_nonce_context(request):
     return {'csp_nonce': getattr(request, 'csp_nonce', '')}
 
 
+def demo_catalog_context(request):
+    """Expose whether public commercial data must be marked as simulated.
+
+    The flag is configuration-only and performs no database query, keeping the
+    processor safe for every public, buyer, seller, and administrative request.
+    """
+    enabled = getattr(settings, 'DEMO_CATALOG_DISCLOSURE', False)
+    return {'demo_catalog_enabled': bool(enabled)}
+
+
 def pending_applications_badge(request):
     """Count pending UserApplication rows for admin navbar badges."""
     if not request.user.is_authenticated:
@@ -272,3 +282,4 @@ def social_auth_context(request):
         'social_auth_enabled': bool(providers),
         'social_auth_providers': providers,
     }
+

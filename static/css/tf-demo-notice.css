@@ -1,0 +1,55 @@
+/*
+ * TradeFlow Colón — persistent disclosure for simulated commercial data.
+ * The notice is intentionally non-dismissible until production data is real.
+ */
+.tf-demo-notice {
+  align-items: center;
+  background: #fff7ed;
+  border-bottom: 1px solid #fed7aa;
+  color: #7c2d12;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  min-height: 44px;
+  padding: 9px 20px;
+  position: relative;
+  width: 100%;
+  z-index: 20;
+}
+
+.tf-demo-notice__badge {
+  background: #c2410c;
+  border-radius: 999px;
+  color: #fff;
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+}
+
+.tf-demo-notice__copy {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0;
+  max-width: 960px;
+}
+
+.badge-verified.badge-demo {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+@media (max-width: 640px) {
+  .tf-demo-notice {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 10px 14px;
+  }
+
+  .tf-demo-notice__copy {
+    font-size: 0.74rem;
+  }
+}
+

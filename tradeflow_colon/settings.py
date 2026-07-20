@@ -134,6 +134,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.csp_nonce_context',  # OWASP A03 (CSP nonce)
+                'core.context_processors.demo_catalog_context',
                 'core.context_processors.cart_badge',
                 'core.context_processors.pending_applications_badge',
                 'core.context_processors.tf_i18n',
@@ -656,6 +657,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # After core migrate, run cargar_demo if product table is empty (new Postgres).
 # Defaults to DEBUG; override with SEED_DEMO_IF_EMPTY in .env.
 SEED_DEMO_IF_EMPTY = config('SEED_DEMO_IF_EMPTY', default=DEBUG, cast=bool)
+
+# Public disclosure for environments backed by generated catalog data.
+# Keep enabled until supplier identities and commercial metrics are real.
+DEMO_CATALOG_DISCLOSURE = config(
+    'DEMO_CATALOG_DISCLOSURE',
+    default=EXPO_DEMO_MODE or SEED_DEMO_IF_EMPTY,
+    cast=bool,
+)
 
 # Clave Groq del asistente in-app (API free-tier).
 GROQ_API_KEY = config('GROQ_API_KEY', default='')
