@@ -66,6 +66,18 @@ PRODUCT_REFERENCE_FILES = {
     'staff_waterproof_jacket': (
         'assets/products/reference/staff-waterproof-jacket.webp'
     ),
+    'hospitality_set_300_thread': (
+        'assets/products/reference/hospitality-set-300-thread.webp'
+    ),
+    'rigid_executive_briefcase': (
+        'assets/products/reference/rigid-executive-briefcase.webp'
+    ),
+    'top_grain_leather_belt': (
+        'assets/products/reference/top-grain-leather-belt.webp'
+    ),
+    'travel_organizer_set': (
+        'assets/products/reference/travel-organizer-set.webp'
+    ),
 }
 
 # Ordered from most specific to least specific. Values are normalized below.
@@ -87,6 +99,13 @@ PRODUCT_REFERENCE_MATCHES = (
         'staff_waterproof_jacket',
         ('staff waterproof jacket', 'waterproof staff jacket'),
     ),
+    (
+        'hospitality_set_300_thread',
+        ('300-thread hospitality set', 'hospitality set'),
+    ),
+    ('rigid_executive_briefcase', ('rigid executive briefcase',)),
+    ('top_grain_leather_belt', ('top-grain leather belt',)),
+    ('travel_organizer_set', ('travel organizer set',)),
 )
 
 DEMO_IMAGE_PREFIXES = (

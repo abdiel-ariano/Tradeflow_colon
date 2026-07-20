@@ -41,7 +41,7 @@ supported for backwards compatibility.
 Cards show a discrete **"Reference image"** label whenever a generated reference
 is used. A future supplier upload automatically replaces the reference.
 
-## Current clothing coverage
+## Current textile and accessory coverage
 
 The demo catalog currently resolves these wholesale clothing families to local
 reference assets:
@@ -49,7 +49,12 @@ reference assets:
 - `industrial-cargo-pants.webp`: Industrial Cargo Pants.
 - `corporate-dry-fit-polo.webp`: Corporate Dry-Fit Polo.
 - `staff-waterproof-jacket.webp`: Staff Waterproof Jacket.
+- `hospitality-set-300-thread.webp`: 300-Thread Hospitality Set.
+- `rigid-executive-briefcase.webp`: Rigid Executive Briefcase.
+- `top-grain-leather-belt.webp`: Top-Grain Leather Belt.
+- `travel-organizer-set.webp`: Travel Organizer Set.
 
-Clothing references use a ghost-mannequin composition without visible people,
-logos, text, labels, or brand marks. This keeps the demo commercially neutral
+Clothing references use a ghost-mannequin composition. Linen and accessory
+references use isolated product compositions without visible people, logos,
+text, labels, or brand marks. This keeps the demo commercially neutral
 until real suppliers provide approved product photography.
