@@ -29,6 +29,7 @@ from django.utils.html import escape
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.cache import cache_control, never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 import qrcode
 from django.core import signing
@@ -77,11 +78,13 @@ from .common import (
 )
 
 @never_cache
+@ensure_csrf_cookie
 def login_view(request):
     """Authenticate and route by role, OTP gate, or safe ``?next=``.
     
     Protected destinations may force ``verificar_codigo`` before
-    checkout or other marketplace routes.
+    checkout or other marketplace routes. ``ensure_csrf_cookie`` keeps
+    Expo / CFZ demos from posting a login form without a csrftoken cookie.
     """
     from core.utils.access_gating import user_needs_role_completion
 
