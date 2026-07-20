@@ -78,6 +78,24 @@ PRODUCT_REFERENCE_FILES = {
     'travel_organizer_set': (
         'assets/products/reference/travel-organizer-set.webp'
     ),
+    'industrial_blender_2l': (
+        'assets/products/reference/industrial-blender-2l.webp'
+    ),
+    'digital_air_fryer_8l': (
+        'assets/products/reference/digital-air-fryer-8l.webp'
+    ),
+    'adjustable_led_floor_lamp': (
+        'assets/products/reference/adjustable-led-floor-lamp.webp'
+    ),
+    'xl_stitched_edge_pad': (
+        'assets/products/reference/xl-stitched-edge-pad.webp'
+    ),
+    'clear_pp_packing_tape': (
+        'assets/products/reference/clear-pp-packing-tape.webp'
+    ),
+    'manual_stretch_film_20': (
+        'assets/products/reference/manual-stretch-film-20.webp'
+    ),
 }
 
 # Ordered from most specific to least specific. Values are normalized below.
@@ -106,6 +124,15 @@ PRODUCT_REFERENCE_MATCHES = (
     ('rigid_executive_briefcase', ('rigid executive briefcase',)),
     ('top_grain_leather_belt', ('top-grain leather belt',)),
     ('travel_organizer_set', ('travel organizer set',)),
+    ('industrial_blender_2l', ('2l industrial blender',)),
+    ('digital_air_fryer_8l', ('8l digital air fryer',)),
+    ('adjustable_led_floor_lamp', ('adjustable led floor lamp',)),
+    ('xl_stitched_edge_pad', ('xl stitched edge pad',)),
+    (
+        'clear_pp_packing_tape',
+        ('48mm x 150m clear pp tape', 'clear pp tape'),
+    ),
+    ('manual_stretch_film_20', ('20" manual stretch film',)),
 )
 
 DEMO_IMAGE_PREFIXES = (
