@@ -73,3 +73,16 @@ The following demo families also resolve to packaged product photography:
 These references use isolated, unbranded product compositions. They prevent
 empty catalog cards when simulated media files are unavailable in a deployment.
 Real supplier uploads continue to take precedence.
+
+## Complete simulator coverage
+
+The final simulator families now resolve to these references:
+
+- `cardboard-corner-protectors.webp`: L-Shaped Cardboard Corner Protectors.
+- `q4-retail-assortment-kit.webp`: Q4 Retail Assortment Kit.
+- `modular-pos-display.webp`: Modular Point-of-Sale Display.
+- `assorted-sku-master-carton.webp`: Assorted SKU Master Carton.
+
+The reference manifest now covers all 25 product families declared by the
+enterprise-year simulator. Product cards can still use category icons for
+unknown supplier products, while real supplier photography always has priority.
