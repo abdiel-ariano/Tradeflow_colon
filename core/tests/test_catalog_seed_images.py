@@ -10,6 +10,7 @@ from core.templatetags.tf_media import (
     product_image_src,
 )
 from core.utils.demo_product_images import (
+    PRODUCT_REFERENCE_FILES,
     assign_catalog_seed_image,
     catalog_seed_bytes,
     category_keyword,
@@ -177,6 +178,49 @@ class CatalogSeedImageTests(TestCase):
                     f'/static/assets/products/reference/{filename}',
                     product_image_src(self.product),
                 )
+
+    def test_final_simulator_reference_families(self):
+        cases = (
+            (
+                'L-Shaped Cardboard Corner Protectors — lot 401',
+                'cardboard_corner_protectors',
+                'cardboard-corner-protectors.webp',
+            ),
+            (
+                'Q4 Retail Assortment Kit — lot 402',
+                'q4_retail_assortment_kit',
+                'q4-retail-assortment-kit.webp',
+            ),
+            (
+                'Modular Point-of-Sale Display — lot 403',
+                'modular_pos_display',
+                'modular-pos-display.webp',
+            ),
+            (
+                'Assorted SKU Master Carton — lot 404',
+                'assorted_sku_master_carton',
+                'assorted-sku-master-carton.webp',
+            ),
+        )
+
+        for name, expected_key, filename in cases:
+            with self.subTest(name=name):
+                self.product.name = name
+                self.assertEqual(
+                    product_reference_key(self.product),
+                    expected_key,
+                )
+                self.assertIn(
+                    f'/static/assets/products/reference/{filename}',
+                    product_image_src(self.product),
+                )
+
+    def test_reference_manifest_covers_all_simulator_families(self):
+        self.assertEqual(len(PRODUCT_REFERENCE_FILES), 25)
+        self.assertEqual(
+            len(set(PRODUCT_REFERENCE_FILES.values())),
+            25,
+        )
 
     def test_concrete_reference_replaces_generated_demo_media(self):
         self.product.name = '1500VA Interactive UPS — lot 204'
