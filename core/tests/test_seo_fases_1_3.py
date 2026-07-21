@@ -16,7 +16,11 @@ class SeoSlugAndContentTests(TestCase):
     """Slug PDP, 301 from pk, supplier page, and content hub."""
 
     def setUp(self):
-        self.company = Company.objects.create(name='ZLC Supplier Co', ruc='8-SEO-99')
+        self.company = Company.objects.create(
+            name='ZLC Supplier Co',
+            ruc='8-SEO-99',
+            is_verified=True,
+        )
         self.category = Category.objects.create(name='Electronics')
         self.product = Product.objects.create(
             name='Industrial LED Panel',
@@ -81,11 +85,18 @@ class SeoSlugAndContentTests(TestCase):
         self.assertIn('/recursos/', body)
         self.assertIn('/recursos/zona-libre-colon/', body)
 
+    def test_supplier_card_links_to_proveedor_page(self):
+        url = reverse('marketplace_verified_suppliers')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'/proveedor/{self.company.slug}/')
+
     def test_home_has_zlc_title_signal(self):
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Colón Free Zone')
         self.assertContains(response, 'hreflang="en"')
+        self.assertContains(response, 'twitter:card')
 
 
 class SeoJsonLdHelperTests(TestCase):

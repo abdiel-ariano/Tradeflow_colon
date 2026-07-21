@@ -10,6 +10,7 @@ This is **not** a substitute for legal counsel or vendor DPAs.
 | `DEBUG` | `false` |
 | `EXPO_DEMO_MODE` | keep `false` outside investor demos (demo still supported) |
 | `STAFF_MFA_REQUIRED` | `true` (auto-skipped only when `EXPO_DEMO_MODE=true`) |
+| `SAAS_READ_ONLY_DEMO_USERNAME` | `demo_admin` only for a controlled walkthrough; blank disables it |
 | `ALLOW_MOCK_PLAN_PAYMENT` | `false` |
 | `REQUIRE_EMAIL_VERIFICATION` | `true` |
 | `SENTRY_DSN` | set to your project DSN |
@@ -44,7 +45,26 @@ Railway: create Cron Jobs with the schedules documented in `.env.example`.
 - Prefer short-lived tokens for OAuth apps; revoke unused IdP credentials.
 - Never commit `.env`; keep `.env.example` as the non-secret template.
 
-## 4. Breach notification (skeleton)
+## 4. Read-only SaaS demo account
+
+`SAAS_READ_ONLY_DEMO_USERNAME` identifies one walkthrough account. It may read
+the custom SaaS administration screens without staff MFA, but the middleware
+rejects every unsafe HTTP method and redirects Django `/admin/` access back to
+the SaaS dashboard. Real staff accounts still require MFA.
+
+Run `python manage.py cargar_demo` after deployment to reconcile the existing
+`demo_admin` account: it keeps the application-level `admin` role, removes
+Django staff/group permissions, and preserves access to read-only SaaS screens.
+Never assign this setting to a real employee account.
+
+If a pending TOTP secret was displayed or captured, sign out to discard it. If
+the code was already confirmed, clear it before reusing the walkthrough account:
+
+```bash
+python manage.py reset_staff_mfa demo_admin --yes
+```
+
+## 5. Breach notification (skeleton)
 
 1. Contain: rotate secrets, revoke sessions, disable compromised users.
 2. Preserve: export relevant `SecurityEvent` / app logs (do not purge yet).
@@ -54,7 +74,28 @@ Railway: create Cron Jobs with the schedules documented in `.env.example`.
 
 Contact for privacy/security: `TRADEFLOW_CONTACT_EMAIL` / `security@tradeflow.pa` (see `SECURITY.md`).
 
-## 5. Related docs
+Public disclosure file (Cloudflare Security Insights):
+
+- `https://tradeflowcolon.com/.well-known/security.txt`
+- Legacy alias: `/security.txt`
+- Crawl policy companion: `/robots.txt` (blocks common AI scrapers)
+
+## 6. Cloudflare Security Insights checklist
+
+These toggles are **account/zone settings** (not Django). After deploy of
+`security.txt` / `robots.txt`, clear remaining insights in the dashboard:
+
+| Insight | Action in Cloudflare |
+|---------|----------------------|
+| Security.txt not configured | Should clear after `/.well-known/security.txt` is live; re-scan |
+| Bot Fight Mode not enabled | Security → Bots → enable **Bot Fight Mode** (or Super Bot Fight) |
+| Block AI bots | Security → Bots → enable **Block AI bots** |
+| AI Labyrinth | Security → Bots → enable **AI Labyrinth** (honeypot for scrapers) |
+
+Also confirm the zone proxies `tradeflowcolon.com` (orange cloud) so bot
+features apply at the edge.
+
+## 7. Related docs
 
 - `SECURITY.md` — vulnerability reporting + OWASP/GDPR baseline
 - `docs/GDPR_DPA_DPIA.md` — processor inventory + DPA/DPIA checklist

@@ -17,7 +17,7 @@ from core.utils.seo import (
 
 @require_GET
 def robots_txt(request):
-    """Serve robots.txt with disallow rules and sitemap pointer."""
+    """Serve robots.txt with disallow rules, AI-bot blocks, and sitemap pointer."""
     lines = [
         'User-agent: *',
         'Allow: /',
@@ -25,6 +25,22 @@ def robots_txt(request):
     for path in robots_disallow_paths():
         lines.append(f'Disallow: {path}')
     lines.append('')
+    lines.append('# AI / training crawlers (Cloudflare Security Insights companion)')
+    for bot in (
+        'GPTBot',
+        'ChatGPT-User',
+        'Google-Extended',
+        'CCBot',
+        'anthropic-ai',
+        'ClaudeBot',
+        'Claude-Web',
+        'Bytespider',
+        'meta-externalagent',
+        'Amazonbot',
+    ):
+        lines.append(f'User-agent: {bot}')
+        lines.append('Disallow: /')
+        lines.append('')
     lines.append(f'Sitemap: {absolute_url("/sitemap.xml")}')
     lines.append('')
     return HttpResponse('\n'.join(lines), content_type='text/plain; charset=utf-8')

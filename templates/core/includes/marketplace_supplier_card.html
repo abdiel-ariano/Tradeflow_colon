@@ -1,7 +1,7 @@
 {% load i18n %}
 {% comment %}Alibaba-style supplier storefront card — product preview + verified badge.{% endcomment %}
 <article class="mkt-vendor-card">
-  <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}&verificado=1" class="mkt-vendor-card__preview" aria-label="{% blocktrans with name=company.name %}View {{ name }} storefront{% endblocktrans %}">
+  <a href="{{ company.get_absolute_url }}" class="mkt-vendor-card__preview" aria-label="{% blocktrans with name=company.name %}View {{ name }} storefront{% endblocktrans %}">
     <div class="mkt-vendor-card__thumbs">
       {% for product in company.spotlight_products|slice:":4" %}
       <span class="mkt-vendor-card__thumb">
@@ -33,6 +33,6 @@
     {% if company.tagline_es %}
     <p class="mkt-vendor-card__tagline">{{ company.tagline_es|truncatechars:72 }}</p>
     {% endif %}
-    <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}&verificado=1" class="mkt-vendor-card__btn">{% trans "View storefront" %}</a>
+    <a href="{{ company.get_absolute_url }}" class="mkt-vendor-card__btn">{% trans "View storefront" %}</a>
   </div>
 </article>

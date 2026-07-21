@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
+from django.urls import reverse
 
 from core.models import UserProfile
 from core.utils import staff_mfa, upload_security
@@ -110,6 +111,16 @@ class StaffMfaHelperTests(TestCase):
         self.assertTrue(staff_mfa.user_needs_staff_mfa(self.user))
         self.assertTrue(staff_mfa.user_needs_staff_mfa_setup(self.user))
 
+    @override_settings(
+        STAFF_MFA_REQUIRED=True,
+        EXPO_DEMO_MODE=False,
+        SAAS_READ_ONLY_DEMO_USERNAME='staff_mfa',
+    )
+    def test_read_only_saas_demo_skips_forced_mfa(self):
+        """The configured walkthrough account does not enroll in staff MFA."""
+        self.assertFalse(staff_mfa.user_needs_staff_mfa(self.user))
+        self.assertFalse(staff_mfa.user_needs_staff_mfa_setup(self.user))
+
     @override_settings(STAFF_MFA_REQUIRED=True, EXPO_DEMO_MODE=True)
     def test_expo_demo_skips_forced_mfa(self):
         """Expo demo mode keeps MFA optional for staff."""
@@ -171,3 +182,54 @@ class StaffMfaHelperTests(TestCase):
         self.assertFalse(self.profile.staff_totp_enabled)
         self.assertEqual(self.profile.staff_totp_secret, '')
         self.assertEqual(self.profile.staff_totp_backup_hashes, [])
+
+
+@override_settings(
+    STAFF_MFA_REQUIRED=True,
+    EXPO_DEMO_MODE=False,
+    SAAS_READ_ONLY_DEMO_USERNAME='demo_admin',
+)
+class ReadOnlySaasDemoAccessTests(TestCase):
+    """Verify the public SaaS walkthrough cannot change platform data."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='demo_admin',
+            email='demo.admin@tradeflow.pa',
+            password='TestPass123!',
+            is_staff=True,
+        )
+        profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        profile.role = 'admin'
+        profile.email_verificado = True
+        profile.save(update_fields=['role', 'email_verificado'])
+        self.client.force_login(self.user)
+
+    def test_dashboard_is_visible_without_mfa(self):
+        """The demo can explore SaaS metrics without TOTP enrollment."""
+        response = self.client.get(reverse('admin_saas_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Read-only demo')
+
+    def test_django_admin_is_blocked(self):
+        """The demo account cannot enter Django Admin."""
+        response = self.client.get('/admin/')
+
+        self.assertRedirects(
+            response,
+            reverse('admin_saas_dashboard'),
+            fetch_redirect_response=False,
+        )
+
+    def test_saas_mutation_is_rejected(self):
+        """The demo cannot approve or reject a commercial request."""
+        url = reverse('api_admin_saas_request_action', kwargs={'pk': 999})
+        response = self.client.post(
+            url,
+            data='{"action": "approve"}',
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json(), {'error': 'Read-only demo account.'})

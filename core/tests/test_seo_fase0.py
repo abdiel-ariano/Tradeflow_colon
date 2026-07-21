@@ -28,6 +28,8 @@ class SeoRobotsSitemapTests(TestCase):
         self.assertIn('Disallow: /admin/', body)
         self.assertIn('Disallow: /login/', body)
         self.assertIn('Disallow: /carrito/', body)
+        self.assertIn('User-agent: GPTBot', body)
+        self.assertIn('User-agent: Bytespider', body)
         self.assertNotIn('Disallow: /catalogo/', body)
 
     def test_sitemap_includes_home_and_products(self):

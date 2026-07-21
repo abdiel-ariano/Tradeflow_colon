@@ -617,6 +617,13 @@ EXPO_DEMO_MODE = config('EXPO_DEMO_MODE', default=False, cast=bool)
 # Staff/admin must enroll TOTP (skipped automatically when EXPO_DEMO_MODE=True).
 STAFF_MFA_REQUIRED = config('STAFF_MFA_REQUIRED', default=True, cast=bool)
 
+# Public SaaS walkthrough account: read-only, MFA-exempt, no Django Admin.
+# Set to an empty string to disable this narrowly scoped exception.
+SAAS_READ_ONLY_DEMO_USERNAME = config(
+    'SAAS_READ_ONLY_DEMO_USERNAME',
+    default='demo_admin',
+).strip()
+
 # django-axes: lock after failed logins (username or IP).
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1

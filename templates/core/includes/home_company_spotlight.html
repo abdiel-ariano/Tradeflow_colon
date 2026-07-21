@@ -16,7 +16,7 @@ Variables: company (with spotlight_products attached in home_view)
         </span>
       </div>
     </div>
-    <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="hm-spotlight-unified__cta">
+    <a href="{{ company.get_absolute_url }}" class="hm-spotlight-unified__cta">
       {% trans "Visit storefront" %} {% include "core/includes/tf_icon.html" with name="arrow_forward" class="tf-icon--sm" %}
     </a>
   </header>

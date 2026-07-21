@@ -160,7 +160,7 @@
                 </div>
               </dl>
 
-              <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="cpd-supplier-link">
+              <a href="{{ product.company.get_absolute_url }}" class="cpd-supplier-link">
                 {% trans "View supplier catalog" %}
                 <span aria-hidden="true">→</span>
               </a>

@@ -27,6 +27,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <meta property="og:url" content="{% block og_url %}{{ canonical_url|default:seo_canonical_url }}{% endblock %}">
   <meta property="og:image" content="{% block og_image %}{{ og_image|default:seo_og_image }}{% endblock %}">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="{% block twitter_image %}{{ og_image|default:seo_og_image }}{% endblock %}">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
   <script type="application/ld+json" nonce="{{ csp_nonce }}">{{ seo_json_ld_organization|safe }}</script>
   <script type="application/ld+json" nonce="{{ csp_nonce }}">{{ seo_json_ld_website|safe }}</script>
@@ -1077,16 +1078,16 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   {% block site_navbar %}
   {% if not request.user.is_authenticated %}
-    {# Guests: one Alibaba marketplace shell (not the legacy navy public_navbar). #}
+    {# Guests: one Alibaba marketplace shell. Pages that include their own navbar are excluded. #}
     {% with nav_page=request.resolver_match.url_name|default:'' %}
-    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' and nav_page != 'password_reset' and nav_page != 'password_reset_done' and nav_page != 'password_reset_confirm' and nav_page != 'password_reset_complete' and nav_page != 'google_login' and nav_page != 'microsoft_login' and nav_page != 'linkedin_oauth2_login' and nav_page != 'socialaccount_login_cancelled' and nav_page != 'socialaccount_login_error' and nav_page != 'socialaccount_signup' and nav_page != 'oauth_complete_signup' and nav_page != 'staff_mfa_setup' and nav_page != 'staff_mfa_verify' %}
+    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'marketplace_deals' and nav_page != 'marketplace_verified_suppliers' and nav_page != 'marketplace_order_protection' and nav_page != 'acerca_tradeflow' and nav_page != 'mapa_zlc' and nav_page != 'legal_terminos' and nav_page != 'legal_privacidad' and nav_page != 'legal_cookies' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' and nav_page != 'password_reset' and nav_page != 'password_reset_done' and nav_page != 'password_reset_confirm' and nav_page != 'password_reset_complete' and nav_page != 'google_login' and nav_page != 'microsoft_login' and nav_page != 'linkedin_oauth2_login' and nav_page != 'socialaccount_login_cancelled' and nav_page != 'socialaccount_login_error' and nav_page != 'socialaccount_signup' and nav_page != 'oauth_complete_signup' and nav_page != 'staff_mfa_setup' and nav_page != 'staff_mfa_verify' %}
     {% include "core/includes/marketplace_public_navbar.html" %}
     {% endif %}
     {% endwith %}
   {% elif tf_user_role == 'seller' %}
     {# Sellers on public pages: marketplace chrome (portal uses seller_layout → empty nav). #}
     {% with nav_page=request.resolver_match.url_name|default:'' %}
-    {% if nav_page != 'home' and nav_page != 'catalogo_publico' %}
+    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'marketplace_deals' and nav_page != 'marketplace_verified_suppliers' and nav_page != 'marketplace_order_protection' and nav_page != 'acerca_tradeflow' and nav_page != 'mapa_zlc' and nav_page != 'legal_terminos' and nav_page != 'legal_privacidad' and nav_page != 'legal_cookies' %}
     {% include "core/includes/marketplace_public_navbar.html" %}
     {% endif %}
     {% endwith %}

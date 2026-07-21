@@ -351,14 +351,12 @@ class Command(BaseCommand):
                 self.style.WARNING('  No se pudo vincular demo_seller (usuario o empresa ausente).')
             )
 
-        # 6. Asegurar rol admin en demo_admin si el usuario ya existía con otro rol
-        self.stdout.write('\n[6/6] Ajustando cuenta demo_admin (rol admin)...')
+        # 6. Keep the SaaS walkthrough admin read-only and out of Django Admin.
+        self.stdout.write(
+            '\n[6/6] Ajustando cuenta demo_admin (SaaS de solo lectura)...'
+        )
         adm = User.objects.filter(username='demo_admin').first()
         if adm:
-            if not adm.is_staff:
-                adm.is_staff = True
-                adm.save(update_fields=['is_staff'])
-                self.stdout.write(self.style.SUCCESS('  demo_admin → is_staff activado (panel Django /admin/)'))
             prof = getattr(adm, 'profile', None)
             if prof and prof.role != 'admin':
                 prof.role = 'admin'
@@ -376,10 +374,28 @@ class Command(BaseCommand):
             else:
                 self.stdout.write('  demo_admin — rol admin OK')
 
-            from core.utils.admin_permissions import sync_user_admin_access
+            from core.utils.saas_demo import user_is_read_only_saas_demo
 
-            sync_user_admin_access(adm)
-            self.stdout.write(self.style.SUCCESS('  demo_admin → permisos Django Admin (core.*)'))
+            if user_is_read_only_saas_demo(adm):
+                if adm.is_staff:
+                    adm.is_staff = False
+                    adm.save(update_fields=['is_staff'])
+                adm.groups.clear()
+                adm.user_permissions.clear()
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        '  demo_admin → SaaS solo lectura; Django Admin bloqueado'
+                    )
+                )
+            else:
+                from core.utils.admin_permissions import sync_user_admin_access
+
+                sync_user_admin_access(adm)
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        '  demo_admin → permisos Django Admin sincronizados'
+                    )
+                )
 
             prof = getattr(adm, 'profile', None)
             if prof and (not prof.email_verificado or prof.token_verificacion):
@@ -411,7 +427,9 @@ class Command(BaseCommand):
         self.stdout.write('\nAccesos de prueba:')
         self.stdout.write('  Buyer:  demo_buyer  / Demo1234!')
         self.stdout.write('  Seller: demo_seller / Demo1234! (Mi Tienda → TechZone Colón S.A.)')
-        self.stdout.write('  Admin:  demo_admin  / Demo1234! — /dashboard/ (app) y /admin/ (Django, requiere is_staff)')
+        self.stdout.write(
+            '  Admin:  demo_admin  / Demo1234! — /saas/ (solo lectura, sin MFA)'
+        )
         if getattr(settings, 'REQUIRE_EMAIL_VERIFICATION', False):
             self.stdout.write(
                 self.style.WARNING(

@@ -46,7 +46,7 @@
       <ul class="hm-suppliers__chips">
         {% for emp in empresas_carousel|slice:"5:11" %}
         <li>
-          <a href="{% url 'catalogo_publico' %}?empresa={{ emp.pk }}" class="hm-supplier-chip" title="{{ emp.name }}">
+          <a href="{{ emp.get_absolute_url }}" class="hm-supplier-chip" title="{{ emp.name }}">
             <span class="hm-supplier-chip__avatar">{% include "core/includes/company_avatar.html" with company=emp class="tf-co-avatar--chip" %}</span>
             <span class="hm-supplier-chip__body">
               <span class="hm-supplier-chip__name">{{ emp.name|truncatechars:28 }}</span>
