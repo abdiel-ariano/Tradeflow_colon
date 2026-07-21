@@ -147,6 +147,14 @@
 <div class="adm-shell">
   {% include "core/admin_rail.html" %}
   <div class="adm-main adm-saas-wrap">
+    {% if saas_read_only_demo %}
+    <div class="adm-saas-readonly" role="status">
+      <strong>Read-only demo</strong>
+      <span>
+        Explore metrics and workflows safely. Approvals and changes are disabled.
+      </span>
+    </div>
+    {% endif %}
     <div
       id="admin-saas-root"
       data-api-url="{{ api_admin_saas_stats_url }}"
@@ -154,14 +162,6 @@
       data-static-js="{% static 'admin-saas/admin-saas.js' %}"
       data-static-css="{% static 'admin-saas/admin-saas.css' %}"
     >
-      {% if saas_read_only_demo %}
-      <div class="adm-saas-readonly" role="status">
-        <strong>Read-only demo</strong>
-        <span>
-          Explore metrics and workflows safely. Approvals and changes are disabled.
-        </span>
-      </div>
-      {% endif %}
       <div id="admin-saas-fallback" class="adm-saas-fallback" aria-live="polite">
         <h2>SaaS Panel — TradeFlow</h2>
         <p style="color:#6b7a88;margin:0 0 8px;">Loading interactive experience…</p>
