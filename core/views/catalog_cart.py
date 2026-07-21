@@ -26,7 +26,11 @@ import uuid
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import escape
+from django.templatetags.static import static
 from django.utils.translation import gettext as _
+
+from core.utils.seo import absolute_reverse, absolute_url
+
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.cache import cache_control, never_cache
 
@@ -504,9 +508,9 @@ def catalogo_producto_detail(request, pk):
 
     img = product_image_url(product)
     if img:
-        og_image = img if img.startswith('http') else request.build_absolute_uri(img)
+        og_image = img if img.startswith('http') else absolute_url(img)
     else:
-        og_image = request.build_absolute_uri(static('images/placeholder-producto.svg'))
+        og_image = absolute_url(static('images/placeholder-producto.svg'))
 
     meta_description = (
         product.description[:155].strip()
@@ -530,8 +534,8 @@ def catalogo_producto_detail(request, pk):
             'stock_label': stock_label,
             'meta_description': meta_description,
             'og_image': og_image,
-            'canonical_url': request.build_absolute_uri(
-                reverse('catalogo_producto_detail', args=[product.pk]),
+            'canonical_url': absolute_reverse(
+                'catalogo_producto_detail', args=[product.pk]
             ),
             'titulo_pagina': product.name,
             'nav_activo': 'tienda',

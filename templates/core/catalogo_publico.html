@@ -20,7 +20,7 @@
     {
       "@type": "ListItem",
       "position": {{ forloop.counter }},
-      "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'catalogo_producto_detail' producto.pk %}"
+      "url": "{{ seo_public_base_url }}{% url 'catalogo_producto_detail' producto.pk %}"
     }{% if not forloop.last %},{% endif %}
     {% endfor %}
   ]

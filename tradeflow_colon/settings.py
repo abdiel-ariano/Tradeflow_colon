@@ -146,6 +146,7 @@ TEMPLATES = [
                 'core.context_processors.nav_header_categories',
                 'core.context_processors.buyer_mega_menu_context',
                 'core.context_processors.social_auth_context',
+                'core.context_processors.seo_meta_context',
             ],
         },
     },

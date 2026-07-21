@@ -12,12 +12,15 @@ from django.conf.urls.i18n import i18n_patterns
 
 from core import views_platform
 from core import views_i18n
+from core.views import seo_public as views_seo
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('i18n/setlang/', views_i18n.set_language, name='set_language'),
     path('health/live/', views_platform.health_live, name='health_live'),
     path('health/ready/', views_platform.health_ready, name='health_ready'),
+    path('robots.txt', views_seo.robots_txt, name='robots_txt'),
+    path('sitemap.xml', views_seo.sitemap_xml, name='sitemap_xml'),
 ]
 
 urlpatterns += i18n_patterns(

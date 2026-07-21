@@ -2,17 +2,16 @@
 {% load static i18n tf_catalog tf_money %}
 {% block title %}{{ product.name }} — {{ product.company.name }} | TradeFlow Colón{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_image %}{{ og_image }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
 {% block extra_head %}
-<meta property="og:type" content="product">
 <meta property="og:title" content="{{ product.name }} — TradeFlow Colón">
 <meta property="og:description" content="{{ meta_description }}">
-<meta property="og:image" content="{{ og_image }}">
-<meta property="og:url" content="{{ canonical_url }}">
-<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ product.name }} — TradeFlow Colón">
 <meta name="twitter:description" content="{{ meta_description }}">
 <meta name="twitter:image" content="{{ og_image }}">
-<link rel="canonical" href="{{ canonical_url }}">
 <link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-sections.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">

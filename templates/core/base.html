@@ -16,7 +16,14 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="{% block meta_description %}B2B and B2C marketplace in the Colón Free Zone — verified companies, catalog, logistics, and secure purchasing.{% endblock %}">
+  <meta name="description" content="{% block meta_description %}B2B wholesale marketplace for the Colón Free Zone — verified CFZ suppliers, catalog, logistics, and secure purchasing.{% endblock %}">
+  <meta name="robots" content="{% block meta_robots %}{{ seo_robots|default:'index, follow' }}{% endblock %}">
+  <link rel="canonical" href="{% block canonical_url %}{{ canonical_url|default:seo_canonical_url }}{% endblock %}">
+  <meta property="og:site_name" content="TradeFlow Colón">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:url" content="{% block og_url %}{{ canonical_url|default:seo_canonical_url }}{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}{{ og_image|default:seo_og_image }}{% endblock %}">
+  <meta name="twitter:card" content="summary_large_image">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
   {% block extra_head %}{% endblock %}
   <link rel="icon" type="image/png" href="{% static 'img/logo-icon-color.png' %}" sizes="32x32">
@@ -1314,7 +1321,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
             <a href="{% url 'legal_terminos' %}">{% trans "Terms of use" %}</a>
             <a href="{% url 'legal_privacidad' %}">{% trans "Privacy" %}</a>
             <a href="{% url 'legal_cookies' %}">{% trans "Cookies" %}</a>
-            <span class="tf-footer-link-soon">{% trans "Sitemap" %} <em>{% trans "(coming soon)" %}</em></span>
+            <a href="{% url 'sitemap_xml' %}">{% trans "Sitemap" %}</a>
           </nav>
         </div>
       </div>

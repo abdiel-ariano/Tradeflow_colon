@@ -283,3 +283,67 @@ def social_auth_context(request):
         'social_auth_providers': providers,
     }
 
+
+def seo_meta_context(request):
+    """Robots, canonical defaults, and Open Graph defaults for every page.
+
+    Views may override ``canonical_url`` / ``meta_robots`` in the template
+    context. Catalog filter URLs should set canonical to the hub.
+    """
+    from core.utils.seo import (
+        absolute_url,
+        catalog_hub_canonical,
+        default_og_image_url,
+        demo_catalog_blocks_indexing,
+        public_base_url,
+        should_noindex_path,
+    )
+
+    path = getattr(request, 'path', '/') or '/'
+    noindex = should_noindex_path(path)
+    robots = 'noindex, nofollow' if noindex else 'index, follow, max-image-preview:large'
+
+    # Default canonical = current path on PUBLIC_BASE_URL (views may override).
+    canonical = absolute_url(path)
+
+    # Faceted catalog → collapse to hub canonical.
+    url_name = ''
+    if getattr(request, 'resolver_match', None):
+        url_name = request.resolver_match.url_name or ''
+    if url_name == 'catalogo_publico':
+        canonical = catalog_hub_canonical()
+        if request.GET and any(
+            key in request.GET
+            for key in (
+                'buscar',
+                'categoria',
+                'empresa',
+                'page',
+                'orden',
+                'stock',
+                'on_sale',
+                'verificado',
+                'partial',
+                'precio_min',
+                'precio_max',
+            )
+        ):
+            # Filtered/paginated URLs: keep hub canonical; prefer noindex when noisy.
+            if request.GET.get('partial') or request.GET.get('page'):
+                robots = 'noindex, follow'
+
+    if demo_catalog_blocks_indexing() and url_name in (
+        'catalogo_publico',
+        'catalogo_producto_detail',
+        'catalogo_producto',
+    ):
+        robots = 'noindex, nofollow'
+
+    return {
+        'seo_public_base_url': public_base_url(),
+        'seo_robots': robots,
+        'seo_canonical_url': canonical,
+        'seo_og_image': default_og_image_url(),
+        'seo_demo_noindex': demo_catalog_blocks_indexing(),
+    }
+
