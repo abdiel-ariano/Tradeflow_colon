@@ -11,6 +11,10 @@ Por favor reporta vulnerabilidades vía email privado a:
 
 **security@tradeflow.pa**
 
+También publicamos RFC 9116 en producción:
+
+`https://tradeflowcolon.com/.well-known/security.txt`
+
 No abras un issue público en GitHub para reportar vulnerabilidades —
 da tiempo al equipo de aplicar un parche antes de divulgación.
 

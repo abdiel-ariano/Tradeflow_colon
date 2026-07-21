@@ -54,7 +54,28 @@ Railway: create Cron Jobs with the schedules documented in `.env.example`.
 
 Contact for privacy/security: `TRADEFLOW_CONTACT_EMAIL` / `security@tradeflow.pa` (see `SECURITY.md`).
 
-## 5. Related docs
+Public disclosure file (Cloudflare Security Insights):
+
+- `https://tradeflowcolon.com/.well-known/security.txt`
+- Legacy alias: `/security.txt`
+- Crawl policy companion: `/robots.txt` (blocks common AI scrapers)
+
+## 5. Cloudflare Security Insights checklist
+
+These toggles are **account/zone settings** (not Django). After deploy of
+`security.txt` / `robots.txt`, clear remaining insights in the dashboard:
+
+| Insight | Action in Cloudflare |
+|---------|----------------------|
+| Security.txt not configured | Should clear after `/.well-known/security.txt` is live; re-scan |
+| Bot Fight Mode not enabled | Security → Bots → enable **Bot Fight Mode** (or Super Bot Fight) |
+| Block AI bots | Security → Bots → enable **Block AI bots** |
+| AI Labyrinth | Security → Bots → enable **AI Labyrinth** (honeypot for scrapers) |
+
+Also confirm the zone proxies `tradeflowcolon.com` (orange cloud) so bot
+features apply at the edge.
+
+## 6. Related docs
 
 - `SECURITY.md` — vulnerability reporting + OWASP/GDPR baseline
 - `docs/GDPR_DPA_DPIA.md` — processor inventory + DPA/DPIA checklist
