@@ -42,7 +42,7 @@ def _path_without_lang(path: str) -> str:
 
 def _read_only_demo_response(request, bare_path: str):
     """Block writes and Django Admin for the public SaaS demo account."""
-    if bare_path.startswith('/admin/'):
+    if bare_path == '/admin' or bare_path.startswith('/admin/'):
         return redirect(reverse('admin_saas_dashboard'))
 
     if (
