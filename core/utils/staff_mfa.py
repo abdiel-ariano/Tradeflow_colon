@@ -11,6 +11,8 @@ import string
 from django.conf import settings
 from django.contrib.auth.models import User
 
+from core.utils.saas_demo import user_is_read_only_saas_demo
+
 log = logging.getLogger('tradeflow.security')
 
 SESSION_MFA_OK = 'tf_staff_mfa_ok'
@@ -77,6 +79,8 @@ def user_has_staff_totp(user: User) -> bool:
 
 def user_needs_staff_mfa_setup(user: User) -> bool:
     """True when staff MFA is required but the user has not enrolled yet."""
+    if user_is_read_only_saas_demo(user):
+        return False
     return (
         user_is_staffish(user)
         and staff_mfa_required()
@@ -86,6 +90,8 @@ def user_needs_staff_mfa_setup(user: User) -> bool:
 
 def user_needs_staff_mfa(user: User) -> bool:
     """True when staff must complete MFA setup or challenge this session."""
+    if user_is_read_only_saas_demo(user):
+        return False
     if not user_is_staffish(user):
         return False
     if user_has_staff_totp(user):
