@@ -18,6 +18,10 @@ urlpatterns = [
     path('i18n/setlang/', views_i18n.set_language, name='set_language'),
     path('health/live/', views_platform.health_live, name='health_live'),
     path('health/ready/', views_platform.health_ready, name='health_ready'),
+    # Outside i18n: scanners/bots expect these at the apex (Cloudflare insights).
+    path('.well-known/security.txt', views_platform.security_txt, name='security_txt'),
+    path('security.txt', views_platform.security_txt, name='security_txt_legacy'),
+    path('robots.txt', views_platform.robots_txt, name='robots_txt'),
 ]
 
 urlpatterns += i18n_patterns(
