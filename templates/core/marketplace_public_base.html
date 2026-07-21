@@ -1,5 +1,9 @@
 {% extends "core/base.html" %}
 {% load static %}
+{% comment %}
+Marketplace marketing shell. Own site_navbar so base.html never stacks a
+second Alibaba header on deals / verified / about / legal / map.
+{% endcomment %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'13' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
@@ -7,8 +11,16 @@
 {% block marketplace_extra_head %}{% endblock %}
 {% endblock %}
 
-{% block content %}
+{% block site_navbar %}
+{% if not request.user.is_authenticated or tf_user_role == 'seller' %}
+{# Own the Alibaba header so base.html cannot stack a second copy. #}
 {% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active=marketplace_nav_active %}
+{% else %}
+{{ block.super }}
+{% endif %}
+{% endblock %}
+
+{% block content %}
 <main class="hm-marketplace-page" id="hm-marketplace-page">
   {% block marketplace_main %}{% endblock %}
 </main>
