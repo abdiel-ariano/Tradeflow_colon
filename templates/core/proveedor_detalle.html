@@ -49,7 +49,7 @@
     <header class="mkt-panel__head">
       <div>
         <h2 class="mkt-panel__title" id="prv-products-title">{% trans "Products from this supplier" %}</h2>
-        <p class="mkt-panel__sub">{% blocktrans count=total_productos %}{{ total_productos }} listing{% plural %}{{ total_productos }} listings{% endblocktrans %}</p>
+        <p class="mkt-panel__sub">{% blocktrans count counter=total_productos %}{{ counter }} listing{% plural %}{{ counter }} listings{% endblocktrans %}</p>
       </div>
     </header>
     {% if productos %}

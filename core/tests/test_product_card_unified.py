@@ -77,10 +77,10 @@ class ProductCardUnifiedTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Unified Widget')
         self.assertContains(response, 'From')
-        self.assertContains(response, 'Sign up to view wholesale pricing')
+        self.assertContains(response, 'Create a free buyer account to unlock wholesale pricing')
         self.assertContains(response, 'CFZ Verified')
         self.assertContains(response, 'Export Ready')
-        self.assertFalse(response.context['show_cart_actions'])
+        self.assertTrue(response.context['is_guest'])
         self.assertContains(response, 'og:title')
         self.assertContains(response, 'Related products')
 
@@ -97,7 +97,8 @@ class ProductCardUnifiedTests(TestCase):
         self.assertContains(response, 'hm-alibaba')
         self.assertContains(response, 'product-card')
         self.assertContains(response, 'btn-inquiry')
-        self.assertContains(response, 'Add to inquiry')
+        # Home enables guest cart actions → "Add to cart" (inquiry is catalog-guest path).
+        self.assertContains(response, 'Add to cart')
         self.assertContains(response, 'CFZ Verified')
         self.assertNotContains(response, 'class="tf-pcard ')
 
@@ -109,4 +110,4 @@ class ProductCardUnifiedTests(TestCase):
         self.assertTrue(response.context['show_cart_actions'])
         self.assertContains(response, 'Add to cart')
         self.assertContains(response, 'Auto quote')
-        self.assertNotContains(response, 'Regístrate para ver precios mayoristas')
+        self.assertNotContains(response, 'Create a free buyer account to unlock wholesale pricing')
