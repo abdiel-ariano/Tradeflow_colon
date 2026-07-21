@@ -158,14 +158,14 @@ urlpatterns = [
     path('catalogo/',                       views.catalogo_publico,     name='catalogo_publico'),
     path('catalogo/inquiry/agregar/<int:producto_id>/', views.catalogo_agregar_inquiry, name='catalogo_agregar_inquiry'),
     path(
-        'catalogo/producto/<slug:slug>/',
-        views.catalogo_producto_detail,
-        name='catalogo_producto_detail',
-    ),
-    path(
         'catalogo/producto/<int:pk>/',
         views.catalogo_producto_detail_pk,
         name='catalogo_producto_detail_pk',
+    ),
+    path(
+        'catalogo/producto/<slug:slug>/',
+        views.catalogo_producto_detail,
+        name='catalogo_producto_detail',
     ),
     path('proveedor/<slug:slug>/', views.proveedor_detalle, name='proveedor_detalle'),
     path('recursos/', views.recursos_hub, name='recursos_hub'),
