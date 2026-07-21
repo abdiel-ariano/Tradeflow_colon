@@ -45,7 +45,7 @@
         <h2 class="hm-cat-modal__title">{{ panel.category.name|category_label }}</h2>
         <div class="hm-cat-modal__grid">
           {% for product in panel.products %}
-          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-cat-modal__tile">
+          <a href="{{ product.get_absolute_url }}" class="hm-cat-modal__tile">
             <span class="hm-cat-modal__circle">
               {% include "core/includes/home_visual_media.html" with product=product decorative=True img_class="hm-cat-modal__img" object_fit="cover" %}
             </span>

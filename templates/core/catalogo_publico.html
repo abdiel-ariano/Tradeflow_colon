@@ -1,8 +1,10 @@
 {% extends "core/base.html" %}
 {% load static i18n %}
-{% block title %}{% trans "Colón Free Zone Wholesale Catalog | TradeFlow Colón" %}{% endblock %}
+{% block title %}{% if page_title %}{{ page_title }}{% else %}{% trans "Colón Free Zone Wholesale Catalog | TradeFlow Colón" %}{% endif %}{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
+{% if pagination_prev_url %}<link rel="prev" href="{{ pagination_prev_url }}">{% endif %}
+{% if pagination_next_url %}<link rel="next" href="{{ pagination_next_url }}">{% endif %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'19' }}">
 <link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'31' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
@@ -20,7 +22,8 @@
     {
       "@type": "ListItem",
       "position": {{ forloop.counter }},
-      "url": "{{ seo_public_base_url }}{% url 'catalogo_producto_detail' producto.pk %}"
+      "name": "{{ producto.name|escapejs }}",
+      "url": "{{ seo_public_base_url }}{{ producto.get_absolute_url }}"
     }{% if not forloop.last %},{% endif %}
     {% endfor %}
   ]
@@ -34,7 +37,7 @@
 <div id="cat-page-config" hidden
      data-inquiry-url="{% url 'catalogo_agregar_inquiry' 0 %}"
      data-catalog-url="{% url 'catalogo_publico' %}"></div>
-<h1 class="visually-hidden">{% trans "Colón Free Zone Catalog" %}</h1>
+<h1 class="visually-hidden">{% if page_h1 %}{{ page_h1 }}{% else %}{% trans "Colón Free Zone Catalog" %}{% endif %}</h1>
 
 {% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='catalog' %}
 

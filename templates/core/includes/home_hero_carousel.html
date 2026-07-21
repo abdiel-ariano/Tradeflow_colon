@@ -5,7 +5,7 @@
     <div class="hm-hero-carousel__track">
       {% for product in featured_products|slice:":5" %}
       <article class="hm-hero-carousel__slide{% if forloop.first %} is-active{% endif %}">
-        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-hero-carousel__link" aria-label="{{ product.name|truncatechars:64 }}">
+        <a href="{{ product.get_absolute_url }}" class="hm-hero-carousel__link" aria-label="{{ product.name|truncatechars:64 }}">
           <div class="hm-hero-carousel__media">
             {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" img_class="hm-hero-carousel__img" object_fit="cover" %}
           </div>

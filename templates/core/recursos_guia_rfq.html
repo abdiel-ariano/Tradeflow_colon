@@ -1,0 +1,36 @@
+{% extends "core/marketplace_public_base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
+{% block marketplace_extra_head %}
+{% if seo_json_ld_breadcrumb %}
+<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ seo_json_ld_breadcrumb|safe }}</script>
+{% endif %}
+{% endblock %}
+
+{% block marketplace_main %}
+<article class="mkt-page-stack mkt-page-stack--about">
+  <header class="mkt-about-cinematic" aria-labelledby="guide-title">
+    <div class="mkt-about-cinematic__content">
+      <p class="mkt-about-cinematic__kicker"><a href="{% url 'recursos_hub' %}" style="color:inherit;">{% trans "Guides" %}</a></p>
+      <h1 class="mkt-about-cinematic__title" id="guide-title">{{ guide_title }}</h1>
+      <p class="mkt-about-cinematic__lead">{% trans "Wholesale orders start with a request for quotation. TradeFlow lets you build an inquiry cart, send RFQs, and compare MOQs before you commit." %}</p>
+    </div>
+  </header>
+
+  <section class="mkt-panel">
+    <h2>{% trans "How RFQ works on TradeFlow" %}</h2>
+    <ol>
+      <li>{% trans "Browse the catalog as a guest or signed-in buyer and add products to your inquiry cart." %}</li>
+      <li>{% trans "Submit a quote request with quantity and notes — suppliers respond with offered prices and MOQ." %}</li>
+      <li>{% trans "Compare responses, negotiate if needed, then convert an accepted quote into an order." %}</li>
+    </ol>
+    <p>
+      <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--primary">{% trans "Start an inquiry" %}</a>
+      <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--ghost">{% trans "Create free buyer account" %}</a>
+    </p>
+  </section>
+</article>
+{% endblock %}

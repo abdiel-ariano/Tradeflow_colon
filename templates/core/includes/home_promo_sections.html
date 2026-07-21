@@ -17,7 +17,7 @@
     {% if products %}
     <div class="hm-promo-banner__mosaic" data-hm-stagger aria-hidden="true">
       {% for product in products|slice:":4" %}
-      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-promo-banner__thumb">
+      <a href="{{ product.get_absolute_url }}" class="hm-promo-banner__thumb">
         {% include "core/includes/home_product_media.html" with product=product decorative=True %}
       </a>
       {% endfor %}

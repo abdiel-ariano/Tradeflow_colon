@@ -12,6 +12,12 @@
 <meta name="twitter:title" content="{{ product.name }} — TradeFlow Colón">
 <meta name="twitter:description" content="{{ meta_description }}">
 <meta name="twitter:image" content="{{ og_image }}">
+{% if seo_json_ld_product %}
+<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ seo_json_ld_product|safe }}</script>
+{% endif %}
+{% if seo_json_ld_breadcrumb %}
+<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ seo_json_ld_breadcrumb|safe }}</script>
+{% endif %}
 <link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-sections.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
@@ -42,7 +48,7 @@
         <section class="cpd-stage" aria-labelledby="cpd-product-title">
           <div class="cpd-gallery">
             <div class="cpd-gallery__frame">
-              {% include "core/includes/product_image_placeholder.html" with product=product img_class="cpd-hero-img" width=900 height=720 %}
+              {% include "core/includes/product_image_placeholder.html" with product=product decorative=False alt=product.name loading="eager" fetchpriority="high" img_class="cpd-hero-img" width=900 height=720 %}
               {% if product.is_on_promo_now %}
               <span class="cpd-gallery__promo">-{{ product.discount_pct }}%</span>
               {% endif %}
@@ -55,7 +61,7 @@
           <div class="cpd-buy">
             <header class="cpd-buy__head">
               <p class="cpd-buy__supplier">
-                <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
+                <a href="{{ product.company.get_absolute_url }}">{{ product.company.name }}</a>
                 {% if product.category %}
                 <span class="cpd-buy__dot" aria-hidden="true">·</span>
                 <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}">{{ product.category.name|category_label }}</a>

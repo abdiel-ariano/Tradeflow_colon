@@ -7,7 +7,7 @@
   {% if featured_products %}
   <div class="sh-showcase__track">
     {% for product in featured_products|slice:":8" %}
-    <a href="{% url 'catalogo_producto_detail' product.pk %}" class="sh-showcase__card {% if forloop.counter0|divisibleby:3 %}sh-showcase__card--narrow{% else %}sh-showcase__card--wide{% endif %}">
+    <a href="{{ product.get_absolute_url }}" class="sh-showcase__card {% if forloop.counter0|divisibleby:3 %}sh-showcase__card--narrow{% else %}sh-showcase__card--wide{% endif %}">
       {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" object_fit="cover" %}
       <span class="sh-showcase__label">{{ product.company.name|truncatechars:28 }}</span>
     </a>

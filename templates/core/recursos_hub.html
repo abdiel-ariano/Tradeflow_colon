@@ -1,0 +1,44 @@
+{% extends "core/marketplace_public_base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
+
+{% block marketplace_main %}
+<div class="mkt-page-stack">
+  <header class="mkt-hero" aria-labelledby="rec-hub-title">
+    <div class="mkt-hero__accent" aria-hidden="true"></div>
+    <div class="mkt-hero__layout">
+      <div class="mkt-hero__main">
+        <p class="mkt-hero__kicker">{% trans "Guides" %}</p>
+        <h1 class="mkt-hero__title" id="rec-hub-title">{% trans "CFZ wholesale resources" %}</h1>
+        <p class="mkt-hero__sub">{% trans "Practical guides for buying from the Colón Free Zone — ZLC basics, RFQ/MOQ workflows, and export documentation." %}</p>
+        <div class="mkt-hero__actions">
+          <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--primary">{% trans "Browse catalog" %}</a>
+          <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--ghost">{% trans "Create buyer account" %}</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="mkt-panel" aria-labelledby="rec-list-title">
+    <header class="mkt-panel__head">
+      <div>
+        <h2 class="mkt-panel__title" id="rec-list-title">{% trans "Start here" %}</h2>
+        <p class="mkt-panel__sub">{% trans "Short reads for importers and wholesale buyers" %}</p>
+      </div>
+    </header>
+    <ul class="mkt-guide-list" style="list-style:none;padding:0;margin:0;display:grid;gap:1rem;">
+      {% for guide in guides %}
+      <li>
+        <a href="{% url guide.url_name %}" class="mkt-panel" style="display:block;text-decoration:none;color:inherit;padding:1.25rem 1.5rem;">
+          <h3 style="margin:0 0 0.35rem;font-size:1.15rem;">{{ guide.title }}</h3>
+          <p style="margin:0;opacity:0.85;">{{ guide.summary }}</p>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

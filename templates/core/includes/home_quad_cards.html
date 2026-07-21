@@ -13,7 +13,7 @@
       <div class="hm-quad-card__body">
         <div class="hm-quad-card__quad">
           {% for product in row.products|slice:":4" %}
-          <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-quad-card__cell">
+          <a href="{{ product.get_absolute_url }}" class="hm-quad-card__cell">
             <span class="hm-quad-card__media">
               {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.parentloop.first|yesno:"eager,lazy" img_class="hm-quad-card__img" object_fit="cover" %}
             </span>

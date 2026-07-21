@@ -19,12 +19,17 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <meta name="description" content="{% block meta_description %}B2B wholesale marketplace for the Colón Free Zone — verified CFZ suppliers, catalog, logistics, and secure purchasing.{% endblock %}">
   <meta name="robots" content="{% block meta_robots %}{{ seo_robots|default:'index, follow' }}{% endblock %}">
   <link rel="canonical" href="{% block canonical_url %}{{ canonical_url|default:seo_canonical_url }}{% endblock %}">
+  {% for alt in seo_hreflang %}
+  <link rel="alternate" hreflang="{{ alt.hreflang }}" href="{{ alt.href }}">
+  {% endfor %}
   <meta property="og:site_name" content="TradeFlow Colón">
   <meta property="og:type" content="{% block og_type %}website{% endblock %}">
   <meta property="og:url" content="{% block og_url %}{{ canonical_url|default:seo_canonical_url }}{% endblock %}">
   <meta property="og:image" content="{% block og_image %}{{ og_image|default:seo_og_image }}{% endblock %}">
   <meta name="twitter:card" content="summary_large_image">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
+  <script type="application/ld+json" nonce="{{ csp_nonce }}">{{ seo_json_ld_organization|safe }}</script>
+  <script type="application/ld+json" nonce="{{ csp_nonce }}">{{ seo_json_ld_website|safe }}</script>
   {% block extra_head %}{% endblock %}
   <link rel="icon" type="image/png" href="{% static 'img/logo-icon-color.png' %}" sizes="32x32">
   <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
@@ -1321,6 +1326,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
             <a href="{% url 'legal_terminos' %}">{% trans "Terms of use" %}</a>
             <a href="{% url 'legal_privacidad' %}">{% trans "Privacy" %}</a>
             <a href="{% url 'legal_cookies' %}">{% trans "Cookies" %}</a>
+            <a href="{% url 'recursos_hub' %}">{% trans "Guides" %}</a>
             <a href="{% url 'sitemap_xml' %}">{% trans "Sitemap" %}</a>
           </nav>
         </div>
@@ -1331,11 +1337,21 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           <span>{% blocktrans %}© 2026 TradeFlow Colón. All rights reserved.{% endblocktrans %}</span>
           <span><strong>{% trans "Colón Free Zone, Panama" %}</strong></span>
         </div>
-        <div class="tf-footer-lang" role="group" aria-label="Language selection">
+        <div class="tf-footer-lang" role="group" aria-label="{% trans 'Language' %}">
           <span class="tf-footer-lang-flag" aria-hidden="true">🇵🇦</span>
-          <button type="button" class="tf-footer-lang-opt" aria-disabled="true" title="Spanish — coming soon">ES</button>
+          <form action="{% url 'set_language' %}" method="post" class="tf-footer-lang-form" style="display:inline;margin:0;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <input type="hidden" name="language" value="es">
+            <button type="submit" class="tf-footer-lang-opt{% if LANGUAGE_CODE == 'es' %} is-active{% endif %}" {% if LANGUAGE_CODE == 'es' %}aria-current="true"{% endif %} title="Español">ES</button>
+          </form>
           <span class="tf-footer-lang-sep" aria-hidden="true">|</span>
-          <button type="button" class="tf-footer-lang-opt is-active" aria-current="true" title="English (active)">EN</button>
+          <form action="{% url 'set_language' %}" method="post" class="tf-footer-lang-form" style="display:inline;margin:0;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <input type="hidden" name="language" value="en">
+            <button type="submit" class="tf-footer-lang-opt{% if LANGUAGE_CODE != 'es' %} is-active{% endif %}" {% if LANGUAGE_CODE != 'es' %}aria-current="true"{% endif %} title="English">EN</button>
+          </form>
         </div>
       </div>
     </div>

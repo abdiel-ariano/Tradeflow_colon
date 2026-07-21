@@ -73,7 +73,7 @@ class ProductCardUnifiedTests(TestCase):
 
     def test_guest_can_open_public_product_detail(self):
         """Open PDP publicly with teaser pricing and related SKUs."""
-        response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
+        response = self.client.get(self.product.get_absolute_url())
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Unified Widget')
         self.assertContains(response, 'From')
@@ -86,7 +86,7 @@ class ProductCardUnifiedTests(TestCase):
 
     def test_guest_breadcrumb_shows_category(self):
         """Show Home and category crumbs on guest PDP."""
-        response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
+        response = self.client.get(self.product.get_absolute_url())
         self.assertContains(response, 'Home')
         self.assertContains(response, 'Electronics')
 
@@ -104,7 +104,7 @@ class ProductCardUnifiedTests(TestCase):
     def test_buyer_product_detail_has_cart_actions(self):
         """Show cart and auto-quote actions for logged-in buyers."""
         self.client.force_login(self.buyer)
-        response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
+        response = self.client.get(self.product.get_absolute_url())
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
         self.assertContains(response, 'Add to cart')

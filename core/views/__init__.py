@@ -131,6 +131,7 @@ from .catalog_cart import (
     catalogo_publico,
     tienda,
     catalogo_producto_detail,
+    catalogo_producto_detail_pk,
     catalogo_producto,
     _append_product_to_carrito,
     catalogo_agregar_inquiry,
@@ -175,6 +176,14 @@ from .public_pages import (
     marketplace_order_protection,
     legal_privacidad,
     legal_cookies,
+)
+
+from .seo_content import (
+    proveedor_detalle,
+    recursos_hub,
+    recursos_guia_zlc,
+    recursos_guia_rfq,
+    recursos_guia_exportacion,
 )
 
 __all__ = [
@@ -286,7 +295,13 @@ __all__ = [
     'catalogo_publico',
     'tienda',
     'catalogo_producto_detail',
+    'catalogo_producto_detail_pk',
     'catalogo_producto',
+    'proveedor_detalle',
+    'recursos_hub',
+    'recursos_guia_zlc',
+    'recursos_guia_rfq',
+    'recursos_guia_exportacion',
     '_append_product_to_carrito',
     'catalogo_agregar_inquiry',
     'agregar_al_carrito',

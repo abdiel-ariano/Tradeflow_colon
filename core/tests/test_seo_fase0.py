@@ -47,7 +47,7 @@ class SeoRobotsSitemapTests(TestCase):
         self.assertIn('https://tradeflowcolon.com/', body)
         self.assertIn('https://tradeflowcolon.com/catalogo/', body)
         self.assertIn(
-            f'https://tradeflowcolon.com/catalogo/producto/{product.pk}/',
+            f'https://tradeflowcolon.com/catalogo/producto/{product.slug}/',
             body,
         )
 

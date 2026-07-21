@@ -1,4 +1,4 @@
-"""Public SEO endpoints: robots.txt and XML sitemap (Fase 0)."""
+"""Public SEO endpoints: robots.txt and XML sitemap (Fases 0–3)."""
 from __future__ import annotations
 
 from xml.sax.saxutils import escape
@@ -44,13 +44,17 @@ def _url_entry(loc: str, *, lastmod=None, changefreq='weekly', priority='0.8') -
 
 
 def _static_sitemap_urls() -> list[str]:
-    """Marketing/legal URLs always listed."""
+    """Marketing/legal/content URLs always listed."""
     names = (
         ('home', '1.0', 'daily'),
         ('acerca_tradeflow', '0.8', 'monthly'),
         ('marketplace_verified_suppliers', '0.7', 'weekly'),
         ('marketplace_deals', '0.6', 'weekly'),
         ('marketplace_order_protection', '0.5', 'monthly'),
+        ('recursos_hub', '0.7', 'monthly'),
+        ('recursos_guia_zlc', '0.6', 'monthly'),
+        ('recursos_guia_rfq', '0.6', 'monthly'),
+        ('recursos_guia_exportacion', '0.6', 'monthly'),
         ('legal_terminos', '0.3', 'yearly'),
         ('legal_privacidad', '0.3', 'yearly'),
         ('legal_cookies', '0.3', 'yearly'),
@@ -80,21 +84,42 @@ def sitemap_xml(request):
                 priority='0.9',
             )
         )
-        from core.models import Product
+        from core.models import Company, Product
 
         products = (
             Product.objects.filter(is_active=True)
+            .exclude(slug='')
             .order_by('-id')
-            .only('id', 'created_at')[:5000]
+            .only('id', 'slug', 'created_at')[:5000]
         )
         for product in products:
             lastmod = getattr(product, 'created_at', None) or timezone.now()
             entries.append(
                 _url_entry(
-                    absolute_reverse('catalogo_producto_detail', args=[product.pk]),
+                    absolute_reverse(
+                        'catalogo_producto_detail', kwargs={'slug': product.slug}
+                    ),
                     lastmod=lastmod,
                     changefreq='daily',
                     priority='0.7',
+                )
+            )
+
+        companies = (
+            Company.objects.exclude(slug='')
+            .filter(products__is_active=True)
+            .distinct()
+            .order_by('name')
+            .only('id', 'slug', 'created_at')[:2000]
+        )
+        for company in companies:
+            lastmod = getattr(company, 'created_at', None) or timezone.now()
+            entries.append(
+                _url_entry(
+                    absolute_reverse('proveedor_detalle', kwargs={'slug': company.slug}),
+                    lastmod=lastmod,
+                    changefreq='weekly',
+                    priority='0.65',
                 )
             )
 

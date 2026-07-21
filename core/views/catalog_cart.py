@@ -404,6 +404,63 @@ def catalogo_publico(request):
         'companies': verified_empresas or stats['empresas'],
     }
 
+    page_title = _('Colón Free Zone Wholesale Catalog | TradeFlow Colón')
+    page_h1 = _('Colón Free Zone Catalog')
+    empresa_obj = None
+    categoria_obj = None
+    if empresa:
+        empresa_obj = next((e for e in empresas if str(e.pk) == str(empresa)), None)
+        if empresa_obj is None:
+            from core.models import Company as CompanyModel
+
+            empresa_obj = CompanyModel.objects.filter(pk=empresa).first()
+        if empresa_obj:
+            page_title = _(
+                '%(company)s — CFZ Wholesale Supplier | TradeFlow Colón'
+            ) % {'company': empresa_obj.name}
+            page_h1 = empresa_obj.name
+            meta_description = _(
+                'Wholesale products from %(company)s in the Colón Free Zone. '
+                'Browse MOQs and request quotes on TradeFlow Colón.'
+            ) % {'company': empresa_obj.name}
+    elif len(categorias_sel) == 1:
+        categoria_obj = next(
+            (c for c in categorias if str(c.pk) == str(categorias_sel[0])),
+            None,
+        )
+        if categoria_obj:
+            page_title = _(
+                '%(category)s Wholesale — Zona Libre Colón | TradeFlow'
+            ) % {'category': categoria_obj.name}
+            page_h1 = categoria_obj.name
+            meta_description = _(
+                'Shop %(category)s wholesale from verified Colón Free Zone suppliers on TradeFlow Colón.'
+            ) % {'category': categoria_obj.name}
+    elif buscar:
+        page_title = _(
+            'Search “%(q)s” — CFZ Wholesale Catalog | TradeFlow Colón'
+        ) % {'q': buscar[:60]}
+        page_h1 = _('Results for “%(q)s”') % {'q': buscar[:80]}
+        meta_description = _(
+            'Wholesale search results for “%(q)s” in the Colón Free Zone catalog on TradeFlow Colón.'
+        ) % {'q': buscar[:80]}
+
+    # Pagination rel next/prev absolute URLs
+    pagination_prev = ''
+    pagination_next = ''
+    if page_obj.has_previous():
+        qprev = request.GET.copy()
+        qprev['page'] = str(page_obj.previous_page_number())
+        pagination_prev = absolute_url(
+            reverse('catalogo_publico') + '?' + qprev.urlencode()
+        )
+    if page_obj.has_next():
+        qnext = request.GET.copy()
+        qnext['page'] = str(page_obj.next_page_number())
+        pagination_next = absolute_url(
+            reverse('catalogo_publico') + '?' + qnext.urlencode()
+        )
+
     context = {
         'productos': page_obj,
         'buscar': buscar,
@@ -411,6 +468,8 @@ def catalogo_publico(request):
         'categorias_sel': categorias_sel,
         'empresas': empresas,
         'empresa': empresa,
+        'empresa_obj': empresa_obj,
+        'categoria_obj': categoria_obj,
         'precio_min': precio_min,
         'precio_max': precio_max,
         'solo_stock': solo_stock,
@@ -425,8 +484,12 @@ def catalogo_publico(request):
         'total_resultados': total_resultados,
         'sugerencias': sugerencias,
         'pagination_slots': _tienda_pagination_slots(page_obj),
+        'pagination_prev_url': pagination_prev,
+        'pagination_next_url': pagination_next,
         'meta_description': meta_description,
-        'titulo_pagina': _('Catalog'),
+        'page_title': page_title,
+        'page_h1': page_h1,
+        'titulo_pagina': page_h1,
         'nav_activo': 'catalogo',
         'carrito_count': _contar_items(_get_carrito(request)),
         'category_spotlights': cached_category_spotlights(4, 4),
@@ -454,17 +517,16 @@ def tienda(request):
     return redirect(_catalog_url_from_tienda_query(request), permanent=True)
 
 
-@catalog_access
-def catalogo_producto_detail(request, pk):
-    """Public product detail for the guest catalog (login optional)."""
+def _render_catalogo_producto_detail(request, product):
+    """Shared PDP render for slug and legacy pk entry points."""
     from django.templatetags.static import static
-    from django.urls import reverse
 
-    product = get_object_or_404(
-        Product.objects.select_related('company', 'category', 'inventory'),
-        pk=pk,
-        is_active=True,
+    from core.utils.seo import (
+        breadcrumb_json_ld,
+        dumps_json_ld,
+        product_json_ld,
     )
+
     is_guest = not request.user.is_authenticated
     role = None
     if not is_guest:
@@ -492,10 +554,7 @@ def catalogo_producto_detail(request, pk):
         related_products.extend(extra)
 
     company = product.company
-    export_ready = bool(
-        company.is_verified
-        and (company.ruc or product.sku)
-    )
+    export_ready = bool(company.is_verified and (company.ruc or product.sku))
     if product.available_qty <= 0:
         stock_status = 'out'
         stock_label = _('Out of stock')
@@ -517,8 +576,28 @@ def catalogo_producto_detail(request, pk):
         if product.description
         else _(
             '%(name)s from %(company)s in the Colón Free Zone — TradeFlow Colón.'
-        ) % {'name': product.name, 'company': company.name}
+        )
+        % {'name': product.name, 'company': company.name}
     )
+
+    canonical = absolute_reverse(
+        'catalogo_producto_detail', kwargs={'slug': product.slug}
+    )
+    crumbs = [
+        (_('Home'), absolute_reverse('home')),
+        (_('Catalog'), absolute_reverse('catalogo_publico')),
+    ]
+    if product.category_id:
+        crumbs.append(
+            (
+                product.category.name,
+                absolute_url(
+                    reverse('catalogo_publico')
+                    + f'?categoria={product.category_id}'
+                ),
+            )
+        )
+    crumbs.append((product.name, canonical))
 
     return render(
         request,
@@ -534,16 +613,36 @@ def catalogo_producto_detail(request, pk):
             'stock_label': stock_label,
             'meta_description': meta_description,
             'og_image': og_image,
-            'canonical_url': absolute_reverse(
-                'catalogo_producto_detail', args=[product.pk]
+            'canonical_url': canonical,
+            'seo_json_ld_product': dumps_json_ld(
+                product_json_ld(product, canonical=canonical, image_url=og_image)
             ),
+            'seo_json_ld_breadcrumb': dumps_json_ld(breadcrumb_json_ld(crumbs)),
             'titulo_pagina': product.name,
             'nav_activo': 'tienda',
         },
     )
 
 
-# Alias legacy (misma ruta, nombre anterior)
+@catalog_access
+def catalogo_producto_detail(request, slug):
+    """Public product detail by SEO slug (login optional)."""
+    product = get_object_or_404(
+        Product.objects.select_related('company', 'category', 'inventory'),
+        slug=slug,
+        is_active=True,
+    )
+    return _render_catalogo_producto_detail(request, product)
+
+
+@catalog_access
+def catalogo_producto_detail_pk(request, pk):
+    """Legacy pk PDP — permanent redirect to the slug URL."""
+    product = get_object_or_404(Product.objects.only('slug'), pk=pk, is_active=True)
+    return redirect('catalogo_producto_detail', slug=product.slug, permanent=True)
+
+
+# Alias legacy (misma vista slug, nombre anterior)
 catalogo_producto = catalogo_producto_detail
 
 

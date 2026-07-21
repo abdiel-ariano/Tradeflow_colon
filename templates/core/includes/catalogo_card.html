@@ -1,7 +1,7 @@
 {% load static tf_money tf_media i18n %}
 {% comment %}B2B marketplace product card — catalog + home grids.{% endcomment %}
 <article class="product-card{% if card_extra_class %} {{ card_extra_class }}{% endif %}" data-product-id="{{ product.pk }}">
-  <a href="{% url 'catalogo_producto_detail' product.pk %}" class="card-image-link">
+  <a href="{{ product.get_absolute_url }}" class="card-image-link">
     <div class="card-image">
       {% if product.is_on_promo_now %}
       <span class="badge-discount">{% blocktrans with pct=product.discount_pct %}{{ pct }}% off{% endblocktrans %}</span>
@@ -10,11 +10,11 @@
       {% endif %}
 
       {% if visual_image %}
-        {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=card_index|default:99|yesno:"eager,lazy" img_class="card-image-img" wrap_class="product-img-wrap" product_card_img=True %}
+        {% include "core/includes/home_visual_media.html" with product=product decorative=False alt=product.name loading=card_index|default:99|yesno:"eager,lazy" img_class="card-image-img" wrap_class="product-img-wrap" product_card_img=True %}
       {% elif card_index and card_index <= 4 %}
-        {% include "core/includes/product_image_placeholder.html" with product=product decorative=True loading="eager" img_class="card-image-img" %}
+        {% include "core/includes/product_image_placeholder.html" with product=product decorative=False loading="eager" img_class="card-image-img" %}
       {% else %}
-        {% include "core/includes/product_image_placeholder.html" with product=product decorative=True loading="lazy" img_class="card-image-img" %}
+        {% include "core/includes/product_image_placeholder.html" with product=product decorative=False loading="lazy" img_class="card-image-img" %}
       {% endif %}
 
       <button type="button" class="btn-image-search" aria-label="{% trans 'Search by image' %}"
@@ -28,7 +28,7 @@
   </a>
 
   <div class="card-body">
-    <a href="{% url 'catalogo_producto_detail' product.pk %}" class="card-name">
+    <a href="{{ product.get_absolute_url }}" class="card-name">
       {{ product.name|truncatechars:70 }}
     </a>
 

@@ -172,6 +172,13 @@ class Company(models.Model):
     insignias de confianza y carruseles del home.
     """
     name         = models.CharField(max_length=200, verbose_name='Company name')
+    slug         = models.SlugField(
+        max_length=220,
+        unique=True,
+        blank=True,
+        default='',
+        verbose_name='URL slug',
+    )
     ruc          = models.CharField(max_length=50, blank=True, verbose_name='RUC / Registration')
     address_text = models.TextField(blank=True, verbose_name='Address')
     is_verified  = models.BooleanField(default=False, verbose_name='Verified?')
@@ -227,6 +234,20 @@ class Company(models.Model):
     def __str__(self):
         """Nombre de la empresa para admin y depuración."""
         return self.name
+
+    def save(self, *args, **kwargs):
+        """Ensure a unique SEO slug before persisting."""
+        if not self.slug:
+            from core.utils.slugs import allocate_unique_slug
+
+            self.slug = allocate_unique_slug(type(self), self.name, exclude_pk=self.pk)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        """Public supplier storefront URL."""
+        from django.urls import reverse
+
+        return reverse('proveedor_detalle', kwargs={'slug': self.slug})
 
 
 # =============================================================================
@@ -352,6 +373,13 @@ class Product(models.Model):
         related_name='products', verbose_name='Category'
     )
     name        = models.CharField(max_length=200, verbose_name='Product name')
+    slug        = models.SlugField(
+        max_length=220,
+        unique=True,
+        blank=True,
+        default='',
+        verbose_name='URL slug',
+    )
     description = models.TextField(blank=True, verbose_name='Description')
     sku         = models.CharField(max_length=100, blank=True, verbose_name='Product code')
     unit_price  = models.DecimalField(max_digits=12, decimal_places=2, verbose_name='Unit price')
@@ -384,6 +412,20 @@ class Product(models.Model):
     def __str__(self):
         """Nombre y precio del producto para admin y depuración."""
         return f'{self.name} — {self.currency} {self.unit_price}'
+
+    def save(self, *args, **kwargs):
+        """Ensure a unique SEO slug before persisting."""
+        if not self.slug:
+            from core.utils.slugs import allocate_unique_slug
+
+            self.slug = allocate_unique_slug(type(self), self.name, exclude_pk=self.pk)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        """Public product detail URL (slug-based)."""
+        from django.urls import reverse
+
+        return reverse('catalogo_producto_detail', kwargs={'slug': self.slug})
 
     @property
     def is_on_promo_now(self) -> bool:

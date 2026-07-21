@@ -157,7 +157,25 @@ urlpatterns = [
     # Buyer / guest catalog
     path('catalogo/',                       views.catalogo_publico,     name='catalogo_publico'),
     path('catalogo/inquiry/agregar/<int:producto_id>/', views.catalogo_agregar_inquiry, name='catalogo_agregar_inquiry'),
-    path('catalogo/producto/<int:pk>/', views.catalogo_producto_detail, name='catalogo_producto_detail'),
+    path(
+        'catalogo/producto/<slug:slug>/',
+        views.catalogo_producto_detail,
+        name='catalogo_producto_detail',
+    ),
+    path(
+        'catalogo/producto/<int:pk>/',
+        views.catalogo_producto_detail_pk,
+        name='catalogo_producto_detail_pk',
+    ),
+    path('proveedor/<slug:slug>/', views.proveedor_detalle, name='proveedor_detalle'),
+    path('recursos/', views.recursos_hub, name='recursos_hub'),
+    path('recursos/zona-libre-colon/', views.recursos_guia_zlc, name='recursos_guia_zlc'),
+    path('recursos/rfq-moq/', views.recursos_guia_rfq, name='recursos_guia_rfq'),
+    path(
+        'recursos/documentacion-exportacion/',
+        views.recursos_guia_exportacion,
+        name='recursos_guia_exportacion',
+    ),
     path('tienda/',                         views.tienda,               name='tienda'),
     path('carrito/',                         views.ver_carrito,         name='ver_carrito'),
     path('carrito/agregar/<int:producto_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),

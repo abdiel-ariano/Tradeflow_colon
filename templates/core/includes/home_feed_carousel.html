@@ -9,7 +9,7 @@
       <button type="button" class="hm-feed-carousel__arrow hm-feed-carousel__arrow--prev" data-hm-feed-prev aria-label="Scroll left">‹</button>
       <div class="hm-feed-carousel__track" tabindex="0">
         {% for product in section.products %}
-        <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-feed-carousel__item">
+        <a href="{{ product.get_absolute_url }}" class="hm-feed-carousel__item">
           <span class="hm-feed-carousel__media">
             {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" img_class="hm-feed-carousel__img" object_fit="contain" width=185 height=200 %}
           </span>

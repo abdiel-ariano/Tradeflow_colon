@@ -10,6 +10,7 @@ Pass decorative=True on cards where the product name is shown below (home grids)
        alt="{% if decorative %}{% else %}{{ alt|default:product.name }}{% endif %}"
        class="product-img{% if img_class %} {{ img_class }}{% endif %}{% if css_class %} {{ css_class }}{% endif %}{% if decorative %} is-decorative{% endif %}{% if is_ref %} has-reference-image{% endif %}"
        loading="{{ loading|default:'lazy' }}"
+       {% if fetchpriority %}fetchpriority="{{ fetchpriority }}"{% endif %}
        decoding="async"
        width="400"
        height="300"

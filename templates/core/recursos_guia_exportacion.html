@@ -1,0 +1,36 @@
+{% extends "core/marketplace_public_base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
+{% block marketplace_extra_head %}
+{% if seo_json_ld_breadcrumb %}
+<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ seo_json_ld_breadcrumb|safe }}</script>
+{% endif %}
+{% endblock %}
+
+{% block marketplace_main %}
+<article class="mkt-page-stack mkt-page-stack--about">
+  <header class="mkt-about-cinematic" aria-labelledby="guide-title">
+    <div class="mkt-about-cinematic__content">
+      <p class="mkt-about-cinematic__kicker"><a href="{% url 'recursos_hub' %}" style="color:inherit;">{% trans "Guides" %}</a></p>
+      <h1 class="mkt-about-cinematic__title" id="guide-title">{{ guide_title }}</h1>
+      <p class="mkt-about-cinematic__lead">{% trans "International buyers expect clear paperwork. TradeFlow supports commercial invoices and packing lists for orders placed through the platform." %}</p>
+    </div>
+  </header>
+
+  <section class="mkt-panel">
+    <h2>{% trans "Documents buyers typically need" %}</h2>
+    <ul>
+      <li>{% trans "Commercial invoice with line items, currency, and supplier details." %}</li>
+      <li>{% trans "Packing list aligned to the shipment for customs and logistics partners." %}</li>
+      <li>{% trans "Supplier registration signals (RUC / CFZ verification) when claiming Export Ready status." %}</li>
+    </ul>
+    <p>
+      <a href="{% url 'marketplace_order_protection' %}" class="mkt-btn mkt-btn--primary">{% trans "Order protection" %}</a>
+      <a href="{% url 'acerca_tradeflow' %}" class="mkt-btn mkt-btn--ghost">{% trans "About TradeFlow" %}</a>
+    </p>
+  </section>
+</article>
+{% endblock %}

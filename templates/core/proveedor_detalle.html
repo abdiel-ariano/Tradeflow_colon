@@ -1,0 +1,77 @@
+{% extends "core/marketplace_public_base.html" %}
+{% load static i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
+{% block marketplace_extra_head %}
+{% if seo_json_ld_breadcrumb %}
+<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ seo_json_ld_breadcrumb|safe }}</script>
+{% endif %}
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'19' }}">
+{% endblock %}
+
+{% block marketplace_main %}
+<div class="mkt-page-stack">
+  <header class="mkt-hero mkt-hero--verified" aria-labelledby="prv-title">
+    <div class="mkt-hero__accent" aria-hidden="true"></div>
+    <div class="mkt-hero__layout">
+      <div class="mkt-hero__main">
+        <p class="mkt-hero__kicker">{% trans "CFZ supplier" %}</p>
+        <h1 class="mkt-hero__title" id="prv-title">{{ company.name }}</h1>
+        {% if company.tagline_en or company.tagline_es %}
+        <p class="mkt-hero__sub">
+          {% if LANGUAGE_CODE|slice:":2" == "es" %}
+            {{ company.tagline_es|default:company.tagline_en }}
+          {% else %}
+            {{ company.tagline_en|default:company.tagline_es }}
+          {% endif %}
+        </p>
+        {% else %}
+        <p class="mkt-hero__sub">{% trans "Wholesale listings from a Colón Free Zone company on TradeFlow Colón." %}</p>
+        {% endif %}
+        <div class="mkt-hero__actions">
+          <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="mkt-btn mkt-btn--primary">{% trans "Filter catalog" %}</a>
+          <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--ghost">{% trans "Browse all products" %}</a>
+        </div>
+      </div>
+      <aside class="mkt-hero__metrics" aria-label="{% trans 'Supplier stats' %}">
+        <div class="mkt-metric"><strong>{{ total_productos|default:0 }}</strong><span>{% trans "Active products" %}</span></div>
+        <div class="mkt-metric"><strong>{% if company.is_verified %}{% trans "Yes" %}{% else %}{% trans "Pending" %}{% endif %}</strong><span>{% trans "CFZ verified" %}</span></div>
+        {% if company.ruc %}
+        <div class="mkt-metric"><strong>{{ company.ruc|truncatechars:14 }}</strong><span>{% trans "RUC" %}</span></div>
+        {% endif %}
+      </aside>
+    </div>
+  </header>
+
+  <section class="mkt-panel" aria-labelledby="prv-products-title">
+    <header class="mkt-panel__head">
+      <div>
+        <h2 class="mkt-panel__title" id="prv-products-title">{% trans "Products from this supplier" %}</h2>
+        <p class="mkt-panel__sub">{% blocktrans count=total_productos %}{{ total_productos }} listing{% plural %}{{ total_productos }} listings{% endblocktrans %}</p>
+      </div>
+    </header>
+    {% if productos %}
+    <div class="product-grid">
+      {% for product in productos %}
+        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter show_cart_actions=show_cart_actions %}
+      {% endfor %}
+    </div>
+    {% if productos.has_other_pages %}
+    <nav class="cat-pagination" aria-label="{% trans 'Pagination' %}">
+      {% if productos.has_previous %}
+      <a href="?page={{ productos.previous_page_number }}">{% trans "Previous" %}</a>
+      {% endif %}
+      <span>{% blocktrans with page=productos.number pages=productos.paginator.num_pages %}Page {{ page }} of {{ pages }}{% endblocktrans %}</span>
+      {% if productos.has_next %}
+      <a href="?page={{ productos.next_page_number }}">{% trans "Next" %}</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+    {% else %}
+    <p class="mkt-panel__sub">{% trans "This supplier has no active listings yet." %}</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

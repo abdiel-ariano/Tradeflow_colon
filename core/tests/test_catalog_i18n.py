@@ -187,7 +187,7 @@ class CatalogI18nTests(TestCase):
             reverse('set_language'),
             {
                 'language': 'es',
-                'next': reverse('catalogo_producto_detail', args=[product.pk]),
+                'next': reverse('catalogo_producto_detail', kwargs={'slug': product.slug}),
             },
         )
         response = self.client.get(post_response.url)
@@ -219,7 +219,7 @@ class CatalogI18nTests(TestCase):
             reverse('set_language'),
             {
                 'language': 'es',
-                'next': reverse('catalogo_producto_detail', args=[product.pk]),
+                'next': reverse('catalogo_producto_detail', kwargs={'slug': product.slug}),
             },
         )
         response = self.client.get(post_response.url)

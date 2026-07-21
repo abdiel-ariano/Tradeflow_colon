@@ -14,7 +14,7 @@ Variables:
 {% endcomment %}
 <article class="tf-pcard{% if card_density == 'compact' %} tf-pcard--compact{% endif %}{% if card_variant == 'deal' %} tf-pcard--deal{% endif %}{% if card_variant == 'spotlight' %} tf-pcard--spotlight{% endif %} {{ card_extra_class|default:'' }}" data-product-id="{{ product.pk }}">
   {% if is_public %}
-  <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__media">
+  <a href="{{ product.get_absolute_url }}" class="tf-pcard__media">
   {% else %}
   <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="tf-pcard__media">
   {% endif %}
@@ -47,7 +47,7 @@ Variables:
     {% endif %}
     <h3 class="tf-pcard__title">
       {% if is_public %}
-      <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name }}</a>
+      <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
       {% else %}
       <a href="{% url 'catalogo_publico' %}?buscar={{ product.name|urlencode }}">{{ product.name }}</a>
       {% endif %}
@@ -101,7 +101,7 @@ Variables:
     <div class="tf-pcard__actions">
       {% if is_public %}
       {% if card_variant != 'deal' and card_variant != 'spotlight' %}
-      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn{% if card_density == 'compact' %} tf-pcard__btn--primary{% else %} tf-pcard__btn--cta{% endif %}">
+      <a href="{{ product.get_absolute_url }}" class="tf-pcard__btn{% if card_density == 'compact' %} tf-pcard__btn--primary{% else %} tf-pcard__btn--cta{% endif %}">
         {% trans "View & quote →" %}
       </a>
       {% endif %}
@@ -127,7 +127,7 @@ Variables:
         </button>
       </form>
       {% else %}
-      <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
+      <a href="{{ product.get_absolute_url }}" class="tf-pcard__btn tf-pcard__btn--cta">
         {% trans "View details →" %}
       </a>
       {% endif %}

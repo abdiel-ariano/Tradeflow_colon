@@ -9,7 +9,7 @@
   <div class="hm-gateway__inner">
     <div class="hm-gateway__copy">
       <p class="hm-gateway__kicker">{% trans "Colón Free Zone · B2B wholesale" %}</p>
-      <h1 class="hm-gateway__title" id="hm-gateway-title">{% trans "The Americas' wholesale marketplace starts here" %}</h1>
+      <h1 class="hm-gateway__title" id="hm-gateway-title">{% trans "B2B wholesale marketplace for the Colón Free Zone" %}</h1>
       <p class="hm-gateway__sub">{% trans "Browse verified CFZ suppliers, compare MOQs in USD, and request formal quotes — export-ready documentation included on every order." %}</p>
       <div class="hm-gateway__actions">
         <a href="{% url 'catalogo_publico' %}" class="hm-gateway__btn hm-gateway__btn--primary">{% blocktrans with count=stats.productos|default:0 %}Explore {{ count }}+ products{% endblocktrans %}</a>
@@ -43,7 +43,7 @@
             <div class="hm-gateway__carousel-track">
               {% for product in gateway_carousel_products %}
               <article class="hm-gateway__carousel-slide{% if forloop.first %} is-active{% endif %}{% if product.is_on_promo_now %} hm-gateway__carousel-slide--deal{% elif product.is_bestseller %} hm-gateway__carousel-slide--hot{% endif %}" data-hm-gateway-slide="{{ forloop.counter0 }}">
-                <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-gateway__carousel-link">
+                <a href="{{ product.get_absolute_url }}" class="hm-gateway__carousel-link">
                   <div class="hm-gateway__carousel-media">
                     {% if product.is_on_promo_now %}
                     <span class="hm-gateway__carousel-badge hm-gateway__carousel-badge--deal">{% blocktrans with pct=product.discount_pct %}{{ pct }}% off{% endblocktrans %}</span>

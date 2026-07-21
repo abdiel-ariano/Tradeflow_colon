@@ -1,7 +1,8 @@
 {% extends "core/base.html" %}
 {% load static i18n %}
 {% comment %}TradeFlow — Alibaba-style unified marketplace home (products first).{% endcomment %}
-{% block title %}{% trans "TradeFlow Colón — Wholesale Marketplace" %}{% endblock %}
+{% block title %}{% trans "TradeFlow Colón — B2B Wholesale Marketplace | Zona Libre Colón" %}{% endblock %}
+{% block meta_description %}{% trans "B2B wholesale marketplace for the Colón Free Zone (Zona Libre de Colón), Panama. Browse verified CFZ suppliers, compare MOQs in USD, and request formal quotes with export-ready documentation." %}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'16' }}">

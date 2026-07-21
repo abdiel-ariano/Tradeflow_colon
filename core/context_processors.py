@@ -285,7 +285,7 @@ def social_auth_context(request):
 
 
 def seo_meta_context(request):
-    """Robots, canonical defaults, and Open Graph defaults for every page.
+    """Robots, canonical defaults, hreflang, and Open Graph defaults.
 
     Views may override ``canonical_url`` / ``meta_robots`` in the template
     context. Catalog filter URLs should set canonical to the hub.
@@ -295,18 +295,20 @@ def seo_meta_context(request):
         catalog_hub_canonical,
         default_og_image_url,
         demo_catalog_blocks_indexing,
+        dumps_json_ld,
+        hreflang_alternates,
+        organization_json_ld,
         public_base_url,
         should_noindex_path,
+        website_json_ld,
     )
 
     path = getattr(request, 'path', '/') or '/'
     noindex = should_noindex_path(path)
     robots = 'noindex, nofollow' if noindex else 'index, follow, max-image-preview:large'
 
-    # Default canonical = current path on PUBLIC_BASE_URL (views may override).
     canonical = absolute_url(path)
 
-    # Faceted catalog → collapse to hub canonical.
     url_name = ''
     if getattr(request, 'resolver_match', None):
         url_name = request.resolver_match.url_name or ''
@@ -328,7 +330,6 @@ def seo_meta_context(request):
                 'precio_max',
             )
         ):
-            # Filtered/paginated URLs: keep hub canonical; prefer noindex when noisy.
             if request.GET.get('partial') or request.GET.get('page'):
                 robots = 'noindex, follow'
 
@@ -336,6 +337,8 @@ def seo_meta_context(request):
         'catalogo_publico',
         'catalogo_producto_detail',
         'catalogo_producto',
+        'catalogo_producto_detail_pk',
+        'proveedor_detalle',
     ):
         robots = 'noindex, nofollow'
 
@@ -345,5 +348,8 @@ def seo_meta_context(request):
         'seo_canonical_url': canonical,
         'seo_og_image': default_og_image_url(),
         'seo_demo_noindex': demo_catalog_blocks_indexing(),
+        'seo_hreflang': hreflang_alternates(path),
+        'seo_json_ld_organization': dumps_json_ld(organization_json_ld()),
+        'seo_json_ld_website': dumps_json_ld(website_json_ld()),
     }
 

@@ -1,0 +1,36 @@
+{% extends "core/marketplace_public_base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
+{% block marketplace_extra_head %}
+{% if seo_json_ld_breadcrumb %}
+<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ seo_json_ld_breadcrumb|safe }}</script>
+{% endif %}
+{% endblock %}
+
+{% block marketplace_main %}
+<article class="mkt-page-stack mkt-page-stack--about">
+  <header class="mkt-about-cinematic" aria-labelledby="guide-title">
+    <div class="mkt-about-cinematic__content">
+      <p class="mkt-about-cinematic__kicker"><a href="{% url 'recursos_hub' %}" style="color:inherit;">{% trans "Guides" %}</a></p>
+      <h1 class="mkt-about-cinematic__title" id="guide-title">{{ guide_title }}</h1>
+      <p class="mkt-about-cinematic__lead">{% trans "The Zona Libre de Colón is one of the world’s largest free trade zones. TradeFlow Colón makes its wholesale catalog searchable for international buyers." %}</p>
+    </div>
+  </header>
+
+  <section class="mkt-panel">
+    <h2>{% trans "What buyers should know" %}</h2>
+    <ul>
+      <li>{% trans "Suppliers operate inside the Colón Free Zone under Panama’s free-zone regime." %}</li>
+      <li>{% trans "Listings on TradeFlow show USD pricing and stock signals so you can compare before requesting a quote." %}</li>
+      <li>{% trans "Verified companies complete CFZ registration checks (RUC) before earning the verified badge." %}</li>
+    </ul>
+    <p>
+      <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--primary">{% trans "Explore the CFZ catalog" %}</a>
+      <a href="{% url 'marketplace_verified_suppliers' %}" class="mkt-btn mkt-btn--ghost">{% trans "Verified suppliers" %}</a>
+    </p>
+  </section>
+</article>
+{% endblock %}
