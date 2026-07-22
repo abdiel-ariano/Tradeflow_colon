@@ -39,6 +39,8 @@ security tests cover that middleware separately. The reason must be stated in
 the test class or this guide; application settings must never be weakened.
 Fixtures that access protected GET routes must represent a completed account,
 including email verification, unless the test targets onboarding itself.
+Tests that reverse localized URLs must activate and clean up their expected
+language so they do not depend on execution order or leaked translation state.
 
 Before merging:
 
