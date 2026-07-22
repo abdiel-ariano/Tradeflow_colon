@@ -107,6 +107,11 @@ export type PlanRequest = {
   status: 'pending' | 'en_revision' | 'approved' | 'rejected';
 };
 
+type RequestActionResponse = {
+  error?: string;
+  message?: string;
+};
+
 type ApiPayload = {
   kpis: {
     companies_active: number;
@@ -161,10 +166,27 @@ function getCsrfToken(): string {
   return match ? decodeURIComponent(match[1]) : '';
 }
 
+/**
+ * Parse an action response without hiding the original HTTP status.
+ *
+ * Error pages from the proxy or application may not contain JSON. Returning
+ * an empty object lets the caller report a reliable status-based message.
+ */
+async function readRequestActionResponse(
+  response: Response,
+): Promise<RequestActionResponse> {
+  try {
+    return (await response.json()) as RequestActionResponse;
+  } catch {
+    return {};
+  }
+}
+
 export function AdminSaasDashboard() {
   const [data, setData] = useState<ApiPayload | null>(null);
   const [requests, setRequests] = useState<PlanRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeRequestPk, setActiveRequestPk] = useState<number | null>(null);
 
   const apiUrl =
     (document.getElementById('admin-saas-root')?.dataset.apiUrl as string) ||
@@ -256,10 +278,17 @@ export function AdminSaasDashboard() {
 
   const pendingCount = requests.filter((r) => r.status === 'pending').length;
 
-  const handleRequestAction = async (req: PlanRequest, action: 'approve' | 'reject') => {
+  const handleRequestAction = async (
+    req: PlanRequest,
+    action: 'approve' | 'reject',
+  ) => {
+    if (activeRequestPk !== null) return;
+
     const actionUrl = `/api/admin/saas-requests/${req.pk}/`;
+    setActiveRequestPk(req.pk);
+
     try {
-      const res = await fetch(actionUrl, {
+      const response = await fetch(actionUrl, {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
@@ -268,30 +297,38 @@ export function AdminSaasDashboard() {
         },
         body: JSON.stringify({ action }),
       });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || 'Error');
-      setRequests((prev) =>
-        prev.map((r) =>
-          r.id === req.id
-            ? { ...r, status: action === 'approve' ? 'approved' : 'rejected' }
-            : r,
-        ),
-      );
-      toast.success(body.message || (action === 'approve' ? 'Request approved' : 'Request rejected'));
-      loadStats();
-    } catch {
-      setRequests((prev) =>
-        prev.map((r) =>
-          r.id === req.id
-            ? { ...r, status: action === 'approve' ? 'approved' : 'rejected' }
-            : r,
+      const body = await readRequestActionResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          body.error || `Request failed with status ${response.status}.`,
+        );
+      }
+
+      setRequests((previousRequests) =>
+        previousRequests.map((requestRow) =>
+          requestRow.id === req.id
+            ? {
+                ...requestRow,
+                status: action === 'approve' ? 'approved' : 'rejected',
+              }
+            : requestRow,
         ),
       );
       toast.success(
-        action === 'approve'
-          ? `${req.company}: plan activated (demo mode).`
-          : `${req.company}: request rejected (demo mode).`,
+        body.message ||
+          (action === 'approve' ? 'Request approved' : 'Request rejected'),
       );
+      await loadStats();
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Could not update the request. Please try again.';
+      toast.error(message);
+      await loadStats();
+    } finally {
+      setActiveRequestPk(null);
     }
   };
 
@@ -559,12 +596,19 @@ export function AdminSaasDashboard() {
                       <TableCell>
                         {req.status === 'pending' && (
                           <div className="flex gap-2">
-                            <Button size="sm" onClick={() => handleRequestAction(req, 'approve')}>
+                            <Button
+                              size="sm"
+                              disabled={activeRequestPk !== null}
+                              aria-busy={activeRequestPk === req.pk}
+                              onClick={() => handleRequestAction(req, 'approve')}
+                            >
                               Approve
                             </Button>
                             <Button
                               size="sm"
                               variant="destructive"
+                              disabled={activeRequestPk !== null}
+                              aria-busy={activeRequestPk === req.pk}
                               onClick={() => handleRequestAction(req, 'reject')}
                             >
                               Reject
