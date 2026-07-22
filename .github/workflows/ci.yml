@@ -52,6 +52,7 @@ jobs:
           core.tests.test_gdpr_owasp_hardening
           core.tests.test_gdpr_owasp_followup
           core.tests.test_security_access_controls
+          core.tests.test_saas_admin_api
           -v2
 
   security:
