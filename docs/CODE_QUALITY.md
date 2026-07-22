@@ -34,6 +34,9 @@ submissions.
 ## 3. Tests and CI
 
 Each behavior change must include the narrowest useful regression test.
+Business API tests may disable unrelated security middleware when dedicated
+security tests cover that middleware separately. The reason must be stated in
+the test class or this guide; application settings must never be weakened.
 
 Before merging:
 
