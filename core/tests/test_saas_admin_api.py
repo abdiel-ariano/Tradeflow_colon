@@ -67,3 +67,66 @@ class SaasAdminApiTests(TestCase):
         self.assertEqual(req.status, 'approved')
         company.subscription.refresh_from_db()
         self.assertEqual(company.subscription.plan.slug, 'ecosistema_enterprise')
+
+
+    def test_invalid_action_does_not_change_request(self):
+        """Reject an unsupported action without changing stored state."""
+        plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
+        company = Company.objects.create(name='Invalid Action Co')
+        ensure_demo_subscription(company)
+        request_row = CompanyPlanCommercialRequest.objects.create(
+            company=company,
+            requested_plan=plan,
+            contact_name='Luis',
+            contact_email='luis@test.com',
+            message='Solicitud de prueba',
+        )
+        url = reverse(
+            'api_admin_saas_request_action',
+            kwargs={'pk': request_row.pk},
+        )
+
+        response = self.client.post(
+            url,
+            data='{"action":"archive"}',
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'error': 'Invalid action'})
+        request_row.refresh_from_db()
+        self.assertEqual(request_row.status, 'pending')
+
+    def test_unknown_request_returns_not_found(self):
+        """Return a clear error when the commercial request does not exist."""
+        url = reverse(
+            'api_admin_saas_request_action',
+            kwargs={'pk': 999999},
+        )
+
+        response = self.client.post(
+            url,
+            data='{"action":"approve"}',
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            response.json(),
+            {'error': 'Application not found'},
+        )
+
+    def test_request_action_requires_post(self):
+        """Reject GET requests so reads cannot trigger a state transition."""
+        url = reverse(
+            'api_admin_saas_request_action',
+            kwargs={'pk': 1},
+        )
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(
+            response.json(),
+            {'error': 'Method not allowed'},
+        )
