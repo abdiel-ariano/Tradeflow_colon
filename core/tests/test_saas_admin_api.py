@@ -22,8 +22,16 @@ class SaasAdminApiTests(TestCase):
     def setUp(self):
         """Log in staff admin with TradeFlow admin role."""
         ensure_default_plans()
-        self.admin = User.objects.create_user('admin_saas', password='x', is_staff=True)
-        UserProfile.objects.create(user=self.admin, role='admin')
+        self.admin = User.objects.create_user(
+            'admin_saas',
+            password='x',
+            is_staff=True,
+        )
+        UserProfile.objects.create(
+            user=self.admin,
+            role='admin',
+            email_verificado=True,
+        )
         self.client = Client()
         self.client.force_login(self.admin)
 
