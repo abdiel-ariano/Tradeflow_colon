@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <meta name="theme-color" content="#0F2A44">
+  <title>Sin conexión · TradeFlow Colón</title>
+  <link
+    rel="icon"
+    type="image/png"
+    href="/pwa/icon-192.png"
+  >
+  <style nonce="{{ csp_nonce }}">
+    :root {
+      color-scheme: light;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      align-items: center;
+      background: #f2f3f5;
+      color: #0f2a44;
+      display: flex;
+      justify-content: center;
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    main {
+      background: #fff;
+      border: 1px solid #dbe3ea;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(15, 42, 68, 0.12);
+      max-width: 480px;
+      padding: 36px;
+      text-align: center;
+    }
+
+    img {
+      height: 88px;
+      margin-bottom: 18px;
+      width: 88px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 0 0 12px;
+    }
+
+    p {
+      color: #526575;
+      line-height: 1.6;
+      margin: 0 0 24px;
+    }
+
+    a {
+      background: #f26522;
+      border-radius: 10px;
+      color: #fff;
+      display: inline-block;
+      font-weight: 700;
+      padding: 12px 20px;
+      text-decoration: none;
+    }
+
+    a:focus-visible {
+      outline: 3px solid #0057a8;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/pwa/icon-192.png" alt="TradeFlow Colón">
+    <h1>Sin conexión</h1>
+    <p>
+      No pudimos conectar con TradeFlow Colón. Revisa tu conexión a
+      internet; tus sesiones y datos privados no se guardaron offline.
+    </p>
+    <a href="/">Intentar nuevamente</a>
+  </main>
+</body>
+</html>
