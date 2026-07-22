@@ -103,6 +103,7 @@ Paleta y UI: ver [DESIGN.md](DESIGN.md) (navy `#0F2A44`, orange `#F26522`, prima
 | [SECURITY.md](SECURITY.md) | Política de vulnerabilidades y hardening |
 | [PRODUCT.md](PRODUCT.md) | Propósito de producto y principios |
 | [DESIGN.md](DESIGN.md) | Tokens y lenguaje visual |
+| [docs/CODE_QUALITY.md](docs/CODE_QUALITY.md) | PEP8, pruebas y contrato de cambios |
 | [docs/DEMO_DATA_POLICY.md](docs/DEMO_DATA_POLICY.md) | Aviso y retiro de datos simulados |
 | [docs/](docs/) | Supabase, storage, AI search, email enterprise |
 
