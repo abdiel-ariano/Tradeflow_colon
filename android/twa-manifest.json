@@ -1,0 +1,42 @@
+{
+  "packageId": "com.tradeflowcolon.app",
+  "host": "tradeflowcolon.com",
+  "name": "TradeFlow Colón",
+  "launcherName": "TradeFlow",
+  "display": "standalone",
+  "themeColor": "#0F2A44",
+  "themeColorDark": "#0F2A44",
+  "navigationColor": "#FFFFFF",
+  "navigationColorDark": "#0F2A44",
+  "navigationDividerColor": "#F26522",
+  "navigationDividerColorDark": "#F26522",
+  "backgroundColor": "#F2F3F5",
+  "enableNotifications": false,
+  "startUrl": "/?source=android-app",
+  "iconUrl": "https://tradeflowcolon.com/pwa/icon-512.png",
+  "maskableIconUrl": "https://tradeflowcolon.com/pwa/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./tradeflow-upload.keystore",
+    "alias": "tradeflow"
+  },
+  "appVersion": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://tradeflowcolon.com/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://tradeflowcolon.com/",
+  "minSdkVersion": 23,
+  "orientation": "any",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": []
+}
