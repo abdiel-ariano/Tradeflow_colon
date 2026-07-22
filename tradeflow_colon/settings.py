@@ -450,7 +450,18 @@ RESEND_FROM_EMAIL = _default_from
 TRADEFLOW_CONTACT_EMAIL = normalize_contact_email(
     config('TRADEFLOW_CONTACT_EMAIL', default=TRADEFLOW_GMAIL_ACCOUNT)
 )
-PUBLIC_BASE_URL = config('PUBLIC_BASE_URL', default='http://127.0.0.1:8000')
+PUBLIC_BASE_URL = config(
+    'PUBLIC_BASE_URL',
+    default='http://127.0.0.1:8000',
+)
+ANDROID_APP_PACKAGE = config(
+    'ANDROID_APP_PACKAGE',
+    default='com.tradeflowcolon.app',
+).strip()
+ANDROID_SHA256_CERT_FINGERPRINTS = config(
+    'ANDROID_SHA256_CERT_FINGERPRINTS',
+    default='',
+).strip()
 
 
 def _csrf_origins_for_base(base_url: str, extra_origins=None):
