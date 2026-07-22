@@ -6,6 +6,7 @@ commercial requests that upgrade company subscriptions.
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.utils import translation
 
 from core.enterprise_models import CompanyPlanCommercialRequest, SaasPlan
 from core.models import Company, UserProfile
@@ -20,7 +21,9 @@ class SaasAdminApiTests(TestCase):
     """Assert admin SaaS API auth and approve action."""
 
     def setUp(self):
-        """Log in staff admin with TradeFlow admin role."""
+        """Log in a verified admin under a deterministic locale."""
+        translation.activate('en')
+        self.addCleanup(translation.deactivate_all)
         ensure_default_plans()
         self.admin = User.objects.create_user(
             'admin_saas',
