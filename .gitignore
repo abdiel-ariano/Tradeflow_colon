@@ -84,6 +84,21 @@ frontend/admin-saas/.vite/
 frontend/admin-saas/tsconfig.tsbuildinfo
 .parcel-cache/
 
+# Android / Bubblewrap (proyecto generado y secretos de firma)
+android/app/
+android/build/
+android/gradle/
+android/.gradle/
+android/*.apk
+android/*.aab
+android/*.keystore
+android/*.jks
+android/build.gradle
+android/gradle.properties
+android/gradlew
+android/gradlew.bat
+android/settings.gradle
+
 # Tools
 .bandit-report
 .safety-report
