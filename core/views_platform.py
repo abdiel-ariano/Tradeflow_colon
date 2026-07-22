@@ -13,7 +13,7 @@ from io import BytesIO
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.http import Http404, HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_GET
 
@@ -152,9 +152,9 @@ def pwa_icon(request, size: int):
 @never_cache
 def service_worker(request):
     """Serve the root-scoped worker without caching authenticated content."""
-    response = render(
-        request,
-        'pwa/service-worker.js',
+    body = render_to_string('pwa/service-worker.js')
+    response = HttpResponse(
+        body,
         content_type='application/javascript; charset=utf-8',
     )
     response['Service-Worker-Allowed'] = '/'
@@ -165,7 +165,11 @@ def service_worker(request):
 @cache_control(public=True, max_age=3600)
 def offline_page(request):
     """Render a public fallback when Android temporarily loses connectivity."""
-    return render(request, 'pwa/offline.html')
+    context = {
+        'csp_nonce': getattr(request, 'csp_nonce', ''),
+    }
+    body = render_to_string('pwa/offline.html', context)
+    return HttpResponse(body, content_type='text/html; charset=utf-8')
 
 
 @require_GET
