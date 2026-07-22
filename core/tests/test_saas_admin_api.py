@@ -4,7 +4,7 @@ TradeFlow admins monitor plan KPIs and approve Enterprise
 commercial requests that upgrade company subscriptions.
 """
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from core.enterprise_models import CompanyPlanCommercialRequest, SaasPlan
@@ -12,6 +12,10 @@ from core.models import Company, UserProfile
 from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscription
 
 
+@override_settings(
+    STAFF_MFA_REQUIRED=False,
+    SAAS_READ_ONLY_DEMO_USERNAME='',
+)
 class SaasAdminApiTests(TestCase):
     """Assert admin SaaS API auth and approve action."""
 
