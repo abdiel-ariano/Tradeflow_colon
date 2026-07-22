@@ -53,6 +53,7 @@ jobs:
           core.tests.test_gdpr_owasp_followup
           core.tests.test_security_access_controls
           core.tests.test_saas_admin_api
+          core.tests.test_pwa_android
           -v2
 
   security:
