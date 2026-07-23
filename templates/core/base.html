@@ -16,9 +16,15 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0F2A44">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TradeFlow">
   <meta name="description" content="{% block meta_description %}B2B and B2C marketplace in the Colón Free Zone — verified companies, catalog, logistics, and secure purchasing.{% endblock %}">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
   {% block extra_head %}{% endblock %}
+  <link rel="manifest" href="{% url 'web_app_manifest' %}">
   <link rel="icon" type="image/png" href="{% static 'img/logo-icon-color.png' %}" sizes="32x32">
   <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
   <link rel="apple-touch-icon" href="{% static 'img/logo-icon-color.png' %}">
@@ -1773,6 +1779,20 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       if (!btn.contains(e.target) && !links.contains(e.target)) {
         links.classList.remove('mobile-open');
       }
+    });
+  })();
+  </script>
+  <script nonce="{{ csp_nonce }}">
+  (function () {
+    'use strict';
+    if (!('serviceWorker' in navigator)) return;
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register(
+        '{% url "service_worker" %}',
+        { scope: '/' }
+      ).catch(function () {
+        /* The website remains fully functional when registration fails. */
+      });
     });
   })();
   </script>

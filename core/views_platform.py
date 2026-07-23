@@ -2,18 +2,31 @@
 
 Liveness and readiness probes stay outside i18n URL prefixes so
 orchestration (Railway, k8s) can hit them without a locale segment.
-Also serves RFC 9116 ``security.txt`` and ``robots.txt`` at the site root.
+Also serves RFC 9116, crawler, PWA, and Android trust resources.
 """
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta, timezone
+from io import BytesIO
 
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.cache import cache_control
+from django.contrib.staticfiles import finders
+from django.http import Http404, HttpResponse, JsonResponse
+from django.template.loader import render_to_string
+from django.views.decorators.cache import cache_control, never_cache
 from django.views.decorators.http import require_GET
 
+from PIL import Image
+
 from core.utils.platform_health import platform_health_payload
+
+
+_ANDROID_PACKAGE_DEFAULT = 'com.tradeflowcolon.app'
+_PWA_ICON_SIZES = {192, 512}
+_SHA256_FINGERPRINT = re.compile(
+    r'^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$'
+)
 
 
 @require_GET
@@ -50,6 +63,139 @@ def _public_origin(request) -> str:
     if base and '127.0.0.1' not in base and 'localhost' not in base:
         return base
     return request.build_absolute_uri('/').rstrip('/')
+
+
+
+def _android_fingerprints() -> list[str]:
+    """Return configured, normalized Android SHA-256 fingerprints."""
+    raw_value = getattr(
+        settings,
+        'ANDROID_SHA256_CERT_FINGERPRINTS',
+        '',
+    )
+    candidates = str(raw_value or '').upper().split(',')
+    return [
+        value.strip()
+        for value in candidates
+        if _SHA256_FINGERPRINT.fullmatch(value.strip())
+    ]
+
+
+@require_GET
+@cache_control(public=True, max_age=86400)
+def web_app_manifest(request):
+    """Describe the installable TradeFlow PWA for browsers and Android."""
+    manifest = {
+        'id': '/',
+        'name': 'TradeFlow Colón',
+        'short_name': 'TradeFlow',
+        'description': (
+            'Marketplace B2B para compradores y vendedores de la '
+            'Zona Libre de Colón.'
+        ),
+        'lang': 'es',
+        'dir': 'ltr',
+        'start_url': '/?source=installed-app',
+        'scope': '/',
+        'display': 'standalone',
+        'orientation': 'any',
+        'background_color': '#F2F3F5',
+        'theme_color': '#0F2A44',
+        'categories': ['business', 'shopping'],
+        'icons': [
+            {
+                'src': '/pwa/icon-192.png',
+                'sizes': '192x192',
+                'type': 'image/png',
+                'purpose': 'any',
+            },
+            {
+                'src': '/pwa/icon-512.png',
+                'sizes': '512x512',
+                'type': 'image/png',
+                'purpose': 'any maskable',
+            },
+        ],
+    }
+    return JsonResponse(
+        manifest,
+        content_type='application/manifest+json',
+    )
+
+
+@require_GET
+@cache_control(public=True, max_age=2592000)
+def pwa_icon(request, size: int):
+    """Resize the canonical logo to an Android-compatible PWA icon."""
+    if size not in _PWA_ICON_SIZES:
+        raise Http404('Unsupported PWA icon size.')
+
+    source_path = finders.find('img/logo-icon-color.png')
+    if not source_path:
+        raise Http404('Canonical TradeFlow icon not found.')
+
+    with Image.open(source_path) as source_image:
+        icon = source_image.convert('RGBA').resize(
+            (size, size),
+            Image.Resampling.LANCZOS,
+        )
+
+    output = BytesIO()
+    icon.save(output, format='PNG', optimize=True)
+    return HttpResponse(
+        output.getvalue(),
+        content_type='image/png',
+    )
+
+
+@require_GET
+@never_cache
+def service_worker(request):
+    """Serve the root-scoped worker without caching authenticated content."""
+    body = render_to_string('pwa/service-worker.js')
+    response = HttpResponse(
+        body,
+        content_type='application/javascript; charset=utf-8',
+    )
+    response['Service-Worker-Allowed'] = '/'
+    return response
+
+
+@require_GET
+@cache_control(public=True, max_age=3600)
+def offline_page(request):
+    """Render a public fallback when Android temporarily loses connectivity."""
+    context = {
+        'csp_nonce': getattr(request, 'csp_nonce', ''),
+    }
+    body = render_to_string('pwa/offline.html', context)
+    return HttpResponse(body, content_type='text/html; charset=utf-8')
+
+
+@require_GET
+@cache_control(public=True, max_age=3600)
+def assetlinks_json(request):
+    """Publish the Android certificate relationship for TWA verification."""
+    package_name = (
+        getattr(settings, 'ANDROID_APP_PACKAGE', '')
+        or _ANDROID_PACKAGE_DEFAULT
+    ).strip()
+    fingerprints = _android_fingerprints()
+    payload = []
+    if fingerprints:
+        payload.append(
+            {
+                'relation': [
+                    'delegate_permission/common.handle_all_urls',
+                ],
+                'target': {
+                    'namespace': 'android_app',
+                    'package_name': package_name,
+                    'sha256_cert_fingerprints': fingerprints,
+                },
+            }
+        )
+    return JsonResponse(payload, safe=False)
 
 
 @require_GET

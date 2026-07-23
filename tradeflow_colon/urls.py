@@ -18,9 +18,38 @@ urlpatterns = [
     path('i18n/setlang/', views_i18n.set_language, name='set_language'),
     path('health/live/', views_platform.health_live, name='health_live'),
     path('health/ready/', views_platform.health_ready, name='health_ready'),
-    # Outside i18n: scanners/bots expect these at the apex (Cloudflare insights).
-    path('.well-known/security.txt', views_platform.security_txt, name='security_txt'),
-    path('security.txt', views_platform.security_txt, name='security_txt_legacy'),
+    # Root-scoped platform resources are not translated.
+    path(
+        '.well-known/assetlinks.json',
+        views_platform.assetlinks_json,
+        name='assetlinks_json',
+    ),
+    path(
+        '.well-known/security.txt',
+        views_platform.security_txt,
+        name='security_txt',
+    ),
+    path(
+        'manifest.webmanifest',
+        views_platform.web_app_manifest,
+        name='web_app_manifest',
+    ),
+    path(
+        'service-worker.js',
+        views_platform.service_worker,
+        name='service_worker',
+    ),
+    path(
+        'pwa/icon-<int:size>.png',
+        views_platform.pwa_icon,
+        name='pwa_icon',
+    ),
+    path('offline/', views_platform.offline_page, name='offline_page'),
+    path(
+        'security.txt',
+        views_platform.security_txt,
+        name='security_txt_legacy',
+    ),
     path('robots.txt', views_platform.robots_txt, name='robots_txt'),
 ]
 
