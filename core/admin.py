@@ -32,36 +32,76 @@ from .enterprise_models import (
 from .utils.admin_permissions import user_is_tradeflow_admin
 
 
-class TradeFlowModelAdmin(admin.ModelAdmin):
-    """Grant /admin/ CRUD to staff with TradeFlow ``admin`` role.
+class TradeFlowPermissionMixin:
+    """Align Django Admin permissions with TradeFlow operator roles.
 
-    Custom /dashboard/ uses UserProfile.role; Django admin needs model
-    permissions — this base class maps that role onto view/add/change.
+    Authenticated staff with the TradeFlow ``admin`` profile can inspect and
+    maintain registered resources. The configured demonstration account keeps
+    full visibility but cannot create, change, or delete records.
     """
 
     def _tradeflow_admin_access(self, request):
-        """True when the request user is a TradeFlow admin operator."""
+        """Return whether the request user is a TradeFlow administrator."""
         return user_is_tradeflow_admin(request.user)
 
+    def _tradeflow_read_only(self, request):
+        """Return whether the current operator is the read-only SaaS demo."""
+        from .utils.saas_demo import user_is_read_only_saas_demo
+
+        return user_is_read_only_saas_demo(request.user)
+
     def has_module_permission(self, request):
-        """Allow the app module index for TradeFlow admins."""
+        """Allow the application index for TradeFlow administrators."""
         return self._tradeflow_admin_access(request)
 
     def has_view_permission(self, request, obj=None):
-        """Allow object list/detail for TradeFlow admins."""
+        """Allow object lists and details for TradeFlow administrators."""
         return self._tradeflow_admin_access(request)
 
     def has_add_permission(self, request):
-        """Allow creates for TradeFlow admins."""
-        return self._tradeflow_admin_access(request)
+        """Allow creates except for the configured demonstration account."""
+        return (
+            self._tradeflow_admin_access(request)
+            and not self._tradeflow_read_only(request)
+        )
 
     def has_change_permission(self, request, obj=None):
-        """Allow edits for TradeFlow admins."""
-        return self._tradeflow_admin_access(request)
+        """Allow edits except for the configured demonstration account."""
+        return (
+            self._tradeflow_admin_access(request)
+            and not self._tradeflow_read_only(request)
+        )
 
     def has_delete_permission(self, request, obj=None):
-        """Restrict deletes to Django superusers only."""
-        return request.user.is_superuser
+        """Restrict deletion to non-demo Django superusers."""
+        return (
+            request.user.is_superuser
+            and not self._tradeflow_read_only(request)
+        )
+
+
+class TradeFlowModelAdmin(TradeFlowPermissionMixin, admin.ModelAdmin):
+    """Base ModelAdmin with consistent TradeFlow operational defaults."""
+
+    empty_value_display = '—'
+    list_per_page = 30
+    save_on_top = True
+
+
+class TradeFlowReadOnlyAdmin(TradeFlowModelAdmin):
+    """Expose generated audit records without allowing manual mutation."""
+
+    def has_add_permission(self, request):
+        """Disallow manual inserts for generated operational records."""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Keep generated operational records immutable."""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Keep generated operational records available for auditing."""
+        return False
 
 
 # =============================================================================
@@ -77,7 +117,7 @@ class UserProfileInline(admin.StackedInline):
     fields         = ['phone', 'role']
 
 
-class UserAdmin(BaseUserAdmin):
+class UserAdmin(TradeFlowPermissionMixin, BaseUserAdmin):
     """User admin with TradeFlow profile inline."""
 
     inlines = (UserProfileInline,)
@@ -114,7 +154,7 @@ class CompanyAdmin(TradeFlowModelAdmin):
 # =============================================================================
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(TradeFlowModelAdmin):
     """Manage catalog categories."""
 
     list_display  = ['name']
@@ -147,7 +187,7 @@ class InventoryInline(admin.StackedInline):
 
 
 @admin.register(HomePromoSection)
-class HomePromoSectionAdmin(admin.ModelAdmin):
+class HomePromoSectionAdmin(TradeFlowModelAdmin):
     """Schedule home CMS promo sections without redeploy."""
 
     list_display = ['slug', 'section_type', 'title_es', 'is_active', 'sort_order', 'starts_at', 'ends_at']
@@ -158,7 +198,7 @@ class HomePromoSectionAdmin(admin.ModelAdmin):
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(TradeFlowModelAdmin):
     """Manage catalog SKUs with inline stock."""
 
     list_display   = [
@@ -180,7 +220,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 @admin.register(Inventory)
-class InventoryAdmin(admin.ModelAdmin):
+class InventoryAdmin(TradeFlowModelAdmin):
     """Manage per-SKU stock, reservations, and low-stock flags."""
 
     list_display   = ['product', 'stock_qty', 'reserved_qty', 'available_display', 'is_low_stock', 'updated_at']
@@ -206,7 +246,7 @@ class InventoryAdmin(admin.ModelAdmin):
 # =============================================================================
 
 @admin.register(Address)
-class AddressAdmin(admin.ModelAdmin):
+class AddressAdmin(TradeFlowModelAdmin):
     """Manage buyer shipping addresses."""
 
     list_display  = ['user', 'label', 'city', 'country', 'is_default']
@@ -255,7 +295,7 @@ class DocumentInline(admin.TabularInline):
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(TradeFlowModelAdmin):
     """Manage buyer orders with payment, shipment, and document inlines."""
 
     list_display   = ['order_number', 'buyer', 'order_type', 'status', 'total', 'created_at']
@@ -271,7 +311,7 @@ class OrderAdmin(admin.ModelAdmin):
 # =============================================================================
 
 @admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
+class PaymentAdmin(TradeFlowModelAdmin):
     """Standalone payment list for reconciliation."""
 
     list_display  = ['order', 'provider', 'status', 'amount', 'currency', 'paid_at']
@@ -281,7 +321,7 @@ class PaymentAdmin(admin.ModelAdmin):
 
 
 @admin.register(Shipment)
-class ShipmentAdmin(admin.ModelAdmin):
+class ShipmentAdmin(TradeFlowModelAdmin):
     """Standalone shipment tracking list."""
 
     list_display  = ['order', 'courier_name', 'tracking_number', 'status', 'shipped_at']
@@ -290,7 +330,7 @@ class ShipmentAdmin(admin.ModelAdmin):
 
 
 @admin.register(Document)
-class DocumentAdmin(admin.ModelAdmin):
+class DocumentAdmin(TradeFlowModelAdmin):
     """Standalone trade-document list."""
 
     list_display  = ['order', 'doc_type', 'doc_number', 'created_at']
@@ -307,7 +347,7 @@ class CotizacionItemInline(admin.TabularInline):
 
 
 @admin.register(Cotizacion)
-class CotizacionAdmin(admin.ModelAdmin):
+class CotizacionAdmin(TradeFlowModelAdmin):
     """Manage buyer↔seller RFQ quotes and linked orders."""
 
     list_display = ['numero', 'buyer', 'empresa', 'estado', 'es_automatica', 'created_at', 'order']
@@ -318,7 +358,7 @@ class CotizacionAdmin(admin.ModelAdmin):
 
 
 @admin.register(TransportCarrier)
-class TransportCarrierAdmin(admin.ModelAdmin):
+class TransportCarrierAdmin(TradeFlowModelAdmin):
     """Manage checkout carrier options and base freight."""
 
     list_display = ['name', 'code', 'transport_mode', 'base_shipping_cost', 'sort_order', 'is_active']
@@ -327,7 +367,7 @@ class TransportCarrierAdmin(admin.ModelAdmin):
 
 
 @admin.register(Transportista)
-class TransportistaAdmin(admin.ModelAdmin):
+class TransportistaAdmin(TradeFlowModelAdmin):
     """Review and activate registered last-mile carriers."""
 
     list_display = ['empresa_nombre', 'email_contacto', 'estado', 'activo', 'tarifa_base']
@@ -335,14 +375,14 @@ class TransportistaAdmin(admin.ModelAdmin):
 
 
 @admin.register(AsignacionTransporte)
-class AsignacionTransporteAdmin(admin.ModelAdmin):
+class AsignacionTransporteAdmin(TradeFlowModelAdmin):
     """View per-order carrier assignments."""
 
     list_display = ['order', 'transportista', 'estado', 'costo_transporte']
 
 
 @admin.register(UserApplication)
-class UserApplicationAdmin(admin.ModelAdmin):
+class UserApplicationAdmin(TradeFlowModelAdmin):
     """Approve or reject buyer/seller access applications."""
 
     list_display = ['full_name', 'email', 'role', 'status', 'created_at']
@@ -424,7 +464,7 @@ class UserApplicationAdmin(admin.ModelAdmin):
 # =============================================================================
 
 @admin.register(SaasPlan)
-class SaasPlanAdmin(admin.ModelAdmin):
+class SaasPlanAdmin(TradeFlowModelAdmin):
     """Manage SaaS plan catalog and feature flags."""
 
     list_display = ['name', 'slug', 'monthly_volume_limit_usd', 'predictive_ai', 'sort_order', 'is_active']
@@ -432,7 +472,7 @@ class SaasPlanAdmin(admin.ModelAdmin):
 
 
 @admin.register(CompanySubscription)
-class CompanySubscriptionAdmin(admin.ModelAdmin):
+class CompanySubscriptionAdmin(TradeFlowModelAdmin):
     """View seller subscription status and period end."""
 
     list_display = ['company', 'plan', 'status', 'current_period_end']
@@ -440,14 +480,14 @@ class CompanySubscriptionAdmin(admin.ModelAdmin):
 
 
 @admin.register(CompanyBillingUsage)
-class CompanyBillingUsageAdmin(admin.ModelAdmin):
+class CompanyBillingUsageAdmin(TradeFlowModelAdmin):
     """Inspect monthly billable GMV per company."""
 
     list_display = ['company', 'period_year', 'period_month', 'volume_usd', 'orders_count']
 
 
 @admin.register(SubscriptionUpgradeLog)
-class SubscriptionUpgradeLogAdmin(admin.ModelAdmin):
+class SubscriptionUpgradeLogAdmin(TradeFlowReadOnlyAdmin):
     """Read-only history of plan upgrades."""
 
     list_display = ['company', 'from_plan', 'to_plan', 'source', 'activated_at']
@@ -456,7 +496,7 @@ class SubscriptionUpgradeLogAdmin(admin.ModelAdmin):
 
 
 @admin.register(CompanyPlanCheckout)
-class CompanyPlanCheckoutAdmin(admin.ModelAdmin):
+class CompanyPlanCheckoutAdmin(TradeFlowModelAdmin):
     """Review bank-transfer SaaS checkouts and activate plans.
 
     Approve runs ``approve_plan_checkout``; reject asks the seller to resubmit.
@@ -528,7 +568,7 @@ class CompanyPlanCheckoutAdmin(admin.ModelAdmin):
 
 
 @admin.register(CompanyPlanCommercialRequest)
-class CompanyPlanCommercialRequestAdmin(admin.ModelAdmin):
+class CompanyPlanCommercialRequestAdmin(TradeFlowModelAdmin):
     """Track Enterprise commercial plan requests."""
 
     list_display = ['company', 'requested_plan', 'status', 'contact_email', 'created_at']
@@ -537,7 +577,7 @@ class CompanyPlanCommercialRequestAdmin(admin.ModelAdmin):
 
 
 @admin.register(CompanyPredictiveSnapshot)
-class CompanyPredictiveSnapshotAdmin(admin.ModelAdmin):
+class CompanyPredictiveSnapshotAdmin(TradeFlowModelAdmin):
     """Inspect cached Enterprise predictive payloads."""
 
     list_display = ['company', 'period_key', 'computed_at']
@@ -545,14 +585,14 @@ class CompanyPredictiveSnapshotAdmin(admin.ModelAdmin):
 
 
 @admin.register(AdCampaign)
-class AdCampaignAdmin(admin.ModelAdmin):
+class AdCampaignAdmin(TradeFlowModelAdmin):
     """Manage seller ad campaigns and placements."""
 
     list_display = ['name', 'company', 'product', 'placement', 'is_active', 'ends_at']
 
 
 @admin.register(ApiKey)
-class ApiKeyAdmin(admin.ModelAdmin):
+class ApiKeyAdmin(TradeFlowModelAdmin):
     """Manage seller API keys (hash/prefix read-only)."""
 
     list_display = ['name', 'company', 'key_prefix', 'is_active', 'last_used_at']
@@ -560,14 +600,14 @@ class ApiKeyAdmin(admin.ModelAdmin):
 
 
 @admin.register(LogisticsWebhookConfig)
-class LogisticsWebhookAdmin(admin.ModelAdmin):
+class LogisticsWebhookAdmin(TradeFlowModelAdmin):
     """Manage logistics partner webhook endpoints."""
 
     list_display = ['name', 'company', 'endpoint_url', 'is_active']
 
 
 @admin.register(EmailDeliveryLog)
-class EmailDeliveryLogAdmin(admin.ModelAdmin):
+class EmailDeliveryLogAdmin(TradeFlowReadOnlyAdmin):
     """Read-only transactional email delivery audit."""
 
     list_display = ['created_at', 'email_type', 'recipient', 'subject', 'status']
@@ -582,6 +622,65 @@ class EmailDeliveryLogAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         """Disallow manual log inserts from the admin UI."""
         return False
+
+
+@admin.register(AdCreditAccount)
+class AdCreditAccountAdmin(TradeFlowModelAdmin):
+    """Manage advertising credit balances by seller company."""
+
+    list_display = ['company', 'balance', 'lifetime_spent', 'updated_at']
+    search_fields = ['company__name', 'company__ruc']
+    readonly_fields = ['lifetime_spent', 'updated_at']
+
+
+@admin.register(LogisticsEvent)
+class LogisticsEventAdmin(TradeFlowReadOnlyAdmin):
+    """Inspect the immutable operational timeline of marketplace orders."""
+
+    list_display = ['created_at', 'order', 'event_type', 'source', 'label']
+    list_filter = ['event_type', 'source', 'created_at']
+    search_fields = ['order__order_number', 'label']
+    readonly_fields = [
+        'order', 'event_type', 'label', 'payload', 'source', 'created_at',
+    ]
+    date_hierarchy = 'created_at'
+
+
+@admin.register(LogisticsDispatchQueue)
+class LogisticsDispatchQueueAdmin(TradeFlowReadOnlyAdmin):
+    """Inspect webhook delivery attempts and logistics partner failures."""
+
+    list_display = [
+        'created_at', 'order', 'company', 'status', 'attempts', 'sent_at',
+    ]
+    list_filter = ['status', 'created_at']
+    search_fields = [
+        'order__order_number', 'company__name', 'last_error',
+    ]
+    readonly_fields = [
+        'order', 'company', 'status', 'payload', 'signature', 'attempts',
+        'last_error', 'created_at', 'sent_at',
+    ]
+    date_hierarchy = 'created_at'
+
+
+@admin.register(ApiAuditLog)
+class ApiAuditLogAdmin(TradeFlowReadOnlyAdmin):
+    """Inspect seller API traffic for security and operational support."""
+
+    list_display = [
+        'created_at', 'company', 'method', 'path', 'status_code',
+        'ip_address',
+    ]
+    list_filter = ['method', 'status_code', 'created_at']
+    search_fields = [
+        'company__name', 'api_key__name', 'path', 'ip_address',
+    ]
+    readonly_fields = [
+        'api_key', 'company', 'method', 'path', 'status_code',
+        'ip_address', 'created_at',
+    ]
+    date_hierarchy = 'created_at'
 
 
 admin.site.site_header = 'TradeFlow Colón — Administración'
