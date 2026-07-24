@@ -92,7 +92,7 @@
   overflow-y: auto;
 }
 
-.adm-side a[data-adm-nav] {
+.adm-side .adm-rail-nav > a {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -107,14 +107,14 @@
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
 
-.adm-side a[data-adm-nav] .material-symbols-rounded {
+.adm-side .adm-rail-nav > a .material-symbols-rounded {
   font-size: 22px;
   font-variation-settings: 'FILL' 0, 'wght' 400;
   flex-shrink: 0;
   opacity: 0.92;
 }
 
-.adm-side a[data-adm-nav] .adm-rail-label {
+.adm-side .adm-rail-nav > a .adm-rail-label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -138,7 +138,7 @@
   flex-shrink: 0;
 }
 
-.adm-shell.adm-shell--rail-narrow .adm-side a[data-adm-nav] {
+.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-nav > a {
   justify-content: center;
   padding-left: 0;
   padding-right: 0;
@@ -146,7 +146,7 @@
   margin-right: 10px;
 }
 
-.adm-shell.adm-shell--rail-narrow .adm-side a[data-adm-nav] .adm-rail-label {
+.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-nav > a .adm-rail-label {
   opacity: 0;
   width: 0;
   height: 0;
@@ -154,11 +154,11 @@
   position: absolute;
 }
 
-.adm-shell.adm-shell--rail-narrow .adm-side a[data-adm-nav] {
+.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-nav > a {
   position: relative;
 }
 
-.adm-shell.adm-shell--rail-narrow .adm-side a[data-adm-nav][title]:hover::after {
+.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-nav > a[title]:hover::after {
   content: attr(title);
   position: absolute;
   left: 100%;
@@ -189,12 +189,12 @@
   position: absolute;
 }
 
-.adm-side a[data-adm-nav]:hover {
+.adm-side .adm-rail-nav > a:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
 
-.adm-side a[data-adm-nav].is-active {
+.adm-side .adm-rail-nav > a.is-active {
   border-left-color: #f26522;
   background: rgba(0, 0, 0, 0.28);
   color: #fff;
@@ -939,7 +939,7 @@
     padding: 0.5rem;
   }
 
-  .adm-side a[data-adm-nav] {
+  .adm-side .adm-rail-nav > a {
     margin: 4px;
   }
 
@@ -996,4 +996,42 @@
   .adm-kpi:hover {
     transform: none;
   }
+}
+
+
+/* Expanded Expo navigation: grouped modules remain visible in the left rail. */
+.adm-rail-section-label {
+  display: block;
+  margin: 14px 18px 5px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 769px) {
+  .adm-side {
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    align-self: flex-start;
+    overflow: hidden;
+  }
+
+  .adm-rail-nav {
+    min-height: 0;
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+.adm-shell.adm-shell--rail-narrow .adm-rail-section-label {
+  width: 26px;
+  height: 1px;
+  margin: 12px auto 6px;
+  overflow: hidden;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.18);
+  color: transparent;
 }
