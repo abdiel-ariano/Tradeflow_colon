@@ -2,17 +2,27 @@
 {% load i18n static %}
 
 {% comment %}
-TradeFlow Colón — shell visual del Django Admin.
+TradeFlow Colón — shell persistente del Django Admin.
 
-Mantiene intactas las capacidades nativas de Django (permisos, filtros,
-búsqueda, historial y formularios) y aplica la identidad del marketplace.
+La barra lateral mantiene visibles las operaciones de la plataforma en todas
+las listas, formularios y vistas de auditoría. Django continúa aplicando sus
+permisos, historial, filtros y validaciones nativas.
 {% endcomment %}
 
 {% block title %}{{ title }} | TradeFlow Admin{% endblock %}
 
 {% block extrastyle %}
   {{ block.super }}
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0"
+  >
   <link rel="stylesheet" href="{% static 'css/tradeflow_admin.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <script defer src="{% static 'js/tradeflow_admin_nav.js' %}"></script>
 {% endblock %}
 
 {% block branding %}
@@ -32,14 +42,191 @@ búsqueda, historial y formularios) y aplica la identidad del marketplace.
 {% endblock %}
 
 {% block nav-global %}
-  <nav class="tf-admin-global-nav" aria-label="{% translate 'Quick links' %}">
-    <a href="{% url 'dashboard' %}">
-      <span aria-hidden="true">◫</span>
-      Vista ejecutiva
-    </a>
-    <a href="{% url 'home' %}">
-      <span aria-hidden="true">↗</span>
-      Marketplace
-    </a>
-  </nav>
+  <aside class="tf-system-rail" id="tfSystemRail" aria-label="Administración">
+    <div class="tf-system-rail__brand">
+      <span class="material-symbols-rounded" aria-hidden="true">hub</span>
+      <span>
+        <strong>TradeFlow</strong>
+        <small>ADMIN PANEL</small>
+      </span>
+    </div>
+
+    {% if tf_admin_read_only_demo %}
+    <div class="tf-system-rail__demo">
+      <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+      <span>
+        <strong>Modo demostración</strong>
+        <small>Exploración completa · solo lectura</small>
+      </span>
+    </div>
+    {% endif %}
+
+    <nav class="tf-system-rail__nav" aria-label="Módulos de TradeFlow">
+      <p class="tf-system-rail__section">Resumen</p>
+      <a href="{% url 'dashboard' %}" data-tf-admin-route="/dashboard/">
+        <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="{% url 'admin:index' %}" data-tf-admin-route="/admin/">
+        <span class="material-symbols-rounded" aria-hidden="true">space_dashboard</span>
+        <span>Vista general</span>
+      </a>
+
+      <p class="tf-system-rail__section">Comercio</p>
+      <a
+        href="{% url 'admin:core_order_changelist' %}"
+        data-tf-admin-route="/admin/core/order/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
+        <span>Pedidos</span>
+      </a>
+      <a
+        href="{% url 'admin:core_payment_changelist' %}"
+        data-tf-admin-route="/admin/core/payment/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">payments</span>
+        <span>Pagos</span>
+      </a>
+      <a
+        href="{% url 'admin:core_cotizacion_changelist' %}"
+        data-tf-admin-route="/admin/core/cotizacion/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
+        <span>Cotizaciones</span>
+      </a>
+      <a
+        href="{% url 'admin:core_product_changelist' %}"
+        data-tf-admin-route="/admin/core/product/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+        <span>Productos</span>
+      </a>
+      <a
+        href="{% url 'admin:core_inventory_changelist' %}"
+        data-tf-admin-route="/admin/core/inventory/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">warehouse</span>
+        <span>Inventario</span>
+      </a>
+      <a
+        href="{% url 'admin:core_homepromosection_changelist' %}"
+        data-tf-admin-route="/admin/core/homepromosection/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
+        <span>Promociones</span>
+      </a>
+
+      <p class="tf-system-rail__section">Empresas y usuarios</p>
+      <a
+        href="{% url 'admin:core_company_changelist' %}"
+        data-tf-admin-route="/admin/core/company/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">business</span>
+        <span>Empresas</span>
+      </a>
+      <a
+        href="{% url 'admin:auth_user_changelist' %}"
+        data-tf-admin-route="/admin/auth/user/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">group</span>
+        <span>Usuarios</span>
+      </a>
+      <a
+        href="{% url 'admin:core_userapplication_changelist' %}"
+        data-tf-admin-route="/admin/core/userapplication/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">assignment_ind</span>
+        <span>Solicitudes</span>
+        {% if pending_applications_count %}
+        <span class="tf-system-rail__badge">{{ pending_applications_count }}</span>
+        {% endif %}
+      </a>
+
+      <p class="tf-system-rail__section">Logística</p>
+      <a
+        href="{% url 'admin:core_shipment_changelist' %}"
+        data-tf-admin-route="/admin/core/shipment/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
+        <span>Envíos</span>
+      </a>
+      <a
+        href="{% url 'admin:core_transportcarrier_changelist' %}"
+        data-tf-admin-route="/admin/core/transportcarrier/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">departure_board</span>
+        <span>Transportistas</span>
+      </a>
+      <a
+        href="{% url 'admin:core_logisticsevent_changelist' %}"
+        data-tf-admin-route="/admin/core/logisticsevent/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">timeline</span>
+        <span>Eventos logísticos</span>
+      </a>
+
+      <p class="tf-system-rail__section">SaaS y plataforma</p>
+      <a href="{% url 'admin_saas_dashboard' %}" data-tf-admin-route="/saas/">
+        <span class="material-symbols-rounded" aria-hidden="true">workspace_premium</span>
+        <span>Panel SaaS</span>
+      </a>
+      <a
+        href="{% url 'admin:core_saasplan_changelist' %}"
+        data-tf-admin-route="/admin/core/saasplan/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">sell</span>
+        <span>Planes</span>
+      </a>
+      <a
+        href="{% url 'admin:core_companysubscription_changelist' %}"
+        data-tf-admin-route="/admin/core/companysubscription/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">subscriptions</span>
+        <span>Suscripciones</span>
+      </a>
+      <a
+        href="{% url 'admin:core_companyplancheckout_changelist' %}"
+        data-tf-admin-route="/admin/core/companyplancheckout/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">account_balance</span>
+        <span>Pagos de planes</span>
+      </a>
+
+      <p class="tf-system-rail__section">Auditoría</p>
+      <a
+        href="{% url 'admin:core_emaildeliverylog_changelist' %}"
+        data-tf-admin-route="/admin/core/emaildeliverylog/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">mark_email_read</span>
+        <span>Correos</span>
+      </a>
+      <a
+        href="{% url 'admin:core_apiauditlog_changelist' %}"
+        data-tf-admin-route="/admin/core/apiauditlog/"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">policy</span>
+        <span>Auditoría API</span>
+      </a>
+    </nav>
+
+    <div class="tf-system-rail__footer">
+      <a href="{% url 'home' %}">
+        <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
+        <span>Ver marketplace</span>
+      </a>
+    </div>
+  </aside>
+{% endblock %}
+
+{% block messages %}
+  {% if tf_admin_read_only_demo %}
+  <div class="tf-admin-demo-banner" role="status">
+    <strong>Demostración de solo lectura</strong>
+    <span>
+      Puedes explorar todos los módulos. Las aprobaciones y los cambios están
+      deshabilitados para proteger la información de la Expo.
+    </span>
+  </div>
+  {% endif %}
+  {{ block.super }}
 {% endblock %}
