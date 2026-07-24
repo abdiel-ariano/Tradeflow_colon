@@ -40,6 +40,25 @@ class TradeFlowAdminSiteTests(TestCase):
         self.assertContains(response, "css/tradeflow_admin.css")
         self.assertContains(response, "Centro de control")
 
+    def test_admin_index_exposes_persistent_operational_navigation(self):
+        """Critical modules are visible directly in the left navigation."""
+        response = self.client.get(reverse("admin:index"))
+        expected_links = (
+            reverse("admin:core_order_changelist"),
+            reverse("admin:core_payment_changelist"),
+            reverse("admin:core_product_changelist"),
+            reverse("admin:core_inventory_changelist"),
+            reverse("admin:core_company_changelist"),
+            reverse("admin:auth_user_changelist"),
+            reverse("admin:core_shipment_changelist"),
+            reverse("admin:core_saasplan_changelist"),
+            reverse("admin:core_apiauditlog_changelist"),
+        )
+
+        for url in expected_links:
+            with self.subTest(url=url):
+                self.assertContains(response, f'href="{url}"')
+
     def test_tradeflow_admin_can_view_business_and_user_models(self):
         """An operator can inspect both marketplace and account records."""
         urls = (
@@ -87,9 +106,13 @@ class TradeFlowAdminSiteTests(TestCase):
     def test_demo_operator_cannot_mutate_records(self):
         """The configured demo keeps visibility without write permissions."""
         product_admin = admin.site._registry[Product]
-        request = self.client.get(reverse("admin:index")).wsgi_request
+        response = self.client.get(reverse("admin:index"))
+        request = response.wsgi_request
         request.user = self.operator
 
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Modo demostración")
+        self.assertContains(response, "Demostración de solo lectura")
         self.assertTrue(product_admin.has_view_permission(request))
         self.assertFalse(product_admin.has_add_permission(request))
         self.assertFalse(product_admin.has_change_permission(request))
