@@ -118,9 +118,33 @@ class UserProfileInline(admin.StackedInline):
 
 
 class UserAdmin(TradeFlowPermissionMixin, BaseUserAdmin):
-    """User admin with TradeFlow profile inline."""
+    """Manage TradeFlow accounts without exposing superuser escalation."""
 
     inlines = (UserProfileInline,)
+
+    def has_change_permission(self, request, obj=None):
+        """Protect Django superusers from non-superuser operators."""
+        if obj and obj.is_superuser and not request.user.is_superuser:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def get_fieldsets(self, request, obj=None):
+        """Hide privilege-escalation fields from platform operators."""
+        fieldsets = super().get_fieldsets(request, obj)
+        if request.user.is_superuser:
+            return fieldsets
+
+        protected_fields = {'is_superuser', 'groups', 'user_permissions'}
+        safe_fieldsets = []
+        for title, options in fieldsets:
+            fields = tuple(
+                field
+                for field in options.get('fields', ())
+                if field not in protected_fields
+            )
+            safe_options = {**options, 'fields': fields}
+            safe_fieldsets.append((title, safe_options))
+        return tuple(safe_fieldsets)
 
 
 # Re-register User with the profile inline
