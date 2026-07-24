@@ -67,6 +67,22 @@ class TradeFlowAdminSiteTests(TestCase):
             with self.subTest(model=model.__name__):
                 self.assertIn(model, admin.site._registry)
 
+    def test_operator_cannot_modify_django_superuser(self):
+        """A platform operator cannot promote or alter a superuser account."""
+        protected_user = User.objects.create_superuser(
+            username="protected.root",
+            password="StrongTestPassword456!",
+            email="root@example.com",
+        )
+        user_admin = admin.site._registry[User]
+        request = self.client.get(reverse("admin:index")).wsgi_request
+        request.user = self.operator
+
+        self.assertTrue(user_admin.has_view_permission(request, protected_user))
+        self.assertFalse(
+            user_admin.has_change_permission(request, protected_user)
+        )
+
     @override_settings(SAAS_READ_ONLY_DEMO_USERNAME="tf.operator")
     def test_demo_operator_cannot_mutate_records(self):
         """The configured demo keeps visibility without write permissions."""
