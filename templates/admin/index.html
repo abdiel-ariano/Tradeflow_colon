@@ -1,0 +1,150 @@
+{% extends "admin/base_site.html" %}
+{% load i18n log %}
+
+{% comment %}
+Portada operativa del Django Admin de TradeFlow Colón.
+
+app_list proviene del AdminSite y respeta los permisos del operador.
+Los accesos rápidos apuntan a las entidades críticas del marketplace.
+{% endcomment %}
+
+{% block bodyclass %}{{ block.super }} dashboard tf-admin-dashboard{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <section class="tf-admin-hero" aria-labelledby="tf-admin-title">
+    <div>
+      <p class="tf-admin-eyebrow">OPERACIONES TRADEFLOW</p>
+      <h1 id="tf-admin-title">Administración integral</h1>
+      <p>
+        Controla el marketplace, las empresas, el catálogo, las ventas,
+        la logística y el ecosistema SaaS desde una sola vista.
+      </p>
+    </div>
+    <div class="tf-admin-hero-status">
+      <span class="tf-admin-status-dot" aria-hidden="true"></span>
+      Panel operativo
+    </div>
+  </section>
+
+  <section class="tf-admin-quick-grid" aria-label="Accesos rápidos">
+    <a class="tf-admin-quick-card" href="{% url 'admin:core_order_changelist' %}">
+      <span class="tf-admin-quick-icon" aria-hidden="true">01</span>
+      <span>
+        <strong>Pedidos</strong>
+        <small>Venta, pago y cumplimiento</small>
+      </span>
+      <span class="tf-admin-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="tf-admin-quick-card" href="{% url 'admin:core_product_changelist' %}">
+      <span class="tf-admin-quick-icon" aria-hidden="true">02</span>
+      <span>
+        <strong>Productos</strong>
+        <small>Catálogo, precios e inventario</small>
+      </span>
+      <span class="tf-admin-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="tf-admin-quick-card" href="{% url 'admin:core_company_changelist' %}">
+      <span class="tf-admin-quick-icon" aria-hidden="true">03</span>
+      <span>
+        <strong>Empresas</strong>
+        <small>Proveedores y verificación</small>
+      </span>
+      <span class="tf-admin-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="tf-admin-quick-card" href="{% url 'admin:auth_user_changelist' %}">
+      <span class="tf-admin-quick-icon" aria-hidden="true">04</span>
+      <span>
+        <strong>Usuarios</strong>
+        <small>Accesos, roles y actividad</small>
+      </span>
+      <span class="tf-admin-arrow" aria-hidden="true">→</span>
+    </a>
+  </section>
+
+  <div class="tf-admin-content-grid">
+    <section class="tf-admin-apps" aria-labelledby="tf-admin-modules-title">
+      <div class="tf-admin-section-heading">
+        <div>
+          <p class="tf-admin-eyebrow">SISTEMA</p>
+          <h2 id="tf-admin-modules-title">Módulos administrativos</h2>
+        </div>
+        <span>{{ app_list|length }} áreas disponibles</span>
+      </div>
+
+      <div class="tf-admin-module-grid">
+        {% for app in app_list %}
+        <article class="tf-admin-module module">
+          <header>
+            <span class="tf-admin-module-mark" aria-hidden="true">
+              {{ app.name|slice:":1"|upper }}
+            </span>
+            <div>
+              <h3>{{ app.name }}</h3>
+              <small>{{ app.models|length }} recursos</small>
+            </div>
+          </header>
+          <div class="tf-admin-model-list">
+            {% for model in app.models %}
+            <div class="tf-admin-model-row model-{{ model.object_name|lower }}">
+              {% if model.admin_url %}
+              <a href="{{ model.admin_url }}">{{ model.name }}</a>
+              {% else %}
+              <span>{{ model.name }}</span>
+              {% endif %}
+              <span class="tf-admin-model-actions">
+                {% if model.admin_url %}
+                <a href="{{ model.admin_url }}" aria-label="Ver {{ model.name }}">Ver</a>
+                {% endif %}
+                {% if model.add_url %}
+                <a class="tf-admin-add-link" href="{{ model.add_url }}" aria-label="Agregar {{ model.name }}">+</a>
+                {% endif %}
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+        </article>
+        {% empty %}
+        <div class="tf-admin-empty">
+          No hay módulos disponibles para los permisos de esta cuenta.
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <aside class="tf-admin-activity" aria-labelledby="tf-admin-activity-title">
+      <div class="tf-admin-section-heading">
+        <div>
+          <p class="tf-admin-eyebrow">AUDITORÍA</p>
+          <h2 id="tf-admin-activity-title">Actividad reciente</h2>
+        </div>
+      </div>
+      {% get_admin_log 8 as admin_log for_user user %}
+      <ol class="tf-admin-activity-list">
+        {% for entry in admin_log %}
+        <li>
+          <span class="tf-admin-activity-marker" aria-hidden="true"></span>
+          <div>
+            {% if entry.is_deletion or not entry.get_admin_url %}
+            <strong>{{ entry.object_repr }}</strong>
+            {% else %}
+            <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+            {% endif %}
+            <small>
+              {{ entry.content_type|capfirst|default:"Sistema" }}
+              · {{ entry.action_time|timesince }} atrás
+            </small>
+          </div>
+        </li>
+        {% empty %}
+        <li class="tf-admin-empty-activity">
+          Aún no hay acciones administrativas registradas.
+        </li>
+        {% endfor %}
+      </ol>
+    </aside>
+  </div>
+</div>
+{% endblock %}
