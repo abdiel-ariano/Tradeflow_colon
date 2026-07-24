@@ -1,0 +1,45 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% comment %}
+TradeFlow Colón — shell visual del Django Admin.
+
+Mantiene intactas las capacidades nativas de Django (permisos, filtros,
+búsqueda, historial y formularios) y aplica la identidad del marketplace.
+{% endcomment %}
+
+{% block title %}{{ title }} | TradeFlow Admin{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/tradeflow_admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+  <a class="tf-admin-brand" href="{% url 'admin:index' %}">
+    <img
+      src="{% static 'img/logo-icon-white.png' %}"
+      width="38"
+      height="38"
+      alt=""
+      aria-hidden="true"
+    >
+    <span>
+      <strong>TradeFlow Colón</strong>
+      <small>Centro de control</small>
+    </span>
+  </a>
+{% endblock %}
+
+{% block nav-global %}
+  <nav class="tf-admin-global-nav" aria-label="{% translate 'Quick links' %}">
+    <a href="{% url 'dashboard' %}">
+      <span aria-hidden="true">◫</span>
+      Vista ejecutiva
+    </a>
+    <a href="{% url 'home' %}">
+      <span aria-hidden="true">↗</span>
+      Marketplace
+    </a>
+  </nav>
+{% endblock %}
