@@ -216,8 +216,6 @@ def tf_user_role(request):
             'tf_user_role': '',
             'tf_has_profile': False,
             'tf_seller_onboarding_pending': False,
-            'tf_admin_read_only_demo': False,
-            'tf_admin_expo_demo': False,
         }
     try:
         role = request.user.profile.role or ''
@@ -226,8 +224,6 @@ def tf_user_role(request):
             'tf_user_role': '',
             'tf_has_profile': False,
             'tf_seller_onboarding_pending': False,
-            'tf_admin_read_only_demo': False,
-            'tf_admin_expo_demo': False,
         }
     pending = False
     if role == 'seller':
@@ -237,22 +233,10 @@ def tf_user_role(request):
             pending = seller_company_pending(request.user)
         except Exception:
             pending = False
-    read_only_demo = False
-    expo_demo = False
-    if role == 'admin' or request.user.is_superuser:
-        from core.utils.saas_demo import (
-            user_is_expo_demo_admin,
-            user_is_read_only_saas_demo,
-        )
-
-        read_only_demo = user_is_read_only_saas_demo(request.user)
-        expo_demo = user_is_expo_demo_admin(request.user)
     return {
         'tf_user_role': role,
         'tf_has_profile': True,
         'tf_seller_onboarding_pending': pending,
-        'tf_admin_read_only_demo': read_only_demo,
-        'tf_admin_expo_demo': expo_demo,
     }
 
 

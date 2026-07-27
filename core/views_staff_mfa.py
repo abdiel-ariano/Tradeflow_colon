@@ -9,7 +9,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from core.utils.saas_demo import user_is_read_only_saas_demo
+from core.utils.saas_demo import user_is_demo_admin
 from core.utils.staff_mfa import (
     SESSION_BACKUP_CODES,
     clear_staff_mfa,
@@ -86,14 +86,14 @@ def staff_mfa_verify(request):
 @require_http_methods(['GET', 'POST'])
 def staff_mfa_setup(request):
     """Enable/disable staff TOTP and show one-time backup codes."""
-    if user_is_read_only_saas_demo(request.user):
+    if user_is_demo_admin(request.user):
         request.session.pop('tf_totp_pending', None)
         mark_session_mfa_ok(request)
         messages.info(
             request,
-            'This read-only demo account does not configure staff MFA.',
+            'The configured demo administrator does not require staff MFA.',
         )
-        return redirect('admin_saas_dashboard')
+        return redirect('admin:index')
 
     if not user_is_staffish(request.user):
         messages.error(request, 'Only staff accounts can configure MFA.')

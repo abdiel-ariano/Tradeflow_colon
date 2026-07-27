@@ -52,7 +52,6 @@ from ..utils.email_sender import (
     enviar_solicitud_decision,
 )
 from ..utils.saas_billing import VolumeLimitExceeded, is_volume_limit_reached
-from ..utils.saas_demo import user_is_read_only_saas_demo
 from ..utils.media_storage import product_image_url
 from ..utils.order_workflow import (
     accept_seller_order,
@@ -282,7 +281,6 @@ def admin_saas_dashboard(request):
     log = logging.getLogger('tradeflow.saas')
     ctx = {'nav_activo': 'saas', 'saas_preview': None, 'saas_plans_count': 0}
     ctx['api_admin_saas_stats_url'] = reverse('api_admin_saas_stats')
-    ctx['saas_read_only_demo'] = user_is_read_only_saas_demo(request.user)
 
     try:
         from core.enterprise_models import SaasPlan
@@ -314,7 +312,6 @@ def api_admin_saas_stats(request):
     from ..utils.saas_admin_metrics import build_saas_admin_payload
 
     payload = build_saas_admin_payload()
-    payload['read_only_demo'] = user_is_read_only_saas_demo(request.user)
     return JsonResponse(payload, encoder=DjangoJSONEncoder)
 
 
@@ -323,8 +320,6 @@ def api_admin_saas_request_action(request, pk: int):
     """Approve or reject a commercial plan request (POST)."""
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-    if user_is_read_only_saas_demo(request.user):
-        return JsonResponse({'error': 'Read-only demo account.'}, status=403)
     import json
 
     from ..enterprise_models import CompanyPlanCommercialRequest

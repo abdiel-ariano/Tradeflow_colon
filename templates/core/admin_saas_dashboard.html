@@ -12,14 +12,14 @@
   .adm-shell .adm-side {
     background: linear-gradient(180deg, var(--tf-navy, #0F2A44) 0%, #0a1f33 100%) !important;
   }
-  .adm-shell .adm-side a[data-adm-nav] {
+  .adm-shell .adm-side .adm-rail-link {
     color: rgba(255, 255, 255, 0.75) !important;
   }
-  .adm-shell .adm-side a[data-adm-nav]:hover {
+  .adm-shell .adm-side .adm-rail-link:hover {
     background: rgba(242, 101, 34, 0.12) !important;
     color: #ffffff !important;
   }
-  .adm-shell .adm-side a[data-adm-nav].is-active {
+  .adm-shell .adm-side .adm-rail-link.is-active {
     border-left-color: var(--tf-orange, #F26522) !important;
     background: rgba(242, 101, 34, 0.18) !important;
     color: #ffffff !important;
@@ -125,21 +125,6 @@
     border-radius: 8px;
     border: 1px solid rgba(242, 101, 34, 0.2);
   }
-  .adm-saas-readonly {
-    align-items: center;
-    background: #fff7ed;
-    border: 1px solid rgba(242, 101, 34, 0.35);
-    border-radius: 10px;
-    color: #7c2d12;
-    display: flex;
-    gap: 10px;
-    margin: 16px 20px 0;
-    padding: 12px 16px;
-  }
-  .adm-saas-readonly strong {
-    color: #c2410c;
-    white-space: nowrap;
-  }
   #admin-saas-root.is-react-ready .adm-saas-fallback { display: none; }
 </style>
 {% endblock %}
@@ -147,18 +132,9 @@
 <div class="adm-shell">
   {% include "core/admin_rail.html" %}
   <div class="adm-main adm-saas-wrap">
-    {% if saas_read_only_demo %}
-    <div class="adm-saas-readonly" role="status">
-      <strong>Read-only demo</strong>
-      <span>
-        Explore metrics and workflows safely. Approvals and changes are disabled.
-      </span>
-    </div>
-    {% endif %}
     <div
       id="admin-saas-root"
       data-api-url="{{ api_admin_saas_stats_url }}"
-      data-read-only-demo="{{ saas_read_only_demo|yesno:'true,false' }}"
       data-static-js="{% static 'admin-saas/admin-saas.js' %}"
       data-static-css="{% static 'admin-saas/admin-saas.css' %}"
     >
@@ -222,38 +198,6 @@
   var root = document.getElementById('admin-saas-root');
   var status = document.getElementById('admin-saas-boot-status');
   if (!root) return;
-
-  if (root.dataset.readOnlyDemo === 'true') {
-    function lockActionButtons() {
-      root.querySelectorAll('button').forEach(function (button) {
-        var label = (button.textContent || '').trim();
-        if (label === 'Approve' || label === 'Reject') {
-          button.disabled = true;
-          button.setAttribute('aria-disabled', 'true');
-          button.title = 'Read-only demo';
-        }
-      });
-    }
-
-    root.addEventListener('click', function (event) {
-      var target = event.target;
-      var button = target && target.closest
-        ? target.closest('button')
-        : null;
-      if (!button) return;
-      var label = (button.textContent || '').trim();
-      if (label === 'Approve' || label === 'Reject') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      }
-    }, true);
-
-    new MutationObserver(lockActionButtons).observe(root, {
-      childList: true,
-      subtree: true
-    });
-    lockActionButtons();
-  }
 
   function setStatus(msg, isError) {
     if (status) {

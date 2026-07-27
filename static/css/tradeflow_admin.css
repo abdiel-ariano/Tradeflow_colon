@@ -808,38 +808,6 @@ body:not(.login) #header {
   letter-spacing: 0.12em;
 }
 
-.tf-system-rail__demo {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 9px;
-  margin: 12px 14px 5px;
-  padding: 10px 11px;
-  border: 1px solid rgba(255, 100, 31, 0.38);
-  border-radius: 10px;
-  background: rgba(255, 100, 31, 0.1);
-}
-
-.tf-system-rail__demo .material-symbols-rounded {
-  color: #ff9a6d;
-}
-
-.tf-system-rail__demo strong,
-.tf-system-rail__demo small {
-  display: block;
-}
-
-.tf-system-rail__demo strong {
-  color: #ffffff;
-  font-size: 10px;
-}
-
-.tf-system-rail__demo small {
-  margin-top: 3px;
-  color: #c7d5df;
-  font-size: 8px;
-  line-height: 1.35;
-}
-
 .tf-system-rail__nav {
   flex: 1;
   overflow-x: hidden;
@@ -930,29 +898,6 @@ body:not(.login) .toggle-nav-sidebar {
   display: none;
 }
 
-.tf-admin-demo-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 18px;
-  padding: 13px 16px;
-  border: 1px solid #ffbc95;
-  border-radius: 11px;
-  background: #fff7f1;
-  color: #8e330f;
-}
-
-.tf-admin-demo-banner strong {
-  flex: 0 0 auto;
-  color: var(--tf-admin-navy);
-  font-size: 12px;
-}
-
-.tf-admin-demo-banner span {
-  font-size: 11px;
-  line-height: 1.45;
-}
-
 /* The existing TradeFlow dashboard uses the same visual grouping labels. */
 
 .adm-rail-section-label {
@@ -995,17 +940,4 @@ body:not(.login) .toggle-nav-sidebar {
   body:not(.login) #nav-sidebar {
     display: flex;
   }
-}
-
-
-/* Expo demo keeps the native admin fully interactive and clearly identified. */
-.tf-system-rail__demo--writable {
-  border-color: rgba(52, 211, 153, 0.45);
-  background: rgba(6, 95, 70, 0.28);
-}
-
-.tf-admin-demo-banner--writable {
-  border-color: #6ee7b7;
-  background: #ecfdf5;
-  color: #064e3b;
 }

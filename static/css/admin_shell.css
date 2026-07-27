@@ -92,29 +92,29 @@
   overflow-y: auto;
 }
 
-.adm-side .adm-rail-nav > a {
+.adm-side .adm-rail-link {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 11px 1rem 11px 14px;
   margin: 0 8px;
   border-radius: 10px;
-  color: rgba(255, 255, 255, 0.78);
-  text-decoration: none;
+  color: rgba(255, 255, 255, 0.78) !important;
+  text-decoration: none !important;
   font-size: 0.875rem;
   font-weight: 500;
   border-left: 3px solid transparent;
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
 
-.adm-side .adm-rail-nav > a .material-symbols-rounded {
+.adm-side .adm-rail-link .material-symbols-rounded {
   font-size: 22px;
   font-variation-settings: 'FILL' 0, 'wght' 400;
   flex-shrink: 0;
   opacity: 0.92;
 }
 
-.adm-side .adm-rail-nav > a .adm-rail-label {
+.adm-side .adm-rail-link .adm-rail-label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -138,7 +138,7 @@
   flex-shrink: 0;
 }
 
-.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-nav > a {
+.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-link {
   justify-content: center;
   padding-left: 0;
   padding-right: 0;
@@ -146,7 +146,7 @@
   margin-right: 10px;
 }
 
-.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-nav > a .adm-rail-label {
+.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-link .adm-rail-label {
   opacity: 0;
   width: 0;
   height: 0;
@@ -154,11 +154,11 @@
   position: absolute;
 }
 
-.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-nav > a {
+.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-link {
   position: relative;
 }
 
-.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-nav > a[title]:hover::after {
+.adm-shell.adm-shell--rail-narrow .adm-side .adm-rail-link[title]:hover::after {
   content: attr(title);
   position: absolute;
   left: 100%;
@@ -189,12 +189,12 @@
   position: absolute;
 }
 
-.adm-side .adm-rail-nav > a:hover {
+.adm-side .adm-rail-link:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
 
-.adm-side .adm-rail-nav > a.is-active {
+.adm-side .adm-rail-link.is-active {
   border-left-color: #f26522;
   background: rgba(0, 0, 0, 0.28);
   color: #fff;
@@ -939,7 +939,7 @@
     padding: 0.5rem;
   }
 
-  .adm-side .adm-rail-nav > a {
+  .adm-side .adm-rail-link {
     margin: 4px;
   }
 

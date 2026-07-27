@@ -1,4 +1,4 @@
-"""Staff/admin TOTP MFA helpers (required unless Expo demo / opt-out)."""
+"""Staff/admin TOTP MFA helpers with a configured demo exception."""
 from __future__ import annotations
 
 import base64
@@ -11,7 +11,7 @@ import string
 from django.conf import settings
 from django.contrib.auth.models import User
 
-from core.utils.saas_demo import user_is_read_only_saas_demo
+from core.utils.saas_demo import user_is_demo_admin
 
 log = logging.getLogger('tradeflow.security')
 
@@ -79,7 +79,7 @@ def user_has_staff_totp(user: User) -> bool:
 
 def user_needs_staff_mfa_setup(user: User) -> bool:
     """True when staff MFA is required but the user has not enrolled yet."""
-    if user_is_read_only_saas_demo(user):
+    if user_is_demo_admin(user):
         return False
     return (
         user_is_staffish(user)
@@ -90,7 +90,7 @@ def user_needs_staff_mfa_setup(user: User) -> bool:
 
 def user_needs_staff_mfa(user: User) -> bool:
     """True when staff must complete MFA setup or challenge this session."""
-    if user_is_read_only_saas_demo(user):
+    if user_is_demo_admin(user):
         return False
     if not user_is_staffish(user):
         return False

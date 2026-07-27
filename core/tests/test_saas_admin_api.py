@@ -15,7 +15,7 @@ from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscripti
 
 @override_settings(
     STAFF_MFA_REQUIRED=False,
-    SAAS_READ_ONLY_DEMO_USERNAME='',
+    SAAS_DEMO_ADMIN_USERNAME='',
 )
 class SaasAdminApiTests(TestCase):
     """Assert admin SaaS API auth and approve action."""
