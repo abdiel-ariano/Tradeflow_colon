@@ -10,7 +10,7 @@ This is **not** a substitute for legal counsel or vendor DPAs.
 | `DEBUG` | `false` |
 | `EXPO_DEMO_MODE` | keep `false` outside investor demos (demo still supported) |
 | `STAFF_MFA_REQUIRED` | `true` (auto-skipped only when `EXPO_DEMO_MODE=true`) |
-| `SAAS_READ_ONLY_DEMO_USERNAME` | `demo_admin` only for a controlled walkthrough; blank disables it |
+| `SAAS_DEMO_ADMIN_USERNAME` | `demo_admin` only for a controlled walkthrough; blank disables it |
 | `ALLOW_MOCK_PLAN_PAYMENT` | `false` |
 | `REQUIRE_EMAIL_VERIFICATION` | `true` |
 | `SENTRY_DSN` | set to your project DSN |
@@ -45,20 +45,25 @@ Railway: create Cron Jobs with the schedules documented in `.env.example`.
 - Prefer short-lived tokens for OAuth apps; revoke unused IdP credentials.
 - Never commit `.env`; keep `.env.example` as the non-secret template.
 
-## 4. Read-only SaaS demo account
+## 4. Demonstration administrator
 
-`SAAS_READ_ONLY_DEMO_USERNAME` identifies one walkthrough account. It may read
-the custom SaaS administration screens without staff MFA, but the middleware
-rejects every unsafe HTTP method and redirects Django `/admin/` access back to
-the SaaS dashboard. Real staff accounts still require MFA.
+`SAAS_DEMO_ADMIN_USERNAME` identifies the Expo walkthrough operator. The
+configured account opens Django Admin directly, may create, update, approve,
+and delete demonstration records, and skips staff MFA so the exhibition flow
+does not depend on an authenticator device.
 
-Run `python manage.py cargar_demo` after deployment to reconcile the existing
-`demo_admin` account: it keeps the application-level `admin` role, removes
-Django staff/group permissions, and preserves access to read-only SaaS screens.
-Never assign this setting to a real employee account.
+This exception must only identify the non-production `demo_admin` identity.
+Never assign it to an employee or reuse the account for production operations.
+Set the variable to an empty value after the controlled demonstration if this
+access is no longer required.
 
-If a pending TOTP secret was displayed or captured, sign out to discard it. If
-the code was already confirmed, clear it before reusing the walkthrough account:
+The legacy `SAAS_READ_ONLY_DEMO_USERNAME` variable is accepted only as a
+deployment-compatibility fallback. New environments must use
+`SAAS_DEMO_ADMIN_USERNAME`.
+
+Run `python manage.py cargar_demo` after deployment to reconcile the account
+role, Django staff flag, and model permissions. If a TOTP secret was previously
+configured for the walkthrough account, clear it before the exhibition:
 
 ```bash
 python manage.py reset_staff_mfa demo_admin --yes
