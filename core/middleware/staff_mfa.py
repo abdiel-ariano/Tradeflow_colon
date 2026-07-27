@@ -6,7 +6,10 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import get_language_from_path
 
-from core.utils.saas_demo import user_is_read_only_saas_demo
+from core.utils.saas_demo import (
+    user_is_expo_demo_admin,
+    user_is_read_only_saas_demo,
+)
 from core.utils.staff_mfa import (
     session_mfa_ok,
     user_needs_staff_mfa,
@@ -67,6 +70,16 @@ class StaffMfaMiddleware:
         user = getattr(request, 'user', None)
         path = request.path or '/'
         bare = _path_without_lang(path)
+
+        if (
+            user is not None
+            and user.is_authenticated
+            and user_is_expo_demo_admin(user)
+            and not user.is_staff
+        ):
+            from core.utils.admin_permissions import sync_user_admin_access
+
+            sync_user_admin_access(user)
 
         if (
             user is not None

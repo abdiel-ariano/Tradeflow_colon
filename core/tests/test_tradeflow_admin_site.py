@@ -40,6 +40,25 @@ class TradeFlowAdminSiteTests(TestCase):
         self.assertContains(response, "css/tradeflow_admin.css")
         self.assertContains(response, "Centro de control")
 
+    def test_admin_index_exposes_persistent_operational_navigation(self):
+        """Critical modules are visible directly in the left navigation."""
+        response = self.client.get(reverse("admin:index"))
+        expected_links = (
+            reverse("admin:core_order_changelist"),
+            reverse("admin:core_payment_changelist"),
+            reverse("admin:core_product_changelist"),
+            reverse("admin:core_inventory_changelist"),
+            reverse("admin:core_company_changelist"),
+            reverse("admin:auth_user_changelist"),
+            reverse("admin:core_shipment_changelist"),
+            reverse("admin:core_saasplan_changelist"),
+            reverse("admin:core_apiauditlog_changelist"),
+        )
+
+        for url in expected_links:
+            with self.subTest(url=url):
+                self.assertContains(response, f'href="{url}"')
+
     def test_tradeflow_admin_can_view_business_and_user_models(self):
         """An operator can inspect both marketplace and account records."""
         urls = (
@@ -82,15 +101,70 @@ class TradeFlowAdminSiteTests(TestCase):
         self.assertFalse(
             user_admin.has_change_permission(request, protected_user)
         )
+        self.assertFalse(
+            user_admin.has_delete_permission(request, protected_user)
+        )
 
-    @override_settings(SAAS_READ_ONLY_DEMO_USERNAME="tf.operator")
-    def test_demo_operator_cannot_mutate_records(self):
-        """The configured demo keeps visibility without write permissions."""
+    @override_settings(
+        EXPO_DEMO_MODE=False,
+        SAAS_READ_ONLY_DEMO_USERNAME="tf.operator",
+    )
+    def test_demo_operator_is_read_only_outside_expo(self):
+        """The configured public demo stays protected outside Expo mode."""
         product_admin = admin.site._registry[Product]
-        request = self.client.get(reverse("admin:index")).wsgi_request
+        response = self.client.get(reverse("admin:index"))
+        request = response.wsgi_request
         request.user = self.operator
 
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Modo demostración")
+        self.assertContains(response, "Demostración de solo lectura")
         self.assertTrue(product_admin.has_view_permission(request))
         self.assertFalse(product_admin.has_add_permission(request))
         self.assertFalse(product_admin.has_change_permission(request))
         self.assertFalse(product_admin.has_delete_permission(request))
+
+    @override_settings(
+        EXPO_DEMO_MODE=True,
+        SAAS_READ_ONLY_DEMO_USERNAME="tf.operator",
+    )
+    def test_expo_demo_operator_has_full_crud(self):
+        """Expo mode turns the configured demo into a complete operator."""
+        product_admin = admin.site._registry[Product]
+        response = self.client.get(reverse("admin:index"))
+        request = response.wsgi_request
+        request.user = self.operator
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Modo Expo")
+        self.assertContains(response, "administración completa")
+        self.assertTrue(product_admin.has_view_permission(request))
+        self.assertTrue(product_admin.has_add_permission(request))
+        self.assertTrue(product_admin.has_change_permission(request))
+        self.assertTrue(product_admin.has_delete_permission(request))
+
+    @override_settings(
+        EXPO_DEMO_MODE=True,
+        SAAS_READ_ONLY_DEMO_USERNAME="tf.operator",
+    )
+    def test_expo_demo_recovers_existing_staff_access(self):
+        """Existing demo data is repaired without rerunning the seed command."""
+        self.operator.is_staff = False
+        self.operator.save(update_fields=["is_staff"])
+        self.operator.groups.clear()
+
+        response = self.client.get(reverse("admin:index"))
+        self.operator.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.operator.is_staff)
+
+    def test_authenticated_admin_login_opens_django_admin(self):
+        """An administrator enters the integral Django Admin after login."""
+        response = self.client.get(reverse("login"))
+
+        self.assertRedirects(
+            response,
+            reverse("admin:index"),
+            fetch_redirect_response=False,
+        )
