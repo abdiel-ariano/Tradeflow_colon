@@ -114,10 +114,10 @@ class StaffMfaHelperTests(TestCase):
     @override_settings(
         STAFF_MFA_REQUIRED=True,
         EXPO_DEMO_MODE=False,
-        SAAS_READ_ONLY_DEMO_USERNAME='staff_mfa',
+        SAAS_DEMO_ADMIN_USERNAME='staff_mfa',
     )
-    def test_read_only_saas_demo_skips_forced_mfa(self):
-        """The configured walkthrough account does not enroll in staff MFA."""
+    def test_demo_admin_skips_forced_mfa(self):
+        """The configured demo administrator does not enroll in MFA."""
         self.assertFalse(staff_mfa.user_needs_staff_mfa(self.user))
         self.assertFalse(staff_mfa.user_needs_staff_mfa_setup(self.user))
 
@@ -187,12 +187,13 @@ class StaffMfaHelperTests(TestCase):
 @override_settings(
     STAFF_MFA_REQUIRED=True,
     EXPO_DEMO_MODE=False,
-    SAAS_READ_ONLY_DEMO_USERNAME='demo_admin',
+    SAAS_DEMO_ADMIN_USERNAME='demo_admin',
 )
-class ReadOnlySaasDemoAccessTests(TestCase):
-    """Verify the public SaaS walkthrough cannot change platform data."""
+class DemoAdminAccessTests(TestCase):
+    """Verify the walkthrough administrator can operate every admin screen."""
 
     def setUp(self):
+        """Create and authenticate the configured demonstration operator."""
         self.user = User.objects.create_user(
             username='demo_admin',
             email='demo.admin@tradeflow.pa',
@@ -205,25 +206,22 @@ class ReadOnlySaasDemoAccessTests(TestCase):
         profile.save(update_fields=['role', 'email_verificado'])
         self.client.force_login(self.user)
 
-    def test_dashboard_is_visible_without_mfa(self):
-        """The demo can explore SaaS metrics without TOTP enrollment."""
+    def test_saas_dashboard_has_no_read_only_banner(self):
+        """The SaaS panel exposes the normal writable administration shell."""
         response = self.client.get(reverse('admin_saas_dashboard'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Read-only demo')
+        self.assertNotContains(response, 'Read-only demo')
+        self.assertContains(response, 'class="adm-rail-link"', count=15)
 
-    def test_django_admin_is_blocked(self):
-        """The demo account cannot enter Django Admin."""
+    def test_django_admin_is_available(self):
+        """Every configured demo operator can enter Django Admin directly."""
         response = self.client.get('/admin/')
 
-        self.assertRedirects(
-            response,
-            reverse('admin_saas_dashboard'),
-            fetch_redirect_response=False,
-        )
+        self.assertEqual(response.status_code, 200)
 
-    def test_saas_mutation_is_rejected(self):
-        """The demo cannot approve or reject a commercial request."""
+    def test_saas_mutation_reaches_the_real_action(self):
+        """The middleware does not reject writable SaaS requests."""
         url = reverse('api_admin_saas_request_action', kwargs={'pk': 999})
         response = self.client.post(
             url,
@@ -231,5 +229,6 @@ class ReadOnlySaasDemoAccessTests(TestCase):
             content_type='application/json',
         )
 
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json(), {'error': 'Read-only demo account.'})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {'error': 'Application not found'})
+
