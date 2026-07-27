@@ -102,9 +102,12 @@ class TradeFlowAdminSiteTests(TestCase):
             user_admin.has_change_permission(request, protected_user)
         )
 
-    @override_settings(SAAS_READ_ONLY_DEMO_USERNAME="tf.operator")
-    def test_demo_operator_cannot_mutate_records(self):
-        """The configured demo keeps visibility without write permissions."""
+    @override_settings(
+        EXPO_DEMO_MODE=False,
+        SAAS_READ_ONLY_DEMO_USERNAME="tf.operator",
+    )
+    def test_demo_operator_is_read_only_outside_expo(self):
+        """The configured public demo stays protected outside Expo mode."""
         product_admin = admin.site._registry[Product]
         response = self.client.get(reverse("admin:index"))
         request = response.wsgi_request
@@ -117,3 +120,32 @@ class TradeFlowAdminSiteTests(TestCase):
         self.assertFalse(product_admin.has_add_permission(request))
         self.assertFalse(product_admin.has_change_permission(request))
         self.assertFalse(product_admin.has_delete_permission(request))
+
+    @override_settings(
+        EXPO_DEMO_MODE=True,
+        SAAS_READ_ONLY_DEMO_USERNAME="tf.operator",
+    )
+    def test_expo_demo_operator_has_full_crud(self):
+        """Expo mode turns the configured demo into a complete operator."""
+        product_admin = admin.site._registry[Product]
+        response = self.client.get(reverse("admin:index"))
+        request = response.wsgi_request
+        request.user = self.operator
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Modo Expo")
+        self.assertContains(response, "administración completa")
+        self.assertTrue(product_admin.has_view_permission(request))
+        self.assertTrue(product_admin.has_add_permission(request))
+        self.assertTrue(product_admin.has_change_permission(request))
+        self.assertTrue(product_admin.has_delete_permission(request))
+
+    def test_authenticated_admin_login_opens_django_admin(self):
+        """An administrator enters the integral Django Admin after login."""
+        response = self.client.get(reverse("login"))
+
+        self.assertRedirects(
+            response,
+            reverse("admin:index"),
+            fetch_redirect_response=False,
+        )
