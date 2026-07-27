@@ -627,8 +627,9 @@ EXPO_DEMO_MODE = config('EXPO_DEMO_MODE', default=False, cast=bool)
 # Staff/admin must enroll TOTP (skipped automatically when EXPO_DEMO_MODE=True).
 STAFF_MFA_REQUIRED = config('STAFF_MFA_REQUIRED', default=True, cast=bool)
 
-# Public SaaS walkthrough account: read-only, MFA-exempt, no Django Admin.
-# Set to an empty string to disable this narrowly scoped exception.
+# Configured demo operator. EXPO_DEMO_MODE grants Django Admin CRUD and skips
+# staff MFA; outside Expo mode the same identity is strictly read-only.
+# Set to an empty string to disable the narrowly scoped demo behavior.
 SAAS_READ_ONLY_DEMO_USERNAME = config(
     'SAAS_READ_ONLY_DEMO_USERNAME',
     default='demo_admin',
