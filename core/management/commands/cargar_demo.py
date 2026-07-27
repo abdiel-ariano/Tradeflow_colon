@@ -351,9 +351,9 @@ class Command(BaseCommand):
                 self.style.WARNING('  No se pudo vincular demo_seller (usuario o empresa ausente).')
             )
 
-        # 6. Keep the SaaS walkthrough admin read-only and out of Django Admin.
+        # 6. Configure demo_admin for Expo CRUD or protected read-only use.
         self.stdout.write(
-            '\n[6/6] Ajustando cuenta demo_admin (SaaS de solo lectura)...'
+            '\n[6/6] Ajustando cuenta demo_admin para la demostración...'
         )
         adm = User.objects.filter(username='demo_admin').first()
         if adm:
@@ -393,7 +393,7 @@ class Command(BaseCommand):
                 sync_user_admin_access(adm)
                 self.stdout.write(
                     self.style.SUCCESS(
-                        '  demo_admin → permisos Django Admin sincronizados'
+                        '  demo_admin → Django Admin integral habilitado'
                     )
                 )
 
@@ -428,7 +428,7 @@ class Command(BaseCommand):
         self.stdout.write('  Buyer:  demo_buyer  / Demo1234!')
         self.stdout.write('  Seller: demo_seller / Demo1234! (Mi Tienda → TechZone Colón S.A.)')
         self.stdout.write(
-            '  Admin:  demo_admin  / Demo1234! — /saas/ (solo lectura, sin MFA)'
+            '  Admin:  demo_admin  / Demo1234! — /admin/ (Expo: CRUD completo)'
         )
         if getattr(settings, 'REQUIRE_EMAIL_VERIFICATION', False):
             self.stdout.write(
