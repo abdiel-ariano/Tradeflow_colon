@@ -51,24 +51,6 @@ permisos, historial, filtros y validaciones nativas.
       </span>
     </div>
 
-    {% if tf_admin_read_only_demo %}
-    <div class="tf-system-rail__demo">
-      <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
-      <span>
-        <strong>Modo demostración</strong>
-        <small>Exploración completa · solo lectura</small>
-      </span>
-    </div>
-    {% elif tf_admin_expo_demo %}
-    <div class="tf-system-rail__demo tf-system-rail__demo--writable">
-      <span class="material-symbols-rounded" aria-hidden="true">edit_square</span>
-      <span>
-        <strong>Modo Expo</strong>
-        <small>Administración completa habilitada</small>
-      </span>
-    </div>
-    {% endif %}
-
     <nav class="tf-system-rail__nav" aria-label="Módulos de TradeFlow">
       <p class="tf-system-rail__section">Resumen</p>
       <a href="{% url 'admin:index' %}" data-tf-admin-route="/admin/">
@@ -226,26 +208,3 @@ permisos, historial, filtros y validaciones nativas.
   </aside>
 {% endblock %}
 
-{% block messages %}
-  {% if tf_admin_read_only_demo %}
-  <div class="tf-admin-demo-banner" role="status">
-    <strong>Demostración de solo lectura</strong>
-    <span>
-      Puedes explorar todos los módulos. Las aprobaciones y los cambios están
-      deshabilitados.
-    </span>
-  </div>
-  {% elif tf_admin_expo_demo %}
-  <div
-    class="tf-admin-demo-banner tf-admin-demo-banner--writable"
-    role="status"
-  >
-    <strong>Modo Expo: administración completa</strong>
-    <span>
-      Puedes crear, editar, aprobar y eliminar datos de demostración desde
-      Django Admin.
-    </span>
-  </div>
-  {% endif %}
-  {{ block.super }}
-{% endblock %}
