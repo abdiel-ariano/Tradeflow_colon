@@ -351,7 +351,7 @@ class Command(BaseCommand):
                 self.style.WARNING('  No se pudo vincular demo_seller (usuario o empresa ausente).')
             )
 
-        # 6. Configure demo_admin for Expo CRUD or protected read-only use.
+        # 6. Configure demo_admin for persistent Django Admin access.
         self.stdout.write(
             '\n[6/6] Ajustando cuenta demo_admin para la demostración...'
         )
@@ -374,28 +374,14 @@ class Command(BaseCommand):
             else:
                 self.stdout.write('  demo_admin — rol admin OK')
 
-            from core.utils.saas_demo import user_is_read_only_saas_demo
+            from core.utils.admin_permissions import sync_user_admin_access
 
-            if user_is_read_only_saas_demo(adm):
-                if adm.is_staff:
-                    adm.is_staff = False
-                    adm.save(update_fields=['is_staff'])
-                adm.groups.clear()
-                adm.user_permissions.clear()
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        '  demo_admin → SaaS solo lectura; Django Admin bloqueado'
-                    )
+            sync_user_admin_access(adm)
+            self.stdout.write(
+                self.style.SUCCESS(
+                    '  demo_admin → Django Admin integral habilitado'
                 )
-            else:
-                from core.utils.admin_permissions import sync_user_admin_access
-
-                sync_user_admin_access(adm)
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        '  demo_admin → Django Admin integral habilitado'
-                    )
-                )
+            )
 
             prof = getattr(adm, 'profile', None)
             if prof and (not prof.email_verificado or prof.token_verificacion):
