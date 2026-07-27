@@ -135,6 +135,12 @@ class UserAdmin(TradeFlowPermissionMixin, BaseUserAdmin):
             return False
         return super().has_change_permission(request, obj)
 
+    def has_delete_permission(self, request, obj=None):
+        """Protect Django superusers from deletion by Expo operators."""
+        if obj and obj.is_superuser and not request.user.is_superuser:
+            return False
+        return super().has_delete_permission(request, obj)
+
     def get_fieldsets(self, request, obj=None):
         """Hide privilege-escalation fields from platform operators."""
         fieldsets = super().get_fieldsets(request, obj)
