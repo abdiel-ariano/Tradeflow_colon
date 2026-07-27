@@ -107,47 +107,28 @@ class TradeFlowAdminSiteTests(TestCase):
 
     @override_settings(
         EXPO_DEMO_MODE=False,
-        SAAS_READ_ONLY_DEMO_USERNAME="tf.operator",
+        SAAS_DEMO_ADMIN_USERNAME="tf.operator",
     )
-    def test_demo_operator_is_read_only_outside_expo(self):
-        """The configured public demo stays protected outside Expo mode."""
+    def test_configured_demo_operator_has_full_crud(self):
+        """The configured demo remains a complete administrator."""
         product_admin = admin.site._registry[Product]
         response = self.client.get(reverse("admin:index"))
         request = response.wsgi_request
         request.user = self.operator
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Modo demostración")
-        self.assertContains(response, "Demostración de solo lectura")
-        self.assertTrue(product_admin.has_view_permission(request))
-        self.assertFalse(product_admin.has_add_permission(request))
-        self.assertFalse(product_admin.has_change_permission(request))
-        self.assertFalse(product_admin.has_delete_permission(request))
-
-    @override_settings(
-        EXPO_DEMO_MODE=True,
-        SAAS_READ_ONLY_DEMO_USERNAME="tf.operator",
-    )
-    def test_expo_demo_operator_has_full_crud(self):
-        """Expo mode turns the configured demo into a complete operator."""
-        product_admin = admin.site._registry[Product]
-        response = self.client.get(reverse("admin:index"))
-        request = response.wsgi_request
-        request.user = self.operator
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Modo Expo")
-        self.assertContains(response, "administración completa")
+        self.assertNotContains(response, "solo lectura")
+        self.assertNotContains(response, "Modo Expo")
         self.assertTrue(product_admin.has_view_permission(request))
         self.assertTrue(product_admin.has_add_permission(request))
         self.assertTrue(product_admin.has_change_permission(request))
         self.assertTrue(product_admin.has_delete_permission(request))
 
     @override_settings(
-        EXPO_DEMO_MODE=True,
-        SAAS_READ_ONLY_DEMO_USERNAME="tf.operator",
+        EXPO_DEMO_MODE=False,
+        SAAS_DEMO_ADMIN_USERNAME="tf.operator",
     )
-    def test_expo_demo_recovers_existing_staff_access(self):
+    def test_demo_admin_recovers_existing_staff_access(self):
         """Existing demo data is repaired without rerunning the seed command."""
         self.operator.is_staff = False
         self.operator.save(update_fields=["is_staff"])
