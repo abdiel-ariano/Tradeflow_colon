@@ -115,7 +115,7 @@ def login_view(request):
 
             clear_session_mfa(request)
             if user_needs_staff_mfa(user):
-                next_url = _safe_next_url(request) or reverse('dashboard')
+                next_url = _safe_next_url(request) or _redirect_by_role(user)
                 mfa_name = (
                     'staff_mfa_setup'
                     if user_needs_staff_mfa_setup(user)
@@ -352,7 +352,7 @@ def _redirect_after_email_verified(user):
     except UserProfile.DoesNotExist:
         return redirect('catalogo_publico')
     if user.is_superuser or role == 'admin':
-        return redirect('dashboard')
+        return redirect('admin:index')
     if role == 'seller':
         return redirect('portal_seller')
     buyer_route = buyer_onboarding_redirect_name(user)
