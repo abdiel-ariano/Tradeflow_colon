@@ -101,6 +101,9 @@ class TradeFlowAdminSiteTests(TestCase):
         self.assertFalse(
             user_admin.has_change_permission(request, protected_user)
         )
+        self.assertFalse(
+            user_admin.has_delete_permission(request, protected_user)
+        )
 
     @override_settings(
         EXPO_DEMO_MODE=False,
