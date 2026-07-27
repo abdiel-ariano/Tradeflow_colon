@@ -59,17 +59,25 @@ permisos, historial, filtros y validaciones nativas.
         <small>Exploración completa · solo lectura</small>
       </span>
     </div>
+    {% elif tf_admin_expo_demo %}
+    <div class="tf-system-rail__demo tf-system-rail__demo--writable">
+      <span class="material-symbols-rounded" aria-hidden="true">edit_square</span>
+      <span>
+        <strong>Modo Expo</strong>
+        <small>Administración completa habilitada</small>
+      </span>
+    </div>
     {% endif %}
 
     <nav class="tf-system-rail__nav" aria-label="Módulos de TradeFlow">
       <p class="tf-system-rail__section">Resumen</p>
-      <a href="{% url 'dashboard' %}" data-tf-admin-route="/dashboard/">
-        <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
-        <span>Dashboard</span>
-      </a>
       <a href="{% url 'admin:index' %}" data-tf-admin-route="/admin/">
-        <span class="material-symbols-rounded" aria-hidden="true">space_dashboard</span>
-        <span>Vista general</span>
+        <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
+        <span>Administración</span>
+      </a>
+      <a href="{% url 'dashboard' %}" data-tf-admin-route="/dashboard/">
+        <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
+        <span>Métricas ejecutivas</span>
       </a>
 
       <p class="tf-system-rail__section">Comercio</p>
@@ -224,7 +232,18 @@ permisos, historial, filtros y validaciones nativas.
     <strong>Demostración de solo lectura</strong>
     <span>
       Puedes explorar todos los módulos. Las aprobaciones y los cambios están
-      deshabilitados para proteger la información de la Expo.
+      deshabilitados.
+    </span>
+  </div>
+  {% elif tf_admin_expo_demo %}
+  <div
+    class="tf-admin-demo-banner tf-admin-demo-banner--writable"
+    role="status"
+  >
+    <strong>Modo Expo: administración completa</strong>
+    <span>
+      Puedes crear, editar, aprobar y eliminar datos de demostración desde
+      Django Admin.
     </span>
   </div>
   {% endif %}
