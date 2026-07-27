@@ -996,3 +996,16 @@ body:not(.login) .toggle-nav-sidebar {
     display: flex;
   }
 }
+
+
+/* Expo demo keeps the native admin fully interactive and clearly identified. */
+.tf-system-rail__demo--writable {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(6, 95, 70, 0.28);
+}
+
+.tf-admin-demo-banner--writable {
+  border-color: #6ee7b7;
+  background: #ecfdf5;
+  color: #064e3b;
+}
