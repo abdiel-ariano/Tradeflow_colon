@@ -30,31 +30,20 @@ from .enterprise_models import (
     SaasPlan,
 )
 from .utils.admin_permissions import user_is_tradeflow_admin
+from .utils.saas_demo import user_is_demo_admin
 
 
 class TradeFlowPermissionMixin:
     """Align Django Admin permissions with TradeFlow operator roles.
 
-    Authenticated staff with the TradeFlow ``admin`` profile can inspect and
-    maintain registered resources. The configured demo is read-only by default
-    and receives full CRUD access only while Expo mode is explicitly enabled.
+    Authenticated staff with the TradeFlow admin profile can inspect, create,
+    and update registered resources. The configured demonstration
+    administrator also receives deletion access for Expo workflows.
     """
 
     def _tradeflow_admin_access(self, request):
         """Return whether the request user is a TradeFlow administrator."""
         return user_is_tradeflow_admin(request.user)
-
-    def _tradeflow_read_only(self, request):
-        """Return whether the current operator is the read-only SaaS demo."""
-        from .utils.saas_demo import user_is_read_only_saas_demo
-
-        return user_is_read_only_saas_demo(request.user)
-
-    def _tradeflow_expo_demo(self, request):
-        """Return whether the demo operator has writable Expo access."""
-        from .utils.saas_demo import user_is_expo_demo_admin
-
-        return user_is_expo_demo_admin(request.user)
 
     def has_module_permission(self, request):
         """Allow the application index for TradeFlow administrators."""
@@ -65,26 +54,22 @@ class TradeFlowPermissionMixin:
         return self._tradeflow_admin_access(request)
 
     def has_add_permission(self, request):
-        """Allow creates except for the configured demonstration account."""
-        return (
-            self._tradeflow_admin_access(request)
-            and not self._tradeflow_read_only(request)
-        )
+        """Allow administrators to create platform records."""
+        return self._tradeflow_admin_access(request)
 
     def has_change_permission(self, request, obj=None):
-        """Allow edits except for the configured demonstration account."""
-        return (
-            self._tradeflow_admin_access(request)
-            and not self._tradeflow_read_only(request)
-        )
+        """Allow administrators to update platform records."""
+        return self._tradeflow_admin_access(request)
 
     def has_delete_permission(self, request, obj=None):
-        """Allow deletion to superusers or the explicitly enabled Expo demo."""
-        can_delete = (
-            request.user.is_superuser
-            or self._tradeflow_expo_demo(request)
+        """Allow deletions to superusers and the configured demo admin."""
+        return bool(
+            self._tradeflow_admin_access(request)
+            and (
+                request.user.is_superuser
+                or user_is_demo_admin(request.user)
+            )
         )
-        return can_delete and not self._tradeflow_read_only(request)
 
 
 class TradeFlowModelAdmin(TradeFlowPermissionMixin, admin.ModelAdmin):
