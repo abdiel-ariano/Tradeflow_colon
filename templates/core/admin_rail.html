@@ -2,8 +2,8 @@
 Barra lateral operativa compartida del panel TradeFlow.
 
 Todos los accesos visibles llevan directamente al recurso correspondiente.
-La cuenta demo conserva navegación completa y las vistas de Django Admin
-aplican la política de solo lectura.
+Cada elemento utiliza el mismo componente visual y abre su módulo real en
+Django Admin o en la vista operativa correspondiente.
 {% endcomment %}
 <aside
   class="adm-side"
@@ -23,43 +23,44 @@ aplican la política de solo lectura.
 
   <nav class="adm-rail-nav">
     <span class="adm-rail-section-label">Resumen</span>
-    <a href="{% url 'dashboard' %}" data-adm-nav="dashboard" title="Dashboard">
+    <a class="adm-rail-link" href="{% url 'dashboard' %}" data-adm-nav="dashboard" title="Dashboard">
       <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
       <span class="adm-rail-label">Dashboard</span>
     </a>
 
     <span class="adm-rail-section-label">Comercio</span>
-    <a href="{% url 'lista_ordenes' %}" data-adm-nav="ordenes" title="Orders">
+    <a class="adm-rail-link" href="{% url 'lista_ordenes' %}" data-adm-nav="ordenes" title="Orders">
       <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
       <span class="adm-rail-label">Orders</span>
     </a>
-    <a href="{% url 'lista_productos' %}" data-adm-nav="productos" title="Products">
+    <a class="adm-rail-link" href="{% url 'lista_productos' %}" data-adm-nav="productos" title="Products">
       <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
       <span class="adm-rail-label">Products</span>
     </a>
-    <a href="{% url 'admin:core_inventory_changelist' %}" title="Inventory">
+    <a class="adm-rail-link" href="{% url 'admin:core_inventory_changelist' %}" title="Inventory">
       <span class="material-symbols-rounded" aria-hidden="true">warehouse</span>
       <span class="adm-rail-label">Inventory</span>
     </a>
-    <a href="{% url 'admin:core_payment_changelist' %}" title="Payments">
+    <a class="adm-rail-link" href="{% url 'admin:core_payment_changelist' %}" title="Payments">
       <span class="material-symbols-rounded" aria-hidden="true">payments</span>
       <span class="adm-rail-label">Payments</span>
     </a>
-    <a href="{% url 'admin:core_cotizacion_changelist' %}" title="Quotes">
+    <a class="adm-rail-link" href="{% url 'admin:core_cotizacion_changelist' %}" title="Quotes">
       <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
       <span class="adm-rail-label">Quotes</span>
     </a>
 
     <span class="adm-rail-section-label">Empresas y usuarios</span>
-    <a href="{% url 'lista_empresas' %}" data-adm-nav="empresas" title="Companies">
+    <a class="adm-rail-link" href="{% url 'lista_empresas' %}" data-adm-nav="empresas" title="Companies">
       <span class="material-symbols-rounded" aria-hidden="true">business</span>
       <span class="adm-rail-label">Companies</span>
     </a>
-    <a href="{% url 'admin:auth_user_changelist' %}" title="Users">
+    <a class="adm-rail-link" href="{% url 'admin:auth_user_changelist' %}" title="Users">
       <span class="material-symbols-rounded" aria-hidden="true">group</span>
       <span class="adm-rail-label">Users</span>
     </a>
     <a
+      class="adm-rail-link"
       href="{% url 'admin_applications' %}"
       data-adm-nav="admin_applications"
       title="Applications"
@@ -72,11 +73,12 @@ aplican la política de solo lectura.
     </a>
 
     <span class="adm-rail-section-label">Logística</span>
-    <a href="{% url 'admin:core_shipment_changelist' %}" title="Shipments">
+    <a class="adm-rail-link" href="{% url 'admin:core_shipment_changelist' %}" title="Shipments">
       <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
       <span class="adm-rail-label">Shipments</span>
     </a>
     <a
+      class="adm-rail-link"
       href="{% url 'admin:core_transportcarrier_changelist' %}"
       title="Carriers"
     >
@@ -86,6 +88,7 @@ aplican la política de solo lectura.
 
     <span class="adm-rail-section-label">SaaS y auditoría</span>
     <a
+      class="adm-rail-link"
       href="{% url 'admin_saas_dashboard' %}"
       data-adm-nav="saas"
       title="SaaS Plans"
@@ -93,15 +96,15 @@ aplican la política de solo lectura.
       <span class="material-symbols-rounded" aria-hidden="true">workspace_premium</span>
       <span class="adm-rail-label">SaaS Plans</span>
     </a>
-    <a href="{% url 'admin:core_companysubscription_changelist' %}" title="Subscriptions">
+    <a class="adm-rail-link" href="{% url 'admin:core_companysubscription_changelist' %}" title="Subscriptions">
       <span class="material-symbols-rounded" aria-hidden="true">subscriptions</span>
       <span class="adm-rail-label">Subscriptions</span>
     </a>
-    <a href="{% url 'admin:core_emaildeliverylog_changelist' %}" title="Email audit">
+    <a class="adm-rail-link" href="{% url 'admin:core_emaildeliverylog_changelist' %}" title="Email audit">
       <span class="material-symbols-rounded" aria-hidden="true">mark_email_read</span>
       <span class="adm-rail-label">Email audit</span>
     </a>
-    <a href="{% url 'admin:core_apiauditlog_changelist' %}" title="API audit">
+    <a class="adm-rail-link" href="{% url 'admin:core_apiauditlog_changelist' %}" title="API audit">
       <span class="material-symbols-rounded" aria-hidden="true">policy</span>
       <span class="adm-rail-label">API audit</span>
     </a>
