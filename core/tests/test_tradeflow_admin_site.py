@@ -140,6 +140,22 @@ class TradeFlowAdminSiteTests(TestCase):
         self.assertTrue(product_admin.has_change_permission(request))
         self.assertTrue(product_admin.has_delete_permission(request))
 
+    @override_settings(
+        EXPO_DEMO_MODE=True,
+        SAAS_READ_ONLY_DEMO_USERNAME="tf.operator",
+    )
+    def test_expo_demo_recovers_existing_staff_access(self):
+        """Existing demo data is repaired without rerunning the seed command."""
+        self.operator.is_staff = False
+        self.operator.save(update_fields=["is_staff"])
+        self.operator.groups.clear()
+
+        response = self.client.get(reverse("admin:index"))
+        self.operator.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.operator.is_staff)
+
     def test_authenticated_admin_login_opens_django_admin(self):
         """An administrator enters the integral Django Admin after login."""
         response = self.client.get(reverse("login"))
