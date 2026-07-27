@@ -71,7 +71,7 @@ def staff_mfa_verify(request):
             next_url = request.GET.get('next') or request.POST.get('next') or ''
             if next_url.startswith('/') and not next_url.startswith('//'):
                 return redirect(next_url)
-            return redirect('dashboard')
+            return redirect('admin:index')
         messages.error(request, 'Invalid authentication or backup code. Try again.')
 
     return render(request, 'core/staff_mfa_verify.html', {
