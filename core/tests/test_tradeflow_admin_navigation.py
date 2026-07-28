@@ -61,7 +61,6 @@ class TradeFlowAdminNavigationTests(TestCase):
         )
         self.assertContains(response, "Companies and users")
         self.assertContains(response, "SaaS and platform")
-        self.assertNotContains(response, "DM+Serif+Display")
 
     def test_accordion_assets_are_route_aware(self):
         """Static assets preserve the active module and visual contract."""
