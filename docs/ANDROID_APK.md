@@ -89,6 +89,25 @@ curl https://tradeflowcolon.com/.well-known/assetlinks.json
 The response must contain the package ID and the exact certificate fingerprint.
 Only then will Chrome remove the toolbar and trust the fullscreen TWA.
 
+The production GitHub Actions build now derives the certificate fingerprint
+from the configured keystore and compares it with the deployed association.
+The build stops before producing an APK or AAB when the file is empty or the
+package/fingerprint does not match. Test builds remain intentionally
+unverified because they use a disposable certificate.
+
+## Browser installation and responsive Android layout
+
+On eligible Android browsers, the public marketplace shows **Install
+TradeFlow** inside the compact navigation. The control uses the browser
+`beforeinstallprompt` event and remains hidden when installation is not
+available or the application already runs in standalone mode.
+
+The compact public shell is used through 1199 CSS pixels and on coarse
+pointer tablets through 1366 CSS pixels. Search remains available on its
+own row, navigation opens as a touch-friendly drawer, and product cards use
+one, two, or three columns instead of forcing the desktop four-column grid.
+Cards grow with translated or enlarged text so actions are not clipped.
+
 ## Release checklist
 
 1. Run the Django CI checks and `core.tests.test_pwa_android`.
