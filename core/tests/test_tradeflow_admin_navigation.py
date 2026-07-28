@@ -37,6 +37,10 @@ class TradeFlowAdminNavigationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="admRail"')
+        self.assertContains(
+            response,
+            'data-tf-admin-header="shared"',
+        )
         self.assertContains(response, "Dashboard")
         self.assertContains(response, "Companies and users")
         self.assertContains(response, "SaaS and platform")
@@ -44,6 +48,10 @@ class TradeFlowAdminNavigationTests(TestCase):
         self.assertContains(
             response,
             "css/tradeflow_admin_continuity.css",
+        )
+        self.assertContains(
+            response,
+            "css/tradeflow_admin_unified.css",
         )
         self.assertNotContains(response, "DM+Serif+Display")
         self.assertNotContains(response, "tf-system-rail")
@@ -59,8 +67,13 @@ class TradeFlowAdminNavigationTests(TestCase):
             response,
             "css/tradeflow_admin_continuity.css",
         )
+        self.assertContains(
+            response,
+            "css/tradeflow_admin_unified.css",
+        )
         self.assertContains(response, "Companies and users")
         self.assertContains(response, "SaaS and platform")
+        self.assertNotContains(response, "js/admin_rail.js")
 
     def test_accordion_assets_are_route_aware(self):
         """Static assets preserve the active module and visual contract."""
@@ -70,16 +83,21 @@ class TradeFlowAdminNavigationTests(TestCase):
         continuity_path = finders.find(
             "css/tradeflow_admin_continuity.css"
         )
+        unified_path = finders.find(
+            "css/tradeflow_admin_unified.css"
+        )
 
         self.assertIsNotNone(script_path)
         self.assertIsNotNone(theme_path)
         self.assertIsNotNone(layout_path)
         self.assertIsNotNone(continuity_path)
+        self.assertIsNotNone(unified_path)
 
         script = Path(script_path).read_text(encoding="utf-8")
         theme = Path(theme_path).read_text(encoding="utf-8")
         layout = Path(layout_path).read_text(encoding="utf-8")
         continuity = Path(continuity_path).read_text(encoding="utf-8")
+        unified = Path(unified_path).read_text(encoding="utf-8")
 
         self.assertIn("highlightSharedRail", script)
         self.assertIn("routeMatches", script)
@@ -90,3 +108,6 @@ class TradeFlowAdminNavigationTests(TestCase):
         self.assertNotIn('"DM Serif Display"', layout)
         self.assertIn("--tf-admin-header-height: 64px", continuity)
         self.assertIn("--tf-admin-rail-width: 252px", continuity)
+        self.assertIn("#header.tf-admin-header", unified)
+        self.assertIn("--tf-admin-header-height: 64px", unified)
+        self.assertIn("--tf-admin-rail-width: 252px", unified)
