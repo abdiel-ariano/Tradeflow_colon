@@ -39,9 +39,9 @@ class TradeFlowAdminSiteTests(TestCase):
         response = self.client.get(reverse("admin:index"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Administración integral")
+        self.assertContains(response, "Full administration")
         self.assertContains(response, "css/tradeflow_admin.css")
-        self.assertContains(response, "Centro de control")
+        self.assertContains(response, 'id="admRail"')
 
     def test_native_admin_uses_consistent_tradeflow_styles(self):
         """Native lists load the stable light TradeFlow presentation layer."""
