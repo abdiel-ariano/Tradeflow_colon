@@ -42,13 +42,17 @@
       <link rel="stylesheet" href="{% static 'admin/css/responsive_rtl.css' %}">
     {% endif %}
   {% endblock %}
+  <link
+    rel="stylesheet"
+    href="{% static 'css/tradeflow_admin_unified.css' %}"
+  >
   {% block blockbots %}
     <meta name="robots" content="NONE,NOARCHIVE">
   {% endblock %}
 </head>
 
 <body
-  class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}"
+  class="{% if is_popup %}popup {% else %}tf-admin-unified {% endif %}{% block bodyclass %}{% endblock %}"
   data-admin-utc-offset="{% now 'Z' %}"
 >
   <a href="#content-start" class="skip-to-content-link">
@@ -57,44 +61,9 @@
   <div id="container">
     {% if not is_popup %}
       {% block header %}
-        <header id="header">
-          <div id="branding">
-            {% block branding %}{% endblock %}
-          </div>
-          {% block usertools %}
-            {% if has_permission %}
-              <div id="user-tools" class="tf-admin-user-tools">
-                <span class="tf-admin-user-avatar" aria-hidden="true">
-                  {% if user.first_name or user.last_name %}
-                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
-                  {% else %}
-                    {{ user.get_username|first|upper }}
-                  {% endif %}
-                </span>
-                <span class="tf-admin-user-identity">
-                  <strong>
-                    {% firstof user.get_full_name user.get_username %}
-                  </strong>
-                </span>
-                <form
-                  id="logout-form"
-                  method="post"
-                  action="{% url 'admin:logout' %}"
-                >
-                  {% csrf_token %}
-                  <button type="submit">
-                    <span class="material-symbols-rounded" aria-hidden="true">
-                      logout
-                    </span>
-                    Sign out
-                  </button>
-                </form>
-              </div>
-            {% endif %}
-          {% endblock %}
-          {% block nav-global %}{% endblock %}
-        </header>
+        {% include "core/includes/admin_header.html" with logout_url_name="admin:logout" %}
       {% endblock %}
+      {% block nav-global %}{% endblock %}
       {% block nav-breadcrumbs %}
         <nav aria-label="{% translate 'Breadcrumbs' %}">
           {% block breadcrumbs %}
