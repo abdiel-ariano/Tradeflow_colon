@@ -212,7 +212,8 @@ class DemoAdminAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'Read-only demo')
-        self.assertContains(response, 'class="adm-rail-link"', count=15)
+        self.assertContains(response, 'id="admRail"')
+        self.assertContains(response, 'class="adm-rail-link"')
 
     def test_django_admin_is_available(self):
         """Every configured demo operator can enter Django Admin directly."""

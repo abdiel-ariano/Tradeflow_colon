@@ -1,16 +1,16 @@
 {% comment %}
-Barra lateral operativa compartida del panel TradeFlow.
+Shared TradeFlow administration rail.
 
-Todos los accesos visibles llevan directamente al recurso correspondiente.
-Cada elemento utiliza el mismo componente visual y abre su módulo real en
-Django Admin o en la vista operativa correspondiente.
+This partial is the only source of navigation markup for the operational
+dashboard and Django Admin. Every destination opens the real management view,
+while the JavaScript keeps the current route and accordion group active.
 {% endcomment %}
 {% load static %}
 <aside
   class="adm-side"
   id="admRail"
   data-nav-active="{{ nav_activo|default:'dashboard' }}"
-  aria-label="Admin menu"
+  aria-label="Administration menu"
 >
   <div class="adm-rail-brand">
     <div class="adm-rail-brand-mark">
@@ -22,48 +22,111 @@ Django Admin o en la vista operativa correspondiente.
     </div>
   </div>
 
-  <nav class="adm-rail-nav">
+  <nav class="adm-rail-nav" aria-label="TradeFlow modules">
     <span class="adm-rail-section-label">Summary</span>
-    <a class="adm-rail-link" href="{% url 'dashboard' %}" data-adm-nav="dashboard" title="Dashboard">
+    <a
+      class="adm-rail-link"
+      href="{% url 'dashboard' %}"
+      data-adm-nav="dashboard"
+      data-tf-admin-route="/dashboard/"
+      title="Dashboard"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
       <span class="adm-rail-label">Dashboard</span>
     </a>
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:index' %}"
+      data-tf-admin-route="/admin/"
+      title="Administration"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">apps</span>
+      <span class="adm-rail-label">Administration</span>
+    </a>
 
     <span class="adm-rail-section-label">Commerce</span>
-    <a class="adm-rail-link" href="{% url 'lista_ordenes' %}" data-adm-nav="ordenes" title="Orders">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_order_changelist' %}"
+      data-adm-nav="ordenes"
+      data-tf-admin-route="/admin/core/order/"
+      title="Orders"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
       <span class="adm-rail-label">Orders</span>
     </a>
-    <a class="adm-rail-link" href="{% url 'lista_productos' %}" data-adm-nav="productos" title="Products">
-      <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
-      <span class="adm-rail-label">Products</span>
-    </a>
-    <a class="adm-rail-link" href="{% url 'admin:core_inventory_changelist' %}" title="Inventory">
-      <span class="material-symbols-rounded" aria-hidden="true">warehouse</span>
-      <span class="adm-rail-label">Inventory</span>
-    </a>
-    <a class="adm-rail-link" href="{% url 'admin:core_payment_changelist' %}" title="Payments">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_payment_changelist' %}"
+      data-tf-admin-route="/admin/core/payment/"
+      title="Payments"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">payments</span>
       <span class="adm-rail-label">Payments</span>
     </a>
-    <a class="adm-rail-link" href="{% url 'admin:core_cotizacion_changelist' %}" title="Quotes">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_cotizacion_changelist' %}"
+      data-tf-admin-route="/admin/core/cotizacion/"
+      title="Quotes"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
       <span class="adm-rail-label">Quotes</span>
     </a>
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_product_changelist' %}"
+      data-adm-nav="productos"
+      data-tf-admin-route="/admin/core/product/"
+      title="Products"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+      <span class="adm-rail-label">Products</span>
+    </a>
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_inventory_changelist' %}"
+      data-tf-admin-route="/admin/core/inventory/"
+      title="Inventory"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">warehouse</span>
+      <span class="adm-rail-label">Inventory</span>
+    </a>
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_homepromosection_changelist' %}"
+      data-tf-admin-route="/admin/core/homepromosection/"
+      title="Promotions"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
+      <span class="adm-rail-label">Promotions</span>
+    </a>
 
     <span class="adm-rail-section-label">Companies and users</span>
-    <a class="adm-rail-link" href="{% url 'lista_empresas' %}" data-adm-nav="empresas" title="Companies">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_company_changelist' %}"
+      data-adm-nav="empresas"
+      data-tf-admin-route="/admin/core/company/"
+      title="Companies"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">business</span>
       <span class="adm-rail-label">Companies</span>
     </a>
-    <a class="adm-rail-link" href="{% url 'admin:auth_user_changelist' %}" title="Users">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:auth_user_changelist' %}"
+      data-tf-admin-route="/admin/auth/user/"
+      title="Users"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">group</span>
       <span class="adm-rail-label">Users</span>
     </a>
     <a
       class="adm-rail-link"
-      href="{% url 'admin_applications' %}"
+      href="{% url 'admin:core_userapplication_changelist' %}"
       data-adm-nav="admin_applications"
+      data-tf-admin-route="/admin/core/userapplication/"
       title="Applications"
     >
       <span class="material-symbols-rounded" aria-hidden="true">assignment_ind</span>
@@ -74,41 +137,99 @@ Django Admin o en la vista operativa correspondiente.
     </a>
 
     <span class="adm-rail-section-label">Logistics</span>
-    <a class="adm-rail-link" href="{% url 'admin:core_shipment_changelist' %}" title="Shipments">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_shipment_changelist' %}"
+      data-tf-admin-route="/admin/core/shipment/"
+      title="Shipments"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
       <span class="adm-rail-label">Shipments</span>
     </a>
     <a
       class="adm-rail-link"
       href="{% url 'admin:core_transportcarrier_changelist' %}"
+      data-tf-admin-route="/admin/core/transportcarrier/"
       title="Carriers"
     >
       <span class="material-symbols-rounded" aria-hidden="true">departure_board</span>
       <span class="adm-rail-label">Carriers</span>
     </a>
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_logisticsevent_changelist' %}"
+      data-tf-admin-route="/admin/core/logisticsevent/"
+      title="Logistics events"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">timeline</span>
+      <span class="adm-rail-label">Logistics events</span>
+    </a>
 
-    <span class="adm-rail-section-label">SaaS and audit</span>
+    <span class="adm-rail-section-label">SaaS and platform</span>
     <a
       class="adm-rail-link"
       href="{% url 'admin_saas_dashboard' %}"
       data-adm-nav="saas"
-      title="SaaS Plans"
+      data-tf-admin-route="/saas/"
+      title="SaaS dashboard"
     >
       <span class="material-symbols-rounded" aria-hidden="true">workspace_premium</span>
-      <span class="adm-rail-label">SaaS Plans</span>
+      <span class="adm-rail-label">SaaS dashboard</span>
     </a>
-    <a class="adm-rail-link" href="{% url 'admin:core_companysubscription_changelist' %}" title="Subscriptions">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_saasplan_changelist' %}"
+      data-tf-admin-route="/admin/core/saasplan/"
+      title="Plans"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">sell</span>
+      <span class="adm-rail-label">Plans</span>
+    </a>
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_companysubscription_changelist' %}"
+      data-tf-admin-route="/admin/core/companysubscription/"
+      title="Subscriptions"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">subscriptions</span>
       <span class="adm-rail-label">Subscriptions</span>
     </a>
-    <a class="adm-rail-link" href="{% url 'admin:core_emaildeliverylog_changelist' %}" title="Email audit">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_companyplancheckout_changelist' %}"
+      data-tf-admin-route="/admin/core/companyplancheckout/"
+      title="Plan payments"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">account_balance</span>
+      <span class="adm-rail-label">Plan payments</span>
+    </a>
+
+    <span class="adm-rail-section-label">Audit</span>
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_emaildeliverylog_changelist' %}"
+      data-tf-admin-route="/admin/core/emaildeliverylog/"
+      title="Email audit"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">mark_email_read</span>
       <span class="adm-rail-label">Email audit</span>
     </a>
-    <a class="adm-rail-link" href="{% url 'admin:core_apiauditlog_changelist' %}" title="API audit">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin:core_apiauditlog_changelist' %}"
+      data-tf-admin-route="/admin/core/apiauditlog/"
+      title="API audit"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">policy</span>
       <span class="adm-rail-label">API audit</span>
     </a>
   </nav>
+
+  <div class="adm-rail-footer">
+    <a class="adm-rail-link" href="{% url 'home' %}" title="Marketplace">
+      <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
+      <span class="adm-rail-label">Marketplace</span>
+    </a>
+  </div>
 </aside>
 <script defer src="{% static 'js/tradeflow_admin_nav.js' %}"></script>

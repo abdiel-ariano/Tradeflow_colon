@@ -24,6 +24,10 @@
     rel="stylesheet"
     href="{% static 'css/tradeflow_admin_layout.css' %}"
   >
+  <link
+    rel="stylesheet"
+    href="{% static 'css/tradeflow_admin_continuity.css' %}"
+  >
   {% if LANGUAGE_BIDI %}
     <link
       rel="stylesheet"
@@ -61,33 +65,17 @@
             {% if has_permission %}
               <div id="user-tools" class="tf-admin-user-tools">
                 <span class="tf-admin-user-avatar" aria-hidden="true">
-                  <span class="material-symbols-rounded">person</span>
+                  {% if user.first_name or user.last_name %}
+                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                  {% else %}
+                    {{ user.get_username|first|upper }}
+                  {% endif %}
                 </span>
                 <span class="tf-admin-user-identity">
                   <strong>
-                    {% firstof user.get_short_name user.get_username %}
+                    {% firstof user.get_full_name user.get_username %}
                   </strong>
-                  <small>Administrator</small>
                 </span>
-                {% if site_url %}
-                  <a class="tf-admin-header-link" href="{{ site_url }}">
-                    <span class="material-symbols-rounded" aria-hidden="true">
-                      storefront
-                    </span>
-                    Marketplace
-                  </a>
-                {% endif %}
-                {% if user.has_usable_password %}
-                  <a
-                    class="tf-admin-header-link"
-                    href="{% url 'admin:password_change' %}"
-                  >
-                    <span class="material-symbols-rounded" aria-hidden="true">
-                      shield_person
-                    </span>
-                    Security
-                  </a>
-                {% endif %}
                 <form
                   id="logout-form"
                   method="post"

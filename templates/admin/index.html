@@ -16,49 +16,49 @@ Los accesos rápidos apuntan a las entidades críticas del marketplace.
 <div id="content-main">
   <section class="tf-admin-hero" aria-labelledby="tf-admin-title">
     <div>
-      <p class="tf-admin-eyebrow">OPERACIONES TRADEFLOW</p>
-      <h1 id="tf-admin-title">Administración integral</h1>
+      <p class="tf-admin-eyebrow">TRADEFLOW OPERATIONS</p>
+      <h1 id="tf-admin-title">Full administration</h1>
       <p>
-        Controla el marketplace, las empresas, el catálogo, las ventas,
-        la logística y el ecosistema SaaS desde una sola vista.
+        Manage the marketplace, companies, catalog, sales, logistics,
+        and SaaS ecosystem from one consistent workspace.
       </p>
     </div>
     <div class="tf-admin-hero-status">
       <span class="tf-admin-status-dot" aria-hidden="true"></span>
-      Panel operativo
+      Operational panel
     </div>
   </section>
 
-  <section class="tf-admin-quick-grid" aria-label="Accesos rápidos">
+  <section class="tf-admin-quick-grid" aria-label="Quick access">
     <a class="tf-admin-quick-card" href="{% url 'admin:core_order_changelist' %}">
       <span class="tf-admin-quick-icon" aria-hidden="true">01</span>
       <span>
-        <strong>Pedidos</strong>
-        <small>Venta, pago y cumplimiento</small>
+        <strong>Orders</strong>
+        <small>Sales, payment, and fulfillment</small>
       </span>
       <span class="tf-admin-arrow" aria-hidden="true">→</span>
     </a>
     <a class="tf-admin-quick-card" href="{% url 'admin:core_product_changelist' %}">
       <span class="tf-admin-quick-icon" aria-hidden="true">02</span>
       <span>
-        <strong>Productos</strong>
-        <small>Catálogo, precios e inventario</small>
+        <strong>Products</strong>
+        <small>Catalog, pricing, and inventory</small>
       </span>
       <span class="tf-admin-arrow" aria-hidden="true">→</span>
     </a>
     <a class="tf-admin-quick-card" href="{% url 'admin:core_company_changelist' %}">
       <span class="tf-admin-quick-icon" aria-hidden="true">03</span>
       <span>
-        <strong>Empresas</strong>
-        <small>Proveedores y verificación</small>
+        <strong>Companies</strong>
+        <small>Suppliers and verification</small>
       </span>
       <span class="tf-admin-arrow" aria-hidden="true">→</span>
     </a>
     <a class="tf-admin-quick-card" href="{% url 'admin:auth_user_changelist' %}">
       <span class="tf-admin-quick-icon" aria-hidden="true">04</span>
       <span>
-        <strong>Usuarios</strong>
-        <small>Accesos, roles y actividad</small>
+        <strong>Users</strong>
+        <small>Access, roles, and activity</small>
       </span>
       <span class="tf-admin-arrow" aria-hidden="true">→</span>
     </a>
@@ -68,10 +68,10 @@ Los accesos rápidos apuntan a las entidades críticas del marketplace.
     <section class="tf-admin-apps" aria-labelledby="tf-admin-modules-title">
       <div class="tf-admin-section-heading">
         <div>
-          <p class="tf-admin-eyebrow">SISTEMA</p>
-          <h2 id="tf-admin-modules-title">Módulos administrativos</h2>
+          <p class="tf-admin-eyebrow">SYSTEM</p>
+          <h2 id="tf-admin-modules-title">Administration modules</h2>
         </div>
-        <span>{{ app_list|length }} áreas disponibles</span>
+        <span>{{ app_list|length }} available areas</span>
       </div>
 
       <div class="tf-admin-module-grid">
@@ -83,7 +83,7 @@ Los accesos rápidos apuntan a las entidades críticas del marketplace.
             </span>
             <div>
               <h3>{{ app.name }}</h3>
-              <small>{{ app.models|length }} recursos</small>
+              <small>{{ app.models|length }} resources</small>
             </div>
           </header>
           <div class="tf-admin-model-list">
@@ -96,10 +96,10 @@ Los accesos rápidos apuntan a las entidades críticas del marketplace.
               {% endif %}
               <span class="tf-admin-model-actions">
                 {% if model.admin_url %}
-                <a href="{{ model.admin_url }}" aria-label="Ver {{ model.name }}">Ver</a>
+                <a href="{{ model.admin_url }}" aria-label="View {{ model.name }}">View</a>
                 {% endif %}
                 {% if model.add_url %}
-                <a class="tf-admin-add-link" href="{{ model.add_url }}" aria-label="Agregar {{ model.name }}">+</a>
+                <a class="tf-admin-add-link" href="{{ model.add_url }}" aria-label="Add {{ model.name }}">+</a>
                 {% endif %}
               </span>
             </div>
@@ -108,7 +108,7 @@ Los accesos rápidos apuntan a las entidades críticas del marketplace.
         </article>
         {% empty %}
         <div class="tf-admin-empty">
-          No hay módulos disponibles para los permisos de esta cuenta.
+          No modules are available for this account's permissions.
         </div>
         {% endfor %}
       </div>
@@ -117,8 +117,8 @@ Los accesos rápidos apuntan a las entidades críticas del marketplace.
     <aside class="tf-admin-activity" aria-labelledby="tf-admin-activity-title">
       <div class="tf-admin-section-heading">
         <div>
-          <p class="tf-admin-eyebrow">AUDITORÍA</p>
-          <h2 id="tf-admin-activity-title">Actividad reciente</h2>
+          <p class="tf-admin-eyebrow">AUDIT</p>
+          <h2 id="tf-admin-activity-title">Recent activity</h2>
         </div>
       </div>
       {% get_admin_log 8 as admin_log for_user user %}
@@ -133,14 +133,14 @@ Los accesos rápidos apuntan a las entidades críticas del marketplace.
             <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
             {% endif %}
             <small>
-              {{ entry.content_type|capfirst|default:"Sistema" }}
-              · {{ entry.action_time|timesince }} atrás
+              {{ entry.content_type|capfirst|default:"System" }}
+              · {{ entry.action_time|timesince }} ago
             </small>
           </div>
         </li>
         {% empty %}
         <li class="tf-admin-empty-activity">
-          Aún no hay acciones administrativas registradas.
+          No administrative activity has been recorded yet.
         </li>
         {% endfor %}
       </ol>

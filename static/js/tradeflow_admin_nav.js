@@ -1,32 +1,50 @@
 /**
- * Keeps TradeFlow admin navigation active, compact, and route-aware.
+ * Keeps the shared TradeFlow administration rail route-aware.
  *
- * Both Django Admin and the custom operations dashboard use the same
- * accordion behavior. The group containing the current page opens
- * automatically, while opening another group closes its siblings.
+ * The dashboard and Django Admin render the same navigation partial. The
+ * current destination opens automatically, while opening another category
+ * closes its siblings. The selected category is preserved for the session.
  */
 (function () {
   "use strict";
 
-  /** Mark the most specific Django Admin route as active. */
-  function highlightSystemRail() {
-    var rail = document.getElementById("tfSystemRail");
+  /**
+   * Return whether a route prefix matches the current browser path.
+   *
+   * @param {string} currentPath Current URL path.
+   * @param {string} route Configured navigation route.
+   * @returns {boolean} True when the route represents the current page.
+   */
+  function routeMatches(currentPath, route) {
+    if (!route) return false;
+    if (route === "/admin/") return currentPath === route;
+    return currentPath.indexOf(route) === 0;
+  }
+
+  /** Mark the most specific shared-rail destination as active. */
+  function highlightSharedRail() {
+    var rail = document.getElementById("admRail");
     if (!rail) return;
 
+    var activeKey = rail.getAttribute("data-nav-active") || "";
     var currentPath = window.location.pathname;
     var links = Array.prototype.slice.call(
-      rail.querySelectorAll("a[data-tf-admin-route]")
+      rail.querySelectorAll("a.adm-rail-link")
     );
     var bestMatch = null;
 
     links.forEach(function (link) {
+      var key = link.getAttribute("data-adm-nav") || "";
       var route = link.getAttribute("data-tf-admin-route") || "";
-      var matches = route === "/admin/"
-        ? currentPath === route
-        : currentPath.indexOf(route) === 0;
+      var keyMatches = Boolean(activeKey && key === activeKey);
+      var pathMatches = routeMatches(currentPath, route);
+      var matchWeight = keyMatches ? 10000 : route.length;
 
-      if (matches && (!bestMatch || route.length > bestMatch.route.length)) {
-        bestMatch = { link: link, route: route };
+      if (
+        (keyMatches || pathMatches) &&
+        (!bestMatch || matchWeight > bestMatch.weight)
+      ) {
+        bestMatch = { link: link, weight: matchWeight };
       }
     });
 
@@ -36,35 +54,13 @@
     }
   }
 
-  /** Mark the current custom dashboard destination as active. */
-  function highlightDashboardRail() {
-    var rail = document.getElementById("admRail");
-    if (!rail) return;
-
-    var activeKey = rail.getAttribute("data-nav-active") || "";
-    var currentPath = window.location.pathname;
-    var links = Array.prototype.slice.call(
-      rail.querySelectorAll("a.adm-rail-link")
-    );
-    var activeLink = null;
-
-    links.forEach(function (link) {
-      var key = link.getAttribute("data-adm-nav") || "";
-      var routeMatches = link.pathname === currentPath;
-      var keyMatches = activeKey && key === activeKey;
-
-      if (!activeLink && (keyMatches || routeMatches)) {
-        activeLink = link;
-      }
-    });
-
-    if (activeLink) {
-      activeLink.classList.add("is-active");
-      activeLink.setAttribute("aria-current", "page");
-    }
-  }
-
-  /** Convert section labels and links into accessible accordion groups. */
+  /**
+   * Convert section labels and links into accessible accordion groups.
+   *
+   * @param {HTMLElement|null} nav Navigation container.
+   * @param {string} labelSelector Selector for category labels.
+   * @param {string} storageKey Session storage key.
+   */
   function buildAccordion(nav, labelSelector, storageKey) {
     if (!nav || nav.getAttribute("data-accordion-ready") === "true") {
       return;
@@ -76,7 +72,7 @@
 
     nav.textContent = "";
 
-    children.forEach(function (node, index) {
+    children.forEach(function (node) {
       if (node.matches(labelSelector)) {
         var details = document.createElement("details");
         var summary = document.createElement("summary");
@@ -141,17 +137,11 @@
   }
 
   function initializeNavigation() {
-    highlightSystemRail();
-    highlightDashboardRail();
-    buildAccordion(
-      document.querySelector(".tf-system-rail__nav"),
-      ".tf-system-rail__section",
-      "tradeflow-admin-group"
-    );
+    highlightSharedRail();
     buildAccordion(
       document.querySelector(".adm-rail-nav"),
       ".adm-rail-section-label",
-      "tradeflow-dashboard-group"
+      "tradeflow-admin-group"
     );
   }
 
