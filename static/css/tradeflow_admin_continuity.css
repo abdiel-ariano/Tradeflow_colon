@@ -1,0 +1,428 @@
+/*
+ * TradeFlow Colón — administrative visual continuity contract.
+ *
+ * This final stylesheet is shared by the custom operations dashboard and
+ * Django Admin. It intentionally loads after legacy panel styles so the
+ * header, rail, typography, spacing, and full-width data canvas cannot drift
+ * when operators move between administrative routes.
+ */
+
+:root {
+  --tf-admin-shell-font:
+    "Montserrat", "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --tf-admin-header-height: 64px;
+  --tf-admin-rail-width: 252px;
+  --tf-admin-navy: #0f2a44;
+  --tf-admin-navy-deep: #0a1f33;
+  --tf-admin-orange: #f26522;
+  --tf-admin-page: #f2f3f5;
+  --tf-admin-border: #d1d5db;
+  --tf-admin-text: #374151;
+  --tf-admin-muted: #6b7a88;
+}
+
+body:not(.login):has(.adm-side),
+body:not(.login):has(.adm-side) button,
+body:not(.login):has(.adm-side) input,
+body:not(.login):has(.adm-side) optgroup,
+body:not(.login):has(.adm-side) select,
+body:not(.login):has(.adm-side) textarea,
+body:not(.login):has(.adm-side) table,
+body:not(.login):has(.adm-side) label,
+body:not(.login):has(.adm-side) h1,
+body:not(.login):has(.adm-side) h2,
+body:not(.login):has(.adm-side) h3,
+body:not(.login):has(.adm-side) h4,
+body:not(.login):has(.adm-side) h5,
+body:not(.login):has(.adm-side) h6 {
+  font-family: var(--tf-admin-shell-font) !important;
+}
+
+body:not(.login):has(.adm-side) .material-symbols-rounded {
+  font-family: "Material Symbols Rounded" !important;
+}
+
+/* The native header mirrors the dashboard navbar exactly. */
+body:not(.login) #header {
+  position: fixed !important;
+  z-index: 2200;
+  inset: 0 0 auto;
+  display: flex;
+  width: 100%;
+  height: var(--tf-admin-header-height);
+  min-height: var(--tf-admin-header-height);
+  box-sizing: border-box;
+  align-items: center;
+  gap: 16px;
+  padding: 0 clamp(1rem, 4vw, 2.5rem);
+  background: var(--tf-admin-navy) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body:not(.login) #branding {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+body:not(.login) .tf-admin-brand {
+  display: inline-flex;
+  align-items: center;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+body:not(.login) .tf-admin-brand img {
+  width: auto;
+  height: 36px;
+  object-fit: contain;
+}
+
+body:not(.login) .tf-admin-user-tools {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  color: #ffffff;
+  text-transform: none;
+}
+
+body:not(.login) .tf-admin-user-avatar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--tf-admin-orange);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+body:not(.login) .tf-admin-user-identity {
+  display: block;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+body:not(.login) .tf-admin-user-identity strong {
+  display: block;
+  overflow: hidden;
+  max-width: 160px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:not(.login) .tf-admin-user-tools #logout-form {
+  display: inline-flex;
+  margin: 0;
+}
+
+body:not(.login) .tf-admin-user-tools #logout-form button {
+  display: inline-flex;
+  min-height: 38px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+body:not(.login) .tf-admin-user-tools #logout-form button:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+body:not(.login) .tf-admin-user-tools #logout-form .material-symbols-rounded {
+  font-size: 18px;
+}
+
+/* Native breadcrumbs are removed because the dashboard does not add a bar. */
+body:not(.login) nav[aria-label="Breadcrumbs"],
+body:not(.login) div.breadcrumbs {
+  display: none !important;
+}
+
+/* One rail component is rendered by both administrative shells. */
+.adm-side {
+  width: var(--tf-admin-rail-width) !important;
+  flex: 0 0 var(--tf-admin-rail-width);
+  background:
+    linear-gradient(
+      180deg,
+      var(--tf-admin-navy) 0%,
+      var(--tf-admin-navy-deep) 100%
+    ) !important;
+  color: #ffffff;
+}
+
+body:not(.login):has(#header) #container {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  padding-top: var(--tf-admin-header-height);
+}
+
+body:not(.login):has(#header) .adm-side {
+  position: fixed !important;
+  z-index: 2100;
+  top: var(--tf-admin-header-height);
+  bottom: 0;
+  left: 0;
+  height: auto !important;
+  overflow: hidden;
+}
+
+body:not(.login):has(.tf-nav) .tf-nav {
+  height: var(--tf-admin-header-height);
+  min-height: var(--tf-admin-header-height);
+}
+
+body:not(.login):has(.tf-nav) .adm-shell .adm-side {
+  position: sticky;
+  top: var(--tf-admin-header-height);
+  height: calc(100vh - var(--tf-admin-header-height));
+  align-self: flex-start;
+}
+
+.adm-rail-brand {
+  min-height: 88px;
+  box-sizing: border-box;
+  padding: 1.1rem 1rem 0.85rem;
+}
+
+.adm-rail-brand-mark {
+  min-height: 40px;
+}
+
+.adm-rail-brand-text strong {
+  color: #ffffff !important;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.adm-rail-brand-text span {
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.adm-rail-nav {
+  min-height: 0;
+  max-height: none !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0.75rem 0 1rem;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+  scrollbar-width: thin;
+}
+
+.tf-rail-group {
+  margin: 2px 0;
+}
+
+.tf-rail-group__summary {
+  min-height: 36px;
+  padding: 8px 16px;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: var(--tf-admin-shell-font) !important;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.tf-rail-group__summary:hover,
+.tf-rail-group[open] > .tf-rail-group__summary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.tf-rail-group__body {
+  gap: 2px;
+  padding: 2px 0 7px;
+}
+
+.adm-side .adm-rail-link {
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 10px 1rem 10px 14px;
+  margin: 0 8px;
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.78) !important;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.adm-side .adm-rail-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff !important;
+}
+
+.adm-side .adm-rail-link.is-active {
+  border-left-color: var(--tf-admin-orange);
+  background: rgba(0, 0, 0, 0.28);
+  color: #ffffff !important;
+}
+
+.adm-rail-footer {
+  flex: 0 0 auto;
+}
+
+/* Native pages receive the complete remaining viewport width. */
+body:not(.login):has(#header) .main {
+  width: calc(100vw - var(--tf-admin-rail-width)) !important;
+  max-width: none !important;
+  min-height: calc(100vh - var(--tf-admin-header-height));
+  margin-left: var(--tf-admin-rail-width) !important;
+}
+
+body:not(.login):has(#header) #content-start,
+body:not(.login):has(#header) #content,
+body:not(.login):has(#header) #content-main {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  box-sizing: border-box;
+  margin: 0 !important;
+}
+
+body:not(.login):has(#header) #content {
+  padding: clamp(24px, 2.3vw, 36px);
+}
+
+body:not(.login):has(.adm-side) #content h1,
+body:not(.login):has(.adm-side) .adm-head h1,
+body:not(.login):has(.adm-side) .page-title {
+  margin: 0 0 24px;
+  color: var(--tf-admin-navy) !important;
+  font-family: var(--tf-admin-shell-font) !important;
+  font-size: clamp(1.55rem, 2vw, 2rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.2;
+}
+
+body:not(.login):has(.adm-side) .adm-main {
+  width: calc(100vw - var(--tf-admin-rail-width));
+  max-width: none;
+  box-sizing: border-box;
+  overflow-x: hidden !important;
+  background: var(--tf-admin-page) !important;
+}
+
+/* Tables wrap into the available canvas instead of creating inner panes. */
+body.change-list #changelist,
+body.change-list #changelist-form,
+body.change-list #changelist .changelist-form-container,
+body.change-list #changelist .results,
+body.change-list #result_list {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+}
+
+body.change-list #changelist .results {
+  min-width: 0 !important;
+  overflow-x: visible !important;
+}
+
+body.change-list #result_list {
+  min-width: 0 !important;
+  table-layout: auto;
+}
+
+body.change-list #result_list th,
+body.change-list #result_list td {
+  max-width: none;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
+body.change-list #changelist .changelist-form-container {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(230px, 272px);
+}
+
+body.change-list #changelist:not(.filtered) .changelist-form-container {
+  grid-template-columns: 1fr;
+}
+
+body.change-list #toolbar form,
+body.change-list #changelist-search form {
+  width: 100%;
+  max-width: none;
+}
+
+/* The dashboard uses the same typography without legacy serif overrides. */
+body:not(.login):has(.adm-shell) .adm-head h1,
+body:not(.login):has(.adm-shell) .adm-kpi-val,
+body:not(.login):has(.adm-shell) .adm-chart-title,
+body:not(.login):has(.adm-shell) .adm-table-head span {
+  font-family: var(--tf-admin-shell-font) !important;
+}
+
+@media (max-width: 1320px) {
+  body.change-list #changelist .changelist-form-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1080px) {
+  body:not(.login):has(#header) .adm-side {
+    display: none;
+  }
+
+  body:not(.login):has(#header) .main {
+    width: 100vw !important;
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  body:not(.login) #header {
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  body:not(.login) .tf-admin-user-identity {
+    display: none;
+  }
+
+  body:not(.login):has(#header) #content {
+    padding: 18px 12px 28px;
+  }
+
+  body:not(.login):has(.tf-nav) .adm-shell {
+    display: block;
+  }
+
+  body:not(.login):has(.tf-nav) .adm-shell .adm-side {
+    position: static;
+    width: 100% !important;
+    height: auto;
+  }
+
+  body:not(.login):has(.tf-nav) .adm-main {
+    width: 100%;
+  }
+}
