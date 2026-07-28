@@ -1,97 +1,95 @@
-# Design QA — Full-width Django Admin shell
+# Design QA — Viewport-wide Django Admin
 
 ## Evidence
 
 - Source issue captures:
-  - `/workspace/scratch/a6bcf941a88e/upload/8c350a60-7169-466e-97c6-1abf8c16e874.png`
-  - `/workspace/scratch/a6bcf941a88e/upload/4c6e3760-8763-4e10-a93b-59bf30ef9c8a.png`
-  - `/workspace/scratch/a6bcf941a88e/upload/8a453d60-09b8-4ba5-9c82-003a432541e0.png`
-- Source dimensions: 1915 × 923 px, 1914 × 930 px, and 1913 × 920 px.
-- Intended visual baseline:
-  - `/workspace/scratch/a6bcf941a88e/upload/906b6222-1ef1-4ec8-97ab-c627fd8c552b.png`
-  - `/workspace/scratch/a6bcf941a88e/upload/4072636f-c330-4434-9492-f1d55bc6a156.png`
-- Implementation: pull request #433 deployment.
+  - `/workspace/scratch/a6bcf941a88e/upload/4f124b07-e429-4a43-9720-0d1871a9d40c.png`
+  - `/workspace/scratch/a6bcf941a88e/upload/ccc9bd8c-0e86-4423-a33e-cd33a6b83350.png`
+  - `/workspace/scratch/a6bcf941a88e/upload/18049126-b1d9-4bf8-8831-829eee14e6d8.png`
+  - `/workspace/scratch/a6bcf941a88e/upload/60d8a70e-ad7f-49a6-ae77-dba7325205bc.png`
+- Source dimensions: 1910 × 921 px, 1910 × 926 px, 1906 × 902 px, and
+  1904 × 921 px.
+- Implementation: pull request #434 deployment.
 - Implementation screenshot: unavailable because Vercel Deployment Protection
   requires an authenticated Vercel session before TradeFlow renders.
 - Browser viewport: managed Chrome desktop viewport.
-- State: administration index, Payments changelist, and Quotes changelist.
+- States: logistics events, transport carriers, orders, and administration index.
 
 ## Full-view comparison
 
-Blocked. The supplied issue captures were opened and inspected. They show the
-administration index restricted to a narrow centered column, changelists using
-only part of the available canvas, and Django's native user toolbar replacing
-the TradeFlow header. The protected preview cannot be captured after the fix.
+Blocked. The supplied captures were opened and inspected. They show that the
+TradeFlow header is present, but changelist data remains constrained because
+Django 6 limits the direct child of `.changelist-form-container`. The prior
+selector targeted the outer `#changelist` and therefore could not remove the
+actual 270 px reservation.
 
 ## Focused region comparison
 
-Blocked for the same reason. The required focused regions are the persistent
-header, the 252 px navigation rail, the changelist data area, the 272 px filter
-column, and the full-width administration index.
+Blocked for post-fix evidence. The required regions are the fixed top header,
+the direct changelist container, the result table, filters, and the full-width
+administration module grid.
 
 ## Required fidelity surfaces
 
-- Fonts and typography: Montserrat remains the shared body, control, and header
-  family; the replacement user toolbar no longer inherits Django's uppercase
-  native presentation.
-- Spacing and layout rhythm: content and dashboard width restrictions are
-  removed; changelists use an explicit flexible-data/fixed-filter grid.
-- Colors and visual tokens: the existing navy, orange, white, and light-gray
-  TradeFlow tokens remain unchanged.
-- Image quality and asset fidelity: the existing TradeFlow logo and Material
-  Symbols are reused without replacement or approximation.
-- Copy and content: administrative records and filters remain intact; the header
-  actions are clarified as Marketplace, Seguridad, and Salir.
+- Fonts and typography: unchanged Montserrat hierarchy.
+- Spacing and layout rhythm: the inner Django flex container is replaced by an
+  explicit grid; data receives all remaining width and filters receive 272 px.
+- Colors and visual tokens: existing TradeFlow navy, orange, white, and gray.
+- Image quality and asset fidelity: original logo and Material Symbols retained.
+- Copy and content: records, actions, filters, and labels remain unchanged.
 
 ## Code-level corrections verified
 
-- A Django 6-compatible base template keeps one header across admin routes.
-- `#content`, `#content-main`, and the dashboard can use the full canvas.
-- Changelists allocate the remaining width to data and 272 px to filters.
-- Tables scroll internally only when their columns exceed the available width.
-- Filters move below the table on narrower desktop and tablet layouts.
-- Dedicated regression tests cover the shared header and final layout layer.
+- The header uses fixed viewport positioning and a compensated document offset.
+- Main content is calculated against the viewport and persistent rail.
+- `.changelist-form-container` overrides Django's internal flex and max-width.
+- Result tables use the complete width and wrap cells instead of creating an
+  inner horizontal scroll region.
+- Filters stack beneath data below the desktop breakpoint.
+- Dashboard modules can use three columns on large monitors.
+- Regression assertions cover fixed positioning, the Django 6 `:has()` target,
+  and removal of the nested horizontal scroll.
 
 ## Primary interactions tested
 
-- Automated coverage requests the Payments changelist and administration index.
-- Browser click-through remains blocked by Vercel Deployment Protection.
+- Automated Django coverage requests the Payments changelist and admin index.
+- Browser interaction remains blocked by Vercel Deployment Protection.
 
 ## Console errors checked
 
-Not checked because the protected preview never rendered TradeFlow.
+Not checked because the protected preview does not render TradeFlow.
 
 ## Findings
 
 - [P1] Post-fix browser verification is blocked by preview authentication.
-  - Location: Vercel preview deployment for pull request #433.
-  - Evidence: Vercel redirects unauthenticated preview traffic to its login.
-  - Impact: final rendered widths, wrapping, and responsive transitions cannot
-    be compared in-browser from this environment.
-  - Fix: inspect the authorized preview or merge and verify the same routes in
-    production.
+  - Location: Vercel preview for pull request #434.
+  - Evidence: unauthenticated preview requests redirect to Vercel login.
+  - Impact: the final widths and fixed-header scroll behavior cannot be observed
+    from the verification browser.
+  - Fix: inspect the authorized preview or verify the same routes after merge.
 
 ## Comparison history
 
-1. The first implementation normalized color, font loading, and table surfaces.
-2. New captures revealed remaining inherited width constraints and a native
-   Django header that caused abrupt transitions.
-3. The second implementation introduced a shared base header, full-width canvas,
-   explicit changelist grid, and responsive filter placement.
-4. Post-fix browser evidence remains unavailable because the preview is private.
+1. Initial styling normalized typography and light theme surfaces.
+2. A shared header and outer full-width shell were introduced.
+3. New captures proved that Django 6's inner flex container still constrained
+   data and that sticky positioning was insufficient for every scroll state.
+4. The current fix targets that inner container and fixes the header to the
+   viewport.
+5. Post-fix browser evidence remains blocked by the private preview.
 
 ## Implementation checklist
 
-- [x] Keep one TradeFlow header across native admin routes.
-- [x] Remove inherited dashboard and content width restrictions.
-- [x] Give changelist data all remaining horizontal space.
-- [x] Keep filters in a stable 272 px desktop column.
-- [x] Preserve internal overflow for genuinely wide tables.
-- [x] Add responsive filter stacking.
-- [x] Add automated regression coverage.
-- [ ] Capture the authorized PR preview at the supplied viewport.
-- [ ] Verify Payments, Quotes, Products, and Inventory visually.
-- [ ] Check the browser console on the authenticated implementation.
+- [x] Fix the top header to the viewport.
+- [x] Compensate document flow for the fixed header.
+- [x] Override the actual Django 6 inner layout container.
+- [x] Remove the inherited 270 px data restriction.
+- [x] Use all remaining viewport width.
+- [x] Remove the nested horizontal result scroller.
+- [x] Wrap wide cells within the full-width table.
+- [x] Add regression assertions.
+- [ ] Capture and compare the authenticated PR preview.
+- [ ] Check the console on an authenticated screen.
 
 ## Final result
 

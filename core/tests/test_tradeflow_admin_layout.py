@@ -45,6 +45,12 @@ class TradeFlowAdminLayoutTests(TestCase):
         self.assertIn("--tf-admin-filter-width: 272px", css)
         self.assertIn("grid-template-columns:", css)
         self.assertIn("width: 100% !important", css)
+        self.assertIn("position: fixed !important", css)
+        self.assertIn(
+            ".changelist-form-container:has(#changelist-filter)",
+            css,
+        )
+        self.assertIn("overflow-x: visible !important", css)
 
     def test_dashboard_uses_the_same_full_width_shell(self):
         """The administration index does not fall back to Django's width."""
