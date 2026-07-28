@@ -1,4 +1,4 @@
-"""Tests for language, typography, and compact admin navigation."""
+"""Tests for the shared TradeFlow administration navigation."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,13 +12,15 @@ from core.models import UserProfile
 
 
 class TradeFlowAdminNavigationTests(TestCase):
-    """Keep both administrative shells visually and linguistically aligned."""
+    """Keep every administrative route on one visual navigation contract."""
 
     def setUp(self):
         """Create a staff operator with the platform administrator role."""
         self.operator = User.objects.create_user(
             username="navigation.operator",
             password="StrongNavigationPassword123!",
+            first_name="Patricia",
+            last_name="Vásquez",
             is_staff=True,
         )
         UserProfile.objects.update_or_create(
@@ -27,47 +29,65 @@ class TradeFlowAdminNavigationTests(TestCase):
         )
         self.client.force_login(self.operator)
 
-    def test_native_admin_uses_product_language_and_typefaces(self):
-        """Django lists keep the established English and font contract."""
+    def test_native_admin_uses_the_shared_header_and_rail(self):
+        """A Django list renders the same compact shell as the dashboard."""
         response = self.client.get(
             reverse("admin:core_payment_changelist")
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Control center")
-        self.assertContains(response, "Executive metrics")
+        self.assertContains(response, 'id="admRail"')
+        self.assertContains(response, "Dashboard")
         self.assertContains(response, "Companies and users")
+        self.assertContains(response, "SaaS and platform")
         self.assertContains(response, "Sign out")
-        self.assertContains(response, "family=DM+Serif+Display")
-        self.assertNotContains(response, ">Métricas ejecutivas<")
-        self.assertNotContains(response, ">Empresas y usuarios<")
+        self.assertContains(
+            response,
+            "css/tradeflow_admin_continuity.css",
+        )
+        self.assertNotContains(response, "DM+Serif+Display")
+        self.assertNotContains(response, "tf-system-rail")
 
-    def test_custom_dashboard_loads_the_shared_accordion(self):
-        """The existing dashboard receives the same grouped navigation."""
+    def test_dashboard_uses_the_same_header_and_rail_assets(self):
+        """The sales dashboard renders the exact shared rail component."""
         response = self.client.get(reverse("dashboard"))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="admRail"')
         self.assertContains(response, "tradeflow_admin_nav.js")
+        self.assertContains(
+            response,
+            "css/tradeflow_admin_continuity.css",
+        )
         self.assertContains(response, "Companies and users")
-        self.assertContains(response, "SaaS and audit")
+        self.assertContains(response, "SaaS and platform")
+        self.assertNotContains(response, "DM+Serif+Display")
 
-    def test_accordion_assets_are_available_and_route_aware(self):
-        """Static assets group links and preserve the active destination."""
+    def test_accordion_assets_are_route_aware(self):
+        """Static assets preserve the active module and visual contract."""
         script_path = finders.find("js/tradeflow_admin_nav.js")
-        stylesheet_path = finders.find("css/tradeflow_admin.css")
+        theme_path = finders.find("css/tradeflow_admin.css")
         layout_path = finders.find("css/tradeflow_admin_layout.css")
+        continuity_path = finders.find(
+            "css/tradeflow_admin_continuity.css"
+        )
 
         self.assertIsNotNone(script_path)
-        self.assertIsNotNone(stylesheet_path)
+        self.assertIsNotNone(theme_path)
         self.assertIsNotNone(layout_path)
+        self.assertIsNotNone(continuity_path)
 
         script = Path(script_path).read_text(encoding="utf-8")
-        stylesheet = Path(stylesheet_path).read_text(encoding="utf-8")
+        theme = Path(theme_path).read_text(encoding="utf-8")
         layout = Path(layout_path).read_text(encoding="utf-8")
+        continuity = Path(continuity_path).read_text(encoding="utf-8")
 
+        self.assertIn("highlightSharedRail", script)
+        self.assertIn("routeMatches", script)
         self.assertIn("buildAccordion", script)
-        self.assertIn("data-accordion-ready", script)
         self.assertIn("tradeflow-admin-group", script)
-        self.assertIn(".tf-rail-group__summary", stylesheet)
-        self.assertIn('"DM Serif Display"', layout)
+        self.assertIn(".tf-rail-group__summary", theme)
         self.assertIn('"Montserrat"', layout)
+        self.assertNotIn('"DM Serif Display"', layout)
+        self.assertIn("--tf-admin-header-height: 64px", continuity)
+        self.assertIn("--tf-admin-rail-width: 252px", continuity)
