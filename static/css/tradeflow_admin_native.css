@@ -1,0 +1,367 @@
+/*
+ * TradeFlow Colón — normalización del administrador nativo de Django.
+ *
+ * Este archivo se carga después del tema principal. Su alcance se limita al
+ * shell, las listas y los formularios nativos para evitar que el modo oscuro
+ * automático de Django o sus estilos base cambien abruptamente tipografía,
+ * superficies, tablas y controles al navegar desde el panel de TradeFlow.
+ */
+
+:root,
+html[data-theme="light"],
+html[data-theme="dark"],
+html[data-theme="auto"] {
+  color-scheme: light;
+  --body-fg: #172b3a;
+  --body-bg: #f3f6f9;
+  --body-quiet-color: #627484;
+  --body-loud-color: #0f2a44;
+  --darkened-bg: #f7f9fb;
+  --selected-bg: #eaf2f8;
+  --selected-row: #fff4ed;
+  --hairline-color: #dbe3ea;
+  --border-color: #dbe3ea;
+  --error-fg: #b42318;
+  --message-success-bg: #e8f7ef;
+  --message-warning-bg: #fff6dd;
+  --message-error-bg: #fdecea;
+}
+
+html,
+body {
+  color-scheme: light;
+}
+
+body,
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: "Montserrat", "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* TradeFlow usa una única apariencia clara y estable durante la Expo. */
+.theme-toggle {
+  display: none !important;
+}
+
+body:not(.login) {
+  --tf-system-rail-width: 252px;
+}
+
+body:not(.login) .tf-system-rail {
+  width: var(--tf-system-rail-width);
+}
+
+body:not(.login) .main,
+body:not(.login) div.breadcrumbs {
+  margin-left: var(--tf-system-rail-width);
+}
+
+body:not(.login) .main,
+body:not(.login) #content-start,
+body:not(.login) #content,
+body:not(.login) #content-main {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+
+body.change-list #content,
+body.change-form #content,
+body.delete-confirmation #content {
+  width: 100%;
+  padding: 26px clamp(18px, 2.4vw, 34px) 40px;
+}
+
+body.change-list #content h1,
+body.change-form #content h1,
+body.delete-confirmation #content h1 {
+  margin: 0 0 24px;
+  color: #0f2a44;
+  font-family: "Montserrat", "Inter", system-ui, sans-serif;
+  font-size: clamp(1.55rem, 2vw, 2rem);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+body.change-list #content h2,
+body.change-form #content h2,
+body.change-form fieldset h2 {
+  font-family: "Montserrat", "Inter", system-ui, sans-serif;
+}
+
+/* Lista de objetos */
+body.change-list #changelist {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dbe3ea;
+  border-radius: 14px;
+  background: #ffffff !important;
+  color: #172b3a;
+  box-shadow: 0 8px 24px rgba(15, 42, 68, 0.06);
+}
+
+body.change-list #changelist .changelist-form-container,
+body.change-list #changelist-form {
+  min-width: 0;
+  background: #ffffff;
+}
+
+body.change-list #toolbar,
+body.change-list #changelist-search {
+  margin: 0;
+  padding: 16px;
+  border: 0;
+  border-bottom: 1px solid #dbe3ea;
+  background: #f8fafc !important;
+  color: #172b3a;
+}
+
+body.change-list #toolbar form,
+body.change-list #changelist-search form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 760px;
+}
+
+body.change-list #toolbar form > div,
+body.change-list #changelist-search form > div {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+
+body.change-list #toolbar input[type="text"],
+body.change-list #changelist-search input[type="text"] {
+  width: min(100%, 560px);
+  min-width: 180px;
+  min-height: 42px;
+  flex: 1;
+  border: 1px solid #cbd6df;
+  border-radius: 9px;
+  background: #ffffff !important;
+  color: #172b3a !important;
+}
+
+body.change-list #toolbar input[type="submit"],
+body.change-list #changelist-search input[type="submit"] {
+  min-height: 42px;
+  border-radius: 9px;
+  background: #0f2a44;
+  color: #ffffff;
+}
+
+body.change-list #changelist .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #dbe3ea;
+  background: #ffffff !important;
+  color: #627484;
+}
+
+body.change-list #changelist .actions select {
+  min-width: min(260px, 100%);
+  background: #ffffff !important;
+  color: #172b3a !important;
+}
+
+body.change-list #changelist .results {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  background: #ffffff;
+  scrollbar-color: #9fb2c1 #eef3f7;
+  scrollbar-width: thin;
+}
+
+body.change-list #result_list {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  background: #ffffff;
+  color: #172b3a;
+}
+
+body.change-list #result_list thead th {
+  padding: 12px 10px;
+  border-color: #dbe3ea;
+  background: #eef3f7 !important;
+  color: #0f2a44 !important;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body.change-list #result_list thead th a,
+body.change-list #result_list thead th .text a {
+  color: #0f2a44 !important;
+}
+
+body.change-list #result_list tbody tr,
+body.change-list #result_list tbody tr:nth-child(odd) {
+  background: #ffffff !important;
+  color: #172b3a !important;
+}
+
+body.change-list #result_list tbody tr:nth-child(even) {
+  background: #f8fafc !important;
+}
+
+body.change-list #result_list tbody tr:hover {
+  background: #fff4ed !important;
+}
+
+body.change-list #result_list tbody td,
+body.change-list #result_list tbody th {
+  padding: 12px 10px;
+  border-color: #e6edf2;
+  background: transparent !important;
+  color: #172b3a !important;
+  line-height: 1.4;
+}
+
+body.change-list #result_list tbody a {
+  color: #0d5f9f !important;
+  font-weight: 550;
+}
+
+body.change-list #result_list tbody a:hover {
+  color: #d9470a !important;
+}
+
+body.change-list .paginator {
+  margin: 0;
+  padding: 14px 16px;
+  border-top: 1px solid #dbe3ea;
+  background: #ffffff !important;
+  color: #627484;
+}
+
+/* Formularios de altas y edición */
+body.change-form .module,
+body.change-form .inline-group,
+body.change-form .submit-row {
+  background: #ffffff !important;
+  color: #172b3a;
+}
+
+body.change-form .form-row,
+body.change-form .inline-related,
+body.change-form .inline-related fieldset {
+  border-color: #e6edf2;
+  background: #ffffff !important;
+  color: #172b3a;
+}
+
+body.change-form .form-row label,
+body.change-form .help,
+body.change-form p.help,
+body.change-form .readonly {
+  color: #627484;
+}
+
+body.change-form input,
+body.change-form select,
+body.change-form textarea {
+  max-width: 100%;
+  background: #ffffff !important;
+  color: #172b3a !important;
+}
+
+body.change-form .submit-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+body.change-form .submit-row p {
+  margin: 0;
+}
+
+body.change-form .inline-group .tabular {
+  overflow-x: auto;
+}
+
+body.change-form .inline-group table {
+  min-width: 680px;
+  background: #ffffff;
+}
+
+/* Controles y herramientas conservan escala y tipografía entre módulos. */
+body:not(.login) .button,
+body:not(.login) input[type="submit"],
+body:not(.login) input[type="button"],
+body:not(.login) .object-tools a {
+  font-family: "Montserrat", "Inter", system-ui, sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+body:not(.login) .object-tools {
+  margin-top: -52px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 1080px) {
+  body:not(.login) .tf-system-rail {
+    display: none;
+  }
+
+  body:not(.login) .main,
+  body:not(.login) div.breadcrumbs {
+    margin-left: 0;
+  }
+
+  body:not(.login) #nav-sidebar,
+  body:not(.login) .toggle-nav-sidebar {
+    display: flex;
+  }
+}
+
+@media (max-width: 720px) {
+  body.change-list #content,
+  body.change-form #content,
+  body.delete-confirmation #content {
+    padding: 18px 12px 28px;
+  }
+
+  body.change-list #content h1,
+  body.change-form #content h1 {
+    padding-right: 0;
+    font-size: 1.45rem;
+  }
+
+  body:not(.login) .object-tools {
+    margin: 0 0 16px;
+  }
+
+  body.change-list #toolbar form,
+  body.change-list #changelist-search form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body.change-list #toolbar form > div,
+  body.change-list #changelist-search form > div {
+    width: 100%;
+  }
+
+  body.change-list #toolbar input[type="text"],
+  body.change-list #changelist-search input[type="text"] {
+    width: 100%;
+  }
+}
