@@ -1,8 +1,11 @@
 """Integration tests for the branded TradeFlow Django Admin."""
 from __future__ import annotations
 
+from pathlib import Path
+
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.contrib.staticfiles import finders
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -39,6 +42,23 @@ class TradeFlowAdminSiteTests(TestCase):
         self.assertContains(response, "Administración integral")
         self.assertContains(response, "css/tradeflow_admin.css")
         self.assertContains(response, "Centro de control")
+
+    def test_native_admin_uses_consistent_tradeflow_styles(self):
+        """Native lists load the stable light TradeFlow presentation layer."""
+        response = self.client.get(
+            reverse("admin:core_inventory_changelist")
+        )
+        stylesheet = finders.find("css/tradeflow_admin_native.css")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "css/tradeflow_admin_native.css")
+        self.assertContains(response, "family=Montserrat")
+        self.assertIsNotNone(stylesheet)
+
+        css = Path(stylesheet).read_text(encoding="utf-8")
+        self.assertIn('html[data-theme="dark"]', css)
+        self.assertIn("--tf-system-rail-width: 252px", css)
+        self.assertIn("#result_list tbody tr:nth-child(even)", css)
 
     def test_admin_index_exposes_persistent_operational_navigation(self):
         """Critical modules are visible directly in the left navigation."""
