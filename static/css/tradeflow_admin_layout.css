@@ -467,3 +467,37 @@ body.tf-admin-dashboard .tf-admin-module-grid {
     max-width: 100vw;
   }
 }
+
+/*
+ * TradeFlow typography contract.
+ *
+ * Montserrat owns interface copy and controls. DM Serif Display is reserved
+ * for primary page headings, matching the established sales dashboard.
+ */
+
+body:not(.login),
+body:not(.login) #container,
+body:not(.login) #header,
+body:not(.login) #content,
+body:not(.login) #content table,
+body:not(.login) #content input,
+body:not(.login) #content select,
+body:not(.login) #content textarea,
+body:not(.login) #content button,
+body:not(.login) #content .button,
+body:not(.login) #content .help,
+body:not(.login) #content label,
+body:not(.login) div.breadcrumbs {
+  font-family: "Montserrat", "Inter", system-ui, sans-serif !important;
+}
+
+body:not(.login) #content h1,
+body:not(.login) #content .page-title {
+  font-family: "DM Serif Display", Georgia, serif !important;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+
+body:not(.login) .material-symbols-rounded {
+  font-family: "Material Symbols Rounded" !important;
+}
