@@ -42,7 +42,13 @@ jobs:
         run: |
           curl --fail --silent --show-error             https://tradeflowcolon.com/manifest.webmanifest             --output /tmp/tradeflow-manifest.json
           python -m json.tool /tmp/tradeflow-manifest.json
-          curl --fail --silent --show-error             https://tradeflowcolon.com/pwa/icon-512.png             --output /tmp/tradeflow-icon.png
+          curl --fail --silent --show-error \
+            https://tradeflowcolon.com/pwa/icon-512.png \
+            --output /tmp/tradeflow-icon.png
+          curl --fail --silent --show-error \
+            https://tradeflowcolon.com/.well-known/assetlinks.json \
+            --output /tmp/tradeflow-assetlinks.json
+          python -m json.tool /tmp/tradeflow-assetlinks.json
 
       - name: Configure Bubblewrap toolchain
         run: >-
@@ -82,6 +88,23 @@ jobs:
           echo "SIGNING_KEY_PATH=./tradeflow-upload.keystore"             >> "${GITHUB_ENV}"
           echo "SIGNING_KEY_ALIAS=${KEY_ALIAS}" >> "${GITHUB_ENV}"
 
+      - name: Verify production Digital Asset Links
+        if: ${{ inputs.signing_mode == 'production' }}
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          fingerprint="$(keytool -list -v \
+            -keystore android/tradeflow-upload.keystore \
+            -storepass "${KEYSTORE_PASSWORD}" \
+            -alias "${KEY_ALIAS}" |
+            sed -n 's/.*SHA256: //p' |
+            head -n 1)"
+          test -n "${fingerprint}"
+          python -m core.android_assetlinks \
+            --path /tmp/tradeflow-assetlinks.json \
+            --package com.tradeflowcolon.app \
+            --fingerprint "${fingerprint}"
       - name: Generate Android project
         working-directory: android
         run: bubblewrap update --skipVersionUpgrade --manifest=.
