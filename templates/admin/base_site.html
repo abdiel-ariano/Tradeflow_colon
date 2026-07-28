@@ -25,17 +25,6 @@ its permissions, history, filters, and validation behavior.
   >
 {% endblock %}
 
-{% block branding %}
-  <a class="tf-admin-brand" href="{% url 'dashboard' %}">
-    <img
-      src="{% static 'img/logo-icon-color.png' %}"
-      width="36"
-      height="36"
-      alt="TradeFlow Colón"
-    >
-  </a>
-{% endblock %}
-
 {% block nav-global %}
   {% include "core/admin_rail.html" %}
 {% endblock %}
