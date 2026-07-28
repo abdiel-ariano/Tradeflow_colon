@@ -5,6 +5,7 @@ Todos los accesos visibles llevan directamente al recurso correspondiente.
 Cada elemento utiliza el mismo componente visual y abre su módulo real en
 Django Admin o en la vista operativa correspondiente.
 {% endcomment %}
+{% load static %}
 <aside
   class="adm-side"
   id="admRail"
@@ -22,13 +23,13 @@ Django Admin o en la vista operativa correspondiente.
   </div>
 
   <nav class="adm-rail-nav">
-    <span class="adm-rail-section-label">Resumen</span>
+    <span class="adm-rail-section-label">Summary</span>
     <a class="adm-rail-link" href="{% url 'dashboard' %}" data-adm-nav="dashboard" title="Dashboard">
       <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
       <span class="adm-rail-label">Dashboard</span>
     </a>
 
-    <span class="adm-rail-section-label">Comercio</span>
+    <span class="adm-rail-section-label">Commerce</span>
     <a class="adm-rail-link" href="{% url 'lista_ordenes' %}" data-adm-nav="ordenes" title="Orders">
       <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
       <span class="adm-rail-label">Orders</span>
@@ -50,7 +51,7 @@ Django Admin o en la vista operativa correspondiente.
       <span class="adm-rail-label">Quotes</span>
     </a>
 
-    <span class="adm-rail-section-label">Empresas y usuarios</span>
+    <span class="adm-rail-section-label">Companies and users</span>
     <a class="adm-rail-link" href="{% url 'lista_empresas' %}" data-adm-nav="empresas" title="Companies">
       <span class="material-symbols-rounded" aria-hidden="true">business</span>
       <span class="adm-rail-label">Companies</span>
@@ -72,7 +73,7 @@ Django Admin o en la vista operativa correspondiente.
       {% endif %}
     </a>
 
-    <span class="adm-rail-section-label">Logística</span>
+    <span class="adm-rail-section-label">Logistics</span>
     <a class="adm-rail-link" href="{% url 'admin:core_shipment_changelist' %}" title="Shipments">
       <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
       <span class="adm-rail-label">Shipments</span>
@@ -86,7 +87,7 @@ Django Admin o en la vista operativa correspondiente.
       <span class="adm-rail-label">Carriers</span>
     </a>
 
-    <span class="adm-rail-section-label">SaaS y auditoría</span>
+    <span class="adm-rail-section-label">SaaS and audit</span>
     <a
       class="adm-rail-link"
       href="{% url 'admin_saas_dashboard' %}"
@@ -110,3 +111,4 @@ Django Admin o en la vista operativa correspondiente.
     </a>
   </nav>
 </aside>
+<script defer src="{% static 'js/tradeflow_admin_nav.js' %}"></script>

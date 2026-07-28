@@ -67,7 +67,7 @@
                   <strong>
                     {% firstof user.get_short_name user.get_username %}
                   </strong>
-                  <small>Administrador</small>
+                  <small>Administrator</small>
                 </span>
                 {% if site_url %}
                   <a class="tf-admin-header-link" href="{{ site_url }}">
@@ -85,7 +85,7 @@
                     <span class="material-symbols-rounded" aria-hidden="true">
                       shield_person
                     </span>
-                    Seguridad
+                    Security
                   </a>
                 {% endif %}
                 <form
@@ -98,7 +98,7 @@
                     <span class="material-symbols-rounded" aria-hidden="true">
                       logout
                     </span>
-                    Salir
+                    Sign out
                   </button>
                 </form>
               </div>
@@ -111,7 +111,7 @@
         <nav aria-label="{% translate 'Breadcrumbs' %}">
           {% block breadcrumbs %}
             <div class="breadcrumbs">
-              <a href="{% url 'admin:index' %}">Administración</a>
+              <a href="{% url 'admin:index' %}">Administration</a>
               {% if title %} &rsaquo; {{ title }}{% endif %}
             </div>
           {% endblock %}

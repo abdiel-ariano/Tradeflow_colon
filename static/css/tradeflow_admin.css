@@ -941,3 +941,79 @@ body:not(.login) .toggle-nav-sidebar {
     display: flex;
   }
 }
+
+/*
+ * Compact accordion navigation shared by both administrative shells.
+ *
+ * JavaScript groups existing links without changing their destinations.
+ * The active route remains expanded and only one category stays open.
+ */
+
+.tf-rail-group {
+  margin: 3px 0;
+  border: 0;
+}
+
+.tf-rail-group__summary {
+  display: flex;
+  min-height: 34px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #7893a8;
+  cursor: pointer;
+  font-family: "Montserrat", "Inter", system-ui, sans-serif;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+  list-style: none;
+  text-transform: uppercase;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.tf-rail-group__summary::-webkit-details-marker {
+  display: none;
+}
+
+.tf-rail-group__summary::marker {
+  content: "";
+}
+
+.tf-rail-group__summary:hover,
+.tf-rail-group[open] > .tf-rail-group__summary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #d9e5ed;
+}
+
+.tf-rail-group__icon {
+  color: #7893a8;
+  font-size: 18px;
+  transition: transform 150ms ease;
+}
+
+.tf-rail-group[open] > .tf-rail-group__summary .tf-rail-group__icon {
+  transform: rotate(180deg);
+}
+
+.tf-rail-group__body {
+  display: grid;
+  gap: 2px;
+  padding: 2px 0 7px;
+}
+
+.tf-system-rail__nav[data-accordion-ready="true"],
+.adm-rail-nav[data-accordion-ready="true"] {
+  padding-top: 8px;
+}
+
+.tf-system-rail__nav[data-accordion-ready="true"]
+  .tf-system-rail__section,
+.adm-rail-nav[data-accordion-ready="true"]
+  .adm-rail-section-label {
+  display: none;
+}

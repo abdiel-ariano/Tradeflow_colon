@@ -15,7 +15,7 @@ permisos, historial, filtros y validaciones nativas.
   {{ block.super }}
   <link
     rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
   >
   <link rel="stylesheet" href="{% static 'css/tradeflow_admin.css' %}">
   <link
@@ -40,13 +40,13 @@ permisos, historial, filtros y validaciones nativas.
     >
     <span>
       <strong>TradeFlow Colón</strong>
-      <small>Centro de control</small>
+      <small>Control center</small>
     </span>
   </a>
 {% endblock %}
 
 {% block nav-global %}
-  <aside class="tf-system-rail" id="tfSystemRail" aria-label="Administración">
+  <aside class="tf-system-rail" id="tfSystemRail" aria-label="Administration">
     <div class="tf-system-rail__brand">
       <span class="material-symbols-rounded" aria-hidden="true">hub</span>
       <span>
@@ -55,158 +55,158 @@ permisos, historial, filtros y validaciones nativas.
       </span>
     </div>
 
-    <nav class="tf-system-rail__nav" aria-label="Módulos de TradeFlow">
-      <p class="tf-system-rail__section">Resumen</p>
+    <nav class="tf-system-rail__nav" aria-label="TradeFlow modules">
+      <p class="tf-system-rail__section">Summary</p>
       <a href="{% url 'admin:index' %}" data-tf-admin-route="/admin/">
         <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
-        <span>Administración</span>
+        <span>Administration</span>
       </a>
       <a href="{% url 'dashboard' %}" data-tf-admin-route="/dashboard/">
         <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
-        <span>Métricas ejecutivas</span>
+        <span>Executive metrics</span>
       </a>
 
-      <p class="tf-system-rail__section">Comercio</p>
+      <p class="tf-system-rail__section">Commerce</p>
       <a
         href="{% url 'admin:core_order_changelist' %}"
         data-tf-admin-route="/admin/core/order/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
-        <span>Pedidos</span>
+        <span>Orders</span>
       </a>
       <a
         href="{% url 'admin:core_payment_changelist' %}"
         data-tf-admin-route="/admin/core/payment/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">payments</span>
-        <span>Pagos</span>
+        <span>Payments</span>
       </a>
       <a
         href="{% url 'admin:core_cotizacion_changelist' %}"
         data-tf-admin-route="/admin/core/cotizacion/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
-        <span>Cotizaciones</span>
+        <span>Quotes</span>
       </a>
       <a
         href="{% url 'admin:core_product_changelist' %}"
         data-tf-admin-route="/admin/core/product/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
-        <span>Productos</span>
+        <span>Products</span>
       </a>
       <a
         href="{% url 'admin:core_inventory_changelist' %}"
         data-tf-admin-route="/admin/core/inventory/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">warehouse</span>
-        <span>Inventario</span>
+        <span>Inventory</span>
       </a>
       <a
         href="{% url 'admin:core_homepromosection_changelist' %}"
         data-tf-admin-route="/admin/core/homepromosection/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
-        <span>Promociones</span>
+        <span>Promotions</span>
       </a>
 
-      <p class="tf-system-rail__section">Empresas y usuarios</p>
+      <p class="tf-system-rail__section">Companies and users</p>
       <a
         href="{% url 'admin:core_company_changelist' %}"
         data-tf-admin-route="/admin/core/company/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">business</span>
-        <span>Empresas</span>
+        <span>Companies</span>
       </a>
       <a
         href="{% url 'admin:auth_user_changelist' %}"
         data-tf-admin-route="/admin/auth/user/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">group</span>
-        <span>Usuarios</span>
+        <span>Users</span>
       </a>
       <a
         href="{% url 'admin:core_userapplication_changelist' %}"
         data-tf-admin-route="/admin/core/userapplication/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">assignment_ind</span>
-        <span>Solicitudes</span>
+        <span>Applications</span>
         {% if pending_applications_count %}
         <span class="tf-system-rail__badge">{{ pending_applications_count }}</span>
         {% endif %}
       </a>
 
-      <p class="tf-system-rail__section">Logística</p>
+      <p class="tf-system-rail__section">Logistics</p>
       <a
         href="{% url 'admin:core_shipment_changelist' %}"
         data-tf-admin-route="/admin/core/shipment/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
-        <span>Envíos</span>
+        <span>Shipments</span>
       </a>
       <a
         href="{% url 'admin:core_transportcarrier_changelist' %}"
         data-tf-admin-route="/admin/core/transportcarrier/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">departure_board</span>
-        <span>Transportistas</span>
+        <span>Carriers</span>
       </a>
       <a
         href="{% url 'admin:core_logisticsevent_changelist' %}"
         data-tf-admin-route="/admin/core/logisticsevent/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">timeline</span>
-        <span>Eventos logísticos</span>
+        <span>Logistics events</span>
       </a>
 
-      <p class="tf-system-rail__section">SaaS y plataforma</p>
+      <p class="tf-system-rail__section">SaaS and platform</p>
       <a href="{% url 'admin_saas_dashboard' %}" data-tf-admin-route="/saas/">
         <span class="material-symbols-rounded" aria-hidden="true">workspace_premium</span>
-        <span>Panel SaaS</span>
+        <span>SaaS dashboard</span>
       </a>
       <a
         href="{% url 'admin:core_saasplan_changelist' %}"
         data-tf-admin-route="/admin/core/saasplan/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">sell</span>
-        <span>Planes</span>
+        <span>Plans</span>
       </a>
       <a
         href="{% url 'admin:core_companysubscription_changelist' %}"
         data-tf-admin-route="/admin/core/companysubscription/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">subscriptions</span>
-        <span>Suscripciones</span>
+        <span>Subscriptions</span>
       </a>
       <a
         href="{% url 'admin:core_companyplancheckout_changelist' %}"
         data-tf-admin-route="/admin/core/companyplancheckout/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">account_balance</span>
-        <span>Pagos de planes</span>
+        <span>Plan payments</span>
       </a>
 
-      <p class="tf-system-rail__section">Auditoría</p>
+      <p class="tf-system-rail__section">Audit</p>
       <a
         href="{% url 'admin:core_emaildeliverylog_changelist' %}"
         data-tf-admin-route="/admin/core/emaildeliverylog/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">mark_email_read</span>
-        <span>Correos</span>
+        <span>Email audit</span>
       </a>
       <a
         href="{% url 'admin:core_apiauditlog_changelist' %}"
         data-tf-admin-route="/admin/core/apiauditlog/"
       >
         <span class="material-symbols-rounded" aria-hidden="true">policy</span>
-        <span>Auditoría API</span>
+        <span>API audit</span>
       </a>
     </nav>
 
     <div class="tf-system-rail__footer">
       <a href="{% url 'home' %}">
         <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
-        <span>Ver marketplace</span>
+        <span>Marketplace</span>
       </a>
     </div>
   </aside>
