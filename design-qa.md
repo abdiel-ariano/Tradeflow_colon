@@ -1,109 +1,97 @@
-# Design QA — Native Django Admin consistency
+# Design QA — Full-width Django Admin shell
 
 ## Evidence
 
-- Source visual truth:
-  - `/workspace/scratch/a6bcf941a88e/upload/3cbf7688-e2f5-44e8-b24a-f4c81cff6d22.png`
-  - `/workspace/scratch/a6bcf941a88e/upload/d72bf69e-f330-4d0d-8dab-3edd7c9af561.png`
-- Source dimensions: 1888 × 922 px and 1892 × 912 px.
+- Source issue captures:
+  - `/workspace/scratch/a6bcf941a88e/upload/8c350a60-7169-466e-97c6-1abf8c16e874.png`
+  - `/workspace/scratch/a6bcf941a88e/upload/4c6e3760-8763-4e10-a93b-59bf30ef9c8a.png`
+  - `/workspace/scratch/a6bcf941a88e/upload/8a453d60-09b8-4ba5-9c82-003a432541e0.png`
+- Source dimensions: 1915 × 923 px, 1914 × 930 px, and 1913 × 920 px.
 - Intended visual baseline:
   - `/workspace/scratch/a6bcf941a88e/upload/906b6222-1ef1-4ec8-97ab-c627fd8c552b.png`
   - `/workspace/scratch/a6bcf941a88e/upload/4072636f-c330-4434-9492-f1d55bc6a156.png`
-- Implementation URL:
-  `https://tradeflow-colon-git-fix-admin-406d89-tradeflow-colon-s-projects.vercel.app`
+- Implementation: pull request #433 deployment.
 - Implementation screenshot: unavailable because Vercel Deployment Protection
-  redirects the cloud browser to the Vercel login screen.
+  requires an authenticated Vercel session before TradeFlow renders.
 - Browser viewport: managed Chrome desktop viewport.
-- CSS size and density normalization: unavailable without the authenticated
-  implementation capture.
-- State: authenticated administration index and Inventory changelist.
+- State: administration index, Payments changelist, and Quotes changelist.
 
 ## Full-view comparison
 
-Blocked. Both supplied Django Admin screenshots and the original TradeFlow admin
-baseline were opened and inspected. The pull-request deployment was opened in a
-cloud browser, but Vercel Deployment Protection redirected it to the Vercel
-login page before TradeFlow rendered. A post-fix screenshot comparison cannot
-be produced from the protected preview.
+Blocked. The supplied issue captures were opened and inspected. They show the
+administration index restricted to a narrow centered column, changelists using
+only part of the available canvas, and Django's native user toolbar replacing
+the TradeFlow header. The protected preview cannot be captured after the fix.
 
 ## Focused region comparison
 
-Blocked for the same reason. The required focused regions are the 252 px left
-navigation rail, header typography, changelist search and actions toolbar,
-table header, alternating rows, and horizontally scrollable results region.
+Blocked for the same reason. The required focused regions are the persistent
+header, the 252 px navigation rail, the changelist data area, the 272 px filter
+column, and the full-width administration index.
 
 ## Required fidelity surfaces
 
-- Fonts and typography: the native admin now loads Montserrat and applies it to
-  body copy, headings, controls, buttons, tables, breadcrumbs, and messages.
-- Spacing and layout rhythm: the persistent rail is normalized to 252 px and
-  native admin content offsets share the same rail-width token.
-- Colors and visual tokens: light Django variables are explicitly defined for
-  light, dark, and automatic browser preferences, preventing black native
-  toolbars and rows from overriding TradeFlow tokens.
-- Image quality and asset fidelity: the existing TradeFlow logos and Material
-  Symbols remain unchanged; no image assets were replaced.
-- Copy and content: Django labels, records, actions, and app-specific content
-  are preserved without introducing presentation-only placeholder copy.
+- Fonts and typography: Montserrat remains the shared body, control, and header
+  family; the replacement user toolbar no longer inherits Django's uppercase
+  native presentation.
+- Spacing and layout rhythm: content and dashboard width restrictions are
+  removed; changelists use an explicit flexible-data/fixed-filter grid.
+- Colors and visual tokens: the existing navy, orange, white, and light-gray
+  TradeFlow tokens remain unchanged.
+- Image quality and asset fidelity: the existing TradeFlow logo and Material
+  Symbols are reused without replacement or approximation.
+- Copy and content: administrative records and filters remain intact; the header
+  actions are clarified as Marketplace, Seguridad, and Salir.
 
 ## Code-level corrections verified
 
-- The native compatibility stylesheet loads after the original admin theme.
-- Dark and automatic theme selectors resolve to the same TradeFlow light tokens.
-- Search, actions, filters, forms, messages, object tools, and result rows use a
-  coherent light treatment.
-- Wide changelists scroll within the results container instead of cropping the
-  entire page.
-- Responsive rules collapse the persistent rail below the desktop breakpoint.
-- An automated regression test verifies the stylesheet, font import, rail token,
-  theme override, and row treatment.
-- GitHub Actions and the Vercel deployment check pass on the pull-request head.
+- A Django 6-compatible base template keeps one header across admin routes.
+- `#content`, `#content-main`, and the dashboard can use the full canvas.
+- Changelists allocate the remaining width to data and 272 px to filters.
+- Tables scroll internally only when their columns exceed the available width.
+- Filters move below the table on narrower desktop and tablet layouts.
+- Dedicated regression tests cover the shared header and final layout layer.
 
 ## Primary interactions tested
 
-- Automated Django coverage opens the Inventory changelist and verifies that the
-  native compatibility layer is present and resolvable through staticfiles.
-- Browser interaction testing could not reach the authenticated TradeFlow screen
-  because the preview is protected.
+- Automated coverage requests the Payments changelist and administration index.
+- Browser click-through remains blocked by Vercel Deployment Protection.
 
 ## Console errors checked
 
-Not checked. The protected preview never loaded the TradeFlow application.
+Not checked because the protected preview never rendered TradeFlow.
 
 ## Findings
 
-- [P1] Post-fix visual verification is blocked by preview authentication.
-  - Location: Vercel preview deployment.
-  - Evidence: the preview redirects to `vercel.com/login` before TradeFlow
-    renders.
-  - Impact: final font rendering, responsive behavior, and changelist overflow
-    cannot be visually confirmed in the deployed environment.
-  - Fix: verify the preview from an authorized Vercel session or merge and test
-    the Inventory, Products, Users, and Orders routes in production.
+- [P1] Post-fix browser verification is blocked by preview authentication.
+  - Location: Vercel preview deployment for pull request #433.
+  - Evidence: Vercel redirects unauthenticated preview traffic to its login.
+  - Impact: final rendered widths, wrapping, and responsive transitions cannot
+    be compared in-browser from this environment.
+  - Fix: inspect the authorized preview or merge and verify the same routes in
+    production.
 
 ## Comparison history
 
-1. Source inspection found an abrupt font change, oversized rail, black search
-   toolbar, black alternating rows, and cropped wide changelists.
-2. The implementation added a documented native-admin compatibility layer,
-   Montserrat loading, stable light tokens, a 252 px rail, and internal table
-   overflow handling.
-3. Automated CI and deployment checks passed.
-4. Post-fix browser capture remains unavailable because deployment protection
-   blocks the implementation screen.
+1. The first implementation normalized color, font loading, and table surfaces.
+2. New captures revealed remaining inherited width constraints and a native
+   Django header that caused abrupt transitions.
+3. The second implementation introduced a shared base header, full-width canvas,
+   explicit changelist grid, and responsive filter placement.
+4. Post-fix browser evidence remains unavailable because the preview is private.
 
 ## Implementation checklist
 
-- [x] Load Montserrat in native Django Admin.
-- [x] Stabilize light tokens across browser theme preferences.
-- [x] Match the original 252 px TradeFlow navigation rail.
-- [x] Normalize changelists, forms, filters, actions, and messages.
-- [x] Keep wide tables inside a horizontal results scroller.
+- [x] Keep one TradeFlow header across native admin routes.
+- [x] Remove inherited dashboard and content width restrictions.
+- [x] Give changelist data all remaining horizontal space.
+- [x] Keep filters in a stable 272 px desktop column.
+- [x] Preserve internal overflow for genuinely wide tables.
+- [x] Add responsive filter stacking.
 - [x] Add automated regression coverage.
-- [x] Pass GitHub Actions and Vercel deployment checks.
-- [ ] Capture Inventory and Products at the supplied desktop viewport.
-- [ ] Verify the collapsed navigation at responsive breakpoints.
-- [ ] Check the browser console on an authenticated application screen.
+- [ ] Capture the authorized PR preview at the supplied viewport.
+- [ ] Verify Payments, Quotes, Products, and Inventory visually.
+- [ ] Check the browser console on the authenticated implementation.
 
 ## Final result
 
