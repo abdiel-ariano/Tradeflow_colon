@@ -67,3 +67,29 @@ Las suites principales son:
 Estas pruebas comprueban la presencia del componente compartido, la carga de
 la capa de continuidad, la ausencia de la tipografía serif heredada, el ancho
 completo del lienzo y los accesos administrativos críticos.
+
+## Cabecera compartida y precedencia final
+
+La cabecera administrativa tiene una sola fuente de marcado:
+`templates/core/includes/admin_header.html`. El dashboard la incluye con la
+ruta de salida pública y Django Admin con su ruta de salida protegida. En
+ambos casos el cierre de sesión conserva POST y CSRF.
+
+`static/css/tradeflow_admin_unified.css` se carga al final de todos los
+estilos, incluso después de las reglas responsive de Django. Esta capa fija:
+
+- la cabecera compartida en 64 px;
+- el menú lateral en 252 px en todas las rutas;
+- el lienzo de contenido en todo el ancho restante;
+- Montserrat para navegación, controles, tablas y encabezados;
+- el mismo comportamiento responsive desde 1079 px hacia abajo.
+
+El dashboard ya no carga `static/js/admin_rail.js`. Ese script conservaba en
+el navegador el antiguo modo compacto y podía reducir únicamente esa
+pantalla. La navegación desplegable y la ruta activa permanecen bajo
+`static/js/tradeflow_admin_nav.js`, que es el controlador compartido.
+
+Las pruebas verifican el atributo `data-tf-admin-header="shared"` en ambas
+familias de rutas, la carga de la capa final y la ausencia del script
+heredado. Cualquier cabecera duplicada o nuevo modo de rail requiere ampliar
+primero este contrato y sus pruebas.
