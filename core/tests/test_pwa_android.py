@@ -6,6 +6,8 @@ from io import BytesIO
 from django.test import SimpleTestCase, override_settings
 from PIL import Image
 
+from core.android_assetlinks import validate_asset_links
+
 
 TEST_FINGERPRINT = ':'.join(['AA'] * 32)
 
@@ -96,3 +98,58 @@ class PwaAndroidTests(SimpleTestCase):
             payload[0]['target']['sha256_cert_fingerprints'],
             [TEST_FINGERPRINT],
         )
+
+
+class AndroidAssetLinksValidationTests(SimpleTestCase):
+    """Validate the certificate guard used by production Android builds."""
+
+    def build_statement(
+        self,
+        fingerprint: str = TEST_FINGERPRINT,
+        package_name: str = 'com.tradeflowcolon.app',
+    ) -> dict:
+        """Return one standards-compliant Android association statement."""
+        return {
+            'relation': [
+                'delegate_permission/common.handle_all_urls',
+            ],
+            'target': {
+                'namespace': 'android_app',
+                'package_name': package_name,
+                'sha256_cert_fingerprints': [fingerprint],
+            },
+        }
+
+    def test_empty_document_blocks_production_build(self):
+        """Reject the live site's current unconfigured empty document."""
+        is_valid, message = validate_asset_links(
+            [],
+            'com.tradeflowcolon.app',
+            TEST_FINGERPRINT,
+        )
+
+        self.assertFalse(is_valid)
+        self.assertIn('no Android association', message)
+
+    def test_matching_statement_allows_production_build(self):
+        """Accept the package only when the signing fingerprint matches."""
+        is_valid, message = validate_asset_links(
+            [self.build_statement()],
+            'com.tradeflowcolon.app',
+            TEST_FINGERPRINT,
+        )
+
+        self.assertTrue(is_valid)
+        self.assertIn('matches', message)
+
+    def test_wrong_certificate_blocks_production_build(self):
+        """Reject a package signed with an unlisted certificate."""
+        other_fingerprint = ':'.join(['BB'] * 32)
+        is_valid, message = validate_asset_links(
+            [self.build_statement()],
+            'com.tradeflowcolon.app',
+            other_fingerprint,
+        )
+
+        self.assertFalse(is_valid)
+        self.assertIn('does not match', message)
