@@ -1,0 +1,299 @@
+/*
+ * TradeFlow Colón — final administrative shell contract.
+ *
+ * This file is deliberately loaded after dashboard, Django Admin, and
+ * responsive styles. It gives every administrative route the same header,
+ * rail, typography, and full-width canvas. Route-specific legacy rules
+ * cannot reintroduce a compact rail or a second visual hierarchy.
+ */
+
+body.tf-admin-unified:not(.login) {
+  --tf-admin-header-height: 64px;
+  --tf-admin-rail-width: 252px;
+  --tf-admin-font:
+    "Montserrat", "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --tf-admin-navy: #0f2a44;
+  --tf-admin-navy-deep: #0a1f33;
+  --tf-admin-orange: #f26522;
+  --tf-admin-page: #f2f3f5;
+  --tf-admin-text: #172b3a;
+  margin: 0 !important;
+  min-width: 0 !important;
+  background: var(--tf-admin-page) !important;
+  color: var(--tf-admin-text) !important;
+  font-family: var(--tf-admin-font) !important;
+}
+
+body.tf-admin-unified:not(.login),
+body.tf-admin-unified:not(.login) button,
+body.tf-admin-unified:not(.login) input,
+body.tf-admin-unified:not(.login) optgroup,
+body.tf-admin-unified:not(.login) select,
+body.tf-admin-unified:not(.login) textarea,
+body.tf-admin-unified:not(.login) table,
+body.tf-admin-unified:not(.login) label,
+body.tf-admin-unified:not(.login) h1,
+body.tf-admin-unified:not(.login) h2,
+body.tf-admin-unified:not(.login) h3,
+body.tf-admin-unified:not(.login) h4,
+body.tf-admin-unified:not(.login) a {
+  font-family: var(--tf-admin-font) !important;
+}
+
+body.tf-admin-unified:not(.login) #container {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh !important;
+  background: var(--tf-admin-page) !important;
+}
+
+body.tf-admin-unified:not(.login) #header.tf-admin-header {
+  position: fixed !important;
+  inset: 0 0 auto 0 !important;
+  z-index: 1200 !important;
+  display: flex !important;
+  width: 100% !important;
+  min-height: var(--tf-admin-header-height) !important;
+  height: var(--tf-admin-header-height) !important;
+  box-sizing: border-box !important;
+  align-items: center !important;
+  gap: 24px !important;
+  padding: 0 40px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16) !important;
+  background: var(--tf-admin-navy) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+body.tf-admin-unified:not(.login) #branding.tf-admin-header__brand {
+  display: flex !important;
+  min-width: 0 !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-admin-header__brand a {
+  display: inline-flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-admin-header__brand img {
+  display: block !important;
+  width: 36px !important;
+  height: 36px !important;
+  object-fit: contain !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-admin-user-tools {
+  display: flex !important;
+  min-width: 0 !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin: 0 0 0 auto !important;
+  padding: 0 !important;
+  color: #ffffff !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-admin-user-avatar {
+  display: inline-flex !important;
+  width: 40px !important;
+  height: 40px !important;
+  flex: 0 0 40px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  background: var(--tf-admin-orange) !important;
+  color: #ffffff !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-admin-user-identity strong {
+  color: #ffffff !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+}
+
+body.tf-admin-unified:not(.login) #logout-form {
+  margin: 0 !important;
+}
+
+body.tf-admin-unified:not(.login) #logout-form button {
+  display: inline-flex !important;
+  min-height: 40px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 0 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  cursor: pointer !important;
+}
+
+body.tf-admin-unified:not(.login) #logout-form button:hover,
+body.tf-admin-unified:not(.login) #logout-form button:focus-visible {
+  border-color: var(--tf-admin-orange) !important;
+  background: rgba(242, 101, 34, 0.12) !important;
+}
+
+body.tf-admin-unified:not(.login) .adm-side,
+body.tf-admin-unified:not(.login)
+  .adm-shell.adm-shell--rail-narrow .adm-side {
+  position: fixed !important;
+  top: var(--tf-admin-header-height) !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  z-index: 1100 !important;
+  width: var(--tf-admin-rail-width) !important;
+  min-width: var(--tf-admin-rail-width) !important;
+  max-width: var(--tf-admin-rail-width) !important;
+  height: calc(100vh - var(--tf-admin-header-height)) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  transform: none !important;
+}
+
+body.tf-admin-unified:not(.login)
+  .adm-shell.adm-shell--rail-narrow .adm-rail-label,
+body.tf-admin-unified:not(.login)
+  .adm-shell.adm-shell--rail-narrow .adm-rail-brand-text,
+body.tf-admin-unified:not(.login)
+  .adm-shell.adm-shell--rail-narrow .adm-rail-section-label {
+  display: initial !important;
+}
+
+body.tf-admin-unified:not(.login) .adm-shell {
+  display: block !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  margin: var(--tf-admin-header-height) 0 0 !important;
+  background: var(--tf-admin-page) !important;
+}
+
+body.tf-admin-unified:not(.login) .adm-main,
+body.tf-admin-unified:not(.login) .main {
+  box-sizing: border-box !important;
+  width: calc(100% - var(--tf-admin-rail-width)) !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-left: var(--tf-admin-rail-width) !important;
+  background: var(--tf-admin-page) !important;
+}
+
+body.tf-admin-unified:not(.login) .adm-main {
+  min-height: calc(100vh - var(--tf-admin-header-height)) !important;
+  padding: 32px !important;
+}
+
+body.tf-admin-unified:not(.login) .main {
+  display: block !important;
+  min-height: calc(100vh - var(--tf-admin-header-height)) !important;
+  padding: 0 !important;
+}
+
+body.tf-admin-unified:not(.login)
+  #container > nav[aria-label="Breadcrumbs"] {
+  box-sizing: border-box !important;
+  width: calc(100% - var(--tf-admin-rail-width)) !important;
+  margin: var(--tf-admin-header-height) 0 0
+    var(--tf-admin-rail-width) !important;
+}
+
+body.tf-admin-unified:not(.login) #content {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 32px 40px !important;
+}
+
+body.tf-admin-unified:not(.login) #content-main,
+body.tf-admin-unified:not(.login) .change-list,
+body.tf-admin-unified:not(.login) #changelist,
+body.tf-admin-unified:not(.login) #changelist-form,
+body.tf-admin-unified:not(.login) .results {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+body.tf-admin-unified:not(.login) #changelist .changelist-form-container {
+  width: auto !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+body.tf-admin-unified:not(.login) #changelist-filter {
+  flex: 0 0 272px !important;
+  width: 272px !important;
+}
+
+body.tf-admin-unified:not(.login) h1 {
+  color: var(--tf-admin-navy) !important;
+  font-size: clamp(1.7rem, 2vw, 2.15rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.025em !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-footer,
+body.tf-admin-unified:not(.login) > .tf-footer {
+  display: none !important;
+}
+
+@media (max-width: 1079px) {
+  body.tf-admin-unified:not(.login) #header.tf-admin-header {
+    padding: 0 20px !important;
+  }
+
+  body.tf-admin-unified:not(.login) .adm-side,
+  body.tf-admin-unified:not(.login)
+    .adm-shell.adm-shell--rail-narrow .adm-side {
+    display: none !important;
+  }
+
+  body.tf-admin-unified:not(.login) .adm-main,
+  body.tf-admin-unified:not(.login) .main,
+  body.tf-admin-unified:not(.login)
+    #container > nav[aria-label="Breadcrumbs"] {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  body.tf-admin-unified:not(.login) #content,
+  body.tf-admin-unified:not(.login) .adm-main {
+    padding-right: 20px !important;
+    padding-left: 20px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body.tf-admin-unified:not(.login) .tf-admin-user-identity {
+    display: none !important;
+  }
+
+  body.tf-admin-unified:not(.login) #logout-form button {
+    padding: 0 12px !important;
+  }
+
+  body.tf-admin-unified:not(.login) #content,
+  body.tf-admin-unified:not(.login) .adm-main {
+    padding: 20px 14px !important;
+  }
+
+  body.tf-admin-unified:not(.login) #changelist {
+    overflow-x: auto !important;
+  }
+}

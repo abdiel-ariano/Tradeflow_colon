@@ -10,6 +10,10 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 ================================================================================
 {% endcomment %}
 {% block title %}Sales dashboard — TradeFlow Colón{% endblock %}
+{% block body_shell_class %} tf-admin-unified{% endblock %}
+{% block site_navbar %}
+  {% include "core/includes/admin_header.html" with logout_url_name="logout" %}
+{% endblock site_navbar %}
 {% block extra_head %}{% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
@@ -301,6 +305,10 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
   rel="stylesheet"
   href="{% static 'css/tradeflow_admin_continuity.css' %}"
 >
+<link
+  rel="stylesheet"
+  href="{% static 'css/tradeflow_admin_unified.css' %}"
+>
 {% endblock %}
 {% block content %}
 <div class="adm-shell">
@@ -556,7 +564,6 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 {% block extra_js %}
 <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
 <script src="{% static 'vendor/chartjs/chartjs-plugin-datalabels.min.js' %}"></script>
-<script src="{% static 'js/admin_rail.js' %}"></script>
 <script src="{% static 'js/dashboard_charts.js' %}?v={{ tf_asset_version }}"></script>
 <script nonce="{{ csp_nonce }}">
 (function () {

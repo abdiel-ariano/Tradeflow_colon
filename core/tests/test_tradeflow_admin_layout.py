@@ -38,9 +38,16 @@ class TradeFlowAdminLayoutTests(TestCase):
         continuity_path = finders.find(
             "css/tradeflow_admin_continuity.css"
         )
+        unified_path = finders.find(
+            "css/tradeflow_admin_unified.css"
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "tf-admin-user-tools")
+        self.assertContains(
+            response,
+            'data-tf-admin-header="shared"',
+        )
         self.assertContains(response, "tf-admin-user-avatar")
         self.assertContains(response, "Patricia Vásquez")
         self.assertContains(response, "Sign out")
@@ -48,12 +55,18 @@ class TradeFlowAdminLayoutTests(TestCase):
             response,
             "css/tradeflow_admin_continuity.css",
         )
+        self.assertContains(
+            response,
+            "css/tradeflow_admin_unified.css",
+        )
         self.assertNotContains(response, "tf-admin-header-link")
         self.assertIsNotNone(layout_path)
         self.assertIsNotNone(continuity_path)
+        self.assertIsNotNone(unified_path)
 
         layout = Path(layout_path).read_text(encoding="utf-8")
         continuity = Path(continuity_path).read_text(encoding="utf-8")
+        unified = Path(unified_path).read_text(encoding="utf-8")
 
         self.assertIn("--tf-admin-filter-width: 272px", layout)
         self.assertIn("position: fixed !important", layout)
@@ -63,6 +76,10 @@ class TradeFlowAdminLayoutTests(TestCase):
             "width: calc(100vw - var(--tf-admin-rail-width))",
             continuity,
         )
+        self.assertIn("body.tf-admin-unified", unified)
+        self.assertIn("--tf-admin-header-height: 64px", unified)
+        self.assertIn("--tf-admin-rail-width: 252px", unified)
+        self.assertIn(".adm-shell.adm-shell--rail-narrow", unified)
 
     def test_admin_index_uses_the_same_full_width_shell(self):
         """The administration index cannot fall back to a second shell."""
@@ -74,6 +91,14 @@ class TradeFlowAdminLayoutTests(TestCase):
         self.assertContains(response, "tf-admin-user-tools")
         self.assertContains(
             response,
+            'data-tf-admin-header="shared"',
+        )
+        self.assertContains(
+            response,
             "css/tradeflow_admin_continuity.css",
+        )
+        self.assertContains(
+            response,
+            "css/tradeflow_admin_unified.css",
         )
         self.assertNotContains(response, "tf-system-rail")
