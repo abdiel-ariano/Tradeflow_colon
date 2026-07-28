@@ -951,7 +951,6 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
   font-weight: 700;
   color: var(--tf-navy, #0F2A44);
 }
