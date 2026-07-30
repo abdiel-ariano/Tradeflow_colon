@@ -307,14 +307,17 @@ body.tf-admin-unified:not(.login) > .tf-footer {
  * or a route-specific font hierarchy.
  */
 body.tf-admin-unified:not(.login)
-  :where(div, p, span, strong, small, summary, caption, th, td)
-  :not(.material-symbols-rounded),
+  :where(div, p, span, strong, small, summary, caption, th, td):not(
+    .material-symbols-rounded
+  ),
 body.tf-admin-unified:not(.login)
-  :where(div, p, span, strong, small, summary, caption, th, td)
-  :not(.material-symbols-rounded)::before,
+  :where(div, p, span, strong, small, summary, caption, th, td):not(
+    .material-symbols-rounded
+  )::before,
 body.tf-admin-unified:not(.login)
-  :where(div, p, span, strong, small, summary, caption, th, td)
-  :not(.material-symbols-rounded)::after {
+  :where(div, p, span, strong, small, summary, caption, th, td):not(
+    .material-symbols-rounded
+  )::after {
   font-family: var(--tf-admin-font) !important;
 }
 
