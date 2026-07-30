@@ -145,21 +145,92 @@ def company_for_user(user) -> dict | None:
     return Company.objects.filter(owner_id=user.id).values("id", "name").first()
 
 
-def load_company_sales_df(company_id: int, limit: int = 20000) -> pd.DataFrame:
+def load_company_sales_df(
+    company_id: int,
+    limit: int | None = None,
+    *,
+    since=None,
+) -> pd.DataFrame:
     """Líneas de venta (OrderItem) de los productos de una empresa, con datos
-    de producto y orden ya unidos — no IDs sueltos."""
+    de producto y orden ya unidos — no IDs sueltos.
+
+    ``since`` (datetime opcional) acota historial según el plan de Analítica IA.
+    ``limit`` es opcional; por defecto no hay tope de filas.
+    """
     OrderItem = apps.get_model("core", "OrderItem")
-    rows = list(
-        OrderItem.objects.filter(product__company_id=company_id)
-        .values(
-            "qty", "unit_price_snapshot", "line_total",
-            "product__name", "product__sku", "product__category__name",
-            "order__order_number", "order__status", "order__order_type",
-            "order__created_at", "order__total",
-        )[: int(limit)]
+    qs = OrderItem.objects.filter(product__company_id=company_id)
+    if since is not None:
+        qs = qs.filter(order__created_at__gte=since)
+    qs = qs.order_by("-order__created_at").values(
+        "qty", "unit_price_snapshot", "line_total",
+        "product__name", "product__sku", "product__category__name",
+        "order__order_number", "order__status", "order__order_type",
+        "order__created_at", "order__total",
     )
+    if limit is not None:
+        qs = qs[: int(limit)]
+    rows = list(qs)
     df = pd.DataFrame(rows)
     return df.rename(columns=_SALES_RENAME) if not df.empty else df
+
+
+def load_market_category_benchmarks(
+    *,
+    exclude_company_id: int | None = None,
+    since=None,
+    limit_categories: int = 40,
+) -> pd.DataFrame:
+    """Agregados anónimos ZLC por categoría (sin nombres de competidores).
+
+    Columnas: categoria, market_line_total, market_orders, market_qty,
+    market_avg_unit_price, market_sellers.
+    """
+    from django.db.models import Avg, Count, Sum
+
+    OrderItem = apps.get_model("core", "OrderItem")
+    qs = OrderItem.objects.exclude(product__category__isnull=True)
+    if exclude_company_id:
+        qs = qs.exclude(product__company_id=exclude_company_id)
+    if since is not None:
+        qs = qs.filter(order__created_at__gte=since)
+
+    rows = list(
+        qs.values("product__category__name")
+        .annotate(
+            market_line_total=Sum("line_total"),
+            market_orders=Count("order_id", distinct=True),
+            market_qty=Sum("qty"),
+            market_avg_unit_price=Avg("unit_price_snapshot"),
+            market_sellers=Count("product__company_id", distinct=True),
+        )
+        .order_by("-market_line_total")[: int(limit_categories)]
+    )
+    if not rows:
+        return pd.DataFrame()
+    df = pd.DataFrame(rows).rename(columns={"product__category__name": "categoria"})
+    return df
+
+
+def company_vs_market_df(company_id: int, market_df: pd.DataFrame, company_df: pd.DataFrame) -> pd.DataFrame:
+    """Une ventas propias por categoría con benchmarks de mercado."""
+    del company_id  # reserved for future peer filters
+    if company_df is None or company_df.empty or "categoria" not in company_df.columns:
+        return market_df.copy() if market_df is not None and not market_df.empty else pd.DataFrame()
+
+    agg_kwargs = {}
+    if "line_total" in company_df.columns:
+        agg_kwargs["my_line_total"] = pd.NamedAgg(column="line_total", aggfunc="sum")
+    if "qty" in company_df.columns:
+        agg_kwargs["my_qty"] = pd.NamedAgg(column="qty", aggfunc="sum")
+    if "orden" in company_df.columns:
+        agg_kwargs["my_orders"] = pd.NamedAgg(column="orden", aggfunc="nunique")
+    if not agg_kwargs:
+        return market_df.copy() if market_df is not None and not market_df.empty else pd.DataFrame()
+
+    own = company_df.groupby("categoria", dropna=False).agg(**agg_kwargs).reset_index()
+    if market_df is None or market_df.empty:
+        return own
+    return own.merge(market_df, on="categoria", how="outer").fillna(0)
 
 
 # ── Analytics por empresa (modo standalone, vía SQL directo) ────────────────

@@ -265,12 +265,13 @@ def _safe_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
 def ensure_default_plans() -> int:
     """Crea planes oficiales si no existen. Retorna cantidad de planes activos."""
     defaults = [
-        ('digitalizate', 'Digitalize', Decimal('15000'), 50, False, False, False, 1),
-        ('expansion', 'Expansion', Decimal('50000'), 200, True, False, False, 2),
-        ('corporativo_pro', 'Corporate Pro', None, 500, True, True, False, 3),
-        ('ecosistema_enterprise', 'Enterprise Ecosystem', None, 2000, True, True, True, 4),
+        # slug, name, limit, credits, api, webhooks, predictive, analytics_tier, order
+        ('digitalizate', 'Digitalize', Decimal('15000'), 50, False, False, False, 'company', 1),
+        ('expansion', 'Expansion', Decimal('50000'), 200, True, False, False, 'company', 2),
+        ('corporativo_pro', 'Corporate Pro', None, 500, True, True, False, 'market', 3),
+        ('ecosistema_enterprise', 'Enterprise Ecosystem', None, 2000, True, True, True, 'enterprise', 4),
     ]
-    for slug, name, limit, credits, api, webhooks, predictive, order in defaults:
+    for slug, name, limit, credits, api, webhooks, predictive, analytics_tier, order in defaults:
         SaasPlan.objects.update_or_create(
             slug=slug,
             defaults={
@@ -280,6 +281,7 @@ def ensure_default_plans() -> int:
                 'api_access': api,
                 'logistics_webhooks': webhooks,
                 'predictive_ai': predictive,
+                'analytics_ai_tier': analytics_tier,
                 'priority_support': slug in ('corporativo_pro', 'ecosistema_enterprise'),
                 'sort_order': order,
                 'is_active': True,
@@ -343,6 +345,11 @@ def subscription_usage_snapshot(company: Company) -> dict:
             'api_enabled': False,
             'webhooks_enabled': False,
             'predictive_ai_enabled': False,
+            'analytics_ai_tier': 'company',
+            'analytics_ai_label': 'IA Empresa',
+            'analytics_allow_market': False,
+            'analytics_history_months': 6,
+            'analytics_chat_per_day': 25,
             'volume_blocked': False,
             'growth_signal': 'optimal',
             'growth_message': 'Complete company setup to start your trial.',
@@ -411,6 +418,11 @@ def subscription_usage_snapshot(company: Company) -> dict:
     )
     journey_pct = flow_steps[-1]['cumulative_pct'] if flow_steps else 0
 
+    from core.utils.analytics_ai_entitlements import entitlement_for_tier, tier_for_plan
+
+    _analytics_tier = tier_for_plan(plan)
+    _analytics_ent = entitlement_for_tier(_analytics_tier, plan_slug=plan.slug)
+
     return {
         'subscription': sub,
         'plan': plan,
@@ -425,6 +437,11 @@ def subscription_usage_snapshot(company: Company) -> dict:
         'api_enabled': plan.api_access,
         'webhooks_enabled': plan.logistics_webhooks,
         'predictive_ai_enabled': plan.predictive_ai,
+        'analytics_ai_tier': _analytics_tier,
+        'analytics_ai_label': _analytics_ent.label,
+        'analytics_allow_market': _analytics_ent.allow_market,
+        'analytics_history_months': _analytics_ent.history_months,
+        'analytics_chat_per_day': _analytics_ent.chat_per_day,
         'volume_blocked': warning == 'limit',
         'growth_signal': growth_signal,
         'growth_message': growth_message,
@@ -1154,4 +1171,8 @@ def plan_allows_feature(company: Company, feature: str) -> bool:
         return plan.is_unlimited
     if feature == 'predictive_ai':
         return plan.predictive_ai
+    if feature == 'analytics_market':
+        return bool(snap.get('analytics_allow_market'))
+    if feature == 'analytics_enterprise':
+        return snap.get('analytics_ai_tier') == 'enterprise'
     return True

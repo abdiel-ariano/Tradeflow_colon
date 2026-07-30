@@ -51,6 +51,13 @@
   {% endif %}
   <div class="sp-saas-meta">
     <span>TradeFlow Ads: {{ saas_snapshot.ad_credits_balance }} credits</span>
+    {% if saas_snapshot.analytics_ai_label %}
+    <span title="{% if saas_snapshot.analytics_allow_market %}Benchmarks ZLC incluidos{% else %}Solo datos de tu empresa{% endif %}">
+      {{ saas_snapshot.analytics_ai_label }}:
+      {{ saas_snapshot.analytics_history_months }} mo ·
+      {{ saas_snapshot.analytics_chat_per_day }} chats/day
+    </span>
+    {% endif %}
     {% if saas_snapshot.api_enabled %}<span>Integrated API</span>{% endif %}
     {% if saas_snapshot.webhooks_enabled %}<span>Connected logistics</span>{% endif %}
     {% if saas_snapshot.predictive_ai_enabled %}<span>Predictive AI</span>{% endif %}

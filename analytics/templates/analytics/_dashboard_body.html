@@ -5,7 +5,18 @@
       {% if seller_embedded %}
       <p class="tf-page-subtitle" style="margin:0;">
         {% trans "Análisis de tu empresa" %}{% if company_name %} · <strong>{{ company_name }}</strong>{% endif %}
+        {% if analytics_ai_label %}
+        · <span class="tf-badge tf-badge-navy" title="{% if analytics_allow_market %}{% trans 'Incluye benchmarks anónimos de la ZLC' %}{% else %}{% trans 'Solo datos de tu empresa' %}{% endif %}">{{ analytics_ai_label }}</span>
+        {% endif %}
       </p>
+      {% if analytics_history_months %}
+      <p class="tf-page-subtitle" style="margin:6px 0 0;font-size:12px;">
+        {% blocktrans with months=analytics_history_months chats=analytics_chat_per_day %}Historial {{ months }} meses · {{ chats }} chats IA / día{% endblocktrans %}
+        {% if not analytics_allow_market %}
+        · <a href="{% url 'seller_plan_consumo' %}#upgrade">{% trans "Desbloquear mercado ZLC" %}</a>
+        {% endif %}
+      </p>
+      {% endif %}
       {% else %}
       <h1 class="tf-page-title">{% trans "Analytics IA" %}</h1>
       <p class="tf-page-subtitle">

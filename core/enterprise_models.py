@@ -33,6 +33,16 @@ class SaasPlan(models.Model):
         default=False,
         verbose_name='Enterprise predictive AI',
     )
+    analytics_ai_tier = models.CharField(
+        max_length=20,
+        default='company',
+        choices=(
+            ('company', 'Company AI (own data only)'),
+            ('market', 'Market AI (own + ZLC benchmarks)'),
+            ('enterprise', 'Ecosystem AI (market + predictive)'),
+        ),
+        help_text='Scope of seller analytics IA (no analytics API yet).',
+    )
     sort_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 

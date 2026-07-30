@@ -152,17 +152,30 @@ def dashboard(request):
 
 def _load_seller_company_df(request):
     """Ventas (OrderItem unido) de la empresa del usuario con sesión iniciada.
-    Devuelve (df, company) o (None, company/None). NUNCA usa un id del request:
-    solo la empresa que el usuario posee (Company.owner) → sin fuga cross-tenant."""
+    Devuelve (df, company, entitlement) o (None, company/None, entitlement/None).
+    NUNCA usa un id del request: solo Company.owner → sin fuga cross-tenant.
+    Aplica el historial del plan de Analítica IA (sin tope de filas).
+    """
+    from core.models import Company
+    from core.utils.analytics_ai_entitlements import (
+        entitlement_for_company,
+        history_cutoff,
+    )
+
     company = ds.company_for_user(request.user)
     if not company:
-        return None, None
+        return None, None, None
+    company_obj = Company.objects.filter(pk=company["id"]).first()
+    ent = entitlement_for_company(company_obj) if company_obj else None
+    since = history_cutoff(ent) if ent else None
     try:
-        df = data_loader.clean(ds.load_company_sales_df(company["id"]))
+        df = data_loader.clean(
+            ds.load_company_sales_df(company["id"], since=since)
+        )
     except Exception:
         logger.exception("seller analytics: fallo al cargar ventas de la empresa")
-        return None, company
-    return df, company
+        return None, company, ent
+    return df, company, ent
 
 
 @login_required
@@ -171,7 +184,12 @@ def seller_dashboard(request):
 
     Auto-carga SOLO las ventas de la empresa del vendedor con sesión iniciada
     (fresco desde el ORM en cada visita → consistente aunque haya varios workers
-    Gunicorn con caché LocMem). Sin fuentes de datos arbitrarias (archivo/BD/SQL)."""
+    Gunicorn con caché LocMem). Sin fuentes de datos arbitrarias (archivo/BD/SQL).
+    Alcance de mercado / cuotas según ``analytics_ai_tier`` del plan SaaS.
+    """
+    from core.models import Company
+    from core.utils.analytics_ai_entitlements import entitlement_for_company
+
     dark = _is_dark(request)
     ctx = {
         "base_template": "core/seller_layout.html",
@@ -182,19 +200,66 @@ def seller_dashboard(request):
         "nav_activo": "analytics",
         "has_data": False,
     }
-    df, company = _load_seller_company_df(request)
+    df, company, ent = _load_seller_company_df(request)
     ctx["company_name"] = company["name"] if company else ""
     if not company:
         ctx["no_company"] = True
         return render(request, "analytics/seller_dashboard.html", ctx)
+
+    company_obj = Company.objects.filter(pk=company["id"]).first()
+    ent = ent or (entitlement_for_company(company_obj) if company_obj else None)
+    ctx["analytics_entitlement"] = ent
+    ctx["analytics_ai_tier"] = ent.tier if ent else "company"
+    ctx["analytics_ai_label"] = ent.label if ent else "IA Empresa"
+    ctx["analytics_allow_market"] = bool(ent and ent.allow_market)
+    ctx["analytics_history_months"] = ent.history_months if ent else 6
+    ctx["analytics_chat_per_day"] = ent.chat_per_day if ent else 25
+
+    market_df = None
+    compare_df = None
+    if ent and ent.allow_market and company_obj:
+        try:
+            from core.utils.analytics_ai_entitlements import history_cutoff
+            market_df = ds.load_market_category_benchmarks(
+                exclude_company_id=company_obj.pk,
+                since=history_cutoff(ent),
+            )
+            if df is not None and not df.empty:
+                compare_df = ds.company_vs_market_df(company_obj.pk, market_df, df)
+        except Exception:
+            logger.exception("seller analytics: fallo al cargar benchmarks de mercado")
+
+    ctx["market_benchmark"] = market_df
+    ctx["market_compare"] = compare_df
+    ctx["has_market_data"] = bool(market_df is not None and not market_df.empty)
+
     if df is None or df.empty:
         ctx["no_sales"] = True
         return render(request, "analytics/seller_dashboard.html", ctx)
 
-    ds.store_df(request, df, {"company": True, "origen": company["name"]})
+    meta = {
+        "company": True,
+        "origen": company["name"],
+        "analytics_tier": ent.tier if ent else "company",
+        "allow_market": bool(ent and ent.allow_market),
+    }
+    ds.store_df(request, df, meta)
+    if market_df is not None and not market_df.empty:
+        request.session["analytics_market_meta"] = {
+            "tier": ent.tier if ent else "market",
+            "categories": int(len(market_df)),
+        }
     ctx["has_data"] = True
-    ctx["meta"] = {"company": True, "origen": company["name"]}
+    ctx["meta"] = meta
     ctx.update(_company_dashboard_context(df, dark))
+    if ctx["has_market_data"] and compare_df is not None and not compare_df.empty:
+        try:
+            sample = compare_df.head(12).copy()
+            ctx["market_table_html"] = L.pretty_columns(sample).to_html(
+                classes="tf-table", index=False, border=0
+            )
+        except Exception:
+            ctx["market_table_html"] = None
     return render(request, "analytics/seller_dashboard.html", ctx)
 
 
@@ -610,14 +675,42 @@ def db_disconnect(request):
 @_login
 @require_POST
 def chat(request):
+    from core.models import Company
+    from core.utils.analytics_ai_entitlements import (
+        chat_quota_denied_message,
+        consume_chat_quota,
+        entitlement_for_company,
+        market_denied_message,
+        message_requests_market,
+    )
+
     df, _meta = ds.get_df(request)
+    company_row = ds.company_for_user(request.user) if not STANDALONE else None
+    company_obj = (
+        Company.objects.filter(pk=company_row["id"]).first()
+        if company_row else None
+    )
+    ent = entitlement_for_company(company_obj) if company_obj else None
+
     if df is None and not STANDALONE:
         # Resiliencia multi-worker: si la caché de sesión no tiene el df (otro
         # worker Gunicorn con LocMem sin Redis), recargar las ventas de la empresa
         # del vendedor desde el ORM en vez de pedirle que "cargue datos".
-        df, company = _load_seller_company_df(request)
+        df, company, ent = _load_seller_company_df(request)
         if df is not None and not df.empty and company:
-            ds.store_df(request, df, {"company": True, "origen": company["name"]})
+            ds.store_df(
+                request,
+                df,
+                {
+                    "company": True,
+                    "origen": company["name"],
+                    "analytics_tier": ent.tier if ent else "company",
+                    "allow_market": bool(ent and ent.allow_market),
+                },
+            )
+            if not company_obj and company:
+                company_obj = Company.objects.filter(pk=company["id"]).first()
+                ent = entitlement_for_company(company_obj) if company_obj else ent
     if df is None:
         return JsonResponse({"text": "Primero carga datos para analizar.",
                              "fig": None, "table": None})
@@ -631,8 +724,43 @@ def chat(request):
         return JsonResponse({"text": "Escribe una pregunta o petición.",
                              "fig": None, "table": None})
 
+    if ent and company_obj:
+        if message_requests_market(message) and not ent.allow_market:
+            return JsonResponse({
+                "text": market_denied_message(ent),
+                "fig": None,
+                "table": None,
+                "upgrade": True,
+                "tier": ent.tier,
+            })
+        allowed, used, limit = consume_chat_quota(company_obj.pk, ent)
+        if not allowed:
+            return JsonResponse({
+                "text": chat_quota_denied_message(used, limit),
+                "fig": None,
+                "table": None,
+                "quota": {"used": used, "limit": limit},
+            })
+
+    analysis_df = df
+    if ent and ent.allow_market and company_obj:
+        try:
+            from core.utils.analytics_ai_entitlements import history_cutoff
+            market_df = ds.load_market_category_benchmarks(
+                exclude_company_id=company_obj.pk,
+                since=history_cutoff(ent),
+            )
+            if market_df is not None and not market_df.empty and message_requests_market(message):
+                compare = ds.company_vs_market_df(company_obj.pk, market_df, df)
+                if compare is not None and not compare.empty:
+                    analysis_df = compare
+        except Exception:
+            logger.exception("chat: no se pudo anexar mercado")
+
     try:
-        text, fig, table = ai_analyzer.chat(df, history, message, api_key=_api_key())
+        text, fig, table = ai_analyzer.chat(
+            analysis_df, history, message, api_key=_api_key()
+        )
     except Exception as e:
         return JsonResponse({"text": f"⚠ Error: {e}", "fig": None, "table": None})
 
@@ -642,7 +770,19 @@ def chat(request):
     table_html = None
     if table is not None and not table.empty:
         table_html = L.pretty_columns(table.head(200)).to_html(classes="tf-table", index=False, border=0)
-    return JsonResponse({"text": text, "fig": fig_json, "table": table_html})
+    payload = {"text": text, "fig": fig_json, "table": table_html}
+    if ent:
+        payload["tier"] = ent.tier
+        payload["quota"] = {
+            "used": chat_used_safe(company_obj.pk) if company_obj else None,
+            "limit": ent.chat_per_day,
+        }
+    return JsonResponse(payload)
+
+
+def chat_used_safe(company_id: int) -> int:
+    from core.utils.analytics_ai_entitlements import chat_used_today
+    return chat_used_today(company_id)
 
 
 # ── Exportación ──────────────────────────────────────────────────────────────

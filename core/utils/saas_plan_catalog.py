@@ -4,6 +4,8 @@ Catálogo comercial de planes (copy y UX) — los límites USD viven solo en Saa
 from __future__ import annotations
 
 # Referencia autoritativa para asistente IA (Groq) y copy público de planes vendedor.
+# Límites de Analítica IA: docs/ANALYTICS_AI_ENTITLEMENTS.md
+# (código: core/utils/analytics_ai_entitlements.py).
 SAAS_PLANS_AI_ROWS = (
     {
         'name': 'Digitalízate',
@@ -13,8 +15,9 @@ SAAS_PLANS_AI_ROWS = (
         'billing_cap': 'Hasta USD 15,000 / mes',
         'access': (
             'Catálogo al 100% para Micro/PyMEs. Mapa digital con rastreo. '
-            'Reporte básico de ventas propias y acceso al módulo promocional '
-            "'Top 3 Buscados de la ZLC'."
+            'Analítica IA Empresa: solo ventas propias; historial 6 meses, '
+            '25 chats IA/día; forecast básico. Sin tope de filas. '
+            'Sin benchmarks ni comparación con el mercado ZLC.'
         ),
     },
     {
@@ -25,8 +28,9 @@ SAAS_PLANS_AI_ROWS = (
         'billing_cap': 'Hasta USD 50,000 / mes',
         'access': (
             'Catálogo al 100% para Empresas Medianas. Despacho en 1 clic a '
-            'agencias nacionales. Desbloqueo del gestor TradeFlow Ads para '
-            'comprar anuncios destacados.'
+            'agencias nacionales. TradeFlow Ads. Analítica IA Empresa ampliada: '
+            'historial 12 meses, 50 chats IA/día; forecast. Sin tope de filas. '
+            'Sigue sin benchmarks de mercado ZLC.'
         ),
     },
     {
@@ -37,8 +41,10 @@ SAAS_PLANS_AI_ROWS = (
         'billing_cap': 'Ilimitado',
         'access': (
             'Catálogo ilimitado. Automatización de guías y etiquetas de envío. '
-            'Estudio de Mercado Completo de la ZLC. Incluye 3 anuncios destacados '
-            'mensuales fijos.'
+            'Analítica IA Mercado: ventas propias + benchmarks anónimos ZLC; '
+            'historial 18 meses, 80 chats IA/día. Sin tope de filas. '
+            'Sin IA predictiva / cohortes / escenarios. '
+            'Incluye 3 anuncios destacados mensuales fijos.'
         ),
     },
     {
@@ -49,8 +55,11 @@ SAAS_PLANS_AI_ROWS = (
         'billing_cap': 'Ilimitado',
         'access': (
             'Sincronización por API con el ERP interno de la empresa. Soporte '
-            'multi-bodega y técnico 24/7. Máxima prioridad en búsquedas y 1 banner '
-            'principal fijo mensual.'
+            'multi-bodega y técnico 24/7. Analítica IA Ecosistema: mercado ZLC + '
+            'predictiva + cohortes + escenarios; historial 36 meses, '
+            '300 chats IA/día. Sin tope de filas '
+            '(sin API de analytics por ahora). '
+            'Máxima prioridad en búsquedas y 1 banner principal fijo mensual.'
         ),
     },
 )
@@ -89,7 +98,7 @@ PLAN_MARKETING = {
             'Catálogo digital completo y trazable',
             'Presencia B2B profesional en TradeFlow',
             'Ventas organizadas y confirmación empresarial',
-            'Analytics operativos esenciales',
+            'IA Empresa: 6 meses · 25 chats/día (sin tope de filas)',
             'Crecimiento inicial dentro del ecosistema',
         ],
         'cta': 'activate',
@@ -105,7 +114,7 @@ PLAN_MARKETING = {
             'Despacho logístico en 1 clic',
             'Automatización de operaciones',
             'API para integraciones clave',
-            'Escala tu volumen con confianza',
+            'IA Empresa: 12 meses · 50 chats/día (sin tope de filas)',
         ],
         'cta': 'activate',
         'tier_label': 'Recomendado',
@@ -116,7 +125,7 @@ PLAN_MARKETING = {
         'featured': False,
         'icon': 'insights',
         'benefits': [
-            'Estudios de mercado y métricas profundas',
+            'IA Mercado ZLC: 18 meses · 80 chats/día',
             'Webhooks logísticos a aliados',
             'Créditos publicitarios ampliados',
             'Soporte prioritario operativo',
@@ -131,11 +140,11 @@ PLAN_MARKETING = {
         'featured': False,
         'icon': 'corporate_fare',
         'benefits': [
-            'IA predictiva sobre tus datos reales',
+            'IA Ecosistema: 36 meses · 300 chats/día',
+            'Mercado ZLC + predictiva + cohortes + escenarios',
             'API enterprise y SLA dedicado',
             'Activación consultiva con ejecutivo',
             'Integración logística a medida',
-            'Preparado para expansión regional',
         ],
         'cta': 'commercial',
         'tier_label': 'Consultivo',
@@ -160,5 +169,6 @@ def marketing_for_plan(plan) -> dict:
         'has_api': plan.api_access,
         'has_webhooks': plan.logistics_webhooks,
         'has_predictive': plan.predictive_ai,
+        'analytics_ai_tier': getattr(plan, 'analytics_ai_tier', 'company'),
         'sort_order': plan.sort_order,
     }
