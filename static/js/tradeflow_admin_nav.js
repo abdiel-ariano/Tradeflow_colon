@@ -136,6 +136,78 @@
     nav.setAttribute("data-accordion-ready", "true");
   }
 
+
+  /**
+   * Keep the shared administration rail usable on tablets and phones.
+   *
+   * The drawer state lives only in the current document. It is intentionally
+   * not persisted so every administrative route starts from a predictable
+   * closed state on compact screens.
+   */
+  function setupResponsiveDrawer() {
+    var toggle = document.getElementById("tfAdminMenuToggle");
+    var rail = document.getElementById("admRail");
+    var backdrop = document.getElementById("tfAdminRailBackdrop");
+
+    if (!toggle || !rail || !backdrop) return;
+
+    /**
+     * Apply the drawer state and synchronize accessibility attributes.
+     *
+     * @param {boolean} isOpen Whether the compact navigation is visible.
+     * @param {boolean} restoreFocus Whether closing should focus the toggle.
+     */
+    function setDrawerState(isOpen, restoreFocus) {
+      document.body.classList.toggle("tf-admin-drawer-open", isOpen);
+      toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      backdrop.setAttribute("tabindex", isOpen ? "0" : "-1");
+
+      if (isOpen) {
+        var destination = rail.querySelector(
+          "[aria-current='page'], a.adm-rail-link"
+        );
+        if (destination) destination.focus();
+      } else if (restoreFocus) {
+        toggle.focus();
+      }
+    }
+
+    toggle.addEventListener("click", function () {
+      var isOpen = document.body.classList.contains(
+        "tf-admin-drawer-open"
+      );
+      setDrawerState(!isOpen, isOpen);
+    });
+
+    backdrop.addEventListener("click", function () {
+      setDrawerState(false, true);
+    });
+
+    rail.addEventListener("click", function (event) {
+      if (
+        window.innerWidth < 1080 &&
+        event.target.closest("a.adm-rail-link")
+      ) {
+        setDrawerState(false, false);
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (
+        event.key === "Escape" &&
+        document.body.classList.contains("tf-admin-drawer-open")
+      ) {
+        setDrawerState(false, true);
+      }
+    });
+
+    window.addEventListener("resize", function () {
+      if (window.innerWidth >= 1080) {
+        setDrawerState(false, false);
+      }
+    });
+  }
+
   function initializeNavigation() {
     highlightSharedRail();
     buildAccordion(
@@ -143,6 +215,7 @@
       ".adm-rail-section-label",
       "tradeflow-admin-group"
     );
+    setupResponsiveDrawer();
   }
 
   if (document.readyState === "loading") {
