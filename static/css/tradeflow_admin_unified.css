@@ -297,3 +297,147 @@ body.tf-admin-unified:not(.login) > .tf-footer {
     overflow-x: auto !important;
   }
 }
+
+
+/*
+ * Responsive and typography continuity.
+ *
+ * These rules are intentionally part of the final shell layer. They keep the
+ * compact experience usable without reintroducing Django's secondary navbar
+ * or a route-specific font hierarchy.
+ */
+body.tf-admin-unified:not(.login)
+  :where(div, p, span, strong, small, summary, caption, th, td)
+  :not(.material-symbols-rounded),
+body.tf-admin-unified:not(.login)
+  :where(div, p, span, strong, small, summary, caption, th, td)
+  :not(.material-symbols-rounded)::before,
+body.tf-admin-unified:not(.login)
+  :where(div, p, span, strong, small, summary, caption, th, td)
+  :not(.material-symbols-rounded)::after {
+  font-family: var(--tf-admin-font) !important;
+}
+
+body.tf-admin-unified:not(.login) .material-symbols-rounded {
+  font-family: "Material Symbols Rounded" !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-admin-menu-toggle,
+body.tf-admin-unified:not(.login) .tf-admin-rail-backdrop {
+  display: none !important;
+}
+
+@media (max-width: 1079px) {
+  body.tf-admin-unified:not(.login) .tf-admin-menu-toggle {
+    display: inline-flex !important;
+    width: 42px !important;
+    height: 42px !important;
+    flex: 0 0 42px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.24) !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+  }
+
+  body.tf-admin-unified:not(.login) .tf-admin-menu-toggle:hover,
+  body.tf-admin-unified:not(.login) .tf-admin-menu-toggle:focus-visible {
+    border-color: var(--tf-admin-orange) !important;
+    background: rgba(242, 101, 34, 0.14) !important;
+  }
+
+  body.tf-admin-unified:not(.login) .tf-admin-rail-backdrop {
+    position: fixed !important;
+    inset: var(--tf-admin-header-height) 0 0 !important;
+    z-index: 1050 !important;
+    display: block !important;
+    width: 100% !important;
+    height: calc(100vh - var(--tf-admin-header-height)) !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: rgba(5, 20, 34, 0.55) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition:
+      opacity 180ms ease,
+      visibility 180ms ease !important;
+  }
+
+  body.tf-admin-unified:not(.login) .adm-side,
+  body.tf-admin-unified:not(.login)
+    .adm-shell.adm-shell--rail-narrow .adm-side {
+    display: block !important;
+    transform: translateX(-105%) !important;
+    transition: transform 180ms ease !important;
+    box-shadow: 18px 0 42px rgba(5, 20, 34, 0.22) !important;
+  }
+
+  body.tf-admin-unified.tf-admin-drawer-open:not(.login) {
+    overflow: hidden !important;
+  }
+
+  body.tf-admin-unified.tf-admin-drawer-open:not(.login)
+    .tf-admin-rail-backdrop {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  body.tf-admin-unified.tf-admin-drawer-open:not(.login) .adm-side,
+  body.tf-admin-unified.tf-admin-drawer-open:not(.login)
+    .adm-shell.adm-shell--rail-narrow .adm-side {
+    transform: translateX(0) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body.tf-admin-unified:not(.login) #header.tf-admin-header {
+    gap: 10px !important;
+    padding-right: 12px !important;
+    padding-left: 12px !important;
+  }
+
+  body.tf-admin-unified:not(.login) .tf-admin-user-tools {
+    gap: 8px !important;
+  }
+
+  body.tf-admin-unified:not(.login) .tf-admin-user-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
+  }
+
+  body.tf-admin-unified:not(.login) #logout-form button {
+    width: 40px !important;
+    min-width: 40px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+  }
+
+  body.tf-admin-unified:not(.login) .tf-admin-logout-label {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.tf-admin-unified:not(.login) .adm-side,
+  body.tf-admin-unified:not(.login) .tf-admin-rail-backdrop {
+    transition: none !important;
+  }
+}
