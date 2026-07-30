@@ -72,7 +72,7 @@ pyotp>=2.9,<3.0
 sentry-sdk>=2.0,<3.0
 
 # ── Asistente IA (Groq API) ────────────────────────────────────────────────
-groq>=0.9.0,<1.0
+groq>=1.6.0,<2.0
 
 # ── Hashing de contraseñas (OWASP A02:2021 — Argon2) ──────────────────────
 argon2-cffi>=23.1,<24.0         # backend Argon2 para Django PASSWORD_HASHERS
