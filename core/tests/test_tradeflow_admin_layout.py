@@ -51,6 +51,8 @@ class TradeFlowAdminLayoutTests(TestCase):
         self.assertContains(response, "tf-admin-user-avatar")
         self.assertContains(response, "Patricia Vásquez")
         self.assertContains(response, "Sign out")
+        self.assertContains(response, 'aria-controls="admRail"')
+        self.assertContains(response, 'aria-expanded="false"')
         self.assertContains(
             response,
             "css/tradeflow_admin_continuity.css",
@@ -80,6 +82,8 @@ class TradeFlowAdminLayoutTests(TestCase):
         self.assertIn("--tf-admin-header-height: 64px", unified)
         self.assertIn("--tf-admin-rail-width: 252px", unified)
         self.assertIn(".adm-shell.adm-shell--rail-narrow", unified)
+        self.assertIn("tf-admin-drawer-open", unified)
+        self.assertIn("overflow: hidden !important", unified)
 
     def test_admin_index_uses_the_same_full_width_shell(self):
         """The administration index cannot fall back to a second shell."""
