@@ -93,3 +93,26 @@ Las pruebas verifican el atributo `data-tf-admin-header="shared"` en ambas
 familias de rutas, la carga de la capa final y la ausencia del script
 heredado. Cualquier cabecera duplicada o nuevo modo de rail requiere ampliar
 primero este contrato y sus pruebas.
+
+
+## Navegación compacta para tablet y móvil
+
+La cabecera compartida incorpora el control `tfAdminMenuToggle` en todas las
+rutas administrativas. Por debajo de 1080 px, el menú lateral se convierte en
+un drawer sobre el lienzo y conserva el mismo contenido, ruta activa y
+acordeones del escritorio.
+
+`static/js/tradeflow_admin_nav.js` es el único controlador del drawer. El
+estado no se guarda entre páginas para que cada ruta compacta comience cerrada
+y predecible. El usuario puede cerrarlo con el fondo, con la tecla Escape o al
+seleccionar un destino. Los atributos `aria-controls` y `aria-expanded`
+mantienen sincronizado el estado para tecnologías de asistencia.
+
+La capa final también aplica Montserrat a los textos heredados del dashboard y
+Django Admin, excluyendo explícitamente la fuente de Material Symbols. Los
+valores de KPIs ya no contienen atributos tipográficos inline. Esto mantiene la
+política CSP y evita que una ruta reintroduzca Inter o una tipografía serif.
+
+Las pruebas de navegación y layout comprueban los controles responsive, el
+cierre por Escape, las clases del drawer y la ausencia de estilos tipográficos
+inline en el dashboard.
