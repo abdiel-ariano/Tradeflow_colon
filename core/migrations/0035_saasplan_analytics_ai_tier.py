@@ -18,7 +18,7 @@ def seed_analytics_tiers(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0033_bank_plan_checkout_fields'),
+        ('core', '0034_password_reset_link'),
     ]
 
     operations = [

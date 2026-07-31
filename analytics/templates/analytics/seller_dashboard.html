@@ -2,16 +2,14 @@
 {% load i18n %}
 
 {% comment %}
-  Analítica IA embebida en el portal del vendedor. Reutiliza los mismos partials
-  que el dashboard standalone (_dashboard_css / _dashboard_body / _dashboard_js),
-  pero dentro del shell del seller (sidebar + topbar). El flag seller_embedded=True
-  (que pone la vista seller_dashboard) oculta las fuentes de datos arbitrarias y
-  auto-carga solo las ventas de la empresa del vendedor.
+  AI Analytics embedded in the seller portal. Reuses the same partials as the
+  standalone dashboard, inside the seller shell. seller_embedded=True hides
+  arbitrary data sources and auto-loads only this seller's company sales.
 {% endcomment %}
 
-{% block seller_page_title %}{% trans "Analítica IA" %}{% endblock %}
+{% block seller_page_title %}Analytics AI{% endblock %}
 {% block seller_page_sub %}
-  <p class="sp-dash-page-sub">{% trans "KPIs, tendencias y proyecciones de tu empresa, con IA." %}</p>
+  <p class="sp-dash-page-sub">KPIs, trends and forecasts for your company — with AI.</p>
 {% endblock %}
 
 {% block seller_extra_css %}{% include "analytics/_dashboard_css.html" %}{% endblock %}

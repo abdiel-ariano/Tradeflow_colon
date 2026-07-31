@@ -4,16 +4,16 @@
     <div>
       {% if seller_embedded %}
       <p class="tf-page-subtitle" style="margin:0;">
-        {% trans "Análisis de tu empresa" %}{% if company_name %} · <strong>{{ company_name }}</strong>{% endif %}
+        Company analytics{% if company_name %} · <strong>{{ company_name }}</strong>{% endif %}
         {% if analytics_ai_label %}
-        · <span class="tf-badge tf-badge-navy" title="{% if analytics_allow_market %}{% trans 'Incluye benchmarks anónimos de la ZLC' %}{% else %}{% trans 'Solo datos de tu empresa' %}{% endif %}">{{ analytics_ai_label }}</span>
+        · <span class="tf-badge tf-badge-navy" title="{% if analytics_allow_market %}Includes anonymous ZLC market benchmarks{% else %}Your company data only{% endif %}">{{ analytics_ai_label }}</span>
         {% endif %}
       </p>
       {% if analytics_history_months %}
       <p class="tf-page-subtitle" style="margin:6px 0 0;font-size:12px;">
-        {% blocktrans with months=analytics_history_months chats=analytics_chat_per_day %}Historial {{ months }} meses · {{ chats }} chats IA / día{% endblocktrans %}
+        {{ analytics_history_months }} months of history · {{ analytics_chat_per_day }} AI chats / day
         {% if not analytics_allow_market %}
-        · <a href="{% url 'seller_plan_consumo' %}#upgrade">{% trans "Desbloquear mercado ZLC" %}</a>
+        · <a href="{% url 'seller_plan_consumo' %}#upgrade">Unlock ZLC market data</a>
         {% endif %}
       </p>
       {% endif %}
@@ -58,6 +58,16 @@
       {% endif %}
     </div>
   </div>
+
+  {% if seller_embedded and data_truncated %}
+  <div class="tf-alert tf-alert-warning" style="margin:16px 0;">
+    <span class="material-symbols-rounded" aria-hidden="true">filter_alt</span>
+    <div>
+      Showing the newest {{ data_limit|default:20000 }} of {{ data_total_rows }} sales lines
+      so charts stay fast. Older rows are omitted from this view and AI chat.
+    </div>
+  </div>
+  {% endif %}
 
   {% if db_auto_error %}
   <div class="tf-alert tf-alert-warning" style="margin:16px 0;">
@@ -276,11 +286,15 @@
     </div>
 
     <!-- ── Gráficas ──────────────────────────────────────────────────── -->
-    <h2 class="tf-subtitle">{% trans "Visualizaciones" %}</h2>
+    <h2 class="tf-subtitle">{% if seller_embedded %}Charts{% else %}{% trans "Visualizaciones" %}{% endif %}</h2>
     {% if not charts %}
     <div class="tf-alert tf-alert-info">
       <span class="material-symbols-rounded" aria-hidden="true">info</span>
+      {% if seller_embedded %}
+      Not enough numeric or categorical columns to chart yet. Use the chat below or expand the data preview.
+      {% else %}
       {% trans "Esta tabla no tiene columnas numéricas o categóricas con datos suficientes para graficar. Prueba otra tabla (p. ej. una con métricas), usa el chat, o revisa la vista de datos abajo." %}
+      {% endif %}
     </div>
     {% endif %}
     <div class="an-grid" id="an-charts">
@@ -293,47 +307,95 @@
     </div>
 
     <!-- ── Proyecciones automáticas ──────────────────────────────────── -->
-    {% if proj_tables %}
-    <h2 class="tf-subtitle an-section an-section-title">
-      <span class="material-symbols-rounded" style="color:var(--tf-orange);" aria-hidden="true">trending_up</span>
-      {% trans "Proyecciones" %}
-      <span class="an-section-hint">{% trans "— estimadas automáticamente sobre tu histórico" %}</span>
+    <section class="an-forecast-block an-section" aria-labelledby="an-forecast-heading">
+    <h2 class="tf-subtitle an-section-title" id="an-forecast-heading">
+      <span class="material-symbols-rounded an-forecast-ico" aria-hidden="true">trending_up</span>
+      {% if seller_embedded %}Forecasts{% else %}{% trans "Proyecciones" %}{% endif %}
+      {% if proj_tables or forecast_charts %}
+      <span class="an-section-hint">{% if seller_embedded %}— auto-estimated from your history{% else %}{% trans "— estimadas automáticamente sobre tu histórico" %}{% endif %}</span>
+      {% endif %}
     </h2>
-    <div class="an-grid">
-      {% for t in proj_tables %}
-      <div class="an-card an-proj-card{% if t.kind == 'up' %} an-proj-up{% elif t.kind == 'down' %} an-proj-down{% endif %}">
-        <div class="an-proj-title">
-          <span class="material-symbols-rounded" aria-hidden="true">
-            {% if t.kind == 'up' %}trending_up{% elif t.kind == 'down' %}trending_down{% else %}insights{% endif %}
-          </span>
-          {{ t.title }}
-        </div>
-        <div class="an-table-scroll">{{ t.html|safe }}</div>
-        {% if t.note %}
-        <p class="an-proj-note">{{ t.note }}</p>
-        {% endif %}
+    {% if forecast_charts %}
+    <div class="an-grid an-forecast-charts" id="an-forecast-charts">
+      {% for c in forecast_charts %}
+      <div class="an-skel" aria-hidden="true">
+        <div class="an-skel-title"></div>
+        <div class="an-skel-body"></div>
       </div>
       {% endfor %}
     </div>
     {% endif %}
+    {% if proj_tables %}
+    <div class="an-grid an-proj-grid">
+      {% for t in proj_tables %}
+      <article class="an-card an-proj-card{% if t.kind == 'up' %} an-proj-up{% elif t.kind == 'down' %} an-proj-down{% elif t.kind == 'summary' %} an-proj-summary{% endif %}">
+        <header class="an-proj-title">
+          <span class="an-proj-badge" aria-hidden="true">
+            <span class="material-symbols-rounded">
+              {% if t.kind == 'up' %}trending_up{% elif t.kind == 'down' %}trending_down{% else %}insights{% endif %}
+            </span>
+          </span>
+          <span class="an-proj-title-text">{{ t.title }}</span>
+        </header>
+        {% if t.rows %}
+        <dl class="an-metric-list">
+          {% for row in t.rows %}
+          <div class="an-metric-row">
+            <dt>{{ row.label }}</dt>
+            <dd class="an-metric-val {% if row.tone == 'up' %}is-up{% elif row.tone == 'down' %}is-down{% elif row.tone == 'muted' %}is-muted{% endif %}">{{ row.value }}</dd>
+          </div>
+          {% endfor %}
+        </dl>
+        {% else %}
+        <div class="an-table-scroll">{{ t.html|safe }}</div>
+        {% endif %}
+        {% if t.note %}
+        <p class="an-proj-note">{{ t.note }}</p>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    {% elif not forecast_charts %}
+    <div class="tf-alert tf-alert-info an-forecast-empty">
+      <span class="material-symbols-rounded" aria-hidden="true">timeline</span>
+      {% if seller_embedded %}
+      Forecasts need a date column and at least a few periods of history.
+      Once you have more dated orders, trend and forecast tables appear here automatically.
+      {% else %}
+      {% trans "Las proyecciones necesitan una columna de fecha y al menos unos periodos de histórico." %}
+      {% endif %}
+    </div>
+    {% endif %}
+    </section>
 
     <!-- ── Chat ──────────────────────────────────────────────────────── -->
-    <h2 class="tf-subtitle an-section">{% trans "Habla con tus datos" %}</h2>
+    <h2 class="tf-subtitle an-section">{% if seller_embedded %}Talk to your data{% else %}{% trans "Habla con tus datos" %}{% endif %}</h2>
     <div class="an-card an-chat-box">
       <div class="an-chat-msgs" id="an-chat-msgs">
         <div class="an-bubble an-bubble-bot">
+          {% if seller_embedded %}
+          Ask for charts ("bars of sales by category"), tables ("top 10 by total"), questions ("what is the average?"), or forecasts ("project sales", "which products are declining?").
+          {% else %}
           {% trans "Pídeme gráficas (\"barras de ventas por region\"), tablas (\"top 10 por total\"), preguntas (\"¿cuál es el promedio?\") o proyecciones a futuro (\"proyecta las ventas\", \"¿qué productos están bajando?\")." %}
+          {% endif %}
         </div>
       </div>
       <div class="an-chat-input-row">
         <input type="text" id="an-chat-input" class="tf-input"
-               aria-label="{% trans 'Escribe tu pregunta o petición para el chat de datos' %}"
-               placeholder="{% trans 'Pide una gráfica, una tabla o haz una pregunta…' %}">
-        <button class="tf-btn tf-btn-primary" id="an-chat-send" type="button">{% trans "Enviar" %}</button>
+               aria-label="{% if seller_embedded %}Ask a question or request about your sales data{% else %}{% trans 'Escribe tu pregunta o petición para el chat de datos' %}{% endif %}"
+               placeholder="{% if seller_embedded %}Ask for a chart, table, or question…{% else %}{% trans 'Pide una gráfica, una tabla o haz una pregunta…' %}{% endif %}">
+        <button class="tf-btn tf-btn-primary" id="an-chat-send" type="button">{% if seller_embedded %}Send{% else %}{% trans "Enviar" %}{% endif %}</button>
       </div>
       <div class="an-suggest">
-        {% trans "Prueba:" %}
-        {% if company_view %}
+        {% if seller_embedded %}Try:{% else %}{% trans "Prueba:" %}{% endif %}
+        {% if seller_embedded and company_view %}
+        <button type="button" class="an-ex">top 5 products by sales</button>
+        <button type="button" class="an-ex">pie chart of revenue by category</button>
+        <button type="button" class="an-ex">which product sells the most?</button>
+        <button type="button" class="an-ex">forecast sales</button>
+        <button type="button" class="an-ex">which products are declining?</button>
+        <button type="button" class="an-ex">growth next quarter</button>
+        {% elif company_view %}
         <button type="button" class="an-ex">top 5 productos por ventas</button>
         <button type="button" class="an-ex">ingresos por categoria en pastel</button>
         <button type="button" class="an-ex">¿cuál producto vende más?</button>
@@ -353,27 +415,40 @@
     <details class="an-section">
       <summary class="an-details-toggle">
         <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+        {% if seller_embedded %}
+        View data ({{ n_preview }} of {{ n_total }} rows)
+        {% else %}
         {% trans "Ver datos" %} ({{ n_preview }} {% trans "de" %} {{ n_total }} {% trans "filas" %})
+        {% endif %}
       </summary>
       <div class="an-table-scroll an-card" style="margin-top:10px;">{{ preview_html|safe }}</div>
     </details>
 
     {{ charts|json_script:"an-charts-data" }}
+    {{ forecast_charts|json_script:"an-forecast-charts-data" }}
   {% else %}
     {% if no_company %}
     <div class="tf-alert tf-alert-info">
       <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
+      {% if seller_embedded %}
+      You don’t have a store linked to this account yet. Create your company in My Store to see sales analytics.
+      {% else %}
       {% trans "Aún no tienes una tienda asociada a tu cuenta. Crea tu empresa en «Mi Tienda» para ver la analítica de tus ventas." %}
+      {% endif %}
     </div>
     {% elif no_sales %}
     <div class="tf-alert tf-alert-info">
       <span class="material-symbols-rounded" aria-hidden="true">insights</span>
+      {% if seller_embedded %}
+      No sales recorded for your company yet. When orders come in, KPIs, charts, and forecasts appear here automatically.
+      {% else %}
       {% trans "Todavía no hay ventas registradas para tu empresa. Cuando recibas tus primeras órdenes, aquí verás KPIs, gráficas y proyecciones automáticamente." %}
+      {% endif %}
     </div>
     {% elif seller_embedded %}
     <div class="tf-alert tf-alert-info">
       <span class="material-symbols-rounded" aria-hidden="true">insights</span>
-      {% trans "No hay datos para mostrar todavía." %}
+      No data to show yet.
     </div>
     {% else %}
     <div class="tf-alert tf-alert-info">

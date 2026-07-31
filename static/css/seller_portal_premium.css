@@ -1236,7 +1236,48 @@ body.sp-mode .tf-hamburger { display: none !important; }
   line-height: 1.45;
 }
 
+/* Shared seller data tables — denser, scannable product surfaces */
+body.sp-dash .tf-table,
+body.sp-dash table.tf-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+body.sp-dash .tf-table thead th,
+body.sp-dash table.tf-table thead th {
+  background: var(--tf-light, #F2F3F5);
+  color: var(--tf-mid, #1B3B63);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--tf-border);
+  white-space: nowrap;
+}
+body.sp-dash .tf-table tbody td,
+body.sp-dash table.tf-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--tf-border);
+  color: var(--tf-gray-700, #343A40);
+  vertical-align: middle;
+}
+body.sp-dash .tf-table tbody tr:hover td,
+body.sp-dash table.tf-table tbody tr:hover td {
+  background: rgba(15, 42, 68, 0.03);
+}
+body.sp-dash .sp-content {
+  animation: sp-content-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes sp-content-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
 @media (prefers-reduced-motion: reduce) {
+  body.sp-dash .sp-content { animation: none; }
   .sp-pay-fields input,
   .sp-pay-fields textarea,
   .sp-proof-drop,

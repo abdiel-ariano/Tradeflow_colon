@@ -1118,6 +1118,41 @@ class EmailVerification(models.Model):
         return cls.objects.filter(user=user, code=code, is_used=False).latest('created_at')
 
 
+class PasswordResetLink(models.Model):
+    """
+    Magic-link token for password recovery (mirrors EmailVerification pattern).
+
+    Plain token is emailed once; rows are deleted after successful use.
+    TTL: ``password_reset_link.PASSWORD_RESET_LINK_EXPIRY_MINUTES`` (15).
+    """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='password_reset_links',
+    )
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Password reset link'
+        verbose_name_plural = 'Password reset links'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.user_id} · reset_link · used={self.is_used}'
+
+    def is_valid(self) -> bool:
+        from core.utils.password_reset_link import PASSWORD_RESET_LINK_EXPIRY_MINUTES
+
+        if self.is_used:
+            return False
+        return timezone.now() <= self.created_at + timezone.timedelta(
+            minutes=PASSWORD_RESET_LINK_EXPIRY_MINUTES
+        )
+
+
 # Modelos enterprise (SaaS, ads, API, logística extendida)
 from .enterprise_models import (  # noqa: E402, F401
     AdCampaign,

@@ -145,6 +145,9 @@ def company_for_user(user) -> dict | None:
     return Company.objects.filter(owner_id=user.id).values("id", "name").first()
 
 
+COMPANY_SALES_LIMIT = 20_000
+
+
 def load_company_sales_df(
     company_id: int,
     limit: int | None = None,
@@ -154,14 +157,16 @@ def load_company_sales_df(
     """Líneas de venta (OrderItem) de los productos de una empresa, con datos
     de producto y orden ya unidos — no IDs sueltos.
 
-    ``since`` (datetime opcional) acota historial según el plan de Analítica IA.
-    ``limit`` es opcional; por defecto no hay tope de filas.
+    Ordena por fecha de orden descendente (con id como desempate) para que un
+    ``limit`` opcional conserve lo más reciente. ``since`` (datetime opcional)
+    acota el historial según el plan de Analítica IA. Sin ``limit`` (por
+    defecto) no hay tope de filas.
     """
     OrderItem = apps.get_model("core", "OrderItem")
     qs = OrderItem.objects.filter(product__company_id=company_id)
     if since is not None:
         qs = qs.filter(order__created_at__gte=since)
-    qs = qs.order_by("-order__created_at").values(
+    qs = qs.order_by("-order__created_at", "-id").values(
         "qty", "unit_price_snapshot", "line_total",
         "product__name", "product__sku", "product__category__name",
         "order__order_number", "order__status", "order__order_type",
@@ -233,6 +238,34 @@ def company_vs_market_df(company_id: int, market_df: pd.DataFrame, company_df: p
     return own.merge(market_df, on="categoria", how="outer").fillna(0)
 
 
+def company_sales_row_count(company_id: int) -> int:
+    """Total de líneas de venta de la empresa (sin tope)."""
+    OrderItem = apps.get_model("core", "OrderItem")
+    return int(OrderItem.objects.filter(product__company_id=company_id).count())
+
+
+def load_company_sales_bundle(
+    company_id: int,
+    limit: int | None = None,
+    *,
+    since=None,
+) -> tuple[pd.DataFrame, dict]:
+    """DataFrame + meta de truncado para avisar al seller en UI.
+
+    Sin ``limit`` (por defecto) no hay tope de filas: se cargan todas las
+    ventas dentro del historial permitido (``since``) por el plan de Analítica IA.
+    """
+    total = company_sales_row_count(company_id)
+    df = load_company_sales_df(company_id, limit=limit, since=since)
+    loaded = 0 if df is None else int(len(df))
+    return df, {
+        "total_rows": total,
+        "loaded_rows": loaded,
+        "limit": limit,
+        "truncated": bool(limit is not None and total > limit),
+    }
+
+
 # ── Analytics por empresa (modo standalone, vía SQL directo) ────────────────
 def sql_has_tradeflow_schema(tables: list[dict]) -> bool:
     """True si la BD conectada tiene el esquema de Tradeflow (para mostrar el
@@ -261,6 +294,7 @@ def sql_load_company_sales(conn_str: str, company_id: int, schema: str = "public
         JOIN "{schema}"."core_order" o ON oi.order_id = o.id
         LEFT JOIN "{schema}"."core_category" cat ON p.category_id = cat.id
         WHERE p.company_id = {cid}
+        ORDER BY o.created_at DESC, oi.id DESC
         LIMIT {int(limit)}
     """
     return db_connector.run_query(conn_str, sql)

@@ -44,6 +44,7 @@ class TestSellerShellPages(TestCase):
             '/mi-tienda/configuracion/',
             '/mi-tienda/buscar/',
             '/mi-tienda/reportes/',
+            '/mi-tienda/analitica/',
             '/mi-tienda/qr/',
         ]
         for path in paths:
