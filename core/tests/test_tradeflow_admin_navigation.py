@@ -45,6 +45,8 @@ class TradeFlowAdminNavigationTests(TestCase):
         self.assertContains(response, "Companies and users")
         self.assertContains(response, "SaaS and platform")
         self.assertContains(response, "Sign out")
+        self.assertContains(response, 'id="tfAdminMenuToggle"')
+        self.assertContains(response, 'id="tfAdminRailBackdrop"')
         self.assertContains(
             response,
             "css/tradeflow_admin_continuity.css",
@@ -73,7 +75,10 @@ class TradeFlowAdminNavigationTests(TestCase):
         )
         self.assertContains(response, "Companies and users")
         self.assertContains(response, "SaaS and platform")
+        self.assertContains(response, 'id="tfAdminMenuToggle"')
+        self.assertContains(response, 'id="tfAdminRailBackdrop"')
         self.assertNotContains(response, "js/admin_rail.js")
+        self.assertNotContains(response, 'style="font-family:')
 
     def test_accordion_assets_are_route_aware(self):
         """Static assets preserve the active module and visual contract."""
@@ -102,6 +107,9 @@ class TradeFlowAdminNavigationTests(TestCase):
         self.assertIn("highlightSharedRail", script)
         self.assertIn("routeMatches", script)
         self.assertIn("buildAccordion", script)
+        self.assertIn("setupResponsiveDrawer", script)
+        self.assertIn("tf-admin-drawer-open", script)
+        self.assertIn('event.key === "Escape"', script)
         self.assertIn("tradeflow-admin-group", script)
         self.assertIn(".tf-rail-group__summary", theme)
         self.assertIn('"Montserrat"', layout)
@@ -111,3 +119,6 @@ class TradeFlowAdminNavigationTests(TestCase):
         self.assertIn("#header.tf-admin-header", unified)
         self.assertIn("--tf-admin-header-height: 64px", unified)
         self.assertIn("--tf-admin-rail-width: 252px", unified)
+        self.assertIn(".tf-admin-menu-toggle", unified)
+        self.assertIn("transform: translateX(-105%)", unified)
+        self.assertIn(".tf-admin-logout-label", unified)

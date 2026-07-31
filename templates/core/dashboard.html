@@ -87,7 +87,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     box-shadow: 0 2px 8px rgba(15, 42, 68, 0.08);
   }
   .adm-chart-title {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--tf-font-body, "Montserrat"), sans-serif;
     font-size: 14px;
     font-weight: 600;
     color: var(--tf-navy, #0F2A44);
@@ -360,7 +360,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
           <span class="adm-kpi-lbl">Orders (period)</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">receipt_long</span>
         </div>
-        <div class="adm-kpi-val" style="font-family: var(--tf-font-body, 'Montserrat'), sans-serif;">{{ ordenes_semana }}</div>
+        <div class="adm-kpi-val">{{ ordenes_semana }}</div>
         <div class="adm-kpi-delta">vs. previous period: {{ ordenes_delta_label }}</div>
         <div class="adm-kpi-sub">Historical: {{ total_ordenes }}</div>
       </div>
@@ -374,7 +374,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
           >{{ kpi_ingresos_label }}</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">payments</span>
         </div>
-        <div class="adm-kpi-val" style="font-family: var(--tf-font-body, 'Montserrat'), sans-serif;">{{ ingresos_semana|money_usd }}</div>
+        <div class="adm-kpi-val">{{ ingresos_semana|money_usd }}</div>
         <div class="adm-kpi-delta">vs. previous period: {{ ingresos_delta_label }}</div>
         <div
           class="adm-kpi-sub"
@@ -388,7 +388,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
           <span class="adm-kpi-lbl">Unique buyers (period)</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">groups</span>
         </div>
-        <div class="adm-kpi-val" style="font-family: var(--tf-font-body, 'Montserrat'), sans-serif;">{{ clientes_periodo }}</div>
+        <div class="adm-kpi-val">{{ clientes_periodo }}</div>
         <div class="adm-kpi-delta">vs. previous period: {{ clientes_delta_label }}</div>
         <div class="adm-kpi-sub">Historical with order: {{ clientes_activos }}</div>
       </div>
@@ -397,7 +397,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
           <span class="adm-kpi-lbl">Conversion rate (period)</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">trending_up</span>
         </div>
-        <div class="adm-kpi-val" style="font-family: var(--tf-font-body, 'Montserrat'), sans-serif;">{{ tasa_periodo }}%</div>
+        <div class="adm-kpi-val">{{ tasa_periodo }}%</div>
         <div class="adm-kpi-delta">Δ vs. previous: {{ tasa_delta_pp_fmt }} pp</div>
         <div class="adm-kpi-sub">Global: {{ tasa_conversion }}% delivered</div>
       </div>

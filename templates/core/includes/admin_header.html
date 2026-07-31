@@ -12,6 +12,18 @@ never changes identity, height, typography, or account controls by route.
   class="tf-admin-header"
   data-tf-admin-header="shared"
 >
+  <button
+    type="button"
+    id="tfAdminMenuToggle"
+    class="tf-admin-menu-toggle"
+    aria-controls="admRail"
+    aria-expanded="false"
+    aria-label="Open administration menu"
+  >
+    <span class="material-symbols-rounded" aria-hidden="true">menu</span>
+    <span class="tf-visually-hidden">Open administration menu</span>
+  </button>
+
   <div id="branding" class="tf-admin-header__brand">
     <a href="{% url 'dashboard' %}" aria-label="TradeFlow dashboard">
       <img
@@ -43,11 +55,11 @@ never changes identity, height, typography, or account controls by route.
         action="{{ tf_admin_logout_url }}"
       >
         {% csrf_token %}
-        <button type="submit">
+        <button type="submit" aria-label="Sign out">
           <span class="material-symbols-rounded" aria-hidden="true">
             logout
           </span>
-          Sign out
+          <span class="tf-admin-logout-label">Sign out</span>
         </button>
       </form>
     </div>
