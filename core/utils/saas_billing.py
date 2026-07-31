@@ -57,15 +57,13 @@ PLAN_LIMITS = {
     'digitalizate': Decimal('15000'),
     'expansion': Decimal('50000'),
     'corporativo_pro': None,
-    'ecosistema_enterprise': None,
 }
 
 # Checkout monthly price — aligned with commercial copy (saas_plan_catalog).
 PLAN_MRR_USD = {
-    'digitalizate': Decimal('49'),
-    'expansion': Decimal('149'),
-    'corporativo_pro': Decimal('349'),
-    'ecosistema_enterprise': Decimal('799'),
+    'digitalizate': Decimal('49.99'),
+    'expansion': Decimal('135.99'),
+    'corporativo_pro': Decimal('230.99'),
 }
 
 
@@ -221,12 +219,43 @@ def _safe_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
 
 
 def ensure_default_plans() -> int:
-    """Hace upsert de los planes SaaS oficiales; devuelve el conteo de planes activos."""
+    """Sincroniza los tres planes oficiales y retira Enterprise de la venta.
+
+    Las suscripciones vigentes o recomendaciones históricas de Enterprise se
+    migran a Corporate Pro. El plan anterior permanece en la base de datos
+    como registro inactivo para conservar referencias de auditoría.
+    """
     defaults = [
-        ('digitalizate', 'Digitalize', Decimal('15000'), 50, False, False, False, 1),
-        ('expansion', 'Expansion', Decimal('50000'), 200, True, False, False, 2),
-        ('corporativo_pro', 'Corporate Pro', None, 500, True, True, False, 3),
-        ('ecosistema_enterprise', 'Enterprise Ecosystem', None, 2000, True, True, True, 4),
+        (
+            'digitalizate',
+            'Digitalize',
+            Decimal('15000'),
+            50,
+            False,
+            False,
+            False,
+            1,
+        ),
+        (
+            'expansion',
+            'Expansion',
+            Decimal('50000'),
+            200,
+            True,
+            False,
+            False,
+            2,
+        ),
+        (
+            'corporativo_pro',
+            'Corporate Pro',
+            None,
+            500,
+            True,
+            True,
+            True,
+            3,
+        ),
     ]
     for slug, name, limit, credits, api, webhooks, predictive, order in defaults:
         SaasPlan.objects.update_or_create(
@@ -238,15 +267,34 @@ def ensure_default_plans() -> int:
                 'api_access': api,
                 'logistics_webhooks': webhooks,
                 'predictive_ai': predictive,
-                'priority_support': slug in ('corporativo_pro', 'ecosistema_enterprise'),
+                'priority_support': slug == 'corporativo_pro',
                 'sort_order': order,
                 'is_active': True,
             },
         )
-    count = SaasPlan.objects.filter(is_active=True).count()
+
+    corporate_plan = SaasPlan.objects.get(slug='corporativo_pro')
+    legacy_plan = SaasPlan.objects.filter(
+        slug='ecosistema_enterprise',
+    ).first()
+    if legacy_plan is not None:
+        CompanySubscription.objects.filter(plan=legacy_plan).update(
+            plan=corporate_plan,
+        )
+        CompanySubscription.objects.filter(
+            recommended_plan=legacy_plan,
+        ).update(recommended_plan=corporate_plan)
+        if legacy_plan.is_active:
+            legacy_plan.is_active = False
+            legacy_plan.save(update_fields=['is_active'])
+
+    official_slugs = [slug for slug, *_unused in defaults]
+    count = SaasPlan.objects.filter(
+        slug__in=official_slugs,
+        is_active=True,
+    ).count()
     log.info('saas_ensure_default_plans active_plans=%s', count)
     return count
-
 
 def get_or_create_subscription_legacy(company: Company) -> CompanySubscription:
     """Alias legado que delega en ``ensure_demo_subscription``."""
@@ -963,12 +1011,12 @@ def build_plan_page_context(company: Company) -> dict:
     recommended = sub.recommended_plan if sub else None
 
     cards = []
-    for plan in SaasPlan.objects.filter(is_active=True).order_by('sort_order'):
+    for plan in SaasPlan.objects.filter(\n        slug__in=PLAN_LIMITS,\n        is_active=True,\n    ).order_by('sort_order'):
         m = marketing_for_plan(plan)
         m['is_current'] = (
             plan.slug == current_slug and status == 'active'
         )
-        # Trial: only plans above Digitalízate.
+        # Trial: only plans above Digitalize.
         if status == 'trialing':
             m['can_upgrade'] = plan.sort_order > snap['plan'].sort_order
         elif status == 'past_due' and recommended:
