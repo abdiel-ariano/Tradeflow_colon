@@ -128,7 +128,7 @@ jobs:
             sed -n 's/.*SHA256: //p' |
             head -n 1 > artifacts/sha256-fingerprint.txt
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: tradeflow-colon-android-${{ inputs.signing_mode }}
           path: android/artifacts/
