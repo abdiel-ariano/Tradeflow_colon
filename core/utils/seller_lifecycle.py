@@ -1,6 +1,6 @@
 """Trial de vendedor, gracia post-trial, recomendación de plan y churn.
 
-Los vendedores ZLC nuevos obtienen 30 días en Digitalízate; la gracia sin pago
+Los vendedores ZLC nuevos obtienen 30 días en Digitalize; la gracia sin pago
 termina en churn medio (portal bloqueado, productos fuera del marketplace).
 """
 from __future__ import annotations
@@ -23,21 +23,17 @@ log = logging.getLogger('tradeflow.seller_lifecycle')
 # -----------------------------------------------------------------------------
 # Post-trial recommendation thresholds (billable USD during the trial)
 # -----------------------------------------------------------------------------
-# Product-agreed recommendation bands:
-#   0 USD          → Digitalízate (no sales)
-#   0.01–12 000    → Digitalízate
-#   12 001–40 000  → Expansión
-#   40 001–100 000 → Corporativo Pro
-#   > 100 000      → Ecosistema Enterprise (commercial CTA, no self-serve)
-VOLUME_THRESHOLD_DIGITALIZATE_MAX = Decimal('12000.00')
-VOLUME_THRESHOLD_EXPANSION_MAX = Decimal('40000.00')
-VOLUME_THRESHOLD_CORPORATIVO_MAX = Decimal('100000.00')
+# Product-agreed recommendation bands mirror the official plan limits:
+#   0–15,000 USD      → Digitalize
+#   15,000.01–50,000  → Expansion
+#   Above 50,000      → Corporate Pro (unlimited)
+VOLUME_THRESHOLD_DIGITALIZATE_MAX = Decimal('15000.00')
+VOLUME_THRESHOLD_EXPANSION_MAX = Decimal('50000.00')
 
 # Slugs oficiales de planes (deben existir en SaasPlan tras ensure_default_plans).
 PLAN_SLUG_DIGITALIZATE = 'digitalizate'
 PLAN_SLUG_EXPANSION = 'expansion'
 PLAN_SLUG_CORPORATIVO = 'corporativo_pro'
-PLAN_SLUG_ENTERPRISE = 'ecosistema_enterprise'
 
 # Statuses that allow public marketplace visibility (includes grace).
 MARKETPLACE_VISIBLE_STATUSES = ('trialing', 'past_due', 'active')
@@ -56,7 +52,7 @@ GRACE_PERIOD_ROUTE_NAMES = frozenset({
 
 
 def seller_trial_days() -> int:
-    """Devuelve la duración del trial gratuito Digitalízate (SELLER_TRIAL_DAYS)."""
+    """Devuelve la duración del trial gratuito Digitalize (SELLER_TRIAL_DAYS)."""
     return int(getattr(settings, 'SELLER_TRIAL_DAYS', 30))
 
 
@@ -66,19 +62,13 @@ def seller_grace_days() -> int:
 
 
 def recommend_plan_slug(volume_usd: Decimal) -> str:
-    """Devuelve el slug mínimo de plan recomendado según el volumen facturable USD del trial.
-
-
-    Cero ventas mapean a Digitalízate; >100k mapea a Enterprise (CTA comercial).
-    """
+    """Return the minimum official plan for the seller's trial volume."""
     vol = Decimal(volume_usd or 0).quantize(Decimal('0.01'))
     if vol <= VOLUME_THRESHOLD_DIGITALIZATE_MAX:
         return PLAN_SLUG_DIGITALIZATE
     if vol <= VOLUME_THRESHOLD_EXPANSION_MAX:
         return PLAN_SLUG_EXPANSION
-    if vol <= VOLUME_THRESHOLD_CORPORATIVO_MAX:
-        return PLAN_SLUG_CORPORATIVO
-    return PLAN_SLUG_ENTERPRISE
+    return PLAN_SLUG_CORPORATIVO
 
 
 def compute_trial_volume(company: Company, sub: CompanySubscription) -> tuple[Decimal, int]:
@@ -98,7 +88,7 @@ def compute_trial_volume(company: Company, sub: CompanySubscription) -> tuple[De
 
 
 def start_seller_trial(company: Company) -> CompanySubscription:
-    """Inicia el trial Digitalízate para una empresa recién vinculada.
+    """Inicia el trial Digitalize para una empresa recién vinculada.
 
 
     Idempotente para trialing/active/past_due; puede reiniciar trial desde cancelled.
@@ -394,7 +384,7 @@ def build_trial_activation_context(company: Company) -> dict:
                 if not can_select and not is_enterprise
                 else ''
             ),
-            'monthly_price_usd': float(plan_monthly_price(plan.slug)),
+            'monthly_price_usd': plan_monthly_price(plan.slug),
         })
 
     return {
