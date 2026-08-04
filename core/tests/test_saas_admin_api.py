@@ -1,6 +1,6 @@
 """Admin SaaS stats API and commercial request approval.
 
-TradeFlow admins monitor plan KPIs and approve Enterprise
+TradeFlow admins monitor plan KPIs and approve Corporate Pro
 commercial requests that upgrade company subscriptions.
 """
 from django.contrib.auth.models import User
@@ -60,16 +60,16 @@ class SaasAdminApiTests(TestCase):
         self.assertIn('predicted_amount_usd', data['predictive'])
 
     def test_approve_commercial_request(self):
-        """Approve request and move company onto enterprise plan."""
-        plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
-        company = Company.objects.create(name='Enterprise Co')
+        """Approve request and move company onto Corporate Pro."""
+        plan = SaasPlan.objects.get(slug='corporativo_pro')
+        company = Company.objects.create(name='Corporate Pro Co')
         ensure_demo_subscription(company)
         req = CompanyPlanCommercialRequest.objects.create(
             company=company,
             requested_plan=plan,
             contact_name='Ana',
             contact_email='ana@test.com',
-            message='Necesito enterprise',
+            message='Necesito Corporate Pro',
         )
         url = reverse('api_admin_saas_request_action', kwargs={'pk': req.pk})
         r = self.client.post(
@@ -81,12 +81,11 @@ class SaasAdminApiTests(TestCase):
         req.refresh_from_db()
         self.assertEqual(req.status, 'approved')
         company.subscription.refresh_from_db()
-        self.assertEqual(company.subscription.plan.slug, 'ecosistema_enterprise')
-
+        self.assertEqual(company.subscription.plan.slug, 'corporativo_pro')
 
     def test_invalid_action_does_not_change_request(self):
         """Reject an unsupported action without changing stored state."""
-        plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
+        plan = SaasPlan.objects.get(slug='corporativo_pro')
         company = Company.objects.create(name='Invalid Action Co')
         ensure_demo_subscription(company)
         request_row = CompanyPlanCommercialRequest.objects.create(
