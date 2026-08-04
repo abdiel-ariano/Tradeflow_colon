@@ -1,6 +1,6 @@
-"""Enterprise predictive insights portal access gates.
+"""Corporate Pro predictive insights portal access gates.
 
-Only Ecosistema Enterprise subscribers see forecasts; lower
+Only Corporate Pro subscribers see forecasts; lower
 plans get an upgrade surface instead of empty analytics.
 """
 from decimal import Decimal
@@ -37,17 +37,17 @@ class TestPredictiveInsightsAccess(TestCase):
         )
         self.client.login(username='ent_seller', password='pass')
 
-    def test_non_enterprise_sees_upgrade_page(self):
-        """Show Enterprise upgrade messaging on non-enterprise plans."""
+    def test_digitalize_sees_corporate_pro_upgrade_page(self):
+        """Show Corporate Pro upgrade messaging on Digitalize."""
         ensure_demo_subscription(self.company)
         resp = self.client.get(reverse('seller_predictive_insights'))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'Enterprise ecosystem')
+        self.assertContains(resp, 'Available on Corporate Pro')
 
-    def test_enterprise_sees_insights_panel(self):
-        """Render 30-day forecast panel for enterprise subscribers."""
+    def test_corporate_pro_sees_insights_panel(self):
+        """Render the 30-day forecast panel for Corporate Pro subscribers."""
         sub = ensure_demo_subscription(self.company)
-        sub.plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
+        sub.plan = SaasPlan.objects.get(slug='corporativo_pro')
         sub.save(update_fields=['plan'])
         resp = self.client.get(reverse('seller_predictive_insights'))
         self.assertEqual(resp.status_code, 200)
