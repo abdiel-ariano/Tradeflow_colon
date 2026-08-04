@@ -8,6 +8,8 @@ from pathlib import Path
 
 import dj_database_url
 from decouple import Config, Csv, RepositoryEmpty
+from django.templatetags.static import static
+from django.urls import reverse_lazy
 
 try:
     from decouple import RepositoryDict
@@ -78,6 +80,7 @@ for _railway_host in ('.up.railway.app', '.railway.app'):
 
 # Apps Django: auth (axes, allauth) más marketplace core y analytics.
 INSTALLED_APPS = [
+    'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -95,6 +98,222 @@ INSTALLED_APPS = [
     'core',
     'analytics',
 ]
+
+# One administrative design system. Unfold owns the shell while TradeFlow
+# supplies branding, navigation, and color tokens for every staff route.
+UNFOLD = {
+    'SITE_TITLE': 'TradeFlow Admin',
+    'SITE_HEADER': 'TradeFlow',
+    'SITE_SUBHEADER': 'Platform administration',
+    'SITE_URL': reverse_lazy('home'),
+    'SITE_LOGO': {
+        'light': lambda request: static('img/logo-wordmark-white.png'),
+        'dark': lambda request: static('img/logo-wordmark-white.png'),
+    },
+    'SITE_ICON': {
+        'light': lambda request: static('img/logo-icon-white.png'),
+        'dark': lambda request: static('img/logo-icon-white.png'),
+    },
+    'SITE_SYMBOL': 'hub',
+    'SHOW_HISTORY': True,
+    'SHOW_VIEW_ON_SITE': True,
+    'SHOW_BACK_BUTTON': True,
+    'THEME': 'light',
+    'BORDER_RADIUS': '10px',
+    'COLORS': {
+        'base': {
+            '50': '#f7f9fb',
+            '100': '#eef2f6',
+            '200': '#dbe3ea',
+            '300': '#c3ced8',
+            '400': '#8fa0af',
+            '500': '#627484',
+            '600': '#435565',
+            '700': '#2d4050',
+            '800': '#172b3a',
+            '900': '#0f2a44',
+            '950': '#0a1f33',
+        },
+        'primary': {
+            '50': '#fff5f0',
+            '100': '#ffe7da',
+            '200': '#ffcbb2',
+            '300': '#ffa47d',
+            '400': '#ff7a45',
+            '500': '#f26522',
+            '600': '#dc4d0f',
+            '700': '#b63a0c',
+            '800': '#912f10',
+            '900': '#762a11',
+            '950': '#401206',
+        },
+    },
+    'SIDEBAR': {
+        'show_search': True,
+        'show_all_applications': False,
+        'navigation': [
+            {
+                'title': _('Summary'),
+                'items': [
+                    {
+                        'title': _('Sales dashboard'),
+                        'icon': 'dashboard',
+                        'link': reverse_lazy('dashboard'),
+                    },
+                    {
+                        'title': _('Administration'),
+                        'icon': 'apps',
+                        'link': reverse_lazy('admin:index'),
+                    },
+                ],
+            },
+            {
+                'title': _('Commerce'),
+                'separator': True,
+                'collapsible': True,
+                'items': [
+                    {
+                        'title': _('Orders'),
+                        'icon': 'receipt_long',
+                        'link': reverse_lazy('admin:core_order_changelist'),
+                    },
+                    {
+                        'title': _('Payments'),
+                        'icon': 'payments',
+                        'link': reverse_lazy('admin:core_payment_changelist'),
+                    },
+                    {
+                        'title': _('Quotes'),
+                        'icon': 'request_quote',
+                        'link': reverse_lazy('admin:core_cotizacion_changelist'),
+                    },
+                    {
+                        'title': _('Products'),
+                        'icon': 'inventory_2',
+                        'link': reverse_lazy('admin:core_product_changelist'),
+                    },
+                    {
+                        'title': _('Inventory'),
+                        'icon': 'warehouse',
+                        'link': reverse_lazy('admin:core_inventory_changelist'),
+                    },
+                    {
+                        'title': _('Promotions'),
+                        'icon': 'campaign',
+                        'link': reverse_lazy(
+                            'admin:core_homepromosection_changelist'
+                        ),
+                    },
+                ],
+            },
+            {
+                'title': _('Companies and users'),
+                'separator': True,
+                'collapsible': True,
+                'items': [
+                    {
+                        'title': _('Companies'),
+                        'icon': 'business',
+                        'link': reverse_lazy('admin:core_company_changelist'),
+                    },
+                    {
+                        'title': _('Users'),
+                        'icon': 'group',
+                        'link': reverse_lazy('admin:auth_user_changelist'),
+                    },
+                    {
+                        'title': _('Applications'),
+                        'icon': 'assignment_ind',
+                        'link': reverse_lazy(
+                            'admin:core_userapplication_changelist'
+                        ),
+                    },
+                ],
+            },
+            {
+                'title': _('Logistics'),
+                'separator': True,
+                'collapsible': True,
+                'items': [
+                    {
+                        'title': _('Shipments'),
+                        'icon': 'local_shipping',
+                        'link': reverse_lazy('admin:core_shipment_changelist'),
+                    },
+                    {
+                        'title': _('Carriers'),
+                        'icon': 'departure_board',
+                        'link': reverse_lazy(
+                            'admin:core_transportcarrier_changelist'
+                        ),
+                    },
+                    {
+                        'title': _('Logistics events'),
+                        'icon': 'timeline',
+                        'link': reverse_lazy(
+                            'admin:core_logisticsevent_changelist'
+                        ),
+                    },
+                ],
+            },
+            {
+                'title': _('SaaS and platform'),
+                'separator': True,
+                'collapsible': True,
+                'items': [
+                    {
+                        'title': _('SaaS dashboard'),
+                        'icon': 'workspace_premium',
+                        'link': reverse_lazy('admin_saas_dashboard'),
+                    },
+                    {
+                        'title': _('Plans'),
+                        'icon': 'sell',
+                        'link': reverse_lazy('admin:core_saasplan_changelist'),
+                    },
+                    {
+                        'title': _('Subscriptions'),
+                        'icon': 'subscriptions',
+                        'link': reverse_lazy(
+                            'admin:core_companysubscription_changelist'
+                        ),
+                    },
+                    {
+                        'title': _('Plan payments'),
+                        'icon': 'account_balance',
+                        'link': reverse_lazy(
+                            'admin:core_companyplancheckout_changelist'
+                        ),
+                    },
+                ],
+            },
+            {
+                'title': _('Audit'),
+                'separator': True,
+                'collapsible': True,
+                'items': [
+                    {
+                        'title': _('Email audit'),
+                        'icon': 'mark_email_read',
+                        'link': reverse_lazy(
+                            'admin:core_emaildeliverylog_changelist'
+                        ),
+                    },
+                    {
+                        'title': _('API audit'),
+                        'icon': 'policy',
+                        'link': reverse_lazy('admin:core_apiauditlog_changelist'),
+                    },
+                    {
+                        'title': _('Marketplace'),
+                        'icon': 'storefront',
+                        'link': reverse_lazy('home'),
+                    },
+                ],
+            },
+        ],
+    },
+}
 
 # Pipeline: WhiteNoise, i18n, onboarding gate, CSP/cabeceras de seguridad.
 MIDDLEWARE = [

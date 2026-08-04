@@ -4,10 +4,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from django.contrib import admin
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.contrib.staticfiles import finders
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from unfold.admin import ModelAdmin as UnfoldModelAdmin
 
 from core.enterprise_models import (
     AdCreditAccount,
@@ -40,25 +41,27 @@ class TradeFlowAdminSiteTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Full administration")
-        self.assertContains(response, "css/tradeflow_admin.css")
-        self.assertContains(response, 'id="admRail"')
+        self.assertContains(response, "css/tradeflow_unfold.css")
+        self.assertContains(response, 'id="nav-sidebar"')
+        self.assertNotContains(response, 'id="admRail"')
 
     def test_native_admin_uses_consistent_tradeflow_styles(self):
         """Native lists load the stable light TradeFlow presentation layer."""
         response = self.client.get(
             reverse("admin:core_inventory_changelist")
         )
-        stylesheet = finders.find("css/tradeflow_admin_native.css")
+        stylesheet = finders.find("css/tradeflow_unfold.css")
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "css/tradeflow_admin_native.css")
+        self.assertContains(response, "unfold/css/styles.css")
+        self.assertContains(response, "css/tradeflow_unfold.css")
         self.assertContains(response, "family=Montserrat")
         self.assertIsNotNone(stylesheet)
 
         css = Path(stylesheet).read_text(encoding="utf-8")
-        self.assertIn('html[data-theme="dark"]', css)
-        self.assertIn("--tf-system-rail-width: 252px", css)
-        self.assertIn("#result_list tbody tr:nth-child(even)", css)
+        self.assertIn("--tf-admin-navy: #0f2a44", css)
+        self.assertIn("--tf-admin-orange: #f26522", css)
+        self.assertIn("#nav-sidebar", css)
 
     def test_admin_index_exposes_persistent_operational_navigation(self):
         """Critical modules are visible directly in the left navigation."""
@@ -105,6 +108,15 @@ class TradeFlowAdminSiteTests(TestCase):
         for model in required_models:
             with self.subTest(model=model.__name__):
                 self.assertIn(model, admin.site._registry)
+
+    def test_registered_admins_use_unfold_components(self):
+        """Business records and Django auth share Unfold form styling."""
+        for model in (Product, User, Group):
+            with self.subTest(model=model.__name__):
+                self.assertIsInstance(
+                    admin.site._registry[model],
+                    UnfoldModelAdmin,
+                )
 
     def test_operator_cannot_modify_django_superuser(self):
         """A platform operator cannot promote or alter a superuser account."""

@@ -1,0 +1,505 @@
+/**
+ * TradeFlow Colón — Unfold design system.
+ *
+ * Unfold owns layout and responsive behavior. This file only supplies the
+ * TradeFlow visual language and page-level components shared by native Django
+ * screens, the sales dashboard, and the embedded SaaS application.
+ */
+
+:root {
+  --tf-admin-navy: #0f2a44;
+  --tf-admin-navy-deep: #0a1f33;
+  --tf-admin-blue: #2e5b8a;
+  --tf-admin-orange: #f26522;
+  --tf-admin-page: #f3f6f9;
+  --tf-admin-surface: #ffffff;
+  --tf-admin-border: #dbe3ea;
+  --tf-admin-text: #172b3a;
+  --tf-admin-muted: #627484;
+  --tf-admin-font: "Montserrat", "Inter", system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body,
+button,
+input,
+optgroup,
+select,
+textarea,
+table,
+label {
+  font-family: var(--tf-admin-font) !important;
+}
+
+body {
+  background: var(--tf-admin-page) !important;
+  color: var(--tf-admin-text);
+}
+
+#main {
+  background: var(--tf-admin-page) !important;
+}
+
+#main > .bg-white.border-b {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-color: var(--tf-admin-border) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(12px);
+}
+
+#main .container,
+#content,
+#content-main {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+}
+
+#content {
+  padding-right: clamp(16px, 2.5vw, 36px);
+  padding-left: clamp(16px, 2.5vw, 36px);
+}
+
+#nav-sidebar,
+#nav-sidebar-inner {
+  background: linear-gradient(
+    180deg,
+    var(--tf-admin-navy) 0%,
+    var(--tf-admin-navy-deep) 100%
+  ) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+#nav-sidebar {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 6px 0 28px rgba(10, 31, 51, 0.14);
+}
+
+#nav-sidebar .border-base-200,
+#nav-sidebar .border-base-800 {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+#nav-sidebar h2,
+#nav-sidebar a,
+#nav-sidebar button,
+#nav-sidebar input,
+#nav-sidebar .text-important,
+#nav-sidebar .text-subtle,
+#nav-sidebar .text-font-default-light,
+#nav-sidebar .text-font-important-light {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+#nav-sidebar h2 {
+  color: rgba(255, 255, 255, 0.58) !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#nav-sidebar a {
+  border-left: 3px solid transparent;
+  transition: background-color 160ms ease, color 160ms ease,
+    border-color 160ms ease;
+}
+
+#nav-sidebar a:hover,
+#nav-sidebar [x-bind\:class*="bg-base-100"]:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+#nav-sidebar a.active {
+  border-left-color: var(--tf-admin-orange);
+  background: rgba(242, 101, 34, 0.18) !important;
+  color: #ffffff !important;
+}
+
+#nav-sidebar a.active .material-symbols-outlined,
+#nav-sidebar a:hover .material-symbols-outlined {
+  color: var(--tf-admin-orange) !important;
+}
+
+#nav-sidebar input {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+#nav-sidebar input::placeholder {
+  color: rgba(255, 255, 255, 0.48) !important;
+}
+
+#nav-sidebar img {
+  width: auto;
+  max-width: 168px;
+  max-height: 38px;
+  object-fit: contain;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--tf-admin-navy);
+  font-family: var(--tf-admin-font) !important;
+  letter-spacing: -0.02em;
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(242, 101, 34, 0.3) !important;
+  outline-offset: 2px;
+}
+
+.tf-admin-workspace {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 8px 0 28px !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+.tf-admin-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: clamp(24px, 3vw, 38px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    var(--tf-admin-navy) 0%,
+    #173d60 100%
+  );
+  box-shadow: 0 16px 36px rgba(15, 42, 68, 0.14);
+  color: #ffffff;
+}
+
+.tf-admin-hero h1,
+.tf-admin-hero p {
+  color: #ffffff !important;
+}
+
+.tf-admin-hero h1 {
+  margin: 4px 0 10px;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  font-weight: 700;
+}
+
+.tf-admin-hero p:last-child {
+  max-width: 68ch;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72) !important;
+  line-height: 1.65;
+}
+
+.tf-admin-eyebrow {
+  margin: 0;
+  color: var(--tf-admin-orange) !important;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tf-admin-hero-status {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.tf-admin-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.14);
+}
+
+.tf-admin-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.tf-admin-quick-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--tf-admin-border);
+  border-radius: 12px;
+  background: var(--tf-admin-surface);
+  box-shadow: 0 2px 8px rgba(15, 42, 68, 0.05);
+  color: var(--tf-admin-text) !important;
+  text-decoration: none;
+  transition: transform 160ms ease, border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.tf-admin-quick-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(46, 91, 138, 0.35);
+  box-shadow: 0 10px 24px rgba(15, 42, 68, 0.1);
+}
+
+.tf-admin-quick-card strong,
+.tf-admin-quick-card small {
+  display: block;
+}
+
+.tf-admin-quick-card strong {
+  color: var(--tf-admin-navy);
+  font-size: 0.9rem;
+}
+
+.tf-admin-quick-card small {
+  margin-top: 3px;
+  color: var(--tf-admin-muted);
+  font-size: 0.75rem;
+}
+
+.tf-admin-quick-icon {
+  color: var(--tf-admin-orange);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.tf-admin-arrow {
+  color: var(--tf-admin-blue);
+  font-size: 1.1rem;
+}
+
+.tf-admin-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 20px;
+  align-items: start;
+}
+
+.tf-admin-apps,
+.tf-admin-activity {
+  padding: 22px;
+  border: 1px solid var(--tf-admin-border);
+  border-radius: 14px;
+  background: var(--tf-admin-surface);
+  box-shadow: 0 2px 10px rgba(15, 42, 68, 0.05);
+}
+
+.tf-admin-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.tf-admin-section-heading h2 {
+  margin: 4px 0 0;
+  font-size: 1.12rem;
+}
+
+.tf-admin-section-heading > span {
+  color: var(--tf-admin-muted);
+  font-size: 0.75rem;
+}
+
+.tf-admin-module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tf-admin-module {
+  overflow: hidden;
+  border: 1px solid var(--tf-admin-border);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.tf-admin-module > header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--tf-admin-border);
+  background: #f7f9fb;
+}
+
+.tf-admin-module h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.tf-admin-module header small {
+  color: var(--tf-admin-muted);
+  font-size: 0.7rem;
+}
+
+.tf-admin-module-mark {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: rgba(46, 91, 138, 0.1);
+  color: var(--tf-admin-blue);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.tf-admin-model-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-top: 1px solid #eef2f6;
+}
+
+.tf-admin-model-row:first-child {
+  border-top: 0;
+}
+
+.tf-admin-model-row > a,
+.tf-admin-model-row > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--tf-admin-text);
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tf-admin-model-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+}
+
+.tf-admin-add-link {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: var(--tf-admin-orange);
+  color: #ffffff !important;
+  text-decoration: none;
+}
+
+.tf-admin-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tf-admin-activity-list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+}
+
+.tf-admin-activity-marker {
+  width: 9px;
+  height: 9px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--tf-admin-orange);
+}
+
+.tf-admin-activity-list a,
+.tf-admin-activity-list strong,
+.tf-admin-activity-list small {
+  display: block;
+}
+
+.tf-admin-activity-list a,
+.tf-admin-activity-list strong {
+  color: var(--tf-admin-navy);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.tf-admin-activity-list small {
+  margin-top: 3px;
+  color: var(--tf-admin-muted);
+  font-size: 0.7rem;
+}
+
+#admin-saas-root {
+  width: 100%;
+  max-width: none;
+  font-family: var(--tf-admin-font) !important;
+}
+
+#admin-saas-root :where(button, input, select, textarea, table) {
+  font-family: inherit !important;
+}
+
+@media (max-width: 1180px) {
+  .tf-admin-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tf-admin-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  #content {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .tf-admin-hero {
+    flex-direction: column;
+  }
+
+  .tf-admin-quick-grid,
+  .tf-admin-module-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tf-admin-apps,
+  .tf-admin-activity {
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

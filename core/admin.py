@@ -4,8 +4,17 @@ Exposes CFZ sellers, catalog, orders, RFQs, carriers, SaaS billing, and
 email logs at /admin/. TradeFlowModelAdmin aligns staff role with model perms.
 """
 from django.contrib import admin
+from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
+from unfold.admin import ModelAdmin as UnfoldModelAdmin
+from unfold.admin import StackedInline as UnfoldStackedInline
+from unfold.admin import TabularInline as UnfoldTabularInline
+from unfold.forms import (
+    AdminPasswordChangeForm,
+    UserChangeForm,
+    UserCreationForm,
+)
 from .models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document,
@@ -72,11 +81,12 @@ class TradeFlowPermissionMixin:
         )
 
 
-class TradeFlowModelAdmin(TradeFlowPermissionMixin, admin.ModelAdmin):
+class TradeFlowModelAdmin(TradeFlowPermissionMixin, UnfoldModelAdmin):
     """Base ModelAdmin with consistent TradeFlow operational defaults."""
 
     empty_value_display = '—'
     list_per_page = 30
+    list_fullwidth = True
     save_on_top = True
 
 
@@ -100,7 +110,7 @@ class TradeFlowReadOnlyAdmin(TradeFlowModelAdmin):
 # USER PROFILE INLINE
 # =============================================================================
 
-class UserProfileInline(admin.StackedInline):
+class UserProfileInline(UnfoldStackedInline):
     """Show role/phone on the Django User change form."""
 
     model          = UserProfile
@@ -109,10 +119,13 @@ class UserProfileInline(admin.StackedInline):
     fields         = ['phone', 'role']
 
 
-class UserAdmin(TradeFlowPermissionMixin, BaseUserAdmin):
+class UserAdmin(TradeFlowPermissionMixin, BaseUserAdmin, UnfoldModelAdmin):
     """Manage TradeFlow accounts without exposing superuser escalation."""
 
     inlines = (UserProfileInline,)
+    form = UserChangeForm
+    add_form = UserCreationForm
+    change_password_form = AdminPasswordChangeForm
 
     def has_change_permission(self, request, obj=None):
         """Protect Django superusers from non-superuser operators."""
@@ -148,6 +161,12 @@ class UserAdmin(TradeFlowPermissionMixin, BaseUserAdmin):
 # Re-register User with the profile inline
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+admin.site.unregister(Group)
+
+
+@admin.register(Group)
+class GroupAdmin(TradeFlowPermissionMixin, BaseGroupAdmin, UnfoldModelAdmin):
+    """Apply the TradeFlow shell and permissions to Django auth groups."""
 
 
 # =============================================================================
@@ -187,7 +206,7 @@ class CategoryAdmin(TradeFlowModelAdmin):
 # PRODUCT + INVENTORY INLINE
 # =============================================================================
 
-class InventoryInline(admin.StackedInline):
+class InventoryInline(UnfoldStackedInline):
     """Edit the single Inventory row from the Product change page."""
 
     model      = Inventory
@@ -280,7 +299,7 @@ class AddressAdmin(TradeFlowModelAdmin):
 # ORDER + ITEMS INLINE
 # =============================================================================
 
-class OrderItemInline(admin.TabularInline):
+class OrderItemInline(UnfoldTabularInline):
     """Order line items with computed line totals."""
 
     model           = OrderItem
@@ -289,7 +308,7 @@ class OrderItemInline(admin.TabularInline):
     fields          = ['product', 'qty', 'unit_price_snapshot', 'line_total']
 
 
-class PaymentInline(admin.StackedInline):
+class PaymentInline(UnfoldStackedInline):
     """Payment status nested on the order change form."""
 
     model      = Payment
@@ -299,7 +318,7 @@ class PaymentInline(admin.StackedInline):
     fields     = ['provider', 'status', 'amount', 'currency', 'paid_at', 'txn_ref']
 
 
-class ShipmentInline(admin.StackedInline):
+class ShipmentInline(UnfoldStackedInline):
     """Shipment tracking nested on the order change form."""
 
     model      = Shipment
@@ -308,7 +327,7 @@ class ShipmentInline(admin.StackedInline):
     fields     = ['courier_name', 'tracking_number', 'status', 'shipped_at', 'delivered_at']
 
 
-class DocumentInline(admin.TabularInline):
+class DocumentInline(UnfoldTabularInline):
     """Trade documents attached to an order."""
 
     model  = Document
@@ -360,7 +379,7 @@ class DocumentAdmin(TradeFlowModelAdmin):
     search_fields = ['order__order_number', 'doc_number']
 
 
-class CotizacionItemInline(admin.TabularInline):
+class CotizacionItemInline(UnfoldTabularInline):
     """RFQ line items on the quote change form."""
 
     model = CotizacionItem

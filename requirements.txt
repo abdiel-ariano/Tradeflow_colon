@@ -26,6 +26,7 @@
 
 # ── Framework principal ────────────────────────────────────────────────────
 Django==6.0.7                   # cierra PYSEC-2026-199..2092 (6.0.5 → 6.0.7)
+django-unfold==0.102.0           # shell administrativo moderno basado en Tailwind
 
 # ── Base de datos ──────────────────────────────────────────────────────────
 psycopg2-binary>=2.9.9,<3.0     # driver PostgreSQL

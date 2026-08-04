@@ -1,33 +1,13 @@
-{% extends "core/base.html" %}
+{% extends "admin/base_site.html" %}
 {% load static %}
 {% block title %}SaaS Plans — TradeFlow Admin{% endblock %}
 {% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'admin-saas/admin-saas.css' %}">
 {% endblock %}
 {% block extra_css %}
 {# Bundle CSS already inlined in base.html <style>; including it in extra_css dumps raw CSS as visible text. #}
 <style nonce="{{ csp_nonce }}">
-  /* TradeFlow brand — SaaS admin shell */
-  .adm-shell .adm-side {
-    background: linear-gradient(180deg, var(--tf-navy, #0F2A44) 0%, #0a1f33 100%) !important;
-  }
-  .adm-shell .adm-side .adm-rail-link {
-    color: rgba(255, 255, 255, 0.75) !important;
-  }
-  .adm-shell .adm-side .adm-rail-link:hover {
-    background: rgba(242, 101, 34, 0.12) !important;
-    color: #ffffff !important;
-  }
-  .adm-shell .adm-side .adm-rail-link.is-active {
-    border-left-color: var(--tf-orange, #F26522) !important;
-    background: rgba(242, 101, 34, 0.18) !important;
-    color: #ffffff !important;
-  }
-  .adm-shell .adm-rail-brand-mark .material-symbols-rounded {
-    color: var(--tf-orange, #F26522) !important;
-  }
-  .adm-shell .adm-main.adm-saas-wrap {
+  .adm-saas-wrap {
     padding: 0;
     background: #F2F3F5;
     min-height: calc(100vh - 64px);
@@ -35,7 +15,7 @@
   #admin-saas-root {
     min-height: calc(100vh - 64px);
     width: 100%;
-    font-family: Inter, system-ui, sans-serif;
+    font-family: Montserrat, system-ui, sans-serif;
     --color-background: #F2F3F5;
     --color-border: #D1D5DB;
     --color-muted-foreground: #6B7A88;
@@ -73,16 +53,6 @@
     color: #0F2A44 !important;
     background: rgba(255, 255, 255, 0.6) !important;
   }
-  /* Administration Panel header icon */
-  #admin-saas-root .adm-saas-header-icon {
-    background: rgba(242, 101, 34, 0.12) !important;
-    border-radius: 12px !important;
-    color: #F26522 !important;
-  }
-  #admin-saas-root .adm-saas-header-icon svg {
-    color: #F26522 !important;
-    stroke: #F26522 !important;
-  }
   /* Predictive analysis badge */
   #admin-saas-root .adm-saas-predictive-badge {
     background: rgba(15, 42, 68, 0.08) !important;
@@ -99,7 +69,7 @@
     margin: 0 auto;
   }
   .adm-saas-fallback h2 {
-    font-family: 'DM Serif Display', Georgia, serif;
+    font-family: Montserrat, system-ui, sans-serif;
     color: var(--tf-navy, #0f2a44);
     margin: 0 0 8px;
   }
@@ -129,9 +99,7 @@
 </style>
 {% endblock %}
 {% block content %}
-<div class="adm-shell">
-  {% include "core/admin_rail.html" %}
-  <div class="adm-main adm-saas-wrap">
+<div class="adm-main adm-saas-wrap tf-admin-workspace">
     <div
       id="admin-saas-root"
       data-api-url="{{ api_admin_saas_stats_url }}"
@@ -176,7 +144,6 @@
         </p>
       </div>
     </div>
-  </div>
 </div>
 {% endblock %}
 {% block extra_js %}

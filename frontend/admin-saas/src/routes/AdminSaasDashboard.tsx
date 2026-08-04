@@ -20,7 +20,6 @@ import {
   ArrowUpRight,
   Building2,
   DollarSign,
-  Sparkles,
   TrendingUp,
   Users,
 } from 'lucide-react';
@@ -93,7 +92,6 @@ export const planUsageFallback: PlanUsageRow[] = [
   { slug: 'digitalizate', name: 'Digitalize', count: 0, limit: 200, monthly_income_usd: 0, color: TF_BLUE, occupancy_pct: 0 },
   { slug: 'expansion', name: 'Expansion', count: 0, limit: 150, monthly_income_usd: 0, color: TF_ORANGE, occupancy_pct: 0 },
   { slug: 'corporativo_pro', name: 'Corporate Pro', count: 0, limit: 50, monthly_income_usd: 0, color: TF_NAVY, occupancy_pct: 0 },
-  { slug: 'ecosistema_enterprise', name: 'Enterprise', count: 0, limit: 20, monthly_income_usd: 0, color: TF_MUTED, occupancy_pct: 0 },
 ];
 
 export type PlanRequest = {
@@ -359,24 +357,20 @@ export function AdminSaasDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-6 py-8 md:px-10 lg:px-12 max-w-[1400px] mx-auto">
+    <div className="min-h-[calc(100vh-8rem)] w-full bg-background px-1 py-2 sm:px-2">
       <Toaster position="top-right" richColors closeButton />
 
-      <header className="sticky top-0 z-20 -mx-6 md:-mx-10 lg:-mx-12 px-6 md:px-10 lg:px-12 py-4 mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="flex items-center gap-4">
-          <span className="adm-saas-header-icon flex h-12 w-12 items-center justify-center">
-            <Building2 className="h-6 w-6" aria-hidden="true" />
-          </span>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Administration Panel</h1>
-            <p className="text-sm text-muted-foreground">Company and plan management</p>
-          </div>
-        </div>
-        <Badge variant="default" className="gap-1.5 px-3 py-1">
-          <Sparkles className="h-3.5 w-3.5" />
-          Predictive AI active
-        </Badge>
-      </header>
+      <section className="mb-8" aria-labelledby="saas-page-title">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+          SaaS and platform
+        </p>
+        <h1 id="saas-page-title" className="text-2xl font-bold tracking-tight text-navy">
+          Company and plan management
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Review subscriptions, revenue, capacity, and commercial requests.
+        </p>
+      </section>
 
       <Card className="mb-8 overflow-hidden">
         <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-4 pb-0">

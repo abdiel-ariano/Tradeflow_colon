@@ -1,118 +1,98 @@
-# Continuidad visual del panel administrativo
+# Sistema visual administrativo de TradeFlow
 
 ## Objetivo
 
-El dashboard operativo y Django Admin deben sentirse como una sola aplicación.
-Cambiar entre métricas, pedidos, inventario, pagos, logística, SaaS o auditoría
-no puede reemplazar el encabezado, la tipografía, el menú lateral ni el ancho
-útil de la pantalla.
+Todas las rutas de supervisión deben sentirse como una sola aplicación. El
+administrador nativo, el dashboard de ventas y el panel SaaS comparten la
+misma navegación, tipografía, paleta, ancho útil y comportamiento responsive.
 
-## Fuente única de navegación
+## Propietario del shell
 
-La plantilla `templates/core/admin_rail.html` contiene el único menú lateral
-administrativo. Se incluye desde:
+`django-unfold` es el único propietario de la estructura administrativa:
 
-- las vistas operativas que extienden `templates/core/base.html`;
-- `templates/admin/base_site.html`, que personaliza Django Admin.
+- navegación lateral y estado activo;
+- encabezado, cuenta y cierre de sesión;
+- formularios, filtros, tablas y acciones;
+- adaptación para tablet y móvil;
+- modo visual claro y estable.
 
-Agregar o renombrar una opción se hace una sola vez en esa plantilla. Cada
-enlace debe definir `data-tf-admin-route` con el prefijo real de su ruta.
-`static/js/tradeflow_admin_nav.js` utiliza ese atributo para marcar la opción
-activa y abrir automáticamente su categoría.
+TradeFlow no reemplaza `admin/base.html`. Esto permite que las mejoras y
+correcciones de Unfold lleguen a todas las pantallas sin mantener una copia
+completa del HTML interno de Django Admin.
 
-## Contrato visual
+## Configuración
 
-`static/css/tradeflow_admin_continuity.css` es la última capa del sistema
-administrativo y define estos invariantes:
+`tradeflow_colon/settings.py` contiene el diccionario `UNFOLD`. Allí se
+mantienen:
 
-- encabezado de 64 px, fijo en Django Admin y persistente en el dashboard;
-- logotipo compacto, identidad del usuario y botón de salida equivalentes;
-- menú lateral de 252 px con las mismas categorías desplegables;
-- Montserrat como tipografía de interfaz, títulos, tablas y controles;
-- contenido que ocupa todo el ancho restante del viewport;
-- tablas sin paneles internos de desplazamiento horizontal;
-- colores, bordes y espaciado alineados con TradeFlow.
+- logotipo e icono oficiales;
+- grupos y destinos del menú lateral;
+- paleta base y color de acción;
+- comportamiento de historial, regreso y vista pública;
+- tema claro forzado para evitar cambios inesperados entre pantallas.
 
-La hoja debe cargarse después de los estilos heredados. En Django Admin se
-carga al final de `templates/admin/base.html`; el dashboard la carga al final
-de su bloque `extra_css`.
+La navegación se agrupa en Summary, Commerce, Companies and users, Logistics,
+SaaS and platform y Audit. Sus enlaces abren vistas reales protegidas por los
+permisos de Django.
 
-## Idioma
+## Identidad visual
 
-La experiencia administrativa usa inglés como idioma de interfaz. Las
-etiquetas estáticas del índice, el encabezado y la navegación se mantienen en
-inglés para evitar cambios de idioma al entrar a una vista nativa de Django.
-Los valores de negocio almacenados en la base de datos no se traducen
-automáticamente.
+`static/css/tradeflow_unfold.css` es la única capa de personalización global.
+Define:
+
+- Montserrat como tipografía administrativa;
+- azul marino para navegación y estructura;
+- azul para información y enlaces;
+- naranja para acciones, foco y estados activos;
+- blanco y grises claros para superficies y separación;
+- lienzo sin un ancho máximo artificial;
+- componentes de la portada administrativa.
+
+La hoja se carga al final desde `templates/admin/base_site.html`, después de
+los estilos de Unfold. Esa plantilla también expone bloques de compatibilidad
+para los scripts y estilos específicos de los dashboards.
+
+## Dashboard de ventas y panel SaaS
+
+`templates/core/dashboard.html` y
+`templates/core/admin_saas_dashboard.html` extienden
+`templates/admin/base_site.html`. No incluyen otra cabecera ni otro menú.
+
+El módulo React de SaaS se monta como contenido de página. No crea un segundo
+shell, no fija un encabezado propio y no limita el lienzo a 1400 px. Su fuente
+y tokens se alinean con TradeFlow desde:
+
+- `frontend/admin-saas/src/index.css`;
+- `frontend/admin-saas/tailwind.config.js`;
+- `frontend/admin-saas/src/routes/AdminSaasDashboard.tsx`.
+
+Los botones rápidos del dashboard apuntan al Django Admin nativo para evitar
+que el operador regrese accidentalmente a una interfaz administrativa legada.
+
+## Formularios y permisos
+
+`core/admin.py` usa `unfold.admin.ModelAdmin` y los inlines de Unfold. Las
+reglas de permisos continúan en `TradeFlowPermissionMixin`; el cambio visual
+no concede acceso adicional ni modifica la lógica de negocio.
+
+Los formularios de usuarios utilizan las variantes de Unfold para conservar
+el estilo de campos y contraseñas. La protección de superusuarios y las reglas
+del administrador de demostración permanecen sin cambios.
 
 ## Mantenimiento
 
-Al agregar un módulo administrativo:
+Al agregar una sección administrativa:
 
-1. Registrar el modelo y confirmar el nombre de su ruta en Django Admin.
-2. Añadir el enlace en `templates/core/admin_rail.html`.
-3. Incluir un `data-tf-admin-route` específico; no usar rutas genéricas.
-4. Mantener el texto en inglés y un icono de Material Symbols.
-5. Ejecutar las pruebas de navegación, diseño y sitio administrativo.
-6. Verificar dashboard, lista, formulario y vista móvil antes de desplegar.
-
-## Pruebas de regresión
+1. Registrar el modelo con `TradeFlowModelAdmin`.
+2. Añadir el destino a `UNFOLD['SIDEBAR']['navigation']` si requiere acceso
+   persistente.
+3. Mantener el texto de interfaz en inglés.
+4. No crear una nueva cabecera, barra lateral o contenedor de ancho limitado.
+5. Ejecutar las pruebas de navegación, diseño y permisos.
 
 Las suites principales son:
 
 - `core/tests/test_tradeflow_admin_navigation.py`;
 - `core/tests/test_tradeflow_admin_layout.py`;
-- `core/tests/test_tradeflow_admin_site.py`.
-
-Estas pruebas comprueban la presencia del componente compartido, la carga de
-la capa de continuidad, la ausencia de la tipografía serif heredada, el ancho
-completo del lienzo y los accesos administrativos críticos.
-
-## Cabecera compartida y precedencia final
-
-La cabecera administrativa tiene una sola fuente de marcado:
-`templates/core/includes/admin_header.html`. El dashboard la incluye con la
-ruta de salida pública y Django Admin con su ruta de salida protegida. En
-ambos casos el cierre de sesión conserva POST y CSRF.
-
-`static/css/tradeflow_admin_unified.css` se carga al final de todos los
-estilos, incluso después de las reglas responsive de Django. Esta capa fija:
-
-- la cabecera compartida en 64 px;
-- el menú lateral en 252 px en todas las rutas;
-- el lienzo de contenido en todo el ancho restante;
-- Montserrat para navegación, controles, tablas y encabezados;
-- el mismo comportamiento responsive desde 1079 px hacia abajo.
-
-El dashboard ya no carga `static/js/admin_rail.js`. Ese script conservaba en
-el navegador el antiguo modo compacto y podía reducir únicamente esa
-pantalla. La navegación desplegable y la ruta activa permanecen bajo
-`static/js/tradeflow_admin_nav.js`, que es el controlador compartido.
-
-Las pruebas verifican el atributo `data-tf-admin-header="shared"` en ambas
-familias de rutas, la carga de la capa final y la ausencia del script
-heredado. Cualquier cabecera duplicada o nuevo modo de rail requiere ampliar
-primero este contrato y sus pruebas.
-
-
-## Navegación compacta para tablet y móvil
-
-La cabecera compartida incorpora el control `tfAdminMenuToggle` en todas las
-rutas administrativas. Por debajo de 1080 px, el menú lateral se convierte en
-un drawer sobre el lienzo y conserva el mismo contenido, ruta activa y
-acordeones del escritorio.
-
-`static/js/tradeflow_admin_nav.js` es el único controlador del drawer. El
-estado no se guarda entre páginas para que cada ruta compacta comience cerrada
-y predecible. El usuario puede cerrarlo con el fondo, con la tecla Escape o al
-seleccionar un destino. Los atributos `aria-controls` y `aria-expanded`
-mantienen sincronizado el estado para tecnologías de asistencia.
-
-La capa final también aplica Montserrat a los textos heredados del dashboard y
-Django Admin, excluyendo explícitamente la fuente de Material Symbols. Los
-valores de KPIs ya no contienen atributos tipográficos inline. Esto mantiene la
-política CSP y evita que una ruta reintroduzca Inter o una tipografía serif.
-
-Las pruebas de navegación y layout comprueban los controles responsive, el
-cierre por Escape, las clases del drawer y la ausencia de estilos tipográficos
-inline en el dashboard.
+- `core/tests/test_tradeflow_admin_site.py`;
+- `core/tests/test_gdpr_owasp_followup.py`.

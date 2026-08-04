@@ -5,24 +5,24 @@ export default {
     extend: {
       colors: {
         navy: {
-          DEFAULT: '#0D1B2A',
-          mid: '#1A2D42',
-          light: '#243852',
+          DEFAULT: '#0F2A44',
+          mid: '#173D60',
+          light: '#2E5B8A',
         },
         cream: {
           DEFAULT: '#FAF3E8',
           dark: '#F0E6D3',
         },
         orange: {
-          DEFAULT: '#E8490F',
+          DEFAULT: '#F26522',
           soft: '#F47B50',
           light: '#FDE8DF',
         },
         gray: {
-          page: '#F4F6F8',
-          border: '#E2E8F0',
-          mid: '#8A97A8',
-          text: '#4A5568',
+          page: '#F3F6F9',
+          border: '#DBE3EA',
+          mid: '#627484',
+          text: '#172B3A',
         },
         status: {
           paid: '#1FAD6F',
@@ -34,7 +34,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Montserrat', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         hero: ['56px', { lineHeight: '1.1', fontWeight: '700' }],

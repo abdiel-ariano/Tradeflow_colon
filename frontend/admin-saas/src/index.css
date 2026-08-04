@@ -2,30 +2,37 @@
 @config "../tailwind.config.js";
 
 @theme {
-  --color-background: #F4F6F8;
-  --color-foreground: #0D1B2A;
+  --color-background: #F3F6F9;
+  --color-foreground: #172B3A;
   --color-card: #ffffff;
-  --color-card-foreground: #0D1B2A;
-  --color-primary: #E8490F;
+  --color-card-foreground: #172B3A;
+  --color-primary: #F26522;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #F4F6F8;
-  --color-secondary-foreground: #0D1B2A;
-  --color-muted: #F4F6F8;
-  --color-muted-foreground: #8A97A8;
+  --color-secondary: #F3F6F9;
+  --color-secondary-foreground: #172B3A;
+  --color-muted: #F3F6F9;
+  --color-muted-foreground: #627484;
   --color-destructive: #E84040;
   --color-destructive-foreground: #ffffff;
-  --color-border: #E2E8F0;
-  --color-navy: #0D1B2A;
+  --color-border: #DBE3EA;
+  --color-navy: #0F2A44;
   --color-cream: #FAF3E8;
-  --color-orange: #E8490F;
+  --color-orange: #F26522;
   --radius-lg: 0.75rem;
   --radius-xl: 0.75rem;
 }
 
 body {
   margin: 0;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: Montserrat, system-ui, sans-serif;
   background: var(--color-background);
   color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }

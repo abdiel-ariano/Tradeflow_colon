@@ -1,4 +1,4 @@
-{% extends "core/base.html" %}
+{% extends "admin/base_site.html" %}
 {% load static tf_money tf_csp %}
 {% comment %}
 ================================================================================
@@ -10,12 +10,9 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
 ================================================================================
 {% endcomment %}
 {% block title %}Sales dashboard — TradeFlow Colón{% endblock %}
-{% block body_shell_class %} tf-admin-unified{% endblock %}
-{% block site_navbar %}
-  {% include "core/includes/admin_header.html" with logout_url_name="logout" %}
-{% endblock site_navbar %}
 {% block extra_head %}{% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_shell.css' %}">
 <style nonce="{{ csp_nonce }}">
   .adm-main {
     padding-top: 48px;
@@ -301,19 +298,9 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     }
   }
 </style>
-<link
-  rel="stylesheet"
-  href="{% static 'css/tradeflow_admin_continuity.css' %}"
->
-<link
-  rel="stylesheet"
-  href="{% static 'css/tradeflow_admin_unified.css' %}"
->
 {% endblock %}
 {% block content %}
-<div class="adm-shell">
-  {% include "core/admin_rail.html" %}
-  <div class="adm-main">
+<div class="adm-main tf-admin-workspace">
     <div class="adm-head">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;width:100%;">
       <div>
@@ -469,18 +456,18 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         </div>
 
         <div class="adm-quick-actions" aria-label="Quick actions">
-          <a href="{% url 'lista_productos' %}" class="adm-quick-btn">
+          <a href="{% url 'admin:core_product_changelist' %}" class="adm-quick-btn">
             <span class="material-symbols-rounded" aria-hidden="true">add_box</span>
             Manage products
           </a>
-          <a href="{% url 'admin_applications' %}" class="adm-quick-btn">
+          <a href="{% url 'admin:core_userapplication_changelist' %}" class="adm-quick-btn">
             <span class="material-symbols-rounded" aria-hidden="true">assignment_ind</span>
             Review applications
             {% if pending_applications_count %}
             <span class="adm-quick-btn-badge">{{ pending_applications_count }}</span>
             {% endif %}
           </a>
-          <a href="{% url 'lista_ordenes' %}" class="adm-quick-btn">
+          <a href="{% url 'admin:core_order_changelist' %}" class="adm-quick-btn">
             <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
             View orders
           </a>
@@ -528,7 +515,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     <div class="adm-table-card">
       <div class="adm-table-head">
         <span>Latest orders</span>
-        <a href="{% url 'lista_ordenes' %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8125rem;">View all</a>
+        <a href="{% url 'admin:core_order_changelist' %}" class="tf-btn-secondary" style="padding:6px 12px;font-size:0.8125rem;">View all</a>
       </div>
       <table class="adm-table">
         <thead>
@@ -543,7 +530,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         <tbody>
           {% for orden in ordenes_recientes %}
           <tr>
-            <td><a href="{% url 'detalle_orden' orden.pk %}">{{ orden.order_number }}</a></td>
+            <td><a href="{% url 'admin:core_order_change' orden.pk %}">{{ orden.order_number }}</a></td>
             <td>{{ orden.buyer.get_full_name|default:orden.buyer.username }}</td>
             <td>{{ orden.created_at|date:"d/m/Y H:i" }}</td>
             <td><span class="adm-badge adm-ord-st" data-st="{{ orden.status }}">{{ orden.get_status_display }}</span></td>
@@ -555,7 +542,6 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         </tbody>
       </table>
     </div>
-  </div>
 </div>
 
 {# CSP nonce: tag custom para que el <script type="application/json"> reciba nonce. #}
