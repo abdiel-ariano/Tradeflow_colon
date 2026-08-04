@@ -26,12 +26,19 @@ Post-trial (past_due): muestra volumen, plan recomendado y opciones de activaciÃ
   <article class="sp-dash-feature-card" style="{% if card.is_recommended %}border-color: var(--tf-orange);{% endif %}">
     {% if card.is_recommended %}<span style="font-size:11px;font-weight:700;color:var(--tf-orange);">{% trans "Recommended" %}</span>{% endif %}
     <h3>{{ card.name }}</h3>
-    <p>USD {{ card.monthly_price_usd }}/{% trans "month" %}</p>
+    <p>
+      <strong>USD {{ card.monthly_price_usd|floatformat:2 }}/{% trans "month" %}</strong>
+      Â· + {{ card.commission }} commission
+    </p>
     <p style="font-size:12px;color:var(--tf-muted);">{{ card.tagline }}</p>
+    <p style="font-size:12px;font-weight:700;color:var(--tf-navy);">{{ card.billing_cap }}</p>
+    <ul style="font-size:12px;color:var(--tf-muted);padding-left:18px;line-height:1.5;">
+      {% for benefit in card.benefits %}
+      <li>{{ benefit }}</li>
+      {% endfor %}
+    </ul>
     {% if card.can_select %}
     <a href="{% url 'seller_plan_checkout' plan_slug=card.slug %}">{% trans "Activate" %} {{ card.name }}</a>
-    {% elif card.cta == 'commercial' %}
-    <a href="{% url 'solicitud_acceso' %}?plan=enterprise">{% trans "Contact sales" %}</a>
     {% else %}
     <span style="font-size:12px;color:var(--tf-muted);" title="{{ card.can_select_reason }}">{% trans "Not available" %}</span>
     {% endif %}

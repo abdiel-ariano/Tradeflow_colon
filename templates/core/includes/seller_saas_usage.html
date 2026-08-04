@@ -37,7 +37,7 @@
     <div class="sp-saas-meter-fill {% if saas_snapshot.warning %}is-{{ saas_snapshot.warning }}{% endif %}" style="width:{{ saas_snapshot.meter_width_pct|floatformat:0 }}%;"></div>
   </div>
   {% elif saas_snapshot.is_unlimited %}
-  <p class="sp-saas-hint">Enterprise capacity · unlimited commercial operation</p>
+  <p class="sp-saas-hint">Corporate Pro capacity · unlimited monthly sales volume</p>
   {% endif %}
 
   {% if saas_snapshot.warning == 'limit' %}
