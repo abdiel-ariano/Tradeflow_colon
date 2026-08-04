@@ -3,6 +3,9 @@
 Importers browse Colon Free Zone company locations without an
 API key; navbar must expose the map without duplicate icons.
 """
+from pathlib import Path
+
+from django.conf import settings
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -63,6 +66,15 @@ class MapaZlcTests(TestCase):
         self.assertIn('center', payload)
         names = [m['name'] for m in payload['markers']]
         self.assertIn('Map Test Co', names)
+
+    def test_map_script_does_not_move_page_when_selecting_marker(self):
+        """Keep marker/list synchronization inside the sidebar and map."""
+        script_path = Path(settings.BASE_DIR) / 'static/js/tf-cfz-map.js'
+        source = script_path.read_text(encoding='utf-8')
+
+        self.assertIn('function scrollListItemIntoView', source)
+        self.assertNotIn('.scrollIntoView(', source)
+        self.assertIn('autoPan: false', source)
 
     def test_navbar_has_map_icon_without_duplicate_quotes(self):
         """Link map from home nav without duplicate utility icons."""
