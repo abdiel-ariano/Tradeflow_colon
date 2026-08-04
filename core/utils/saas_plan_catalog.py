@@ -1,166 +1,147 @@
-"""Copy de marketing de planes SaaS (los límites viven en el ORM de billing).
+"""Authoritative commercial copy for TradeFlow seller SaaS plans.
 
-UI y prompts de IA muestran beneficios sin filtrar topes de volumen USD
-que solo pertenecen al enforcement de facturación.
+The database fields enforce volume limits and feature access. This module owns
+the English plan names, monthly prices, commissions, descriptions, and benefits
+shown in the seller portal and supplied to the AI assistant.
 """
 from __future__ import annotations
 
-# Authoritative copy for AI assistant (Groq) and public seller plan marketing.
+from decimal import Decimal
+
+
 SAAS_PLANS_AI_ROWS = (
     {
-        'name': 'Digitalízate',
+        'name': 'Digitalize',
         'slug': 'digitalizate',
-        'monthly_usd': 49,
-        'commission': '5.0%',
-        'billing_cap': 'Hasta USD 15,000 / mes',
-        'access': (
-            'Catálogo al 100% para Micro/PyMEs. Mapa digital con rastreo. '
-            'Reporte básico de ventas propias y acceso al módulo promocional '
-            "'Top 3 Buscados de la ZLC'."
+        'monthly_usd': Decimal('49.99'),
+        'commission': '5%',
+        'billing_cap': 'Up to USD 15,000 in monthly sales volume',
+        'description': (
+            'Digitalize provides the essential tools a company needs to start '
+            'managing and selling online from one seller dashboard.'
         ),
+        'benefits': (
+            'Product and inventory management',
+            'Orders, quotations, customers, and payments',
+            'Basic sales reports',
+            'Access to the promotional module',
+            '50 TradeFlow Ads credits per month',
+            'Up to USD 15,000 in monthly sales volume',
+        ),
+        'badge': '',
+        'featured': False,
+        'icon': 'storefront',
+        'tier_label': 'Essential seller tools',
     },
     {
-        'name': 'Expansión',
+        'name': 'Expansion',
         'slug': 'expansion',
-        'monthly_usd': 149,
-        'commission': '4.0%',
-        'billing_cap': 'Hasta USD 50,000 / mes',
-        'access': (
-            'Catálogo al 100% para Empresas Medianas. Despacho en 1 clic a '
-            'agencias nacionales. Desbloqueo del gestor TradeFlow Ads para '
-            'comprar anuncios destacados.'
+        'monthly_usd': Decimal('135.99'),
+        'commission': '4%',
+        'billing_cap': 'Up to USD 50,000 in monthly sales volume',
+        'description': (
+            'Expansion includes everything in Digitalize and adds more '
+            'automation, commercial visibility, and operational capacity.'
         ),
+        'benefits': (
+            'Everything included in Digitalize',
+            'Advanced customer and sales analytics',
+            'TradeFlow Ads with 200 monthly credits',
+            'One-click dispatch to national agencies',
+            'Data management and report exports',
+            'API access for business integrations',
+            'Up to USD 50,000 in monthly sales volume',
+        ),
+        'badge': 'Most popular',
+        'featured': True,
+        'icon': 'rocket_launch',
+        'tier_label': 'Automation and growth',
     },
     {
-        'name': 'Corporativo Pro',
+        'name': 'Corporate Pro',
         'slug': 'corporativo_pro',
-        'monthly_usd': 349,
+        'monthly_usd': Decimal('230.99'),
         'commission': '3.5%',
-        'billing_cap': 'Ilimitado',
-        'access': (
-            'Catálogo ilimitado. Automatización de guías y etiquetas de envío. '
-            'Estudio de Mercado Completo de la ZLC. Incluye 3 anuncios destacados '
-            'mensuales fijos.'
+        'billing_cap': 'Unlimited monthly sales volume',
+        'description': (
+            'Corporate Pro includes everything in Digitalize and Expansion. '
+            'It is designed for companies that require advanced intelligence, '
+            'integrations, and unrestricted growth.'
         ),
-    },
-    {
-        'name': 'Ecosistema Enterprise',
-        'slug': 'ecosistema_enterprise',
-        'monthly_usd': 799,
-        'commission': '3.0%',
-        'billing_cap': 'Ilimitado',
-        'access': (
-            'Sincronización por API con el ERP interno de la empresa. Soporte '
-            'multi-bodega y técnico 24/7. Máxima prioridad en búsquedas y 1 banner '
-            'principal fijo mensual.'
+        'benefits': (
+            'Everything included in Digitalize and Expansion',
+            'Unlimited monthly sales volume',
+            'Predictive sales insights powered by AI',
+            'Advanced market studies and reporting',
+            'API access and logistics webhooks',
+            'Priority operational support',
+            '500 TradeFlow Ads credits per month',
+            'Three fixed featured ads every month',
         ),
+        'badge': 'Advanced',
+        'featured': False,
+        'icon': 'insights',
+        'tier_label': 'Intelligence and scale',
     },
 )
 
+PLAN_CATALOG_BY_SLUG = {
+    row['slug']: row
+    for row in SAAS_PLANS_AI_ROWS
+}
+
+
+def monthly_price_for_slug(slug: str) -> Decimal:
+    """Return the official monthly USD price for a seller plan slug."""
+    row = PLAN_CATALOG_BY_SLUG.get(slug)
+    return row['monthly_usd'] if row else Decimal('0.00')
+
 
 def build_saas_plans_ai_context() -> str:
-    """Construye texto estructurado de planes para prompts de sistema Groq (sin topes de volumen)."""
+    """Build the official seller-plan context supplied to the AI assistant."""
     lines = [
-        'Seller SaaS plans for TradeFlow Colón (use ONLY these figures; do not invent prices):',
+        'TradeFlow Colón offers exactly three tailored seller SaaS plans. '
+        'Use only the figures and benefits below:',
         '',
     ]
     for row in SAAS_PLANS_AI_ROWS:
         lines.extend([
             f"• {row['name']}",
-            f"  - Fixed investment: USD {row['monthly_usd']} / month",
+            f"  - Monthly subscription: USD {row['monthly_usd']:.2f}",
             f"  - Commission: {row['commission']}",
-            f"  - Monthly billing cap: {row['billing_cap']}",
-            f"  - Logistics, data & ads access: {row['access']}",
-            '',
+            f"  - Sales volume: {row['billing_cap']}",
+            f"  - Positioning: {row['description']}",
+            '  - Included features:',
         ])
+        lines.extend(f'    • {benefit}' for benefit in row['benefits'])
+        lines.append('')
     lines.append(
-        'To become a seller: business sign-up, access application if required, '
-        'then activate a plan from the seller portal. '
-        'Ecosistema Enterprise may require commercial approval.'
+        'Expansion includes all Digitalize features. Corporate Pro includes '
+        'all Digitalize and Expansion features. Upgrading never removes access.'
     )
     return '\n'.join(lines)
 
 
-PLAN_MARKETING = {
-    'digitalizate': {
-        'tagline': 'Digitalización empresarial en la ZLC',
-        'badge': '',
-        'featured': False,
-        'icon': 'storefront',
-        'benefits': [
-            'Catálogo digital completo y trazable',
-            'Presencia B2B profesional en TradeFlow',
-            'Ventas organizadas y confirmación empresarial',
-            'Analytics operativos esenciales',
-            'Crecimiento inicial dentro del ecosistema',
-        ],
-        'cta': 'activate',
-        'tier_label': 'Inicio digital',
-    },
-    'expansion': {
-        'tagline': 'Automatización y visibilidad comercial',
-        'badge': 'Más popular',
-        'featured': True,
-        'icon': 'rocket_launch',
-        'benefits': [
-            'TradeFlow Ads y mayor visibilidad',
-            'Despacho logístico en 1 clic',
-            'Automatización de operaciones',
-            'API para integraciones clave',
-            'Escala tu volumen con confianza',
-        ],
-        'cta': 'activate',
-        'tier_label': 'Recomendado',
-    },
-    'corporativo_pro': {
-        'tagline': 'Inteligencia y operaciones avanzadas',
-        'badge': 'Pro',
-        'featured': False,
-        'icon': 'insights',
-        'benefits': [
-            'Estudios de mercado y métricas profundas',
-            'Webhooks logísticos a aliados',
-            'Créditos publicitarios ampliados',
-            'Soporte prioritario operativo',
-            'Herramientas premium para tu equipo',
-        ],
-        'cta': 'activate',
-        'tier_label': 'Operaciones Pro',
-    },
-    'ecosistema_enterprise': {
-        'tagline': 'Estrategia corporativa y ecosistema completo',
-        'badge': 'Enterprise',
-        'featured': False,
-        'icon': 'corporate_fare',
-        'benefits': [
-            'IA predictiva sobre tus datos reales',
-            'API enterprise y SLA dedicado',
-            'Activación consultiva con ejecutivo',
-            'Integración logística a medida',
-            'Preparado para expansión regional',
-        ],
-        'cta': 'commercial',
-        'tier_label': 'Consultivo',
-    },
-}
-
-
 def marketing_for_plan(plan) -> dict:
-    """Combina la fila ORM SaasPlan con copy de marketing para tarjetas de UI."""
-    base = PLAN_MARKETING.get(plan.slug, {})
+    """Combine a SaaS plan row with authoritative English commercial copy."""
+    base = PLAN_CATALOG_BY_SLUG.get(plan.slug, {})
     return {
         'slug': plan.slug,
-        'name': plan.name,
-        'tagline': base.get('tagline', plan.name),
+        'name': base.get('name', plan.name),
+        'tagline': base.get('description', plan.name),
+        'description': base.get('description', plan.name),
+        'commission': base.get('commission', ''),
+        'billing_cap': base.get('billing_cap', ''),
         'badge': base.get('badge', ''),
         'featured': base.get('featured', False),
         'icon': base.get('icon', 'workspace_premium'),
-        'benefits': base.get('benefits', []),
-        'cta': base.get('cta', 'activate'),
+        'benefits': list(base.get('benefits', ())),
+        'cta': 'activate',
         'tier_label': base.get('tier_label', ''),
         'ad_credits': plan.ad_credits_monthly,
         'has_api': plan.api_access,
         'has_webhooks': plan.logistics_webhooks,
         'has_predictive': plan.predictive_ai,
+        'has_priority_support': plan.priority_support,
         'sort_order': plan.sort_order,
     }
