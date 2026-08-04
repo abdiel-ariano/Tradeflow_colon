@@ -83,7 +83,7 @@ No navy tf-nav from base; marketplace chrome stays on public pages.
     {% if saas_snapshot and saas_snapshot.trial_days_left %}
     <div class="sp-trial-banner">
       <span>
-        <strong>{% trans "Digitalízate trial" %}</strong> —
+        <strong>{% trans "Digitalize trial" %}</strong> —
         {% blocktrans with days=saas_snapshot.trial_days_left %}{{ days }} day(s) remaining{% endblocktrans %}
       </span>
       <a href="{% url 'seller_plan_consumo' %}">{% trans "Upgrade plan" %}</a>
