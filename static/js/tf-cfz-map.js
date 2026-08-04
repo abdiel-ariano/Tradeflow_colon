@@ -106,6 +106,8 @@
     var marker = L.marker([lat, lng], { icon: icon }).bindPopup(popupHtml, {
       maxWidth: 300,
       className: 'tf-cfz-popup-shell',
+      // Selection must not trigger Leaflet's second, unexpected pan.
+      autoPan: false,
     });
 
     marker.on('click', function () {
@@ -144,6 +146,40 @@
     }
   }
 
+  /**
+   * Keep the active company visible without moving the document viewport.
+   * Element.scrollIntoView() may scroll both the sidebar and the full page.
+   */
+  function scrollListItemIntoView(listItem) {
+    if (!listEl || !listItem || typeof listItem.getBoundingClientRect !== 'function') {
+      return;
+    }
+
+    var listRect = listEl.getBoundingClientRect();
+    var itemRect = listItem.getBoundingClientRect();
+    var nextScrollTop = listEl.scrollTop;
+    var margin = 8;
+
+    if (itemRect.top < listRect.top + margin) {
+      nextScrollTop += itemRect.top - listRect.top - margin;
+    } else if (itemRect.bottom > listRect.bottom - margin) {
+      nextScrollTop += itemRect.bottom - listRect.bottom + margin;
+    } else {
+      return;
+    }
+
+    nextScrollTop = Math.max(0, nextScrollTop);
+    if (typeof listEl.scrollTo === 'function') {
+      try {
+        listEl.scrollTo({ top: nextScrollTop, behavior: 'smooth' });
+        return;
+      } catch (e) {
+        // Older browsers only accept numeric scrollTo arguments.
+      }
+    }
+    listEl.scrollTop = nextScrollTop;
+  }
+
   function setActiveItem(id) {
     activeId = id;
     Object.keys(listItemById).forEach(function (key) {
@@ -152,10 +188,7 @@
         li.classList.toggle('is-active', String(key) === String(id));
       }
     });
-    var activeLi = listItemById[id];
-    if (activeLi && typeof activeLi.scrollIntoView === 'function') {
-      activeLi.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }
+    scrollListItemIntoView(listItemById[id]);
   }
 
   function focusMarker(item) {
@@ -163,10 +196,25 @@
     if (!marker) {
       return;
     }
+
+    var isRepeatedSelection = String(activeId) === String(item.id);
     setActiveItem(item.id);
+    if (
+      isRepeatedSelection &&
+      typeof marker.isPopupOpen === 'function' &&
+      marker.isPopupOpen()
+    ) {
+      return;
+    }
 
     function openPopup() {
-      map.setView([item.lat, item.lng], Math.max(map.getZoom(), 15), { animate: true });
+      var markerLatLng = marker.getLatLng();
+      var targetZoom = Math.max(map.getZoom(), 15);
+      var safeBounds = map.getBounds().pad(-0.2);
+
+      if (map.getZoom() < 15 || !safeBounds.contains(markerLatLng)) {
+        map.setView(markerLatLng, targetZoom, { animate: true });
+      }
       marker.openPopup();
     }
 
