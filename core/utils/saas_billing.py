@@ -1,6 +1,6 @@
 """Facturación SaaS de empresa: planes, topes de volumen, checkout y pago bancario.
 
-Los vendedores ZLC prueban Digitalízate y luego activan vía transferencia
+Los vendedores ZLC prueban Digitalize y luego activan vía transferencia
 bancaria (aprobación admin) o pago mock en DEBUG. Los límites de volumen
 controlan nuevas ventas confirmadas.
 """
@@ -57,15 +57,6 @@ PLAN_LIMITS = {
     'digitalizate': Decimal('15000'),
     'expansion': Decimal('50000'),
     'corporativo_pro': None,
-    'ecosistema_enterprise': None,
-}
-
-# Checkout monthly price — aligned with commercial copy (saas_plan_catalog).
-PLAN_MRR_USD = {
-    'digitalizate': Decimal('49'),
-    'expansion': Decimal('149'),
-    'corporativo_pro': Decimal('349'),
-    'ecosistema_enterprise': Decimal('799'),
 }
 
 
@@ -151,7 +142,7 @@ def can_select_plan_for_activation(
 
 
     La activación post-trial exige ``target.sort_order >= recommended``;
-    los upgrades en trial exigen un plan estrictamente superior a Digitalízate.
+    los upgrades en trial exigen un plan estrictamente superior a Digitalize.
     """
     ensure_default_plans()
     sub = get_company_subscription(company)
@@ -189,8 +180,10 @@ def can_select_plan_for_activation(
 
 
 def plan_monthly_price(slug: str) -> Decimal:
-    """Devuelve el MRR de lista en USD para un slug de plan (display de checkout)."""
-    return PLAN_MRR_USD.get(slug, Decimal('0'))
+    """Return the official monthly USD price used by seller checkout."""
+    from core.utils.saas_plan_catalog import monthly_price_for_slug
+
+    return monthly_price_for_slug(slug)
 
 
 def _period_bounds(now=None):
@@ -221,28 +214,63 @@ def _safe_pending_checkout(company: Company) -> CompanyPlanCheckout | None:
 
 
 def ensure_default_plans() -> int:
-    """Hace upsert de los planes SaaS oficiales; devuelve el conteo de planes activos."""
-    defaults = [
-        ('digitalizate', 'Digitalize', Decimal('15000'), 50, False, False, False, 1),
-        ('expansion', 'Expansion', Decimal('50000'), 200, True, False, False, 2),
-        ('corporativo_pro', 'Corporate Pro', None, 500, True, True, False, 3),
-        ('ecosistema_enterprise', 'Enterprise Ecosystem', None, 2000, True, True, True, 4),
-    ]
-    for slug, name, limit, credits, api, webhooks, predictive, order in defaults:
+    """Upsert the three official plans and retire the legacy fourth tier."""
+    defaults = (
+        {
+            'slug': 'digitalizate',
+            'name': 'Digitalize',
+            'limit': Decimal('15000'),
+            'credits': 50,
+            'api': False,
+            'webhooks': False,
+            'predictive': False,
+            'priority_support': False,
+            'sort_order': 1,
+        },
+        {
+            'slug': 'expansion',
+            'name': 'Expansion',
+            'limit': Decimal('50000'),
+            'credits': 200,
+            'api': True,
+            'webhooks': False,
+            'predictive': False,
+            'priority_support': False,
+            'sort_order': 2,
+        },
+        {
+            'slug': 'corporativo_pro',
+            'name': 'Corporate Pro',
+            'limit': None,
+            'credits': 500,
+            'api': True,
+            'webhooks': True,
+            'predictive': True,
+            'priority_support': True,
+            'sort_order': 3,
+        },
+    )
+    for config in defaults:
+        slug = config['slug']
         SaasPlan.objects.update_or_create(
             slug=slug,
             defaults={
-                'name': name,
-                'monthly_volume_limit_usd': limit,
-                'ad_credits_monthly': credits,
-                'api_access': api,
-                'logistics_webhooks': webhooks,
-                'predictive_ai': predictive,
-                'priority_support': slug in ('corporativo_pro', 'ecosistema_enterprise'),
-                'sort_order': order,
+                'name': config['name'],
+                'monthly_volume_limit_usd': config['limit'],
+                'ad_credits_monthly': config['credits'],
+                'api_access': config['api'],
+                'logistics_webhooks': config['webhooks'],
+                'predictive_ai': config['predictive'],
+                'priority_support': config['priority_support'],
+                'sort_order': config['sort_order'],
                 'is_active': True,
             },
         )
+
+    # Keep historical subscriptions and upgrade logs intact while ensuring only
+    # the three product-approved tiers are offered to new sellers.
+    official_slugs = tuple(config['slug'] for config in defaults)
+    SaasPlan.objects.exclude(slug__in=official_slugs).update(is_active=False)
     count = SaasPlan.objects.filter(is_active=True).count()
     log.info('saas_ensure_default_plans active_plans=%s', count)
     return count
@@ -952,7 +980,7 @@ def approve_commercial_request(req: CompanyPlanCommercialRequest) -> CompanySubs
 
 
 def build_plan_page_context(company: Company) -> dict:
-    """Construye el contexto completo de la página de planes (tarjetas marketing sin topes USD)."""
+    """Build the seller page with official copy, limits, and entitlements."""
     from core.utils.saas_plan_catalog import marketing_for_plan
 
     ensure_default_plans()
@@ -968,7 +996,7 @@ def build_plan_page_context(company: Company) -> dict:
         m['is_current'] = (
             plan.slug == current_slug and status == 'active'
         )
-        # Trial: only plans above Digitalízate.
+        # During a trial, only plans above Digitalize can be selected.
         if status == 'trialing':
             m['can_upgrade'] = plan.sort_order > snap['plan'].sort_order
         elif status == 'past_due' and recommended:
@@ -976,7 +1004,7 @@ def build_plan_page_context(company: Company) -> dict:
             m['is_recommended'] = plan.slug == recommended.slug
         else:
             m['can_upgrade'] = plan.sort_order > snap['plan'].sort_order
-        m['monthly_price_usd'] = float(plan_monthly_price(plan.slug))
+        m['monthly_price_usd'] = plan_monthly_price(plan.slug)
         cards.append(m)
 
     try:
