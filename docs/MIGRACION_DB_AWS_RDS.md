@@ -1,226 +1,248 @@
 # Migración de base de datos: Supabase Postgres → AWS RDS
 
-**Proyecto:** TradeFlow Colón (marketplace B2B ZLC)
-**Fecha del análisis:** 29 de julio de 2026
-**Alcance decidido:** solo la base de datos. El Storage de imágenes permanece en Supabase por ahora; la aplicación permanece en Railway.
-**Estado:** planificado, pendiente de ejecución.
+**Proyecto:** TradeFlow Colón (marketplace B2B ZLC)  
+**Prioridad:** **P0** — Mejora agosto–septiembre 2026  
+**Disparador:** el tier gratuito de Supabase se cierra / pausa el **1 de agosto de 2026**  
+**Fecha del plan:** 6 de agosto de 2026  
+**Alcance P0:** solo la base de datos. Storage de imágenes permanece en Supabase de forma temporal; la app permanece en Railway.  
+**Estado:** planificado — ejecución inmediata (ventana de corte 15–30 min).
+
+---
+
+## 0. Por qué esto es P0 ahora
+
+TradeFlow **no corre en Supabase**: Django está en Railway. Supabase solo aporta Postgres (`DATABASE_URL`) y Storage de medios. Si el proyecto free se pausa o se pierde el acceso el 1 ago:
+
+| Qué se rompe | Impacto |
+|---|---|
+| Postgres inaccesible | Login, catálogo, carrito, órdenes, admin — **plataforma caída** |
+| Storage pausado (si el proyecto queda inactivo tras sacar la DB) | Imágenes del catálogo caídas |
+
+**Acción inmediata (hoy):** abrir el dashboard de Supabase y comprobar si el proyecto está **Active**, **Paused** o **Restricted**. Si está pausado, restaurarlo antes de cualquier dump. Si aún hay acceso, hacer un `pg_dump` de respaldo **antes** de crear RDS.
 
 ---
 
 ## 1. Resumen ejecutivo
 
-TradeFlow Colón **no vive en Supabase**: la aplicación Django corre en Railway (contenedor Docker con gunicorn). Supabase provee únicamente dos servicios:
+| Ítem | Decisión |
+|---|---|
+| Destino | **AWS RDS PostgreSQL** `db.t4g.micro`, región `us-east-1` |
+| Método | `pg_dump` / `pg_restore` (dump frío; DB pequeña, sin DMS) |
+| Código Django | **Cero cambios** — solo `DATABASE_URL` + limpieza de env en Railway |
+| Ventana de corte | 15–30 minutos |
+| Costo RDS | ~$16–22 USD/mes |
+| App host | Railway (sin mover) |
+| Storage | Sigue en Supabase → migrar a S3 en septiembre (P1) |
 
-1. **PostgreSQL** — la base de datos, conectada vía la variable de entorno `DATABASE_URL`.
-2. **Storage** — las imágenes de productos, vía API compatible con S3.
-
-Esta migración mueve **solo el punto 1** a AWS RDS. Es un cambio de **cero líneas de código**: todo se resuelve con variables de entorno y una copia de datos, porque Django usa su ORM estándar sin ninguna característica propietaria de Supabase.
-
-**Duración estimada de la ventana de corte:** 15–30 minutos.
-**Costo mensual estimado de RDS:** $16–22 USD.
-**Riesgo principal:** dejar el Storage en Supabase crea una dependencia residual que hay que resolver en semanas, no meses (ver sección 3).
+Django usa ORM estándar. El normalizador `core/utils/database_url.py` solo reescribe hosts `pooler.supabase.com`; una URL de RDS pasa intacta.
 
 ---
 
-## 2. Arquitectura actual (verificada en el código)
+## 2. Roadmap agosto–septiembre (P0 → P1)
 
-| Componente | Proveedor actual | Archivo/configuración relevante |
+```
+AGOSTO (P0 — DB viva o recuperada)
+├── Día 0   Verificar estado Supabase + dump de emergencia
+├── Día 1   Crear RDS + security group + force_ssl
+├── Día 1–2 Ensayo en frío (dump → restore → check_database)
+└── Día 2–3 Corte producción (cambiar DATABASE_URL en Railway)
+
+SEPTIEMBRE (P1 — salir de Supabase)
+├── Semana 1–2  Storage → S3 + CloudFront
+├── Semana 3    Quitar SUPABASE_* de Railway; limpiar código
+└── Semana 4    Cerrar / borrar proyecto Supabase
+```
+
+**No** migrar la app a AWS en este ciclo salvo créditos Activate ya aprobados y razón operativa concreta.
+
+---
+
+## 3. Arquitectura actual (verificada en el código)
+
+| Componente | Proveedor actual | Archivo/configuración |
 |---|---|---|
-| Aplicación Django 6 | Railway (Docker + gunicorn, 2 workers) | `railway.json`, `Dockerfile`, `scripts/docker-entrypoint.sh` |
-| Base de datos PostgreSQL | Supabase (vía pooler `aws-0-us-east-1.pooler.supabase.com`) | `DATABASE_URL` en `tradeflow_colon/settings.py:160` |
-| Imágenes de productos | Supabase Storage (bucket `media`, público) | `core/storage/supabase_media.py` |
-| Autenticación de usuarios | Django + allauth (Google/Microsoft/LinkedIn) — **no** usa Supabase Auth | `settings.py` (AUTHENTICATION_BACKENDS) |
-| Email transaccional | Resend — **no** usa Supabase | `core/email_service.py` |
-| Cache | Redis opcional / memoria local | `REDIS_URL` en settings |
-| CDN / DNS | Cloudflare delante de Railway | `scripts/purge_cloudflare_cache.sh` |
-| Cron diario | Railway Cron (`process_seller_subscriptions`) | documentado en `.env.example` |
+| App Django 6 | Railway (Docker + gunicorn, 2 workers) | `railway.json`, `Dockerfile` |
+| PostgreSQL | Supabase (pooler `aws-0-us-east-1.pooler.supabase.com`) | `DATABASE_URL` → `tradeflow_colon/settings.py` |
+| Imágenes | Supabase Storage (bucket `media`, público) | `core/storage/supabase_media.py` |
+| Auth | Django + allauth — **no** Supabase Auth | `AUTHENTICATION_BACKENDS` |
+| Email | Resend — **no** Edge Function en producción | `core/email_service.py` |
+| Realtime seller | Supabase Realtime **opcional**; fallback polling 5s | `static/js/seller_portal.js` |
+| Cache | Redis opcional | `REDIS_URL` |
+| CDN / DNS | Cloudflare → Railway | — |
 
-### Puntos de acoplamiento con Supabase (los únicos que existen)
+### Acoplamiento real con Supabase
 
-1. **`DATABASE_URL`** — conexión Postgres estándar. El normalizador `core/utils/database_url.py` tiene lógica especial para el pooler de Supabase, pero **una URL de RDS pasa intacta** (la reescritura solo se activa con hosts `pooler.supabase.com`). Verificado.
-2. **Storage de medios** (`core/storage/supabase_media.py`) — no se toca en esta migración.
-3. **Cliente Supabase** (`core/supabase_client.py`) — solo genera URLs firmadas para buckets privados; el bucket es público, así que en la práctica no se usa. No se toca.
-4. **Artefactos muertos** — la Edge Function `supabase/functions/send-transactional-email/` no la invoca ningún código Python (el email real va por Resend), y el SQL `supabase/migrations/20260707000000_marketplace_cart.sql` crea tablas huérfanas de un frontend React abandonado. Ninguno se migra; se limpian después.
+1. **`DATABASE_URL`** — lo que migramos (P0).
+2. **Storage** — no se toca en P0; obligatorio en P1 (septiembre).
+3. **`core/supabase_client.py`** — URLs firmadas; bucket público → casi no se usa.
+4. **Realtime** — al sacar la DB de Supabase, `postgres_changes` deja de disparar; el portal vendedor **sigue funcionando por polling**. Sin bloqueador.
+5. **Artefactos muertos** — Edge Function de email y SQL `supabase/migrations/..._marketplace_cart.sql` (tablas huérfanas). No se migran; se limpian después.
 
-**Conclusión de la auditoría:** las URLs de imágenes se construyen dinámicamente en cada request desde settings — los modelos guardan solo la ruta del archivo. No hay URLs de Supabase congeladas en la base de datos, por lo que mover la DB no afecta las imágenes, y mover las imágenes después no afectará la DB.
-
----
-
-## 3. Advertencia importante: la trampa del Storage residual
-
-Migrar solo la DB deja el proyecto Supabase vivo únicamente para servir imágenes. Esto tiene dos consecuencias según el plan contratado:
-
-- **Plan gratuito:** Supabase **pausa proyectos inactivos**. Al sacar la base de datos, la actividad del proyecto cae casi a cero. Si Supabase lo pausa, **se caen las imágenes de todos los productos del catálogo**. Este es un riesgo real y silencioso.
-- **Plan Pro ($25/mes):** se sigue pagando la factura completa de Supabase solo por hospedar imágenes, **además** de la nueva factura de RDS. Después de la migración se paga más que hoy.
-
-**Mitigación obligatoria:** agendar la migración del Storage a S3 + CloudFront dentro de las **4–6 semanas** posteriores al corte de la DB. Mientras tanto, **no pausar ni borrar el proyecto Supabase** bajo ninguna circunstancia.
+Las URLs de imagen se arman en runtime desde settings; los modelos guardan solo la ruta. Mover la DB no rompe imágenes; mover Storage después no rompe la DB.
 
 ---
 
-## 4. Pros y contras de esta migración (solo DB)
+## 4. Trampa del Storage residual (leer antes del corte)
 
-### Pros
+Tras el corte P0, Supabase queda solo para imágenes:
 
-- **Backups reales:** RDS ofrece point-in-time recovery de 7 días y snapshots manuales, superior al tier bajo de Supabase.
-- **Cambio mínimo:** cero código; solo variables de entorno y copia de datos. Rollback en minutos.
-- **Camino a AWS:** primer paso concreto si se busca elegibilidad de créditos AWS Activate o requisitos de compliance de un cliente/inversionista.
-- **Métricas:** CloudWatch da visibilidad de CPU, conexiones y almacenamiento que el panel gratuito de Supabase no iguala.
+- **Plan free:** riesgo alto de **pausa por inactividad** → catálogo sin imágenes.
+- **Plan Pro ($25/mes):** doble factura (RDS + Supabase) solo por Storage.
 
-### Contras
-
-- **Se pierde el dashboard de Supabase** (editor SQL visual, vista de tablas, logs con un clic). En RDS todo es consola AWS o cliente `psql`.
-- **Costo adicional** de $16–22/mes mientras el Storage siga en Supabase (posible doble factura, ver sección 3).
-- **Arquitectura partida en dos proveedores** (Railway + AWS): dos facturas, dos consolas, y la conexión app→DB cruza internet público (mitigado con TLS forzado; ambos están en us-east-1 así que la latencia no cambia).
-- **RDS debe ser públicamente accesible** porque la app vive en Railway, fuera de la VPC de AWS. No es lo ideal en seguridad; se compensa con TLS obligatorio y firewall (detalle en Fase 1).
+**Regla:** no pausar ni borrar Supabase hasta terminar P1 (S3). Agendar Storage en las **2–4 semanas** posteriores al corte DB (septiembre).
 
 ---
 
-## 5. Runbook de migración
+## 5. Pros / contras (solo DB)
 
-### Fase 0 — Decisiones previas (antes de gastar un dólar)
+**Pros:** backups PITR 7 días, cero código, rollback en minutos, camino a créditos AWS / compliance, métricas CloudWatch.
 
-1. **Aplicar a AWS Activate** (créditos para startups) antes de crear recursos.
-2. **Región: `us-east-1`.** El pooler actual de Supabase ya está ahí (`aws-0-us-east-1.pooler.supabase.com`), así que la latencia desde Railway no cambia.
-3. **Averiguar la versión de Postgres actual.** En Supabase → SQL Editor:
+**Contras:** se pierde el SQL editor de Supabase; ~$16–22/mes extra mientras Storage siga ahí; app en Railway + DB en AWS (RDS **públicamente accesible** + TLS + SG).
+
+---
+
+## 6. Runbook de migración
+
+### Fase 0 — Decisiones y rescate (antes de gastar)
+
+1. **Estado Supabase YA:** Active / Paused / Restricted. Si Paused → Restore Project, luego dump.
+2. **Dump de emergencia** (aunque el corte sea mañana):
+
+   ```bash
+   pg_dump "postgresql://postgres:PASSWORD@db.TU_REF.supabase.co:5432/postgres" \
+     -n public --no-owner --no-privileges -Fc -f tradeflow-emergency.dump
+   ```
+
+   Host **directo** `db.<ref>.supabase.co`, **nunca** el pooler.
+3. **AWS Activate** si aplica (antes de crear recursos).
+4. **Región `us-east-1`** (misma que el pooler actual).
+5. Versión Postgres y tamaño:
 
    ```sql
    SELECT version();
-   ```
-
-   RDS debe crearse con la **misma versión mayor o superior** (ej.: Supabase en PG 15 → RDS PG 15, 16 o 17). Nunca menor.
-4. **Medir el tamaño de la base** para estimar la ventana de corte:
-
-   ```sql
    SELECT pg_size_pretty(pg_database_size('postgres'));
    ```
 
-   Con el volumen actual (pre-lanzamiento) se esperan decenas de MB → el dump/restore toma minutos. Por eso **no** se necesita AWS DMS ni replicación continua; un dump frío es suficiente y mucho más simple.
+   RDS ≥ misma major. Con decenas de MB, dump frío basta (sin DMS).
 
-### Fase 1 — Crear la instancia RDS
+### Fase 1 — Crear RDS
 
-Configuración recomendada:
-
-| Parámetro | Valor | Por qué |
+| Parámetro | Valor | Motivo |
 |---|---|---|
-| Motor | PostgreSQL (versión según Fase 0) | compatibilidad de dump/restore |
-| Instancia | `db.t4g.micro` | suficiente para 2 workers gunicorn; ~$13/mes |
-| Storage | gp3, 20 GB | mínimo de gp3; sobra para años al ritmo actual |
-| Multi-AZ | **No** | duplica el costo; innecesario sin tráfico de producción real |
-| Backups automáticos | 7 días | point-in-time recovery |
-| Deletion protection | **Sí** | evita borrado accidental desde la consola |
-| Publicly accessible | **Sí** | la app está en Railway, fuera de la VPC — no hay alternativa sin migrar la app |
-| Nombre de la base | `postgres` | igual que Supabase; evita tocar el path de `DATABASE_URL` |
+| Motor | PostgreSQL (misma major o superior) | dump/restore compatible |
+| Instancia | `db.t4g.micro` | 2 workers gunicorn; ~$13/mes |
+| Storage | gp3, 20 GB | mínimo gp3 |
+| Multi-AZ | No | costo; sin tráfico prod real aún |
+| Backups | 7 días | PITR |
+| Deletion protection | Sí | anti-borrado accidental |
+| Publicly accessible | Sí | app en Railway fuera de la VPC |
+| DB name | `postgres` | igual que Supabase |
 
-**Compensaciones de seguridad por ser públicamente accesible (obligatorias):**
+**Seguridad obligatoria (RDS público):**
 
-1. En el *parameter group*: `rds.force_ssl = 1` — rechaza cualquier conexión sin TLS.
-2. Contraseña larga generada aleatoriamente, **sin** los caracteres `@ : / #` (el parser de la app los maneja, pero eliminarlos evita una fuente clásica de errores de conexión).
-3. Security group: entrada al puerto 5432 restringida a las **IPs de egreso estáticas de Railway** si el plan de Railway las ofrece (verificar en Railway → Settings → Networking). Si el plan no tiene IPs estáticas, se abre `0.0.0.0/0` — aceptable con TLS forzado + contraseña fuerte, pero conviene registrar esto como deuda de seguridad a cerrar cuando la app migre a AWS.
+1. Parameter group: `rds.force_ssl = 1`
+2. Password larga **sin** `@ : / #`
+3. Security group 5432: IPs estáticas de Railway si existen; si no, `0.0.0.0/0` + TLS + password fuerte (deuda a cerrar al mover la app a AWS)
 
-**Costo estimado total: $16–22 USD/mes** (instancia + storage + backups).
+**Costo:** ~$16–22 USD/mes.
 
-### Fase 2 — Ensayo en frío (sin tocar producción)
+### Fase 2 — Ensayo en frío
 
-Objetivo: validar el proceso completo de copia **antes** del día del corte, contra la base de producción real pero sin interrumpirla.
-
-Requisito: tener `pg_dump` y `pg_restore` de PostgreSQL 16+ instalados localmente.
-
-**Paso 2.1 — Dump desde Supabase:**
+Requisito: `pg_dump` / `pg_restore` PostgreSQL 16+.
 
 ```bash
-pg_dump "postgresql://postgres:PASSWORD@db.TU_REF.supabase.co:5432/postgres" -n public --no-owner --no-privileges -Fc -f tradeflow.dump
+# Dump (solo schema public — excluye auth/storage/realtime de Supabase)
+pg_dump "postgresql://postgres:PASSWORD@db.TU_REF.supabase.co:5432/postgres" \
+  -n public --no-owner --no-privileges -Fc -f tradeflow.dump
+
+# Restore
+pg_restore --no-owner --no-privileges \
+  -d "postgresql://postgres:PASSWORD@TU-INSTANCIA.xxxxx.us-east-1.rds.amazonaws.com:5432/postgres" \
+  tradeflow.dump
 ```
 
-Explicación de cada flag (importan todos):
-
-- **Host directo `db.<ref>.supabase.co`, no el pooler** — el pooler en modo transacción rompe `pg_dump` (necesita una sesión persistente).
-- **`-n public`** — copia solo el esquema `public`, donde viven todas las tablas de Django (`core_*`, `auth_*`, `django_*`). Excluye los esquemas internos de Supabase (`auth`, `storage`, `realtime`, `extensions`) que **no deben** existir en RDS y cuyo dump fallaría por permisos.
-- **`--no-owner --no-privileges`** — omite propietarios y grants ligados a roles de Supabase (`supabase_admin`, `service_role`, `anon`) que no existen en RDS. Sin estos flags el restore escupe cientos de errores.
-- **`-Fc`** — formato comprimido custom, requerido por `pg_restore`.
-
-Nota: las tablas huérfanas `products` y `cart_items` (del SQL viejo de un frontend abandonado) vendrán incluidas en la copia. Son inofensivas; se limpian en la Fase 4.
-
-**Paso 2.2 — Restore hacia RDS:**
-
-```bash
-pg_restore --no-owner --no-privileges -d "postgresql://postgres:PASSWORD@TU-INSTANCIA.xxxxx.us-east-1.rds.amazonaws.com:5432/postgres" tradeflow.dump
-```
-
-**Paso 2.3 — Validación con la propia app.** Apuntar el `.env` local a RDS (`DATABASE_URL=` la URL de RDS) y correr:
+Validación local apuntando `.env` a RDS:
 
 ```bash
 python manage.py check_database
-```
-
-```bash
 python manage.py migrate --check
-```
-
-```bash
 python manage.py verify_integrations
 ```
 
-- `check_database` confirma conectividad y credenciales.
-- `migrate --check` confirma que el esquema copiado está exactamente al día con las migraciones del código (debe decir que no hay migraciones pendientes; si dice lo contrario, el dump está incompleto o desactualizado).
-- Adicionalmente, comparar conteos de filas entre Supabase y RDS en las tablas críticas: usuarios, empresas, órdenes, productos.
+Comparar conteos: usuarios, empresas, productos, órdenes. Cronometrar dump+restore → define ventana Fase 3.
 
-**Paso 2.4 — Cronometrar.** Anotar cuánto tardó dump + restore. Ese tiempo (más margen) define la ventana de corte de la Fase 3.
+### Fase 3 — Corte producción (15–30 min)
 
-### Fase 3 — Corte de producción (ventana de 15–30 minutos)
-
-1. **Snapshot manual de RDS** y conservar el dump del ensayo. Doble red de seguridad.
-2. **Elegir hora de mínimo tráfico.** Si algún usuario entra durante el lapso, el middleware `DatabaseUnavailableMiddleware` de la app muestra una página de mantenimiento en lugar de un error crudo.
-3. **Limpiar la base de ensayo en RDS** (borrar y recrear la base `postgres` de la instancia) para que el restore final entre en una base vacía y no se mezclen datos del ensayo con los finales.
-4. **Dump final + restore** con los mismos comandos de la Fase 2. A partir del dump final, considerar los datos de Supabase congelados.
-5. **Cambiar variables en Railway → Variables:**
+1. Snapshot manual RDS + conservar dump del ensayo.
+2. Hora de mínimo tráfico (`DatabaseUnavailableMiddleware` muestra mantenimiento si alguien entra).
+3. Limpiar base de ensayo en RDS (drop/recreate `postgres`).
+4. Dump final + restore. Tras el dump final, datos en Supabase = congelados.
+5. **Railway → Variables:**
 
    | Acción | Variable | Motivo |
    |---|---|---|
-   | Actualizar | `DATABASE_URL` | apuntar a RDS |
-   | **Eliminar** | `SUPABASE_DB_HOST`, `SUPABASE_DB_PASSWORD`, `SUPABASE_DB_PORT`, `SUPABASE_PROJECT_REF` | si `DATABASE_URL` quedara vacía por error, el fallback de `core/utils/database_url.py` **reconstruiría silenciosamente la URL de Supabase** con estas variables — la app arrancaría contra la base vieja sin avisar |
-   | **Eliminar** | `DATABASE_PASSWORD` (si existe) | sobreescribe la contraseña embebida en `DATABASE_URL`; con RDS pisaría la contraseña correcta |
-   | Mantener | `DB_SSL=true`, `DB_SSLMODE=require` | funcionan igual con RDS y son obligatorias con `rds.force_ssl=1` |
-   | **Mantener** | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_ANON_KEY`, `SUPABASE_STORAGE_BUCKET` | ¡el Storage de imágenes sigue en Supabase! Quitarlas rompería todas las imágenes |
+   | Actualizar | `DATABASE_URL` | → RDS |
+   | **Eliminar** | `SUPABASE_DB_HOST`, `SUPABASE_DB_PASSWORD`, `SUPABASE_DB_PORT`, `SUPABASE_PROJECT_REF` | si `DATABASE_URL` falla, el fallback **reconstruye Supabase en silencio** |
+   | **Eliminar** | `DATABASE_PASSWORD` (si existe) | pisa la password de la URL |
+   | Mantener | `DB_SSL=true`, `DB_SSLMODE=require` | obligatorio con `force_ssl` |
+   | **Mantener** | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_ANON_KEY`, `SUPABASE_STORAGE_BUCKET` | Storage aún depende de ellas |
 
-6. **Redeploy.** El `scripts/docker-entrypoint.sh` corre automáticamente el preflight `check_database` y luego `migrate`; si la conexión a RDS falla, **aborta el deploy sin romper nada** (la versión anterior sigue corriendo).
-7. **Smoke test manual:** login, catálogo (verificar que las imágenes cargan — deben seguir viniendo de Supabase Storage), agregar al carrito, checkout, Django Admin, y el endpoint `/health/ready/`.
-8. **Rollback si algo falla:** revertir `DATABASE_URL` a la URL de Supabase y redeploy. Por eso la ventana debe ser corta y con tráfico pausado: la condición del rollback es que **nada se haya escrito en RDS que Supabase no tenga**. Una vez que usuarios reales escriben en RDS, el rollback ya implica pérdida de datos y deja de ser trivial.
+6. Redeploy. `docker-entrypoint.sh` corre `check_database` + `migrate`; fallo de RDS **aborta sin tumbar** la versión anterior.
+7. Smoke: login, catálogo (imágenes desde Supabase), carrito, checkout, admin, `/health/ready/`.
+8. **Rollback:** revertir `DATABASE_URL` a Supabase + redeploy. Solo es trivial si **nadie escribió en RDS** tras el corte.
 
-### Fase 4 — Post-corte (primera semana)
+### Fase 4 — Post-corte (primera semana de agosto)
 
-1. **Alarmas CloudWatch:** CPU > 80 %, conexiones > 40, storage libre < 5 GB, memoria liberable baja. Notificación por email (SNS).
-2. **Conexiones:** con 2 workers gunicorn y `conn_max_age=600` la app mantiene ~2–4 conexiones persistentes, muy lejos del límite (~80) de `db.t4g.micro`. **No** se necesita RDS Proxy ni PgBouncer hasta escalar workers significativamente.
-3. **No pausar ni borrar el proyecto Supabase** — el Storage depende de él (sección 3). Agendar la migración del Storage a S3 + CloudFront en las próximas 4–6 semanas.
-4. **Limpieza de tablas huérfanas** en RDS (opcional, cuando convenga): `DROP TABLE products, cart_items;` — son restos del frontend React abandonado; Django no las usa.
-5. **Limpieza cosmética de código** (no urgente, pero engañosa si no se hace): los textos de ayuda de `python manage.py check_database` y de `database_connection_hint()` en `core/utils/database_url.py` siguen diciendo "Supabase → Settings → reset database password". Quien depure un fallo de conexión contra RDS recibirá instrucciones equivocadas.
-6. **Analytics:** si el staff usa la función de Analytics con fuentes de datos externas, añadir el host de RDS a `ANALYTICS_DB_HOST_ALLOWLIST`.
-7. El flag interno `USING_SUPABASE` en settings seguirá evaluando `True` (también se activa con cualquier engine Postgres). Sin efectos colaterales; se renombra en la limpieza cosmética.
+1. Alarmas CloudWatch: CPU > 80 %, conexiones > 40, free storage < 5 GB.
+2. No hace falta RDS Proxy (~2–4 conexiones con 2 workers).
+3. **No pausar Supabase** — Storage.
+4. Opcional: `DROP TABLE products, cart_items;` (huérfanas del frontend React viejo).
+5. Si Analytics usa hosts externos: añadir host RDS a `ANALYTICS_DB_HOST_ALLOWLIST`.
+6. Agendar P1 Storage → S3.
 
 ---
 
-## 6. Matriz de riesgos
+## 7. Matriz de riesgos
 
-| Riesgo | Probabilidad | Impacto | Mitigación |
+| Riesgo | Prob. | Impacto | Mitigación |
 |---|---|---|---|
-| Proyecto Supabase pausado por inactividad → imágenes caídas | Media (plan free) | Alto | Migrar Storage en 4–6 semanas; mientras tanto vigilar el estado del proyecto |
-| Fallback silencioso a la URL de Supabase por variables residuales | Media | Alto | Eliminar `SUPABASE_DB_*` y `DATABASE_PASSWORD` en el mismo cambio que `DATABASE_URL` |
-| Escrituras en RDS antes de detectar un problema → rollback con pérdida | Baja | Alto | Ventana corta, smoke test inmediato, decisión go/no-go en los primeros 15 min |
-| RDS público expuesto a internet | Alta (es por diseño) | Medio | `rds.force_ssl=1`, contraseña fuerte, security group restringido si Railway da IPs estáticas |
-| Versión de Postgres incompatible | Baja | Medio | Verificar versión en Fase 0; el ensayo en frío la detecta de todos modos |
-| Error de configuración AWS con costo inesperado | Media | Bajo-Medio | Solo se crea RDS (sin NAT, sin VPC endpoints); alarma de billing a $30/mes |
+| Proyecto free ya pausado / sin acceso (post 1 ago) | Alta | Crítico | Restaurar proyecto; dump emergencia; si no hay restore, usar último backup local / Railway logs |
+| Supabase pausado por inactividad post-corte → imágenes caídas | Media | Alto | P1 Storage en 2–4 semanas; vigilar estado del proyecto |
+| Fallback silencioso a Supabase por env residual | Media | Alto | Borrar `SUPABASE_DB_*` y `DATABASE_PASSWORD` en el mismo cambio |
+| Escrituras en RDS antes de detectar fallo | Baja | Alto | Ventana corta; go/no-go en 15 min |
+| RDS público en internet | Alta (diseño) | Medio | `force_ssl`, password fuerte, SG restringido |
+| Realtime seller deja de pushear | Alta | Bajo | Polling 5s ya es el camino principal |
 
 ---
 
-## 7. Qué NO cambia con esta migración
+## 8. Qué NO cambia en P0
 
-- El código de la aplicación: **cero cambios**.
-- El dominio, DNS, Cloudflare, certificados.
-- El Storage de imágenes (sigue en Supabase temporalmente).
-- El login de usuarios, OAuth, email, cron de suscripciones.
-- La latencia percibida por los usuarios (misma región AWS).
+- Código de aplicación (cero diffs obligatorios).
+- Dominio, DNS, Cloudflare, certificados.
+- Storage, OAuth, email Resend, cron de suscripciones.
+- Latencia percibida (misma región AWS).
+- Portal vendedor (sigue por polling).
 
-## 8. Trabajo futuro (fuera de este alcance, en orden recomendado)
+---
 
-1. **Storage → S3 + CloudFront** (4–6 semanas después del corte; elimina la dependencia y la factura de Supabase).
-2. Limpieza de código: borrar `core/supabase_client.py`, `core/storage/supabase_media.py`, el directorio `supabase/`, el workflow `deploy-supabase-functions.yml` y la dependencia `supabase` de `requirements.txt`.
-3. Evaluar migrar la app de Railway a AWS (App Runner) **solo** cuando exista una razón operativa concreta: tráfico real post-Expo, requisito de cliente enterprise, o créditos Activate aprobados.
+## 9. Trabajo futuro (orden)
+
+1. **P1 sept — Storage → S3 + CloudFront** (elimina dependencia y factura Supabase).
+2. Limpieza: `core/supabase_client.py`, `core/storage/supabase_media.py`, dir `supabase/`, workflow `deploy-supabase-functions.yml`, dep `supabase` en `requirements.txt`.
+3. App Railway → AWS (Elastic Beanstalk / ECS) **solo** con tráfico real post-Expo, cliente enterprise, o créditos Activate.
+
+---
+
+## 10. Checklist operativo (imprimible)
+
+- [ ] Supabase: proyecto Active (o restaurado)
+- [ ] Dump emergencia en disco seguro
+- [ ] Cuenta AWS + región us-east-1
+- [ ] `SELECT version()` / tamaño DB
+- [ ] RDS creado (`t4g.micro`, public, force_ssl, deletion protection)
+- [ ] Ensayo frío OK (`check_database`, `migrate --check`, conteos)
+- [ ] Snapshot RDS + dump final
+- [ ] Railway: `DATABASE_URL` → RDS; borrar `SUPABASE_DB_*` / `DATABASE_PASSWORD`; conservar `SUPABASE_*` de Storage
+- [ ] Redeploy + smoke test
+- [ ] CloudWatch alarms
+- [ ] Ticket P1: Storage → S3 (septiembre)

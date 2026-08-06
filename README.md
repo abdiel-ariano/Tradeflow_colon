@@ -107,6 +107,7 @@ Paleta y UI: ver [DESIGN.md](DESIGN.md) (navy `#0F2A44`, orange `#F26522`, prima
 | [docs/CODE_QUALITY.md](docs/CODE_QUALITY.md) | PEP8, pruebas y contrato de cambios |
 | [docs/ANDROID_APK.md](docs/ANDROID_APK.md) | PWA, APK, firma y despliegue Android |
 | [docs/DEMO_DATA_POLICY.md](docs/DEMO_DATA_POLICY.md) | Aviso y retiro de datos simulados |
+| [docs/MIGRACION_DB_AWS_RDS.md](docs/MIGRACION_DB_AWS_RDS.md) | **P0** Migración Postgres Supabase → AWS RDS |
 | [docs/](docs/) | Supabase, storage, AI search, email enterprise |
 
 ---
