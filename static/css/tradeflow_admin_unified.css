@@ -78,14 +78,40 @@ body.tf-admin-unified:not(.login) #branding.tf-admin-header__brand {
 body.tf-admin-unified:not(.login) .tf-admin-header__brand a {
   display: inline-flex !important;
   align-items: center !important;
+  gap: 12px !important;
   text-decoration: none !important;
+  color: #ffffff !important;
 }
 
 body.tf-admin-unified:not(.login) .tf-admin-header__brand img {
   display: block !important;
   width: 36px !important;
   height: 36px !important;
+  flex: 0 0 36px !important;
   object-fit: contain !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-admin-header__brand-text {
+  display: flex !important;
+  min-width: 0 !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  line-height: 1.15 !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-admin-header__brand-text strong {
+  color: #ffffff !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-admin-header__brand-text span {
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: 0.68rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
 }
 
 body.tf-admin-unified:not(.login) .tf-admin-user-tools {
@@ -425,6 +451,10 @@ body.tf-admin-unified:not(.login) .tf-admin-rail-backdrop {
     gap: 10px !important;
     padding-right: 12px !important;
     padding-left: 12px !important;
+  }
+
+  body.tf-admin-unified:not(.login) .tf-admin-header__brand-text {
+    display: none !important;
   }
 
   body.tf-admin-unified:not(.login) .tf-admin-user-tools {

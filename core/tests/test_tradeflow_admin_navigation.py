@@ -44,7 +44,7 @@ class TradeFlowAdminNavigationTests(TestCase):
         self.assertContains(response, "Dashboard")
         self.assertContains(response, "Companies and users")
         self.assertContains(response, "SaaS and platform")
-        self.assertContains(response, "Sign out")
+        self.assertContains(response, "Logout")
         self.assertContains(response, 'id="tfAdminMenuToggle"')
         self.assertContains(response, 'id="tfAdminRailBackdrop"')
         self.assertContains(

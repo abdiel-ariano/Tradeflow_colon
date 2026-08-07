@@ -50,7 +50,7 @@ class TradeFlowAdminLayoutTests(TestCase):
         )
         self.assertContains(response, "tf-admin-user-avatar")
         self.assertContains(response, "Patricia Vásquez")
-        self.assertContains(response, "Sign out")
+        self.assertContains(response, "Logout")
         self.assertContains(response, 'aria-controls="admRail"')
         self.assertContains(response, 'aria-expanded="false"')
         self.assertContains(

@@ -32,6 +32,10 @@ never changes identity, height, typography, or account controls by route.
         height="36"
         alt="TradeFlow Colón"
       >
+      <span class="tf-admin-header__brand-text">
+        <strong>TradeFlow</strong>
+        <span>Admin panel</span>
+      </span>
     </a>
   </div>
 
@@ -49,17 +53,18 @@ never changes identity, height, typography, or account controls by route.
           {% firstof admin_user.get_full_name admin_user.get_username %}
         </strong>
       </span>
+      {# Existing admin/dashboard logout endpoint — visual control only #}
       <form
         id="logout-form"
         method="post"
         action="{{ tf_admin_logout_url }}"
       >
         {% csrf_token %}
-        <button type="submit" aria-label="Sign out">
+        <button type="submit" aria-label="Logout" title="Logout">
           <span class="material-symbols-rounded" aria-hidden="true">
             logout
           </span>
-          <span class="tf-admin-logout-label">Sign out</span>
+          <span class="tf-admin-logout-label">Logout</span>
         </button>
       </form>
     </div>
