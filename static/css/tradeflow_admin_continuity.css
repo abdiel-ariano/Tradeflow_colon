@@ -184,7 +184,10 @@ body:not(.login):has(#header) .adm-side {
   top: var(--tf-admin-header-height);
   bottom: 0;
   left: 0;
-  height: auto !important;
+  min-height: calc(100vh - var(--tf-admin-header-height)) !important;
+  height: calc(100vh - var(--tf-admin-header-height)) !important;
+  min-height: calc(100dvh - var(--tf-admin-header-height)) !important;
+  height: calc(100dvh - var(--tf-admin-header-height)) !important;
   overflow: hidden;
 }
 
@@ -319,6 +322,12 @@ body:not(.login):has(.adm-side) .page-title {
   font-weight: 700 !important;
   letter-spacing: -0.025em !important;
   line-height: 1.2;
+}
+
+/* Dark hero card: title must stay white for contrast on navy */
+body:not(.login):has(.adm-side) #content .tf-admin-hero h1,
+body:not(.login):has(.adm-side) #content #tf-admin-title {
+  color: #ffffff !important;
 }
 
 body:not(.login):has(.adm-side) .adm-main {

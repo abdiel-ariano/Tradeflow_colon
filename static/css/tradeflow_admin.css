@@ -315,6 +315,11 @@ input[type="submit"].default,
   font-weight: 700;
 }
 
+/* No empty flash bar when only the Welcome message was suppressed */
+.messagelist:not(:has(li)) {
+  display: none;
+}
+
 /* Portada administrativa */
 
 .tf-admin-dashboard #content {
