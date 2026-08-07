@@ -87,9 +87,12 @@
           {% if messages %}
             <ul class="messagelist">
               {% for message in messages %}
+                {# Visual-only: hide post-login "Welcome, …" flash; keep other messages #}
+                {% if "Welcome," not in message.message %}
                 <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
                   {{ message|capfirst }}
                 </li>
+                {% endif %}
               {% endfor %}
             </ul>
           {% endif %}

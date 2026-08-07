@@ -158,7 +158,11 @@ body.tf-admin-unified:not(.login)
   width: var(--tf-admin-rail-width) !important;
   min-width: var(--tf-admin-rail-width) !important;
   max-width: var(--tf-admin-rail-width) !important;
+  /* Full viewport under the header — avoid a cut-off / empty gap at the bottom */
+  min-height: calc(100vh - var(--tf-admin-header-height)) !important;
   height: calc(100vh - var(--tf-admin-header-height)) !important;
+  min-height: calc(100dvh - var(--tf-admin-header-height)) !important;
+  height: calc(100dvh - var(--tf-admin-header-height)) !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   transform: none !important;
@@ -246,6 +250,13 @@ body.tf-admin-unified:not(.login) h1 {
   font-weight: 700 !important;
   line-height: 1.2 !important;
   letter-spacing: -0.025em !important;
+}
+
+/* Hero title sits on the dark navy card — keep it readable (white) */
+body.tf-admin-unified:not(.login) .tf-admin-hero h1,
+body.tf-admin-unified:not(.login) #content .tf-admin-hero h1,
+body.tf-admin-unified:not(.login) #tf-admin-title {
+  color: #ffffff !important;
 }
 
 body.tf-admin-unified:not(.login) .tf-footer,
