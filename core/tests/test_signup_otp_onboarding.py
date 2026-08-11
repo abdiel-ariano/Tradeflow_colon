@@ -101,3 +101,7 @@ class SignupOtpOnboardingTests(TestCase):
         self.assertIn('/verificar', resp['Location'])
         user = User.objects.get(username='classic')
         self.assertTrue(user.is_active)
+        from core.models import UserApplication
+        app = UserApplication.objects.get(user=user)
+        self.assertEqual(app.status, 'pending')
+        self.assertEqual(app.role, 'buyer')

@@ -252,6 +252,17 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
             seller_route = seller_onboarding_redirect_name(user)
             if seller_route:
                 return seller_route
+            # Buyers must be approved before the preference wizard / restricted
+            # surfaces. Sellers keep the existing early-exit (portal / company
+            # wizard) — application_gate_status already no-ops for role=seller.
+            if profile.role == 'buyer':
+                gate = application_gate_status(user.email or '', role='buyer')
+                if gate == 'required':
+                    return 'onboarding_solicitud_requerida'
+                if gate in ('pending', 'under_review'):
+                    return 'pending_approval'
+                if gate == 'rejected':
+                    return 'onboarding_aplicacion_rechazada'
             buyer_route = buyer_onboarding_redirect_name(user)
             if buyer_route:
                 return buyer_route

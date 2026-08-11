@@ -64,8 +64,9 @@ def generate_username_from_email(email: str) -> str:
 def setup_profile_and_application(user: User, role: str, phone: str = '') -> None:
     """Create profile and UserApplication mirroring custom signup_view.
 
-    Buyers are auto-approved; sellers stay pending. New buyer profiles
-    leave onboarding incomplete so the wizard still runs.
+    Buyers and sellers both start with application status ``pending``.
+    New buyer profiles leave onboarding incomplete so the wizard runs
+    only after admin approval.
     """
     from core.models import UserApplication, UserProfile
 
@@ -87,7 +88,6 @@ def setup_profile_and_application(user: User, role: str, phone: str = '') -> Non
     profile.save(update_fields=update_fields)
 
     full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
-    app_status = 'approved' if role == 'buyer' else 'pending'
     UserApplication.objects.get_or_create(
         user=user,
         defaults={
@@ -97,7 +97,7 @@ def setup_profile_and_application(user: User, role: str, phone: str = '') -> Non
             'role': role,
             'company_name': '',
             'message': '',
-            'status': app_status,
+            'status': 'pending',
         },
     )
 
