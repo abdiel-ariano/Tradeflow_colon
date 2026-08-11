@@ -279,7 +279,7 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
     profile.marketing_opt_in = request.POST.get('marketing_opt_in') in ('1', 'on', 'true', 'yes')
     profile.save()
 
-    # Create application record
+    # Create application record — buyer and seller start pending until admin review
     from ..models import UserApplication
     UserApplication.objects.get_or_create(
         user=user,
@@ -290,7 +290,7 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
             'role': role,
             'company_name': '',
             'message': '',
-            'status': 'approved',
+            'status': 'pending',
         }
     )
 

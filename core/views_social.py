@@ -184,5 +184,10 @@ def oauth_post_signup(request: HttpRequest) -> HttpResponse:
         return redirect(next_url)
 
     from core.auth_views import _redirect_by_role
+    from core.utils.access_gating import onboarding_redirect_name
+
+    gate = onboarding_redirect_name(user, scope='restricted')
+    if gate:
+        return redirect(gate)
 
     return redirect(_redirect_by_role(user))

@@ -48,12 +48,23 @@ class OAuthHelpersTests(TestCase):
         self.assertEqual(app.role, 'seller')
 
     def test_setup_profile_buyer_sets_onboarding_pending(self):
-        """Leave buyer onboarding_completed_at unset after OAuth."""
+        """Leave buyer onboarding unset and application pending after OAuth."""
         user = User.objects.create_user(username='buyer_oauth', email='b@t.pa', password='unused')
         setup_profile_and_application(user, 'buyer')
         profile = UserProfile.objects.get(user=user)
         self.assertEqual(profile.role, 'buyer')
         self.assertIsNone(profile.onboarding_completed_at)
+        app = UserApplication.objects.get(user=user)
+        self.assertEqual(app.status, 'pending')
+        self.assertEqual(app.role, 'buyer')
+
+    def test_setup_profile_seller_also_pending(self):
+        """Sellers stay pending (unchanged parity with buyer signup)."""
+        user = User.objects.create_user(username='seller_oauth', email='s@t.pa', password='unused')
+        setup_profile_and_application(user, 'seller')
+        app = UserApplication.objects.get(user=user)
+        self.assertEqual(app.status, 'pending')
+        self.assertEqual(app.role, 'seller')
 
 
 @override_settings(
@@ -149,8 +160,13 @@ class OAuthFlowViewsTests(TestCase):
         profile = UserProfile.objects.get(user=user)
         self.assertEqual(profile.role, 'buyer')
 
-    def test_oauth_post_signup_redirects_buyer_to_onboarding(self):
-        """Route post-OAuth buyers into comprador onboarding."""
+    @override_settings(
+        EXPO_DEMO_MODE=False,
+        REQUIRE_APPROVED_APPLICATION=True,
+        ACCESS_GATING_GRANDFATHER_WITHOUT_APPLICATION=False,
+    )
+    def test_oauth_post_signup_redirects_buyer_to_pending_approval(self):
+        """Route verified pending buyers to pending-approval (not wizard yet)."""
         user = User.objects.create_user(
             username='oauth_buyer',
             email='buyer@oauth.pa',
@@ -165,13 +181,20 @@ class OAuthFlowViewsTests(TestCase):
             email_verificado=True,
             onboarding_completed_at=None,
         )
+        UserApplication.objects.create(
+            user=user,
+            full_name='OAuth Buyer',
+            email='buyer@oauth.pa',
+            role='buyer',
+            status='pending',
+        )
         session = self.client.session
         session['oauth_signup_done'] = True
         session.save()
         self.client.force_login(user)
         resp = self.client.get(reverse('oauth_post_signup'))
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/onboarding/comprador', resp['Location'])
+        self.assertIn(reverse('pending_approval'), resp['Location'])
 
     def test_verificar_no_redirect_loop_without_profile(self):
         """Avoid long redirect chains when OAuth profile is missing."""

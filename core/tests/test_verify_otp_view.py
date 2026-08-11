@@ -97,6 +97,23 @@ class VerifyOtpViewTests(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_active)
 
+    def test_buyer_otp_does_not_auto_approve_application(self):
+        """Production OTP verifies email but leaves buyer application pending."""
+        UserApplication.objects.create(
+            user=self.user,
+            full_name='OTP View',
+            email='otp_view@test.pa',
+            role='buyer',
+            status='pending',
+        )
+        code = generate_user_otp(self.user)
+        result = verify_user_otp(self.user, code)
+        self.assertTrue(result.ok)
+        app = UserApplication.objects.get(user=self.user)
+        self.assertEqual(app.status, 'pending')
+        self.user.profile.refresh_from_db()
+        self.assertTrue(self.user.profile.email_verificado)
+
     def test_verify_deletes_token_replay_protection(self):
         """Reject a second verify attempt with the same code."""
         code = generate_user_otp(self.user)

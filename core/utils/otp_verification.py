@@ -45,7 +45,11 @@ def _apply_expo_demo_bypass(user: User) -> None:
 
 
 def _apply_self_serve_activation(user: User, *, approve_all_roles: bool = False) -> None:
-    """Activa compradores verificados sin esperar aprobación manual de la solicitud."""
+    """Aprueba la solicitud y activa la cuenta (uso Expo demo / bypass explícito).
+
+    Los compradores en producción ya no se auto-aprueban en OTP; nacen
+    ``pending`` igual que los vendedores y esperan revisión manual.
+    """
     profile = getattr(user, 'profile', None)
     role = profile.role if profile else 'buyer'
     if role != 'buyer' and not approve_all_roles:
@@ -127,10 +131,10 @@ def verify_user_otp(user: User, raw_code: str) -> OtpVerificationResult:
             )
 
             role = profile.role or 'buyer'
+            # Solo Expo demo auto-aprueba; comprador y vendedor quedan pending
+            # hasta revisión manual (paridad de aprobación).
             if getattr(settings, 'EXPO_DEMO_MODE', False):
                 _apply_expo_demo_bypass(user)
-            elif role == 'buyer':
-                _apply_self_serve_activation(user)
 
             verification_id = verification.pk
             verification.delete()
