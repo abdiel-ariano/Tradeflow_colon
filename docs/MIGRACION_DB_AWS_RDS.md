@@ -64,7 +64,7 @@ La cuenta dispone de USD 120 en créditos con vencimiento el 6 de agosto de
 | Recurso | Configuración inicial |
 |---|---|
 | EC2 | `t3.micro`, 20 GiB gp3 |
-| RDS | PostgreSQL 17, `db.t4g.micro`, 20 GiB gp3, Single-AZ |
+| RDS | PostgreSQL 17, `db.t4g.micro`, 20 GiB gp3, Single-AZ, retención automática de 1 día |
 | S3 | versionado, cifrado AES-256, acceso público bloqueado |
 | ECR | máximo de diez imágenes conservadas |
 
@@ -113,8 +113,11 @@ bash scripts/aws/export_supabase.sh
 1. Abrir CloudFormation en `us-east-1`.
 2. Crear un stack desde `infra/aws/p0-stack.yaml`.
 3. Mantener `t3.micro`, `db.t4g.micro` y 20 GiB.
-4. Confirmar la suscripción de alarmas que llegará por email.
-5. No modificar Cloudflare.
+4. Mantener la retención automática de RDS en 1 día mientras la cuenta use el
+   plan gratuito. Los respaldos lógicos cifrados en S3 cubren la retención
+   adicional durante la migración.
+5. Confirmar la suscripción de alarmas que llegará por email.
+6. No modificar Cloudflare.
 
 La plantilla crea dos subredes privadas para RDS sin rutas de Internet. El
 puerto 5432 solo acepta tráfico originado en el grupo de seguridad de EC2.
