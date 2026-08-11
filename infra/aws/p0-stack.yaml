@@ -28,6 +28,15 @@ Parameters:
     Default: 20
     MinValue: 20
     MaxValue: 100
+  DatabaseDeletionProtection:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'false'
+      - 'true'
+    Description: >-
+      Keep false during the initial empty deployment so a failed creation can
+      roll back cleanly. Change to true after the migrated data is validated.
   AppAllowedHosts:
     Type: String
     Default: tradeflowcolon.com,www.tradeflowcolon.com,.compute.amazonaws.com
@@ -150,7 +159,7 @@ Resources:
 
   BackupBucket:
     Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
+    DeletionPolicy: RetainExceptOnCreate
     UpdateReplacePolicy: Retain
     Properties:
       BucketEncryption:
@@ -217,13 +226,16 @@ Resources:
     Properties:
       AllocatedStorage: !Ref DatabaseStorageGiB
       AutoMinorVersionUpgrade: true
-      BackupRetentionPeriod: 7
+      # AWS Free Plan accounts created after July 15, 2025 reject any
+      # non-zero automated-backup retention. Logical PostgreSQL backups are
+      # stored encrypted and versioned in the BackupBucket instead.
+      BackupRetentionPeriod: 0
       CopyTagsToSnapshot: true
       DBInstanceClass: !Ref DatabaseInstanceClass
       DBName: tradeflow
       DBParameterGroupName: !Ref DatabaseParameterGroup
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
-      DeletionProtection: true
+      DeletionProtection: !Ref DatabaseDeletionProtection
       Engine: postgres
       EngineVersion: '17'
       MasterUsername: tradeflow_admin
