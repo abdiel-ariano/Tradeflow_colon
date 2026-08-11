@@ -226,7 +226,7 @@ Resources:
     Properties:
       AllocatedStorage: !Ref DatabaseStorageGiB
       AutoMinorVersionUpgrade: true
-      BackupRetentionPeriod: 7
+      BackupRetentionPeriod: 1
       CopyTagsToSnapshot: true
       DBInstanceClass: !Ref DatabaseInstanceClass
       DBName: tradeflow
