@@ -38,7 +38,7 @@ python-decouple>=3.8,<4.0       # lee .env en local y variables de entorno en pr
 whitenoise>=6.6,<7.0            # sirve CSS/JS directamente desde Django sin Nginx
 
 # ── Cache Redis (opcional — REDIS_URL en Railway) ─────────────────────────
-redis>=5.0,<6.0                 # backend django.core.cache.backends.redis.RedisCache
+redis>=8.1.0,<9.0                 # backend django.core.cache.backends.redis.RedisCache
 
 # ── Imágenes ──────────────────────────────────────────────────────────────
 Pillow==12.3.0                  # imágenes (cierra PYSEC-2026-2253..3453)
