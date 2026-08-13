@@ -1464,7 +1464,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       flex-direction: column;
       gap: 12px;
       background: #F4F6F8;
-      scroll-behavior: smooth;
+      scroll-behavior: smooth; /* Fix 2 may set auto for programmatic scroll */
     }
     .tf-msg-bot,
     .tf-msg-user {
@@ -1493,8 +1493,46 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
     .tf-msg-bot.tf-msg-loading {
       color: #6B7A88;
-      font-style: italic;
+      font-style: normal;
       background: #fff;
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+    }
+    #tf-assistant .tf-typing-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 16px;
+      padding: 2px 0;
+    }
+    #tf-assistant .tf-typing-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #6B7A88;
+      animation: tf-typing-bounce 1.2s infinite ease-in-out both;
+    }
+    #tf-assistant .tf-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+    #tf-assistant .tf-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes tf-typing-bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+      40% { transform: translateY(-5px); opacity: 1; }
+    }
+    #tf-chat-input:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      background: #EEF1F4;
+    }
+    #tf-chat-send:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .tf-msg-bot.tf-msg-error {
+      border-color: #FECACA;
+      background: #FEF2F2;
+      color: #991B1B;
     }
     .tf-chat-compose {
       display: flex;
@@ -1640,6 +1678,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     var tfChatHistory = [];
     var tfChatLoading = false;
     var TF_CHAT_MAX_HIST = 5;
+    var TF_CHAT_FETCH_MS = 25000;
     var win = document.getElementById('tf-chat-window');
     var icon = document.getElementById('tf-chat-icon');
     var toggle = document.getElementById('tf-chat-toggle');
@@ -1648,16 +1687,21 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     var input = document.getElementById('tf-chat-input');
     var csrfToken = '{{ csrf_token }}';
 
+    function setComposeDisabled(disabled) {
+      if (input) input.disabled = !!disabled;
+      if (sendBtn) sendBtn.disabled = !!disabled;
+    }
+
     function toggleChat() {
       tfChatOpen = !tfChatOpen;
-      if (!win || !icon) return;
+      if (!win) return;
       if (tfChatOpen) {
         win.style.display = 'flex';
-        icon.textContent = 'close';
-        if (input) input.focus();
+        if (icon) icon.textContent = 'close';
+        if (input && !input.disabled) input.focus();
       } else {
         win.style.display = 'none';
-        icon.textContent = 'smart_toy';
+        if (icon) icon.textContent = 'smart_toy';
       }
     }
 
@@ -1707,13 +1751,25 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       if (!mensaje) return;
       input.value = '';
       tfChatLoading = true;
+      setComposeDisabled(true);
       appendMessage(mensaje, false);
       tfChatHistory.push({ role: 'user', content: mensaje });
-      var loadingDiv = appendMessage('Typing...', true);
-      if (loadingDiv) loadingDiv.classList.add('tf-msg-loading');
+      var loadingDiv = appendMessage('', true);
+      if (loadingDiv) {
+        loadingDiv.classList.add('tf-msg-loading');
+        loadingDiv.innerHTML = '<span class="tf-typing-dots" aria-label="Assistant is typing"><span></span><span></span><span></span></span>';
+      }
+      var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timeoutId = null;
+      if (controller) {
+        timeoutId = window.setTimeout(function () {
+          try { controller.abort(); } catch (e) {}
+        }, TF_CHAT_FETCH_MS);
+      }
       fetch('{% url "api_asistente" %}', {
         method: 'POST',
         credentials: 'same-origin',
+        signal: controller ? controller.signal : undefined,
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': csrfToken
@@ -1744,10 +1800,21 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       })
       .catch(function (err) {
         if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
-        var msg = (err && err.message) ? err.message : 'Connection error. Try again later.';
-        appendMessage(msg, true);
+        var msg;
+        if (err && err.name === 'AbortError') {
+          msg = 'The assistant took too long to respond. Please try again.';
+        } else {
+          msg = (err && err.message) ? err.message : 'Connection error. Try again later.';
+        }
+        var errDiv = appendMessage(msg, true);
+        if (errDiv) errDiv.classList.add('tf-msg-error');
       })
-      .finally(function () { tfChatLoading = false; });
+      .finally(function () {
+        if (timeoutId) window.clearTimeout(timeoutId);
+        tfChatLoading = false;
+        setComposeDisabled(false);
+        if (input && tfChatOpen) input.focus();
+      });
     }
 
     if (sendBtn) sendBtn.addEventListener('click', sendChatMessage);
