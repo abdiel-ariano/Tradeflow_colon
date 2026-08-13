@@ -1808,7 +1808,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         },
         body: JSON.stringify({
           mensaje: mensaje,
-          historial: tfChatHistory.slice(0, -1).slice(-TF_CHAT_MAX_HIST)
+          historial: tfChatHistory.slice(0, -1).slice(-TF_CHAT_MAX_HIST),
+          contexto: (window.location.pathname.indexOf('/mi-tienda/') === 0) ? 'seller' : ''
         })
       })
       .then(function (r) {

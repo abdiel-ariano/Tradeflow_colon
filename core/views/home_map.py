@@ -201,6 +201,7 @@ def api_asistente(request):
 
     mensaje = (data.get('mensaje') or '').strip()
     historial = data.get('historial') or []
+    contexto = (data.get('contexto') or '').strip().lower()
 
     if not mensaje:
         return _asistente_json_payload(
@@ -215,6 +216,53 @@ def api_asistente(request):
             ok=False,
             status=400,
         )
+
+    # Seller portal only: wire ORM RAG when the client marks contexto=seller
+    # and the authenticated user owns a company. Other pages keep the Groq path.
+    if contexto == 'seller' and request.user.is_authenticated:
+        from core.utils.ai_assistant import consultar_asistente
+        from .seller_store import _get_seller_company
+
+        company = _get_seller_company(request.user)
+        if company is not None:
+            hist = []
+            if isinstance(historial, list):
+                for item in historial[-5:]:
+                    if not isinstance(item, dict):
+                        continue
+                    role = item.get('role')
+                    content = (item.get('content') or '').strip()
+                    if role in ('user', 'assistant') and content:
+                        hist.append({'role': role, 'content': content[:500]})
+            try:
+                result = consultar_asistente(
+                    mensaje,
+                    historial=hist,
+                    user=request.user,
+                    company=company,
+                )
+                respuesta = (result.get('respuesta') or '').strip() or (
+                    'I could not process your request.'
+                )
+                respuesta_html = result.get('respuesta_html') or _asistente_respuesta_html(
+                    respuesta
+                )
+                return JsonResponse(
+                    {
+                        'ok': True,
+                        'respuesta': respuesta,
+                        'respuesta_html': respuesta_html,
+                    }
+                )
+            except Exception as exc:
+                logging.getLogger('tradeflow.ai').warning(
+                    'api_asistente seller rag failed: %s', exc, exc_info=True,
+                )
+                return _asistente_json_payload(
+                    'I could not load your store data right now. Please try again.',
+                    ok=False,
+                    status=503,
+                )
 
     groq_api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
 
@@ -258,7 +306,11 @@ def api_asistente(request):
         logging.getLogger('tradeflow.ai').warning(
             'api_asistente groq failed: %s', exc, exc_info=True,
         )
-        return _asistente_json_payload(_ASSISTANT_FALLBACK)
+        return _asistente_json_payload(
+            'The assistant could not generate a response right now. Please try again.',
+            ok=False,
+            status=503,
+        )
 
 
 # ── Sal firmado para QR de visitante ZLC (pre-registro) ─────────────────────
