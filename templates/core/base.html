@@ -1464,7 +1464,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       flex-direction: column;
       gap: 12px;
       background: #F4F6F8;
-      scroll-behavior: smooth; /* Fix 2 may set auto for programmatic scroll */
+      /* auto: avoid smooth-scroll fight when swapping loading → reply */
+      scroll-behavior: auto;
     }
     .tf-msg-bot,
     .tf-msg-user {
@@ -1708,6 +1709,12 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     if (toggle) toggle.addEventListener('click', toggleChat);
     if (closeBtn) closeBtn.addEventListener('click', toggleChat);
 
+    function scrollMessagesToBottom() {
+      var msgs = document.getElementById('tf-chat-messages');
+      if (!msgs) return;
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
     function appendMessage(content, isBot, htmlContent) {
       var msgs = document.getElementById('tf-chat-messages');
       if (!msgs) return null;
@@ -1719,7 +1726,32 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         div.textContent = content;
       }
       msgs.appendChild(div);
-      msgs.scrollTop = msgs.scrollHeight;
+      scrollMessagesToBottom();
+      return div;
+    }
+
+    function fillBotBubble(div, content, htmlContent, isError) {
+      if (!div) {
+        div = appendMessage(content, true, isError ? null : htmlContent);
+        if (isError && div) {
+          div.classList.add('tf-msg-error');
+          div.textContent = content;
+        }
+        return div;
+      }
+      div.classList.remove('tf-msg-loading');
+      if (isError) {
+        div.classList.add('tf-msg-error');
+        div.textContent = content;
+      } else {
+        div.classList.remove('tf-msg-error');
+        if (htmlContent) {
+          div.innerHTML = htmlContent;
+        } else {
+          div.textContent = content;
+        }
+      }
+      scrollMessagesToBottom();
       return div;
     }
 
@@ -1788,10 +1820,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         });
       })
       .then(function (data) {
-        if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
         var respuesta = data.respuesta || 'I could not process your request.';
         var html = data.respuesta_html || respuesta;
-        var botDiv = appendMessage(respuesta, true, html);
+        var botDiv = fillBotBubble(loadingDiv, respuesta, html, false);
         appendFeedback(botDiv);
         tfChatHistory.push({ role: 'assistant', content: respuesta });
         if (tfChatHistory.length > TF_CHAT_MAX_HIST * 2) {
@@ -1799,15 +1830,13 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         }
       })
       .catch(function (err) {
-        if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
         var msg;
         if (err && err.name === 'AbortError') {
           msg = 'The assistant took too long to respond. Please try again.';
         } else {
           msg = (err && err.message) ? err.message : 'Connection error. Try again later.';
         }
-        var errDiv = appendMessage(msg, true);
-        if (errDiv) errDiv.classList.add('tf-msg-error');
+        fillBotBubble(loadingDiv, msg, null, true);
       })
       .finally(function () {
         if (timeoutId) window.clearTimeout(timeoutId);
