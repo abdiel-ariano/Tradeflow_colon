@@ -183,6 +183,59 @@ Resources:
         - Key: Name
           Value: !Sub '${EnvironmentName}-backups'
 
+  MediaBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: AbortIncompleteUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+          - Id: ExpireNoncurrentVersions
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-media'
+        - Key: DataClassification
+          Value: public-catalog-private-origin
+
+  MediaBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MediaBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt MediaBucket.Arn
+              - !Sub '${MediaBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+
   AppRepository:
     Type: AWS::ECR::Repository
     Properties:
@@ -292,6 +345,18 @@ Resources:
                   - s3:GetObject
                   - s3:PutObject
                 Resource: !Sub '${BackupBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                Resource: !GetAtt MediaBucket.Arn
+              - Effect: Allow
+                Action:
+                  - s3:AbortMultipartUpload
+                  - s3:DeleteObject
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub '${MediaBucket.Arn}/*'
 
   AppInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -310,6 +375,9 @@ Resources:
       InstanceType: !Ref AppInstanceType
       MetadataOptions:
         HttpEndpoint: enabled
+        # Docker adds one network hop. IMDSv2 remains mandatory, while boto3
+        # inside the container can obtain short-lived AppRole credentials.
+        HttpPutResponseHopLimit: 2
         HttpTokens: required
       SecurityGroupIds:
         - !Ref AppSecurityGroup
@@ -417,7 +485,10 @@ Resources:
           DB_SSL=true
           DB_SSLMODE=require
           PORT=8080
-          SERVE_LOCAL_MEDIA=true
+          AWS_MEDIA_BUCKET_NAME=${MediaBucket}
+          AWS_MEDIA_REGION_NAME=${AWS::Region}
+          AWS_MEDIA_URL_EXPIRY=3600
+          SERVE_LOCAL_MEDIA=false
           USE_DB_CACHE=false
           ENVIRONMENT
 
@@ -572,6 +643,9 @@ Outputs:
     Value: !Ref AppInstance
   BackupBucketName:
     Value: !Ref BackupBucket
+  MediaBucketName:
+    Description: Private bucket for seller-uploaded product media.
+    Value: !Ref MediaBucket
   DatabaseEndpoint:
     Description: Private endpoint; reachable only from the EC2 security group.
     Value: !GetAtt Database.Endpoint.Address

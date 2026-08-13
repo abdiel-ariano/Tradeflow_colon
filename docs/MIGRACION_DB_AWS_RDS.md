@@ -17,10 +17,8 @@ Cloudflare
     │
     ▼
 EC2 (Docker, Django y Nginx)
-    │  grupo de seguridad a grupo de seguridad
-    ▼
-RDS PostgreSQL 17 privado
-    │
+    ├── grupo de seguridad → RDS PostgreSQL 17 privado
+    ├── instance profile → S3 media privado
     └── respaldos lógicos cifrados en S3
 ```
 
@@ -46,9 +44,10 @@ abrir SSH.
 
 TradeFlow autentica con Django y `django-allauth`; no depende de Supabase Auth.
 Los registros de productos contienen rutas bajo `productos/`, pero no existen
-objetos en Supabase Storage. Por tanto, esta migración no tiene archivos de
-Storage que copiar. Las imágenes deberán verificarse/regenerarse desde los
-recursos locales de la aplicación como una tarea independiente.
+objetos en Supabase Storage. Por tanto, esta migración no tiene archivos
+históricos de Storage que copiar. Las nuevas cargas de vendedores se guardan
+en un bucket S3 privado; las rutas históricas sin objeto deben regenerarse o
+dejarse vacías para usar el SVG de respaldo.
 
 Las extensiones instaladas son `pg_stat_statements`, `pgcrypto`, `plpgsql`,
 `supabase_vault` y `uuid-ossp`. Ninguna columna de `public` tiene valores por
@@ -65,7 +64,7 @@ La cuenta dispone de USD 120 en créditos con vencimiento el 6 de agosto de
 |---|---|
 | EC2 | `t3.micro`, 20 GiB gp3 |
 | RDS | PostgreSQL 17, `db.t4g.micro`, 20 GiB gp3, Single-AZ, respaldos automáticos desactivados en AWS Free Plan |
-| S3 | versionado, cifrado AES-256, acceso público bloqueado |
+| S3 | buckets separados para respaldo y media; versionado, AES-256 y acceso público bloqueado |
 | ECR | máximo de diez imágenes conservadas |
 
 El objetivo es consumir aproximadamente USD 25–35 por mes en créditos. El
@@ -78,6 +77,7 @@ presupuesto de AWS es una alerta y no un bloqueo. La cuenta debe permanecer en
 |---|---|
 | `infra/aws/p0-stack.yaml` | VPC, EC2, RDS privado, S3, ECR, SSM, alarmas y rol OIDC de GitHub |
 | `.github/workflows/deploy-aws-staging.yml` | Compilación manual y despliegue sin credenciales AWS permanentes |
+| `scripts/aws/configure_media_runtime.sh` | Activa S3 en la instancia existente, valida y revierte si falla |
 | `scripts/aws/export_supabase.sh` | Dump privado de `public`, conteos y SHA-256 |
 | `scripts/aws/restore_rds.sh` | Restauración abortable únicamente sobre una base vacía |
 | `scripts/aws/verify_migration.sh` | Comparación exacta de tablas críticas |
@@ -152,17 +152,42 @@ catálogo, carrito, checkout, seller y admin aprobadas.
 **No-go:** cualquier diferencia de conteos, error de migración o fallo del
 healthcheck.
 
-### Fase D — Imagen y entorno staging
+### Fase D — Media S3, imagen y entorno staging
 
-El stack entrega `GitHubDeployRoleArn` y `AppInstanceId`. Se guardan en el
-environment de GitHub llamado `aws-staging`:
+1. Actualizar primero el stack con `infra/aws/p0-stack.yaml`. La actualización
+   crea `MediaBucket`, amplía el rol de la instancia y mantiene IMDSv2
+   obligatorio con hop limit 2 para que boto3 funcione dentro de Docker.
+2. Copiar los outputs `GitHubDeployRoleArn`, `AppInstanceId` y
+   `MediaBucketName` al environment de GitHub `aws-staging`:
 
 - `AWS_ROLE_TO_ASSUME`
 - `AWS_EC2_INSTANCE_ID`
+- `AWS_MEDIA_BUCKET_NAME`
 
 El environment debe limitarse a ramas protegidas y requerir aprobación manual.
 El workflow solo se ejecuta mediante `workflow_dispatch`; nunca se despliega
-por cada push.
+por cada push. Antes de reemplazar el contenedor, rescata `/app/media` hacia el
+volumen del host. Después el helper copia ese volumen de forma aditiva al
+bucket (sin `--delete`). Esto conserva la imagen de prueba que reveló el fallo
+si todavía existe en el contenedor o volumen actual, además de cualquier otro
+archivo local recuperable. Luego actualiza `runtime.env`, reinicia el
+contenedor y ejecuta este probe reversible antes de declarar éxito:
+
+```bash
+python manage.py check_media_storage --require-remote --write-test
+```
+
+El probe crea un objeto bajo `_health/`, verifica lectura y URL, lo elimina y
+confirma que no quedó disponible. No imprime parámetros de firma. Si falla,
+el script restaura automáticamente el contenedor y el `runtime.env` anteriores.
+
+Actualizar el `UserData` de CloudFormation no vuelve a ejecutar por sí solo el
+script de arranque en una instancia EC2 existente. Por eso el helper del
+workflow aplica estas variables al contenedor actual sin reemplazar la
+instancia.
+
+**Salida obligatoria:** `Remote storage: True` y
+`Media create/read/delete test: OK`.
 
 ### Fase E — Corte
 
@@ -182,6 +207,7 @@ filas; no se debe apuntar silenciosamente a la base antigua.
 - No hacer RDS públicamente accesible.
 - No abrir PostgreSQL a `0.0.0.0/0`.
 - No pegar contraseñas en GitHub, CloudFormation, chat o comandos visibles.
+- No hacer público el bucket de media ni agregar access keys estáticas al `.env`.
 - No actualizar AWS al plan Paid.
 - No borrar Supabase ni Railway durante la estabilización.
 - No fusionar este cambio con trabajo visual del admin.
@@ -191,7 +217,8 @@ filas; no se debe apuntar silenciosamente a la base antigua.
 - Instalar un certificado Cloudflare Origin y activar Full (strict).
 - Restringir los puertos 80/443 del origen a las redes publicadas por
   Cloudflare.
-- Migrar las cargas futuras de media a S3 mediante un backend específico.
+- Verificar en staging una carga real desde seller: guardar, reabrir el
+  producto y abrir la imagen desde catálogo antes del corte.
 - Evaluar `t3.small` solo si memoria o latencia lo justifican.
 - Corregir por separado las imágenes de producto ausentes; no forman parte del
   dump PostgreSQL.
