@@ -33,11 +33,11 @@ class Command(BaseCommand):
             warnings.append('DEBUG=True (aceptable solo en local).')
 
         if 'sqlite' in settings.DATABASES['default'].get('ENGINE', ''):
-            warnings.append('SQLite activo; producción debe usar DATABASE_URL (Supabase).')
+            warnings.append('SQLite activo; producción debe usar DATABASE_URL (PostgreSQL/RDS).')
 
         backend = settings.STORAGES['default']['BACKEND']
         if 'FileSystemStorage' in backend and not settings.DEBUG:
-            warnings.append('Media en disco local; configure Supabase Storage para persistencia.')
+            warnings.append('Media en disco local; configure AWS S3 o Supabase Storage para persistencia.')
 
         if not settings.DEBUG and not getattr(settings, 'REQUIRE_EMAIL_VERIFICATION', True):
             errors.append(
@@ -62,7 +62,7 @@ class Command(BaseCommand):
 
         if not settings.DEBUG and getattr(settings, 'SERVE_LOCAL_MEDIA', False):
             warnings.append(
-                'SERVE_LOCAL_MEDIA=True en producción; prefiera Supabase/S3 Storage.'
+                'SERVE_LOCAL_MEDIA=True en producción; prefiera almacenamiento remoto persistente.'
             )
 
         required = ['SECRET_KEY', 'PUBLIC_BASE_URL']

@@ -20,6 +20,7 @@ jobs:
       AWS_REGION: us-east-1
       ECR_REPOSITORY: tradeflow-colon
       EC2_INSTANCE_ID: ${{ vars.AWS_EC2_INSTANCE_ID }}
+      MEDIA_BUCKET: ${{ vars.AWS_MEDIA_BUCKET_NAME }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -61,20 +62,60 @@ jobs:
             echo 'Missing AWS_EC2_INSTANCE_ID in the aws-staging environment.' >&2
             exit 1
           fi
+          if [[ -z "$MEDIA_BUCKET" ]]; then
+            echo 'Missing AWS_MEDIA_BUCKET_NAME in the aws-staging environment.' >&2
+            exit 1
+          fi
+
+          helper_b64="$(base64 -w0 scripts/aws/configure_media_runtime.sh)"
+          export HELPER_B64 IMAGE_URI MEDIA_BUCKET AWS_REGION
+          python3 - <<'PY' >/tmp/tradeflow-ssm-parameters.json
+          import json
+          import os
+          import shlex
+
+          helper = os.environ['HELPER_B64']
+          image = os.environ['IMAGE_URI']
+          bucket = os.environ['MEDIA_BUCKET']
+          region = os.environ['AWS_REGION']
+          commands = [
+              'printf %s ' + shlex.quote(helper)
+              + ' | base64 --decode | sudo tee '
+              + '/usr/local/bin/tradeflow-configure-media.sh >/dev/null',
+              'sudo chmod 700 /usr/local/bin/tradeflow-configure-media.sh',
+              'sudo mkdir -p /opt/tradeflow/media',
+              'if sudo docker inspect tradeflow-web >/dev/null 2>&1; then '
+              + 'sudo docker cp tradeflow-web:/app/media/. /opt/tradeflow/media/; fi',
+              'sudo /usr/local/bin/tradeflow-deploy.sh ' + shlex.quote(image),
+              'sudo /usr/local/bin/tradeflow-configure-media.sh '
+              + shlex.quote(bucket) + ' ' + shlex.quote(region),
+          ]
+          print(json.dumps({'commands': commands}))
+          PY
+
           command_id="$(aws ssm send-command \
             --region "$AWS_REGION" \
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name AWS-RunShellScript \
             --comment "Deploy TradeFlow ${GITHUB_SHA}" \
-            --parameters "commands=sudo /usr/local/bin/tradeflow-deploy.sh '$IMAGE_URI'" \
+            --parameters file:///tmp/tradeflow-ssm-parameters.json \
             --query 'Command.CommandId' \
             --output text)"
-          aws ssm wait command-executed \
+          if ! aws ssm wait command-executed \
             --region "$AWS_REGION" \
             --command-id "$command_id" \
-            --instance-id "$EC2_INSTANCE_ID"
-          aws ssm get-command-invocation \
+            --instance-id "$EC2_INSTANCE_ID"; then
+            aws ssm get-command-invocation \
+              --region "$AWS_REGION" \
+              --command-id "$command_id" \
+              --instance-id "$EC2_INSTANCE_ID" \
+              --query '{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}' || true
+            exit 1
+          fi
+          result="$(aws ssm get-command-invocation \
             --region "$AWS_REGION" \
             --command-id "$command_id" \
             --instance-id "$EC2_INSTANCE_ID" \
-            --query '{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}'
+            --query '{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}')"
+          printf '%s\n' "$result" | jq .
+          [[ "$(printf '%s' "$result" | jq -r .Status)" == 'Success' ]]

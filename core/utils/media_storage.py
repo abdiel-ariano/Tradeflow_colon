@@ -15,8 +15,6 @@ from django.core.files.base import ContentFile
 
 log = logging.getLogger('tradeflow.media')
 
-from core.storage.supabase_media import supabase_media_url
-
 PLACEHOLDER_PRODUCT = 'img/logo-icon-color.png'
 PRODUCT_IMAGE_FALLBACK_STATIC = 'images/placeholder-producto.svg'
 
@@ -54,7 +52,10 @@ def product_image_url(product) -> str:
             if local_media_file_exists(rel_path):
                 return f'{settings.MEDIA_URL.rstrip("/")}/{rel_path.lstrip("/")}'
             if is_remote_media_storage():
-                return supabase_media_url(rel_path)
+                # Delegate URL generation to the selected backend. Supabase
+                # returns a native object URL; AWS S3 returns a private,
+                # short-lived SigV4 URL using the EC2 instance role.
+                return product.image.url
             if _serve_local_media_urls():
                 return product.image.url
     except Exception:
