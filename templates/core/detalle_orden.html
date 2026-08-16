@@ -1,6 +1,7 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block title %}{{ orden.order_number }} — TradeFlow Colón{% endblock %}
+{% block body_shell_class %} tf-admin-unified{% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
   .adm-det-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.25rem; align-items: start; }

@@ -1,14 +1,15 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block title %}SaaS Plans — TradeFlow Admin{% endblock %}
+{% block body_shell_class %} tf-admin-unified{% endblock %}
 {% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'admin-saas/admin-saas.css' %}">
 {% endblock %}
 {% block extra_css %}
 {# Bundle CSS already inlined in base.html <style>; including it in extra_css dumps raw CSS as visible text. #}
 <style nonce="{{ csp_nonce }}">
-  /* TradeFlow brand — SaaS admin shell */
+  /* TradeFlow brand — SaaS admin shell (same tokens as ops panel) */
   .adm-shell .adm-side {
     background: linear-gradient(180deg, var(--tf-navy, #0F2A44) 0%, #0a1f33 100%) !important;
   }
@@ -29,13 +30,13 @@
   }
   .adm-shell .adm-main.adm-saas-wrap {
     padding: 0;
-    background: #F2F3F5;
+    background: var(--tf-light, #F2F3F5);
     min-height: calc(100vh - 64px);
   }
   #admin-saas-root {
     min-height: calc(100vh - 64px);
     width: 100%;
-    font-family: Inter, system-ui, sans-serif;
+    font-family: var(--tf-font-body, Montserrat, system-ui, sans-serif);
     --color-background: #F2F3F5;
     --color-border: #D1D5DB;
     --color-muted-foreground: #6B7A88;

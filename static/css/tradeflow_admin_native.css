@@ -13,14 +13,14 @@ html[data-theme="dark"],
 html[data-theme="auto"] {
   color-scheme: light;
   --body-fg: #172b3a;
-  --body-bg: #f3f6f9;
-  --body-quiet-color: #627484;
+  --body-bg: #f2f3f5;
+  --body-quiet-color: #6b7a88;
   --body-loud-color: #0f2a44;
   --darkened-bg: #f7f9fb;
   --selected-bg: #eaf2f8;
   --selected-row: #fff4ed;
-  --hairline-color: #dbe3ea;
-  --border-color: #dbe3ea;
+  --hairline-color: #d1d5db;
+  --border-color: #d1d5db;
   --error-fg: #b42318;
   --message-success-bg: #e8f7ef;
   --message-warning-bg: #fff6dd;

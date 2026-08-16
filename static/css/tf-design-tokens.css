@@ -452,21 +452,21 @@ MIGRACIÓN GRADUAL
 
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     11. PANEL ADMIN — --color-*
+     11. PANEL ADMIN — --color-* (aliases to brand --tf-*; no legacy teal)
      ═══════════════════════════════════════════════════════════════════════════ */
 
-  --color-primary: #098698;
-  --color-primary-dark: #076f7f;
-  --color-primary-light: #e0f4f6;
-  --color-primary-glow: rgba(9, 134, 152, 0.12);
-  --color-primary-overlay: rgba(9, 134, 152, 0.2);
-  --color-secondary: #404b57;
-  --color-accent: #d9cab3;
-  --color-bg: #f0f0f0;
+  --color-primary: var(--tf-orange);
+  --color-primary-dark: var(--tf-orange-h);
+  --color-primary-light: var(--tf-orange-light);
+  --color-primary-glow: rgba(242, 101, 34, 0.12);
+  --color-primary-overlay: rgba(242, 101, 34, 0.18);
+  --color-secondary: var(--tf-navy);
+  --color-accent: var(--tf-blue);
+  --color-bg: var(--tf-light);
   --color-white: #ffffff;
-  --color-text: #2c3e50;
-  --color-muted: #7f8c8d;
-  --color-border: #e0e0e0;
+  --color-text: #172b3a;
+  --color-muted: var(--tf-muted);
+  --color-border: var(--tf-border);
   --color-success: #27ae60;
   --color-warning: #f39c12;
   --color-danger: #e74c3c;

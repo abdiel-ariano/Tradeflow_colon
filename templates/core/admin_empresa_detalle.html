@@ -1,6 +1,7 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block title %}{{ empresa.name }} — Admin{% endblock %}
+{% block body_shell_class %} tf-admin-unified{% endblock %}
 {% block content %}
 <div class="adm-shell">
   {% include "core/admin_rail.html" %}
@@ -18,7 +19,7 @@
             {% if empresa.is_verified %}Unverify{% else %}Verify{% endif %}
           </button>
         </form>
-        <a href="/admin/core/company/{{ empresa.pk }}/change/" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer">Advanced</a>
+        <a href="/admin/core/company/{{ empresa.pk }}/change/" class="adm-btn adm-btn--advanced" target="_blank" rel="noopener noreferrer">Advanced</a>
         <a href="{% url 'lista_empresas' %}" class="adm-btn adm-btn--secondary">Back</a>
       </div>
     </header>
