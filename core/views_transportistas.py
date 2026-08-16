@@ -19,6 +19,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
 from .decorators import admin_required, buyer_required, seller_required
 from .forms import AplicacionTransportistaForm
@@ -105,16 +106,18 @@ def admin_transportistas(request):
         'transportistas': qs,
         'estado_filtro': estado,
         'titulo_pagina': _('Carriers'),
-        'nav_activo': 'admin',
+        'nav_activo': 'carriers',
     })
 
 
 @admin_required
+@require_POST
 def admin_aprobar_transportista(request, pk, decision):
     """Approve or reject a pending carrier; provision login on approve.
 
     Approved carriers get a User + ``transportista`` profile so they
     can participate in buyer pickup assignment for CFZ orders.
+    Must be POST (CSRF) — GET is rejected.
     """
     t = get_object_or_404(Transportista, pk=pk)
     if t.estado != 'pendiente':

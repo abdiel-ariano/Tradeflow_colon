@@ -1,35 +1,65 @@
 {% extends "core/base.html" %}
+{% load static %}
 {% block title %}Carriers — Admin{% endblock %}
 {% block content %}
-<div style="max-width:1000px;margin:32px auto;padding:0 24px;">
-  <h1 style="color:var(--tf-dark);">Carrier review</h1>
-  <div style="display:flex;gap:8px;margin:16px 0;">
-    <a href="?estado=pendiente" class="btn-tf btn-secondary-tf">Pending</a>
-    <a href="?estado=aprobado" class="btn-tf btn-secondary-tf">Approved</a>
-    <a href="?estado=rechazado" class="btn-tf btn-secondary-tf">Rejected</a>
-  </div>
-  <div class="tf-table-container">
-    <table class="tf-table">
-      <thead><tr><th>Business</th><th>Email</th><th>Rate</th><th>Status</th><th></th></tr></thead>
-      <tbody>
-        {% for t in transportistas %}
-        <tr>
-          <td>{{ t.empresa_nombre }}</td>
-          <td>{{ t.email_contacto }}</td>
-          <td>USD {{ t.tarifa_base }}</td>
-          <td>{{ t.get_estado_display }}</td>
-          <td>
-            {% if t.estado == 'pendiente' %}
-            <a href="{% url 'admin_aprobar_transportista' t.pk 'aprobar' %}" class="btn-tf btn-primary-tf" style="padding:6px 12px;">Approve</a>
-            <a href="{% url 'admin_aprobar_transportista' t.pk 'rechazar' %}" class="btn-tf btn-secondary-tf" style="padding:6px 12px;">Reject</a>
-            {% endif %}
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5">No records.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="adm-shell">
+  {% include "core/admin_rail.html" %}
+  <div class="adm-main">
+    <header class="adm-head">
+      <div>
+        <h1>Carrier review</h1>
+        <p>Approve or reject last-mile carrier applications for CFZ pickup.</p>
+      </div>
+    </header>
+
+    <div class="adm-apps-pills" style="margin-bottom:1rem;">
+      <a href="?estado=pendiente" class="{% if estado_filtro == 'pendiente' %}is-active{% endif %}">Pending</a>
+      <a href="?estado=aprobado" class="{% if estado_filtro == 'aprobado' %}is-active{% endif %}">Approved</a>
+      <a href="?estado=rechazado" class="{% if estado_filtro == 'rechazado' %}is-active{% endif %}">Rejected</a>
+    </div>
+
+    <div class="adm-table-card">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>Business</th>
+            <th>Email</th>
+            <th>Rate</th>
+            <th>Status</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in transportistas %}
+          <tr>
+            <td><strong>{{ t.empresa_nombre }}</strong></td>
+            <td>{{ t.email_contacto }}</td>
+            <td>USD {{ t.tarifa_base }}</td>
+            <td>{{ t.get_estado_display }}</td>
+            <td style="text-align:right;">
+              {% if t.estado == 'pendiente' %}
+              <form method="post" action="{% url 'admin_aprobar_transportista' t.pk 'aprobar' %}" style="display:inline;" onsubmit="return confirm('Approve {{ t.empresa_nombre|escapejs }}?');">
+                {% csrf_token %}
+                <button type="submit" class="adm-btn adm-btn--primary" style="padding:6px 12px;font-size:0.78rem;">Approve</button>
+              </form>
+              <form method="post" action="{% url 'admin_aprobar_transportista' t.pk 'rechazar' %}" style="display:inline;" onsubmit="return confirm('Reject {{ t.empresa_nombre|escapejs }}?');">
+                {% csrf_token %}
+                <button type="submit" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Reject</button>
+              </form>
+              {% else %}
+              —
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="adm-empty">No carrier records for this filter.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/admin_rail.js' %}"></script>
 {% endblock %}

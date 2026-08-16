@@ -277,11 +277,11 @@
       </div>
     </div>
 
-    {% if applications %}
+    {% if applications.paginator.count %}
     <div class="adm-table-card" id="adm-apps-table-card">
       <div class="adm-table-head">
         <span>{% if current_filter %}{{ current_filter|title }} applications{% else %}All applications{% endif %}</span>
-        <span id="adm-apps-visible-count">{{ applications|length }} record{{ applications|length|pluralize }}</span>
+        <span id="adm-apps-visible-count">{{ applications.paginator.count }} record{{ applications.paginator.count|pluralize }} · page {{ applications.number }}</span>
       </div>
       <table class="adm-table" id="adm-apps-table">
         <thead>
@@ -354,10 +354,10 @@
             <td style="text-align:right;" class="adm-apps-actions-cell">
               <div class="adm-apps-actions">
                 {% if app.status == 'pending' %}
-                <form method="post" action="{% url 'approve_application' app.pk %}" class="js-app-review-form" onclick="event.stopPropagation();">{% csrf_token %}
+                <form method="post" action="{% url 'approve_application' app.pk %}" class="js-app-review-form" onclick="event.stopPropagation();" onsubmit="return confirm('Approve application from {{ app.full_name|escapejs }}?');">{% csrf_token %}
                   <button type="submit" class="adm-apps-btn-approve js-app-review-btn">Approve</button>
                 </form>
-                <form method="post" action="{% url 'reject_application' app.pk %}" class="js-app-review-form" onclick="event.stopPropagation();">{% csrf_token %}
+                <form method="post" action="{% url 'reject_application' app.pk %}" class="js-app-review-form" onclick="event.stopPropagation();" onsubmit="return confirm('Reject application from {{ app.full_name|escapejs }}?');">{% csrf_token %}
                   <button type="submit" class="adm-apps-btn-reject js-app-review-btn">Reject</button>
                 </form>
                 {% endif %}
@@ -372,6 +372,19 @@
         </tbody>
       </table>
       <p class="adm-apps-no-results" id="adm-apps-no-results">No applications match your search.</p>
+      {% if applications.has_other_pages %}
+      <div class="adm-pagination">
+        <span>Page {{ applications.number }} of {{ applications.paginator.num_pages }}</span>
+        <div class="adm-pagination-nums">
+          {% if applications.has_previous %}
+          <a class="adm-page-link" href="?{% if current_filter %}status={{ current_filter }}&amp;{% endif %}page={{ applications.previous_page_number }}">Previous</a>
+          {% endif %}
+          {% if applications.has_next %}
+          <a class="adm-page-link" href="?{% if current_filter %}status={{ current_filter }}&amp;{% endif %}page={{ applications.next_page_number }}">Next</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
     </div>
     {% else %}
     <div class="adm-apps-empty">

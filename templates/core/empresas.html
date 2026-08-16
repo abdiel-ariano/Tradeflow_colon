@@ -1,11 +1,7 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% comment %}
-Admin — empresas registradas. Contexto: lista_empresas en core/views.py
-{% endcomment %}
+{% comment %}Admin — companies directory with search and verify toggle.{% endcomment %}
 {% block title %}Companies — TradeFlow Colón{% endblock %}
-{% block extra_css %}
-{% endblock %}
 {% block content %}
 <div class="adm-shell">
   {% include "core/admin_rail.html" %}
@@ -13,7 +9,7 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
     <header class="adm-head">
       <div>
         <h1>Companies</h1>
-        <p>Directory of sellers on the platform: verification, tax ID, and catalog volume.</p>
+        <p>Directory of sellers: verification, tax ID, and catalog volume.</p>
       </div>
       <div class="adm-head-actions">
         <a href="/admin/core/company/add/" class="adm-btn adm-btn--primary" target="_blank" rel="noopener noreferrer">
@@ -23,14 +19,33 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
       </div>
     </header>
 
+    <form class="adm-filter-card" method="get" action="">
+      <div class="adm-filter-grid">
+        <div class="adm-field adm-field--grow">
+          <label for="adm-emp-buscar">Search</label>
+          <input id="adm-emp-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Name or RUC" autocomplete="off">
+        </div>
+        <div class="adm-field">
+          <label for="adm-emp-ver">Verification</label>
+          <select id="adm-emp-ver" name="verificado">
+            <option value="">All</option>
+            <option value="1" {% if verificado_filtro == '1' %}selected{% endif %}>Verified</option>
+            <option value="0" {% if verificado_filtro == '0' %}selected{% endif %}>Pending</option>
+          </select>
+        </div>
+        <div class="adm-filter-actions">
+          <button type="submit" class="adm-btn adm-btn--primary">Apply</button>
+          <a href="{% url 'lista_empresas' %}" class="adm-btn adm-btn--secondary">Clear</a>
+        </div>
+      </div>
+    </form>
+
     <p class="adm-result-hint">
       Showing {{ empresas.start_index }}–{{ empresas.end_index }} of {{ empresas.paginator.count }} companies
     </p>
 
     <div class="adm-table-card">
-      <div class="adm-table-head">
-        <span>Directory</span>
-      </div>
+      <div class="adm-table-head"><span>Directory</span></div>
       <table class="adm-table">
         <thead>
           <tr>
@@ -47,26 +62,30 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
           {% for empresa in empresas %}
           <tr>
             <td>{{ empresa.pk }}</td>
-            <td><strong>{{ empresa.name }}</strong></td>
+            <td><a href="{% url 'admin_empresa_detalle' empresa.pk %}"><strong>{{ empresa.name }}</strong></a></td>
             <td>{{ empresa.ruc|default:"—" }}</td>
             <td>
               {% if empresa.is_verified %}
-              <span class="adm-badge adm-emp-ver" data-verified="1">Verified</span>
+              <span class="adm-badge" style="background:#edf7ee;color:#166534;">Verified</span>
               {% else %}
-              <span class="adm-badge adm-emp-ver" data-verified="0">Pending</span>
+              <span class="adm-badge" style="background:#fff7ed;color:#9a3412;">Pending</span>
               {% endif %}
             </td>
             <td style="text-align:right;">{{ empresa.total_productos }}</td>
             <td>{{ empresa.created_at|date:"d/m/Y" }}</td>
             <td style="text-align:right;">
-              <a href="/admin/core/company/{{ empresa.pk }}/change/" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 12px;font-size:0.78rem;">Edit</a>
-              <a href="{% url 'lista_productos' %}?buscar={{ empresa.name|urlencode }}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Products</a>
+              <form method="post" action="{% url 'admin_toggle_company_verified' empresa.pk %}" style="display:inline;" onsubmit="return confirm('{% if empresa.is_verified %}Unverify{% else %}Verify{% endif %} {{ empresa.name|escapejs }}?');">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">
+                  {% if empresa.is_verified %}Unverify{% else %}Verify{% endif %}
+                </button>
+              </form>
+              <a href="{% url 'admin_empresa_detalle' empresa.pk %}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Open</a>
             </td>
           </tr>
           {% empty %}
-          <tr>
-            <td colspan="7" class="adm-empty">No companies registered.</td>
-          </tr>
+          <tr><td colspan="7" class="adm-empty">No companies match the current filters.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -76,10 +95,10 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
         <span>Page {{ empresas.number }} of {{ empresas.paginator.num_pages }}</span>
         <div class="adm-pagination-nums">
           {% if empresas.has_previous %}
-          <a class="adm-page-link" href="?page={{ empresas.previous_page_number }}">Previous</a>
+          <a class="adm-page-link" href="?{% if empresa_filtros_query %}{{ empresa_filtros_query }}&amp;{% endif %}page={{ empresas.previous_page_number }}">Previous</a>
           {% endif %}
           {% if empresas.has_next %}
-          <a class="adm-page-link" href="?page={{ empresas.next_page_number }}">Next</a>
+          <a class="adm-page-link" href="?{% if empresa_filtros_query %}{{ empresa_filtros_query }}&amp;{% endif %}page={{ empresas.next_page_number }}">Next</a>
           {% endif %}
         </div>
       </div>
@@ -87,20 +106,6 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
     </div>
   </div>
 </div>
-<script nonce="{{ csp_nonce }}">
-(function () {
-  document.querySelectorAll('.adm-emp-ver').forEach(function (el) {
-    var v = el.getAttribute('data-verified') === '1';
-    if (v) {
-      el.style.background = '#edf7ee';
-      el.style.color = '#166534';
-    } else {
-      el.style.background = '#fff7ed';
-      el.style.color = '#9a3412';
-    }
-  });
-})();
-</script>
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'js/admin_rail.js' %}"></script>

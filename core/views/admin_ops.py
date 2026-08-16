@@ -40,7 +40,7 @@ from ..models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document,
     Cotizacion, CotizacionItem, TransportCarrier, UserApplication,
-    EmailVerification,
+    EmailVerification, Transportista,
 )
 from ..utils.email_sender import (
     enviar_bienvenida,
@@ -399,6 +399,39 @@ def dashboard(request):
     actividad.sort(key=lambda x: x['ts'], reverse=True)
     actividad = actividad[:12]
 
+    from ..enterprise_models import CompanyPlanCommercialRequest
+
+    work_apps = list(
+        UserApplication.objects.filter(status='pending').order_by('-created_at')[:5]
+    )
+    work_carriers = list(
+        Transportista.objects.filter(estado='pendiente').order_by('-fecha_aplicacion')[:5]
+    )
+    work_saas = list(
+        CompanyPlanCommercialRequest.objects.filter(status__in=('pending', 'en_revision'))
+        .select_related('company', 'requested_plan')
+        .order_by('-created_at')[:5]
+    )
+    work_orders = list(
+        Order.objects.filter(status__in=('pending', 'awaiting_seller', 'paid', 'packed'))
+        .select_related('buyer')
+        .order_by('-updated_at')[:5]
+    )
+    work_queue = {
+        'applications_count': UserApplication.objects.filter(status='pending').count(),
+        'carriers_count': Transportista.objects.filter(estado='pendiente').count(),
+        'saas_count': CompanyPlanCommercialRequest.objects.filter(
+            status__in=('pending', 'en_revision'),
+        ).count(),
+        'orders_count': Order.objects.filter(
+            status__in=('pending', 'awaiting_seller', 'paid', 'packed'),
+        ).count(),
+        'applications': work_apps,
+        'carriers': work_carriers,
+        'saas_requests': work_saas,
+        'orders': work_orders,
+    }
+
     context = {
         'total_ordenes':        total_ordenes,
         'ordenes_semana':       ordenes_semana,
@@ -447,6 +480,7 @@ def dashboard(request):
         'pct_entregadas_periodo': pct_entregadas_periodo,
         'ingresos_semana_fmt': _fmt_usd(ingresos_semana),
         'ingresos_total_fmt': _fmt_usd(ingresos_total),
+        'work_queue': work_queue,
     }
     return render(request, 'core/dashboard.html', context)
 
@@ -789,35 +823,51 @@ def nueva_orden_paso3(request):
 
 @admin_required
 def lista_productos(request):
-    """Admin catalog product list across CFZ companies."""
-    productos  = (
+    """Admin catalog product list across CFZ companies (dense table)."""
+    productos = (
         Product.objects.select_related('company', 'category')
         .defer('company__owner')
         .prefetch_related('inventory')
         .order_by('name')
     )
-    buscar    = request.GET.get('buscar', '')
+    buscar = request.GET.get('buscar', '')
     categoria = request.GET.get('categoria', '')
+    empresa = request.GET.get('empresa', '')
+    activo = request.GET.get('activo', '')
 
     if buscar:
         productos = productos.filter(
-            Q(name__icontains=buscar) |
-            Q(description__icontains=buscar) |
-            Q(sku__icontains=buscar)
+            Q(name__icontains=buscar)
+            | Q(description__icontains=buscar)
+            | Q(sku__icontains=buscar)
         )
     if categoria:
         productos = productos.filter(category__id=categoria)
+    if empresa:
+        productos = productos.filter(company__id=empresa)
+    if activo == '1':
+        productos = productos.filter(is_active=True)
+    elif activo == '0':
+        productos = productos.filter(is_active=False)
 
-    paginator  = Paginator(productos, 12)
-    page_obj   = paginator.get_page(request.GET.get('page', 1))
+    paginator = Paginator(productos, 25)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
     categorias = Category.objects.all()
     categorias_opciones = [
         {
-            'id':       c.pk,
-            'name':     c.name,
+            'id': c.pk,
+            'name': c.name,
             'selected': bool(categoria and str(c.pk) == str(categoria)),
         }
         for c in categorias
+    ]
+    empresas_opciones = [
+        {
+            'id': c.pk,
+            'name': c.name,
+            'selected': bool(empresa and str(c.pk) == str(empresa)),
+        }
+        for c in Company.objects.order_by('name')[:200]
     ]
 
     from urllib.parse import urlencode
@@ -827,30 +877,157 @@ def lista_productos(request):
         prod_filtros['buscar'] = buscar
     if categoria:
         prod_filtros['categoria'] = categoria
+    if empresa:
+        prod_filtros['empresa'] = empresa
+    if activo:
+        prod_filtros['activo'] = activo
     producto_filtros_query = urlencode(prod_filtros)
 
     return render(request, 'core/productos.html', {
-        'productos':              page_obj,
-        'categorias_opciones':    categorias_opciones,
-        'buscar':                 buscar,
-        'cat_activa':             categoria,
+        'productos': page_obj,
+        'categorias_opciones': categorias_opciones,
+        'empresas_opciones': empresas_opciones,
+        'buscar': buscar,
+        'cat_activa': categoria,
+        'empresa_activa': empresa,
+        'activo_filtro': activo,
         'producto_filtros_query': producto_filtros_query,
-        'titulo_pagina':          'Product catalog',
-        'nav_activo':             'productos',
+        'titulo_pagina': 'Product catalog',
+        'nav_activo': 'productos',
     })
 
 
 @admin_required
+@require_POST
+def admin_toggle_product_active(request, pk):
+    """Toggle Product.is_active from the admin catalog table."""
+    producto = get_object_or_404(Product, pk=pk)
+    producto.is_active = not producto.is_active
+    producto.save(update_fields=['is_active'])
+    state = 'active' if producto.is_active else 'inactive'
+    messages.success(request, f'Product “{producto.name}” marked {state}.')
+    next_url = request.POST.get('next') or reverse('lista_productos')
+    return redirect(next_url)
+
+
+@admin_required
 def lista_empresas(request):
-    """Admin directory of CFZ seller companies."""
-    empresas  = Company.objects.annotate(
+    """Admin directory of CFZ seller companies with search/verify filters."""
+    empresas = Company.objects.annotate(
         total_productos=Count('products')
     ).order_by('name')
+    buscar = (request.GET.get('buscar') or '').strip()
+    verificado = request.GET.get('verificado', '')
+    if buscar:
+        empresas = empresas.filter(
+            Q(name__icontains=buscar) | Q(ruc__icontains=buscar)
+        )
+    if verificado == '1':
+        empresas = empresas.filter(is_verified=True)
+    elif verificado == '0':
+        empresas = empresas.filter(is_verified=False)
+
     paginator = Paginator(empresas, 20)
-    page_obj  = paginator.get_page(request.GET.get('page', 1))
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    from urllib.parse import urlencode
+
+    filtros = {}
+    if buscar:
+        filtros['buscar'] = buscar
+    if verificado:
+        filtros['verificado'] = verificado
+    empresa_filtros_query = urlencode(filtros)
 
     return render(request, 'core/empresas.html', {
-        'empresas':      page_obj,
+        'empresas': page_obj,
+        'buscar': buscar,
+        'verificado_filtro': verificado,
+        'empresa_filtros_query': empresa_filtros_query,
         'titulo_pagina': 'Companies',
-        'nav_activo':    'empresas',
+        'nav_activo': 'empresas',
+    })
+
+
+@admin_required
+@require_POST
+def admin_toggle_company_verified(request, pk):
+    """Toggle Company.is_verified from the admin directory."""
+    empresa = get_object_or_404(Company, pk=pk)
+    empresa.is_verified = not empresa.is_verified
+    empresa.save(update_fields=['is_verified'])
+    state = 'verified' if empresa.is_verified else 'unverified'
+    messages.success(request, f'Company “{empresa.name}” marked {state}.')
+    next_url = request.POST.get('next') or reverse('lista_empresas')
+    return redirect(next_url)
+
+
+@admin_required
+def admin_empresa_detalle(request, pk):
+    """Company ops sheet: overview, products, recent orders."""
+    empresa = get_object_or_404(Company, pk=pk)
+    tab = (request.GET.get('tab') or 'overview').strip()
+    productos = (
+        Product.objects.filter(company=empresa)
+        .select_related('category')
+        .prefetch_related('inventory')
+        .order_by('name')[:50]
+    )
+    ordenes = (
+        Order.objects.filter(items__product__company=empresa)
+        .select_related('buyer')
+        .distinct()
+        .order_by('-created_at')[:20]
+    )
+    subscription = None
+    try:
+        subscription = empresa.subscription
+    except Exception:
+        subscription = None
+    return render(request, 'core/admin_empresa_detalle.html', {
+        'empresa': empresa,
+        'tab': tab,
+        'productos': productos,
+        'ordenes': ordenes,
+        'subscription': subscription,
+        'titulo_pagina': empresa.name,
+        'nav_activo': 'empresas',
+    })
+
+
+@admin_required
+def admin_panel_search(request):
+    """Global admin search across companies, orders, and applications."""
+    q = (request.GET.get('q') or '').strip()
+    companies = []
+    orders = []
+    applications = []
+    if len(q) >= 2:
+        companies = list(
+            Company.objects.filter(Q(name__icontains=q) | Q(ruc__icontains=q))
+            .order_by('name')[:15]
+        )
+        orders = list(
+            Order.objects.filter(
+                Q(order_number__icontains=q)
+                | Q(buyer__email__icontains=q)
+                | Q(buyer__username__icontains=q)
+            )
+            .select_related('buyer')
+            .order_by('-created_at')[:15]
+        )
+        applications = list(
+            UserApplication.objects.filter(
+                Q(email__icontains=q)
+                | Q(full_name__icontains=q)
+                | Q(company_name__icontains=q)
+            ).order_by('-created_at')[:15]
+        )
+    return render(request, 'core/admin_panel_search.html', {
+        'q': q,
+        'companies': companies,
+        'orders': orders,
+        'applications': applications,
+        'titulo_pagina': 'Admin search',
+        'nav_activo': 'panel_search',
     })

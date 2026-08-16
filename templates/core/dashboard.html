@@ -263,6 +263,101 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
     font-size: 0.6875rem;
     font-weight: 700;
   }
+  .adm-work-queue {
+    margin: 0 0 20px;
+    padding: 18px 20px;
+    background: #fff;
+    border: 1px solid var(--tf-border, #D1D5DB);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
+  }
+  .adm-work-queue__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .adm-work-queue__head h2 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    color: var(--tf-navy, #0F2A44);
+  }
+  .adm-work-queue__head p {
+    margin: 0;
+    color: var(--tf-muted, #6B7A88);
+    font-size: 0.875rem;
+  }
+  .adm-work-queue__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 1100px) {
+    .adm-work-queue__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .adm-work-queue__grid { grid-template-columns: 1fr; }
+  }
+  .adm-work-queue__card {
+    border: 1px solid var(--tf-border, #D1D5DB);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: #fafbfc;
+    min-width: 0;
+  }
+  .adm-work-queue__card h3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--tf-navy, #0F2A44);
+  }
+  .adm-work-queue__card h3 span {
+    min-width: 22px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(242, 101, 34, 0.12);
+    color: var(--tf-orange, #F26522);
+    font-size: 0.72rem;
+    text-align: center;
+  }
+  .adm-work-queue__card ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .adm-work-queue__card li {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .adm-work-queue__card li a {
+    color: var(--tf-navy, #0F2A44);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .adm-work-queue__card li a:hover { color: var(--tf-orange, #F26522); }
+  .adm-work-queue__card li small {
+    color: var(--tf-muted, #6B7A88);
+    font-size: 0.7rem;
+  }
+  .adm-work-queue__card li.is-empty {
+    color: var(--tf-muted, #6B7A88);
+    font-size: 0.8rem;
+  }
   .adm-insights-fill-chart {
     display: flex;
     flex-direction: column;
@@ -353,6 +448,95 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
       (<span id="adm-ord-entregadas">{{ ordenes_entregadas_periodo }}</span> /
       <span id="adm-ord-activas">{{ ordenes_activas_periodo }}</span>).
     </div>
+
+    <section class="adm-work-queue" aria-labelledby="adm-work-queue-title">
+      <header class="adm-work-queue__head">
+        <div>
+          <h2 id="adm-work-queue-title">Needs attention</h2>
+          <p>Approvals and stuck orders that need an operator today.</p>
+        </div>
+        <div class="adm-quick-actions">
+          <a href="{% url 'admin_applications' %}?status=pending" class="adm-quick-btn">
+            <span class="material-symbols-rounded" aria-hidden="true">assignment_ind</span>
+            Applications
+            {% if work_queue.applications_count %}<span class="adm-quick-btn-badge">{{ work_queue.applications_count }}</span>{% endif %}
+          </a>
+          <a href="{% url 'admin_transportistas' %}?estado=pendiente" class="adm-quick-btn">
+            <span class="material-symbols-rounded" aria-hidden="true">departure_board</span>
+            Carriers
+            {% if work_queue.carriers_count %}<span class="adm-quick-btn-badge">{{ work_queue.carriers_count }}</span>{% endif %}
+          </a>
+          <a href="{% url 'admin_saas_dashboard' %}" class="adm-quick-btn">
+            <span class="material-symbols-rounded" aria-hidden="true">workspace_premium</span>
+            SaaS requests
+            {% if work_queue.saas_count %}<span class="adm-quick-btn-badge">{{ work_queue.saas_count }}</span>{% endif %}
+          </a>
+          <a href="{% url 'lista_ordenes' %}?estado=pending" class="adm-quick-btn">
+            <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
+            Open orders
+            {% if work_queue.orders_count %}<span class="adm-quick-btn-badge">{{ work_queue.orders_count }}</span>{% endif %}
+          </a>
+          <a href="{% url 'nueva_orden_paso1' %}" class="adm-quick-btn">
+            <span class="material-symbols-rounded" aria-hidden="true">add</span>
+            New order
+          </a>
+        </div>
+      </header>
+      <div class="adm-work-queue__grid">
+        <div class="adm-work-queue__card">
+          <h3>Access applications <span>{{ work_queue.applications_count }}</span></h3>
+          <ul>
+            {% for app in work_queue.applications %}
+            <li>
+              <a href="{% url 'admin_applications' %}?status=pending">{{ app.full_name }} · {{ app.email }}</a>
+              <small>{{ app.created_at|date:"d/m H:i" }}</small>
+            </li>
+            {% empty %}
+            <li class="is-empty">No pending applications.</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="adm-work-queue__card">
+          <h3>Carriers <span>{{ work_queue.carriers_count }}</span></h3>
+          <ul>
+            {% for t in work_queue.carriers %}
+            <li>
+              <a href="{% url 'admin_transportistas' %}?estado=pendiente">{{ t.empresa_nombre }}</a>
+              <small>{{ t.fecha_aplicacion|date:"d/m H:i" }}</small>
+            </li>
+            {% empty %}
+            <li class="is-empty">No pending carriers.</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="adm-work-queue__card">
+          <h3>SaaS plan requests <span>{{ work_queue.saas_count }}</span></h3>
+          <ul>
+            {% for req in work_queue.saas_requests %}
+            <li>
+              <a href="{% url 'admin_saas_dashboard' %}">{{ req.company.name }} → {{ req.requested_plan.name }}</a>
+              <small>{{ req.created_at|date:"d/m H:i" }}</small>
+            </li>
+            {% empty %}
+            <li class="is-empty">No commercial requests.</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="adm-work-queue__card">
+          <h3>Stuck orders <span>{{ work_queue.orders_count }}</span></h3>
+          <ul>
+            {% for o in work_queue.orders %}
+            <li>
+              <a href="{% url 'detalle_orden' o.pk %}">{{ o.order_number }} · {{ o.get_status_display }}</a>
+              <small>{{ o.updated_at|date:"d/m H:i" }}</small>
+            </li>
+            {% empty %}
+            <li class="is-empty">No open pipeline orders.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </section>
 
     <div class="adm-kpi-grid">
       <div class="adm-kpi adm-kpi-in">

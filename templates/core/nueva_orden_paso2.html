@@ -32,6 +32,9 @@
 {% endblock %}
 
 {% block content %}
+<div class="adm-shell">
+  {% include "core/admin_rail.html" %}
+  <div class="adm-main">
 <div class="tf-centered-page">
 <div class="wizard-steps">
   <div class="wizard-step done">1. Buyer</div>
@@ -143,5 +146,7 @@
   </div>
 
 </div>
+</div>
+  </div>
 </div>
 {% endblock %}

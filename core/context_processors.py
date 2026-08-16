@@ -28,20 +28,46 @@ def demo_catalog_context(request):
     return {'demo_catalog_enabled': bool(enabled)}
 
 
-def pending_applications_badge(request):
-    """Count pending UserApplication rows for admin navbar badges."""
-    if not request.user.is_authenticated:
-        return {'pending_applications_count': 0}
-    if not (request.user.is_superuser or getattr(request.user, 'is_staff', False)):
-        try:
-            if request.user.profile.role != 'admin':
-                return {'pending_applications_count': 0}
-        except Exception:
-            return {'pending_applications_count': 0}
-    from core.models import UserApplication
+def _is_platform_admin(user) -> bool:
+    """True when the user may see operator work-queue badges."""
+    if not getattr(user, 'is_authenticated', False):
+        return False
+    if user.is_superuser or getattr(user, 'is_staff', False):
+        return True
+    try:
+        return user.profile.role == 'admin'
+    except Exception:
+        return False
 
-    count = UserApplication.objects.filter(status='pending').count()
-    return {'pending_applications_count': count}
+
+def pending_applications_badge(request):
+    """Count pending approvals for admin rail badges and work queue."""
+    empty = {
+        'pending_applications_count': 0,
+        'pending_carriers_count': 0,
+        'pending_saas_requests_count': 0,
+        'pending_stuck_orders_count': 0,
+    }
+    if not _is_platform_admin(request.user):
+        return empty
+
+    from core.enterprise_models import CompanyPlanCommercialRequest
+    from core.models import Order, Transportista, UserApplication
+
+    apps = UserApplication.objects.filter(status='pending').count()
+    carriers = Transportista.objects.filter(estado='pendiente').count()
+    saas = CompanyPlanCommercialRequest.objects.filter(
+        status__in=('pending', 'en_revision'),
+    ).count()
+    stuck = Order.objects.filter(
+        status__in=('pending', 'awaiting_seller', 'paid', 'packed'),
+    ).count()
+    return {
+        'pending_applications_count': apps,
+        'pending_carriers_count': carriers,
+        'pending_saas_requests_count': saas,
+        'pending_stuck_orders_count': stuck,
+    }
 
 
 def cart_badge(request):

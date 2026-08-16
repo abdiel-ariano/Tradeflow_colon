@@ -18,6 +18,9 @@
 {% endblock %}
 
 {% block content %}
+<div class="adm-shell">
+  {% include "core/admin_rail.html" %}
+  <div class="adm-main">
 <div class="tf-centered-page">
 <div class="wizard-steps">
   <div class="wizard-step active">1. Buyer</div>
@@ -70,6 +73,8 @@
     </div>
   </form>
 </div>
+</div>
+  </div>
 </div>
 
 <script nonce="{{ csp_nonce }}">
