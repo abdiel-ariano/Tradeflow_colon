@@ -11,6 +11,7 @@ redirects depend on ``reverse()``.
 """
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
+from django.views.generic import RedirectView
 
 from . import views
 from . import views_password_reset
@@ -125,12 +126,14 @@ urlpatterns = [
         vt.seleccionar_transportista,
         name='seleccionar_transportista',
     ),
-    path('admin/transportistas/', vt.admin_transportistas, name='admin_transportistas'),
+    path('panel/carriers/', vt.admin_transportistas, name='admin_transportistas'),
     path(
-        'admin/transportistas/<int:pk>/<str:decision>/',
+        'panel/carriers/<int:pk>/<str:decision>/',
         vt.admin_aprobar_transportista,
         name='admin_aprobar_transportista',
     ),
+    # Legacy aliases (Django /admin/ steals /admin/transportistas/)
+    path('admin/transportistas/', RedirectView.as_view(pattern_name='admin_transportistas', permanent=False)),
     path(
         'ordenes/<int:order_pk>/confirmar/<str:decision>/',
         vt.confirmar_orden_empresa,
@@ -248,9 +251,21 @@ urlpatterns = [
 
     # ── Admin products ──────────────────────────────────────────────────────
     path('productos/', views.lista_productos, name='lista_productos'),
+    path(
+        'productos/<int:pk>/toggle-active/',
+        views.admin_toggle_product_active,
+        name='admin_toggle_product_active',
+    ),
 
     # ── Admin companies ─────────────────────────────────────────────────────
     path('empresas/', views.lista_empresas, name='lista_empresas'),
+    path('empresas/<int:pk>/', views.admin_empresa_detalle, name='admin_empresa_detalle'),
+    path(
+        'empresas/<int:pk>/toggle-verified/',
+        views.admin_toggle_company_verified,
+        name='admin_toggle_company_verified',
+    ),
+    path('panel/search/', views.admin_panel_search, name='admin_panel_search'),
 
     # ── Dashboard chart APIs ────────────────────────────────────────────────
     path('api/dashboard-stats/', views.api_dashboard_stats, name='api_dashboard_stats'),
@@ -271,7 +286,10 @@ urlpatterns = [
     path('panel/applications/', views.admin_applications_view, name='admin_applications'),
     path('panel/applications/<int:pk>/approve/', views.approve_application_view, name='approve_application'),
     path('panel/applications/<int:pk>/reject/', views.reject_application_view, name='reject_application'),
-    path('admin/applications/', views.admin_applications_view),
+    path(
+        'admin/applications/',
+        RedirectView.as_view(pattern_name='admin_applications', permanent=False),
+    ),
     path('admin/applications/<int:pk>/approve/', views.approve_application_view),
     path('admin/applications/<int:pk>/reject/', views.reject_application_view),
     path('pending-approval/', views.pending_approval_view, name='pending_approval'),

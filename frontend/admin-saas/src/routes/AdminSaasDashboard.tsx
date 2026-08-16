@@ -372,9 +372,14 @@ export function AdminSaasDashboard() {
             <p className="text-sm text-muted-foreground">Company and plan management</p>
           </div>
         </div>
-        <Badge variant="default" className="gap-1.5 px-3 py-1">
+        <Badge
+          variant={predictive?.predictive_ai_active ? 'default' : 'outline'}
+          className="gap-1.5 px-3 py-1"
+        >
           <Sparkles className="h-3.5 w-3.5" />
-          Predictive AI active
+          {predictive?.predictive_ai_active
+            ? 'Predictive AI active'
+            : 'Predictive AI unavailable'}
         </Badge>
       </header>
 

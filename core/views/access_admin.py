@@ -365,14 +365,19 @@ def pending_approval_view(request):
 def admin_applications_view(request):
     """Admin list to review company access applications."""
     try:
+        from django.core.paginator import Paginator
+
         from ..models import UserApplication
+
         status_filter = request.GET.get('status', '')
         applications = UserApplication.objects.all().order_by('-created_at')
         if status_filter:
             applications = applications.filter(status=status_filter)
         pending_count = UserApplication.objects.filter(status='pending').count()
+        paginator = Paginator(applications, 25)
+        page_obj = paginator.get_page(request.GET.get('page', 1))
         return render(request, 'core/admin_applications.html', {
-            'applications': applications,
+            'applications': page_obj,
             'pending_count': pending_count,
             'current_filter': status_filter,
             'nav_activo': 'admin_applications',

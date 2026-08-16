@@ -1,9 +1,8 @@
 {% comment %}
-Shared TradeFlow administration rail.
+Shared TradeFlow administration rail — ops-first IA.
 
-This partial is the only source of navigation markup for the operational
-dashboard and Django Admin. Every destination opens the real management view,
-while the JavaScript keeps the current route and accordion group active.
+Primary destinations are custom panel views (work queue, directories, approvals).
+Django Admin remains available under Platform for deep/rare CRUD.
 {% endcomment %}
 {% load static %}
 <button
@@ -20,7 +19,7 @@ while the JavaScript keeps the current route and accordion group active.
   aria-label="Administration menu"
 >
   <nav class="adm-rail-nav" aria-label="TradeFlow modules">
-    <span class="adm-rail-section-label">Summary</span>
+    <span class="adm-rail-section-label">Operations</span>
     <a
       class="adm-rail-link"
       href="{% url 'dashboard' %}"
@@ -33,48 +32,24 @@ while the JavaScript keeps the current route and accordion group active.
     </a>
     <a
       class="adm-rail-link"
-      href="{% url 'admin:index' %}"
-      data-tf-admin-route="/admin/"
-      title="Administration"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">apps</span>
-      <span class="adm-rail-label">Administration</span>
-    </a>
-
-    <span class="adm-rail-section-label">Commerce</span>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_order_changelist' %}"
+      href="{% url 'lista_ordenes' %}"
       data-adm-nav="ordenes"
-      data-tf-admin-route="/admin/core/order/"
+      data-tf-admin-route="/ordenes/"
       title="Orders"
     >
       <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
       <span class="adm-rail-label">Orders</span>
+      {% if pending_stuck_orders_count %}
+      <span class="adm-rail-badge">{{ pending_stuck_orders_count }}</span>
+      {% endif %}
     </a>
+
+    <span class="adm-rail-section-label">Directory</span>
     <a
       class="adm-rail-link"
-      href="{% url 'admin:core_payment_changelist' %}"
-      data-tf-admin-route="/admin/core/payment/"
-      title="Payments"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">payments</span>
-      <span class="adm-rail-label">Payments</span>
-    </a>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_cotizacion_changelist' %}"
-      data-tf-admin-route="/admin/core/cotizacion/"
-      title="Quotes"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
-      <span class="adm-rail-label">Quotes</span>
-    </a>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_product_changelist' %}"
+      href="{% url 'lista_productos' %}"
       data-adm-nav="productos"
-      data-tf-admin-route="/admin/core/product/"
+      data-tf-admin-route="/productos/"
       title="Products"
     >
       <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
@@ -82,29 +57,9 @@ while the JavaScript keeps the current route and accordion group active.
     </a>
     <a
       class="adm-rail-link"
-      href="{% url 'admin:core_inventory_changelist' %}"
-      data-tf-admin-route="/admin/core/inventory/"
-      title="Inventory"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">warehouse</span>
-      <span class="adm-rail-label">Inventory</span>
-    </a>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_homepromosection_changelist' %}"
-      data-tf-admin-route="/admin/core/homepromosection/"
-      title="Promotions"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
-      <span class="adm-rail-label">Promotions</span>
-    </a>
-
-    <span class="adm-rail-section-label">Companies and users</span>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_company_changelist' %}"
+      href="{% url 'lista_empresas' %}"
       data-adm-nav="empresas"
-      data-tf-admin-route="/admin/core/company/"
+      data-tf-admin-route="/empresas/"
       title="Companies"
     >
       <span class="material-symbols-rounded" aria-hidden="true">business</span>
@@ -112,18 +67,21 @@ while the JavaScript keeps the current route and accordion group active.
     </a>
     <a
       class="adm-rail-link"
-      href="{% url 'admin:auth_user_changelist' %}"
-      data-tf-admin-route="/admin/auth/user/"
-      title="Users"
+      href="{% url 'admin_panel_search' %}"
+      data-adm-nav="panel_search"
+      data-tf-admin-route="/panel/search/"
+      title="Search"
     >
-      <span class="material-symbols-rounded" aria-hidden="true">group</span>
-      <span class="adm-rail-label">Users</span>
+      <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      <span class="adm-rail-label">Search</span>
     </a>
+
+    <span class="adm-rail-section-label">Companies and users</span>
     <a
       class="adm-rail-link"
-      href="{% url 'admin:core_userapplication_changelist' %}"
+      href="{% url 'admin_applications' %}"
       data-adm-nav="admin_applications"
-      data-tf-admin-route="/admin/core/userapplication/"
+      data-tf-admin-route="/panel/applications/"
       title="Applications"
     >
       <span class="material-symbols-rounded" aria-hidden="true">assignment_ind</span>
@@ -132,34 +90,18 @@ while the JavaScript keeps the current route and accordion group active.
       <span class="adm-rail-badge">{{ pending_applications_count }}</span>
       {% endif %}
     </a>
-
-    <span class="adm-rail-section-label">Logistics</span>
     <a
       class="adm-rail-link"
-      href="{% url 'admin:core_shipment_changelist' %}"
-      data-tf-admin-route="/admin/core/shipment/"
-      title="Shipments"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">local_shipping</span>
-      <span class="adm-rail-label">Shipments</span>
-    </a>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_transportcarrier_changelist' %}"
-      data-tf-admin-route="/admin/core/transportcarrier/"
+      href="{% url 'admin_transportistas' %}"
+      data-adm-nav="carriers"
+      data-tf-admin-route="/panel/carriers/"
       title="Carriers"
     >
       <span class="material-symbols-rounded" aria-hidden="true">departure_board</span>
       <span class="adm-rail-label">Carriers</span>
-    </a>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_logisticsevent_changelist' %}"
-      data-tf-admin-route="/admin/core/logisticsevent/"
-      title="Logistics events"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">timeline</span>
-      <span class="adm-rail-label">Logistics events</span>
+      {% if pending_carriers_count %}
+      <span class="adm-rail-badge">{{ pending_carriers_count }}</span>
+      {% endif %}
     </a>
 
     <span class="adm-rail-section-label">SaaS and platform</span>
@@ -172,57 +114,26 @@ while the JavaScript keeps the current route and accordion group active.
     >
       <span class="material-symbols-rounded" aria-hidden="true">workspace_premium</span>
       <span class="adm-rail-label">SaaS dashboard</span>
+      {% if pending_saas_requests_count %}
+      <span class="adm-rail-badge">{{ pending_saas_requests_count }}</span>
+      {% endif %}
     </a>
     <a
       class="adm-rail-link"
-      href="{% url 'admin:core_saasplan_changelist' %}"
-      data-tf-admin-route="/admin/core/saasplan/"
-      title="Plans"
+      href="{% url 'admin:index' %}"
+      data-tf-admin-route="/admin/"
+      title="Django Admin"
     >
-      <span class="material-symbols-rounded" aria-hidden="true">sell</span>
-      <span class="adm-rail-label">Plans</span>
-    </a>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_companysubscription_changelist' %}"
-      data-tf-admin-route="/admin/core/companysubscription/"
-      title="Subscriptions"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">subscriptions</span>
-      <span class="adm-rail-label">Subscriptions</span>
-    </a>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_companyplancheckout_changelist' %}"
-      data-tf-admin-route="/admin/core/companyplancheckout/"
-      title="Plan payments"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">account_balance</span>
-      <span class="adm-rail-label">Plan payments</span>
-    </a>
-
-    <span class="adm-rail-section-label">Audit</span>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_emaildeliverylog_changelist' %}"
-      data-tf-admin-route="/admin/core/emaildeliverylog/"
-      title="Email audit"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">mark_email_read</span>
-      <span class="adm-rail-label">Email audit</span>
-    </a>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:core_apiauditlog_changelist' %}"
-      data-tf-admin-route="/admin/core/apiauditlog/"
-      title="API audit"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">policy</span>
-      <span class="adm-rail-label">API audit</span>
+      <span class="material-symbols-rounded" aria-hidden="true">admin_panel_settings</span>
+      <span class="adm-rail-label">Django Admin</span>
     </a>
   </nav>
 
   <div class="adm-rail-footer">
+    <button type="button" class="adm-rail-toggle" id="admRailToggle" title="Collapse menu">
+      <span class="material-symbols-rounded" aria-hidden="true">view_sidebar</span>
+      <span class="adm-rail-toggle-txt">Collapse</span>
+    </button>
     <a class="adm-rail-link" href="{% url 'home' %}" title="Marketplace">
       <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
       <span class="adm-rail-label">Marketplace</span>
@@ -230,3 +141,4 @@ while the JavaScript keeps the current route and accordion group active.
   </div>
 </aside>
 <script defer src="{% static 'js/tradeflow_admin_nav.js' %}"></script>
+<script defer src="{% static 'js/admin_rail.js' %}"></script>

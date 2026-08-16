@@ -5,12 +5,14 @@ from pathlib import Path
 
 from django.contrib.auth.models import User
 from django.contrib.staticfiles import finders
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from core.models import UserProfile
+from core.utils.admin_permissions import sync_user_admin_access
 
 
+@override_settings(STAFF_MFA_REQUIRED=False, REQUIRE_EMAIL_VERIFICATION=False)
 class TradeFlowAdminNavigationTests(TestCase):
     """Keep every administrative route on one visual navigation contract."""
 
@@ -27,6 +29,7 @@ class TradeFlowAdminNavigationTests(TestCase):
             user=self.operator,
             defaults={"role": "admin"},
         )
+        sync_user_admin_access(self.operator)
         self.client.force_login(self.operator)
 
     def test_native_admin_uses_the_shared_header_and_rail(self):
@@ -44,7 +47,6 @@ class TradeFlowAdminNavigationTests(TestCase):
         self.assertContains(response, "Dashboard")
         self.assertContains(response, "Companies and users")
         self.assertContains(response, "SaaS and platform")
-        self.assertContains(response, "Logout")
         self.assertContains(response, 'id="tfAdminMenuToggle"')
         self.assertContains(response, 'id="tfAdminRailBackdrop"')
         self.assertContains(
@@ -77,7 +79,8 @@ class TradeFlowAdminNavigationTests(TestCase):
         self.assertContains(response, "SaaS and platform")
         self.assertContains(response, 'id="tfAdminMenuToggle"')
         self.assertContains(response, 'id="tfAdminRailBackdrop"')
-        self.assertNotContains(response, "js/admin_rail.js")
+        self.assertContains(response, "Needs attention")
+        self.assertContains(response, "js/admin_rail.js")
         self.assertNotContains(response, 'style="font-family:')
 
     def test_accordion_assets_are_route_aware(self):

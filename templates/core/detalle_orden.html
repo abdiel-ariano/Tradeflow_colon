@@ -170,7 +170,7 @@
           <h3>Change status</h3>
           <div class="adm-estado-wrap">
             {% for val, label in otros_estados %}
-            <form method="post" action="{% url 'cambiar_estado_orden' orden.pk val %}" style="display:inline;">
+            <form method="post" action="{% url 'cambiar_estado_orden' orden.pk val %}" style="display:inline;" onsubmit="return confirm('Change order status to {{ label|escapejs }}?');">
               {% csrf_token %}
               <button type="submit" class="adm-estado-btn">{{ label }}</button>
             </form>

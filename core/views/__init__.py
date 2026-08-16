@@ -37,6 +37,10 @@ from .admin_ops import (
     nueva_orden_paso3,
     lista_productos,
     lista_empresas,
+    admin_toggle_product_active,
+    admin_toggle_company_verified,
+    admin_empresa_detalle,
+    admin_panel_search,
 )
 
 from .auth_session import (
@@ -204,6 +208,10 @@ __all__ = [
     'nueva_orden_paso3',
     'lista_productos',
     'lista_empresas',
+    'admin_toggle_product_active',
+    'admin_toggle_company_verified',
+    'admin_empresa_detalle',
+    'admin_panel_search',
     'login_view',
     'logout_view',
     '_process_signup',
