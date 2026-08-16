@@ -117,15 +117,23 @@ class AdminPanelOverhaulTests(TestCase):
         self.assertContains(products, 'Deactivate')
 
     def test_ops_visual_contract_is_unified(self):
-        """Ops pages share brand CSS and Advanced CRUD escape hatches."""
+        """Ops pages share brand CSS and stay inside the panel flow."""
         dash = self.client.get(reverse('dashboard'))
         self.assertEqual(dash.status_code, 200)
         body = dash.content.decode()
         self.assertIn('tradeflow_admin_ops.css', body)
-        self.assertIn('Advanced CRUD', body)
+        self.assertNotIn('Advanced CRUD', body)
+        self.assertNotIn('Advanced create', body)
         self.assertIn('tf-admin-unified', body)
+        self.assertIn('data-rail-accordion="multi"', body)
 
         products = self.client.get(reverse('lista_productos'))
         self.assertEqual(products.status_code, 200)
-        self.assertContains(products, 'adm-btn--advanced')
-        self.assertContains(products, 'Advanced create')
+        self.assertNotContains(products, 'Advanced create')
+        self.assertNotContains(products, 'adm-btn--advanced')
+
+    def test_admin_index_routes_to_ops_dashboard(self):
+        """/admin/ is not a second control panel — it hands off to ops."""
+        resp = self.client.get(reverse('admin:index'))
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, reverse('dashboard'))

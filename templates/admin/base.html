@@ -68,7 +68,7 @@
         <nav aria-label="{% translate 'Breadcrumbs' %}">
           {% block breadcrumbs %}
             <div class="breadcrumbs">
-              <a href="{% url 'admin:index' %}">Administration</a>
+              <a href="{% url 'dashboard' %}">Operations</a>
               {% if title %} &rsaquo; {{ title }}{% endif %}
             </div>
           {% endblock %}

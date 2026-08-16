@@ -28,3 +28,16 @@ its permissions, history, filters, and validation behavior.
 {% block nav-global %}
   {% include "core/admin_rail.html" %}
 {% endblock %}
+
+{# Ops rail replaces Django's built-in model sidebar — avoid a second nav. #}
+{% block nav-sidebar %}{% endblock %}
+{% block nav-breadcrumbs %}
+  <nav aria-label="{% translate 'Breadcrumbs' %}">
+    {% block breadcrumbs %}
+      <div class="breadcrumbs">
+        <a href="{% url 'dashboard' %}">Operations</a>
+        {% if title %} &rsaquo; {{ title }}{% endif %}
+      </div>
+    {% endblock %}
+  </nav>
+{% endblock %}

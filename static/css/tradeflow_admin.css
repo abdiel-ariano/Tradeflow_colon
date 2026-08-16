@@ -998,7 +998,7 @@ body:not(.login) .toggle-nav-sidebar {
 .tf-rail-group__icon {
   color: #7893a8;
   font-size: 18px;
-  transition: transform 150ms ease;
+  transition: transform 220ms ease;
 }
 
 .tf-rail-group[open] > .tf-rail-group__summary .tf-rail-group__icon {
@@ -1007,8 +1007,28 @@ body:not(.login) .toggle-nav-sidebar {
 
 .tf-rail-group__body {
   display: grid;
-  gap: 2px;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 220ms ease;
+  padding: 0;
+}
+
+.tf-rail-group[open] > .tf-rail-group__body {
+  grid-template-rows: 1fr;
   padding: 2px 0 7px;
+}
+
+.tf-rail-group__body-inner {
+  overflow: hidden;
+  display: grid;
+  gap: 2px;
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tf-rail-group__body,
+  .tf-rail-group__icon {
+    transition: none;
+  }
 }
 
 .tf-system-rail__nav[data-accordion-ready="true"],

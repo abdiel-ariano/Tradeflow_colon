@@ -1,8 +1,8 @@
 {% comment %}
 Shared TradeFlow administration rail — ops-first IA.
 
-Primary destinations are custom panel views (work queue, directories, approvals).
-Advanced CRUD (Django) remains under Platform for deep/rare edits.
+Daily work stays in custom panel routes. Django Admin changelists remain
+reachable by direct URL for rare system edits; they are not rail destinations.
 {% endcomment %}
 {% load static %}
 {% include "core/includes/admin_ops_assets.html" %}
@@ -19,7 +19,7 @@ Advanced CRUD (Django) remains under Platform for deep/rare edits.
   data-nav-active="{{ nav_activo|default:'dashboard' }}"
   aria-label="Administration menu"
 >
-  <nav class="adm-rail-nav" aria-label="TradeFlow modules">
+  <nav class="adm-rail-nav" aria-label="TradeFlow modules" data-rail-accordion="multi">
     <span class="adm-rail-section-label">Operations</span>
     <a
       class="adm-rail-link"
@@ -105,7 +105,7 @@ Advanced CRUD (Django) remains under Platform for deep/rare edits.
       {% endif %}
     </a>
 
-    <span class="adm-rail-section-label">SaaS and platform</span>
+    <span class="adm-rail-section-label">SaaS</span>
     <a
       class="adm-rail-link"
       href="{% url 'admin_saas_dashboard' %}"
@@ -118,15 +118,6 @@ Advanced CRUD (Django) remains under Platform for deep/rare edits.
       {% if pending_saas_requests_count %}
       <span class="adm-rail-badge">{{ pending_saas_requests_count }}</span>
       {% endif %}
-    </a>
-    <a
-      class="adm-rail-link"
-      href="{% url 'admin:index' %}"
-      data-tf-admin-route="/admin/"
-      title="Advanced CRUD"
-    >
-      <span class="material-symbols-rounded" aria-hidden="true">admin_panel_settings</span>
-      <span class="adm-rail-label">Advanced CRUD</span>
     </a>
   </nav>
 

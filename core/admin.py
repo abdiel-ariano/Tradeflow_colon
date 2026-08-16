@@ -3,6 +3,8 @@
 Exposes CFZ sellers, catalog, orders, RFQs, carriers, SaaS billing, and
 email logs at /admin/. TradeFlowModelAdmin aligns staff role with model perms.
 """
+import types
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
@@ -708,3 +710,13 @@ class ApiAuditLogAdmin(TradeFlowReadOnlyAdmin):
 admin.site.site_header = 'TradeFlow Colón — Administración'
 admin.site.site_title  = 'TradeFlow Admin'
 admin.site.index_title = 'Panel de Control'
+
+
+def _tradeflow_admin_index(self, request, extra_context=None):
+    """Send /admin/ into the ops dashboard — avoid a second control panel."""
+    from django.shortcuts import redirect
+
+    return redirect('dashboard')
+
+
+admin.site.index = types.MethodType(_tradeflow_admin_index, admin.site)
