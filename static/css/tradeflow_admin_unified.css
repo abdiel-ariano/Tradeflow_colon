@@ -173,9 +173,7 @@ body.tf-admin-unified:not(.login) #logout-form button:focus-visible {
   background: rgba(242, 101, 34, 0.12) !important;
 }
 
-body.tf-admin-unified:not(.login) .adm-side,
-body.tf-admin-unified:not(.login)
-  .adm-shell.adm-shell--rail-narrow .adm-side {
+body.tf-admin-unified:not(.login) .adm-side {
   position: fixed !important;
   top: var(--tf-admin-header-height) !important;
   bottom: 0 !important;
@@ -195,12 +193,21 @@ body.tf-admin-unified:not(.login)
 }
 
 body.tf-admin-unified:not(.login)
+  .adm-shell.adm-shell--rail-narrow {
+  --tf-admin-rail-width: 76px;
+}
+
+body.tf-admin-unified:not(.login)
   .adm-shell.adm-shell--rail-narrow .adm-rail-label,
 body.tf-admin-unified:not(.login)
   .adm-shell.adm-shell--rail-narrow .adm-rail-brand-text,
 body.tf-admin-unified:not(.login)
-  .adm-shell.adm-shell--rail-narrow .adm-rail-section-label {
-  display: initial !important;
+  .adm-shell.adm-shell--rail-narrow .adm-rail-toggle-txt,
+body.tf-admin-unified:not(.login)
+  .adm-shell.adm-shell--rail-narrow .adm-rail-section-label,
+body.tf-admin-unified:not(.login)
+  .adm-shell.adm-shell--rail-narrow .tf-rail-group__summary {
+  display: none !important;
 }
 
 body.tf-admin-unified:not(.login) .adm-shell {

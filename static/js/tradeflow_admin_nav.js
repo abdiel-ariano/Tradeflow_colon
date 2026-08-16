@@ -168,6 +168,10 @@
 
     groups.forEach(function (group) {
       group.addEventListener("toggle", function () {
+        if (group.getAttribute("data-narrow-locked") === "true") {
+          if (!group.open) group.open = true;
+          return;
+        }
         if (exclusive && group.open) {
           groups.forEach(function (sibling) {
             if (sibling !== group) sibling.open = false;
