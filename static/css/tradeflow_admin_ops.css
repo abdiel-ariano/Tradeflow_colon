@@ -146,3 +146,46 @@ body.tf-admin-unified .adm-main {
   --color-primary: var(--tf-blue, #2E5B8A);
   --color-emerald: var(--tf-admin-orange);
 }
+
+/*
+ * Collapsed rail = flat icon strip.
+ * Accordion headers/labels disappear so destination icons are not nested
+ * inside dropdown bodies.
+ */
+.adm-shell.adm-shell--rail-narrow .tf-rail-group {
+  margin: 0;
+}
+
+.adm-shell.adm-shell--rail-narrow .tf-rail-group__summary {
+  display: none !important;
+}
+
+.adm-shell.adm-shell--rail-narrow .tf-rail-group__body {
+  display: grid !important;
+  grid-template-rows: 1fr !important;
+  padding: 0 !important;
+}
+
+.adm-shell.adm-shell--rail-narrow .tf-rail-group__body-inner {
+  overflow: visible;
+  gap: 2px;
+}
+
+.adm-shell.adm-shell--rail-narrow .adm-rail-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  line-height: 16px;
+  font-size: 0.58rem;
+}
+
+.adm-shell.adm-shell--rail-narrow .adm-rail-footer {
+  padding: 0.55rem 0.4rem 0.85rem;
+}
+
+.adm-shell.adm-shell--rail-narrow .adm-rail-toggle {
+  padding: 10px 0;
+}
