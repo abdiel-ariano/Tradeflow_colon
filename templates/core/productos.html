@@ -10,13 +10,7 @@
     <header class="adm-head">
       <div>
         <h1>Product catalog</h1>
-        <p>Global inventory across CFZ companies — filter, toggle, then open Advanced CRUD when needed.</p>
-      </div>
-      <div class="adm-head-actions">
-        <a href="/admin/core/product/add/" class="adm-btn adm-btn--advanced" target="_blank" rel="noopener noreferrer">
-          <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span>
-          Advanced create
-        </a>
+        <p>Global inventory across CFZ companies — filter, activate, or deactivate without leaving the panel.</p>
       </div>
     </header>
 
@@ -103,7 +97,6 @@
                   {% if p.is_active %}Deactivate{% else %}Activate{% endif %}
                 </button>
               </form>
-              <a href="/admin/core/product/{{ p.pk }}/change/" class="adm-btn adm-btn--advanced" target="_blank" rel="noopener noreferrer" style="padding:6px 10px;font-size:0.78rem;">Advanced</a>
             </td>
           </tr>
           {% empty %}

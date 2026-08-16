@@ -57,6 +57,9 @@
   /**
    * Convert section labels and links into accessible accordion groups.
    *
+   * Ops rail uses multi-open groups (no exclusive close) to avoid layout
+   * jumps when switching sections. Django Admin rail may still use exclusive.
+   *
    * @param {HTMLElement|null} nav Navigation container.
    * @param {string} labelSelector Selector for category labels.
    * @param {string} storageKey Session storage key.
@@ -69,6 +72,8 @@
     var children = Array.prototype.slice.call(nav.children);
     var groups = [];
     var currentBody = null;
+    var currentInner = null;
+    var exclusive = nav.getAttribute("data-rail-accordion") !== "multi";
 
     nav.textContent = "";
 
@@ -79,11 +84,13 @@
         var label = document.createElement("span");
         var icon = document.createElement("span");
         var body = document.createElement("div");
+        var inner = document.createElement("div");
 
         details.className = "tf-rail-group";
         details.setAttribute("data-rail-group", String(groups.length));
         summary.className = "tf-rail-group__summary";
         body.className = "tf-rail-group__body";
+        inner.className = "tf-rail-group__body-inner";
         label.textContent = node.textContent.trim();
         icon.className = "material-symbols-rounded tf-rail-group__icon";
         icon.setAttribute("aria-hidden", "true");
@@ -91,15 +98,19 @@
 
         summary.appendChild(label);
         summary.appendChild(icon);
+        body.appendChild(inner);
         details.appendChild(summary);
         details.appendChild(body);
         nav.appendChild(details);
         groups.push(details);
         currentBody = body;
+        currentInner = inner;
         return;
       }
 
-      if (currentBody) {
+      if (currentInner) {
+        currentInner.appendChild(node);
+      } else if (currentBody) {
         currentBody.appendChild(node);
       } else {
         nav.appendChild(node);
@@ -111,25 +122,58 @@
     var activeGroup = groups.find(function (group) {
       return Boolean(group.querySelector(".is-active, [aria-current='page']"));
     });
-    var savedIndex = window.sessionStorage.getItem(storageKey);
-    var savedGroup = groups.find(function (group) {
-      return group.getAttribute("data-rail-group") === savedIndex;
-    });
-    var initialGroup = activeGroup || savedGroup || groups[0];
+    var savedRaw = window.sessionStorage.getItem(storageKey) || "";
+    var savedIndexes = savedRaw.split(",").filter(Boolean);
+    var opened = false;
 
-    initialGroup.open = true;
+    if (activeGroup) {
+      activeGroup.open = true;
+      opened = true;
+    }
+
+    if (!exclusive) {
+      groups.forEach(function (group) {
+        var idx = group.getAttribute("data-rail-group") || "";
+        if (savedIndexes.indexOf(idx) !== -1) {
+          group.open = true;
+          opened = true;
+        }
+      });
+    } else {
+      var savedGroup = groups.find(function (group) {
+        return group.getAttribute("data-rail-group") === savedIndexes[0];
+      });
+      var initialGroup = activeGroup || savedGroup || groups[0];
+      initialGroup.open = true;
+      opened = true;
+    }
+
+    if (!opened && groups[0]) {
+      groups[0].open = true;
+    }
+
+    function persistOpenGroups() {
+      var openIds = groups
+        .filter(function (group) {
+          return group.open;
+        })
+        .map(function (group) {
+          return group.getAttribute("data-rail-group") || "0";
+        });
+      window.sessionStorage.setItem(
+        storageKey,
+        exclusive ? openIds[0] || "0" : openIds.join(",")
+      );
+    }
 
     groups.forEach(function (group) {
       group.addEventListener("toggle", function () {
-        if (!group.open) return;
-
-        groups.forEach(function (sibling) {
-          if (sibling !== group) sibling.open = false;
-        });
-        window.sessionStorage.setItem(
-          storageKey,
-          group.getAttribute("data-rail-group") || "0"
-        );
+        if (exclusive && group.open) {
+          groups.forEach(function (sibling) {
+            if (sibling !== group) sibling.open = false;
+          });
+        }
+        persistOpenGroups();
       });
     });
 

@@ -352,7 +352,7 @@ def _redirect_after_email_verified(user):
     except UserProfile.DoesNotExist:
         return redirect('catalogo_publico')
     if user.is_superuser or role == 'admin':
-        return redirect('admin:index')
+        return redirect('dashboard')
     if role == 'seller':
         return redirect('portal_seller')
     buyer_route = buyer_onboarding_redirect_name(user)

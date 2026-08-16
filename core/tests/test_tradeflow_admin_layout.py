@@ -5,12 +5,20 @@ from pathlib import Path
 
 from django.contrib.auth.models import User
 from django.contrib.staticfiles import finders
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from core.models import UserProfile
 
 
+@override_settings(
+    DEBUG=True,
+    SECURE_SSL_REDIRECT=False,
+    ALLOWED_HOSTS=["testserver", "localhost", "*"],
+    AXES_ENABLED=False,
+    REQUIRE_EMAIL_VERIFICATION=False,
+    STAFF_MFA_REQUIRED=False,
+)
 class TradeFlowAdminLayoutTests(TestCase):
     """Ensure every native admin view keeps the shared TradeFlow layout."""
 
@@ -43,14 +51,12 @@ class TradeFlowAdminLayoutTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "tf-admin-user-tools")
         self.assertContains(
             response,
             'data-tf-admin-header="shared"',
         )
-        self.assertContains(response, "tf-admin-user-avatar")
-        self.assertContains(response, "Patricia Vásquez")
-        self.assertContains(response, "Logout")
+        self.assertContains(response, 'id="admRail"')
+        self.assertContains(response, 'data-rail-accordion="multi"')
         self.assertContains(response, 'aria-controls="admRail"')
         self.assertContains(response, 'aria-expanded="false"')
         self.assertContains(
@@ -61,6 +67,9 @@ class TradeFlowAdminLayoutTests(TestCase):
             response,
             "css/tradeflow_admin_unified.css",
         )
+        self.assertContains(response, "Operations")
+        self.assertNotContains(response, "Advanced CRUD")
+        self.assertNotContains(response, 'id="nav-sidebar"')
         self.assertNotContains(response, "tf-admin-header-link")
         self.assertIsNotNone(layout_path)
         self.assertIsNotNone(continuity_path)
@@ -85,24 +94,27 @@ class TradeFlowAdminLayoutTests(TestCase):
         self.assertIn("tf-admin-drawer-open", unified)
         self.assertIn("overflow: hidden !important", unified)
 
-    def test_admin_index_uses_the_same_full_width_shell(self):
-        """The administration index cannot fall back to a second shell."""
+    def test_admin_index_routes_into_ops_dashboard_shell(self):
+        """/admin/ no longer renders a second dashboard shell."""
         response = self.client.get(reverse("admin:index"))
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "tf-admin-dashboard")
-        self.assertContains(response, 'id="admRail"')
-        self.assertContains(response, "tf-admin-user-tools")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("dashboard"))
+
+        dashboard = self.client.get(reverse("dashboard"))
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertContains(dashboard, 'id="admRail"')
         self.assertContains(
-            response,
+            dashboard,
             'data-tf-admin-header="shared"',
         )
         self.assertContains(
-            response,
+            dashboard,
             "css/tradeflow_admin_continuity.css",
         )
         self.assertContains(
-            response,
+            dashboard,
             "css/tradeflow_admin_unified.css",
         )
-        self.assertNotContains(response, "tf-system-rail")
+        self.assertNotContains(dashboard, "tf-system-rail")
+        self.assertNotContains(dashboard, "Full administration")

@@ -36,7 +36,7 @@ def _redirect_by_role(user):
         role = None
 
     if user.is_superuser or role == 'admin':
-        return reverse('admin:index')
+        return reverse('dashboard')
     if role == 'seller':
         from core.utils.access_gating import seller_onboarding_redirect_name
         seller_route = seller_onboarding_redirect_name(user)

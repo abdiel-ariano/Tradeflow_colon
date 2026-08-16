@@ -18,6 +18,14 @@ from core.enterprise_models import (
 from core.models import Order, Product, UserProfile
 
 
+@override_settings(
+    DEBUG=True,
+    SECURE_SSL_REDIRECT=False,
+    ALLOWED_HOSTS=["testserver", "localhost", "*"],
+    AXES_ENABLED=False,
+    REQUIRE_EMAIL_VERIFICATION=False,
+    STAFF_MFA_REQUIRED=False,
+)
 class TradeFlowAdminSiteTests(TestCase):
     """Verify access, branding, model coverage, and demo safety."""
 
@@ -34,14 +42,22 @@ class TradeFlowAdminSiteTests(TestCase):
         )
         self.client.force_login(self.operator)
 
-    def test_admin_index_uses_tradeflow_branding(self):
-        """The root admin view renders the branded operational dashboard."""
+    def test_admin_index_routes_to_ops_dashboard(self):
+        """The root admin URL hands operators to the ops dashboard."""
         response = self.client.get(reverse("admin:index"))
 
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("dashboard"))
+
+    def test_ops_dashboard_keeps_tradeflow_branding(self):
+        """The operational dashboard remains the branded home for admins."""
+        response = self.client.get(reverse("dashboard"))
+
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Full administration")
-        self.assertContains(response, "css/tradeflow_admin.css")
+        self.assertContains(response, "tradeflow_admin_ops.css")
         self.assertContains(response, 'id="admRail"')
+        self.assertNotContains(response, "Advanced CRUD")
+        self.assertNotContains(response, "Full administration")
 
     def test_native_admin_uses_consistent_tradeflow_styles(self):
         """Native lists load the stable light TradeFlow presentation layer."""
@@ -60,24 +76,16 @@ class TradeFlowAdminSiteTests(TestCase):
         self.assertIn("--tf-system-rail-width: 252px", css)
         self.assertIn("#result_list tbody tr:nth-child(even)", css)
 
-    def test_admin_index_exposes_persistent_operational_navigation(self):
-        """Critical modules are visible directly in the left navigation."""
-        response = self.client.get(reverse("admin:index"))
-        expected_links = (
-            reverse("admin:core_order_changelist"),
-            reverse("admin:core_payment_changelist"),
-            reverse("admin:core_product_changelist"),
-            reverse("admin:core_inventory_changelist"),
-            reverse("admin:core_company_changelist"),
-            reverse("admin:auth_user_changelist"),
-            reverse("admin:core_shipment_changelist"),
-            reverse("admin:core_saasplan_changelist"),
-            reverse("admin:core_apiauditlog_changelist"),
-        )
+    def test_admin_changelist_stays_on_shared_ops_rail(self):
+        """Deep Django Admin pages keep the ops rail, not a second IA."""
+        response = self.client.get(reverse("admin:core_product_changelist"))
 
-        for url in expected_links:
-            with self.subTest(url=url):
-                self.assertContains(response, f'href="{url}"')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="admRail"')
+        self.assertContains(response, reverse("dashboard"))
+        self.assertContains(response, reverse("lista_ordenes"))
+        self.assertNotContains(response, "Advanced CRUD")
+        self.assertContains(response, "Operations")
 
     def test_tradeflow_admin_can_view_business_and_user_models(self):
         """An operator can inspect both marketplace and account records."""
@@ -114,7 +122,9 @@ class TradeFlowAdminSiteTests(TestCase):
             email="root@example.com",
         )
         user_admin = admin.site._registry[User]
-        request = self.client.get(reverse("admin:index")).wsgi_request
+        request = self.client.get(
+            reverse("admin:core_product_changelist")
+        ).wsgi_request
         request.user = self.operator
 
         self.assertTrue(user_admin.has_view_permission(request, protected_user))
@@ -132,7 +142,7 @@ class TradeFlowAdminSiteTests(TestCase):
     def test_configured_demo_operator_has_full_crud(self):
         """The configured demo remains a complete administrator."""
         product_admin = admin.site._registry[Product]
-        response = self.client.get(reverse("admin:index"))
+        response = self.client.get(reverse("admin:core_product_changelist"))
         request = response.wsgi_request
         request.user = self.operator
 
@@ -154,18 +164,18 @@ class TradeFlowAdminSiteTests(TestCase):
         self.operator.save(update_fields=["is_staff"])
         self.operator.groups.clear()
 
-        response = self.client.get(reverse("admin:index"))
+        response = self.client.get(reverse("admin:core_product_changelist"))
         self.operator.refresh_from_db()
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(self.operator.is_staff)
 
-    def test_authenticated_admin_login_opens_django_admin(self):
-        """An administrator enters the integral Django Admin after login."""
+    def test_authenticated_admin_login_opens_ops_dashboard(self):
+        """An administrator enters the ops dashboard after login."""
         response = self.client.get(reverse("login"))
 
         self.assertRedirects(
             response,
-            reverse("admin:index"),
+            reverse("dashboard"),
             fetch_redirect_response=False,
         )

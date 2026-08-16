@@ -71,7 +71,7 @@ def staff_mfa_verify(request):
             next_url = request.GET.get('next') or request.POST.get('next') or ''
             if next_url.startswith('/') and not next_url.startswith('//'):
                 return redirect(next_url)
-            return redirect('admin:index')
+            return redirect('dashboard')
         messages.error(request, 'Invalid authentication or backup code. Try again.')
 
     return render(request, 'core/staff_mfa_verify.html', {
@@ -93,7 +93,7 @@ def staff_mfa_setup(request):
             request,
             'The configured demo administrator does not require staff MFA.',
         )
-        return redirect('admin:index')
+        return redirect('dashboard')
 
     if not user_is_staffish(request.user):
         messages.error(request, 'Only staff accounts can configure MFA.')
