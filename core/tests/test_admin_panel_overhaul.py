@@ -122,6 +122,9 @@ class AdminPanelOverhaulTests(TestCase):
         self.assertEqual(dash.status_code, 200)
         body = dash.content.decode()
         self.assertIn('tradeflow_admin_ops.css', body)
+        self.assertIn('data-tf-admin-header="shared"', body)
+        self.assertIn('background:#F2F3F5', body)
+        self.assertNotIn('class="tf-nav tf-navbar"', body)
         self.assertNotIn('Advanced CRUD', body)
         self.assertNotIn('Advanced create', body)
         self.assertNotIn('title="Marketplace"', body)
@@ -134,6 +137,19 @@ class AdminPanelOverhaulTests(TestCase):
         self.assertEqual(products.status_code, 200)
         self.assertNotContains(products, 'Advanced create')
         self.assertNotContains(products, 'adm-btn--advanced')
+        self.assertContains(products, 'data-tf-admin-header="shared"')
+        self.assertNotContains(products, 'class="tf-nav tf-navbar"')
+
+        orders = self.client.get(reverse('lista_ordenes'))
+        self.assertEqual(orders.status_code, 200)
+        self.assertContains(orders, 'data-tf-admin-header="shared"')
+        self.assertContains(orders, 'tradeflow_admin_ops.css')
+        head_end = orders.content.decode().find('</head>')
+        self.assertGreater(head_end, 0)
+        self.assertIn(
+            'tradeflow_admin_ops.css',
+            orders.content.decode()[:head_end],
+        )
 
     def test_admin_index_routes_to_ops_dashboard(self):
         """/admin/ is not a second control panel — it hands off to ops."""

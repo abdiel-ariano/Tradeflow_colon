@@ -23,6 +23,11 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <meta name="apple-mobile-web-app-title" content="TradeFlow">
   <meta name="description" content="{% block meta_description %}B2B and B2C marketplace in the Colón Free Zone — verified companies, catalog, logistics, and secure purchasing.{% endblock %}">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
+  {% if request.user.is_authenticated %}
+    {% if request.user.is_superuser or tf_user_role == 'admin' %}
+  <style nonce="{{ csp_nonce }}">html{background:#F2F3F5}</style>
+    {% endif %}
+  {% endif %}
   {% block extra_head %}{% endblock %}
   <link rel="manifest" href="{% url 'web_app_manifest' %}">
   <link rel="icon" type="image/png" href="{% static 'img/logo-icon-color.png' %}" sizes="32x32">
@@ -42,6 +47,11 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-mobile-pwa.css' %}?v={{ tf_asset_version|default:'2' }}">
   <script nonce="{{ csp_nonce }}" defer src="{% static 'js/tf-mobile-pwa.js' %}?v={{ tf_asset_version|default:'2' }}"></script>
   <link rel="stylesheet" href="{% static 'css/tf-icons.css' %}?v={{ tf_asset_version|default:'2' }}">
+  {% if request.user.is_authenticated %}
+    {% if request.user.is_superuser or tf_user_role == 'admin' %}
+  {% include "core/includes/admin_ops_assets.html" %}
+    {% endif %}
+  {% endif %}
   {% if request.resolver_match and request.resolver_match.url_name == 'home' %}
   <link rel="preload" href="{% static 'img/logo-wordmark-white.png' %}?v={{ tf_asset_version|default:'6' }}" as="image" type="image/png" fetchpriority="high">
   {% else %}
@@ -1061,7 +1071,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </style>
   {% block extra_css %}{% endblock %}
 </head>
-<body class="tf-design-v2{% block body_shell_class %}{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif request.user.is_superuser or tf_user_role == 'admin' %}{% elif tf_user_role == 'seller' %} tf-public tf-public-shell{% else %} tf-public-shell{% endif %}{% endblock %}">
+<body class="tf-design-v2{% block body_shell_class %}{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif request.user.is_superuser or tf_user_role == 'admin' %} tf-admin-unified{% elif tf_user_role == 'seller' %} tf-public tf-public-shell{% else %} tf-public-shell{% endif %}{% endblock %}">
   {% if request.user.is_authenticated %}
   <div id="tf-nav-meta" class="d-none"
        data-role="{{ tf_user_role }}"
@@ -1087,46 +1097,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     {% endif %}
     {% endwith %}
   {% elif request.user.is_superuser or tf_user_role == 'admin' %}
-  {# Admin: navbar operativa (tf-nav). Map oculto hasta fix mapa_zlc. #}
-  <nav class="tf-nav tf-navbar" aria-label="Principal">
-    <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">
-      {% include "core/includes/tf_logo.html" with variant="icon-color" size="nav" class="tf-nav-logo-img" eager=1 %}
-    </a>
-
-    <button class="tf-hamburger" id="tf-hamburger" aria-label="Menu" type="button">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-
-    <div class="tf-nav-links">
-      {% comment %}
-      <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>Map</a>
-      {% endcomment %}
-      <div class="tf-nav-group is-visible" id="tf-nav-admin" data-tf-nav-group="admin">
-        <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
-        <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>Orders</a>
-        <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
-        <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>Companies</a>
-        <a href="{% url 'admin_applications' %}" class="nav-link-tf" data-tf-nav="admin_applications">
-          <span class="material-symbols-rounded tf-ms-nav">assignment_ind</span>Applications
-          {% if pending_applications_count %}
-          <span style="background:var(--tf-orange);color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px;">{{ pending_applications_count }}</span>
-          {% endif %}
-        </a>
-      </div>
-      <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
-      <div class="tf-nav-user-block">
-        <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link">
-          <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
-          <span class="tf-nav-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
-        </a>
-        <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
-          <span class="material-symbols-rounded tf-ms-18">logout</span>Sign out
-        </a>
-      </div>
-    </div>
-  </nav>
+  {# Shared ops header — same chrome on every admin page (no marketplace tf-nav). #}
+  {% include "core/includes/admin_header.html" with logout_url_name="logout" %}
   {% else %}
     {# Buyer autenticado: buyer/buyer_navbar.html #}
     {% include "core/includes/buyer/buyer_navbar.html" %}
