@@ -90,12 +90,10 @@ class TradeFlowAdminLayoutTests(TestCase):
         self.assertIn("body.tf-admin-unified", unified)
         self.assertIn("--tf-admin-header-height: 64px", unified)
         self.assertIn("--tf-admin-rail-width: 252px", unified)
-        self.assertIn("--tf-admin-rail-width: 76px", unified)
-        self.assertIn(".adm-shell.adm-shell--rail-narrow", unified)
+        self.assertNotIn("--tf-admin-rail-width: 76px", unified)
+        self.assertNotIn("adm-shell--rail-narrow", unified)
         self.assertIn("tf-admin-drawer-open", unified)
         self.assertIn("overflow: hidden !important", unified)
-        self.assertIn("tf-rail-group__summary", unified)
-        self.assertIn("display: none !important", unified)
 
     def test_admin_index_routes_into_ops_dashboard_shell(self):
         """/admin/ no longer renders a second dashboard shell."""
