@@ -1,5 +1,18 @@
-{# Shared admin visual contract — load once with the rail on every ops page. #}
+{# Ops admin visual contract — load from <head> to avoid white-flash FOUC. #}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/tradeflow_admin_continuity.css' %}">
-<link rel="stylesheet" href="{% static 'css/tradeflow_admin_unified.css' %}">
-<link rel="stylesheet" href="{% static 'css/tradeflow_admin_ops.css' %}">
+<style nonce="{{ csp_nonce }}">
+  /* Paint stable ops canvas before late public CSS finishes. */
+  html,
+  body.tf-design-v2 {
+    background: #F2F3F5 !important;
+  }
+  body.tf-admin-unified,
+  body:has(.adm-shell) {
+    background: #F2F3F5 !important;
+    color: #172b3a;
+  }
+</style>
+<link rel="stylesheet" href="{% static 'css/tradeflow_admin_continuity.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/tradeflow_admin_unified.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/tradeflow_admin_ops.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/admin_shell.css' %}?v={{ tf_asset_version|default:'2' }}">

@@ -3,9 +3,9 @@ Shared TradeFlow administration rail — ops-first IA.
 
 Daily work stays in custom panel routes. Django Admin changelists remain
 reachable by direct URL for rare system edits; they are not rail destinations.
+CSS for this shell loads from <head> via admin_ops_assets (not here) to avoid FOUC.
 {% endcomment %}
 {% load static %}
-{% include "core/includes/admin_ops_assets.html" %}
 <button
   type="button"
   id="tfAdminRailBackdrop"
