@@ -188,6 +188,8 @@ class StaffMfaHelperTests(TestCase):
     STAFF_MFA_REQUIRED=True,
     EXPO_DEMO_MODE=False,
     SAAS_DEMO_ADMIN_USERNAME='demo_admin',
+    SECURE_SSL_REDIRECT=False,
+    ALLOWED_HOSTS=['testserver', 'localhost', '*'],
 )
 class DemoAdminAccessTests(TestCase):
     """Verify the walkthrough administrator can operate every admin screen."""
@@ -216,10 +218,14 @@ class DemoAdminAccessTests(TestCase):
         self.assertContains(response, 'class="adm-rail-link"')
 
     def test_django_admin_is_available(self):
-        """Every configured demo operator can enter Django Admin directly."""
-        response = self.client.get('/admin/')
+        """Demo operators reach ops home; deep Django Admin URLs still work."""
+        index = self.client.get('/admin/')
+        self.assertEqual(index.status_code, 302)
+        self.assertEqual(index.url, reverse('dashboard'))
 
-        self.assertEqual(response.status_code, 200)
+        changelist = self.client.get(reverse('admin:core_product_changelist'))
+        self.assertEqual(changelist.status_code, 200)
+        self.assertContains(changelist, 'id="admRail"')
 
     def test_saas_mutation_reaches_the_real_action(self):
         """The middleware does not reject writable SaaS requests."""
