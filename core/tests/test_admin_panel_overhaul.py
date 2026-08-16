@@ -127,7 +127,8 @@ class AdminPanelOverhaulTests(TestCase):
         self.assertNotIn('title="Marketplace"', body)
         self.assertIn('tf-admin-unified', body)
         self.assertIn('data-rail-accordion="multi"', body)
-        self.assertIn('admRailToggle', body)
+        self.assertNotIn('admRailToggle', body)
+        self.assertNotIn('Collapse', body)
 
         products = self.client.get(reverse('lista_productos'))
         self.assertEqual(products.status_code, 200)
