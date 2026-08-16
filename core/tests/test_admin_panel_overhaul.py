@@ -115,3 +115,17 @@ class AdminPanelOverhaulTests(TestCase):
         self.assertContains(products, 'Dense SKU Widget')
         self.assertContains(products, '<table class="adm-table">')
         self.assertContains(products, 'Deactivate')
+
+    def test_ops_visual_contract_is_unified(self):
+        """Ops pages share brand CSS and Advanced CRUD escape hatches."""
+        dash = self.client.get(reverse('dashboard'))
+        self.assertEqual(dash.status_code, 200)
+        body = dash.content.decode()
+        self.assertIn('tradeflow_admin_ops.css', body)
+        self.assertIn('Advanced CRUD', body)
+        self.assertIn('tf-admin-unified', body)
+
+        products = self.client.get(reverse('lista_productos'))
+        self.assertEqual(products.status_code, 200)
+        self.assertContains(products, 'adm-btn--advanced')
+        self.assertContains(products, 'Advanced create')

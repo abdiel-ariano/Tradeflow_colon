@@ -2,9 +2,10 @@
 Shared TradeFlow administration rail — ops-first IA.
 
 Primary destinations are custom panel views (work queue, directories, approvals).
-Django Admin remains available under Platform for deep/rare CRUD.
+Advanced CRUD (Django) remains under Platform for deep/rare edits.
 {% endcomment %}
 {% load static %}
+{% include "core/includes/admin_ops_assets.html" %}
 <button
   type="button"
   id="tfAdminRailBackdrop"
@@ -122,10 +123,10 @@ Django Admin remains available under Platform for deep/rare CRUD.
       class="adm-rail-link"
       href="{% url 'admin:index' %}"
       data-tf-admin-route="/admin/"
-      title="Django Admin"
+      title="Advanced CRUD"
     >
       <span class="material-symbols-rounded" aria-hidden="true">admin_panel_settings</span>
-      <span class="adm-rail-label">Django Admin</span>
+      <span class="adm-rail-label">Advanced CRUD</span>
     </a>
   </nav>
 

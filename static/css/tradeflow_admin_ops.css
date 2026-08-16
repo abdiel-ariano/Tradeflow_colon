@@ -1,0 +1,148 @@
+/*
+ * TradeFlow Colón — single visual language for ops admin pages.
+ *
+ * Aligns wizard, tables, and SaaS host chrome with --tf-* brand tokens
+ * so the custom panel no longer drifts into teal (#098698) or a second orange.
+ */
+
+body.tf-admin-unified,
+body:has(.adm-shell) {
+  --tf-admin-navy: var(--tf-navy, #0F2A44);
+  --tf-admin-navy-deep: var(--tf-navy-deep, #081E33);
+  --tf-admin-orange: var(--tf-orange, #F26522);
+  --tf-admin-orange-dark: var(--tf-orange-h, #FF7A3D);
+  --tf-admin-page: var(--tf-light, #F2F3F5);
+  --tf-admin-border: var(--tf-border, #D1D5DB);
+  --tf-admin-text: #172b3a;
+  --tf-admin-muted: var(--tf-muted, #6B7A88);
+  --tf-admin-font: var(--tf-font-body, "Montserrat", system-ui, sans-serif);
+
+  /* Legacy --color-* aliases used by wizard / old forms */
+  --color-primary: var(--tf-orange, #F26522);
+  --color-primary-dark: var(--tf-orange-h, #FF7A3D);
+  --color-primary-light: var(--tf-orange-light, #FDE8DF);
+  --color-primary-glow: rgba(242, 101, 34, 0.12);
+  --color-primary-overlay: rgba(242, 101, 34, 0.18);
+  --color-accent: var(--tf-blue, #2E5B8A);
+  --color-bg: var(--tf-light, #F2F3F5);
+  --color-text: var(--tf-admin-text);
+  --color-muted: var(--tf-muted, #6B7A88);
+  --color-border: var(--tf-border, #D1D5DB);
+
+  font-family: var(--tf-admin-font);
+  background: var(--tf-admin-page);
+  color: var(--tf-admin-text);
+}
+
+body:has(.adm-shell) .adm-main,
+body.tf-admin-unified .adm-main {
+  font-family: var(--tf-admin-font);
+}
+
+/* Wizard — TradeFlow steps (replaces teal product-select aesthetic) */
+.adm-shell .wizard-steps {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--tf-admin-border);
+  background: #fff;
+}
+
+.adm-shell .wizard-step {
+  flex: 1;
+  padding: 12px 16px;
+  background: #fff;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--tf-admin-muted);
+  border-bottom: 3px solid transparent;
+}
+
+.adm-shell .wizard-step.active {
+  color: var(--tf-admin-navy);
+  border-bottom-color: var(--tf-admin-orange);
+  background: rgba(242, 101, 34, 0.06);
+}
+
+.adm-shell .wizard-step.done {
+  color: var(--tf-admin-navy);
+  border-bottom-color: var(--tf-blue, #2E5B8A);
+}
+
+.adm-shell .buyer-card:hover,
+.adm-shell .buyer-card.selected,
+.adm-shell .producto-card .precio,
+.adm-shell .pago-option:hover,
+.adm-shell .pago-option:has(input:checked) {
+  border-color: var(--tf-admin-orange);
+}
+
+.adm-shell .buyer-card.selected {
+  background: var(--tf-orange-light, #FDE8DF);
+}
+
+.adm-shell .producto-card .precio {
+  color: var(--tf-admin-navy);
+}
+
+.adm-shell .pago-option input[type="radio"] {
+  accent-color: var(--tf-admin-orange);
+}
+
+.adm-shell .form-card,
+.adm-shell .tf-centered-form {
+  border: 1px solid var(--tf-admin-border);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(15, 42, 68, 0.06);
+}
+
+.adm-shell .btn.btn-primary,
+.adm-shell .btn-primary {
+  background: var(--tf-admin-orange) !important;
+  border-color: var(--tf-admin-orange) !important;
+  color: #fff !important;
+  font-family: var(--tf-admin-font);
+  font-weight: 600;
+}
+
+.adm-shell .btn.btn-primary:hover,
+.adm-shell .btn-primary:hover {
+  background: var(--tf-admin-orange-dark) !important;
+  border-color: var(--tf-admin-orange-dark) !important;
+}
+
+.adm-shell .btn.btn-secondary,
+.adm-shell .btn-secondary {
+  border-color: var(--tf-admin-border) !important;
+  color: var(--tf-admin-navy) !important;
+  background: #fff !important;
+}
+
+/* Advanced / Django Admin escape — secondary, not primary orange */
+.adm-btn--advanced {
+  background: transparent !important;
+  border: 1px solid var(--tf-admin-border) !important;
+  color: var(--tf-admin-muted) !important;
+  font-weight: 600;
+}
+
+.adm-btn--advanced:hover {
+  border-color: var(--tf-admin-navy) !important;
+  color: var(--tf-admin-navy) !important;
+  background: rgba(15, 42, 68, 0.04) !important;
+}
+
+/* SaaS host: same typeface and page canvas as ops */
+.adm-shell .adm-main.adm-saas-wrap,
+#admin-saas-root {
+  font-family: var(--tf-admin-font) !important;
+  --color-background: var(--tf-admin-page);
+  --color-border: var(--tf-admin-border);
+  --color-muted-foreground: var(--tf-admin-muted);
+  --color-primary: var(--tf-blue, #2E5B8A);
+  --color-emerald: var(--tf-admin-orange);
+}

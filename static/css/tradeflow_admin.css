@@ -8,15 +8,15 @@
 
 :root {
   --tf-admin-navy: #0f2a44;
-  --tf-admin-navy-deep: #091d30;
-  --tf-admin-blue: #0d5f9f;
-  --tf-admin-orange: #ff641f;
-  --tf-admin-orange-dark: #d9470a;
+  --tf-admin-navy-deep: #081e33;
+  --tf-admin-blue: #2e5b8a;
+  --tf-admin-orange: #f26522;
+  --tf-admin-orange-dark: #ff7a3d;
   --tf-admin-surface: #ffffff;
-  --tf-admin-bg: #f3f6f9;
-  --tf-admin-border: #dbe3ea;
+  --tf-admin-bg: #f2f3f5;
+  --tf-admin-border: #d1d5db;
   --tf-admin-text: #172b3a;
-  --tf-admin-muted: #627484;
+  --tf-admin-muted: #6b7a88;
   --tf-admin-success: #16815d;
   --tf-admin-danger: #b42318;
   --primary: var(--tf-admin-navy);
