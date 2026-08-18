@@ -67,7 +67,7 @@ jobs:
             exit 1
           fi
 
-          helper_b64="$(base64 -w0 scripts/aws/configure_media_runtime.sh)"
+          HELPER_B64="$(base64 -w0 scripts/aws/configure_media_runtime.sh)"
           export HELPER_B64 IMAGE_URI MEDIA_BUCKET AWS_REGION
           python3 - <<'PY' >/tmp/tradeflow-ssm-parameters.json
           import json
