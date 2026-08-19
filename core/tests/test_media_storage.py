@@ -12,6 +12,8 @@ from django.core.management.base import CommandError
 from django.test import SimpleTestCase, override_settings
 
 from core.management.commands.verify_media import _url_without_query
+from core.templatetags.tf_media import product_image_src
+from core.utils.demo_product_images import is_demo_generated_image
 from core.utils.media_storage import product_image_url
 
 
@@ -69,3 +71,55 @@ class ProductImageUrlTests(SimpleTestCase):
             ),
             'https://bucket.s3.amazonaws.com/productos/wolf.jpg',
         )
+
+
+class ProductImageClassificationTests(SimpleTestCase):
+    """Real seller uploads must win over demo fallbacks on every company."""
+
+    @staticmethod
+    def _product(path='products/seller-upload.jpg'):
+        """Build a simulated-company product with a concrete remote upload."""
+        image = SimpleNamespace(
+            name=path,
+            url=(
+                'https://private-media.s3.amazonaws.com/'
+                f'{path}?X-Amz-Signature=secret'
+            ),
+        )
+        return SimpleNamespace(
+            pk=1344,
+            sku='AWS-S3-TEST-20260818B',
+            name='PRUEBA AWS S3',
+            image=image,
+            company=SimpleNamespace(ruc='8-1Y-SIM-001'),
+        )
+
+    def test_real_upload_from_simulated_company_is_not_demo_media(self):
+        """Company simulation metadata must not hide a real seller upload."""
+        product = self._product()
+
+        self.assertFalse(is_demo_generated_image(product, product.image.name))
+
+    def test_known_generated_paths_remain_demo_media(self):
+        """Only paths owned by demo generators may use reference fallbacks."""
+        product = self._product()
+
+        for path in (
+            'products/demo/product_1344.jpg',
+            'productos/placeholders/placeholder_1344.png',
+        ):
+            with self.subTest(path=path):
+                self.assertTrue(is_demo_generated_image(product, path))
+
+    @override_settings(
+        STORAGES={
+            'default': {
+                'BACKEND': 'storages.backends.s3.S3Storage',
+            }
+        }
+    )
+    def test_template_filter_keeps_signed_s3_url_for_real_upload(self):
+        """Catalog cards must render the valid S3 object instead of an icon."""
+        product = self._product()
+
+        self.assertEqual(product_image_src(product), product.image.url)
