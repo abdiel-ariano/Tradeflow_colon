@@ -60,30 +60,30 @@ Solo presentación; contrato del formulario sin cambios.
                 <div class="signup-buyer-float">
                   <input
                     type="text"
-                    name="first_name"
-                    id="id_first_name"
+                    name="company_first_name"
+                    id="id_company_first_name"
                     class="signup-buyer-float__input tf-input"
                     placeholder=" "
-                    value="{{ form_first_name|default:'' }}"
+                    value="{{ form_company_first_name|default:'' }}"
                     required
-                    aria-describedby="hint-first-name"
+                    aria-describedby="hint-company-first-name"
                   >
-                  <label class="signup-buyer-float__label" for="id_first_name">{% trans "First name" %} <span class="req" aria-hidden="true">*</span></label>
+                  <label class="signup-buyer-float__label" for="id_company_first_name">{% trans "Company contact first name" %} <span class="req" aria-hidden="true">*</span></label>
                 </div>
-                <p class="auth-field-hint" id="hint-first-name">{% trans "Letters and spaces only (min. 2 characters)." %}</p>
+                <p class="auth-field-hint" id="hint-company-first-name">{% trans "Letters and spaces only (min. 2 characters)." %}</p>
               </div>
 
               <div class="signup-buyer-field tf-field">
                 <div class="signup-buyer-float">
                   <input
                     type="text"
-                    name="last_name"
-                    id="id_last_name"
+                    name="company_last_name"
+                    id="id_company_last_name"
                     class="signup-buyer-float__input tf-input"
                     placeholder=" "
-                    value="{{ form_last_name|default:'' }}"
+                    value="{{ form_company_last_name|default:'' }}"
                   >
-                  <label class="signup-buyer-float__label" for="id_last_name">{% trans "Last name" %}</label>
+                  <label class="signup-buyer-float__label" for="id_company_last_name">{% trans "Company contact last name" %}</label>
                 </div>
               </div>
             </div>
@@ -92,15 +92,15 @@ Solo presentación; contrato del formulario sin cambios.
               <div class="signup-buyer-float">
                 <input
                   type="email"
-                  name="email"
-                  id="id_email"
+                  name="company_email"
+                  id="id_company_email"
                   class="signup-buyer-float__input tf-input"
                   placeholder=" "
-                  value="{{ form_email|default:'' }}"
+                  value="{{ form_company_email|default:'' }}"
                   autocomplete="off"
                   required
                 >
-                <label class="signup-buyer-float__label" for="id_email">{% trans "Email" %} <span class="req" aria-hidden="true">*</span></label>
+                <label class="signup-buyer-float__label" for="id_company_email">{% trans "Company email" %} <span class="req" aria-hidden="true">*</span></label>
               </div>
             </div>
 
@@ -108,13 +108,13 @@ Solo presentación; contrato del formulario sin cambios.
               <div class="signup-buyer-float">
                 <input
                   type="tel"
-                  name="phone"
-                  id="id_phone"
+                  name="company_phone"
+                  id="id_company_phone"
                   class="signup-buyer-float__input tf-input"
                   placeholder=" "
-                  value="{{ form_phone|default:'' }}"
+                  value="{{ form_company_phone|default:'' }}"
                 >
-                <label class="signup-buyer-float__label" for="id_phone">{% trans "Phone" %}</label>
+                <label class="signup-buyer-float__label" for="id_company_phone">{% trans "Company phone" %}</label>
               </div>
             </div>
           </fieldset>
@@ -125,17 +125,17 @@ Solo presentación; contrato del formulario sin cambios.
               <div class="signup-buyer-float">
                 <input
                   type="text"
-                  name="username"
-                  id="id_username"
+                  name="company_username"
+                  id="id_company_username"
                   class="signup-buyer-float__input tf-input"
                   placeholder=" "
                   autocomplete="off"
                   required
-                  aria-describedby="hint-username"
+                  aria-describedby="hint-company-username"
                 >
-                <label class="signup-buyer-float__label" for="id_username">{% trans "Username" %} <span class="req" aria-hidden="true">*</span></label>
+                <label class="signup-buyer-float__label" for="id_company_username">{% trans "Company username" %} <span class="req" aria-hidden="true">*</span></label>
               </div>
-              <p class="auth-field-hint" id="hint-username">{% trans "Letters, numbers, dots and underscores. Must start with a letter (3–30 characters)." %}</p>
+              <p class="auth-field-hint" id="hint-company-username">{% trans "Letters, numbers, dots and underscores. Must start with a letter (3–30 characters)." %}</p>
             </div>
           </fieldset>
 
@@ -153,7 +153,7 @@ Solo presentación; contrato del formulario sin cambios.
                   autocomplete="new-password"
                   required
                 >
-                <label class="signup-buyer-float__label" for="id_password1">{% trans "Password" %} <span class="req" aria-hidden="true">*</span></label>
+                <label class="signup-buyer-float__label" for="id_password1">{% trans "Company password" %} <span class="req" aria-hidden="true">*</span></label>
                 <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Mostrar contraseña" aria-pressed="false" data-target="id_password1">
                   <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
                 </button>
@@ -176,7 +176,7 @@ Solo presentación; contrato del formulario sin cambios.
                   autocomplete="new-password"
                   required
                 >
-                <label class="signup-buyer-float__label" for="id_password2">{% trans "Confirm password" %} <span class="req" aria-hidden="true">*</span></label>
+                <label class="signup-buyer-float__label" for="id_password2">{% trans "Confirm company password" %} <span class="req" aria-hidden="true">*</span></label>
                 <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Mostrar contraseña" aria-pressed="false" data-target="id_password2">
                   <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
                 </button>

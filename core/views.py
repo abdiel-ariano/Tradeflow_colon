@@ -449,28 +449,64 @@ def logout_view(request):
     return redirect('login')
 
 
+def _signup_post_fields(request, forced_role):
+    """Read signup POST keys; buyer/seller use company_* names, legacy uses original names."""
+    if forced_role in ('buyer', 'seller'):
+        return {
+            'first_name': request.POST.get('company_first_name', '').strip(),
+            'last_name': request.POST.get('company_last_name', '').strip(),
+            'username': request.POST.get('company_username', '').strip(),
+            'email': request.POST.get('company_email', '').strip(),
+            'phone': request.POST.get('company_phone', '').strip(),
+            'password1': request.POST.get('password1', ''),
+            'password2': request.POST.get('password2', ''),
+            'use_company_fields': True,
+        }
+    return {
+        'first_name': request.POST.get('first_name', '').strip(),
+        'last_name': request.POST.get('last_name', '').strip(),
+        'username': request.POST.get('username', '').strip(),
+        'email': request.POST.get('email', '').strip(),
+        'phone': request.POST.get('phone', '').strip(),
+        'password1': request.POST.get('password1', ''),
+        'password2': request.POST.get('password2', ''),
+        'use_company_fields': False,
+    }
+
+
 def _process_signup(request, forced_role=None, error_template='core/signup.html'):
-    first_name = escape(request.POST.get('first_name', '').strip())
-    last_name = escape(request.POST.get('last_name', '').strip())
-    username = escape(request.POST.get('username', '').strip())
-    email = request.POST.get('email', '').strip()
-    phone = escape(request.POST.get('phone', '').strip())
+    fields = _signup_post_fields(request, forced_role)
+    first_name = escape(fields['first_name'])
+    last_name = escape(fields['last_name'])
+    username = escape(fields['username'])
+    email = fields['email'].strip()
+    phone = escape(fields['phone'])
     if forced_role is not None:
         role = forced_role
     else:
         role = request.POST.get('role', 'buyer')
-    password1 = request.POST.get('password1', '')
-    password2 = request.POST.get('password2', '')
+    password1 = fields['password1']
+    password2 = fields['password2']
 
     errores = []
     signup_ctx = {
         'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
         'selected_role': role if role in ('buyer', 'seller') else 'buyer',
-        'form_first_name': request.POST.get('first_name', '').strip(),
-        'form_last_name': request.POST.get('last_name', '').strip(),
-        'form_email': email,
-        'form_phone': phone,
     }
+    if fields['use_company_fields']:
+        signup_ctx.update({
+            'form_company_first_name': fields['first_name'],
+            'form_company_last_name': fields['last_name'],
+            'form_company_email': email,
+            'form_company_phone': fields['phone'],
+        })
+    else:
+        signup_ctx.update({
+            'form_first_name': fields['first_name'],
+            'form_last_name': fields['last_name'],
+            'form_email': email,
+            'form_phone': fields['phone'],
+        })
 
     if not all([first_name, username, email, password1, password2]):
         errores.append('All fields marked with * are required.')
@@ -609,7 +645,10 @@ def signup_buyer_view(request):
     if request.method == 'POST':
         return _process_signup(request, forced_role='buyer', error_template='core/signup_buyer.html')
     return render(request, 'core/signup_buyer.html', {
-        'form_first_name': '', 'form_last_name': '', 'form_email': '', 'form_phone': '',
+        'form_company_first_name': '',
+        'form_company_last_name': '',
+        'form_company_email': '',
+        'form_company_phone': '',
     })
 
 
@@ -621,7 +660,10 @@ def signup_seller_view(request):
     if request.method == 'POST':
         return _process_signup(request, forced_role='seller', error_template='core/signup_seller.html')
     return render(request, 'core/signup_seller.html', {
-        'form_first_name': '', 'form_last_name': '', 'form_email': '', 'form_phone': '',
+        'form_company_first_name': '',
+        'form_company_last_name': '',
+        'form_company_email': '',
+        'form_company_phone': '',
     })
 
 
