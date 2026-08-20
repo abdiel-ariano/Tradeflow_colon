@@ -185,15 +185,21 @@
 
     var closeBtn = document.getElementById('tf-chat-close');
     var input = document.getElementById('tf-chat-input');
+    var assistant = document.getElementById('tf-assistant');
     var chatOpen = false;
 
     function setChatOpen(open) {
       chatOpen = !!open;
       win.style.display = chatOpen ? 'flex' : 'none';
+      if (assistant) {
+        assistant.classList.toggle('tf-assistant--open', chatOpen);
+      }
       toggle.setAttribute('aria-expanded', chatOpen ? 'true' : 'false');
       toggle.setAttribute('aria-label', chatOpen ? 'Close assistant' : 'Open assistant');
       if (chatOpen && input) {
         window.requestAnimationFrame(function () { input.focus(); });
+      } else if (!chatOpen && typeof window.TF_SYNC_ASSISTANT_DOCK === 'function') {
+        window.requestAnimationFrame(window.TF_SYNC_ASSISTANT_DOCK);
       }
     }
 
