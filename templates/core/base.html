@@ -1701,7 +1701,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         assistant.classList.remove('tf-assistant--right');
         return;
       }
-      if (tfChatOpen) return;
+      if (tfChatOpen || assistant.classList.contains('tf-assistant--open')) return;
       assistant.classList.toggle('tf-assistant--right', window.scrollY > 80);
     }
 
@@ -1732,10 +1732,12 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       if (!win) return;
       if (tfChatOpen) {
         win.style.display = 'flex';
+        if (assistant) assistant.classList.add('tf-assistant--open');
         if (icon) icon.textContent = 'close';
         if (input && !input.disabled) input.focus();
       } else {
         win.style.display = 'none';
+        if (assistant) assistant.classList.remove('tf-assistant--open');
         if (icon) icon.textContent = 'smart_toy';
         syncAssistantDock();
       }
