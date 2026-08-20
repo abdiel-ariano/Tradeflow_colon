@@ -234,7 +234,10 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
 
     accept_privacy = request.POST.get('accept_privacy') in ('1', 'on', 'true', 'yes')
     if not accept_privacy:
-        errores.append('You must accept the privacy policy to create an account.')
+        errores.append(
+            'You must accept the Privacy Policy, Terms of use, and '
+            'Security & Usage Policy to create an account.'
+        )
 
     if errores:
         for error in errores:

@@ -187,9 +187,11 @@ Solo presentación; contrato del formulario sin cambios.
             <input type="checkbox" name="accept_privacy" value="1" required style="margin-top:3px;">
             <span>
               {% blocktrans trimmed %}I accept the{% endblocktrans %}
-              <a href="{% url 'legal_privacidad' %}" target="_blank" rel="noopener">{% trans "Privacy Policy" %}</a>
+              <a href="{% url 'legal_privacidad' %}" target="_blank" rel="noopener">{% trans "Privacy Policy" %}</a>,
+              <a href="{% url 'legal_terminos' %}" target="_blank" rel="noopener">{% trans "Terms of use" %}</a>,
               {% trans "and" %}
-              <a href="{% url 'legal_terminos' %}" target="_blank" rel="noopener">{% trans "Terms of use" %}</a>.
+              {# TODO: replace /seguridad-y-uso/ when Security & Usage Policy page exists #}
+              <a href="/seguridad-y-uso/" class="js-security-policy-open">{% trans "Security & Usage Policy" %}</a>.
             </span>
           </label>
           <label class="signup-buyer-legal-inline" style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;margin-top:8px;">
@@ -219,6 +221,39 @@ Solo presentación; contrato del formulario sin cambios.
     ·
     <a href="{% url 'legal_privacidad' %}">{% trans "Privacy and terms" %}</a>
   </footer>
+
+  <div
+    class="signup-policy-modal"
+    id="signup-security-policy-modal"
+    hidden
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="signup-security-policy-title"
+  >
+    <div class="signup-policy-modal__backdrop" data-security-policy-close tabindex="-1"></div>
+    <div class="signup-policy-modal__panel">
+      <button type="button" class="signup-policy-modal__close" data-security-policy-close aria-label="{% trans 'Close' %}">×</button>
+      <h2 class="signup-policy-modal__title" id="signup-security-policy-title">{% trans "Security & Usage Policy — Summary" %}</h2>
+      <div class="signup-policy-modal__body">
+        <p>{% blocktrans trimmed %}TradeFlow is a B2B platform exclusively for companies. By registering, you agree that:{% endblocktrans %}</p>
+        <ul>
+          <li>{% blocktrans trimmed %}Your company was verified (KYB) and all information provided is accurate and kept up to date.{% endblocktrans %}</li>
+          <li>{% blocktrans trimmed %}You are solely responsible for the legality of your products, services, and operations, and those of your trading counterpart.{% endblocktrans %}</li>
+          <li>{% blocktrans trimmed %}Using the platform for illegal goods, fraud, money laundering, identity impersonation, or any activity that constitutes a crime is prohibited.{% endblocktrans %}</li>
+          <li>{% blocktrans trimmed %}TradeFlow may monitor your account activity, request additional information, suspend or terminate your account, and report suspicious activity to the competent authorities.{% endblocktrans %}</li>
+          <li>{% blocktrans trimmed %}TradeFlow acts solely as a technological intermediary: it does not participate in, guarantee, or take responsibility for transactions between Buyers and Sellers.{% endblocktrans %}</li>
+          <li>{% blocktrans trimmed %}If your company commits an unlawful act using the platform, you agree to indemnify TradeFlow against any claim arising from it.{% endblocktrans %}</li>
+        </ul>
+        <p>
+          {% blocktrans trimmed %}This is a summary. The full Security & Usage Policy, Terms of Use, and Privacy Policy are available at{% endblocktrans %}
+          {# TODO: replace /seguridad-y-uso/ when Security & Usage Policy page exists #}
+          <a href="/seguridad-y-uso/">{% trans "Security & Usage Policy (full document)" %}</a>
+          {% blocktrans trimmed %}and prevail over this summary in case of any conflict.{% endblocktrans %}
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
 <script nonce="{{ csp_nonce }}">
 (function () {
@@ -293,6 +328,40 @@ Solo presentación; contrato del formulario sin cambios.
       });
       strengthEl.setAttribute('aria-hidden', 'true');
     }
+  }
+
+  var policyModal = document.getElementById('signup-security-policy-modal');
+  function openPolicyModal() {
+    if (!policyModal) return;
+    policyModal.hidden = false;
+    policyModal.setAttribute('aria-hidden', 'false');
+    var closeBtn = policyModal.querySelector('.signup-policy-modal__close');
+    if (closeBtn) closeBtn.focus();
+  }
+  function closePolicyModal() {
+    if (!policyModal) return;
+    policyModal.hidden = true;
+    policyModal.setAttribute('aria-hidden', 'true');
+  }
+  document.querySelectorAll('.js-security-policy-open').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openPolicyModal();
+    });
+  });
+  if (policyModal) {
+    policyModal.querySelectorAll('[data-security-policy-close]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        closePolicyModal();
+      });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && policyModal && !policyModal.hidden) {
+        closePolicyModal();
+      }
+    });
   }
 })();
 </script>

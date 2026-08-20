@@ -553,3 +553,88 @@ main.tf-main > .signup-buyer-page {
     transition: none;
   }
 }
+
+/* Security & Usage Policy summary modal (signup buyer + seller) */
+.signup-buyer-page .signup-policy-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.signup-buyer-page .signup-policy-modal[hidden] {
+  display: none !important;
+}
+
+.signup-buyer-page .signup-policy-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 42, 68, 0.55);
+}
+
+.signup-buyer-page .signup-policy-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(560px, 100%);
+  max-height: min(80vh, 640px);
+  overflow: auto;
+  padding: 28px 24px 24px;
+  border-radius: 12px;
+  background: var(--tf-white, #fff);
+  box-shadow: 0 16px 48px rgba(15, 42, 68, 0.22);
+  color: var(--sb-text, #1f2937);
+}
+
+.signup-buyer-page .signup-policy-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sb-muted, #6b7280);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.signup-buyer-page .signup-policy-modal__close:hover {
+  background: rgba(15, 42, 68, 0.06);
+  color: var(--sb-text, #1f2937);
+}
+
+.signup-buyer-page .signup-policy-modal__title {
+  margin: 0 32px 16px 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--tf-navy, #0f2a44);
+}
+
+.signup-buyer-page .signup-policy-modal__body {
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.signup-buyer-page .signup-policy-modal__body p {
+  margin: 0 0 12px;
+}
+
+.signup-buyer-page .signup-policy-modal__body ul {
+  margin: 0 0 16px;
+  padding-left: 1.25rem;
+}
+
+.signup-buyer-page .signup-policy-modal__body li {
+  margin-bottom: 8px;
+}
+
+.signup-buyer-page .signup-policy-modal__body a {
+  color: var(--sb-link, #1d4ed8);
+  text-decoration: underline;
+}
