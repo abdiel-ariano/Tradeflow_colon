@@ -38,6 +38,9 @@
       {% endif %}
       <a class="tf-btn tf-btn-secondary" href="{% url 'analytics:export' 'csv' %}">CSV</a>
       <a class="tf-btn tf-btn-secondary" href="{% url 'analytics:export' 'xlsx' %}">Excel</a>
+      {% if seller_embedded %}
+      <a class="tf-btn tf-btn-primary" href="#talk-to-your-data">{% trans "Talk to your Data AI" %}</a>
+      {% endif %}
       {% if not seller_embedded %}
       <form method="post" action="{% url 'analytics:clear' %}" style="margin:0;">
         {% csrf_token %}
@@ -358,7 +361,8 @@
     </section>
 
     <!-- ── Chat ──────────────────────────────────────────────────────── -->
-    <h2 class="tf-subtitle an-section">{% if seller_embedded %}Talk to your data{% else %}{% trans "Habla con tus datos" %}{% endif %}</h2>
+    <section id="talk-to-your-data" class="an-section" aria-labelledby="an-talk-heading">
+    <h2 class="tf-subtitle" id="an-talk-heading">{% if seller_embedded %}Talk to your data{% else %}{% trans "Habla con tus datos" %}{% endif %}</h2>
     <div class="an-card an-chat-box">
       <div class="an-chat-msgs" id="an-chat-msgs">
         <div class="an-bubble an-bubble-bot">
@@ -401,6 +405,7 @@
         {% endif %}
       </div>
     </div>
+    </section>
 
     <!-- ── Vista previa de datos ─────────────────────────────────────── -->
     <details class="an-section">
