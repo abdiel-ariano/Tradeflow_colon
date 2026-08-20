@@ -71,6 +71,8 @@
             </div>
           </fieldset>
 
+          {% include "core/includes/oauth_buttons_signup.html" %}
+
           <fieldset class="signup-field-group">
             <legend class="signup-field-group-title">Datos de contacto</legend>
 
@@ -260,6 +262,19 @@
       var input = inputId ? document.getElementById(inputId) : null;
       if (!input) return;
       syncPasswordToggle(btn, input.type !== 'text');
+    });
+  });
+
+  document.querySelectorAll('.js-oauth-signup').forEach(function (btn) {
+    btn.addEventListener('click', function (event) {
+      event.preventDefault();
+      var base = btn.getAttribute('data-base-url');
+      if (!base) return;
+      var selected = document.querySelector('input[name="business_role"]:checked');
+      var businessRole = selected ? selected.value : 'both';
+      var separator = base.indexOf('?') >= 0 ? '&' : '?';
+      window.location.href = base + separator +
+        'business_role=' + encodeURIComponent(businessRole);
     });
   });
 

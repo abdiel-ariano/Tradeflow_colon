@@ -1,10 +1,11 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% block title %}Completa tu registro — TradeFlow Colón{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Complete your business profile — TradeFlow Colón" %}{% endblock %}
 {% block footer %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 <link rel="stylesheet" href="{% static 'css/signup.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/signup_buyer.css' %}?v={{ tf_asset_version|default:'1' }}">
 <link rel="stylesheet" href="{% static 'css/auth-oauth.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
 {% block content %}
@@ -12,39 +13,62 @@
   <div class="signup-shell signup-shell--narrow">
     <div class="signup-form-panel signup-form-panel--full">
       <header class="signup-form-header">
-        <h1 class="signup-form-title">Elige tu tipo de cuenta</h1>
-        <p class="signup-form-subtitle">Un paso más para completar tu registro con Google, Outlook o LinkedIn.</p>
+        <h1 class="signup-form-title">{% trans "Complete your business account" %}</h1>
+        <p class="signup-form-subtitle">
+          {% trans "Google verified your identity. Now tell us how your company will use TradeFlow." %}
+        </p>
       </header>
+
       <form method="post" action="{% url 'oauth_complete_signup' %}">
         {% csrf_token %}
-        <div class="auth-toggle" role="radiogroup" aria-label="Tipo de cuenta">
-          <div class="auth-toggle-cell">
-            <input type="radio" name="role" id="r_buyer" value="buyer" checked>
-            <label for="r_buyer">
-              <span class="auth-toggle-main">
-                <span class="material-symbols-rounded" aria-hidden="true">work</span>
-                Comprador
-              </span>
-              <span class="auth-toggle-sub">Solicitar cotizaciones</span>
+        <fieldset class="signup-field-group signup-business-intent">
+          <legend class="signup-business-intent__title">
+            {% trans "How will your company use TradeFlow?" %}
+            <span class="req" aria-hidden="true">*</span>
+          </legend>
+          <div class="signup-business-intent__grid">
+            <label class="signup-business-intent__option">
+              <input type="radio" name="business_role" value="buyer" {% if selected_business_role == 'buyer' %}checked{% endif %} required>
+              <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
+              <strong>{% trans "Buy" %}</strong>
+              <small>{% trans "Source products for my company" %}</small>
+            </label>
+            <label class="signup-business-intent__option">
+              <input type="radio" name="business_role" value="seller" {% if selected_business_role == 'seller' %}checked{% endif %} required>
+              <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
+              <strong>{% trans "Sell" %}</strong>
+              <small>{% trans "Publish a wholesale catalog" %}</small>
+            </label>
+            <label class="signup-business-intent__option">
+              <input type="radio" name="business_role" value="both" {% if selected_business_role == 'both' or not selected_business_role %}checked{% endif %} required>
+              <span class="material-symbols-rounded" aria-hidden="true">sync_alt</span>
+              <strong>{% trans "Both" %}</strong>
+              <small>{% trans "Buy and sell as a company" %}</small>
             </label>
           </div>
-          <div class="auth-toggle-cell">
-            <input type="radio" name="role" id="r_seller" value="seller"{% if selected_role == 'seller' %} checked{% endif %}>
-            <label for="r_seller">
-              <span class="auth-toggle-main">
-                <span class="material-symbols-rounded" aria-hidden="true">store</span>
-                Vendedor
-              </span>
-              <span class="auth-toggle-sub">Publicar catálogo CFZ</span>
-            </label>
-          </div>
-        </div>
+        </fieldset>
+
+        <label class="signup-buyer-legal-inline" style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;">
+          <input type="checkbox" name="accept_privacy" value="1" required style="margin-top:3px;">
+          <span>
+            {% trans "I accept the" %}
+            <a href="{% url 'legal_privacidad' %}" target="_blank" rel="noopener">{% trans "Privacy Policy" %}</a>
+            {% trans "and" %}
+            <a href="{% url 'legal_terminos' %}" target="_blank" rel="noopener">{% trans "Terms of use" %}</a>.
+          </span>
+        </label>
+
         <button type="submit" class="auth-submit">
-          Continuar
+          <span class="material-symbols-rounded auth-submit-icon" aria-hidden="true">domain_add</span>
+          {% trans "Continue to email verification" %}
         </button>
+        <p class="signup-verify-note">
+          {% trans "After verifying your email, you will provide the company's RUC, DV and supporting document." %}
+        </p>
       </form>
+
       <p class="signup-form-subtitle" style="margin-top:1.25rem;margin-bottom:0;text-align:center;">
-        <a href="{% url 'logout' %}">Cerrar sesión</a>
+        <a href="{% url 'logout' %}">{% trans "Sign out" %}</a>
       </p>
     </div>
   </div>
