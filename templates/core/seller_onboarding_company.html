@@ -1,14 +1,13 @@
 {% extends "core/base.html" %}
 {% comment %}
-Template: seller_onboarding_company.html
-Wizard vendedor — vincula empresa y activa trial Digitalízate (30 días).
+Template: seller_onboarding_company.html — identidad empresarial B2B.
 {% endcomment %}
 {% load static %}
 {% block title %}Configura tu empresa — TradeFlow{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/colors.css' %}">
 <style nonce="{{ csp_nonce }}">
-  .so-wrap { max-width: 640px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .so-wrap { max-width: 820px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   .so-card { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: 12px; padding: 2rem; box-shadow: 0 8px 24px rgba(15,42,68,.08); }
   .so-card h1 { margin: 0 0 .5rem; font-size: 1.5rem; color: var(--tf-navy); }
   .so-lead { color: var(--tf-gray-700); margin: 0 0 1.5rem; line-height: 1.6; font-size: .9375rem; }
@@ -16,44 +15,91 @@ Wizard vendedor — vincula empresa y activa trial Digitalízate (30 días).
   .so-field { margin-bottom: 1rem; }
   .so-field label { display: block; font-size: 13px; font-weight: 600; color: var(--tf-navy); margin-bottom: 6px; }
   .so-field input, .so-field textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--tf-border); border-radius: 8px; font-size: 14px; }
+  .so-field select { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--tf-border); border-radius: 8px; background: var(--tf-white); font-size: 14px; }
   .so-field textarea { min-height: 80px; resize: vertical; }
+  .so-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  .so-help { display: block; margin-top: 5px; color: var(--tf-gray-600); font-size: 12px; line-height: 1.45; }
+  .so-process { margin: 0 0 1.5rem; padding: 1rem; border-radius: 10px; background: var(--tf-gray-50); display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .so-process div { font-size: 12px; line-height: 1.4; color: var(--tf-gray-700); }
+  .so-process strong { display: block; color: var(--tf-navy); margin-bottom: 3px; }
   .so-actions { margin-top: 1.5rem; display: flex; gap: 12px; flex-wrap: wrap; }
+  @media (max-width: 680px) { .so-grid, .so-process { grid-template-columns: 1fr; } }
 </style>
 {% endblock %}
 {% block content %}
 <div class="so-wrap">
   <div class="so-card">
-    <div class="so-badge"><span class="material-symbols-rounded" style="font-size:18px;">verified</span> 30 días gratis — Digitalízate</div>
+    <div class="so-badge"><span class="material-symbols-rounded" style="font-size:18px;">domain_verification</span> Verificación empresarial requerida</div>
     <h1>{{ titulo_pagina }}</h1>
     <p class="so-lead">
-      Para operar en TradeFlow necesitamos los datos de tu empresa en la Zona Libre de Colón.
-      Al guardar, activamos tu prueba gratuita de 30 días sin cobro.
+      Para comprar o vender como empresa necesitamos identificar la razón social y al representante.
+      El RUC y el DV se revisan junto con el documento adjunto antes de habilitar operaciones.
     </p>
-    <form method="post" action="{% url 'seller_onboarding_company_post' %}" enctype="multipart/form-data">
+    <div class="so-process" aria-label="Proceso de verificación">
+      <div><strong>1. Datos</strong>Completas la identidad empresarial.</div>
+      <div><strong>2. Revisión humana</strong>TradeFlow contrasta los datos y la evidencia.</div>
+      <div><strong>3. Acceso</strong>Se habilitan las funciones aprobadas.</div>
+    </div>
+    <form method="post" action="{% url 'company_onboarding_post' %}" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="so-field">
-        <label for="name">Nombre comercial *</label>
-        <input type="text" id="name" name="name" required maxlength="200" value="{{ form_name }}" placeholder="Ej. TechZone Colón S.A.">
+        <label for="business_role">¿Qué hará tu empresa en TradeFlow? *</label>
+        <select id="business_role" name="business_role" required>
+          <option value="buyer" {% if form_business_role == 'buyer' %}selected{% endif %}>Comprar productos al por mayor</option>
+          <option value="seller" {% if form_business_role == 'seller' %}selected{% endif %}>Vender productos al por mayor</option>
+          <option value="both" {% if form_business_role == 'both' %}selected{% endif %}>Comprar y vender</option>
+        </select>
+      </div>
+      <div class="so-grid">
+        <div class="so-field">
+          <label for="legal_name">Razón social registrada *</label>
+          <input type="text" id="legal_name" name="legal_name" required maxlength="200" value="{{ form_legal_name }}" placeholder="Ej. Importadora del Istmo, S.A.">
+        </div>
+        <div class="so-field">
+          <label for="name">Nombre comercial *</label>
+          <input type="text" id="name" name="name" required maxlength="200" value="{{ form_name }}" placeholder="Ej. Importadora Istmo">
+        </div>
+      </div>
+      <div class="so-grid">
+        <div class="so-field">
+          <label for="ruc">RUC *</label>
+          <input type="text" id="ruc" name="ruc" required maxlength="50" value="{{ form_ruc }}" placeholder="1556-123456-789">
+          <small class="so-help">Escríbelo como aparece en la documentación de la empresa.</small>
+        </div>
+        <div class="so-field">
+          <label for="dv">Dígito verificador (DV) *</label>
+          <input type="text" id="dv" name="dv" required maxlength="20" value="{{ form_dv }}" placeholder="12">
+        </div>
+      </div>
+      <div class="so-grid">
+        <div class="so-field">
+          <label for="business_email">Correo empresarial *</label>
+          <input type="email" id="business_email" name="business_email" required value="{{ form_business_email }}" placeholder="compras@empresa.pa">
+        </div>
+        <div class="so-field">
+          <label for="business_phone">Teléfono empresarial</label>
+          <input type="tel" id="business_phone" name="business_phone" maxlength="30" value="{{ form_business_phone }}" placeholder="+507 6000-0000">
+        </div>
       </div>
       <div class="so-field">
-        <label for="ruc">RUC / Registro mercantil *</label>
-        <input type="text" id="ruc" name="ruc" required maxlength="50" value="{{ form_ruc }}" placeholder="8-NT-2-123456">
+        <label for="address_text">Dirección comercial *</label>
+        <textarea id="address_text" name="address_text" required placeholder="Provincia, distrito, corregimiento, edificio o local">{{ form_address }}</textarea>
       </div>
       <div class="so-field">
-        <label for="address_text">Dirección en la ZLC *</label>
-        <textarea id="address_text" name="address_text" required placeholder="Edificio, local, referencia">{{ form_address }}</textarea>
+        <label for="verification_document">Documento de respaldo *</label>
+        <input type="file" id="verification_document" name="verification_document" accept=".pdf,image/jpeg,image/png,image/webp" required>
+        <small class="so-help">Aviso de operación, certificación de Registro Público o documento equivalente. PDF o imagen, máximo 8 MB.</small>
       </div>
       <div class="so-field">
         <label for="logo">Logo (opcional)</label>
         <input type="file" id="logo" name="logo" accept="image/*">
       </div>
       <div class="so-actions">
-        <button type="submit" class="tf-btn-primary">Guardar y empezar prueba gratis</button>
-        <a href="{% url 'home' %}" class="tf-btn-secondary">Continuar más tarde</a>
+        <button type="submit" class="tf-btn-primary">Enviar empresa a revisión</button>
       </div>
     </form>
     <p class="so-lead" style="margin-top:1.25rem;margin-bottom:0;font-size:.875rem;">
-      ¿No quieres configurar la empresa ahora?
+      ¿Necesitas terminar después?
       <a href="{% url 'logout' %}">Cerrar sesión</a>
     </p>
   </div>

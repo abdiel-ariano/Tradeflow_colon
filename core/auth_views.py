@@ -60,6 +60,12 @@ def _redirect_by_role(user) -> str:
 
     from core.utils.access_gating import buyer_onboarding_redirect_name
 
+    from core.utils.access_gating import b2b_company_onboarding_redirect_name
+
+    company_route = b2b_company_onboarding_redirect_name(user)
+    if company_route:
+        return reverse(company_route)
+
     try:
         role = user.profile.role
     except Exception:

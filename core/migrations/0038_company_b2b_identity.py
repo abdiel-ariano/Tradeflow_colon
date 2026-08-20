@@ -38,6 +38,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='userprofile',
+            name='business_role_intent',
+            field=models.CharField(
+                blank=True,
+                choices=[('buyer', 'Company buys'), ('seller', 'Company sells'), ('both', 'Company buys and sells')],
+                default='',
+                help_text='Blank for legacy accounts; new business accounts choose buy, sell or both.',
+                max_length=10,
+                verbose_name='B2B company intent',
+            ),
+        ),
         migrations.AddField(model_name='company', name='business_email', field=models.EmailField(blank=True, max_length=254, verbose_name='Business email')),
         migrations.AddField(model_name='company', name='business_phone', field=models.CharField(blank=True, max_length=30, verbose_name='Business phone')),
         migrations.AddField(

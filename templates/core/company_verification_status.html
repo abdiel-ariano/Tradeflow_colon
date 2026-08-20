@@ -1,0 +1,70 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Estado de verificación — TradeFlow Colón{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/colors.css' %}">
+<style nonce="{{ csp_nonce }}">
+  .cv-wrap { max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+  .cv-card { padding: 2rem; border: 1px solid var(--tf-border); border-radius: 14px; background: var(--tf-white); box-shadow: 0 10px 30px rgba(15,42,68,.08); }
+  .cv-status { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+  .cv-status--pending { color: #92400e; background: #fef3c7; }
+  .cv-status--verified { color: #166534; background: #dcfce7; }
+  .cv-status--rejected { color: #991b1b; background: #fee2e2; }
+  .cv-card h1 { margin: 1rem 0 .5rem; color: var(--tf-navy); font-size: 1.65rem; }
+  .cv-lead { color: var(--tf-gray-700); line-height: 1.65; }
+  .cv-data { margin: 1.5rem 0; border: 1px solid var(--tf-border); border-radius: 10px; overflow: hidden; }
+  .cv-row { display: grid; grid-template-columns: 180px 1fr; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--tf-border); font-size: 14px; }
+  .cv-row:last-child { border-bottom: 0; }
+  .cv-row dt { font-weight: 700; color: var(--tf-navy); }
+  .cv-row dd { margin: 0; color: var(--tf-gray-700); }
+  .cv-note { padding: 1rem; border-radius: 10px; background: var(--tf-gray-50); color: var(--tf-gray-700); font-size: 13px; line-height: 1.55; }
+  .cv-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1.5rem; }
+  @media (max-width: 560px) { .cv-row { grid-template-columns: 1fr; gap: 3px; } }
+</style>
+{% endblock %}
+{% block content %}
+<main class="cv-wrap">
+  <section class="cv-card" aria-labelledby="cv-title">
+    {% if company.verification_status == 'verified' %}
+      <span class="cv-status cv-status--verified"><span class="material-symbols-rounded" aria-hidden="true">verified</span> Empresa verificada</span>
+      <h1 id="cv-title">La identidad empresarial fue aprobada</h1>
+      <p class="cv-lead">TradeFlow registró quién realizó la revisión y habilitará únicamente las capacidades aprobadas para esta empresa.</p>
+    {% elif company.verification_status == 'rejected' %}
+      <span class="cv-status cv-status--rejected"><span class="material-symbols-rounded" aria-hidden="true">error</span> Requiere corrección</span>
+      <h1 id="cv-title">No pudimos aprobar la información</h1>
+      <p class="cv-lead">Revisa la observación y vuelve a presentar los datos o documentos corregidos.</p>
+    {% else %}
+      <span class="cv-status cv-status--pending"><span class="material-symbols-rounded" aria-hidden="true">schedule</span> Revisión pendiente</span>
+      <h1 id="cv-title">Estamos revisando la empresa</h1>
+      <p class="cv-lead">La cuenta existe, pero todavía no mostramos una insignia de empresa verificada ni habilitamos operaciones restringidas.</p>
+    {% endif %}
+
+    <dl class="cv-data">
+      <div class="cv-row"><dt>Razón social</dt><dd>{{ company.legal_name }}</dd></div>
+      <div class="cv-row"><dt>Nombre comercial</dt><dd>{{ company.name }}</dd></div>
+      <div class="cv-row"><dt>RUC / DV</dt><dd>{{ company.ruc }} / {{ company.dv }}</dd></div>
+      <div class="cv-row"><dt>Uso solicitado</dt><dd>{{ company.get_business_role_display }}</dd></div>
+      <div class="cv-row"><dt>Enviado</dt><dd>{{ company.verification_submitted_at|date:"d/m/Y H:i"|default:"Pendiente" }}</dd></div>
+    </dl>
+
+    {% if company.verification_status == 'rejected' and company.verification_notes %}
+      <div class="cv-note"><strong>Observación del revisor:</strong><br>{{ company.verification_notes }}</div>
+    {% elif activation_error %}
+      <div class="cv-note">La empresa está aprobada, pero el portal no pudo activarse. Contacta a soporte@tradeflowcolon.com.</div>
+    {% else %}
+      <div class="cv-note">La comprobación actual es documental y manual. TradeFlow no afirma una conexión automática con la DGI, Registro Público o Panamá Emprende.</div>
+    {% endif %}
+
+    <div class="cv-actions">
+      {% if company.verification_status == 'rejected' %}
+        <a class="tf-btn-primary" href="{% url 'company_onboarding' %}?corregir=1">Corregir información</a>
+      {% elif company.verification_status == 'verified' and company.can_sell %}
+        <a class="tf-btn-primary" href="{% url 'portal_seller' %}">Entrar al portal empresarial</a>
+      {% elif company.verification_status == 'verified' %}
+        <a class="tf-btn-primary" href="{% url 'catalogo_publico' %}">Explorar catálogo mayorista</a>
+      {% endif %}
+      <a class="tf-btn-secondary" href="{% url 'logout' %}">Cerrar sesión</a>
+    </div>
+  </section>
+</main>
+{% endblock %}

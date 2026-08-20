@@ -37,10 +37,23 @@ class UserProfile(models.Model):
         ('admin',  _('Administrator')),
         ('transportista', _('Carrier')),
     ]
+    BUSINESS_ROLE_INTENT_CHOICES = [
+        ('buyer', _('Company buys')),
+        ('seller', _('Company sells')),
+        ('both', _('Company buys and sells')),
+    ]
 
     user   = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone  = models.CharField(max_length=30, blank=True, verbose_name='Phone')
     role   = models.CharField(max_length=14, choices=ROLE_CHOICES, default='buyer', verbose_name='Role')
+    business_role_intent = models.CharField(
+        max_length=10,
+        choices=BUSINESS_ROLE_INTENT_CHOICES,
+        blank=True,
+        default='',
+        verbose_name='B2B company intent',
+        help_text='Blank for legacy accounts; new business accounts choose buy, sell or both.',
+    )
     email_verificado = models.BooleanField(
         default=False,
         verbose_name='Email verified',

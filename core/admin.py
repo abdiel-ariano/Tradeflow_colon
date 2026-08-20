@@ -108,7 +108,7 @@ class UserProfileInline(admin.StackedInline):
     model          = UserProfile
     can_delete     = False
     verbose_name_plural = 'Perfil'
-    fields         = ['phone', 'role']
+    fields         = ['phone', 'role', 'business_role_intent']
 
 
 class UserAdmin(TradeFlowPermissionMixin, BaseUserAdmin):

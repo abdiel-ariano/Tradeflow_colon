@@ -1,15 +1,11 @@
-"""Seller company onboarding wizard and trial bootstrap.
-
-New CFZ sellers create a company + Digitalízate trial; DB and
-empty-logo errors must stay on the form instead of 500s.
-"""
+"""B2B company onboarding, manual verification and activation."""
 from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from core.enterprise_models import CompanySubscription
-from core.models import Company, UserProfile
+from core.models import Company, CompanyMembership, UserProfile
 from core.utils.saas_billing import ensure_default_plans
 
 
@@ -28,32 +24,60 @@ class SellerOnboardingTests(TestCase):
         self.client = Client()
         self.client.force_login(self.user)
 
-    def test_wizard_creates_company_and_trial(self):
-        """Create company and trialing subscription from wizard POST."""
-        url = reverse('seller_onboarding_company_post')
-        r = self.client.post(url, {
+    def _proof(self):
+        """Return a minimal PDF accepted by the upload security gate."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        return SimpleUploadedFile(
+            'aviso-operacion.pdf',
+            b'%PDF-1.4\nTradeFlow test document',
+            content_type='application/pdf',
+        )
+
+    def _company_payload(self, **overrides):
+        data = {
             'name': 'Nueva Empresa ZLC',
+            'legal_name': 'Nueva Empresa ZLC, S.A.',
             'ruc': '8-OB-999',
+            'dv': '12',
+            'business_email': 'empresa@test.pa',
+            'business_phone': '+50760000000',
+            'business_role': 'seller',
             'address_text': 'Local 1, ZLC',
+            'verification_document': self._proof(),
+        }
+        data.update(overrides)
+        return data
+
+    def test_wizard_creates_pending_company_and_owner_membership(self):
+        """Company is pending, not verified or activated, after submission."""
+        url = reverse('company_onboarding_post')
+        r = self.client.post(url, {
+            **self._company_payload(),
         })
         self.assertEqual(r.status_code, 302)
+        self.assertIn('/onboarding/empresa/estado/', r.url)
         company = Company.objects.get(owner=self.user)
         self.assertEqual(company.name, 'Nueva Empresa ZLC')
-        sub = CompanySubscription.objects.get(company=company)
-        self.assertEqual(sub.status, 'trialing')
+        self.assertEqual(company.verification_status, 'pending')
+        self.assertFalse(company.is_verified)
+        self.assertFalse(CompanySubscription.objects.filter(company=company).exists())
+        membership = CompanyMembership.objects.get(company=company, user=self.user)
+        self.assertEqual(membership.role, 'owner')
 
     def test_wizard_survives_empty_logo_upload(self):
         """Accept empty logo uploads without returning 500."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         empty = SimpleUploadedFile('logo.png', b'', content_type='image/png')
-        url = reverse('seller_onboarding_company_post')
-        r = self.client.post(url, {
-            'name': 'Empresa Logo Vacio',
-            'ruc': '8-OB-LOGO',
-            'address_text': 'Local 2',
-            'logo': empty,
-        })
+        url = reverse('company_onboarding_post')
+        r = self.client.post(url, self._company_payload(
+            name='Empresa Logo Vacio',
+            legal_name='Empresa Logo Vacio, S.A.',
+            ruc='8-OB-LOGO',
+            address_text='Local 2',
+            logo=empty,
+        ))
         self.assertEqual(r.status_code, 302, msg=r.content[:500] if r.status_code >= 400 else '')
         self.assertTrue(Company.objects.filter(owner=self.user, ruc='8-OB-LOGO').exists())
 
@@ -61,21 +85,91 @@ class SellerOnboardingTests(TestCase):
         """Show database error message on IntegrityError."""
         from unittest.mock import patch
 
-        url = reverse('seller_onboarding_company_post')
+        url = reverse('company_onboarding_post')
         with patch(
             'core.views_seller_onboarding.Company.objects.create',
             side_effect=IntegrityError('simulated'),
         ):
-            r = self.client.post(url, {
-                'name': 'Empresa Fail',
-                'ruc': '8-OB-FAIL',
-                'address_text': 'Local 3',
-            })
+            r = self.client.post(url, self._company_payload(
+                name='Empresa Fail',
+                legal_name='Empresa Fail, S.A.',
+                ruc='8-OB-FAIL',
+                address_text='Local 3',
+            ))
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'error de base de datos')
+
+    def test_invalid_document_is_rejected_before_storage(self):
+        """Reject a renamed executable/HTML payload instead of creating a company."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        invalid = SimpleUploadedFile(
+            'aviso-operacion.pdf',
+            b'<html><script>alert(1)</script></html>',
+            content_type='application/pdf',
+        )
+        r = self.client.post(
+            reverse('company_onboarding_post'),
+            self._company_payload(
+                ruc='8-OB-BADFILE',
+                verification_document=invalid,
+            ),
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'PDF o una imagen válida')
+        self.assertFalse(Company.objects.filter(ruc='8-OB-BADFILE').exists())
+
+    def test_ruc_owned_by_another_account_cannot_be_claimed(self):
+        """Do not let a second account replace the owner of an existing RUC."""
+        other = User.objects.create_user('other_owner', password='x')
+        Company.objects.create(
+            name='Empresa Existente',
+            legal_name='Empresa Existente, S.A.',
+            ruc='8-OB-OWNED',
+            dv='10',
+            business_email='legal@existente.pa',
+            verification_document='companies/verification/existing.pdf',
+            owner=other,
+        )
+
+        r = self.client.post(
+            reverse('company_onboarding_post'),
+            self._company_payload(ruc='8-OB-OWNED'),
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'ya está vinculado a otra cuenta')
+        self.assertEqual(Company.objects.get(ruc='8-OB-OWNED').owner, other)
 
     def test_pending_seller_redirected_to_wizard(self):
         """Redirect sellers without companies to onboarding."""
         r = self.client.get(reverse('portal_seller'))
         self.assertEqual(r.status_code, 302)
         self.assertIn('/onboarding/vendedor/', r.url)
+
+    def test_verified_seller_activates_trial_from_status(self):
+        """Subscription starts only after a human reviewer verifies the company."""
+        self.client.post(reverse('company_onboarding_post'), self._company_payload())
+        company = Company.objects.get(owner=self.user)
+        reviewer = User.objects.create_user('reviewer_ob', password='x', is_staff=True)
+        company.mark_verified(reviewer)
+
+        r = self.client.get(reverse('company_verification_status'))
+        self.assertEqual(r.status_code, 200)
+        sub = CompanySubscription.objects.get(company=company)
+        self.assertEqual(sub.status, 'trialing')
+
+    def test_buyer_company_uses_same_real_verification_flow(self):
+        """A B2B buyer creates a company instead of consumer preferences."""
+        self.user.profile.role = 'buyer'
+        self.user.profile.business_role_intent = 'buyer'
+        self.user.profile.save(update_fields=['role', 'business_role_intent'])
+
+        r = self.client.post(
+            reverse('company_onboarding_post'),
+            self._company_payload(business_role='buyer'),
+        )
+        self.assertEqual(r.status_code, 302)
+        company = Company.objects.get(owner=self.user)
+        self.assertTrue(company.can_buy)
+        self.assertFalse(company.can_sell)
+        self.assertEqual(company.verification_status, 'pending')

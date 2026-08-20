@@ -37,6 +37,10 @@ def _redirect_by_role(user):
 
     if user.is_superuser or role == 'admin':
         return reverse('dashboard')
+    from core.utils.access_gating import b2b_company_onboarding_redirect_name
+    company_route = b2b_company_onboarding_redirect_name(user)
+    if company_route:
+        return reverse(company_route)
     if role == 'seller':
         from core.utils.access_gating import seller_onboarding_redirect_name
         seller_route = seller_onboarding_redirect_name(user)

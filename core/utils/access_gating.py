@@ -203,6 +203,51 @@ def seller_company_pending(user) -> bool:
     return False
 
 
+def b2b_company_for_user(user):
+    """Return the company represented by the user, preferring memberships."""
+    if not user or not user.is_authenticated:
+        return None
+    from core.models import Company, CompanyMembership
+
+    membership = (
+        CompanyMembership.objects.filter(user=user, status='active')
+        .select_related('company')
+        .order_by('created_at')
+        .first()
+    )
+    if membership:
+        return membership.company
+    return Company.objects.filter(owner=user).first()
+
+
+def b2b_company_onboarding_redirect_name(user) -> str | None:
+    """Route new B2B accounts through identity and manual verification."""
+    if not user or not user.is_authenticated or user_is_platform_exempt(user):
+        return None
+    if email_verification_required(user):
+        return None
+    try:
+        intent = user.profile.business_role_intent
+    except UserProfile.DoesNotExist:
+        return None
+    if intent not in ('buyer', 'seller', 'both'):
+        return None
+
+    company = b2b_company_for_user(user)
+    if company is None:
+        return 'company_onboarding'
+    if company.verification_status != 'verified':
+        return 'company_verification_status'
+    if company.can_sell:
+        from core.enterprise_models import CompanySubscription
+
+        try:
+            company.subscription
+        except CompanySubscription.DoesNotExist:
+            return 'company_onboarding'
+    return None
+
+
 def seller_onboarding_redirect_name(user) -> str | None:
     """Devuelve el nombre de ruta del wizard de empresa cuando el onboarding de vendedor está incompleto."""
     if seller_company_pending(user):
@@ -249,13 +294,16 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     try:
         profile = user.profile
         if user.is_active and profile.email_verificado and profile.role:
+            company_route = b2b_company_onboarding_redirect_name(user)
+            if company_route:
+                return company_route
             seller_route = seller_onboarding_redirect_name(user)
             if seller_route:
                 return seller_route
             # Buyers must be approved before the preference wizard / restricted
             # surfaces. Sellers keep the existing early-exit (portal / company
             # wizard) — application_gate_status already no-ops for role=seller.
-            if profile.role == 'buyer':
+            if profile.role == 'buyer' and not profile.business_role_intent:
                 gate = application_gate_status(user.email or '', role='buyer')
                 if gate == 'required':
                     return 'onboarding_solicitud_requerida'
@@ -263,7 +311,7 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
                     return 'pending_approval'
                 if gate == 'rejected':
                     return 'onboarding_aplicacion_rechazada'
-            buyer_route = buyer_onboarding_redirect_name(user)
+            buyer_route = None if profile.business_role_intent else buyer_onboarding_redirect_name(user)
             if buyer_route:
                 return buyer_route
             return None

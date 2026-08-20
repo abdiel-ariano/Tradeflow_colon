@@ -40,7 +40,7 @@ from ..email_service import enviar_codigo_verificacion as enviar_codigo_email
 from ..models import (
     UserProfile, Company, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document,
-    Cotizacion, CotizacionItem, TransportCarrier, UserApplication,
+    Cotizacion, CotizacionItem, TransportCarrier,
     EmailVerification,
 )
 from ..utils.email_sender import (
@@ -166,29 +166,35 @@ def logout_view(request):
 
 
 def _process_signup(request, forced_role=None, error_template='core/signup.html'):
-    """Create User + UserProfile from signup POST and start OTP.
+    """Create a business contact account and start email OTP.
     
-    ``forced_role`` locks buyer or seller signup URLs. On success,
-    ``finalize_signup_with_otp`` sends the six-digit code.
+    New B2B accounts choose whether their company buys, sells or does both.
+    ``UserProfile.role`` remains a compatibility bridge for the existing
+    portals until authorization is fully membership-based.
     """
     first_name = escape(request.POST.get('first_name', '').strip())
     last_name = escape(request.POST.get('last_name', '').strip())
     username = escape(request.POST.get('username', '').strip())
     email = request.POST.get('email', '').strip()
     phone = escape(request.POST.get('phone', '').strip())
-    if forced_role is not None:
-        role = forced_role
-    else:
-        role = request.POST.get('role', 'buyer')
+    posted_role = (request.POST.get('role') or '').strip().lower()
+    business_role = (request.POST.get('business_role') or '').strip().lower()
+    if not business_role:
+        business_role = forced_role or posted_role or 'buyer'
+    role = 'buyer' if business_role == 'buyer' else 'seller'
     password1 = request.POST.get('password1', '')
     password2 = request.POST.get('password2', '')
 
     errores = []
     signup_ctx = {
         'role_choices': [('buyer', 'Buyer'), ('seller', 'Seller')],
-        'selected_role': role if role in ('buyer', 'seller') else 'buyer',
+        'selected_role': role,
+        'selected_business_role': (
+            business_role if business_role in ('buyer', 'seller', 'both') else 'buyer'
+        ),
         'form_first_name': request.POST.get('first_name', '').strip(),
         'form_last_name': request.POST.get('last_name', '').strip(),
+        'form_username': username,
         'form_email': email,
         'form_phone': phone,
     }
@@ -247,8 +253,8 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
     if User.objects.filter(email=email).exists():
         messages.error(request, 'An account with that email already exists.')
         return render(request, error_template, signup_ctx)
-    if role not in ('buyer', 'seller'):
-        messages.error(request, 'Invalid account type.')
+    if business_role not in ('buyer', 'seller', 'both'):
+        messages.error(request, 'Select how your company will use TradeFlow.')
         return render(request, error_template, signup_ctx)
 
     # Crear usuario
@@ -269,30 +275,15 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
         }
     )
     profile.role = role
-    # Compradores nuevos deben completar el wizard de personalización post-registro
-    if role == 'buyer':
-        profile.onboarding_completed_at = None
+    profile.business_role_intent = business_role
+    # B2B accounts do not use the former consumer-preference wizard.
+    profile.onboarding_completed_at = timezone.now()
     from core.utils.privacy import PRIVACY_POLICY_VERSION
     from django.utils import timezone as _tz
     profile.privacy_accepted_at = _tz.now()
     profile.privacy_policy_version = PRIVACY_POLICY_VERSION
     profile.marketing_opt_in = request.POST.get('marketing_opt_in') in ('1', 'on', 'true', 'yes')
     profile.save()
-
-    # Create application record — buyer and seller start pending until admin review
-    from ..models import UserApplication
-    UserApplication.objects.get_or_create(
-        user=user,
-        defaults={
-            'full_name': f"{first_name} {last_name}".strip(),
-            'email': email,
-            'phone': phone,
-            'role': role,
-            'company_name': '',
-            'message': '',
-            'status': 'pending',
-        }
-    )
 
     user.is_active = True
     user.save(update_fields=['is_active'])
@@ -304,40 +295,42 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
 
 @never_cache
 def signup_view(request):
-    """Legacy ``/signup/`` → Figma buyer signup (seller uses ``/signup/vendedor/``)."""
+    """Unified B2B account entry for buying, selling or both."""
     if request.user.is_authenticated:
         return redirect('home')
     if request.method == 'POST':
-        role = (request.POST.get('role') or 'buyer').strip().lower()
-        if role == 'seller':
-            return redirect('signup_seller')
         return _process_signup(
-            request, forced_role='buyer', error_template='core/signup_buyer.html'
+            request, error_template='core/signup_seller.html'
         )
-    return redirect('signup_buyer')
+    return render(request, 'core/signup_seller.html', {
+        'form_first_name': '', 'form_last_name': '', 'form_email': '',
+        'form_phone': '', 'form_username': '', 'selected_business_role': 'both',
+    })
 
 
 @never_cache
 def signup_buyer_view(request):
-    """Buyer-only signup entry before OTP and catalog onboarding."""
+    """Compatibility URL for a company that initially intends to buy."""
     if request.user.is_authenticated:
         return redirect('home')
     if request.method == 'POST':
-        return _process_signup(request, forced_role='buyer', error_template='core/signup_buyer.html')
-    return render(request, 'core/signup_buyer.html', {
-        'form_first_name': '', 'form_last_name': '', 'form_email': '', 'form_phone': '',
+        return _process_signup(request, forced_role='buyer', error_template='core/signup_seller.html')
+    return render(request, 'core/signup_seller.html', {
+        'form_first_name': '', 'form_last_name': '', 'form_email': '',
+        'form_phone': '', 'form_username': '', 'selected_business_role': 'buyer',
     })
 
 
 @never_cache
 def signup_seller_view(request):
-    """Seller-only signup entry before OTP and company onboarding."""
+    """Compatibility URL for a company that initially intends to sell."""
     if request.user.is_authenticated:
         return redirect('home')
     if request.method == 'POST':
         return _process_signup(request, forced_role='seller', error_template='core/signup_seller.html')
     return render(request, 'core/signup_seller.html', {
-        'form_first_name': '', 'form_last_name': '', 'form_email': '', 'form_phone': '',
+        'form_first_name': '', 'form_last_name': '', 'form_email': '',
+        'form_phone': '', 'form_username': '', 'selected_business_role': 'seller',
     })
 
 
@@ -345,7 +338,10 @@ def _redirect_after_email_verified(user):
     """Post-OTP destination by role, including buyer/seller wizards."""
     from django.urls import reverse
 
-    from core.utils.access_gating import buyer_onboarding_redirect_name
+    from core.utils.access_gating import (
+        b2b_company_onboarding_redirect_name,
+        buyer_onboarding_redirect_name,
+    )
 
     try:
         role = user.profile.role
@@ -353,6 +349,9 @@ def _redirect_after_email_verified(user):
         return redirect('catalogo_publico')
     if user.is_superuser or role == 'admin':
         return redirect('dashboard')
+    company_route = b2b_company_onboarding_redirect_name(user)
+    if company_route:
+        return redirect(company_route)
     if role == 'seller':
         return redirect('portal_seller')
     buyer_route = buyer_onboarding_redirect_name(user)
