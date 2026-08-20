@@ -1721,6 +1721,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       assistantDesktop.addListener(scheduleAssistantDock);
     }
     syncAssistantDock();
+    window.TF_SYNC_ASSISTANT_DOCK = syncAssistantDock;
 
     function setComposeDisabled(disabled) {
       if (input) input.disabled = !!disabled;
@@ -1892,7 +1893,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
 
     window.TF_OPEN_ASSISTANT = function (prefill) {
-      if (!tfChatOpen && toggle) toggleChat();
+      var currentToggle = document.getElementById('tf-chat-toggle');
+      var currentWindow = document.getElementById('tf-chat-window');
+      var currentOpen = currentWindow && window.getComputedStyle(currentWindow).display !== 'none';
+      if (!currentOpen && currentToggle) currentToggle.click();
       if (input && prefill) {
         input.value = prefill;
         input.focus();
