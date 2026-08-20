@@ -7,9 +7,11 @@ para que ``from core.models import …`` siga siendo el punto de entrada único.
 """
 from decimal import Decimal
 import random
+import re
 import secrets   # OWASP A02: CSPRNG for OTP (random.randint is predictable)
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -165,44 +167,102 @@ class UserProfile(models.Model):
 # =============================================================================
 
 class Company(models.Model):
-    """Empresa vendedora de la ZLC: vitrina y registro de verificación.
+    """Empresa panameña que puede comprar, vender o realizar ambas actividades.
 
-    Los productos pertenecen a una ``Company``. ``owner`` es el vendedor que
-    administra Mi Tienda. Los flags de verificación y destacados impulsan
-    insignias de confianza y carruseles del home.
+    Los campos owner e is_verified se mantienen por compatibilidad con el portal
+    existente. El flujo B2B nuevo usa membresías y verification_status para
+    representar revisión documental sin afirmar una validación automática con
+    entidades gubernamentales.
     """
-    name         = models.CharField(max_length=200, verbose_name='Company name')
-    ruc          = models.CharField(max_length=50, blank=True, verbose_name='RUC / Registration')
+
+    BUSINESS_ROLE_CHOICES = [
+        ('buyer', _('Buyer')),
+        ('seller', _('Seller')),
+        ('both', _('Buyer and seller')),
+    ]
+    VERIFICATION_STATUS_CHOICES = [
+        ('draft', _('Draft')),
+        ('pending', _('Pending review')),
+        ('verified', _('Verified')),
+        ('rejected', _('Rejected')),
+    ]
+
+    name = models.CharField(max_length=200, verbose_name='Trade name')
+    legal_name = models.CharField(max_length=200, blank=True, verbose_name='Registered legal name')
+    ruc = models.CharField(max_length=50, blank=True, verbose_name='RUC / Registration')
+    dv = models.CharField(max_length=20, blank=True, verbose_name='Verification digit (DV)')
+    business_email = models.EmailField(blank=True, verbose_name='Business email')
+    business_phone = models.CharField(max_length=30, blank=True, verbose_name='Business phone')
     address_text = models.TextField(blank=True, verbose_name='Address')
-    is_verified  = models.BooleanField(default=False, verbose_name='Verified?')
-    owner        = models.ForeignKey(
+    business_role = models.CharField(
+        max_length=10,
+        choices=BUSINESS_ROLE_CHOICES,
+        default='seller',
+        verbose_name='Marketplace capability',
+    )
+    verification_status = models.CharField(
+        max_length=12,
+        choices=VERIFICATION_STATUS_CHOICES,
+        default='draft',
+        db_index=True,
+        verbose_name='Verification status',
+    )
+    is_verified = models.BooleanField(default=False, verbose_name='Verified?')
+    verification_document = models.FileField(
+        upload_to='companies/verification/',
+        blank=True,
+        null=True,
+        verbose_name='Verification evidence',
+        help_text='Aviso de operación, registro público or equivalent evidence for manual review.',
+    )
+    verification_notes = models.TextField(
+        blank=True,
+        verbose_name='Verification notes',
+        help_text='Internal notes. Do not expose these notes in the public catalog.',
+    )
+    verification_submitted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Submitted for verification at',
+    )
+    verified_at = models.DateTimeField(null=True, blank=True, verbose_name='Verified at')
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='companies_verified',
+        verbose_name='Verified by',
+    )
+    owner = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='owned_companies',
-        verbose_name='Owner (seller)',
+        verbose_name='Legacy owner',
+        help_text='Compatibility field; new access control uses company memberships.',
     )
-    latitud      = models.FloatField(
+    members = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        through='CompanyMembership',
+        related_name='member_companies',
+        blank=True,
+    )
+    latitud = models.FloatField(
         null=True,
         blank=True,
         default=9.3667,
         verbose_name='Latitude (CFZ)',
     )
-    longitud     = models.FloatField(
+    longitud = models.FloatField(
         null=True,
         blank=True,
         default=-79.9000,
         verbose_name='Longitude (CFZ)',
     )
-    is_featured = models.BooleanField(
-        default=False,
-        verbose_name='Featured on home',
-    )
-    carousel_priority = models.IntegerField(
-        default=0,
-        verbose_name='Carousel priority',
-    )
+    is_featured = models.BooleanField(default=False, verbose_name='Featured on home')
+    carousel_priority = models.IntegerField(default=0, verbose_name='Carousel priority')
     tagline_es = models.CharField(max_length=200, blank=True, verbose_name='Tagline (ES)')
     tagline_en = models.CharField(max_length=200, blank=True, verbose_name='Tagline (EN)')
     order_confirm_hours = models.PositiveIntegerField(
@@ -216,17 +276,194 @@ class Company(models.Model):
         null=True,
         verbose_name='Logo',
     )
-    created_at   = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        """Opciones de modelo para empresas vendedoras en el admin."""
-        verbose_name        = 'Company'
+        """Opciones de identidad y consulta para empresas B2B."""
+        verbose_name = 'Company'
         verbose_name_plural = 'Companies'
-        ordering            = ['name']
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['ruc', 'dv'], name='core_company_ruc_dv_idx'),
+            models.Index(
+                fields=['business_role', 'verification_status'],
+                name='core_company_role_status_idx',
+            ),
+        ]
 
     def __str__(self):
-        """Nombre de la empresa para admin y depuración."""
+        """Nombre comercial para admin, catálogo y depuración."""
         return self.name
+
+    @staticmethod
+    def normalize_identifier(value):
+        """Normaliza RUC/DV sin inventar una validación gubernamental."""
+        return re.sub(r'\s+', '', (value or '').strip().upper())
+
+    @property
+    def can_buy(self):
+        """La empresa puede operar como compradora."""
+        return self.business_role in {'buyer', 'both'}
+
+    @property
+    def can_sell(self):
+        """La empresa puede operar como vendedora."""
+        return self.business_role in {'seller', 'both'}
+
+    def verification_missing_fields(self):
+        """Campos mínimos exigidos antes de una revisión humana."""
+        required = {
+            'legal_name': _('registered legal name'),
+            'ruc': _('RUC'),
+            'dv': _('DV'),
+            'business_email': _('business email'),
+            'verification_document': _('verification evidence'),
+        }
+        return [
+            str(label)
+            for field_name, label in required.items()
+            if not getattr(self, field_name)
+        ]
+
+    def clean(self):
+        """Valida formato básico y bloquea verificaciones incompletas."""
+        super().clean()
+        self.ruc = self.normalize_identifier(self.ruc)
+        self.dv = self.normalize_identifier(self.dv)
+
+        errors = {}
+        if self.ruc and not re.fullmatch(r'[A-Z0-9Ñ.\-]{3,50}', self.ruc):
+            errors['ruc'] = _('Use only letters, numbers, periods and hyphens in the RUC.')
+        if self.dv and not re.fullmatch(r'[A-Z0-9\-]{1,20}', self.dv):
+            errors['dv'] = _('Use only letters, numbers and hyphens in the DV.')
+
+        previous_status = None
+        if self.pk:
+            previous_status = (
+                type(self).objects.filter(pk=self.pk)
+                .values_list('verification_status', flat=True)
+                .first()
+            )
+        if self.verification_status == 'verified' and previous_status != 'verified':
+            missing = self.verification_missing_fields()
+            if missing:
+                errors['verification_status'] = _(
+                    'Cannot verify the company. Missing: %(fields)s.'
+                ) % {'fields': ', '.join(missing)}
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        """Mantiene RUC/DV normalizados y el flag legado sincronizado."""
+        self.ruc = self.normalize_identifier(self.ruc)
+        self.dv = self.normalize_identifier(self.dv)
+        if self.verification_status == 'verified':
+            self.is_verified = True
+            if self.verified_at is None:
+                self.verified_at = timezone.now()
+        else:
+            self.is_verified = False
+            self.verified_at = None
+
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None:
+            kwargs['update_fields'] = list(
+                set(update_fields) | {'ruc', 'dv', 'is_verified', 'verified_at'}
+            )
+        super().save(*args, **kwargs)
+
+    def submit_for_verification(self):
+        """Envía una identidad empresarial completa a revisión manual."""
+        self.ruc = self.normalize_identifier(self.ruc)
+        self.dv = self.normalize_identifier(self.dv)
+        missing = self.verification_missing_fields()
+        if missing:
+            raise ValidationError({
+                'verification_status': _(
+                    'Cannot submit the company. Missing: %(fields)s.'
+                ) % {'fields': ', '.join(missing)}
+            })
+        self.verification_status = 'pending'
+        self.verification_submitted_at = timezone.now()
+        self.full_clean()
+        self.save(update_fields=[
+            'ruc', 'dv', 'verification_status', 'verification_submitted_at',
+        ])
+
+    def mark_verified(self, reviewer):
+        """Registra una decisión humana verificable y auditable."""
+        self.verification_status = 'verified'
+        self.verified_by = reviewer
+        self.verified_at = timezone.now()
+        self.full_clean()
+        self.save(update_fields=[
+            'verification_status', 'verified_by', 'verified_at', 'is_verified',
+        ])
+
+    def reject_verification(self, reviewer, notes=''):
+        """Registra rechazo manual sin eliminar la evidencia presentada."""
+        self.verification_status = 'rejected'
+        self.verified_by = reviewer
+        self.verification_notes = notes
+        self.verified_at = None
+        self.save(update_fields=[
+            'verification_status', 'verified_by', 'verification_notes',
+            'verified_at', 'is_verified',
+        ])
+
+
+class CompanyMembership(models.Model):
+    """Vincula usuarios con una empresa y define su autoridad interna."""
+
+    ROLE_CHOICES = [
+        ('owner', _('Owner')),
+        ('admin', _('Company administrator')),
+        ('member', _('Company member')),
+    ]
+    STATUS_CHOICES = [
+        ('invited', _('Invited')),
+        ('active', _('Active')),
+        ('suspended', _('Suspended')),
+    ]
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='memberships')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='company_memberships',
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='member')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        """Una membresía por usuario y empresa."""
+        verbose_name = 'Company membership'
+        verbose_name_plural = 'Company memberships'
+        ordering = ['company', 'role', 'user']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['company', 'user'],
+                name='unique_company_user_membership',
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=['user', 'status'],
+                name='core_member_user_status_idx',
+            ),
+        ]
+
+    def __str__(self):
+        """Etiqueta de la membresía para administración."""
+        return f'{self.user} — {self.company} ({self.get_role_display()})'
+
+    @property
+    def can_manage_company(self):
+        """Owners/admins activos pueden administrar la empresa."""
+        return self.status == 'active' and self.role in {'owner', 'admin'}
 
 
 # =============================================================================
