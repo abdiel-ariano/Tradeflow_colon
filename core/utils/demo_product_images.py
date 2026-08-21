@@ -243,14 +243,11 @@ def product_reference_file_exists(product: Product) -> bool:
 
 
 def is_demo_generated_image(product: Product, rel_path: str = '') -> bool:
-    """Identifica media generada por fixtures, sin marcar cargas de proveedores."""
+    """Identifica media generada por fixtures sin ocultar cargas reales."""
     rel = (rel_path or '').replace('\\', '/').lstrip('/')
-    if any(rel.startswith(prefix) for prefix in DEMO_IMAGE_PREFIXES):
-        return True
-
-    company = getattr(product, 'company', None)
-    ruc = str(getattr(company, 'ruc', '') or '')
-    return ruc.startswith('8-1Y-SIM-')
+    # Simulation metadata belongs to the company, not to every image it uploads.
+    # Only paths managed by demo generators may be replaced by references/icons.
+    return any(rel.startswith(prefix) for prefix in DEMO_IMAGE_PREFIXES)
 
 
 def should_use_product_reference(product: Product) -> bool:
