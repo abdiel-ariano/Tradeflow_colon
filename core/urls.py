@@ -112,7 +112,11 @@ urlpatterns = [
     path('onboarding/comprador/busqueda/', buyer_onboarding.buyer_onboarding_step3, name='buyer_onboarding_step3'),
     path('onboarding/comprador/finalizar/', buyer_onboarding.buyer_onboarding_finish, name='buyer_onboarding_finish'),
     path('onboarding/comprador/omitir/', buyer_onboarding.buyer_onboarding_skip, name='buyer_onboarding_skip'),
-    # Seller wizard — company + Digitalízate trial (required)
+    # B2B company identity and documentary review (required for new businesses)
+    path('onboarding/empresa/', seller_onboarding.seller_onboarding_company, name='company_onboarding'),
+    path('onboarding/empresa/guardar/', seller_onboarding.seller_onboarding_company_post, name='company_onboarding_post'),
+    path('onboarding/empresa/estado/', seller_onboarding.company_verification_status, name='company_verification_status'),
+    # Compatibility aliases for existing seller links.
     path('onboarding/vendedor/', seller_onboarding.seller_onboarding_company, name='seller_onboarding_company'),
     path('onboarding/vendedor/guardar/', seller_onboarding.seller_onboarding_company_post, name='seller_onboarding_company_post'),
     path(

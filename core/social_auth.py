@@ -1,7 +1,8 @@
 """OAuth adapters and helpers for TradeFlow Colón social login.
 
-Google, Microsoft, and LinkedIn flows via django-allauth create
-UserProfile and UserApplication records matching the custom signup path.
+Google, Microsoft, and LinkedIn authenticate the representative. New
+accounts still complete the same B2B company-intent and verification flow as
+password signups; OAuth must never recreate the retired consumer application.
 """
 from __future__ import annotations
 
@@ -13,12 +14,14 @@ from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils import timezone
 
 log = logging.getLogger('tradeflow.social_auth')
 
 USERNAME_REGEX = re.compile(r'^[a-zA-Z][a-zA-Z0-9._]{2,29}$')
 ALLOWED_OAUTH_PROVIDERS = frozenset({'google', 'microsoft', 'linkedin'})
 OAUTH_PROVIDER_ALIASES = {'linkedin': 'linkedin_oauth2'}
+B2B_BUSINESS_ROLES = frozenset({'buyer', 'seller', 'both'})
 
 
 def resolve_oauth_provider(provider: str) -> str:
@@ -61,45 +64,55 @@ def generate_username_from_email(email: str) -> str:
     return candidate
 
 
-def setup_profile_and_application(user: User, role: str, phone: str = '') -> None:
-    """Create profile and UserApplication mirroring custom signup_view.
+def setup_b2b_profile(
+    user: User,
+    business_role: str,
+    phone: str = '',
+    *,
+    privacy_accepted: bool = False,
+) -> None:
+    """Create the representative profile used by unified B2B onboarding.
 
-    Buyers and sellers both start with application status ``pending``.
-    New buyer profiles leave onboarding incomplete so the wizard runs
-    only after admin approval.
+    ``UserProfile.role`` remains a compatibility bridge for the existing
+    portals. Company capability and authorization live in
+    ``business_role_intent`` plus the company verification/membership models.
+    No legacy ``UserApplication`` row is created.
     """
-    from core.models import UserApplication, UserProfile
+    from core.models import UserProfile
 
-    profile, created = UserProfile.objects.get_or_create(
+    if business_role not in B2B_BUSINESS_ROLES:
+        raise ValueError('Unsupported B2B business role.')
+    role = 'buyer' if business_role == 'buyer' else 'seller'
+
+    profile, _ = UserProfile.objects.get_or_create(
         user=user,
         defaults={'role': role, 'email_verificado': False},
     )
     profile.role = role
+    profile.business_role_intent = business_role
+    # B2B accounts go to company identity, never consumer preferences.
+    profile.onboarding_completed_at = timezone.now()
     if phone:
         profile.phone = phone
-    # New buyer OAuth profiles must still complete the onboarding wizard.
-    if role == 'buyer' and created:
-        profile.onboarding_completed_at = None
-    update_fields = ['role']
+    update_fields = [
+        'role',
+        'business_role_intent',
+        'onboarding_completed_at',
+    ]
     if phone:
         update_fields.append('phone')
-    if role == 'buyer' and created:
-        update_fields.append('onboarding_completed_at')
+    if privacy_accepted:
+        from core.utils.privacy import PRIVACY_POLICY_VERSION
+
+        profile.privacy_accepted_at = timezone.now()
+        profile.privacy_policy_version = PRIVACY_POLICY_VERSION
+        update_fields.extend(['privacy_accepted_at', 'privacy_policy_version'])
     profile.save(update_fields=update_fields)
 
-    full_name = f'{user.first_name or ""} {user.last_name or ""}'.strip()
-    UserApplication.objects.get_or_create(
-        user=user,
-        defaults={
-            'full_name': full_name or user.username,
-            'email': user.email or '',
-            'phone': phone,
-            'role': role,
-            'company_name': '',
-            'message': '',
-            'status': 'pending',
-        },
-    )
+
+def setup_profile_and_application(user: User, role: str, phone: str = '') -> None:
+    """Compatibility alias for callers predating unified B2B onboarding."""
+    setup_b2b_profile(user, role, phone)
 
 
 def user_needs_oauth_role(user: User) -> bool:
@@ -187,20 +200,14 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
     """Customize social login: usernames, roles, and redirect session flags."""
 
     def pre_social_login(self, request, sociallogin):
-        """Reactivate buyers and backfill profile on returning OAuth accounts."""
+        """Reactivate returning accounts without inventing a business role."""
         if not sociallogin.is_existing:
             return
         user = sociallogin.user
         activate_user_if_eligible(user)
         if not user_needs_oauth_role(user):
             return
-        flow = request.session.get('oauth_flow', 'login')
-        if flow == 'login':
-            setup_profile_and_application(user, 'buyer')
-            request.session['oauth_signup_done'] = True
-            request.session.pop('oauth_needs_role', None)
-        else:
-            request.session['oauth_needs_role'] = user.pk
+        request.session['oauth_needs_role'] = user.pk
 
     def populate_user(self, request, sociallogin, data):
         """Fill username and names from provider payload when missing."""
@@ -235,17 +242,14 @@ class TradeFlowSocialAccountAdapter(DefaultSocialAccountAdapter):
         user.set_unusable_password()
         user = super().save_user(request, sociallogin, form)
 
-        role = request.session.pop('oauth_signup_role', None)
-        flow = request.session.pop('oauth_flow', None) or 'signup'
-        if role in ('buyer', 'seller'):
-            setup_profile_and_application(user, role)
-            request.session['oauth_signup_done'] = True
-            request.session.pop('oauth_needs_role', None)
-        elif flow == 'login':
-            setup_profile_and_application(user, 'buyer')
-            request.session['oauth_signup_done'] = True
-            request.session.pop('oauth_needs_role', None)
-        elif user_needs_oauth_role(user):
+        selected_business_role = request.session.pop(
+            'oauth_selected_business_role',
+            request.session.pop('oauth_signup_role', None),
+        )
+        request.session.pop('oauth_flow', None)
+        if selected_business_role in B2B_BUSINESS_ROLES:
+            request.session['oauth_selected_business_role'] = selected_business_role
+        if user_needs_oauth_role(user):
             request.session['oauth_needs_role'] = user.pk
         user.is_active = True
         user.save(update_fields=['is_active'])

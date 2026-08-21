@@ -1,9 +1,4 @@
-"""OAuth entry points and post-signup role completion for marketplace auth.
-
-Wraps django-allauth so Google/social flows land on TradeFlow login,
-signup, OTP verification, and buyer/seller onboarding instead of
-generic allauth templates.
-"""
+"""OAuth entry points and B2B role completion for marketplace auth."""
 from __future__ import annotations
 
 from django.contrib import messages
@@ -15,9 +10,9 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from core.social_auth import (
     ALLOWED_OAUTH_PROVIDERS,
+    B2B_BUSINESS_ROLES,
     provider_is_enabled,
-    setup_profile_and_application,
-    social_auth_enabled,
+    setup_b2b_profile,
     user_needs_oauth_role,
 )
 
@@ -48,11 +43,7 @@ def _store_oauth_next(request: HttpRequest) -> None:
 
 @require_GET
 def redirect_accounts_inactive(request: HttpRequest) -> HttpResponse:
-    """Replace allauth's inactive page with TradeFlow gating.
-
-    Eligible users are reactivated; sellers awaiting approval go to
-    ``pending_approval``; others continue OTP / post-signup.
-    """
+    """Replace allauth's inactive page with TradeFlow gating."""
     if request.user.is_authenticated:
         from core.social_auth import activate_user_if_eligible
 
@@ -80,22 +71,26 @@ def redirect_accounts_login(request: HttpRequest) -> HttpResponse:
 
 @require_GET
 def redirect_accounts_signup(request: HttpRequest) -> HttpResponse:
-    """Map ``/accounts/signup/`` to TradeFlow ``signup``."""
+    """Map ``/accounts/signup/`` to the unified TradeFlow signup."""
     return _redirect_with_query(request, 'signup')
 
 
 @require_GET
 def oauth_begin_signup(request: HttpRequest, provider: str) -> HttpResponse:
-    """Start OAuth signup with buyer or seller role in session."""
+    """Start OAuth while preserving the selected company capability."""
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         raise Http404
     if not provider_is_enabled(provider):
         messages.error(request, 'El inicio de sesión social no está configurado todavía.')
         return redirect('signup')
-    role = request.GET.get('role', 'buyer')
-    if role not in ('buyer', 'seller'):
-        role = 'buyer'
-    request.session['oauth_signup_role'] = role
+    business_role = (
+        request.GET.get('business_role')
+        or request.GET.get('role')
+        or 'both'
+    ).strip().lower()
+    if business_role not in B2B_BUSINESS_ROLES:
+        business_role = 'both'
+    request.session['oauth_selected_business_role'] = business_role
     request.session['oauth_flow'] = 'signup'
     request.session.modified = True
     _store_oauth_next(request)
@@ -104,13 +99,14 @@ def oauth_begin_signup(request: HttpRequest, provider: str) -> HttpResponse:
 
 @require_GET
 def oauth_begin_login(request: HttpRequest, provider: str) -> HttpResponse:
-    """Start OAuth login without assigning a signup role."""
+    """Start OAuth login without inventing a role for a new account."""
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         raise Http404
     if not provider_is_enabled(provider):
         messages.error(request, 'El inicio de sesión social no está configurado todavía.')
         return redirect('login')
     request.session.pop('oauth_signup_role', None)
+    request.session.pop('oauth_selected_business_role', None)
     request.session['oauth_flow'] = 'login'
     request.session.modified = True
     _store_oauth_next(request)
@@ -120,43 +116,50 @@ def oauth_begin_login(request: HttpRequest, provider: str) -> HttpResponse:
 @login_required
 @require_http_methods(['GET', 'POST'])
 def oauth_complete_signup(request: HttpRequest) -> HttpResponse:
-    """Collect marketplace role when OAuth left the profile incomplete.
-
-    Sellers need an explicit choice; buyers are the default. After
-    setup, ``oauth_post_signup`` issues OTP and routes onward.
-    """
+    """Collect B2B capability and privacy acceptance after social auth."""
     if not user_needs_oauth_role(request.user):
         request.session.pop('oauth_needs_role', None)
         return redirect('oauth_post_signup')
 
+    selected = request.session.get('oauth_selected_business_role', 'both')
+    if selected not in B2B_BUSINESS_ROLES:
+        selected = 'both'
+
     if request.method == 'POST':
-        role = request.POST.get('role', 'buyer')
-        if role not in ('buyer', 'seller'):
-            role = 'buyer'
-        setup_profile_and_application(request.user, role)
-        request.session.pop('oauth_needs_role', None)
-        request.session['oauth_signup_done'] = True
-        request.session.modified = True
-        return redirect('oauth_post_signup')
+        selected = (request.POST.get('business_role') or '').strip().lower()
+        accepts_privacy = request.POST.get('accept_privacy') in (
+            '1', 'on', 'true', 'yes',
+        )
+        if selected not in B2B_BUSINESS_ROLES:
+            messages.error(request, 'Selecciona cómo usará TradeFlow tu empresa.')
+        elif not accepts_privacy:
+            messages.error(
+                request,
+                'Debes aceptar la política de privacidad y los términos para continuar.',
+            )
+        else:
+            setup_b2b_profile(
+                request.user,
+                selected,
+                privacy_accepted=True,
+            )
+            request.session.pop('oauth_needs_role', None)
+            request.session.pop('oauth_selected_business_role', None)
+            request.session['oauth_signup_done'] = True
+            request.session.modified = True
+            return redirect('oauth_post_signup')
 
     return render(
         request,
         'core/oauth_complete_signup.html',
-        {
-            'selected_role': 'buyer',
-        },
+        {'selected_business_role': selected},
     )
 
 
 @login_required
 @require_GET
 def oauth_post_signup(request: HttpRequest) -> HttpResponse:
-    """Activate the account, send OTP if needed, then redirect.
-
-    Unverified users enter ``finalize_signup_with_otp`` →
-    ``verificar_codigo``. Verified users resume ``oauth_next`` or the
-    role home (guest catalog / seller portal).
-    """
+    """Issue OTP and route the representative to company verification."""
     from django.contrib.auth import login
 
     from core.utils.access_gating import email_verification_required

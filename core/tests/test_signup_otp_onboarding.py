@@ -54,6 +54,7 @@ class SignupOtpOnboardingTests(TestCase):
 
         user = User.objects.get(username='demo_new')
         self.assertTrue(user.is_active)
+        self.assertEqual(user.profile.business_role_intent, 'buyer')
         self.assertTrue(EmailVerification.objects.filter(user=user).exists())
         mock_send.assert_called_once()
         sent_email, sent_code = mock_send.call_args[0]
@@ -92,8 +93,8 @@ class SignupOtpOnboardingTests(TestCase):
 
     @override_settings(EXPO_DEMO_MODE=False, REQUIRE_EMAIL_VERIFICATION=True)
     @patch('core.views_onboarding.enviar_codigo_verificacion')
-    def test_signup_non_demo_redirects_to_verificar(self, mock_send):
-        """Redirect classic signup to /verificar/ after OTP create."""
+    def test_signup_non_demo_redirects_to_verificar_without_legacy_application(self, mock_send):
+        """Use company verification as the only review source for new B2B accounts."""
         mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
         resp = self.client.post(reverse('signup'), self._signup_payload(username='classic'), follow=False)
 
@@ -102,6 +103,40 @@ class SignupOtpOnboardingTests(TestCase):
         user = User.objects.get(username='classic')
         self.assertTrue(user.is_active)
         from core.models import UserApplication
-        app = UserApplication.objects.get(user=user)
-        self.assertEqual(app.status, 'pending')
-        self.assertEqual(app.role, 'buyer')
+        self.assertFalse(UserApplication.objects.filter(user=user).exists())
+
+    @patch('core.views_onboarding.enviar_codigo_verificacion')
+    def test_company_can_choose_buyer_and_seller_intent(self, mock_send):
+        """The unified signup persists a dual B2B capability request."""
+        mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
+        payload = self._signup_payload(username='dual_company')
+        payload['business_role'] = 'both'
+
+        resp = self.client.post(reverse('signup'), payload, follow=False)
+
+        self.assertEqual(resp.status_code, 302)
+        profile = User.objects.get(username='dual_company').profile
+        self.assertEqual(profile.business_role_intent, 'both')
+        self.assertEqual(profile.role, 'seller')
+        self.assertIsNotNone(profile.onboarding_completed_at)
+
+    @patch('core.views_onboarding.enviar_codigo_verificacion')
+    def test_verified_business_continues_to_company_identity(self, mock_send):
+        """After OTP, a new company reaches RUC/DV onboarding, not a B2C wizard."""
+        mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
+        payload = self._signup_payload(username='company_after_otp')
+        payload['business_role'] = 'both'
+        self.client.post(reverse('signup'), payload, follow=False)
+        sent_code = mock_send.call_args[0][1]
+
+        resp = self.client.post('/verificar/', {'codigo': sent_code}, follow=False)
+
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(reverse('company_onboarding'), resp['Location'])
+
+    def test_signup_get_is_business_not_consumer_registration(self):
+        """The public entry visibly asks how the company will operate."""
+        resp = self.client.get(reverse('signup'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'How will your company use TradeFlow?')
+        self.assertContains(resp, 'name="business_role"', count=3)

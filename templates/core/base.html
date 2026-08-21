@@ -1340,14 +1340,25 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-chat-feedback { display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E5E7EB; font-size: 12px; }
     .tf-chat-feedback button { border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 11px; }
 
-    /* Assistant widget — fixed overlay, out of document flow */
+    /* Assistant widget — starts left, then glides right after the user begins scrolling. */
     #tf-assistant {
       position: fixed;
-      right: max(16px, env(safe-area-inset-right, 0px));
+      left: max(16px, env(safe-area-inset-left, 0px));
+      right: auto;
       bottom: max(16px, env(safe-area-inset-bottom, 0px));
       z-index: 10050;
       font-family: var(--tf-font-body);
       pointer-events: none;
+      transform: translateX(0);
+      transition: transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+    #tf-assistant.tf-assistant--right {
+      transform: translateX(calc(
+        100vw - 56px
+        - max(16px, env(safe-area-inset-left, 0px))
+        - max(16px, env(safe-area-inset-right, 0px))
+      ));
     }
     #tf-assistant > * { pointer-events: auto; }
     #tf-chat-toggle {
@@ -1368,7 +1379,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     #tf-chat-window {
       display: none;
       position: absolute;
-      right: 0;
+      left: 0;
+      right: auto;
       bottom: calc(100% + 12px);
       width: min(360px, calc(100vw - 32px));
       height: min(520px, calc(100vh - 120px));
@@ -1378,6 +1390,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       border: 1px solid #E5E7EB;
       flex-direction: column;
       overflow: hidden;
+    }
+    #tf-assistant.tf-assistant--right #tf-chat-window {
+      left: auto;
+      right: 0;
     }
     .tf-chat-header {
       display: flex;
@@ -1553,9 +1569,25 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     #tf-chat-send:hover { background: var(--tf-orange-h, #FF7A3D); }
     #tf-chat-send:active { transform: scale(0.96); }
     #tf-chat-send .material-symbols-rounded { font-size: 20px; }
-    @media (max-width: 480px) {
-      #tf-assistant { right: 12px; bottom: 12px; }
-      #tf-chat-window { width: calc(100vw - 24px); }
+    @media (max-width: 767px) {
+      #tf-assistant,
+      #tf-assistant.tf-assistant--right {
+        left: auto;
+        right: max(12px, env(safe-area-inset-right, 0px));
+        bottom: max(12px, env(safe-area-inset-bottom, 0px));
+        transform: none;
+        transition: none;
+        will-change: auto;
+      }
+      #tf-chat-window,
+      #tf-assistant.tf-assistant--right #tf-chat-window {
+        left: auto;
+        right: 0;
+        width: calc(100vw - 24px);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #tf-assistant { transition: none; }
     }
   </style>
   {# CSP nonce: tag custom para que el <script type="application/json"> reciba nonce. #}
@@ -1658,7 +1690,38 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     var closeBtn = document.getElementById('tf-chat-close');
     var sendBtn = document.getElementById('tf-chat-send');
     var input = document.getElementById('tf-chat-input');
+    var assistant = document.getElementById('tf-assistant');
     var csrfToken = '{{ csrf_token }}';
+    var assistantDockFrame = null;
+    var assistantDesktop = window.matchMedia('(min-width: 768px)');
+
+    function syncAssistantDock() {
+      if (!assistant) return;
+      if (!assistantDesktop.matches) {
+        assistant.classList.remove('tf-assistant--right');
+        return;
+      }
+      if (tfChatOpen || assistant.classList.contains('tf-assistant--open')) return;
+      assistant.classList.toggle('tf-assistant--right', window.scrollY > 80);
+    }
+
+    function scheduleAssistantDock() {
+      if (assistantDockFrame !== null) return;
+      assistantDockFrame = window.requestAnimationFrame(function () {
+        assistantDockFrame = null;
+        syncAssistantDock();
+      });
+    }
+
+    window.addEventListener('scroll', scheduleAssistantDock, { passive: true });
+    window.addEventListener('resize', scheduleAssistantDock);
+    if (assistantDesktop.addEventListener) {
+      assistantDesktop.addEventListener('change', scheduleAssistantDock);
+    } else if (assistantDesktop.addListener) {
+      assistantDesktop.addListener(scheduleAssistantDock);
+    }
+    syncAssistantDock();
+    window.TF_SYNC_ASSISTANT_DOCK = syncAssistantDock;
 
     function setComposeDisabled(disabled) {
       if (input) input.disabled = !!disabled;
@@ -1670,11 +1733,14 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       if (!win) return;
       if (tfChatOpen) {
         win.style.display = 'flex';
+        if (assistant) assistant.classList.add('tf-assistant--open');
         if (icon) icon.textContent = 'close';
         if (input && !input.disabled) input.focus();
       } else {
         win.style.display = 'none';
+        if (assistant) assistant.classList.remove('tf-assistant--open');
         if (icon) icon.textContent = 'smart_toy';
+        syncAssistantDock();
       }
     }
 
@@ -1827,7 +1893,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
 
     window.TF_OPEN_ASSISTANT = function (prefill) {
-      if (!tfChatOpen && toggle) toggleChat();
+      var currentToggle = document.getElementById('tf-chat-toggle');
+      var currentWindow = document.getElementById('tf-chat-window');
+      var currentOpen = currentWindow && window.getComputedStyle(currentWindow).display !== 'none';
+      if (!currentOpen && currentToggle) currentToggle.click();
       if (input && prefill) {
         input.value = prefill;
         input.focus();

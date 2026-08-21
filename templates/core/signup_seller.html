@@ -1,9 +1,6 @@
 {% extends "core/base.html" %}
 {% load static i18n %}
-{% comment %}
-Signup vendedor — mismo diseño visual que /signup/comprador/ (Figma 13:935).
-Solo presentación; contrato del formulario sin cambios.
-{% endcomment %}
+{% comment %}Registro empresarial B2B unificado.{% endcomment %}
 {% block title %}{% trans "Create account — TradeFlow Colón" %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
@@ -43,13 +40,38 @@ Solo presentación; contrato del formulario sin cambios.
         </div>
 
         <header>
-          <h1 class="signup-buyer-title" id="signup-form-title">{% trans "Register your company on TradeFlow" %}</h1>
-          <p class="signup-buyer-subtitle">{% trans "Join for free in under 2 minutes." %}</p>
+          <h1 class="signup-buyer-title" id="signup-form-title">{% trans "Create your business account" %}</h1>
+          <p class="signup-buyer-subtitle">{% trans "Register an authorized company representative. Company verification follows email verification." %}</p>
         </header>
 
-        <form method="post" action="{% url 'signup_seller' %}" novalidate autocomplete="off" class="signup-buyer-form signup-form">
+        <form method="post" action="{% url 'signup' %}" novalidate autocomplete="off" class="signup-buyer-form signup-form">
           {% csrf_token %}
-          <input type="hidden" name="role" value="seller">
+
+          <fieldset class="signup-field-group signup-business-intent">
+            <legend class="signup-business-intent__title">{% trans "How will your company use TradeFlow?" %} <span class="req" aria-hidden="true">*</span></legend>
+            <div class="signup-business-intent__grid">
+              <label class="signup-business-intent__option">
+                <input type="radio" name="business_role" value="buyer" {% if selected_business_role == 'buyer' %}checked{% endif %} required>
+                <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
+                <strong>{% trans "Buy" %}</strong>
+                <small>{% trans "Source products for my company" %}</small>
+              </label>
+              <label class="signup-business-intent__option">
+                <input type="radio" name="business_role" value="seller" {% if selected_business_role == 'seller' %}checked{% endif %} required>
+                <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
+                <strong>{% trans "Sell" %}</strong>
+                <small>{% trans "Publish a wholesale catalog" %}</small>
+              </label>
+              <label class="signup-business-intent__option">
+                <input type="radio" name="business_role" value="both" {% if selected_business_role == 'both' or not selected_business_role %}checked{% endif %} required>
+                <span class="material-symbols-rounded" aria-hidden="true">sync_alt</span>
+                <strong>{% trans "Both" %}</strong>
+                <small>{% trans "Buy and sell as a company" %}</small>
+              </label>
+            </div>
+          </fieldset>
+
+          {% include "core/includes/oauth_buttons_signup.html" %}
 
           <fieldset class="signup-field-group">
             <legend class="signup-field-group-title">Datos de contacto</legend>
@@ -128,6 +150,7 @@ Solo presentación; contrato del formulario sin cambios.
                   id="id_username"
                   class="signup-buyer-float__input tf-input"
                   placeholder=" "
+                  value="{{ form_username|default:'' }}"
                   autocomplete="off"
                   required
                   aria-describedby="hint-username"
@@ -200,13 +223,11 @@ Solo presentación; contrato del formulario sin cambios.
           </p>
 
           <button type="submit" class="auth-submit">
-            <span class="material-symbols-rounded auth-submit-icon" aria-hidden="true">person_add</span>
-            {% trans "Create account" %}
+            <span class="material-symbols-rounded auth-submit-icon" aria-hidden="true">domain_add</span>
+            {% trans "Continue to company verification" %}
           </button>
 
-          <p class="signup-buyer-verify">{% trans "We will email you to verify your account." %}</p>
-
-          {% include "core/includes/oauth_buttons_signup.html" %}
+          <p class="signup-buyer-verify">{% trans "First we verify your email. Then you will provide the company's RUC, DV and supporting document." %}</p>
         </form>
 
         <div class="signup-buyer-footer auth-footer">
@@ -224,18 +245,6 @@ Solo presentación; contrato del formulario sin cambios.
 </div>
 <script nonce="{{ csp_nonce }}">
 (function () {
-  document.querySelectorAll('.js-oauth-signup').forEach(function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      var base = btn.getAttribute('data-base-url');
-      if (!base) return;
-      var roleInput = document.querySelector('input[name="role"]');
-      var role = roleInput ? roleInput.value : 'seller';
-      var sep = base.indexOf('?') >= 0 ? '&' : '?';
-      window.location.href = base + sep + 'role=' + encodeURIComponent(role);
-    });
-  });
-
   function syncPasswordToggle(btn, visible) {
     var inputId = btn.getAttribute('data-target');
     var input = inputId ? document.getElementById(inputId) : null;
@@ -253,6 +262,19 @@ Solo presentación; contrato del formulario sin cambios.
       var input = inputId ? document.getElementById(inputId) : null;
       if (!input) return;
       syncPasswordToggle(btn, input.type !== 'text');
+    });
+  });
+
+  document.querySelectorAll('.js-oauth-signup').forEach(function (btn) {
+    btn.addEventListener('click', function (event) {
+      event.preventDefault();
+      var base = btn.getAttribute('data-base-url');
+      if (!base) return;
+      var selected = document.querySelector('input[name="business_role"]:checked');
+      var businessRole = selected ? selected.value : 'both';
+      var separator = base.indexOf('?') >= 0 ? '&' : '?';
+      window.location.href = base + separator +
+        'business_role=' + encodeURIComponent(businessRole);
     });
   });
 

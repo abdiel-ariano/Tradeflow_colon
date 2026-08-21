@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import (
-    UserProfile, Company, Category, Product, Inventory,
+    UserProfile, Company, CompanyMembership, Category, Product, Inventory,
     Address, Order, OrderItem, Payment, Shipment, Document,
     Cotizacion, CotizacionItem, HomePromoSection,
     TransportCarrier, UserApplication, Transportista, AsignacionTransporte,
@@ -108,7 +108,7 @@ class UserProfileInline(admin.StackedInline):
     model          = UserProfile
     can_delete     = False
     verbose_name_plural = 'Perfil'
-    fields         = ['phone', 'role']
+    fields         = ['phone', 'role', 'business_role_intent']
 
 
 class UserAdmin(TradeFlowPermissionMixin, BaseUserAdmin):
@@ -156,21 +156,72 @@ admin.site.register(User, UserAdmin)
 # COMPANY
 # =============================================================================
 
+class CompanyMembershipInline(admin.TabularInline):
+    """Manage company users without relying on the legacy owner field."""
+    model = CompanyMembership
+    extra = 0
+    raw_id_fields = ['user']
+    fields = ['user', 'role', 'status']
+    show_change_link = True
+
+
 @admin.register(Company)
 class CompanyAdmin(TradeFlowModelAdmin):
-    """Manage CFZ seller companies and Mi Tienda owners."""
+    """Manage B2B identity, capabilities and manual verification."""
 
-    list_display   = ['name', 'ruc', 'owner', 'is_verified', 'is_featured', 'created_at']
-    list_filter    = ['is_verified', 'is_featured']
-    search_fields  = ['name', 'ruc', 'owner__username', 'owner__email']
-    list_editable  = ['is_verified']
-    raw_id_fields  = ['owner']
-    fields         = [
-        'name', 'logo', 'ruc', 'address_text', 'owner', 'is_verified', 'is_featured',
-        'carousel_priority', 'tagline_es', 'tagline_en', 'order_confirm_hours',
-        'latitud', 'longitud',
+    list_display = [
+        'name', 'legal_name', 'ruc', 'dv', 'business_role',
+        'verification_status', 'owner', 'created_at',
     ]
-    list_per_page  = 25
+    list_filter = ['business_role', 'verification_status', 'is_featured']
+    search_fields = [
+        'name', 'legal_name', 'ruc', 'business_email',
+        'owner__username', 'owner__email',
+    ]
+    raw_id_fields = ['owner']
+    readonly_fields = [
+        'verification_submitted_at', 'is_verified', 'verified_at',
+        'verified_by', 'created_at',
+    ]
+    fields = [
+        'name', 'legal_name', 'logo',
+        'ruc', 'dv', 'business_email', 'business_phone', 'address_text',
+        'business_role', 'verification_status', 'verification_document',
+        'verification_notes', 'verification_submitted_at',
+        'verified_at', 'verified_by',
+        'owner', 'is_verified', 'is_featured',
+        'carousel_priority', 'tagline_es', 'tagline_en',
+        'order_confirm_hours', 'latitud', 'longitud', 'created_at',
+    ]
+    inlines = [CompanyMembershipInline]
+    list_per_page = 25
+
+    def save_model(self, request, obj, form, change):
+        """Record the reviewer when verification is granted in admin."""
+        previous_status = None
+        if change and obj.pk:
+            previous_status = (
+                Company.objects.filter(pk=obj.pk)
+                .values_list('verification_status', flat=True)
+                .first()
+            )
+        if obj.verification_status == 'verified' and previous_status != 'verified':
+            obj.verified_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(CompanyMembership)
+class CompanyMembershipAdmin(TradeFlowModelAdmin):
+    """Inspect and manage user authority within a company."""
+
+    list_display = ['company', 'user', 'role', 'status', 'created_at']
+    list_filter = ['role', 'status']
+    search_fields = [
+        'company__name', 'company__legal_name',
+        'user__username', 'user__email',
+    ]
+    raw_id_fields = ['company', 'user']
+    list_per_page = 30
 
 
 # =============================================================================
