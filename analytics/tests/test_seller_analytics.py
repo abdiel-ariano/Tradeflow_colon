@@ -72,6 +72,9 @@ class TestSellerAnalyticsAccess(TestCase):
         self.assertContains(r, 'nonce="')
         # English seller portal copy
         self.assertContains(r, 'Talk to your data')
+        self.assertContains(r, 'Talk to your Data AI')
+        self.assertContains(r, 'id="talk-to-your-data"')
+        self.assertContains(r, 'href="#talk-to-your-data"')
         self.assertContains(r, 'Revenue')
         self.assertContains(r, 'Forecasts')
         # With a single order there isn't enough history for proj tables
