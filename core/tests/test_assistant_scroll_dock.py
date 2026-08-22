@@ -13,11 +13,15 @@ class AssistantScrollDockTests(SimpleTestCase):
     def test_base_template_docks_left_then_right_on_scroll(self):
         source = self._read('templates/core/base.html')
         self.assertIn('id="tf-assistant"', source)
-        self.assertIn('width: fit-content', source)
+        self.assertIn('data-tf-dock="left"', source)
         self.assertIn('tf-assistant--right', source)
         self.assertIn('TF_DOCK_SCROLL_Y', source)
+        self.assertIn('applyAssistantDock', source)
         self.assertIn('window.TF_SYNC_ASSISTANT_DOCK', source)
         self.assertIn('setChatOpen', source)
+        # Prefer animatable left over transform docking.
+        self.assertIn('transition: left', source)
+        self.assertIn("setProperty('left'", source)
 
     def test_notifications_does_not_steal_chat_handlers(self):
         source = self._read('static/js/tf_notifications.js')
