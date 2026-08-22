@@ -267,11 +267,12 @@ body.tf-design-v2 {
   color: #fff;
 }
 
-/* ── Floating chat (Lovable spec) ── */
-#tf-chat-toggle {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
+/* ── Floating chat launcher (docked by #tf-assistant; do not pin to viewport) ── */
+#tf-assistant #tf-chat-toggle {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  left: auto;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -280,13 +281,13 @@ body.tf-design-v2 {
   border: none;
   box-shadow: 0 4px 16px rgba(232, 73, 15, 0.35);
   cursor: pointer;
-  z-index: 1040;
+  z-index: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
-#tf-chat-toggle:hover {
+#tf-assistant #tf-chat-toggle:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 20px rgba(232, 73, 15, 0.45);
 }

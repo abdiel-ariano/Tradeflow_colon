@@ -2036,10 +2036,9 @@ body.cat-catalog-page .tf-footer {
   display: none;
 }
 
-/* Chatbot clearance above mobile filter FAB */
+/* Chatbot clearance above mobile filter FAB — keep left/right dock intact */
 @media (max-width: 767px) {
   body.cat-catalog-page #tf-assistant {
     bottom: max(72px, calc(12px + env(safe-area-inset-bottom, 0px))) !important;
-    right: max(12px, env(safe-area-inset-right, 0px)) !important;
   }
 }

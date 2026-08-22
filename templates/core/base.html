@@ -1340,28 +1340,36 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-chat-feedback { display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E5E7EB; font-size: 12px; }
     .tf-chat-feedback button { border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 11px; }
 
-    /* Assistant widget — starts left, then glides right after the user begins scrolling. */
+    /* Assistant: shrink-wrap so left→right dock keeps the panel on-screen.
+       Starts bottom-left; after light scroll, glides to bottom-right. */
     #tf-assistant {
       position: fixed;
       left: max(16px, env(safe-area-inset-left, 0px));
       right: auto;
       bottom: max(16px, env(safe-area-inset-bottom, 0px));
       z-index: 10050;
+      width: fit-content;
+      max-width: calc(100vw - 32px);
       font-family: var(--tf-font-body);
       pointer-events: none;
-      transform: translateX(0);
-      transition: transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+      transform: translate3d(0, 0, 0);
+      transition: transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
       will-change: transform;
     }
     #tf-assistant.tf-assistant--right {
-      transform: translateX(calc(
-        100vw - 56px
-        - max(16px, env(safe-area-inset-left, 0px))
-        - max(16px, env(safe-area-inset-right, 0px))
-      ));
+      transform: translate3d(
+        calc(
+          100vw - 100%
+          - max(16px, env(safe-area-inset-left, 0px))
+          - max(16px, env(safe-area-inset-right, 0px))
+        ),
+        0,
+        0
+      );
     }
     #tf-assistant > * { pointer-events: auto; }
     #tf-chat-toggle {
+      position: relative;
       width: 56px;
       height: 56px;
       border-radius: 50%;
@@ -1570,20 +1578,30 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     #tf-chat-send:active { transform: scale(0.96); }
     #tf-chat-send .material-symbols-rounded { font-size: 20px; }
     @media (max-width: 767px) {
-      #tf-assistant,
-      #tf-assistant.tf-assistant--right {
-        left: auto;
-        right: max(12px, env(safe-area-inset-right, 0px));
+      #tf-assistant {
+        left: max(12px, env(safe-area-inset-left, 0px));
+        right: auto;
         bottom: max(12px, env(safe-area-inset-bottom, 0px));
-        transform: none;
-        transition: none;
-        will-change: auto;
+        max-width: calc(100vw - 24px);
+        transition: transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
       }
-      #tf-chat-window,
+      #tf-assistant.tf-assistant--right {
+        transform: translate3d(
+          calc(
+            100vw - 100%
+            - max(12px, env(safe-area-inset-left, 0px))
+            - max(12px, env(safe-area-inset-right, 0px))
+          ),
+          0,
+          0
+        );
+      }
+      #tf-chat-window {
+        width: min(360px, calc(100vw - 24px));
+      }
       #tf-assistant.tf-assistant--right #tf-chat-window {
         left: auto;
         right: 0;
-        width: calc(100vw - 24px);
       }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -1685,7 +1703,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     var TF_CHAT_MAX_HIST = 5;
     var TF_CHAT_FETCH_MS = 25000;
     var win = document.getElementById('tf-chat-window');
-    var icon = document.getElementById('tf-chat-icon');
     var toggle = document.getElementById('tf-chat-toggle');
     var closeBtn = document.getElementById('tf-chat-close');
     var sendBtn = document.getElementById('tf-chat-send');
@@ -1693,16 +1710,13 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     var assistant = document.getElementById('tf-assistant');
     var csrfToken = '{{ csrf_token }}';
     var assistantDockFrame = null;
-    var assistantDesktop = window.matchMedia('(min-width: 768px)');
+    var TF_DOCK_SCROLL_Y = 72;
 
     function syncAssistantDock() {
       if (!assistant) return;
-      if (!assistantDesktop.matches) {
-        assistant.classList.remove('tf-assistant--right');
-        return;
-      }
+      /* Keep dock stable while the panel is open so the conversation does not slide mid-chat. */
       if (tfChatOpen || assistant.classList.contains('tf-assistant--open')) return;
-      assistant.classList.toggle('tf-assistant--right', window.scrollY > 80);
+      assistant.classList.toggle('tf-assistant--right', window.scrollY > TF_DOCK_SCROLL_Y);
     }
 
     function scheduleAssistantDock() {
@@ -1715,11 +1729,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
     window.addEventListener('scroll', scheduleAssistantDock, { passive: true });
     window.addEventListener('resize', scheduleAssistantDock);
-    if (assistantDesktop.addEventListener) {
-      assistantDesktop.addEventListener('change', scheduleAssistantDock);
-    } else if (assistantDesktop.addListener) {
-      assistantDesktop.addListener(scheduleAssistantDock);
-    }
     syncAssistantDock();
     window.TF_SYNC_ASSISTANT_DOCK = syncAssistantDock;
 
@@ -1728,24 +1737,44 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       if (sendBtn) sendBtn.disabled = !!disabled;
     }
 
-    function toggleChat() {
-      tfChatOpen = !tfChatOpen;
+    function setChatOpen(open) {
+      tfChatOpen = !!open;
       if (!win) return;
+      win.style.display = tfChatOpen ? 'flex' : 'none';
+      if (assistant) {
+        assistant.classList.toggle('tf-assistant--open', tfChatOpen);
+      }
+      if (toggle) {
+        toggle.setAttribute('aria-expanded', tfChatOpen ? 'true' : 'false');
+        toggle.setAttribute('aria-label', tfChatOpen ? 'Close assistant' : 'Open assistant');
+      }
       if (tfChatOpen) {
-        win.style.display = 'flex';
-        if (assistant) assistant.classList.add('tf-assistant--open');
-        if (icon) icon.textContent = 'close';
-        if (input && !input.disabled) input.focus();
+        if (input && !input.disabled) {
+          window.requestAnimationFrame(function () { input.focus(); });
+        }
       } else {
-        win.style.display = 'none';
-        if (assistant) assistant.classList.remove('tf-assistant--open');
-        if (icon) icon.textContent = 'smart_toy';
         syncAssistantDock();
       }
     }
 
-    if (toggle) toggle.addEventListener('click', toggleChat);
-    if (closeBtn) closeBtn.addEventListener('click', toggleChat);
+    function toggleChat() {
+      setChatOpen(!tfChatOpen);
+    }
+
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-controls', 'tf-chat-window');
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        toggleChat();
+      });
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        setChatOpen(false);
+      });
+    }
 
     function scrollMessagesToBottom() {
       var msgs = document.getElementById('tf-chat-messages');
@@ -1893,10 +1922,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
 
     window.TF_OPEN_ASSISTANT = function (prefill) {
-      var currentToggle = document.getElementById('tf-chat-toggle');
-      var currentWindow = document.getElementById('tf-chat-window');
-      var currentOpen = currentWindow && window.getComputedStyle(currentWindow).display !== 'none';
-      if (!currentOpen && currentToggle) currentToggle.click();
+      if (!tfChatOpen) setChatOpen(true);
       if (input && prefill) {
         input.value = prefill;
         input.focus();
