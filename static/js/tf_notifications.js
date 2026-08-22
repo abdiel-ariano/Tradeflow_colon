@@ -172,61 +172,19 @@
     el.innerHTML = ASSISTANT_ICON_SVG;
   }
 
-  function patchChatWidget() {
-    var win = document.getElementById('tf-chat-window');
+  /** Polish icons only — do not clone or steal chat open/close handlers from base.html. */
+  function polishChatWidgetIcons() {
     var toggle = document.getElementById('tf-chat-toggle');
-    if (!win || !toggle) return;
-
+    if (!toggle) return;
     renderAssistantIcon(toggle.querySelector('.tf-icon'), 'tf-icon--chat');
     renderAssistantIcon(
       document.querySelector('#tf-assistant .tf-chat-header-avatar .tf-icon'),
       'tf-icon--chat-header'
     );
-
-    var closeBtn = document.getElementById('tf-chat-close');
-    var input = document.getElementById('tf-chat-input');
-    var assistant = document.getElementById('tf-assistant');
-    var chatOpen = false;
-
-    function setChatOpen(open) {
-      chatOpen = !!open;
-      win.style.display = chatOpen ? 'flex' : 'none';
-      if (assistant) {
-        assistant.classList.toggle('tf-assistant--open', chatOpen);
-      }
-      toggle.setAttribute('aria-expanded', chatOpen ? 'true' : 'false');
-      toggle.setAttribute('aria-label', chatOpen ? 'Close assistant' : 'Open assistant');
-      if (chatOpen && input) {
-        window.requestAnimationFrame(function () { input.focus(); });
-      } else if (!chatOpen && typeof window.TF_SYNC_ASSISTANT_DOCK === 'function') {
-        window.requestAnimationFrame(window.TF_SYNC_ASSISTANT_DOCK);
-      }
-    }
-
-    function onToggleClick(e) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      setChatOpen(!chatOpen);
-    }
-
-    var freshToggle = toggle.cloneNode(true);
-    toggle.parentNode.replaceChild(freshToggle, toggle);
-    toggle = freshToggle;
-    toggle.addEventListener('click', onToggleClick);
-
-    if (closeBtn) {
-      var freshClose = closeBtn.cloneNode(true);
-      closeBtn.parentNode.replaceChild(freshClose, closeBtn);
-      freshClose.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        setChatOpen(false);
-      });
-    }
   }
 
   function onReady() {
     initFlashes();
-    patchChatWidget();
+    polishChatWidgetIcons();
   }
 })();
