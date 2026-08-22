@@ -47,6 +47,48 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-mobile-pwa.css' %}?v={{ tf_asset_version|default:'2' }}">
   <script nonce="{{ csp_nonce }}" defer src="{% static 'js/tf-mobile-pwa.js' %}?v={{ tf_asset_version|default:'2' }}"></script>
   <link rel="stylesheet" href="{% static 'css/tf-icons.css' %}?v={{ tf_asset_version|default:'2' }}">
+  {# Full-width rail: FAB starts LEFT; JS translates it RIGHT after scroll. #}
+  <style nonce="{{ csp_nonce }}">
+    #tf-assistant-rail {
+      position: fixed !important;
+      top: auto !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      z-index: 10050 !important;
+      display: flex !important;
+      justify-content: flex-start !important;
+      align-items: flex-end !important;
+      padding: 0 max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)) !important;
+      margin: 0 !important;
+      pointer-events: none !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    #tf-assistant-rail #tf-assistant {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
+      width: 56px !important;
+      margin: 0 !important;
+      pointer-events: none;
+      transform: translate3d(0, 0, 0);
+      transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+    #tf-assistant-rail #tf-assistant > * { pointer-events: auto; }
+    @media (max-width: 767px) {
+      #tf-assistant-rail {
+        padding: 0 max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)) !important;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #tf-assistant-rail #tf-assistant { transition: none !important; }
+    }
+  </style>
   {% if request.user.is_authenticated %}
     {% if request.user.is_superuser or tf_user_role == 'admin' %}
   {% include "core/includes/admin_ops_assets.html" %}
@@ -1340,34 +1382,11 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-chat-feedback { display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E5E7EB; font-size: 12px; }
     .tf-chat-feedback button { border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 11px; }
 
-    /* Assistant FAB: always start bottom-LEFT; glide to bottom-RIGHT on scroll.
-       Uses animatable `left` (not transform) so the move is visible and reliable. */
-    #tf-assistant {
-      position: fixed !important;
-      top: auto !important;
-      left: max(16px, env(safe-area-inset-left, 0px)) !important;
-      right: auto !important;
-      bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
-      z-index: 10050 !important;
-      width: 56px;
-      max-width: calc(100vw - 32px);
-      height: auto;
-      margin: 0 !important;
+    /* Assistant widget chrome (rail in <head> owns viewport docking). */
+    #tf-assistant-rail #tf-assistant {
       font-family: var(--tf-font-body);
-      pointer-events: none;
-      transform: none !important;
-      transition: left 700ms cubic-bezier(0.22, 1, 0.36, 1);
-      will-change: left;
     }
-    #tf-assistant.tf-assistant--right {
-      left: calc(
-        100vw - 56px - max(16px, env(safe-area-inset-right, 0px))
-      ) !important;
-      right: auto !important;
-      transform: none !important;
-    }
-    #tf-assistant > * { pointer-events: auto; }
-    #tf-chat-toggle {
+    #tf-assistant-rail #tf-chat-toggle {
       position: relative !important;
       top: auto !important;
       left: auto !important;
@@ -1386,8 +1405,11 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       justify-content: center;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    #tf-chat-toggle:hover { transform: scale(1.04); box-shadow: 0 6px 20px rgba(242, 101, 34, 0.45); }
-    #tf-chat-window {
+    #tf-assistant-rail #tf-chat-toggle:hover {
+      transform: scale(1.04);
+      box-shadow: 0 6px 20px rgba(242, 101, 34, 0.45);
+    }
+    #tf-assistant-rail #tf-chat-window {
       display: none;
       position: absolute;
       left: 0;
@@ -1402,7 +1424,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       flex-direction: column;
       overflow: hidden;
     }
-    #tf-assistant.tf-assistant--right #tf-chat-window {
+    #tf-assistant-rail[data-tf-dock="right"] #tf-chat-window {
       left: auto;
       right: 0;
     }
@@ -1581,28 +1603,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     #tf-chat-send:active { transform: scale(0.96); }
     #tf-chat-send .material-symbols-rounded { font-size: 20px; }
     @media (max-width: 767px) {
-      #tf-assistant {
-        left: max(12px, env(safe-area-inset-left, 0px)) !important;
-        right: auto !important;
-        bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
-        max-width: calc(100vw - 24px);
-        transition: left 640ms cubic-bezier(0.22, 1, 0.36, 1);
-      }
-      #tf-assistant.tf-assistant--right {
-        left: calc(
-          100vw - 56px - max(12px, env(safe-area-inset-right, 0px))
-        ) !important;
-      }
-      #tf-chat-window {
+      #tf-assistant-rail #tf-chat-window {
         width: min(360px, calc(100vw - 24px));
       }
-      #tf-assistant.tf-assistant--right #tf-chat-window {
-        left: auto;
-        right: 0;
-      }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      #tf-assistant { transition: none !important; }
     }
   </style>
   {# CSP nonce: tag custom para que el <script type="application/json"> reciba nonce. #}
@@ -1616,37 +1619,39 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </script>
   {% block extra_js %}{% endblock %}
 
-  <!-- TF Assistant Widget — starts bottom-left; JS docks right after scroll -->
-  <div id="tf-assistant" aria-live="polite" data-tf-dock="left" style="left:16px;right:auto;transform:none;">
-    <button type="button" id="tf-chat-toggle" aria-label="Open assistant">
-      {% include "core/includes/tf_icon.html" with name="assistant" class="tf-icon--chat" %}
-    </button>
-    <div id="tf-chat-window" role="dialog" aria-label="TradeFlow Assistant">
-      <header class="tf-chat-header">
-        <div class="tf-chat-header-avatar" aria-hidden="true">
-          {% include "core/includes/tf_icon.html" with name="assistant" class="tf-icon--chat-header" %}
-        </div>
-        <div class="tf-chat-header-text">
-          <div class="tf-chat-header-title">TradeFlow Assistant</div>
-          <div class="tf-chat-header-sub">Free Zone virtual assistant · AI replies via Groq</div>
-        </div>
-        <button type="button" id="tf-chat-close" aria-label="Close">
-          {% include "core/includes/tf_icon.html" with name="close" %}
-        </button>
-      </header>
-      <div id="tf-chat-messages">
-        <div class="tf-msg-bot" id="tf-chat-welcome">
-          Hi! I'm the TradeFlow Colón assistant. How can I help you today?
-          <div style="margin-top:8px;font-size:12px;opacity:.85;">
-            Messages you send here may be processed by our AI provider (Groq) to generate answers. Do not share passwords or secrets.
+  <!-- TF Assistant: full-width rail keeps FAB on the LEFT until scroll moves it RIGHT -->
+  <div id="tf-assistant-rail" data-tf-dock="left" aria-live="polite">
+    <div id="tf-assistant">
+      <button type="button" id="tf-chat-toggle" aria-label="Open assistant">
+        {% include "core/includes/tf_icon.html" with name="assistant" class="tf-icon--chat" %}
+      </button>
+      <div id="tf-chat-window" role="dialog" aria-label="TradeFlow Assistant">
+        <header class="tf-chat-header">
+          <div class="tf-chat-header-avatar" aria-hidden="true">
+            {% include "core/includes/tf_icon.html" with name="assistant" class="tf-icon--chat-header" %}
+          </div>
+          <div class="tf-chat-header-text">
+            <div class="tf-chat-header-title">TradeFlow Assistant</div>
+            <div class="tf-chat-header-sub">Free Zone virtual assistant · AI replies via Groq</div>
+          </div>
+          <button type="button" id="tf-chat-close" aria-label="Close">
+            {% include "core/includes/tf_icon.html" with name="close" %}
+          </button>
+        </header>
+        <div id="tf-chat-messages">
+          <div class="tf-msg-bot" id="tf-chat-welcome">
+            Hi! I'm the TradeFlow Colón assistant. How can I help you today?
+            <div style="margin-top:8px;font-size:12px;opacity:.85;">
+              Messages you send here may be processed by our AI provider (Groq) to generate answers. Do not share passwords or secrets.
+            </div>
           </div>
         </div>
-      </div>
-      <div class="tf-chat-compose">
-        <input type="text" id="tf-chat-input" placeholder="Type your question..." autocomplete="off" aria-label="Message">
-        <button type="button" id="tf-chat-send" aria-label="Send message">
-          {% include "core/includes/tf_icon.html" with name="send" %}
-        </button>
+        <div class="tf-chat-compose">
+          <input type="text" id="tf-chat-input" placeholder="Type your question..." autocomplete="off" aria-label="Message">
+          <button type="button" id="tf-chat-send" aria-label="Send message">
+            {% include "core/includes/tf_icon.html" with name="send" %}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1706,45 +1711,42 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     var input = document.getElementById('tf-chat-input');
     var assistant = document.getElementById('tf-assistant');
     var csrfToken = '{{ csrf_token }}';
+    var assistantRail = document.getElementById('tf-assistant-rail');
     var assistantDockFrame = null;
-    var TF_DOCK_SCROLL_Y = 48;
+    var TF_DOCK_SCROLL_Y = 100;
     var TF_DOCK_BTN = 56;
 
     function assistantScrollY() {
       var se = document.scrollingElement || document.documentElement;
-      var y = window.pageYOffset || (se && se.scrollTop) || document.body.scrollTop || 0;
-      if (y > 0) return y;
-      /* Some marketplace shells scroll an inner main/scroller instead of the window. */
-      var nodes = document.querySelectorAll(
-        'main, [data-tf-scroll], .tf-main, .cat-results-scroll, .home-scroll'
+      return Math.max(
+        window.pageYOffset || 0,
+        (se && se.scrollTop) || 0,
+        document.body ? document.body.scrollTop : 0
       );
-      for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i].scrollTop > y) y = nodes[i].scrollTop;
-      }
-      return y;
-    }
-
-    function assistantEdgePad() {
-      return window.matchMedia('(max-width: 767px)').matches ? 12 : 16;
     }
 
     function applyAssistantDock(goRight) {
-      if (!assistant) return;
-      var pad = assistantEdgePad();
-      var leftPx = goRight
-        ? Math.max(pad, window.innerWidth - TF_DOCK_BTN - pad)
-        : pad;
+      if (!assistant || !assistantRail) return;
+      var dock = goRight ? 'right' : 'left';
+      assistantRail.setAttribute('data-tf-dock', dock);
       assistant.classList.toggle('tf-assistant--right', !!goRight);
-      assistant.setAttribute('data-tf-dock', goRight ? 'right' : 'left');
-      assistant.style.setProperty('left', leftPx + 'px', 'important');
-      assistant.style.setProperty('right', 'auto', 'important');
-      assistant.style.setProperty('transform', 'none', 'important');
+      assistant.setAttribute('data-tf-dock', dock);
+
+      var railWidth = assistantRail.clientWidth || window.innerWidth;
+      var style = window.getComputedStyle(assistantRail);
+      var padL = parseFloat(style.paddingLeft) || 0;
+      var padR = parseFloat(style.paddingRight) || 0;
+      var travel = Math.max(0, railWidth - padL - padR - TF_DOCK_BTN);
+      var x = goRight ? travel : 0;
+      assistant.style.setProperty(
+        'transform',
+        'translate3d(' + x + 'px, 0, 0)',
+        'important'
+      );
     }
 
     function syncAssistantDock() {
-      if (!assistant) return;
-      /* Keep dock stable while the panel is open so the conversation does not slide mid-chat. */
-      if (tfChatOpen || assistant.classList.contains('tf-assistant--open')) return;
+      if (!assistant || !assistantRail) return;
       applyAssistantDock(assistantScrollY() > TF_DOCK_SCROLL_Y);
     }
 
@@ -1756,9 +1758,15 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       });
     }
 
-    window.addEventListener('scroll', scheduleAssistantDock, { passive: true, capture: true });
-    document.addEventListener('scroll', scheduleAssistantDock, { passive: true, capture: true });
+    applyAssistantDock(false);
+    window.addEventListener('scroll', scheduleAssistantDock, { passive: true });
     window.addEventListener('resize', scheduleAssistantDock);
+    window.addEventListener('pageshow', function () {
+      applyAssistantDock(false);
+      window.setTimeout(syncAssistantDock, 0);
+    });
+    window.setTimeout(syncAssistantDock, 0);
+    window.setTimeout(syncAssistantDock, 300);
     syncAssistantDock();
     window.TF_SYNC_ASSISTANT_DOCK = syncAssistantDock;
 
@@ -1782,9 +1790,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         if (input && !input.disabled) {
           window.requestAnimationFrame(function () { input.focus(); });
         }
-      } else {
-        syncAssistantDock();
+      } else if (input) {
+        /* no-op close path */
       }
+      syncAssistantDock();
     }
 
     function toggleChat() {

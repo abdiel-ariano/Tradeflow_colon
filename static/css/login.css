@@ -5,6 +5,7 @@
  */
 
 /* Hide assistant FAB on login (not in Figma frame) */
+body:has(.login-page-wrap--figma) #tf-assistant-rail,
 body:has(.login-page-wrap--figma) #tf-assistant {
   display: none !important;
 }
