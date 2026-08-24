@@ -47,12 +47,12 @@ class GroupedCartRfqTests(TestCase):
         self.company_a = Company.objects.create(
             name='Atlantic ZLC',
             ruc='155600001',
-            is_verified=True,
+            verification_status='verified',
         )
         self.company_b = Company.objects.create(
             name='Pacific ZLC',
             ruc='155600002',
-            is_verified=True,
+            verification_status='verified',
         )
         self.product_a = Product.objects.create(
             company=self.company_a,
