@@ -11,12 +11,12 @@
         </ul>
       </div>
       <div class="footer-col">
-        <h4>{% trans "Buyer Protection" %}</h4>
+        <h4>{% trans "Quote-first workflow" %}</h4>
         <ul>
-          <li><a href="{% url 'marketplace_order_protection' %}">{% trans "Secure payments" %}</a></li>
-          <li><a href="{% url 'marketplace_order_protection' %}">{% trans "Money-back guarantee" %}</a></li>
-          <li><a href="{% url 'marketplace_order_protection' %}">{% trans "Guaranteed delivery" %}</a></li>
-          <li><a href="{% url 'legal_terminos' %}">{% trans "After-sales protection" %}</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">{% trans "Request for Quotation before payment" %}</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">{% trans "Review quotes & terms" %}</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">{% trans "Negotiate volume, shipping, and payment terms before funds move." %}</a></li>
+          <li><a href="{% url 'acerca_tradeflow' %}#free-zone">{% trans "Export documentation" %}</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -38,13 +38,10 @@
       </div>
     </div>
     <div class="footer-payments">
-      <span class="footer-payments-label">{% trans "We accept:" %}</span>
-      <span class="payment-chip">Visa</span>
-      <span class="payment-chip">Mastercard</span>
-      <span class="payment-chip">PayPal</span>
-      <span class="payment-chip">Apple Pay</span>
-      <span class="payment-chip">Google Pay</span>
-      <span class="payment-chip">{% trans "Bank Transfer (T/T)" %}</span>
+      <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
+      <span class="footer-payments-label">
+        {% trans "Every wholesale path on TradeFlow stays quote-first: verified CFZ suppliers, formal RFQs, and export-ready docs before you commit." %}
+      </span>
     </div>
   </div>
   <div class="footer-bottom">
