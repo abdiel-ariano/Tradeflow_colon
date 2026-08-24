@@ -204,10 +204,44 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(quote.estado, 'aceptada')
         self.assertIsNotNone(quote.order_id)
         self.assertEqual(quote.order.status, 'pending')
+        self.assertEqual(quote.order.confirming_company, self.company)
+        self.assertEqual(quote.order.seller_confirmation_status, 'accepted')
+        self.assertTrue(quote.order.confirmado_por_empresa)
         self.assertEqual(quote.order.total, Decimal('19.00'))
         self.assertFalse(Payment.objects.filter(order=quote.order).exists())
         inventory = Inventory.objects.get(product=self.product)
         self.assertEqual(inventory.reserved_qty, 2)
+
+    def test_confirmacion_vendedor_no_fabrica_pago(self):
+        """Seller acceptance leaves payment and logistics pending."""
+        from core.utils.order_workflow import accept_seller_order
+        from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscription
+
+        ensure_default_plans()
+        ensure_demo_subscription(self.company)
+        order = Order.objects.create(
+            buyer=self.buyer,
+            shipping_cost=Decimal('0'),
+            status='awaiting_seller',
+            confirming_company=self.company,
+            seller_confirmation_status='pending',
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            qty=2,
+            unit_price_snapshot=Decimal('10.00'),
+        )
+        order.recalculate_totals()
+        order.save(update_fields=['subtotal', 'total', 'updated_at'])
+
+        accept_seller_order(order)
+
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'pending')
+        self.assertEqual(order.seller_confirmation_status, 'accepted')
+        self.assertTrue(order.confirmado_por_empresa)
+        self.assertFalse(Payment.objects.filter(order=order).exists())
 
     def test_buyer_ve_solo_sus_ordenes(self):
         """Buyers cannot open another buyer's order detail (404)."""
