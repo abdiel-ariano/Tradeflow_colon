@@ -26,6 +26,10 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   max-width: var(--hm-content-max);
   margin: 0 auto;
   padding-inline: var(--hm-gutter);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: clip;
 }
 
 .hm-section__head {
@@ -526,6 +530,9 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(160px, 200px);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   gap: 14px;
   overflow-x: auto;
   padding-bottom: 8px;
