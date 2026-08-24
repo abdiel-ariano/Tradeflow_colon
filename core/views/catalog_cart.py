@@ -38,7 +38,7 @@ from ..forms import SellerProductForm, SellerInventoryForm
 from ..email_service import enviar_codigo_verificacion as enviar_codigo_email
 from ..models import (
     UserProfile, Company, Category, Product, Inventory,
-    Address, Order, OrderItem, Payment, Shipment, Document,
+    Address, Order, OrderItem, Shipment, Document,
     Cotizacion, CotizacionItem, TransportCarrier, UserApplication,
     EmailVerification,
 )
@@ -1361,22 +1361,13 @@ def detalle_cotizacion(request, pk):
 
                 orden.recalculate_totals()
                 orden.save(update_fields=['subtotal', 'total', 'updated_at'])
-                Payment.objects.create(
-                    order=orden,
-                    provider='mock',
-                    status='approved',
-                    amount=orden.total,
-                    currency='USD',
-                    paid_at=timezone.now(),
-                    txn_ref=f'TF-MOCK-COT-{cot.numero}',
-                )
-                orden.status = 'paid'
-                orden.save(update_fields=['status'])
+                # Accepting a supplier quote creates a pending purchase order.
+                # Payment is a later, explicit business event; never fabricate one.
                 cot.order = orden
                 cot.estado = 'aceptada'
                 cot.save(update_fields=['order', 'estado', 'updated_at'])
 
-            messages.success(request, f'Order {orden.order_number} created from the quote.')
+            messages.success(\n                request,\n                f'Purchase order {orden.order_number} created and awaiting supplier confirmation. '\n                'No payment has been recorded.',\n            )
             return redirect('detalle_mi_orden', pk=orden.pk)
 
         return redirect('detalle_cotizacion', pk=cot.pk)
