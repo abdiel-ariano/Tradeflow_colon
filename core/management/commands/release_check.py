@@ -4,6 +4,8 @@ Ops: run in CI and before promoting staging to production. Fails on
 missing SECRET_KEY / PUBLIC_BASE_URL or unreachable DB. Use
 ``--allow-debug`` only for local CI with DEBUG=True.
 """
+from urllib.parse import urlsplit
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -69,6 +71,40 @@ class Command(BaseCommand):
         for key in required:
             if not getattr(settings, key, None):
                 errors.append(f'Falta {key}')
+
+        public_base_url = str(getattr(settings, 'PUBLIC_BASE_URL', '') or '').strip()
+        if public_base_url:
+            parsed_base_url = urlsplit(public_base_url)
+            has_path = parsed_base_url.path not in ('', '/')
+            if (
+                not settings.DEBUG
+                and (
+                    parsed_base_url.scheme != 'https'
+                    or not parsed_base_url.netloc
+                    or has_path
+                    or parsed_base_url.query
+                    or parsed_base_url.fragment
+                )
+            ):
+                errors.append(
+                    'PUBLIC_BASE_URL debe ser un origen HTTPS sin ruta, query ni fragmento '
+                    '(ej. https://tradeflowcolon.com).'
+                )
+
+        provider_keys = {
+            'Google': 'google',
+            'Microsoft': 'microsoft',
+            'LinkedIn': 'linkedin_oauth2',
+        }
+        provider_settings = getattr(settings, 'SOCIALACCOUNT_PROVIDERS', {}) or {}
+        for provider_name, provider_key in provider_keys.items():
+            app = (provider_settings.get(provider_key) or {}).get('APP') or {}
+            has_client_id = bool(str(app.get('client_id') or '').strip())
+            has_secret = bool(str(app.get('secret') or '').strip())
+            if has_client_id != has_secret:
+                errors.append(
+                    f'OAuth {provider_name} incompleto: configure client_id y secret juntos.'
+                )
 
         backend = getattr(settings, 'EMAIL_BACKEND', '') or ''
         if not settings.DEBUG and not getattr(settings, 'EMAIL_USE_REAL_SMTP', False):
