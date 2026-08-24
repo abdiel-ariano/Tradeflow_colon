@@ -5,6 +5,7 @@ antes de que los vendedores fallen en checkout.
 """
 from __future__ import annotations
 
+import os
 import time
 
 from django.conf import settings
@@ -42,6 +43,35 @@ def check_storage() -> dict:
     }
 
 
+def deployment_identity() -> dict:
+    """Return non-secret build identity for public deploy diagnostics."""
+    commit = (
+        os.getenv('RAILWAY_GIT_COMMIT_SHA')
+        or os.getenv('GIT_COMMIT_SHA')
+        or ''
+    ).strip()
+    environment = (
+        os.getenv('RAILWAY_ENVIRONMENT_NAME')
+        or os.getenv('DEPLOYMENT_ENVIRONMENT')
+        or ''
+    ).strip()
+    return {
+        'commit': commit[:12] or 'unknown',
+        'environment': environment or 'unknown',
+    }
+
+
+def check_oauth() -> dict:
+    """Report configured OAuth providers without exposing credentials."""
+    from core.social_auth import provider_is_enabled
+
+    return {
+        'google': provider_is_enabled('google'),
+        'microsoft': provider_is_enabled('microsoft'),
+        'linkedin': provider_is_enabled('linkedin'),
+    }
+
+
 def platform_health_payload(*, detailed: bool = False) -> dict:
     """Arma el JSON de salud de deploy.
 
@@ -49,9 +79,16 @@ def platform_health_payload(*, detailed: bool = False) -> dict:
     configuración interna (OWASP A05). ``detailed=True`` para ops/staff.
     """
     db = check_database()
+    oauth = check_oauth()
     public = {
         'status': 'ok' if db['ok'] else 'degraded',
         'version': 'tradeflow-colon',
+        'deployment': deployment_identity(),
+        'auth': {
+            'oauth_providers': [
+                provider for provider, enabled in oauth.items() if enabled
+            ],
+        },
         'database': {
             'ok': db['ok'],
             'latency_ms': db['latency_ms'],
