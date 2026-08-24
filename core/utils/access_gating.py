@@ -161,12 +161,6 @@ def email_verification_required(user) -> bool:
         return True
 
 
-def is_protected_path(path: str) -> bool:
-    """Devuelve True para checkout, pedidos, APIs de vendedor y otras rutas restringidas."""
-    p = normalize_path(path)
-    return any(p.startswith(pref) for pref in PROTECTED_PATH_PREFIXES)
-
-
 def is_browse_path(path: str) -> bool:
     """Devuelve True para catálogo público, carrito y superficies de navegación del home."""
     p = normalize_path(path)
