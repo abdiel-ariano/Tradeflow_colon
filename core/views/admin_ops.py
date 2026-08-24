@@ -737,7 +737,6 @@ def nueva_orden_paso3(request):
         shipping_cost = Decimal(request.POST.get('shipping_cost', 0) or 0)
         address_id    = request.POST.get('address_id') or None
         notas         = request.POST.get('notas', '')
-        metodo_pago   = request.POST.get('metodo_pago', 'mock')
 
         ship_address = None
         if address_id:
@@ -779,21 +778,13 @@ def nueva_orden_paso3(request):
         orden.total = orden.subtotal + shipping_cost
         orden.save(update_fields=['shipping_cost', 'total'])
 
-        Payment.objects.create(
-            order=orden, provider=metodo_pago,
-            status='approved' if metodo_pago == 'mock' else 'pending',
-            amount=orden.total, currency='USD',
-            paid_at=timezone.now() if metodo_pago == 'mock' else None,
-            txn_ref=f'TF-{orden.order_number}',
-        )
-        if metodo_pago == 'mock':
-            orden.status = 'paid'
-            orden.save(update_fields=['status'])
-
         for key in ('wizard_buyer_id', 'wizard_items'):
             request.session.pop(key, None)
 
-        messages.success(request, f'Order {orden.order_number} created successfully!')
+        messages.success(
+            request,
+            f'Order {orden.order_number} created pending payment and logistics.',
+        )
         return redirect('detalle_orden', pk=orden.pk)
 
     return render(request, 'core/nueva_orden_paso3.html', {
@@ -801,7 +792,6 @@ def nueva_orden_paso3(request):
         'items':         items,
         'subtotal':      subtotal,
         'direcciones':   direcciones,
-        'metodos_pago':  Payment.PROVIDER_CHOICES,
         'titulo_pagina': 'New order — Step 3',
         'nav_activo':    'ordenes',
         'paso_actual':   3,
