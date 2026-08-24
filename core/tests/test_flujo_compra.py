@@ -1,7 +1,7 @@
-"""Critical buyer purchase flow: catalog, cart, checkout, and role gates.
+"""Critical B2B buyer flow: catalog, inquiry cart, supplier RFQs, and role gates.
 
-Covers CFZ wholesale order creation, inventory reservation, order
-privacy, and post-login routing for buyers vs sellers.
+Covers formal quote requests without premature orders, payments, or stock
+reservation, plus order privacy and post-login routing by company role.
 """
 from decimal import Decimal
 
@@ -12,12 +12,11 @@ from django.urls import reverse
 from core.models import (
     Category,
     Company,
+    Cotizacion,
     Inventory,
     Order,
     OrderItem,
-    Payment,
     Product,
-    TransportCarrier,
     UserProfile,
 )
 
@@ -30,7 +29,6 @@ from core.models import (
     AXES_ENABLED=False,
     REQUIRE_EMAIL_VERIFICATION=False,
     REQUIRE_APPROVED_APPLICATION=False,
-    CHECKOUT_AUTO_APPROVE=True,
     STAFF_MFA_REQUIRED=False,
     EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
     AUTHENTICATION_BACKENDS=[
@@ -46,12 +44,7 @@ class TestFlujoBuyer(TestCase):
         self.company = Company.objects.create(
             name='Empresa Demo ZLC',
             ruc='123456',
-            is_verified=True,
-        )
-        self.carrier = TransportCarrier.objects.create(
-            code='test-carrier',
-            name='Test Carrier',
-            base_shipping_cost=Decimal('5.00'),
+            verification_status='verified',
         )
         self.cat = Category.objects.create(name='Electrónica')
         self.product = Product.objects.create(
@@ -132,8 +125,8 @@ class TestFlujoBuyer(TestCase):
         self.assertIn(str(self.product.pk), carrito)
         self.assertEqual(carrito[str(self.product.pk)]['cantidad'], 2)
 
-    def test_checkout_crea_orden(self):
-        """Checkout POST creates Order, OrderItems, and Payment rows."""
+    def test_checkout_crea_solicitud_cotizacion(self):
+        """Inquiry review creates a pending RFQ, not an order or payment."""
         self.client.login(username='buyer_test', password='TestPass123!')
         session = self.client.session
         session['carrito'] = {
@@ -146,25 +139,22 @@ class TestFlujoBuyer(TestCase):
             }
         }
         session.save()
-        r = self.client.post(
+        response = self.client.post(
             '/checkout/',
-            {
-                'notas': 'Test',
-                'transport_carrier': self.carrier.pk,
-                'buyer_latitude': '9.3667000',
-                'buyer_longitude': '-79.9000000',
-                'location_consent': '1',
-            },
+            {'notas': 'Cotizar FOB Colón', 'validez_dias': '30'},
         )
-        self.assertEqual(r.status_code, 302)
-        orden = Order.objects.filter(buyer=self.buyer).first()
-        self.assertIsNotNone(orden)
-        self.assertEqual(orden.order_type, 'b2b')
-        self.assertEqual(orden.items.count(), 1)
-        self.assertTrue(Payment.objects.filter(order=orden).exists())
 
-    def test_checkout_reserva_inventario(self):
-        """Checkout increases reserved_qty to match ordered units."""
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('mis_cotizaciones'), response.url)
+        quote = Cotizacion.objects.get(buyer=self.buyer)
+        self.assertEqual(quote.empresa, self.company)
+        self.assertEqual(quote.estado, 'pendiente')
+        self.assertEqual(quote.validez_dias, 30)
+        self.assertEqual(quote.items.count(), 1)
+        self.assertFalse(Order.objects.filter(buyer=self.buyer).exists())
+
+    def test_solicitud_cotizacion_no_reserva_inventario(self):
+        """Sending an RFQ leaves sellable stock available until an order exists."""
         self.client.login(username='buyer_test', password='TestPass123!')
         session = self.client.session
         session['carrito'] = {
@@ -179,16 +169,12 @@ class TestFlujoBuyer(TestCase):
         session.save()
         self.client.post(
             '/checkout/',
-            {
-                'notas': '',
-                'transport_carrier': self.carrier.pk,
-                'buyer_latitude': '9.3667000',
-                'buyer_longitude': '-79.9000000',
-                'location_consent': '1',
-            },
+            {'notas': '', 'validez_dias': '45'},
         )
-        inv = Inventory.objects.get(product=self.product)
-        self.assertEqual(inv.reserved_qty, 3)
+
+        self.assertTrue(Cotizacion.objects.filter(buyer=self.buyer).exists())
+        inventory = Inventory.objects.get(product=self.product)
+        self.assertEqual(inventory.reserved_qty, 0)
 
     def test_buyer_ve_solo_sus_ordenes(self):
         """Buyers cannot open another buyer's order detail (404)."""
@@ -271,9 +257,7 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 200)
 
     def test_checkout_spanish_ui(self):
-        """Checkout renders Spanish confirm/delivery copy after setlang."""
-        from django.urls import reverse
-
+        """RFQ review renders Spanish quote-first copy without delivery fields."""
         self.client.login(username='buyer_test', password='TestPass123!')
         session = self.client.session
         session['carrito'] = {
@@ -291,16 +275,17 @@ class TestFlujoBuyer(TestCase):
             {'language': 'es', 'next': reverse('checkout')},
         )
         response = self.client.get(post_response.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Confirmar pedido')
-        self.assertContains(response, 'Ubicación de entrega')
-        self.assertContains(response, 'Usar mi ubicación actual')
-        self.assertContains(response, 'location_consent')
-        self.assertContains(response, 'Enviar pedido')
-        self.assertNotContains(response, 'Confirm order')
 
-    def test_checkout_requiere_consentimiento_ubicacion(self):
-        """Checkout without location_consent must not create an order."""
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Solicitud de cotización')
+        self.assertContains(response, 'Flujo cotizar primero')
+        self.assertContains(response, 'Solicitud de cotización antes del pago')
+        self.assertNotContains(response, 'Ubicación de entrega')
+        self.assertNotContains(response, 'location_consent')
+        self.assertNotContains(response, 'Enviar pedido')
+
+    def test_checkout_no_requiere_ubicacion_para_cotizar(self):
+        """An RFQ can be sent without carrier, GPS coordinates, or consent."""
         self.client.login(username='buyer_test', password='TestPass123!')
         session = self.client.session
         session['carrito'] = {
@@ -313,16 +298,13 @@ class TestFlujoBuyer(TestCase):
             }
         }
         session.save()
-        r = self.client.post(
+        response = self.client.post(
             '/checkout/',
-            {
-                'notas': 'Test',
-                'transport_carrier': self.carrier.pk,
-                'buyer_latitude': '9.3667000',
-                'buyer_longitude': '-79.9000000',
-            },
+            {'notas': 'Sin datos de entrega', 'validez_dias': '30'},
         )
-        self.assertEqual(r.status_code, 302)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Cotizacion.objects.filter(buyer=self.buyer).exists())
         self.assertFalse(Order.objects.filter(buyer=self.buyer).exists())
 
     def test_acceso_sin_login_redirige(self):
