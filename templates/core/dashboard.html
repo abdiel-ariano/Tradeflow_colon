@@ -618,11 +618,8 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
           <div class="adm-meta-card">
             <span class="material-symbols-rounded">public</span>
             <div>
-              <h3>B2B / B2C (period)</h3>
-              <p>
-                <strong id="adm-meta-b2b">{{ ordenes_b2b }}</strong> B2B ·
-                <strong id="adm-meta-b2c">{{ ordenes_b2c }}</strong> B2C
-              </p>
+              <h3>B2B orders (period)</h3>
+              <p><strong id="adm-meta-b2b">{{ ordenes_b2b }}</strong> wholesale orders</p>
             </div>
           </div>
           <div class="adm-meta-card">
@@ -674,12 +671,6 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         <p class="adm-chart-lead">Orders in period by operational status.</p>
         <p class="adm-chart-empty" id="adm-doughnut-empty">No orders in this period</p>
         <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admDoughnutChart" aria-label="Order statuses"></canvas></div>
-      </div>
-      <div class="adm-chart-card">
-        <div class="adm-chart-title">Orders B2B / B2C</div>
-        <p class="adm-chart-lead">Distribution by order type in the period.</p>
-        <p class="adm-chart-empty" id="adm-tipo-empty">No orders in this period</p>
-        <div class="adm-chart-canvas-wrap adm-chart-tall"><canvas id="admTipoDoughnut"></canvas></div>
       </div>
     </div>
 

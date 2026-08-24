@@ -107,14 +107,13 @@ class InventoryForm(forms.ModelForm):
 
 
 class OrderForm(forms.ModelForm):
-    """Checkout/order header fields for type, ship-to, and freight."""
+    """B2B checkout header fields for ship-to, freight, and notes."""
 
     class Meta:
         """Django model options for admin, ordering, and constraints."""
         model  = Order
-        fields = ['order_type', 'ship_address', 'shipping_cost', 'notes']
+        fields = ['ship_address', 'shipping_cost', 'notes']
         widgets = {
-            'order_type':    forms.Select(attrs={'class': 'form-control'}),
             'ship_address':  forms.Select(attrs={'class': 'form-control'}),
             'shipping_cost': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'notes':         forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),

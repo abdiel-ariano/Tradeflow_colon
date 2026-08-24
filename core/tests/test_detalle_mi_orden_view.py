@@ -51,7 +51,7 @@ class DetalleMiOrdenViewTests(TestCase):
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
         self.orden = Order.objects.create(
             buyer=self.buyer,
-            order_type='b2c',
+            order_type='b2b',
             shipping_cost=Decimal('5.00'),
             status='paid',
         )
