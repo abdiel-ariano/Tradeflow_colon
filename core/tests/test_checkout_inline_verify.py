@@ -29,7 +29,7 @@ class CheckoutInlineVerifyTests(TestCase):
         self.company = Company.objects.create(
             name='Co ZLC',
             ruc='999',
-            is_verified=True,
+            verification_status='verified',
         )
         category = Category.objects.create(name='Cat')
         self.product = Product.objects.create(
