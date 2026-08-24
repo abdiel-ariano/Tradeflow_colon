@@ -353,3 +353,15 @@ class TestFlujoBuyer(TestCase):
         r = self.client.get('/checkout/')
         self.assertEqual(r.status_code, 302)
         self.assertIn('/login/', r.url)
+
+
+    def test_public_rfq_page_describes_real_process_without_guarantee(self):
+        """Public navigation explains RFQs without promising buyer protection."""
+        response = self.client.get(reverse('marketplace_order_protection'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'How the RFQ process works')
+        self.assertContains(response, 'creates a pending order, not a paid order')
+        self.assertContains(response, 'does not provide escrow')
+        self.assertNotContains(response, 'Buyer protection program')
+        self.assertNotContains(response, 'Secure B2B checkout')
