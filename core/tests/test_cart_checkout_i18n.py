@@ -129,3 +129,38 @@ class CartCheckoutI18nTests(TestCase):
         self.assertNotContains(resp, 'Carrito de compras')
         self.assertNotContains(resp, 'Finalizar compra')
         self.assertNotContains(resp, 'Métodos de pago')
+
+    def test_checkout_review_is_rfq_not_consumer_order_form(self):
+        """The next cart step stays quote-first in both supported locales."""
+        response = self.client.get(reverse('checkout'), HTTP_ACCEPT_LANGUAGE='en')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Request for Quotation')
+        self.assertContains(response, 'Quote-first workflow')
+        self.assertContains(response, 'Request for Quotation before payment')
+        self.assertContains(response, self.product.company.name)
+        for unsupported in (
+            'Confirm order',
+            'Who transports your cargo?',
+            'Delivery location',
+            'Submit order',
+            'Use my current location',
+        ):
+            self.assertNotContains(response, unsupported)
+
+        switch = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('checkout')},
+        )
+        response_es = self.client.get(switch.url)
+        self.assertContains(response_es, 'Solicitud de cotización')
+        self.assertContains(response_es, 'Flujo cotizar primero')
+        self.assertContains(response_es, 'Solicitud de cotización antes del pago')
+        for unsupported in (
+            'Confirmar pedido',
+            '¿Quién transporta tu carga?',
+            'Ubicación de entrega',
+            'Enviar pedido',
+            'Usar mi ubicación actual',
+        ):
+            self.assertNotContains(response_es, unsupported)
+
