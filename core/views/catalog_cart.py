@@ -1367,7 +1367,11 @@ def detalle_cotizacion(request, pk):
                 cot.estado = 'aceptada'
                 cot.save(update_fields=['order', 'estado', 'updated_at'])
 
-            messages.success(\n                request,\n                f'Purchase order {orden.order_number} created and awaiting supplier confirmation. '\n                'No payment has been recorded.',\n            )
+            messages.success(
+                request,
+                f'Purchase order {orden.order_number} created and awaiting supplier confirmation. '
+                'No payment has been recorded.',
+            )
             return redirect('detalle_mi_orden', pk=orden.pk)
 
         return redirect('detalle_cotizacion', pk=cot.pk)
