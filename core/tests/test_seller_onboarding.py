@@ -2,7 +2,7 @@
 from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 
 from core.enterprise_models import CompanySubscription
 from core.models import Company, CompanyMembership, UserProfile
@@ -64,6 +64,9 @@ class SellerOnboardingTests(TestCase):
         self.assertFalse(CompanySubscription.objects.filter(company=company).exists())
         membership = CompanyMembership.objects.get(company=company, user=self.user)
         self.assertEqual(membership.role, 'owner')
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.business_role_intent, 'seller')
+        self.assertIsNotNone(self.user.profile.onboarding_completed_at)
 
     def test_wizard_survives_empty_logo_upload(self):
         """Accept empty logo uploads without returning 500."""
@@ -173,3 +176,24 @@ class SellerOnboardingTests(TestCase):
         self.assertTrue(company.can_buy)
         self.assertFalse(company.can_sell)
         self.assertEqual(company.verification_status, 'pending')
+
+
+    def test_legacy_buyer_uses_company_identity_instead_of_consumer_wizard(self):
+        """Legacy buyers are treated as businesses and asked for RUC/DV."""
+        profile = self.user.profile
+        profile.role = 'buyer'
+        profile.business_role_intent = ''
+        profile.onboarding_completed_at = None
+        profile.save(update_fields=[
+            'role', 'business_role_intent', 'onboarding_completed_at',
+        ])
+
+        response = self.client.get(reverse('company_onboarding'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['form_business_role'], 'buyer')
+
+    def test_consumer_buyer_wizard_route_names_are_retired(self):
+        """No post-login path can send a business into the old B2C wizard."""
+        with self.assertRaises(NoReverseMatch):
+            reverse('buyer_onboarding_step1')
