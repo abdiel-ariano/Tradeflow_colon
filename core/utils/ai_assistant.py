@@ -762,8 +762,7 @@ def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None
     result = _catalog_to_structured(mensaje, snapshot)
 
     api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
-    if api_key and not result.get('baja_confianza'):
-        try:
+    # Company identity guidance is compliance-sensitive. Keep the reviewed RUC/DV\n    # workflow authoritative instead of allowing a generative provider to invent\n    # automatic government-registry checks or approval guarantees.\n    if (\n        api_key\n        and not result.get('baja_confianza')\n        and result.get('categoria') != 'verificacion'\n    ):\n        try:
             groq_resp = _consultar_groq(mensaje, historial, snapshot)
             if groq_resp:
                 bullets = [groq_resp[:400]]
