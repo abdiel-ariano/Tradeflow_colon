@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% load static tf_media i18n %}
-{% block title %}{% trans "My cart" %} — TradeFlow Colón{% endblock %}
+{% block title %}{% trans "Request for Quotation" %} — TradeFlow Colón{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/carrito.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
@@ -10,7 +10,7 @@
     {% if carrito %}
     <header class="cart-page__header">
       <div>
-        <h1 class="cart-page__title">{% trans "Shopping cart" %}</h1>
+        <h1 class="cart-page__title">{% trans "Request for Quotation" %}</h1>
         <p class="cart-page__count">
           {% blocktrans count counter=carrito_count %}{{ counter }} item{% plural %}{{ counter }} items{% endblocktrans %}
         </p>
@@ -79,34 +79,29 @@
 
       <aside class="cart-sidebar">
         <div class="cart-card cart-sidebar__summary">
-          <h2 class="cart-card__title">{% trans "Order summary" %}</h2>
+          <h2 class="cart-card__title">{% trans "Quote-first workflow" %}</h2>
+          <p class="cart-payments__note">
+            <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
+            {% trans "Add items to your inquiry cart to request a formal quotation." %}
+          </p>
           <div class="cart-summary__row">
             <span>{% trans "Subtotal" %}</span>
             <span>USD {{ subtotal }}</span>
           </div>
-          <div class="cart-summary__row">
-            <span>{% trans "Shipping" %}</span>
-            <span>{% if envio == 0 %}{% trans "Free" %}{% else %}USD {{ envio }}{% endif %}</span>
-          </div>
-          <div class="cart-summary__row">
-            <span>{% trans "Tax (16% VAT)" %}</span>
-            <span>USD {{ impuestos }}</span>
-          </div>
-          <div class="cart-summary__divider"></div>
-          <div class="cart-summary__total">
-            <span class="cart-summary__total-label">{% trans "Total" %}</span>
-            <span class="cart-summary__total-value">USD {{ total_general }}</span>
-          </div>
+          <p class="cart-payments__note">
+            <span class="material-symbols-rounded" aria-hidden="true">info</span>
+            {% trans "Request for Quotation before payment" %}
+          </p>
 
           {% if user.is_authenticated %}
           <a href="{% url 'checkout' %}" class="cart-btn-primary">
-            <span class="material-symbols-rounded" style="font-size:20px" aria-hidden="true">shopping_bag</span>
-            {% trans "Proceed to checkout" %}
+            <span class="material-symbols-rounded" style="font-size:20px" aria-hidden="true">description</span>
+            {% trans "Quote before you commit" %}
           </a>
           {% else %}
           <a href="{% url 'login' %}?next={% url 'checkout' %}" class="cart-btn-primary">
             <span class="material-symbols-rounded" style="font-size:20px" aria-hidden="true">login</span>
-            {% trans "Log in to checkout" %}
+            {% trans "Quote before you commit" %}
           </a>
           {% endif %}
           <a href="{% url 'catalogo_publico' %}" class="cart-btn-secondary">
@@ -116,22 +111,10 @@
         </div>
 
         <div class="cart-card">
-          <h2 class="cart-card__title">{% trans "Payment methods" %}</h2>
-          <div class="cart-payments__badges">
-            <span class="cart-payments__badge">Visa</span>
-            <span class="cart-payments__badge">Mastercard</span>
-            <span class="cart-payments__badge">Amex</span>
-            <span class="cart-payments__badge">PayPal</span>
-            <span class="cart-payments__badge">Apple Pay</span>
-            <span class="cart-payments__badge">Google Pay</span>
-          </div>
+          <h2 class="cart-card__title">{% trans "Review quotes & terms" %}</h2>
           <p class="cart-payments__note">
-            <span class="material-symbols-rounded" aria-hidden="true">lock</span>
-            {% trans "100% secure encrypted payment" %}
-          </p>
-          <p class="cart-payments__note">
-            <span class="material-symbols-rounded" aria-hidden="true">published_with_changes</span>
-            {% trans "30-day returns" %}
+            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+            {% trans "Add products from multiple suppliers and request formal quotations." %}
           </p>
         </div>
       </aside>

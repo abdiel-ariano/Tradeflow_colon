@@ -26,7 +26,7 @@ from core.models import (
     LANGUAGE_CODE='en',
 )
 class CartCheckoutI18nTests(TestCase):
-    """Assert cart strings and the buyer navbar language switcher."""
+    """Assert RFQ strings and the buyer navbar language switcher."""
 
     def setUp(self):
         """Log in a buyer with one in-stock line already in session cart."""
@@ -62,12 +62,16 @@ class CartCheckoutI18nTests(TestCase):
         session.save()
 
     def test_cart_renders_english_when_en_active(self):
-        """English locale shows Shopping cart / Proceed to checkout copy."""
+        """English locale presents an RFQ instead of consumer checkout."""
         resp = self.client.get(reverse('ver_carrito'), HTTP_ACCEPT_LANGUAGE='en')
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'Shopping cart')
-        self.assertContains(resp, 'Proceed to checkout')
-        self.assertNotContains(resp, 'Carrito de compras')
+        self.assertContains(resp, 'Request for Quotation')
+        self.assertContains(resp, 'Quote before you commit')
+        self.assertContains(resp, 'Request for Quotation before payment')
+        self.assertNotContains(resp, 'Shopping cart')
+        self.assertNotContains(resp, 'Proceed to checkout')
+        self.assertNotContains(resp, 'Payment methods')
+        self.assertNotContains(resp, 'Tax (16% VAT)')
 
     def test_buyer_navbar_has_language_switcher(self):
         """Buyer navbar exposes the setlang language switcher controls."""
@@ -76,13 +80,16 @@ class CartCheckoutI18nTests(TestCase):
         self.assertContains(resp, 'i18n/setlang')
 
     def test_cart_renders_spanish_under_es_prefix(self):
-        """After switching to es, cart shows Spanish checkout CTAs."""
+        """Spanish locale keeps the same quote-first commercial flow."""
         post_response = self.client.post(
             reverse('set_language'),
             {'language': 'es', 'next': reverse('ver_carrito')},
         )
         resp = self.client.get(post_response.url)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'Carrito de compras')
-        self.assertContains(resp, 'Finalizar compra')
-        self.assertNotContains(resp, 'Shopping cart')
+        self.assertContains(resp, 'Solicitud de cotización')
+        self.assertContains(resp, 'Cotiza antes de comprar')
+        self.assertContains(resp, 'Solicitud de cotización antes del pago')
+        self.assertNotContains(resp, 'Carrito de compras')
+        self.assertNotContains(resp, 'Finalizar compra')
+        self.assertNotContains(resp, 'Métodos de pago')
