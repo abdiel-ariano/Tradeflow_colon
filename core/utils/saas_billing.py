@@ -13,7 +13,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.db.utils import DatabaseError, OperationalError, ProgrammingError
 from django.utils import timezone
 
@@ -30,7 +30,8 @@ from core.enterprise_models import (
 )
 from core.models import Company, OrderItem
 
-# Order statuses that count toward the plan monthly billable volume.
+# Legacy settled/fulfilled statuses remain billable. New RFQ orders count once
+# the supplier has accepted the commercial operation, without fabricating payment.
 BILLABLE_ORDER_STATUSES = ('paid', 'packed', 'shipped', 'delivered')
 
 
@@ -288,7 +289,9 @@ def compute_monthly_volume(company: Company, now=None) -> tuple[Decimal, int]:
         product__company=company,
         order__created_at__gte=start,
         order__created_at__lte=end,
-        order__status__in=BILLABLE_ORDER_STATUSES,
+    ).filter(
+        Q(order__seller_confirmation_status='accepted')
+        | Q(order__status__in=BILLABLE_ORDER_STATUSES),
     )
     agg = qs.aggregate(vol=Sum('line_total'))
     vol = agg['vol'] or Decimal('0.00')

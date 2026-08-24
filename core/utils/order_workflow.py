@@ -1,7 +1,7 @@
 """Flujo de confirmar/rechazar del vendedor y liberación de reserva de inventario.
 
-Aceptar un pedido B2B ZLC verifica topes de volumen SaaS, marca el pago
-aprobado y libera stock reservado al rechazar o expirar.
+Aceptar un pedido B2B ZLC verifica topes de volumen SaaS y mantiene la
+orden pendiente de pago y logística. Nunca fabrica pagos.
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from decimal import Decimal
 from django.db import transaction
 from django.utils import timezone
 
-from core.models import Order, Payment
+from core.models import Order
 
 log = logging.getLogger(__name__)
 
@@ -27,10 +27,8 @@ def release_order_inventory(orden: Order) -> None:
 
 
 def accept_seller_order(orden: Order) -> None:
-    """Acepta el pedido: aplica topes de volumen, marca pagado y aprueba el pago."""
-    from collections import defaultdict
-
-    from core.utils.saas_billing import VolumeLimitExceeded, assert_within_volume_limit
+    """Acepta comercialmente el pedido sin inventar cobros ni liquidaciones."""
+    from core.utils.saas_billing import assert_within_volume_limit
 
     by_company: dict = defaultdict(lambda: Decimal('0.00'))
     for item in orden.items.select_related('product__company'):
@@ -42,25 +40,10 @@ def accept_seller_order(orden: Order) -> None:
     with transaction.atomic():
         orden.seller_confirmation_status = 'accepted'
         orden.confirmado_por_empresa = True
-        orden.status = 'paid'
+        orden.status = 'pending'
         orden.save(update_fields=[
             'seller_confirmation_status', 'confirmado_por_empresa', 'status', 'updated_at',
         ])
-        payment = getattr(orden, 'payment', None)
-        if payment:
-            payment.status = 'approved'
-            payment.paid_at = timezone.now()
-            payment.save(update_fields=['status', 'paid_at'])
-        else:
-            Payment.objects.create(
-                order=orden,
-                provider='mock',
-                status='approved',
-                amount=orden.total,
-                currency='USD',
-                paid_at=timezone.now(),
-                txn_ref=f'TF-CONF-{orden.order_number}',
-            )
 
 
 def reject_seller_order(orden: Order) -> None:

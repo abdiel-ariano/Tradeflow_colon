@@ -255,7 +255,10 @@ def confirmar_orden_empresa(request, order_pk, decision):
                 ) % {'limit': exc.limit},
             )
             return redirect('seller_plan_consumo')
-        messages.success(request, _('Order accepted.'))
+        messages.success(
+            request,
+            _('Order accepted. Payment and logistics remain pending.'),
+        )
     elif decision == 'rechazar':
         reject_seller_order(orden)
         messages.warning(request, _('Order rejected.'))
