@@ -1,6 +1,7 @@
 """TF Assistant responde desde el catálogo ZLC en vivo y el contexto de planes SaaS.
 
-Usa primero instantáneas ORM; enriquecimiento opcional con Groq cuando hay API key.
+Usa Groq como motor principal cuando hay API key y conserva el catálogo ORM
+como respaldo cuando el proveedor no está disponible.
 """
 from __future__ import annotations
 
@@ -736,7 +737,7 @@ def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
 
 
 def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None):
-    """Ejecuta RAG + formato estructurado; devuelve texto, HTML y metadatos."""
+    """Usa Groq primero para chat público y el RAG local como respaldo seguro."""
     mensaje = (mensaje_usuario or '').strip()
     if not mensaje:
         empty = 'Type your question and I will help you with the ZLC catalog.'
@@ -746,6 +747,7 @@ def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None
             'confianza': 1.0,
             'categoria': 'general',
             'baja_confianza': False,
+            'proveedor': 'catalogo',
         }
 
     historial = (historial or [])[-5:]
@@ -756,33 +758,39 @@ def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None
             mensaje.lower(),
             _TOPIC_KEYWORDS['productos'] + _TOPIC_KEYWORDS['ventas'] + _TOPIC_KEYWORDS['cotizaciones'],
         ):
-            return responder_seller_rag(mensaje, company)
+            seller_result = responder_seller_rag(mensaje, company)
+            seller_result['proveedor'] = 'tradeflow_rag'
+            return seller_result
 
     snapshot = build_catalog_snapshot()
     result = _catalog_to_structured(mensaje, snapshot)
+    result['proveedor'] = 'catalogo'
 
     api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
     # Company identity guidance is compliance-sensitive. Keep the reviewed RUC/DV
     # workflow authoritative instead of allowing a generative provider to invent
     # automatic government-registry checks or approval guarantees.
-    if (
-        api_key
-        and not result.get('baja_confianza')
-        and result.get('categoria') != 'verificacion'
-    ):
+    if api_key and result.get('categoria') != 'verificacion':
         try:
             groq_resp = _consultar_groq(mensaje, historial, snapshot)
             if groq_resp:
-                bullets = [groq_resp[:400]]
+                categoria = result.get('categoria') or 'catalogo'
+                if categoria == 'soporte':
+                    categoria = _detect_topic(mensaje)
+                    if categoria in ('productos', 'ventas', 'cotizaciones'):
+                        categoria = 'catalogo'
                 result['respuesta'] = groq_resp
                 result['respuesta_html'] = format_structured_response(
-                    result['categoria'],
-                    bullets,
-                    groq_resp[:200] if len(groq_resp) > 200 else '',
+                    categoria,
+                    [groq_resp],
+                    '',
                     'View store',
                     reverse('catalogo_publico'),
                 )
                 result['confianza'] = 0.9
+                result['categoria'] = categoria
+                result['baja_confianza'] = False
+                result['proveedor'] = 'groq'
         except Exception as exc:
             import logging
             logging.getLogger('tradeflow.ai').warning('Groq no disponible: %s', exc)
