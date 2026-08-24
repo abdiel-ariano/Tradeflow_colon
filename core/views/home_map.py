@@ -105,6 +105,11 @@ def api_home_merchandising(request):
     return JsonResponse(cached_api_home_merchandising())
 
 
+_ASSISTANT_FALLBACK = (
+    "I can still help from the live TradeFlow catalog while AI enrichment is unavailable."
+)
+
+
 def _assistant_system_prompt() -> str:
     """Backward-compatible access to the single authoritative B2B prompt."""
     from core.utils.ai_assistant import SYSTEM_PROMPT
