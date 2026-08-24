@@ -273,7 +273,8 @@ def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
                     address=address, business_role=business_role,
                 ),
             )
-        company.submit_for_verification()
+        if company.verification_status != 'verified':
+            company.submit_for_verification()
 
         profile.business_role_intent = business_role
         profile_updates = ['business_role_intent']
@@ -326,10 +327,16 @@ def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
             ),
         )
 
-    messages.success(
-        request,
-        'Recibimos la información. La empresa quedó pendiente de revisión manual.',
-    )
+    if company.verification_status == 'verified':
+        messages.success(
+            request,
+            'Empresa verificada vinculada correctamente. No requiere una nueva revisión.',
+        )
+    else:
+        messages.success(
+            request,
+            'Recibimos la información. La empresa quedó pendiente de revisión manual.',
+        )
     log.info(
         'seller_onboarding_completed user_id=%s company_id=%s',
         request.user.pk,
@@ -360,30 +367,68 @@ def _resolve_or_create_company(
     """
     existing = Company.objects.filter(ruc__iexact=ruc).first()
     if existing:
-        authorized = (
-            existing.owner_id == user.pk
-            or CompanyMembership.objects.filter(company=existing, user=user).exists()
-            or (existing.owner_id is None and not existing.memberships.exists())
-        )
-        if not authorized:
+        has_membership = CompanyMembership.objects.filter(
+            company=existing,
+            user=user,
+        ).exists()
+        authorized = existing.owner_id == user.pk or has_membership
+        claimable = existing.owner_id is None and not existing.memberships.exists()
+
+        if existing.verification_status == 'verified' and not authorized:
+            messages.error(
+                request,
+                'Este RUC ya está verificado y requiere autorización manual para '
+                'vincular un nuevo representante. Contacta a soporte@tradeflowcolon.com.',
+            )
+            return None
+        if not authorized and not claimable:
             messages.error(
                 request,
                 'Este RUC ya está vinculado a otra cuenta. '
                 'Contacta a soporte@tradeflowcolon.com.',
             )
             return None
-        existing.name = name
-        existing.legal_name = legal_name
-        existing.dv = dv
-        existing.business_email = business_email
-        existing.business_phone = business_phone
-        existing.business_role = business_role
-        existing.address_text = address
-        existing.owner = user
-        existing.verification_status = 'draft'
-        if verification_document:
-            existing.verification_document = verification_document
-        existing.save()
+
+        if existing.verification_status == 'verified':
+            identity_changed = (
+                Company.normalize_identifier(existing.dv) != dv
+                or (existing.legal_name or '').strip().casefold()
+                != legal_name.strip().casefold()
+            )
+            if identity_changed:
+                messages.error(
+                    request,
+                    'Los datos legales no coinciden con la empresa verificada. '
+                    'Contacta a soporte@tradeflowcolon.com para actualizarlos.',
+                )
+                return None
+            existing.business_email = business_email
+            existing.business_phone = business_phone
+            existing.business_role = business_role
+            existing.address_text = address
+            if existing.owner_id is None:
+                existing.owner = user
+            existing.save(update_fields=[
+                'business_email',
+                'business_phone',
+                'business_role',
+                'address_text',
+                'owner',
+            ])
+        else:
+            existing.name = name
+            existing.legal_name = legal_name
+            existing.dv = dv
+            existing.business_email = business_email
+            existing.business_phone = business_phone
+            existing.business_role = business_role
+            existing.address_text = address
+            existing.owner = user
+            existing.verification_status = 'draft'
+            if verification_document:
+                existing.verification_document = verification_document
+            existing.save()
+
         CompanyMembership.objects.get_or_create(
             company=existing,
             user=user,

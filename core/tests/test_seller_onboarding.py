@@ -143,6 +143,66 @@ class SellerOnboardingTests(TestCase):
         self.assertContains(r, 'ya está vinculado a otra cuenta')
         self.assertEqual(Company.objects.get(ruc='8-OB-OWNED').owner, other)
 
+    def test_verified_company_owner_is_not_downgraded_on_reassociation(self):
+        """An authorized representative keeps the company's verified identity."""
+        reviewer = User.objects.create_user('verified_reviewer', password='x', is_staff=True)
+        company = Company.objects.create(
+            name='Nueva Empresa ZLC',
+            legal_name='Nueva Empresa ZLC, S.A.',
+            ruc='8-OB-999',
+            dv='12',
+            business_email='original@test.pa',
+            verification_document='companies/verification/existing.pdf',
+            owner=self.user,
+            business_role='seller',
+        )
+        company.mark_verified(reviewer)
+
+        response = self.client.post(
+            reverse('company_onboarding_post'),
+            self._company_payload(),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        company.refresh_from_db()
+        self.assertEqual(company.verification_status, 'verified')
+        self.assertTrue(company.is_verified)
+        self.assertTrue(
+            CompanyMembership.objects.filter(company=company, user=self.user).exists()
+        )
+
+    def test_unowned_verified_ruc_requires_manual_authorization(self):
+        """Knowing a verified RUC is insufficient to claim its company account."""
+        reviewer = User.objects.create_user('claim_reviewer', password='x', is_staff=True)
+        company = Company.objects.create(
+            name='Empresa Verificada',
+            legal_name='Empresa Verificada, S.A.',
+            ruc='8-OB-VERIFIED',
+            dv='12',
+            business_email='legal@verified.pa',
+            verification_document='companies/verification/verified.pdf',
+            business_role='seller',
+        )
+        company.mark_verified(reviewer)
+
+        response = self.client.post(
+            reverse('company_onboarding_post'),
+            self._company_payload(
+                ruc='8-OB-VERIFIED',
+                name='Intento de Reclamo',
+                legal_name='Empresa Verificada, S.A.',
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'ya está verificado')
+        company.refresh_from_db()
+        self.assertIsNone(company.owner_id)
+        self.assertEqual(company.verification_status, 'verified')
+        self.assertFalse(
+            CompanyMembership.objects.filter(company=company, user=self.user).exists()
+        )
+
     def test_pending_seller_redirected_to_wizard(self):
         """Redirect sellers without companies to onboarding."""
         r = self.client.get(reverse('portal_seller'))
