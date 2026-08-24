@@ -243,6 +243,36 @@ class TestFlujoBuyer(TestCase):
         self.assertTrue(order.confirmado_por_empresa)
         self.assertFalse(Payment.objects.filter(order=order).exists())
 
+    def test_admin_crea_orden_manual_sin_pago_ficticio(self):
+        """Admin-created purchase orders remain pending without mock payments."""
+        self.client.login(username='admin_test', password='TestPass123!')
+        session = self.client.session
+        session['wizard_buyer_id'] = self.buyer.pk
+        session['wizard_items'] = [{
+            'producto_id': self.product.pk,
+            'nombre': self.product.name,
+            'precio': str(self.product.unit_price),
+            'cantidad': 2,
+            'subtotal': '20.00',
+        }]
+        session.save()
+
+        response = self.client.post(
+            reverse('nueva_orden_paso3'),
+            {
+                'shipping_cost': '5.00',
+                'address_id': '',
+                'notas': 'Orden administrativa de prueba',
+                'metodo_pago': 'mock',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        order = Order.objects.filter(buyer=self.buyer).latest('created_at')
+        self.assertEqual(order.status, 'pending')
+        self.assertEqual(order.total, Decimal('25.00'))
+        self.assertFalse(Payment.objects.filter(order=order).exists())
+
     def test_buyer_ve_solo_sus_ordenes(self):
         """Buyers cannot open another buyer's order detail (404)."""
         orden_otra = Order.objects.create(
