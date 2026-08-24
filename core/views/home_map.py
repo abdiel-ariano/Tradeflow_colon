@@ -105,6 +105,13 @@ def api_home_merchandising(request):
     return JsonResponse(cached_api_home_merchandising())
 
 
+def _assistant_system_prompt() -> str:
+    """Backward-compatible access to the single authoritative B2B prompt."""
+    from core.utils.ai_assistant import SYSTEM_PROMPT
+
+    return SYSTEM_PROMPT
+
+
 def _asistente_respuesta_html(text: str) -> str:
     """Escape assistant text for safe HTML chat bubbles."""
     safe = escape(text).replace('\n', '<br>')
