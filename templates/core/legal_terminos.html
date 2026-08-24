@@ -7,7 +7,7 @@
 <li><a href="#terms-accounts">{% trans "Registration and accounts" %}</a></li>
 <li><a href="#terms-sellers">{% trans "Seller obligations" %}</a></li>
 <li><a href="#terms-buyers">{% trans "Buyer obligations" %}</a></li>
-<li><a href="#terms-orders">{% trans "Orders, payments, and disputes" %}</a></li>
+<li><a href="#terms-orders">{% trans "RFQs, purchase orders, and disputes" %}</a></li>
 <li><a href="#terms-ip">{% trans "Intellectual property" %}</a></li>
 <li><a href="#terms-liability">{% trans "Limitation of liability" %}</a></li>
 <li><a href="#terms-law">{% trans "Governing law and jurisdiction" %}</a></li>
@@ -55,9 +55,11 @@
   <li>{% trans "Respect payment, receipt, and dispute deadlines established for each transaction." %}</li>
 </ul>
 
-<h2 id="terms-orders">{% trans "5. Orders, payments, and disputes" %}</h2>
-<p>{% trans "Orders are created according to the flow visible on the Platform (cart, checkout, quotes, or administrative tools). The status of each order (pending, awaiting seller confirmation, paid, shipped, delivered, cancelled, etc.) is reflected in the corresponding panel." %}</p>
-<p>{% trans "Payments may be processed through providers or methods enabled at any given time (including test or simulation mechanisms in demo environments). TradeFlow does not hold funds between parties unless a specific product indicates otherwise." %}</p>
+<h2 id="terms-orders">{% trans "5. RFQs, purchase orders, and disputes" %}</h2>
+<p>{% trans "Adding products to an inquiry cart and submitting it creates supplier-specific Requests for Quotation (RFQs). An RFQ is not a purchase order, does not charge the buyer, and does not reserve inventory." %}</p>
+<p>{% trans "A purchase order is created only when the buyer accepts a supplier response. The order is initially recorded as pending and reflects the products, quantities, and quoted price accepted by the parties." %}</p>
+<p>{% trans "TradeFlow currently does not process or hold marketplace payments. Payment, shipping, customs, insurance, and delivery terms must be coordinated by the buyer and supplier according to the accepted quotation." %}</p>
+<p>{% trans "TradeFlow does not currently provide escrow, automatic refunds, or a buyer-protection guarantee." %}</p>
 <p>{% trans "Cancellations and disputes must first be handled between buyer and seller, using Platform channels and support email. TradeFlow may mediate in good faith but does not replace contractual obligations between the parties." %}</p>
 
 <h2 id="terms-ip">{% trans "6. Intellectual property" %}</h2>
