@@ -25,6 +25,9 @@ body.cat-catalog-page .tf-main {
   --cat-card-radius: 6px;
   --cat-card-padding: 12px;
   --cat-card-image-height: 156px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   background:
     radial-gradient(ellipse 90% 60% at 50% -10%, rgba(255, 122, 61, 0.07), transparent 55%),
     radial-gradient(ellipse 60% 40% at 100% 0%, rgba(15, 42, 68, 0.06), transparent 50%),
@@ -2683,7 +2686,7 @@ body.cat-catalog-page .mkt-deal-wrap .product-card {
   max-width: 1440px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(440px, 780px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 780px);
   gap: 28px 40px;
   align-items: center;
 }
@@ -3852,6 +3855,20 @@ body.cat-catalog-page .mkt-deal-wrap .product-card {
 
   .mkt-about-cinematic__metrics {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .hm-alibaba .hm-product-row__inner {
+    padding-inline: 10px;
+  }
+
+  .hm-alibaba .hm-product-row__title {
+    font-size: 1rem;
+  }
+
+  .hm-alibaba .hm-product-row__head {
+    margin-bottom: 10px;
   }
 }
 
