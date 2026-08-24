@@ -90,6 +90,25 @@ class ApiAsistenteChatFixesTests(TestCase):
         kwargs = mocked.call_args.kwargs
         self.assertEqual(kwargs.get('company').name, 'Seller Co')
 
+    @override_settings(GROQ_API_KEY='')
+    def test_company_verification_question_has_deterministic_b2b_answer(self):
+        """RUC/DV guidance stays available without an external AI provider."""
+        resp = self.client.post(
+            '/api/asistente/',
+            data=json.dumps({'mensaje': '¿Cómo verifico una empresa con RUC y DV?'}),
+            content_type='application/json',
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        payload = resp.json()
+        self.assertTrue(payload['ok'])
+        self.assertEqual(payload['categoria'], 'verificacion')
+        self.assertFalse(payload['baja_confianza'])
+        self.assertIn('RUC', payload['respuesta'])
+        self.assertIn('DV', payload['respuesta'])
+        self.assertIn('revisión manual', payload['respuesta'])
+        self.assertNotIn('no tengo suficiente información', payload['respuesta'].lower())
+
     def test_system_prompt_is_b2b_only(self):
         self.assertIn('B2B wholesale marketplace', SYSTEM_PROMPT)
         self.assertNotIn('B2B/B2C', SYSTEM_PROMPT)
