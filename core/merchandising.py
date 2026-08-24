@@ -969,7 +969,7 @@ def _build_home_product_rows(
 
     deals_title = 'Today\'s wholesale deals' if lang == 'en' else 'Ofertas del día'
     best_title = 'Recommended for your business' if lang == 'en' else 'Recomendado para tu negocio'
-    for_you_title = 'Products for you' if lang == 'en' else 'Productos para ti'
+    for_you_title = 'Wholesale catalog picks' if lang == 'en' else 'Selección del catálogo mayorista'
     browse_title = 'More from the Free Zone' if lang == 'en' else 'Más de la Zona Libre'
 
     cms_deals_done = False
@@ -1111,7 +1111,7 @@ def _home_card_section_rows(
 
     featured_tail = list(featured_list[2:]) if len(featured_list) > 2 else list(featured_list)
     if featured_tail:
-        for_you = 'Products for you' if lang == 'en' else 'Productos para ti'
+        for_you = 'Wholesale catalog picks' if lang == 'en' else 'Selección del catálogo mayorista'
         _add(for_you, featured_tail, slug='for-you')
 
     return rows[:6]
