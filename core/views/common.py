@@ -27,8 +27,8 @@ def _redirect_by_role(user):
     """Home URL after login or when an authenticated user hits ``/``.
     
     Admins go to ``/dashboard/`` (never public home) to avoid
-    redirect loops. Sellers and buyers may still need onboarding
-    before the seller portal or guest catalog.
+    redirect loops. Business accounts may still need company verification
+    before the seller portal or B2B catalog.
     """
     try:
         role = user.profile.role
@@ -47,10 +47,6 @@ def _redirect_by_role(user):
         if seller_route:
             return reverse(seller_route)
         return reverse('portal_seller')
-    from core.utils.access_gating import buyer_onboarding_redirect_name
-    buyer_route = buyer_onboarding_redirect_name(user)
-    if buyer_route:
-        return reverse(buyer_route)
     return reverse('catalogo_publico')
 
 

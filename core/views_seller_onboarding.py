@@ -17,6 +17,7 @@ from django.core.validators import validate_email
 from django.db import DatabaseError, IntegrityError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from core.models import Company, CompanyMembership, UserProfile
@@ -31,13 +32,22 @@ DV_PATTERN = re.compile(r'^[A-Z0-9\-]{1,20}$', re.UNICODE)
 BUSINESS_ROLES = {'buyer', 'seller', 'both'}
 
 
+def _business_role_for_profile(profile: UserProfile) -> str:
+    """Return explicit B2B intent, falling back to the legacy marketplace role."""
+    if profile.business_role_intent in BUSINESS_ROLES:
+        return profile.business_role_intent
+    if profile.role in ('buyer', 'seller'):
+        return profile.role
+    return ''
+
+
 def _get_business_profile(user) -> UserProfile | None:
-    """Return a new B2B profile or a compatible legacy seller profile."""
+    """Return a B2B profile, including compatible legacy buyers and sellers."""
     try:
         profile = user.profile
     except UserProfile.DoesNotExist:
         return None
-    if profile.business_role_intent not in BUSINESS_ROLES and profile.role != 'seller':
+    if not _business_role_for_profile(profile):
         return None
     return profile
 
@@ -165,7 +175,7 @@ def seller_onboarding_company(request: HttpRequest) -> HttpResponse:
         'core/seller_onboarding_company.html',
         _form_context(
             business_email=request.user.email,
-            business_role=profile.business_role_intent or 'both',
+            business_role=_business_role_for_profile(profile) or 'both',
         ),
     )
 
@@ -184,7 +194,7 @@ def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
     dv = Company.normalize_identifier(request.POST.get('dv'))
     business_email = (request.POST.get('business_email') or '').strip()
     business_phone = (request.POST.get('business_phone') or '').strip()
-    business_role = (request.POST.get('business_role') or profile.business_role_intent or '').strip()
+    business_role = (request.POST.get('business_role') or _business_role_for_profile(profile)).strip()
     address = (request.POST.get('address_text') or '').strip()
     logo = request.FILES.get('logo')
     verification_document = request.FILES.get('verification_document')
@@ -264,6 +274,13 @@ def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
                 ),
             )
         company.submit_for_verification()
+
+        profile.business_role_intent = business_role
+        profile_updates = ['business_role_intent']
+        if profile.onboarding_completed_at is None:
+            profile.onboarding_completed_at = timezone.now()
+            profile_updates.append('onboarding_completed_at')
+        profile.save(update_fields=profile_updates)
     except (IntegrityError, DatabaseError) as exc:
         log.error(
             'seller_onboarding_db_error user_id=%s ruc=%s err=%s',

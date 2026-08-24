@@ -74,7 +74,22 @@ class TestFlujoBuyer(TestCase):
             last_name='Buyer',
         )
         UserProfile.objects.create(
-            user=self.buyer, role='buyer', phone='+507 6000-0000', email_verificado=True,
+            user=self.buyer,
+            role='buyer',
+            business_role_intent='buyer',
+            phone='+507 6000-0000',
+            email_verificado=True,
+        )
+        self.buyer_company = Company.objects.create(
+            name='Compradora Demo, S.A.',
+            legal_name='Compradora Demo, S.A.',
+            ruc='8-COMPRA-1',
+            dv='10',
+            business_email=self.buyer.email,
+            business_role='buyer',
+            owner=self.buyer,
+            is_verified=True,
+            verification_status='verified',
         )
 
         self.other = User.objects.create_user(
@@ -207,8 +222,8 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, self.product.name, count=n)
 
-    def test_login_redirige_buyer_a_catalogo(self):
-        """Buyer login without ?next= redirects to the public catalog."""
+    def test_login_redirige_empresa_compradora_a_catalogo(self):
+        """A verified buying company lands on the wholesale catalog."""
         r = self.client.post(
             '/login/',
             {'username': 'buyer_test', 'password': 'TestPass123!'},
@@ -223,7 +238,7 @@ class TestFlujoBuyer(TestCase):
             {'username': 'seller_test', 'password': 'TestPass123!'},
         )
         self.assertEqual(r.status_code, 302)
-        self.assertIn('/onboarding/vendedor/', r.url)
+        self.assertIn('/onboarding/empresa/', r.url)
 
     def test_login_redirige_seller_con_empresa_a_portal(self):
         """Seller with company and active trial lands on /mi-tienda/."""
@@ -231,8 +246,14 @@ class TestFlujoBuyer(TestCase):
 
         company = Company.objects.create(
             name='Seller Test Co',
+            legal_name='Seller Test Co, S.A.',
             ruc='8-ST-1',
+            dv='11',
+            business_email=self.seller_user.email,
+            business_role='seller',
             owner=self.seller_user,
+            is_verified=True,
+            verification_status='verified',
         )
         start_seller_trial(company)
         r = self.client.post(
