@@ -73,6 +73,42 @@ class CartCheckoutI18nTests(TestCase):
         self.assertNotContains(resp, 'Payment methods')
         self.assertNotContains(resp, 'Tax (16% VAT)')
 
+    def test_global_footer_rejects_unsupported_b2c_guarantees(self):
+        """The shared footer advertises RFQs, not payment or delivery guarantees."""
+        resp = self.client.get(reverse('ver_carrito'), HTTP_ACCEPT_LANGUAGE='en')
+        self.assertContains(
+            resp,
+            'Every wholesale path on TradeFlow stays quote-first',
+        )
+        for unsupported in (
+            'Buyer Protection',
+            'Secure payments',
+            'Money-back guarantee',
+            'Guaranteed delivery',
+            'We accept:',
+            'Visa',
+            'PayPal',
+        ):
+            self.assertNotContains(resp, unsupported)
+
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('ver_carrito')},
+        )
+        resp_es = self.client.get(post_response.url)
+        self.assertContains(
+            resp_es,
+            'Cada compra mayorista en TradeFlow empieza con cotización',
+        )
+        for unsupported in (
+            'Protección al comprador',
+            'Pagos seguros',
+            'Garantía de devolución',
+            'Entrega garantizada',
+            'Aceptamos:',
+        ):
+            self.assertNotContains(resp_es, unsupported)
+
     def test_buyer_navbar_has_language_switcher(self):
         """Buyer navbar exposes the setlang language switcher controls."""
         resp = self.client.get(reverse('ver_carrito'))
