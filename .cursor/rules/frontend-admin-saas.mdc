@@ -1,0 +1,17 @@
+---
+description: Panel admin SaaS (Vite + TypeScript)
+globs: "frontend/admin-saas/**"
+alwaysApply: false
+---
+
+# Frontend admin-saas
+
+- Mantener TypeScript estricto; no usar `any` salvo justificación documentada.
+- Estado del dashboard = fuente de verdad del servidor tras mutaciones.
+- Patrón de acciones comerciales SaaS: disable → fetch → notificación → reload datos.
+- Estilos alineados con tokens TradeFlow (navy/orange/primary); no introducir paletas SaaS genéricas.
+- Verificar build antes de considerar el cambio listo:
+
+```bash
+cd frontend/admin-saas && npm ci && npm run build
+```

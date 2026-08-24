@@ -1,0 +1,16 @@
+---
+description: Convenciones Python/Django para core, analytics y scripts
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# Python / Django — TradeFlow Colón
+
+- Imports: stdlib → third-party → local (`core`, `analytics`, `tradeflow_colon`).
+- Modelos de negocio en `core/models.py` y `core/enterprise_models.py`; no duplicar entidades.
+- Management commands en `core/management/commands/` con docstring PEP 257.
+- Middleware en `core/middleware/`; utilidades transversales en `core/utils/`.
+- Templates: `templates/core/` para marketplace; respetar tags en `core/templatetags/`.
+- i18n: no hardcodear strings de usuario en español/inglés sin pasar por locale cuando el módulo ya usa traducción.
+- Migraciones: revisar con `--check --dry-run`; nombrar según convención Django del repo.
+- Secrets y API keys solo vía env (`settings.py`); nunca commitear credenciales.

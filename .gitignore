@@ -34,7 +34,9 @@ desktop.ini
 ehthumbs.db
 
 # IDEs / AI tooling
-.cursor/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 .vscode/
 .idea/
 *.swp
