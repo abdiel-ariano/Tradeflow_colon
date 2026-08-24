@@ -762,212 +762,143 @@ def vaciar_carrito(request):
 
 @buyer_checkout
 def checkout(request):
-    """Confirm purchase and create the marketplace order.
-    
-    Requires verified buyer access (``buyer_checkout``); may
-    inline OTP when returning from ``verificar_codigo``.
+    """Review the inquiry cart and create one formal RFQ per supplier.
+
+    This quote-first step never creates an order, payment, shipment, or
+    inventory reservation. Each verified supplier receives its own pending
+    Cotizacion containing only that company's products.
     """
     from core.utils.access_gating import user_needs_otp_verification
 
     carrito = _get_carrito(request)
-
-    # Redirigir si el carrito está vacío
     if not carrito:
         messages.warning(request, _('Your cart is empty.'))
         return redirect('catalogo_publico')
 
-    subtotal = _calcular_total(carrito)
+    product_ids = []
+    for raw_id in carrito:
+        try:
+            product_ids.append(int(raw_id))
+        except (TypeError, ValueError):
+            continue
 
-    transportistas = TransportCarrier.objects.filter(is_active=True).order_by('sort_order', 'name')
-    auto_approve = getattr(settings, 'CHECKOUT_AUTO_APPROVE', False)
+    products = {
+        product.pk: product
+        for product in (
+            Product.objects.filter(
+                pk__in=product_ids,
+                is_active=True,
+                company__is_verified=True,
+            )
+            .select_related('company')
+        )
+    }
 
-    if request.method == 'POST':
-        notas = request.POST.get('notas', '').strip()
-        carrier_id = request.POST.get('transport_carrier', '').strip()
-        lat_raw = request.POST.get('buyer_latitude', '').strip()
-        lng_raw = request.POST.get('buyer_longitude', '').strip()
-        location_consent = request.POST.get('location_consent') in ('1', 'on', 'true', 'yes')
-
-        if not carrier_id:
-            messages.error(request, _('Select a carrier to continue.'))
-            return redirect('checkout')
-
-        carrier = get_object_or_404(TransportCarrier, pk=carrier_id, is_active=True)
+    grouped = {}
+    skipped_count = 0
+    for raw_id, item_data in carrito.items():
+        try:
+            product = products.get(int(raw_id))
+        except (TypeError, ValueError):
+            product = None
+        if product is None or not product.company_id:
+            skipped_count += 1
+            continue
 
         try:
-            buyer_lat = Decimal(lat_raw)
-            buyer_lng = Decimal(lng_raw)
-        except (InvalidOperation, ValueError):
-            messages.error(
-                request,
-                _('Confirm your location with the Use my current location button.'),
-            )
-            return redirect('checkout')
+            qty = max(1, int(item_data.get('cantidad', 1)))
+        except (TypeError, ValueError):
+            qty = 1
 
-        if not (-90 <= float(buyer_lat) <= 90 and -180 <= float(buyer_lng) <= 180):
-            messages.error(request, _('Invalid location coordinates.'))
-            return redirect('checkout')
-
-        # GDPR: do not persist precise GPS without explicit consent.
-        if not location_consent:
-            messages.error(
-                request,
-                _('Please accept location processing to place the order.'),
-            )
-            return redirect('checkout')
-
-        shipping_cost = carrier.base_shipping_cost
-
-        orden = Order.objects.create(
-            buyer=request.user,
-            order_type='b2b',
-            shipping_cost=shipping_cost,
-            notes=notas,
-            status='pending',
-            transport_carrier=carrier,
-            buyer_latitude=buyer_lat,
-            buyer_longitude=buyer_lng,
-            buyer_location_verified_at=timezone.now(),
+        reference_price = product.display_price
+        reference_total = reference_price * qty
+        group = grouped.setdefault(
+            product.company_id,
+            {
+                'company': product.company,
+                'items': [],
+                'reference_subtotal': Decimal('0.00'),
+            },
         )
-
-        # Crear los items y reservar inventario
-        items_creados = 0
-        for prod_id, item_data in carrito.items():
-            try:
-                producto = (
-                    Product.objects
-                    .select_related('inventory')
-                    .get(pk=int(prod_id), is_active=True)
-                )
-                cantidad = item_data['cantidad']
-
-                if producto.available_qty >= cantidad:
-                    OrderItem.objects.create(
-                        order                = orden,
-                        product              = producto,
-                        qty                  = cantidad,
-                        unit_price_snapshot  = producto.unit_price,
-                    )
-                    # Reservar el stock para que otros no lo compren
-                    if hasattr(producto, 'inventory'):
-                        producto.inventory.reserve(cantidad)
-                    items_creados += 1
-                else:
-                    messages.warning(
-                        request,
-                        _('Insufficient stock for "%(name)s" — item skipped.')
-                        % {'name': producto.name},
-                    )
-
-            except Product.DoesNotExist:
-                # El producto fue desactivado entre que se agregó y el checkout
-                messages.warning(
-                    request,
-                    _('A product is no longer available and was skipped.'),
-                )
-
-        if items_creados == 0:
-            # Ningún item pudo procesarse — cancelar la orden
-            orden.delete()
-            messages.error(
-                request,
-                _('Could not complete the order. Check product stock.'),
-            )
-            return redirect('ver_carrito')
-
-        orden.recalculate_totals()
-        orden.shipping_cost = shipping_cost
-        orden.total = orden.subtotal + shipping_cost
-        orden.save(update_fields=['shipping_cost', 'total'])
-
-        first_item = orden.items.select_related('product__company').first()
-        confirming = first_item.product.company if first_item else None
-        orden.confirming_company = confirming
-        if confirming and not auto_approve:
-            horas = getattr(confirming, 'order_confirm_hours', None) or 48
-            orden.tiempo_confirmacion_horas = horas
-            orden.seller_confirm_by = seller_confirm_deadline(confirming)
-            orden.status = 'awaiting_seller'
-            orden.seller_confirmation_status = 'pending'
-            orden.save(update_fields=[
-                'confirming_company', 'seller_confirm_by', 'tiempo_confirmacion_horas',
-                'status', 'seller_confirmation_status', 'updated_at',
-            ])
-            Payment.objects.create(
-                order=orden,
-                provider='mock',
-                status='pending',
-                amount=orden.total,
-                currency='USD',
-            )
-            _save_carrito(request, {})
-            messages.success(
-                request,
-                _(
-                    'Order %(num)s submitted. Awaiting company confirmation '
-                    '(deadline %(fecha)s).'
-                ) % {
-                    'num': orden.order_number,
-                    'fecha': orden.seller_confirm_by.strftime('%d/%m/%Y %H:%M'),
-                },
-            )
-            try:
-                enviar_cambio_estado(orden, 'pending')
-                enviar_orden_pendiente_vendedor(orden)
-            except Exception:
-                log.exception('Email orden pendiente vendedor')
-            from ..models import Transportista
-            if Transportista.objects.filter(estado='aprobado', activo=True).exists():
-                return redirect('seleccionar_transportista', order_pk=orden.pk)
-            return redirect('detalle_mi_orden', pk=orden.pk)
-
-        Payment.objects.create(
-            order=orden,
-            provider='mock',
-            status='approved',
-            amount=orden.total,
-            currency='USD',
-            paid_at=timezone.now(),
-            txn_ref=f'TF-MOCK-{orden.order_number}',
+        group['items'].append(
+            {
+                'product': product,
+                'quantity': qty,
+                'reference_price': reference_price,
+                'reference_total': reference_total,
+            },
         )
-        orden.status = 'paid'
-        orden.seller_confirmation_status = 'accepted'
-        orden.save(update_fields=['status', 'seller_confirmation_status'])
+        group['reference_subtotal'] += reference_total
+
+    rfq_groups = sorted(
+        grouped.values(),
+        key=lambda group: group['company'].name.lower(),
+    )
+    if not rfq_groups:
+        messages.error(
+            request,
+            _(
+                'The inquiry cart has no active products from verified suppliers. '
+                'Review the catalog and try again.'
+            ),
+        )
+        return redirect('ver_carrito')
+
+    reference_subtotal = sum(
+        (group['reference_subtotal'] for group in rfq_groups),
+        Decimal('0.00'),
+    )
+    products_count = sum(len(group['items']) for group in rfq_groups)
+
+    if request.method == 'POST':
+        try:
+            validity_days = int(request.POST.get('validez_dias', '30') or '30')
+        except (TypeError, ValueError):
+            validity_days = 30
+        validity_days = min(max(validity_days, 1), 90)
+        buyer_notes = request.POST.get('notas', '').strip()
+        batch = uuid.uuid4().hex[:12]
+        created_quotes = []
+
+        with transaction.atomic():
+            for group in rfq_groups:
+                quote = Cotizacion.objects.create(
+                    buyer=request.user,
+                    empresa=group['company'],
+                    notas_buyer=buyer_notes,
+                    validez_dias=validity_days,
+                    lote=batch,
+                )
+                CotizacionItem.objects.bulk_create(
+                    [
+                        CotizacionItem(
+                            cotizacion=quote,
+                            product=line['product'],
+                            cantidad_solicitada=line['quantity'],
+                        )
+                        for line in group['items']
+                    ],
+                )
+                created_quotes.append(quote)
 
         _save_carrito(request, {})
         messages.success(
             request,
-            _('Order %(num)s created successfully.') % {'num': orden.order_number},
+            _('%(count)s formal quote request(s) sent to verified suppliers.')
+            % {'count': len(created_quotes)},
         )
-        try:
-            enviar_confirmacion_orden(orden)
-        except Exception:
-            log.exception('No se pudo enviar email de confirmación de orden.')
-        from ..models import Transportista
-        if Transportista.objects.filter(estado='aprobado', activo=True).exists():
-            return redirect('seleccionar_transportista', order_pk=orden.pk)
-        return redirect('detalle_mi_orden', pk=orden.pk)
-
-    if not transportistas.exists():
-        TransportCarrier.objects.get_or_create(
-            code='zlc-express',
-            defaults={
-                'name': 'ZLC Express',
-                'description': 'Colón Free Zone transport',
-                'sort_order': 1,
-                'base_shipping_cost': Decimal('15.00'),
-            },
-        )
-        transportistas = TransportCarrier.objects.filter(is_active=True).order_by('sort_order', 'name')
+        return redirect('mis_cotizaciones')
 
     context = {
         'carrito': carrito,
-        'subtotal': subtotal,
+        'rfq_groups': rfq_groups,
+        'suppliers_count': len(rfq_groups),
+        'products_count': products_count,
+        'skipped_count': skipped_count,
+        'subtotal': reference_subtotal,
         'carrito_count': _contar_items(carrito),
-        'titulo_pagina': _('Confirm order'),
+        'titulo_pagina': _('Request for Quotation'),
         'nav_activo': 'tienda',
-        'transportistas': transportistas,
-        'checkout_auto_approve': auto_approve,
     }
 
     if user_needs_otp_verification(request.user):
@@ -992,7 +923,6 @@ def checkout(request):
         context.update(verify_ctx)
 
     return render(request, 'core/checkout.html', context)
-
 
 @buyer_required
 def mis_ordenes(request):
