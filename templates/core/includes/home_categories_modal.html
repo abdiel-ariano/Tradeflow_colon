@@ -10,7 +10,7 @@
         <li>
           <button type="button" class="hm-cat-modal__nav-btn is-active" data-cat-panel-select="discover">
             <span class="hm-cat-modal__nav-icon" aria-hidden="true">★</span>
-            {% trans "Categories for you" %}
+            {% trans "Wholesale categories" %}
           </button>
         </li>
         {% for cat in sidebar_categories %}
@@ -25,7 +25,7 @@
 
     <div class="hm-cat-modal__content">
       <div class="hm-cat-modal__panel-view is-active" data-cat-panel-view="discover">
-        <h2 class="hm-cat-modal__title" id="hm-cat-modal-title">{% trans "Categories for you" %}</h2>
+        <h2 class="hm-cat-modal__title" id="hm-cat-modal-title">{% trans "Wholesale categories" %}</h2>
         <div class="hm-cat-modal__grid">
           {% for item in category_discover %}
           <a href="{% url 'catalogo_publico' %}?categoria={{ item.category.pk }}" class="hm-cat-modal__tile">

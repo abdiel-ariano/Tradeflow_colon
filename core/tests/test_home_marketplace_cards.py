@@ -66,6 +66,19 @@ class HomeMarketplaceCardsTests(TestCase):
         self.assertContains(response, 'TradeFlow Colón')
         self.assertContains(response, 'Create account')
 
+    def test_home_copy_is_company_first_b2b(self):
+        """Public home presents company verification, not consumer onboarding."""
+        response = self.client.get('/')
+        self.assertContains(response, 'Register your company')
+        self.assertContains(response, 'Wholesale categories')
+        self.assertContains(response, 'Join verified businesses across the Americas')
+        self.assertContains(response, 'Register and verify your company')
+        self.assertContains(response, 'Free Zone B2B assistant')
+        self.assertNotContains(response, 'Create free buyer account')
+        self.assertNotContains(response, 'Categories for you')
+        self.assertNotContains(response, 'New buyer favorites')
+        self.assertNotContains(response, 'AI replies via Groq')
+
     def test_home_uses_catalog_seed_photos_not_svg_icons(self):
         """Home media prefers catalog-seeds or shopify-landing assets."""
         response = self.client.get('/')
