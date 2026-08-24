@@ -1,23 +1,13 @@
 # Agent rules (TradeFlow Colón)
 
-Este repositorio incluye reglas para el agente de Cursor en [`.cursor/rules/`](.cursor/rules/).
+Reglas del agente en [`.cursor/rules/`](.cursor/rules/).
 
 | Archivo | Alcance |
 |---------|---------|
-| `tradeflow-colon.mdc` | Siempre activo — producto, diseño, seguridad, calidad |
+| **`cursor-tradeflow-metodologia.mdc`** | **Siempre activo** — metodología principal (análisis, implementación, verificación, comunicación) |
 | `python-django.mdc` | Archivos `**/*.py` |
 | `frontend-admin-saas.mdc` | `frontend/admin-saas/**` |
 
-Para añadir reglas propias, crea otro `.mdc` en `.cursor/rules/` o edita los existentes. Formato:
+La metodología principal define rol, autorización por verbo del usuario, modos guiado/autónomo, protocolo pre-edición, seguridad, git, verificación y formato de respuesta. Las reglas con `globs` complementan convenciones por stack.
 
-```yaml
----
-description: Breve descripción
-alwaysApply: true          # o false + globs
-globs: "**/*.py"           # opcional
----
-
-# Contenido en Markdown
-```
-
-Las reglas se aplican automáticamente en Cursor Agent y Cloud Agents sobre este repo.
+Para editar las reglas, modifica los `.mdc` en `.cursor/rules/`.
