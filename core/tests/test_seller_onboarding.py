@@ -147,7 +147,7 @@ class SellerOnboardingTests(TestCase):
         """Redirect sellers without companies to onboarding."""
         r = self.client.get(reverse('portal_seller'))
         self.assertEqual(r.status_code, 302)
-        self.assertIn('/onboarding/vendedor/', r.url)
+        self.assertIn('/onboarding/empresa/', r.url)
 
     def test_verified_seller_activates_trial_from_status(self):
         """Subscription starts only after a human reviewer verifies the company."""
