@@ -1718,11 +1718,19 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
     function assistantScrollY() {
       var se = document.scrollingElement || document.documentElement;
-      return Math.max(
+      var y = Math.max(
         window.pageYOffset || 0,
         (se && se.scrollTop) || 0,
         document.body ? document.body.scrollTop : 0
       );
+      /* Marketplace shells may scroll an inner container instead of window. */
+      var nodes = document.querySelectorAll(
+        'main, [data-tf-scroll], .tf-main, .cat-results-scroll, .home-scroll'
+      );
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].scrollTop > y) y = nodes[i].scrollTop;
+      }
+      return y;
     }
 
     function applyAssistantDock(goRight) {
@@ -1759,7 +1767,16 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
 
     applyAssistantDock(false);
-    window.addEventListener('scroll', scheduleAssistantDock, { passive: true });
+    window.addEventListener(
+      'scroll',
+      scheduleAssistantDock,
+      { passive: true, capture: true }
+    );
+    document.addEventListener(
+      'scroll',
+      scheduleAssistantDock,
+      { passive: true, capture: true }
+    );
     window.addEventListener('resize', scheduleAssistantDock);
     window.addEventListener('pageshow', function () {
       applyAssistantDock(false);
