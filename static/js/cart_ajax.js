@@ -52,7 +52,7 @@
     if (!message) return;
     var shortMsg = message;
     if (shortMsg.length > 42) {
-      shortMsg = (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Added to cart';
+      shortMsg = (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Added to inquiry cart';
     }
     if (window.tfNotify) {
       window.tfNotify(shortMsg, level || 'success', { variant: 'cart' });
@@ -133,7 +133,7 @@
           showToast(
             data.message
               || (window.TF_I18N && window.TF_I18N.cartError)
-              || 'Could not add to cart.',
+              || 'Could not add to inquiry cart.',
             'error'
           );
           return;
@@ -141,7 +141,7 @@
         if (data.carrito_count !== undefined) {
           updateCartBadge(data.carrito_count);
         }
-        showToast(data.message || (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Added to cart', 'success');
+        showToast(data.message || (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Added to inquiry cart', 'success');
         if (btn) {
           btn.classList.add('is-added');
           setTimeout(function () {
