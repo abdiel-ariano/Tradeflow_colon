@@ -1,0 +1,84 @@
+---
+description: Reglas generales de TradeFlow Colón — producto, diseño, calidad y seguridad
+alwaysApply: true
+---
+
+# TradeFlow Colón — reglas del agente
+
+Marketplace B2B para la Zona Libre de Colón (Panamá). Prioriza confianza, inventario real y claridad export-ready.
+
+## Idioma y comunicación
+
+- Responde en el mismo idioma que el usuario (español o inglés).
+- Commits, PRs y docs técnicas: español o inglés según el archivo existente; no mezclar en un mismo bloque.
+- Explica cambios con impacto en usuario, seguridad y operaciones cuando aplique.
+
+## Alcance y estilo de código
+
+- Cambios mínimos y focalizados. No reformatear ni refactorizar código legacy no relacionado.
+- Reutiliza patrones existentes en `core/`, `analytics/`, `templates/` y `static/`.
+- Views delgadas: lógica reutilizable en `core/utils/` o módulos de servicio.
+- Nombres descriptivos con intención de negocio (buyer, seller, RFQ, CFZ, ZLC).
+- No crear archivos de documentación no solicitados (README extra, guías ad hoc).
+
+## Python / Django
+
+- PEP 8 y PEP 257 en código nuevo; líneas ≤ 79 caracteres.
+- Documenta decisiones sensibles de seguridad y comportamiento ante fallos.
+- Nuevas settings → actualizar `.env.example`.
+- Procedimientos operativos nuevos → runbook en `docs/`.
+- Antes de mergear cambios de backend:
+  - `python manage.py check`
+  - `python manage.py makemigrations --check --dry-run`
+  - `python manage.py test` (suite mínima relevante al cambio)
+
+## Frontend (admin-saas)
+
+- TypeScript estricto; build debe pasar: `cd frontend/admin-saas && npm ci && npm run build`.
+- El estado UI refleja el estado confirmado del servidor.
+- Errores HTTP → notificación de error; nunca éxito optimista falso.
+- Acciones que modifican datos → deshabilitar botones durante el request (evitar doble envío).
+- Contrato SaaS admin: solo respuesta exitosa de API actualiza filas a aprobado/rechazado; recargar datos del servidor tras éxito o error.
+
+## Producto y UX pública
+
+Principios (ver `PRODUCT.md`):
+
+1. **Confianza antes de transacción** — badges de verificación, stats y credenciales antes de CTAs agresivos.
+2. **Inventario real** — carruseles y spotlights con datos vivos; nunca regiones vacías silenciosas.
+3. **Landing vs app** — homepage brand-forward; portales task-forward; no importar densidad de dashboard al home.
+4. **Claridad export-ready** — quién vende, qué hay, cómo ordenar, qué documentación incluye.
+5. **Motion con propósito** — respetar `prefers-reduced-motion`.
+
+Anti-referencias: SaaS genérico (cream/purple), e-commerce consumidor, dashboards densos en landing, marketplace sin señales de confianza.
+
+## Diseño visual
+
+Tokens (`DESIGN.md`):
+
+- Navy `#0F2A44` (autoridad), orange `#F26522` (CTA primario), primary `#0057A8` (links).
+- Tipografía: DM Serif Display (títulos), Montserrat (UI/cuerpo).
+- Orange reservado para acciones primarias y acentos de verificación.
+- WCAG 2.1 AA en páginas públicas; focus visible; targets táctiles ≥ 44px en móvil.
+- Product titles debajo de imágenes en cards del home.
+- `aria-label` / `aria-labelledby` en carruseles y secciones.
+
+No usar: bordes gruesos de un solo lado en cards, animar `min-height` para layout, gradient text decorativo.
+
+## Seguridad
+
+- No debilitar middleware, CSP, auth ni settings de producción para pasar tests.
+- ORM como path por defecto; validar URLs outbound; no filtrar secretos en logs o health checks.
+- Vulnerabilidades → reporte privado (no issues públicos); ver `SECURITY.md`.
+- Bandit y pip-audit deben seguir pasando en CI.
+
+## Tests
+
+- Cada cambio de comportamiento incluye la regresión más estrecha útil.
+- Fixtures en rutas GET protegidas → cuenta con email verificado, salvo que el test sea de onboarding.
+- Tests con URLs localizadas → activar y limpiar idioma esperado.
+- Middleware de seguridad puede deshabilitarse en tests de API de negocio solo si hay tests dedicados de ese middleware; documentar el motivo.
+
+## PR y despliegue
+
+Descripción de PR debe incluir: problema/causa raíz, archivos/comportamiento cambiado, impacto usuario/seguridad/ops, tests ejecutados, instrucciones de deploy/rollback si aplica.
