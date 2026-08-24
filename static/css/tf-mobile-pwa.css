@@ -244,20 +244,76 @@ html {
 }
 
 @media (max-width: 767px) {
+  html {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  body.cat-catalog-page {
+    overflow-x: clip;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  body.cat-catalog-page .cat-nav,
+  body.cat-catalog-page .tf-main,
+  body.cat-catalog-page .site-footer {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  body.cat-catalog-page .cat-nav .navbar-primary {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  body.cat-catalog-page .search-container,
+  body.cat-catalog-page .search-bar {
+    max-width: 100%;
+    min-width: 0;
+  }
+
   body.cat-catalog-page .hm-alibaba,
   body.cat-catalog-page .hm-marketplace {
     overflow-x: clip;
     max-width: 100%;
   }
 
+  body.cat-catalog-page .hm-gateway,
+  body.cat-catalog-page .hm-gateway__inner,
+  body.cat-catalog-page .hm-bento,
+  body.cat-catalog-page .hm-bento__grid,
+  body.cat-catalog-page .hm-cat-discover,
+  body.cat-catalog-page .hm-deals,
+  body.cat-catalog-page .hm-trust,
+  body.cat-catalog-page .hm-join-band,
+  body.cat-catalog-page .hm-how {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+    box-sizing: border-box;
+  }
+
   body.cat-catalog-page .hm-alibaba .hm-product-row {
     margin-inline: 8px;
   }
 
-  body.cat-catalog-page .hm-marketplace .product-grid,
+  body.cat-catalog-page .hm-marketplace .product-grid:not(.hm-deals__track),
   body.cat-catalog-page .hm-marketplace .hm-product-row__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px;
+  }
+
+  body.cat-catalog-page .hm-marketplace .hm-deals__track {
+    grid-auto-flow: column !important;
+    grid-auto-columns: minmax(140px, 180px) !important;
+    grid-template-columns: unset !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
   }
 
   body.cat-catalog-page .hm-marketplace .product-card {
@@ -328,14 +384,14 @@ html {
 }
 
 @media (max-width: 560px) {
-  .product-grid:not(.hm-product-row__grid),
-  .hm-marketplace-page .product-grid {
+  .product-grid:not(.hm-product-row__grid):not(.hm-deals__track),
+  .hm-marketplace-page .product-grid:not(.hm-deals__track) {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
 @media (min-width: 561px) and (max-width: 899px) {
-  .product-grid,
+  .product-grid:not(.hm-deals__track),
   .hm-product-row__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
