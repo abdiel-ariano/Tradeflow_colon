@@ -4,6 +4,7 @@
  * DESIGN.md: navy, orange, surface #F2F3F5, Montserrat, radii 8/12/16.
  */
 
+body:has(.sa-page) #tf-assistant-rail,
 body:has(.sa-page) #tf-assistant {
   display: none !important;
 }

@@ -10,18 +10,24 @@ from django.test import SimpleTestCase
 class AssistantScrollDockTests(SimpleTestCase):
     """Keep the FAB left by default and glide right after scroll."""
 
-    def test_base_template_docks_left_then_right_on_scroll(self):
+    def test_base_template_uses_full_width_rail_dock(self):
         source = self._read('templates/core/base.html')
-        self.assertIn('id="tf-assistant"', source)
+        self.assertIn('id="tf-assistant-rail"', source)
         self.assertIn('data-tf-dock="left"', source)
-        self.assertIn('tf-assistant--right', source)
+        self.assertIn('tf-assistant-rail', source)
         self.assertIn('TF_DOCK_SCROLL_Y', source)
         self.assertIn('applyAssistantDock', source)
+        self.assertIn('translate3d(', source)
+        self.assertIn('.cat-results-scroll', source)
+        self.assertIn("document.addEventListener(", source)
+        self.assertIn("{ passive: true, capture: true }", source)
         self.assertIn('window.TF_SYNC_ASSISTANT_DOCK', source)
         self.assertIn('setChatOpen', source)
-        # Prefer animatable left over transform docking.
-        self.assertIn('transition: left', source)
-        self.assertIn("setProperty('left'", source)
+        # Must not pin the FAB with position:fixed on the right by default.
+        self.assertNotRegex(
+            source,
+            r'#tf-assistant\s*\{[^}]*right:\s*max\([^}]*\)\s*!important',
+        )
 
     def test_notifications_does_not_steal_chat_handlers(self):
         source = self._read('static/js/tf_notifications.js')
