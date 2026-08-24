@@ -205,9 +205,8 @@ def api_asistente(request):
             status=400,
         )
 
-    # The catalog-backed assistant is authoritative and always available.
-    # Groq enriches its answer when configured, but upstream failures are handled
-    # inside consultar_asistente and never disconnect the public chat.
+    # Groq is the primary public-chat engine when configured. The catalog-backed
+    # assistant remains available only as a resilient fallback for provider errors.
     from core.utils.ai_assistant import consultar_asistente
 
     hist = []
@@ -244,7 +243,7 @@ def api_asistente(request):
                 or _asistente_respuesta_html(respuesta)
             ),
         }
-        for key in ('confianza', 'categoria', 'baja_confianza'):
+        for key in ('confianza', 'categoria', 'baja_confianza', 'proveedor'):
             if key in result:
                 payload[key] = result[key]
         return JsonResponse(payload)

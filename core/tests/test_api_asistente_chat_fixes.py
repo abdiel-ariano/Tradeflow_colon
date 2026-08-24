@@ -32,6 +32,31 @@ class ApiAsistenteChatFixesTests(TestCase):
         self.assertTrue(payload['ok'])
         self.assertIn('TF Assistant', payload['respuesta'])
         self.assertNotIn('could not generate', payload['respuesta'].lower())
+        self.assertEqual(payload['proveedor'], 'catalogo')
+
+    @override_settings(GROQ_API_KEY='test-groq-key')
+    def test_low_confidence_query_uses_groq_as_primary_engine(self):
+        with patch(
+            'core.utils.ai_assistant._consultar_groq',
+            return_value=(
+                '¡Hola! Puedo ayudarte a encontrar proveedores, productos y '
+                'cotizaciones mayoristas en TradeFlow Colón.'
+            ),
+        ) as groq:
+            resp = self.client.post(
+                '/api/asistente/',
+                data=json.dumps({'mensaje': 'hola'}),
+                content_type='application/json',
+            )
+
+        self.assertEqual(resp.status_code, 200)
+        payload = resp.json()
+        self.assertTrue(payload['ok'])
+        self.assertEqual(payload['proveedor'], 'groq')
+        self.assertEqual(payload['categoria'], 'catalogo')
+        self.assertFalse(payload['baja_confianza'])
+        self.assertIn('¡Hola!', payload['respuesta'])
+        groq.assert_called_once()
 
     @override_settings(GROQ_API_KEY='')
     def test_public_context_uses_catalog_backed_assistant_without_api_key(self):
