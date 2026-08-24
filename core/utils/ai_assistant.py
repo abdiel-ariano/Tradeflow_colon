@@ -217,6 +217,36 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
         )
 
     if _match_any(msg, (
+        'ruc', 'dígito verificador', 'digito verificador', 'dv',
+        'verificar empresa', 'verificación de empresa', 'verificacion de empresa',
+        'company verification', 'verify company', 'supporting document',
+        'aviso de operación', 'aviso de operacion', 'registro público', 'registro publico',
+    )):
+        spanish = _match_any(msg, (
+            'cómo', 'como', 'verificar', 'verificación', 'verificacion',
+            'empresa', 'aviso de operación', 'aviso de operacion',
+            'registro público', 'registro publico',
+        ))
+        if spanish:
+            return (
+                'Para verificar una empresa en TradeFlow: 1) verifica el correo del '
+                'representante autorizado; 2) registra nombre comercial, razón social, '
+                'RUC, DV, actividad de compra/venta y dirección; 3) adjunta aviso de '
+                'operación, registro público o documento equivalente; 4) espera la '
+                'revisión manual. La validación de formato no sustituye una consulta '
+                'gubernamental. Si el RUC ya pertenece a una empresa verificada, soporte '
+                f'debe autorizar al nuevo representante. Comienza en {signup}.'
+            )
+        return (
+            'To verify a company on TradeFlow: 1) verify the authorized representative '
+            'email; 2) enter the trade name, legal name, RUC, DV, buying/selling activity, '
+            'and address; 3) upload an operation notice, public-registry record, or '
+            'equivalent supporting document; 4) wait for manual review. Format validation '
+            'does not replace a government-registry check. If the RUC already belongs to '
+            f'a verified company, support must authorize the new representative. Start at {signup}.'
+        )
+
+    if _match_any(msg, (
         'cómo compro', 'como compro', 'comprar', 'registro', 'crear cuenta',
         'carrito', 'checkout', 'pedido', 'cuenta',
     )):
@@ -382,9 +412,16 @@ _CATEGORY_META = {
     'catalogo': ('storefront', 'Catalog'),
     'general': ('help', 'Information'),
     'soporte': ('support_agent', 'Support'),
+    'verificacion': ('verified_user', 'Company verification'),
 }
 
 _TOPIC_KEYWORDS = {
+    'verificacion': (
+        'ruc', 'dígito verificador', 'digito verificador', 'dv',
+        'verificar empresa', 'verificación de empresa', 'verificacion de empresa',
+        'company verification', 'verify company', 'supporting document',
+        'aviso de operación', 'aviso de operacion', 'registro público', 'registro publico',
+    ),
     'productos': (
         'producto', 'productos', 'stock', 'inventario', 'sku', 'catálogo',
         'catalogo', 'artículo', 'articulo', 'publicar', 'bajo stock',
