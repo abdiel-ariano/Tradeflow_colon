@@ -1332,6 +1332,9 @@ def detalle_cotizacion(request, pk):
                     shipping_cost=Decimal('0.00'),
                     notes=f'Generated from quote {cot.numero}',
                     status='pending',
+                    confirming_company=cot.empresa,
+                    seller_confirmation_status='accepted',
+                    confirmado_por_empresa=True,
                 )
                 items_ok = 0
                 for it in items:
@@ -1369,8 +1372,8 @@ def detalle_cotizacion(request, pk):
 
             messages.success(
                 request,
-                f'Purchase order {orden.order_number} created and awaiting supplier confirmation. '
-                'No payment has been recorded.',
+                f'Purchase order {orden.order_number} created from the accepted supplier quote. '
+                'Payment and logistics remain pending; no payment has been recorded.',
             )
             return redirect('detalle_mi_orden', pk=orden.pk)
 
