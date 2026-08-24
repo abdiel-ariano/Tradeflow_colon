@@ -127,6 +127,12 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
     <div class="cot-doc-notes">
       <strong>Terms:</strong> Valid for {{ cot.validez_dias }} days from issue. Subject to stock availability.
     </div>
+    {% if cot.estado == 'respondida' %}
+    <div class="cot-doc-notes" style="border-left:4px solid #f26522;">
+      <strong>Next step:</strong> Accepting this quote creates a pending purchase order
+      for supplier confirmation. It does not charge or record a payment.
+    </div>
+    {% endif %}
     {% if cot.notas_buyer %}
     <div class="cot-doc-notes"><strong>Buyer notes:</strong><br>{{ cot.notas_buyer }}</div>
     {% endif %}
@@ -149,7 +155,7 @@ Contexto: vista detalle_cotizacion; visibilidad de acciones controlada por JavaS
         <input type="hidden" name="accion" value="convertir">
         <button type="submit" class="tf-btn-primary">
           <span class="material-symbols-rounded" style="font-size:18px;">shopping_bag</span>
-          Convert to order
+          Accept quote &amp; create purchase order
         </button>
       </form>
       <form method="post" class="cot-hidden" id="cot-form-reject" style="display:inline;">

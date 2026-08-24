@@ -13,9 +13,11 @@ from core.models import (
     Category,
     Company,
     Cotizacion,
+    CotizacionItem,
     Inventory,
     Order,
     OrderItem,
+    Payment,
     Product,
     UserProfile,
 )
@@ -175,6 +177,37 @@ class TestFlujoBuyer(TestCase):
         self.assertTrue(Cotizacion.objects.filter(buyer=self.buyer).exists())
         inventory = Inventory.objects.get(product=self.product)
         self.assertEqual(inventory.reserved_qty, 0)
+
+    def test_aceptar_cotizacion_crea_orden_pendiente_sin_pago(self):
+        """Quote acceptance creates a pending purchase order without fake payment."""
+        quote = Cotizacion.objects.create(
+            buyer=self.buyer,
+            empresa=self.company,
+            estado='respondida',
+            notas_seller='Precio FOB Colón.',
+        )
+        CotizacionItem.objects.create(
+            cotizacion=quote,
+            product=self.product,
+            cantidad_solicitada=2,
+            precio_ofertado=Decimal('9.50'),
+        )
+        self.client.login(username='buyer_test', password='TestPass123!')
+
+        response = self.client.post(
+            reverse('detalle_cotizacion', args=[quote.pk]),
+            {'accion': 'convertir'},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        quote.refresh_from_db()
+        self.assertEqual(quote.estado, 'aceptada')
+        self.assertIsNotNone(quote.order_id)
+        self.assertEqual(quote.order.status, 'pending')
+        self.assertEqual(quote.order.total, Decimal('19.00'))
+        self.assertFalse(Payment.objects.filter(order=quote.order).exists())
+        inventory = Inventory.objects.get(product=self.product)
+        self.assertEqual(inventory.reserved_qty, 2)
 
     def test_buyer_ve_solo_sus_ordenes(self):
         """Buyers cannot open another buyer's order detail (404)."""
