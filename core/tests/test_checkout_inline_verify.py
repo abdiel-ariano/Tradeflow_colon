@@ -1,24 +1,16 @@
-"""Checkout inline email verification and OTP auto-send.
+"""RFQ review inline email verification and OTP auto-send.
 
-Unverified buyers can open checkout UI with an inline OTP panel, but
-POST still gates order placement until the email is confirmed.
+Unverified buyers can review their supplier RFQs with an inline OTP panel, but
+POST still gates sending the formal requests until email is confirmed.
 """
 from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
-from django.core import mail
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from core.models import (
-    Category,
-    Company,
-    Inventory,
-    Product,
-    TransportCarrier,
-    UserProfile,
-)
+from core.models import Category, Company, Inventory, Product, UserProfile
 
 
 @override_settings(
@@ -27,24 +19,22 @@ from core.models import (
     REQUIRE_EMAIL_VERIFICATION=True,
     EXPO_DEMO_MODE=False,
     AXES_ENABLED=False,
-    CHECKOUT_AUTO_APPROVE=True,
     EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
 )
 class CheckoutInlineVerifyTests(TestCase):
-    """Assert inline verify UI, auto OTP send, and POST gate."""
+    """Assert inline verify UI, automatic OTP send, and POST gate."""
 
     def setUp(self):
-        """Log in an unverified buyer with a cart line and carrier."""
-        self.company = Company.objects.create(name='Co ZLC', ruc='999', is_verified=True)
-        self.carrier = TransportCarrier.objects.create(
-            code='inline-carrier',
-            name='Inline Carrier',
-            base_shipping_cost=Decimal('5.00'),
+        """Log in an unverified buyer with a verified-supplier cart line."""
+        self.company = Company.objects.create(
+            name='Co ZLC',
+            ruc='999',
+            is_verified=True,
         )
-        cat = Category.objects.create(name='Cat')
+        category = Category.objects.create(name='Cat')
         self.product = Product.objects.create(
             company=self.company,
-            category=cat,
+            category=category,
             name='Widget',
             sku='W-INLINE',
             unit_price=Decimal('12.00'),
@@ -77,20 +67,25 @@ class CheckoutInlineVerifyTests(TestCase):
 
     def test_checkout_get_renders_inline_verify_without_redirect(self):
         """GET /checkout/ shows inline verify UI instead of bouncing away."""
-        resp = self.client.get('/checkout/')
-        self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'Verify your email')
-        self.assertContains(resp, 'id="otp-code"')
+        response = self.client.get(reverse('checkout'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Verify your email')
+        self.assertContains(response, 'id="otp-code"')
+        self.assertContains(response, 'Request for Quotation')
 
     @patch('core.email_service._send_via_resend')
     def test_checkout_get_auto_sends_otp(self, mock_resend):
         """GET /checkout/ auto-sends an OTP when Resend is configured."""
         from core.email_service import EmailSendResult
 
-        mock_resend.return_value = EmailSendResult(ok=True, channel='resend', detail='test-id')
+        mock_resend.return_value = EmailSendResult(
+            ok=True,
+            channel='resend',
+            detail='test-id',
+        )
         with override_settings(RESEND_API_KEY='re_test_key'):
-            resp = self.client.get('/checkout/')
-        self.assertEqual(resp.status_code, 200)
+            response = self.client.get(reverse('checkout'))
+        self.assertEqual(response.status_code, 200)
         mock_resend.assert_called_once()
 
     @patch('core.email_service._send_via_resend')
@@ -98,23 +93,21 @@ class CheckoutInlineVerifyTests(TestCase):
         """GET verify page also auto-sends an OTP via Resend."""
         from core.email_service import EmailSendResult
 
-        mock_resend.return_value = EmailSendResult(ok=True, channel='resend', detail='test-id')
+        mock_resend.return_value = EmailSendResult(
+            ok=True,
+            channel='resend',
+            detail='test-id',
+        )
         with override_settings(RESEND_API_KEY='re_test_key'):
-            resp = self.client.get(reverse('verificar_codigo'))
-        self.assertEqual(resp.status_code, 200)
+            response = self.client.get(reverse('verificar_codigo'))
+        self.assertEqual(response.status_code, 200)
         mock_resend.assert_called_once()
 
     def test_checkout_post_still_requires_verification(self):
-        """POST checkout redirects to /verificar until email is confirmed."""
-        resp = self.client.post(
-            '/checkout/',
-            {
-                'notas': '',
-                'transport_carrier': self.carrier.pk,
-                'buyer_latitude': '9.3667000',
-                'buyer_longitude': '-79.9000000',
-                'location_consent': '1',
-            },
+        """POST RFQ review redirects to verification until email is confirmed."""
+        response = self.client.post(
+            reverse('checkout'),
+            {'notas': '', 'validez_dias': '30'},
         )
-        self.assertEqual(resp.status_code, 302)
-        self.assertIn('/verificar', resp['Location'])
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/verificar', response['Location'])
