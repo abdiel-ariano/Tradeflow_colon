@@ -85,7 +85,8 @@ class OAuthB2BOnboardingTests(TestCase):
             {'business_role': 'buyer', 'accept_privacy': '1'},
         )
 
-        self.assertRedirects(response, reverse('oauth_post_signup'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('oauth_post_signup'))
         user.refresh_from_db()
         self.assertEqual(user.profile.business_role_intent, 'buyer')
         self.assertEqual(user.profile.role, 'buyer')
@@ -97,5 +98,7 @@ class OAuthB2BOnboardingTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'js-oauth-signup')
-        self.assertContains(response, 'name="business_role"', count=3)
+        self.assertContains(response, 'name="business_role"')
+        for role in ('buyer', 'seller', 'both'):
+            self.assertContains(response, f'value="{role}"')
         self.assertContains(response, 'business_role=')
