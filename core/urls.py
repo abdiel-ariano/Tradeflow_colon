@@ -19,7 +19,6 @@ from . import views_seller_pages
 from . import views_social
 from . import views_staff_mfa
 from . import views_onboarding as onboarding
-from . import views_buyer_onboarding as buyer_onboarding
 from . import views_seller_onboarding as seller_onboarding
 from . import views_transportistas as vt
 from . import views_api_enterprise as vapi
@@ -104,14 +103,6 @@ urlpatterns = [
     path('onboarding/reenviar-verificacion/', onboarding.onboarding_reenviar_verificacion, name='onboarding_reenviar_verificacion'),
     path('onboarding/verificar-codigo/', onboarding.onboarding_verificar_codigo, name='onboarding_verificar_codigo'),
     path('api/onboarding/verification-status/', onboarding.api_onboarding_verification_status, name='api_onboarding_verification_status'),
-    # Buyer wizard — post-OTP preference personalization (3 steps)
-    path('onboarding/comprador/', buyer_onboarding.buyer_onboarding_step1, name='buyer_onboarding_step1'),
-    path('onboarding/comprador/paso-1/', buyer_onboarding.buyer_onboarding_step1_post, name='buyer_onboarding_step1_post'),
-    path('onboarding/comprador/categorias/', buyer_onboarding.buyer_onboarding_step2, name='buyer_onboarding_step2'),
-    path('onboarding/comprador/categorias/guardar/', buyer_onboarding.buyer_onboarding_step2_post, name='buyer_onboarding_step2_post'),
-    path('onboarding/comprador/busqueda/', buyer_onboarding.buyer_onboarding_step3, name='buyer_onboarding_step3'),
-    path('onboarding/comprador/finalizar/', buyer_onboarding.buyer_onboarding_finish, name='buyer_onboarding_finish'),
-    path('onboarding/comprador/omitir/', buyer_onboarding.buyer_onboarding_skip, name='buyer_onboarding_skip'),
     # B2B company identity and documentary review (required for new businesses)
     path('onboarding/empresa/', seller_onboarding.seller_onboarding_company, name='company_onboarding'),
     path('onboarding/empresa/guardar/', seller_onboarding.seller_onboarding_company_post, name='company_onboarding_post'),
