@@ -208,11 +208,6 @@ def _build_dashboard_charts_payload(dias, now=None):
         for row in prod_rows
     ]
 
-    ordenes_por_tipo = {
-        'b2b': qs.filter(order_type='b2b').count(),
-        'b2c': qs.filter(order_type='b2c').count(),
-    }
-
     period_label = _('Last %(n)s days') % {'n': dias}
 
     return {
@@ -223,7 +218,6 @@ def _build_dashboard_charts_payload(dias, now=None):
         'ventas_por_categoria': ventas_por_categoria,
         'ventas_por_empresa':   ventas_por_empresa,
         'productos_top':        productos_top,
-        'ordenes_por_tipo':     ordenes_por_tipo,
         'dias':                 dias,
         'period_label':         period_label,
     }
@@ -367,8 +361,7 @@ def dashboard(request):
     ingresos_por_dia = charts['ingresos_por_dia']
     estados_data = charts['estados_data']
 
-    ordenes_b2b = Order.objects.filter(created_at__gte=inicio_actual, order_type='b2b').count()
-    ordenes_b2c = Order.objects.filter(created_at__gte=inicio_actual, order_type='b2c').count()
+    ordenes_b2b = Order.objects.filter(created_at__gte=inicio_actual).count()
 
     usuarios_plataforma = User.objects.filter(is_active=True).count()
     usuarios_login_periodo = User.objects.filter(
@@ -456,7 +449,6 @@ def dashboard(request):
         'charts_initial_json':  _charts_json(charts),
         'api_dashboard_stats_url': reverse('api_dashboard_stats'),
         'ordenes_b2b':          ordenes_b2b,
-        'ordenes_b2c':          ordenes_b2c,
         'usuarios_plataforma':  usuarios_plataforma,
         'usuarios_login_periodo': usuarios_login_periodo,
         'actividad_reciente':   actividad,
@@ -608,25 +600,21 @@ def cambiar_estado_orden(request, pk, estado):
 @admin_required
 def nueva_orden_paso1(request):
     """Admin new-order wizard step 1 — choose buyer/company."""
-    request.session.pop('wizard_buyer_id',   None)
-    request.session.pop('wizard_order_type', None)
-    request.session.pop('wizard_items',      None)
+    request.session.pop('wizard_buyer_id', None)
+    request.session.pop('wizard_items', None)
 
     compradores = User.objects.filter(is_active=True).order_by('username')
 
     if request.method == 'POST':
-        buyer_id   = request.POST.get('buyer_id')
-        order_type = request.POST.get('order_type', 'b2c')
+        buyer_id = request.POST.get('buyer_id')
         if not buyer_id:
             messages.error(request, 'You must select a buyer.')
         else:
-            request.session['wizard_buyer_id']   = int(buyer_id)
-            request.session['wizard_order_type'] = order_type
+            request.session['wizard_buyer_id'] = int(buyer_id)
             return redirect('nueva_orden_paso2')
 
     return render(request, 'core/nueva_orden_paso1.html', {
         'compradores':   compradores,
-        'order_types':   Order.ORDER_TYPE_CHOICES,
         'titulo_pagina': 'New order — Step 1',
         'nav_activo':    'ordenes',
         'paso_actual':   1,
@@ -733,9 +721,8 @@ def nueva_orden_paso2(request):
 def nueva_orden_paso3(request):
     """Admin new-order wizard step 3 — confirm and create the order."""
     from decimal import Decimal
-    buyer_id   = request.session.get('wizard_buyer_id')
-    order_type = request.session.get('wizard_order_type', 'b2c')
-    items      = request.session.get('wizard_items', [])
+    buyer_id = request.session.get('wizard_buyer_id')
+    items = request.session.get('wizard_items', [])
 
     if not buyer_id or not items:
         messages.error(request, 'Session expired. Start the order again.')
@@ -760,7 +747,7 @@ def nueva_orden_paso3(request):
 
         orden = Order.objects.create(
             buyer=buyer, ship_address=ship_address,
-            order_type=order_type, shipping_cost=shipping_cost,
+            order_type='b2b', shipping_cost=shipping_cost,
             notes=notas, status='pending',
         )
 
@@ -802,7 +789,7 @@ def nueva_orden_paso3(request):
             orden.status = 'paid'
             orden.save(update_fields=['status'])
 
-        for key in ('wizard_buyer_id', 'wizard_order_type', 'wizard_items'):
+        for key in ('wizard_buyer_id', 'wizard_items'):
             request.session.pop(key, None)
 
         messages.success(request, f'Order {orden.order_number} created successfully!')
@@ -810,7 +797,6 @@ def nueva_orden_paso3(request):
 
     return render(request, 'core/nueva_orden_paso3.html', {
         'buyer':         buyer,
-        'order_type':    order_type,
         'items':         items,
         'subtotal':      subtotal,
         'direcciones':   direcciones,
