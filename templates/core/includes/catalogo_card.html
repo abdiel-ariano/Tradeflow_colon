@@ -89,7 +89,7 @@
     <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form catalogo-card__cart-form">
       {% csrf_token %}
       <input type="hidden" name="cantidad" value="1">
-      <button type="submit" class="btn-inquiry">+ {% trans "Add to cart" %}</button>
+      <button type="submit" class="btn-inquiry">+ {% trans "Add to inquiry" %}</button>
     </form>
     {% elif show_cart_actions %}
     <span class="btn-inquiry btn-inquiry--disabled">{% trans "Out of stock" %}</span>

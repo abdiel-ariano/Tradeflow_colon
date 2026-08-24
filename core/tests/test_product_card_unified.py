@@ -107,6 +107,7 @@ class ProductCardUnifiedTests(TestCase):
         response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['show_cart_actions'])
-        self.assertContains(response, 'Add to cart')
+        self.assertContains(response, 'Add to inquiry')
+        self.assertNotContains(response, 'Add to cart')
         self.assertContains(response, 'Auto quote')
         self.assertNotContains(response, 'Regístrate para ver precios mayoristas')
