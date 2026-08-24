@@ -159,6 +159,7 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 302)
         orden = Order.objects.filter(buyer=self.buyer).first()
         self.assertIsNotNone(orden)
+        self.assertEqual(orden.order_type, 'b2b')
         self.assertEqual(orden.items.count(), 1)
         self.assertTrue(Payment.objects.filter(order=orden).exists())
 
