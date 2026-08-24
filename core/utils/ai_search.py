@@ -311,25 +311,8 @@ def search_seller(company, query: str, limit: int = 10) -> list[dict]:
 
 
 def search_buyer(user, query: str, limit: int = 8) -> list[dict]:
-    """Busca en el alcance de la navbar del comprador (pedidos e indicios de catálogo)."""
-    from .. import merchandising as merch
-
-    q = (query or '').strip()
-    profile = getattr(user, 'profile', None) if user and user.is_authenticated else None
-
-    if not q and profile:
-        for row in merch.buyer_deep_search_suggestions(profile, limit=limit):
-            p = row['product']
-            return [
-                _product_item(
-                    p,
-                    row['url'],
-                    icon='auto_awesome',
-                    score=50,
-                )
-            ]
-
-    return search_public(q, limit=limit)
+    """Use wholesale catalog suggestions for authenticated company buyers."""
+    return search_public((query or '').strip(), limit=limit)
 
 
 def search_admin(query: str, limit: int = 8) -> list[dict]:
