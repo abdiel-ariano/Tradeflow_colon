@@ -867,7 +867,7 @@ class UserApplication(models.Model):
 
 
 class Order(models.Model):
-    """Cabecera de compra del comprador en checkouts B2B y B2C de la ZLC.
+    """Cabecera de compra empresarial en checkouts B2B de la ZLC.
 
     Las líneas viven en ``OrderItem``. La confirmación del vendedor condiciona
     el fulfillment cuando la empresa debe aceptar antes de empacar; los
@@ -891,7 +891,6 @@ class Order(models.Model):
     ]
 
     ORDER_TYPE_CHOICES = [
-        ('b2c', _('End consumer (B2C)')),
         ('b2b', _('Business to business (B2B)')),
     ]
 
@@ -909,7 +908,7 @@ class Order(models.Model):
         verbose_name='Order number'
     )
     status        = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    order_type    = models.CharField(max_length=3, choices=ORDER_TYPE_CHOICES, default='b2c')
+    order_type    = models.CharField(max_length=3, choices=ORDER_TYPE_CHOICES, default='b2b')
     subtotal      = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total         = models.DecimalField(max_digits=14, decimal_places=2, default=0)
