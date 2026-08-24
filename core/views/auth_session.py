@@ -335,13 +335,10 @@ def signup_seller_view(request):
 
 
 def _redirect_after_email_verified(user):
-    """Post-OTP destination by role, including buyer/seller wizards."""
+    """Post-OTP destination by role, including B2B company verification."""
     from django.urls import reverse
 
-    from core.utils.access_gating import (
-        b2b_company_onboarding_redirect_name,
-        buyer_onboarding_redirect_name,
-    )
+    from core.utils.access_gating import b2b_company_onboarding_redirect_name
 
     try:
         role = user.profile.role
@@ -354,9 +351,6 @@ def _redirect_after_email_verified(user):
         return redirect(company_route)
     if role == 'seller':
         return redirect('portal_seller')
-    buyer_route = buyer_onboarding_redirect_name(user)
-    if buyer_route:
-        return redirect(buyer_route)
     return redirect('catalogo_publico')
 
 
