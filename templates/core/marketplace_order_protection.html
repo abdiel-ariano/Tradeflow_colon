@@ -1,93 +1,93 @@
 {% extends "core/marketplace_public_base.html" %}
 {% load i18n %}
-{% block title %}{% trans "Order Protection & RFQ — TradeFlow Colón" %}{% endblock %}
-{% block meta_description %}{% trans "TradeFlow buyer protection: request for quotation workflows, verified CFZ suppliers, secure B2B checkout, and export-ready documentation for wholesale buyers." %}{% endblock %}
+{% block title %}{% trans "RFQ & Purchase Order Process — TradeFlow Colón" %}{% endblock %}
+{% block meta_description %}{% trans "Learn how verified companies request supplier quotations, compare commercial terms, and create pending B2B purchase orders on TradeFlow Colón." %}{% endblock %}
 
 {% block marketplace_main %}
 <div class="mkt-page-stack">
 
-  <header class="mkt-hero mkt-hero--protection" aria-labelledby="mkt-protection-title">
+  <header class="mkt-hero mkt-hero--protection" aria-labelledby="mkt-rfq-title">
     <div class="mkt-hero__accent" aria-hidden="true"></div>
     <div class="mkt-hero__layout mkt-hero__layout--stack">
       <div class="mkt-hero__main mkt-hero__main--wide">
-        <p class="mkt-hero__kicker">{% trans "Buyer protection program" %}</p>
-        <h1 class="mkt-hero__title" id="mkt-protection-title">{% trans "Order protection for wholesale buyers" %}</h1>
-        <p class="mkt-hero__sub">{% trans "Quote before you commit. Structured RFQ workflows, verified suppliers, and documentation built for international trade from the Colón Free Zone." %}</p>
+        <p class="mkt-hero__kicker">{% trans "B2B quotation workflow" %}</p>
+        <h1 class="mkt-hero__title" id="mkt-rfq-title">{% trans "From supplier RFQ to purchase order" %}</h1>
+        <p class="mkt-hero__sub">{% trans "Request formal quotations, compare supplier responses, and create a pending purchase order only after your company accepts the commercial terms." %}</p>
         <div class="mkt-hero__actions">
           <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--primary">{% trans "Register your company" %}</a>
-          <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--ghost">{% trans "Start browsing" %}</a>
+          <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--ghost">{% trans "Browse suppliers" %}</a>
         </div>
       </div>
-      <div class="mkt-trust-benefits" aria-label="{% trans 'Protection highlights' %}">
-        <p class="mkt-trust-benefits__lead">{% trans "Every wholesale path on TradeFlow stays quote-first: verified CFZ suppliers, formal RFQs, and export-ready docs before you commit." %}</p>
+      <div class="mkt-trust-benefits" aria-label="{% trans 'RFQ workflow summary' %}">
+        <p class="mkt-trust-benefits__lead">{% trans "TradeFlow structures the commercial conversation between verified companies. It does not charge a payment when you send or accept a quotation." %}</p>
         <ul class="mkt-trust-benefits__list">
-          <li>{% trans "CFZ-verified supplier profiles with live catalog depth" %}</li>
-          <li>{% trans "Request for Quotation before payment" %}</li>
-          <li>{% trans "Secure B2B checkout with order transparency" %}</li>
-          <li>{% trans "Invoice and packing-list support for export" %}</li>
+          <li>{% trans "Company verification with RUC, DV, and supporting documents" %}</li>
+          <li>{% trans "One supplier-specific RFQ per inquiry group" %}</li>
+          <li>{% trans "Price, quantity, validity, and terms recorded in the quote" %}</li>
+          <li>{% trans "Accepted quotes become pending purchase orders" %}</li>
         </ul>
         <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--primary">{% trans "Browse verified catalog" %}</a>
       </div>
     </div>
   </header>
 
-  <section class="mkt-panel" aria-labelledby="mkt-protection-steps-title">
+  <section class="mkt-panel" aria-labelledby="mkt-rfq-steps-title">
     <header class="mkt-panel__head">
-      <h2 class="mkt-panel__title" id="mkt-protection-steps-title">{% trans "How buyer protection works" %}</h2>
-      <p class="mkt-panel__sub">{% trans "From discovery to delivery — designed for importers and wholesale buyers" %}</p>
+      <h2 class="mkt-panel__title" id="mkt-rfq-steps-title">{% trans "How the RFQ process works" %}</h2>
+      <p class="mkt-panel__sub">{% trans "A practical flow for importers, distributors, and CFZ suppliers" %}</p>
     </header>
     <ol class="mkt-steps">
       <li class="mkt-step">
         <span class="mkt-step__num" aria-hidden="true">1</span>
-        <h3 class="mkt-step__title">{% trans "Browse verified inventory" %}</h3>
-        <p class="mkt-step__text">{% trans "Explore live products with MOQ and CFZ verification — no account required to start." %}</p>
+        <h3 class="mkt-step__title">{% trans "Verify your company" %}</h3>
+        <p class="mkt-step__text">{% trans "Provide the company's legal name, RUC, DV, business role, and supporting document for manual review." %}</p>
       </li>
       <li class="mkt-step">
         <span class="mkt-step__num" aria-hidden="true">2</span>
         <h3 class="mkt-step__title">{% trans "Build an inquiry cart" %}</h3>
-        <p class="mkt-step__text">{% trans "Add products from multiple suppliers and request formal quotations." %}</p>
+        <p class="mkt-step__text">{% trans "Select products and quantities. TradeFlow separates the request by supplier." %}</p>
       </li>
       <li class="mkt-step">
         <span class="mkt-step__num" aria-hidden="true">3</span>
-        <h3 class="mkt-step__title">{% trans "Review quotes & terms" %}</h3>
-        <p class="mkt-step__text">{% trans "Compare responses, lead times, and documentation before approving." %}</p>
+        <h3 class="mkt-step__title">{% trans "Compare supplier responses" %}</h3>
+        <p class="mkt-step__text">{% trans "Review quoted prices, validity, notes, and commercial terms before making a decision." %}</p>
       </li>
       <li class="mkt-step">
         <span class="mkt-step__num" aria-hidden="true">4</span>
-        <h3 class="mkt-step__title">{% trans "Checkout with docs" %}</h3>
-        <p class="mkt-step__text">{% trans "Confirmed orders include invoice and packing list support for export." %}</p>
+        <h3 class="mkt-step__title">{% trans "Create a pending purchase order" %}</h3>
+        <p class="mkt-step__text">{% trans "Accepting a quote records the agreed products and reserves inventory. Payment and logistics remain pending until the parties coordinate them." %}</p>
       </li>
     </ol>
   </section>
 
-  <section class="mkt-panel" aria-labelledby="mkt-protection-coverage-title">
+  <section class="mkt-panel" aria-labelledby="mkt-rfq-records-title">
     <header class="mkt-panel__head">
-      <h2 class="mkt-panel__title" id="mkt-protection-coverage-title">{% trans "What is covered" %}</h2>
+      <h2 class="mkt-panel__title" id="mkt-rfq-records-title">{% trans "What TradeFlow records" %}</h2>
     </header>
     <div class="mkt-feature-grid">
       <article class="mkt-feature">
-        <h3 class="mkt-feature__title">{% trans "Supplier verification" %}</h3>
-        <p class="mkt-feature__text">{% trans "CFZ status, RUC, and live catalog depth on every company profile." %}</p>
+        <h3 class="mkt-feature__title">{% trans "Company identity" %}</h3>
+        <p class="mkt-feature__text">{% trans "Verification status and the business data submitted for review." %}</p>
       </article>
       <article class="mkt-feature">
-        <h3 class="mkt-feature__title">{% trans "Quote-first workflow" %}</h3>
-        <p class="mkt-feature__text">{% trans "Negotiate volume, shipping, and payment terms before funds move." %}</p>
+        <h3 class="mkt-feature__title">{% trans "Quotation history" %}</h3>
+        <p class="mkt-feature__text">{% trans "Supplier-specific requests, responses, quantities, prices, and validity dates." %}</p>
       </article>
       <article class="mkt-feature">
-        <h3 class="mkt-feature__title">{% trans "Order transparency" %}</h3>
-        <p class="mkt-feature__text">{% trans "Track status, seller confirmation, and logistics from your account." %}</p>
+        <h3 class="mkt-feature__title">{% trans "Purchase-order status" %}</h3>
+        <p class="mkt-feature__text">{% trans "An accepted quotation creates a pending order, not a paid order." %}</p>
       </article>
       <article class="mkt-feature">
-        <h3 class="mkt-feature__title">{% trans "Dispute & support" %}</h3>
-        <p class="mkt-feature__text">{% trans "Contact TradeFlow for order issues. Policies in our legal center." %}</p>
+        <h3 class="mkt-feature__title">{% trans "Important limitation" %}</h3>
+        <p class="mkt-feature__text">{% trans "TradeFlow currently does not provide escrow, automatic refunds, or a buyer-protection guarantee. Payment and delivery terms are agreed between the companies." %}</p>
         <a href="{% url 'legal_terminos' %}" class="mkt-feature__link">{% trans "Read terms →" %}</a>
       </article>
     </div>
   </section>
 
-  <section class="mkt-banner-cta" aria-labelledby="mkt-protection-cta-title">
-    <h2 class="mkt-banner-cta__title" id="mkt-protection-cta-title">{% trans "Ready to source from the Free Zone?" %}</h2>
-    <p class="mkt-banner-cta__text">{% trans "Join verified businesses across the Americas that use TradeFlow for wholesale sourcing." %}</p>
+  <section class="mkt-banner-cta" aria-labelledby="mkt-rfq-cta-title">
+    <h2 class="mkt-banner-cta__title" id="mkt-rfq-cta-title">{% trans "Ready to request a supplier quote?" %}</h2>
+    <p class="mkt-banner-cta__text">{% trans "Create your company account, complete verification, and start a structured B2B inquiry." %}</p>
     <div class="mkt-banner-cta__actions">
       <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--primary mkt-btn--on-dark">{% trans "Register your company" %}</a>
       <a href="{% url 'marketplace_verified_suppliers' %}" class="mkt-btn mkt-btn--ghost mkt-btn--on-dark">{% trans "Meet verified suppliers" %}</a>

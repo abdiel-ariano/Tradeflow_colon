@@ -158,7 +158,7 @@ def marketplace_deals(request):
 @cache_control(public=True, max_age=3600)
 @catalog_access
 def marketplace_order_protection(request):
-    """RFQ workflow and buyer protection program page."""
+    """Explain the factual RFQ-to-purchase-order workflow."""
     from core.utils.tradeflow_cache import cached_marketplace_categories_context
 
     ctx = _marketplace_page_context(request)

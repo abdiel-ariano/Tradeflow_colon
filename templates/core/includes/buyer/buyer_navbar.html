@@ -109,7 +109,7 @@ Buyer navbar — Alibaba-style two-row shell with AI search and language switche
         <a href="{% url 'catalogo_publico' %}?verificado=1">{% trans "Verified manufacturers" %}</a>
         <a href="{% url 'mapa_zlc' %}"{% if request.resolver_match.url_name == 'mapa_zlc' %} class="is-active" aria-current="page"{% endif %}>{% trans "Map" %}</a>
         <a href="{% url 'catalogo_publico' %}?orden=promo">{% trans "Deals" %}</a>
-        <a href="{% url 'acerca_tradeflow' %}">{% trans "Order protection" %}</a>
+        <a href="{% url 'marketplace_order_protection' %}">{% trans "How RFQs work" %}</a>
         <a href="{% url 'acerca_tradeflow' %}">{% trans "About TradeFlow Colón" %}</a>
       </div>
       <div class="nav-secondary-right">
