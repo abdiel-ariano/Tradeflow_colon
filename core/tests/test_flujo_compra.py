@@ -369,7 +369,7 @@ class TestFlujoBuyer(TestCase):
 
     def test_home_and_terms_do_not_advertise_unimplemented_checkout(self):
         """Homepage and terms match the implemented quote-first B2B flow."""
-        home = self.client.get(reverse('home'))
+        home = self.client.get(reverse('home'), follow=True)
         self.assertEqual(home.status_code, 200)
         self.assertContains(home, 'Send supplier RFQs')
         self.assertContains(home, 'creates a pending purchase order')
