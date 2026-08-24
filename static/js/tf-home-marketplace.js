@@ -133,11 +133,11 @@
       .then(function (res) {
         var data = res.data || {};
         if (!res.ok || data.ok === false) {
-          showToast(data.message || (window.TF_I18N && window.TF_I18N.catalogCartError) || 'Could not add to cart', 'error');
+          showToast(data.message || (window.TF_I18N && window.TF_I18N.catalogCartError) || 'Could not add to inquiry cart', 'error');
           return;
         }
         updateCartBadges(data.carrito_count);
-        showToast(data.message || (window.TF_I18N && window.TF_I18N.catalogAddedToCart) || 'Added to cart', 'success');
+        showToast(data.message || (window.TF_I18N && window.TF_I18N.catalogAddedToCart) || 'Added to inquiry cart', 'success');
       })
       .catch(function () {
         showToast((window.TF_I18N && window.TF_I18N.catalogNetworkError) || 'Connection error — try again', 'error');
