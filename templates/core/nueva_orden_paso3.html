@@ -85,18 +85,13 @@
       </div>
     </div>
 
-    <!-- Payment method -->
+    <!-- Commercial status -->
     <div class="form-card" style="margin-bottom:16px;">
-      <h4 style="margin-bottom:10px;">Payment method</h4>
-      {% for val, label in metodos_pago %}
-      <label class="pago-option">
-        <input type="radio" name="metodo_pago" value="{{ val }}" {% if val == 'mock' %}checked{% endif %}>
-        <div>
-          <div style="font-weight:600;">{{ label }}</div>
-          {% if val == 'mock' %}<div style="font-size:.75rem;color:#1D9E75;">Auto-approved (development)</div>{% endif %}
-        </div>
-      </label>
-      {% endfor %}
+      <h4 style="margin-bottom:10px;">Commercial status</h4>
+      <p style="margin:0;color:#667085;font-size:.85rem;">
+        The purchase order will be created pending payment and logistics.
+        Recording it does not collect, approve, or simulate a payment.
+      </p>
     </div>
 
     <!-- Notas -->
