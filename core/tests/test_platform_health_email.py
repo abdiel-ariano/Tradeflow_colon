@@ -19,7 +19,7 @@ class PlatformHealthEmailConfigTests(SimpleTestCase):
 
     def test_email_section_includes_public_base_and_from(self):
         """Report resend_ready, PUBLIC_BASE_URL, and from address."""
-        payload = platform_health_payload()
+        payload = platform_health_payload(detailed=True)
         self.assertTrue(payload['email']['resend_ready'])
         self.assertEqual(payload['email']['public_base_url'], 'https://tradeflowcolon.com')
         self.assertIn('no-reply@tradeflowcolon.com', payload['email']['default_from_email'])
