@@ -53,12 +53,10 @@ def _wants_json(request: HttpRequest) -> bool:
 def _redirect_by_role(user) -> str:
     """Pick post-OTP home: admin dashboard, seller portal, or catalog.
 
-    Sellers and buyers may still need company or preference onboarding
-    before reaching marketplace routes.
+    Business accounts may still need company verification before reaching
+    marketplace routes.
     """
     from django.urls import reverse
-
-    from core.utils.access_gating import buyer_onboarding_redirect_name
 
     from core.utils.access_gating import b2b_company_onboarding_redirect_name
 
@@ -78,9 +76,6 @@ def _redirect_by_role(user) -> str:
         if seller_route:
             return reverse(seller_route)
         return reverse('portal_seller')
-    buyer_route = buyer_onboarding_redirect_name(user)
-    if buyer_route:
-        return reverse(buyer_route)
     return reverse('catalogo_publico')
 
 
