@@ -221,10 +221,15 @@ def b2b_company_onboarding_redirect_name(user) -> str | None:
     if email_verification_required(user):
         return None
     try:
-        intent = user.profile.business_role_intent
+        profile = user.profile
     except UserProfile.DoesNotExist:
         return None
+
+    intent = profile.business_role_intent
     if intent not in ('buyer', 'seller', 'both'):
+        # Migration-safe bridge: legacy marketplace accounts are businesses too.
+        intent = profile.role if profile.role in ('buyer', 'seller') else ''
+    if not intent:
         return None
 
     company = b2b_company_for_user(user)
@@ -249,38 +254,14 @@ def seller_onboarding_redirect_name(user) -> str | None:
     return None
 
 
-def buyer_onboarding_pending(user) -> bool:
-    """Devuelve True cuando un comprador verificado aún necesita personalización."""
-    if not user or not user.is_authenticated or user_is_platform_exempt(user):
-        return False
-    # OTP first — onboarding only after verified email (or if verification is off)
-    if email_verification_required(user):
-        return False
-    try:
-        profile = user.profile
-    except UserProfile.DoesNotExist:
-        return False
-    if profile.role != 'buyer':
-        return False
-    return profile.onboarding_completed_at is None
-
-
-def buyer_onboarding_redirect_name(user) -> str | None:
-    """Devuelve la ruta del paso 1 de onboarding comprador cuando falta la personalización."""
-    if buyer_onboarding_pending(user):
-        return 'buyer_onboarding_step1'
-    return None
-
-
 def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     """Devuelve un nombre de ruta Django de redirección, o None si el usuario puede continuar."""
     if not user.is_authenticated or user_is_platform_exempt(user):
         return None
 
     if scope == 'browse':
-        # Catálogo/home/carrito: no atrapar en wizards. Solo falta de rol OAuth.
-        # Empresa vendedor y personalización comprador se exigen en scope restricted
-        # (portal, checkout, APIs) y al entrar por login.
+        # Catalog/home/cart remain public. Company identity is enforced on
+        # restricted surfaces and immediately after login.
         if user_needs_role_completion(user):
             return 'oauth_complete_signup'
         return None
@@ -294,20 +275,6 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
             seller_route = seller_onboarding_redirect_name(user)
             if seller_route:
                 return seller_route
-            # Buyers must be approved before the preference wizard / restricted
-            # surfaces. Sellers keep the existing early-exit (portal / company
-            # wizard) — application_gate_status already no-ops for role=seller.
-            if profile.role == 'buyer' and not profile.business_role_intent:
-                gate = application_gate_status(user.email or '', role='buyer')
-                if gate == 'required':
-                    return 'onboarding_solicitud_requerida'
-                if gate in ('pending', 'under_review'):
-                    return 'pending_approval'
-                if gate == 'rejected':
-                    return 'onboarding_aplicacion_rechazada'
-            buyer_route = None if profile.business_role_intent else buyer_onboarding_redirect_name(user)
-            if buyer_route:
-                return buyer_route
             return None
     except UserProfile.DoesNotExist:
         if user_needs_role_completion(user):
@@ -335,9 +302,6 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     if gate == 'rejected':
         return 'onboarding_aplicacion_rechazada'
 
-    buyer_route = buyer_onboarding_redirect_name(user)
-    if buyer_route:
-        return buyer_route
     return None
 
 
