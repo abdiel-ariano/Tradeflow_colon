@@ -788,7 +788,7 @@ def checkout(request):
             Product.objects.filter(
                 pk__in=product_ids,
                 is_active=True,
-                company__is_verified=True,
+                company__verification_status='verified',
             )
             .select_related('company')
         )
