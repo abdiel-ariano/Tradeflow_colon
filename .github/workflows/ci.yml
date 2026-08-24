@@ -54,6 +54,7 @@ jobs:
           core.tests.test_security_access_controls
           core.tests.test_saas_admin_api
           core.tests.test_pwa_android
+          core.tests.test_release_check_oauth_origin
           -v2
 
   security:
