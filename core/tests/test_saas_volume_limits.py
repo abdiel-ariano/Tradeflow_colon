@@ -15,6 +15,7 @@ from core.models import (
     Inventory,
     Order,
     OrderItem,
+    Payment,
     Product,
     UserProfile,
 )
@@ -124,7 +125,9 @@ class TestSaasVolumeLimits(TestCase):
         pending = self._awaiting_order(Decimal('5000.00'), 'TF-EXP-2')
         accept_seller_order(pending)
         pending.refresh_from_db()
-        self.assertEqual(pending.status, 'paid')
+        self.assertEqual(pending.status, 'pending')
+        self.assertEqual(pending.seller_confirmation_status, 'accepted')
+        self.assertFalse(Payment.objects.filter(order=pending).exists())
 
     def test_corporativo_pro_unlimited(self):
         """Allow large Corporativo Pro confirms without a volume cap."""
@@ -133,7 +136,9 @@ class TestSaasVolumeLimits(TestCase):
         pending = self._awaiting_order(Decimal('50000.00'), 'TF-PRO-2')
         accept_seller_order(pending)
         pending.refresh_from_db()
-        self.assertEqual(pending.status, 'paid')
+        self.assertEqual(pending.status, 'pending')
+        self.assertEqual(pending.seller_confirmation_status, 'accepted')
+        self.assertFalse(Payment.objects.filter(order=pending).exists())
 
     def test_assert_within_volume_at_exact_limit(self):
         """Allow zero delta at exact limit; reject any overage."""
