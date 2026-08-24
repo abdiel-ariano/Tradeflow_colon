@@ -44,7 +44,7 @@ class TestFlujoBuyer(TestCase):
         self.company = Company.objects.create(
             name='Empresa Demo ZLC',
             ruc='123456',
-            is_verified=True,
+            verification_status='verified',
         )
         self.cat = Category.objects.create(name='Electrónica')
         self.product = Product.objects.create(
