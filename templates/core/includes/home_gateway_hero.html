@@ -16,7 +16,7 @@
         {% if tf_seller_onboarding_pending %}
         <a href="{% url 'seller_onboarding_company' %}" class="hm-gateway__btn hm-gateway__btn--ghost">{% trans "Complete company setup" %}</a>
         {% elif not request.user.is_authenticated %}
-        <a href="{% url 'signup_buyer' %}" class="hm-gateway__btn hm-gateway__btn--ghost">{% trans "Create free buyer account" %}</a>
+        <a href="{% url 'signup_buyer' %}" class="hm-gateway__btn hm-gateway__btn--ghost">{% trans "Register your company" %}</a>
         {% endif %}
       </div>
       <ul class="hm-gateway__pills" aria-label="{% trans 'Platform highlights' %}">
