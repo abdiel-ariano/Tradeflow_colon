@@ -1,7 +1,6 @@
 """Home pública, APIs de búsqueda/asistente, mapa ZLC y QR de visitante."""
 from __future__ import annotations
 
-from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
@@ -106,29 +105,6 @@ def api_home_merchandising(request):
     return JsonResponse(cached_api_home_merchandising())
 
 
-def _assistant_system_prompt() -> str:
-    """System prompt for the marketplace AI assistant (Groq)."""
-    from core.utils.saas_plan_catalog import build_saas_plans_ai_context
-
-    return (
-        "You are TradeFlow Colón's virtual assistant. TradeFlow Colón is a B2B/B2C "
-        "marketplace for the Colón Free Zone in Panama — the world's second largest "
-        "free trade zone. Help users with questions about: how to register, how to "
-        "buy products, how to become a seller, seller SaaS plans and commissions, "
-        "what is the Colón Free Zone, shipping and logistics, and general platform "
-        "navigation. Be concise, professional, and always respond in the same "
-        "language the user writes in. For seller plans use ONLY the data below; "
-        "do not invent prices or commissions.\n\n"
-        f"{build_saas_plans_ai_context()}"
-    )
-
-
-_ASSISTANT_FALLBACK = (
-    "I'm sorry, the assistant is temporarily unavailable. Please try again in a "
-    "moment, browse the store, or contact the support email shown on the site for help."
-)
-
-
 def _asistente_respuesta_html(text: str) -> str:
     """Escape assistant text for safe HTML chat bubbles."""
     safe = escape(text).replace('\n', '<br>')
@@ -217,60 +193,12 @@ def api_asistente(request):
             status=400,
         )
 
-    # Seller portal only: wire ORM RAG when the client marks contexto=seller
-    # and the authenticated user owns a company. Other pages keep the Groq path.
-    if contexto == 'seller' and request.user.is_authenticated:
-        from core.utils.ai_assistant import consultar_asistente
-        from .seller_store import _get_seller_company
+    # The catalog-backed assistant is authoritative and always available.
+    # Groq enriches its answer when configured, but upstream failures are handled
+    # inside consultar_asistente and never disconnect the public chat.
+    from core.utils.ai_assistant import consultar_asistente
 
-        company = _get_seller_company(request.user)
-        if company is not None:
-            hist = []
-            if isinstance(historial, list):
-                for item in historial[-5:]:
-                    if not isinstance(item, dict):
-                        continue
-                    role = item.get('role')
-                    content = (item.get('content') or '').strip()
-                    if role in ('user', 'assistant') and content:
-                        hist.append({'role': role, 'content': content[:500]})
-            try:
-                result = consultar_asistente(
-                    mensaje,
-                    historial=hist,
-                    user=request.user,
-                    company=company,
-                )
-                respuesta = (result.get('respuesta') or '').strip() or (
-                    'I could not process your request.'
-                )
-                respuesta_html = result.get('respuesta_html') or _asistente_respuesta_html(
-                    respuesta
-                )
-                return JsonResponse(
-                    {
-                        'ok': True,
-                        'respuesta': respuesta,
-                        'respuesta_html': respuesta_html,
-                    }
-                )
-            except Exception as exc:
-                logging.getLogger('tradeflow.ai').warning(
-                    'api_asistente seller rag failed: %s', exc, exc_info=True,
-                )
-                return _asistente_json_payload(
-                    'I could not load your store data right now. Please try again.',
-                    ok=False,
-                    status=503,
-                )
-
-    groq_api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
-
-    if not groq_api_key:
-        logging.getLogger('tradeflow.ai').warning('api_asistente: GROQ_API_KEY not configured')
-        return _asistente_json_payload(_ASSISTANT_FALLBACK)
-
-    messages = [{'role': 'system', 'content': _assistant_system_prompt()}]
+    hist = []
     if isinstance(historial, list):
         for item in historial[-6:]:
             if not isinstance(item, dict):
@@ -278,36 +206,42 @@ def api_asistente(request):
             role = item.get('role')
             content = (item.get('content') or '').strip()
             if role in ('user', 'assistant') and content:
-                messages.append({'role': role, 'content': content[:500]})
+                hist.append({'role': role, 'content': content[:500]})
 
-    if (
-        not messages
-        or messages[-1].get('role') != 'user'
-        or messages[-1].get('content') != mensaje
-    ):
-        messages.append({'role': 'user', 'content': mensaje[:500]})
+    company = None
+    if contexto == 'seller' and request.user.is_authenticated:
+        from .seller_store import _get_seller_company
+
+        company = _get_seller_company(request.user)
 
     try:
-        from groq import Groq
-
-        client = Groq(api_key=groq_api_key)
-        model = getattr(settings, 'GROQ_MODEL', 'llama-3.1-8b-instant')
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            max_tokens=512,
-            temperature=0.5,
+        result = consultar_asistente(
+            mensaje,
+            historial=hist,
+            user=request.user if request.user.is_authenticated else None,
+            company=company,
         )
-        text = (response.choices[0].message.content or '').strip()
-        if not text:
-            raise ValueError('empty Groq response')
-        return _asistente_json_payload(text)
+        respuesta = (result.get('respuesta') or '').strip() or (
+            'I could not process your request.'
+        )
+        payload = {
+            'ok': True,
+            'respuesta': respuesta,
+            'respuesta_html': (
+                result.get('respuesta_html')
+                or _asistente_respuesta_html(respuesta)
+            ),
+        }
+        for key in ('confianza', 'categoria', 'baja_confianza'):
+            if key in result:
+                payload[key] = result[key]
+        return JsonResponse(payload)
     except Exception as exc:
-        logging.getLogger('tradeflow.ai').warning(
-            'api_asistente groq failed: %s', exc, exc_info=True,
+        logging.getLogger('tradeflow.ai').exception(
+            'api_asistente local fallback failed: %s', exc,
         )
         return _asistente_json_payload(
-            'The assistant could not generate a response right now. Please try again.',
+            'I could not load the marketplace catalog right now. Please try again.',
             ok=False,
             status=503,
         )
