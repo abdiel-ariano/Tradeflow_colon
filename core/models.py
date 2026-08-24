@@ -24,12 +24,12 @@ import uuid
 # =============================================================================
 
 class UserProfile(models.Model):
-    """Extiende el ``User`` de Django con rol y preferencias del comprador en la ZLC.
+    """Extiende el ``User`` de Django con rol e identidad empresarial B2B.
 
     Relación uno a uno con ``User``. El rol controla el acceso al portal
-    (comprador/vendedor/admin/transportista). Las instantáneas del carrito
-    alimentan recordatorios de abandono; los campos de onboarding personalizan
-    el asistente posterior al registro.
+    (comprador/vendedor/admin/transportista), mientras ``business_role_intent``
+    dirige a la verificación de la empresa. Las instantáneas del carrito
+    alimentan recordatorios de abandono.
     """
     ROLE_CHOICES = [
         ('buyer',  _('Buyer')),
@@ -88,25 +88,6 @@ class UserProfile(models.Model):
         null=True,
         blank=True,
         verbose_name='Last cart reminder sent',
-    )
-    # Buyer onboarding (post-signup marketplace wizard).
-    PURCHASE_INTENT_CHOICES = [
-        ('business', _('Business purchase')),
-        ('personal', _('Personal purchase')),
-    ]
-    purchase_intent = models.CharField(
-        max_length=16,
-        choices=PURCHASE_INTENT_CHOICES,
-        blank=True,
-        verbose_name='Purchase intent',
-        help_text='Step 1 — wholesale vs personal shopping.',
-    )
-    preferred_categories = models.ManyToManyField(
-        'Category',
-        blank=True,
-        related_name='buyer_profiles',
-        verbose_name='Preferred categories',
-        help_text='Step 2 — category interests for personalization.',
     )
     onboarding_completed_at = models.DateTimeField(
         null=True,

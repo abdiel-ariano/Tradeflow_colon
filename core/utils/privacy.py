@@ -66,7 +66,7 @@ def build_user_export(user: User) -> dict:
                 profile.privacy_accepted_at.isoformat()
                 if profile and profile.privacy_accepted_at else None
             ),
-            'purchase_intent': getattr(profile, 'purchase_intent', '') if profile else '',
+            'business_role_intent': getattr(profile, 'business_role_intent', '') if profile else '',
         },
         'addresses': addresses,
         'orders': orders,
@@ -113,8 +113,7 @@ def anonymize_user(user: User) -> None:
     profile.cart_items_count = 0
     profile.cart_last_activity_at = None
     profile.cart_reminder_sent_at = None
-    profile.purchase_intent = ''
-    profile.preferred_categories.clear()
+    profile.business_role_intent = ''
     profile.account_anonymized_at = timezone.now()
     profile.save()
 
