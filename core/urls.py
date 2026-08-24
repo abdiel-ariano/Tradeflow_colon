@@ -156,10 +156,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('saas/', views.admin_saas_dashboard, name='admin_saas_dashboard'),
 
-    # ── Role portals ────────────────────────────────────────────────────────
-
-    path('',           views.home_view,  name='home'),
-    path('dashboard/', views.dashboard,  name='dashboard'),
+    # ── Buyer / seller portals ──────────────────────────────────────────────
 
     # Buyer / guest catalog
     path('catalogo/',                       views.catalogo_publico,     name='catalogo_publico'),
