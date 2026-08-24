@@ -14,12 +14,12 @@ from django.urls import reverse
 from core.utils.contact import tradeflow_contact_email
 
 SYSTEM_PROMPT = """
-You are TF Assistant, assistant for TradeFlow Colón (B2B/B2C marketplace in the Colón Free Zone, Panama).
+You are TF Assistant, assistant for TradeFlow Colón (B2B wholesale marketplace in the Colón Free Zone, Panama).
 Always respond in the same language the user uses (Spanish or English).
 Be clear, friendly, and concise (max. 3 short paragraphs).
 Use ONLY the catalog data and SaaS plan data provided; do not invent products, stock, prices, or plan fees.
 For product prices use the format indicated in the catalog (USD with two decimals).
-If they ask how to buy: registration, email verification, store, and cart.
+If they ask how to buy: business registration, email verification, company RUC/DV verification, catalog, quote or cart.
 If they ask about seller plans, subscriptions, commissions, billing caps, or becoming a vendor:
 use ONLY the seller SaaS plan section in context (Digitalízate, Expansión, Corporativo Pro, Ecosistema Enterprise).
 If they ask about shipping or customs: indicate it depends on the seller and carrier; do not invent timelines.
@@ -189,7 +189,7 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
             'Hello! I am TF Assistant from TradeFlow Colón. '
             f'Right now there are {snapshot["total_productos"]} active products '
             f'from {snapshot["empresas_count"]} companies in the ZLC. '
-            'I can help you with deals, companies, categories, and price recommendations. '
+            'I can help you with suppliers, categories, quotes, and wholesale products. '
             f'Browse the catalog at {tienda} or create an account at {signup}.'
         )
 
@@ -221,10 +221,10 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
         'carrito', 'checkout', 'pedido', 'cuenta',
     )):
         return (
-            'To buy on TradeFlow: 1) Create a buyer account. '
-            f'2) Browse {tienda} and filter by category or company. '
-            '3) Add products to the cart and confirm your order. '
-            f'Sign up at {signup}. If you already have an account, log in and go to the store.'
+            'To buy on TradeFlow: 1) Create a business account and verify your email. '
+            '2) Provide the company RUC, DV, and supporting document for review. '
+            f'3) Browse {tienda}, request a quote or add wholesale products to the cart. '
+            f'Sign up at {signup}. If your company is already verified, log in and open the catalog.'
         )
 
     if _match_any(msg, (
