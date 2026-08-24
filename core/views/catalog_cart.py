@@ -820,7 +820,7 @@ def checkout(request):
 
         orden = Order.objects.create(
             buyer=request.user,
-            order_type='b2c',
+            order_type='b2b',
             shipping_cost=shipping_cost,
             notes=notas,
             status='pending',
@@ -1398,7 +1398,7 @@ def detalle_cotizacion(request, pk):
                 orden = Order.objects.create(
                     buyer=request.user,
                     ship_address=addr,
-                    order_type='b2c',
+                    order_type='b2b',
                     shipping_cost=Decimal('0.00'),
                     notes=f'Generated from quote {cot.numero}',
                     status='pending',
