@@ -18,6 +18,9 @@ class AssistantScrollDockTests(SimpleTestCase):
         self.assertIn('TF_DOCK_SCROLL_Y', source)
         self.assertIn('applyAssistantDock', source)
         self.assertIn('translate3d(', source)
+        self.assertIn('.cat-results-scroll', source)
+        self.assertIn("document.addEventListener(", source)
+        self.assertIn("{ passive: true, capture: true }", source)
         self.assertIn('window.TF_SYNC_ASSISTANT_DOCK', source)
         self.assertIn('setChatOpen', source)
         # Must not pin the FAB with position:fixed on the right by default.
