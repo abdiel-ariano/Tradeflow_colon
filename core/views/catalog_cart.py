@@ -587,7 +587,7 @@ def _append_product_to_carrito(request, producto_id, cantidad=1, *, success_temp
     if success_template:
         ok_msg = success_template % {'name': producto.name}
     else:
-        ok_msg = _('"%(name)s" added to cart.') % {'name': producto.name}
+        ok_msg = _('"%(name)s" added to inquiry cart.') % {'name': producto.name}
     return True, {
         'message': ok_msg,
         'carrito_count': _contar_items(carrito),
