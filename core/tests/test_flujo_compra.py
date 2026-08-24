@@ -365,3 +365,20 @@ class TestFlujoBuyer(TestCase):
         self.assertContains(response, 'does not provide escrow')
         self.assertNotContains(response, 'Buyer protection program')
         self.assertNotContains(response, 'Secure B2B checkout')
+
+
+    def test_home_and_terms_do_not_advertise_unimplemented_checkout(self):
+        """Homepage and terms match the implemented quote-first B2B flow."""
+        home = self.client.get(reverse('home'))
+        self.assertEqual(home.status_code, 200)
+        self.assertContains(home, 'Send supplier RFQs')
+        self.assertContains(home, 'creates a pending purchase order')
+        self.assertNotContains(home, 'Secure B2B checkout')
+        self.assertNotContains(home, 'Track delivery with export docs included')
+
+        terms = self.client.get(reverse('legal_terminos'))
+        self.assertEqual(terms.status_code, 200)
+        self.assertContains(terms, 'An RFQ is not a purchase order')
+        self.assertContains(terms, 'does not process or hold marketplace payments')
+        self.assertContains(terms, 'does not currently provide escrow')
+        self.assertNotContains(terms, 'test or simulation mechanisms')
