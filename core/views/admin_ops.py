@@ -218,6 +218,7 @@ def _build_dashboard_charts_payload(dias, now=None):
         'ventas_por_categoria': ventas_por_categoria,
         'ventas_por_empresa':   ventas_por_empresa,
         'productos_top':        productos_top,
+        'ordenes_b2b':          qs.count(),
         'dias':                 dias,
         'period_label':         period_label,
     }
