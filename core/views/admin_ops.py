@@ -107,6 +107,15 @@ def _dashboard_calendar_days(dias, now=None):
     return days
 
 
+def _commercial_orders(queryset=None):
+    """Return supplier-accepted purchase orders plus legacy settled orders."""
+    qs = queryset if queryset is not None else Order.objects.all()
+    return qs.filter(
+        Q(seller_confirmation_status='accepted')
+        | Q(status__in=('paid', 'packed', 'shipped', 'delivered')),
+    ).distinct()
+
+
 def _build_dashboard_charts_payload(dias, now=None):
     """Build Chart.js labels, daily series, and status counts.
     
@@ -133,10 +142,11 @@ def _build_dashboard_charts_payload(dias, now=None):
             ).count()
         )
         ing = (
-            Order.objects.filter(
-                created_at__gte=day_start, created_at__lt=day_end
+            _commercial_orders(
+                Order.objects.filter(
+                    created_at__gte=day_start, created_at__lt=day_end,
+                ),
             )
-            .exclude(status='cancelled')
             .aggregate(t=Sum('total'))['t']
             or Decimal('0')
         )
@@ -158,7 +168,7 @@ def _build_dashboard_charts_payload(dias, now=None):
     }
 
     order_ids_period = list(
-        qs.exclude(status='cancelled').values_list('id', flat=True)
+        _commercial_orders(qs).values_list('id', flat=True)
     )
     items_period = OrderItem.objects.filter(order_id__in=order_ids_period)
 
@@ -230,14 +240,14 @@ def _charts_json(payload):
 
 
 def _dashboard_revenue_qs():
-    """Base queryset for admin revenue KPIs.
-    
-    When ``DASHBOARD_KPI_REVENUE_DELIVERED_ONLY`` is True, only
-    delivered orders; otherwise all non-cancelled.
+    """Base queryset for factual admin commercial-volume KPIs.
+
+    Delivered-only mode reports completed revenue. The default reports
+    supplier-accepted purchase-order volume, including legacy settled orders.
     """
     if settings.DASHBOARD_KPI_REVENUE_DELIVERED_ONLY:
         return Order.objects.filter(status='delivered')
-    return Order.objects.exclude(status='cancelled')
+    return _commercial_orders()
 
 
 def _period_delta_pct(current, previous):
@@ -309,8 +319,8 @@ def dashboard(request):
 
     dashboard_modo_pruebas = not settings.DASHBOARD_KPI_REVENUE_DELIVERED_ONLY
     if dashboard_modo_pruebas:
-        kpi_ingresos_label = 'Period revenue (active orders)'
-        kpi_ingresos_sub = 'All non-cancelled; delivery mark not required'
+        kpi_ingresos_label = 'Accepted commercial volume (period)'
+        kpi_ingresos_sub = 'Supplier-accepted purchase orders'
     else:
         kpi_ingresos_label = 'Delivered revenue (period)'
         kpi_ingresos_sub = 'Delivered orders only'

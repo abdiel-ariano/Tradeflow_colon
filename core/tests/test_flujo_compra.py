@@ -243,6 +243,43 @@ class TestFlujoBuyer(TestCase):
         self.assertTrue(order.confirmado_por_empresa)
         self.assertFalse(Payment.objects.filter(order=order).exists())
 
+    def test_dashboard_volume_excluye_orden_sin_aceptacion(self):
+        """Financial charts exclude unaccepted orders and include accepted POs."""
+        from core.views.admin_ops import _build_dashboard_charts_payload
+
+        unaccepted = Order.objects.create(
+            buyer=self.buyer,
+            status='pending',
+            seller_confirmation_status='pending',
+            subtotal=Decimal('50.00'),
+            total=Decimal('50.00'),
+        )
+        accepted = Order.objects.create(
+            buyer=self.buyer,
+            status='pending',
+            seller_confirmation_status='accepted',
+            confirming_company=self.company,
+            subtotal=Decimal('20.00'),
+            total=Decimal('20.00'),
+        )
+        OrderItem.objects.create(
+            order=unaccepted,
+            product=self.product,
+            qty=5,
+            unit_price_snapshot=Decimal('10.00'),
+        )
+        OrderItem.objects.create(
+            order=accepted,
+            product=self.product,
+            qty=2,
+            unit_price_snapshot=Decimal('10.00'),
+        )
+
+        payload = _build_dashboard_charts_payload(7)
+
+        self.assertEqual(sum(payload['ingresos_por_dia']), 20.0)
+        self.assertEqual(payload['ventas_por_categoria'][0]['total'], 20.0)
+
     def test_admin_crea_orden_manual_sin_pago_ficticio(self):
         """Admin-created purchase orders remain pending without mock payments."""
         self.client.login(username='admin_test', password='TestPass123!')

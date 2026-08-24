@@ -430,8 +430,8 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
       id="adm-pruebas-banner"
       data-show-pruebas="{% if dashboard_modo_pruebas %}1{% else %}0{% endif %}"
     >
-      <strong>Test mode (PreExpo)</strong> —
-      Charts use orders created in the period (pending, paid, shipped, etc.). You do not need to mark delivered to see bar, line, and doughnut charts.
+      <strong>Operational scope</strong> —
+      Order-count charts show workflow activity. Commercial-volume charts include only supplier-accepted purchase orders or legacy settled orders.
       Delivered in period:
       <strong id="adm-pct-entregadas">{{ pct_entregadas_periodo }}%</strong>
       (<span id="adm-ord-entregadas">{{ ordenes_entregadas_periodo }}</span> /
@@ -542,7 +542,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
           <span
             class="adm-kpi-lbl"
             id="adm-kpi-ingresos-lbl"
-            data-lbl-pruebas="Period revenue (active orders)"
+            data-lbl-pruebas="Accepted commercial volume (period)"
             data-lbl-prod="Delivered revenue (period)"
           >{{ kpi_ingresos_label }}</span>
           <span class="material-symbols-rounded" style="color:var(--tf-blue,#2E5B8A);">payments</span>
@@ -552,7 +552,7 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         <div
           class="adm-kpi-sub"
           id="adm-kpi-ingresos-sub"
-          data-sub-pruebas="Active total (non-cancelled)"
+          data-sub-pruebas="Supplier-accepted purchase orders"
           data-sub-prod="Delivered total"
         >{{ kpi_ingresos_sub }}: {{ ingresos_total|money_usd }}</div>
       </div>
@@ -587,8 +587,8 @@ Contexto: dashboard view, api_dashboard_stats JSON. Sin == en {% if %}.
         <div class="adm-chart-canvas-wrap"><canvas id="admBarChart" aria-label="Orders per day"></canvas></div>
       </div>
       <div class="adm-chart-card">
-        <div class="adm-chart-title">Revenue per day (USD)</div>
-        <p class="adm-chart-lead">Sum of daily totals (excludes cancelled).</p>
+        <div class="adm-chart-title">Accepted commercial volume per day (USD)</div>
+        <p class="adm-chart-lead">Supplier-accepted purchase orders and legacy settled orders only.</p>
         <div class="adm-chart-canvas-wrap"><canvas id="admLineChart" aria-label="Revenue per day"></canvas></div>
       </div>
     </div>
