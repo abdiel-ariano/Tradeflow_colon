@@ -35,18 +35,6 @@
   <form method="post">
     {% csrf_token %}
 
-    <div style="margin-bottom:20px;">
-      <label style="font-weight:600;display:block;margin-bottom:6px;">Order type</label>
-      <div style="display:flex;gap:12px;">
-        {% for val, label in order_types %}
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 16px;border:2px solid #ddd;border-radius:8px;">
-          <input type="radio" name="order_type" value="{{ val }}" {% if val == 'b2c' %}checked{% endif %}>
-          {{ label }}
-        </label>
-        {% endfor %}
-      </div>
-    </div>
-
     <label style="font-weight:600;display:block;margin-bottom:8px;">Buyer</label>
     <input type="text" id="buscarBuyer" placeholder="Filter by name or username..."
            class="form-control" style="margin-bottom:12px;">
@@ -98,14 +86,6 @@ function filtrarBuyeres(q) {
 document.querySelector('form').addEventListener('submit', function() {
   const checked = document.querySelector('input[name=buyer_id][type=radio]:checked');
   if (checked) document.getElementById('buyerIdHidden').value = checked.value;
-});
-
-// CSP nonce refactor: handlers movidos desde atributos inline (onchange/onkeyup/onclick).
-document.querySelectorAll('input[type="radio"][name="order_type"]').forEach(function (r) {
-  r.addEventListener('change', function () {
-    const lbl = this.closest('label');
-    if (lbl) lbl.style.borderColor = 'var(--color-primary)';
-  });
 });
 
 const buyerSearch = document.getElementById('buscarBuyer');
