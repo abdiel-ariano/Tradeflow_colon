@@ -49,8 +49,8 @@ class Command(BaseCommand):
         # Demo mode is intentional for investor/Expo deploys — warn, do not block.
         if getattr(settings, 'EXPO_DEMO_MODE', False):
             warnings.append(
-                'EXPO_DEMO_MODE=True (bypass post-OTP activo). OK para demo; '
-                'desactivar cuando el entorno sea solo producción real.'
+                'EXPO_DEMO_MODE=True (bypass post-OTP y verificación empresarial automática). '
+                'OK para demo; desactivar cuando el entorno sea solo producción real.'
             )
         if (
             not getattr(settings, 'EXPO_DEMO_MODE', False)
