@@ -257,3 +257,91 @@ class SellerOnboardingTests(TestCase):
         """No post-login path can send a business into the old B2C wizard."""
         with self.assertRaises(NoReverseMatch):
             reverse('buyer_onboarding_step1')
+
+
+@override_settings(
+    REQUIRE_EMAIL_VERIFICATION=False,
+    REQUIRE_APPROVED_APPLICATION=True,
+    EXPO_DEMO_MODE=True,
+)
+class SellerOnboardingExpoDemoTests(TestCase):
+    """Company KYB auto-verifies in Expo demo mode for walkthroughs."""
+
+    def setUp(self):
+        ensure_default_plans()
+        self.user = User.objects.create_user('seller_demo', password='x', email='demo@test.com')
+        UserProfile.objects.create(user=self.user, role='buyer', email_verificado=True)
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    def _company_payload(self, **overrides):
+        data = {
+            'name': 'Centro Superate Motta',
+            'legal_name': 'Centro Superate Motta Colón, S.A.',
+            'ruc': '8-DEMO-001',
+            'dv': '12',
+            'business_email': 'centrosuperatemottacolon@gmail.com',
+            'business_phone': '+50760000000',
+            'business_role': 'buyer',
+            'address_text': 'Colón, ZLC, Local demo 12',
+        }
+        data.update(overrides)
+        return data
+
+    def test_expo_demo_verifies_company_without_document(self):
+        """Demo mode skips manual review and does not require an upload."""
+        response = self.client.post(
+            reverse('company_onboarding_post'),
+            self._company_payload(),
+        )
+        self.assertEqual(response.status_code, 302)
+        company = Company.objects.get(owner=self.user)
+        self.assertEqual(company.verification_status, 'verified')
+        self.assertTrue(company.is_verified)
+        self.assertTrue(company.verification_document.name)
+
+    def test_expo_demo_replaces_invalid_document_with_stub(self):
+        """Invalid uploads do not block demo walkthroughs."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        invalid = SimpleUploadedFile(
+            'aviso-operacion.pdf',
+            b'<html><script>alert(1)</script></html>',
+            content_type='application/pdf',
+        )
+        response = self.client.post(
+            reverse('company_onboarding_post'),
+            {
+                **self._company_payload(ruc='8-DEMO-002'),
+                'verification_document': invalid,
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        company = Company.objects.get(ruc='8-DEMO-002')
+        self.assertEqual(company.verification_status, 'verified')
+
+    def test_expo_demo_unblocks_pending_company_on_status_page(self):
+        """Accounts stuck in pending before the flag get verified on status load."""
+        company = Company.objects.create(
+            name='Empresa Pendiente',
+            legal_name='Empresa Pendiente, S.A.',
+            ruc='8-DEMO-PENDING',
+            dv='12',
+            business_email='pending@test.pa',
+            verification_document='companies/verification/existing.pdf',
+            owner=self.user,
+            business_role='buyer',
+            verification_status='pending',
+        )
+        CompanyMembership.objects.create(
+            company=company,
+            user=self.user,
+            role='owner',
+            status='active',
+        )
+
+        response = self.client.get(reverse('company_verification_status'))
+
+        self.assertEqual(response.status_code, 200)
+        company.refresh_from_db()
+        self.assertEqual(company.verification_status, 'verified')
