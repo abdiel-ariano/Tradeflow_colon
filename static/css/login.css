@@ -61,48 +61,40 @@ main.tf-main > .login-page-wrap {
   object-position: center top;
 }
 
-.login-animated-background {
+.login-wave-svg {
   position: absolute;
-  inset: -8%;
-  width: 116%;
-  height: 116%;
-  object-fit: cover;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  transform-origin: center;
-  will-change: transform;
-  animation: tradeflow-login-wave 20s ease-in-out infinite alternate;
+  z-index: 1;
+  border: none;
+  display: block;
 }
 
-@keyframes tradeflow-login-wave {
-  0% {
-    transform: translate3d(-1.5%, -1%, 0)
-               scale(1.03)
-               rotate(-0.25deg);
-  }
+.login-wave-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  pointer-events: none;
+  z-index: 0;
+}
 
-  33% {
-    transform: translate3d(1%, -0.5%, 0)
-               scale(1.06)
-               rotate(0.2deg);
-  }
-
-  66% {
-    transform: translate3d(-0.5%, 1.5%, 0)
-               scale(1.04)
-               rotate(-0.15deg);
-  }
-
-  100% {
-    transform: translate3d(1.5%, 0.5%, 0)
-               scale(1.07)
-               rotate(0.25deg);
-  }
+.login-figma-bg:has(.login-wave-svg) .login-wave-fallback {
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-animated-background {
-    animation: none;
-    transform: none;
+  .login-wave-svg {
+    display: none;
+  }
+
+  .login-wave-fallback {
+    opacity: 1 !important;
+    display: block;
   }
 }
 

@@ -14,14 +14,21 @@ Solo presentación; contrato del formulario sin cambios.
 {% block content %}
 <div class="login-page-wrap login-page-wrap--figma login-page" id="login-figma-root">
   <div class="login-figma-bg" aria-hidden="true">
+    <object
+      class="login-wave-svg"
+      type="image/svg+xml"
+      data="{% static 'images/login-figma/login-wave.svg' %}"
+      aria-hidden="true"
+      tabindex="-1"
+    ></object>
     <img
-      class="login-figma-bg__img login-animated-background"
+      class="login-figma-bg__img login-wave-fallback"
       src="{% static 'images/login-figma/bg-wave.png' %}"
       alt=""
       width="1920"
       height="1200"
       decoding="async"
-      fetchpriority="high"
+      loading="lazy"
     >
   </div>
 
