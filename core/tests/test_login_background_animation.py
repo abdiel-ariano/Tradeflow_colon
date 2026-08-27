@@ -15,7 +15,7 @@ from django.urls import reverse
     REQUIRE_EMAIL_VERIFICATION=False,
 )
 class LoginBackgroundAnimationTests(TestCase):
-    """Ensure login wave keeps original colors and uses SVG displacement."""
+    """Ensure login wave keeps original colors and uses smooth SVG SMIL."""
 
     def setUp(self):
         self.client = Client()
@@ -30,9 +30,13 @@ class LoginBackgroundAnimationTests(TestCase):
         self.assertIn('login-card', body)
         self.assertIn('images/login-figma/bg-wave.png', body)
         self.assertIn('tradeflow-wave-distortion', body)
-        self.assertIn('tradeflow-wave-noise', body)
-        self.assertIn('tradeflow-wave-displacement', body)
-        self.assertIn('login-wave-distortion.js', body)
+        self.assertIn('feOffset', body)
+        self.assertIn('stableNoise', body)
+        self.assertIn('movingNoise', body)
+        self.assertIn('calcMode="spline"', body)
+        self.assertIn('baseFrequency="0.003 0.006"', body)
+        self.assertIn('values="4;7;5;4"', body)
+        self.assertNotIn('login-wave-distortion.js', body)
         self.assertNotIn('login-wave.svg', body)
         self.assertNotIn('grad-blue-violet', body)
         self.assertNotIn('login-animated-background', body)
@@ -45,20 +49,14 @@ class LoginBackgroundAnimationTests(TestCase):
         self.assertNotIn('tradeflow-login-wave', css)
         self.assertNotIn('login-animated-background', css)
         self.assertNotIn('hue-rotate', css)
+        self.assertNotIn('steps(', css)
         self.assertIn('@media (prefers-reduced-motion: reduce)', css)
         self.assertIn('.login-page', css)
         self.assertIn('overflow: hidden', css)
 
-    def test_distortion_script_only_animates_filter_attributes(self):
+    def test_distortion_js_removed(self):
         js_path = Path(__file__).resolve().parents[2] / 'static' / 'js' / 'login-wave-distortion.js'
-        js = js_path.read_text(encoding='utf-8')
-        self.assertIn('baseFrequency', js)
-        self.assertIn('scale', js)
-        self.assertIn('prefers-reduced-motion', js)
-        self.assertIn('requestAnimationFrame', js)
-        self.assertNotIn('translate3d', js)
-        self.assertNotIn('translateX', js)
-        self.assertNotIn('style.transform', js)
+        self.assertFalse(js_path.exists())
 
     def test_password_toggle_still_present_on_login(self):
         response = self.client.get(reverse('login'))
