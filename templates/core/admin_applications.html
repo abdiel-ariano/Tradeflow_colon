@@ -255,6 +255,17 @@
     box-sizing: border-box;
     overflow: visible;
   }
+  .adm-apps-scroll-hint {
+    display: none;
+    margin: 0;
+    padding: 10px 1.25rem 0;
+    font-size: 0.75rem;
+    color: var(--tf-muted);
+    line-height: 1.4;
+  }
+  .adm-apps-scroll-hint.is-visible {
+    display: block;
+  }
   .adm-apps-table-scroll {
     width: 100%;
     max-width: 100%;
@@ -268,39 +279,87 @@
   }
   #adm-apps-table {
     width: 100%;
-    min-width: 920px;
-    table-layout: auto;
+    min-width: 1460px;
+    max-width: none;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  #adm-apps-table th.adm-apps-col-date,
+  #adm-apps-table td.adm-apps-col-date {
+    min-width: 110px;
+    width: 110px;
+  }
+  #adm-apps-table th.adm-apps-col-name,
+  #adm-apps-table td.adm-apps-col-name {
+    min-width: 150px;
+    width: 150px;
+  }
+  #adm-apps-table th.adm-apps-col-company,
+  #adm-apps-table td.adm-apps-col-company {
+    min-width: 180px;
+    width: 180px;
+  }
+  #adm-apps-table th.adm-apps-col-role,
+  #adm-apps-table td.adm-apps-col-role {
+    min-width: 90px;
+    width: 90px;
+  }
+  #adm-apps-table th.adm-apps-col-email,
+  #adm-apps-table td.adm-apps-col-email {
+    min-width: 220px;
+    width: 220px;
+  }
+  #adm-apps-table th.adm-apps-col-phone,
+  #adm-apps-table td.adm-apps-col-phone {
+    min-width: 140px;
+    width: 140px;
+  }
+  #adm-apps-table th.adm-apps-col-message,
+  #adm-apps-table td.adm-apps-col-message {
+    min-width: 220px;
+    width: 220px;
+  }
+  #adm-apps-table th.adm-apps-col-status,
+  #adm-apps-table td.adm-apps-col-status {
+    min-width: 110px;
+    width: 110px;
+  }
+  #adm-apps-table th.adm-apps-col-actions,
+  #adm-apps-table td.adm-apps-actions-cell {
+    min-width: 240px;
+    width: 240px;
   }
   #adm-apps-table th,
   #adm-apps-table td {
     vertical-align: top;
+    box-sizing: border-box;
   }
   .adm-apps-col-date {
     white-space: nowrap;
     font-size: 12px;
     color: var(--tf-muted);
   }
-  .adm-apps-cell-text {
-    max-width: 160px;
-    word-break: break-word;
-    overflow-wrap: anywhere;
+  .adm-apps-col-name,
+  .adm-apps-col-company,
+  .adm-apps-col-phone,
+  .adm-apps-col-message {
     line-height: 1.4;
   }
-  .adm-apps-cell-email {
-    max-width: 200px;
+  .adm-apps-col-role {
+    white-space: nowrap;
+  }
+  .adm-apps-col-email {
     font-size: 13px;
     font-weight: 500;
-    word-break: break-word;
-    overflow-wrap: anywhere;
     line-height: 1.4;
+    overflow-wrap: anywhere;
   }
-  .adm-apps-cell-message {
-    max-width: 200px;
+  .adm-apps-col-message {
     font-size: 12px;
     color: var(--tf-muted);
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    line-height: 1.4;
+  }
+  .adm-apps-col-status {
+    white-space: nowrap;
   }
   .adm-apps-col-actions,
   .adm-apps-actions-cell {
@@ -308,7 +367,6 @@
     position: sticky;
     right: 0;
     z-index: 2;
-    min-width: 220px;
     white-space: nowrap;
   }
   .adm-apps-col-actions {
@@ -331,6 +389,15 @@
     white-space: nowrap;
     flex-shrink: 0;
   }
+  @media (max-width: 1023px) {
+    #adm-apps-table {
+      width: 1460px;
+      min-width: 1460px;
+    }
+    .adm-apps-table-scroll {
+      overscroll-behavior-x: contain;
+    }
+  }
   @media (max-width: 768px) {
     .adm-apps-toolbar-actions {
       width: 100%;
@@ -342,6 +409,15 @@
     }
     .adm-apps-export-btn {
       flex: 0 0 auto;
+    }
+    .adm-apps-page.adm-main {
+      padding-bottom: 32px;
+    }
+    body.tf-admin-unified:has(#tf-cookie-notice:not([hidden])) .adm-apps-page.adm-main {
+      padding-bottom: 220px;
+    }
+    #adm-apps-table-card.adm-table-card {
+      margin-bottom: 8px;
     }
   }
 </style>
@@ -387,18 +463,30 @@
         <span>{% if current_filter %}{{ current_filter|title }} applications{% else %}All applications{% endif %}</span>
         <span id="adm-apps-visible-count">{{ applications.paginator.count }} record{{ applications.paginator.count|pluralize }} · page {{ applications.number }}</span>
       </div>
+      <p class="adm-apps-scroll-hint" id="adm-apps-scroll-hint" aria-live="polite">Swipe horizontally to view all columns</p>
       <div class="adm-apps-table-scroll" id="adm-apps-table-scroll" tabindex="0" role="region" aria-label="Applications table, scroll horizontally to see all columns">
       <table class="adm-table" id="adm-apps-table">
+        <colgroup>
+          <col class="adm-apps-col-date">
+          <col class="adm-apps-col-name">
+          <col class="adm-apps-col-company">
+          <col class="adm-apps-col-role">
+          <col class="adm-apps-col-email">
+          <col class="adm-apps-col-phone">
+          <col class="adm-apps-col-message">
+          <col class="adm-apps-col-status">
+          <col class="adm-apps-col-actions">
+        </colgroup>
         <thead>
           <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Name</th>
-            <th scope="col">Company</th>
-            <th scope="col">Role</th>
-            <th scope="col">Email</th>
-            <th scope="col">Phone</th>
-            <th scope="col">Message</th>
-            <th scope="col">Status</th>
+            <th scope="col" class="adm-apps-col-date">Date</th>
+            <th scope="col" class="adm-apps-col-name">Name</th>
+            <th scope="col" class="adm-apps-col-company">Company</th>
+            <th scope="col" class="adm-apps-col-role">Role</th>
+            <th scope="col" class="adm-apps-col-email">Email</th>
+            <th scope="col" class="adm-apps-col-phone">Phone</th>
+            <th scope="col" class="adm-apps-col-message">Message</th>
+            <th scope="col" class="adm-apps-col-status">Status</th>
             <th scope="col" class="adm-apps-col-actions">Actions</th>
           </tr>
         </thead>
@@ -417,37 +505,37 @@
               data-message="{{ app.message|default:''|escape }}"
               data-date="{{ app.created_at|date:'M d, Y' }}">
             <td class="adm-apps-col-date">{{ app.created_at|date:"M d, Y" }}</td>
-            <td class="adm-apps-cell-text"><strong>{{ app.full_name }}</strong></td>
-            <td class="adm-apps-cell-text">
+            <td class="adm-apps-col-name"><strong>{{ app.full_name }}</strong></td>
+            <td class="adm-apps-col-company">
               {% if app.company_name %}
               <span title="{{ app.company_name|escape }}">{{ app.company_name }}</span>
               {% else %}
               <span class="adm-apps-null">Not provided</span>
               {% endif %}
             </td>
-            <td>
+            <td class="adm-apps-col-role">
               {% if app.role == 'buyer' %}
               <span class="adm-badge">Buyer</span>
               {% else %}
               <span class="adm-badge adm-badge--warn">Seller</span>
               {% endif %}
             </td>
-            <td class="adm-apps-cell-email" title="{{ app.email|escape }}">{{ app.email }}</td>
-            <td class="adm-apps-cell-text">
+            <td class="adm-apps-col-email" title="{{ app.email|escape }}">{{ app.email }}</td>
+            <td class="adm-apps-col-phone">
               {% if app.phone %}
               <span title="{{ app.phone|escape }}">{{ app.phone }}</span>
               {% else %}
               <span class="adm-apps-null">Not provided</span>
               {% endif %}
             </td>
-            <td class="adm-apps-cell-message">
+            <td class="adm-apps-col-message">
               {% if app.message %}
               <span title="{{ app.message|escape }}">{{ app.message|truncatechars:80 }}</span>
               {% else %}
               <span class="adm-apps-null">Not provided</span>
               {% endif %}
             </td>
-            <td>
+            <td class="adm-apps-col-status">
               {% if app.status == 'pending' %}
               <span class="adm-badge adm-badge--warn">Pending</span>
               {% elif app.status == 'approved' %}
@@ -646,6 +734,24 @@
       }, 12000);
     });
   });
+
+  var tableScroll = document.getElementById('adm-apps-table-scroll');
+  var scrollHint = document.getElementById('adm-apps-scroll-hint');
+
+  function updateScrollHint() {
+    if (!tableScroll || !scrollHint) return;
+    var overflow = tableScroll.scrollWidth > tableScroll.clientWidth + 1;
+    scrollHint.classList.toggle('is-visible', overflow);
+  }
+
+  if (tableScroll) {
+    updateScrollHint();
+    window.addEventListener('resize', updateScrollHint);
+    if (typeof ResizeObserver !== 'undefined') {
+      var ro = new ResizeObserver(updateScrollHint);
+      ro.observe(tableScroll);
+    }
+  }
 })();
 </script>
 {% endblock %}

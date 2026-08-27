@@ -64,6 +64,13 @@ class AdminApplicationsLayoutTests(TestCase):
         self.assertIn('overflow-x: auto', body)
         self.assertIn('min-width: 0', body)
         self.assertIn('adm-apps-col-actions', body)
+        self.assertIn('adm-apps-scroll-hint', body)
+        self.assertIn('Swipe horizontally to view all columns', body)
+        self.assertIn('adm-apps-col-phone', body)
+        self.assertIn('adm-apps-col-message', body)
+        self.assertIn('adm-apps-col-status', body)
+        self.assertIn('min-width: 1460px', body)
+        self.assertNotIn('break-all', body)
         self.assertIn('Pending Applicant', body)
 
     def test_status_filters_remain_available(self):
