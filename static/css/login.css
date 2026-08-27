@@ -61,17 +61,7 @@ main.tf-main > .login-page-wrap {
   object-position: center top;
 }
 
-.login-wave-animation {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  display: block;
-}
-
-.login-wave-fallback {
+.login-wave-video {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -82,17 +72,28 @@ main.tf-main > .login-page-wrap {
   z-index: 0;
 }
 
-.login-figma-bg:has(.login-wave-animation) .login-wave-fallback {
-  opacity: 0;
+.login-wave-static-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  pointer-events: none;
+  z-index: 0;
+  display: none;
+}
+
+.login-figma-bg:has(.login-wave-video) .login-wave-static-fallback {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-wave-animation {
+  .login-wave-video {
     display: none;
   }
 
-  .login-wave-fallback {
-    opacity: 1 !important;
+  .login-wave-static-fallback {
     display: block;
   }
 }
