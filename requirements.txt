@@ -48,7 +48,7 @@ requests>=2.31,<3.0             # demo image downloads (load_demo_images command
 gunicorn==23.0.0                # WSGI (cierra GHSA-hc5x-x2vx-497g y GHSA-w3h3-4rj7-4ph4)
 
 # ── Generación de PDFs (facturas y packing lists) ─────────────────────────
-reportlab>=4.0,<5.0
+reportlab>=5.0.1,<6.0
 
 # ── Mapas interactivos ZLC ─────────────────────────────────────────────────
 folium>=0.16,<0.17
