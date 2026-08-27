@@ -109,7 +109,7 @@
     align-items: center;
     justify-content: flex-end;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
   .adm-apps-btn-approve,
   .adm-apps-btn-reject {
@@ -266,137 +266,116 @@
   .adm-apps-scroll-hint.is-visible {
     display: block;
   }
+  .applications-table-scroll,
   .adm-apps-table-scroll {
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
     outline: none;
+    overscroll-behavior-x: contain;
   }
+  .applications-table-scroll:focus-visible,
   .adm-apps-table-scroll:focus-visible {
     box-shadow: inset 0 0 0 2px rgba(242, 101, 34, 0.35);
     border-radius: 0 0 12px 12px;
   }
-  #adm-apps-table {
+  .applications-table,
+  #adm-apps-table.applications-table {
     width: 100%;
-    min-width: 1460px;
-    max-width: none;
+    min-width: 1450px;
+    table-layout: auto;
     border-collapse: collapse;
-    table-layout: fixed;
   }
-  #adm-apps-table th.adm-apps-col-date,
-  #adm-apps-table td.adm-apps-col-date {
-    min-width: 110px;
-    width: 110px;
-  }
-  #adm-apps-table th.adm-apps-col-name,
-  #adm-apps-table td.adm-apps-col-name {
-    min-width: 150px;
-    width: 150px;
-  }
-  #adm-apps-table th.adm-apps-col-company,
-  #adm-apps-table td.adm-apps-col-company {
-    min-width: 180px;
-    width: 180px;
-  }
-  #adm-apps-table th.adm-apps-col-role,
-  #adm-apps-table td.adm-apps-col-role {
-    min-width: 90px;
-    width: 90px;
-  }
-  #adm-apps-table th.adm-apps-col-email,
-  #adm-apps-table td.adm-apps-col-email {
-    min-width: 220px;
-    width: 220px;
-  }
-  #adm-apps-table th.adm-apps-col-phone,
-  #adm-apps-table td.adm-apps-col-phone {
-    min-width: 140px;
-    width: 140px;
-  }
-  #adm-apps-table th.adm-apps-col-message,
-  #adm-apps-table td.adm-apps-col-message {
-    min-width: 220px;
-    width: 220px;
-  }
-  #adm-apps-table th.adm-apps-col-status,
-  #adm-apps-table td.adm-apps-col-status {
-    min-width: 110px;
-    width: 110px;
-  }
-  #adm-apps-table th.adm-apps-col-actions,
-  #adm-apps-table td.adm-apps-actions-cell {
-    min-width: 240px;
-    width: 240px;
-  }
+  .applications-table th,
+  .applications-table td,
   #adm-apps-table th,
   #adm-apps-table td {
     vertical-align: top;
     box-sizing: border-box;
   }
   .adm-apps-col-date {
+    min-width: 110px;
     white-space: nowrap;
     font-size: 12px;
     color: var(--tf-muted);
   }
-  .adm-apps-col-name,
-  .adm-apps-col-company,
-  .adm-apps-col-phone,
-  .adm-apps-col-message {
+  .adm-apps-col-name {
+    min-width: 160px;
     line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+  .adm-apps-col-company {
+    min-width: 190px;
+    line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: normal;
   }
   .adm-apps-col-role {
+    min-width: 90px;
     white-space: nowrap;
   }
   .adm-apps-col-email {
+    min-width: 240px;
     font-size: 13px;
     font-weight: 500;
     line-height: 1.4;
+    word-break: normal;
     overflow-wrap: anywhere;
   }
+  .adm-apps-col-phone {
+    min-width: 150px;
+    line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
   .adm-apps-col-message {
+    min-width: 220px;
     font-size: 12px;
     color: var(--tf-muted);
+    line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: normal;
   }
   .adm-apps-col-status {
-    white-space: nowrap;
-  }
-  .adm-apps-col-actions,
-  .adm-apps-actions-cell {
-    text-align: right;
-    position: sticky;
-    right: 0;
-    z-index: 2;
+    min-width: 110px;
     white-space: nowrap;
   }
   .adm-apps-col-actions {
-    background: #f2f3f5;
-    z-index: 3;
+    min-width: 210px;
+    text-align: right;
+    white-space: nowrap;
   }
   .adm-apps-actions-cell {
-    background: #fff;
-    box-shadow: -6px 0 10px rgba(15, 42, 68, 0.06);
+    min-width: 210px;
+    text-align: right;
+    white-space: nowrap;
   }
-  #adm-apps-table tbody tr:hover .adm-apps-actions-cell {
-    background: #fafbfc;
-  }
-  .adm-apps-actions {
-    flex-wrap: nowrap;
+  @media (min-width: 769px) {
+    #adm-apps-table:not(.adm-apps-table--overflow) .adm-apps-col-actions {
+      position: sticky;
+      right: 0;
+      z-index: 3;
+      background: #f2f3f5;
+    }
+    #adm-apps-table:not(.adm-apps-table--overflow) .adm-apps-actions-cell {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: #fff;
+      box-shadow: -6px 0 10px rgba(15, 42, 68, 0.06);
+    }
+    #adm-apps-table:not(.adm-apps-table--overflow) tbody tr:hover .adm-apps-actions-cell {
+      background: #fafbfc;
+    }
   }
   .adm-apps-btn-approve,
   .adm-apps-btn-reject,
   .adm-apps-view-btn {
     white-space: nowrap;
     flex-shrink: 0;
-  }
-  @media (max-width: 1023px) {
-    #adm-apps-table {
-      width: 1460px;
-      min-width: 1460px;
-    }
-    .adm-apps-table-scroll {
-      overscroll-behavior-x: contain;
-    }
   }
   @media (max-width: 768px) {
     .adm-apps-toolbar-actions {
@@ -410,14 +389,9 @@
     .adm-apps-export-btn {
       flex: 0 0 auto;
     }
-    .adm-apps-page.adm-main {
-      padding-bottom: 32px;
-    }
-    body.tf-admin-unified:has(#tf-cookie-notice:not([hidden])) .adm-apps-page.adm-main {
-      padding-bottom: 220px;
-    }
     #adm-apps-table-card.adm-table-card {
-      margin-bottom: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
     }
   }
 </style>
@@ -464,19 +438,8 @@
         <span id="adm-apps-visible-count">{{ applications.paginator.count }} record{{ applications.paginator.count|pluralize }} · page {{ applications.number }}</span>
       </div>
       <p class="adm-apps-scroll-hint" id="adm-apps-scroll-hint" aria-live="polite">Swipe horizontally to view all columns</p>
-      <div class="adm-apps-table-scroll" id="adm-apps-table-scroll" tabindex="0" role="region" aria-label="Applications table, scroll horizontally to see all columns">
-      <table class="adm-table" id="adm-apps-table">
-        <colgroup>
-          <col class="adm-apps-col-date">
-          <col class="adm-apps-col-name">
-          <col class="adm-apps-col-company">
-          <col class="adm-apps-col-role">
-          <col class="adm-apps-col-email">
-          <col class="adm-apps-col-phone">
-          <col class="adm-apps-col-message">
-          <col class="adm-apps-col-status">
-          <col class="adm-apps-col-actions">
-        </colgroup>
+      <div class="applications-table-scroll adm-apps-table-scroll" id="adm-apps-table-scroll" tabindex="0" role="region" aria-label="Applications table, scroll horizontally to see all columns">
+      <table class="adm-table applications-table" id="adm-apps-table">
         <thead>
           <tr>
             <th scope="col" class="adm-apps-col-date">Date</th>
@@ -555,7 +518,7 @@
                 </form>
                 {% endif %}
                 <button type="button" class="adm-apps-view-btn js-app-view-btn" onclick="event.stopPropagation();">View</button>
-                <button type="button" class="adm-apps-icon-btn js-app-view-btn" aria-label="View application details" onclick="event.stopPropagation();">
+                <button type="button" class="adm-apps-icon-btn js-app-view-btn" aria-label="More application options" onclick="event.stopPropagation();">
                   <span class="material-symbols-rounded">more_horiz</span>
                 </button>
               </div>
@@ -737,11 +700,15 @@
 
   var tableScroll = document.getElementById('adm-apps-table-scroll');
   var scrollHint = document.getElementById('adm-apps-scroll-hint');
+  var appsTable = document.getElementById('adm-apps-table');
 
   function updateScrollHint() {
     if (!tableScroll || !scrollHint) return;
     var overflow = tableScroll.scrollWidth > tableScroll.clientWidth + 1;
     scrollHint.classList.toggle('is-visible', overflow);
+    if (appsTable) {
+      appsTable.classList.toggle('adm-apps-table--overflow', overflow);
+    }
   }
 
   if (tableScroll) {
@@ -751,6 +718,25 @@
       var ro = new ResizeObserver(updateScrollHint);
       ro.observe(tableScroll);
     }
+  }
+
+  function updateCookieReserve() {
+    var page = document.querySelector('.adm-apps-page');
+    var notice = document.getElementById('tf-cookie-notice');
+    if (!page) return;
+    if (notice && !notice.hidden) {
+      page.style.paddingBottom = (notice.offsetHeight + 28) + 'px';
+    } else {
+      page.style.paddingBottom = '';
+    }
+  }
+
+  updateCookieReserve();
+  window.addEventListener('resize', updateCookieReserve);
+  var cookieNotice = document.getElementById('tf-cookie-notice');
+  if (cookieNotice && typeof MutationObserver !== 'undefined') {
+    var cookieObserver = new MutationObserver(updateCookieReserve);
+    cookieObserver.observe(cookieNotice, { attributes: true, attributeFilter: ['hidden', 'style', 'class'] });
   }
 })();
 </script>

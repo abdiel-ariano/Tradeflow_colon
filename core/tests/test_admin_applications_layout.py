@@ -8,6 +8,18 @@ from django.urls import reverse
 from core.models import UserApplication, UserProfile
 from core.utils.admin_permissions import sync_user_admin_access
 
+APPLICATION_COLUMNS = (
+    'Date',
+    'Name',
+    'Company',
+    'Role',
+    'Email',
+    'Phone',
+    'Message',
+    'Status',
+    'Actions',
+)
+
 
 @override_settings(
     DEBUG=True,
@@ -59,19 +71,47 @@ class AdminApplicationsLayoutTests(TestCase):
         body = resp.content.decode()
         self.assertIn('Access Applications', body)
         self.assertIn('adm-apps-page', body)
-        self.assertIn('adm-apps-table-scroll', body)
+        self.assertIn('applications-table-scroll', body)
+        self.assertIn('applications-table', body)
         self.assertIn('id="adm-apps-table-card"', body)
         self.assertIn('overflow-x: auto', body)
-        self.assertIn('min-width: 0', body)
-        self.assertIn('adm-apps-col-actions', body)
+        self.assertIn('table-layout: auto', body)
+        self.assertIn('min-width: 1450px', body)
+        self.assertNotIn('table-layout: fixed', body)
+        self.assertNotIn('break-all', body)
+        self.assertNotIn('display: none', body.split('adm-apps-col-phone')[1][:400])
         self.assertIn('adm-apps-scroll-hint', body)
         self.assertIn('Swipe horizontally to view all columns', body)
-        self.assertIn('adm-apps-col-phone', body)
-        self.assertIn('adm-apps-col-message', body)
-        self.assertIn('adm-apps-col-status', body)
-        self.assertIn('min-width: 1460px', body)
-        self.assertNotIn('break-all', body)
         self.assertIn('Pending Applicant', body)
+
+    def test_all_nine_columns_render_in_header_order(self):
+        resp = self.client.get(reverse('admin_applications'))
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode()
+        thead_start = body.index('<thead>')
+        thead_end = body.index('</thead>', thead_start)
+        thead = body[thead_start:thead_end]
+        last_pos = 0
+        for column in APPLICATION_COLUMNS:
+            pos = thead.find(f'>{column}</th>', last_pos)
+            self.assertGreater(
+                pos,
+                -1,
+                msg=f'Missing column header: {column}',
+            )
+            last_pos = pos + 1
+        for css_class in (
+            'adm-apps-col-date',
+            'adm-apps-col-name',
+            'adm-apps-col-company',
+            'adm-apps-col-role',
+            'adm-apps-col-email',
+            'adm-apps-col-phone',
+            'adm-apps-col-message',
+            'adm-apps-col-status',
+            'adm-apps-col-actions',
+        ):
+            self.assertIn(css_class, body)
 
     def test_status_filters_remain_available(self):
         all_resp = self.client.get(reverse('admin_applications'))
@@ -101,6 +141,8 @@ class AdminApplicationsLayoutTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Approve')
         self.assertContains(resp, 'Reject')
+        self.assertContains(resp, 'View')
+        self.assertContains(resp, 'More application options')
         self.assertContains(resp, 'adm-apps-actions-cell')
         self.assertContains(
             resp,
