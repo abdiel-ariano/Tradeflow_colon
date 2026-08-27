@@ -12,10 +12,10 @@ Solo presentación; contrato del formulario sin cambios.
 {% include "core/includes/auth_password_toggle_assets.html" %}
 {% endblock %}
 {% block content %}
-<div class="login-page-wrap login-page-wrap--figma" id="login-figma-root">
+<div class="login-page-wrap login-page-wrap--figma login-page" id="login-figma-root">
   <div class="login-figma-bg" aria-hidden="true">
     <img
-      class="login-figma-bg__img"
+      class="login-figma-bg__img login-animated-background"
       src="{% static 'images/login-figma/bg-wave.png' %}"
       alt=""
       width="1920"
@@ -37,7 +37,7 @@ Solo presentación; contrato del formulario sin cambios.
     id="auth-login-root"
     data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
   >
-    <div class="login-figma-card">
+    <div class="login-figma-card login-card">
       <div class="login-figma-card__body">
         <div class="auth-dev-banner login-figma-dev-banner" id="auth-dev-banner" hidden>
           {% trans "Email verification disabled for local testing." %}

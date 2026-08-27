@@ -41,9 +41,15 @@ main.tf-main > .login-page-wrap {
   overflow-x: hidden;
 }
 
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
 /* ── Background image (Figma asset) ── */
 .login-figma-bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
@@ -52,10 +58,52 @@ main.tf-main > .login-page-wrap {
 }
 
 .login-figma-bg__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   object-position: center top;
+}
+
+.login-animated-background {
+  position: absolute;
+  inset: -8%;
+  width: 116%;
+  height: 116%;
+  object-fit: cover;
+  pointer-events: none;
+  transform-origin: center;
+  will-change: transform;
+  animation: tradeflow-login-wave 20s ease-in-out infinite alternate;
+}
+
+@keyframes tradeflow-login-wave {
+  0% {
+    transform: translate3d(-1.5%, -1%, 0)
+               scale(1.03)
+               rotate(-0.25deg);
+  }
+
+  33% {
+    transform: translate3d(1%, -0.5%, 0)
+               scale(1.06)
+               rotate(0.2deg);
+  }
+
+  66% {
+    transform: translate3d(-0.5%, 1.5%, 0)
+               scale(1.04)
+               rotate(-0.15deg);
+  }
+
+  100% {
+    transform: translate3d(1.5%, 0.5%, 0)
+               scale(1.07)
+               rotate(0.25deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-animated-background {
+    animation: none;
+    transform: none;
+  }
 }
 
 /* ── Header logo (icon + wordmark, top-left) ── */
@@ -122,6 +170,11 @@ main.tf-main > .login-page-wrap {
     0 5px 15px rgba(0, 0, 0, 0.12),
     0 15px 35px rgba(48, 49, 61, 0.08);
   background: var(--login-card-surface);
+}
+
+.login-card {
+  position: relative;
+  z-index: 2;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
