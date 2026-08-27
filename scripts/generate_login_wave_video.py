@@ -25,8 +25,8 @@ HEIGHT = 1200
 FPS = 30
 DURATION_SECONDS = 12
 TOTAL_FRAMES = FPS * DURATION_SECONDS
-MINIMUM_VISIBLE_DIFFERENCE = 5.0
-MAX_LOOP_SEAM_DIFFERENCE = 2.5
+MINIMUM_VISIBLE_DIFFERENCE = 11.0
+MAX_LOOP_SEAM_DIFFERENCE = 4.0
 MAX_BYTES = 4 * 1024 * 1024
 
 
@@ -47,12 +47,12 @@ def load_original_on_white(path: Path) -> np.ndarray:
 def render_frame(original_bgr: np.ndarray, frame_index: int, grid_x: np.ndarray, grid_y: np.ndarray) -> np.ndarray:
     phase = 2.0 * math.pi * frame_index / TOTAL_FRAMES
     dx = (
-        24.0 * np.sin((grid_y / 520.0) + phase)
-        + 8.0 * np.sin((grid_y / 240.0) - phase)
+        32.0 * np.sin((grid_y / 600.0) + phase)
+        + 10.0 * np.sin((grid_y / 280.0) - phase)
     )
     dy = (
-        16.0 * np.sin((grid_x / 650.0) - phase)
-        + 6.0 * np.cos((grid_x / 300.0) + phase)
+        22.0 * np.sin((grid_x / 720.0) - phase)
+        + 8.0 * np.cos((grid_x / 340.0) + phase)
     )
     map_x = (grid_x + dx).astype(np.float32)
     map_y = (grid_y + dy).astype(np.float32)
@@ -135,6 +135,24 @@ def save_diagnostic_artifacts(frames: list[np.ndarray], output_path: Path) -> di
         side.paste(Image.open(saved_frames[second]), (i * WIDTH, 0))
     side.save(DIAG_DIR / 'frames-side-by-side.png')
 
+    gif_path = DIAG_DIR / 'login-wave-6s.gif'
+    subprocess.run(
+        [
+            'ffmpeg', '-y', '-i', str(output_path), '-t', '6',
+            '-vf',
+            'fps=15,scale=960:-1:flags=lanczos,split[s0][s1];'
+            '[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer',
+            str(gif_path),
+        ],
+        check=True,
+        capture_output=True,
+    )
+
+    demo_path = Path('/opt/cursor/artifacts/screenshots/login-wave-video-demo-12s.webm')
+    demo_path.parent.mkdir(parents=True, exist_ok=True)
+    if output_path.resolve() != demo_path.resolve():
+        demo_path.write_bytes(output_path.read_bytes())
+
     probe = subprocess.run(
         [
             'ffprobe',
@@ -173,6 +191,8 @@ def save_diagnostic_artifacts(frames: list[np.ndarray], output_path: Path) -> di
         'frames': {str(k): str(v) for k, v in saved_frames.items()},
         'diff_map': str(DIAG_DIR / 'diff-map-0-vs-3.png'),
         'side_by_side': str(DIAG_DIR / 'frames-side-by-side.png'),
+        'gif_6s': str(gif_path),
+        'demo_webm': str(demo_path),
     }
     (DIAG_DIR / 'generation-report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
     return report
