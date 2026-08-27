@@ -338,20 +338,29 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
           <input type="hidden" name="action" value="change_password">
           <div class="perfil-field">
             <label class="tf-label" for="pf_current">Password</label>
-            <input type="password" name="current_password" id="pf_current" class="tf-input" required>
+            <div class="perfil-password-wrap auth-password-wrap">
+              <input type="password" name="current_password" id="pf_current" class="tf-input" required autocomplete="current-password">
+              {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_current" %}
+            </div>
           </div>
           <div class="perfil-field">
             <label class="tf-label" for="pf_new">Password</label>
-            <input type="password" name="new_password" id="pf_new" class="tf-input" required
-                   autocomplete="new-password">
+            <div class="perfil-password-wrap auth-password-wrap">
+              <input type="password" name="new_password" id="pf_new" class="tf-input" required
+                     autocomplete="new-password">
+              {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_new" %}
+            </div>
             <div class="perfil-strength" aria-hidden="true">
               <div class="perfil-strength-bar" id="perfil-strength-bar"></div>
             </div>
           </div>
           <div class="perfil-field">
             <label class="tf-label" for="pf_confirm">Confirm new password</label>
-            <input type="password" name="confirm_password" id="pf_confirm" class="tf-input" required
-                   autocomplete="new-password">
+            <div class="perfil-password-wrap auth-password-wrap">
+              <input type="password" name="confirm_password" id="pf_confirm" class="tf-input" required
+                     autocomplete="new-password">
+              {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_confirm" %}
+            </div>
           </div>
           <button type="submit" class="perfil-btn-outline">
             <span class="material-symbols-rounded" style="font-size:18px;">key</span>
@@ -426,6 +435,7 @@ Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
   </div>
 </div>
 
+{% include "core/includes/auth_password_toggle_assets.html" %}
 <script nonce="{{ csp_nonce }}">
 (function () {
   var root = document.getElementById('perfil-root');

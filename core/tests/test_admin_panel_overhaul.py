@@ -80,7 +80,15 @@ class AdminPanelOverhaulTests(TestCase):
         self.assertEqual(t.estado, 'aprobado')
 
     def test_company_search_verify_and_detail(self):
-        company = Company.objects.create(name='Verify Co', ruc='8-VERIFY-1')
+        company = Company.objects.create(
+            name='Verify Co',
+            legal_name='Verify Co, S.A.',
+            ruc='8-VERIFY-1',
+            dv='12',
+            business_email='verify@test.pa',
+            verification_document='companies/verification/aviso-operacion.pdf',
+            verification_status='pending',
+        )
         list_resp = self.client.get(reverse('lista_empresas'), {'buscar': 'Verify'})
         self.assertEqual(list_resp.status_code, 200)
         self.assertContains(list_resp, 'Verify Co')
@@ -91,11 +99,13 @@ class AdminPanelOverhaulTests(TestCase):
         )
         self.assertEqual(toggle.status_code, 302)
         company.refresh_from_db()
+        self.assertEqual(company.verification_status, 'verified')
         self.assertTrue(company.is_verified)
 
         detail = self.client.get(reverse('admin_empresa_detalle', args=[company.pk]))
         self.assertEqual(detail.status_code, 200)
         self.assertContains(detail, 'Verify Co')
+        self.assertContains(detail, 'Verified')
         self.assertContains(detail, 'id="admRail"')
 
     def test_panel_search_and_products_table(self):

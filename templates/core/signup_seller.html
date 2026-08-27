@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 <link rel="stylesheet" href="{% static 'css/signup_buyer.css' %}?v={{ tf_asset_version|default:'1' }}">
 <link rel="stylesheet" href="{% static 'css/auth-oauth.css' %}?v={{ tf_asset_version|default:'1' }}">
+{% include "core/includes/auth_password_toggle_assets.html" %}
 {% endblock %}
 {% block footer %}{% endblock %}
 {% block content %}
@@ -176,9 +177,7 @@
                   required
                 >
                 <label class="signup-buyer-float__label" for="id_password1">{% trans "Password" %} <span class="req" aria-hidden="true">*</span></label>
-                <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Mostrar contraseña" aria-pressed="false" data-target="id_password1">
-                  <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
-                </button>
+                {% include "core/includes/auth_password_toggle_button.html" with target_id="id_password1" %}
               </div>
               <div class="signup-strength" id="signup-strength" aria-hidden="true" aria-label="Fortaleza de contraseña">
                 <span class="signup-strength-bar"><span class="signup-strength-fill"></span></span>
@@ -199,9 +198,7 @@
                   required
                 >
                 <label class="signup-buyer-float__label" for="id_password2">{% trans "Confirm password" %} <span class="req" aria-hidden="true">*</span></label>
-                <button type="button" class="auth-password-toggle js-password-toggle" aria-label="Mostrar contraseña" aria-pressed="false" data-target="id_password2">
-                  <span class="material-symbols-rounded js-pw-icon" aria-hidden="true">visibility</span>
-                </button>
+                {% include "core/includes/auth_password_toggle_button.html" with target_id="id_password2" %}
               </div>
             </div>
           </fieldset>
@@ -245,25 +242,12 @@
 </div>
 <script nonce="{{ csp_nonce }}">
 (function () {
-  function syncPasswordToggle(btn, visible) {
-    var inputId = btn.getAttribute('data-target');
-    var input = inputId ? document.getElementById(inputId) : null;
-    if (!input) return;
-    input.type = visible ? 'text' : 'password';
-    btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
-    btn.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
-    var icon = btn.querySelector('.js-pw-icon');
-    if (icon) icon.textContent = visible ? 'visibility_off' : 'visibility';
-  }
-
-  document.querySelectorAll('.js-password-toggle').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var inputId = btn.getAttribute('data-target');
-      var input = inputId ? document.getElementById(inputId) : null;
-      if (!input) return;
-      syncPasswordToggle(btn, input.type !== 'text');
+  function resetPasswordToggles() {
+    if (!window.TradeFlowPasswordToggle) return;
+    document.querySelectorAll('.js-password-toggle').forEach(function (btn) {
+      window.TradeFlowPasswordToggle.sync(btn, false);
     });
-  });
+  }
 
   document.querySelectorAll('.js-oauth-signup').forEach(function (btn) {
     btn.addEventListener('click', function (event) {
@@ -308,9 +292,7 @@
     document.querySelectorAll(
       'input[type="text"], input[type="email"], input[type="password"], input[type="tel"]'
     ).forEach(function (el) { el.value = ''; });
-    document.querySelectorAll('.js-password-toggle').forEach(function (btn) {
-      syncPasswordToggle(btn, false);
-    });
+    resetPasswordToggles();
     if (pw1 && strengthEl) {
       strengthEl.querySelectorAll('.signup-strength-fill').forEach(function (fill) {
         fill.classList.remove('is-filled');

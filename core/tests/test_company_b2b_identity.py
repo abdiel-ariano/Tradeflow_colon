@@ -73,6 +73,18 @@ class CompanyB2BIdentityTests(TestCase):
         self.assertEqual(company.verified_by, self.reviewer)
         self.assertIsNotNone(company.verified_at)
 
+    def test_verified_company_can_return_to_pending_review(self):
+        company = self._complete_company()
+        company.submit_for_verification()
+        company.mark_verified(self.reviewer)
+
+        company.return_to_pending_review()
+        company.refresh_from_db()
+        self.assertEqual(company.verification_status, 'pending')
+        self.assertFalse(company.is_verified)
+        self.assertIsNone(company.verified_by)
+        self.assertIsNone(company.verified_at)
+
     def test_incomplete_company_cannot_enter_verification(self):
         company = Company.objects.create(
             name='Incomplete Corp',

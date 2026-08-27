@@ -9,6 +9,7 @@ Solo presentación; contrato del formulario sin cambios.
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 <link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% include "core/includes/auth_password_toggle_assets.html" %}
 {% endblock %}
 {% block content %}
 <div class="login-page-wrap login-page-wrap--figma" id="login-figma-root">
@@ -66,15 +67,18 @@ Solo presentación; contrato del formulario sin cambios.
               <label class="login-figma-label" for="id_password">{% trans "Password" %}</label>
               <a class="login-figma-link" href="{% url 'password_reset' %}">{% trans "Forgot your password?" %}</a>
             </div>
-            <input
-              type="password"
-              name="password"
-              id="id_password"
-              class="login-figma-input tf-input"
-              placeholder="{% trans 'Password' %}"
-              autocomplete="current-password"
-              required
-            >
+            <div class="login-figma-password-wrap auth-password-wrap">
+              <input
+                type="password"
+                name="password"
+                id="id_password"
+                class="login-figma-input tf-input"
+                placeholder="{% trans 'Password' %}"
+                autocomplete="current-password"
+                required
+              >
+              {% include "core/includes/auth_password_toggle_button.html" with target_id="id_password" %}
+            </div>
           </div>
 
           <label class="login-figma-remember">
