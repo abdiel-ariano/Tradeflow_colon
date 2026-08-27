@@ -1,4 +1,4 @@
-"""Distortion animation for the original login wave image."""
+"""Looped WebM background for the original login wave image."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,48 +15,50 @@ from django.urls import reverse
     REQUIRE_EMAIL_VERIFICATION=False,
 )
 class LoginBackgroundAnimationTests(TestCase):
-    """Ensure login wave keeps original colors and uses smooth SVG SMIL."""
+    """Ensure login wave uses local WebM video with static PNG fallback."""
 
     def setUp(self):
         self.client = Client()
 
-    def test_login_template_uses_original_image_with_svg_distortion(self):
+    def test_login_template_uses_video_with_original_poster_and_fallback(self):
         response = self.client.get(reverse('login'))
         self.assertEqual(response.status_code, 200)
         body = response.content.decode('utf-8')
         self.assertIn('login-page', body)
-        self.assertIn('login-wave-animation', body)
-        self.assertIn('login-wave-fallback', body)
+        self.assertIn('login-wave-video', body)
+        self.assertIn('login-wave-static-fallback', body)
         self.assertIn('login-card', body)
         self.assertIn('images/login-figma/bg-wave.png', body)
-        self.assertIn('tradeflow-wave-distortion', body)
-        self.assertIn('feOffset', body)
-        self.assertIn('stableNoise', body)
-        self.assertIn('movingNoise', body)
-        self.assertIn('calcMode="spline"', body)
-        self.assertIn('baseFrequency="0.003 0.006"', body)
-        self.assertIn('values="4;7;5;4"', body)
+        self.assertIn('images/login-figma/login-wave.webm', body)
+        self.assertIn('autoplay', body)
+        self.assertIn('muted', body)
+        self.assertIn('loop', body)
+        self.assertIn('playsinline', body)
+        self.assertIn('poster=', body)
+        self.assertNotIn('feTurbulence', body)
+        self.assertNotIn('feDisplacementMap', body)
+        self.assertNotIn('login-wave-animation', body)
         self.assertNotIn('login-wave-distortion.js', body)
-        self.assertNotIn('login-wave.svg', body)
-        self.assertNotIn('grad-blue-violet', body)
-        self.assertNotIn('login-animated-background', body)
 
-    def test_login_css_keeps_fixed_container_without_image_transform(self):
+    def test_login_css_uses_video_layer_without_image_transform(self):
         css_path = Path(__file__).resolve().parents[2] / 'static' / 'css' / 'login.css'
         css = css_path.read_text(encoding='utf-8')
-        self.assertIn('.login-wave-animation', css)
-        self.assertIn('.login-wave-fallback', css)
+        self.assertIn('.login-wave-video', css)
+        self.assertIn('.login-wave-static-fallback', css)
+        self.assertNotIn('.login-wave-animation', css)
         self.assertNotIn('tradeflow-login-wave', css)
         self.assertNotIn('login-animated-background', css)
         self.assertNotIn('hue-rotate', css)
-        self.assertNotIn('steps(', css)
         self.assertIn('@media (prefers-reduced-motion: reduce)', css)
         self.assertIn('.login-page', css)
         self.assertIn('overflow: hidden', css)
 
-    def test_distortion_js_removed(self):
-        js_path = Path(__file__).resolve().parents[2] / 'static' / 'js' / 'login-wave-distortion.js'
-        self.assertFalse(js_path.exists())
+    def test_login_wave_webm_asset_exists(self):
+        webm_path = Path(__file__).resolve().parents[2] / 'static' / 'images' / 'login-figma' / 'login-wave.webm'
+        self.assertTrue(webm_path.exists())
+        size = webm_path.stat().st_size
+        self.assertGreater(size, 10_000)
+        self.assertLess(size, 4 * 1024 * 1024)
 
     def test_password_toggle_still_present_on_login(self):
         response = self.client.get(reverse('login'))
