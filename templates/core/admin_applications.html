@@ -109,7 +109,7 @@
     align-items: center;
     justify-content: flex-end;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
   .adm-apps-btn-approve,
   .adm-apps-btn-reject {
@@ -241,12 +241,165 @@
     margin: 0;
   }
   .adm-apps-modal-body dd { margin: 0; word-break: break-word; }
+
+  /* Responsive layout: keep content inside the rail-adjusted main area */
+  .adm-apps-page.adm-main {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  #adm-apps-table-card.adm-table-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+  }
+  .adm-apps-scroll-hint {
+    display: none;
+    margin: 0;
+    padding: 10px 1.25rem 0;
+    font-size: 0.75rem;
+    color: var(--tf-muted);
+    line-height: 1.4;
+  }
+  .adm-apps-scroll-hint.is-visible {
+    display: block;
+  }
+  .applications-table-scroll,
+  .adm-apps-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    outline: none;
+    overscroll-behavior-x: contain;
+  }
+  .applications-table-scroll:focus-visible,
+  .adm-apps-table-scroll:focus-visible {
+    box-shadow: inset 0 0 0 2px rgba(242, 101, 34, 0.35);
+    border-radius: 0 0 12px 12px;
+  }
+  .applications-table,
+  #adm-apps-table.applications-table {
+    width: 100%;
+    min-width: 1450px;
+    table-layout: auto;
+    border-collapse: collapse;
+  }
+  .applications-table th,
+  .applications-table td,
+  #adm-apps-table th,
+  #adm-apps-table td {
+    vertical-align: top;
+    box-sizing: border-box;
+  }
+  .adm-apps-col-date {
+    min-width: 110px;
+    white-space: nowrap;
+    font-size: 12px;
+    color: var(--tf-muted);
+  }
+  .adm-apps-col-name {
+    min-width: 160px;
+    line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+  .adm-apps-col-company {
+    min-width: 190px;
+    line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+  .adm-apps-col-role {
+    min-width: 90px;
+    white-space: nowrap;
+  }
+  .adm-apps-col-email {
+    min-width: 240px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+  .adm-apps-col-phone {
+    min-width: 150px;
+    line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+  .adm-apps-col-message {
+    min-width: 220px;
+    font-size: 12px;
+    color: var(--tf-muted);
+    line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+  .adm-apps-col-status {
+    min-width: 110px;
+    white-space: nowrap;
+  }
+  .adm-apps-col-actions {
+    min-width: 210px;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .adm-apps-actions-cell {
+    min-width: 210px;
+    text-align: right;
+    white-space: nowrap;
+  }
+  @media (min-width: 769px) {
+    #adm-apps-table:not(.adm-apps-table--overflow) .adm-apps-col-actions {
+      position: sticky;
+      right: 0;
+      z-index: 3;
+      background: #f2f3f5;
+    }
+    #adm-apps-table:not(.adm-apps-table--overflow) .adm-apps-actions-cell {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: #fff;
+      box-shadow: -6px 0 10px rgba(15, 42, 68, 0.06);
+    }
+    #adm-apps-table:not(.adm-apps-table--overflow) tbody tr:hover .adm-apps-actions-cell {
+      background: #fafbfc;
+    }
+  }
+  .adm-apps-btn-approve,
+  .adm-apps-btn-reject,
+  .adm-apps-view-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  @media (max-width: 768px) {
+    .adm-apps-toolbar-actions {
+      width: 100%;
+      margin-left: 0;
+    }
+    .adm-apps-search-wrap {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+    .adm-apps-export-btn {
+      flex: 0 0 auto;
+    }
+    #adm-apps-table-card.adm-table-card {
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+    }
+  }
 </style>
 {% endblock %}
 {% block content %}
 <div class="adm-shell">
   {% include "core/admin_rail.html" %}
-  <div class="adm-main">
+  <div class="adm-main adm-apps-page">
     <header class="adm-head">
       <div>
         <h1>
@@ -284,18 +437,20 @@
         <span>{% if current_filter %}{{ current_filter|title }} applications{% else %}All applications{% endif %}</span>
         <span id="adm-apps-visible-count">{{ applications.paginator.count }} record{{ applications.paginator.count|pluralize }} · page {{ applications.number }}</span>
       </div>
-      <table class="adm-table" id="adm-apps-table">
+      <p class="adm-apps-scroll-hint" id="adm-apps-scroll-hint" aria-live="polite">Swipe horizontally to view all columns</p>
+      <div class="applications-table-scroll adm-apps-table-scroll" id="adm-apps-table-scroll" tabindex="0" role="region" aria-label="Applications table, scroll horizontally to see all columns">
+      <table class="adm-table applications-table" id="adm-apps-table">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Name</th>
-            <th>Company</th>
-            <th>Role</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Message</th>
-            <th>Status</th>
-            <th style="text-align:right;">Actions</th>
+            <th scope="col" class="adm-apps-col-date">Date</th>
+            <th scope="col" class="adm-apps-col-name">Name</th>
+            <th scope="col" class="adm-apps-col-company">Company</th>
+            <th scope="col" class="adm-apps-col-role">Role</th>
+            <th scope="col" class="adm-apps-col-email">Email</th>
+            <th scope="col" class="adm-apps-col-phone">Phone</th>
+            <th scope="col" class="adm-apps-col-message">Message</th>
+            <th scope="col" class="adm-apps-col-status">Status</th>
+            <th scope="col" class="adm-apps-col-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -312,38 +467,38 @@
               data-status="{{ app.status|escape }}"
               data-message="{{ app.message|default:''|escape }}"
               data-date="{{ app.created_at|date:'M d, Y' }}">
-            <td style="white-space:nowrap;font-size:12px;color:var(--tf-muted);">{{ app.created_at|date:"M d, Y" }}</td>
-            <td><strong>{{ app.full_name }}</strong></td>
-            <td>
+            <td class="adm-apps-col-date">{{ app.created_at|date:"M d, Y" }}</td>
+            <td class="adm-apps-col-name"><strong>{{ app.full_name }}</strong></td>
+            <td class="adm-apps-col-company">
               {% if app.company_name %}
-              {{ app.company_name }}
+              <span title="{{ app.company_name|escape }}">{{ app.company_name }}</span>
               {% else %}
               <span class="adm-apps-null">Not provided</span>
               {% endif %}
             </td>
-            <td>
+            <td class="adm-apps-col-role">
               {% if app.role == 'buyer' %}
               <span class="adm-badge">Buyer</span>
               {% else %}
               <span class="adm-badge adm-badge--warn">Seller</span>
               {% endif %}
             </td>
-            <td style="font-size:13px;font-weight:500;">{{ app.email }}</td>
-            <td style="font-size:13px;">
+            <td class="adm-apps-col-email" title="{{ app.email|escape }}">{{ app.email }}</td>
+            <td class="adm-apps-col-phone">
               {% if app.phone %}
-              {{ app.phone }}
+              <span title="{{ app.phone|escape }}">{{ app.phone }}</span>
               {% else %}
               <span class="adm-apps-null">Not provided</span>
               {% endif %}
             </td>
-            <td style="font-size:12px;max-width:200px;">
+            <td class="adm-apps-col-message">
               {% if app.message %}
-              <span style="color:var(--tf-muted);">{{ app.message|truncatechars:80 }}</span>
+              <span title="{{ app.message|escape }}">{{ app.message|truncatechars:80 }}</span>
               {% else %}
               <span class="adm-apps-null">Not provided</span>
               {% endif %}
             </td>
-            <td>
+            <td class="adm-apps-col-status">
               {% if app.status == 'pending' %}
               <span class="adm-badge adm-badge--warn">Pending</span>
               {% elif app.status == 'approved' %}
@@ -352,7 +507,7 @@
               <span class="adm-badge adm-badge--err">Rejected</span>
               {% endif %}
             </td>
-            <td style="text-align:right;" class="adm-apps-actions-cell">
+            <td class="adm-apps-actions-cell">
               <div class="adm-apps-actions">
                 {% if app.status == 'pending' %}
                 <form method="post" action="{% url 'approve_application' app.pk %}" class="js-app-review-form" onclick="event.stopPropagation();" onsubmit="return confirm('Approve application from {{ app.full_name|escapejs }}?');">{% csrf_token %}
@@ -363,7 +518,7 @@
                 </form>
                 {% endif %}
                 <button type="button" class="adm-apps-view-btn js-app-view-btn" onclick="event.stopPropagation();">View</button>
-                <button type="button" class="adm-apps-icon-btn js-app-view-btn" aria-label="View application details" onclick="event.stopPropagation();">
+                <button type="button" class="adm-apps-icon-btn js-app-view-btn" aria-label="More application options" onclick="event.stopPropagation();">
                   <span class="material-symbols-rounded">more_horiz</span>
                 </button>
               </div>
@@ -372,6 +527,7 @@
           {% endfor %}
         </tbody>
       </table>
+      </div>
       <p class="adm-apps-no-results" id="adm-apps-no-results">No applications match your search.</p>
       {% if applications.has_other_pages %}
       <div class="adm-pagination">
@@ -541,6 +697,47 @@
       }, 12000);
     });
   });
+
+  var tableScroll = document.getElementById('adm-apps-table-scroll');
+  var scrollHint = document.getElementById('adm-apps-scroll-hint');
+  var appsTable = document.getElementById('adm-apps-table');
+
+  function updateScrollHint() {
+    if (!tableScroll || !scrollHint) return;
+    var overflow = tableScroll.scrollWidth > tableScroll.clientWidth + 1;
+    scrollHint.classList.toggle('is-visible', overflow);
+    if (appsTable) {
+      appsTable.classList.toggle('adm-apps-table--overflow', overflow);
+    }
+  }
+
+  if (tableScroll) {
+    updateScrollHint();
+    window.addEventListener('resize', updateScrollHint);
+    if (typeof ResizeObserver !== 'undefined') {
+      var ro = new ResizeObserver(updateScrollHint);
+      ro.observe(tableScroll);
+    }
+  }
+
+  function updateCookieReserve() {
+    var page = document.querySelector('.adm-apps-page');
+    var notice = document.getElementById('tf-cookie-notice');
+    if (!page) return;
+    if (notice && !notice.hidden) {
+      page.style.paddingBottom = (notice.offsetHeight + 28) + 'px';
+    } else {
+      page.style.paddingBottom = '';
+    }
+  }
+
+  updateCookieReserve();
+  window.addEventListener('resize', updateCookieReserve);
+  var cookieNotice = document.getElementById('tf-cookie-notice');
+  if (cookieNotice && typeof MutationObserver !== 'undefined') {
+    var cookieObserver = new MutationObserver(updateCookieReserve);
+    cookieObserver.observe(cookieNotice, { attributes: true, attributeFilter: ['hidden', 'style', 'class'] });
+  }
 })();
 </script>
 {% endblock %}
