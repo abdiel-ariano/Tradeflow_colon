@@ -156,8 +156,12 @@ def login_view(request):
 
 
 def logout_view(request):
-    """Log out, flush the session, and return to login."""
+    """Log out, flush the session, and return to login (POST only)."""
+    from django.http import HttpResponseNotAllowed
     from core.utils.staff_mfa import clear_session_mfa
+
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
 
     clear_session_mfa(request)
     logout(request)

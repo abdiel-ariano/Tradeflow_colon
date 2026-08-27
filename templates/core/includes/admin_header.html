@@ -1,5 +1,4 @@
 {% load static %}
-{% firstof request.user user as admin_user %}
 {% url logout_url_name as tf_admin_logout_url %}
 {% comment %}
 Shared TradeFlow header for the operational dashboard and Django Admin.
@@ -9,62 +8,67 @@ never changes identity, height, typography, or account controls by route.
 {% endcomment %}
 <header
   id="header"
-  class="tf-admin-header"
+  class="tf-admin-header admin-topbar"
   data-tf-admin-header="shared"
 >
-  <button
-    type="button"
-    id="tfAdminMenuToggle"
-    class="tf-admin-menu-toggle"
-    aria-controls="admRail"
-    aria-expanded="false"
-    aria-label="Open administration menu"
-  >
-    <span class="material-symbols-rounded" aria-hidden="true">menu</span>
-    <span class="tf-visually-hidden">Open administration menu</span>
-  </button>
+  <div class="tf-admin-header__leading">
+    <button
+      type="button"
+      id="tfAdminMenuToggle"
+      class="tf-admin-menu-toggle"
+      aria-controls="admRail"
+      aria-expanded="false"
+      aria-label="Open administration menu"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">menu</span>
+      <span class="tf-visually-hidden">Open administration menu</span>
+    </button>
 
-  <div id="branding" class="tf-admin-header__brand">
-    <a href="{% url 'dashboard' %}" aria-label="TradeFlow dashboard">
-      <img
-        src="{% static 'img/logo-icon-color.png' %}"
-        width="36"
-        height="36"
-        alt="TradeFlow Colón"
-      >
-      <span class="tf-admin-header__brand-text">
-        <strong>TradeFlow</strong>
-        <span>Admin panel</span>
-      </span>
-    </a>
+    <div id="branding" class="tf-admin-header__brand">
+      <a href="{% url 'dashboard' %}" aria-label="TradeFlow dashboard">
+        <img
+          src="{% static 'img/logo-icon-color.png' %}"
+          width="36"
+          height="36"
+          alt="TradeFlow Colón"
+        >
+        <span class="tf-admin-header__brand-text">
+          <strong>TradeFlow</strong>
+          <span>Admin panel</span>
+        </span>
+      </a>
+    </div>
   </div>
 
-  {% if admin_user.is_authenticated %}
+  {% if request.user.is_authenticated %}
     <div id="user-tools" class="tf-admin-user-tools">
       <span class="tf-admin-user-avatar" aria-hidden="true">
-        {% if admin_user.first_name or admin_user.last_name %}
-          {{ admin_user.first_name|first|upper }}{{ admin_user.last_name|first|upper }}
+        {% if request.user.first_name or request.user.last_name %}
+          {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
         {% else %}
-          {{ admin_user.get_username|first|upper }}
+          {{ request.user.get_username|first|upper }}
         {% endif %}
       </span>
       <span class="tf-admin-user-identity">
         <strong>
-          {% firstof admin_user.get_full_name admin_user.get_username %}
+          {% firstof request.user.get_full_name request.user.get_username %}
         </strong>
       </span>
-      {# Existing admin/dashboard logout endpoint — visual control only #}
       <form
         id="logout-form"
+        class="tf-admin-logout-form"
         method="post"
         action="{{ tf_admin_logout_url }}"
       >
         {% csrf_token %}
-        <button type="submit" aria-label="Logout" title="Logout">
-          <span class="material-symbols-rounded" aria-hidden="true">
-            logout
-          </span>
-          <span class="tf-admin-logout-label">Logout</span>
+        <button
+          type="submit"
+          class="tf-admin-logout-btn"
+          aria-label="Log out"
+          title="Log out"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+          <span class="tf-admin-logout-label">Log out</span>
         </button>
       </form>
     </div>

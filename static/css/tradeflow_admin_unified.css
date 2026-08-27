@@ -48,7 +48,8 @@ body.tf-admin-unified:not(.login) #container {
   background: var(--tf-admin-page) !important;
 }
 
-body.tf-admin-unified:not(.login) #header.tf-admin-header {
+body.tf-admin-unified:not(.login) #header.tf-admin-header,
+body.tf-admin-unified:not(.login) #header.tf-admin-header.admin-topbar {
   position: fixed !important;
   inset: 0 0 auto 0 !important;
   z-index: 1200 !important;
@@ -58,13 +59,22 @@ body.tf-admin-unified:not(.login) #header.tf-admin-header {
   height: var(--tf-admin-header-height) !important;
   box-sizing: border-box !important;
   align-items: center !important;
-  gap: 24px !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
   padding: 0 40px !important;
   border: 0 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.16) !important;
   background: var(--tf-admin-navy) !important;
   color: #ffffff !important;
   box-shadow: none !important;
+}
+
+body.tf-admin-unified:not(.login) .tf-admin-header__leading {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
 }
 
 body.tf-admin-unified:not(.login) #branding.tf-admin-header__brand {
@@ -117,9 +127,10 @@ body.tf-admin-unified:not(.login) .tf-admin-header__brand-text span {
 body.tf-admin-unified:not(.login) .tf-admin-user-tools {
   display: flex !important;
   min-width: 0 !important;
+  flex: 0 0 auto !important;
   align-items: center !important;
   gap: 12px !important;
-  margin: 0 0 0 auto !important;
+  margin: 0 !important;
   padding: 0 !important;
   color: #ffffff !important;
   font-size: 0.9rem !important;
@@ -151,7 +162,8 @@ body.tf-admin-unified:not(.login) #logout-form {
   margin: 0 !important;
 }
 
-body.tf-admin-unified:not(.login) #logout-form button {
+body.tf-admin-unified:not(.login) #logout-form button,
+body.tf-admin-unified:not(.login) .tf-admin-logout-btn {
   display: inline-flex !important;
   min-height: 40px !important;
   align-items: center !important;
@@ -165,12 +177,27 @@ body.tf-admin-unified:not(.login) #logout-form button {
   font-weight: 600 !important;
   text-transform: none !important;
   cursor: pointer !important;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease !important;
 }
 
 body.tf-admin-unified:not(.login) #logout-form button:hover,
-body.tf-admin-unified:not(.login) #logout-form button:focus-visible {
+body.tf-admin-unified:not(.login) #logout-form button:focus-visible,
+body.tf-admin-unified:not(.login) .tf-admin-logout-btn:hover,
+body.tf-admin-unified:not(.login) .tf-admin-logout-btn:focus-visible {
   border-color: var(--tf-admin-orange) !important;
   background: rgba(242, 101, 34, 0.12) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.28) !important;
+}
+
+body.tf-admin-unified:not(.login) #logout-form button:active,
+body.tf-admin-unified:not(.login) .tf-admin-logout-btn:active {
+  border-color: var(--tf-admin-orange) !important;
+  background: rgba(242, 101, 34, 0.22) !important;
+  transform: translateY(1px);
 }
 
 body.tf-admin-unified:not(.login) .adm-side {
@@ -304,12 +331,25 @@ body.tf-admin-unified:not(.login) > .tf-footer {
 }
 
 @media (max-width: 640px) {
-  body.tf-admin-unified:not(.login) .tf-admin-user-identity {
+  body.tf-admin-unified:not(.login) #header.tf-admin-header,
+  body.tf-admin-unified:not(.login) #header.tf-admin-header.admin-topbar {
+    gap: 10px !important;
+    padding-right: 16px !important;
+    padding-left: 12px !important;
+  }
+
+  body.tf-admin-unified:not(.login) .tf-admin-header__brand-text {
     display: none !important;
   }
 
-  body.tf-admin-unified:not(.login) #logout-form button {
-    padding: 0 12px !important;
+  body.tf-admin-unified:not(.login) .tf-admin-user-tools {
+    gap: 8px !important;
+  }
+
+  body.tf-admin-unified:not(.login) .tf-admin-user-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
   }
 
   body.tf-admin-unified:not(.login) #content,
@@ -319,6 +359,28 @@ body.tf-admin-unified:not(.login) > .tf-footer {
 
   body.tf-admin-unified:not(.login) #changelist {
     overflow-x: auto !important;
+  }
+}
+
+@media (max-width: 390px) {
+  body.tf-admin-unified:not(.login) .tf-admin-user-identity {
+    display: none !important;
+  }
+
+  body.tf-admin-unified:not(.login) .tf-admin-user-avatar {
+    display: none !important;
+  }
+
+  body.tf-admin-unified:not(.login) #logout-form button,
+  body.tf-admin-unified:not(.login) .tf-admin-logout-btn {
+    width: 40px !important;
+    min-width: 40px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+  }
+
+  body.tf-admin-unified:not(.login) .tf-admin-logout-label {
+    display: none !important;
   }
 }
 
@@ -426,39 +488,6 @@ body.tf-admin-unified:not(.login) .tf-admin-rail-backdrop {
 
   body.tf-admin-unified.tf-admin-drawer-open:not(.login) .adm-side {
     transform: translateX(0) !important;
-  }
-}
-
-@media (max-width: 640px) {
-  body.tf-admin-unified:not(.login) #header.tf-admin-header {
-    gap: 10px !important;
-    padding-right: 12px !important;
-    padding-left: 12px !important;
-  }
-
-  body.tf-admin-unified:not(.login) .tf-admin-header__brand-text {
-    display: none !important;
-  }
-
-  body.tf-admin-unified:not(.login) .tf-admin-user-tools {
-    gap: 8px !important;
-  }
-
-  body.tf-admin-unified:not(.login) .tf-admin-user-avatar {
-    width: 36px !important;
-    height: 36px !important;
-    flex-basis: 36px !important;
-  }
-
-  body.tf-admin-unified:not(.login) #logout-form button {
-    width: 40px !important;
-    min-width: 40px !important;
-    padding: 0 !important;
-    justify-content: center !important;
-  }
-
-  body.tf-admin-unified:not(.login) .tf-admin-logout-label {
-    display: none !important;
   }
 }
 
