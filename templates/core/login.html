@@ -10,17 +10,53 @@ Solo presentación; contrato del formulario sin cambios.
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 <link rel="stylesheet" href="{% static 'css/login.css' %}">
 {% include "core/includes/auth_password_toggle_assets.html" %}
+<script src="{% static 'js/login-wave-distortion.js' %}?v={{ tf_asset_version|default:'1' }}" defer nonce="{{ csp_nonce }}"></script>
 {% endblock %}
 {% block content %}
 <div class="login-page-wrap login-page-wrap--figma login-page" id="login-figma-root">
   <div class="login-figma-bg" aria-hidden="true">
-    <object
-      class="login-wave-svg"
-      type="image/svg+xml"
-      data="{% static 'images/login-figma/login-wave.svg' %}"
+    <svg
+      class="login-wave-animation"
+      viewBox="0 0 1920 1200"
+      preserveAspectRatio="xMidYMid slice"
       aria-hidden="true"
-      tabindex="-1"
-    ></object>
+    >
+      <defs>
+        <filter
+          id="tradeflow-wave-distortion"
+          x="-10%"
+          y="-10%"
+          width="120%"
+          height="120%"
+        >
+          <feTurbulence
+            id="tradeflow-wave-noise"
+            type="fractalNoise"
+            baseFrequency="0.008 0.012"
+            numOctaves="2"
+            seed="4"
+            stitchTiles="stitch"
+            result="noise"
+          />
+          <feDisplacementMap
+            id="tradeflow-wave-displacement"
+            in="SourceGraphic"
+            in2="noise"
+            scale="12"
+            xChannelSelector="R"
+            yChannelSelector="B"
+          />
+        </filter>
+      </defs>
+      <image
+        href="{% static 'images/login-figma/bg-wave.png' %}"
+        xlink:href="{% static 'images/login-figma/bg-wave.png' %}"
+        width="1920"
+        height="1200"
+        preserveAspectRatio="xMidYMid slice"
+        filter="url(#tradeflow-wave-distortion)"
+      />
+    </svg>
     <img
       class="login-figma-bg__img login-wave-fallback"
       src="{% static 'images/login-figma/bg-wave.png' %}"
