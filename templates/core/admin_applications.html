@@ -241,12 +241,115 @@
     margin: 0;
   }
   .adm-apps-modal-body dd { margin: 0; word-break: break-word; }
+
+  /* Responsive layout: keep content inside the rail-adjusted main area */
+  .adm-apps-page.adm-main {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  #adm-apps-table-card.adm-table-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+  }
+  .adm-apps-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    outline: none;
+  }
+  .adm-apps-table-scroll:focus-visible {
+    box-shadow: inset 0 0 0 2px rgba(242, 101, 34, 0.35);
+    border-radius: 0 0 12px 12px;
+  }
+  #adm-apps-table {
+    width: 100%;
+    min-width: 920px;
+    table-layout: auto;
+  }
+  #adm-apps-table th,
+  #adm-apps-table td {
+    vertical-align: top;
+  }
+  .adm-apps-col-date {
+    white-space: nowrap;
+    font-size: 12px;
+    color: var(--tf-muted);
+  }
+  .adm-apps-cell-text {
+    max-width: 160px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+  }
+  .adm-apps-cell-email {
+    max-width: 200px;
+    font-size: 13px;
+    font-weight: 500;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+  }
+  .adm-apps-cell-message {
+    max-width: 200px;
+    font-size: 12px;
+    color: var(--tf-muted);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+  }
+  .adm-apps-col-actions,
+  .adm-apps-actions-cell {
+    text-align: right;
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    min-width: 220px;
+    white-space: nowrap;
+  }
+  .adm-apps-col-actions {
+    background: #f2f3f5;
+    z-index: 3;
+  }
+  .adm-apps-actions-cell {
+    background: #fff;
+    box-shadow: -6px 0 10px rgba(15, 42, 68, 0.06);
+  }
+  #adm-apps-table tbody tr:hover .adm-apps-actions-cell {
+    background: #fafbfc;
+  }
+  .adm-apps-actions {
+    flex-wrap: nowrap;
+  }
+  .adm-apps-btn-approve,
+  .adm-apps-btn-reject,
+  .adm-apps-view-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  @media (max-width: 768px) {
+    .adm-apps-toolbar-actions {
+      width: 100%;
+      margin-left: 0;
+    }
+    .adm-apps-search-wrap {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+    .adm-apps-export-btn {
+      flex: 0 0 auto;
+    }
+  }
 </style>
 {% endblock %}
 {% block content %}
 <div class="adm-shell">
   {% include "core/admin_rail.html" %}
-  <div class="adm-main">
+  <div class="adm-main adm-apps-page">
     <header class="adm-head">
       <div>
         <h1>
@@ -284,18 +387,19 @@
         <span>{% if current_filter %}{{ current_filter|title }} applications{% else %}All applications{% endif %}</span>
         <span id="adm-apps-visible-count">{{ applications.paginator.count }} record{{ applications.paginator.count|pluralize }} · page {{ applications.number }}</span>
       </div>
+      <div class="adm-apps-table-scroll" id="adm-apps-table-scroll" tabindex="0" role="region" aria-label="Applications table, scroll horizontally to see all columns">
       <table class="adm-table" id="adm-apps-table">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Name</th>
-            <th>Company</th>
-            <th>Role</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Message</th>
-            <th>Status</th>
-            <th style="text-align:right;">Actions</th>
+            <th scope="col">Date</th>
+            <th scope="col">Name</th>
+            <th scope="col">Company</th>
+            <th scope="col">Role</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Message</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="adm-apps-col-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -312,11 +416,11 @@
               data-status="{{ app.status|escape }}"
               data-message="{{ app.message|default:''|escape }}"
               data-date="{{ app.created_at|date:'M d, Y' }}">
-            <td style="white-space:nowrap;font-size:12px;color:var(--tf-muted);">{{ app.created_at|date:"M d, Y" }}</td>
-            <td><strong>{{ app.full_name }}</strong></td>
-            <td>
+            <td class="adm-apps-col-date">{{ app.created_at|date:"M d, Y" }}</td>
+            <td class="adm-apps-cell-text"><strong>{{ app.full_name }}</strong></td>
+            <td class="adm-apps-cell-text">
               {% if app.company_name %}
-              {{ app.company_name }}
+              <span title="{{ app.company_name|escape }}">{{ app.company_name }}</span>
               {% else %}
               <span class="adm-apps-null">Not provided</span>
               {% endif %}
@@ -328,17 +432,17 @@
               <span class="adm-badge adm-badge--warn">Seller</span>
               {% endif %}
             </td>
-            <td style="font-size:13px;font-weight:500;">{{ app.email }}</td>
-            <td style="font-size:13px;">
+            <td class="adm-apps-cell-email" title="{{ app.email|escape }}">{{ app.email }}</td>
+            <td class="adm-apps-cell-text">
               {% if app.phone %}
-              {{ app.phone }}
+              <span title="{{ app.phone|escape }}">{{ app.phone }}</span>
               {% else %}
               <span class="adm-apps-null">Not provided</span>
               {% endif %}
             </td>
-            <td style="font-size:12px;max-width:200px;">
+            <td class="adm-apps-cell-message">
               {% if app.message %}
-              <span style="color:var(--tf-muted);">{{ app.message|truncatechars:80 }}</span>
+              <span title="{{ app.message|escape }}">{{ app.message|truncatechars:80 }}</span>
               {% else %}
               <span class="adm-apps-null">Not provided</span>
               {% endif %}
@@ -352,7 +456,7 @@
               <span class="adm-badge adm-badge--err">Rejected</span>
               {% endif %}
             </td>
-            <td style="text-align:right;" class="adm-apps-actions-cell">
+            <td class="adm-apps-actions-cell">
               <div class="adm-apps-actions">
                 {% if app.status == 'pending' %}
                 <form method="post" action="{% url 'approve_application' app.pk %}" class="js-app-review-form" onclick="event.stopPropagation();" onsubmit="return confirm('Approve application from {{ app.full_name|escapejs }}?');">{% csrf_token %}
@@ -372,6 +476,7 @@
           {% endfor %}
         </tbody>
       </table>
+      </div>
       <p class="adm-apps-no-results" id="adm-apps-no-results">No applications match your search.</p>
       {% if applications.has_other_pages %}
       <div class="adm-pagination">
