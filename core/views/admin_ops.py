@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q, Sum
@@ -910,9 +911,9 @@ def lista_empresas(request):
             Q(name__icontains=buscar) | Q(ruc__icontains=buscar)
         )
     if verificado == '1':
-        empresas = empresas.filter(is_verified=True)
+        empresas = empresas.filter(verification_status='verified')
     elif verificado == '0':
-        empresas = empresas.filter(is_verified=False)
+        empresas = empresas.exclude(verification_status='verified')
 
     paginator = Paginator(empresas, 20)
     page_obj = paginator.get_page(request.GET.get('page', 1))
@@ -936,16 +937,57 @@ def lista_empresas(request):
     })
 
 
+def _admin_post_next_url(request, fallback: str) -> str:
+    """Return a safe post-action redirect target from ``next`` POST field."""
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    next_url = (request.POST.get('next') or '').strip()
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return fallback
+
+
 @admin_required
 @require_POST
 def admin_toggle_company_verified(request, pk):
-    """Toggle Company.is_verified from the admin directory."""
+    """Toggle company verification using ``verification_status`` as canonical state."""
     empresa = get_object_or_404(Company, pk=pk)
-    empresa.is_verified = not empresa.is_verified
-    empresa.save(update_fields=['is_verified'])
-    state = 'verified' if empresa.is_verified else 'unverified'
-    messages.success(request, f'Company “{empresa.name}” marked {state}.')
-    next_url = request.POST.get('next') or reverse('lista_empresas')
+    next_url = _admin_post_next_url(request, reverse('lista_empresas'))
+
+    try:
+        if empresa.verification_status == 'verified':
+            empresa.return_to_pending_review()
+            messages.success(
+                request,
+                f'Company “{empresa.name}” returned to pending review.',
+            )
+        else:
+            empresa.mark_verified(request.user)
+            messages.success(
+                request,
+                f'Company “{empresa.name}” marked verified.',
+            )
+    except ValidationError as exc:
+        missing = empresa.verification_missing_fields()
+        if missing:
+            detail = ', '.join(missing)
+        elif getattr(exc, 'message_dict', None):
+            detail = '; '.join(
+                str(msg)
+                for msgs in exc.message_dict.values()
+                for msg in (msgs if isinstance(msgs, (list, tuple)) else [msgs])
+            )
+        else:
+            detail = str(exc)
+        messages.error(
+            request,
+            f'Cannot verify “{empresa.name}”. Missing or invalid: {detail}.',
+        )
+
     return redirect(next_url)
 
 

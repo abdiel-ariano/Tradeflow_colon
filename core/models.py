@@ -395,6 +395,22 @@ class Company(models.Model):
             'verification_status', 'verified_by', 'verified_at', 'is_verified',
         ])
 
+    def return_to_pending_review(self):
+        """Devuelve una empresa verificada a la cola de revisión manual."""
+        self.verification_status = 'pending'
+        self.verified_by = None
+        self.verified_at = None
+        if self.verification_submitted_at is None:
+            self.verification_submitted_at = timezone.now()
+        self.full_clean()
+        self.save(update_fields=[
+            'verification_status',
+            'verified_by',
+            'verified_at',
+            'verification_submitted_at',
+            'is_verified',
+        ])
+
     def reject_verification(self, reviewer, notes=''):
         """Registra rechazo manual sin eliminar la evidencia presentada."""
         self.verification_status = 'rejected'

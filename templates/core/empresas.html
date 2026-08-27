@@ -60,20 +60,20 @@
             <td><a href="{% url 'admin_empresa_detalle' empresa.pk %}"><strong>{{ empresa.name }}</strong></a></td>
             <td>{{ empresa.ruc|default:"—" }}</td>
             <td>
-              {% if empresa.is_verified %}
+              {% if empresa.verification_status == "verified" %}
               <span class="adm-badge" style="background:#edf7ee;color:#166534;">Verified</span>
               {% else %}
-              <span class="adm-badge" style="background:#fff7ed;color:#9a3412;">Pending</span>
+              <span class="adm-badge" style="background:#fff7ed;color:#9a3412;">{{ empresa.get_verification_status_display }}</span>
               {% endif %}
             </td>
             <td style="text-align:right;">{{ empresa.total_productos }}</td>
             <td>{{ empresa.created_at|date:"d/m/Y" }}</td>
             <td style="text-align:right;">
-              <form method="post" action="{% url 'admin_toggle_company_verified' empresa.pk %}" style="display:inline;" onsubmit="return confirm('{% if empresa.is_verified %}Unverify{% else %}Verify{% endif %} {{ empresa.name|escapejs }}?');">
+              <form method="post" action="{% url 'admin_toggle_company_verified' empresa.pk %}" style="display:inline;" onsubmit="return confirm('{% if empresa.verification_status == "verified" %}Unverify {{ empresa.name|escapejs }}?{% else %}Verify {{ empresa.name|escapejs }}?{% endif %}');">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                <button type="submit" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">
-                  {% if empresa.is_verified %}Unverify{% else %}Verify{% endif %}
+                <button type="submit" class="adm-btn adm-btn--secondary adm-company-verify-btn" style="padding:6px 12px;font-size:0.78rem;">
+                  {% if empresa.verification_status == "verified" %}Unverify{% else %}Verify{% endif %}
                 </button>
               </form>
               <a href="{% url 'admin_empresa_detalle' empresa.pk %}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Open</a>

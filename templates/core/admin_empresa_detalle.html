@@ -9,14 +9,14 @@
     <header class="adm-head">
       <div>
         <h1>{{ empresa.name }}</h1>
-        <p>RUC {{ empresa.ruc|default:"—" }} · {% if empresa.is_verified %}Verified{% else %}Pending verification{% endif %}</p>
+        <p>RUC {{ empresa.ruc|default:"—" }} · {% if empresa.verification_status == "verified" %}Verified{% else %}{{ empresa.get_verification_status_display }}{% endif %}</p>
       </div>
       <div class="adm-head-actions">
-        <form method="post" action="{% url 'admin_toggle_company_verified' empresa.pk %}" style="display:inline;" onsubmit="return confirm('{% if empresa.is_verified %}Unverify{% else %}Verify{% endif %} this company?');">
+        <form method="post" action="{% url 'admin_toggle_company_verified' empresa.pk %}" style="display:inline;" onsubmit="return confirm('{% if empresa.verification_status == "verified" %}Return this company to pending review?{% else %}Verify this company?{% endif %}');">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
           <button type="submit" class="adm-btn adm-btn--primary">
-            {% if empresa.is_verified %}Unverify{% else %}Verify{% endif %}
+            {% if empresa.verification_status == "verified" %}Unverify{% else %}Verify{% endif %}
           </button>
         </form>
         <a href="{% url 'lista_empresas' %}" class="adm-btn adm-btn--secondary">Back</a>
