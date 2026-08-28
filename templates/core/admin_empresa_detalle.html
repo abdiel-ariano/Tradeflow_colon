@@ -36,6 +36,12 @@
       <p><strong>Address:</strong> {{ empresa.address_text|default:"—" }}</p>
       <p><strong>Tagline:</strong> {{ empresa.tagline_en|default:empresa.tagline_es|default:"—" }}</p>
       <p><strong>Created:</strong> {{ empresa.created_at|date:"d/m/Y H:i" }}</p>
+      <p><strong>Submitted for review:</strong> {{ empresa.verification_submitted_at|date:"d/m/Y H:i"|default:"—" }}</p>
+      <p><strong>Verification evidence:</strong>
+        {% if empresa.verification_document %}
+        <a href="{{ empresa.verification_document.url }}" target="_blank" rel="noopener">Open document</a>
+        {% else %}—{% endif %}
+      </p>
     </div>
     {% elif tab == 'products' %}
     <div class="adm-table-card">

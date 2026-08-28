@@ -107,6 +107,11 @@ urlpatterns = [
     path('onboarding/empresa/', seller_onboarding.seller_onboarding_company, name='company_onboarding'),
     path('onboarding/empresa/guardar/', seller_onboarding.seller_onboarding_company_post, name='company_onboarding_post'),
     path('onboarding/empresa/estado/', seller_onboarding.company_verification_status, name='company_verification_status'),
+    path(
+        'api/company/verification-status/',
+        seller_onboarding.api_company_verification_status,
+        name='api_company_verification_status',
+    ),
     # Compatibility aliases for existing seller links.
     path('onboarding/vendedor/', seller_onboarding.seller_onboarding_company, name='seller_onboarding_company'),
     path('onboarding/vendedor/guardar/', seller_onboarding.seller_onboarding_company_post, name='seller_onboarding_company_post'),
@@ -251,6 +256,11 @@ urlpatterns = [
 
     # ── Admin companies ─────────────────────────────────────────────────────
     path('empresas/', views.lista_empresas, name='lista_empresas'),
+    path(
+        'api/admin/companies/pending-watch/',
+        views.api_admin_companies_pending_watch,
+        name='api_admin_companies_pending_watch',
+    ),
     path('empresas/<int:pk>/', views.admin_empresa_detalle, name='admin_empresa_detalle'),
     path(
         'empresas/<int:pk>/toggle-verified/',

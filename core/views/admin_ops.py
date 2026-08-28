@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Count, Prefetch, Q, Sum
+from django.db.models import Case, Count, F, IntegerField, Prefetch, Q, Sum, Value, When
 from django.http import Http404, HttpResponse, JsonResponse
 from django.utils import timezone
 from datetime import datetime, time, timedelta
@@ -900,23 +900,73 @@ def admin_toggle_product_active(request, pk):
 
 @admin_required
 def lista_empresas(request):
-    """Admin directory of CFZ seller companies with search/verify filters."""
-    empresas = Company.objects.annotate(
-        total_productos=Count('products')
-    ).order_by('name')
+    """Admin directory of CFZ companies with pending-review prioritization."""
+    from core.utils.company_verification_status import (
+        is_recent_submission,
+        pending_companies_count,
+    )
+
     buscar = (request.GET.get('buscar') or '').strip()
     verificado = request.GET.get('verificado', '')
-    if buscar:
-        empresas = empresas.filter(
-            Q(name__icontains=buscar) | Q(ruc__icontains=buscar)
-        )
-    if verificado == '1':
+    estado = (request.GET.get('estado') or '').strip()
+    orden = (request.GET.get('orden') or '').strip()
+    page_number = request.GET.get('page', 1)
+
+    user_customized = bool(
+        buscar or verificado or estado or orden or page_number not in ('', '1', 1)
+    )
+
+    empresas = Company.objects.annotate(total_productos=Count('products'))
+
+    if estado == 'pending':
+        empresas = empresas.filter(verification_status='pending')
+    elif estado == 'verified':
+        empresas = empresas.filter(verification_status='verified')
+    elif estado == 'rejected':
+        empresas = empresas.filter(verification_status='rejected')
+    elif estado == 'draft':
+        empresas = empresas.filter(verification_status='draft')
+    elif verificado == '1':
         empresas = empresas.filter(verification_status='verified')
     elif verificado == '0':
         empresas = empresas.exclude(verification_status='verified')
 
+    if buscar:
+        empresas = empresas.filter(
+            Q(name__icontains=buscar) | Q(ruc__icontains=buscar)
+        )
+
+    if orden == 'nombre':
+        empresas = empresas.order_by('name')
+    elif orden == 'enviado':
+        empresas = empresas.order_by(
+            F('verification_submitted_at').desc(nulls_last=True),
+            'name',
+        )
+    elif orden == 'creado':
+        empresas = empresas.order_by('-created_at', 'name')
+    elif not user_customized:
+        empresas = empresas.annotate(
+            _pending_sort=Case(
+                When(verification_status='pending', then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            ),
+        ).order_by(
+            '_pending_sort',
+            F('verification_submitted_at').desc(nulls_last=True),
+            'name',
+        )
+    else:
+        empresas = empresas.order_by('name')
+
+    pending_count = pending_companies_count()
     paginator = Paginator(empresas, 20)
-    page_obj = paginator.get_page(request.GET.get('page', 1))
+    page_obj = paginator.get_page(page_number)
+    for company in page_obj.object_list:
+        company.show_recent_badge = is_recent_submission(
+            company.verification_submitted_at,
+        )
 
     from urllib.parse import urlencode
 
@@ -925,16 +975,55 @@ def lista_empresas(request):
         filtros['buscar'] = buscar
     if verificado:
         filtros['verificado'] = verificado
+    if estado:
+        filtros['estado'] = estado
+    if orden:
+        filtros['orden'] = orden
     empresa_filtros_query = urlencode(filtros)
 
     return render(request, 'core/empresas.html', {
         'empresas': page_obj,
         'buscar': buscar,
         'verificado_filtro': verificado,
+        'estado_filtro': estado,
+        'orden_filtro': orden,
         'empresa_filtros_query': empresa_filtros_query,
+        'pending_companies_count': pending_count,
         'titulo_pagina': 'Companies',
         'nav_activo': 'empresas',
     })
+
+
+@admin_required
+@require_GET
+def api_admin_companies_pending_watch(request):
+    """Read-only feed for admin Companies page to detect new pending submissions."""
+    from core.utils.company_verification_status import pending_companies_count
+
+    pending_qs = (
+        Company.objects.filter(verification_status='pending')
+        .order_by('-verification_submitted_at', '-pk')
+    )
+    submissions = [
+        {
+            'id': company.pk,
+            'name': company.name,
+            'ruc': company.ruc or '',
+            'submitted_at': (
+                company.verification_submitted_at.isoformat()
+                if company.verification_submitted_at
+                else None
+            ),
+        }
+        for company in pending_qs[:100]
+    ]
+    response = JsonResponse({
+        'pending_count': pending_companies_count(),
+        'submissions': submissions,
+    })
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    return response
 
 
 def _admin_post_next_url(request, fallback: str) -> str:

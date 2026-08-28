@@ -1,18 +1,40 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% comment %}Admin — companies directory with search and verify toggle.{% endcomment %}
+{% comment %}Admin — companies directory with pending-review prioritization.{% endcomment %}
 {% block title %}Companies — TradeFlow Colón{% endblock %}
 {% block body_shell_class %} tf-admin-unified{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin-companies-pending.css' %}?v={{ tf_asset_version|default:'1' }}">
+{% endblock %}
 {% block content %}
-<div class="adm-shell">
+<div class="adm-shell" id="adm-companies-shell" data-pending-watch-url="{% url 'api_admin_companies_pending_watch' %}">
   {% include "core/admin_rail.html" %}
   <div class="adm-main">
     <header class="adm-head">
       <div>
         <h1>Companies</h1>
-        <p>Directory of sellers: verification, tax ID, and catalog volume.</p>
+        <p>Directory of B2B companies: documentary verification, tax ID, and catalog volume.</p>
       </div>
     </header>
+
+    {% if pending_companies_count %}
+    <section class="adm-pending-banner" aria-live="polite">
+      <div class="adm-pending-banner__copy">
+        <span class="material-symbols-rounded" aria-hidden="true">pending_actions</span>
+        <div>
+          <strong>{{ pending_companies_count }} empresa{{ pending_companies_count|pluralize }} pendiente{{ pending_companies_count|pluralize }} de revisión</strong>
+          <p>Priorizamos las solicitudes más recientes. Usa el filtro para revisar solo pendientes.</p>
+        </div>
+      </div>
+      <a href="{% url 'lista_empresas' %}?estado=pending" class="adm-btn adm-btn--primary">Ver pendientes</a>
+    </section>
+    {% endif %}
+
+    <div id="adm-companies-new-alert" class="adm-companies-new-alert" hidden role="status" aria-live="polite">
+      <span class="adm-companies-new-alert__text"></span>
+      <a href="{% url 'lista_empresas' %}?estado=pending" class="adm-btn adm-btn--secondary adm-companies-new-alert__cta">Revisar nuevas</a>
+      <button type="button" class="adm-companies-new-alert__dismiss" aria-label="Dismiss">×</button>
+    </div>
 
     <form class="adm-filter-card" method="get" action="">
       <div class="adm-filter-grid">
@@ -21,11 +43,22 @@
           <input id="adm-emp-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="Name or RUC" autocomplete="off">
         </div>
         <div class="adm-field">
-          <label for="adm-emp-ver">Verification</label>
-          <select id="adm-emp-ver" name="verificado">
-            <option value="">All</option>
-            <option value="1" {% if verificado_filtro == '1' %}selected{% endif %}>Verified</option>
-            <option value="0" {% if verificado_filtro == '0' %}selected{% endif %}>Pending</option>
+          <label for="adm-emp-estado">Status</label>
+          <select id="adm-emp-estado" name="estado">
+            <option value="">All statuses</option>
+            <option value="pending" {% if estado_filtro == 'pending' %}selected{% endif %}>Pending review</option>
+            <option value="verified" {% if estado_filtro == 'verified' %}selected{% endif %}>Verified</option>
+            <option value="rejected" {% if estado_filtro == 'rejected' %}selected{% endif %}>Rejected</option>
+            <option value="draft" {% if estado_filtro == 'draft' %}selected{% endif %}>Draft</option>
+          </select>
+        </div>
+        <div class="adm-field">
+          <label for="adm-emp-orden">Sort</label>
+          <select id="adm-emp-orden" name="orden">
+            <option value="">Default (pending first)</option>
+            <option value="enviado" {% if orden_filtro == 'enviado' %}selected{% endif %}>Submitted (newest)</option>
+            <option value="creado" {% if orden_filtro == 'creado' %}selected{% endif %}>Created (newest)</option>
+            <option value="nombre" {% if orden_filtro == 'nombre' %}selected{% endif %}>Name (A–Z)</option>
           </select>
         </div>
         <div class="adm-filter-actions">
@@ -41,34 +74,57 @@
 
     <div class="adm-table-card">
       <div class="adm-table-head"><span>Directory</span></div>
-      <table class="adm-table">
+      <table class="adm-table" id="adm-companies-table">
         <thead>
           <tr>
             <th>#</th>
             <th>Business</th>
             <th>RUC</th>
+            <th>Submitted</th>
             <th>Verification</th>
             <th style="text-align:right;">Products</th>
-            <th>Created</th>
             <th style="text-align:right;">Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for empresa in empresas %}
-          <tr>
+          <tr
+            class="{% if empresa.verification_status == 'pending' %}adm-company-row--pending{% endif %}"
+            data-company-id="{{ empresa.pk }}"
+            data-submitted-at="{% if empresa.verification_submitted_at %}{{ empresa.verification_submitted_at|date:'c' }}{% endif %}"
+          >
             <td>{{ empresa.pk }}</td>
-            <td><a href="{% url 'admin_empresa_detalle' empresa.pk %}"><strong>{{ empresa.name }}</strong></a></td>
+            <td>
+              <a href="{% url 'admin_empresa_detalle' empresa.pk %}"><strong>{{ empresa.name }}</strong></a>
+              {% if empresa.verification_status == 'pending' and empresa.show_recent_badge %}
+              <span class="adm-badge adm-badge--recent" title="Enviada en las últimas 24 horas">Reciente</span>
+              {% endif %}
+            </td>
             <td>{{ empresa.ruc|default:"—" }}</td>
             <td>
-              {% if empresa.verification_status == "verified" %}
-              <span class="adm-badge" style="background:#edf7ee;color:#166534;">Verified</span>
+              {% if empresa.verification_submitted_at %}
+                {{ empresa.verification_submitted_at|date:"d/m/Y H:i" }}
               {% else %}
-              <span class="adm-badge" style="background:#fff7ed;color:#9a3412;">{{ empresa.get_verification_status_display }}</span>
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if empresa.verification_status == "verified" %}
+              <span class="adm-badge adm-badge--verified">Verified</span>
+              {% elif empresa.verification_status == "pending" %}
+              <span class="adm-badge adm-badge--pending">
+                <span class="material-symbols-rounded" aria-hidden="true">hourglass_top</span>
+                Pending review
+              </span>
+              {% elif empresa.verification_status == "rejected" %}
+              <span class="adm-badge adm-badge--rejected">Rejected</span>
+              {% else %}
+              <span class="adm-badge">{{ empresa.get_verification_status_display }}</span>
               {% endif %}
             </td>
             <td style="text-align:right;">{{ empresa.total_productos }}</td>
-            <td>{{ empresa.created_at|date:"d/m/Y" }}</td>
             <td style="text-align:right;">
+              <a href="{% url 'admin_empresa_detalle' empresa.pk %}" class="adm-btn adm-btn--primary adm-company-review-btn">Revisar</a>
               <form method="post" action="{% url 'admin_toggle_company_verified' empresa.pk %}" style="display:inline;" onsubmit="return confirm('{% if empresa.verification_status == "verified" %}Unverify {{ empresa.name|escapejs }}?{% else %}Verify {{ empresa.name|escapejs }}?{% endif %}');">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -76,7 +132,6 @@
                   {% if empresa.verification_status == "verified" %}Unverify{% else %}Verify{% endif %}
                 </button>
               </form>
-              <a href="{% url 'admin_empresa_detalle' empresa.pk %}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Open</a>
             </td>
           </tr>
           {% empty %}
@@ -101,4 +156,7 @@
     </div>
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/admin_companies_watch.js' %}?v={{ tf_asset_version|default:'1' }}" defer></script>
 {% endblock %}

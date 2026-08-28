@@ -44,6 +44,7 @@ def pending_applications_badge(request):
     """Count pending approvals for admin rail badges and work queue."""
     empty = {
         'pending_applications_count': 0,
+        'pending_companies_count': 0,
         'pending_carriers_count': 0,
         'pending_saas_requests_count': 0,
         'pending_stuck_orders_count': 0,
@@ -52,9 +53,11 @@ def pending_applications_badge(request):
         return empty
 
     from core.enterprise_models import CompanyPlanCommercialRequest
-    from core.models import Order, Transportista, UserApplication
+    from core.models import Company, Order, Transportista, UserApplication
+    from core.utils.company_verification_status import pending_companies_count
 
     apps = UserApplication.objects.filter(status='pending').count()
+    companies_pending = pending_companies_count()
     carriers = Transportista.objects.filter(estado='pendiente').count()
     saas = CompanyPlanCommercialRequest.objects.filter(
         status__in=('pending', 'en_revision'),
@@ -64,6 +67,7 @@ def pending_applications_badge(request):
     ).count()
     return {
         'pending_applications_count': apps,
+        'pending_companies_count': companies_pending,
         'pending_carriers_count': carriers,
         'pending_saas_requests_count': saas,
         'pending_stuck_orders_count': stuck,

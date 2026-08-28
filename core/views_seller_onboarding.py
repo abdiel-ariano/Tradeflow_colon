@@ -16,7 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import DatabaseError, IntegrityError
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
@@ -576,3 +576,20 @@ def company_verification_status(request: HttpRequest) -> HttpResponse:
         'company': company,
         'activation_error': activation_error,
     })
+
+
+@login_required
+@require_GET
+def api_company_verification_status(request: HttpRequest) -> JsonResponse:
+    """Read-only poll for the applicant company verification wait screen."""
+    company = b2b_company_for_user(request.user)
+    if company is None:
+        return JsonResponse({'error': 'no_company'}, status=404)
+
+    from core.utils.company_verification_status import company_verification_payload
+
+    payload = company_verification_payload(request.user, company)
+    response = JsonResponse(payload)
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    return response
