@@ -65,6 +65,9 @@ CSS for this shell loads from <head> via admin_ops_assets (not here) to avoid FO
     >
       <span class="material-symbols-rounded" aria-hidden="true">business</span>
       <span class="adm-rail-label">Companies</span>
+      {% if pending_companies_count %}
+      <span class="adm-rail-badge" id="adm-companies-pending-badge">{{ pending_companies_count }}</span>
+      {% endif %}
     </a>
     <a
       class="adm-rail-link"

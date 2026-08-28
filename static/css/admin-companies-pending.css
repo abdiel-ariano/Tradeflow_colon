@@ -1,0 +1,104 @@
+.adm-pending-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 1rem;
+  padding: 14px 16px;
+  border: 1px solid #fcd34d;
+  border-left: 4px solid #f59e0b;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #78350f;
+}
+
+.adm-pending-banner__copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.adm-pending-banner__copy p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #92400e;
+}
+
+.adm-companies-new-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+  padding: 12px 14px;
+  border: 1px solid #93c5fd;
+  border-left: 4px solid #2563eb;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.adm-companies-new-alert__dismiss {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+}
+
+.adm-company-row--pending {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.08), transparent 180px);
+}
+
+.adm-company-row--pending td:first-child {
+  box-shadow: inset 3px 0 0 #f59e0b;
+}
+
+.adm-badge--pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.adm-badge--pending .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.adm-badge--recent {
+  margin-left: 8px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.adm-badge--verified {
+  background: #edf7ee;
+  color: #166534;
+}
+
+.adm-badge--rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.adm-company-review-btn {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  margin-right: 6px;
+}
+
+@media (max-width: 720px) {
+  .adm-pending-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .adm-companies-new-alert {
+    flex-wrap: wrap;
+  }
+}
