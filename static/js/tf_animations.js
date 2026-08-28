@@ -49,6 +49,9 @@
     },
 
     notify: function (mensaje, tipo) {
+      if (global.tfNotify) {
+        return global.tfNotify(mensaje, tipo || 'info');
+      }
       tipo = tipo || 'info';
       var colores = {
         info: { bg: '#e8f4f6', border: '#2E5B8A', text: '#0F2A44' },
