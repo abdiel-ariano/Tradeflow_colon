@@ -85,6 +85,8 @@ class CartQuantityUpdateTests(TestCase):
         body = response.content.decode('utf-8')
         self.assertIn('data-cart-qty-form', body)
         self.assertIn('data-cart-qty-decrease', body)
+        self.assertIn('cart-item__info', body)
+        self.assertIn('cart-item__toolbar', body)
         self.assertIn('data-cart-qty-increase', body)
         self.assertIn('data-cart-line-subtotal', body)
         self.assertIn('data-cart-summary-subtotal', body)
@@ -196,6 +198,7 @@ class CartQuantityUpdateTests(TestCase):
         css = Path('static/css/carrito.css').read_text(encoding='utf-8')
         self.assertIn('.cart-qty--pending', css)
         self.assertIn('grid-template-areas', css)
+        self.assertIn('.cart-page .cart-item', css)
 
     def test_carrito_js_uses_fetch_not_submit(self):
         from pathlib import Path

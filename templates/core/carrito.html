@@ -2,7 +2,7 @@
 {% load static tf_media i18n %}
 {% block title %}{% trans "Request for Quotation" %} — TradeFlow Colón{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/carrito.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/carrito.css' %}?v={{ tf_asset_version|default:'3' }}">
 {% endblock %}
 {% block content %}
 <div class="cart-page">
@@ -38,18 +38,16 @@
             {% endif %}
           </div>
 
-          <div class="cart-item__body">
+          <div class="cart-item__info">
             <div class="cart-item__details">
               <h2 class="cart-item__title">{{ entry.item.nombre }}</h2>
               {% if entry.product and entry.product.company %}
               <p class="cart-item__seller">{% blocktrans with seller=entry.product.company.name %}Sold by {{ seller }}{% endblocktrans %}</p>
-              {% else %}
-              <p class="cart-item__seller cart-item__seller--empty" aria-hidden="true">&nbsp;</p>
               {% endif %}
               <p class="cart-item__unit" data-cart-line-unit>USD {{ entry.item.precio }} {% trans "each" %}</p>
             </div>
 
-            <div class="cart-item__actions">
+            <div class="cart-item__toolbar">
               <form
                 method="post"
                 action="{% url 'actualizar_cantidad_carrito' entry.prod_id %}"
