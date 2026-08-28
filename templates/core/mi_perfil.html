@@ -1,498 +1,251 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load static i18n %}
 {% comment %}
-================================================================================
-templates/core/mi_perfil.html — TradeFlow Colón
-Propósito: perfil del usuario autenticado (datos, contraseña, actividad por rol).
-Contexto: vista mi_perfil; sin comparaciones == en tags (flags desde la vista).
-================================================================================
+templates/core/mi_perfil.html — authenticated user profile (tabbed layout).
 {% endcomment %}
 {% block title %}My Profile — TradeFlow Colón{% endblock %}
 {% block extra_css %}
-<style nonce="{{ csp_nonce }}">
-  .perfil-wrap {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 48px 24px 64px;
-    box-sizing: border-box;
-  }
-  .perfil-hero {
-    background: linear-gradient(135deg, #0F2A44 0%, #1B3B63 100%);
-    border-radius: 12px;
-    padding: 28px 32px;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-    box-shadow: 0 8px 24px rgba(15, 42, 68, 0.15);
-  }
-  .perfil-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: var(--tf-orange, #F26522);
-    color: #fff;
-    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    text-transform: uppercase;
-  }
-  .perfil-hero-text { flex: 1; min-width: 200px; }
-  .perfil-name {
-    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: 24px;
-    color: #fff;
-    margin: 0 0 4px;
-  }
-  .perfil-email {
-    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
-    font-weight: 400;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-    margin: 0 0 10px;
-  }
-  .perfil-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #fff;
-    margin-right: 8px;
-  }
-  .perfil-badge-buyer { background: var(--tf-orange, #F26522); }
-  .perfil-badge-seller { background: var(--tf-navy, #0F2A44); }
-  .perfil-badge-admin { background: #16A34A; }
-  .perfil-since {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.55);
-    margin-top: 8px;
-  }
-  .perfil-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 24px;
-    align-items: start;
-  }
-  @media (max-width: 768px) {
-    .perfil-grid { grid-template-columns: 1fr; }
-  }
-  .perfil-card {
-    background: #fff;
-    border: 1px solid var(--tf-border, #D1D5DB);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: var(--tf-shadow, 0 2px 8px rgba(15, 42, 68, 0.06));
-  }
-  .perfil-card-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--tf-navy, #0F2A44);
-    margin: 0 0 20px;
-  }
-  .perfil-card-title .material-symbols-rounded {
-    font-size: 22px;
-    color: var(--tf-orange, #F26522);
-  }
-  .perfil-row-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  @media (max-width: 575px) {
-    .perfil-row-2 { grid-template-columns: 1fr; }
-  }
-  .perfil-field { margin-bottom: 16px; }
-  .perfil-btn-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    background: var(--tf-orange, #F26522);
-    color: #fff;
-    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .perfil-btn-primary:hover { background: #FF7A3D; }
-  .perfil-btn-outline {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border: 1.5px solid var(--tf-navy, #0F2A44);
-    border-radius: 8px;
-    background: transparent;
-    color: var(--tf-navy, #0F2A44);
-    font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif);
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-  }
-  .perfil-strength {
-    height: 4px;
-    border-radius: 2px;
-    background: #E5E7EB;
-    margin-top: 8px;
-    overflow: hidden;
-  }
-  .perfil-strength-bar {
-    height: 100%;
-    width: 0;
-    transition: width 0.2s, background 0.2s;
-  }
-  .perfil-stat {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--tf-navy, #0F2A44);
-    line-height: 1;
-    margin: 8px 0 4px;
-  }
-  .perfil-stat-label { font-size: 13px; color: var(--tf-muted, #6B7A88); }
-  .perfil-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px;
-    color: var(--tf-orange, #F26522);
-    font-weight: 600;
-    font-size: 14px;
-    text-decoration: none;
-  }
-  .perfil-link:hover { text-decoration: underline; }
-  .perfil-quick {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .perfil-quick a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--tf-border, #D1D5DB);
-    color: var(--tf-navy, #0F2A44);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background 0.15s;
-  }
-  .perfil-quick a:hover { background: var(--tf-light, #F2F3F5); }
-  .perfil-quick .material-symbols-rounded { font-size: 20px; color: var(--tf-orange, #F26522); }
-  .perfil-status-badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    background: #EFF6FF;
-    color: #1E40AF;
-  }
-  .perfil-role-panel { display: none; }
-  .perfil-role-panel.is-visible { display: block; }
-</style>
+<link rel="stylesheet" href="{% static 'css/mi-perfil.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
 {% block content %}
-<div class="tf-page perfil-wrap" id="perfil-root" data-role="{{ role_key }}" style="padding-top: 48px;">
-  {% if not profile.email_verificado %}
-  <div style="margin-bottom:20px;padding:14px 18px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;font-size:14px;color:#92400E;">
-    <p style="margin:0 0 10px;">Your email is not verified yet.</p>
-    <form method="post" action="{% url 'reenviar_verificacion' %}">
-      {% csrf_token %}
-      <button type="submit" class="perfil-btn-primary" style="font-size:13px;">
-        Resend verification email
-      </button>
-    </form>
-  </div>
-  {% endif %}
-  <div class="perfil-hero">
-    <div class="perfil-avatar" id="perfil-avatar-initials" aria-hidden="true"></div>
-    <div class="perfil-hero-text">
-      <h1 class="perfil-name">{{ request.user.get_full_name|default:request.user.username }}</h1>
-      <p class="perfil-email">{{ request.user.email }}</p>
-      <span class="perfil-badge" id="perfil-role-badge"></span>
-      <p class="perfil-since">
-        Member since {{ request.user.date_joined|date:"F Y" }}
-      </p>
+<div class="tf-page perfil-page" id="perfil-root" data-role="{{ role_key }}" data-active-tab="{{ active_tab }}">
+  <div class="perfil-shell">
+    {% if not profile.email_verificado %}
+    <div class="perfil-verify-banner">
+      <p>Your email is not verified yet.</p>
+      <form method="post" action="{% url 'reenviar_verificacion' %}">
+        {% csrf_token %}
+        <button type="submit" class="perfil-btn-primary">Resend verification email</button>
+      </form>
     </div>
-  </div>
+    {% endif %}
 
-  <div class="perfil-grid">
-    <div class="perfil-col-main">
-      <div class="perfil-card">
-        <h2 class="perfil-card-title">
-          <span class="material-symbols-rounded">person</span>
-          Personal information
-        </h2>
-        <form method="post" action="{% url 'mi_perfil' %}">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="update_info">
-          <div class="perfil-row-2">
-            <div class="perfil-field">
-              <label class="tf-label" for="pf_first_name">First name</label>
-              <input type="text" name="first_name" id="pf_first_name" class="tf-input"
-                     value="{{ request.user.first_name }}">
-            </div>
-            <div class="perfil-field">
-              <label class="tf-label" for="pf_last_name">Last name</label>
-              <input type="text" name="last_name" id="pf_last_name" class="tf-input"
-                     value="{{ request.user.last_name }}">
-            </div>
-          </div>
-          <div class="perfil-field">
-            <label class="tf-label" for="pf_email">Email address</label>
-            <input type="email" name="email" id="pf_email" class="tf-input"
-                   value="{{ request.user.email }}">
-          </div>
-          <div class="perfil-field">
-            <label class="tf-label" for="pf_phone">Phone</label>
-            <input type="tel" name="phone" id="pf_phone" class="tf-input"
-                   value="{{ profile.phone }}">
-          </div>
-          <button type="submit" class="perfil-btn-primary">
-            <span class="material-symbols-rounded" style="font-size:18px;">save</span>
-            Save changes
-          </button>
-        </form>
-      </div>
-
-      {% if show_admin or request.user.is_staff or request.user.is_superuser %}
-      <div class="perfil-card">
-        <h2 class="perfil-card-title">
-          <span class="material-symbols-rounded">phonelink_lock</span>
-          Staff MFA
-        </h2>
-        <p style="font-size:13px;color:var(--tf-muted);margin:0 0 12px;">
-          Authenticator app (TOTP) for staff/admin sign-in. Required outside Expo demo mode.
-        </p>
-        <a href="{% url 'staff_mfa_setup' %}" class="perfil-btn-outline" style="display:inline-flex;text-decoration:none;">
-          <span class="material-symbols-rounded" style="font-size:18px;">security</span>
-          Configure MFA
-        </a>
-      </div>
-      {% endif %}
-
-      <div class="perfil-card">
-        <h2 class="perfil-card-title">
-          <span class="material-symbols-rounded">privacy_tip</span>
-          Privacy &amp; data
-        </h2>
-        <form method="post" action="{% url 'mi_perfil' %}" style="margin-bottom:18px;">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="marketing_prefs">
-          <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;font-size:14px;color:var(--tf-body);">
-            <input type="checkbox" name="marketing_opt_in" value="1" {% if profile.marketing_opt_in %}checked{% endif %} style="margin-top:3px;">
-            <span>Send me cart reminders and occasional marketplace promotions.</span>
-          </label>
-          <button type="submit" class="perfil-btn-outline" style="margin-top:12px;">
-            <span class="material-symbols-rounded" style="font-size:18px;">mail</span>
-            Save preferences
-          </button>
-        </form>
-        <form method="post" action="{% url 'mi_perfil' %}" style="margin-bottom:18px;">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="export_data">
-          <p style="font-size:13px;color:var(--tf-muted);margin:0 0 10px;">Download a JSON copy of your profile, addresses, and orders.</p>
-          <button type="submit" class="perfil-btn-outline">
-            <span class="material-symbols-rounded" style="font-size:18px;">download</span>
-            Export my data
-          </button>
-        </form>
-        <form method="post" action="{% url 'mi_perfil' %}" onsubmit="return confirm('This anonymizes your account permanently. Continue?');">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="delete_account">
-          <p style="font-size:13px;color:var(--tf-muted);margin:0 0 10px;">Anonymize your account (orders are retained without your personal details). Type <strong>DELETE</strong> to confirm.</p>
-          <div class="perfil-field">
-            <input type="text" name="confirm_delete" class="tf-input" placeholder="DELETE" autocomplete="off" required>
-          </div>
-          <button type="submit" class="perfil-btn-outline" style="color:#B91C1C;border-color:#FECACA;">
-            <span class="material-symbols-rounded" style="font-size:18px;">person_off</span>
-            Anonymize account
-          </button>
-        </form>
-      </div>
-
-      <div class="perfil-card">
-        <h2 class="perfil-card-title">
-          <span class="material-symbols-rounded">lock</span>
-          Security
-        </h2>
-        <form method="post" action="{% url 'mi_perfil' %}">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="change_password">
-          <div class="perfil-field">
-            <label class="tf-label" for="pf_current">Password</label>
-            <div class="perfil-password-wrap auth-password-wrap">
-              <input type="password" name="current_password" id="pf_current" class="tf-input" required autocomplete="current-password">
-              {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_current" %}
-            </div>
-          </div>
-          <div class="perfil-field">
-            <label class="tf-label" for="pf_new">Password</label>
-            <div class="perfil-password-wrap auth-password-wrap">
-              <input type="password" name="new_password" id="pf_new" class="tf-input" required
-                     autocomplete="new-password">
-              {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_new" %}
-            </div>
-            <div class="perfil-strength" aria-hidden="true">
-              <div class="perfil-strength-bar" id="perfil-strength-bar"></div>
-            </div>
-          </div>
-          <div class="perfil-field">
-            <label class="tf-label" for="pf_confirm">Confirm new password</label>
-            <div class="perfil-password-wrap auth-password-wrap">
-              <input type="password" name="confirm_password" id="pf_confirm" class="tf-input" required
-                     autocomplete="new-password">
-              {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_confirm" %}
-            </div>
-          </div>
-          <button type="submit" class="perfil-btn-outline">
-            <span class="material-symbols-rounded" style="font-size:18px;">key</span>
-            Password
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <div class="perfil-col-side">
-      <div class="perfil-card">
-        <h2 class="perfil-card-title">
-          <span class="material-symbols-rounded">bar_chart</span>
-          Your activity
-        </h2>
-
-        <div class="perfil-role-panel" id="perfil-panel-buyer" data-panel="buyer">
-          <div class="perfil-stat">{{ actividad.total_ordenes|default:0 }}</div>
-          <div class="perfil-stat-label">Orders placed</div>
-          {% if actividad.ultima_orden %}
-          <p style="margin-top:16px;font-size:14px;color:var(--tf-muted);">
-            Last order:
-            <strong style="color:var(--tf-navy);">{{ actividad.ultima_orden.order_number }}</strong>
-            <span class="perfil-status-badge" id="perfil-ultima-estado"
-                  data-status="{{ actividad.ultima_orden.status }}"></span>
-          </p>
-          {% endif %}
-          <a href="{% url 'mis_ordenes' %}" class="perfil-link">
-            <span class="material-symbols-rounded">receipt_long</span>
-            My orders
-          </a>
+    <header class="perfil-hero">
+      <div class="perfil-avatar" id="perfil-avatar-initials" aria-hidden="true">{% if request.user.first_name or request.user.last_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":2" }}{% endif %}</div>
+      <div class="perfil-hero-main">
+        <h1 class="perfil-name">{{ request.user.get_full_name|default:request.user.username }}</h1>
+        <div class="perfil-meta">
+          <p class="perfil-email">{{ request.user.email }}</p>
+          <span class="perfil-badge" id="perfil-role-badge"></span>
+          <p class="perfil-since">Member since {{ request.user.date_joined|date:"F Y" }}</p>
         </div>
+      </div>
+    </header>
 
-        <div class="perfil-role-panel" id="perfil-panel-seller" data-panel="seller">
-          <div class="perfil-stat">{{ actividad.total_productos|default:0 }}</div>
-          <div class="perfil-stat-label">Active products in catalog</div>
-          <a href="{% url 'seller_mis_productos' %}" class="perfil-link">
-            <span class="material-symbols-rounded">inventory_2</span>
-            View my products
-          </a>
+    <section class="perfil-summary" aria-label="Activity and shortcuts">
+      <div class="perfil-summary-card">
+        <h2 class="perfil-summary-title">Your activity</h2>
+        <div class="perfil-role-panel" id="perfil-panel-buyer" data-role-panel="buyer">
+          <div class="perfil-activity-body">
+            <div class="perfil-stat-block">
+              <div class="perfil-stat">{{ actividad.total_ordenes|default:0 }}</div>
+              <div class="perfil-stat-label">Orders placed</div>
+            </div>
+            {% if actividad.ultima_orden %}
+            <div class="perfil-last-order">
+              Last order:
+              <strong>{{ actividad.ultima_orden.order_number }}</strong>
+              <span class="perfil-status-badge" id="perfil-ultima-estado" data-status="{{ actividad.ultima_orden.status }}"></span>
+            </div>
+            {% endif %}
+          </div>
         </div>
-
-        <div class="perfil-role-panel" id="perfil-panel-admin" data-panel="admin">
-          <div class="perfil-stat">{{ actividad.total_usuarios|default:0 }}</div>
-          <div class="perfil-stat-label">Registered users</div>
-          <div class="perfil-stat" style="margin-top:20px;">{{ actividad.total_ordenes|default:0 }}</div>
-          <div class="perfil-stat-label">Orders in period</div>
+        <div class="perfil-role-panel" id="perfil-panel-seller" data-role-panel="seller">
+          <div class="perfil-activity-body">
+            <div class="perfil-stat-block">
+              <div class="perfil-stat">{{ actividad.total_productos|default:0 }}</div>
+              <div class="perfil-stat-label">Active products in catalog</div>
+            </div>
+          </div>
+        </div>
+        <div class="perfil-role-panel" id="perfil-panel-admin" data-role-panel="admin">
+          <div class="perfil-activity-body">
+            <div class="perfil-stat-block">
+              <div class="perfil-stat">{{ actividad.total_usuarios|default:0 }}</div>
+              <div class="perfil-stat-label">Registered users</div>
+            </div>
+            <div class="perfil-stat-block">
+              <div class="perfil-stat">{{ actividad.total_ordenes|default:0 }}</div>
+              <div class="perfil-stat-label">Orders in period</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="perfil-card">
-        <h2 class="perfil-card-title">
-          <span class="material-symbols-rounded">apps</span>
-          Role-based access
-        </h2>
-        <div class="perfil-quick perfil-role-panel" id="perfil-quick-buyer" data-panel="buyer">
+      <div class="perfil-summary-card">
+        <h2 class="perfil-summary-title">Quick access</h2>
+        <div class="perfil-quick perfil-role-panel" id="perfil-quick-buyer" data-role-panel="buyer">
           <a href="{% url 'tienda' %}"><span class="material-symbols-rounded">storefront</span>Go to store</a>
           <a href="{% url 'mis_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>My orders</a>
         </div>
-        <div class="perfil-quick perfil-role-panel" id="perfil-quick-seller" data-panel="seller">
+        <div class="perfil-quick perfil-role-panel" id="perfil-quick-seller" data-role-panel="seller">
           <a href="{% url 'portal_seller' %}"><span class="material-symbols-rounded">dashboard</span>My Dashboard</a>
           <a href="{% url 'seller_mis_productos' %}"><span class="material-symbols-rounded">inventory_2</span>Products</a>
           <a href="{% url 'seller_mis_ventas' %}"><span class="material-symbols-rounded">payments</span>My sales</a>
         </div>
-        <div class="perfil-quick perfil-role-panel" id="perfil-quick-admin" data-panel="admin">
+        <div class="perfil-quick perfil-role-panel" id="perfil-quick-admin" data-role-panel="admin">
           <a href="{% url 'dashboard' %}"><span class="material-symbols-rounded">dashboard</span>Dashboard</a>
-          <a href="{% url 'lista_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>My orders</a>
-          <a href="{% url 'lista_productos' %}"><span class="material-symbols-rounded">inventory_2</span>View products</a>
+          <a href="{% url 'lista_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>Orders</a>
+          <a href="{% url 'lista_productos' %}"><span class="material-symbols-rounded">inventory_2</span>Products</a>
         </div>
       </div>
+
+      <div class="perfil-signout-wrap">
+        {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" label="Sign out" %}
+      </div>
+    </section>
+
+    <div class="perfil-main-card" id="perfil-tabs-root">
+      <nav class="perfil-tabs" role="tablist" aria-label="Profile sections">
+        <a href="?tab=personal" class="perfil-tab{% if active_tab == 'personal' %} is-active{% endif %}" role="tab" id="perfil-tab-personal" aria-controls="perfil-panel-personal" aria-selected="{% if active_tab == 'personal' %}true{% else %}false{% endif %}" data-tab="personal">Personal information</a>
+        <a href="?tab=security" class="perfil-tab{% if active_tab == 'security' %} is-active{% endif %}" role="tab" id="perfil-tab-security" aria-controls="perfil-panel-security" aria-selected="{% if active_tab == 'security' %}true{% else %}false{% endif %}" data-tab="security">Security</a>
+        <a href="?tab=privacy" class="perfil-tab{% if active_tab == 'privacy' %} is-active{% endif %}" role="tab" id="perfil-tab-privacy" aria-controls="perfil-panel-privacy" aria-selected="{% if active_tab == 'privacy' %}true{% else %}false{% endif %}" data-tab="privacy">Privacy &amp; data</a>
+      </nav>
+
+      <section class="perfil-panel{% if active_tab == 'personal' %} is-active{% endif %}" id="perfil-panel-personal" role="tabpanel" aria-labelledby="perfil-tab-personal" data-tab-panel="personal"{% if active_tab != 'personal' %} hidden{% endif %}>
+        <h2 class="perfil-panel-title"><span class="material-symbols-rounded">person</span>Personal information</h2>
+        <form method="post" action="{% url 'mi_perfil' %}?tab=personal">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_info">
+          <div class="perfil-form-grid">
+            <div class="perfil-field">
+              <label class="tf-label" for="pf_first_name">First name</label>
+              <input type="text" name="first_name" id="pf_first_name" class="tf-input" value="{{ request.user.first_name }}">
+            </div>
+            <div class="perfil-field">
+              <label class="tf-label" for="pf_last_name">Last name</label>
+              <input type="text" name="last_name" id="pf_last_name" class="tf-input" value="{{ request.user.last_name }}">
+            </div>
+            <div class="perfil-field">
+              <label class="tf-label" for="pf_email">Email address</label>
+              <input type="email" name="email" id="pf_email" class="tf-input" value="{{ request.user.email }}">
+            </div>
+            <div class="perfil-field">
+              <label class="tf-label" for="pf_phone">Phone</label>
+              <input type="tel" name="phone" id="pf_phone" class="tf-input" value="{{ profile.phone }}">
+              <span class="perfil-field-help">Optional. Used for order updates when provided.</span>
+            </div>
+          </div>
+          <div class="perfil-form-actions">
+            <button type="submit" class="perfil-btn-primary">
+              <span class="material-symbols-rounded" style="font-size:18px;">save</span>
+              Save changes
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="perfil-panel{% if active_tab == 'security' %} is-active{% endif %}" id="perfil-panel-security" role="tabpanel" aria-labelledby="perfil-tab-security" data-tab-panel="security"{% if active_tab != 'security' %} hidden{% endif %}>
+        <h2 class="perfil-panel-title"><span class="material-symbols-rounded">lock</span>Security</h2>
+        <form method="post" action="{% url 'mi_perfil' %}?tab=security">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="change_password">
+          <div class="perfil-form-grid perfil-form-grid--single">
+            <div class="perfil-field">
+              <label class="tf-label" for="pf_current">Current password</label>
+              <div class="auth-password-wrap">
+                <input type="password" name="current_password" id="pf_current" class="tf-input" required autocomplete="current-password"{% if field_errors.current_password %} aria-invalid="true"{% endif %}>
+                {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_current" %}
+              </div>
+              {% if field_errors.current_password %}<span class="perfil-field-error">{{ field_errors.current_password }}</span>{% endif %}
+            </div>
+            <div class="perfil-field">
+              <label class="tf-label" for="pf_new">New password</label>
+              <div class="auth-password-wrap">
+                <input type="password" name="new_password" id="pf_new" class="tf-input" required autocomplete="new-password"{% if field_errors.new_password %} aria-invalid="true"{% endif %}>
+                {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_new" %}
+              </div>
+              <div class="perfil-strength" aria-hidden="true"><div class="perfil-strength-bar" id="perfil-strength-bar"></div></div>
+              {% if field_errors.new_password %}<span class="perfil-field-error">{{ field_errors.new_password }}</span>{% endif %}
+            </div>
+            <div class="perfil-field">
+              <label class="tf-label" for="pf_confirm">Confirm new password</label>
+              <div class="auth-password-wrap">
+                <input type="password" name="confirm_password" id="pf_confirm" class="tf-input" required autocomplete="new-password"{% if field_errors.confirm_password %} aria-invalid="true"{% endif %}>
+                {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_confirm" %}
+              </div>
+              {% if field_errors.confirm_password %}<span class="perfil-field-error">{{ field_errors.confirm_password }}</span>{% endif %}
+            </div>
+          </div>
+          <div class="perfil-form-actions">
+            <button type="submit" class="perfil-btn-outline">
+              <span class="material-symbols-rounded" style="font-size:18px;">key</span>
+              Change password
+            </button>
+          </div>
+        </form>
+
+        {% if show_admin or request.user.is_staff or request.user.is_superuser %}
+        <div class="perfil-privacy-section" style="margin-top:20px;">
+          <h3>Staff MFA</h3>
+          <p>Authenticator app (TOTP) for staff/admin sign-in. Required outside Expo demo mode.</p>
+          <a href="{% url 'staff_mfa_setup' %}" class="perfil-btn-outline">
+            <span class="material-symbols-rounded" style="font-size:18px;">security</span>
+            Configure MFA
+          </a>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="perfil-panel{% if active_tab == 'privacy' %} is-active{% endif %}" id="perfil-panel-privacy" role="tabpanel" aria-labelledby="perfil-tab-privacy" data-tab-panel="privacy"{% if active_tab != 'privacy' %} hidden{% endif %}>
+        <h2 class="perfil-panel-title"><span class="material-symbols-rounded">privacy_tip</span>Privacy &amp; data</h2>
+
+        <div class="perfil-privacy-section">
+          <h3>Communication preferences</h3>
+          <p>Choose whether TradeFlow may send cart reminders and occasional marketplace promotions.</p>
+          <form method="post" action="{% url 'mi_perfil' %}?tab=privacy">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="marketing_prefs">
+            <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;font-size:14px;color:var(--tf-body);">
+              <input type="checkbox" name="marketing_opt_in" value="1" {% if profile.marketing_opt_in %}checked{% endif %} style="margin-top:3px;">
+              <span>Send me cart reminders and occasional marketplace promotions.</span>
+            </label>
+            <div class="perfil-form-actions">
+              <button type="submit" class="perfil-btn-outline">
+                <span class="material-symbols-rounded" style="font-size:18px;">mail</span>
+                Save preferences
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="perfil-privacy-section">
+          <h3>Export your data</h3>
+          <p>Download a JSON copy of your profile, addresses, and orders.</p>
+          <form method="post" action="{% url 'mi_perfil' %}?tab=privacy">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="export_data">
+            <button type="submit" class="perfil-btn-outline">
+              <span class="material-symbols-rounded" style="font-size:18px;">download</span>
+              Export my data
+            </button>
+          </form>
+        </div>
+
+        <div class="perfil-privacy-section perfil-sensitive">
+          <h3>Anonymize account</h3>
+          <p>This permanently anonymizes your account. Orders are retained without your personal details. Type <strong>DELETE</strong> to confirm.</p>
+          <form method="post" action="{% url 'mi_perfil' %}?tab=privacy" onsubmit="return confirm('This anonymizes your account permanently. Continue?');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_account">
+            <div class="perfil-field" style="max-width:280px;">
+              <label class="tf-label" for="pf_confirm_delete">Confirmation</label>
+              <input type="text" name="confirm_delete" id="pf_confirm_delete" class="tf-input" placeholder="DELETE" autocomplete="off" required{% if field_errors.confirm_delete %} aria-invalid="true"{% endif %}>
+              {% if field_errors.confirm_delete %}<span class="perfil-field-error">{{ field_errors.confirm_delete }}</span>{% endif %}
+            </div>
+            <div class="perfil-form-actions">
+              <button type="submit" class="perfil-btn-danger">
+                <span class="material-symbols-rounded" style="font-size:18px;">person_off</span>
+                Anonymize account
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
     </div>
   </div>
 </div>
 
 {% include "core/includes/auth_password_toggle_assets.html" %}
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var root = document.getElementById('perfil-root');
-  if (!root) return;
-  var role = root.getAttribute('data-role') || 'buyer';
-
-  var labels = {
-    buyer: 'Buyer',
-    seller: 'Seller',
-    admin: 'Administrator'
-  };
-  var badge = document.getElementById('perfil-role-badge');
-  if (badge) {
-    badge.textContent = labels[role] || labels.buyer;
-    badge.className = 'perfil-badge perfil-badge-' + (role === 'seller' ? 'seller' : (role === 'admin' ? 'admin' : 'buyer'));
-  }
-
-  var fn = '{{ request.user.first_name|escapejs }}';
-  var ln = '{{ request.user.last_name|escapejs }}';
-  var ini = (fn.charAt(0) || '').toUpperCase() + (ln.charAt(0) || '').toUpperCase();
-  if (!ini) ini = '{{ request.user.username|slice:":2"|upper|escapejs }}';
-  var av = document.getElementById('perfil-avatar-initials');
-  if (av) av.textContent = ini;
-
-  document.querySelectorAll('[data-panel]').forEach(function (el) {
-    if (el.getAttribute('data-panel') === role) el.classList.add('is-visible');
-  });
-
-  var statusLabels = {
-    pending: 'Pending',
-    paid: 'Paid',
-    packed: 'Packed',
-    shipped: 'Shipped',
-    delivered: 'Delivered',
-    cancelled: 'Cancelled'
-  };
-  var stEl = document.getElementById('perfil-ultima-estado');
-  if (stEl) {
-    var st = stEl.getAttribute('data-status') || '';
-    stEl.textContent = statusLabels[st] || st;
-  }
-
-  var newPw = document.getElementById('pf_new');
-  var bar = document.getElementById('perfil-strength-bar');
-  if (newPw && bar) {
-    newPw.addEventListener('input', function () {
-      var v = newPw.value || '';
-      var score = 0;
-      if (v.length >= 8) score = 1;
-      if (v.length >= 12) score = 2;
-      if (/[0-9]/.test(v) && /[^A-Za-z0-9]/.test(v) && v.length >= 12) score = 3;
-      var colors = ['#EF4444', '#EAB308', '#22C55E'];
-      var widths = ['33%', '66%', '100%'];
-      bar.style.width = v.length ? widths[Math.min(score, 2)] : '0';
-      bar.style.background = v.length ? colors[Math.min(score, 2)] : 'transparent';
-    });
-  }
-})();
-</script>
+<script src="{% static 'js/mi_perfil.js' %}?v={{ tf_asset_version|default:'1' }}" defer></script>
 {% endblock %}
