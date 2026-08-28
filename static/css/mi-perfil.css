@@ -112,7 +112,7 @@
 
 .perfil-summary {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr) auto;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr);
   gap: 12px 16px;
   align-items: start;
   margin: 14px 0 16px;
@@ -209,24 +209,6 @@
 .perfil-quick .material-symbols-rounded {
   font-size: 18px;
   color: var(--tf-orange, #f26522);
-}
-
-.perfil-signout-wrap {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding-top: 4px;
-}
-
-.perfil-signout-wrap .tf-logout-control__link {
-  color: var(--tf-navy, #0f2a44);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.perfil-signout-wrap .tf-logout-control__link:hover {
-  text-decoration: underline;
 }
 
 .perfil-main-card {

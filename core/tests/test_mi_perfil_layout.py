@@ -60,13 +60,26 @@ class MiPerfilLayoutTests(TestCase):
         self.assertContains(resp, 'data-target="pf_new"')
         self.assertContains(resp, 'data-target="pf_confirm"')
 
-    def test_sign_out_uses_post_logout_control(self):
+    def test_sign_out_uses_post_logout_control_in_header_only(self):
         resp = self.client.get(reverse('mi_perfil'))
         body = resp.content.decode()
         self.assertIn('method="post"', body)
         self.assertIn('action="/logout/"', body)
         self.assertIn('Sign out', body)
+        self.assertIn('tf-header-signout', body)
         self.assertNotIn('href="/logout/"', body)
+        self.assertNotIn('perfil-signout-wrap', body)
+
+    def test_profile_body_has_no_duplicate_sign_out_control(self):
+        resp = self.client.get(reverse('mi_perfil'))
+        body = resp.content.decode()
+        summary_start = body.find('class="perfil-summary"')
+        self.assertNotEqual(summary_start, -1)
+        summary_end = body.find('class="perfil-main-card"', summary_start)
+        self.assertNotEqual(summary_end, -1)
+        summary_block = body[summary_start:summary_end]
+        self.assertNotIn('action="/logout/"', summary_block)
+        self.assertNotIn('Sign out', summary_block)
 
     def test_update_info_redirects_to_personal_tab(self):
         resp = self.client.post(

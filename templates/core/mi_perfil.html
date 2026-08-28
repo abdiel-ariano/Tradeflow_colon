@@ -89,10 +89,6 @@ templates/core/mi_perfil.html — authenticated user profile (tabbed layout).
           <a href="{% url 'lista_productos' %}"><span class="material-symbols-rounded">inventory_2</span>Products</a>
         </div>
       </div>
-
-      <div class="perfil-signout-wrap">
-        {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" label="Sign out" %}
-      </div>
     </section>
 
     <div class="perfil-main-card" id="perfil-tabs-root">

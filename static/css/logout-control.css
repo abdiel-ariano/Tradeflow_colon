@@ -52,3 +52,47 @@
 .nav-secondary-right .tf-logout-control button[type="submit"]:hover {
   text-decoration: underline;
 }
+
+/* Public header sign-out: link-like POST button (buyer primary nav). */
+.cat-nav.tf-nav-alibaba .navbar-actions .tf-logout-control button.tf-header-signout,
+.cat-nav.tf-nav-alibaba .navbar-actions .tf-logout-control button[type="submit"].tf-header-signout {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tf-text-2, #6b7280);
+  cursor: pointer;
+  padding: 4px 2px;
+  margin: 0;
+  min-height: 28px;
+  line-height: 1.2;
+  text-align: inherit;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.cat-nav.tf-nav-alibaba .navbar-actions .tf-logout-control button.tf-header-signout:hover,
+.cat-nav.tf-nav-alibaba .navbar-actions .tf-logout-control button[type="submit"].tf-header-signout:hover {
+  color: var(--tf-navy, #0f2a44);
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.cat-nav.tf-nav-alibaba .navbar-actions .tf-logout-control button.tf-header-signout:focus-visible,
+.cat-nav.tf-nav-alibaba .navbar-actions .tf-logout-control button[type="submit"].tf-header-signout:focus-visible {
+  outline: 2px solid var(--tf-orange, #f26522);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1100px) {
+  .cat-nav.tf-nav-alibaba .navbar-actions .tf-logout-control button.tf-header-signout,
+  .cat-nav.tf-nav-alibaba .navbar-actions .tf-logout-control button[type="submit"].tf-header-signout {
+    display: inline;
+  }
+}
