@@ -9,7 +9,7 @@
     <div class="hm-join-band__actions">
       {% if tf_seller_onboarding_pending %}
       <a href="{% url 'seller_onboarding_company' %}" class="hm-join-band__btn hm-join-band__btn--primary">{% trans "Complete company setup" %}</a>
-      <a href="{% url 'logout' %}" class="hm-join-band__btn hm-join-band__btn--ghost">{% trans "Sign out" %}</a>
+      {% include "core/includes/logout_control.html" with button_class="hm-join-band__btn hm-join-band__btn--ghost" %}
       {% elif request.user.is_authenticated %}
       <a href="{% url 'catalogo_publico' %}" class="hm-join-band__btn hm-join-band__btn--primary">{% trans "Browse catalog" %}</a>
       <a href="{% url 'acerca_tradeflow' %}" class="hm-join-band__btn hm-join-band__btn--ghost">{% trans "Why TradeFlow" %}</a>

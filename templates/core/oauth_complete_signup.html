@@ -68,7 +68,7 @@
       </form>
 
       <p class="signup-form-subtitle" style="margin-top:1.25rem;margin-bottom:0;text-align:center;">
-        <a href="{% url 'logout' %}">{% trans "Sign out" %}</a>
+        {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" %}
       </p>
     </div>
   </div>

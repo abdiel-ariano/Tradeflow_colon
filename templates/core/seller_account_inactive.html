@@ -27,7 +27,7 @@ Cuenta seller en baja media (cancelled): portal bloqueado, datos preservados.
       {% trans "Your products are hidden from the catalog and map. Data is preserved in our system." %}
     </p>
     <p>{% trans "To reactivate, contact support or complete a new plan activation when available." %}</p>
-    <a href="{% url 'logout' %}" class="tf-btn-secondary">{% trans "Sign out" %}</a>
+    {% include "core/includes/logout_control.html" with button_class="tf-btn-secondary" %}
     <a href="{% url 'home' %}" class="tf-btn-primary" style="margin-left:8px;">{% trans "Back to home" %}</a>
   </div>
 </div>

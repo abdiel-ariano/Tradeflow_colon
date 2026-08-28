@@ -63,7 +63,7 @@
       {% elif company.verification_status == 'verified' %}
         <a class="tf-btn-primary" href="{% url 'catalogo_publico' %}">Explorar catálogo mayorista</a>
       {% endif %}
-      <a class="tf-btn-secondary" href="{% url 'logout' %}">Cerrar sesión</a>
+      {% include "core/includes/logout_control.html" with button_class="tf-btn-secondary" label="Cerrar sesión" %}
     </div>
   </section>
 </main>

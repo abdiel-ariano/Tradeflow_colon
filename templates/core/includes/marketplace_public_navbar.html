@@ -138,10 +138,10 @@
         <a href="{% url 'acerca_tradeflow' %}">{% trans "Help center" %}</a>
         {% if tf_seller_onboarding_pending %}
         <a href="{% url 'seller_onboarding_company' %}">{% trans "Complete company setup" %}</a>
-        <a href="{% url 'logout' %}">{% trans "Sign out" %}</a>
+        {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" %}
         {% elif tf_user_role == 'seller' %}
         <a href="{% url 'portal_seller' %}">{% trans "Seller portal" %}</a>
-        <a href="{% url 'logout' %}">{% trans "Sign out" %}</a>
+        {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" %}
         {% else %}
         <a href="{% url 'signup_seller' %}">{% trans "Sell on TradeFlow" %}</a>
         {% endif %}

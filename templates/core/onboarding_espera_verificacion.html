@@ -68,7 +68,7 @@
     </form>
 
     <p style="font-size:12px;color:var(--tf-muted);margin:16px 0 0;text-align:center;">You can also use the link in the email. Once verified, this page will refresh automatically.</p>
-    <p style="margin-top:20px;font-size:13px;text-align:center;"><a href="{% url 'logout' %}" style="color:var(--tf-blue);">Sign out</a></p>
+    <p style="margin-top:20px;font-size:13px;text-align:center;">{% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" button_style="color:var(--tf-blue);" label="Sign out" %}</p>
   </div>
 </div>
 <script nonce="{{ csp_nonce }}">
