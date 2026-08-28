@@ -502,9 +502,18 @@ def reenviar_verificacion_public(request):
 def mi_perfil(request):
     """Show and update the authenticated user profile."""
     from django.contrib.auth import update_session_auth_hash
+    from urllib.parse import urlencode
 
     profile = request.user.profile
     role = profile.role
+    field_errors = request.session.pop('profile_field_errors', {}) or {}
+    active_tab = (request.GET.get('tab') or 'personal').strip()
+    if active_tab not in ('personal', 'security', 'privacy'):
+        active_tab = 'personal'
+
+    def _redirect_to_tab(tab: str):
+        query = urlencode({'tab': tab})
+        return redirect(f"{reverse('mi_perfil')}?{query}")
 
     if request.method == 'POST':
         action = request.POST.get('action', '')
@@ -517,23 +526,31 @@ def mi_perfil(request):
             request.user.save()
             profile.save()
             messages.success(request, 'Profile updated successfully.')
+            return _redirect_to_tab('personal')
 
         elif action == 'change_password':
             current = request.POST.get('current_password')
             new_pass = request.POST.get('new_password')
             confirm = request.POST.get('confirm_password')
+            errors = {}
 
             if not request.user.check_password(current):
-                messages.error(request, 'Current password is incorrect.')
+                errors['current_password'] = 'Current password is incorrect.'
+            if len(new_pass or '') < 8:
+                errors['new_password'] = 'Password must be at least 8 characters.'
             elif new_pass != confirm:
-                messages.error(request, 'New passwords do not match.')
-            elif len(new_pass or '') < 8:
-                messages.error(request, 'Password must be at least 8 characters.')
-            else:
-                request.user.set_password(new_pass)
-                request.user.save()
-                update_session_auth_hash(request, request.user)
-                messages.success(request, 'Password changed successfully.')
+                errors['confirm_password'] = 'New passwords do not match.'
+
+            if errors:
+                request.session['profile_field_errors'] = errors
+                messages.error(request, 'Could not change password. Check the fields below.')
+                return _redirect_to_tab('security')
+
+            request.user.set_password(new_pass)
+            request.user.save()
+            update_session_auth_hash(request, request.user)
+            messages.success(request, 'Password changed successfully.')
+            return _redirect_to_tab('security')
 
         elif action == 'marketing_prefs':
             profile.marketing_opt_in = request.POST.get('marketing_opt_in') in (
@@ -541,6 +558,7 @@ def mi_perfil(request):
             )
             profile.save(update_fields=['marketing_opt_in'])
             messages.success(request, 'Communication preferences saved.')
+            return _redirect_to_tab('privacy')
 
         elif action == 'export_data':
             from core.utils.privacy import export_user_json_bytes
@@ -555,10 +573,11 @@ def mi_perfil(request):
         elif action == 'delete_account':
             confirm = (request.POST.get('confirm_delete') or '').strip().upper()
             if confirm != 'DELETE':
-                messages.error(
-                    request,
-                    'Type DELETE to confirm account anonymization.',
-                )
+                request.session['profile_field_errors'] = {
+                    'confirm_delete': 'Type DELETE to confirm account anonymization.',
+                }
+                messages.error(request, 'Type DELETE to confirm account anonymization.')
+                return _redirect_to_tab('privacy')
             else:
                 from django.contrib.auth import logout as auth_logout
 
@@ -572,7 +591,7 @@ def mi_perfil(request):
                 )
                 return redirect('home')
 
-        return redirect('mi_perfil')
+        return _redirect_to_tab(active_tab)
 
     actividad = {}
     show_buyer = role == 'buyer'
@@ -604,4 +623,6 @@ def mi_perfil(request):
         'show_seller': show_seller,
         'show_admin': show_admin,
         'role_key': role,
+        'active_tab': active_tab,
+        'field_errors': field_errors,
     })
