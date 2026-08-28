@@ -14,10 +14,6 @@
     '[data-cart-badge]',
   ].join(', ');
 
-  var CART_TOAST_SVG =
-    '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">' +
-    '<path fill="currentColor" d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 .001 3.999A2 2 0 0 0 17 18ZM6.2 6h14.3l-1.4 7.2a1 1 0 0 1-1 .8H9.2L6.2 6Zm-1.2-2h16l2 10a3 3 0 0 1-3 2.4H8.4L6.7 4.6 4 2H1v2h2.2Z"/></svg>';
-
   function getCookie(name) {
     var parts = document.cookie ? document.cookie.split(';') : [];
     var i;
@@ -50,25 +46,11 @@
 
   function showToast(message, level) {
     if (!message) return;
-    var shortMsg = message;
-    if (shortMsg.length > 42) {
-      shortMsg = (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Added to inquiry cart';
-    }
     if (window.tfNotify) {
-      window.tfNotify(shortMsg, level || 'success', { variant: 'cart' });
-      return;
+      window.tfNotify(message, level || 'success', {
+        dedupeKey: 'cart-add:' + message,
+      });
     }
-    var toast = document.createElement('div');
-    toast.className = 'tf-cart-snackbar is-visible';
-    toast.innerHTML =
-      '<span class="tf-cart-snackbar__ico">' + CART_TOAST_SVG + '</span>' +
-      '<span class="tf-cart-snackbar__msg"></span>';
-    toast.querySelector('.tf-cart-snackbar__msg').textContent = shortMsg;
-    document.body.appendChild(toast);
-    setTimeout(function () {
-      toast.classList.remove('is-visible');
-      setTimeout(function () { toast.remove(); }, 220);
-    }, 2400);
   }
 
   function parseJsonResponse(r) {

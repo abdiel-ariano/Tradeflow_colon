@@ -698,21 +698,10 @@
   });
 
   function showToast(message, level) {
-    if (window.tfNotify) {
-      window.tfNotify(message, level || 'success', { variant: 'cart' });
-      return;
-    }
-    var toast = document.createElement('div');
-    toast.className = 'inquiry-toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    requestAnimationFrame(function () {
-      toast.classList.add('is-visible');
+    if (!message || !window.tfNotify) return;
+    window.tfNotify(message, level || 'success', {
+      dedupeKey: 'catalog-add:' + message,
     });
-    setTimeout(function () {
-      toast.classList.remove('is-visible');
-      setTimeout(function () { toast.remove(); }, 300);
-    }, 2400);
   }
 
   function updateCartBadges(count) {

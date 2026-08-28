@@ -44,7 +44,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'5' }}">
   {# Marketplace Alibaba chrome (nav/search) — guests, buyers, and sellers on public pages. #}
   <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'14' }}">
-  <link rel="stylesheet" href="{% static 'css/tf-mobile-pwa.css' %}?v={{ tf_asset_version|default:'4' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-toasts.css' %}?v={{ tf_asset_version|default:'1' }}">
   <script nonce="{{ csp_nonce }}" defer src="{% static 'js/tf-mobile-pwa.js' %}?v={{ tf_asset_version|default:'2' }}"></script>
   <link rel="stylesheet" href="{% static 'css/tf-icons.css' %}?v={{ tf_asset_version|default:'2' }}">
   {# Full-width rail: FAB starts LEFT; JS translates it RIGHT after scroll. #}
@@ -725,106 +725,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       color: var(--tf-white);
     }
 
-    /* ----- Flash messages (esquina superior derecha; nunca invadir la zona del logo) ----- */
-    .tf-flash-stack {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 11000;
-      width: min(420px, calc(100vw - 32px));
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
-      pointer-events: none;
-    }
-    .tf-flash-stack > * { pointer-events: auto; }
-
-    .tf-flash {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 14px 16px;
-      border-radius: var(--tf-radius-card);
-      border: 1px solid var(--tf-border);
-      background: var(--tf-white);
-      box-shadow: var(--tf-shadow-card-hover);
-      font-size: 0.875rem;
-      line-height: 1.45;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .tf-flash .material-symbols-rounded {
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-    .tf-flash-msg { flex: 1; color: var(--tf-body); }
-    .tf-flash-close {
-      flex-shrink: 0;
-      border: none;
-      background: none;
-      cursor: pointer;
-      padding: 0;
-      color: var(--tf-muted);
-      line-height: 1;
-      transition: color 0.2s ease;
-    }
-    .tf-flash-close:hover { color: var(--tf-title); }
-    .tf-flash-success { border-color: #BBF7D0; background: #F0FDF4; }
-    .tf-flash-danger, .tf-flash-error { border-color: #FECACA; background: #FEF2F2; }
-    .tf-flash-warning { border-color: #FDE68A; background: #FFFBEB; }
-    .tf-flash-info, .tf-flash-debug { border-color: #BFDBFE; background: #EFF6FF; }
-
-    .tf-toast-root {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 11000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: min(380px, calc(100vw - 32px));
-      pointer-events: none;
-    }
-    .tf-toast-root > * { pointer-events: auto; }
-    .tf-toast,
-    .tf-flash {
-      transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-    .tf-toast {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--tf-border);
-      background: var(--tf-white);
-      box-shadow: 0 8px 24px rgba(15, 42, 68, 0.14);
-      opacity: 0;
-      transform: translateY(-8px);
-    }
-    .tf-toast.is-visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .tf-toast-critical { border-width: 2px; }
-    .tf-toast-success { border-color: #BBF7D0; background: #F0FDF4; }
-    .tf-toast-error { border-color: #FECACA; background: #FEF2F2; }
-    .tf-toast-warning { border-color: #FDE68A; background: #FFFBEB; }
-    .tf-toast-ico { font-size: 22px; flex-shrink: 0; color: var(--tf-blue); }
-    .tf-toast-success .tf-toast-ico { color: #15803d; }
-    .tf-toast-error .tf-toast-ico { color: #b91c1c; }
-    .tf-toast-msg { flex: 1; font-size: 0.875rem; color: var(--tf-body); line-height: 1.4; }
-    .tf-toast-close {
-      border: none;
-      background: transparent;
-      padding: 2px;
-      cursor: pointer;
-      color: var(--tf-muted);
-      line-height: 1;
-    }
+    /* Legacy flash/toast positioning — superseded by static/css/tf-toasts.css */
 
     /* ----- Buttons (global) ----- */
     .tf-btn {
@@ -1194,27 +1095,25 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   {% if messages %}
   <script nonce="{{ csp_nonce }}">
-  document.addEventListener('DOMContentLoaded', function () {
-    if (typeof TF === 'undefined') return;
-    var messages = [
-      {% for message in messages %}
-      { texto: "{{ message|escapejs }}", tipo: "{{ message.tags }}" }{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    ];
-    messages.forEach(function (msg, i) {
-      setTimeout(function () {
-        var tipo = 'info';
-        if (msg.tipo.indexOf('success') !== -1) tipo = 'success';
-        else if (msg.tipo.indexOf('error') !== -1 || msg.tipo.indexOf('danger') !== -1) tipo = 'error';
-        else if (msg.tipo.indexOf('warning') !== -1) tipo = 'warning';
-        TF.notify(msg.texto, tipo);
-      }, i * 500);
-    });
-  });
+  window.TF_FLASH_MESSAGES = [
+    {% for message in messages %}
+    { text: "{{ message|escapejs }}", tags: "{{ message.tags }}" }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
   </script>
+  <noscript>
+    <div class="tf-flash-stack tf-flash-stack--noscript" role="status">
+      {% for message in messages %}
+      <div class="tf-flash tf-flash-{{ message.tags|default:'info' }}">
+        <span class="material-symbols-rounded" aria-hidden="true">info</span>
+        <span class="tf-flash-msg">{{ message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </noscript>
   {% endif %}
 
-  <div id="tf-toast-root" class="tf-toast-root" aria-live="polite" aria-atomic="true"></div>
+  <div id="tf-toast-root" class="tf-toast-root" role="region" aria-label="{% trans 'Notifications' %}"></div>
 
   {# Cookie preferences (first-party only; no third-party trackers today). #}
   <div id="tf-cookie-notice" class="tf-cookie-notice" hidden role="dialog" aria-label="{% trans 'Cookie preferences' %}">
@@ -1362,7 +1261,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           crossorigin="anonymous"></script>
   <script nonce="{{ csp_nonce }}">window.TF_STATIC_LOGO = "{% static 'img/logo-icon-color.png' %}";</script>
   <script src="{% static 'js/tf_animations.js' %}"></script>
-  <script src="{% static 'js/tf_notifications.js' %}?v={{ tf_asset_version|default:'3' }}"></script>
+  <script src="{% static 'js/tf_notifications.js' %}?v={{ tf_asset_version|default:'4' }}"></script>
   <script src="{% static 'js/tf-media-fallback.js' %}"></script>
   <script src="{% static 'js/cart_ajax.js' %}?v={{ tf_asset_version|default:'3' }}"></script>
   <style nonce="{{ csp_nonce }}">

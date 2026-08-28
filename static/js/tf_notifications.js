@@ -1,13 +1,13 @@
 /**
- * TradeFlow — toasts y flashes unificados (SVG icons, snackbar para carrito).
+ * TradeFlow Colón — unified floating toasts (tfNotify / TF.notify).
  */
-(function () {
+(function (global) {
   'use strict';
 
-  var DURATION = 4000;
-  var CART_DURATION = 2400;
-  var CRITICAL_DURATION = 5000;
-  var FADE_MS = 200;
+  var AUTO_DISMISS_MS = 5500;
+  var FADE_MS = 180;
+  var DEDUPE_WINDOW_MS = 2500;
+  var recentKeys = new Map();
 
   var SVG_ICONS = {
     success:
@@ -27,164 +27,208 @@
       '<path fill="currentColor" d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12l-4.89 4.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4Z"/></svg>',
   };
 
-  function iconSvg(level) {
-    if (level === 'success') return SVG_ICONS.success;
-    if (level === 'error' || level === 'danger') return SVG_ICONS.error;
-    if (level === 'warning') return SVG_ICONS.warning;
-    return SVG_ICONS.info;
-  }
-
-  function iconForFlash(level) {
-    if (level === 'success') return 'check_circle';
-    if (level === 'error' || level === 'danger') return 'error';
-    if (level === 'warning') return 'warning';
+  function normalizeLevel(level) {
+    if (level === 'danger') return 'error';
+    if (level === 'success' || level === 'error' || level === 'warning' || level === 'info') return level;
     return 'info';
   }
 
-  function syncSnackbarRoot(root) {
-    if (!root) return;
-    if (root.querySelector('.tf-toast-compact')) {
-      root.classList.add('tf-toast-root--snackbar');
-    } else {
-      root.classList.remove('tf-toast-root--snackbar');
-    }
+  function defaultTitle(level) {
+    var i18n = global.TF_I18N || {};
+    if (level === 'success') return i18n.toastSuccess || 'Success';
+    if (level === 'error') return i18n.toastError || 'Error';
+    if (level === 'warning') return i18n.toastWarning || 'Warning';
+    return i18n.toastInfo || 'Information';
   }
 
-  function dismissRow(row, root, opts) {
-    if (!row || row._tfClosing) return;
-    row._tfClosing = true;
-    row.style.transition = 'opacity ' + FADE_MS + 'ms ease, transform ' + FADE_MS + 'ms ease';
-    row.classList.remove('is-visible');
-    row.style.opacity = '0';
+  function shouldPersist(level, options) {
+    if (options && options.persist != null) return !!options.persist;
+    return level === 'error' || level === 'warning';
+  }
+
+  function getRoot() {
+    var root = document.getElementById('tf-toast-root');
+    if (!root) {
+      root = document.createElement('div');
+      root.id = 'tf-toast-root';
+      root.className = 'tf-toast-root';
+      root.setAttribute('role', 'region');
+      root.setAttribute('aria-label', 'Notifications');
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+
+  function getAnnouncer() {
+    var node = document.getElementById('tf-toast-announcer');
+    if (!node) {
+      node = document.createElement('div');
+      node.id = 'tf-toast-announcer';
+      node.className = 'tf-toast-announcer';
+      node.setAttribute('aria-live', 'polite');
+      node.setAttribute('aria-atomic', 'true');
+      document.body.appendChild(node);
+    }
+    return node;
+  }
+
+  function announce(text) {
+    if (!text) return;
+    var node = getAnnouncer();
+    node.textContent = '';
+    requestAnimationFrame(function () {
+      node.textContent = text;
+    });
+  }
+
+  function dismissToast(toast, root, onDone) {
+    if (!toast || toast._tfClosing) return;
+    toast._tfClosing = true;
+    if (toast._tfTimer) {
+      clearTimeout(toast._tfTimer);
+      toast._tfTimer = null;
+    }
+    toast.classList.remove('is-visible');
+    toast.classList.add('is-leaving');
     setTimeout(function () {
-      if (row.parentNode) row.parentNode.removeChild(row);
-      syncSnackbarRoot(root);
-      if (opts && typeof opts.onDismiss === 'function') opts.onDismiss();
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+      if (typeof onDone === 'function') onDone();
     }, FADE_MS + 20);
   }
 
-  function bindDismiss(row, root, opts) {
-    opts = opts || {};
-    var critical = opts.critical;
-    var duration = opts.duration || (critical ? CRITICAL_DURATION : DURATION);
-    var closeBtn = row.querySelector('.tf-toast-close, .tf-flash-close');
+  function bindAutoDismiss(toast, root, persist) {
+    if (persist) return;
 
-    row.addEventListener('click', function (e) {
-      if (e.target.closest('a, button, .tf-notif-dismiss-check')) return;
-      dismissRow(row, root, opts);
-    });
-    if (closeBtn) {
-      closeBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        dismissRow(row, root, opts);
-      });
+    function start() {
+      if (toast._tfTimer) clearTimeout(toast._tfTimer);
+      toast._tfTimer = setTimeout(function () {
+        dismissToast(toast, root);
+      }, AUTO_DISMISS_MS);
     }
-    setTimeout(function () { dismissRow(row, root, opts); }, duration);
+
+    function pause() {
+      if (toast._tfTimer) {
+        clearTimeout(toast._tfTimer);
+        toast._tfTimer = null;
+      }
+    }
+
+    toast.addEventListener('mouseenter', pause);
+    toast.addEventListener('mouseleave', start);
+    toast.addEventListener('focusin', pause);
+    toast.addEventListener('focusout', start);
+    start();
   }
 
-  window.tfNotify = function (message, level, options) {
+  function buildToast(message, level, options) {
     options = options || {};
-    var root = document.getElementById('tf-toast-root');
-    if (!root || !message) return;
-    var row = document.createElement('div');
-    var lvl = level || 'success';
-    var critical = lvl === 'error' || options.critical;
-    var isCart = options.variant === 'cart';
-    row.className = 'tf-toast tf-toast-' + (critical ? 'error' : lvl);
-    if (critical) row.classList.add('tf-toast-critical');
-    if (isCart) row.classList.add('tf-toast-compact');
-    row.innerHTML =
-      '<span class="tf-toast-ico" aria-hidden="true">' + iconSvg(lvl) + '</span>' +
-      '<span class="tf-toast-msg"></span>' +
-      '<button type="button" class="tf-toast-close" aria-label="Close">' +
-      SVG_ICONS.close + '</button>';
-    row.querySelector('.tf-toast-msg').textContent = message;
-    if (options.dismissKey) {
-      var wrap = document.createElement('label');
-      wrap.className = 'tf-notif-dismiss-check';
-      wrap.style.cssText = 'display:block;font-size:11px;margin-top:6px;cursor:pointer;';
-      wrap.innerHTML =
-        '<input type="checkbox" style="margin-right:4px;"> Do not show again';
-      wrap.querySelector('input').addEventListener('change', function (ev) {
-        if (ev.target.checked) {
-          try { localStorage.setItem('tf_hide_' + options.dismissKey, '1'); } catch (e) {}
-        }
-      });
-      row.appendChild(wrap);
-      try {
-        if (localStorage.getItem('tf_hide_' + options.dismissKey) === '1') return;
-      } catch (e) {}
+    level = normalizeLevel(level);
+    var title = options.title || '';
+    var description = options.description || '';
+    if (!title && !description) {
+      title = String(message || '');
+    } else if (!description && message && !title) {
+      title = String(message);
+    } else if (!description && message && title) {
+      description = String(message);
     }
-    root.appendChild(row);
-    syncSnackbarRoot(root);
-    requestAnimationFrame(function () {
-      row.classList.add('is-visible');
-      row.style.opacity = '1';
-    });
-    bindDismiss(row, root, {
-      critical: critical,
-      duration: isCart ? CART_DURATION : (critical ? CRITICAL_DURATION : DURATION),
-    });
-  };
 
-  function initFlashes() {
-    var stack = document.getElementById('tf-flash-root');
-    if (!stack) return;
-    stack.querySelectorAll('.tf-flash').forEach(function (row) {
-      var tags = (row.getAttribute('data-tf-tags') || '').toLowerCase();
-      var ico = row.querySelector('.tf-flash-icon');
-      var lvl = tags.indexOf('error') !== -1 || tags.indexOf('danger') !== -1
-        ? 'error'
-        : tags.indexOf('success') !== -1
-          ? 'success'
-          : tags.indexOf('warning') !== -1
-            ? 'warning'
-            : 'info';
-      if (ico) {
-        if (ico.classList.contains('material-symbols-rounded')) {
-          ico.textContent = iconForFlash(lvl);
-        } else {
-          ico.innerHTML = iconSvg(lvl);
-        }
-      }
-      var critical = tags.indexOf('error') !== -1 || tags.indexOf('danger') !== -1;
-      bindDismiss(row, stack, { critical: critical });
+    var toast = document.createElement('div');
+    toast.className = 'tf-toast tf-toast--' + level;
+    toast.setAttribute('role', level === 'error' ? 'alert' : 'status');
+
+    var icon = document.createElement('span');
+    icon.className = 'tf-toast__icon';
+    icon.innerHTML = SVG_ICONS[level] || SVG_ICONS.info;
+
+    var content = document.createElement('div');
+    content.className = 'tf-toast__content';
+
+    if (title) {
+      var titleEl = document.createElement('p');
+      titleEl.className = 'tf-toast__title';
+      titleEl.textContent = title;
+      content.appendChild(titleEl);
+    }
+    if (description) {
+      var descEl = document.createElement('p');
+      descEl.className = 'tf-toast__desc';
+      descEl.textContent = description;
+      content.appendChild(descEl);
+    }
+
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'tf-toast__close';
+    closeBtn.setAttribute('aria-label', (global.TF_I18N && global.TF_I18N.close) || 'Close');
+    closeBtn.innerHTML = SVG_ICONS.close;
+
+    toast.appendChild(icon);
+    toast.appendChild(content);
+    toast.appendChild(closeBtn);
+
+    return { toast: toast, closeBtn: closeBtn, announceText: description || title };
+  }
+
+  function tfNotify(message, level, options) {
+    options = options || {};
+    if (!message && !options.title) return null;
+
+    level = normalizeLevel(level || options.level);
+    var dedupeKey = options.dedupeKey || (level + ':' + (options.title || message));
+    if (options.dedupe !== false) {
+      var last = recentKeys.get(dedupeKey);
+      if (last && Date.now() - last < DEDUPE_WINDOW_MS) return null;
+      recentKeys.set(dedupeKey, Date.now());
+    }
+
+    var root = getRoot();
+    var built = buildToast(message, level, options);
+    var toast = built.toast;
+    var persist = shouldPersist(level, options);
+
+    built.closeBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      dismissToast(toast, root);
     });
+
+    root.appendChild(toast);
+    requestAnimationFrame(function () {
+      toast.classList.add('is-visible');
+    });
+
+    announce((defaultTitle(level) + ': ' + built.announceText).trim());
+    bindAutoDismiss(toast, root, persist);
+    return toast;
+  }
+
+  function initDjangoMessages() {
+    var payload = global.TF_FLASH_MESSAGES;
+    if (!payload || !payload.length) return;
+    payload.forEach(function (msg, index) {
+      setTimeout(function () {
+        var level = 'info';
+        var tags = (msg.tags || '').toLowerCase();
+        if (tags.indexOf('success') !== -1) level = 'success';
+        else if (tags.indexOf('error') !== -1 || tags.indexOf('danger') !== -1) level = 'error';
+        else if (tags.indexOf('warning') !== -1) level = 'warning';
+        tfNotify(msg.text, level, {
+          dedupeKey: 'flash:' + level + ':' + msg.text,
+        });
+      }, index * 350);
+    });
+  }
+
+  global.tfNotify = tfNotify;
+  if (global.TF) {
+    global.TF.notify = function (message, tipo) {
+      return tfNotify(message, tipo);
+    };
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', onReady);
+    document.addEventListener('DOMContentLoaded', initDjangoMessages);
   } else {
-    onReady();
+    initDjangoMessages();
   }
-
-  var ASSISTANT_ICON_SVG =
-    '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">' +
-    '<path fill="currentColor" d="M12 2.75a8 8 0 0 0-8 8c0 2.74 1.38 5.17 3.48 6.62L6.25 20.75l4.1-2.05a8.02 8.02 0 0 0 1.65.17 8 8 0 1 0 0-16Zm-3.1 8.35a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Zm3.1 0a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Zm3.1 0a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Z"/>' +
-    '<path fill="currentColor" d="M17.15 4.1a.55.55 0 0 1 .55.55v.95h.95a.55.55 0 0 1 0 1.1h-.95v.95a.55.55 0 0 1-1.1 0v-.95h-.95a.55.55 0 0 1 0-1.1h.95v-.95a.55.55 0 0 1 .55-.55Z"/>' +
-    '</svg>';
-
-  function renderAssistantIcon(el, sizeClass) {
-    if (!el || el.getAttribute('data-tf-assistant-icon') === '1') return;
-    el.setAttribute('data-tf-assistant-icon', '1');
-    el.classList.add('tf-icon');
-    if (sizeClass) el.classList.add(sizeClass);
-    el.innerHTML = ASSISTANT_ICON_SVG;
-  }
-
-  /** Polish icons only — do not clone or steal chat open/close handlers from base.html. */
-  function polishChatWidgetIcons() {
-    var toggle = document.getElementById('tf-chat-toggle');
-    if (!toggle) return;
-    renderAssistantIcon(toggle.querySelector('.tf-icon'), 'tf-icon--chat');
-    renderAssistantIcon(
-      document.querySelector('#tf-assistant .tf-chat-header-avatar .tf-icon'),
-      'tf-icon--chat-header'
-    );
-  }
-
-  function onReady() {
-    initFlashes();
-    polishChatWidgetIcons();
-  }
-})();
+})(typeof window !== 'undefined' ? window : this);
