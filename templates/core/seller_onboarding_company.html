@@ -105,7 +105,7 @@ Template: seller_onboarding_company.html — identidad empresarial B2B.
     </form>
     <p class="so-lead" style="margin-top:1.25rem;margin-bottom:0;font-size:.875rem;">
       ¿Necesitas terminar después?
-      <a href="{% url 'logout' %}">Cerrar sesión</a>
+      {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" label="Cerrar sesión" %}
     </p>
   </div>
 </div>

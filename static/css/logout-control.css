@@ -1,0 +1,54 @@
+/* POST logout controls styled as links or existing button classes. */
+.tf-logout-control {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  vertical-align: baseline;
+}
+
+.tf-logout-control--block {
+  display: block;
+  width: 100%;
+}
+
+.tf-logout-control--inline-flex {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.tf-logout-control--block > button[type="submit"] {
+  width: 100%;
+}
+
+.tf-logout-control__btn,
+.tf-logout-control__link {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  text-align: inherit;
+  line-height: inherit;
+  text-decoration: none;
+}
+
+.tf-logout-control__link:hover {
+  text-decoration: underline;
+}
+
+.nav-secondary-right .tf-logout-control button[type="submit"] {
+  color: var(--tf-navy);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.nav-secondary-right .tf-logout-control button[type="submit"]:hover {
+  text-decoration: underline;
+}

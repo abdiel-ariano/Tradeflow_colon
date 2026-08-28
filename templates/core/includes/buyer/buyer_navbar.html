@@ -81,7 +81,7 @@ Buyer navbar — Alibaba-style two-row shell with AI search and language switche
         <span class="bn-user-avatar" id="bn-user-avatar" aria-hidden="true"></span>
         <span class="bn-user-name">{{ request.user.get_full_name|default:request.user.username|truncatechars:14 }}</span>
       </a>
-      <a href="{% url 'logout' %}" class="link-signin bn-signout">{% trans "Sign out" %}</a>
+      {% include "core/includes/logout_control.html" with button_class="link-signin bn-signout" %}
       {% else %}
       <a href="{% url 'login' %}" class="bn-utility bn-utility--signin" title="{% trans 'Sign in' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">

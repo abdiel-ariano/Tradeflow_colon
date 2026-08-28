@@ -75,7 +75,7 @@ No navy tf-nav from base; marketplace chrome stays on public pages.
         <a href="{% url 'mi_perfil' %}" class="sp-dash-icon-btn" title="Settings" aria-label="Settings"><span class="material-symbols-rounded">settings</span></a>
         <a href="{% url 'seller_agregar_producto' %}" class="sp-dash-create-btn" title="Create" aria-label="Create"><span class="material-symbols-rounded">add</span></a>
         <a href="{% url 'seller_setup_guide' %}" class="sp-dash-setup"><span class="material-symbols-rounded" style="font-size:16px;">track_changes</span>Setup guide</a>
-        <a href="{% url 'logout' %}" class="sp-dash-setup" title="{% trans 'Sign out' %}"><span class="material-symbols-rounded" style="font-size:16px;">logout</span>{% trans "Sign out" %}</a>
+        {% include "core/includes/logout_control.html" with button_class="sp-dash-setup" icon="logout" icon_style="font-size:16px;" %}
         {% endblock %}
       </div>
     </header>

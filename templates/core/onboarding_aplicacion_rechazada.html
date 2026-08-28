@@ -9,7 +9,7 @@
       We could not approve your application at this time. If you believe this is an error, contact {{ tradeflow_contact_email }} with your registered email.
     </p>
     <a href="{% url 'solicitud_acceso' %}" class="sp-btn sp-btn-secondary" style="margin-right:8px;">New application</a>
-    <a href="{% url 'logout' %}" class="sp-btn sp-btn-secondary">Sign out</a>
+    {% include "core/includes/logout_control.html" with button_class="sp-btn sp-btn-secondary" label="Sign out" %}
   </div>
 </div>
 {% endblock %}

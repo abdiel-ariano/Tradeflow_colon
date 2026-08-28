@@ -19,7 +19,7 @@
     <p>
       Your seller account is not yet linked to a company. An administrator must assign you as owner of your company in the admin panel.
     </p>
-    <a href="{% url 'logout' %}" class="tf-btn-secondary" style="display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">logout</span> Sign out</a>
+    {% include "core/includes/logout_control.html" with button_class="tf-btn-secondary" form_class="tf-logout-control--inline-flex" icon="logout" icon_style="font-size:18px;" label="Sign out" %}
   </div>
 </div>
 {% endblock %}
