@@ -179,6 +179,37 @@ def _carrito_items_with_products(carrito):
     return items
 
 
+def _carrito_json_payload(
+    carrito,
+    *,
+    line_product_id=None,
+    line=None,
+    disponible=None,
+    removed=False,
+    message='',
+    ok=True,
+):
+    """Build a JSON body for cart AJAX responses."""
+    payload = {
+        'ok': ok,
+        'message': str(message) if message else '',
+        'carrito_count': _contar_items(carrito),
+        'subtotal': str(_calcular_total(carrito)),
+        'carrito_empty': not bool(carrito),
+    }
+    if removed and line_product_id is not None:
+        payload['removed'] = str(line_product_id)
+    elif line is not None and line_product_id is not None:
+        payload['line'] = {
+            'product_id': str(line_product_id),
+            'cantidad': line['cantidad'],
+            'precio': line['precio'],
+            'subtotal': line['subtotal'],
+            'disponible': disponible,
+        }
+    return payload
+
+
 def _tienda_pagination_slots(page_obj, on_each_side=2, on_ends=1):
     """Build elided page slots for the public catalog pager."""
     if not page_obj.has_other_pages():
@@ -708,6 +739,7 @@ def ver_carrito(request):
 @require_POST
 def actualizar_cantidad_carrito(request, producto_id):
     """Update quantity for one session cart line."""
+    wants_json = _request_wants_json(request)
     try:
         cantidad = int(request.POST.get('cantidad', 0))
     except (TypeError, ValueError):
@@ -717,7 +749,13 @@ def actualizar_cantidad_carrito(request, producto_id):
     producto_key = str(producto_id)
 
     if producto_key not in carrito:
-        messages.error(request, _('Product not found in cart.'))
+        msg = _('Product not found in cart.')
+        if wants_json:
+            return JsonResponse(
+                _carrito_json_payload(carrito, message=msg, ok=False),
+                status=404,
+            )
+        messages.error(request, msg)
         return redirect('ver_carrito')
 
     producto = get_object_or_404(
@@ -731,23 +769,46 @@ def actualizar_cantidad_carrito(request, producto_id):
         nombre = carrito[producto_key]['nombre']
         del carrito[producto_key]
         _save_carrito(request, carrito)
-        messages.success(
-            request,
-            _('"%(name)s" removed from cart.') % {'name': nombre},
-        )
+        msg = _('"%(name)s" removed from cart.') % {'name': nombre}
+        if wants_json:
+            return JsonResponse(_carrito_json_payload(
+                carrito,
+                line_product_id=producto_id,
+                removed=True,
+                message=msg,
+            ))
+        messages.success(request, msg)
         return redirect('ver_carrito')
 
     if cantidad > disponible:
-        messages.error(
-            request,
-            _('Only %(qty)s units available.') % {'qty': disponible},
-        )
+        msg = _('Only %(qty)s units available.') % {'qty': disponible}
+        if wants_json:
+            return JsonResponse(
+                _carrito_json_payload(
+                    carrito,
+                    line_product_id=producto_id,
+                    line=carrito[producto_key],
+                    disponible=disponible,
+                    message=msg,
+                    ok=False,
+                ),
+                status=400,
+            )
+        messages.error(request, msg)
         return redirect('ver_carrito')
 
     precio = Decimal(carrito[producto_key]['precio'])
     carrito[producto_key]['cantidad'] = cantidad
     carrito[producto_key]['subtotal'] = str((precio * cantidad).quantize(Decimal('0.01')))
     _save_carrito(request, carrito)
+    line = carrito[producto_key]
+    if wants_json:
+        return JsonResponse(_carrito_json_payload(
+            carrito,
+            line_product_id=producto_id,
+            line=line,
+            disponible=disponible,
+        ))
     return redirect('ver_carrito')
 
 

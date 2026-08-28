@@ -52,6 +52,19 @@ class LoginBackgroundAnimationTests(TestCase):
         self.assertIn('@media (prefers-reduced-motion: reduce)', css)
         self.assertIn('.login-page', css)
         self.assertIn('overflow: hidden', css)
+        self.assertIn(
+            '.login-figma-bg:has(.login-wave-video) .login-wave-static-fallback',
+            css,
+        )
+
+    def test_reduced_motion_shows_static_fallback_over_video_rule(self):
+        css_path = Path(__file__).resolve().parents[2] / 'static' / 'css' / 'login.css'
+        css = css_path.read_text(encoding='utf-8')
+        reduced_block = css.split('@media (prefers-reduced-motion: reduce)')[1]
+        self.assertIn('.login-wave-video', reduced_block)
+        self.assertIn('display: none', reduced_block)
+        self.assertIn('.login-figma-bg:has(.login-wave-video) .login-wave-static-fallback', reduced_block)
+        self.assertIn('display: block', reduced_block)
 
     def test_generator_enforces_visible_motion_threshold(self):
         script_path = Path(__file__).resolve().parents[2] / 'scripts' / 'generate_login_wave_video.py'

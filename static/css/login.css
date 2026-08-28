@@ -93,6 +93,7 @@ main.tf-main > .login-page-wrap {
     display: none;
   }
 
+  .login-figma-bg:has(.login-wave-video) .login-wave-static-fallback,
   .login-wave-static-fallback {
     display: block;
   }
