@@ -2,7 +2,7 @@
 {% load static tf_media i18n %}
 {% block title %}{% trans "Request for Quotation" %} — TradeFlow Colón{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/carrito.css' %}?v={{ tf_asset_version|default:'1' }}">
+<link rel="stylesheet" href="{% static 'css/carrito.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 {% block content %}
 <div class="cart-page">
@@ -11,7 +11,7 @@
     <header class="cart-page__header">
       <div>
         <h1 class="cart-page__title">{% trans "Request for Quotation" %}</h1>
-        <p class="cart-page__count">
+        <p class="cart-page__count" data-cart-page-count>
           {% blocktrans count counter=carrito_count %}{{ counter }} item{% plural %}{{ counter }} items{% endblocktrans %}
         </p>
       </div>
@@ -27,7 +27,7 @@
     <div class="cart-page__grid">
       <section class="cart-items" aria-label="{% trans 'Products in cart' %}">
         {% for entry in carrito_items %}
-        <article class="cart-item">
+        <article class="cart-item" data-cart-item data-product-id="{{ entry.prod_id }}">
           <div class="cart-item__media">
             {% if entry.product %}
             {% include "core/includes/product_image_placeholder.html" with product=entry.product img_class="cart-item__img" decorative=True %}
@@ -39,28 +39,59 @@
           </div>
 
           <div class="cart-item__body">
-            <h2 class="cart-item__title">{{ entry.item.nombre }}</h2>
-            {% if entry.product and entry.product.company %}
-            <p class="cart-item__seller">{% blocktrans with seller=entry.product.company.name %}Sold by {{ seller }}{% endblocktrans %}</p>
-            {% endif %}
-            <p class="cart-item__unit">USD {{ entry.item.precio }} {% trans "each" %}</p>
+            <div class="cart-item__details">
+              <h2 class="cart-item__title">{{ entry.item.nombre }}</h2>
+              {% if entry.product and entry.product.company %}
+              <p class="cart-item__seller">{% blocktrans with seller=entry.product.company.name %}Sold by {{ seller }}{% endblocktrans %}</p>
+              {% else %}
+              <p class="cart-item__seller cart-item__seller--empty" aria-hidden="true">&nbsp;</p>
+              {% endif %}
+              <p class="cart-item__unit" data-cart-line-unit>USD {{ entry.item.precio }} {% trans "each" %}</p>
+            </div>
 
             <div class="cart-item__actions">
-              <form method="post" action="{% url 'actualizar_cantidad_carrito' entry.prod_id %}" class="cart-qty-form">
+              <form
+                method="post"
+                action="{% url 'actualizar_cantidad_carrito' entry.prod_id %}"
+                class="cart-qty-form"
+                data-cart-qty-form
+              >
                 {% csrf_token %}
-                <div class="cart-qty">
-                  <button type="submit" name="cantidad" value="{{ entry.item.cantidad|add:'-1' }}" class="cart-qty__btn" aria-label="{% trans 'Decrease quantity' %}" {% if entry.item.cantidad <= 1 %}disabled{% endif %}>
+                <div class="cart-qty" data-cart-qty>
+                  <button
+                    type="button"
+                    class="cart-qty__btn"
+                    data-cart-qty-decrease
+                    aria-label="{% trans 'Decrease quantity' %}"
+                    {% if entry.item.cantidad <= 1 %}disabled{% endif %}
+                  >
                     <span class="material-symbols-rounded" style="font-size:18px">remove</span>
                   </button>
                   <label class="visually-hidden" for="qty-{{ entry.prod_id }}">{% trans "Quantity" %}</label>
-                  <input id="qty-{{ entry.prod_id }}" class="cart-qty__input" type="number" name="cantidad" min="1" max="{% if entry.product %}{{ entry.product.available_qty }}{% else %}999{% endif %}" value="{{ entry.item.cantidad }}" data-cart-qty-input>
-                  <button type="submit" name="cantidad" value="{{ entry.item.cantidad|add:'1' }}" class="cart-qty__btn" aria-label="{% trans 'Increase quantity' %}" {% if entry.product and entry.item.cantidad >= entry.product.available_qty %}disabled{% endif %}>
+                  <input
+                    id="qty-{{ entry.prod_id }}"
+                    class="cart-qty__input"
+                    type="number"
+                    name="cantidad"
+                    min="1"
+                    max="{% if entry.product %}{{ entry.product.available_qty }}{% else %}999{% endif %}"
+                    value="{{ entry.item.cantidad }}"
+                    inputmode="numeric"
+                    data-cart-qty-input
+                  >
+                  <button
+                    type="button"
+                    class="cart-qty__btn"
+                    data-cart-qty-increase
+                    aria-label="{% trans 'Increase quantity' %}"
+                    {% if entry.product and entry.item.cantidad >= entry.product.available_qty %}disabled{% endif %}
+                  >
                     <span class="material-symbols-rounded" style="font-size:18px">add</span>
                   </button>
                 </div>
               </form>
 
-              <form method="post" action="{% url 'quitar_del_carrito' entry.prod_id %}">
+              <form method="post" action="{% url 'quitar_del_carrito' entry.prod_id %}" class="cart-remove-form" data-cart-remove-form>
                 {% csrf_token %}
                 <button type="submit" class="cart-item__remove" aria-label="{% trans 'Remove product' %}">
                   <span class="material-symbols-rounded" style="font-size:18px">delete</span>
@@ -68,10 +99,12 @@
                 </button>
               </form>
             </div>
+
+            <p class="cart-item__error" data-cart-line-error hidden role="alert"></p>
           </div>
 
           <div class="cart-item__subtotal-col">
-            <p class="cart-item__subtotal">USD {{ entry.item.subtotal }}</p>
+            <p class="cart-item__subtotal" data-cart-line-subtotal>USD {{ entry.item.subtotal }}</p>
           </div>
         </article>
         {% endfor %}
@@ -86,7 +119,7 @@
           </p>
           <div class="cart-summary__row">
             <span>{% trans "Subtotal" %}</span>
-            <span>USD {{ subtotal }}</span>
+            <span data-cart-summary-subtotal>USD {{ subtotal }}</span>
           </div>
           <p class="cart-payments__note">
             <span class="material-symbols-rounded" aria-hidden="true">info</span>
@@ -138,5 +171,5 @@
   {% include "core/includes/catalogo_footer.html" %}
 {% endblock %}
 {% block extra_js %}
-<script src="{% static 'js/carrito_page.js' %}?v={{ tf_asset_version|default:'1' }}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/carrito_page.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
