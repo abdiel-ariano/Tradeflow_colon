@@ -71,17 +71,9 @@ Variables:
       {% if product.available_qty > 0 %}
       <li class="tf-pcard__signal tf-pcard__signal--stock">
         {% if product.available_qty <= 5 %}
-        {% blocktrans trimmed count counter=product.available_qty %}
-        Low stock · {{ counter }} unit
-        {% plural %}
-        Low stock · {{ counter }} units
-        {% endblocktrans %}
+        {% trans "Limited availability" %}
         {% else %}
-        {% blocktrans trimmed count counter=product.available_qty %}
-        In stock · {{ counter }} unit
-        {% plural %}
-        In stock · {{ counter }} units
-        {% endblocktrans %}
+        {% trans "In stock" %}
         {% endif %}
       </li>
       {% elif card_density != 'compact' %}

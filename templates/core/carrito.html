@@ -72,7 +72,6 @@
                     type="number"
                     name="cantidad"
                     min="1"
-                    max="{% if entry.product %}{{ entry.product.available_qty }}{% else %}999{% endif %}"
                     value="{{ entry.item.cantidad }}"
                     inputmode="numeric"
                     data-cart-qty-input
@@ -82,7 +81,6 @@
                     class="cart-qty__btn"
                     data-cart-qty-increase
                     aria-label="{% trans 'Increase quantity' %}"
-                    {% if entry.product and entry.item.cantidad >= entry.product.available_qty %}disabled{% endif %}
                   >
                     <span class="material-symbols-rounded" style="font-size:18px">add</span>
                   </button>

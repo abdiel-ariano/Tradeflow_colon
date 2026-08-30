@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 13:13-0500\n"
+"POT-Creation-Date: 2026-08-30 13:34-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -314,7 +314,7 @@ msgid "Carga datos arriba para ver KPIs, gráficas y el chat con IA."
 msgstr "Carga datos arriba para ver KPIs, gráficas y el chat con IA."
 
 #: core/auth_views.py:170 core/views/auth_session.py:389
-#: core/views/catalog_cart.py:978
+#: core/views/catalog_cart.py:977
 #, python-format
 msgid "We sent a 6-digit code to %(email)s. Check your inbox and spam folder."
 msgstr "Enviamos un código de 6 dígitos a %(email)s. Revisa tu bandeja y spam."
@@ -490,7 +490,9 @@ msgstr "Más recientes"
 msgid "Verified"
 msgstr "Verificado"
 
-#: core/context_processors.py:149 templates/core/catalogo_publico.html:78
+#: core/context_processors.py:149 core/utils/product_availability.py:26
+#: templates/core/catalogo_publico.html:78
+#: templates/core/includes/product_card_unified.html:76
 msgid "In stock"
 msgstr "En stock"
 
@@ -508,7 +510,7 @@ msgid "Search:"
 msgstr "Búsqueda:"
 
 #: core/context_processors.py:153
-#: templates/core/catalogo_producto_detail.html:191
+#: templates/core/catalogo_producto_detail.html:220
 #: templates/core/catalogo_publico.html:89
 #: templates/core/includes/tienda/tienda_filters_sidebar.html:51
 #: templates/core/includes/tienda_featured_category.html:14
@@ -847,7 +849,7 @@ msgstr "Todas las ofertas"
 msgid "Suspended"
 msgstr ""
 
-#: core/models.py:511 core/models.py:512 templates/core/carrito.html:161
+#: core/models.py:511 core/models.py:512 templates/core/carrito.html:159
 msgid "View products"
 msgstr "Ver productos"
 
@@ -1097,6 +1099,58 @@ msgstr ""
 msgid "Incident"
 msgstr ""
 
+#: core/utils/product_availability.py:23
+#: templates/core/catalogo_producto_detail.html:132
+#: templates/core/includes/catalogo_card.html:96
+#: templates/core/includes/product_card_unified.html:23
+#: templates/core/includes/product_card_unified.html:80
+#: templates/core/includes/product_card_unified.html:111
+msgid "Out of stock"
+msgstr "Sin stock"
+
+#: core/utils/product_availability.py:25
+#: templates/core/includes/product_card_unified.html:74
+#, fuzzy
+#| msgid "Limitation of liability"
+msgid "Limited availability"
+msgstr "Disponibilidad limitada"
+
+#: core/utils/product_availability.py:31
+#: templates/core/catalogo_producto_detail.html:143
+#: templates/core/catalogo_producto_detail.html:221
+#, fuzzy
+#| msgid "Available stock"
+msgid "Availability"
+msgstr "Disponibilidad"
+
+#: core/utils/product_pdp_content.py:90
+#: templates/core/catalogo_producto_detail.html:181
+#: templates/core/catalogo_producto_detail.html:201
+#: templates/core/catalogo_producto_detail.html:208
+#, fuzzy
+#| msgid "Product code"
+msgid "Product overview"
+msgstr "Descripción del producto"
+
+#: core/utils/product_pdp_content.py:94
+#: templates/core/catalogo_producto_detail.html:189
+#, fuzzy
+#| msgid "Product badges"
+msgid "Key features"
+msgstr "Características principales"
+
+#: core/utils/product_pdp_content.py:98
+#, fuzzy
+#| msgid "About sections"
+msgid "Applications"
+msgstr "Secciones acerca de"
+
+#: core/utils/product_pdp_content.py:102
+#, fuzzy
+#| msgid "Correct information"
+msgid "Trade information"
+msgstr "Corregir información"
+
 #: core/utils/ui_labels.py:7
 msgid "Awaiting seller"
 msgstr "En espera del vendedor"
@@ -1201,7 +1255,7 @@ msgstr "Preferencias de comunicación guardadas."
 msgid "Type DELETE to confirm account anonymization."
 msgstr "Escribe DELETE para confirmar la anonimización de la cuenta."
 
-#: core/views/catalog_cart.py:427
+#: core/views/catalog_cart.py:431
 #, python-format
 msgid ""
 "Explore %(products)s wholesale products from %(companies)s verified Colón "
@@ -1211,89 +1265,69 @@ msgstr ""
 "verificadas de la Zona Libre de Colón. Catálogo B2B con inventario "
 "transparente en TradeFlow."
 
-#: core/views/catalog_cart.py:456 templates/core/base.html:1211
+#: core/views/catalog_cart.py:460 templates/core/base.html:1211
 #: templates/core/catalogo_producto_detail.html:32
 #: templates/core/includes/marketplace_public_navbar.html:121
 #: templates/core/includes/tienda/tienda_results_bar.html:8
 msgid "Catalog"
 msgstr "Catálogo"
 
-#: core/views/catalog_cart.py:528
-#: templates/core/catalogo_producto_detail.html:132
-#: templates/core/includes/catalogo_card.html:96
-#: templates/core/includes/product_card_unified.html:23
-#: templates/core/includes/product_card_unified.html:88
-#: templates/core/includes/product_card_unified.html:119
-msgid "Out of stock"
-msgstr "Sin stock"
-
-#: core/views/catalog_cart.py:531
-#, python-format
-msgid "Low stock (%(qty)s units)"
-msgstr "Stock bajo (%(qty)s unidades)"
-
-#: core/views/catalog_cart.py:534
-#, python-format
-msgid "In stock (%(qty)s units)"
-msgstr "En stock (%(qty)s unidades)"
-
-#: core/views/catalog_cart.py:546
+#: core/views/catalog_cart.py:545
 #, python-format
 msgid "%(name)s from %(company)s in the Colón Free Zone — TradeFlow Colón."
 msgstr "%(name)s de %(company)s en la Zona Libre de Colón — TradeFlow Colón."
 
-#: core/views/catalog_cart.py:589
+#: core/views/catalog_cart.py:590
 msgid "Quantity must be at least 1."
 msgstr ""
 
-#: core/views/catalog_cart.py:593
+#: core/views/catalog_cart.py:594
 #, python-format
 msgid "\"%(name)s\" has no stock available."
 msgstr ""
 
-#: core/views/catalog_cart.py:621 core/views/catalog_cart.py:645
+#: core/views/catalog_cart.py:622 core/views/catalog_cart.py:646
 #, python-format
 msgid "\"%(name)s\" added to inquiry cart."
 msgstr ""
 
-#: core/views/catalog_cart.py:634
+#: core/views/catalog_cart.py:635
 msgid "Method not allowed."
 msgstr ""
 
-#: core/views/catalog_cart.py:698 core/views/catalog_cart.py:772
+#: core/views/catalog_cart.py:699 core/views/catalog_cart.py:773
 #, python-format
 msgid "\"%(name)s\" removed from cart."
 msgstr ""
 
-#: core/views/catalog_cart.py:752
+#: core/views/catalog_cart.py:753
 msgid "Product not found in cart."
 msgstr ""
 
-#: core/views/catalog_cart.py:784
-#, python-format
-msgid "Only %(qty)s units available."
-msgstr ""
+#: core/views/catalog_cart.py:785
+msgid "Requested quantity exceeds available stock."
+msgstr "La cantidad solicitada supera el stock disponible."
 
-#: core/views/catalog_cart.py:820
+#: core/views/catalog_cart.py:819
 msgid "Cart cleared."
 msgstr ""
 
-#: core/views/catalog_cart.py:836
+#: core/views/catalog_cart.py:835
 msgid "Your cart is empty."
 msgstr "Tu carrito está vacío."
 
-#: core/views/catalog_cart.py:902
+#: core/views/catalog_cart.py:901
 msgid ""
 "The inquiry cart has no active products from verified suppliers. Review the "
 "catalog and try again."
 msgstr ""
 
-#: core/views/catalog_cart.py:948
+#: core/views/catalog_cart.py:947
 #, python-format
 msgid "%(count)s formal quote request(s) sent to verified suppliers."
 msgstr ""
 
-#: core/views/catalog_cart.py:961 templates/core/carrito.html:3
+#: core/views/catalog_cart.py:960 templates/core/carrito.html:3
 #: templates/core/carrito.html:13 templates/core/checkout.html:3
 #: templates/core/checkout.html:48 templates/core/checkout.html:110
 #: templates/core/includes/catalogo_footer.html:26
@@ -1775,8 +1809,8 @@ msgid "Trusted by importers, distributors & wholesale buyers"
 msgstr ""
 "Con la confianza de importadores, distribuidores y compradores mayoristas"
 
-#: templates/core/acerca_tradeflow.html:34 templates/core/carrito.html:130
-#: templates/core/carrito.html:135
+#: templates/core/acerca_tradeflow.html:34 templates/core/carrito.html:128
+#: templates/core/carrito.html:133
 msgid "Quote before you commit"
 msgstr "Cotiza antes de comprar"
 
@@ -2232,58 +2266,58 @@ msgstr "Disminuir cantidad"
 msgid "Quantity"
 msgstr "Cantidad"
 
-#: templates/core/carrito.html:84
+#: templates/core/carrito.html:83
 msgid "Increase quantity"
 msgstr "Aumentar cantidad"
 
-#: templates/core/carrito.html:94
+#: templates/core/carrito.html:92
 msgid "Remove product"
 msgstr "Eliminar producto"
 
-#: templates/core/carrito.html:96
+#: templates/core/carrito.html:94
 msgid "Remove"
 msgstr "Eliminar"
 
-#: templates/core/carrito.html:113 templates/core/checkout.html:86
+#: templates/core/carrito.html:111 templates/core/checkout.html:86
 #: templates/core/includes/catalogo_footer.html:14
 msgid "Quote-first workflow"
 msgstr "Flujo cotizar primero"
 
-#: templates/core/carrito.html:116 templates/core/marketplace_deals.html:79
+#: templates/core/carrito.html:114 templates/core/marketplace_deals.html:79
 msgid "Add items to your inquiry cart to request a formal quotation."
 msgstr ""
 "Agrega artículos a tu carrito de consulta para solicitar una cotización "
 "formal."
 
-#: templates/core/carrito.html:119 templates/core/checkout.html:80
+#: templates/core/carrito.html:117 templates/core/checkout.html:80
 #: templates/core/detalle_mi_orden.html:111
 msgid "Subtotal"
 msgstr "Subtotal"
 
-#: templates/core/carrito.html:124 templates/core/checkout.html:88
+#: templates/core/carrito.html:122 templates/core/checkout.html:88
 #: templates/core/includes/catalogo_footer.html:16
 msgid "Request for Quotation before payment"
 msgstr "Solicitud de cotización antes del pago"
 
-#: templates/core/carrito.html:140 templates/core/detalle_mi_orden.html:142
+#: templates/core/carrito.html:138 templates/core/detalle_mi_orden.html:142
 msgid "Continue shopping"
 msgstr "Seguir comprando"
 
-#: templates/core/carrito.html:145 templates/core/checkout.html:114
+#: templates/core/carrito.html:143 templates/core/checkout.html:114
 #: templates/core/includes/catalogo_footer.html:17
 msgid "Review quotes & terms"
 msgstr "Revisar cotizaciones y términos"
 
-#: templates/core/carrito.html:148 templates/core/checkout.html:49
+#: templates/core/carrito.html:146 templates/core/checkout.html:49
 msgid "Add products from multiple suppliers and request formal quotations."
 msgstr ""
 "Agrega productos de varios proveedores y solicita cotizaciones formales."
 
-#: templates/core/carrito.html:157
+#: templates/core/carrito.html:155
 msgid "Your cart is empty"
 msgstr "Tu carrito está vacío"
 
-#: templates/core/carrito.html:158
+#: templates/core/carrito.html:156
 msgid "Browse the catalog and add products to get started."
 msgstr "Explora el catálogo y agrega productos para comenzar."
 
@@ -2354,12 +2388,12 @@ msgstr "Iniciar sesión"
 #: templates/core/catalogo_producto_detail.html:120
 #: templates/core/includes/catalogo_card.html:93
 #: templates/core/includes/catalogo_card.html:99
-#: templates/core/includes/product_card_unified.html:115
+#: templates/core/includes/product_card_unified.html:107
 msgid "Add to inquiry"
 msgstr "Agregar a consulta"
 
 #: templates/core/catalogo_producto_detail.html:128
-#: templates/core/includes/product_card_unified.html:126
+#: templates/core/includes/product_card_unified.html:118
 msgid "Auto quote"
 msgstr "Cotización automática"
 
@@ -2368,27 +2402,23 @@ msgid "Key product facts"
 msgstr "Datos clave del producto"
 
 #: templates/core/catalogo_producto_detail.html:139
-#: templates/core/catalogo_producto_detail.html:193
+#: templates/core/catalogo_producto_detail.html:222
 #: templates/core/includes/catalogo_card.html:60
 msgid "MOQ"
 msgstr "MOQ"
 
 #: templates/core/catalogo_producto_detail.html:140
-#: templates/core/catalogo_producto_detail.html:193
+#: templates/core/catalogo_producto_detail.html:222
 #: templates/core/includes/catalogo_card.html:60
 msgid "piece"
 msgstr "unidad"
-
-#: templates/core/catalogo_producto_detail.html:143
-msgid "Stock"
-msgstr "Stock"
 
 #: templates/core/catalogo_producto_detail.html:148
 msgid "SKU"
 msgstr ""
 
 #: templates/core/catalogo_producto_detail.html:153
-#: templates/core/catalogo_producto_detail.html:190
+#: templates/core/catalogo_producto_detail.html:219
 msgid "Currency"
 msgstr "Moneda"
 
@@ -2413,7 +2443,7 @@ msgstr "Especificaciones"
 msgid "Company"
 msgstr "Empresa"
 
-#: templates/core/catalogo_producto_detail.html:181
+#: templates/core/catalogo_producto_detail.html:209
 #, python-format
 msgid ""
 "%(name)s is listed by %(company)s for wholesale sourcing through TradeFlow "
@@ -2422,47 +2452,43 @@ msgstr ""
 "%(name)s está listado por %(company)s para compra mayorista en TradeFlow "
 "Colón."
 
-#: templates/core/catalogo_producto_detail.html:182
+#: templates/core/catalogo_producto_detail.html:210
 msgid ""
-"Review specifications for SKU, stock, and pricing, or open the supplier "
-"catalog to compare related inventory."
+"Open the supplier catalog or request a quotation to confirm pricing, MOQ, "
+"and delivery terms."
 msgstr ""
-"Revisa especificaciones para SKU, stock y precios, o abre el catálogo del "
-"proveedor para comparar inventario relacionado."
+"Abre el catálogo del proveedor o solicita una cotización para confirmar "
+"precios, MOQ y condiciones de entrega."
 
-#: templates/core/catalogo_producto_detail.html:189
+#: templates/core/catalogo_producto_detail.html:218
 msgid "Product code"
 msgstr "Código de producto"
 
-#: templates/core/catalogo_producto_detail.html:192
-msgid "Available stock"
-msgstr "Stock disponible"
-
-#: templates/core/catalogo_producto_detail.html:195
+#: templates/core/catalogo_producto_detail.html:224
 msgid "List price"
 msgstr "Precio de lista"
 
-#: templates/core/catalogo_producto_detail.html:196
+#: templates/core/catalogo_producto_detail.html:225
 msgid "Promo price"
 msgstr "Precio promocional"
 
-#: templates/core/catalogo_producto_detail.html:198
+#: templates/core/catalogo_producto_detail.html:227
 msgid "Unit price"
 msgstr "Precio unitario"
 
-#: templates/core/catalogo_producto_detail.html:209
+#: templates/core/catalogo_producto_detail.html:238
 msgid "CFZ verified company in the Colón Free Zone"
 msgstr "Empresa verificada ZLC en la Zona Libre de Colón"
 
-#: templates/core/catalogo_producto_detail.html:223
+#: templates/core/catalogo_producto_detail.html:252
 msgid "View all products"
 msgstr "Ver todos los productos"
 
-#: templates/core/catalogo_producto_detail.html:232
+#: templates/core/catalogo_producto_detail.html:261
 msgid "Related products"
 msgstr "Productos relacionados"
 
-#: templates/core/catalogo_producto_detail.html:234
+#: templates/core/catalogo_producto_detail.html:263
 msgid "View category →"
 msgstr "Ver categoría →"
 
@@ -3732,39 +3758,25 @@ msgstr "/ unidad"
 msgid "Marketplace product details"
 msgstr "Detalles del producto en el marketplace"
 
-#: templates/core/includes/product_card_unified.html:74
-#, python-format
-msgid "Low stock · %(counter)s unit"
-msgid_plural "Low stock · %(counter)s units"
-msgstr[0] "Stock bajo · %(counter)s unidad"
-msgstr[1] "Stock bajo · %(counter)s unidades"
-
-#: templates/core/includes/product_card_unified.html:80
-#, python-format
-msgid "In stock · %(counter)s unit"
-msgid_plural "In stock · %(counter)s units"
-msgstr[0] "En stock · %(counter)s unidad"
-msgstr[1] "En stock · %(counter)s unidades"
-
-#: templates/core/includes/product_card_unified.html:92
+#: templates/core/includes/product_card_unified.html:84
 #, python-format
 msgid "Confirms in %(hours)sh"
 msgstr "Confirma en %(hours)sh"
 
-#: templates/core/includes/product_card_unified.html:95
+#: templates/core/includes/product_card_unified.html:87
 #, python-format
 msgid "Ref. %(sku)s"
 msgstr "Ref. %(sku)s"
 
-#: templates/core/includes/product_card_unified.html:105
+#: templates/core/includes/product_card_unified.html:97
 msgid "View & quote →"
 msgstr "Ver y cotizar →"
 
-#: templates/core/includes/product_card_unified.html:124
+#: templates/core/includes/product_card_unified.html:116
 msgid "Get automatic quotes from every company that sells this product"
 msgstr "Obtén cotizaciones automáticas de cada empresa que vende este producto"
 
-#: templates/core/includes/product_card_unified.html:131
+#: templates/core/includes/product_card_unified.html:123
 msgid "View details →"
 msgstr "Ver detalles →"
 
@@ -6652,6 +6664,36 @@ msgstr "Crea tu cuenta"
 #, python-format
 msgid "Finish linking your %(provider_name)s account to TradeFlow Colón."
 msgstr "Finish linking your %(provider_name)s account to TradeFlow Colón."
+
+#, python-format
+#~ msgid "Low stock (%(qty)s units)"
+#~ msgstr "Stock bajo (%(qty)s unidades)"
+
+#, python-format
+#~ msgid "In stock (%(qty)s units)"
+#~ msgstr "En stock (%(qty)s unidades)"
+
+#~ msgid "Stock"
+#~ msgstr "Stock"
+
+#~ msgid ""
+#~ "Review specifications for SKU, stock, and pricing, or open the supplier "
+#~ "catalog to compare related inventory."
+#~ msgstr ""
+#~ "Revisa especificaciones para SKU, stock y precios, o abre el catálogo del "
+#~ "proveedor para comparar inventario relacionado."
+
+#, python-format
+#~ msgid "Low stock · %(counter)s unit"
+#~ msgid_plural "Low stock · %(counter)s units"
+#~ msgstr[0] "Stock bajo · %(counter)s unidad"
+#~ msgstr[1] "Stock bajo · %(counter)s unidades"
+
+#, python-format
+#~ msgid "In stock · %(counter)s unit"
+#~ msgid_plural "In stock · %(counter)s units"
+#~ msgstr[0] "En stock · %(counter)s unidad"
+#~ msgstr[1] "En stock · %(counter)s unidades"
 
 #, fuzzy
 #~| msgid "Sell on TradeFlow"

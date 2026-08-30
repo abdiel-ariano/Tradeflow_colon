@@ -95,20 +95,17 @@
     if (els.qtyWrap) els.qtyWrap.classList.toggle('cart-qty--pending', pending);
     if (els.decrease) els.decrease.disabled = pending || parseInt(els.input.value, 10) <= 1;
     if (els.increase) {
-      var max = parseInt(els.input.getAttribute('max') || '9999', 10);
-      els.increase.disabled = pending || parseInt(els.input.value, 10) >= max;
+      els.increase.disabled = pending;
     }
   }
 
   function applyLineState(els, line) {
     if (!line) return;
     var qty = parseInt(line.cantidad, 10);
-    var max = parseInt(line.disponible || els.input.getAttribute('max') || '9999', 10);
     els.input.value = String(qty);
-    els.input.setAttribute('max', String(max));
     if (els.subtotal) els.subtotal.textContent = 'USD ' + line.subtotal;
     if (els.decrease) els.decrease.disabled = qty <= 1;
-    if (els.increase) els.increase.disabled = qty >= max;
+    if (els.increase) els.increase.disabled = false;
     showLineError(els, '');
   }
 
