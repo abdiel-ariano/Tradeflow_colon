@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load static i18n %}
 {% comment %}
 ================================================================================
 templates/core/signup.html — TradeFlow Colón
@@ -7,7 +7,7 @@ Propósito: registro de compradores y vendedores con selector de rol.
 Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
 ================================================================================
 {% endcomment %}
-{% block title %}Crear cuenta — TradeFlow Colón{% endblock %}
+{% block title %}{% trans "Create account" %} — TradeFlow Colón{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 <link rel="stylesheet" href="{% static 'css/signup.css' %}?v={{ tf_asset_version|default:'2' }}">
@@ -23,7 +23,7 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
         {% include "core/includes/tf_logo.html" with variant="icon-white" size="sm" class="signup-brand-logo__img" eager=1 %}
         <span class="signup-brand-name">TradeFlow <span class="signup-brand-accent">Colón</span></span>
       </div>
-      <p class="signup-brand-headline">Mayoristas verificados de la Zona Libre de Colón</p>
+      <p class="signup-brand-headline">{% trans "Verified wholesalers from the Colón Free Zone" %}</p>
       <div class="signup-brand-detail">
         <div class="signup-catalog-mosaic" aria-hidden="true">
           <img src="{% static 'images/catalog-seeds/electronics.jpg' %}" alt="" width="160" height="160" loading="lazy" decoding="async">
@@ -31,7 +31,7 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
           <img src="{% static 'images/catalog-seeds/beauty.jpg' %}" alt="" width="160" height="160" loading="lazy" decoding="async">
           <img src="{% static 'images/catalog-seeds/home_appliances.jpg' %}" alt="" width="160" height="160" loading="lazy" decoding="async">
         </div>
-        <p class="signup-brand-subline">Documentación de exportación y pagos protegidos en cada pedido.</p>
+        <p class="signup-brand-subline">{% trans "Export documentation and protected payments on every order." %}</p>
       </div>
       <div class="signup-brand-mosaic-mobile" aria-hidden="true">
         <img src="{% static 'images/catalog-seeds/electronics.jpg' %}" alt="" width="80" height="80" loading="lazy" decoding="async">
@@ -43,21 +43,23 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
 
     <div class="signup-form-panel">
       <header class="signup-form-header">
-        <h1 class="signup-form-title" id="signup-form-title">Abre tu cuenta mayorista</h1>
-        <p class="signup-form-subtitle">Únete gratis en menos de 2 minutos.</p>
+        <h1 class="signup-form-title" id="signup-form-title"
+            data-title-buyer="{% trans 'Open your wholesale account' %}"
+            data-title-seller="{% trans 'Register your company in the CFZ' %}">{% trans "Open your wholesale account" %}</h1>
+        <p class="signup-form-subtitle">{% trans "Join for free in under 2 minutes." %}</p>
       </header>
 
       <form method="post" action="{% url 'signup' %}" novalidate autocomplete="off" class="signup-form">
         {% csrf_token %}
-        <div class="auth-toggle" role="radiogroup" aria-label="Tipo de cuenta">
+        <div class="auth-toggle" role="radiogroup" aria-label="{% trans 'Account type' %}">
           <div class="auth-toggle-cell">
             <input type="radio" name="role" id="r_buyer" value="buyer" checked>
             <label for="r_buyer">
               <span class="auth-toggle-main">
                 <span class="material-symbols-rounded" aria-hidden="true">work</span>
-                Comprador
+                {% trans "Buyer" %}
               </span>
-              <span class="auth-toggle-sub">Solicitar cotizaciones</span>
+              <span class="auth-toggle-sub">{% trans "Request quotes" %}</span>
             </label>
           </div>
           <div class="auth-toggle-cell">
@@ -65,9 +67,9 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
             <label for="r_seller">
               <span class="auth-toggle-main">
                 <span class="material-symbols-rounded" aria-hidden="true">store</span>
-                Vendedor
+                {% trans "Seller" %}
               </span>
-              <span class="auth-toggle-sub">Publicar catálogo CFZ</span>
+              <span class="auth-toggle-sub">{% trans "Publish CFZ catalog" %}</span>
             </label>
           </div>
         </div>
@@ -75,57 +77,57 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
         {% include "core/includes/oauth_buttons_signup.html" %}
 
         <fieldset class="signup-field-group">
-          <legend class="signup-field-group-title">Datos de contacto</legend>
+          <legend class="signup-field-group-title">{% trans "Contact details" %}</legend>
           <div class="row-2">
             <div class="tf-field">
-              <label class="tf-label" for="id_first_name">Nombre <span class="req">*</span></label>
-              <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="Nombre" value="{{ form_first_name|default:'' }}" required aria-describedby="hint-first-name">
-              <p class="auth-field-hint" id="hint-first-name">Solo letras y espacios (mín. 2 caracteres).</p>
+              <label class="tf-label" for="id_first_name">{% trans "First name" %} <span class="req">*</span></label>
+              <input type="text" name="first_name" id="id_first_name" class="tf-input" placeholder="{% trans 'First name' %}" value="{{ form_first_name|default:'' }}" required aria-describedby="hint-first-name">
+              <p class="auth-field-hint" id="hint-first-name">{% trans "Letters and spaces only (min. 2 characters)." %}</p>
             </div>
             <div class="tf-field">
-              <label class="tf-label" for="id_last_name">Apellido</label>
-              <input type="text" name="last_name" id="id_last_name" class="tf-input" placeholder="Apellido" value="{{ form_last_name|default:'' }}">
+              <label class="tf-label" for="id_last_name">{% trans "Last name" %}</label>
+              <input type="text" name="last_name" id="id_last_name" class="tf-input" placeholder="{% trans 'Last name' %}" value="{{ form_last_name|default:'' }}">
             </div>
           </div>
           <div class="tf-field">
-            <label class="tf-label" for="id_email">Correo electrónico <span class="req">*</span></label>
-            <input type="email" name="email" id="id_email" class="tf-input" placeholder="correo@ejemplo.com" value="{{ form_email|default:'' }}" autocomplete="off" required>
+            <label class="tf-label" for="id_email">{% trans "Email address" %} <span class="req">*</span></label>
+            <input type="email" name="email" id="id_email" class="tf-input" placeholder="email@example.com" value="{{ form_email|default:'' }}" autocomplete="off" required>
           </div>
           <div class="tf-field">
-            <label class="tf-label" for="id_phone">Teléfono</label>
+            <label class="tf-label" for="id_phone">{% trans "Phone" %}</label>
             <input type="tel" name="phone" id="id_phone" class="tf-input" placeholder="+507 6000-0000" value="{{ form_phone|default:'' }}">
           </div>
         </fieldset>
 
         <fieldset class="signup-field-group">
-          <legend class="signup-field-group-title">Tu cuenta</legend>
+          <legend class="signup-field-group-title">{% trans "Your account" %}</legend>
           <div class="tf-field">
-            <label class="tf-label" for="id_username">Usuario <span class="req">*</span></label>
-            <input type="text" name="username" id="id_username" class="tf-input" placeholder="Usuario" autocomplete="off" required aria-describedby="hint-username">
-            <p class="auth-field-hint" id="hint-username">Letras, números, puntos y guiones bajos. Debe empezar con letra (3–30 caracteres).</p>
+            <label class="tf-label" for="id_username">{% trans "Username" %} <span class="req">*</span></label>
+            <input type="text" name="username" id="id_username" class="tf-input" placeholder="{% trans 'Username' %}" autocomplete="off" required aria-describedby="hint-username">
+            <p class="auth-field-hint" id="hint-username">{% trans "Letters, numbers, dots, and underscores. Must start with a letter (3–30 characters)." %}</p>
           </div>
         </fieldset>
 
         <fieldset class="signup-field-group signup-field-group--last">
-          <legend class="signup-field-group-title">Seguridad</legend>
+          <legend class="signup-field-group-title">{% trans "Security" %}</legend>
           <div class="auth-password-stack">
             <div class="auth-password-field">
-              <label class="auth-field-label-subtle" for="id_password1">Contraseña <span class="req">*</span></label>
+              <label class="auth-field-label-subtle" for="id_password1">{% trans "Password" %} <span class="req">*</span></label>
               <div class="auth-password-wrap">
-                <input type="password" name="password1" id="id_password1" class="auth-password-input" placeholder="Mín. 8 caracteres" autocomplete="new-password" required>
-                {% include "core/includes/auth_password_toggle_button.html" with target_id="id_password1" show_label="Mostrar contraseña" hide_label="Ocultar contraseña" %}
+                <input type="password" name="password1" id="id_password1" class="auth-password-input" placeholder="{% trans 'Min. 8 characters' %}" autocomplete="new-password" required>
+                {% include "core/includes/auth_password_toggle_button.html" with target_id="id_password1" %}
               </div>
-              <div class="signup-strength" id="signup-strength" aria-hidden="true" aria-label="Fortaleza de contraseña">
+              <div class="signup-strength" id="signup-strength" aria-hidden="true" aria-label="{% trans 'Password strength' %}">
                 <span class="signup-strength-bar"><span class="signup-strength-fill"></span></span>
                 <span class="signup-strength-bar"><span class="signup-strength-fill"></span></span>
                 <span class="signup-strength-bar"><span class="signup-strength-fill"></span></span>
               </div>
             </div>
             <div class="auth-password-field">
-              <label class="auth-field-label-subtle" for="id_password2">Confirmar contraseña <span class="req">*</span></label>
+              <label class="auth-field-label-subtle" for="id_password2">{% trans "Confirm password" %} <span class="req">*</span></label>
               <div class="auth-password-wrap">
-                <input type="password" name="password2" id="id_password2" class="auth-password-input" placeholder="Repite la contraseña" autocomplete="new-password" required>
-                {% include "core/includes/auth_password_toggle_button.html" with target_id="id_password2" show_label="Mostrar contraseña" hide_label="Ocultar contraseña" %}
+                <input type="password" name="password2" id="id_password2" class="auth-password-input" placeholder="{% trans 'Repeat password' %}" autocomplete="new-password" required>
+                {% include "core/includes/auth_password_toggle_button.html" with target_id="id_password2" %}
               </div>
             </div>
           </div>
@@ -133,22 +135,22 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
 
         <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;margin:12px 0;font-size:13px;">
           <input type="checkbox" name="accept_privacy" value="1" required style="margin-top:3px;">
-          <span>Acepto la <a href="{% url 'legal_privacidad' %}" target="_blank" rel="noopener">Política de privacidad</a> y los <a href="{% url 'legal_terminos' %}" target="_blank" rel="noopener">Términos</a>.</span>
+          <span>{% blocktrans trimmed %}I accept the{% endblocktrans %} <a href="{% url 'legal_privacidad' %}" target="_blank" rel="noopener">{% trans "Privacy Policy" %}</a> {% trans "and the" %} <a href="{% url 'legal_terminos' %}" target="_blank" rel="noopener">{% trans "Terms" %}</a>.</span>
         </label>
         <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;margin:0 0 12px;font-size:13px;">
           <input type="checkbox" name="marketing_opt_in" value="1" style="margin-top:3px;">
-          <span>Quiero recordatorios de carrito y novedades del marketplace (opcional).</span>
+          <span>{% trans "I want cart reminders and marketplace updates (optional)." %}</span>
         </label>
 
         <button type="submit" class="auth-submit">
           <span class="material-symbols-rounded auth-submit-icon" aria-hidden="true">person_add</span>
-          Crear cuenta
+          {% trans "Create account" %}
         </button>
-        <p class="signup-verify-note">Te enviaremos un correo para verificar tu cuenta.</p>
+        <p class="signup-verify-note">{% trans "We will email you to verify your account." %}</p>
       </form>
 
       <div class="auth-footer">
-        ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
+        {% trans "Already have an account?" %} <a href="{% url 'login' %}">{% trans "Sign in" %}</a>
       </div>
     </div>
   </div>
@@ -160,15 +162,12 @@ Contexto: vista signup_view; split-screen layout (catálogo vivo + formulario).
   var sellerRadio = document.getElementById('r_seller');
   var titleEl = document.getElementById('signup-form-title');
 
-  var TITLES = {
-    buyer: 'Abre tu cuenta mayorista',
-    seller: 'Registra tu empresa en la CFZ'
-  };
-
   function syncRoleUi() {
     var isSeller = sellerRadio && sellerRadio.checked;
     if (titleEl) {
-      titleEl.textContent = isSeller ? TITLES.seller : TITLES.buyer;
+      titleEl.textContent = isSeller
+        ? titleEl.getAttribute('data-title-seller')
+        : titleEl.getAttribute('data-title-buyer');
     }
   }
 

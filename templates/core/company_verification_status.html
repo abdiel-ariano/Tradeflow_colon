@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% block title %}Estado de verificación — TradeFlow Colón{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Verification status" %} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/colors.css' %}">
 <style nonce="{{ csp_nonce }}">
@@ -32,46 +32,47 @@
       data-initial-status="{{ company.verification_status }}"
     >
       {% if company.verification_status == 'verified' %}
-        <span class="cv-status cv-status--verified"><span class="material-symbols-rounded" aria-hidden="true">verified</span> Empresa verificada</span>
-        <h1 id="cv-title">La identidad empresarial fue aprobada</h1>
-        <p class="cv-lead">TradeFlow registró quién realizó la revisión y habilitará únicamente las capacidades aprobadas para esta empresa.</p>
+        <span class="cv-status cv-status--verified"><span class="material-symbols-rounded" aria-hidden="true">verified</span> {% trans "Verified company" %}</span>
+        <h1 id="cv-title">{% trans "Business identity approved" %}</h1>
+        <p class="cv-lead">{% trans "TradeFlow recorded who performed the review and will enable only the capabilities approved for this company." %}</p>
       {% elif company.verification_status == 'rejected' %}
-        <span class="cv-status cv-status--rejected"><span class="material-symbols-rounded" aria-hidden="true">error</span> Requiere corrección</span>
-        <h1 id="cv-title">No pudimos aprobar la información</h1>
-        <p class="cv-lead">Revisa la observación y vuelve a presentar los datos o documentos corregidos.</p>
+        <span class="cv-status cv-status--rejected"><span class="material-symbols-rounded" aria-hidden="true">error</span> {% trans "Correction required" %}</span>
+        <h1 id="cv-title">{% trans "We could not approve the information" %}</h1>
+        <p class="cv-lead">{% trans "Review the note and resubmit corrected data or documents." %}</p>
       {% else %}
-        <span class="cv-status cv-status--pending"><span class="material-symbols-rounded" aria-hidden="true">schedule</span> Revisión pendiente</span>
-        <h1 id="cv-title">Estamos revisando la empresa</h1>
-        <p class="cv-lead">La cuenta existe, pero todavía no mostramos una insignia de empresa verificada ni habilitamos operaciones restringidas.</p>
-        <p class="cv-poll-hint">Actualizamos el estado automáticamente cada 10 segundos mientras esta pestaña esté visible.</p>
+        <span class="cv-status cv-status--pending"><span class="material-symbols-rounded" aria-hidden="true">schedule</span> {% trans "Review pending" %}</span>
+        <h1 id="cv-title">{% trans "We are reviewing the company" %}</h1>
+        <p class="cv-lead">{% trans "The account exists, but we do not yet show a verified company badge or enable restricted operations." %}</p>
+        <p class="cv-poll-hint">{% trans "We update the status automatically every 10 seconds while this tab is visible." %}</p>
       {% endif %}
     </div>
 
     <dl class="cv-data">
-      <div class="cv-row"><dt>Razón social</dt><dd>{{ company.legal_name }}</dd></div>
-      <div class="cv-row"><dt>Nombre comercial</dt><dd>{{ company.name }}</dd></div>
-      <div class="cv-row"><dt>RUC / DV</dt><dd>{{ company.ruc }} / {{ company.dv }}</dd></div>
-      <div class="cv-row"><dt>Uso solicitado</dt><dd>{{ company.get_business_role_display }}</dd></div>
-      <div class="cv-row"><dt>Enviado</dt><dd>{{ company.verification_submitted_at|date:"d/m/Y H:i"|default:"Pendiente" }}</dd></div>
+      <div class="cv-row"><dt>{% trans "Legal name" %}</dt><dd>{{ company.legal_name }}</dd></div>
+      <div class="cv-row"><dt>{% trans "Trade name" %}</dt><dd>{{ company.name }}</dd></div>
+      <div class="cv-row"><dt>{% trans "Tax ID / DV" %}</dt><dd>{{ company.ruc }} / {{ company.dv }}</dd></div>
+      <div class="cv-row"><dt>{% trans "Requested use" %}</dt><dd>{{ company.get_business_role_display }}</dd></div>
+      <div class="cv-row"><dt>{% trans "Submitted" %}</dt><dd>{% if company.verification_submitted_at %}{{ company.verification_submitted_at|date:"d/m/Y H:i" }}{% else %}{% trans "Pending" %}{% endif %}</dd></div>
     </dl>
 
     {% if company.verification_status == 'rejected' %}
-      <div class="cv-note">La información enviada requiere corrección. Actualiza los datos o documentos y vuelve a enviar la empresa.</div>
+      <div class="cv-note">{% trans "The submitted information requires correction. Update the data or documents and resubmit the company." %}</div>
     {% elif activation_error %}
-      <div class="cv-note">La empresa está aprobada, pero el portal no pudo activarse. Contacta a soporte@tradeflowcolon.com.</div>
+      <div class="cv-note">{% trans "The company is approved, but the portal could not be activated. Contact soporte@tradeflowcolon.com." %}</div>
     {% elif company.verification_status == 'pending' %}
-      <div class="cv-note">La comprobación actual es documental y manual. TradeFlow no afirma una conexión automática con la DGI, Registro Público o Panamá Emprende.</div>
+      <div class="cv-note">{% trans "Current verification is documentary and manual. TradeFlow does not claim an automatic connection with DGI, Public Registry, or Panamá Emprende." %}</div>
     {% endif %}
 
     <div class="cv-actions" id="cv-actions-footer">
       {% if company.verification_status == 'rejected' %}
-        <a class="tf-btn-primary" href="{% url 'company_onboarding' %}?corregir=1">Corregir información</a>
+        <a class="tf-btn-primary" href="{% url 'company_onboarding' %}?corregir=1">{% trans "Correct information" %}</a>
       {% elif company.verification_status == 'verified' and company.can_sell %}
-        <a class="tf-btn-primary" href="{% url 'portal_seller' %}">Entrar al portal empresarial</a>
+        <a class="tf-btn-primary" href="{% url 'portal_seller' %}">{% trans "Enter business portal" %}</a>
       {% elif company.verification_status == 'verified' %}
-        <a class="tf-btn-primary" href="{% url 'catalogo_publico' %}">Explorar catálogo mayorista</a>
+        <a class="tf-btn-primary" href="{% url 'catalogo_publico' %}">{% trans "Browse wholesale catalog" %}</a>
       {% endif %}
-      {% include "core/includes/logout_control.html" with button_class="tf-btn-secondary" label="Cerrar sesión" %}
+      {% trans "Sign out" as logout_label %}
+      {% include "core/includes/logout_control.html" with button_class="tf-btn-secondary" label=logout_label %}
     </div>
   </section>
 </main>

@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}
 Grid — filtrado usa catalogo_card compacta; landing usa tf-pcard.
 {% endcomment %}
@@ -11,9 +12,9 @@ Grid — filtrado usa catalogo_card compacta; landing usa tf-pcard.
   {% empty %}
   <div class="{% if tienda_filtered %}ali-empty{% else %}td-empty td-empty--alibaba{% endif %}">
     {% if not tienda_filtered %}{% include "core/includes/tf_icon.html" with name="search" class="td-empty__icon" %}{% endif %}
-    <h2>No se encontraron productos</h2>
-    <p>Prueba otra categoría o término de búsqueda</p>
-    <a href="{% url 'tienda' %}" class="td-btn-add">Ver todo el catálogo</a>
+    <h2>{% trans "No products found" %}</h2>
+    <p>{% trans "Try another category or search term" %}</p>
+    <a href="{% url 'tienda' %}" class="td-btn-add">{% trans "View full catalog" %}</a>
   </div>
   {% endfor %}
 </div>

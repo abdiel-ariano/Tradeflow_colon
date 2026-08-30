@@ -2,8 +2,8 @@
 {% comment %}
 Template: seller_onboarding_company.html — identidad empresarial B2B.
 {% endcomment %}
-{% load static %}
-{% block title %}Configura tu empresa — TradeFlow{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Set up your company" %} — TradeFlow{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/colors.css' %}">
 <style nonce="{{ csp_nonce }}">
@@ -29,83 +29,83 @@ Template: seller_onboarding_company.html — identidad empresarial B2B.
 {% block content %}
 <div class="so-wrap">
   <div class="so-card">
-    <div class="so-badge"><span class="material-symbols-rounded" style="font-size:18px;">domain_verification</span> Verificación empresarial requerida</div>
+    <div class="so-badge"><span class="material-symbols-rounded" style="font-size:18px;">domain_verification</span> {% trans "Business verification required" %}</div>
     <h1>{{ titulo_pagina }}</h1>
     <p class="so-lead">
-      Para comprar o vender como empresa necesitamos identificar la razón social y al representante.
-      El RUC y el DV se revisan junto con el documento adjunto antes de habilitar operaciones.
+      {% trans "To buy or sell as a company we need to identify the legal entity and its representative. The tax ID and verification digit are reviewed together with the attached document before enabling operations." %}
     </p>
     {% if expo_demo_mode %}
     <p class="so-lead" style="margin-top:-.75rem;padding:.75rem 1rem;border-radius:8px;background:rgba(242,101,34,.08);border:1px solid rgba(242,101,34,.2);">
-      Modo demo activo: puedes enviar sin documento adjunto; la empresa se verifica al instante para probar el flujo B2B.
+      {% trans "Demo mode active: you can submit without an attached document; the company is verified instantly to test the B2B flow." %}
     </p>
     {% endif %}
-    <div class="so-process" aria-label="Proceso de verificación">
-      <div><strong>1. Datos</strong>Completas la identidad empresarial.</div>
-      <div><strong>2. Revisión humana</strong>TradeFlow contrasta los datos y la evidencia.</div>
-      <div><strong>3. Acceso</strong>Se habilitan las funciones aprobadas.</div>
+    <div class="so-process" aria-label="{% trans 'Verification process' %}">
+      <div><strong>{% trans "1. Details" %}</strong>{% trans "You complete the business identity." %}</div>
+      <div><strong>{% trans "2. Human review" %}</strong>{% trans "TradeFlow verifies the data and evidence." %}</div>
+      <div><strong>{% trans "3. Access" %}</strong>{% trans "Approved features are enabled." %}</div>
     </div>
     <form method="post" action="{% url 'company_onboarding_post' %}" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="so-field">
-        <label for="business_role">¿Qué hará tu empresa en TradeFlow? *</label>
+        <label for="business_role">{% trans "What will your company do on TradeFlow?" %} *</label>
         <select id="business_role" name="business_role" required>
-          <option value="buyer" {% if form_business_role == 'buyer' %}selected{% endif %}>Comprar productos al por mayor</option>
-          <option value="seller" {% if form_business_role == 'seller' %}selected{% endif %}>Vender productos al por mayor</option>
-          <option value="both" {% if form_business_role == 'both' %}selected{% endif %}>Comprar y vender</option>
+          <option value="buyer" {% if form_business_role == 'buyer' %}selected{% endif %}>{% trans "Buy products wholesale" %}</option>
+          <option value="seller" {% if form_business_role == 'seller' %}selected{% endif %}>{% trans "Sell products wholesale" %}</option>
+          <option value="both" {% if form_business_role == 'both' %}selected{% endif %}>{% trans "Buy and sell" %}</option>
         </select>
       </div>
       <div class="so-grid">
         <div class="so-field">
-          <label for="legal_name">Razón social registrada *</label>
-          <input type="text" id="legal_name" name="legal_name" required maxlength="200" value="{{ form_legal_name }}" placeholder="Ej. Importadora del Istmo, S.A.">
+          <label for="legal_name">{% trans "Registered legal name" %} *</label>
+          <input type="text" id="legal_name" name="legal_name" required maxlength="200" value="{{ form_legal_name }}" placeholder="{% trans 'e.g. Isthmus Importers, Inc.' %}">
         </div>
         <div class="so-field">
-          <label for="name">Nombre comercial *</label>
-          <input type="text" id="name" name="name" required maxlength="200" value="{{ form_name }}" placeholder="Ej. Importadora Istmo">
+          <label for="name">{% trans "Trade name" %} *</label>
+          <input type="text" id="name" name="name" required maxlength="200" value="{{ form_name }}" placeholder="{% trans 'e.g. Isthmus Importers' %}">
         </div>
       </div>
       <div class="so-grid">
         <div class="so-field">
-          <label for="ruc">RUC *</label>
+          <label for="ruc">{% trans "Tax ID (RUC)" %} *</label>
           <input type="text" id="ruc" name="ruc" required maxlength="50" value="{{ form_ruc }}" placeholder="1556-123456-789">
-          <small class="so-help">Escríbelo como aparece en la documentación de la empresa.</small>
+          <small class="so-help">{% trans "Enter it exactly as it appears on company documentation." %}</small>
         </div>
         <div class="so-field">
-          <label for="dv">Dígito verificador (DV) *</label>
+          <label for="dv">{% trans "Verification digit (DV)" %} *</label>
           <input type="text" id="dv" name="dv" required maxlength="20" value="{{ form_dv }}" placeholder="12">
         </div>
       </div>
       <div class="so-grid">
         <div class="so-field">
-          <label for="business_email">Correo empresarial *</label>
-          <input type="email" id="business_email" name="business_email" required value="{{ form_business_email }}" placeholder="compras@empresa.pa">
+          <label for="business_email">{% trans "Business email" %} *</label>
+          <input type="email" id="business_email" name="business_email" required value="{{ form_business_email }}" placeholder="purchasing@company.pa">
         </div>
         <div class="so-field">
-          <label for="business_phone">Teléfono empresarial</label>
+          <label for="business_phone">{% trans "Business phone" %}</label>
           <input type="tel" id="business_phone" name="business_phone" maxlength="30" value="{{ form_business_phone }}" placeholder="+507 6000-0000">
         </div>
       </div>
       <div class="so-field">
-        <label for="address_text">Dirección comercial *</label>
-        <textarea id="address_text" name="address_text" required placeholder="Provincia, distrito, corregimiento, edificio o local">{{ form_address }}</textarea>
+        <label for="address_text">{% trans "Business address" %} *</label>
+        <textarea id="address_text" name="address_text" required placeholder="{% trans 'Province, district, township, building or unit' %}">{{ form_address }}</textarea>
       </div>
       <div class="so-field">
-        <label for="verification_document">Documento de respaldo{% if not expo_demo_mode %} *{% endif %}</label>
+        <label for="verification_document">{% trans "Supporting document" %}{% if not expo_demo_mode %} *{% endif %}</label>
         <input type="file" id="verification_document" name="verification_document" accept=".pdf,image/jpeg,image/png,image/webp"{% if not expo_demo_mode %} required{% endif %}>
-        <small class="so-help">Aviso de operación, certificación de Registro Público o documento equivalente. PDF o imagen, máximo 8 MB.{% if expo_demo_mode %} En demo es opcional.{% endif %}</small>
+        <small class="so-help">{% trans "Notice of operation, Public Registry certification, or equivalent document. PDF or image, max 8 MB." %}{% if expo_demo_mode %} {% trans "Optional in demo." %}{% endif %}</small>
       </div>
       <div class="so-field">
-        <label for="logo">Logo (opcional)</label>
+        <label for="logo">{% trans "Logo (optional)" %}</label>
         <input type="file" id="logo" name="logo" accept="image/*">
       </div>
       <div class="so-actions">
-        <button type="submit" class="tf-btn-primary">Enviar empresa a revisión</button>
+        <button type="submit" class="tf-btn-primary">{% trans "Submit company for review" %}</button>
       </div>
     </form>
     <p class="so-lead" style="margin-top:1.25rem;margin-bottom:0;font-size:.875rem;">
-      ¿Necesitas terminar después?
-      {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" label="Cerrar sesión" %}
+      {% trans "Need to finish later?" %}
+      {% trans "Sign out" as logout_label %}
+      {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" label=logout_label %}
     </p>
   </div>
 </div>
