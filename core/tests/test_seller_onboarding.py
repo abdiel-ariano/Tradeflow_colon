@@ -100,7 +100,7 @@ class SellerOnboardingTests(TestCase):
                 address_text='Local 3',
             ))
         self.assertEqual(r.status_code, 200)
-        self.assertContains(r, 'error de base de datos')
+        self.assertContains(r, 'database error')
 
     def test_invalid_document_is_rejected_before_storage(self):
         """Reject a renamed executable/HTML payload instead of creating a company."""
@@ -119,7 +119,7 @@ class SellerOnboardingTests(TestCase):
             ),
         )
         self.assertEqual(r.status_code, 200)
-        self.assertContains(r, 'PDF o una imagen válida')
+        self.assertContains(r, 'valid PDF or image')
         self.assertFalse(Company.objects.filter(ruc='8-OB-BADFILE').exists())
 
     def test_ruc_owned_by_another_account_cannot_be_claimed(self):
@@ -140,7 +140,7 @@ class SellerOnboardingTests(TestCase):
             self._company_payload(ruc='8-OB-OWNED'),
         )
         self.assertEqual(r.status_code, 200)
-        self.assertContains(r, 'ya está vinculado a otra cuenta')
+        self.assertContains(r, 'already linked to another account')
         self.assertEqual(Company.objects.get(ruc='8-OB-OWNED').owner, other)
 
     def test_verified_company_owner_is_not_downgraded_on_reassociation(self):
@@ -195,7 +195,7 @@ class SellerOnboardingTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'ya está verificado')
+        self.assertContains(response, 'already verified')
         company.refresh_from_db()
         self.assertIsNone(company.owner_id)
         self.assertEqual(company.verification_status, 'verified')
