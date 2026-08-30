@@ -3,7 +3,10 @@ from __future__ import annotations
 
 from io import BytesIO
 
-from django.test import SimpleTestCase, override_settings
+from django.conf import settings
+from django.test import Client, SimpleTestCase, TestCase, override_settings
+from django.urls import reverse
+from django.utils import translation
 from PIL import Image
 
 from core.android_assetlinks import validate_asset_links
@@ -98,6 +101,44 @@ class PwaAndroidTests(SimpleTestCase):
             payload[0]['target']['sha256_cert_fingerprints'],
             [TEST_FINGERPRINT],
         )
+
+
+@override_settings(
+    DEBUG=True,
+    SECURE_SSL_REDIRECT=False,
+    ALLOWED_HOSTS=['testserver', 'tradeflowcolon.com'],
+    LANGUAGE_CODE='en',
+)
+class PwaInstallButtonTests(TestCase):
+    """Validate compact install control markup and i18n on public pages."""
+
+    def setUp(self):
+        translation.activate(settings.LANGUAGE_CODE)
+        self.client = Client()
+
+    def test_install_button_is_hidden_compact_and_wired_to_pwa_script(self):
+        """Expose a hidden install control with compact markup and assets."""
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-tf-install-app')
+        self.assertContains(response, 'hidden')
+        self.assertContains(response, 'class="tf-install-app"')
+        self.assertContains(response, 'tf-install-app__label')
+        self.assertContains(response, 'Install App')
+        self.assertContains(response, 'aria-label="Install App"')
+        self.assertContains(response, 'tf-mobile-pwa.css')
+        self.assertContains(response, 'tf-mobile-pwa.js')
+
+    def test_install_button_label_switches_with_language(self):
+        """Spanish locale shows the translated install label."""
+        self.client.cookies['django_language'] = 'es'
+        response = self.client.get('/es' + reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Instalar app')
+        self.assertContains(response, 'aria-label="Instalar app"')
+        self.assertNotContains(response, 'Install App')
 
 
 class AndroidAssetLinksValidationTests(SimpleTestCase):

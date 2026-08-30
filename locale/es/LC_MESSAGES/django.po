@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 12:43-0500\n"
+"POT-Creation-Date: 2026-08-30 13:13-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -263,11 +263,11 @@ msgstr "Pídeme gráficas (\\"
 
 #: analytics/templates/analytics/_dashboard_body.html:374
 msgid ""
-"Las respuestas de IA pueden generarse vía Groq. Evita pegar secretos o datos"
-" personales innecesarios."
+"Las respuestas de IA pueden generarse vía Groq. Evita pegar secretos o datos "
+"personales innecesarios."
 msgstr ""
-"Las respuestas de IA pueden generarse vía Groq. Evita pegar secretos o datos"
-" personales innecesarios."
+"Las respuestas de IA pueden generarse vía Groq. Evita pegar secretos o datos "
+"personales innecesarios."
 
 #: analytics/templates/analytics/_dashboard_body.html:380
 msgid "Escribe tu pregunta o petición para el chat de datos"
@@ -317,8 +317,7 @@ msgstr "Carga datos arriba para ver KPIs, gráficas y el chat con IA."
 #: core/views/catalog_cart.py:978
 #, python-format
 msgid "We sent a 6-digit code to %(email)s. Check your inbox and spam folder."
-msgstr ""
-"Enviamos un código de 6 dígitos a %(email)s. Revisa tu bandeja y spam."
+msgstr "Enviamos un código de 6 dígitos a %(email)s. Revisa tu bandeja y spam."
 
 #: core/auth_views.py:183 core/auth_views.py:186
 msgid "Enter a 6-digit code."
@@ -385,8 +384,7 @@ msgstr ""
 
 #: core/context_processors.py:125 core/models.py:820 core/models.py:875
 #: core/models.py:884 core/models.py:1073 core/models.py:1190
-#: core/utils/ui_labels.py:8
-#: templates/core/company_verification_status.html:55
+#: core/utils/ui_labels.py:8 templates/core/company_verification_status.html:55
 msgid "Pending"
 msgstr "Pendiente"
 
@@ -485,8 +483,8 @@ msgstr "Precio: mayor a menor"
 msgid "Newest"
 msgstr "Más recientes"
 
-#: core/context_processors.py:148 core/models.py:180
-#: core/utils/ui_labels.py:24 templates/core/acerca_tradeflow.html:57
+#: core/context_processors.py:148 core/models.py:180 core/utils/ui_labels.py:24
+#: templates/core/acerca_tradeflow.html:57
 #: templates/core/catalogo_publico.html:74 templates/core/empresas.html:51
 #: templates/core/empresas.html:119
 msgid "Verified"
@@ -661,7 +659,6 @@ msgstr "Aviso legal"
 
 #: core/context_processors.py:187
 #: templates/core/company_verification_status.html:35
-#| msgid "Verified companies"
 msgid "Verified company"
 msgstr "Empresa verificada"
 
@@ -672,8 +669,8 @@ msgstr "La identidad empresarial fue aprobada"
 
 #: core/context_processors.py:189
 msgid ""
-"TradeFlow recorded the review and will enable only the capabilities approved"
-" for this company."
+"TradeFlow recorded the review and will enable only the capabilities approved "
+"for this company."
 msgstr ""
 "TradeFlow registró la revisión y habilitará únicamente las capacidades "
 "aprobadas para esta empresa."
@@ -681,12 +678,10 @@ msgstr ""
 #: core/context_processors.py:190
 #: templates/registration/password_reset_complete.html:28
 #: templates/socialaccount/signup.html:22
-#| msgid "Continue shopping"
 msgid "Continue"
 msgstr "Continuar"
 
 #: core/context_processors.py:191
-#| msgid "Your email is not verified yet."
 msgid "Your company was verified."
 msgstr "Tu empresa fue verificada."
 
@@ -695,7 +690,6 @@ msgid "Your company was verified. One more access step is still pending."
 msgstr "Tu empresa fue verificada. Aún hay un paso de acceso pendiente."
 
 #: core/context_processors.py:193 core/utils/ui_labels.py:25
-#| msgid "Request for Quotation"
 msgid "Requires correction"
 msgstr "Requiere corrección"
 
@@ -706,12 +700,10 @@ msgstr "No pudimos aprobar la información"
 
 #: core/context_processors.py:195
 #: templates/core/company_verification_status.html:68
-#| msgid "Product information"
 msgid "Correct information"
 msgstr "Corregir información"
 
 #: core/context_processors.py:196
-#| msgid "Request for Quotation"
 msgid "Your application requires correction."
 msgstr "Tu solicitud requiere corrección."
 
@@ -780,9 +772,9 @@ msgstr ""
 msgid "Pending review"
 msgstr ""
 
-#: core/models.py:181 core/models.py:822 core/models.py:886
-#: core/models.py:1075 core/models.py:1193 core/models.py:1316
-#: templates/core/empresas.html:52 templates/core/empresas.html:126
+#: core/models.py:181 core/models.py:822 core/models.py:886 core/models.py:1075
+#: core/models.py:1193 core/models.py:1316 templates/core/empresas.html:52
+#: templates/core/empresas.html:126
 msgid "Rejected"
 msgstr ""
 
@@ -1137,8 +1129,8 @@ msgstr ""
 
 #: core/views/access_admin.py:187
 msgid ""
-"Application saved, but email could not be sent. Configure RESEND_API_KEY and"
-" verify sender domain in Resend."
+"Application saved, but email could not be sent. Configure RESEND_API_KEY and "
+"verify sender domain in Resend."
 msgstr ""
 
 #: core/views/access_admin.py:194
@@ -1219,7 +1211,7 @@ msgstr ""
 "verificadas de la Zona Libre de Colón. Catálogo B2B con inventario "
 "transparente en TradeFlow."
 
-#: core/views/catalog_cart.py:456 templates/core/base.html:1210
+#: core/views/catalog_cart.py:456 templates/core/base.html:1211
 #: templates/core/catalogo_producto_detail.html:32
 #: templates/core/includes/marketplace_public_navbar.html:121
 #: templates/core/includes/tienda/tienda_results_bar.html:8
@@ -1399,8 +1391,7 @@ msgstr "No se pudieron actualizar los gráficos."
 msgid "Could not start checkout."
 msgstr ""
 
-#: core/views/seller_store.py:327
-#: templates/core/seller_trial_activation.html:9
+#: core/views/seller_store.py:327 templates/core/seller_trial_activation.html:9
 msgid "Activate your plan"
 msgstr ""
 
@@ -1479,8 +1470,7 @@ msgstr "Acerca de TradeFlow Colón"
 msgid "Your seller account has been deactivated. Your data is preserved."
 msgstr ""
 
-#: core/views/seller_store.py:508
-#: templates/core/seller_account_inactive.html:7
+#: core/views/seller_store.py:508 templates/core/seller_account_inactive.html:7
 msgid "Account inactive"
 msgstr ""
 
@@ -1604,8 +1594,8 @@ msgstr ""
 
 #: core/views_seller_onboarding.py:463
 msgid ""
-"This RUC is already verified and requires manual authorization to link a new"
-" representative. Contact support@tradeflowcolon.com."
+"This RUC is already verified and requires manual authorization to link a new "
+"representative. Contact support@tradeflowcolon.com."
 msgstr ""
 
 #: core/views_seller_onboarding.py:472
@@ -1831,14 +1821,14 @@ msgstr "Digitalizamos la segunda zona franca más grande del mundo"
 #: templates/core/acerca_tradeflow.html:51
 msgid ""
 "For decades, sourcing from the Colón Free Zone meant phone calls, "
-"spreadsheets, and uncertainty. TradeFlow puts verified catalogs, live stock,"
-" and structured RFQs in one place — so you can compare suppliers, negotiate "
+"spreadsheets, and uncertainty. TradeFlow puts verified catalogs, live stock, "
+"and structured RFQs in one place — so you can compare suppliers, negotiate "
 "volume, and place export-ready orders from anywhere."
 msgstr ""
 "Durante décadas, abastecerse desde la Zona Libre de Colón significó "
 "llamadas, hojas de cálculo e incertidumbre. TradeFlow reúne catálogos "
-"verificados, stock activo y RFQ estructurados en un solo lugar para comparar"
-" proveedores, negociar volumen y hacer pedidos listos para exportar desde "
+"verificados, stock activo y RFQ estructurados en un solo lugar para comparar "
+"proveedores, negociar volumen y hacer pedidos listos para exportar desde "
 "cualquier sitio."
 
 #: templates/core/acerca_tradeflow.html:52
@@ -1847,8 +1837,8 @@ msgid ""
 "scaling across Central America — TradeFlow is your direct line to CFZ "
 "wholesale."
 msgstr ""
-"Ya seas importador en Miami, distribuidor en Bogotá o retailer expandiéndote"
-" en Centroamérica, TradeFlow es tu línea directa al mayorista ZLC."
+"Ya seas importador en Miami, distribuidor en Bogotá o retailer expandiéndote "
+"en Centroamérica, TradeFlow es tu línea directa al mayorista ZLC."
 
 #: templates/core/acerca_tradeflow.html:53
 msgid "Start browsing the catalog"
@@ -1910,8 +1900,7 @@ msgstr "Precios mayoristas transparentes"
 #, python-format
 msgid ""
 "MOQ, USD price, and stock visibility on every product. No hidden tiers — "
-"compare like-for-like across %(count)s categories before you request a "
-"quote."
+"compare like-for-like across %(count)s categories before you request a quote."
 msgstr ""
 "MOQ, precio en USD y visibilidad de stock en cada producto. Sin niveles "
 "ocultos: compara en %(count)s categorías antes de cotizar."
@@ -2020,194 +2009,194 @@ msgstr "Crea tu cuenta"
 msgid "Meet verified suppliers"
 msgstr "Más proveedores verificados"
 
-#: templates/core/base.html:1117
+#: templates/core/base.html:1118
 #, fuzzy
 #| msgid "Rectification"
 msgid "Notifications"
 msgstr "Rectificación"
 
-#: templates/core/base.html:1120
+#: templates/core/base.html:1121
 msgid "Cookie preferences"
 msgstr ""
 
-#: templates/core/base.html:1123
+#: templates/core/base.html:1124
 msgid ""
-"We use essential cookies for login, cart, and security. Optional preferences"
-" remember UI choices (language, dismissed banners). See our"
+"We use essential cookies for login, cart, and security. Optional preferences "
+"remember UI choices (language, dismissed banners). See our"
 msgstr ""
 
-#: templates/core/base.html:1128 templates/core/legal_cookies.html:3
+#: templates/core/base.html:1129 templates/core/legal_cookies.html:3
 #: templates/core/legal_cookies.html:4 templates/core/legal_privacidad.html:83
 #: templates/core/legal_terminos.html:103
 msgid "Cookie Policy"
 msgstr "Política de cookies"
 
-#: templates/core/base.html:1132
+#: templates/core/base.html:1133
 msgid "Remember interface preferences"
 msgstr ""
 
-#: templates/core/base.html:1136
+#: templates/core/base.html:1137
 #, fuzzy
 #| msgid "Essential cookies"
 msgid "Essential only"
 msgstr "Cookies esenciales"
 
-#: templates/core/base.html:1137
+#: templates/core/base.html:1138
 msgid "Save choices"
 msgstr ""
 
-#: templates/core/base.html:1164
+#: templates/core/base.html:1165
 msgid "Simulated data notice"
 msgstr "Aviso de datos simulados"
 
-#: templates/core/base.html:1167
+#: templates/core/base.html:1168
 msgid "Demonstration catalog."
 msgstr "Catálogo de demostración."
 
-#: templates/core/base.html:1168
+#: templates/core/base.html:1169
 msgid ""
-"Companies, inventory, prices, and performance metrics are simulated; they do"
-" not yet represent active commercial suppliers."
+"Companies, inventory, prices, and performance metrics are simulated; they do "
+"not yet represent active commercial suppliers."
 msgstr ""
 "Las empresas, el inventario, los precios y las métricas son simulados; aún "
 "no representan proveedores comerciales activos."
 
-#: templates/core/base.html:1186
+#: templates/core/base.html:1187
 msgid ""
-"B2B wholesale marketplace for the Colón Free Zone. Verified catalog, quotes,"
-" and logistics in one place."
+"B2B wholesale marketplace for the Colón Free Zone. Verified catalog, quotes, "
+"and logistics in one place."
 msgstr ""
 "Marketplace mayorista B2B para la Zona Libre de Colón. Catálogo verificado, "
 "cotizaciones y logística en un solo lugar."
 
-#: templates/core/base.html:1192
+#: templates/core/base.html:1193
 msgid "Social media"
 msgstr "Redes sociales"
 
-#: templates/core/base.html:1193
+#: templates/core/base.html:1194
 msgid "Follow us"
 msgstr "Síguenos"
 
-#: templates/core/base.html:1194
+#: templates/core/base.html:1195
 msgid "LinkedIn (coming soon)"
 msgstr "LinkedIn (próximamente)"
 
-#: templates/core/base.html:1194
+#: templates/core/base.html:1195
 msgid "LinkedIn — coming soon"
 msgstr "LinkedIn — próximamente"
 
-#: templates/core/base.html:1197
+#: templates/core/base.html:1198
 msgid "Instagram (coming soon)"
 msgstr "Instagram (próximamente)"
 
-#: templates/core/base.html:1197
+#: templates/core/base.html:1198
 msgid "Instagram — coming soon"
 msgstr "Instagram — próximamente"
 
-#: templates/core/base.html:1200
+#: templates/core/base.html:1201
 msgid "Facebook (coming soon)"
 msgstr "Facebook (próximamente)"
 
-#: templates/core/base.html:1200
+#: templates/core/base.html:1201
 msgid "Facebook — coming soon"
 msgstr "Facebook — próximamente"
 
-#: templates/core/base.html:1207
+#: templates/core/base.html:1208
 msgid "Buyers"
 msgstr "Compradores"
 
-#: templates/core/base.html:1208
+#: templates/core/base.html:1209
 msgid "Buyer links"
 msgstr "Enlaces para compradores"
 
-#: templates/core/base.html:1209
+#: templates/core/base.html:1210
 msgid "How to buy"
 msgstr "Cómo comprar"
 
-#: templates/core/base.html:1211
+#: templates/core/base.html:1212
 msgid "Verified companies"
 msgstr "Empresas verificadas"
 
-#: templates/core/base.html:1212
+#: templates/core/base.html:1213
 msgid "FAQ"
 msgstr "Preguntas frecuentes"
 
-#: templates/core/base.html:1212 templates/core/base.html:1221
-#: templates/core/base.html:1232
+#: templates/core/base.html:1213 templates/core/base.html:1222
+#: templates/core/base.html:1233
 msgid "(coming soon)"
 msgstr "(próximamente)"
 
-#: templates/core/base.html:1217
+#: templates/core/base.html:1218
 msgid "Sellers"
 msgstr "Vendedores"
 
-#: templates/core/base.html:1218
+#: templates/core/base.html:1219
 msgid "Seller links"
 msgstr "Enlaces para vendedores"
 
-#: templates/core/base.html:1219
+#: templates/core/base.html:1220
 #: templates/core/includes/catalogo_footer.html:36
-#: templates/core/includes/marketplace_public_navbar.html:147
+#: templates/core/includes/marketplace_public_navbar.html:150
 msgid "Sell on TradeFlow"
 msgstr "Vender en TradeFlow"
 
-#: templates/core/base.html:1220
+#: templates/core/base.html:1221
 msgid "CFZ requirements"
 msgstr "Requisitos ZLC"
 
-#: templates/core/base.html:1221
+#: templates/core/base.html:1222
 msgid "Pricing"
 msgstr "Precios"
 
-#: templates/core/base.html:1222
+#: templates/core/base.html:1223
 #: templates/core/includes/tienda_featured_supplier.html:30
 #: templates/core/legal_terminos.html:14
 msgid "Contact"
 msgstr "Contacto"
 
-#: templates/core/base.html:1227
+#: templates/core/base.html:1228
 msgid "Legal"
 msgstr "Legal"
 
-#: templates/core/base.html:1228
+#: templates/core/base.html:1229
 msgid "Legal links"
 msgstr "Enlaces legales"
 
-#: templates/core/base.html:1229 templates/core/oauth_complete_signup.html:57
+#: templates/core/base.html:1230 templates/core/oauth_complete_signup.html:57
 #: templates/core/signup_buyer.html:189 templates/core/signup_seller.html:214
 msgid "Terms of use"
 msgstr "Términos de uso"
 
-#: templates/core/base.html:1230
+#: templates/core/base.html:1231
 #: templates/core/includes/catalogo_footer.html:48
 msgid "Privacy"
 msgstr "Privacidad"
 
-#: templates/core/base.html:1231
+#: templates/core/base.html:1232
 msgid "Cookies"
 msgstr "Cookies"
 
-#: templates/core/base.html:1232
+#: templates/core/base.html:1233
 msgid "Sitemap"
 msgstr "Mapa del sitio"
 
-#: templates/core/base.html:1239
+#: templates/core/base.html:1240
 msgid "© 2026 TradeFlow Colón. All rights reserved."
 msgstr "© 2026 TradeFlow Colón. Todos los derechos reservados."
 
-#: templates/core/base.html:1240
+#: templates/core/base.html:1241
 msgid "Colón Free Zone, Panama"
 msgstr "Colón Free Zone, Panama"
 
-#: templates/core/base.html:1242
+#: templates/core/base.html:1243
 msgid "Language selection"
 msgstr "Selección de idioma"
 
-#: templates/core/base.html:1248
+#: templates/core/base.html:1249
 msgid "Spanish"
 msgstr "Español"
 
-#: templates/core/base.html:1255
+#: templates/core/base.html:1256
 msgid "English"
 msgstr "Inglés"
 
@@ -2943,12 +2932,10 @@ msgid "Hide password"
 msgstr "Confirmar contraseña"
 
 #: templates/core/includes/buyer/buyer_hero_search.html:3
-#| msgid "Colón Free Zone, Panama"
 msgid "Colón Free Zone · Panama"
 msgstr "Colón Free Zone · Panama"
 
 #: templates/core/includes/buyer/buyer_hero_search.html:6
-#| msgid "Search"
 msgid "Search mode"
 msgstr "Modo de búsqueda"
 
@@ -2957,7 +2944,6 @@ msgid "AI mode"
 msgstr "Modo IA"
 
 #: templates/core/includes/buyer/buyer_hero_search.html:9
-#| msgid "CFZ Verified manufacturers"
 msgid "Manufacturers"
 msgstr "Fabricantes"
 
@@ -2974,7 +2960,6 @@ msgstr "ropa interior femenina"
 #: templates/core/includes/buyer/buyer_welcome_zone.html:59
 #: templates/core/includes/buyer/buyer_welcome_zone.html:69
 #: templates/core/includes/buyer/buyer_welcome_zone.html:78
-#| msgid "Frequently searched"
 msgid "Frequent searches"
 msgstr "Búsquedas frecuentes"
 
@@ -3089,7 +3074,7 @@ msgid "About TradeFlow Colón"
 msgstr "About TradeFlow Colón"
 
 #: templates/core/includes/buyer/buyer_navbar.html:116
-#: templates/core/includes/marketplace_public_navbar.html:139
+#: templates/core/includes/marketplace_public_navbar.html:142
 msgid "Help center"
 msgstr "Centro de ayuda"
 
@@ -3271,12 +3256,11 @@ msgstr "Abrir una disputa"
 
 #: templates/core/includes/catalogo_footer.html:43
 msgid ""
-"Every wholesale path on TradeFlow stays quote-first: verified CFZ suppliers,"
-" formal RFQs, and export-ready docs before you commit."
+"Every wholesale path on TradeFlow stays quote-first: verified CFZ suppliers, "
+"formal RFQs, and export-ready docs before you commit."
 msgstr ""
 "Cada compra mayorista en TradeFlow empieza con cotización: proveedores ZLC "
-"verificados, RFQ formales y documentos de exportación antes de "
-"comprometerte."
+"verificados, RFQ formales y documentos de exportación antes de comprometerte."
 
 #: templates/core/includes/catalogo_footer.html:48
 #: templates/core/signup.html:138
@@ -3466,8 +3450,7 @@ msgid ""
 "quotes — export-ready documentation included on every order."
 msgstr ""
 "Explora proveedores verificados de la ZLC, compara MOQs en USD y solicita "
-"cotizaciones formales — documentación de exportación incluida en cada "
-"pedido."
+"cotizaciones formales — documentación de exportación incluida en cada pedido."
 
 #: templates/core/includes/home_gateway_hero.html:16
 #, fuzzy, python-format
@@ -3476,7 +3459,7 @@ msgstr "Explorar %(count)s+ productos"
 
 #: templates/core/includes/home_gateway_hero.html:18
 #: templates/core/includes/home_join_band.html:12
-#: templates/core/includes/marketplace_public_navbar.html:141
+#: templates/core/includes/marketplace_public_navbar.html:144
 msgid "Complete company setup"
 msgstr ""
 
@@ -3564,8 +3547,8 @@ msgstr "Registra tu empresa en TradeFlow"
 
 #: templates/core/includes/home_how_section.html:21
 msgid ""
-"Submit the company RUC, DV, and supporting document before requesting quotes"
-" or orders."
+"Submit the company RUC, DV, and supporting document before requesting quotes "
+"or orders."
 msgstr ""
 
 #: templates/core/includes/home_how_section.html:26
@@ -3588,8 +3571,8 @@ msgstr "Solicitar como proveedor"
 
 #: templates/core/includes/home_how_section.html:33
 msgid ""
-"An accepted response creates a pending purchase order. Payment and logistics"
-" are coordinated under the agreed terms."
+"An accepted response creates a pending purchase order. Payment and logistics "
+"are coordinated under the agreed terms."
 msgstr ""
 
 #: templates/core/includes/home_how_section.html:37
@@ -3605,8 +3588,8 @@ msgstr "Únete a compradores en las Américas"
 #: templates/core/includes/home_join_band.html:8
 #, fuzzy
 #| msgid ""
-#| "Create a free account to save inquiry carts, track quotes, and checkout with"
-#| " export documentation — no subscription required to browse."
+#| "Create a free account to save inquiry carts, track quotes, and checkout "
+#| "with export documentation — no subscription required to browse."
 msgid ""
 "Register your company to save inquiry carts, track quotes, and order with "
 "export documentation — no subscription required to browse."
@@ -3703,13 +3686,13 @@ msgstr "Agregado al carrito de consultas"
 msgid "Marketplace shortcuts"
 msgstr "Accesos del marketplace"
 
-#: templates/core/includes/marketplace_public_navbar.html:137
-#, fuzzy
-#| msgid "Sell on TradeFlow"
-msgid "Install TradeFlow"
-msgstr "Vender en TradeFlow"
+#: templates/core/includes/marketplace_public_navbar.html:131
+#: templates/core/includes/marketplace_public_navbar.html:132
+#: templates/core/includes/marketplace_public_navbar.html:140
+msgid "Install App"
+msgstr "Instalar app"
 
-#: templates/core/includes/marketplace_public_navbar.html:144
+#: templates/core/includes/marketplace_public_navbar.html:147
 #, fuzzy
 #| msgid "Seller SaaS"
 msgid "Seller portal"
@@ -3779,8 +3762,7 @@ msgstr "Ver y cotizar →"
 
 #: templates/core/includes/product_card_unified.html:124
 msgid "Get automatic quotes from every company that sells this product"
-msgstr ""
-"Obtén cotizaciones automáticas de cada empresa que vende este producto"
+msgstr "Obtén cotizaciones automáticas de cada empresa que vende este producto"
 
 #: templates/core/includes/product_card_unified.html:131
 msgid "View details →"
@@ -3909,12 +3891,10 @@ msgid "Most recent"
 msgstr ""
 
 #: templates/core/includes/tienda_featured_category.html:7
-#| msgid "Featured results"
 msgid "Featured category"
 msgstr "Categoría destacada"
 
 #: templates/core/includes/tienda_featured_category.html:16
-#| msgid "Verified wholesalers from the Colón Free Zone"
 msgid "Verified wholesale products in the Colón Free Zone"
 msgstr "Verified wholesale products in the Colón Free Zone"
 
@@ -4168,8 +4148,7 @@ msgstr ""
 msgid "Questions: <a href=\"mailto:%(email)s\">%(email)s</a>."
 msgstr "Consultas: <a href=\"mailto:%(email)s\">%(email)s</a>."
 
-#: templates/core/legal_cookies.html:58
-#: templates/core/legal_privacidad.html:82
+#: templates/core/legal_cookies.html:58 templates/core/legal_privacidad.html:82
 msgid "See also"
 msgstr "Consulte también"
 
@@ -4227,17 +4206,17 @@ msgid ""
 "TradeFlow Colón processes personal data in the context of its marketplace "
 "for the Colón Free Zone."
 msgstr ""
-"TradeFlow Colón trata datos personales en el marco de su marketplace para la"
-" Zona Libre de Colón."
+"TradeFlow Colón trata datos personales en el marco de su marketplace para la "
+"Zona Libre de Colón."
 
 #: templates/core/legal_privacidad.html:22
 #, python-format
 msgid ""
-"To exercise your rights or submit inquiries: <a "
-"href=\"mailto:%(email)s\">%(email)s</a>."
+"To exercise your rights or submit inquiries: <a href=\"mailto:"
+"%(email)s\">%(email)s</a>."
 msgstr ""
-"Para ejercer sus derechos o formular consultas: <a "
-"href=\"mailto:%(email)s\">%(email)s</a>."
+"Para ejercer sus derechos o formular consultas: <a href=\"mailto:"
+"%(email)s\">%(email)s</a>."
 
 #: templates/core/legal_privacidad.html:25
 msgid "2. Data we collect"
@@ -4283,8 +4262,8 @@ msgid ""
 "IP address, browser user agent, access logs, and essential cookies (see the "
 "cookie policy)."
 msgstr ""
-"dirección IP, agente de usuario del navegador, registros de acceso y cookies"
-" (consulte la política de cookies)."
+"dirección IP, agente de usuario del navegador, registros de acceso y cookies "
+"(consulte la política de cookies)."
 
 #: templates/core/legal_privacidad.html:31
 msgid "Location:"
@@ -4347,8 +4326,8 @@ msgstr ""
 #| msgid ""
 #| "Analyze aggregated Platform usage for performance and user experience."
 msgid ""
-"Analyze aggregated Platform usage for performance and user experience "
-"(first-party analytics; we do not use Google Analytics)."
+"Analyze aggregated Platform usage for performance and user experience (first-"
+"party analytics; we do not use Google Analytics)."
 msgstr ""
 "Analizar el uso agregado de la Plataforma para mejorar el rendimiento y la "
 "experiencia del usuario."
@@ -4369,8 +4348,8 @@ msgid ""
 "purposes. We may share information only when necessary for:"
 msgstr ""
 "No vendemos ni alquilamos sus datos personales a terceros con fines "
-"publicitarios. Podemos compartir información únicamente cuando sea necesario"
-" para:"
+"publicitarios. Podemos compartir información únicamente cuando sea necesario "
+"para:"
 
 #: templates/core/legal_privacidad.html:48
 msgid "Payment providers"
@@ -4421,8 +4400,8 @@ msgid ""
 "Buyer and seller exchange the minimum data necessary to execute each "
 "operation (for example, contact details and order references)."
 msgstr ""
-"Comprador y vendedor intercambian los datos mínimos necesarios para ejecutar"
-" cada operación (por ejemplo, datos de contacto y referencias del pedido)."
+"Comprador y vendedor intercambian los datos mínimos necesarios para ejecutar "
+"cada operación (por ejemplo, datos de contacto y referencias del pedido)."
 
 #: templates/core/legal_privacidad.html:56
 msgid "5. Retention"
@@ -4433,13 +4412,13 @@ msgstr "5. Conservación"
 #| msgid ""
 #| "We retain data while your account remains active and for the period "
 #| "necessary for legal, accounting obligations, or dispute resolution. Order "
-#| "records may be kept for additional periods when regulation or audit requires"
-#| " it."
+#| "records may be kept for additional periods when regulation or audit "
+#| "requires it."
 msgid ""
 "We retain data while your account remains active and for the period "
 "necessary for legal, accounting obligations, or dispute resolution. Order "
-"records may be kept for additional periods when regulation or audit requires"
-" it. Security and email delivery logs are purged on a rolling schedule "
+"records may be kept for additional periods when regulation or audit requires "
+"it. Security and email delivery logs are purged on a rolling schedule "
 "(typically 90 days) unless a longer period is required for an investigation."
 msgstr ""
 "Conservamos los datos mientras su cuenta permanezca activa y durante el "
@@ -4481,8 +4460,8 @@ msgstr ""
 
 #: templates/core/legal_privacidad.html:64
 msgid ""
-"— use Anonymize account in My Profile (order history may be retained without"
-" personal identifiers)."
+"— use Anonymize account in My Profile (order history may be retained without "
+"personal identifiers)."
 msgstr ""
 
 #: templates/core/legal_privacidad.html:65
@@ -4500,14 +4479,14 @@ msgstr "al tratamiento en los supuestos previstos por la normativa."
 #: templates/core/legal_privacidad.html:68
 #, fuzzy, python-format
 #| msgid ""
-#| "Send your request to <a href=\"mailto:%(email)s\">%(email)s</a> indicating "
-#| "your registered email."
+#| "Send your request to <a href=\"mailto:%(email)s\">%(email)s</a> "
+#| "indicating your registered email."
 msgid ""
 "You can also email <a href=\"mailto:%(email)s\">%(email)s</a> indicating "
 "your registered email."
 msgstr ""
-"Envíe su solicitud a <a href=\"mailto:%(email)s\">%(email)s</a> indicando su"
-" correo electrónico registrado."
+"Envíe su solicitud a <a href=\"mailto:%(email)s\">%(email)s</a> indicando su "
+"correo electrónico registrado."
 
 #: templates/core/legal_privacidad.html:69
 msgid "We will respond within a reasonable timeframe."
@@ -4534,11 +4513,11 @@ msgstr "8. Menores de edad"
 
 #: templates/core/legal_privacidad.html:76
 msgid ""
-"The Platform is intended for commercial operators and adult users. We do not"
-" knowingly collect data from minors."
+"The Platform is intended for commercial operators and adult users. We do not "
+"knowingly collect data from minors."
 msgstr ""
-"La Plataforma está destinada a operadores comerciales y usuarios adultos. No"
-" recopilamos deliberadamente datos de menores de edad."
+"La Plataforma está destinada a operadores comerciales y usuarios adultos. No "
+"recopilamos deliberadamente datos de menores de edad."
 
 #: templates/core/legal_privacidad.html:78
 msgid "9. Changes and contact"
@@ -4549,8 +4528,8 @@ msgid ""
 "We may update this policy; the “Last updated” date reflects the current "
 "version."
 msgstr ""
-"Podemos actualizar esta política; la fecha de «Última actualización» refleja"
-" la versión vigente."
+"Podemos actualizar esta política; la fecha de «Última actualización» refleja "
+"la versión vigente."
 
 #: templates/core/legal_privacidad.html:81
 #, python-format
@@ -4564,8 +4543,8 @@ msgstr "Contacto: <a href=\"mailto:%(email)s\">%(email)s</a>."
 msgid "and"
 msgstr "y"
 
-#: templates/core/legal_privacidad.html:85
-#: templates/core/legal_terminos.html:3 templates/core/legal_terminos.html:4
+#: templates/core/legal_privacidad.html:85 templates/core/legal_terminos.html:3
+#: templates/core/legal_terminos.html:4
 msgid "Terms of Use"
 msgstr "Términos de uso"
 
@@ -4670,11 +4649,11 @@ msgstr ""
 #: templates/core/legal_terminos.html:37
 #, python-format
 msgid ""
-"You must immediately notify any unauthorized use to <a "
-"href=\"mailto:%(email)s\">%(email)s</a>."
+"You must immediately notify any unauthorized use to <a href=\"mailto:"
+"%(email)s\">%(email)s</a>."
 msgstr ""
-"Debe notificar de inmediato cualquier uso no autorizado a <a "
-"href=\"mailto:%(email)s\">%(email)s</a>."
+"Debe notificar de inmediato cualquier uso no autorizado a <a href=\"mailto:"
+"%(email)s\">%(email)s</a>."
 
 #: templates/core/legal_terminos.html:38
 msgid ""
@@ -4717,8 +4696,8 @@ msgid ""
 "Confirm or reject orders within the deadlines shown on the Platform and "
 "communicate incidents diligently."
 msgstr ""
-"Confirmar o rechazar pedidos dentro de los plazos indicados en la Plataforma"
-" y comunicar incidencias de forma diligente."
+"Confirmar o rechazar pedidos dentro de los plazos indicados en la Plataforma "
+"y comunicar incidencias de forma diligente."
 
 #: templates/core/legal_terminos.html:47
 msgid ""
@@ -4767,14 +4746,14 @@ msgstr "5. Pedidos, pagos y disputas"
 #: templates/core/legal_terminos.html:59
 msgid ""
 "Adding products to an inquiry cart and submitting it creates supplier-"
-"specific Requests for Quotation (RFQs). An RFQ is not a purchase order, does"
-" not charge the buyer, and does not reserve inventory."
+"specific Requests for Quotation (RFQs). An RFQ is not a purchase order, does "
+"not charge the buyer, and does not reserve inventory."
 msgstr ""
 
 #: templates/core/legal_terminos.html:60
 msgid ""
-"A purchase order is created only when the buyer accepts a supplier response."
-" The order is initially recorded as pending and reflects the products, "
+"A purchase order is created only when the buyer accepts a supplier response. "
+"The order is initially recorded as pending and reflects the products, "
 "quantities, and quoted price accepted by the parties."
 msgstr ""
 
@@ -4798,8 +4777,8 @@ msgid ""
 "faith but does not replace contractual obligations between the parties."
 msgstr ""
 "Las cancelaciones y disputas deben resolverse en primer lugar entre "
-"comprador y vendedor, utilizando los canales de la Plataforma y el correo de"
-" soporte. TradeFlow puede mediar de buena fe, pero no sustituye las "
+"comprador y vendedor, utilizando los canales de la Plataforma y el correo de "
+"soporte. TradeFlow puede mediar de buena fe, pero no sustituye las "
 "obligaciones contractuales entre las partes."
 
 #: templates/core/legal_terminos.html:65
@@ -4816,10 +4795,10 @@ msgid ""
 msgstr ""
 "El nombre TradeFlow Colón, los logotipos, el diseño de la interfaz, los "
 "textos institucionales y el software de la Plataforma pertenecen a sus "
-"titulares o licenciantes. Queda prohibida su reproducción no autorizada. Los"
-" vendedores conservan los derechos sobre sus marcas y descripciones de "
-"productos, y otorgan a TradeFlow una licencia limitada para mostrarlos en el"
-" marketplace."
+"titulares o licenciantes. Queda prohibida su reproducción no autorizada. Los "
+"vendedores conservan los derechos sobre sus marcas y descripciones de "
+"productos, y otorgan a TradeFlow una licencia limitada para mostrarlos en el "
+"marketplace."
 
 #: templates/core/legal_terminos.html:68
 msgid "7. Limitation of liability"
@@ -4840,9 +4819,9 @@ msgstr "No garantiza la ejecución material de la transacción"
 #: templates/core/legal_terminos.html:75
 msgid ""
 "between buyer and seller (quality, delivery, customs, payments outside the "
-"Platform). To the extent permitted by Panamanian law, TradeFlow shall not be"
-" liable for indirect damages, lost profits, or breaches attributable to "
-"third parties or to the parties themselves."
+"Platform). To the extent permitted by Panamanian law, TradeFlow shall not be "
+"liable for indirect damages, lost profits, or breaches attributable to third "
+"parties or to the parties themselves."
 msgstr ""
 "entre comprador y vendedor (calidad, entrega, aduanas, pagos fuera de la "
 "Plataforma). En la medida permitida por la legislación panameña, TradeFlow "
@@ -4875,8 +4854,7 @@ msgstr "provincia de Colón"
 
 #: templates/core/legal_terminos.html:94
 #, fuzzy
-#| msgid ""
-#| "without prejudice to mandatory consumer rights that may apply."
+#| msgid "without prejudice to mandatory consumer rights that may apply."
 msgid ""
 "without prejudice to mandatory commercial and contractual rights recognized "
 "by Panamanian law."
@@ -4890,7 +4868,8 @@ msgstr "9. Contacto"
 
 #: templates/core/legal_terminos.html:99
 #, python-format
-msgid "Questions about these Terms: <a href=\"mailto:%(email)s\">%(email)s</a>."
+msgid ""
+"Questions about these Terms: <a href=\"mailto:%(email)s\">%(email)s</a>."
 msgstr ""
 "Consultas sobre estos Términos: <a href=\"mailto:%(email)s\">%(email)s</a>."
 
@@ -4993,8 +4972,7 @@ msgstr "Por qué TradeFlow Colón"
 #: templates/core/marketplace_deals.html:4
 msgid ""
 "Today's wholesale deals from CFZ-verified suppliers — limited-time promo "
-"pricing, MOQ transparency, and export-ready documentation on TradeFlow "
-"Colón."
+"pricing, MOQ transparency, and export-ready documentation on TradeFlow Colón."
 msgstr ""
 "Ofertas mayoristas de hoy de proveedores verificados ZLC: precios "
 "promocionales por tiempo limitado, MOQ transparente y documentación lista "
@@ -5079,8 +5057,7 @@ msgid "How B2B deals work"
 msgstr "Cómo funciona TradeFlow"
 
 #: templates/core/marketplace_deals.html:78
-msgid ""
-"Promo prices are per product — MOQ and stock apply on the product page."
+msgid "Promo prices are per product — MOQ and stock apply on the product page."
 msgstr ""
 "Los precios promocionales son por producto — MOQ y stock aplican en la "
 "página del producto."
@@ -5097,11 +5074,11 @@ msgstr "RFQ & Purchase Order Process — TradeFlow Colón"
 
 #: templates/core/marketplace_order_protection.html:4
 msgid ""
-"Learn how verified companies request supplier quotations, compare commercial"
-" terms, and create pending B2B purchase orders on TradeFlow Colón."
+"Learn how verified companies request supplier quotations, compare commercial "
+"terms, and create pending B2B purchase orders on TradeFlow Colón."
 msgstr ""
-"Learn how verified companies request supplier quotations, compare commercial"
-" terms, and create pending B2B purchase orders on TradeFlow Colón."
+"Learn how verified companies request supplier quotations, compare commercial "
+"terms, and create pending B2B purchase orders on TradeFlow Colón."
 
 #: templates/core/marketplace_order_protection.html:13
 #, fuzzy
@@ -5133,8 +5110,8 @@ msgstr "Flujo RFQ"
 
 #: templates/core/marketplace_order_protection.html:22
 msgid ""
-"TradeFlow structures the commercial conversation between verified companies."
-" It does not charge a payment when you send or accept a quotation."
+"TradeFlow structures the commercial conversation between verified companies. "
+"It does not charge a payment when you send or accept a quotation."
 msgstr ""
 
 #: templates/core/marketplace_order_protection.html:24
@@ -5472,8 +5449,8 @@ msgstr "MFA para personal"
 
 #: templates/core/mi_perfil.html:176
 msgid ""
-"Authenticator app (TOTP) for staff/admin sign-in. Required outside Expo demo"
-" mode."
+"Authenticator app (TOTP) for staff/admin sign-in. Required outside Expo demo "
+"mode."
 msgstr ""
 "Aplicación autenticadora (TOTP) para el acceso de personal/administradores. "
 "Obligatoria fuera del modo demo Expo."
@@ -5774,8 +5751,8 @@ msgstr "Verificación empresarial requerida"
 #: templates/core/seller_onboarding_company.html:35
 msgid ""
 "To buy or sell as a company we need to identify the legal entity and its "
-"representative. The tax ID and verification digit are reviewed together with"
-" the attached document before enabling operations."
+"representative. The tax ID and verification digit are reviewed together with "
+"the attached document before enabling operations."
 msgstr ""
 
 #: templates/core/seller_onboarding_company.html:39
@@ -6035,7 +6012,6 @@ msgstr ""
 
 #: templates/core/signup.html:120 templates/core/signup_buyer.html:159
 #: templates/core/signup_seller.html:183
-#| msgid "Password"
 msgid "Password strength"
 msgstr "Fortaleza de contraseña"
 
@@ -6291,8 +6267,8 @@ msgstr ""
 
 #: templates/core/staff_mfa_setup.html:11
 msgid ""
-"Optional TOTP for staff/admin accounts. Use Google Authenticator, 1Password,"
-" or similar."
+"Optional TOTP for staff/admin accounts. Use Google Authenticator, 1Password, "
+"or similar."
 msgstr ""
 
 #: templates/core/staff_mfa_setup.html:18
@@ -6542,8 +6518,8 @@ msgstr ""
 
 #: templates/registration/password_reset_confirm.html:68
 msgid ""
-"This recovery link is no longer valid. Request a new one (links expire after"
-" 15 minutes)."
+"This recovery link is no longer valid. Request a new one (links expire after "
+"15 minutes)."
 msgstr ""
 
 #: templates/registration/password_reset_confirm.html:70
@@ -6571,8 +6547,8 @@ msgstr "Verifica tu correo"
 
 #: templates/registration/password_reset_done.html:26
 msgid ""
-"If an account exists with that email, you will receive instructions to reset"
-" your password."
+"If an account exists with that email, you will receive instructions to reset "
+"your password."
 msgstr ""
 
 #: templates/registration/password_reset_form.html:3
@@ -6630,8 +6606,7 @@ msgstr "Proveedores de pago"
 #: templates/socialaccount/login.html:21
 #, python-format
 msgid "You are about to connect your %(provider)s account to TradeFlow Colón."
-msgstr ""
-"You are about to connect your %(provider)s account to TradeFlow Colón."
+msgstr "You are about to connect your %(provider)s account to TradeFlow Colón."
 
 #: templates/socialaccount/login.html:25 templates/socialaccount/login.html:38
 #, python-format
@@ -6677,6 +6652,11 @@ msgstr "Crea tu cuenta"
 #, python-format
 msgid "Finish linking your %(provider_name)s account to TradeFlow Colón."
 msgstr "Finish linking your %(provider_name)s account to TradeFlow Colón."
+
+#, fuzzy
+#~| msgid "Sell on TradeFlow"
+#~ msgid "Install TradeFlow"
+#~ msgstr "Vender en TradeFlow"
 
 #, python-format
 #~ msgid "Insufficient stock for \"%(name)s\" — item skipped."
@@ -6815,8 +6795,8 @@ msgstr "Finish linking your %(provider_name)s account to TradeFlow Colón."
 #~ "or equivalent tools, always seeking configurations that limit direct "
 #~ "identification."
 #~ msgstr ""
-#~ "u herramientas equivalentes, procurando siempre configuraciones que limiten "
-#~ "la identificación directa."
+#~ "u herramientas equivalentes, procurando siempre configuraciones que "
+#~ "limiten la identificación directa."
 
 #~ msgid "(hosting, email, databases) under confidentiality agreements."
 #~ msgstr ""
@@ -6842,19 +6822,20 @@ msgstr "Finish linking your %(provider_name)s account to TradeFlow Colón."
 #~ msgid ""
 #~ "Orders are created according to the flow visible on the Platform (cart, "
 #~ "checkout, quotes, or administrative tools). The status of each order "
-#~ "(pending, awaiting seller confirmation, paid, shipped, delivered, cancelled,"
-#~ " etc.) is reflected in the corresponding panel."
+#~ "(pending, awaiting seller confirmation, paid, shipped, delivered, "
+#~ "cancelled, etc.) is reflected in the corresponding panel."
 #~ msgstr ""
 #~ "Los pedidos se crean conforme al flujo visible en la Plataforma (carrito, "
 #~ "checkout, cotizaciones o herramientas administrativas). El estado de cada "
-#~ "pedido (pendiente, en espera de confirmación del vendedor, pagado, enviado, "
-#~ "entregado, cancelado, etc.) se refleja en el panel correspondiente."
+#~ "pedido (pendiente, en espera de confirmación del vendedor, pagado, "
+#~ "enviado, entregado, cancelado, etc.) se refleja en el panel "
+#~ "correspondiente."
 
 #~ msgid ""
-#~ "Payments may be processed through providers or methods enabled at any given "
-#~ "time (including test or simulation mechanisms in demo environments). "
-#~ "TradeFlow does not hold funds between parties unless a specific product "
-#~ "indicates otherwise."
+#~ "Payments may be processed through providers or methods enabled at any "
+#~ "given time (including test or simulation mechanisms in demo "
+#~ "environments). TradeFlow does not hold funds between parties unless a "
+#~ "specific product indicates otherwise."
 #~ msgstr ""
 #~ "Los pagos pueden procesarse mediante proveedores o métodos habilitados en "
 #~ "cada momento (incluidos mecanismos de prueba o simulación en entornos de "
@@ -6866,12 +6847,12 @@ msgstr "Finish linking your %(provider_name)s account to TradeFlow Colón."
 
 #~ msgid ""
 #~ "TradeFlow buyer protection: request for quotation workflows, verified CFZ "
-#~ "suppliers, secure B2B checkout, and export-ready documentation for wholesale"
-#~ " buyers."
+#~ "suppliers, secure B2B checkout, and export-ready documentation for "
+#~ "wholesale buyers."
 #~ msgstr ""
 #~ "Protección al comprador TradeFlow: flujos de solicitud de cotización, "
-#~ "proveedores ZLC verificados, checkout B2B seguro y documentación lista para "
-#~ "exportar."
+#~ "proveedores ZLC verificados, checkout B2B seguro y documentación lista "
+#~ "para exportar."
 
 #~ msgid "Buyer protection program"
 #~ msgstr "Protección al comprador"
@@ -6880,8 +6861,8 @@ msgstr "Finish linking your %(provider_name)s account to TradeFlow Colón."
 #~ msgstr "Protección de pedidos"
 
 #~ msgid ""
-#~ "Quote before you commit. Structured RFQ workflows, verified suppliers, and "
-#~ "documentation built for international trade from the Colón Free Zone."
+#~ "Quote before you commit. Structured RFQ workflows, verified suppliers, "
+#~ "and documentation built for international trade from the Colón Free Zone."
 #~ msgstr ""
 #~ "Cotiza antes de comprometerte. Flujos RFQ estructurados, proveedores "
 #~ "verificados y documentación diseñada para comercio internacional desde la "
@@ -6893,18 +6874,18 @@ msgstr "Finish linking your %(provider_name)s account to TradeFlow Colón."
 #~ msgid ""
 #~ "From discovery to delivery — designed for importers and wholesale buyers"
 #~ msgstr ""
-#~ "Del descubrimiento a la entrega — diseñado para importadores y compradores "
-#~ "mayoristas"
+#~ "Del descubrimiento a la entrega — diseñado para importadores y "
+#~ "compradores mayoristas"
 
 #~ msgid "Browse verified inventory"
 #~ msgstr "Más proveedores verificados"
 
 #~ msgid ""
-#~ "Explore live products with MOQ and CFZ verification — no account required to"
-#~ " start."
+#~ "Explore live products with MOQ and CFZ verification — no account required "
+#~ "to start."
 #~ msgstr ""
-#~ "Explora productos activos con MOQ y verificación ZLC — no necesitas cuenta "
-#~ "para empezar."
+#~ "Explora productos activos con MOQ y verificación ZLC — no necesitas "
+#~ "cuenta para empezar."
 
 #~ msgid "Compare responses, lead times, and documentation before approving."
 #~ msgstr ""
@@ -6913,7 +6894,8 @@ msgstr "Finish linking your %(provider_name)s account to TradeFlow Colón."
 #~ msgid "Checkout with docs"
 #~ msgstr "Checkout con documentos"
 
-#~ msgid "Confirmed orders include invoice and packing list support for export."
+#~ msgid ""
+#~ "Confirmed orders include invoice and packing list support for export."
 #~ msgstr ""
 #~ "Los pedidos confirmados incluyen factura y packing list para exportación."
 
@@ -6922,21 +6904,23 @@ msgstr "Finish linking your %(provider_name)s account to TradeFlow Colón."
 
 #~ msgid "CFZ status, RUC, and live catalog depth on every company profile."
 #~ msgstr ""
-#~ "Estado ZLC, RUC y profundidad de catálogo activo en cada perfil de empresa."
+#~ "Estado ZLC, RUC y profundidad de catálogo activo en cada perfil de "
+#~ "empresa."
 
 #~ msgid "Order transparency"
 #~ msgstr "Estado del pedido actualizado"
 
 #~ msgid "Track status, seller confirmation, and logistics from your account."
-#~ msgstr "Sigue estado, confirmación del vendedor y logística desde tu cuenta."
+#~ msgstr ""
+#~ "Sigue estado, confirmación del vendedor y logística desde tu cuenta."
 
 #~ msgid "Dispute & support"
 #~ msgstr "Disputas y soporte"
 
 #~ msgid "Contact TradeFlow for order issues. Policies in our legal center."
 #~ msgstr ""
-#~ "Contacta a TradeFlow por problemas con pedidos. Políticas en nuestro centro "
-#~ "legal."
+#~ "Contacta a TradeFlow por problemas con pedidos. Políticas en nuestro "
+#~ "centro legal."
 
 #~ msgid "Ready to source from the Free Zone?"
 #~ msgstr "¿Listo para abastecerte desde la Zona Libre?"
@@ -6945,8 +6929,8 @@ msgstr "Finish linking your %(provider_name)s account to TradeFlow Colón."
 #~ "Join buyers across the Americas who use TradeFlow for verified wholesale "
 #~ "sourcing."
 #~ msgstr ""
-#~ "Únete a compradores en las Américas que usan TradeFlow para abastecimiento "
-#~ "mayorista verificado."
+#~ "Únete a compradores en las Américas que usan TradeFlow para "
+#~ "abastecimiento mayorista verificado."
 
 #~ msgid "We could not send the email. Try again in a moment."
 #~ msgstr "No pudimos enviar el correo. Intenta de nuevo en un momento."
