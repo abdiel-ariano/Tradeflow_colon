@@ -7,6 +7,7 @@
   var pollUrl = root.getAttribute('data-poll-url');
   if (!pollUrl) return;
 
+  var i18n = window.TF_I18N || {};
   var initialStatus = root.getAttribute('data-initial-status') || 'pending';
   if (initialStatus !== 'pending' && initialStatus !== 'draft') return;
 
@@ -16,6 +17,10 @@
   var timerId = null;
   var notified = false;
   var lastStatus = initialStatus;
+
+  function t(key, fallback) {
+    return i18n[key] || fallback;
+  }
 
   function notifyOnce(message, type) {
     if (notified) return;
@@ -36,18 +41,19 @@
   function renderVerified(data) {
     var block = data.access_block;
     var html = ''
-      + '<span class="cv-status cv-status--verified"><span class="material-symbols-rounded" aria-hidden="true">verified</span> Empresa verificada</span>'
-      + '<h1 id="cv-title">La identidad empresarial fue aprobada</h1>';
+      + '<span class="cv-status cv-status--verified"><span class="material-symbols-rounded" aria-hidden="true">verified</span> '
+      + escapeHtml(t('cvVerifiedTitle', 'Verified company')) + '</span>'
+      + '<h1 id="cv-title">' + escapeHtml(t('cvVerifiedHeading', 'Business identity approved')) + '</h1>';
 
     if (block) {
       html += '<p class="cv-lead">' + escapeHtml(block.message) + '</p>';
     } else {
-      html += '<p class="cv-lead">TradeFlow registró la revisión y habilitará únicamente las capacidades aprobadas para esta empresa.</p>';
+      html += '<p class="cv-lead">' + escapeHtml(t('cvVerifiedLead', 'TradeFlow recorded the review and will enable only the capabilities approved for this company.')) + '</p>';
     }
 
     html += '<div class="cv-actions">';
     if (data.continue_url) {
-      html += '<a class="tf-btn-primary" href="' + escapeHtml(data.continue_url) + '">Continuar</a>';
+      html += '<a class="tf-btn-primary" href="' + escapeHtml(data.continue_url) + '">' + escapeHtml(t('cvContinue', 'Continue')) + '</a>';
     }
     html += '</div>';
 
@@ -56,8 +62,8 @@
     if (footer) footer.style.display = 'none';
     notifyOnce(
       block
-        ? 'Tu empresa fue verificada. Aún hay un paso de acceso pendiente.'
-        : 'Tu empresa fue verificada.',
+        ? t('cvVerifiedPendingStep', 'Your company was verified. One more access step is still pending.')
+        : t('cvVerifiedToast', 'Your company was verified.'),
       block ? 'info' : 'success',
     );
     stopped = true;
@@ -65,15 +71,16 @@
 
   function renderRejected(data) {
     root.innerHTML = ''
-      + '<span class="cv-status cv-status--rejected"><span class="material-symbols-rounded" aria-hidden="true">error</span> Requiere corrección</span>'
-      + '<h1 id="cv-title">No pudimos aprobar la información</h1>'
+      + '<span class="cv-status cv-status--rejected"><span class="material-symbols-rounded" aria-hidden="true">error</span> '
+      + escapeHtml(t('cvRejectedStatus', 'Requires correction')) + '</span>'
+      + '<h1 id="cv-title">' + escapeHtml(t('cvRejectedHeading', 'We could not approve the information')) + '</h1>'
       + '<p class="cv-lead">' + escapeHtml(data.rejection_message) + '</p>'
       + '<div class="cv-actions">'
-      + '<a class="tf-btn-primary" href="' + escapeHtml(data.continue_url) + '">Corregir información</a>'
+      + '<a class="tf-btn-primary" href="' + escapeHtml(data.continue_url) + '">' + escapeHtml(t('cvFixInformation', 'Correct information')) + '</a>'
       + '</div>';
     var footer = document.getElementById('cv-actions-footer');
     if (footer) footer.style.display = 'none';
-    notifyOnce('Tu solicitud requiere corrección.', 'warning');
+    notifyOnce(t('cvRejectedToast', 'Your application requires correction.'), 'warning');
     stopped = true;
   }
 

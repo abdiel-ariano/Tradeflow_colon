@@ -179,7 +179,7 @@
           } else {
             els.input.value = previous;
           }
-          showLineError(els, data.message || 'Could not update quantity.');
+          showLineError(els, data.message || (window.TF_I18N && window.TF_I18N.cartQtyError) || 'Could not update quantity.');
           return;
         }
         if (data.removed) {
@@ -196,7 +196,7 @@
       })
       .catch(function () {
         els.input.value = previous;
-        showLineError(els, (window.TF_I18N && window.TF_I18N.networkError) || 'Connection error. Please try again.');
+        showLineError(els, (window.TF_I18N && window.TF_I18N.cartNetworkRetry) || (window.TF_I18N && window.TF_I18N.networkError) || 'Connection error. Please try again.');
       })
       .finally(function () {
         setQtyPending(els, false);
@@ -217,7 +217,7 @@
         if (!result) return;
         var data = result.data || {};
         if (!result.ok || data.ok === false) {
-          showLineError(els, data.message || 'Could not remove product.');
+          showLineError(els, data.message || (window.TF_I18N && window.TF_I18N.cartRemoveError) || 'Could not remove product.');
           return;
         }
         removeLineItem(item);
@@ -229,7 +229,7 @@
         if (data.carrito_empty) window.location.reload();
       })
       .catch(function () {
-        showLineError(els, (window.TF_I18N && window.TF_I18N.networkError) || 'Connection error. Please try again.');
+        showLineError(els, (window.TF_I18N && window.TF_I18N.cartNetworkRetry) || (window.TF_I18N && window.TF_I18N.networkError) || 'Connection error. Please try again.');
       })
       .finally(function () {
         setQtyPending(els, false);

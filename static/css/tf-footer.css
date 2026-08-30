@@ -198,6 +198,11 @@ Footer B2B — requiere tf-design-tokens.css
   opacity: 0.35;
   user-select: none;
 }
+.tf-footer-lang-form {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
 .tf-footer-lang-opt {
   border: none;
   background: transparent;
@@ -206,7 +211,7 @@ Footer B2B — requiere tf-design-tokens.css
   font-size: inherit;
   font-weight: 600;
   padding: 0;
-  cursor: default;
+  cursor: pointer;
 }
 .tf-footer-lang-opt.is-active {
   color: #fff;

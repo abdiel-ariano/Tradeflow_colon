@@ -19,6 +19,7 @@ from django.db import DatabaseError, IntegrityError
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
 from core.models import Company, CompanyMembership, UserProfile
@@ -218,7 +219,7 @@ def seller_onboarding_company(request: HttpRequest) -> HttpResponse:
                         exc,
                         exc_info=True,
                     )
-                    messages.error(request, 'La empresa está verificada, pero no pudimos activar el portal.')
+                    messages.error(request, _('The company is verified, but we could not activate the portal.'))
                     return redirect('company_verification_status')
                 return redirect('portal_seller')
             return redirect('catalogo_publico')
@@ -265,25 +266,25 @@ def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
 
     errors = []
     if not name or len(name) < 2:
-        errors.append('El nombre de la empresa es obligatorio (mínimo 2 caracteres).')
+        errors.append(_('Company name is required (minimum 2 characters).'))
     if not legal_name or len(legal_name) < 3:
-        errors.append('La razón social registrada es obligatoria.')
+        errors.append(_('Registered legal name is required.'))
     if not ruc:
-        errors.append('El RUC es obligatorio.')
+        errors.append(_('RUC is required.'))
     elif not RUC_PATTERN.fullmatch(ruc):
-        errors.append('El RUC solo puede contener letras, números, puntos y guiones.')
+        errors.append(_('RUC may only contain letters, numbers, periods, and hyphens.'))
     if not dv:
-        errors.append('El dígito verificador (DV) es obligatorio.')
+        errors.append(_('Verifier digit (DV) is required.'))
     elif not DV_PATTERN.fullmatch(dv):
-        errors.append('El DV solo puede contener letras, números y guiones.')
+        errors.append(_('DV may only contain letters, numbers, and hyphens.'))
     try:
         validate_email(business_email)
     except ValidationError:
-        errors.append('Ingresa un correo empresarial válido.')
+        errors.append(_('Enter a valid business email address.'))
     if business_role not in BUSINESS_ROLES:
-        errors.append('Selecciona si la empresa comprará, venderá o realizará ambas actividades.')
+        errors.append(_('Select whether the company will buy, sell, or do both on TradeFlow.'))
     if not address:
-        errors.append('La dirección comercial es obligatoria.')
+        errors.append(_('Business address is required.'))
     existing_company = b2b_company_for_user(request.user)
     safe_document = _resolve_verification_document(
         verification_document,
@@ -291,13 +292,15 @@ def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
     )
     if not _expo_demo_mode_active():
         if verification_document and not safe_document:
-            errors.append('El documento debe ser un PDF o una imagen válida de máximo 8 MB.')
+            errors.append(_('The document must be a valid PDF or image up to 8 MB.'))
         elif not safe_document and not (
             existing_company and existing_company.verification_document
         ):
             errors.append(
-                'Adjunta un aviso de operación, registro público o documento '
-                'equivalente en PDF o imagen.'
+                _(
+                    'Attach an operating notice, public registry certificate, or '
+                    'equivalent document in PDF or image format.'
+                )
             )
 
     if errors:
@@ -365,8 +368,10 @@ def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
         )
         messages.error(
             request,
-            'No pudimos guardar tu empresa por un error de base de datos. '
-            'Si el problema continúa, escribe a soporte@tradeflowcolon.com.',
+            _(
+                'We could not save your company due to a database error. '
+                'If the problem continues, email support@tradeflowcolon.com.'
+            ),
         )
         return render(
             request,
@@ -387,8 +392,7 @@ def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
         )
         messages.error(
             request,
-            'Ocurrió un error al registrar la empresa. '
-            'Revisa los datos e inténtalo de nuevo.',
+            _('An error occurred while registering the company. Review the details and try again.'),
         )
         return render(
             request,
@@ -403,17 +407,17 @@ def seller_onboarding_company_post(request: HttpRequest) -> HttpResponse:
     if auto_verified_demo and company.verification_status == 'verified':
         messages.success(
             request,
-            'Modo demo: empresa verificada al instante. Ya puedes continuar con el flujo B2B.',
+            _('Demo mode: company verified instantly. You can continue with the B2B flow.'),
         )
     elif company.verification_status == 'verified':
         messages.success(
             request,
-            'Empresa verificada vinculada correctamente. No requiere una nueva revisión.',
+            _('Verified company linked successfully. No new review is required.'),
         )
     else:
         messages.success(
             request,
-            'Recibimos la información. La empresa quedó pendiente de revisión manual.',
+            _('We received your information. The company is pending manual review.'),
         )
     log.info(
         'seller_onboarding_completed user_id=%s company_id=%s',
@@ -455,15 +459,19 @@ def _resolve_or_create_company(
         if existing.verification_status == 'verified' and not authorized:
             messages.error(
                 request,
-                'Este RUC ya está verificado y requiere autorización manual para '
-                'vincular un nuevo representante. Contacta a soporte@tradeflowcolon.com.',
+                _(
+                    'This RUC is already verified and requires manual authorization to '
+                    'link a new representative. Contact support@tradeflowcolon.com.'
+                ),
             )
             return None
         if not authorized and not claimable:
             messages.error(
                 request,
-                'Este RUC ya está vinculado a otra cuenta. '
-                'Contacta a soporte@tradeflowcolon.com.',
+                _(
+                    'This RUC is already linked to another account. '
+                    'Contact support@tradeflowcolon.com.'
+                ),
             )
             return None
 
@@ -476,8 +484,10 @@ def _resolve_or_create_company(
             if identity_changed:
                 messages.error(
                     request,
-                    'Los datos legales no coinciden con la empresa verificada. '
-                    'Contacta a soporte@tradeflowcolon.com para actualizarlos.',
+                    _(
+                        'Legal details do not match the verified company. '
+                        'Contact support@tradeflowcolon.com to update them.'
+                    ),
                 )
                 return None
             existing.business_email = business_email
@@ -513,7 +523,7 @@ def _resolve_or_create_company(
             defaults={'role': 'owner', 'status': 'active'},
         )
         _attach_logo(existing, logo)
-        messages.info(request, 'Empresa existente vinculada a tu cuenta.')
+        messages.info(request, _('Existing company linked to your account.'))
         return existing
 
     company = Company.objects.create(
@@ -536,7 +546,7 @@ def _resolve_or_create_company(
         status='active',
     )
     _attach_logo(company, logo)
-    messages.success(request, 'Empresa registrada correctamente.')
+    messages.success(request, _('Company registered successfully.'))
     return company
 
 
@@ -556,7 +566,7 @@ def company_verification_status(request: HttpRequest) -> HttpResponse:
         company.refresh_from_db()
         messages.info(
             request,
-            'Modo demo: verificación empresarial completada automáticamente.',
+            _('Demo mode: business verification completed automatically.'),
         )
 
     activation_error = False

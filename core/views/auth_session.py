@@ -525,7 +525,7 @@ def mi_perfil(request):
             profile.phone = request.POST.get('phone', '').strip()
             request.user.save()
             profile.save()
-            messages.success(request, 'Profile updated successfully.')
+            messages.success(request, _('Profile updated successfully.'))
             return _redirect_to_tab('personal')
 
         elif action == 'change_password':
@@ -535,21 +535,21 @@ def mi_perfil(request):
             errors = {}
 
             if not request.user.check_password(current):
-                errors['current_password'] = 'Current password is incorrect.'
+                errors['current_password'] = _('Current password is incorrect.')
             if len(new_pass or '') < 8:
-                errors['new_password'] = 'Password must be at least 8 characters.'
+                errors['new_password'] = _('Password must be at least 8 characters.')
             elif new_pass != confirm:
-                errors['confirm_password'] = 'New passwords do not match.'
+                errors['confirm_password'] = _('New passwords do not match.')
 
             if errors:
                 request.session['profile_field_errors'] = errors
-                messages.error(request, 'Could not change password. Check the fields below.')
+                messages.error(request, _('Could not change password. Check the fields below.'))
                 return _redirect_to_tab('security')
 
             request.user.set_password(new_pass)
             request.user.save()
             update_session_auth_hash(request, request.user)
-            messages.success(request, 'Password changed successfully.')
+            messages.success(request, _('Password changed successfully.'))
             return _redirect_to_tab('security')
 
         elif action == 'marketing_prefs':
@@ -557,7 +557,7 @@ def mi_perfil(request):
                 '1', 'on', 'true', 'yes',
             )
             profile.save(update_fields=['marketing_opt_in'])
-            messages.success(request, 'Communication preferences saved.')
+            messages.success(request, _('Communication preferences saved.'))
             return _redirect_to_tab('privacy')
 
         elif action == 'export_data':
@@ -574,9 +574,9 @@ def mi_perfil(request):
             confirm = (request.POST.get('confirm_delete') or '').strip().upper()
             if confirm != 'DELETE':
                 request.session['profile_field_errors'] = {
-                    'confirm_delete': 'Type DELETE to confirm account anonymization.',
+                    'confirm_delete': _('Type DELETE to confirm account anonymization.'),
                 }
-                messages.error(request, 'Type DELETE to confirm account anonymization.')
+                messages.error(request, _('Type DELETE to confirm account anonymization.'))
                 return _redirect_to_tab('privacy')
             else:
                 from django.contrib.auth import logout as auth_logout
