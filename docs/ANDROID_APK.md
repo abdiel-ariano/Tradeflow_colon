@@ -98,7 +98,7 @@ unverified because they use a disposable certificate.
 ## Browser installation and responsive Android layout
 
 On eligible Android browsers, the public marketplace shows **Install
-TradeFlow** inside the compact navigation. The control uses the browser
+App** inside the compact navigation. The control uses the browser
 `beforeinstallprompt` event and remains hidden when installation is not
 available or the application already runs in standalone mode.
 

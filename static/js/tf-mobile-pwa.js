@@ -81,6 +81,11 @@
 
   setInstallButtonsVisible(false);
 
+  if (runsAsInstalledApp()) {
+    deferredInstallPrompt = null;
+    setInstallButtonsVisible(false);
+  }
+
   window.addEventListener('beforeinstallprompt', function (event) {
     event.preventDefault();
     deferredInstallPrompt = event;
@@ -96,8 +101,13 @@
         return;
       }
 
-      deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
+      try {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+      } catch (error) {
+        /* Browser blocked or cancelled the install prompt. */
+      }
+
       deferredInstallPrompt = null;
       setInstallButtonsVisible(false);
       setMenuOpen(false);
