@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static tf_money tf_catalog %}
+{% load static i18n tf_money tf_catalog %}
 {% comment %}
 ================================================================================
 templates/core/tienda.html — TradeFlow Colón
@@ -8,7 +8,7 @@ Contexto: tienda() — productos, categorias, buscar, cat_activa, carrito_count,
 show_cart_actions, tienda_params.
 ================================================================================
 {% endcomment %}
-{% block title %}Store — TradeFlow Colón{% endblock %}
+{% block title %}{% trans "Store" %} — TradeFlow Colón{% endblock %}
 {% block extra_head %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/home_merchandising.css' %}">
@@ -974,11 +974,11 @@ show_cart_actions, tienda_params.
     {% if tienda_filtered %}
     {% include "core/includes/tienda/tienda_filters_sidebar.html" %}
     {% elif not tienda_filtered %}
-    <aside class="td-sidebar" aria-label="Filtros del catálogo">
+    <aside class="td-sidebar" aria-label="{% trans 'Catalog filters' %}">
       <div class="td-side-card">
         <h2 class="td-side-title">
           <span class="material-symbols-rounded" aria-hidden="true">filter_list</span>
-          Filtros
+          {% trans "Filters" %}
         </h2>
         <form method="get" action="{% url 'tienda' %}" id="filtros-form" class="td-filters-form">
           {% if tab_catalogo and tab_catalogo != 'todos' %}
@@ -986,49 +986,49 @@ show_cart_actions, tienda_params.
           {% endif %}
           <div class="td-search-wrap td-search-wrap--sidebar td-span-2">
             <span class="material-symbols-rounded" aria-hidden="true">search</span>
-            <input type="text" name="buscar" id="input-buscar" placeholder="Buscar productos, código…" value="{{ buscar }}" class="td-search-input">
+            <input type="text" name="buscar" id="input-buscar" placeholder="{% trans 'Search products, code…' %}" value="{{ buscar }}" class="td-search-input">
           </div>
           <div class="td-filter-primary">
             <div>
-              <label class="td-filter-label" for="select-categoria">Categoría</label>
+              <label class="td-filter-label" for="select-categoria">{% trans "Category" %}</label>
               <select name="categoria" id="select-categoria" class="td-filter-select">
-                <option value="">Todas las categorías</option>
+                <option value="">{% trans "All categories" %}</option>
                 {% for cat in categorias %}
                 <option value="{{ cat.id }}">{{ cat.name|category_label }}</option>
                 {% endfor %}
               </select>
             </div>
             <div>
-              <label class="td-filter-label" for="select-empresa">Empresa</label>
+              <label class="td-filter-label" for="select-empresa">{% trans "Company" %}</label>
               <select name="empresa" id="select-empresa" class="td-filter-select">
-                <option value="">Todas las empresas</option>
+                <option value="">{% trans "All companies" %}</option>
                 {% for empresa in empresas %}
                 <option value="{{ empresa.id }}">{{ empresa.name }}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="td-span-2">
-              <label class="td-filter-label" for="select-orden">Ordenar por</label>
+              <label class="td-filter-label" for="select-orden">{% trans "Sort by" %}</label>
               <select name="orden" id="select-orden" class="td-filter-select">
-                <option value="nombre">Nombre A-Z</option>
-                <option value="precio_asc">Precio: menor a mayor</option>
-                <option value="precio_desc">Precio: mayor a menor</option>
-                <option value="novedades">Más recientes</option>
+                <option value="nombre">{% trans "Name A-Z" %}</option>
+                <option value="precio_asc">{% trans "Price: low to high" %}</option>
+                <option value="precio_desc">{% trans "Price: high to low" %}</option>
+                <option value="novedades">{% trans "Most recent" %}</option>
               </select>
             </div>
           </div>
           <button type="submit" class="td-btn-filter-apply">
             <span class="material-symbols-rounded" style="font-size:18px;" aria-hidden="true">check_circle</span>
-            Aplicar filtros
+            {% trans "Apply filters" %}
           </button>
           <details class="td-filter-more">
-            <summary>Categorías rápidas</summary>
+            <summary>{% trans "Quick categories" %}</summary>
             <div class="td-cat-scroll">
-              <ul class="td-cat-list" style="padding-top:0;" aria-label="Categorías rápidas">
+              <ul class="td-cat-list" style="padding-top:0;" aria-label="{% trans 'Quick categories' %}">
                 <li>
                   <a href="{% url 'tienda' %}" class="td-cat-link tf-cat-link" data-categoria-id="" data-active="{% if not cat_activa %}true{% else %}false{% endif %}">
                     <span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">apps</span>
-                    Todas
+                    {% trans "All" %}
                   </a>
                 </li>
                 {% for cat in categorias %}
@@ -1044,7 +1044,7 @@ show_cart_actions, tienda_params.
           </details>
           <a href="{% url 'tienda' %}" id="btn-limpiar" class="td-btn-clear-filters">
             <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span>
-            Limpiar filtros
+            {% trans "Clear filters" %}
           </a>
         </form>
       </div>
@@ -1058,16 +1058,16 @@ show_cart_actions, tienda_params.
         <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle, rgba(217,202,179,0.15) 0%, transparent 70%);pointer-events:none;"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:12px;">
           <div>
-            <h2 id="bp-promo-title" style="font-family:'DM Serif Display',serif;color:var(--tf-white);font-size:1.25rem;margin:0;">Active deals</h2>
-            <p style="color:var(--tf-sand, rgba(255,255,255,0.75));font-size:.8rem;margin:.25rem 0 0;">Limited time only — direct prices from the CFZ</p>
+            <h2 id="bp-promo-title" style="font-family:'DM Serif Display',serif;color:var(--tf-white);font-size:1.25rem;margin:0;">{% trans "Active deals" %}</h2>
+            <p style="color:var(--tf-sand, rgba(255,255,255,0.75));font-size:.8rem;margin:.25rem 0 0;">{% trans "Limited time only — direct prices from the CFZ" %}</p>
           </div>
-          <a href="{{ tab_urls.ofertas }}" class="bp-promo-view-all">View all →</a>
+          <a href="{{ tab_urls.ofertas }}" class="bp-promo-view-all">{% trans "View all →" %}</a>
         </div>
         <div class="bp-promo-carousel-body">
-          <button type="button" class="bp-promo-nav bp-promo-nav--prev" id="bp-promo-prev" aria-label="Previous deals">
+          <button type="button" class="bp-promo-nav bp-promo-nav--prev" id="bp-promo-prev" aria-label="{% trans 'Previous deals' %}">
             <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
           </button>
-          <div class="bp-promo-scroll" id="bp-promo-track" role="list" tabindex="0" aria-label="Active deals carousel">
+          <div class="bp-promo-scroll" id="bp-promo-track" role="list" tabindex="0" aria-label="{% trans 'Active deals carousel' %}">
             {% for producto in productos_promo %}
             <a href="{% url 'tienda' %}?producto={{ producto.id }}" class="bp-promo-card" role="listitem">
               <span class="bp-promo-badge">-{{ producto.discount_pct }}%</span>
@@ -1079,11 +1079,11 @@ show_cart_actions, tienda_params.
             </a>
             {% endfor %}
           </div>
-          <button type="button" class="bp-promo-nav bp-promo-nav--next" id="bp-promo-next" aria-label="Next deals">
+          <button type="button" class="bp-promo-nav bp-promo-nav--next" id="bp-promo-next" aria-label="{% trans 'Next deals' %}">
             <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
           </button>
         </div>
-        <div class="bp-promo-dots" id="bp-promo-dots" role="tablist" aria-label="Deal carousel pages"></div>
+        <div class="bp-promo-dots" id="bp-promo-dots" role="tablist" aria-label="{% trans 'Deal carousel pages' %}"></div>
       </section>
       {% endif %}
       {% if promo_banner %}
@@ -1092,32 +1092,32 @@ show_cart_actions, tienda_params.
           <h2 id="td-promo-title">{{ promo_banner.title_es }}</h2>
           {% if promo_banner.subtitle_es %}<p>{{ promo_banner.subtitle_es }}</p>{% endif %}
         </div>
-        <a href="{{ tab_urls.ofertas }}" class="td-tab" style="flex-shrink:0;">View deals</a>
+        <a href="{{ tab_urls.ofertas }}" class="td-tab" style="flex-shrink:0;">{% trans "View deals" %}</a>
       </section>
       {% endif %}
 
-      <nav class="td-tabs" aria-label="Vistas del catálogo">
-        <a href="{{ tab_urls.todos }}" class="td-tab" data-tab="todos"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">grid_view</span>Todos</a>
-        <a href="{{ tab_urls.ofertas }}" class="td-tab" data-tab="ofertas"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">local_offer</span>Ofertas</a>
-        <a href="{{ tab_urls.bestsellers }}" class="td-tab" data-tab="bestsellers"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">trending_up</span>Más vendidos</a>
-        <a href="{{ tab_urls.destacados }}" class="td-tab" data-tab="destacados"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">star</span>Destacados</a>
+      <nav class="td-tabs" aria-label="{% trans 'Catalog views' %}">
+        <a href="{{ tab_urls.todos }}" class="td-tab" data-tab="todos"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">grid_view</span>{% trans "All" %}</a>
+        <a href="{{ tab_urls.ofertas }}" class="td-tab" data-tab="ofertas"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">local_offer</span>{% trans "Deals" %}</a>
+        <a href="{{ tab_urls.bestsellers }}" class="td-tab" data-tab="bestsellers"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">trending_up</span>{% trans "Bestsellers" %}</a>
+        <a href="{{ tab_urls.destacados }}" class="td-tab" data-tab="destacados"><span class="material-symbols-rounded" style="font-size:16px;" aria-hidden="true">star</span>{% trans "Featured" %}</a>
       </nav>
 
       {% if show_spotlights and spotlight_ofertas %}
       <section class="td-spotlight" aria-labelledby="td-spot-ofertas">
-        <div class="td-spot-head"><h2 id="td-spot-ofertas">Daily deals</h2><a href="{{ tab_urls.ofertas }}">View all →</a></div>
+        <div class="td-spot-head"><h2 id="td-spot-ofertas">{% trans "Daily deals" %}</h2><a href="{{ tab_urls.ofertas }}">{% trans "View all →" %}</a></div>
         <div class="td-grid td-grid-spot">{% for producto in spotlight_ofertas %}{% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}{% endfor %}</div>
       </section>
       {% endif %}
       {% if show_spotlights and spotlight_bestsellers %}
       <section class="td-spotlight" aria-labelledby="td-spot-best">
-        <div class="td-spot-head"><h2 id="td-spot-best">Bestsellers in the Colón Free Zone</h2><a href="{{ tab_urls.bestsellers }}">View ranking →</a></div>
+        <div class="td-spot-head"><h2 id="td-spot-best">{% trans "Bestsellers in the Colón Free Zone" %}</h2><a href="{{ tab_urls.bestsellers }}">{% trans "View ranking →" %}</a></div>
         <div class="td-grid td-grid-spot">{% for producto in spotlight_bestsellers %}{% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}{% endfor %}</div>
       </section>
       {% endif %}
       {% if show_spotlights and spotlight_destacados %}
       <section class="td-spotlight" aria-labelledby="td-spot-feat">
-        <div class="td-spot-head"><h2 id="td-spot-feat">Featured selection</h2><a href="{{ tab_urls.destacados }}">View featured →</a></div>
+        <div class="td-spot-head"><h2 id="td-spot-feat">{% trans "Featured selection" %}</h2><a href="{{ tab_urls.destacados }}">{% trans "View featured →" %}</a></div>
         <div class="td-grid td-grid-spot">{% for producto in spotlight_destacados %}{% include "core/includes/product_card_unified.html" with product=producto show_cart_actions=show_cart_actions is_public=False %}{% endfor %}</div>
       </section>
       {% endif %}
@@ -1140,9 +1140,9 @@ show_cart_actions, tienda_params.
       {% else %}
       <div class="td-results-hdr">
         <div>
-          <h1 id="td-results-title">Catálogo completo</h1>
+          <h1 id="td-results-title">{% trans "Full catalog" %}</h1>
           <p class="td-results-count" id="td-results-count">
-            {{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }}
+            {% blocktrans count counter=productos.paginator.count %}{{ counter }} product{% plural %}{{ counter }} products{% endblocktrans %}
           </p>
         </div>
       </div>
@@ -1151,11 +1151,11 @@ show_cart_actions, tienda_params.
       {% include "core/includes/tienda/tienda_product_grid.html" %}
 
       {% if productos.has_other_pages %}
-      <nav class="td-pag" id="td-pag" aria-label="Pagination">
+      <nav class="td-pag" id="td-pag" aria-label="{% trans 'Pagination' %}">
         {% if productos.has_previous %}
         <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}"
            class="td-pag-ajax td-pag-nav"
-           aria-label="Previous page">
+           aria-label="{% trans 'Previous page' %}">
           <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
         </a>
         {% endif %}
@@ -1172,7 +1172,7 @@ show_cart_actions, tienda_params.
         {% if productos.has_next %}
         <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}"
            class="td-pag-ajax td-pag-nav"
-           aria-label="Next page">
+           aria-label="{% trans 'Next page' %}">
           <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
         </a>
         {% endif %}
