@@ -175,7 +175,32 @@ def tf_i18n(request):
             'aiSearchCustomers': _('Customers'),
             'aiSearchActions': _('Quick actions'),
             'aiSearchSuggestions': _('Suggestions'),
+            'cartQtyError': _('Could not update quantity.'),
+            'cartRemoveError': _('Could not remove product.'),
+            'cartNetworkRetry': _('Connection error. Please try again.'),
+            'fieldRequired': _('This field is required.'),
+            'emailInvalid': _('Enter a valid email address.'),
+            'toastError': _('Error'),
+            'toastSuccess': _('Success'),
+            'toastWarning': _('Warning'),
+            'toastInfo': _('Notice'),
+            'cvVerifiedTitle': _('Verified company'),
+            'cvVerifiedHeading': _('Business identity approved'),
+            'cvVerifiedLead': _('TradeFlow recorded the review and will enable only the capabilities approved for this company.'),
+            'cvContinue': _('Continue'),
+            'cvVerifiedToast': _('Your company was verified.'),
+            'cvVerifiedPendingStep': _('Your company was verified. One more access step is still pending.'),
+            'cvRejectedStatus': _('Requires correction'),
+            'cvRejectedHeading': _('We could not approve the information'),
+            'cvFixInformation': _('Correct information'),
+            'cvRejectedToast': _('Your application requires correction.'),
         }
+        from core.utils.ui_labels import ORDER_STATUS_LABELS, USER_ROLE_LABELS
+
+        for key, label in ORDER_STATUS_LABELS.items():
+            payload[f'orderStatus_{key}'] = str(label)
+        for key, label in USER_ROLE_LABELS.items():
+            payload[f'userRole_{key}'] = str(label)
     return {'tf_i18n': payload}
 
 

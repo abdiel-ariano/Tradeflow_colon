@@ -8,10 +8,21 @@
   var role = root.getAttribute('data-role') || 'buyer';
   var activeTab = root.getAttribute('data-active-tab') || 'personal';
 
+  var i18n = window.TF_I18N || {};
   var labels = {
-    buyer: 'Buyer',
-    seller: 'Seller',
-    admin: 'Administrator',
+    buyer: i18n.userRole_buyer || 'Buyer',
+    seller: i18n.userRole_seller || 'Seller',
+    admin: i18n.userRole_admin || 'Administrator',
+  };
+
+  var statusLabels = {
+    awaiting_seller: i18n.orderStatus_awaiting_seller || 'Awaiting seller',
+    pending: i18n.orderStatus_pending || 'Pending',
+    paid: i18n.orderStatus_paid || 'Paid',
+    packed: i18n.orderStatus_packed || 'Packed',
+    shipped: i18n.orderStatus_shipped || 'Shipped',
+    delivered: i18n.orderStatus_delivered || 'Delivered',
+    cancelled: i18n.orderStatus_cancelled || 'Cancelled',
   };
 
   var badge = document.getElementById('perfil-role-badge');
@@ -28,14 +39,6 @@
     }
   });
 
-  var statusLabels = {
-    pending: 'Pending',
-    paid: 'Paid',
-    packed: 'Packed',
-    shipped: 'Shipped',
-    delivered: 'Delivered',
-    cancelled: 'Cancelled',
-  };
   var stEl = document.getElementById('perfil-ultima-estado');
   if (stEl) {
     var st = stEl.getAttribute('data-status') || '';

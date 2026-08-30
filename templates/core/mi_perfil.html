@@ -3,7 +3,7 @@
 {% comment %}
 templates/core/mi_perfil.html — authenticated user profile (tabbed layout).
 {% endcomment %}
-{% block title %}My Profile — TradeFlow Colón{% endblock %}
+{% block title %}{% trans "My Profile" %} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/mi-perfil.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
@@ -12,10 +12,10 @@ templates/core/mi_perfil.html — authenticated user profile (tabbed layout).
   <div class="perfil-shell">
     {% if not profile.email_verificado %}
     <div class="perfil-verify-banner">
-      <p>Your email is not verified yet.</p>
+      <p>{% trans "Your email is not verified yet." %}</p>
       <form method="post" action="{% url 'reenviar_verificacion' %}">
         {% csrf_token %}
-        <button type="submit" class="perfil-btn-primary">Resend verification email</button>
+        <button type="submit" class="perfil-btn-primary">{% trans "Resend verification email" %}</button>
       </form>
     </div>
     {% endif %}
@@ -27,24 +27,23 @@ templates/core/mi_perfil.html — authenticated user profile (tabbed layout).
         <div class="perfil-meta">
           <p class="perfil-email">{{ request.user.email }}</p>
           <span class="perfil-badge" id="perfil-role-badge"></span>
-          <p class="perfil-since">Member since {{ request.user.date_joined|date:"F Y" }}</p>
+          <p class="perfil-since">{% blocktrans with joined=request.user.date_joined|date:"F Y" %}Member since {{ joined }}{% endblocktrans %}</p>
         </div>
       </div>
     </header>
 
-    <section class="perfil-summary" aria-label="Activity and shortcuts">
+    <section class="perfil-summary" aria-label="{% trans 'Activity and shortcuts' %}">
       <div class="perfil-summary-card">
-        <h2 class="perfil-summary-title">Your activity</h2>
+        <h2 class="perfil-summary-title">{% trans "Your activity" %}</h2>
         <div class="perfil-role-panel" id="perfil-panel-buyer" data-role-panel="buyer">
           <div class="perfil-activity-body">
             <div class="perfil-stat-block">
               <div class="perfil-stat">{{ actividad.total_ordenes|default:0 }}</div>
-              <div class="perfil-stat-label">Orders placed</div>
+              <div class="perfil-stat-label">{% trans "Orders placed" %}</div>
             </div>
             {% if actividad.ultima_orden %}
             <div class="perfil-last-order">
-              Last order:
-              <strong>{{ actividad.ultima_orden.order_number }}</strong>
+              {% blocktrans with order_number=actividad.ultima_orden.order_number %}Last order: <strong>{{ order_number }}</strong>{% endblocktrans %}
               <span class="perfil-status-badge" id="perfil-ultima-estado" data-status="{{ actividad.ultima_orden.status }}"></span>
             </div>
             {% endif %}
@@ -54,7 +53,7 @@ templates/core/mi_perfil.html — authenticated user profile (tabbed layout).
           <div class="perfil-activity-body">
             <div class="perfil-stat-block">
               <div class="perfil-stat">{{ actividad.total_productos|default:0 }}</div>
-              <div class="perfil-stat-label">Active products in catalog</div>
+              <div class="perfil-stat-label">{% trans "Active products in catalog" %}</div>
             </div>
           </div>
         </div>
@@ -62,83 +61,83 @@ templates/core/mi_perfil.html — authenticated user profile (tabbed layout).
           <div class="perfil-activity-body">
             <div class="perfil-stat-block">
               <div class="perfil-stat">{{ actividad.total_usuarios|default:0 }}</div>
-              <div class="perfil-stat-label">Registered users</div>
+              <div class="perfil-stat-label">{% trans "Registered users" %}</div>
             </div>
             <div class="perfil-stat-block">
               <div class="perfil-stat">{{ actividad.total_ordenes|default:0 }}</div>
-              <div class="perfil-stat-label">Orders in period</div>
+              <div class="perfil-stat-label">{% trans "Orders in period" %}</div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="perfil-summary-card">
-        <h2 class="perfil-summary-title">Quick access</h2>
+        <h2 class="perfil-summary-title">{% trans "Quick access" %}</h2>
         <div class="perfil-quick perfil-role-panel" id="perfil-quick-buyer" data-role-panel="buyer">
-          <a href="{% url 'tienda' %}"><span class="material-symbols-rounded">storefront</span>Go to store</a>
-          <a href="{% url 'mis_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>My orders</a>
+          <a href="{% url 'tienda' %}"><span class="material-symbols-rounded">storefront</span>{% trans "Go to store" %}</a>
+          <a href="{% url 'mis_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>{% trans "My orders" %}</a>
         </div>
         <div class="perfil-quick perfil-role-panel" id="perfil-quick-seller" data-role-panel="seller">
-          <a href="{% url 'portal_seller' %}"><span class="material-symbols-rounded">dashboard</span>My Dashboard</a>
-          <a href="{% url 'seller_mis_productos' %}"><span class="material-symbols-rounded">inventory_2</span>Products</a>
-          <a href="{% url 'seller_mis_ventas' %}"><span class="material-symbols-rounded">payments</span>My sales</a>
+          <a href="{% url 'portal_seller' %}"><span class="material-symbols-rounded">dashboard</span>{% trans "My Dashboard" %}</a>
+          <a href="{% url 'seller_mis_productos' %}"><span class="material-symbols-rounded">inventory_2</span>{% trans "Products" %}</a>
+          <a href="{% url 'seller_mis_ventas' %}"><span class="material-symbols-rounded">payments</span>{% trans "My sales" %}</a>
         </div>
         <div class="perfil-quick perfil-role-panel" id="perfil-quick-admin" data-role-panel="admin">
-          <a href="{% url 'dashboard' %}"><span class="material-symbols-rounded">dashboard</span>Dashboard</a>
-          <a href="{% url 'lista_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>Orders</a>
-          <a href="{% url 'lista_productos' %}"><span class="material-symbols-rounded">inventory_2</span>Products</a>
+          <a href="{% url 'dashboard' %}"><span class="material-symbols-rounded">dashboard</span>{% trans "Dashboard" %}</a>
+          <a href="{% url 'lista_ordenes' %}"><span class="material-symbols-rounded">receipt_long</span>{% trans "Orders" %}</a>
+          <a href="{% url 'lista_productos' %}"><span class="material-symbols-rounded">inventory_2</span>{% trans "Products" %}</a>
         </div>
       </div>
     </section>
 
     <div class="perfil-main-card" id="perfil-tabs-root">
-      <nav class="perfil-tabs" role="tablist" aria-label="Profile sections">
-        <a href="?tab=personal" class="perfil-tab{% if active_tab == 'personal' %} is-active{% endif %}" role="tab" id="perfil-tab-personal" aria-controls="perfil-panel-personal" aria-selected="{% if active_tab == 'personal' %}true{% else %}false{% endif %}" data-tab="personal">Personal information</a>
-        <a href="?tab=security" class="perfil-tab{% if active_tab == 'security' %} is-active{% endif %}" role="tab" id="perfil-tab-security" aria-controls="perfil-panel-security" aria-selected="{% if active_tab == 'security' %}true{% else %}false{% endif %}" data-tab="security">Security</a>
-        <a href="?tab=privacy" class="perfil-tab{% if active_tab == 'privacy' %} is-active{% endif %}" role="tab" id="perfil-tab-privacy" aria-controls="perfil-panel-privacy" aria-selected="{% if active_tab == 'privacy' %}true{% else %}false{% endif %}" data-tab="privacy">Privacy &amp; data</a>
+      <nav class="perfil-tabs" role="tablist" aria-label="{% trans 'Profile sections' %}">
+        <a href="?tab=personal" class="perfil-tab{% if active_tab == 'personal' %} is-active{% endif %}" role="tab" id="perfil-tab-personal" aria-controls="perfil-panel-personal" aria-selected="{% if active_tab == 'personal' %}true{% else %}false{% endif %}" data-tab="personal">{% trans "Personal information" %}</a>
+        <a href="?tab=security" class="perfil-tab{% if active_tab == 'security' %} is-active{% endif %}" role="tab" id="perfil-tab-security" aria-controls="perfil-panel-security" aria-selected="{% if active_tab == 'security' %}true{% else %}false{% endif %}" data-tab="security">{% trans "Security" %}</a>
+        <a href="?tab=privacy" class="perfil-tab{% if active_tab == 'privacy' %} is-active{% endif %}" role="tab" id="perfil-tab-privacy" aria-controls="perfil-panel-privacy" aria-selected="{% if active_tab == 'privacy' %}true{% else %}false{% endif %}" data-tab="privacy">{% trans "Privacy & data" %}</a>
       </nav>
 
       <section class="perfil-panel{% if active_tab == 'personal' %} is-active{% endif %}" id="perfil-panel-personal" role="tabpanel" aria-labelledby="perfil-tab-personal" data-tab-panel="personal"{% if active_tab != 'personal' %} hidden{% endif %}>
-        <h2 class="perfil-panel-title"><span class="material-symbols-rounded">person</span>Personal information</h2>
+        <h2 class="perfil-panel-title"><span class="material-symbols-rounded">person</span>{% trans "Personal information" %}</h2>
         <form method="post" action="{% url 'mi_perfil' %}?tab=personal">
           {% csrf_token %}
           <input type="hidden" name="action" value="update_info">
           <div class="perfil-form-grid">
             <div class="perfil-field">
-              <label class="tf-label" for="pf_first_name">First name</label>
+              <label class="tf-label" for="pf_first_name">{% trans "First name" %}</label>
               <input type="text" name="first_name" id="pf_first_name" class="tf-input" value="{{ request.user.first_name }}">
             </div>
             <div class="perfil-field">
-              <label class="tf-label" for="pf_last_name">Last name</label>
+              <label class="tf-label" for="pf_last_name">{% trans "Last name" %}</label>
               <input type="text" name="last_name" id="pf_last_name" class="tf-input" value="{{ request.user.last_name }}">
             </div>
             <div class="perfil-field">
-              <label class="tf-label" for="pf_email">Email address</label>
+              <label class="tf-label" for="pf_email">{% trans "Email address" %}</label>
               <input type="email" name="email" id="pf_email" class="tf-input" value="{{ request.user.email }}">
             </div>
             <div class="perfil-field">
-              <label class="tf-label" for="pf_phone">Phone</label>
+              <label class="tf-label" for="pf_phone">{% trans "Phone" %}</label>
               <input type="tel" name="phone" id="pf_phone" class="tf-input" value="{{ profile.phone }}">
-              <span class="perfil-field-help">Optional. Used for order updates when provided.</span>
+              <span class="perfil-field-help">{% trans "Optional. Used for order updates when provided." %}</span>
             </div>
           </div>
           <div class="perfil-form-actions">
             <button type="submit" class="perfil-btn-primary">
               <span class="material-symbols-rounded" style="font-size:18px;">save</span>
-              Save changes
+              {% trans "Save changes" %}
             </button>
           </div>
         </form>
       </section>
 
       <section class="perfil-panel{% if active_tab == 'security' %} is-active{% endif %}" id="perfil-panel-security" role="tabpanel" aria-labelledby="perfil-tab-security" data-tab-panel="security"{% if active_tab != 'security' %} hidden{% endif %}>
-        <h2 class="perfil-panel-title"><span class="material-symbols-rounded">lock</span>Security</h2>
+        <h2 class="perfil-panel-title"><span class="material-symbols-rounded">lock</span>{% trans "Security" %}</h2>
         <form method="post" action="{% url 'mi_perfil' %}?tab=security">
           {% csrf_token %}
           <input type="hidden" name="action" value="change_password">
           <div class="perfil-form-grid perfil-form-grid--single">
             <div class="perfil-field">
-              <label class="tf-label" for="pf_current">Current password</label>
+              <label class="tf-label" for="pf_current">{% trans "Current password" %}</label>
               <div class="auth-password-wrap">
                 <input type="password" name="current_password" id="pf_current" class="tf-input" required autocomplete="current-password"{% if field_errors.current_password %} aria-invalid="true"{% endif %}>
                 {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_current" %}
@@ -146,7 +145,7 @@ templates/core/mi_perfil.html — authenticated user profile (tabbed layout).
               {% if field_errors.current_password %}<span class="perfil-field-error">{{ field_errors.current_password }}</span>{% endif %}
             </div>
             <div class="perfil-field">
-              <label class="tf-label" for="pf_new">New password</label>
+              <label class="tf-label" for="pf_new">{% trans "New password" %}</label>
               <div class="auth-password-wrap">
                 <input type="password" name="new_password" id="pf_new" class="tf-input" required autocomplete="new-password"{% if field_errors.new_password %} aria-invalid="true"{% endif %}>
                 {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_new" %}
@@ -155,7 +154,7 @@ templates/core/mi_perfil.html — authenticated user profile (tabbed layout).
               {% if field_errors.new_password %}<span class="perfil-field-error">{{ field_errors.new_password }}</span>{% endif %}
             </div>
             <div class="perfil-field">
-              <label class="tf-label" for="pf_confirm">Confirm new password</label>
+              <label class="tf-label" for="pf_confirm">{% trans "Confirm new password" %}</label>
               <div class="auth-password-wrap">
                 <input type="password" name="confirm_password" id="pf_confirm" class="tf-input" required autocomplete="new-password"{% if field_errors.confirm_password %} aria-invalid="true"{% endif %}>
                 {% include "core/includes/auth_password_toggle_button.html" with target_id="pf_confirm" %}
@@ -166,73 +165,73 @@ templates/core/mi_perfil.html — authenticated user profile (tabbed layout).
           <div class="perfil-form-actions">
             <button type="submit" class="perfil-btn-outline">
               <span class="material-symbols-rounded" style="font-size:18px;">key</span>
-              Change password
+              {% trans "Change password" %}
             </button>
           </div>
         </form>
 
         {% if show_admin or request.user.is_staff or request.user.is_superuser %}
         <div class="perfil-privacy-section" style="margin-top:20px;">
-          <h3>Staff MFA</h3>
-          <p>Authenticator app (TOTP) for staff/admin sign-in. Required outside Expo demo mode.</p>
+          <h3>{% trans "Staff MFA" %}</h3>
+          <p>{% trans "Authenticator app (TOTP) for staff/admin sign-in. Required outside Expo demo mode." %}</p>
           <a href="{% url 'staff_mfa_setup' %}" class="perfil-btn-outline">
             <span class="material-symbols-rounded" style="font-size:18px;">security</span>
-            Configure MFA
+            {% trans "Configure MFA" %}
           </a>
         </div>
         {% endif %}
       </section>
 
       <section class="perfil-panel{% if active_tab == 'privacy' %} is-active{% endif %}" id="perfil-panel-privacy" role="tabpanel" aria-labelledby="perfil-tab-privacy" data-tab-panel="privacy"{% if active_tab != 'privacy' %} hidden{% endif %}>
-        <h2 class="perfil-panel-title"><span class="material-symbols-rounded">privacy_tip</span>Privacy &amp; data</h2>
+        <h2 class="perfil-panel-title"><span class="material-symbols-rounded">privacy_tip</span>{% trans "Privacy & data" %}</h2>
 
         <div class="perfil-privacy-section">
-          <h3>Communication preferences</h3>
-          <p>Choose whether TradeFlow may send cart reminders and occasional marketplace promotions.</p>
+          <h3>{% trans "Communication preferences" %}</h3>
+          <p>{% trans "Choose whether TradeFlow may send cart reminders and occasional marketplace promotions." %}</p>
           <form method="post" action="{% url 'mi_perfil' %}?tab=privacy">
             {% csrf_token %}
             <input type="hidden" name="action" value="marketing_prefs">
             <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;font-size:14px;color:var(--tf-body);">
               <input type="checkbox" name="marketing_opt_in" value="1" {% if profile.marketing_opt_in %}checked{% endif %} style="margin-top:3px;">
-              <span>Send me cart reminders and occasional marketplace promotions.</span>
+              <span>{% trans "Send me cart reminders and occasional marketplace promotions." %}</span>
             </label>
             <div class="perfil-form-actions">
               <button type="submit" class="perfil-btn-outline">
                 <span class="material-symbols-rounded" style="font-size:18px;">mail</span>
-                Save preferences
+                {% trans "Save preferences" %}
               </button>
             </div>
           </form>
         </div>
 
         <div class="perfil-privacy-section">
-          <h3>Export your data</h3>
-          <p>Download a JSON copy of your profile, addresses, and orders.</p>
+          <h3>{% trans "Export your data" %}</h3>
+          <p>{% trans "Download a JSON copy of your profile, addresses, and orders." %}</p>
           <form method="post" action="{% url 'mi_perfil' %}?tab=privacy">
             {% csrf_token %}
             <input type="hidden" name="action" value="export_data">
             <button type="submit" class="perfil-btn-outline">
               <span class="material-symbols-rounded" style="font-size:18px;">download</span>
-              Export my data
+              {% trans "Export my data" %}
             </button>
           </form>
         </div>
 
         <div class="perfil-privacy-section perfil-sensitive">
-          <h3>Anonymize account</h3>
-          <p>This permanently anonymizes your account. Orders are retained without your personal details. Type <strong>DELETE</strong> to confirm.</p>
-          <form method="post" action="{% url 'mi_perfil' %}?tab=privacy" onsubmit="return confirm('This anonymizes your account permanently. Continue?');">
+          <h3>{% trans "Anonymize account" %}</h3>
+          <p>{% blocktrans %}This permanently anonymizes your account. Orders are retained without your personal details. Type <strong>DELETE</strong> to confirm.{% endblocktrans %}</p>
+          <form method="post" action="{% url 'mi_perfil' %}?tab=privacy" onsubmit="return confirm('{% trans "This anonymizes your account permanently. Continue?"|escapejs %}');">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_account">
             <div class="perfil-field" style="max-width:280px;">
-              <label class="tf-label" for="pf_confirm_delete">Confirmation</label>
+              <label class="tf-label" for="pf_confirm_delete">{% trans "Confirmation" %}</label>
               <input type="text" name="confirm_delete" id="pf_confirm_delete" class="tf-input" placeholder="DELETE" autocomplete="off" required{% if field_errors.confirm_delete %} aria-invalid="true"{% endif %}>
               {% if field_errors.confirm_delete %}<span class="perfil-field-error">{{ field_errors.confirm_delete }}</span>{% endif %}
             </div>
             <div class="perfil-form-actions">
               <button type="submit" class="perfil-btn-danger">
                 <span class="material-symbols-rounded" style="font-size:18px;">person_off</span>
-                Anonymize account
+                {% trans "Anonymize account" %}
               </button>
             </div>
           </form>

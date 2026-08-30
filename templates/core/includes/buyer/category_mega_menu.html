@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}
 ================================================================================
 CategoryMegaMenu — panel desplegable «Todas las categorías» (navbar comprador).
@@ -13,7 +14,7 @@ Contexto: buyer_mega_menu_context → buyer_mega_menu_panels
 JS: bn-mega-menu.js — alterna panel derecho al pasar el mouse (hover).
 ================================================================================
 {% endcomment %}
-<div class="bn-mega" id="bn-mega-menu" role="region" aria-label="Categorías del marketplace">
+<div class="bn-mega" id="bn-mega-menu" role="region" aria-label="{% trans 'Marketplace categories' %}">
   {# ── Columna izquierda: lista de categorías ── #}
   <div class="bn-mega-left" id="bn-mega-left">
     {% for panel in buyer_mega_menu_panels %}
@@ -25,7 +26,7 @@ JS: bn-mega-menu.js — alterna panel derecho al pasar el mouse (hover).
     </a>
     {% empty %}
     <a href="{% url 'catalogo_publico' %}" class="bn-mega-cat is-active">
-      <span class="bn-mega-cat__label">Ver catálogo completo</span>
+      <span class="bn-mega-cat__label">{% trans "View full catalog" %}</span>
     </a>
     {% endfor %}
   </div>
@@ -45,16 +46,16 @@ JS: bn-mega-menu.js — alterna panel derecho al pasar el mouse (hover).
         </a>
         {% empty %}
         <a class="bn-mega-sub" href="{% url 'catalogo_publico' %}?categoria={{ panel.category.pk }}">
-          Explorar {{ panel.category.name }}
+          {% blocktrans with category=panel.category.name %}Explore {{ category }}{% endblocktrans %}
         </a>
         {% endfor %}
       </div>
       <a href="{% url 'catalogo_publico' %}?categoria={{ panel.category.pk }}" class="bn-mega-browse">
-        Ver todos en {{ panel.category.name|truncatechars:28 }} →
+        {% blocktrans with category=panel.category.name|truncatechars:28 %}View all in {{ category }} →{% endblocktrans %}
       </a>
     </div>
     {% empty %}
-    <p class="bn-mega-empty">No hay categorías con productos activos.</p>
+    <p class="bn-mega-empty">{% trans "No categories with active products." %}</p>
     {% endfor %}
   </div>
 </div>

@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}
 SearchBar — compact (navbar) or hero variant.
 Vars: variant (compact|hero), value, placeholder, form_id
@@ -5,27 +6,27 @@ Vars: variant (compact|hero), value, placeholder, form_id
 <form class="bsr-wrap{% if variant == 'hero' %} bsr-wrap--hero{% endif %}"
       action="{% url 'catalogo_publico' %}" method="get" role="search"
       {% if form_id %}id="{{ form_id }}"{% endif %}>
-  <label class="visually-hidden" for="bsr-input-{{ form_id|default:'main' }}">Buscar</label>
-  <select class="bsr-scope" name="scope" aria-label="Ámbito" disabled>
-    <option>Todos</option>
+  <label class="visually-hidden" for="bsr-input-{{ form_id|default:'main' }}">{% trans "Search" %}</label>
+  <select class="bsr-scope" name="scope" aria-label="{% trans 'Scope' %}" disabled>
+    <option>{% trans "All" %}</option>
   </select>
   <input id="bsr-input-{{ form_id|default:'main' }}" class="bsr-input" type="search" name="buscar"
          value="{{ value|default:'' }}"
-         placeholder="{{ placeholder|default:'Buscar empresas, productos, HS codes…' }}"
+         placeholder="{% if placeholder %}{{ placeholder }}{% else %}{% trans 'Search companies, products, HS codes…' %}{% endif %}"
          autocomplete="off"
          data-tf-ai-search="buyer">
   {% if variant == 'hero' %}
-  <button type="button" class="bsr-hero-image-label" title="Búsqueda por imagen (próximamente)">
+  <button type="button" class="bsr-hero-image-label" title="{% trans 'Image search (coming soon)' %}">
     <span class="material-symbols-rounded" style="font-size:20px;">photo_camera</span>
-    Búsqueda de imágenes
+    {% trans "Image search" %}
   </button>
   {% else %}
-  <button type="button" class="bsr-camera" title="Búsqueda por imagen (próximamente)" aria-label="Búsqueda por imagen">
+  <button type="button" class="bsr-camera" title="{% trans 'Image search (coming soon)' %}" aria-label="{% trans 'Image search' %}">
     <span class="material-symbols-rounded">photo_camera</span>
   </button>
   {% endif %}
   <button type="submit" class="bsr-submit">
     <span class="material-symbols-rounded" style="font-size:20px;">search</span>
-    {% if variant == 'hero' %}Buscar{% endif %}
+    {% if variant == 'hero' %}{% trans "Search" %}{% endif %}
   </button>
 </form>

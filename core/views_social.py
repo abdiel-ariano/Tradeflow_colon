@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods
 
 from core.social_auth import (
@@ -81,7 +82,7 @@ def oauth_begin_signup(request: HttpRequest, provider: str) -> HttpResponse:
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         raise Http404
     if not provider_is_enabled(provider):
-        messages.error(request, 'El inicio de sesión social no está configurado todavía.')
+        messages.error(request, _('Social sign-in is not configured yet.'))
         return redirect('signup')
     business_role = (
         request.GET.get('business_role')
@@ -103,7 +104,7 @@ def oauth_begin_login(request: HttpRequest, provider: str) -> HttpResponse:
     if provider not in ALLOWED_OAUTH_PROVIDERS:
         raise Http404
     if not provider_is_enabled(provider):
-        messages.error(request, 'El inicio de sesión social no está configurado todavía.')
+        messages.error(request, _('Social sign-in is not configured yet.'))
         return redirect('login')
     request.session.pop('oauth_signup_role', None)
     request.session.pop('oauth_selected_business_role', None)
@@ -131,7 +132,7 @@ def oauth_complete_signup(request: HttpRequest) -> HttpResponse:
             '1', 'on', 'true', 'yes',
         )
         if selected not in B2B_BUSINESS_ROLES:
-            messages.error(request, 'Selecciona cómo usará TradeFlow tu empresa.')
+            messages.error(request, _('Select how your company will use TradeFlow.'))
         elif not accepts_privacy:
             messages.error(
                 request,
