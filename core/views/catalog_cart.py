@@ -64,6 +64,11 @@ from ..utils.pdf_generator import (
     generar_factura_pdf,
     generar_packing_list_pdf,
 )
+from ..utils.product_availability import (
+    public_availability_label,
+    public_availability_status,
+)
+from ..utils.product_pdp_content import parse_product_description_sections
 
 from .common import _request_wants_json, log
 
@@ -205,7 +210,6 @@ def _carrito_json_payload(
             'cantidad': line['cantidad'],
             'precio': line['precio'],
             'subtotal': line['subtotal'],
-            'disponible': disponible,
         }
     return payload
 
@@ -523,15 +527,10 @@ def catalogo_producto_detail(request, pk):
         company.is_verified
         and (company.ruc or product.sku)
     )
-    if product.available_qty <= 0:
-        stock_status = 'out'
-        stock_label = _('Out of stock')
-    elif product.available_qty <= 5:
-        stock_status = 'low'
-        stock_label = _('Low stock (%(qty)s units)') % {'qty': product.available_qty}
-    else:
-        stock_status = 'ok'
-        stock_label = _('In stock (%(qty)s units)') % {'qty': product.available_qty}
+    stock_status = public_availability_status(product.available_qty)
+    stock_label = public_availability_label(product.available_qty)
+    availability_label = stock_label
+    pdp_description = parse_product_description_sections(product.description)
 
     img = product_image_url(product)
     if img:
@@ -559,6 +558,8 @@ def catalogo_producto_detail(request, pk):
             'export_ready': export_ready,
             'stock_status': stock_status,
             'stock_label': stock_label,
+            'availability_label': availability_label,
+            'pdp_description': pdp_description,
             'meta_description': meta_description,
             'og_image': og_image,
             'canonical_url': request.build_absolute_uri(
@@ -781,14 +782,13 @@ def actualizar_cantidad_carrito(request, producto_id):
         return redirect('ver_carrito')
 
     if cantidad > disponible:
-        msg = _('Only %(qty)s units available.') % {'qty': disponible}
+        msg = _('Requested quantity exceeds available stock.')
         if wants_json:
             return JsonResponse(
                 _carrito_json_payload(
                     carrito,
                     line_product_id=producto_id,
                     line=carrito[producto_key],
-                    disponible=disponible,
                     message=msg,
                     ok=False,
                 ),
@@ -807,7 +807,6 @@ def actualizar_cantidad_carrito(request, producto_id):
             carrito,
             line_product_id=producto_id,
             line=line,
-            disponible=disponible,
         ))
     return redirect('ver_carrito')
 

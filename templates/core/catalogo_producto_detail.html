@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-sections.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-pdp.css' %}?v={{ tf_asset_version|default:'1' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-pdp.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
 {% block content %}
@@ -140,8 +140,8 @@
                   <dd>1 {% trans "piece" %}</dd>
                 </div>
                 <div>
-                  <dt>{% trans "Stock" %}</dt>
-                  <dd>{{ product.available_qty }}</dd>
+                  <dt>{% trans "Availability" %}</dt>
+                  <dd>{{ availability_label }}</dd>
                 </div>
                 {% if product.sku %}
                 <div>
@@ -174,12 +174,41 @@
 
       <div class="cpd-tab-panels">
         <div class="cpd-tab-panel is-active" role="tabpanel" id="cpd-panel-desc" aria-labelledby="cpd-tab-desc">
-          {% if product.description %}
-          <div class="cpd-prose">{{ product.description|linebreaks }}</div>
+          {% if pdp_description.has_content %}
+          <div class="cpd-desc">
+            {% if pdp_description.overview_paragraphs %}
+            <section class="cpd-desc__section">
+              <h3 class="cpd-desc__heading">{% trans "Product overview" %}</h3>
+              {% for paragraph in pdp_description.overview_paragraphs %}
+              <p class="cpd-desc__text">{{ paragraph }}</p>
+              {% endfor %}
+            </section>
+            {% endif %}
+            {% if pdp_description.feature_items %}
+            <section class="cpd-desc__section">
+              <h3 class="cpd-desc__heading">{% trans "Key features" %}</h3>
+              <ul class="cpd-desc__list">
+                {% for item in pdp_description.feature_items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            </section>
+            {% endif %}
+          </div>
+          {% elif product.description %}
+          <div class="cpd-desc">
+            <section class="cpd-desc__section">
+              <h3 class="cpd-desc__heading">{% trans "Product overview" %}</h3>
+              <div class="cpd-prose">{{ product.description|linebreaks }}</div>
+            </section>
+          </div>
           {% else %}
-          <div class="cpd-prose cpd-prose--fallback">
-            <p>{% blocktrans with name=product.name company=product.company.name %}{{ name }} is listed by {{ company }} for wholesale sourcing through TradeFlow Colón.{% endblocktrans %}</p>
-            <p>{% trans "Review specifications for SKU, stock, and pricing, or open the supplier catalog to compare related inventory." %}</p>
+          <div class="cpd-desc cpd-desc--fallback">
+            <section class="cpd-desc__section">
+              <h3 class="cpd-desc__heading">{% trans "Product overview" %}</h3>
+              <p class="cpd-desc__text">{% blocktrans with name=product.name company=product.company.name %}{{ name }} is listed by {{ company }} for wholesale sourcing through TradeFlow Colón.{% endblocktrans %}</p>
+              <p class="cpd-desc__text cpd-desc__text--muted">{% trans "Open the supplier catalog or request a quotation to confirm pricing, MOQ, and delivery terms." %}</p>
+            </section>
           </div>
           {% endif %}
         </div>
@@ -189,7 +218,7 @@
             <div><dt>{% trans "Product code" %}</dt><dd>{{ product.sku|default:"—" }}</dd></div>
             <div><dt>{% trans "Currency" %}</dt><dd>{{ product.currency }}</dd></div>
             <div><dt>{% trans "Category" %}</dt><dd>{% if product.category %}{{ product.category.name|category_label }}{% else %}—{% endif %}</dd></div>
-            <div><dt>{% trans "Available stock" %}</dt><dd>{{ product.available_qty }}</dd></div>
+            <div><dt>{% trans "Availability" %}</dt><dd>{{ availability_label }}</dd></div>
             <div><dt>{% trans "MOQ" %}</dt><dd>1 {% trans "piece" %}</dd></div>
             {% if product.is_on_promo_now %}
             <div><dt>{% trans "List price" %}</dt><dd>{{ product.unit_price|money_usd }}</dd></div>

@@ -27,8 +27,12 @@ class ProductCardUnifiedTests(TestCase):
         cache.clear()
         self.company = Company.objects.create(
             name='CFZ Demo Co',
-            is_verified=True,
+            legal_name='CFZ Demo Co, S.A.',
             ruc='123456789',
+            dv='12',
+            business_email='demo@test.pa',
+            verification_document='companies/verification/test.pdf',
+            verification_status='verified',
         )
         self.category = Category.objects.create(name='Electronics')
         self.product = Product.objects.create(
@@ -77,10 +81,10 @@ class ProductCardUnifiedTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Unified Widget')
         self.assertContains(response, 'From')
-        self.assertContains(response, 'Sign up to view wholesale pricing')
+        self.assertContains(response, 'Create a free buyer account to unlock wholesale pricing')
         self.assertContains(response, 'CFZ Verified')
         self.assertContains(response, 'Export Ready')
-        self.assertFalse(response.context['show_cart_actions'])
+        self.assertTrue(response.context['show_cart_actions'])
         self.assertContains(response, 'og:title')
         self.assertContains(response, 'Related products')
 

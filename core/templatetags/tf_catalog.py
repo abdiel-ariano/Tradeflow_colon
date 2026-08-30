@@ -7,6 +7,7 @@ from django import template
 from core.utils.i18n_urls import tf_translate_url
 from core.utils.category_display import category_display_name, category_icon_name
 from core.utils.ui_labels import order_status_label, user_role_label, verification_status_label
+from core.utils.product_availability import public_availability_label
 
 register = template.Library()
 
@@ -36,6 +37,13 @@ def user_role_label_filter(value):
 @register.filter(name='verification_status_label')
 def verification_status_label_filter(value):
     return verification_status_label(value)
+
+
+@register.filter(name='public_availability_label')
+def public_availability_label_filter(product):
+    """Qualitative stock label for buyer-facing templates."""
+    qty = getattr(product, 'available_qty', 0)
+    return public_availability_label(qty)
 
 
 @register.simple_tag(takes_context=True)
