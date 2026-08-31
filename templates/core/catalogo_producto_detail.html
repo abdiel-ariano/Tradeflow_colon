@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-sections.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-pdp.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-pdp.css' %}?v={{ tf_asset_version|default:'3' }}">
 {% endblock %}
 
 {% block content %}
@@ -71,12 +71,6 @@
                   {% trans "CFZ Verified" %}
                 </li>
                 {% endif %}
-                {% if export_ready %}
-                <li class="cpd-trust__item cpd-trust__item--export">
-                  <span class="material-symbols-rounded" aria-hidden="true">description</span>
-                  {% trans "Export Ready" %}
-                </li>
-                {% endif %}
                 <li class="cpd-trust__item cpd-trust__item--stock-{{ stock_status }}">
                   <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
                   {{ stock_label }}
@@ -111,7 +105,7 @@
                 {% endif %}
               </div>
               <div class="cpd-actions">
-                {% if show_cart_actions and product.available_qty %}
+                {% if can_request_quote %}
                 <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form cpd-action-form">
                   {% csrf_token %}
                   <input type="hidden" name="cantidad" value="1">
@@ -128,131 +122,105 @@
                     {% trans "Auto quote" %}
                   </button>
                 </form>
-                {% elif not product.available_qty %}
+                {% elif stock_status == 'out' %}
                 <span class="cpd-btn-disabled">{% trans "Out of stock" %}</span>
                 {% endif %}
               </div>
               {% endif %}
 
               <dl class="cpd-facts" aria-label="{% trans 'Key product facts' %}">
-                <div>
-                  <dt>{% trans "MOQ" %}</dt>
-                  <dd>1 {% trans "piece" %}</dd>
-                </div>
-                <div>
-                  <dt>{% trans "Availability" %}</dt>
-                  <dd>{{ availability_label }}</dd>
-                </div>
                 {% if product.sku %}
                 <div>
-                  <dt>{% trans "SKU" %}</dt>
+                  <dt>{% trans "Product code" %}</dt>
                   <dd>{{ product.sku }}</dd>
                 </div>
                 {% endif %}
                 <div>
-                  <dt>{% trans "Currency" %}</dt>
-                  <dd>{{ product.currency }}</dd>
+                  <dt>{% trans "Availability" %}</dt>
+                  <dd>{{ stock_label }}</dd>
                 </div>
               </dl>
 
-              <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="cpd-supplier-link">
-                {% trans "View supplier catalog" %}
-                <span aria-hidden="true">→</span>
-              </a>
             </div>
           </div>
         </section>
       </div>
     </div>
 
-    <section class="cpd-details" aria-label="{% trans 'Product information' %}">
-      <div class="cpd-tabs-nav" role="tablist">
-        <button type="button" class="cpd-tab is-active" role="tab" aria-selected="true" aria-controls="cpd-panel-desc" id="cpd-tab-desc" data-cpd-tab="desc">{% trans "Description" %}</button>
-        <button type="button" class="cpd-tab" role="tab" aria-selected="false" aria-controls="cpd-panel-specs" id="cpd-tab-specs" data-cpd-tab="specs">{% trans "Specifications" %}</button>
-        <button type="button" class="cpd-tab" role="tab" aria-selected="false" aria-controls="cpd-panel-company" id="cpd-tab-company" data-cpd-tab="company">{% trans "Company" %}</button>
-      </div>
+    <section class="cpd-details-grid" aria-label="{% trans 'Product information' %}">
+      <article class="cpd-content-card" aria-labelledby="cpd-overview-title">
+        <header class="cpd-section-head">
+          <p class="cpd-section-eyebrow">{% trans "Description" %}</p>
+          <h2 class="cpd-section-title" id="cpd-overview-title">{% trans "Product overview" %}</h2>
+        </header>
 
-      <div class="cpd-tab-panels">
-        <div class="cpd-tab-panel is-active" role="tabpanel" id="cpd-panel-desc" aria-labelledby="cpd-tab-desc">
-          {% if pdp_description.has_content %}
-          <div class="cpd-desc">
-            {% if pdp_description.overview_paragraphs %}
-            <section class="cpd-desc__section">
-              <h3 class="cpd-desc__heading">{% trans "Product overview" %}</h3>
-              {% for paragraph in pdp_description.overview_paragraphs %}
-              <p class="cpd-desc__text">{{ paragraph }}</p>
+        {% if pdp_description.has_content %}
+        <div class="cpd-desc">
+          {% if pdp_description.overview_paragraphs %}
+          <section class="cpd-desc__section" aria-label="{% trans 'Product overview' %}">
+            {% for paragraph in pdp_description.overview_paragraphs %}
+            <p class="cpd-desc__text">{{ paragraph }}</p>
+            {% endfor %}
+          </section>
+          {% endif %}
+          {% if pdp_description.feature_items %}
+          <section class="cpd-desc__section">
+            <h3 class="cpd-desc__heading">{% trans "Key features" %}</h3>
+            <ul class="cpd-desc__list">
+              {% for item in pdp_description.feature_items %}
+              <li>{{ item }}</li>
               {% endfor %}
-            </section>
-            {% endif %}
-            {% if pdp_description.feature_items %}
-            <section class="cpd-desc__section">
-              <h3 class="cpd-desc__heading">{% trans "Key features" %}</h3>
-              <ul class="cpd-desc__list">
-                {% for item in pdp_description.feature_items %}
-                <li>{{ item }}</li>
-                {% endfor %}
-              </ul>
-            </section>
-            {% endif %}
-          </div>
-          {% elif product.description %}
-          <div class="cpd-desc">
-            <section class="cpd-desc__section">
-              <h3 class="cpd-desc__heading">{% trans "Product overview" %}</h3>
-              <div class="cpd-prose">{{ product.description|linebreaks }}</div>
-            </section>
-          </div>
-          {% else %}
-          <div class="cpd-desc cpd-desc--fallback">
-            <section class="cpd-desc__section">
-              <h3 class="cpd-desc__heading">{% trans "Product overview" %}</h3>
-              <p class="cpd-desc__text">{% blocktrans with name=product.name company=product.company.name %}{{ name }} is listed by {{ company }} for wholesale sourcing through TradeFlow Colón.{% endblocktrans %}</p>
-              <p class="cpd-desc__text cpd-desc__text--muted">{% trans "Open the supplier catalog or request a quotation to confirm pricing, MOQ, and delivery terms." %}</p>
-            </section>
-          </div>
+            </ul>
+          </section>
           {% endif %}
         </div>
-
-        <div class="cpd-tab-panel" role="tabpanel" id="cpd-panel-specs" aria-labelledby="cpd-tab-specs" hidden>
-          <dl class="cpd-specs">
-            <div><dt>{% trans "Product code" %}</dt><dd>{{ product.sku|default:"—" }}</dd></div>
-            <div><dt>{% trans "Currency" %}</dt><dd>{{ product.currency }}</dd></div>
-            <div><dt>{% trans "Category" %}</dt><dd>{% if product.category %}{{ product.category.name|category_label }}{% else %}—{% endif %}</dd></div>
-            <div><dt>{% trans "Availability" %}</dt><dd>{{ availability_label }}</dd></div>
-            <div><dt>{% trans "MOQ" %}</dt><dd>1 {% trans "piece" %}</dd></div>
-            {% if product.is_on_promo_now %}
-            <div><dt>{% trans "List price" %}</dt><dd>{{ product.unit_price|money_usd }}</dd></div>
-            <div><dt>{% trans "Promo price" %}</dt><dd>{{ product.display_price|money_usd }}</dd></div>
-            {% else %}
-            <div><dt>{% trans "Unit price" %}</dt><dd>{{ product.display_price|money_usd }}</dd></div>
-            {% endif %}
-          </dl>
+        {% else %}
+        <div class="cpd-desc cpd-desc--fallback">
+          <section class="cpd-desc__section">
+            <p class="cpd-desc__text">{% blocktrans with name=product.name company=product.company.name %}{{ name }} is listed by {{ company }} for wholesale sourcing through TradeFlow Colón.{% endblocktrans %}</p>
+          </section>
         </div>
+        {% endif %}
+      </article>
 
-        <div class="cpd-tab-panel" role="tabpanel" id="cpd-panel-company" aria-labelledby="cpd-tab-company" hidden>
-          <div class="cpd-company">
-            <h2 class="cpd-company__name">{{ company.name }}</h2>
-            {% if company.is_verified %}
-            <p class="cpd-company__verified">
-              <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-              {% trans "CFZ verified company in the Colón Free Zone" %}
-            </p>
-            {% endif %}
-            {% if company.ruc %}
-            <p class="cpd-muted"><strong>RUC:</strong> {{ company.ruc }}</p>
-            {% endif %}
-            {% if company.address_text %}
-            <p class="cpd-muted">{{ company.address_text }}</p>
-            {% endif %}
-            {% if company.tagline_es %}
-            <p class="cpd-prose">{{ company.tagline_es }}</p>
-            {% elif company.tagline_en %}
-            <p class="cpd-prose">{{ company.tagline_en }}</p>
-            {% endif %}
-            <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="ds-btn ds-btn--secondary">{% trans "View all products" %}</a>
+      <aside class="cpd-company-card" aria-labelledby="cpd-company-title">
+        <p class="cpd-section-eyebrow">{% trans "Company" %}</p>
+        <h2 class="cpd-company__name" id="cpd-company-title">{{ company.name }}</h2>
+        {% if company.is_verified %}
+        <p class="cpd-company__verified">
+          <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+          {% trans "CFZ verified company in the Colón Free Zone" %}
+        </p>
+        {% endif %}
+
+        {% if company.ruc or company.address_text %}
+        <dl class="cpd-company__meta">
+          {% if company.ruc %}
+          <div>
+            <dt>RUC</dt>
+            <dd>{{ company.ruc }}</dd>
           </div>
-        </div>
-      </div>
+          {% endif %}
+          {% if company.address_text %}
+          <div>
+            <dt>{% trans "Address" %}</dt>
+            <dd>{{ company.address_text }}</dd>
+          </div>
+          {% endif %}
+        </dl>
+        {% endif %}
+
+        {% if company.tagline_es %}
+        <p class="cpd-company__summary">{{ company.tagline_es }}</p>
+        {% elif company.tagline_en %}
+        <p class="cpd-company__summary">{{ company.tagline_en }}</p>
+        {% endif %}
+
+        <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="ds-btn ds-btn--secondary cpd-company__cta">
+          {% trans "View supplier catalog" %}
+          <span aria-hidden="true">→</span>
+        </a>
+      </aside>
     </section>
 
     {% if related_products %}
@@ -276,31 +244,4 @@
 
 {% block extra_js %}
 <script src="{% static 'js/tf-skeletons.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var tabs = document.querySelectorAll('[data-cpd-tab]');
-  var panels = {
-    desc: document.getElementById('cpd-panel-desc'),
-    specs: document.getElementById('cpd-panel-specs'),
-    company: document.getElementById('cpd-panel-company')
-  };
-  if (!tabs.length) return;
-  tabs.forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      var key = tab.getAttribute('data-cpd-tab');
-      tabs.forEach(function (t) {
-        var on = t === tab;
-        t.classList.toggle('is-active', on);
-        t.setAttribute('aria-selected', on ? 'true' : 'false');
-      });
-      Object.keys(panels).forEach(function (k) {
-        if (!panels[k]) return;
-        var show = k === key;
-        panels[k].classList.toggle('is-active', show);
-        panels[k].hidden = !show;
-      });
-    });
-  });
-})();
-</script>
 {% endblock %}

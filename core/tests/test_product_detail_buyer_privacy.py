@@ -15,6 +15,7 @@ from core.utils.product_pdp_content import parse_product_description_sections
     AXES_ENABLED=False,
     REQUIRE_EMAIL_VERIFICATION=False,
     REQUIRE_APPROVED_APPLICATION=False,
+    STAFF_MFA_REQUIRED=False,
     LANGUAGE_CODE='en',
 )
 class ProductDetailBuyerPrivacyTests(TestCase):
@@ -59,6 +60,11 @@ class ProductDetailBuyerPrivacyTests(TestCase):
         self.assertNotIn('Available stock', body)
         self.assertNotIn('1207 units', body)
         self.assertNotIn('>1207<', body)
+        self.assertNotIn('Export Ready', body)
+        self.assertNotIn('MOQ', body)
+        self.assertNotIn('role="tablist"', body)
+        self.assertIn('cpd-details-grid', body)
+        self.assertIn('cpd-company-card', body)
 
     def test_buyer_pdp_structures_description_from_existing_text(self):
         self.client.force_login(self.buyer)
@@ -81,6 +87,63 @@ class ProductDetailBuyerPrivacyTests(TestCase):
         self.assertNotIn('1207', body)
         self.assertNotIn('units', body.lower())
 
+    def test_buyer_actions_render_once(self):
+        self.client.force_login(self.buyer)
+        response = self.client.get(f'/catalogo/producto/{self.product.pk}/')
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode('utf-8')
+
+        add_action = f'/carrito/agregar/{self.product.pk}/'
+        self.assertEqual(body.count(add_action), 1)
+        self.assertEqual(body.count('Add to inquiry'), 1)
+        self.assertEqual(body.count('Auto quote'), 1)
+
+    def test_sparse_long_product_without_image_uses_compact_fallback(self):
+        sparse_product = Product.objects.create(
+            company=self.company,
+            category=None,
+            name='Long commercial product name ' * 6,
+            description='',
+            sku='',
+            unit_price=Decimal('49.00'),
+            currency='USD',
+            is_active=True,
+        )
+        response = self.client.get(f'/catalogo/producto/{sparse_product.pk}/')
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode('utf-8')
+
+        self.assertIn('Long commercial product name', body)
+        self.assertIn('cpd-details-grid', body)
+        self.assertIn('Out of stock', body)
+        self.assertNotIn('Export Ready', body)
+        self.assertNotIn('MOQ', body)
+
+    def test_legacy_inventory_api_rejects_buyer(self):
+        self.client.force_login(self.buyer)
+        response = self.client.get('/api/productos/')
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn('1207', response.content.decode('utf-8'))
+
+    def test_legacy_inventory_api_keeps_exact_stock_for_admin(self):
+        admin = User.objects.create_superuser(
+            username='pdp_admin',
+            email='pdp_admin@test.pa',
+            password='TestPass123!',
+        )
+        UserProfile.objects.update_or_create(
+            user=admin,
+            defaults={'role': 'admin', 'email_verificado': True},
+        )
+        self.client.force_login(admin)
+        response = self.client.get('/api/productos/')
+        self.assertEqual(response.status_code, 200)
+        product_payload = next(
+            item for item in response.json()['productos']
+            if item['id'] == self.product.pk
+        )
+        self.assertEqual(product_payload['stock'], 1207)
+
     def test_cart_json_does_not_return_disponible(self):
         self.client.post(
             f'/carrito/agregar/{self.product.pk}/',
@@ -102,10 +165,10 @@ class ProductDetailBuyerPrivacyTests(TestCase):
 
 
 class ProductAvailabilityUtilTests(TestCase):
-  def test_qualitative_labels(self):
-      self.assertEqual(public_availability_label(0), 'Out of stock')
-      self.assertEqual(public_availability_label(3), 'Limited availability')
-      self.assertEqual(public_availability_label(1207), 'In stock')
+    def test_qualitative_labels(self):
+        self.assertEqual(public_availability_label(0), 'Out of stock')
+        self.assertEqual(public_availability_label(3), 'Limited availability')
+        self.assertEqual(public_availability_label(1207), 'In stock')
 
 
 class ProductDescriptionParserTests(TestCase):

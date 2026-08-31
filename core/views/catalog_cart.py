@@ -72,9 +72,9 @@ from ..utils.product_pdp_content import parse_product_description_sections
 
 from .common import _request_wants_json, log
 
-@login_required
+@admin_required
 def api_productos(request):
-    """Legacy JSON product listing for admin/integrations."""
+    """Admin-only legacy JSON product listing with private inventory data."""
     productos = (
         Product.objects.filter(is_active=True)
         .select_related('category', 'company', 'inventory')
@@ -523,13 +523,9 @@ def catalogo_producto_detail(request, pk):
         related_products.extend(extra)
 
     company = product.company
-    export_ready = bool(
-        company.is_verified
-        and (company.ruc or product.sku)
-    )
     stock_status = public_availability_status(product.available_qty)
     stock_label = public_availability_label(product.available_qty)
-    availability_label = stock_label
+    can_request_quote = show_cart_actions and stock_status != 'out'
     pdp_description = parse_product_description_sections(product.description)
 
     img = product_image_url(product)
@@ -555,10 +551,9 @@ def catalogo_producto_detail(request, pk):
             'show_cart_actions': show_cart_actions,
             'is_guest': is_guest,
             'related_products': related_products,
-            'export_ready': export_ready,
             'stock_status': stock_status,
             'stock_label': stock_label,
-            'availability_label': availability_label,
+            'can_request_quote': can_request_quote,
             'pdp_description': pdp_description,
             'meta_description': meta_description,
             'og_image': og_image,
