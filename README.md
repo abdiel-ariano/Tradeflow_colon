@@ -62,7 +62,6 @@ Guía Supabase + correo: [docs/SUPABASE_GMAIL.md](docs/SUPABASE_GMAIL.md)
 |-----|---------------------|
 | Comprador (buyer) | Catálogo, carrito, RFQ, checkout, órdenes |
 | Vendedor (seller) | Mi Tienda, inventario, planes SaaS, analítica |
-| Transportista | Portal logístico / envíos |
 | Admin | Django admin + métricas de plataforma |
 
 ---
