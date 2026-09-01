@@ -121,5 +121,5 @@ python manage.py check
 
 ---
 
-*TradeFlow Colón — Expo Supérate 2026 · Zona Libre de Colón, Panamá*
+*TradeFlow Colón — Expo Supérate 2026 · Abdiel Ariano*
 
