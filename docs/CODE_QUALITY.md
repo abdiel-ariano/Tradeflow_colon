@@ -1,8 +1,11 @@
 # Code quality and change documentation
 
+> **Nota:** La guía canónica en español (PEP 8, PEP 257, pruebas y PRs) está en
+> **[docs/CALIDAD_CODIGO.md](docs/CALIDAD_CODIGO.md)**. Este archivo se mantiene
+> como alias en inglés para enlaces históricos.
+
 This document defines the minimum quality contract for new TradeFlow Colón
-changes. It applies to application code, tests, configuration, and operational
-documentation.
+changes. For the full up-to-date guide, see **[docs/CALIDAD_CODIGO.md](docs/CALIDAD_CODIGO.md)**.
 
 ## 1. Python standard
 
