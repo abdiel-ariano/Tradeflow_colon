@@ -175,10 +175,30 @@
     { passive: true }
   );
 
+  function isInteractiveTarget(target) {
+    return (
+      target &&
+      target.closest(
+        '#cat-catalog-nav, button, a, input, textarea, select, label, [role="button"], [data-cat-modal-open]'
+      )
+    );
+  }
+
+  function hasDocumentHorizontalOverflow() {
+    var root = document.documentElement;
+    return root.scrollWidth > root.clientWidth + 1;
+  }
+
   document.addEventListener(
     'touchmove',
     function (event) {
       if (!isMarketplaceCompact() || !event.touches.length) {
+        return;
+      }
+      if (isInteractiveTarget(event.target)) {
+        return;
+      }
+      if (document.body.classList.contains('tf-market-menu-open')) {
         return;
       }
       var deltaX = event.touches[0].clientX - touchStartX;
@@ -190,7 +210,7 @@
       if (canScrollHorizontally(scrollHost, deltaX)) {
         return;
       }
-      if (Math.abs(deltaX) > 6) {
+      if (Math.abs(deltaX) > 6 && hasDocumentHorizontalOverflow()) {
         event.preventDefault();
       }
     },
