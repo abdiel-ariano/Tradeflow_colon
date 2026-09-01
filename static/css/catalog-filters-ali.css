@@ -2,9 +2,11 @@
    TradeFlow Colón — Catálogo Alibaba: rail sticky + fila 4 + fila 5 full bleed
    ============================================================================= */
 
-/* overflow-x:hidden en body rompe position:sticky — solo en catálogo */
-body.cat-catalog-page {
-  overflow-x: visible;
+/* overflow-x:hidden en body rompe position:sticky del rail — solo desktop */
+@media (min-width: 1024px) {
+  body.cat-catalog-page {
+    overflow-x: visible;
+  }
 }
 
 .catalog-container.cat-ali-layout {

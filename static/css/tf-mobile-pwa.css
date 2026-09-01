@@ -88,6 +88,38 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Marketplace canvas lock — phones, tablets, and coarse pointers (Android). */
+@media (max-width: 1199px),
+  (pointer: coarse) and (max-width: 1366px) {
+  html:has(body.cat-catalog-page) {
+    overflow-x: hidden;
+    max-width: 100%;
+    overscroll-behavior-x: none;
+    background: var(--tf-market-bg, #e8eef5);
+  }
+
+  body.cat-catalog-page {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    touch-action: pan-y pinch-zoom;
+    overscroll-behavior-x: none;
+  }
+
+  body.cat-catalog-page .tf-main,
+  body.cat-catalog-page .hm-alibaba,
+  body.cat-catalog-page .hm-marketplace,
+  body.cat-catalog-page .catalog-main,
+  body.cat-catalog-page .catalog-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+}
+
 @media (max-width: 1199px),
   (pointer: coarse) and (max-width: 1366px) {
   body.cat-catalog-page {
@@ -98,16 +130,24 @@ html {
     position: sticky;
     top: 0;
     z-index: 120;
-    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+    overflow-y: visible;
   }
 
   .cat-nav.tf-nav-alibaba .navbar-primary {
     min-height: 116px;
     height: auto;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     padding: 8px 12px;
     gap: 4px 8px;
     flex-wrap: wrap;
+    overflow-x: clip;
   }
 
   .cat-nav.tf-nav-alibaba .navbar-logo {
@@ -174,14 +214,20 @@ html {
   .cat-nav.tf-nav-alibaba .search-container {
     order: 4;
     display: block;
-    flex: 1 0 100%;
+    flex: 1 1 100%;
     width: 100%;
-    max-width: none;
+    max-width: 100%;
+    min-width: 0;
     margin: 0;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .cat-nav.tf-nav-alibaba .search-bar {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .cat-nav.tf-nav-alibaba .navbar-secondary {
@@ -325,13 +371,13 @@ html {
 }
 
 @media (max-width: 767px) {
-  html {
-    overflow-x: clip;
+  html:has(body.cat-catalog-page) {
+    overflow-x: hidden;
     max-width: 100%;
   }
 
   body.cat-catalog-page {
-    overflow-x: clip;
+    overflow-x: hidden;
     width: 100%;
     max-width: 100%;
   }
@@ -342,7 +388,7 @@ html {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: clip;
+    overflow-x: hidden;
   }
 
   body.cat-catalog-page .cat-nav .navbar-primary {
@@ -359,24 +405,43 @@ html {
 
   body.cat-catalog-page .hm-alibaba,
   body.cat-catalog-page .hm-marketplace {
-    overflow-x: clip;
+    overflow-x: hidden;
     max-width: 100%;
   }
 
   body.cat-catalog-page .hm-gateway,
+  body.cat-catalog-page .hm-gateway__bg,
   body.cat-catalog-page .hm-gateway__inner,
   body.cat-catalog-page .hm-bento,
   body.cat-catalog-page .hm-bento__grid,
   body.cat-catalog-page .hm-cat-discover,
+  body.cat-catalog-page .hm-cat-discover__inner,
   body.cat-catalog-page .hm-deals,
+  body.cat-catalog-page .hm-deals__inner,
+  body.cat-catalog-page .hm-suppliers,
   body.cat-catalog-page .hm-trust,
   body.cat-catalog-page .hm-join-band,
-  body.cat-catalog-page .hm-how {
+  body.cat-catalog-page .hm-how,
+  body.cat-catalog-page .hm-product-row,
+  body.cat-catalog-page .hm-product-row__inner {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: clip;
+    overflow-x: hidden;
     box-sizing: border-box;
+  }
+
+  body.cat-catalog-page .hm-gateway__orb {
+    max-width: 55vw;
+  }
+
+  body.cat-catalog-page .hm-cat-discover__rail,
+  body.cat-catalog-page .hm-trust--compact .hm-trust__list,
+  body.cat-catalog-page .hm-marketplace .hm-deals__track,
+  body.cat-catalog-page .mkt-deals-flash__rail {
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   body.cat-catalog-page .hm-alibaba .hm-product-row {
