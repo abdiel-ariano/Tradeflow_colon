@@ -140,6 +140,18 @@ class PwaInstallButtonTests(TestCase):
         self.assertContains(response, 'aria-label="Instalar app"')
         self.assertNotContains(response, 'Install App')
 
+    def test_marketplace_mobile_styles_lock_horizontal_overflow(self):
+        """Home and catalog ship Android overflow containment rules."""
+        for url_name in ('home', 'catalogo_publico'):
+            with self.subTest(url=url_name):
+                response = self.client.get(reverse(url_name))
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'tf-mobile-pwa.css')
+                css_path = settings.BASE_DIR / 'static' / 'css' / 'tf-mobile-pwa.css'
+                css = css_path.read_text(encoding='utf-8')
+                self.assertIn('overscroll-behavior-x: none', css)
+                self.assertIn('overflow-x: hidden', css)
+
 
 class AndroidAssetLinksValidationTests(SimpleTestCase):
     """Validate the certificate guard used by production Android builds."""
