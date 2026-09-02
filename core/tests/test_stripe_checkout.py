@@ -52,7 +52,19 @@ class StripeCheckoutTests(TestCase):
         UserProfile.objects.create(
             user=self.buyer,
             role='buyer',
+            business_role_intent='buyer',
             email_verificado=True,
+        )
+        Company.objects.create(
+            name='Stripe Test Buyer',
+            legal_name='Stripe Test Buyer, S.A.',
+            ruc='8-BUYER-STRIPE',
+            dv='10',
+            business_email=self.buyer.email,
+            business_role='buyer',
+            owner=self.buyer,
+            verification_status='verified',
+            is_verified=True,
         )
         self.company = Company.objects.create(
             name='Stripe Test Supplier',
@@ -252,7 +264,19 @@ class StripeCheckoutTests(TestCase):
         UserProfile.objects.create(
             user=other,
             role='buyer',
+            business_role_intent='buyer',
             email_verificado=True,
+        )
+        Company.objects.create(
+            name='Other Stripe Test Buyer',
+            legal_name='Other Stripe Test Buyer, S.A.',
+            ruc='8-OTHER-STRIPE',
+            dv='11',
+            business_email=other.email,
+            business_role='buyer',
+            owner=other,
+            verification_status='verified',
+            is_verified=True,
         )
         self.client.logout()
         self.client.login(
