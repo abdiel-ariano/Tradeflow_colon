@@ -133,8 +133,8 @@ html {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: clip;
-    overflow-y: visible;
+    /* Dropdown must paint outside the header row — never clip this shell. */
+    overflow: visible;
   }
 
   .cat-nav.tf-nav-alibaba .navbar-primary {
@@ -148,6 +148,7 @@ html {
     gap: 4px 8px;
     flex-wrap: wrap;
     overflow-x: clip;
+    overflow-y: visible;
   }
 
   .cat-nav.tf-nav-alibaba .navbar-logo {
@@ -231,14 +232,16 @@ html {
   }
 
   .cat-nav.tf-nav-alibaba .navbar-secondary {
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: var(--cat-nav-height, 116px);
     left: 0;
     right: 0;
     width: 100%;
     height: auto;
     max-height: calc(100dvh - var(--cat-nav-height, 116px));
+    z-index: 125;
     display: none !important;
+    overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
     background: #fff;
@@ -246,7 +249,11 @@ html {
     box-shadow: 0 16px 32px rgba(15, 42, 68, 0.18);
   }
 
-  .cat-nav.tf-nav-alibaba .navbar-secondary.is-open {
+  body.tf-market-menu-open {
+    overflow-x: hidden;
+  }
+
+  body.tf-market-menu-open .cat-nav.tf-nav-alibaba .navbar-secondary.is-open {
     display: block !important;
   }
 
@@ -382,13 +389,19 @@ html {
     max-width: 100%;
   }
 
-  body.cat-catalog-page .cat-nav,
   body.cat-catalog-page .tf-main,
   body.cat-catalog-page .site-footer {
     width: 100%;
     max-width: 100%;
     min-width: 0;
     overflow-x: hidden;
+  }
+
+  body.cat-catalog-page .cat-nav {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: visible;
   }
 
   body.cat-catalog-page .cat-nav .navbar-primary {

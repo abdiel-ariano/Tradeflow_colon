@@ -1,53 +1,47 @@
-# CHANGELOG — Public Landing Polish
+# Changelog — TradeFlow Colón
 
-**Branch:** `cursor/tf-public-landing-ae01`  
-**Date:** 2026-05-26
+Historial de cambios relevantes del marketplace B2B ZLC. Para detalle de cada PR,
+consultar GitHub.
 
-## Summary
+Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
-Final polish of the TradeFlow Colón public landing: full English UI, redesigned hero stats, animated ship + waves, and new section layouts with scroll reveal animations.
+---
 
-## Added
+## [Sin etiquetar] — 2026-09
 
-| File | Purpose |
-|------|---------|
-| `DIAGNOSIS.md` | Baseline audit of public shell before polish |
-| `static/css/tf-sections.css` | Hero stats, Why, Companies, How it works, CTA, reveal animations |
-| `static/css/tf-hero-animations.css` | Ship entrance + SVG wave layers |
-| `static/js/tf_countup.js` | CountUp for hero stat numbers |
-| `static/js/tf_hero_animations.js` | IntersectionObserver ship reveal |
-| `static/js/tf_reveal.js` | Global `[data-reveal]` scroll animations |
-| `templates/core/includes/home_why_section.html` | Why TradeFlow grid |
-| `templates/core/includes/home_hiw_section.html` | How it works timeline |
-| `templates/core/includes/home_cta_section.html` | Dual buyer/seller CTA |
+### Añadido
+- Documentación técnica consolidada en español (`docs/DOCUMENTACION_TECNICA.md`, índice
+  `docs/README.md`, guías BD/correo/i18n/PEP 8).
+- Bloqueo de overflow horizontal en Android (`tf-mobile-pwa.css/js`).
+- Botón PWA «Instalar app» en navbar marketplace con i18n.
+- Auditoría i18n (es/en) y pruebas `core.tests.test_i18n`.
+- Privacidad PDP: stock exacto oculto a compradores; descripción estructurada.
 
-## Changed
+### Corregido
+- Menú compacto hamburguesa en móvil tras fix de overflow (panel `position: fixed`).
+- Layout responsive Android en home y catálogo.
+- Perfil: estilo Sign out y eliminación de duplicados en layout.
 
-- **`templates/core/home.html`** — loads new CSS/JS; section includes reordered
-- **`templates/core/includes/hero_section.html`** — new stats cards + ship/waves markup
-- **`templates/core/includes/home_companies_section.html`** — redesigned company cards
-- **`templates/core/includes/public_navbar.html`** — full English nav
-- **`templates/core/includes/tf_header_search.html`** — English labels/placeholder
-- **`templates/core/base.html`** — English footer
-- **`templates/core/catalogo_publico.html`** — full English catalog UI
-- **`templates/core/includes/catalogo_publico_results.html`** — English empty/pagination
-- **`templates/core/catalogo_producto_detail.html`** — English PDP + catalog links
-- **`templates/core/includes/product_card_unified.html`** — English CTA + public catalog links
-- **`templates/core/signup.html`** — fixed page title
-- **`templates/core/includes/home_grid.html`** — category links → `catalogo_publico`
-- **`core/views.py`** — `titulo_pagina` → `Catalog`
-- **`core/tests/test_catalogo_publico.py`** — assertions updated for English strings
-- **`static/css/tf-header.css`** — category menu utility classes
+### Documentación
+- Correo oficial documentado como **Resend**; deprecadas guías Gmail/Supabase Edge.
+- Inventario de módulos: `docs/INVENTARIO_MODULOS.md`.
+- Estándar PEP 8/257 en español: `docs/CALIDAD_CODIGO.md`.
 
-## Removed / Deprecated
+---
 
-- Inline count-up and ship JS from `home.html` (moved to dedicated files)
-- `home_features_section.html` no longer included (split into why/hiw/cta)
-- `tf-hero-ship.css` no longer loaded (replaced by `tf-hero-animations.css`)
+## [2026-05] — Landing pública unificada (rama histórica)
 
-## Notes
+Snapshot de la rama `cursor/tf-public-landing-ae01`: shell público en inglés,
+`tf-home-v2.css`, secciones home modularizadas. Ver commits de mayo 2026 en GitHub
+para detalle; no refleja necesariamente el estado actual de `master`.
 
-- Ship asset: `static/img/ship-cargo.svg` (SVG, not PNG)
-- Anchor `#how-it-works` replaces `#como-funciona` in nav/footer
-- `prefers-reduced-motion` respected in all new animations
-- Company model has no `logo` field — avatars use gradient initials via `{% cycle %}`
+---
+
+## Convenciones
+
+- **Añadido** — funcionalidad nueva.
+- **Cambiado** — cambios en comportamiento existente.
+- **Deprecado** — se eliminará pronto.
+- **Eliminado** — ya retirado.
+- **Corregido** — corrección de errores.
+- **Seguridad** — parches de vulnerabilidades.

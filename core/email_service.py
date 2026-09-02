@@ -1,7 +1,8 @@
-"""Transactional email delivery via Resend for TradeFlow Colón.
+"""Envío de correo transaccional vía Resend para TradeFlow Colón.
 
-OTP verification and other lifecycle mail fall back to Django's console
-backend only when RESEND_API_KEY is missing and DEBUG is True.
+La verificación OTP y otros correos del ciclo de vida usan la API HTTP de Resend.
+Si falta RESEND_API_KEY y DEBUG es True, el fallback es el backend consola de
+Django.
 """
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ log = logging.getLogger('tradeflow.email')
 
 @dataclass
 class EmailSendResult:
-    """Outcome of a single outbound email attempt."""
+    """Resultado de un intento de envío de correo saliente."""
 
     ok: bool
     channel: str
@@ -24,7 +25,7 @@ class EmailSendResult:
 
 
 def _verification_html(code: str) -> str:
-    """Build branded HTML body for an email verification OTP."""
+    """Genera el cuerpo HTML con marca para un OTP de verificación de email."""
     return f"""<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
@@ -44,7 +45,7 @@ def _verification_html(code: str) -> str:
 
 
 def _send_via_resend(email: str, subject: str, html: str, text: str) -> EmailSendResult:
-    """Send one message through the Resend HTTP API."""
+    """Envía un mensaje mediante la API HTTP de Resend."""
     api_key = (getattr(settings, 'RESEND_API_KEY', '') or '').strip()
     if not api_key:
         log.warning('RESEND_API_KEY no configurada; correo no enviado a %s', email)
@@ -69,7 +70,7 @@ def _send_via_resend(email: str, subject: str, html: str, text: str) -> EmailSen
 
 
 def _send_via_console(email: str, subject: str, html: str, text: str) -> EmailSendResult:
-    """Fall back to Django send_mail (console backend in local DEBUG)."""
+    """Usa send_mail de Django (backend consola en DEBUG local)."""
     from django.core.mail import send_mail
 
     try:
@@ -95,7 +96,7 @@ def enviar_email_transaccional(
     text: str,
     tipo: str = 'transactional',
 ) -> EmailSendResult:
-    """Send transactional mail via Resend; console only in DEBUG if unset."""
+    """Envía correo transaccional por Resend; consola solo en DEBUG sin clave."""
     if not (email or '').strip():
         return EmailSendResult(ok=False, channel='none', detail='empty_recipient')
 
@@ -120,7 +121,7 @@ def enviar_email_transaccional(
 
 
 def enviar_codigo_verificacion(email: str, code: str) -> EmailSendResult:
-    """Send a 10-minute email verification OTP for account onboarding."""
+    """Envía OTP de verificación de cuenta (válido 10 minutos)."""
     subject = 'Tu código de verificación — TradeFlow Colón'
     text = (
         f'Tu código de verificación en TradeFlow Colón es: {code}\n\n'

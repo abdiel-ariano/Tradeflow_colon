@@ -151,6 +151,8 @@ class PwaInstallButtonTests(TestCase):
                 css = css_path.read_text(encoding='utf-8')
                 self.assertIn('overscroll-behavior-x: none', css)
                 self.assertIn('overflow-x: hidden', css)
+                self.assertIn('position: fixed', css)
+                self.assertIn('tf-market-menu-open', css)
 
 
 class AndroidAssetLinksValidationTests(SimpleTestCase):
