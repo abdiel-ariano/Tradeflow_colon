@@ -1,0 +1,158 @@
+{% comment %}
+Checkbox + modal de Términos de Uso y Política de Seguridad (signup buyer/seller).
+{% endcomment %}
+<div class="signup-terms-consent">
+  <label class="signup-terms-consent__label" for="id_terms_accepted">
+    <input
+      type="checkbox"
+      name="terms_accepted"
+      id="id_terms_accepted"
+      class="signup-terms-consent__input"
+      value="1"
+      {% if form_terms_accepted %}checked{% endif %}
+    >
+    <span class="signup-terms-consent__text">
+      He leído y acepto los
+      <button type="button" class="signup-terms-consent__link js-signup-terms-open">
+        Términos de Uso y la Política de Seguridad
+      </button>
+      de TradeFlow Colón. Declaro que la información proporcionada es veraz y que cuento con facultades suficientes para obligar a la empresa que represento.
+    </span>
+  </label>
+</div>
+
+<div
+  class="signup-terms-modal"
+  id="signup-terms-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="signup-terms-modal-title"
+  hidden
+>
+  <div class="signup-terms-modal__backdrop js-signup-terms-close" tabindex="-1" aria-hidden="true"></div>
+  <div class="signup-terms-modal__panel" role="document">
+    <header class="signup-terms-modal__head">
+      <h2 id="signup-terms-modal-title">TradeFlow Colón — Resumen de Términos y Política de Seguridad</h2>
+      <button type="button" class="signup-terms-modal__close js-signup-terms-close" aria-label="Cerrar">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+    <div class="signup-terms-modal__body">
+      <p>Al registrarte y usar TradeFlow Colón, aceptas que:</p>
+      <ul>
+        <li>TradeFlow es solo un intermediario. No es fabricante, comprador, vendedor ni garante de las transacciones entre empresas. No se responsabiliza por la calidad, legalidad o cumplimiento de los bienes/servicios negociados entre usuarios.</li>
+        <li>Solo empresas, no personas naturales. Debes completar un proceso de verificación KYB (datos de la empresa, RUC, representante legal, etc.) antes de operar.</li>
+        <li>Declaras que tu información es veraz y que cuentas con las licencias y autorizaciones necesarias para tu actividad comercial.</li>
+        <li>Está prohibido usar la plataforma para actividades ilícitas: bienes robados/falsificados, lavado de activos, evasión fiscal, suplantación de identidad, phishing/malware, infracción de propiedad intelectual, contenido difamatorio, entre otros.</li>
+        <li>TradeFlow puede monitorear cuentas, solicitar información adicional, suspender o terminar cuentas ante sospecha de conducta prohibida, y reportar actividad a las autoridades competentes.</li>
+        <li>El cierre de cuenta es libre si no hay obligaciones pendientes; si las hay (transacciones en curso, pagos pendientes, disputas), debe justificarse y puede requerir resolución previa.</li>
+        <li>Pueden aplicarse sanciones monetarias por daño reputacional a TradeFlow o por cierre de cuenta sin justificación con obligaciones pendientes.</li>
+        <li>La plataforma se ofrece "tal cual", sin garantías, y la responsabilidad de TradeFlow está limitada (tope: comisiones pagadas en los últimos 12 meses).</li>
+        <li>Te obligas a indemnizar a TradeFlow frente a reclamos derivados de tu incumplimiento o de tus transacciones.</li>
+        <li>Se rige por las leyes de Panamá, con jurisdicción en tribunales panameños.</li>
+      </ul>
+    </div>
+    <footer class="signup-terms-modal__foot">
+      <a
+        href="{% url 'legal_politicas_seguridad' %}"
+        class="signup-terms-modal__full-doc"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Ver documento completo
+      </a>
+      <button type="button" class="signup-terms-modal__btn js-signup-terms-close">
+        Cerrar
+      </button>
+    </footer>
+  </div>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var modal = document.getElementById('signup-terms-modal');
+  var checkbox = document.getElementById('id_terms_accepted');
+  var form = checkbox ? checkbox.closest('form.signup-form') : null;
+  var submitBtn = form ? form.querySelector('.auth-submit') : null;
+
+  function syncSubmitState() {
+    if (!submitBtn || !checkbox) return;
+    submitBtn.disabled = !checkbox.checked;
+  }
+
+  if (checkbox) {
+    checkbox.addEventListener('change', syncSubmitState);
+    syncSubmitState();
+  }
+
+  if (form && checkbox) {
+    form.addEventListener('submit', function (e) {
+      if (!checkbox.checked) {
+        e.preventDefault();
+        checkbox.focus();
+      }
+    });
+  }
+
+  if (!modal) return;
+
+  var openTriggers = document.querySelectorAll('.js-signup-terms-open');
+  var closeTriggers = modal.querySelectorAll('.js-signup-terms-close');
+  var panel = modal.querySelector('.signup-terms-modal__panel');
+  var lastFocus = null;
+
+  function openModal(trigger) {
+    lastFocus = trigger || document.activeElement;
+    modal.hidden = false;
+    document.body.classList.add('signup-terms-modal-open');
+    var closeBtn = modal.querySelector('.signup-terms-modal__close');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+    document.body.classList.remove('signup-terms-modal-open');
+    if (lastFocus && typeof lastFocus.focus === 'function') {
+      lastFocus.focus();
+    }
+  }
+
+  openTriggers.forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      openModal(btn);
+    });
+  });
+
+  closeTriggers.forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      closeModal();
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (modal.hidden) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeModal();
+      return;
+    }
+    if (e.key === 'Tab' && panel) {
+      var focusable = panel.querySelectorAll(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusable.length) return;
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  });
+})();
+</script>

@@ -5,6 +5,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 <link rel="stylesheet" href="{% static 'css/signup_buyer.css' %}?v={{ tf_asset_version|default:'1' }}">
+<link rel="stylesheet" href="{% static 'css/signup-terms-consent.css' %}?v={{ tf_asset_version|default:'1' }}">
 <link rel="stylesheet" href="{% static 'css/auth-oauth.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% include "core/includes/auth_password_toggle_assets.html" %}
 {% endblock %}
@@ -203,23 +204,16 @@
             </div>
           </fieldset>
 
+          {% include "core/includes/signup_terms_consent.html" %}
+
           <p class="signup-buyer-legal-inline">
-            <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;">
-              <input type="checkbox" name="accept_privacy" value="1" required style="margin-top:3px;">
-              <span>
-                {% blocktrans trimmed %}I accept the{% endblocktrans %}
-                <a href="{% url 'legal_privacidad' %}" target="_blank" rel="noopener">{% trans "Privacy Policy" %}</a>
-                {% trans "and" %}
-                <a href="{% url 'legal_terminos' %}" target="_blank" rel="noopener">{% trans "Terms of use" %}</a>.
-              </span>
-            </label>
             <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;margin-top:8px;">
               <input type="checkbox" name="marketing_opt_in" value="1" style="margin-top:3px;">
               <span>{% trans "Send me product tips and marketplace updates (optional)." %}</span>
             </label>
           </p>
 
-          <button type="submit" class="auth-submit">
+          <button type="submit" class="auth-submit" disabled>
             <span class="material-symbols-rounded auth-submit-icon" aria-hidden="true">domain_add</span>
             {% trans "Continue to company verification" %}
           </button>

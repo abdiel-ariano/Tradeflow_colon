@@ -74,6 +74,19 @@ def legal_terminos(request):
     return render(request, 'core/legal_terminos.html')
 
 
+@require_GET
+@cache_control(public=True, max_age=3600)
+def legal_politicas_seguridad(request):
+    """Términos de Uso y Política de Seguridad — documento completo (HTML estático)."""
+    doc_path = settings.BASE_DIR / 'static' / 'legal' / 'politicas-seguridad-uso.html'
+    if not doc_path.is_file():
+        raise Http404('Document not found.')
+    return HttpResponse(
+        doc_path.read_bytes(),
+        content_type='text/html; charset=utf-8',
+    )
+
+
 @cache_control(public=True, max_age=3600)
 def acerca_tradeflow(request):
     """About TradeFlow — brand, ZLC, and buyer/seller programs."""

@@ -188,6 +188,7 @@ def _process_signup(request, forced_role=None, error_template='core/signup_selle
     role = 'buyer' if business_role == 'buyer' else 'seller'
     password1 = request.POST.get('password1', '')
     password2 = request.POST.get('password2', '')
+    terms_accepted = request.POST.get('terms_accepted') in ('on', '1', 'true')
 
     errores = []
     signup_ctx = {
@@ -201,7 +202,14 @@ def _process_signup(request, forced_role=None, error_template='core/signup_selle
         'form_username': username,
         'form_email': email,
         'form_phone': phone,
+        'form_terms_accepted': terms_accepted,
     }
+
+    if not terms_accepted:
+        errores.append(
+            'Debes aceptar los Términos de Uso y la Política de Seguridad '
+            'para crear tu cuenta.'
+        )
 
     if not all([first_name, username, email, password1, password2]):
         errores.append('All fields marked with * are required.')
@@ -242,10 +250,6 @@ def _process_signup(request, forced_role=None, error_template='core/signup_selle
     if password1 != password2:
         errores.append('Passwords do not match.')
 
-    accept_privacy = request.POST.get('accept_privacy') in ('1', 'on', 'true', 'yes')
-    if not accept_privacy:
-        errores.append('You must accept the privacy policy to create an account.')
-
     if errores:
         for error in errores:
             messages.error(request, error)
@@ -284,6 +288,8 @@ def _process_signup(request, forced_role=None, error_template='core/signup_selle
     profile.onboarding_completed_at = timezone.now()
     from core.utils.privacy import PRIVACY_POLICY_VERSION
     from django.utils import timezone as _tz
+    profile.terms_accepted = True
+    profile.terms_accepted_at = _tz.now()
     profile.privacy_accepted_at = _tz.now()
     profile.privacy_policy_version = PRIVACY_POLICY_VERSION
     profile.marketing_opt_in = request.POST.get('marketing_opt_in') in ('1', 'on', 'true', 'yes')

@@ -173,6 +173,7 @@ from .access_admin import (
 
 from .public_pages import (
     legal_terminos,
+    legal_politicas_seguridad,
     acerca_tradeflow,
     _marketplace_page_context,
     marketplace_verified_suppliers,
@@ -327,6 +328,7 @@ __all__ = [
     'approve_application_view',
     'reject_application_view',
     'legal_terminos',
+    'legal_politicas_seguridad',
     'acerca_tradeflow',
     '_marketplace_page_context',
     'marketplace_verified_suppliers',
