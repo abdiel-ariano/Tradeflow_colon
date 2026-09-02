@@ -209,6 +209,8 @@ def _record_paid_checkout(session) -> tuple[Order, bool]:
         raise ValueError('The order already uses another payment method.')
     if payment.status == 'approved':
         return order, False
+    if order.status != 'pending':
+        raise ValueError('A non-pending order cannot be paid again.')
 
     for item in order.items.select_related('product').all():
         inventory = (
