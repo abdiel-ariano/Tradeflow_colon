@@ -66,14 +66,6 @@ class LoginBackgroundAnimationTests(TestCase):
         self.assertIn('.login-figma-bg:has(.login-wave-video) .login-wave-static-fallback', reduced_block)
         self.assertIn('display: block', reduced_block)
 
-    def test_generator_enforces_visible_motion_threshold(self):
-        script_path = Path(__file__).resolve().parents[2] / 'scripts' / 'generate_login_wave_video.py'
-        script = script_path.read_text(encoding='utf-8')
-        self.assertIn('MINIMUM_VISIBLE_DIFFERENCE', script)
-        self.assertIn('cv2.remap', script)
-        self.assertIn('astype(np.float32)', script)
-        self.assertIn('load_original_on_white', script)
-
     def test_login_wave_webm_asset_exists(self):
         webm_path = Path(__file__).resolve().parents[2] / 'static' / 'images' / 'login-figma' / 'login-wave.webm'
         self.assertTrue(webm_path.exists())

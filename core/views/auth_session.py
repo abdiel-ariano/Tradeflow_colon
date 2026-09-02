@@ -169,7 +169,7 @@ def logout_view(request):
     return redirect('login')
 
 
-def _process_signup(request, forced_role=None, error_template='core/signup.html'):
+def _process_signup(request, forced_role=None, error_template='core/signup_seller.html'):
     """Create a business contact account and start email OTP.
     
     New B2B accounts choose whether their company buys, sells or does both.
