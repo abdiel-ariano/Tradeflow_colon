@@ -3,9 +3,9 @@
 Creates categories, three ZLC companies, nine products (picsum images),
 carrier options, and demo_buyer / demo_seller / demo_admin accounts.
 
-Ops: local and disposable staging only. Do not run against production;
-demo passwords and sparse catalog companies are for walkthroughs.
-Idempotent: existing rows by name/SKU/username are skipped.
+Ops: local and disposable staging only. Do not run against production.
+Set DEMO_USER_PASSWORD in the environment before seeding; passwords are
+never stored in the repository. Idempotent: existing rows are skipped.
 """
 
 import urllib.request
@@ -19,6 +19,7 @@ from decimal import Decimal
 from core.models import (
     UserProfile, Company, Category, Product, Inventory, TransportCarrier,
 )
+from core.utils.demo_seed import demo_user_password
 
 TRANSPORTISTAS = [
     {'code': 'zlc-express', 'name': 'ZLC Express', 'cost': '18.00', 'order': 1},
@@ -168,7 +169,6 @@ USUARIOS_DEMO = [
         'first_name': 'Carlos',
         'last_name':  'Rodríguez',
         'email':      'demo.buyer@tradeflow.pa',
-        'password':   'Demo1234!',
         'role':       'buyer',
         'phone':      '+507 6500-0001',
     },
@@ -177,7 +177,6 @@ USUARIOS_DEMO = [
         'first_name': 'Ana',
         'last_name':  'Martínez',
         'email':      'demo.seller@tradeflow.pa',
-        'password':   'Demo1234!',
         'role':       'seller',
         'phone':      '+507 6500-0002',
     },
@@ -186,7 +185,6 @@ USUARIOS_DEMO = [
         'first_name': 'Patricia',
         'last_name':  'Vásquez',
         'email':      'demo.admin@tradeflow.pa',
-        'password':   'Demo1234!',
         'role':       'admin',
         'phone':      '+507 6500-0003',
         'is_staff':   True,
@@ -299,6 +297,8 @@ class Command(BaseCommand):
 
         # 4. Usuarios de demo
         self.stdout.write('\n[4/6] Creando usuarios de demo...')
+        demo_password = demo_user_password()
+        password_from_env = bool(os.environ.get('DEMO_USER_PASSWORD', '').strip())
         for data in USUARIOS_DEMO:
             if User.objects.filter(username=data['username']).exists():
                 self.stdout.write(f'  {data["username"]} — ya existe, omitido')
@@ -309,7 +309,7 @@ class Command(BaseCommand):
                 first_name = data['first_name'],
                 last_name  = data['last_name'],
                 email      = data['email'],
-                password   = data['password'],
+                password   = demo_password,
             )
             if data.get('is_staff'):
                 user.is_staff = True
@@ -323,7 +323,7 @@ class Command(BaseCommand):
             )
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'  {data["username"]} ({data["role"]}) — CREADO | clave: {data["password"]}'
+                    f'  {data["username"]} ({data["role"]}) — CREADO'
                 )
             )
 
@@ -411,11 +411,21 @@ class Command(BaseCommand):
         self.stdout.write(f'  Empresas:  {Company.objects.count()}')
         self.stdout.write(f'  Usuarios:  {User.objects.filter(is_superuser=False).count()}')
         self.stdout.write('\nAccesos de prueba:')
-        self.stdout.write('  Buyer:  demo_buyer  / Demo1234!')
-        self.stdout.write('  Seller: demo_seller / Demo1234! (Mi Tienda → TechZone Colón S.A.)')
-        self.stdout.write(
-            '  Admin:  demo_admin  / Demo1234! — /admin/ (Expo: CRUD completo)'
-        )
+        self.stdout.write('  demo_buyer')
+        self.stdout.write('  demo_seller (Mi Tienda → TechZone Colón S.A.)')
+        self.stdout.write('  demo_admin (/admin/ — clave no documentada en el repo)')
+        if password_from_env:
+            self.stdout.write(
+                '  Clave: definida en DEMO_USER_PASSWORD (no se imprime por seguridad).'
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING(
+                    '  Clave generada localmente (guárdela ahora; no se repite): '
+                    f'{demo_password}'
+                )
+            )
+        self.stdout.write('=' * 60)
         if getattr(settings, 'REQUIRE_EMAIL_VERIFICATION', False):
             self.stdout.write(
                 self.style.WARNING(

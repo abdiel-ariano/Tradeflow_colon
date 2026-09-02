@@ -209,13 +209,16 @@ Runbook: [SECURITY_OPS.md](SECURITY_OPS.md).
 - `EXPO_DEMO_MODE` — relaja algunas compuertas en feria (ver `.env.demo`)
 - Política: [DEMO_DATA_POLICY.md](DEMO_DATA_POLICY.md)
 
-**Usuarios demo típicos:**
+**Usuarios demo típicos** (sin contraseñas en el repo; defina `DEMO_USER_PASSWORD` antes de `cargar_demo`):
 
-| Rol | Usuario | Contraseña |
-|-----|---------|------------|
-| Comprador | `demo_buyer` | `Demo1234!` |
-| Vendedor | `demo_seller` | `Demo1234!` |
-| Admin | `demo_admin` | `Demo1234!` |
+| Rol | Usuario |
+|-----|---------|
+| Comprador | `demo_buyer` |
+| Vendedor | `demo_seller` |
+
+`demo_admin` se sembra con `cargar_demo` para acceso a Django Admin en demos
+locales; la contraseña se define con `DEMO_USER_PASSWORD` y no figura en estos
+documentos.
 
 ---
 

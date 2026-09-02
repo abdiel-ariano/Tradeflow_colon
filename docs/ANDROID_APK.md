@@ -130,4 +130,9 @@ Cards grow with translated or enlarged text so actions are not clipped.
 - The wrapper relies on an installed browser with TWA support and falls back to
   a Custom Tab when necessary.
 - The workflow validates the deployed site, so it must run after the web release
-  reaches `tradeflowcolon.com`.
+   reaches `tradeflowcolon.com`.
+
+## Mobile navigation
+
+Diagnosis, root cause, and verification matrix:
+[MENU_MOVIL_ANDROID.md](MENU_MOVIL_ANDROID.md).

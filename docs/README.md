@@ -18,6 +18,7 @@ referencia de producto y diseño hasta su fusión.
 | [../.env.example](../.env.example) | Desarrolladores | Plantilla canónica de variables de entorno |
 | [CALIDAD_CODIGO.md](CALIDAD_CODIGO.md) | Contribuidores | PEP 8, PEP 257, pruebas y contrato de PR |
 | [INVENTARIO_MODULOS.md](INVENTARIO_MODULOS.md) | Desarrolladores | Mapa de paquetes Python y comandos `manage.py` |
+| [ENTREGA_CODIGO_TEST.md](ENTREGA_CODIGO_TEST.md) | Evaluadores / auditores | Compartir el repo sin secretos ni admin demo |
 
 ---
 

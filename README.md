@@ -73,11 +73,16 @@ Inventario detallado de módulos: [docs/INVENTARIO_MODULOS.md](docs/INVENTARIO_M
 
 ### Usuarios demo
 
-| Rol | Usuario | Contraseña |
-|-----|---------|------------|
-| Comprador | `demo_buyer` | `Demo1234!` |
-| Vendedor | `demo_seller` | `Demo1234!` |
-| Admin | `demo_admin` | `Demo1234!` |
+Ejecute `python manage.py cargar_demo` tras definir `DEMO_USER_PASSWORD` en el entorno.
+No se incluyen contraseñas en el repositorio.
+
+| Rol | Usuario |
+|-----|---------|
+| Comprador | `demo_buyer` |
+| Vendedor | `demo_seller` |
+
+La cuenta `demo_admin` también se crea con `cargar_demo` para `/admin/`, pero su
+contraseña no se publica en la documentación del repositorio.
 
 ---
 
@@ -126,6 +131,7 @@ Paleta y UI: [DESIGN.md](DESIGN.md) (navy `#0F2A44`, orange `#F26522`, primary `
 | [DESIGN.md](DESIGN.md) | Tokens y lenguaje visual |
 | [CHANGELOG.md](CHANGELOG.md) | Historial de cambios |
 | [docs/MENU_MOVIL_ANDROID.md](docs/MENU_MOVIL_ANDROID.md) | Menú hamburguesa móvil, diagnóstico Android y pruebas |
+| [docs/ENTREGA_CODIGO_TEST.md](docs/ENTREGA_CODIGO_TEST.md) | Checklist para compartir el repo sin secretos |
 
 ---
 

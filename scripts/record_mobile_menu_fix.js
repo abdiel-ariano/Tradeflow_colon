@@ -8,10 +8,14 @@ const BASE = 'http://127.0.0.1:8000';
 const OUT = '/opt/cursor/artifacts/video_mobile_menu_android_fix.mp4';
 
 async function login(page) {
+  const password = process.env.DEMO_USER_PASSWORD || '';
+  if (!password) {
+    throw new Error('DEMO_USER_PASSWORD is required');
+  }
   await page.goto(`${BASE}/login/`, { waitUntil: 'networkidle2', timeout: 60000 });
   if (await page.$('#id_username')) {
     await page.type('#id_username', 'demo_buyer');
-    await page.type('#id_password', 'Demo1234!');
+    await page.type('#id_password', password);
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 }),
       page.click('button[type="submit"]'),

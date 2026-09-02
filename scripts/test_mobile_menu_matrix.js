@@ -6,6 +6,7 @@
 const puppeteer = require('puppeteer-core');
 
 const BASE = process.argv[2] || 'http://127.0.0.1:8000';
+const DEMO_PASSWORD = process.env.DEMO_USER_PASSWORD || '';
 const VIEWPORTS = [
   { width: 360, height: 740, label: '360x740' },
   { width: 390, height: 844, label: '390x844' },
@@ -33,14 +34,14 @@ const SCENARIOS = [
     path: '/',
     button: '#bn-mobile-toggle',
     menu: '#bn-l2',
-    login: { user: 'demo_buyer', pass: 'Demo1234!' },
+    login: { user: 'demo_buyer', pass: DEMO_PASSWORD },
   },
   {
     name: 'buyer-catalog',
     path: '/catalogo/',
     button: '#bn-mobile-toggle',
     menu: '#bn-l2',
-    login: { user: 'demo_buyer', pass: 'Demo1234!' },
+    login: { user: 'demo_buyer', pass: DEMO_PASSWORD },
   },
 ];
 
@@ -128,6 +129,10 @@ async function runScenario(browser, scenario, viewport) {
 }
 
 async function main() {
+  if (!DEMO_PASSWORD) {
+    console.error('Define DEMO_USER_PASSWORD antes de ejecutar escenarios de comprador.');
+    process.exit(1);
+  }
   const browser = await puppeteer.launch({
     executablePath: '/usr/local/bin/google-chrome',
     headless: 'new',

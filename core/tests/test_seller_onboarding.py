@@ -280,7 +280,7 @@ class SellerOnboardingExpoDemoTests(TestCase):
             'legal_name': 'Centro Superate Motta Colón, S.A.',
             'ruc': '8-DEMO-001',
             'dv': '12',
-            'business_email': 'centrosuperatemottacolon@gmail.com',
+            'business_email': 'demo.onboarding@test.pa',
             'business_phone': '+50760000000',
             'business_role': 'buyer',
             'address_text': 'Colón, ZLC, Local demo 12',
