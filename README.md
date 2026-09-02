@@ -125,6 +125,7 @@ Paleta y UI: [DESIGN.md](DESIGN.md) (navy `#0F2A44`, orange `#F26522`, primary `
 | [PRODUCT.md](PRODUCT.md) | Propósito de producto (inglés) |
 | [DESIGN.md](DESIGN.md) | Tokens y lenguaje visual |
 | [CHANGELOG.md](CHANGELOG.md) | Historial de cambios |
+| [docs/MENU_MOVIL_ANDROID.md](docs/MENU_MOVIL_ANDROID.md) | Menú hamburguesa móvil, diagnóstico Android y pruebas |
 
 ---
 

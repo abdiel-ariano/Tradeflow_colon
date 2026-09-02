@@ -436,12 +436,6 @@ Buyer UX (patrón Alibaba) — navy / naranja / cream. Solo presentación.
 @media (max-width: 991px) {
   .bn-mobile-toggle { display: flex; }
   .bn-l1 .bsr-wrap { display: none; }
-  .bn-l2 { display: none; }
-  .bn-l2.is-open {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
   .bn-btn-signup { display: none; }
 }
 
@@ -959,12 +953,5 @@ body.tf-public-shell .tf-nav.tf-navbar { display: none !important; }
   position: relative;
 }
 
-@media (max-width: 899px) {
-  .tf-nav-alibaba .navbar-secondary.bn-l2:not(.is-open) {
-    display: none;
-  }
-
-  .tf-nav-alibaba .navbar-secondary.bn-l2.is-open {
-    display: block;
-  }
-}
+/* Mobile buyer secondary nav visibility is owned by tf-mobile-pwa.css
+   (body.tf-market-menu-open + .navbar-secondary.is-open). */

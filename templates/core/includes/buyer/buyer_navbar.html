@@ -17,7 +17,7 @@ Buyer navbar — Alibaba-style two-row shell with AI search and language switche
       {% include "core/includes/tf_header_search.html" with search_action="catalogo_publico" input_id="bn-search-input" form_id="bn-nav-search" value=request.GET.buscar placeholder=search_placeholder ai_scope="buyer" %}
     </div>
 
-    <button type="button" class="btn-hamburger bn-mobile-toggle" id="bn-mobile-toggle" aria-label="{% trans 'Open menu' %}" aria-expanded="false">
+    <button type="button" class="btn-hamburger bn-mobile-toggle" id="bn-mobile-toggle" aria-label="{% trans 'Open menu' %}" aria-controls="bn-l2" aria-expanded="false">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path d="M4 6h16M4 12h16M4 18h16"/>
       </svg>
@@ -123,14 +123,6 @@ Buyer navbar — Alibaba-style two-row shell with AI search and language switche
 <script src="{% static 'js/bn-mega-menu.js' %}?v={{ tf_asset_version|default:'1' }}" defer nonce="{{ csp_nonce }}"></script>
 <script nonce="{{ csp_nonce }}">
 (function () {
-  var toggle = document.getElementById('bn-mobile-toggle');
-  var l2 = document.getElementById('bn-l2');
-  if (toggle && l2) {
-    toggle.addEventListener('click', function () {
-      var open = l2.classList.toggle('is-open');
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-  }
   var av = document.getElementById('bn-user-avatar');
   var nameEl = document.querySelector('.bn-user-name');
   if (av && nameEl && nameEl.textContent) {
