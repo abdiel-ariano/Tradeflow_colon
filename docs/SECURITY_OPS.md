@@ -10,7 +10,7 @@ This is **not** a substitute for legal counsel or vendor DPAs.
 | `DEBUG` | `false` |
 | `EXPO_DEMO_MODE` | keep `false` outside investor demos (demo still supported) |
 | `STAFF_MFA_REQUIRED` | `true` (auto-skipped only when `EXPO_DEMO_MODE=true`) |
-| `SAAS_DEMO_ADMIN_USERNAME` | `demo_admin` only for a controlled walkthrough; blank disables it |
+| `SAAS_DEMO_ADMIN_USERNAME` | Vacío por defecto; solo para walkthrough Expo controlado |
 | `ALLOW_MOCK_PLAN_PAYMENT` | `false` |
 | `REQUIRE_EMAIL_VERIFICATION` | `true` |
 | `SENTRY_DSN` | set to your project DSN |
@@ -52,7 +52,8 @@ configured account opens Django Admin directly, may create, update, approve,
 and delete demonstration records, and skips staff MFA so the exhibition flow
 does not depend on an authenticator device.
 
-This exception must only identify the non-production `demo_admin` identity.
+This exception must only identify a dedicated non-production demo operator
+configured via `SAAS_DEMO_ADMIN_USERNAME`.
 Never assign it to an employee or reuse the account for production operations.
 Set the variable to an empty value after the controlled demonstration if this
 access is no longer required.
@@ -66,7 +67,7 @@ role, Django staff flag, and model permissions. If a TOTP secret was previously
 configured for the walkthrough account, clear it before the exhibition:
 
 ```bash
-python manage.py reset_staff_mfa demo_admin --yes
+python manage.py reset_staff_mfa <username> --yes
 ```
 
 ## 5. Breach notification (skeleton)

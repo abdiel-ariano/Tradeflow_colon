@@ -79,20 +79,12 @@ Valida marcado por rol y ausencia del hijack del hamburger en catálogo.
 
 ### 3.2 Matriz multi-viewport (Puppeteer + touch)
 
-Con el servidor en `127.0.0.1:8000` y cuenta demo cargada:
+Con el servidor en `127.0.0.1:8000`, cuenta demo cargada y `DEMO_USER_PASSWORD` exportada:
 
 ```bash
+export DEMO_USER_PASSWORD='su-clave-local'
 node scripts/test_mobile_menu_matrix.js
 ```
-
-Escenarios: invitado home/catálogo, comprador home/catálogo. Viewports:
-360×740, 390×844, 412×915, 768×1024. Usa `touchscreen.tap` (no solo `click`).
-
-### 3.3 Cuentas demo
-
-| Rol | Usuario | Contraseña |
-|-----|---------|------------|
-| Comprador | `demo_buyer` | `Demo1234!` |
 
 ---
 

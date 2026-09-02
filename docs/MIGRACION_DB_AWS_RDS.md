@@ -101,7 +101,7 @@ Variables necesarias; la contraseña no se escribe en el historial:
 export SOURCE_DB_HOST='HOST_SESSION_POOLER'
 export SOURCE_DB_PORT='5432'
 export SOURCE_DB_NAME='postgres'
-export SOURCE_DB_USER='postgres.ayyukcenmtujsshzoebp'
+export SOURCE_DB_USER='postgres.<PROJECT_REF>'
 bash scripts/aws/export_supabase.sh
 ```
 

@@ -661,7 +661,7 @@ SAAS_DEMO_ADMIN_USERNAME = config(
     'SAAS_DEMO_ADMIN_USERNAME',
     default=config(
         'SAAS_READ_ONLY_DEMO_USERNAME',
-        default='demo_admin',
+        default='',
     ),
 ).strip()
 SAAS_READ_ONLY_DEMO_USERNAME = SAAS_DEMO_ADMIN_USERNAME

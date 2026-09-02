@@ -13,7 +13,7 @@ from core.storage.supabase_media import (
 
 
 @override_settings(
-    SUPABASE_URL='https://ayyukcenmtujsshzoebp.supabase.co',
+    SUPABASE_URL='https://example-project-ref.supabase.co',
     SUPABASE_STORAGE_BUCKET='media',
     SUPABASE_STORAGE_PUBLIC=True,
     STORAGES={
@@ -32,7 +32,7 @@ class SupabaseMediaUrlTests(TestCase):
         url = supabase_public_url(path)
         self.assertEqual(
             url,
-            'https://ayyukcenmtujsshzoebp.supabase.co/storage/v1/object/public/media/'
+            'https://example-project-ref.supabase.co/storage/v1/object/public/media/'
             'productos/placeholders/placeholder_714_1I.png',
         )
         self.assertNotIn('AWSAccessKeyId', url)
