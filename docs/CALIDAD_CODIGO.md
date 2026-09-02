@@ -144,7 +144,7 @@ Desde 2026-07-22, aprobar/rechazar solicitudes comerciales SaaS:
 
 - No se usan comentarios `TODO` / `FIXME` en el código de producción; el
   seguimiento va en issues de GitHub.
-- Documentos históricos (`DIAGNOSIS.md`, snapshots de CHANGELOG) se conservan
+- Documentos históricos (snapshots de CHANGELOG) se conservan
   como archivo bajo `docs/README.md` → sección deprecados.
 
 ---

@@ -1,7 +1,7 @@
-"""Home marketplace Shopify-style landing from the Figma shell.
+"""Home marketplace Alibaba-style layout regression tests.
 
-Guest home must ship hm-shopify sections, catalog seed photos, and
-TradeFlow Colón CTAs without legacy Alibaba/shimmer chrome.
+Guest home must ship hm-alibaba sections, catalog seed photos, and
+TradeFlow Colón CTAs without legacy Shopify landing chrome.
 """
 from django.test import TestCase, override_settings
 
@@ -16,14 +16,14 @@ from core.models import Category, Company, Product
     STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage',
 )
 class HomeMarketplaceCardsTests(TestCase):
-    """Assert Shopify landing markup, media, categories, and about page."""
+    """Assert Alibaba home markup, media, categories, and about page."""
 
     def setUp(self):
         """Clear cache and seed featured bestsellers for the home grid."""
         from django.core.cache import cache
         cache.clear()
         self.company = Company.objects.create(name='CFZ Trading', is_verified=True)
-        self.category = Category.objects.create(name='Electronics & Office')
+        self.category = Category.objects.create(name='Electronics')
         for i in range(8):
             Product.objects.create(
                 company=self.company,
@@ -38,60 +38,51 @@ class HomeMarketplaceCardsTests(TestCase):
                 merchandising_priority=30 - i,
             )
 
-    def test_home_is_shopify_landing_layout(self):
-        """Home uses hm-shopify shell with product cards, not legacy heroes."""
+    def test_home_is_alibaba_marketplace_layout(self):
+        """Home uses hm-alibaba shell with gateway hero and product cards."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
-        self.assertIn('hm-shopify', html)
-        self.assertIn('hm-marketplace-hero', html)
-        self.assertIn('hm-hero-carousel', html)
-        self.assertIn('hm-quad-cards', html)
-        self.assertNotIn('<header class="sh-header">', html)
-        self.assertIn('sh-build', html)
+        self.assertIn('hm-alibaba', html)
+        self.assertIn('hm-gateway', html)
         self.assertIn('product-card', html)
         self.assertIn('btn-inquiry', html)
+        self.assertNotIn('hm-shopify', html)
+        self.assertNotIn('<header class="sh-header">', html)
         self.assertNotIn('sh-hero__title', html)
-        self.assertNotIn('hm-feed-carousel', html)
-        self.assertNotIn('hm-alibaba', html)
         self.assertNotContains(response, 'picsum.photos')
 
-    def test_home_has_shopify_sections_and_catalog(self):
-        """Home includes RFQ, stats, catalog blocks and TradeFlow Colón CTA."""
+    def test_home_has_alibaba_sections_and_catalog(self):
+        """Home includes suppliers, trust bar, and TradeFlow Colón CTA."""
         response = self.client.get('/')
-        self.assertContains(response, 'hm-shopify')
-        self.assertContains(response, 'sh-rfq')
-        self.assertContains(response, 'sh-stats')
-        self.assertContains(response, 'sh-catalog')
+        self.assertContains(response, 'hm-alibaba')
+        self.assertContains(response, 'hm-suppliers')
+        self.assertContains(response, 'hm-trust')
         self.assertContains(response, 'TradeFlow Colón')
-        self.assertContains(response, 'Create account')
+        self.assertContains(response, 'Register your company')
 
     def test_home_copy_is_company_first_b2b(self):
         """Public home presents company verification, not consumer onboarding."""
         response = self.client.get('/')
         self.assertContains(response, 'Register your company')
-        self.assertContains(response, 'Wholesale categories')
-        self.assertContains(response, 'Join verified businesses across the Americas')
-        self.assertContains(response, 'Register and verify your company')
-        self.assertContains(response, 'Free Zone B2B assistant')
+        self.assertContains(response, 'CFZ verified suppliers')
+        self.assertContains(response, 'RFQ before you buy')
         self.assertNotContains(response, 'Create free buyer account')
         self.assertNotContains(response, 'Categories for you')
         self.assertNotContains(response, 'New buyer favorites')
-        self.assertNotContains(response, 'AI replies via Groq')
 
-    def test_home_uses_catalog_seed_photos_not_svg_icons(self):
-        """Home media prefers catalog-seeds or shopify-landing assets."""
+    def test_home_uses_visual_media_not_picsum_runtime(self):
+        """Home cards render hm-visual assets without external Picsum URLs."""
         response = self.client.get('/')
         html = response.content.decode()
-        self.assertTrue(
-            '/static/images/catalog-seeds/' in html or 'shopify-landing/' in html
-        )
+        self.assertIn('hm-visual', html)
+        self.assertNotIn('picsum.photos', html)
 
-    def test_home_has_no_infinite_shimmer_overlays(self):
-        """Home drops infinite shimmer overlays and loads marketplace JS."""
+    def test_home_loads_marketplace_js(self):
+        """Home loads Alibaba marketplace interaction scripts."""
         response = self.client.get('/')
-        self.assertNotContains(response, 'hm-media__shimmer')
         self.assertContains(response, 'tf-home-marketplace.js')
+        self.assertContains(response, 'tf-home-alibaba.js')
 
     def test_home_passes_sidebar_categories(self):
         """Home context includes at least one sidebar category for browse."""

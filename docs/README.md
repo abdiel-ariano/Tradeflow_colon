@@ -67,7 +67,6 @@ referencia de producto y diseño hasta su fusión.
 | [SUPABASE_GMAIL.md](SUPABASE_GMAIL.md) | **Deprecado** — solo desarrollo local sin Resend; ver [CORREO_TRANSACCIONAL.md](CORREO_TRANSACCIONAL.md) |
 | [ENTERPRISE_EMAIL.md](ENTERPRISE_EMAIL.md) | **Deprecado** — describía Supabase Edge + Gmail; no refleja el código actual |
 | [../CHANGELOG.md](../CHANGELOG.md) | Historial de cambios (ver también releases en GitHub) |
-| [../DIAGNOSIS.md](../DIAGNOSIS.md) | Auditoría de mayo 2026 (archivo) |
 
 ---
 
