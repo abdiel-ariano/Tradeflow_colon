@@ -1,274 +1,139 @@
 {% extends "core/marketplace_public_base.html" %}
+{% load i18n %}
 
-{% block title %}About TradeFlow Colón — Wholesale Marketplace of the Americas{% endblock %}
-
-{% block meta_description %}Learn why buyers and suppliers choose TradeFlow Colón — the B2B marketplace for the Colón Free Zone with verified companies, RFQ workflows, and export-ready documentation.{% endblock %}
-
-
+{% block title %}{% trans "About TradeFlow Colón — Wholesale Marketplace of the Americas" %}{% endblock %}
+{% block meta_description %}{% trans "Learn why buyers and suppliers choose TradeFlow Colón — the B2B marketplace for the Colón Free Zone with verified companies, RFQ workflows, and export-ready documentation." %}{% endblock %}
 
 {% block marketplace_main %}
-
 <div class="mkt-page-stack mkt-page-stack--about">
 
-
-
   <header class="mkt-about-cinematic" aria-labelledby="hm-about-hero-title">
-
     <div class="mkt-about-cinematic__bg" aria-hidden="true">
-
       <span class="mkt-about-cinematic__orb"></span>
-
       <span class="mkt-about-cinematic__grid"></span>
-
     </div>
-
     <div class="mkt-about-cinematic__content">
-
-      <p class="mkt-about-cinematic__kicker">Built for wholesale · Powered by the Free Zone</p>
-
-      <h1 class="mkt-about-cinematic__title" id="hm-about-hero-title">Wholesale trade shouldn't require a flight to Panama</h1>
-
-      <p class="mkt-about-cinematic__lead">TradeFlow Colón connects international buyers with verified Colón Free Zone suppliers — live inventory, transparent MOQs, and quote-first workflows designed for real B2B orders.</p>
-
+      <p class="mkt-about-cinematic__kicker">{% trans "Built for wholesale · Powered by the Free Zone" %}</p>
+      <h1 class="mkt-about-cinematic__title" id="hm-about-hero-title">{% trans "Wholesale trade shouldn't require a flight to Panama" %}</h1>
+      <p class="mkt-about-cinematic__lead">{% trans "TradeFlow Colón connects international buyers with verified Colón Free Zone suppliers — live inventory, transparent MOQs, and quote-first workflows designed for real B2B orders." %}</p>
       <div class="mkt-about-cinematic__actions">
-
-        <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--primary mkt-btn--on-dark">Join as a buyer — it's free</a>
-
-        <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--ghost mkt-btn--on-dark">Browse without signing up</a>
-
+        <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--primary mkt-btn--on-dark">{% trans "Join as a buyer — it's free" %}</a>
+        <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--ghost mkt-btn--on-dark">{% trans "Browse without signing up" %}</a>
       </div>
-
     </div>
-
-    <div class="mkt-about-cinematic__metrics" aria-label="Platform reach">
-
-      <div class="mkt-about-cinematic__metric"><strong>{{ stats.productos|default:0 }}</strong><span>Products live now</span></div>
-
-      <div class="mkt-about-cinematic__metric"><strong>{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}</strong><span>Verified CFZ companies</span></div>
-
-      <div class="mkt-about-cinematic__metric"><strong>40+</strong><span>Countries served</span></div>
-
+    <div class="mkt-about-cinematic__metrics" aria-label="{% trans 'Platform reach' %}">
+      <div class="mkt-about-cinematic__metric"><strong>{{ stats.productos|default:0 }}</strong><span>{% trans "Products live now" %}</span></div>
+      <div class="mkt-about-cinematic__metric"><strong>{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}</strong><span>{% trans "Verified CFZ companies" %}</span></div>
+      <div class="mkt-about-cinematic__metric"><strong>40+</strong><span>{% trans "Countries served" %}</span></div>
     </div>
-
   </header>
 
-
-
-  <div class="mkt-about-proof" aria-label="Why buyers trust TradeFlow">
-
-    <p class="mkt-about-proof__label">Trusted by importers, distributors &amp; wholesale buyers</p>
-
+  <div class="mkt-about-proof" aria-label="{% trans 'Why buyers trust TradeFlow' %}">
+    <p class="mkt-about-proof__label">{% trans "Trusted by importers, distributors & wholesale buyers" %}</p>
     <ul class="mkt-about-proof__list">
-
-      <li>Quote before you commit</li>
-
-      <li>CFZ RUC verification on every supplier</li>
-
-      <li>USD pricing &amp; MOQ on every listing</li>
-
-      <li>Invoice &amp; packing list support</li>
-
+      <li>{% trans "Quote before you commit" %}</li>
+      <li>{% trans "CFZ RUC verification on every supplier" %}</li>
+      <li>{% trans "USD pricing & MOQ on every listing" %}</li>
+      <li>{% trans "Invoice & packing list support" %}</li>
     </ul>
-
   </div>
 
-
-
-  <nav class="mkt-anchor-nav mkt-anchor-nav--raised" aria-label="About sections">
-
-    <a href="#why-tradeflow" class="mkt-anchor-nav__link is-active">Why TradeFlow</a>
-
-    <a href="#buyer-protection" class="mkt-anchor-nav__link">Buyer protection</a>
-
-    <a href="#seller-program" class="mkt-anchor-nav__link">Sell with us</a>
-
-    <a href="#free-zone" class="mkt-anchor-nav__link">The Free Zone</a>
-
+  <nav class="mkt-anchor-nav mkt-anchor-nav--raised" aria-label="{% trans 'About sections' %}">
+    <a href="#why-tradeflow" class="mkt-anchor-nav__link is-active">{% trans "Why TradeFlow" %}</a>
+    <a href="#rfq-process" class="mkt-anchor-nav__link">{% trans "RFQ process" %}</a>
+    <a href="#seller-program" class="mkt-anchor-nav__link">{% trans "Sell with us" %}</a>
+    <a href="#free-zone" class="mkt-anchor-nav__link">{% trans "The Free Zone" %}</a>
   </nav>
 
-
-
   <section class="mkt-about-story mkt-panel mkt-panel--raised" id="why-tradeflow" aria-labelledby="mkt-about-story-title">
-
     <div class="mkt-about-story__copy">
-
-      <h2 class="mkt-panel__title" id="mkt-about-story-title">We digitized the world's second-largest free trade zone</h2>
-
-      <p class="mkt-about-story__text">For decades, sourcing from the Colón Free Zone meant phone calls, spreadsheets, and uncertainty. TradeFlow puts verified catalogs, live stock, and structured RFQs in one place — so you can compare suppliers, negotiate volume, and place export-ready orders from anywhere.</p>
-
-      <p class="mkt-about-story__text">Whether you're an importer in Miami, a distributor in Bogotá, or a retailer scaling across Central America — TradeFlow is your direct line to CFZ wholesale.</p>
-
-      <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--primary">Start browsing the catalog</a>
-
+      <h2 class="mkt-panel__title" id="mkt-about-story-title">{% trans "We digitized the world's second-largest free trade zone" %}</h2>
+      <p class="mkt-about-story__text">{% trans "For decades, sourcing from the Colón Free Zone meant phone calls, spreadsheets, and uncertainty. TradeFlow puts verified catalogs, live stock, and structured RFQs in one place — so you can compare suppliers, negotiate volume, and place export-ready orders from anywhere." %}</p>
+      <p class="mkt-about-story__text">{% trans "Whether you're an importer in Miami, a distributor in Bogotá, or a retailer scaling across Central America — TradeFlow is your direct line to CFZ wholesale." %}</p>
+      <a href="{% url 'catalogo_publico' %}" class="mkt-btn mkt-btn--primary">{% trans "Start browsing the catalog" %}</a>
     </div>
-
     <div class="mkt-about-story__visual" aria-hidden="true">
-
       <div class="mkt-about-story__card mkt-about-story__card--1">
-
-        <span class="mkt-about-story__card-label">Verified</span>
-
-        <strong>CFZ suppliers</strong>
-
+        <span class="mkt-about-story__card-label">{% trans "Verified" %}</span>
+        <strong>{% trans "CFZ suppliers" %}</strong>
       </div>
-
       <div class="mkt-about-story__card mkt-about-story__card--2">
-
-        <span class="mkt-about-story__card-label">Live</span>
-
-        <strong>{{ stats.productos|default:0 }} products</strong>
-
+        <span class="mkt-about-story__card-label">{% trans "Live" %}</span>
+        <strong>{% blocktrans with count=stats.productos|default:0 %}{{ count }} products{% endblocktrans %}</strong>
       </div>
-
       <div class="mkt-about-story__card mkt-about-story__card--3">
-
-        <span class="mkt-about-story__card-label">Export</span>
-
-        <strong>Docs ready</strong>
-
+        <span class="mkt-about-story__card-label">{% trans "Export" %}</span>
+        <strong>{% trans "Docs ready" %}</strong>
       </div>
-
     </div>
-
   </section>
 
-
-
-  <div class="mkt-about-benefits" aria-label="What you get on TradeFlow">
-
-    <article class="mkt-about-benefit mkt-about-benefit--navy" id="buyer-protection">
-
+  <div class="mkt-about-benefits" aria-label="{% trans 'What you get on TradeFlow' %}">
+    <article class="mkt-about-benefit mkt-about-benefit--navy" id="rfq-process">
       <span class="mkt-about-benefit__num" aria-hidden="true">01</span>
-
-      <h3 class="mkt-about-benefit__title">Buyer protection built in</h3>
-
-      <p class="mkt-about-benefit__text">Build inquiry carts from multiple suppliers, receive formal quotations, and review terms before any payment moves. Every company profile shows CFZ verification status.</p>
-
-      <a href="{% url 'marketplace_order_protection' %}" class="mkt-about-benefit__link">See how protection works →</a>
-
+      <h3 class="mkt-about-benefit__title">{% trans "Quote-first B2B process" %}</h3>
+      <p class="mkt-about-benefit__text">{% trans "Build inquiry carts from multiple suppliers, receive formal quotations, and review terms before any payment moves. Every company profile shows CFZ verification status." %}</p>
+      <a href="{% url 'marketplace_order_protection' %}" class="mkt-about-benefit__link">{% trans "See how RFQs work →" %}</a>
     </article>
-
     <article class="mkt-about-benefit mkt-about-benefit--orange">
-
       <span class="mkt-about-benefit__num" aria-hidden="true">02</span>
-
-      <h3 class="mkt-about-benefit__title">Transparent wholesale pricing</h3>
-
-      <p class="mkt-about-benefit__text">MOQ, USD price, and stock visibility on every product. No hidden tiers — compare like-for-like across {{ stats.categorias|default:0 }} categories before you request a quote.</p>
-
-      <a href="{% url 'marketplace_deals' %}" class="mkt-about-benefit__link">View today's deals →</a>
-
+      <h3 class="mkt-about-benefit__title">{% trans "Transparent wholesale pricing" %}</h3>
+      <p class="mkt-about-benefit__text">{% blocktrans with count=stats.categorias|default:0 %}MOQ, USD price, and stock visibility on every product. No hidden tiers — compare like-for-like across {{ count }} categories before you request a quote.{% endblocktrans %}</p>
+      <a href="{% url 'marketplace_deals' %}" class="mkt-about-benefit__link">{% trans "View today's deals →" %}</a>
     </article>
-
     <article class="mkt-about-benefit mkt-about-benefit--teal" id="seller-program">
-
       <span class="mkt-about-benefit__num" aria-hidden="true">03</span>
-
-      <h3 class="mkt-about-benefit__title">Grow as a CFZ supplier</h3>
-
-      <p class="mkt-about-benefit__text">List your storefront, manage inventory, and reach wholesale buyers worldwide. Seller plans include analytics, visibility tools, and logistics integrations.</p>
-
-      <a href="{% url 'signup_seller' %}" class="mkt-btn mkt-btn--primary">Apply as supplier</a>
-
+      <h3 class="mkt-about-benefit__title">{% trans "Grow as a CFZ supplier" %}</h3>
+      <p class="mkt-about-benefit__text">{% trans "List your storefront, manage inventory, and reach wholesale buyers worldwide. Seller plans include analytics, visibility tools, and logistics integrations." %}</p>
+      <a href="{% url 'signup_seller' %}" class="mkt-about-benefit__link">{% trans "Apply as supplier →" %}</a>
     </article>
-
   </div>
 
-
-
   <blockquote class="mkt-about-quote mkt-panel mkt-panel--raised">
-
-    <p class="mkt-about-quote__text">"TradeFlow turned a week of supplier calls into an afternoon of comparing live catalogs. We quoted three CFZ companies, locked terms, and had export docs before the container left Panama."</p>
-
+    <p class="mkt-about-quote__text">{% trans "\"TradeFlow turned a week of supplier calls into an afternoon of comparing live catalogs. We quoted three CFZ companies, locked terms, and had export docs before the container left Panama.\"" %}</p>
     <footer class="mkt-about-quote__footer">
-
-      <cite>Wholesale buyer · Central America</cite>
-
-      <span class="mkt-about-quote__badge">RFQ workflow</span>
-
+      <cite>{% trans "Wholesale buyer · Central America" %}</cite>
+      <span class="mkt-about-quote__badge">{% trans "RFQ workflow" %}</span>
     </footer>
-
   </blockquote>
 
-
-
   <section class="mkt-panel mkt-panel--raised mkt-panel--zone" id="free-zone" aria-labelledby="hm-about-zone-title">
-
     <header class="mkt-panel__head">
-
-      <h2 class="mkt-panel__title" id="hm-about-zone-title">Why the Colón Free Zone matters</h2>
-
-      <p class="mkt-panel__sub">Duty-free re-export hub · logistics gateway · wholesale at scale</p>
-
+      <h2 class="mkt-panel__title" id="hm-about-zone-title">{% trans "Why the Colón Free Zone matters" %}</h2>
+      <p class="mkt-panel__sub">{% trans "Duty-free re-export hub · logistics gateway · wholesale at scale" %}</p>
     </header>
-
     <div class="mkt-about-zone-grid">
-
       <div class="mkt-about-zone-item">
-
-        <strong>Verified ecosystem</strong>
-
-        <span>CFZ companies with live catalogs and RUC checks on every profile</span>
-
+        <strong>{% trans "Verified ecosystem" %}</strong>
+        <span>{% trans "CFZ companies with live catalogs and RUC checks on every profile" %}</span>
       </div>
-
       <div class="mkt-about-zone-item">
-
-        <strong>Global reach</strong>
-
-        <span>Buyers in 40+ countries source re-export inventory through TradeFlow</span>
-
+        <strong>{% trans "Global reach" %}</strong>
+        <span>{% trans "Buyers in 40+ countries source re-export inventory through TradeFlow" %}</span>
       </div>
-
       <div class="mkt-about-zone-item">
-
-        <strong>Quote-first culture</strong>
-
-        <span>Structured RFQs replace guesswork on volume, lead time, and shipping</span>
-
+        <strong>{% trans "Quote-first culture" %}</strong>
+        <span>{% trans "Structured RFQs replace guesswork on volume, lead time, and shipping" %}</span>
       </div>
-
       <div class="mkt-about-zone-item">
-
-        <strong>Seller SaaS</strong>
-
-        <span>From starter storefronts to enterprise visibility — grow with the platform</span>
-
+        <strong>{% trans "Seller SaaS" %}</strong>
+        <span>{% trans "From starter storefronts to enterprise visibility — grow with the platform" %}</span>
       </div>
-
     </div>
-
   </section>
-
-
 
   {% include "core/includes/home_how_section.html" %}
 
-
-
   <section class="mkt-about-join" aria-labelledby="mkt-about-join-title">
-
     <div class="mkt-about-join__inner">
-
-      <h2 class="mkt-about-join__title" id="mkt-about-join-title">Ready to source smarter from the Free Zone?</h2>
-
-      <p class="mkt-about-join__text">Join thousands of wholesale buyers who use TradeFlow to discover suppliers, compare quotes, and place export-ready orders — without the overhead.</p>
-
+      <h2 class="mkt-about-join__title" id="mkt-about-join-title">{% trans "Ready to source smarter from the Free Zone?" %}</h2>
+      <p class="mkt-about-join__text">{% trans "Join thousands of wholesale buyers who use TradeFlow to discover suppliers, compare quotes, and place export-ready orders — without the overhead." %}</p>
       <div class="mkt-about-join__actions">
-
-        <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--primary mkt-btn--on-dark">Create your free account</a>
-
-        <a href="{% url 'marketplace_verified_suppliers' %}" class="mkt-btn mkt-btn--ghost mkt-btn--on-dark">Meet verified suppliers</a>
-
+        <a href="{% url 'signup_buyer' %}" class="mkt-btn mkt-btn--primary mkt-btn--on-dark">{% trans "Create your free account" %}</a>
+        <a href="{% url 'marketplace_verified_suppliers' %}" class="mkt-btn mkt-btn--ghost mkt-btn--on-dark">{% trans "Meet verified suppliers" %}</a>
       </div>
-
     </div>
-
   </section>
 
-
-
 </div>
-
 {% endblock %}
-

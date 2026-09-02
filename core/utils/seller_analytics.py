@@ -1,5 +1,6 @@
-"""
-Métricas y agregados para dashboards del vendedor (productos, ventas, cotizaciones).
+"""Agregados del dashboard vendedor: productos, ventas, cotizaciones, pagos.
+
+Alimenta KPIs de Mi Tienda para empresas ZLC sin exponer datos de otros vendedores.
 """
 from __future__ import annotations
 
@@ -13,12 +14,13 @@ from ..models import Cotizacion, CotizacionItem, Inventory, Order, OrderItem, Pr
 
 
 def _month_start(now=None):
+    """Devuelve el inicio aware del mes calendario actual."""
     now = now or timezone.now()
     return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
 def seller_product_kpis(company) -> dict:
-    """Conteos en vivo para KPIs del catálogo (total / activos)."""
+    """Devuelve conteos KPI del catálogo en vivo (total / productos activos)."""
     productos_qs = Product.objects.filter(company=company)
     return {
         'kpi_total': productos_qs.count(),
@@ -27,7 +29,7 @@ def seller_product_kpis(company) -> dict:
 
 
 def seller_products_dashboard(company):
-    """KPIs, categorías y listado base para página de productos."""
+    """Construye KPIs, categorías y contexto de lista de productos del vendedor."""
     productos_qs = Product.objects.filter(company=company).select_related('category')
     kpis = seller_product_kpis(company)
     total = kpis['kpi_total']
@@ -69,7 +71,7 @@ def seller_products_dashboard(company):
 
 
 def seller_sales_dashboard(company, days=30):
-    """Métricas de ventas, tendencia y órdenes filtrables."""
+    """Construye métricas de ventas, series de tendencia y pedidos filtrables del vendedor."""
     now = timezone.now()
     month_start = _month_start(now)
     desde = now - timedelta(days=days)
@@ -96,7 +98,7 @@ def seller_sales_dashboard(company, days=30):
         else Decimal('0.00')
     )
 
-    # Tendencia últimos N días
+    # Trend over the last N days
     labels = []
     values = []
     from .chart_labels import chart_axis_label
@@ -127,7 +129,7 @@ def seller_sales_dashboard(company, days=30):
 
 
 def seller_quotes_dashboard(company):
-    """Stats y columnas Kanban para cotizaciones."""
+    """Construye estadísticas de cotizaciones y columnas Kanban del vendedor."""
     qs = Cotizacion.objects.filter(empresa=company).select_related('buyer', 'order')
     now = timezone.now()
     month_start = _month_start(now)
@@ -163,7 +165,7 @@ def seller_quotes_dashboard(company):
 
 
 def seller_portal_dashboard(company, days=30):
-    """Métricas unificadas para el panel principal del vendedor."""
+    """Construye métricas unificadas para el home principal del portal vendedor."""
     sales = seller_sales_dashboard(company, days=days)
     products = seller_products_dashboard(company)
     quotes = seller_quotes_dashboard(company)
@@ -246,7 +248,7 @@ def seller_portal_dashboard(company, days=30):
 
 
 def cotizacion_monto_estimado(cot):
-    """Suma líneas con precio ofertado o precio catálogo."""
+    """Suma líneas de cotización usando precio ofertado o fallback al precio de catálogo."""
     total = Decimal('0.00')
     for it in cot.items.select_related('product').all():
         precio = it.precio_ofertado or getattr(it.product, 'display_price', None) or it.product.unit_price
@@ -255,32 +257,109 @@ def cotizacion_monto_estimado(cot):
 
 
 def seller_payments_analytics(company, days=90):
-    """Métricas para Payments analytics (tasas de éxito, volumen, gráfico)."""
+    """Construye tasas de éxito de pago, volumen y brechas para analytics del vendedor."""
+    from ..models import Payment
+
     now = timezone.now()
     since = now - timedelta(days=days)
-    ordenes_qs = Order.objects.filter(
-        items__product__company=company,
+    prev_since = since - timedelta(days=days)
+
+    order_ids = (
+        OrderItem.objects.filter(product__company=company)
+        .values_list('order_id', flat=True)
+        .distinct()
+    )
+    payments_qs = Payment.objects.filter(
+        order_id__in=order_ids,
+        order__created_at__gte=since,
+    ).select_related('order')
+    prev_payments_qs = Payment.objects.filter(
+        order_id__in=order_ids,
+        order__created_at__gte=prev_since,
+        order__created_at__lt=since,
+    )
+
+    total = payments_qs.count()
+    approved = payments_qs.filter(status='approved').count()
+    rejected = payments_qs.filter(status='rejected').count()
+    pending = payments_qs.filter(status='pending').count()
+    refunded = payments_qs.filter(status='refunded').count()
+    success_rate = round(100.0 * approved / total, 1) if total else 0.0
+
+    prev_total = prev_payments_qs.count()
+    prev_approved = prev_payments_qs.filter(status='approved').count()
+    prev_success_rate = round(100.0 * prev_approved / prev_total, 1) if prev_total else 0.0
+    rate_delta = round(success_rate - prev_success_rate, 1)
+
+    ingresos_period = payments_qs.filter(status='approved').aggregate(
+        t=Sum('amount'),
+    )['t'] or Decimal('0.00')
+    prev_ingresos = prev_payments_qs.filter(status='approved').aggregate(
+        t=Sum('amount'),
+    )['t'] or Decimal('0.00')
+
+    provider_rows = list(
+        payments_qs.values('provider')
+        .annotate(
+            total=Count('id'),
+            approved=Count('id', filter=Q(status='approved')),
+            rejected=Count('id', filter=Q(status='rejected')),
+        )
+        .order_by('-total')
+    )
+    for row in provider_rows:
+        row['rate'] = round(100.0 * row['approved'] / row['total'], 1) if row['total'] else 0.0
+        row['provider_label'] = dict(Payment.PROVIDER_CHOICES).get(row['provider'], row['provider'])
+
+    from .chart_labels import chart_axis_label
+    from .money_format import money_to_chart_float
+
+    chart_labels = []
+    chart_success = []
+    chart_revenue = []
+    for i in range(min(days, 30) - 1, -1, -1):
+        d = (now - timedelta(days=i)).date()
+        chart_labels.append(chart_axis_label(d, dias=30))
+        day_start = timezone.make_aware(datetime.combine(d, datetime.min.time()))
+        day_end = day_start + timedelta(days=1)
+        day_payments = payments_qs.filter(
+            order__created_at__gte=day_start,
+            order__created_at__lt=day_end,
+        )
+        day_total = day_payments.count()
+        day_ok = day_payments.filter(status='approved').count()
+        chart_success.append(round(100.0 * day_ok / day_total, 1) if day_total else 0.0)
+        day_rev = day_payments.filter(status='approved').aggregate(t=Sum('amount'))['t'] or Decimal('0')
+        chart_revenue.append(money_to_chart_float(day_rev))
+
+    cancelled_orders = Order.objects.filter(
+        pk__in=order_ids,
         created_at__gte=since,
-    ).distinct()
-
-    total = ordenes_qs.count()
-    success_statuses = ('paid', 'packed', 'shipped', 'delivered')
-    success = ordenes_qs.filter(status__in=success_statuses).count()
-    cancelled = ordenes_qs.filter(status='cancelled').count()
-    awaiting = ordenes_qs.filter(status__in=('awaiting_seller', 'pending')).count()
-    success_rate = round(100.0 * success / total, 1) if total else 0.0
-
-    sales = seller_sales_dashboard(company, days=min(days, 30))
+        status='cancelled',
+    ).count()
+    awaiting = Order.objects.filter(
+        pk__in=order_ids,
+        created_at__gte=since,
+        status__in=('awaiting_seller', 'pending'),
+    ).count()
 
     return {
         'days': days,
         'total_orders': total,
-        'success_count': success,
-        'cancelled_count': cancelled,
+        'success_count': approved,
+        'cancelled_count': cancelled_orders,
+        'rejected_count': rejected,
+        'pending_count': pending,
+        'refunded_count': refunded,
         'awaiting_count': awaiting,
         'success_rate': success_rate,
-        'ingresos_period': sales['ingresos_mes'],
-        'chart_labels': sales['chart_line_labels'],
-        'chart_values': sales['chart_line_values'],
-        'has_chart_data': any(v > 0 for v in sales['chart_line_values']),
+        'prev_success_rate': prev_success_rate,
+        'rate_delta': rate_delta,
+        'ingresos_period': ingresos_period,
+        'prev_ingresos': prev_ingresos,
+        'provider_rows': provider_rows,
+        'chart_labels': chart_labels,
+        'chart_values': chart_success,
+        'chart_revenue_values': chart_revenue,
+        'has_chart_data': any(v > 0 for v in chart_success) or total > 0,
     }

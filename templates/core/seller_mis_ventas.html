@@ -86,10 +86,13 @@
 {% endblock %}
 
 {% block seller_extra_js %}
+{% load tf_csp %}
+{% json_data_block chart_line_labels "sd-chart-line-labels" %}
+{% json_data_block chart_line_values "sd-chart-line-values" %}
 <script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function () {
-  var labels = {{ chart_line_labels_json|safe }};
-  var values = {{ chart_line_values_json|safe }};
+  var labels = JSON.parse(document.getElementById('sd-chart-line-labels').textContent);
+  var values = JSON.parse(document.getElementById('sd-chart-line-values').textContent);
   var el = document.getElementById('sd-chart-line');
   if (el && typeof Chart !== 'undefined') {
     new Chart(el, {

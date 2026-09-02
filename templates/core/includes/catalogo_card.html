@@ -4,9 +4,9 @@
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="card-image-link">
     <div class="card-image">
       {% if product.is_on_promo_now %}
-      <span class="badge-discount">{{ product.discount_pct }}% off</span>
+      <span class="badge-discount">{% blocktrans with pct=product.discount_pct %}{{ pct }}% off{% endblocktrans %}</span>
       {% elif product.is_bestseller %}
-      <span class="card-badge-hot">Best seller</span>
+      <span class="card-badge-hot">{% trans "Best seller" %}</span>
       {% endif %}
 
       {% if visual_image %}
@@ -34,8 +34,14 @@
 
     <div class="card-trust">
       {% if product.is_bestseller %}
+      {% if demo_catalog_enabled %}
+      <span class="trust-lower">
+        {% if LANGUAGE_CODE|slice:":2" == "es" %}Popularidad simulada{% else %}Simulated popularity signal{% endif %}
+      </span>
+      {% else %}
       <span class="trust-dot" aria-hidden="true"></span>
       {% trans "Reorder rate" %} {% if product.discount_pct %}{{ product.discount_pct }}{% else %}32{% endif %}%
+      {% endif %}
       {% elif product.is_on_promo_now %}
       <span class="trust-lower">{% trans "Lower priced than similar" %}</span>
       {% endif %}
@@ -45,7 +51,7 @@
       <span class="price-main">{{ product.display_price|money_usd }}</span>
       {% if product.is_on_promo_now %}
       <span class="price-original">{{ product.unit_price|money_usd }}</span>
-      <span class="price-discount">{{ product.discount_pct }}% off</span>
+      <span class="price-discount">{% blocktrans with pct=product.discount_pct %}{{ pct }}% off{% endblocktrans %}</span>
       {% endif %}
     </div>
 
@@ -57,9 +63,19 @@
       <span class="supplier-meta">
         {{ product.company.name|truncatechars:16 }} · PA
       </span>
-      {% if product.company.is_verified %}
+      {% if demo_catalog_enabled %}
+      <span class="badge-verified badge-demo">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M9 12h6M12 9v6"/>
+        </svg>
+        {% if LANGUAGE_CODE|slice:":2" == "es" %}Proveedor demo{% else %}Demo supplier{% endif %}
+      </span>
+      {% elif product.company.is_verified %}
       <span class="badge-verified">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
         </svg>
         {% trans "CFZ Verified" %}
@@ -73,7 +89,7 @@
     <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form catalogo-card__cart-form">
       {% csrf_token %}
       <input type="hidden" name="cantidad" value="1">
-      <button type="submit" class="btn-inquiry">+ {% trans "Add to cart" %}</button>
+      <button type="submit" class="btn-inquiry">+ {% trans "Add to inquiry" %}</button>
     </form>
     {% elif show_cart_actions %}
     <span class="btn-inquiry btn-inquiry--disabled">{% trans "Out of stock" %}</span>
@@ -84,3 +100,4 @@
     {% endif %}
   </div>
 </article>
+

@@ -1,10 +1,7 @@
-"""
-Verifica conexión a Supabase/Postgres, storage cloud y envío Resend.
+"""Smoke-test Supabase/Postgres, cloud storage, and Resend delivery.
 
-Uso:
-  python manage.py verify_integrations
-  python manage.py verify_integrations --email tu@dominio.com
-  python manage.py verify_integrations --skip-email
+Ops: safe on staging/production with ``--skip-email``. Sending a real
+test message (``--email``) should use a controlled inbox, not customers.
 """
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -15,22 +12,26 @@ from core.utils.platform_health import platform_health_payload
 
 
 class Command(BaseCommand):
-    help = 'Prueba DATABASE_URL (Supabase), storage y email (Resend).'
+    """Verify database, media backend, and optional Resend mail path."""
+
+    help = 'Test DATABASE_URL (Supabase), storage, and email (Resend).'
 
     def add_arguments(self, parser):
+        """Register optional test recipient and email skip flag."""
         parser.add_argument(
             '--email',
             type=str,
             default='',
-            help='Correo de prueba (default: DEFAULT_FROM_EMAIL)',
+            help='Test recipient (default: DEFAULT_FROM_EMAIL)',
         )
         parser.add_argument(
             '--skip-email',
             action='store_true',
-            help='Solo probar base de datos y health',
+            help='Only test database and health',
         )
 
     def handle(self, *args, **options):
+        """Print integration status and optionally send a Resend probe."""
         self.stdout.write('=== TradeFlow — verificación de integraciones ===\n')
 
         payload = platform_health_payload()

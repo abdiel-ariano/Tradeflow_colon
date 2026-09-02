@@ -11,7 +11,7 @@
 .sp-plans-hero { margin-bottom: 28px; }
 .sp-plans-hero h2 { font-family: 'DM Serif Display', serif; color: var(--tf-navy); margin: 0 0 8px; font-size: 1.35rem; }
 .sp-plans-hero p { color: var(--tf-muted); margin: 0; font-size: 14px; line-height: 1.55; max-width: 640px; }
-.sp-plans-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.sp-plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 @media (max-width: 1100px) { .sp-plans-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .sp-plans-grid { grid-template-columns: 1fr; } }
 .sp-plan-card-v2 {
@@ -66,7 +66,11 @@
 .sp-plan-card-v2.is-featured .sp-plan-icon { background: rgba(242, 101, 34, 0.1); color: var(--tf-orange); }
 .sp-plan-tier { font-size: 11px; font-weight: 600; color: var(--tf-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 .sp-plan-title-v2 { font-family: 'DM Serif Display', serif; font-size: 1.25rem; color: var(--tf-navy); margin: 4px 0 6px; }
-.sp-plan-tagline-v2 { font-size: 13px; color: var(--tf-muted); line-height: 1.45; margin: 0 0 16px; min-height: 2.9em; }
+.sp-plan-price { margin: 0 0 2px; color: var(--tf-navy); font-size: 1.2rem; font-weight: 700; }
+.sp-plan-price span { color: var(--tf-muted); font-size: 11px; font-weight: 500; }
+.sp-plan-commission { margin: 0 0 12px; color: var(--tf-orange); font-size: 12px; font-weight: 700; }
+.sp-plan-tagline-v2 { font-size: 13px; color: var(--tf-muted); line-height: 1.5; margin: 0 0 14px; min-height: 7.5em; }
+.sp-plan-limit { margin: 0 0 14px; padding: 9px 10px; border-radius: 8px; background: var(--tf-sand); color: var(--tf-navy); font-size: 11px; font-weight: 700; line-height: 1.4; }
 .sp-plan-benefits { list-style: none; margin: 0 0 20px; padding: 0; flex: 1; }
 .sp-plan-benefits li {
   font-size: 12px;
@@ -88,18 +92,6 @@
   width: 100%;
   justify-content: center;
   margin-top: auto;
-}
-.sp-plan-enterprise-note {
-  margin-top: 28px;
-  padding: 22px 24px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--tf-navy) 0%, #1a3d5c 100%);
-  color: #fff;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
 }
 .sp-plan-history { margin-top: 28px; }
 .sp-plan-history h3 { font-size: 1rem; color: var(--tf-navy); margin: 0 0 12px; }
@@ -148,8 +140,8 @@
   {% else %}
 
   <div class="sp-plans-hero">
-    <h2>Choose how your company grows</h2>
-    <p>Each tier unlocks automation, visibility, and operational intelligence. Activation is permanently recorded on your business account.</p>
+    <h2>Three plans tailored to your company</h2>
+    <p>For this reason, we offer three tailored plans. Each plan is designed to improve administration, sales, and the use of TradeFlow's resources.</p>
   </div>
 
   <div class="sp-plans-grid" id="upgrade">
@@ -166,12 +158,14 @@
       </div>
       <span class="sp-plan-tier">{{ card.tier_label }}</span>
       <h3 class="sp-plan-title-v2">{{ card.name }}</h3>
-      {% if card.monthly_price_usd and card.cta != 'commercial' %}
-      <p style="font-size:1.1rem;font-weight:700;color:var(--tf-navy);margin:0 0 4px;">
-        USD {{ card.monthly_price_usd|floatformat:0 }}<span style="font-size:11px;font-weight:500;color:var(--tf-muted);"> / month</span>
+      {% if card.monthly_price_usd %}
+      <p class="sp-plan-price">
+        USD {{ card.monthly_price_usd|floatformat:2 }}<span> / month</span>
       </p>
+      <p class="sp-plan-commission">+ {{ card.commission }} commission</p>
       {% endif %}
       <p class="sp-plan-tagline-v2">{{ card.tagline }}</p>
+      <p class="sp-plan-limit">{{ card.billing_cap }}</p>
       <ul class="sp-plan-benefits">
         {% for b in card.benefits %}
         <li>{{ b }}</li>
@@ -179,12 +173,6 @@
       </ul>
       {% if card.is_current %}
       <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.85;pointer-events:none;">Active</span>
-      {% elif card.cta == 'commercial' %}
-      {% if pending_enterprise %}
-      <span class="sp-btn sp-btn-secondary sp-plan-activate-btn" style="opacity:0.8;">Request under review</span>
-      {% else %}
-      <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-btn sp-btn-secondary sp-plan-activate-btn">Commercial application</a>
-      {% endif %}
       {% elif card.can_upgrade %}
       <a href="{% url 'seller_plan_checkout' card.slug %}" class="sp-btn sp-btn-primary sp-plan-activate-btn">
         Continue to payment
@@ -195,18 +183,6 @@
       {% endif %}
     </article>
     {% endfor %}
-  </div>
-
-  <div class="sp-plan-enterprise-note">
-    <div>
-      <strong style="font-size:1.05rem;">Enterprise ecosystem</strong>
-      <p style="margin:8px 0 0;font-size:13px;opacity:0.9;max-width:520px;line-height:1.5;">
-        Consultative activation with a dedicated executive, SLA, and API setup. Not a click: a strategic partnership to scale in Panama and the region.
-      </p>
-    </div>
-    <a href="{% url 'solicitud_acceso' %}?plan=enterprise" class="sp-btn sp-btn-primary" style="background:var(--tf-orange);border-color:var(--tf-orange);white-space:nowrap;">
-      Start enterprise conversation
-    </a>
   </div>
 
   {% if upgrade_history %}

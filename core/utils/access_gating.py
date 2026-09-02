@@ -1,5 +1,8 @@
-"""
-Control de acceso enterprise: verificación de email y solicitud aprobada.
+"""Controla compradores y vendedores con OTP de correo y solicitudes de acceso.
+
+La navegación pública del catálogo ZLC permanece abierta; checkout, portal
+vendedor y APIs enterprise exigen correo verificado y (para compradores)
+aprobación cuando ``REQUIRE_APPROVED_APPLICATION`` está activo.
 """
 from __future__ import annotations
 
@@ -8,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from core.models import UserApplication, UserProfile
 
-# Rutas siempre públicas (sin prefijo /en/)
+# Paths always public (locale prefix already stripped)
 PUBLIC_PATH_PREFIXES = (
     '/login',
     '/signup',
@@ -51,7 +54,7 @@ PROTECTED_PATH_PREFIXES = (
     '/api/dashboard-stats',
 )
 
-# Rutas de compra restringidas (login + verificación); catálogo/carrito son públicos.
+# Purchase paths need login + verification; catalog/cart stay public.
 BROWSE_PATH_PREFIXES = (
     '/',
     '/catalogo',
@@ -62,6 +65,7 @@ BROWSE_PATH_PREFIXES = (
 
 
 def normalize_path(path: str) -> str:
+    """Quita el prefijo de locale /en/ o /es/ para comparaciones de acceso."""
     p = path or '/'
     if p.startswith('/en/'):
         return p[3:] or '/'
@@ -71,6 +75,7 @@ def normalize_path(path: str) -> str:
 
 
 def is_public_path(path: str) -> bool:
+    """Devuelve True cuando la ruta no requiere auth ni puerta de solicitud."""
     p = normalize_path(path)
     if p in ('/', ''):
         return True
@@ -78,11 +83,13 @@ def is_public_path(path: str) -> bool:
 
 
 def is_protected_path(path: str) -> bool:
+    """Devuelve True para checkout, pedidos, APIs de vendedor y otras rutas restringidas."""
     p = normalize_path(path)
     return any(p.startswith(pref) for pref in PROTECTED_PATH_PREFIXES)
 
 
 def user_is_platform_exempt(user) -> bool:
+    """Devuelve True para anónimos, staff, superusuario o rol de perfil admin."""
     if not user or not user.is_authenticated:
         return True
     if user.is_superuser or user.is_staff:
@@ -96,6 +103,7 @@ def user_is_platform_exempt(user) -> bool:
 
 
 def latest_application_for_email(email: str) -> UserApplication | None:
+    """Devuelve el ``UserApplication`` más reciente para ``email``, si existe."""
     if not email:
         return None
     return (
@@ -105,11 +113,10 @@ def latest_application_for_email(email: str) -> UserApplication | None:
     )
 
 
-def application_gate_status(email: str) -> str | None:
-    """
-    None = acceso OK respecto a solicitud.
-    Otros: pending, under_review, rejected, required.
-    """
+def application_gate_status(email: str, *, role: str | None = None) -> str | None:
+    """Devuelve el código de puerta de solicitud, o None cuando el acceso está permitido."""
+    if role == 'seller':
+        return None
     if not getattr(settings, 'REQUIRE_APPROVED_APPLICATION', False):
         return None
 
@@ -129,7 +136,7 @@ def application_gate_status(email: str) -> str | None:
 
 
 def user_needs_role_completion(user) -> bool:
-    """Perfil ausente o rol no asignado (p. ej. OAuth sin completar)."""
+    """Devuelve True cuando falta el perfil o el rol no es comprador/vendedor."""
     if not user or not user.is_authenticated:
         return False
     try:
@@ -140,7 +147,7 @@ def user_needs_role_completion(user) -> bool:
 
 
 def email_verification_required(user) -> bool:
-    """True si el usuario debe completar verificación OTP antes de rutas operativas."""
+    """Devuelve True cuando el usuario debe completar el OTP de correo antes de rutas operativas."""
     if not user or not user.is_authenticated or user_is_platform_exempt(user):
         return False
     if not (
@@ -154,65 +161,120 @@ def email_verification_required(user) -> bool:
         return True
 
 
-def is_protected_path(path: str) -> bool:
-    p = normalize_path(path)
-    return any(p.startswith(pref) for pref in PROTECTED_PATH_PREFIXES)
-
-
 def is_browse_path(path: str) -> bool:
+    """Devuelve True para catálogo público, carrito y superficies de navegación del home."""
     p = normalize_path(path)
     if p in ('/', ''):
         return True
     return any(p == pref.rstrip('/') or p.startswith(pref) for pref in BROWSE_PATH_PREFIXES)
 
 
-def buyer_onboarding_pending(user) -> bool:
-    """True si el comprador debe ver el wizard de personalización (cuentas nuevas)."""
+def seller_company_pending(user) -> bool:
+    """Devuelve True cuando un vendedor aún no puede operar el portal.
+
+    Falta ``Company.owner`` o falta ``CompanySubscription`` / plan activo.
+    """
     if not user or not user.is_authenticated or user_is_platform_exempt(user):
-        return False
-    # OTP primero — onboarding solo tras email verificado (o si la verificación está desactivada)
-    if email_verification_required(user):
         return False
     try:
         profile = user.profile
     except UserProfile.DoesNotExist:
         return False
-    if profile.role != 'buyer':
+    if profile.role != 'seller':
         return False
-    return profile.onboarding_completed_at is None
+    if email_verification_required(user):
+        return False
+    from core.enterprise_models import CompanySubscription
+    from core.models import Company
+
+    company = Company.objects.filter(owner=user).first()
+    if not company:
+        return True
+    try:
+        company.subscription
+    except CompanySubscription.DoesNotExist:
+        return True
+    return False
 
 
-def buyer_onboarding_redirect_name(user) -> str | None:
-    """Ruta del paso 1 si el onboarding comprador está pendiente."""
-    if buyer_onboarding_pending(user):
-        return 'buyer_onboarding_step1'
+def b2b_company_for_user(user):
+    """Return the company represented by the user, preferring memberships."""
+    if not user or not user.is_authenticated:
+        return None
+    from core.models import Company, CompanyMembership
+
+    membership = (
+        CompanyMembership.objects.filter(user=user, status='active')
+        .select_related('company')
+        .order_by('created_at')
+        .first()
+    )
+    if membership:
+        return membership.company
+    return Company.objects.filter(owner=user).first()
+
+
+def b2b_company_onboarding_redirect_name(user) -> str | None:
+    """Route new B2B accounts through identity and manual verification."""
+    if not user or not user.is_authenticated or user_is_platform_exempt(user):
+        return None
+    if email_verification_required(user):
+        return None
+    try:
+        profile = user.profile
+    except UserProfile.DoesNotExist:
+        return None
+
+    intent = profile.business_role_intent
+    if intent not in ('buyer', 'seller', 'both'):
+        # Migration-safe bridge: legacy marketplace accounts are businesses too.
+        intent = profile.role if profile.role in ('buyer', 'seller') else ''
+    if not intent:
+        return None
+
+    company = b2b_company_for_user(user)
+    if company is None:
+        return 'company_onboarding'
+    if company.verification_status != 'verified':
+        return 'company_verification_status'
+    if company.can_sell:
+        from core.enterprise_models import CompanySubscription
+
+        try:
+            company.subscription
+        except CompanySubscription.DoesNotExist:
+            return 'company_onboarding'
+    return None
+
+
+def seller_onboarding_redirect_name(user) -> str | None:
+    """Devuelve el nombre de ruta del wizard de empresa cuando el onboarding de vendedor está incompleto."""
+    if seller_company_pending(user):
+        return 'seller_onboarding_company'
     return None
 
 
 def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
-    """
-    Nombre de ruta Django para redirigir, o None si el usuario puede continuar.
-
-    scope='browse' — catálogo, carrito, home (solo exige rol OAuth si falta).
-    scope='restricted' — checkout, pedidos, cotizaciones (email + solicitud).
-    """
+    """Devuelve un nombre de ruta Django de redirección, o None si el usuario puede continuar."""
     if not user.is_authenticated or user_is_platform_exempt(user):
         return None
 
     if scope == 'browse':
+        # Catalog/home/cart remain public. Company identity is enforced on
+        # restricted surfaces and immediately after login.
         if user_needs_role_completion(user):
             return 'oauth_complete_signup'
-        buyer_route = buyer_onboarding_redirect_name(user)
-        if buyer_route:
-            return buyer_route
         return None
 
     try:
         profile = user.profile
         if user.is_active and profile.email_verificado and profile.role:
-            buyer_route = buyer_onboarding_redirect_name(user)
-            if buyer_route:
-                return buyer_route
+            company_route = b2b_company_onboarding_redirect_name(user)
+            if company_route:
+                return company_route
+            seller_route = seller_onboarding_redirect_name(user)
+            if seller_route:
+                return seller_route
             return None
     except UserProfile.DoesNotExist:
         if user_needs_role_completion(user):
@@ -228,7 +290,11 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     if email_verification_required(user):
         return 'verificar_codigo'
 
-    gate = application_gate_status(user.email or '')
+    try:
+        profile_role = user.profile.role
+    except UserProfile.DoesNotExist:
+        profile_role = None
+    gate = application_gate_status(user.email or '', role=profile_role)
     if gate == 'required':
         return 'onboarding_solicitud_requerida'
     if gate in ('pending', 'under_review'):
@@ -236,14 +302,11 @@ def onboarding_redirect_name(user, scope: str = 'restricted') -> str | None:
     if gate == 'rejected':
         return 'onboarding_aplicacion_rechazada'
 
-    buyer_route = buyer_onboarding_redirect_name(user)
-    if buyer_route:
-        return buyer_route
     return None
 
 
 def onboarding_context(user) -> dict:
-    """Contexto para pantallas de espera."""
+    """Construye el contexto de plantilla para pantallas de espera de aprobación pendiente."""
     email = user.email or ''
     masked = _mask_email(email)
     app = latest_application_for_email(email)
@@ -255,6 +318,7 @@ def onboarding_context(user) -> dict:
 
 
 def _mask_email(email: str) -> str:
+    """Enmascara la parte local de un correo para mostrarlo en pantallas de espera."""
     if '@' not in email:
         return email
     local, domain = email.split('@', 1)
@@ -263,3 +327,55 @@ def _mask_email(email: str) -> str:
     else:
         visible = local[0] + '*' * (len(local) - 2) + local[-1]
     return f'{visible}@{domain}'
+
+
+def should_inline_verify_at_checkout(path: str, route: str | None) -> bool:
+    """Devuelve True para incrustar OTP en el GET de checkout en lugar de /verificar."""
+    if route != 'verificar_codigo':
+        return False
+    return normalize_path(path).startswith('/checkout')
+
+
+def user_needs_otp_verification(user) -> bool:
+    """Devuelve True cuando un usuario autenticado aún debe el OTP de correo."""
+    if not email_verification_required(user):
+        return False
+    try:
+        return not user.profile.email_verificado
+    except UserProfile.DoesNotExist:
+        return True
+
+
+def safe_intent_next(request, *, raw: str = '') -> str:
+    """Devuelve una URL interna segura de next tras el OTP (solo checkout/carrito)."""
+    from django.urls import reverse
+
+    next_url = (raw or request.GET.get('next') or request.POST.get('next') or '').strip()
+    if not next_url:
+        if request.method == 'GET':
+            candidate = request.get_full_path()
+        else:
+            candidate = request.path
+        p = normalize_path(candidate)
+        if is_protected_path(p) or p.startswith('/carrito'):
+            next_url = candidate
+        else:
+            return ''
+
+    if not next_url.startswith('/') or next_url.startswith('//') or '://' in next_url:
+        return ''
+
+    verify_path = reverse('verificar_codigo')
+    login_path = reverse('login')
+    home_path = reverse('home')
+    if (
+        next_url.startswith(verify_path)
+        or next_url.startswith(login_path)
+        or next_url in (home_path, '/')
+    ):
+        return ''
+
+    p = normalize_path(next_url.split('?', 1)[0])
+    if is_protected_path(p) or p.startswith('/carrito'):
+        return next_url
+    return ''

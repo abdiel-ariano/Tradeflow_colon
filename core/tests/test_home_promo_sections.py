@@ -1,4 +1,8 @@
-"""Home CMS promo sections — context still built; Shopify landing uses bestsellers grid."""
+"""Home CMS promo sections and Alibaba bestsellers grid fallbacks.
+
+CMS rows still resolve products for context, while the Alibaba home
+hides duplicate fallback strips when matching section types exist.
+"""
 from datetime import timedelta
 from decimal import Decimal
 
@@ -15,7 +19,10 @@ from core.models import Category, Company, HomePromoSection, Product
     AXES_ENABLED=False,
 )
 class HomePromoSectionHelpersTests(TestCase):
+    """Assert active section types and product resolution helpers."""
+
     def setUp(self):
+        """Seed active products, some marked as bestsellers."""
         self.company = Company.objects.create(name='ZLC Demo', is_verified=True)
         self.category = Category.objects.create(name='Electronics')
         self.products = []
@@ -34,6 +41,7 @@ class HomePromoSectionHelpersTests(TestCase):
             )
 
     def test_active_home_section_types(self):
+        """active_home_section_types includes enabled CMS section_type values."""
         HomePromoSection.objects.create(
             slug='test-deals',
             section_type='daily_deals',
@@ -44,6 +52,7 @@ class HomePromoSectionHelpersTests(TestCase):
         self.assertIn('daily_deals', types)
 
     def test_resolve_section_products_manual_override(self):
+        """Manual M2M products win over automatic section pools."""
         section = HomePromoSection.objects.create(
             slug='manual-row',
             section_type='product_row',
@@ -57,6 +66,7 @@ class HomePromoSectionHelpersTests(TestCase):
         self.assertEqual(resolved[0].pk, self.products[0].pk)
 
     def test_resolve_section_products_bestsellers_fallback(self):
+        """Empty bestsellers CMS row falls back to is_bestseller products."""
         section = HomePromoSection.objects.create(
             slug='auto-best',
             section_type='bestsellers',
@@ -74,7 +84,10 @@ class HomePromoSectionHelpersTests(TestCase):
     AXES_ENABLED=False,
 )
 class HomePromoRenderingTests(TestCase):
+    """Assert Alibaba home rendering and CMS vs fallback strip flags."""
+
     def setUp(self):
+        """Clear cache and create CMS deals/bestsellers with promo prices."""
         from django.core.cache import cache
         cache.clear()
         now = timezone.now()
@@ -132,24 +145,28 @@ class HomePromoRenderingTests(TestCase):
             for i in range(4)
         ])
 
-    def test_home_renders_shopify_landing_with_product_grid(self):
+    def test_home_renders_alibaba_layout_with_product_grid(self):
+        """Home renders Alibaba layout with catalog product-card grid."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         content = response.content.decode()
-        self.assertIn('hm-shopify', content)
-        self.assertIn('sh-catalog', content)
+        self.assertIn('hm-alibaba', content)
+        self.assertIn('hm-product-row', content)
         self.assertIn('product-card', content)
-        self.assertIn('Trending in the Free Zone', content)
+        self.assertIn('The Americas\' wholesale marketplace starts here', content)
 
     def test_home_hides_fallback_deals_when_cms_has_daily_deals(self):
+        """CMS daily_deals suppresses the fallback deals strip flag."""
         response = self.client.get('/')
         self.assertFalse(response.context['show_daily_deals_strip'])
 
     def test_home_hides_fallback_bestsellers_when_cms_has_bestsellers(self):
+        """CMS bestsellers suppresses the fallback bestsellers section flag."""
         response = self.client.get('/')
         self.assertFalse(response.context['show_bestsellers_section'])
 
     def test_home_shows_fallback_bestsellers_without_cms(self):
+        """Without CMS rows, home shows the automatic bestsellers section."""
         from django.core.cache import cache
         HomePromoSection.objects.all().delete()
         cache.clear()
@@ -167,7 +184,9 @@ class HomePromoRenderingTests(TestCase):
         response = self.client.get('/')
         self.assertTrue(response.context['show_bestsellers_section'])
 
-    def test_home_shopify_not_legacy_marketing_hero(self):
+    def test_home_uses_gateway_hero_not_legacy_shopify(self):
+        """Alibaba home uses hm-gateway and omits legacy Shopify markup."""
         response = self.client.get('/')
-        self.assertContains(response, 'sh-hero')
-        self.assertNotContains(response, 'id="hm-hero"')
+        self.assertContains(response, 'hm-gateway')
+        self.assertNotContains(response, 'hm-shopify')
+        self.assertNotContains(response, 'sh-hero')

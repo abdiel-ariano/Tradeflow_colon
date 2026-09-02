@@ -1,31 +1,17 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/models.py  (v2 — ERD Completo)
-=============================================================================
-Tablas implementadas (mapeadas exactamente al ERD del PDF):
-  UserProfile  → extiende el User de Django con rol y teléfono
-  Company      → empresa vendedora de la Zona Libre
-  Category     → categoría de producto
-  Product      → producto del catálogo
-  Inventory    → stock por producto (1-a-1 con Product)
-  Address      → dirección de envío del comprador
-  Order        → cabecera de la orden
-  OrderItem    → línea de detalle (producto + cantidad + precio snapshot)
-  Payment      → pago asociado a una orden
-  Shipment     → envío asociado a una orden
-  Document     → documentos generados (factura, packing list, etc.)
-  Cotizacion   → solicitud formal de precios (RFQ) buyer → empresa
-  CotizacionItem → líneas de cotización con cantidad y precio ofertado
-  python manage.py makemigrations
-  python manage.py migrate
-  python manage.py createsuperuser
-=============================================================================
+"""ORM principal de TradeFlow Colón — marketplace B2B de la Zona Libre de Colón (ZLC).
+
+Incluye empresas vendedoras, catálogo e inventario, pedidos de compradores,
+cotizaciones RFQ, transportistas y tokens de autenticación. Las tablas
+empresariales de SaaS, anuncios y API se reexportan desde ``enterprise_models``
+para que ``from core.models import …`` siga siendo el punto de entrada único.
 """
 from decimal import Decimal
 import random
-import secrets   # OWASP A02: CSPRNG para OTP (random.randint es predecible)
+import re
+import secrets   # OWASP A02: CSPRNG for OTP (random.randint is predictable)
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -34,13 +20,16 @@ import uuid
 
 
 # =============================================================================
-# PERFIL DE USUARIO
+# USER PROFILE
 # =============================================================================
 
 class UserProfile(models.Model):
-    """
-    Extiende el User de Django con campos extras del ERD.
-    Relación 1-a-1 con User (se crea automáticamente al crear un User desde admin).
+    """Extiende el ``User`` de Django con rol e identidad empresarial B2B.
+
+    Relación uno a uno con ``User``. El rol controla el acceso al portal
+    (comprador/vendedor/admin/transportista), mientras ``business_role_intent``
+    dirige a la verificación de la empresa. Las instantáneas del carrito
+    alimentan recordatorios de abandono.
     """
     ROLE_CHOICES = [
         ('buyer',  _('Buyer')),
@@ -48,10 +37,23 @@ class UserProfile(models.Model):
         ('admin',  _('Administrator')),
         ('transportista', _('Carrier')),
     ]
+    BUSINESS_ROLE_INTENT_CHOICES = [
+        ('buyer', _('Company buys')),
+        ('seller', _('Company sells')),
+        ('both', _('Company buys and sells')),
+    ]
 
     user   = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone  = models.CharField(max_length=30, blank=True, verbose_name='Phone')
     role   = models.CharField(max_length=14, choices=ROLE_CHOICES, default='buyer', verbose_name='Role')
+    business_role_intent = models.CharField(
+        max_length=10,
+        choices=BUSINESS_ROLE_INTENT_CHOICES,
+        blank=True,
+        default='',
+        verbose_name='B2B company intent',
+        help_text='Blank for legacy accounts; new business accounts choose buy, sell or both.',
+    )
     email_verificado = models.BooleanField(
         default=False,
         verbose_name='Email verified',
@@ -87,25 +89,6 @@ class UserProfile(models.Model):
         blank=True,
         verbose_name='Last cart reminder sent',
     )
-    # ── Onboarding comprador (wizard post-registro estilo marketplace) ──
-    PURCHASE_INTENT_CHOICES = [
-        ('business', _('Business purchase')),
-        ('personal', _('Personal purchase')),
-    ]
-    purchase_intent = models.CharField(
-        max_length=16,
-        choices=PURCHASE_INTENT_CHOICES,
-        blank=True,
-        verbose_name='Purchase intent',
-        help_text='Step 1 — wholesale vs personal shopping.',
-    )
-    preferred_categories = models.ManyToManyField(
-        'Category',
-        blank=True,
-        related_name='buyer_profiles',
-        verbose_name='Preferred categories',
-        help_text='Step 2 — category interests for personalization.',
-    )
     onboarding_completed_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -122,66 +105,167 @@ class UserProfile(models.Model):
         blank=True,
         verbose_name='Terms accepted at',
     )
+    # GDPR: marketing consent + recorded privacy acceptance + anonymization stamp.
+    marketing_opt_in = models.BooleanField(
+        default=False,
+        verbose_name='Marketing emails opt-in',
+        help_text='User consented to cart reminders / promotional emails.',
+    )
+    privacy_accepted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Privacy policy accepted at',
+    )
+    privacy_policy_version = models.CharField(
+        max_length=32,
+        blank=True,
+        default='',
+        verbose_name='Privacy policy version accepted',
+    )
+    account_anonymized_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Account anonymized at',
+    )
+    # Staff TOTP MFA (encrypted secret) + hashed one-time backup codes.
+    staff_totp_secret = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        verbose_name='Staff TOTP secret (encrypted)',
+    )
+    staff_totp_enabled = models.BooleanField(
+        default=False,
+        verbose_name='Staff TOTP MFA enabled',
+    )
+    staff_totp_backup_hashes = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name='Staff MFA backup code hashes',
+        help_text='SHA-256 hashes of one-time backup codes (survive SECRET_KEY rotation).',
+    )
 
     class Meta:
+        """Opciones de modelo para el perfil de usuario en el admin."""
         verbose_name        = 'User profile'
         verbose_name_plural = 'User profiles'
 
     def __str__(self):
+        """Etiqueta corta del perfil para admin y depuración."""
         return f'{self.user.get_full_name() or self.user.username} [{self.get_role_display()}]'
 
     @property
     def email_verified(self) -> bool:
-        """Alias en inglés (API / vistas); persiste en ``email_verificado``."""
+        """Alias en inglés; el valor persiste en ``email_verificado``."""
         return self.email_verificado
 
     @email_verified.setter
     def email_verified(self, value: bool) -> None:
+        """Asigna el flag de verificación persistido como ``email_verificado``."""
         self.email_verificado = value
 
 
 # =============================================================================
-# EMPRESA (COMPANY)
+# COMPANY (CFZ SELLER)
 # =============================================================================
 
 class Company(models.Model):
+    """Empresa panameña que puede comprar, vender o realizar ambas actividades.
+
+    Los campos owner e is_verified se mantienen por compatibilidad con el portal
+    existente. El flujo B2B nuevo usa membresías y verification_status para
+    representar revisión documental sin afirmar una validación automática con
+    entidades gubernamentales.
     """
-    Empresa vendedora de la Zona Libre de Colón.
-    Un Product pertenece a una Company.
-    El campo owner identifica al usuario vendedor responsable del portal Mi Tienda.
-    """
-    name         = models.CharField(max_length=200, verbose_name='Company name')
-    ruc          = models.CharField(max_length=50, blank=True, verbose_name='RUC / Registration')
+
+    BUSINESS_ROLE_CHOICES = [
+        ('buyer', _('Buyer')),
+        ('seller', _('Seller')),
+        ('both', _('Buyer and seller')),
+    ]
+    VERIFICATION_STATUS_CHOICES = [
+        ('draft', _('Draft')),
+        ('pending', _('Pending review')),
+        ('verified', _('Verified')),
+        ('rejected', _('Rejected')),
+    ]
+
+    name = models.CharField(max_length=200, verbose_name='Trade name')
+    legal_name = models.CharField(max_length=200, blank=True, verbose_name='Registered legal name')
+    ruc = models.CharField(max_length=50, blank=True, verbose_name='RUC / Registration')
+    dv = models.CharField(max_length=20, blank=True, verbose_name='Verification digit (DV)')
+    business_email = models.EmailField(blank=True, verbose_name='Business email')
+    business_phone = models.CharField(max_length=30, blank=True, verbose_name='Business phone')
     address_text = models.TextField(blank=True, verbose_name='Address')
-    is_verified  = models.BooleanField(default=False, verbose_name='Verified?')
-    owner        = models.ForeignKey(
+    business_role = models.CharField(
+        max_length=10,
+        choices=BUSINESS_ROLE_CHOICES,
+        default='seller',
+        verbose_name='Marketplace capability',
+    )
+    verification_status = models.CharField(
+        max_length=12,
+        choices=VERIFICATION_STATUS_CHOICES,
+        default='draft',
+        db_index=True,
+        verbose_name='Verification status',
+    )
+    is_verified = models.BooleanField(default=False, verbose_name='Verified?')
+    verification_document = models.FileField(
+        upload_to='companies/verification/',
+        blank=True,
+        null=True,
+        verbose_name='Verification evidence',
+        help_text='Aviso de operación, registro público or equivalent evidence for manual review.',
+    )
+    verification_notes = models.TextField(
+        blank=True,
+        verbose_name='Verification notes',
+        help_text='Internal notes. Do not expose these notes in the public catalog.',
+    )
+    verification_submitted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Submitted for verification at',
+    )
+    verified_at = models.DateTimeField(null=True, blank=True, verbose_name='Verified at')
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='companies_verified',
+        verbose_name='Verified by',
+    )
+    owner = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='owned_companies',
-        verbose_name='Owner (seller)',
+        verbose_name='Legacy owner',
+        help_text='Compatibility field; new access control uses company memberships.',
     )
-    latitud      = models.FloatField(
+    members = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        through='CompanyMembership',
+        related_name='member_companies',
+        blank=True,
+    )
+    latitud = models.FloatField(
         null=True,
         blank=True,
         default=9.3667,
         verbose_name='Latitude (CFZ)',
     )
-    longitud     = models.FloatField(
+    longitud = models.FloatField(
         null=True,
         blank=True,
         default=-79.9000,
         verbose_name='Longitude (CFZ)',
     )
-    is_featured = models.BooleanField(
-        default=False,
-        verbose_name='Featured on home',
-    )
-    carousel_priority = models.IntegerField(
-        default=0,
-        verbose_name='Carousel priority',
-    )
+    is_featured = models.BooleanField(default=False, verbose_name='Featured on home')
+    carousel_priority = models.IntegerField(default=0, verbose_name='Carousel priority')
     tagline_es = models.CharField(max_length=200, blank=True, verbose_name='Tagline (ES)')
     tagline_en = models.CharField(max_length=200, blank=True, verbose_name='Tagline (EN)')
     order_confirm_hours = models.PositiveIntegerField(
@@ -195,40 +279,242 @@ class Company(models.Model):
         null=True,
         verbose_name='Logo',
     )
-    created_at   = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name        = 'Company'
+        """Opciones de identidad y consulta para empresas B2B."""
+        verbose_name = 'Company'
         verbose_name_plural = 'Companies'
-        ordering            = ['name']
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['ruc', 'dv'], name='core_company_ruc_dv_idx'),
+            models.Index(
+                fields=['business_role', 'verification_status'],
+                name='core_company_role_status_idx',
+            ),
+        ]
 
     def __str__(self):
+        """Nombre comercial para admin, catálogo y depuración."""
         return self.name
+
+    @staticmethod
+    def normalize_identifier(value):
+        """Normaliza RUC/DV sin inventar una validación gubernamental."""
+        return re.sub(r'\s+', '', (value or '').strip().upper())
+
+    @property
+    def can_buy(self):
+        """La empresa puede operar como compradora."""
+        return self.business_role in {'buyer', 'both'}
+
+    @property
+    def can_sell(self):
+        """La empresa puede operar como vendedora."""
+        return self.business_role in {'seller', 'both'}
+
+    def verification_missing_fields(self):
+        """Campos mínimos exigidos antes de una revisión humana."""
+        required = {
+            'legal_name': _('registered legal name'),
+            'ruc': _('RUC'),
+            'dv': _('DV'),
+            'business_email': _('business email'),
+            'verification_document': _('verification evidence'),
+        }
+        return [
+            str(label)
+            for field_name, label in required.items()
+            if not getattr(self, field_name)
+        ]
+
+    def clean(self):
+        """Valida formato básico y bloquea verificaciones incompletas."""
+        super().clean()
+        self.ruc = self.normalize_identifier(self.ruc)
+        self.dv = self.normalize_identifier(self.dv)
+
+        errors = {}
+        if self.ruc and not re.fullmatch(r'[A-Z0-9Ñ.\-]{3,50}', self.ruc):
+            errors['ruc'] = _('Use only letters, numbers, periods and hyphens in the RUC.')
+        if self.dv and not re.fullmatch(r'[A-Z0-9\-]{1,20}', self.dv):
+            errors['dv'] = _('Use only letters, numbers and hyphens in the DV.')
+
+        previous_status = None
+        if self.pk:
+            previous_status = (
+                type(self).objects.filter(pk=self.pk)
+                .values_list('verification_status', flat=True)
+                .first()
+            )
+        if self.verification_status == 'verified' and previous_status != 'verified':
+            missing = self.verification_missing_fields()
+            if missing:
+                errors['verification_status'] = _(
+                    'Cannot verify the company. Missing: %(fields)s.'
+                ) % {'fields': ', '.join(missing)}
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        """Mantiene RUC/DV normalizados y el flag legado sincronizado."""
+        self.ruc = self.normalize_identifier(self.ruc)
+        self.dv = self.normalize_identifier(self.dv)
+        if self.verification_status == 'verified':
+            self.is_verified = True
+            if self.verified_at is None:
+                self.verified_at = timezone.now()
+        else:
+            self.is_verified = False
+            self.verified_at = None
+
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None:
+            kwargs['update_fields'] = list(
+                set(update_fields) | {'ruc', 'dv', 'is_verified', 'verified_at'}
+            )
+        super().save(*args, **kwargs)
+
+    def submit_for_verification(self):
+        """Envía una identidad empresarial completa a revisión manual."""
+        self.ruc = self.normalize_identifier(self.ruc)
+        self.dv = self.normalize_identifier(self.dv)
+        missing = self.verification_missing_fields()
+        if missing:
+            raise ValidationError({
+                'verification_status': _(
+                    'Cannot submit the company. Missing: %(fields)s.'
+                ) % {'fields': ', '.join(missing)}
+            })
+        self.verification_status = 'pending'
+        self.verification_submitted_at = timezone.now()
+        self.full_clean()
+        self.save(update_fields=[
+            'ruc', 'dv', 'verification_status', 'verification_submitted_at',
+        ])
+
+    def mark_verified(self, reviewer):
+        """Registra una decisión humana verificable y auditable."""
+        self.verification_status = 'verified'
+        self.verified_by = reviewer
+        self.verified_at = timezone.now()
+        self.full_clean()
+        self.save(update_fields=[
+            'verification_status', 'verified_by', 'verified_at', 'is_verified',
+        ])
+
+    def return_to_pending_review(self):
+        """Devuelve una empresa verificada a la cola de revisión manual."""
+        self.verification_status = 'pending'
+        self.verified_by = None
+        self.verified_at = None
+        if self.verification_submitted_at is None:
+            self.verification_submitted_at = timezone.now()
+        self.full_clean()
+        self.save(update_fields=[
+            'verification_status',
+            'verified_by',
+            'verified_at',
+            'verification_submitted_at',
+            'is_verified',
+        ])
+
+    def reject_verification(self, reviewer, notes=''):
+        """Registra rechazo manual sin eliminar la evidencia presentada."""
+        self.verification_status = 'rejected'
+        self.verified_by = reviewer
+        self.verification_notes = notes
+        self.verified_at = None
+        self.save(update_fields=[
+            'verification_status', 'verified_by', 'verification_notes',
+            'verified_at', 'is_verified',
+        ])
+
+
+class CompanyMembership(models.Model):
+    """Vincula usuarios con una empresa y define su autoridad interna."""
+
+    ROLE_CHOICES = [
+        ('owner', _('Owner')),
+        ('admin', _('Company administrator')),
+        ('member', _('Company member')),
+    ]
+    STATUS_CHOICES = [
+        ('invited', _('Invited')),
+        ('active', _('Active')),
+        ('suspended', _('Suspended')),
+    ]
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='memberships')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='company_memberships',
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='member')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        """Una membresía por usuario y empresa."""
+        verbose_name = 'Company membership'
+        verbose_name_plural = 'Company memberships'
+        ordering = ['company', 'role', 'user']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['company', 'user'],
+                name='unique_company_user_membership',
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=['user', 'status'],
+                name='core_member_user_status_idx',
+            ),
+        ]
+
+    def __str__(self):
+        """Etiqueta de la membresía para administración."""
+        return f'{self.user} — {self.company} ({self.get_role_display()})'
+
+    @property
+    def can_manage_company(self):
+        """Owners/admins activos pueden administrar la empresa."""
+        return self.status == 'active' and self.role in {'owner', 'admin'}
 
 
 # =============================================================================
-# CATEGORÍA
+# CATEGORY
 # =============================================================================
 
 class Category(models.Model):
-    """Categoría de productos."""
+    """Categoría del catálogo para navegación y filtros en la ZLC."""
     name = models.CharField(max_length=100, unique=True, verbose_name='Name')
 
     class Meta:
+        """Opciones de modelo para categorías del catálogo."""
         verbose_name        = 'Category'
         verbose_name_plural = 'Categories'
         ordering            = ['name']
 
     def __str__(self):
+        """Nombre de la categoría para admin y depuración."""
         return self.name
 
 
 # =============================================================================
-# SECCIONES PROMOCIONALES HOME (CMS ligero)
+# HOME PROMO SECTIONS (LIGHT CMS)
 # =============================================================================
 
 class HomePromoSection(models.Model):
-    """Bloque configurable en la landing sin redeploy (PreExpo / campañas)."""
+    """Bloque configurable del home sin redeploy.
+
+    Operaciones programa filas PreExpo/campañas (ofertas, destacados, banners)
+    desde el admin; el merchandising resuelve productos según el tipo y los
+    vínculos M2M.
+    """
 
     SECTION_TYPES = [
         ('product_row', _('View products')),
@@ -274,33 +560,38 @@ class HomePromoSection(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Opciones de modelo para secciones promocionales del home."""
         verbose_name = _('Home promotional section')
         verbose_name_plural = _('Home promotional sections')
         ordering = ['sort_order', 'slug']
 
     def __str__(self):
+        """Título o slug de la sección promocional."""
         return self.title_es or self.slug
 
     def title_for_lang(self, lang_code: str) -> str:
+        """Devuelve el título ES/EN según el idioma activo de la UI."""
         if lang_code == 'en' and self.title_en:
             return self.title_en
         return self.title_es
 
     def subtitle_for_lang(self, lang_code: str) -> str:
+        """Devuelve el subtítulo ES/EN según el idioma activo de la UI."""
         if lang_code == 'en' and self.subtitle_en:
             return self.subtitle_en
         return self.subtitle_es
 
 
 # =============================================================================
-# PRODUCTO
+# PRODUCT
 # =============================================================================
 
 class Product(models.Model):
-    """
-    Producto del catálogo.
-    Pertenece a una Company y a una Category.
-    Tiene un Inventory relacionado (1-a-1).
+    """SKU del catálogo ZLC perteneciente a una ``Company`` vendedora.
+
+    Vinculado 1:1 con ``Inventory`` para el stock. Ventanas promocionales y
+    prioridad de merchandising dan forma al home y a las ofertas públicas
+    sin alterar el precio de lista.
     """
     CURRENCY_CHOICES = [
         ('USD', _('US Dollar (USD)')),
@@ -341,16 +632,18 @@ class Product(models.Model):
     created_at  = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Opciones de modelo para productos del catálogo."""
         verbose_name        = 'Product'
         verbose_name_plural = 'Products'
         ordering            = ['-merchandising_priority', 'name']
 
     def __str__(self):
+        """Nombre y precio del producto para admin y depuración."""
         return f'{self.name} — {self.currency} {self.unit_price}'
 
     @property
     def is_on_promo_now(self) -> bool:
-        """True si hay promo vigente y menor que precio lista."""
+        """True cuando el precio promo está vigente y es menor al de lista."""
         if self.promo_price is None or self.promo_price >= self.unit_price:
             return False
         now = timezone.now()
@@ -362,12 +655,14 @@ class Product(models.Model):
 
     @property
     def display_price(self) -> Decimal:
+        """Precio unitario visible al comprador (promo si aplica; si no, lista)."""
         if self.is_on_promo_now:
             return self.promo_price
         return self.unit_price
 
     @property
     def discount_pct(self) -> int:
+        """Ahorro en porcentaje entero frente al precio de lista mientras hay promo."""
         if not self.is_on_promo_now or self.unit_price <= 0:
             return 0
         pct = (Decimal('1') - (self.promo_price / self.unit_price)) * Decimal('100')
@@ -375,27 +670,29 @@ class Product(models.Model):
 
     @property
     def stock_qty(self):
-        """Acceso rápido al stock disponible desde el inventario relacionado."""
+        """Unidades en mano desde el ``Inventory`` relacionado (0 si no existe)."""
         if hasattr(self, 'inventory'):
             return self.inventory.stock_qty
         return 0
 
     @property
     def available_qty(self):
-        """Stock real disponible = stock_qty - reserved_qty."""
+        """Unidades vendibles: stock menos reservado."""
         if hasattr(self, 'inventory'):
             return max(0, self.inventory.stock_qty - self.inventory.reserved_qty)
         return 0
 
 
 # =============================================================================
-# INVENTARIO
+# INVENTORY
 # =============================================================================
 
 class Inventory(models.Model):
-    """
-    Control de stock por producto.
-    Relación 1-a-1 con Product (un producto tiene exactamente un inventario).
+    """Control de stock por SKU para disponibilidad en bodega ZLC.
+
+    Uno a uno con ``Product``. Las reservas retienen unidades al crear el
+    pedido; ``confirm_sale`` confirma al pagar; ``release_reservation``
+    libera cancelaciones.
     """
     product         = models.OneToOneField(
         Product, on_delete=models.CASCADE,
@@ -407,22 +704,26 @@ class Inventory(models.Model):
     updated_at      = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Opciones de modelo para inventario por SKU."""
         verbose_name        = 'Inventory'
         verbose_name_plural = 'Inventories'
 
     def __str__(self):
+        """Resumen de stock del producto para admin y depuración."""
         return f'Inventario: {self.product.name} | Stock: {self.stock_qty}'
 
     @property
     def available(self):
+        """Unidades libres para vender tras restar reservas."""
         return max(0, self.stock_qty - self.reserved_qty)
 
     @property
     def is_low_stock(self):
+        """True cuando el stock disponible está en o bajo el umbral de alerta."""
         return self.available <= self.low_stock_alert
 
     def reserve(self, qty):
-        """Reserva unidades al crear un pedido (no descuenta aún)."""
+        """Retiene unidades al colocar un pedido (aún no descuenta stock)."""
         if self.available >= qty:
             self.reserved_qty += qty
             self.save(update_fields=['reserved_qty', 'updated_at'])
@@ -430,23 +731,23 @@ class Inventory(models.Model):
         return False
 
     def confirm_sale(self, qty):
-        """Descuenta stock definitivamente al confirmar pago."""
+        """Confirma unidades reservadas tras la confirmación del pago."""
         self.stock_qty   = max(0, self.stock_qty - qty)
         self.reserved_qty = max(0, self.reserved_qty - qty)
         self.save(update_fields=['stock_qty', 'reserved_qty', 'updated_at'])
 
     def release_reservation(self, qty):
-        """Libera reserva si se cancela la orden."""
+        """Libera una reserva cuando se cancela un pedido."""
         self.reserved_qty = max(0, self.reserved_qty - qty)
         self.save(update_fields=['reserved_qty', 'updated_at'])
 
 
 # =============================================================================
-# DIRECCIÓN
+# ADDRESS
 # =============================================================================
 
 class Address(models.Model):
-    """Address de envío de un comprador."""
+    """Dirección de envío del comprador usada en el checkout de la ZLC."""
     user        = models.ForeignKey(
         User, on_delete=models.CASCADE,
         related_name='addresses', verbose_name='User'
@@ -460,25 +761,27 @@ class Address(models.Model):
     is_default  = models.BooleanField(default=False, verbose_name='Default?')
 
     class Meta:
+        """Opciones de modelo para direcciones de envío."""
         verbose_name        = 'Address'
         verbose_name_plural = 'Addresses'
 
     def __str__(self):
+        """Etiqueta corta de la dirección para admin y depuración."""
         return f'{self.label or "Address"} — {self.city}, {self.country}'
 
     def save(self, *args, **kwargs):
-        # Si se marca como predeterminada, quitar la marca de las demás del mismo usuario
+        """Asegura una sola dirección predeterminada por comprador."""
         if self.is_default:
             Address.objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
         super().save(*args, **kwargs)
 
 
 # =============================================================================
-# ORDEN
+# ORDER + ACCESS + CARRIERS
 # =============================================================================
 
 class TransportCarrier(models.Model):
-    """Transportista activo para checkout (ZLC / logística)."""
+    """Opción de transportista en checkout para logística de salida de la ZLC."""
 
     MODE_CHOICES = [
         ('maritime', _('Maritime')),
@@ -506,16 +809,18 @@ class TransportCarrier(models.Model):
     )
 
     class Meta:
+        """Opciones de modelo para transportistas de checkout."""
         verbose_name = 'Transport carrier'
         verbose_name_plural = 'Transport carriers'
         ordering = ['sort_order', 'name']
 
     def __str__(self):
+        """Nombre del transportista para admin y depuración."""
         return self.name
 
 
 class UserApplication(models.Model):
-    """Solicitud de acceso a la plataforma (PreExpo / inversores)."""
+    """Solicitud de acceso para onboarding comprador/vendedor (PreExpo / inversionistas)."""
     ROLE_CHOICES = [
         ('buyer', _('Buyer')),
         ('seller', _('Seller')),
@@ -551,23 +856,28 @@ class UserApplication(models.Model):
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Opciones de modelo para solicitudes de acceso."""
         verbose_name = 'Access request'
         verbose_name_plural = 'Access requests'
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
+        """Asigna un ``review_token`` único en el primer guardado."""
         if not self.review_token:
             self.review_token = uuid.uuid4().hex
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """Resumen de la solicitud de acceso para admin y depuración."""
         return f'{self.full_name} — {self.email} ({self.get_status_display()})'
 
 
 class Order(models.Model):
-    """
-    Cabecera de una orden de compra.
-    Un buyer (User) hace una Order con una o más OrderItems.
+    """Cabecera de compra empresarial en checkouts B2B de la ZLC.
+
+    Las líneas viven en ``OrderItem``. La confirmación del vendedor condiciona
+    el fulfillment cuando la empresa debe aceptar antes de empacar; los
+    totales se consolidan desde las instantáneas de línea.
     """
     STATUS_CHOICES = [
         ('awaiting_seller', _('Awaiting confirmation')),
@@ -587,7 +897,6 @@ class Order(models.Model):
     ]
 
     ORDER_TYPE_CHOICES = [
-        ('b2c', _('End consumer (B2C)')),
         ('b2b', _('Business to business (B2B)')),
     ]
 
@@ -605,7 +914,7 @@ class Order(models.Model):
         verbose_name='Order number'
     )
     status        = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    order_type    = models.CharField(max_length=3, choices=ORDER_TYPE_CHOICES, default='b2c')
+    order_type    = models.CharField(max_length=3, choices=ORDER_TYPE_CHOICES, default='b2b')
     subtotal      = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total         = models.DecimalField(max_digits=14, decimal_places=2, default=0)
@@ -661,33 +970,36 @@ class Order(models.Model):
     updated_at    = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Opciones de modelo para pedidos."""
         verbose_name        = 'Order'
         verbose_name_plural = 'Orders'
         ordering            = ['-created_at']
 
     def save(self, *args, **kwargs):
-        # Genera el número de orden automáticamente al crear
+        """Genera ``order_number`` al crear si aún no existe."""
         if not self.order_number:
             self.order_number = self._generate_order_number()
         super().save(*args, **kwargs)
 
     @staticmethod
     def _generate_order_number():
-        """Formato: TF-YYYYMM-XXXX (ej: TF-202601-A3F2)"""
+        """Construye identificadores TF-YYYYMM-XXXX para pedidos nuevos."""
         now    = timezone.now()
         suffix = uuid.uuid4().hex[:4].upper()
         return f'TF-{now.strftime("%Y%m")}-{suffix}'
 
     def __str__(self):
+        """Número de pedido y comprador para admin y depuración."""
         return f'Orden {self.order_number} — {self.buyer.get_full_name() or self.buyer.username}'
 
     def recalculate_totals(self):
-        """Recalcula subtotal y total sumando los OrderItems."""
+        """Recalcula subtotal y total a partir de los ``line_total`` de ``OrderItem``."""
         self.subtotal = sum(item.line_total for item in self.items.all())
         self.total    = self.subtotal + self.shipping_cost
         self.save(update_fields=['subtotal', 'total', 'updated_at'])
 
     def get_status_color(self):
+        """Asocia el estado a la clase CSS de badge Bootstrap para paneles."""
         colors = {
             'awaiting_seller': 'badge-warning',
             'pending':   'badge-warning',
@@ -700,7 +1012,7 @@ class Order(models.Model):
         return colors.get(self.status, 'badge-secondary')
 
     def maps_url_buyer(self):
-        """Enlace a mapa con la ubicación del comprador."""
+        """URL de Google Maps del pin de checkout confirmado del comprador."""
         if self.buyer_latitude is None or self.buyer_longitude is None:
             return ''
         return (
@@ -710,14 +1022,14 @@ class Order(models.Model):
 
 
 # =============================================================================
-# ITEM DE ORDEN
+# ORDER ITEM
 # =============================================================================
 
 class OrderItem(models.Model):
-    """
-    Línea de detalle: qué producto, cuánto y a qué precio (snapshot del momento).
-    El precio se guarda como snapshot para que los cambios futuros no afecten
-    órdenes históricas.
+    """Línea de pedido con cantidad e instantánea de precio al momento de la venta.
+
+    La instantánea protege los totales históricos cuando cambian los precios
+    del catálogo.
     """
     order              = models.ForeignKey(
         Order, on_delete=models.CASCADE,
@@ -735,25 +1047,29 @@ class OrderItem(models.Model):
     line_total         = models.DecimalField(max_digits=14, decimal_places=2, default=0)
 
     class Meta:
+        """Opciones de modelo para ítems de pedido."""
         verbose_name        = 'Order item'
         verbose_name_plural = 'Order items'
 
     def save(self, *args, **kwargs):
+        """Mantiene ``line_total`` sincronizado con cantidad × precio instantáneo."""
         self.line_total = self.unit_price_snapshot * self.qty
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """Cantidad y producto de la línea para admin y depuración."""
         return f'{self.qty}x {self.product.name} en {self.order.order_number}'
 
 
 # =============================================================================
-# PAGO (PAYMENT)
+# PAYMENT
 # =============================================================================
 
 class Payment(models.Model):
-    """
-    Registro del pago de una orden.
-    Relación 1-a-1 con Order (una orden tiene un solo pago).
+    """Registro de pago para un ``Order`` (1:1).
+
+    Proveedores: mock (desarrollo), transferencia bancaria y placeholders
+    para Stripe/PayPal. El estado impulsa las transiciones de fulfillment.
     """
     PROVIDER_CHOICES = [
         ('mock', _('Mock (development)')),
@@ -781,19 +1097,21 @@ class Payment(models.Model):
     txn_ref  = models.CharField(max_length=200, blank=True, verbose_name='Transaction reference')
 
     class Meta:
+        """Opciones de modelo para pagos de pedidos."""
         verbose_name        = 'Payment'
         verbose_name_plural = 'Payments'
 
     def __str__(self):
+        """Estado del pago y número de pedido para admin y depuración."""
         return f'Pago [{self.get_status_display()}] — {self.order.order_number}'
 
 
 # =============================================================================
-# ENVÍO (SHIPMENT)
+# SHIPMENT
 # =============================================================================
 
 class Shipment(models.Model):
-    """Registro del envío físico de una orden."""
+    """Envío físico de salida para un pedido ZLC cumplido."""
     STATUS_CHOICES = [
         ('label', _('Label generated')),
         ('in_transit', _('In transit')),
@@ -826,22 +1144,21 @@ class Shipment(models.Model):
     delivered_at    = models.DateTimeField(null=True, blank=True, verbose_name='Delivery date')
 
     class Meta:
+        """Opciones de modelo para envíos."""
         verbose_name        = 'Shipment'
         verbose_name_plural = 'Shipments'
 
     def __str__(self):
+        """Estado del envío y número de pedido para admin y depuración."""
         return f'Shipment [{self.get_status_display()}] — {self.order.order_number}'
 
 
 # =============================================================================
-# DOCUMENTO (DOCUMENT)
+# DOCUMENT
 # =============================================================================
 
 class Document(models.Model):
-    """
-    Documentos asociados a una orden (factura, packing list, etc.).
-    Una orden puede tener múltiples documentos.
-    """
+    """Documento comercial adjunto a un pedido (factura, packing list, etc.)."""
     DOC_TYPE_CHOICES = [
         ('invoice',      _('Invoice')),
         ('packing_list', _('Packing List')),
@@ -858,21 +1175,25 @@ class Document(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Opciones de modelo para documentos de pedido."""
         verbose_name        = 'Document'
         verbose_name_plural = 'Documents'
 
     def __str__(self):
+        """Tipo y número de documento para admin y depuración."""
         return f'{self.get_doc_type_display()} {self.doc_number} — {self.order.order_number}'
 
 
 # =============================================================================
-# COTIZACIÓN (solicitud formal de precios antes de ordenar)
+# RFQ QUOTE (formal pricing before order)
 # =============================================================================
 
 class Cotizacion(models.Model):
-    """
-    Cotización: permite al comprador solicitar precio formal de uno o más
-    productos a una empresa antes de confirmar la orden.
+    """RFQ del comprador pidiendo precio unitario formal a un vendedor de la ZLC.
+
+    Las cotizaciones automáticas usan precios de catálogo; las manuales
+    esperan respuesta del vendedor. ``lote`` agrupa RFQ en difusión; las
+    aceptadas pueden vincularse a un ``Order``.
     """
     ESTADO_CHOICES = [
         ('pendiente', _('Pending')),
@@ -927,28 +1248,31 @@ class Cotizacion(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Opciones de modelo para cotizaciones RFQ."""
         verbose_name = 'Quote'
         verbose_name_plural = 'Quotes'
         ordering = ['-created_at']
 
     @staticmethod
     def _generate_numero():
-        """Formato COT-YYYYMM-XXXX (hex)."""
+        """Construye identificadores COT-YYYYMM-XXXX para cotizaciones nuevas."""
         now = timezone.now()
         suffix = uuid.uuid4().hex[:4].upper()
         return f'COT-{now.strftime("%Y%m")}-{suffix}'
 
     def save(self, *args, **kwargs):
+        """Genera ``numero`` al crear si aún no existe."""
         if not self.numero:
             self.numero = self._generate_numero()
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """Número de cotización para admin y depuración."""
         return self.numero
 
 
 class CotizacionItem(models.Model):
-    """Ítem de una cotización con cantidad solicitada y precio ofertado opcional."""
+    """Línea de RFQ con cantidad solicitada y precio ofertado opcional del vendedor."""
 
     cotizacion = models.ForeignKey(
         Cotizacion,
@@ -972,26 +1296,28 @@ class CotizacionItem(models.Model):
     notas = models.TextField(blank=True, verbose_name='Line notes')
 
     class Meta:
+        """Opciones de modelo para ítems de cotización."""
         verbose_name = 'Quote item'
         verbose_name_plural = 'Quote items'
 
     def __str__(self):
+        """Cantidad y producto de la línea de cotización."""
         return f'{self.cantidad_solicitada}× {self.product.name} ({self.cotizacion.numero})'
 
     @property
     def linea_total(self):
-        """Subtotal de línea si ya hay precio ofertado."""
+        """Subtotal de línea una vez que el vendedor ofreció precio unitario."""
         if self.precio_ofertado is None:
             return None
         return self.precio_ofertado * self.cantidad_solicitada
 
 
 # =============================================================================
-# TRANSPORTISTAS (registro + asignación por orden)
+# CARRIERS (registration + per-order assignment)
 # =============================================================================
 
 class Transportista(models.Model):
-    """Transportista registrado; requiere aprobación admin."""
+    """Transportista de última milla registrado; el admin debe aprobarlo antes de activarlo."""
 
     ESTADO_CHOICES = [
         ('pendiente', _('Pending review')),
@@ -1025,16 +1351,18 @@ class Transportista(models.Model):
     activo = models.BooleanField(default=False)
 
     class Meta:
+        """Opciones de modelo para transportistas registrados."""
         verbose_name = 'Carrier'
         verbose_name_plural = 'Carriers'
 
     def __str__(self):
+        """Empresa y nombre del transportista para admin y depuración."""
         nombre = self.user.get_full_name() if self.user_id else self.empresa_nombre
         return f'{self.empresa_nombre} — {nombre}'
 
 
 class AsignacionTransporte(models.Model):
-    """Asignación de transportista a una orden (buyer elige en checkout o paso dedicado)."""
+    """Asignación de transportista a un pedido (el comprador elige en checkout)."""
 
     ESTADO_CHOICES = [
         ('pendiente', _('Pending confirmation')),
@@ -1066,38 +1394,44 @@ class AsignacionTransporte(models.Model):
     fecha_confirmacion = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Opciones de modelo para asignaciones de transporte."""
         verbose_name = 'Transport assignment'
         verbose_name_plural = 'Transport assignments'
 
     def __str__(self):
+        """Pedido y transportista asignado para admin y depuración."""
         return f'{self.order.order_number} — {self.transportista.empresa_nombre}'
 
 
 # =============================================================================
-# VERIFICACIÓN DE EMAIL (OTP 6 dígitos — Supabase + fallback Django)
+# EMAIL VERIFICATION (6-digit OTP — Supabase + Django fallback)
 # =============================================================================
 
 class EmailVerification(models.Model):
-    """Código OTP de 6 dígitos; expira a los 10 minutos (ver ``otp_handler.OTP_EXPIRY_MINUTES``)."""
+    """OTP de correo de seis dígitos; en BD se guarda el hash SHA-256."""
 
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='email_verifications',
     )
-    code = models.CharField(max_length=6)
+    # SHA-256 hex digest of the 6-digit OTP (never store plaintext).
+    code = models.CharField(max_length=64, db_index=True)
     is_used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Opciones de modelo para verificaciones OTP por correo."""
         verbose_name = 'Email verification'
         verbose_name_plural = 'Email verifications'
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.user_id} · {self.code} · used={self.is_used}'
+        """Resumen del OTP de correo para admin y depuración."""
+        return f'{self.user_id} · otp_hash · used={self.is_used}'
 
     def is_valid(self) -> bool:
+        """True si no se ha usado y sigue dentro de la ventana TTL del OTP."""
         from core.utils.otp_handler import OTP_EXPIRY_MINUTES
 
         if self.is_used:
@@ -1106,14 +1440,59 @@ class EmailVerification(models.Model):
 
     @classmethod
     def generate_for(cls, user: User) -> 'EmailVerification':
-        """Genera OTP seguro; delega en ``generate_user_otp``."""
+        """Crea un OTP hasheado y adjunta ``plain_code`` efímero para el email."""
         from core.utils.otp_handler import generate_user_otp
+        from core.utils.secret_hash import hash_secret
 
-        code = generate_user_otp(user)
-        return cls.objects.filter(user=user, code=code, is_used=False).latest('created_at')
+        plain = generate_user_otp(user)
+        row = cls.objects.filter(
+            user=user, code=hash_secret(plain), is_used=False,
+        ).latest('created_at')
+        # Never persisted — only for the one-time email send path.
+        row.plain_code = plain
+        return row
 
 
-# Modelos enterprise (SaaS, ads, API, logística extendida)
+class PasswordResetLink(models.Model):
+    """Token magic-link hasheado en BD para recuperación de contraseña.
+
+    El token en claro se envía una sola vez por correo; en BD solo vive el
+    digest SHA-256. Las filas se eliminan tras un uso exitoso.
+    TTL: ``PASSWORD_RESET_LINK_EXPIRY_MINUTES`` (15).
+    """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='password_reset_links',
+    )
+    # SHA-256 hex digest of the opaque URL token.
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        """Opciones de modelo para enlaces de restablecimiento de contraseña."""
+        verbose_name = 'Password reset link'
+        verbose_name_plural = 'Password reset links'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        """Resumen del enlace de restablecimiento para admin y depuración."""
+        return f'{self.user_id} · reset_link_hash · used={self.is_used}'
+
+    def is_valid(self) -> bool:
+        """True si no se ha usado y sigue dentro del TTL del enlace de reset."""
+        from core.utils.password_reset_link import PASSWORD_RESET_LINK_EXPIRY_MINUTES
+
+        if self.is_used:
+            return False
+        return timezone.now() <= self.created_at + timezone.timedelta(
+            minutes=PASSWORD_RESET_LINK_EXPIRY_MINUTES
+        )
+
+
+# Enterprise models (SaaS, ads, API, extended logistics)
 from .enterprise_models import (  # noqa: E402, F401
     AdCampaign,
     AdCreditAccount,

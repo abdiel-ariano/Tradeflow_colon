@@ -1,0 +1,72 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Admin search — TradeFlow{% endblock %}
+{% block body_shell_class %} tf-admin-unified{% endblock %}
+{% block content %}
+<div class="adm-shell">
+  {% include "core/admin_rail.html" %}
+  <div class="adm-main">
+    <header class="adm-head">
+      <div>
+        <h1>Search</h1>
+        <p>Find companies, orders, and access applications in one place.</p>
+      </div>
+    </header>
+
+    <form class="adm-filter-card" method="get" action="">
+      <div class="adm-filter-grid">
+        <div class="adm-field adm-field--grow">
+          <label for="adm-q">Query</label>
+          <input id="adm-q" type="search" name="q" value="{{ q }}" placeholder="RUC, company, order #, email…" autofocus>
+        </div>
+        <div class="adm-filter-actions">
+          <button type="submit" class="adm-btn adm-btn--primary">Search</button>
+        </div>
+      </div>
+    </form>
+
+    {% if q and q|length < 2 %}
+    <p class="adm-result-hint">Type at least 2 characters.</p>
+    {% elif q %}
+    <div class="adm-work-queue__grid" style="margin-top:1rem;">
+      <div class="adm-table-card">
+        <div class="adm-table-head"><span>Companies ({{ companies|length }})</span></div>
+        <table class="adm-table">
+          <tbody>
+            {% for c in companies %}
+            <tr><td><a href="{% url 'admin_empresa_detalle' c.pk %}">{{ c.name }}</a></td><td>{{ c.ruc|default:"—" }}</td></tr>
+            {% empty %}
+            <tr><td class="adm-empty">No companies.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="adm-table-card">
+        <div class="adm-table-head"><span>Orders ({{ orders|length }})</span></div>
+        <table class="adm-table">
+          <tbody>
+            {% for o in orders %}
+            <tr><td><a href="{% url 'detalle_orden' o.pk %}">{{ o.order_number }}</a></td><td>{{ o.get_status_display }}</td></tr>
+            {% empty %}
+            <tr><td class="adm-empty">No orders.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="adm-table-card">
+        <div class="adm-table-head"><span>Applications ({{ applications|length }})</span></div>
+        <table class="adm-table">
+          <tbody>
+            {% for a in applications %}
+            <tr><td><a href="{% url 'admin_applications' %}">{{ a.full_name }}</a></td><td>{{ a.email }}</td></tr>
+            {% empty %}
+            <tr><td class="adm-empty">No applications.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

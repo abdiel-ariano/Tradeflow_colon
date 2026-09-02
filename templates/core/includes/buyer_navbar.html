@@ -34,7 +34,7 @@
         <span class="pn-buyer-avatar" id="pn-buyer-avatar" aria-hidden="true"></span>
         <span class="pn-buyer-name">{{ request.user.get_full_name|default:request.user.username }}</span>
       </a>
-      <a href="{% url 'logout' %}" class="pn-btn-signout">Sign out</a>
+      {% include "core/includes/logout_control.html" with button_class="pn-btn-signout" label="Sign out" %}
     </div>
   </nav>
 </header>

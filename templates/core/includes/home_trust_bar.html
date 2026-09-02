@@ -1,38 +1,39 @@
+{% load i18n %}
 {% comment %}Trust bar — five factual signals with inline SVG icons.{% endcomment %}
-<section class="hm-trust hm-trust--compact" id="hm-trust" aria-label="Platform trust indicators">
+<section class="hm-trust hm-trust--compact" id="hm-trust" aria-label="{% trans 'Platform trust indicators' %}">
   <ul class="hm-trust__list">
     <li class="hm-trust__item">
       <a href="{% url 'marketplace_verified_suppliers' %}" class="hm-trust__link">
         {% include "core/includes/tf_icon.html" with name="shield" class="hm-trust__icon" %}
-        CFZ-verified suppliers
+        {% trans "CFZ-verified suppliers" %}
       </a>
     </li>
     <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
     <li class="hm-trust__item">
       <a href="{% url 'home' %}#como-funciona" class="hm-trust__link">
         {% include "core/includes/tf_icon.html" with name="description" class="hm-trust__icon" %}
-        Export docs included
+        {% trans "Formal supplier RFQs" %}
       </a>
     </li>
     <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
     <li class="hm-trust__item">
-      <a href="{% url 'catalogo_publico' %}" class="hm-trust__link">
-        {% include "core/includes/tf_icon.html" with name="lock" class="hm-trust__icon" %}
-        Secure B2B checkout
+      <a href="{% url 'marketplace_order_protection' %}" class="hm-trust__link">
+        {% include "core/includes/tf_icon.html" with name="description" class="hm-trust__icon" %}
+        {% trans "Quote-first B2B process" %}
       </a>
     </li>
     <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
     <li class="hm-trust__item">
       <a href="{% url 'catalogo_publico' %}" class="hm-trust__link">
         {% include "core/includes/tf_icon.html" with name="inventory_2" class="hm-trust__icon" %}
-        Live wholesale inventory
+        {% trans "Live wholesale inventory" %}
       </a>
     </li>
     <li class="hm-trust__item" aria-hidden="true"><span class="hm-trust__divider"></span></li>
     <li class="hm-trust__item">
       <a href="{% url 'mapa_zlc' %}" class="hm-trust__link">
         {% include "core/includes/tf_icon.html" with name="verified" class="hm-trust__icon" %}
-        Registered ZLC partners
+        {% trans "Registered ZLC partners" %}
       </a>
     </li>
   </ul>

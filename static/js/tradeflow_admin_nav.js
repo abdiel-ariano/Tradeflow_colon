@@ -1,0 +1,270 @@
+/**
+ * Keeps the shared TradeFlow administration rail route-aware.
+ *
+ * The dashboard and Django Admin render the same navigation partial. The
+ * current destination opens automatically, while opening another category
+ * closes its siblings. The selected category is preserved for the session.
+ */
+(function () {
+  "use strict";
+
+  /**
+   * Return whether a route prefix matches the current browser path.
+   *
+   * @param {string} currentPath Current URL path.
+   * @param {string} route Configured navigation route.
+   * @returns {boolean} True when the route represents the current page.
+   */
+  function routeMatches(currentPath, route) {
+    if (!route) return false;
+    if (route === "/admin/") return currentPath === route;
+    return currentPath.indexOf(route) === 0;
+  }
+
+  /** Mark the most specific shared-rail destination as active. */
+  function highlightSharedRail() {
+    var rail = document.getElementById("admRail");
+    if (!rail) return;
+
+    var activeKey = rail.getAttribute("data-nav-active") || "";
+    var currentPath = window.location.pathname;
+    var links = Array.prototype.slice.call(
+      rail.querySelectorAll("a.adm-rail-link")
+    );
+    var bestMatch = null;
+
+    links.forEach(function (link) {
+      var key = link.getAttribute("data-adm-nav") || "";
+      var route = link.getAttribute("data-tf-admin-route") || "";
+      var keyMatches = Boolean(activeKey && key === activeKey);
+      var pathMatches = routeMatches(currentPath, route);
+      var matchWeight = keyMatches ? 10000 : route.length;
+
+      if (
+        (keyMatches || pathMatches) &&
+        (!bestMatch || matchWeight > bestMatch.weight)
+      ) {
+        bestMatch = { link: link, weight: matchWeight };
+      }
+    });
+
+    if (bestMatch) {
+      bestMatch.link.classList.add("is-active");
+      bestMatch.link.setAttribute("aria-current", "page");
+    }
+  }
+
+  /**
+   * Convert section labels and links into accessible accordion groups.
+   *
+   * Ops rail uses multi-open groups (no exclusive close) to avoid layout
+   * jumps when switching sections. Django Admin rail may still use exclusive.
+   *
+   * @param {HTMLElement|null} nav Navigation container.
+   * @param {string} labelSelector Selector for category labels.
+   * @param {string} storageKey Session storage key.
+   */
+  function buildAccordion(nav, labelSelector, storageKey) {
+    if (!nav || nav.getAttribute("data-accordion-ready") === "true") {
+      return;
+    }
+
+    var children = Array.prototype.slice.call(nav.children);
+    var groups = [];
+    var currentBody = null;
+    var currentInner = null;
+    var exclusive = nav.getAttribute("data-rail-accordion") !== "multi";
+
+    nav.textContent = "";
+
+    children.forEach(function (node) {
+      if (node.matches(labelSelector)) {
+        var details = document.createElement("details");
+        var summary = document.createElement("summary");
+        var label = document.createElement("span");
+        var icon = document.createElement("span");
+        var body = document.createElement("div");
+        var inner = document.createElement("div");
+
+        details.className = "tf-rail-group";
+        details.setAttribute("data-rail-group", String(groups.length));
+        summary.className = "tf-rail-group__summary";
+        body.className = "tf-rail-group__body";
+        inner.className = "tf-rail-group__body-inner";
+        label.textContent = node.textContent.trim();
+        icon.className = "material-symbols-rounded tf-rail-group__icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = "expand_more";
+
+        summary.appendChild(label);
+        summary.appendChild(icon);
+        body.appendChild(inner);
+        details.appendChild(summary);
+        details.appendChild(body);
+        nav.appendChild(details);
+        groups.push(details);
+        currentBody = body;
+        currentInner = inner;
+        return;
+      }
+
+      if (currentInner) {
+        currentInner.appendChild(node);
+      } else if (currentBody) {
+        currentBody.appendChild(node);
+      } else {
+        nav.appendChild(node);
+      }
+    });
+
+    if (!groups.length) return;
+
+    var activeGroup = groups.find(function (group) {
+      return Boolean(group.querySelector(".is-active, [aria-current='page']"));
+    });
+    var savedRaw = window.sessionStorage.getItem(storageKey) || "";
+    var savedIndexes = savedRaw.split(",").filter(Boolean);
+    var opened = false;
+
+    if (activeGroup) {
+      activeGroup.open = true;
+      opened = true;
+    }
+
+    if (!exclusive) {
+      groups.forEach(function (group) {
+        var idx = group.getAttribute("data-rail-group") || "";
+        if (savedIndexes.indexOf(idx) !== -1) {
+          group.open = true;
+          opened = true;
+        }
+      });
+    } else {
+      var savedGroup = groups.find(function (group) {
+        return group.getAttribute("data-rail-group") === savedIndexes[0];
+      });
+      var initialGroup = activeGroup || savedGroup || groups[0];
+      initialGroup.open = true;
+      opened = true;
+    }
+
+    if (!opened && groups[0]) {
+      groups[0].open = true;
+    }
+
+    function persistOpenGroups() {
+      var openIds = groups
+        .filter(function (group) {
+          return group.open;
+        })
+        .map(function (group) {
+          return group.getAttribute("data-rail-group") || "0";
+        });
+      window.sessionStorage.setItem(
+        storageKey,
+        exclusive ? openIds[0] || "0" : openIds.join(",")
+      );
+    }
+
+    groups.forEach(function (group) {
+      group.addEventListener("toggle", function () {
+        if (exclusive && group.open) {
+          groups.forEach(function (sibling) {
+            if (sibling !== group) sibling.open = false;
+          });
+        }
+        persistOpenGroups();
+      });
+    });
+
+    nav.setAttribute("data-accordion-ready", "true");
+  }
+
+
+  /**
+   * Keep the shared administration rail usable on tablets and phones.
+   *
+   * The drawer state lives only in the current document. It is intentionally
+   * not persisted so every administrative route starts from a predictable
+   * closed state on compact screens.
+   */
+  function setupResponsiveDrawer() {
+    var toggle = document.getElementById("tfAdminMenuToggle");
+    var rail = document.getElementById("admRail");
+    var backdrop = document.getElementById("tfAdminRailBackdrop");
+
+    if (!toggle || !rail || !backdrop) return;
+
+    /**
+     * Apply the drawer state and synchronize accessibility attributes.
+     *
+     * @param {boolean} isOpen Whether the compact navigation is visible.
+     * @param {boolean} restoreFocus Whether closing should focus the toggle.
+     */
+    function setDrawerState(isOpen, restoreFocus) {
+      document.body.classList.toggle("tf-admin-drawer-open", isOpen);
+      toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      backdrop.setAttribute("tabindex", isOpen ? "0" : "-1");
+
+      if (isOpen) {
+        var destination = rail.querySelector(
+          "[aria-current='page'], a.adm-rail-link"
+        );
+        if (destination) destination.focus();
+      } else if (restoreFocus) {
+        toggle.focus();
+      }
+    }
+
+    toggle.addEventListener("click", function () {
+      var isOpen = document.body.classList.contains(
+        "tf-admin-drawer-open"
+      );
+      setDrawerState(!isOpen, isOpen);
+    });
+
+    backdrop.addEventListener("click", function () {
+      setDrawerState(false, true);
+    });
+
+    rail.addEventListener("click", function (event) {
+      if (
+        window.innerWidth < 1080 &&
+        event.target.closest("a.adm-rail-link")
+      ) {
+        setDrawerState(false, false);
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (
+        event.key === "Escape" &&
+        document.body.classList.contains("tf-admin-drawer-open")
+      ) {
+        setDrawerState(false, true);
+      }
+    });
+
+    window.addEventListener("resize", function () {
+      if (window.innerWidth >= 1080) {
+        setDrawerState(false, false);
+      }
+    });
+  }
+
+  function initializeNavigation() {
+    highlightSharedRail();
+    buildAccordion(
+      document.querySelector(".adm-rail-nav"),
+      ".adm-rail-section-label",
+      "tradeflow-admin-group"
+    );
+    setupResponsiveDrawer();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeNavigation);
+  } else {
+    initializeNavigation();
+  }
+})();

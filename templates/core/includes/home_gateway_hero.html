@@ -1,4 +1,4 @@
-{% load tf_money %}
+{% load tf_money i18n %}
 {% comment %}Home gateway — high-impact above-the-fold value proposition.{% endcomment %}
 <section class="hm-gateway" aria-labelledby="hm-gateway-title">
   <div class="hm-gateway__bg" aria-hidden="true">
@@ -8,33 +8,37 @@
   </div>
   <div class="hm-gateway__inner">
     <div class="hm-gateway__copy">
-      <p class="hm-gateway__kicker">Colón Free Zone · B2B wholesale</p>
-      <h1 class="hm-gateway__title" id="hm-gateway-title">The Americas' wholesale marketplace starts here</h1>
-      <p class="hm-gateway__sub">Browse verified CFZ suppliers, compare MOQs in USD, and request formal quotes — export-ready documentation included on every order.</p>
+      <p class="hm-gateway__kicker">{% trans "Colón Free Zone · B2B wholesale" %}</p>
+      <h1 class="hm-gateway__title" id="hm-gateway-title">{% trans "The Americas' wholesale marketplace starts here" %}</h1>
+      <p class="hm-gateway__sub">{% trans "Browse verified CFZ suppliers, compare MOQs in USD, and request formal quotes — export-ready documentation included on every order." %}</p>
       <div class="hm-gateway__actions">
-        <a href="{% url 'catalogo_publico' %}" class="hm-gateway__btn hm-gateway__btn--primary">Explore {{ stats.productos|default:0 }}+ products</a>
-        <a href="{% url 'signup_buyer' %}" class="hm-gateway__btn hm-gateway__btn--ghost">Create free buyer account</a>
+        <a href="{% url 'catalogo_publico' %}" class="hm-gateway__btn hm-gateway__btn--primary">{% blocktrans with count=stats.productos|default:0 %}Explore {{ count }}+ products{% endblocktrans %}</a>
+        {% if tf_seller_onboarding_pending %}
+        <a href="{% url 'seller_onboarding_company' %}" class="hm-gateway__btn hm-gateway__btn--ghost">{% trans "Complete company setup" %}</a>
+        {% elif not request.user.is_authenticated %}
+        <a href="{% url 'signup_buyer' %}" class="hm-gateway__btn hm-gateway__btn--ghost">{% trans "Register your company" %}</a>
+        {% endif %}
       </div>
-      <ul class="hm-gateway__pills" aria-label="Platform highlights">
+      <ul class="hm-gateway__pills" aria-label="{% trans 'Platform highlights' %}">
         <li class="hm-gateway__pill">
           {% include "core/includes/tf_icon.html" with name="verified" class="hm-gateway__pill-icon" %}
-          CFZ verified suppliers
+          {% trans "CFZ verified suppliers" %}
         </li>
         <li class="hm-gateway__pill">
           {% include "core/includes/tf_icon.html" with name="description" class="hm-gateway__pill-icon" %}
-          RFQ before you buy
+          {% trans "RFQ before you buy" %}
         </li>
         <li class="hm-gateway__pill">
           {% include "core/includes/tf_icon.html" with name="local_shipping" class="hm-gateway__pill-icon" %}
-          Export docs included
+          {% trans "Export docs included" %}
         </li>
       </ul>
     </div>
 
-    <aside class="hm-gateway__stats" aria-label="Marketplace highlights" data-hm-gateway-metrics>
+    <aside class="hm-gateway__stats" aria-label="{% trans 'Marketplace highlights' %}" data-hm-gateway-metrics>
       <div class="hm-gateway__pulse-panel">
         {% if gateway_carousel_products %}
-        <div class="hm-gateway__carousel" data-hm-gateway-carousel aria-roledescription="carousel" aria-label="Deals and featured products">
+        <div class="hm-gateway__carousel" data-hm-gateway-carousel aria-roledescription="carousel" aria-label="{% trans 'Deals and featured products' %}">
           <div class="hm-gateway__carousel-frame">
             <div class="hm-gateway__carousel-track">
               {% for product in gateway_carousel_products %}
@@ -42,11 +46,11 @@
                 <a href="{% url 'catalogo_producto_detail' product.pk %}" class="hm-gateway__carousel-link">
                   <div class="hm-gateway__carousel-media">
                     {% if product.is_on_promo_now %}
-                    <span class="hm-gateway__carousel-badge hm-gateway__carousel-badge--deal">{{ product.discount_pct }}% off</span>
+                    <span class="hm-gateway__carousel-badge hm-gateway__carousel-badge--deal">{% blocktrans with pct=product.discount_pct %}{{ pct }}% off{% endblocktrans %}</span>
                     {% elif product.is_bestseller %}
-                    <span class="hm-gateway__carousel-badge hm-gateway__carousel-badge--hot">Best seller</span>
+                    <span class="hm-gateway__carousel-badge hm-gateway__carousel-badge--hot">{% trans "Best seller" %}</span>
                     {% else %}
-                    <span class="hm-gateway__carousel-badge hm-gateway__carousel-badge--pick">Wholesale pick</span>
+                    <span class="hm-gateway__carousel-badge hm-gateway__carousel-badge--pick">{% trans "Wholesale pick" %}</span>
                     {% endif %}
                     {% include "core/includes/home_visual_media.html" with product=product decorative=True loading=forloop.first|yesno:"eager,lazy" img_class="hm-gateway__carousel-img" object_fit="cover" %}
                   </div>
@@ -69,18 +73,18 @@
               {% endfor %}
             </div>
             {% if gateway_carousel_products|length > 1 %}
-            <button type="button" class="hm-gateway__carousel-arrow hm-gateway__carousel-arrow--prev" data-hm-gateway-prev aria-label="Previous product">
+            <button type="button" class="hm-gateway__carousel-arrow hm-gateway__carousel-arrow--prev" data-hm-gateway-prev aria-label="{% trans 'Previous product' %}">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <button type="button" class="hm-gateway__carousel-arrow hm-gateway__carousel-arrow--next" data-hm-gateway-next aria-label="Next product">
+            <button type="button" class="hm-gateway__carousel-arrow hm-gateway__carousel-arrow--next" data-hm-gateway-next aria-label="{% trans 'Next product' %}">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
             </button>
             {% endif %}
           </div>
           {% if gateway_carousel_products|length > 1 %}
-          <div class="hm-gateway__carousel-dots" role="tablist" aria-label="Product slides">
+          <div class="hm-gateway__carousel-dots" role="tablist" aria-label="{% trans 'Product slides' %}">
             {% for product in gateway_carousel_products %}
-            <button type="button" class="hm-gateway__carousel-dot{% if forloop.first %} is-active{% endif %}" data-hm-gateway-dot="{{ forloop.counter0 }}" role="tab" aria-label="Product {{ forloop.counter }}"{% if forloop.first %} aria-selected="true"{% endif %}></button>
+            <button type="button" class="hm-gateway__carousel-dot{% if forloop.first %} is-active{% endif %}" data-hm-gateway-dot="{{ forloop.counter0 }}" role="tab" aria-label="{% blocktrans with num=forloop.counter %}Product {{ num }}{% endblocktrans %}"{% if forloop.first %} aria-selected="true"{% endif %}></button>
             {% endfor %}
           </div>
           {% endif %}
@@ -95,15 +99,15 @@
         <ul class="hm-gateway__pulse-row" aria-live="polite">
           <li class="hm-gateway__pulse-cell" style="--metric-i: 1" data-metric-i="1">
             <span class="hm-gateway__pulse-num" data-count-to="{{ stats.empresas_verificadas|default:stats.empresas|default:0 }}">0</span>
-            <span class="hm-gateway__pulse-caption">Verified suppliers</span>
+            <span class="hm-gateway__pulse-caption">{% trans "Verified suppliers" %}</span>
           </li>
           <li class="hm-gateway__pulse-cell" style="--metric-i: 2" data-metric-i="2">
             <span class="hm-gateway__pulse-num" data-count-to="{{ stats.categorias|default:0 }}">0</span>
-            <span class="hm-gateway__pulse-caption">Categories</span>
+            <span class="hm-gateway__pulse-caption">{% trans "Categories" %}</span>
           </li>
           <li class="hm-gateway__pulse-cell" style="--metric-i: 3" data-metric-i="3">
             <span class="hm-gateway__pulse-num" data-count-to="{{ stats.ordenes|default:0 }}">0</span>
-            <span class="hm-gateway__pulse-caption">Wholesale orders</span>
+            <span class="hm-gateway__pulse-caption">{% trans "Wholesale orders" %}</span>
           </li>
         </ul>
       </div>

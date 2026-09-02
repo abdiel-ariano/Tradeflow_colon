@@ -1,5 +1,6 @@
-"""
-Generación segura de OTP para verificación de email (modelo EmailVerification).
+"""Crea y persiste filas OTP de usuario para flujos de verificación por correo.
+
+Invalida códigos previos sin usar para que solo exista un OTP activo por usuario.
 """
 from __future__ import annotations
 
@@ -12,6 +13,7 @@ from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from core.models import EmailVerification
+from core.utils.secret_hash import hash_secret
 
 log = logging.getLogger('tradeflow.auth')
 
@@ -20,24 +22,12 @@ OTP_EXPIRY_MINUTES = 10
 
 
 def _generate_secure_otp() -> str:
-    """Código numérico de 6 dígitos con ``secrets`` (criptográficamente seguro)."""
+    """Devuelve un OTP numérico de 6 dígitos criptográficamente seguro."""
     return f'{secrets.randbelow(10 ** OTP_LENGTH):0{OTP_LENGTH}d}'
 
 
 def generate_user_otp(user: User) -> str:
-    """
-    Invalida OTPs previos del usuario, persiste uno nuevo y devuelve el código en claro.
-
-    Args:
-        user: Usuario Django al que se asocia la verificación.
-
-    Returns:
-        Código OTP de 6 dígitos para enviar por correo.
-
-    Raises:
-        DatabaseError: Si la invalidación o el guardado fallan en la base de datos.
-        ValueError: Si ``user`` no tiene primary key persistida.
-    """
+    """Invalida OTP previos, persiste el hash y devuelve el código en claro."""
     if user.pk is None:
         raise ValueError('generate_user_otp requires a persisted User instance.')
 
@@ -54,7 +44,7 @@ def generate_user_otp(user: User) -> str:
                     removed,
                 )
 
-            EmailVerification.objects.create(user=user, code=plain_code)
+            EmailVerification.objects.create(user=user, code=hash_secret(plain_code))
     except DatabaseError:
         log.exception(
             'otp_persist_failed user_id=%s',

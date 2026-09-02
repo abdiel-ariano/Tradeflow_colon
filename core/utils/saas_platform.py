@@ -1,5 +1,7 @@
-"""
-Diagnóstico y bootstrap SaaS (PostgreSQL/Supabase vía ORM).
+"""Diagnostica e inicializa tablas SaaS en PostgreSQL/Supabase.
+
+Asegura que existan los planes por defecto antes de que wizards de vendedor
+o demos de year-seed toquen suscripciones.
 """
 from __future__ import annotations
 
@@ -15,6 +17,7 @@ log = logging.getLogger('tradeflow.saas')
 
 
 def _table_exists(table_name: str) -> bool:
+    """Devuelve True cuando ``table_name`` existe en la base conectada."""
     try:
         return table_name in connection.introspection.table_names()
     except DatabaseError as exc:
@@ -23,9 +26,7 @@ def _table_exists(table_name: str) -> bool:
 
 
 def get_saas_health() -> dict:
-    """
-    Estado real del datastore SaaS (sin mocks).
-    """
+    """Devuelve la salud en vivo del datastore SaaS (planes, subs, tabla checkout)."""
     health = {
         'ok': True,
         'plans_count': 0,
@@ -54,10 +55,8 @@ def get_saas_health() -> dict:
 
 
 def bootstrap_saas_datastore(*, seed_subscriptions: bool = False) -> dict:
-    """
-    Garantiza planes por defecto en DB. Opcionalmente suscripciones para todas las empresas.
-    """
-    from core.utils.saas_billing import ensure_default_plans, get_or_create_subscription
+    """Asegura planes por defecto; opcionalmente siembra suscripciones para empresas."""
+    from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscription
     from core.utils.ads_ranking import ensure_ad_credits
 
     health = get_saas_health()
@@ -70,7 +69,7 @@ def bootstrap_saas_datastore(*, seed_subscriptions: bool = False) -> dict:
         seeded = 0
         for company in Company.objects.filter(owner__isnull=False).distinct():
             try:
-                sub = get_or_create_subscription(company)
+                sub = ensure_demo_subscription(company, status='active')
                 ensure_ad_credits(company, sub.plan.ad_credits_monthly)
                 seeded += 1
             except Exception as exc:
@@ -101,16 +100,19 @@ def bootstrap_saas_datastore(*, seed_subscriptions: bool = False) -> dict:
 
 
 def bootstrap_saas_for_company(company: Company) -> dict:
-    """Bootstrap global + suscripción de la empresa solicitante."""
+    """Inicializa el estado SaaS global y refresca el uso de la empresa solicitante."""
     health = bootstrap_saas_datastore(seed_subscriptions=False)
     if not health.get('ok'):
         return health
     try:
-        from core.utils.saas_billing import get_or_create_subscription, refresh_billing_usage
+        from core.utils.saas_billing import get_company_subscription, refresh_billing_usage
 
-        get_or_create_subscription(company)
-        refresh_billing_usage(company)
-        health['company_subscription_ok'] = True
+        if get_company_subscription(company):
+            refresh_billing_usage(company)
+            health['company_subscription_ok'] = True
+        else:
+            health['company_subscription_ok'] = False
+            health['issues'].append('no_subscription')
     except Exception as exc:
         health['ok'] = False
         health['company_subscription_ok'] = False

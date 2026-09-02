@@ -1,26 +1,35 @@
-"""
-=============================================================================
-TRADEFLOW COLÓN — core/urls.py  (v4 — Roles + Signup)
-=============================================================================
+"""URL table for TradeFlow Colón marketplace HTTP surfaces.
+
+Mounted under ``i18n_patterns`` (see ``tradeflow_colon/urls.py``). Groups
+in file order: ZLC map and visitor QR, legal/marketing, auth (login,
+signup, OAuth, password reset), email OTP, onboarding wizards, admin
+dashboard and order wizard, guest catalog / cart / checkout / RFQ,
+seller portal (``/mi-tienda/``), JSON APIs, and enterprise ``/api/v1/``.
+
+Every ``path()`` must set ``name=`` — templates, emails, and OTP
+redirects depend on ``reverse()``.
 """
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
+from django.views.generic import RedirectView
 
 from . import views
+from . import views_password_reset
 from . import views_seller_pages
 from . import views_social
+from . import views_staff_mfa
 from . import views_onboarding as onboarding
-from . import views_buyer_onboarding as buyer_onboarding
+from . import views_seller_onboarding as seller_onboarding
 from . import views_transportistas as vt
 from . import views_api_enterprise as vapi
 
 urlpatterns = [
 
-    # ── Mapa ZLC + verificación visitante ───────────────────────────────────
+    # ── CFZ map + visitor verification ─────────────────────────────────────
     path('mapa/', views.mapa_zlc, name='mapa_zlc'),
     path('visitante/zlc/', views.visitante_zlc_verificacion, name='visitante_zlc_verificacion'),
 
-    # ── Páginas legales ─────────────────────────────────────────────────────
+    # ── Legal / marketing ───────────────────────────────────────────────────
     path('terminos/', views.legal_terminos, name='legal_terminos'),
     path('politicas-seguridad/', views.legal_politicas_seguridad, name='legal_politicas_seguridad'),
     path('privacidad/', views.legal_privacidad, name='legal_privacidad'),
@@ -30,17 +39,13 @@ urlpatterns = [
     path('deals/', views.marketplace_deals, name='marketplace_deals'),
     path('order-protection/', views.marketplace_order_protection, name='marketplace_order_protection'),
 
-    # ── Autenticación ─────────────────────────────────────────────────────
+    # ── Auth ────────────────────────────────────────────────────────────────
     path('login/',   views.login_view,  name='login'),
+    path('staff-mfa/verify/', views_staff_mfa.staff_mfa_verify, name='staff_mfa_verify'),
+    path('staff-mfa/setup/', views_staff_mfa.staff_mfa_setup, name='staff_mfa_setup'),
     path(
         'recuperar-clave/',
-        auth_views.PasswordResetView.as_view(
-            template_name='registration/password_reset_form.html',
-            email_template_name='registration/password_reset_email.html',
-            html_email_template_name='registration/password_reset_email_html.html',
-            subject_template_name='registration/password_reset_subject.txt',
-            success_url='/recuperar-clave/enviado/',
-        ),
+        views_password_reset.TradeFlowPasswordResetView.as_view(),
         name='password_reset',
     ),
     path(
@@ -52,10 +57,7 @@ urlpatterns = [
     ),
     path(
         'recuperar-clave/confirmar/<uidb64>/<token>/',
-        auth_views.PasswordResetConfirmView.as_view(
-            template_name='registration/password_reset_confirm.html',
-            success_url='/recuperar-clave/completo/',
-        ),
+        views_password_reset.TradeFlowPasswordResetConfirmView.as_view(),
         name='password_reset_confirm',
     ),
     path(
@@ -102,14 +104,18 @@ urlpatterns = [
     path('onboarding/reenviar-verificacion/', onboarding.onboarding_reenviar_verificacion, name='onboarding_reenviar_verificacion'),
     path('onboarding/verificar-codigo/', onboarding.onboarding_verificar_codigo, name='onboarding_verificar_codigo'),
     path('api/onboarding/verification-status/', onboarding.api_onboarding_verification_status, name='api_onboarding_verification_status'),
-    # Wizard comprador — personalización post-registro (3 pasos)
-    path('onboarding/comprador/', buyer_onboarding.buyer_onboarding_step1, name='buyer_onboarding_step1'),
-    path('onboarding/comprador/paso-1/', buyer_onboarding.buyer_onboarding_step1_post, name='buyer_onboarding_step1_post'),
-    path('onboarding/comprador/categorias/', buyer_onboarding.buyer_onboarding_step2, name='buyer_onboarding_step2'),
-    path('onboarding/comprador/categorias/guardar/', buyer_onboarding.buyer_onboarding_step2_post, name='buyer_onboarding_step2_post'),
-    path('onboarding/comprador/busqueda/', buyer_onboarding.buyer_onboarding_step3, name='buyer_onboarding_step3'),
-    path('onboarding/comprador/finalizar/', buyer_onboarding.buyer_onboarding_finish, name='buyer_onboarding_finish'),
-    path('onboarding/comprador/omitir/', buyer_onboarding.buyer_onboarding_skip, name='buyer_onboarding_skip'),
+    # B2B company identity and documentary review (required for new businesses)
+    path('onboarding/empresa/', seller_onboarding.seller_onboarding_company, name='company_onboarding'),
+    path('onboarding/empresa/guardar/', seller_onboarding.seller_onboarding_company_post, name='company_onboarding_post'),
+    path('onboarding/empresa/estado/', seller_onboarding.company_verification_status, name='company_verification_status'),
+    path(
+        'api/company/verification-status/',
+        seller_onboarding.api_company_verification_status,
+        name='api_company_verification_status',
+    ),
+    # Compatibility aliases for existing seller links.
+    path('onboarding/vendedor/', seller_onboarding.seller_onboarding_company, name='seller_onboarding_company'),
+    path('onboarding/vendedor/guardar/', seller_onboarding.seller_onboarding_company_post, name='seller_onboarding_company_post'),
     path(
         'solicitud-acceso/revisar/<str:token>/<str:accion>/',
         views.revisar_solicitud,
@@ -121,12 +127,14 @@ urlpatterns = [
         vt.seleccionar_transportista,
         name='seleccionar_transportista',
     ),
-    path('admin/transportistas/', vt.admin_transportistas, name='admin_transportistas'),
+    path('panel/carriers/', vt.admin_transportistas, name='admin_transportistas'),
     path(
-        'admin/transportistas/<int:pk>/<str:decision>/',
+        'panel/carriers/<int:pk>/<str:decision>/',
         vt.admin_aprobar_transportista,
         name='admin_aprobar_transportista',
     ),
+    # Legacy aliases (Django /admin/ steals /admin/transportistas/)
+    path('admin/transportistas/', RedirectView.as_view(pattern_name='admin_transportistas', permanent=False)),
     path(
         'ordenes/<int:order_pk>/confirmar/<str:decision>/',
         vt.confirmar_orden_empresa,
@@ -140,17 +148,14 @@ urlpatterns = [
     path('reenviar-verificacion-email/', views.reenviar_verificacion_public, name='reenviar_verificacion_public'),
     path('perfil/',  views.mi_perfil, name='mi_perfil'),
 
-    # ── Dashboard (admin) ─────────────────────────────────────────────────
+    # ── Admin dashboard ─────────────────────────────────────────────────────
     path('', views.home_view, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('saas/', views.admin_saas_dashboard, name='admin_saas_dashboard'),
 
-    # ── Portales de rol ───────────────────────────────────────────────────
+    # ── Buyer / seller portals ──────────────────────────────────────────────
 
-    path('',           views.home_view,  name='home'),
-    path('dashboard/', views.dashboard,  name='dashboard'),
-
-    # Portal del comprador
+    # Buyer / guest catalog
     path('catalogo/',                       views.catalogo_publico,     name='catalogo_publico'),
     path('catalogo/inquiry/agregar/<int:producto_id>/', views.catalogo_agregar_inquiry, name='catalogo_agregar_inquiry'),
     path('catalogo/producto/<int:pk>/', views.catalogo_producto_detail, name='catalogo_producto_detail'),
@@ -173,7 +178,7 @@ urlpatterns = [
     path('cotizaciones/<int:pk>/', views.detalle_cotizacion, name='detalle_cotizacion'),
     path('cotizaciones/<int:pk>/pdf/', views.descargar_cotizacion_pdf, name='descargar_cotizacion_pdf'),
 
-    # Portal del vendedor
+    # Seller portal
     path('mi-tienda/', views.portal_seller, name='portal_seller'),
     path('mi-tienda/qr/', views.seller_company_qr, name='seller_company_qr'),
     path('mi-tienda/qr/descargar/', views.seller_download_qr, name='seller_download_qr'),
@@ -192,6 +197,9 @@ urlpatterns = [
     ),
     path('mi-tienda/plan/pago/pendiente/', views.seller_plan_checkout_resume, name='seller_plan_checkout_resume'),
     path('mi-tienda/plan/upgrade/', views.seller_upgrade_plan, name='seller_upgrade_plan'),
+    path('mi-tienda/plan/activar/', views.seller_trial_activation, name='seller_trial_activation'),
+    path('mi-tienda/plan/no-continuar/', views.seller_decline_continue, name='seller_decline_continue'),
+    path('mi-tienda/cuenta-inactiva/', views.seller_account_inactive, name='seller_account_inactive'),
     path('mi-tienda/insights/', views.seller_predictive_insights, name='seller_predictive_insights'),
     path('mi-tienda/balances/', views_seller_pages.seller_balances, name='seller_balances'),
     path('mi-tienda/clientes/', views_seller_pages.seller_customers, name='seller_customers'),
@@ -202,13 +210,17 @@ urlpatterns = [
     path('mi-tienda/configuracion/', views_seller_pages.seller_setup_guide, name='seller_setup_guide'),
     path('mi-tienda/buscar/', views_seller_pages.seller_global_search, name='seller_global_search'),
     path('mi-tienda/reportes/', views_seller_pages.seller_reporting, name='seller_reporting'),
+    # AI analytics (analytics app): seller dashboard + chat/export/plotly.
+    path('mi-tienda/analitica/', include('analytics.urls')),
     path('mi-tienda/ventas/<int:pk>/despachar/', views.seller_dispatch_order, name='seller_dispatch_order'),
 
     path('api/v1/health/', vapi.api_v1_health, name='api_v1_health'),
     path('api/v1/inventory/', vapi.api_v1_inventory, name='api_v1_inventory'),
     path('api/v1/pricing/sync/', vapi.api_v1_pricing_sync, name='api_v1_pricing_sync'),
-    # Rutas solicitadas por especificación (nombres alternos)
+    # Spec-requested seller product/sales route names
     path('mi-tienda/productos/', views.seller_mis_productos, name='seller_mis_productos'),
+    path('mi-tienda/productos/exportar.csv', views.seller_export_productos_csv, name='seller_export_productos_csv'),
+    path('mi-tienda/productos/exportar-precios.csv', views.seller_export_precios_csv, name='seller_export_precios_csv'),
     path('mi-tienda/productos/nuevo/', views.seller_agregar_producto, name='seller_agregar_producto'),
     path('mi-tienda/productos/<int:pk>/editar/', views.seller_editar_producto, name='seller_editar_producto'),
     path('mi-tienda/productos/<int:pk>/toggle/', views.seller_toggle_producto, name='seller_toggle_producto'),
@@ -217,7 +229,7 @@ urlpatterns = [
     path('mi-tienda/ventas/<int:pk>/', views.seller_detalle_venta, name='seller_detalle_venta'),
     path('mi-tienda/cotizaciones/', views.seller_cotizaciones, name='seller_cotizaciones'),
     path('mi-tienda/cotizaciones/<int:pk>/responder/', views.seller_responder_cotizacion, name='seller_responder_cotizacion'),
-    # Compatibilidad con rutas previas
+    # Legacy seller route compatibility
     path('mi-tienda/panel/', views.seller_dashboard, name='seller_dashboard'),
     path('mi-tienda/productos-legacy/', views.seller_productos, name='seller_productos'),
     path('mi-tienda/productos-legacy/nuevo/', views.seller_producto_nuevo, name='seller_producto_nuevo'),
@@ -225,23 +237,40 @@ urlpatterns = [
     path('mi-tienda/ventas-legacy/', views.seller_ventas, name='seller_ventas'),
     path('mi-tienda/ventas-legacy/<int:pk>/', views.seller_venta_detalle, name='seller_venta_detalle'),
 
-    # ── Órdenes (admin) ───────────────────────────────────────────────────
+    # ── Admin orders ────────────────────────────────────────────────────────
     path('ordenes/',                              views.lista_ordenes,        name='lista_ordenes'),
     path('ordenes/<int:pk>/',                     views.detalle_orden,        name='detalle_orden'),
     path('ordenes/<int:pk>/estado/<str:estado>/', views.cambiar_estado_orden, name='cambiar_estado_orden'),
 
-    # ── Wizard Nueva Orden (admin) ────────────────────────────────────────
+    # ── Admin new-order wizard ──────────────────────────────────────────────
     path('ordenes/nueva/paso1/', views.nueva_orden_paso1, name='nueva_orden_paso1'),
     path('ordenes/nueva/paso2/', views.nueva_orden_paso2, name='nueva_orden_paso2'),
     path('ordenes/nueva/paso3/', views.nueva_orden_paso3, name='nueva_orden_paso3'),
 
-    # ── Productos (admin) ─────────────────────────────────────────────────
+    # ── Admin products ──────────────────────────────────────────────────────
     path('productos/', views.lista_productos, name='lista_productos'),
+    path(
+        'productos/<int:pk>/toggle-active/',
+        views.admin_toggle_product_active,
+        name='admin_toggle_product_active',
+    ),
 
-    # ── Empresas (admin) ──────────────────────────────────────────────────
+    # ── Admin companies ─────────────────────────────────────────────────────
     path('empresas/', views.lista_empresas, name='lista_empresas'),
+    path(
+        'api/admin/companies/pending-watch/',
+        views.api_admin_companies_pending_watch,
+        name='api_admin_companies_pending_watch',
+    ),
+    path('empresas/<int:pk>/', views.admin_empresa_detalle, name='admin_empresa_detalle'),
+    path(
+        'empresas/<int:pk>/toggle-verified/',
+        views.admin_toggle_company_verified,
+        name='admin_toggle_company_verified',
+    ),
+    path('panel/search/', views.admin_panel_search, name='admin_panel_search'),
 
-    # ── Dashboard API (Chart.js, sin recarga) ─────────────────────────────
+    # ── Dashboard chart APIs ────────────────────────────────────────────────
     path('api/dashboard-stats/', views.api_dashboard_stats, name='api_dashboard_stats'),
     path('api/admin/saas-stats/', views.api_admin_saas_stats, name='api_admin_saas_stats'),
     path(
@@ -250,16 +279,20 @@ urlpatterns = [
         name='api_admin_saas_request_action',
     ),
 
-    # ── API JSON ──────────────────────────────────────────────────────────
+    # ── JSON APIs ───────────────────────────────────────────────────────────
     path('api/productos/', views.api_productos, name='api_productos'),
     path('api/home-merchandising/', views.api_home_merchandising, name='api_home_merchandising'),
+    path('api/search/suggest/', views.api_search_suggest, name='api_search_suggest'),
     path('api/asistente/', views.api_asistente, name='api_asistente'),
 
-    # ── Applications (admin approval) ────────────────────────────────────
+    # ── Access applications (admin approval) ────────────────────────────────
     path('panel/applications/', views.admin_applications_view, name='admin_applications'),
     path('panel/applications/<int:pk>/approve/', views.approve_application_view, name='approve_application'),
     path('panel/applications/<int:pk>/reject/', views.reject_application_view, name='reject_application'),
-    path('admin/applications/', views.admin_applications_view),
+    path(
+        'admin/applications/',
+        RedirectView.as_view(pattern_name='admin_applications', permanent=False),
+    ),
     path('admin/applications/<int:pk>/approve/', views.approve_application_view),
     path('admin/applications/<int:pk>/reject/', views.reject_application_view),
     path('pending-approval/', views.pending_approval_view, name='pending_approval'),

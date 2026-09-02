@@ -1,29 +1,38 @@
-"""
-Verify product media files exist on disk and Product.image URLs resolve.
+"""Audit product media paths, on-disk files, and resolvable image URLs.
 
-Usage:
-    python manage.py verify_media
-    python manage.py verify_media --show-missing
-    python manage.py verify_media --audit-placeholders
+Detects missing ``Product.image`` values, absent local files, empty URLs,
+and legacy S3-signed Supabase links that break catalog cards.
+
+Ops: safe read-only check on any environment. Use before/after media
+migrations or when marketplace thumbnails look broken.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 
 from core.models import Product
-from core.storage.supabase_media import supabase_media_url
 from core.utils.media_storage import is_remote_media_storage, local_media_file_exists, product_image_url
 
 
+def _url_without_query(url: str) -> str:
+    """Redact signed query parameters before writing media URLs to logs."""
+    parts = urlsplit(url or '')
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, '', ''))
+
+
 class Command(BaseCommand):
+    """Report product image health for local and remote storage backends."""
+
     help = 'Check Product.image paths, on-disk files, and resolvable image URLs'
 
     def add_arguments(self, parser):
+        """Register limit, missing-detail, and placeholder audit flags."""
         parser.add_argument(
             '--limit',
             type=int,
@@ -38,10 +47,11 @@ class Command(BaseCommand):
         parser.add_argument(
             '--audit-placeholders',
             action='store_true',
-            help='Count DB rows pointing to placeholder_* paths (may be missing in Supabase bucket)',
+            help='Count DB rows pointing to placeholder_* paths (may be missing in remote storage)',
         )
 
     def handle(self, *args, **options):
+        """Scan products and print media storage diagnostics."""
         limit = int(options['limit'] or 0)
         show_missing = bool(options['show_missing'])
         audit_placeholders = bool(options['audit_placeholders'])
@@ -98,7 +108,7 @@ class Command(BaseCommand):
         placeholder_count = placeholder_qs.count()
         self.stdout.write(
             f'  DB rows with placeholder_* path: {placeholder_count} '
-            '(may need upload to Supabase or reset to empty for SVG fallback)'
+            '(may need upload to remote storage or reset to empty for SVG fallback)'
         )
 
         if audit_placeholders or placeholder_count:
@@ -106,7 +116,9 @@ class Command(BaseCommand):
             if sample and sample.image:
                 rel = sample.image.name.replace('\\', '/')
                 self.stdout.write(f'  Sample path: {rel}')
-                self.stdout.write(f'  Native URL:  {supabase_media_url(rel)}')
+                self.stdout.write(
+                    f'  Resolved URL: {_url_without_query(product_image_url(sample))}'
+                )
 
         productos_dir = Path(settings.MEDIA_ROOT) / 'productos'
         if productos_dir.is_dir():
@@ -117,7 +129,7 @@ class Command(BaseCommand):
                 f'media/productos/: {file_count} file(s), {total_bytes:,} bytes total'
             )
         elif is_remote_media_storage():
-            self.stdout.write('media/productos/: local dir absent (remote Supabase storage)')
+            self.stdout.write('media/productos/: local dir absent (remote object storage)')
         else:
             self.stdout.write(self.style.WARNING('media/productos/ directory does not exist'))
 

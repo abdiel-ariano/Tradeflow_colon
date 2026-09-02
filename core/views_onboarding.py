@@ -1,5 +1,8 @@
-"""
-Pantallas premium de onboarding: verificación y aprobación empresarial.
+"""Onboarding gates for email OTP and business access applications.
+
+Screens and thin aliases that sit between signup and marketplace
+routes: six-digit OTP (``/verificar/``), pending admin approval, and
+rejected applications for CFZ B2B access.
 """
 from __future__ import annotations
 
@@ -29,16 +32,17 @@ from core.utils.access_gating import (
 
 
 def _store_pending_verification_session(request: HttpRequest, user) -> None:
-    """Contexto de sesión para que /verificar/ identifique la cuenta en validación."""
+    """Remember which account OTP verification is validating."""
     request.session[SESSION_PENDING_VERIFY_USER_ID] = user.pk
     request.session['pending_verify_email'] = user.email or ''
     request.session.modified = True
 
 
 def finalize_signup_with_otp(request: HttpRequest, user) -> HttpResponse:
-    """
-    Tras registro exitoso en modo demo (EXPO_DEMO_MODE): genera OTP, envía correo
-    vía Resend y redirige a /verificar/ sin abortar el flujo si el correo falla.
+    """Issue OTP after signup/OAuth and redirect to ``/verificar/``.
+
+    Email failures do not abort signup; the user can resend from the
+    OTP screen before entering guest catalog or seller portal.
     """
     _store_pending_verification_session(request, user)
 
@@ -84,7 +88,7 @@ def finalize_signup_with_otp(request: HttpRequest, user) -> HttpResponse:
 
 
 def _redirect_active_verified_user(request):
-    """Skip onboarding gates for approved, verified accounts."""
+    """Skip onboarding screens for approved, email-verified accounts."""
     try:
         profile = request.user.profile
     except UserProfile.DoesNotExist:
@@ -101,7 +105,7 @@ def _redirect_active_verified_user(request):
 
 @login_required
 def onboarding_espera_verificacion(request):
-    """Compatibilidad: redirige al flujo de código de 6 dígitos."""
+    """Compatibility redirect to the six-digit OTP flow."""
     bypass = _redirect_active_verified_user(request)
     if bypass:
         return bypass
@@ -111,7 +115,7 @@ def onboarding_espera_verificacion(request):
 @login_required
 @require_POST
 def onboarding_verificar_codigo(request):
-    """Compatibilidad: delega al flujo /verificar/."""
+    """Compatibility POST alias that delegates to ``verificar_codigo``."""
     from core.views import verificar_codigo
     return verificar_codigo(request)
 
@@ -119,14 +123,14 @@ def onboarding_verificar_codigo(request):
 @login_required
 @require_POST
 def onboarding_reenviar_verificacion(request):
-    """Compatibilidad: delega reenvío de código por correo."""
+    """Compatibility POST alias that resends the email OTP."""
     from core.views import enviar_codigo
     return enviar_codigo(request)
 
 
 @login_required
 def onboarding_espera_aprobacion(request):
-    """Solicitud en revisión — acceso limitado."""
+    """Show limited access while a business application is under review."""
     bypass = _redirect_active_verified_user(request)
     if bypass:
         return bypass
@@ -142,7 +146,7 @@ def onboarding_espera_aprobacion(request):
 
 @login_required
 def onboarding_solicitud_requerida(request):
-    """Debe completar solicitud de acceso empresarial."""
+    """Prompt the user to complete a CFZ business access application."""
     bypass = _redirect_active_verified_user(request)
     if bypass:
         return bypass
@@ -162,6 +166,7 @@ def onboarding_solicitud_requerida(request):
 
 @login_required
 def onboarding_aplicacion_rechazada(request):
+    """Explain that the business access application was not approved."""
     bypass = _redirect_active_verified_user(request)
     if bypass:
         return bypass
@@ -178,7 +183,7 @@ def onboarding_aplicacion_rechazada(request):
 @login_required
 @require_GET
 def api_onboarding_verification_status(request):
-    """Polling ligero para detectar verificación sin recargar sesión."""
+    """Poll whether email OTP verification completed without a full reload."""
     try:
         profile = UserProfile.objects.get(user=request.user)
         verified = profile.email_verificado
@@ -186,12 +191,12 @@ def api_onboarding_verification_status(request):
         verified = False
     return JsonResponse({
         'verified': verified,
-        'redirect': reverse('tienda') if verified else '',
+        'redirect': reverse('catalogo_publico') if verified else '',
     })
 
 
 def onboarding_solicitud_enviada(request):
-    """Confirmación pública tras enviar solicitud de acceso."""
+    """Public confirmation after submitting an access application."""
     return render(request, 'core/onboarding_solicitud_enviada.html', {
         'titulo_pagina': 'Application received',
     })

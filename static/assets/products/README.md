@@ -1,41 +1,88 @@
-# AI product placeholder images
+# Product reference images
 
-TradeFlow uses consistent studio-style reference photos when suppliers have not uploaded real assets.
+TradeFlow uses consistent studio-style reference images when demo products do
+not yet have real supplier media. These assets describe a concrete product
+family; they are not presented as photos from a supplier.
 
-## Prompt base (all categories)
+## Prompt base
 
-- White or neutral gray background (`#F7F8FA`, matching `--color-background`)
-- Studio lighting, soft shadow
-- Product at 3/4 angle
-- No third-party watermarks
-- No overlaid text in the image file
+- White or neutral gray background (`#F7F8FA`)
+- Neutral commercial product photography
+- Studio lighting and a soft shadow
+- Product centered at a three-quarter angle
+- No logos, brands, watermarks, labels, or overlaid text
+- 4:3 landscape composition
 
 ## File convention
 
-Place WebP files under:
+Shared family references live under:
 
 ```
-static/assets/products/placeholder-ai/{categoria}-{sku}.webp
+static/assets/products/reference/<product-family>.webp
 ```
 
-Examples:
+The mapping from normalized product names to files is defined in
+`core.utils.demo_product_images.PRODUCT_REFERENCE_MATCHES`.
 
-- `electronics-elec-sony-002.webp`
-- `textiles-text-lino-001.webp`
-
-The `{categoria}` keyword matches `core.utils.demo_product_images.category_keyword()`:
-`electronics`, `textiles`, `beauty`, `home_appliances`, `toys`, `general`.
+Exact-SKU legacy assets under
+`static/assets/products/placeholder-ai/{category}-{sku}.webp` remain
+supported for backwards compatibility.
 
 ## Runtime resolution
 
-`product_image_src` resolves in order:
+`product_image_src` resolves in this order:
 
-1. Supplier upload (`Product.image`)
-2. AI placeholder WebP at the path above (if the file exists)
-3. Category SVG icon (`static/images/category-icons/{categoria}.svg`)
+1. A concrete family reference when the current image is missing or demo-generated
+2. A real supplier upload (`Product.image`)
+3. An exact-SKU legacy reference
+4. Optional Picsum only when explicitly enabled for development
+5. A category SVG icon, never an unrelated category photograph
 
-Cards show a discrete **"Reference image"** label when option 2 is used.
+Cards show a discrete **"Reference image"** label whenever a generated reference
+is used. A future supplier upload automatically replaces the reference.
 
-## Style rule
+## Current textile and accessory coverage
 
-Do not mix illustration, photo, and 3D-render styles within the same visible catalog row.
+The demo catalog currently resolves these wholesale clothing families to local
+reference assets:
+
+- `industrial-cargo-pants.webp`: Industrial Cargo Pants.
+- `corporate-dry-fit-polo.webp`: Corporate Dry-Fit Polo.
+- `staff-waterproof-jacket.webp`: Staff Waterproof Jacket.
+- `hospitality-set-300-thread.webp`: 300-Thread Hospitality Set.
+- `rigid-executive-briefcase.webp`: Rigid Executive Briefcase.
+- `top-grain-leather-belt.webp`: Top-Grain Leather Belt.
+- `travel-organizer-set.webp`: Travel Organizer Set.
+
+Clothing references use a ghost-mannequin composition. Linen and accessory
+references use isolated product compositions without visible people, logos,
+text, labels, or brand marks. This keeps the demo commercially neutral
+until real suppliers provide approved product photography.
+
+## Current appliance, desk, and packaging coverage
+
+The following demo families also resolve to packaged product photography:
+
+- `industrial-blender-2l.webp`: 2L Industrial Blender.
+- `digital-air-fryer-8l.webp`: 8L Digital Air Fryer.
+- `adjustable-led-floor-lamp.webp`: Adjustable LED Floor Lamp.
+- `xl-stitched-edge-pad.webp`: XL Stitched Edge Pad.
+- `clear-pp-packing-tape.webp`: 48mm x 150m Clear PP Tape.
+- `manual-stretch-film-20.webp`: 20-inch Manual Stretch Film.
+
+These references use isolated, unbranded product compositions. They prevent
+empty catalog cards when simulated media files are unavailable in a deployment.
+Real supplier uploads continue to take precedence.
+
+## Complete simulator coverage
+
+The final simulator families now resolve to these references:
+
+- `cardboard-corner-protectors.webp`: L-Shaped Cardboard Corner Protectors.
+- `q4-retail-assortment-kit.webp`: Q4 Retail Assortment Kit.
+- `modular-pos-display.webp`: Modular Point-of-Sale Display.
+- `assorted-sku-master-carton.webp`: Assorted SKU Master Carton.
+
+The reference manifest now covers all 25 product families declared by the
+enterprise-year simulator. Product cards can still use category icons for
+unknown supplier products, while real supplier photography always has priority.

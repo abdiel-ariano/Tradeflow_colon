@@ -1,4 +1,8 @@
-# Supabase + Gmail — TradeFlow Colón (menos de 10 pasos)
+# Supabase + Gmail — TradeFlow Colón
+
+> **⚠️ Correo:** La guía de email de este documento está **deprecada**. Producción
+> usa **Resend** → [CORREO_TRANSACCIONAL.md](CORREO_TRANSACCIONAL.md).  
+> **Base de datos:** ver también [BASE_DE_DATOS.md](BASE_DE_DATOS.md).
 
 ## Supabase (PostgreSQL)
 

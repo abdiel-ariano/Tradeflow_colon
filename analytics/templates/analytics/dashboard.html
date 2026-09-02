@@ -1,0 +1,18 @@
+{% extends base_template|default:"core/base.html" %}
+{% load i18n %}
+
+{% block title %}Analytics IA · TradeFlow Colón{% endblock %}
+
+{% block extra_head %}{% if dark %}<style>body{background:#0E1B2A !important;}</style>{% endif %}{% endblock %}
+
+{% comment %}
+  Dashboard standalone / admin (multi-fuente). El cuerpo, CSS y JS viven en
+  partials reutilizables para que la vista del vendedor (seller_dashboard.html,
+  que extiende core/seller_layout.html) muestre lo mismo sin duplicar markup ni
+  chocar nombres de bloque.
+{% endcomment %}
+{% block extra_css %}{% include "analytics/_dashboard_css.html" %}{% endblock %}
+
+{% block content %}{% include "analytics/_dashboard_body.html" %}{% endblock %}
+
+{% block extra_js %}{% include "analytics/_dashboard_js.html" %}{% endblock %}

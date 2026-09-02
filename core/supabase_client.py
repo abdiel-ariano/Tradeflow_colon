@@ -1,5 +1,7 @@
-"""
-Cliente Supabase singleton (service role) para Edge Functions y API server-side.
+"""Singleton Supabase service-role client for server-side API calls.
+
+Used by Edge Function triggers, signed media URLs, and other backends
+that must not expose the service key to the browser.
 """
 from __future__ import annotations
 
@@ -18,9 +20,7 @@ _init_attempted = False
 
 
 def get_supabase_client() -> Client | None:
-    """
-    Devuelve el cliente Supabase con SUPABASE_SERVICE_KEY o None si no está configurado.
-    """
+    """Return a cached service-role client, or None if unset/unavailable."""
     global _client, _init_attempted
     if _client is not None:
         return _client
@@ -49,7 +49,7 @@ def get_supabase_client() -> Client | None:
 
 
 def reset_supabase_client() -> None:
-    """Útil en tests."""
+    """Clear the cached client (intended for tests)."""
     global _client, _init_attempted
     _client = None
     _init_attempted = False

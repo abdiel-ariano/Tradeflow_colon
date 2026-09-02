@@ -4,6 +4,16 @@
 (function () {
   'use strict';
 
+  var BADGE_SELECTORS = [
+    '#cat-inquiry-badge',
+    '#bn-cart-badge',
+    '.cart-badge',
+    '#tf-nav-cart-badge',
+    '.tf-cart-badge',
+    '#td-hero-cart-badge',
+    '[data-cart-badge]',
+  ].join(', ');
+
   function getCookie(name) {
     var parts = document.cookie ? document.cookie.split(';') : [];
     var i;
@@ -16,11 +26,15 @@
     return '';
   }
 
+  function readBadgeCount() {
+    var badge = document.querySelector(BADGE_SELECTORS);
+    if (!badge) return 0;
+    return parseInt(badge.textContent, 10) || 0;
+  }
+
   function updateCartBadge(count) {
     var n = parseInt(count, 10) || 0;
-    document.querySelectorAll(
-      '#tf-nav-cart-badge, .tf-cart-badge, #td-hero-cart-badge, [data-cart-badge]'
-    ).forEach(function (badge) {
+    document.querySelectorAll(BADGE_SELECTORS).forEach(function (badge) {
       badge.textContent = String(n);
       badge.classList.toggle('is-empty', n < 1);
       if (n > 0) badge.classList.add('has-count');
@@ -33,77 +47,110 @@
   function showToast(message, level) {
     if (!message) return;
     if (window.tfNotify) {
-      window.tfNotify(message, level, { critical: level === 'error' });
-      return;
+      window.tfNotify(message, level || 'success', {
+        dedupeKey: 'cart-add:' + message,
+      });
     }
   }
 
-  window.tfCartAjaxInit = bindCartForms;
-
-  function bindCartForms() {
-    document.querySelectorAll('form.js-cart-add-form').forEach(function (form) {
-      if (form.getAttribute('data-cart-bound') === '1') return;
-      form.setAttribute('data-cart-bound', '1');
-      form.addEventListener('submit', function (ev) {
-        ev.preventDefault();
-        var btn = form.querySelector('button[type="submit"]');
-        if (btn && btn.disabled) return;
-        if (btn) {
-          btn.disabled = true;
-          btn.classList.add('is-loading');
-        }
-        var body = new FormData(form);
-        fetch(form.action, {
-          method: 'POST',
-          body: body,
-          credentials: 'same-origin',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            Accept: 'application/json',
-          },
-        })
-          .then(function (r) {
-            return r.json().then(function (data) {
-              return { ok: r.ok, data: data };
-            });
-          })
-          .then(function (res) {
-            var data = res.data || {};
-            if (!res.ok || data.ok === false) {
-              showToast(data.message || (window.TF_I18N && window.TF_I18N.cartError) || 'Could not add to cart.', 'error');
-              return;
-            }
-            if (data.carrito_count !== undefined) {
-              updateCartBadge(data.carrito_count);
-            }
-            var msg = data.message || '';
-            if (msg.length > 48) {
-              msg = (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Added to cart';
-            }
-            showToast(msg, data.level || 'success');
-            if (btn) {
-              btn.classList.add('is-added');
-              setTimeout(function () {
-                btn.classList.remove('is-added');
-              }, 1200);
-            }
-          })
-          .catch(function () {
-            showToast((window.TF_I18N && window.TF_I18N.networkError) || 'Connection error. Please try again.', 'error');
-          })
-          .finally(function () {
-            if (btn) {
-              btn.disabled = false;
-              btn.classList.remove('is-loading');
-            }
-          });
-      });
+  function parseJsonResponse(r) {
+    var contentType = r.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error('non-json');
+    }
+    return r.json().then(function (data) {
+      return { ok: r.ok, data: data };
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindCartForms);
-  } else {
-    bindCartForms();
+  function setButtonLoading(btn, loading) {
+    if (!btn) return;
+    if (loading) {
+      if (!btn.dataset.tfCartLabel) {
+        btn.dataset.tfCartLabel = btn.textContent.trim();
+      }
+      btn.textContent = (window.TF_I18N && window.TF_I18N.cartAdding) || 'Adding…';
+      btn.disabled = true;
+      btn.classList.add('is-loading');
+      return;
+    }
+    if (btn.dataset.tfCartLabel) {
+      btn.textContent = btn.dataset.tfCartLabel;
+    }
+    btn.disabled = false;
+    btn.classList.remove('is-loading');
   }
+
+  window.tfUpdateCartBadge = updateCartBadge;
+  window.tfCartAjaxInit = function () {};
+
+  function submitCartForm(form) {
+    if (!form || form.getAttribute('data-cart-busy') === '1') return;
+    form.setAttribute('data-cart-busy', '1');
+    var btn = form.querySelector('button[type="submit"]');
+    var qtyInput = form.querySelector('[name="cantidad"]');
+    var qty = parseInt(qtyInput && qtyInput.value ? qtyInput.value : '1', 10) || 1;
+    var prevCount = readBadgeCount();
+    var optimistic = true;
+
+    setButtonLoading(btn, true);
+    updateCartBadge(prevCount + qty);
+
+    var body = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: body,
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        Accept: 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+    })
+      .then(parseJsonResponse)
+      .then(function (res) {
+        var data = res.data || {};
+        if (!res.ok || data.ok === false) {
+          if (optimistic) updateCartBadge(prevCount);
+          showToast(
+            data.message
+              || (window.TF_I18N && window.TF_I18N.cartError)
+              || 'Could not add to inquiry cart.',
+            'error'
+          );
+          return;
+        }
+        if (data.carrito_count !== undefined) {
+          updateCartBadge(data.carrito_count);
+        }
+        showToast(data.message || (window.TF_I18N && window.TF_I18N.cartAddedShort) || 'Added to inquiry cart', 'success');
+        if (btn) {
+          btn.classList.add('is-added');
+          setTimeout(function () {
+            btn.classList.remove('is-added');
+          }, 900);
+        }
+      })
+      .catch(function () {
+        if (optimistic) updateCartBadge(prevCount);
+        showToast(
+          (window.TF_I18N && window.TF_I18N.networkError)
+            || (window.TF_I18N && window.TF_I18N.catalogNetworkError)
+            || 'Connection error. Please try again.',
+          'error'
+        );
+      })
+      .finally(function () {
+        form.removeAttribute('data-cart-busy');
+        setButtonLoading(btn, false);
+      });
+  }
+
+  document.addEventListener('submit', function (ev) {
+    var form = ev.target;
+    if (!form || !form.matches || !form.matches('form.js-cart-add-form')) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    submitCartForm(form);
+  }, true);
 })();

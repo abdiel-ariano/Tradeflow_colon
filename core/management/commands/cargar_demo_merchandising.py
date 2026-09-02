@@ -1,10 +1,10 @@
-"""
-=============================================================================
-ACCIÓN: CREAR
-DESTINO: core/management/commands/cargar_demo_merchandising.py
-=============================================================================
-Datos demo PreExpo: promos, destacados y secciones HomePromoSection.
-=============================================================================
+"""Seed PreExpo-style home merchandising on existing catalog rows.
+
+Marks featured companies/products, promo prices, bestsellers, and
+``HomePromoSection`` blocks for CFZ buyer landing demos.
+
+Ops: local/staging demo polish only. Overwrites merchandising flags on
+live rows — do not run against production seller catalogs.
 """
 from datetime import timedelta
 from decimal import Decimal
@@ -17,9 +17,12 @@ from core.models import Category, Company, HomePromoSection, Product
 
 
 class Command(BaseCommand):
-    help = 'Configura merchandising demo para PreExpo (promos, secciones home).'
+    """Configure demo promos, featured flags, and home promo sections."""
+
+    help = 'Configure demo merchandising for PreExpo (promos, home sections).'
 
     def handle(self, *args, **options):
+        """Apply featured/promo flags and upsert HomePromoSection rows."""
         now = timezone.now()
         ends = now + timedelta(days=45)
 

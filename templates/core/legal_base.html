@@ -1,0 +1,31 @@
+{% extends "core/marketplace_public_base.html" %}
+{% load static i18n %}
+{% block title %}{% block legal_title %}{% endblock %} — TradeFlow Colón{% endblock %}
+{% block marketplace_extra_head %}
+{% include "core/includes/legal_page_styles.html" %}
+{% endblock %}
+{% block marketplace_main %}
+<div class="hm-marketplace-page--legal">
+<div class="legal-shell">
+  <nav class="legal-toc" aria-label="{% trans 'On this page' %}">
+    <p class="legal-toc__heading">{% trans "On this page" %}</p>
+    <ol class="legal-toc__list">
+      {% block legal_toc %}{% endblock %}
+    </ol>
+  </nav>
+  <div class="legal-main">
+    <header class="legal-header">
+      <h1>{% block legal_heading %}{% endblock %}</h1>
+      <p class="legal-updated">{% block legal_updated %}{% trans "Last updated: June 2026" %}{% endblock %}</p>
+    </header>
+    <article class="legal-body">
+      {% block legal_body %}{% endblock %}
+    </article>
+    <a href="{% url 'home' %}" class="legal-back">
+      {% include "core/includes/tf_icon.html" with name="chevron_left" class="legal-back__icon" %}
+      {% trans "Back to home" %}
+    </a>
+  </div>
+</div>
+</div>
+{% endblock %}

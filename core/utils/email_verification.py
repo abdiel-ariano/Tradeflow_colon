@@ -1,5 +1,7 @@
-"""
-Código OTP de 6 dígitos para verificación de email.
+"""Genera y verifica códigos OTP de correo para activación de cuenta.
+
+Códigos de corta vida que controlan checkout y portales de vendedor cuando
+``REQUIRE_EMAIL_VERIFICATION`` está activo.
 """
 from __future__ import annotations
 
@@ -13,11 +15,12 @@ from core.models import UserProfile
 
 
 def generate_email_otp() -> str:
+    """Crea un código fresco de verificación de correo para el usuario."""
     return ''.join(random.choices(string.digits, k=6))
 
 
 def assign_email_verification_code(profile: UserProfile, *, hours: int = 24) -> str:
-    """Genera y persiste código; invalida token de enlace previo opcionalmente."""
+    """Persiste un OTP nuevo en el perfil; limpia el estado de verificación previo."""
     code = generate_email_otp()
     profile.codigo_verificacion_email = code
     profile.codigo_verificacion_expira = timezone.now() + timedelta(hours=hours)
@@ -33,12 +36,7 @@ def assign_email_verification_code(profile: UserProfile, *, hours: int = 24) -> 
 
 
 def verify_email_code(profile: UserProfile, raw_code: str) -> tuple[bool, str]:
-    """
-    Valida código ingresado por el usuario.
-
-    Returns:
-        (ok, error_message_key_or_empty)
-    """
+    """Valida el OTP enviado y marca el correo como verificado."""
     code = (raw_code or '').strip().replace(' ', '')
     if len(code) != 6 or not code.isdigit():
         return False, 'invalid_format'

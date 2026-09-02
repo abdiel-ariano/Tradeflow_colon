@@ -5,9 +5,9 @@ Unified Alibaba-style marketplace home + about page
 =============================================================================
 */
 
-/* Home + catalog share marketplace_public_navbar — hide legacy shells from base */
+/* Home + catalog share marketplace_public_navbar — hide legacy buyer shell when marketplace nav is present */
 body.cat-catalog-page #hm-public-nav,
-body.cat-catalog-page #bn-buyer-shell {
+body.cat-catalog-page:has(#cat-catalog-nav) #bn-buyer-shell {
   display: none !important;
 }
 
@@ -25,6 +25,9 @@ body.cat-catalog-page .tf-main {
   --cat-card-radius: 6px;
   --cat-card-padding: 12px;
   --cat-card-image-height: 156px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   background:
     radial-gradient(ellipse 90% 60% at 50% -10%, rgba(255, 122, 61, 0.07), transparent 55%),
     radial-gradient(ellipse 60% 40% at 100% 0%, rgba(15, 42, 68, 0.06), transparent 50%),
@@ -535,6 +538,10 @@ body.cat-catalog-page .hm-marketplace-trust {
   max-width: 1440px;
   margin: 0 auto;
   padding: 0 16px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: clip;
 }
 
 .hm-cat-discover__head {
@@ -569,6 +576,9 @@ body.cat-catalog-page .hm-marketplace-trust {
 .hm-cat-discover__rail {
   display: flex;
   gap: 18px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   padding-bottom: 4px;
   -webkit-overflow-scrolling: touch;
@@ -1320,6 +1330,10 @@ body.hm-cat-modal-open {
     justify-content: flex-start;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overscroll-behavior-x: contain;
   }
 
   .hm-trust--compact .hm-trust__list::-webkit-scrollbar {
@@ -1454,14 +1468,12 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
 
 /* ── Marketplace program pages (unified layout) ── */
 .hm-marketplace-page {
-  --tf-surface: #dde3ea;
+  --tf-surface: var(--tf-market-bg, #E8EEF5);
   --mkt-card-bg: #ffffff;
   --mkt-card-border: rgba(15, 42, 68, 0.1);
   --mkt-card-shadow: 0 1px 2px rgba(15, 42, 68, 0.05), 0 6px 20px rgba(15, 42, 68, 0.09);
   --mkt-card-shadow-hover: 0 4px 8px rgba(15, 42, 68, 0.06), 0 16px 40px rgba(15, 42, 68, 0.12);
-  background:
-    radial-gradient(ellipse 90% 50% at 50% -5%, rgba(255, 122, 61, 0.06), transparent 50%),
-    linear-gradient(180deg, #e8edf3 0%, #dde3ea 100%);
+  background: var(--tf-market-bg, #E8EEF5);
   min-height: 50vh;
   padding-bottom: 48px;
 }
@@ -1643,12 +1655,14 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
 }
 
 .mkt-btn--primary {
-  background: var(--tf-orange, #FF7A3D);
+  background: var(--tf-orange, #F26522);
   color: #fff;
 }
 
-.mkt-btn--primary:hover {
-  background: #e5692e;
+.mkt-btn--primary:hover,
+.mkt-btn--primary:focus-visible,
+.mkt-btn--primary:active {
+  background: var(--tf-primary, #0057A8);
   color: #fff;
 }
 
@@ -1748,32 +1762,37 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
   border-radius: 999px;
 }
 
-/* Trust chips (protection hero) */
-.mkt-trust-row {
-  list-style: none;
+/* Trust benefits (protection hero) — editorial, not fake buttons */
+.mkt-trust-benefits {
   margin: 0;
-  padding: 0 20px 20px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  padding: 0 20px 24px;
+  max-width: 720px;
 }
 
-.mkt-trust-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: #f1f5f9;
-  border: 1px solid var(--tf-border-soft, #E5E7EB);
-  font-size: 13px;
-  font-weight: 600;
+.mkt-trust-benefits__lead {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--tf-text-2, #6B7280);
+}
+
+.mkt-trust-benefits__list {
+  margin: 0 0 16px;
+  padding-left: 1.15rem;
   color: var(--tf-navy, #0F2A44);
+  font-size: 14px;
+  line-height: 1.55;
 }
 
-.mkt-trust-chip__icon {
-  font-size: 16px;
-  line-height: 1;
+.mkt-trust-benefits__list li {
+  margin: 0 0 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.mkt-trust-benefits .mkt-btn {
+  margin-top: 4px;
 }
 
 /* Steps timeline */
@@ -2157,7 +2176,54 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
 
 .hm-spotlight-unified__products .product-grid,
 .hm-spotlight-unified__products .hm-slider__track {
-  gap: 10px;
+  gap: 22px;
+}
+
+/* Marketplace Featured Supplier: wrapped grid + vertical scroll (not horizontal carousel). */
+.hm-marketplace-page .hm-spotlight-unified__products .hm-slider {
+  padding: 0;
+}
+.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__arrow,
+.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__dots {
+  display: none !important;
+}
+.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__viewport {
+  max-height: 520px;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__track {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 22px;
+  transform: none !important;
+  transition: none !important;
+  will-change: auto;
+}
+.hm-marketplace-page .hm-spotlight-unified__products .hm-slider__slide {
+  flex: 1 1 calc(33.333% - 15px);
+  min-width: 160px;
+  max-width: 260px;
+  box-sizing: border-box;
+}
+@media (max-width: 900px) {
+  .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__viewport {
+    max-height: 460px;
+  }
+  .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__slide {
+    flex: 1 1 calc(50% - 11px);
+    max-width: none;
+  }
+}
+@media (max-width: 640px) {
+  .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__viewport {
+    max-height: 420px;
+  }
+  .hm-marketplace-page .hm-spotlight-unified__products .hm-slider__slide {
+    flex: 1 1 100%;
+  }
 }
 
 .hm-spotlight-unified .product-card {
@@ -2178,20 +2244,61 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
 .mkt-deals-flash__rail {
   display: flex;
   gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   padding-bottom: 4px;
   -webkit-overflow-scrolling: touch;
 }
 
+.mkt-deals-flash__rail .mkt-deal-wrap--flash,
 .mkt-deals-flash__rail .mkt-deal-card--flash {
-  flex: 0 0 200px;
-  max-width: 200px;
+  flex: 0 0 220px;
+  max-width: 220px;
 }
 
 .mkt-deals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+@media (max-width: 1100px) {
+  .mkt-deals-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .mkt-deals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 480px) {
+  .mkt-deals-grid { grid-template-columns: 1fr; }
+}
+
+.mkt-deal-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.mkt-deal-wrap__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--tf-navy, #0F2A44);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.hm-marketplace-page .mkt-deal-wrap .product-card,
+body.cat-catalog-page .mkt-deal-wrap .product-card {
+  height: 348px;
+  width: 100%;
 }
 
 .mkt-deal-card {
@@ -2593,7 +2700,7 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
   max-width: 1440px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(440px, 780px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 780px);
   gap: 28px 40px;
   align-items: center;
 }
@@ -3762,6 +3869,20 @@ body.cat-catalog-page .hm-cat-discover + .trust-strip + .catalog-main .catalog-c
 
   .mkt-about-cinematic__metrics {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .hm-alibaba .hm-product-row__inner {
+    padding-inline: 10px;
+  }
+
+  .hm-alibaba .hm-product-row__title {
+    font-size: 1rem;
+  }
+
+  .hm-alibaba .hm-product-row__head {
+    margin-bottom: 10px;
   }
 }
 

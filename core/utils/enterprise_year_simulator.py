@@ -1,11 +1,7 @@
-"""
-Simulación ORM de ~12 meses de operación marketplace (ZLC) para demos enterprise.
+"""Siembra ~12 meses de actividad del marketplace ZLC para demos enterprise.
 
-Marcadores de limpieza:
-  - Empresas: RUC con prefijo ``8-1Y-SIM-``
-  - Órdenes: ``order_number`` con prefijo ``TF-1YSIM-``
-  - Usuarios: ``username`` con prefijo ``sim1y_``
-  - Home promos: ``slug`` con prefijo ``eyear-``
+Crea empresas marcadas, pedidos, logística y uso SaaS para que dashboards
+admin y gráficas predictivas se vean como producción.
 """
 from __future__ import annotations
 
@@ -52,12 +48,12 @@ from core.utils.product_seed_naming import build_seed_product_name
 from core.utils.product_stock_seed import realistic_stock_qty
 from core.utils.ads_ranking import ensure_ad_credits
 from core.utils.predictive_insights import get_predictive_dashboard
-from core.utils.saas_billing import get_or_create_subscription, refresh_billing_usage
+from core.utils.saas_billing import ensure_demo_subscription, refresh_billing_usage
 from core.utils.saas_platform import bootstrap_saas_datastore
 
 log = logging.getLogger('tradeflow.platform')
 
-# Tablas mínimas antes de sembrar (evita "no such table: core_order" sin migrate).
+# Minimum tables before seeding (avoids missing core_order without migrate).
 REQUIRED_TABLES = (
     'core_order',
     'core_product',
@@ -69,13 +65,10 @@ REQUIRED_TABLES = (
 )
 
 class DatabaseSchemaNotReadyError(RuntimeError):
-    """La base no tiene migraciones aplicadas."""
-
+    """Se lanza cuando faltan tablas core requeridas (ejecutar migrate)."""
 
 def ensure_database_schema_ready() -> None:
-    """
-    Comprueba que existan tablas core. Si no, indica ejecutar migrate primero.
-    """
+    """Lanza si faltan tablas core; los llamadores deben migrar primero."""
     try:
         tables = set(connection.introspection.table_names())
     except (OperationalError, ProgrammingError) as exc:
@@ -107,6 +100,7 @@ TRANSPORT_DEFAULTS = [
 
 @dataclass(frozen=True)
 class ScaleConfig:
+    """Escala de semilla nombrada: empresas, productos, compradores y pedidos."""
     companies: int
     products_min: int
     products_max: int
@@ -125,7 +119,7 @@ SCALES: dict[str, ScaleConfig] = {
 }
 
 
-# Empresas ficticias creíbles (ZLC / importación) — nombres genéricos, no marcas registradas ajenas.
+# Credible fictional ZLC importers — generic names, not third-party trademarks.
 COMPANY_BLUEPRINTS: list[dict] = [
     {
         'name': 'CaribeTech Distribution ZLC',
@@ -277,7 +271,7 @@ CATEGORY_NAMES = [
     'General Imports',
 ]
 
-# Plantillas de producto: (nombre base, descripción corta, precio_min, precio_max)
+# Product templates: (base name, short description, price_min, price_max)
 PRODUCT_TEMPLATES: dict[int, list[tuple[str, str, float, float]]] = {
     0: [
         ('Commercial 27" QHD LED Monitor', 'IPS panel, thin bezel, B2B warranty.', 189.0, 429.0),
@@ -322,7 +316,7 @@ PRODUCT_TEMPLATES: dict[int, list[tuple[str, str, float, float]]] = {
 
 
 def clear_enterprise_year_simulation() -> dict[str, int]:
-    """Elimina filas generadas por esta simulación (orden seguro FK/PROTECT)."""
+    """Elimina filas creadas por este simulador (orden seguro ante FK)."""
     ensure_database_schema_ready()
     deleted: dict[str, int] = {}
 
@@ -354,6 +348,7 @@ def clear_enterprise_year_simulation() -> dict[str, int]:
 
 
 def _ensure_transport_carriers() -> list[TransportCarrier]:
+    """Asegura que existan los transportistas ZLC por defecto."""
     out: list[TransportCarrier] = []
     for t in TRANSPORT_DEFAULTS:
         obj, _ = TransportCarrier.objects.get_or_create(
@@ -370,6 +365,7 @@ def _ensure_transport_carriers() -> list[TransportCarrier]:
 
 
 def _ensure_categories() -> list[Category]:
+    """Asegura filas de categoría semilla y las devuelve."""
     cats: list[Category] = []
     for name in CATEGORY_NAMES:
         c, _ = Category.objects.get_or_create(name=name)
@@ -378,7 +374,7 @@ def _ensure_categories() -> list[Category]:
 
 
 def _generate_product_image(product: Product) -> str | None:
-    """Generate a local PNG under MEDIA_ROOT/productos/ and return the relative ImageField path."""
+    """Escribe un PNG local bajo MEDIA_ROOT/productos/ y devuelve su ruta."""
     try:
         return assign_product_image(product)
     except Exception as exc:
@@ -387,16 +383,18 @@ def _generate_product_image(product: Product) -> str | None:
 
 
 def _tier_weight(tier: int) -> float:
+    """Devuelve el peso de muestreo para un tier de empresa (1 = más pesado)."""
     return {1: 3.5, 2: 2.0, 3: 1.0}.get(tier, 1.0)
 
 
 def _pick_company_index(rng: random.Random, tiers: Sequence[int]) -> int:
+    """Elige un índice de empresa ponderado por tier."""
     weights = [_tier_weight(t) for t in tiers]
     return rng.choices(range(len(tiers)), weights=weights, k=1)[0]
 
 
 def _random_timestamp_in_year(rng: random.Random, start: datetime, end: datetime) -> datetime:
-    """Distribución beta (sesgo hacia fechas recientes) + horario comercial."""
+    """Muestrea un timestamp en horario laboral sesgado hacia fechas recientes."""
     span_days = max(1, (end.date() - start.date()).days)
     u = rng.betavariate(2.0, 4.2)
     day_i = min(span_days - 1, int(u * span_days))
@@ -413,10 +411,7 @@ def _random_timestamp_in_year(rng: random.Random, start: datetime, end: datetime
 def _status_for_timestamp(
     rng: random.Random, created_at: datetime, now: datetime
 ) -> tuple[str, str, bool | None]:
-    """
-    Retorna (order_status, seller_confirmation_status, confirmado_por_empresa).
-    Órdenes recientes incluyen pipeline incompleto.
-    """
+    """Elige estado de pedido/confirmación del vendedor según antigüedad y RNG."""
     age_days = (now - created_at).total_seconds() / 86400.0
     if age_days < 10 and rng.random() < 0.18:
         return 'awaiting_seller', 'pending', None
@@ -449,12 +444,11 @@ def run_enterprise_year_seed(
     clear: bool = False,
     stdout_write: Callable[[str], None] | None = None,
 ) -> dict:
-    """
-    Ejecuta la simulación completa. Devuelve estadísticas agregadas.
-    """
+    """Ejecuta la simulación anual completa y devuelve estadísticas agregadas."""
     out: dict = {'ok': True, 'scale': scale, 'errors': []}
 
     def logmsg(msg: str) -> None:
+        """Escribe una línea de progreso al callback stdout o al logger."""
         if stdout_write:
             stdout_write(msg)
         else:
@@ -567,7 +561,7 @@ def run_enterprise_year_seed(
             )
             buyer_addresses[bu.id] = addr
 
-        # Productos por empresa (más productos en tier 1)
+        # Products per company (more SKUs on tier 1)
         products_by_company: dict[int, list[Product]] = {c.id: [] for c in companies}
         images_generated = 0
         products_pending_images: list[Product] = []
@@ -633,15 +627,15 @@ def run_enterprise_year_seed(
         if not skip_images:
             logmsg(f'[images] Generated {images_generated}/{total_image_targets} product image(s).')
 
-        # SaaS: solo empresas simuladas (no toca otras empresas en la misma BD)
+        # SaaS: simulated companies only (does not touch other rows in the DB)
         seeded_subs = 0
         for co in companies:
-            sub = get_or_create_subscription(co)
+            sub = ensure_demo_subscription(co)
             ensure_ad_credits(co, sub.plan.ad_credits_monthly)
             seeded_subs += 1
         logmsg(f'[saas] subscriptions ensured for {seeded_subs} simulated companies')
 
-        # Upgrades históricos (solo empresas grandes)
+        # Historical upgrades (large companies only)
         plans = {p.slug: p for p in SaasPlan.objects.filter(is_active=True)}
         for ci, co in enumerate(companies):
             if blueprints[ci]['tier'] != 1:
@@ -664,7 +658,7 @@ def run_enterprise_year_seed(
                     notes='Simulated operating-year upgrade',
                 )
 
-        # Órdenes
+        # Orders
         company_products = products_by_company
         order_batch: list[Order] = []
         meta: list[dict] = []
@@ -801,7 +795,7 @@ def run_enterprise_year_seed(
                     )
                 )
 
-            # Timeline logística
+            # Logistics timeline
             t0 = m['created_at']
             if st != 'cancelled':
                 logistics_rows.append(
@@ -853,7 +847,7 @@ def run_enterprise_year_seed(
         Shipment.objects.bulk_create(shipments, batch_size=500)
         LogisticsEvent.objects.bulk_create(logistics_rows, batch_size=800)
 
-        # Ajuste de stock aproximado post-ventas (órdenes facturables)
+        # Approximate post-sale stock adjustment (billable orders)
         billable = ('paid', 'packed', 'shipped', 'delivered')
         usage = (
             OrderItem.objects.filter(order__order_number__startswith=ORDER_NUM_PREFIX, order__status__in=billable)
@@ -869,7 +863,7 @@ def run_enterprise_year_seed(
         if inv_updates:
             Inventory.objects.bulk_update(inv_updates, ['stock_qty'], batch_size=500)
 
-        # Best-sellers por volumen de líneas simuladas
+        # Bestsellers by simulated line volume
         top_n = min(180, max(24, len(order_items) // 35))
         top_ids = (
             OrderItem.objects.filter(order__order_number__startswith=ORDER_NUM_PREFIX)
@@ -880,7 +874,7 @@ def run_enterprise_year_seed(
         hot = {r['product_id'] for r in top_ids}
         Product.objects.filter(id__in=hot).update(is_bestseller=True)
 
-        # Campañas publicitarias (elegantes, pocas por empresa tier 1-2)
+        # Ad campaigns (sparse; mostly tier 1-2 companies)
         campaigns: list[AdCampaign] = []
         for ci, co in enumerate(companies):
             if blueprints[ci]['tier'] == 3 and rng.random() < 0.4:
@@ -908,7 +902,7 @@ def run_enterprise_year_seed(
         if campaigns:
             AdCampaign.objects.bulk_create(campaigns, batch_size=200)
 
-        # Home promo: bestsellers del seed
+        # Home promo: seed bestsellers
         best_products = list(Product.objects.filter(company__ruc__startswith=SIM_RUC_PREFIX, is_bestseller=True)[:24])
         if best_products:
             sec, _ = HomePromoSection.objects.get_or_create(
@@ -928,7 +922,7 @@ def run_enterprise_year_seed(
             )
             sec.products.set(best_products[: sec.max_items])
 
-        # Persistir snapshots predictivos desde datos reales ORM
+        # Persist predictive snapshots from live ORM data
         for co in companies:
             try:
                 CompanyPredictiveSnapshot.objects.filter(company=co).delete()
@@ -942,7 +936,7 @@ def run_enterprise_year_seed(
             except Exception as exc:
                 log.warning('billing_usage_seed_failed company=%s err=%s', co.id, exc)
 
-    # estadísticas fuera de atomic (solo lectura)
+    # Statistics outside atomic (read-only)
     out['companies'] = Company.objects.filter(ruc__startswith=SIM_RUC_PREFIX).count()
     out['products'] = Product.objects.filter(company__ruc__startswith=SIM_RUC_PREFIX).count()
     out['orders'] = Order.objects.filter(order_number__startswith=ORDER_NUM_PREFIX).count()

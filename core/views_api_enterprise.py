@@ -1,5 +1,8 @@
-"""
-API v1 enterprise — inventario, precios y auditoría.
+"""Enterprise API v1 for CFZ seller inventory and pricing sync.
+
+Authenticated with company API keys and SaaS plan gates. Sellers with
+the API feature sync catalog stock and unit prices used by the public
+guest catalog and seller portal.
 """
 from __future__ import annotations
 
@@ -21,6 +24,11 @@ from core.utils.saas_billing import plan_allows_feature
 
 @require_http_methods(['GET'])
 def api_v1_inventory(request):
+    """List up to 500 active products for the authenticated company.
+
+    Requires inventory-read scope and a plan that allows API access.
+    Audits every call for seller portal compliance.
+    """
     key, err = authenticate_api_key(request)
     if err:
         return err
@@ -49,6 +57,11 @@ def api_v1_inventory(request):
 
 @require_http_methods(['POST'])
 def api_v1_pricing_sync(request):
+    """Bulk-update unit prices from a JSON ``items`` payload.
+
+    Requires pricing-write scope. Caps at 100 rows per request so ERP
+    syncs stay bounded against the marketplace catalog.
+    """
     key, err = authenticate_api_key(request)
     if err:
         return err
@@ -85,4 +98,5 @@ def api_v1_pricing_sync(request):
 
 @require_GET
 def api_v1_health(request):
+    """Liveness probe for the TradeFlow enterprise API."""
     return JsonResponse({'status': 'ok', 'service': 'tradeflow-api-v1'})

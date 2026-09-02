@@ -1,4 +1,8 @@
-"""Tests for verify_otp_view and otp_verification utilities."""
+"""Email OTP verification view and verify_user_otp utility.
+
+Checkout next URLs and JSON clients complete verification;
+tokens are deleted after success to block replay.
+"""
 import json
 
 from django.contrib.auth.models import User
@@ -19,7 +23,10 @@ from core.utils.otp_verification import verify_user_otp
     EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
 )
 class VerifyOtpViewTests(TestCase):
+    """Assert GET/POST verify flows and replay protection."""
+
     def setUp(self):
+        """Log in an unverified buyer for OTP verification."""
         self.user = User.objects.create_user(
             username='otp_view_user',
             email='otp_view@test.pa',
@@ -34,11 +41,23 @@ class VerifyOtpViewTests(TestCase):
         self.client.force_login(self.user)
 
     def test_get_renders_form(self):
+        """Render the verify email form on GET."""
         resp = self.client.get(reverse('verificar_codigo'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Verify')
 
+    def test_post_valid_code_redirects_to_checkout_next(self):
+        """Honor next=/checkout/ after a valid OTP POST."""
+        code = generate_user_otp(self.user)
+        resp = self.client.post(
+            reverse('verificar_codigo') + '?next=/checkout/',
+            {'codigo': code, 'next': '/checkout/'},
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp['Location'], '/checkout/')
+
     def test_post_valid_code_json(self):
+        """Return JSON ok/redirect and mark email verified."""
         code = generate_user_otp(self.user)
         resp = self.client.post(
             reverse('verificar_codigo') + '?format=json',
@@ -54,6 +73,7 @@ class VerifyOtpViewTests(TestCase):
         self.assertFalse(EmailVerification.objects.filter(user=self.user).exists())
 
     def test_post_invalid_code_returns_400_json(self):
+        """Return 400 JSON when the code does not match."""
         generate_user_otp(self.user)
         resp = self.client.post(
             reverse('verificar_codigo') + '?format=json',
@@ -65,6 +85,7 @@ class VerifyOtpViewTests(TestCase):
         self.assertFalse(data['ok'])
 
     def test_expo_demo_mode_approves_application(self):
+        """Approve UserApplication and activate user in expo demo."""
         self.user.is_active = False
         self.user.save(update_fields=['is_active'])
         code = generate_user_otp(self.user)
@@ -76,7 +97,25 @@ class VerifyOtpViewTests(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_active)
 
+    def test_buyer_otp_does_not_auto_approve_application(self):
+        """Production OTP verifies email but leaves buyer application pending."""
+        UserApplication.objects.create(
+            user=self.user,
+            full_name='OTP View',
+            email='otp_view@test.pa',
+            role='buyer',
+            status='pending',
+        )
+        code = generate_user_otp(self.user)
+        result = verify_user_otp(self.user, code)
+        self.assertTrue(result.ok)
+        app = UserApplication.objects.get(user=self.user)
+        self.assertEqual(app.status, 'pending')
+        self.user.profile.refresh_from_db()
+        self.assertTrue(self.user.profile.email_verificado)
+
     def test_verify_deletes_token_replay_protection(self):
+        """Reject a second verify attempt with the same code."""
         code = generate_user_otp(self.user)
         first = verify_user_otp(self.user, code)
         self.assertTrue(first.ok)

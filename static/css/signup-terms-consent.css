@@ -1,11 +1,11 @@
 /* Signup — checkbox y modal de Términos / Política de Seguridad */
-.signup-page .auth-submit:disabled {
+.signup-buyer-page .auth-submit:disabled {
   opacity: 0.55;
   cursor: not-allowed;
   transform: none;
 }
 
-.signup-page .auth-submit:disabled:hover {
+.signup-buyer-page .auth-submit:disabled:hover {
   background: var(--signup-orange);
 }
 

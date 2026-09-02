@@ -1,5 +1,7 @@
-"""
-Etiquetas de eje X para gráficos (español, 3 letras mayúsculas).
+"""Etiquetas cortas en español para ejes de gráficas de vendedor y admin.
+
+Mantiene días de la semana y ventanas compactos (3 letras) para ejes SVG/canvas
+del dashboard.
 """
 from __future__ import annotations
 
@@ -10,17 +12,12 @@ WEEKDAY_LABELS_ES = ('LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM')
 
 
 def chart_weekday_label(day_date: dt.date) -> str:
-    """Ej. JUE para un ``date``."""
+    """Devuelve la etiqueta de día de la semana en español (3 letras) para ``date``."""
     return WEEKDAY_LABELS_ES[day_date.weekday()]
 
 
 def chart_axis_label(day_date: dt.date, *, dias: int) -> str:
-    """
-    Etiqueta de eje según ventana.
-
-    - 7 días: LUN, MAR, MIÉ…
-    - 30/90: dd/mm
-    """
+    """Devuelve la etiqueta de eje según la ventana de gráfica solicitada."""
     if dias <= 7:
         return chart_weekday_label(day_date)
     return day_date.strftime('%d/%m')

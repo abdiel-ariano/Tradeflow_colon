@@ -1,0 +1,24 @@
+{% extends "socialaccount/base_entrance.html" %}
+{% load i18n %}
+{% comment %}
+Rara vez se muestra (SOCIALACCOUNT_AUTO_SIGNUP=True); brandizado por si acaso.
+{% endcomment %}
+{% block title %}{% trans "Complete sign-up — TradeFlow Colón" %}{% endblock %}
+{% block socialaccount_content %}
+  <h1 class="login-figma-card__title">{% trans "Complete your account" %}</h1>
+  <p class="login-figma-oauth-lead">
+    {% blocktrans with provider_name=account.get_provider.name %}Finish linking your {{ provider_name }} account to TradeFlow Colón.{% endblocktrans %}
+  </p>
+  <form method="post" action="{% url 'socialaccount_signup' %}" class="login-figma-form" novalidate>
+    {% csrf_token %}
+    {{ redirect_field }}
+    {% for field in form %}
+      <div class="login-figma-field">
+        <label class="login-figma-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field.errors }}
+        {{ field }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="login-figma-submit auth-submit">{% trans "Continue" %}</button>
+  </form>
+{% endblock %}

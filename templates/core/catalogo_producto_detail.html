@@ -1,5 +1,5 @@
 {% extends "core/base.html" %}
-{% load static tf_money %}
+{% load static i18n tf_catalog tf_money %}
 {% block title %}{{ product.name }} — {{ product.company.name }} | TradeFlow Colón{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
@@ -16,22 +16,23 @@
 <link rel="stylesheet" href="{% static 'css/tf-skeletons.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-sections.css' %}?v={{ tf_asset_version|default:'2' }}">
 <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-pdp.css' %}?v={{ tf_asset_version|default:'2' }}">
 {% endblock %}
 
 {% block content %}
 <main class="cpd-page" id="cpd-product-detail">
   <div class="cpd-inner">
-    <nav class="cpd-breadcrumb" aria-label="Breadcrumb">
-      <a href="{% url 'home' %}">Home</a>
+    <nav class="cpd-breadcrumb" aria-label="{% trans 'Breadcrumb' %}">
+      <a href="{% url 'home' %}">{% trans "Home" %}</a>
       <span class="cpd-breadcrumb-sep" aria-hidden="true">›</span>
       {% if product.category %}
-      <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}">{{ product.category.name }}</a>
+      <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}">{{ product.category.name|category_label }}</a>
       <span class="cpd-breadcrumb-sep" aria-hidden="true">›</span>
       {% else %}
-      <a href="{% url 'catalogo_publico' %}">Catalog</a>
+      <a href="{% url 'catalogo_publico' %}">{% trans "Catalog" %}</a>
       <span class="cpd-breadcrumb-sep" aria-hidden="true">›</span>
       {% endif %}
-      <span aria-current="page">{{ product.name }}</span>
+      <span aria-current="page">{{ product.name|truncatechars:48 }}</span>
     </nav>
 
     <div class="tf-skeleton-host" id="cpd-hero-host" data-tf-skeleton aria-busy="true">
@@ -39,132 +40,202 @@
         {% include "core/includes/skeletons/product_detail.html" %}
       </div>
       <div class="tf-skeleton-content">
-    <section class="cpd-hero" aria-labelledby="cpd-product-title">
-      <div class="cpd-hero-media">
-        {% include "core/includes/product_image_placeholder.html" with product=product img_class="cpd-hero-img" width=800 height=600 %}
-        {% if product.is_on_promo_now %}
-        <span class="cpd-hero-badge cpd-hero-badge--promo">-{{ product.discount_pct }}%</span>
-        {% endif %}
-      </div>
-
-      <div class="cpd-hero-info">
-        <p class="cpd-meta">
-          <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
-          {% if product.category %}
-          · <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}">{{ product.category.name }}</a>
-          {% endif %}
-        </p>
-
-        <h1 class="cpd-title" id="cpd-product-title">{{ product.name }}</h1>
-
-        <div class="cpd-badges" aria-label="Product badges">
-          {% if company.is_verified %}
-          <span class="cpd-badge cpd-badge--verified">
-            <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-            CFZ Verified
-          </span>
-          {% endif %}
-          {% if export_ready %}
-          <span class="cpd-badge cpd-badge--export">
-            <span class="material-symbols-rounded" aria-hidden="true">description</span>
-            Export Ready
-          </span>
-          {% endif %}
-          <span class="cpd-badge cpd-badge--stock cpd-badge--stock-{{ stock_status }}">
-            <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
-            {{ stock_label }}
-          </span>
-        </div>
-
-        <div class="cpd-price-block">
-          {% if is_guest %}
-          <p class="cpd-price cpd-price--guest">
-            From {{ product.display_price|money_usd }}
-          </p>
-          <p class="cpd-wholesale-hint">
-            <span class="cpd-badge cpd-badge--register">Sign up to view wholesale pricing</span>
-          </p>
-          <div class="cpd-actions">
-            <a href="{% url 'signup' %}?next={{ canonical_url|urlencode }}" class="ds-btn ds-btn--primary ds-btn--lg">Create account</a>
-            <a href="{% url 'login' %}?next={{ canonical_url|urlencode }}" class="ds-btn ds-btn--secondary ds-btn--lg">Sign in</a>
+        <section class="cpd-stage" aria-labelledby="cpd-product-title">
+          <div class="cpd-gallery">
+            <div class="cpd-gallery__frame">
+              {% include "core/includes/product_image_placeholder.html" with product=product img_class="cpd-hero-img" width=900 height=720 %}
+              {% if product.is_on_promo_now %}
+              <span class="cpd-gallery__promo">-{{ product.discount_pct }}%</span>
+              {% endif %}
+            </div>
+            <p class="cpd-gallery__caption">
+              {% trans "Wholesale listing from a Colón Free Zone supplier" %}
+            </p>
           </div>
-          {% else %}
-          <div class="cpd-price cpd-price--auth">
-            {% if product.is_on_promo_now %}
-            <span class="cpd-price-old">{{ product.unit_price|money_usd }}</span>
-            {% endif %}
-            <span class="cpd-price-now">{{ product.display_price|money_usd }}</span>
+
+          <div class="cpd-buy">
+            <header class="cpd-buy__head">
+              <p class="cpd-buy__supplier">
+                <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
+                {% if product.category %}
+                <span class="cpd-buy__dot" aria-hidden="true">·</span>
+                <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}">{{ product.category.name|category_label }}</a>
+                {% endif %}
+              </p>
+              <h1 class="cpd-title" id="cpd-product-title">{{ product.name }}</h1>
+
+              <ul class="cpd-trust" aria-label="{% trans 'Product badges' %}">
+                {% if company.is_verified %}
+                <li class="cpd-trust__item cpd-trust__item--verified">
+                  <span class="material-symbols-rounded" aria-hidden="true">verified</span>
+                  {% trans "CFZ Verified" %}
+                </li>
+                {% endif %}
+                {% if export_ready %}
+                <li class="cpd-trust__item cpd-trust__item--export">
+                  <span class="material-symbols-rounded" aria-hidden="true">description</span>
+                  {% trans "Export Ready" %}
+                </li>
+                {% endif %}
+                <li class="cpd-trust__item cpd-trust__item--stock-{{ stock_status }}">
+                  <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+                  {{ stock_label }}
+                </li>
+              </ul>
+            </header>
+
+            <div class="cpd-buy__commerce">
+              {% if is_guest %}
+              <div class="cpd-price-row">
+                <p class="cpd-price cpd-price--guest">
+                  <span class="cpd-price__label">{% trans "From" %}</span>
+                  <span class="cpd-price__value">{{ product.display_price|money_usd }}</span>
+                </p>
+                <p class="cpd-price-note">{% trans "Create a free buyer account to unlock wholesale pricing and request quotations." %}</p>
+              </div>
+              <div class="cpd-actions">
+                <a href="{% url 'signup' %}?next={{ canonical_url|urlencode }}" class="ds-btn ds-btn--primary ds-btn--lg cpd-btn-primary">{% trans "Create account" %}</a>
+                <a href="{% url 'login' %}?next={{ canonical_url|urlencode }}" class="ds-btn ds-btn--secondary ds-btn--lg">{% trans "Sign in" %}</a>
+              </div>
+              {% else %}
+              <div class="cpd-price-row">
+                {% if product.is_on_promo_now %}
+                <p class="cpd-price cpd-price--auth">
+                  <span class="cpd-price-old">{{ product.unit_price|money_usd }}</span>
+                  <span class="cpd-price__value">{{ product.display_price|money_usd }}</span>
+                </p>
+                {% else %}
+                <p class="cpd-price cpd-price--auth">
+                  <span class="cpd-price__value">{{ product.display_price|money_usd }}</span>
+                </p>
+                {% endif %}
+              </div>
+              <div class="cpd-actions">
+                {% if show_cart_actions and product.available_qty %}
+                <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form cpd-action-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="cantidad" value="1">
+                  <button type="submit" class="ds-btn ds-btn--primary ds-btn--lg cpd-btn-primary">
+                    <span class="material-symbols-rounded" aria-hidden="true">add_shopping_cart</span>
+                    {% trans "Add to inquiry" %}
+                  </button>
+                </form>
+                <form method="post" action="{% url 'solicitar_cotizacion_automatica' product.pk %}" class="cpd-action-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="cantidad" value="1">
+                  <button type="submit" class="ds-btn ds-btn--secondary ds-btn--lg">
+                    <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
+                    {% trans "Auto quote" %}
+                  </button>
+                </form>
+                {% elif not product.available_qty %}
+                <span class="cpd-btn-disabled">{% trans "Out of stock" %}</span>
+                {% endif %}
+              </div>
+              {% endif %}
+
+              <dl class="cpd-facts" aria-label="{% trans 'Key product facts' %}">
+                <div>
+                  <dt>{% trans "MOQ" %}</dt>
+                  <dd>1 {% trans "piece" %}</dd>
+                </div>
+                <div>
+                  <dt>{% trans "Availability" %}</dt>
+                  <dd>{{ availability_label }}</dd>
+                </div>
+                {% if product.sku %}
+                <div>
+                  <dt>{% trans "SKU" %}</dt>
+                  <dd>{{ product.sku }}</dd>
+                </div>
+                {% endif %}
+                <div>
+                  <dt>{% trans "Currency" %}</dt>
+                  <dd>{{ product.currency }}</dd>
+                </div>
+              </dl>
+
+              <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="cpd-supplier-link">
+                {% trans "View supplier catalog" %}
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
           </div>
-          <div class="cpd-actions">
-            {% if show_cart_actions and product.available_qty %}
-            <form method="post" action="{% url 'agregar_al_carrito' product.pk %}" class="js-cart-add-form cpd-action-form">
-              {% csrf_token %}
-              <input type="hidden" name="cantidad" value="1">
-              <button type="submit" class="ds-btn ds-btn--primary ds-btn--lg">
-                <span class="material-symbols-rounded" aria-hidden="true">add_shopping_cart</span>
-                Add to cart
-              </button>
-            </form>
-            <form method="post" action="{% url 'solicitar_cotizacion_automatica' product.pk %}" class="cpd-action-form">
-              {% csrf_token %}
-              <input type="hidden" name="cantidad" value="1">
-              <button type="submit" class="ds-btn ds-btn--secondary ds-btn--lg">
-                <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
-                Auto quote
-              </button>
-            </form>
-            {% elif not product.available_qty %}
-            <span class="cpd-btn-disabled">Out of stock</span>
-            {% endif %}
-          </div>
-          {% endif %}
-          <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="cpd-supplier-link">
-            View supplier catalog →
-          </a>
-        </div>
-      </div>
-    </section>
+        </section>
       </div>
     </div>
 
-    <section class="cpd-tabs" aria-label="Product information">
+    <section class="cpd-details" aria-label="{% trans 'Product information' %}">
       <div class="cpd-tabs-nav" role="tablist">
-        <button type="button" class="cpd-tab is-active" role="tab" aria-selected="true" aria-controls="cpd-panel-desc" id="cpd-tab-desc" data-cpd-tab="desc">Description</button>
-        <button type="button" class="cpd-tab" role="tab" aria-selected="false" aria-controls="cpd-panel-specs" id="cpd-tab-specs" data-cpd-tab="specs">Specifications</button>
-        <button type="button" class="cpd-tab" role="tab" aria-selected="false" aria-controls="cpd-panel-company" id="cpd-tab-company" data-cpd-tab="company">Company</button>
+        <button type="button" class="cpd-tab is-active" role="tab" aria-selected="true" aria-controls="cpd-panel-desc" id="cpd-tab-desc" data-cpd-tab="desc">{% trans "Description" %}</button>
+        <button type="button" class="cpd-tab" role="tab" aria-selected="false" aria-controls="cpd-panel-specs" id="cpd-tab-specs" data-cpd-tab="specs">{% trans "Specifications" %}</button>
+        <button type="button" class="cpd-tab" role="tab" aria-selected="false" aria-controls="cpd-panel-company" id="cpd-tab-company" data-cpd-tab="company">{% trans "Company" %}</button>
       </div>
 
       <div class="cpd-tab-panels">
         <div class="cpd-tab-panel is-active" role="tabpanel" id="cpd-panel-desc" aria-labelledby="cpd-tab-desc">
-          {% if product.description %}
-          <div class="cpd-prose">{{ product.description|linebreaks }}</div>
+          {% if pdp_description.has_content %}
+          <div class="cpd-desc">
+            {% if pdp_description.overview_paragraphs %}
+            <section class="cpd-desc__section">
+              <h3 class="cpd-desc__heading">{% trans "Product overview" %}</h3>
+              {% for paragraph in pdp_description.overview_paragraphs %}
+              <p class="cpd-desc__text">{{ paragraph }}</p>
+              {% endfor %}
+            </section>
+            {% endif %}
+            {% if pdp_description.feature_items %}
+            <section class="cpd-desc__section">
+              <h3 class="cpd-desc__heading">{% trans "Key features" %}</h3>
+              <ul class="cpd-desc__list">
+                {% for item in pdp_description.feature_items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            </section>
+            {% endif %}
+          </div>
+          {% elif product.description %}
+          <div class="cpd-desc">
+            <section class="cpd-desc__section">
+              <h3 class="cpd-desc__heading">{% trans "Product overview" %}</h3>
+              <div class="cpd-prose">{{ product.description|linebreaks }}</div>
+            </section>
+          </div>
           {% else %}
-          <p class="cpd-muted">No description is available for this product.</p>
+          <div class="cpd-desc cpd-desc--fallback">
+            <section class="cpd-desc__section">
+              <h3 class="cpd-desc__heading">{% trans "Product overview" %}</h3>
+              <p class="cpd-desc__text">{% blocktrans with name=product.name company=product.company.name %}{{ name }} is listed by {{ company }} for wholesale sourcing through TradeFlow Colón.{% endblocktrans %}</p>
+              <p class="cpd-desc__text cpd-desc__text--muted">{% trans "Open the supplier catalog or request a quotation to confirm pricing, MOQ, and delivery terms." %}</p>
+            </section>
+          </div>
           {% endif %}
         </div>
 
         <div class="cpd-tab-panel" role="tabpanel" id="cpd-panel-specs" aria-labelledby="cpd-tab-specs" hidden>
           <dl class="cpd-specs">
-            <div><dt>Product code</dt><dd>{{ product.sku|default:"—" }}</dd></div>
-            <div><dt>Currency</dt><dd>{{ product.currency }}</dd></div>
-            <div><dt>Category</dt><dd>{{ product.category.name|default:"—" }}</dd></div>
-            <div><dt>Available stock</dt><dd>{{ product.available_qty }}</dd></div>
+            <div><dt>{% trans "Product code" %}</dt><dd>{{ product.sku|default:"—" }}</dd></div>
+            <div><dt>{% trans "Currency" %}</dt><dd>{{ product.currency }}</dd></div>
+            <div><dt>{% trans "Category" %}</dt><dd>{% if product.category %}{{ product.category.name|category_label }}{% else %}—{% endif %}</dd></div>
+            <div><dt>{% trans "Availability" %}</dt><dd>{{ availability_label }}</dd></div>
+            <div><dt>{% trans "MOQ" %}</dt><dd>1 {% trans "piece" %}</dd></div>
             {% if product.is_on_promo_now %}
-            <div><dt>List price</dt><dd>{{ product.unit_price|money_usd }}</dd></div>
-            <div><dt>Promo price</dt><dd>{{ product.display_price|money_usd }}</dd></div>
+            <div><dt>{% trans "List price" %}</dt><dd>{{ product.unit_price|money_usd }}</dd></div>
+            <div><dt>{% trans "Promo price" %}</dt><dd>{{ product.display_price|money_usd }}</dd></div>
             {% else %}
-            <div><dt>Unit price</dt><dd>{{ product.display_price|money_usd }}</dd></div>
+            <div><dt>{% trans "Unit price" %}</dt><dd>{{ product.display_price|money_usd }}</dd></div>
             {% endif %}
           </dl>
         </div>
 
         <div class="cpd-tab-panel" role="tabpanel" id="cpd-panel-company" aria-labelledby="cpd-tab-company" hidden>
-          <div class="cpd-company-card">
-            <h2 class="cpd-company-name">{{ company.name }}</h2>
+          <div class="cpd-company">
+            <h2 class="cpd-company__name">{{ company.name }}</h2>
             {% if company.is_verified %}
-            <p class="cpd-company-verified">
+            <p class="cpd-company__verified">
               <span class="material-symbols-rounded" aria-hidden="true">verified</span>
-              CFZ verified company in the Colón Free Zone
+              {% trans "CFZ verified company in the Colón Free Zone" %}
             </p>
             {% endif %}
             {% if company.ruc %}
@@ -173,12 +244,12 @@
             {% if company.address_text %}
             <p class="cpd-muted">{{ company.address_text }}</p>
             {% endif %}
-            {% if company.tagline_en %}
-            <p class="cpd-prose">{{ company.tagline_en }}</p>
-            {% elif company.tagline_es %}
+            {% if company.tagline_es %}
             <p class="cpd-prose">{{ company.tagline_es }}</p>
+            {% elif company.tagline_en %}
+            <p class="cpd-prose">{{ company.tagline_en }}</p>
             {% endif %}
-            <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="ds-btn ds-btn--secondary">View all products</a>
+            <a href="{% url 'catalogo_publico' %}?empresa={{ company.pk }}" class="ds-btn ds-btn--secondary">{% trans "View all products" %}</a>
           </div>
         </div>
       </div>
@@ -187,9 +258,9 @@
     {% if related_products %}
     <section class="cpd-related" aria-labelledby="cpd-related-title">
       <div class="cpd-related-head">
-        <h2 class="cpd-related-title" id="cpd-related-title">Related products</h2>
+        <h2 class="cpd-related-title" id="cpd-related-title">{% trans "Related products" %}</h2>
         {% if product.category %}
-        <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}" class="cpd-related-link">View category →</a>
+        <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}" class="cpd-related-link">{% trans "View category →" %}</a>
         {% endif %}
       </div>
       <div class="tf-pcard-grid">

@@ -1,0 +1,137 @@
+/*
+ * TradeFlow Colón — /recuperar-clave/ visual polish
+ * Layout shell reutiliza login.css; tipografía del sitio: --tf-font-body (Montserrat)
+ */
+
+#auth-recover-root {
+  font-family: var(--tf-font-body);
+}
+
+/* ── Card ── */
+#auth-recover-root .login-figma-card {
+  border-radius: var(--tf-radius-modal);
+  border: 1px solid var(--tf-dark-faint);
+  box-shadow:
+    0 2px 8px rgba(15, 42, 68, 0.1),
+    0 12px 32px rgba(15, 42, 68, 0.12);
+  overflow: hidden;
+}
+
+#auth-recover-root .login-figma-card__body {
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+/* ── Tipografía (misma familia del sitio) ── */
+#auth-recover-root .login-figma-card__title {
+  font-family: inherit;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 34px;
+  margin: 0 0 10px;
+  letter-spacing: -0.2px;
+}
+
+#auth-recover-root .login-figma-recover-lead {
+  margin: 0 0 28px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--tf-muted);
+}
+
+#auth-recover-root .login-figma-form .login-figma-label {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+  margin-bottom: 10px;
+}
+
+/* ── Input email + ícono ── */
+#auth-recover-root .login-figma-input-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+#auth-recover-root .login-figma-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  line-height: 1;
+  color: var(--tf-text-3);
+  pointer-events: none;
+  z-index: 1;
+}
+
+#auth-recover-root .login-figma-form .login-figma-input,
+#auth-recover-root .login-figma-form .login-figma-input.tf-input,
+#auth-recover-root .login-figma-form input[type='password'],
+#auth-recover-root .login-figma-form input[type='text'],
+#auth-recover-root .login-figma-form input[type='email'] {
+  height: 46px;
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  border-radius: var(--tf-radius-input, 8px);
+  box-shadow: 0 0 0 1.5px var(--tf-border-hover, #9CA3AF);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+#auth-recover-root .login-figma-form .login-figma-input-wrap .login-figma-input,
+#auth-recover-root .login-figma-form .login-figma-input-wrap .login-figma-input.tf-input {
+  padding: 11px 14px 11px 44px;
+}
+
+#auth-recover-root .login-figma-form .login-figma-input:focus,
+#auth-recover-root .login-figma-form .login-figma-input--focus:focus,
+#auth-recover-root .login-figma-form input[type='password']:focus,
+#auth-recover-root .login-figma-form input[type='text']:focus,
+#auth-recover-root .login-figma-form input[type='email']:focus {
+  outline: none;
+  box-shadow:
+    0 0 0 1.5px var(--tf-orange),
+    0 0 0 4px var(--tf-orange-light);
+}
+
+#auth-recover-root .login-figma-field-error {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--tf-danger);
+}
+
+#auth-recover-root .login-figma-recover-back {
+  margin: 16px 0 0;
+  text-align: center;
+}
+
+#auth-recover-root .login-figma-recover-back .login-figma-link {
+  font-family: inherit;
+}
+
+@media (max-width: 640px) {
+  #auth-recover-root .login-figma-card__body {
+    padding: 28px 24px;
+  }
+
+  #auth-recover-root .login-figma-card__title {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  #auth-recover-root .login-figma-recover-lead {
+    font-size: 15px;
+    line-height: 22px;
+    margin-bottom: 24px;
+  }
+
+  #auth-recover-root .login-figma-form .login-figma-label {
+    font-size: 15px;
+  }
+}

@@ -1,4 +1,8 @@
-"""Return 503 when the database is unreachable instead of opaque 500 pages."""
+"""Serve a maintenance page when the database cannot be reached.
+
+PaaS cold starts and Postgres outages should return 503 with Retry-After
+instead of opaque Django 500 pages for CFZ marketplace visitors.
+"""
 from __future__ import annotations
 
 from django.db import DatabaseError, OperationalError
@@ -8,9 +12,10 @@ from django.utils.deprecation import MiddlewareMixin
 
 
 class DatabaseUnavailableMiddleware(MiddlewareMixin):
-    """Catch DB connection errors and show a maintenance response."""
+    """Catch connection-class DB errors and render a 503 maintenance page."""
 
     def process_exception(self, request, exception):
+        """Return 503 for auth/connect/timeout DB failures; else continue."""
         if not isinstance(exception, (OperationalError, DatabaseError)):
             return None
         message = str(exception).lower()

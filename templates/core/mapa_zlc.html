@@ -1,27 +1,47 @@
-{% extends "core/base.html" %}
-{% load static %}
-{% comment %}
-ACCIÓN: CREAR — templates/core/mapa_zlc.html
-Map Folium embebido; contexto: map_html, titulo_pagina, nav_activo.
-{% endcomment %}
-{% block title %}Map — Colón Free Zone — TradeFlow Colón{% endblock %}
-{% block extra_css %}
-<style nonce="{{ csp_nonce }}">
-  .map-zlc-wrap { max-width: 1160px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1rem clamp(2.5rem, 5vw, 4rem); }
-  .map-zlc-head h1 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.5rem; color: #0F2A44; margin: 0 0 0.5rem; }
-  .map-zlc-head p { color: #6B7A88; font-size: 0.9rem; margin: 0 0 1.25rem; max-width: 60ch; }
-  .map-zlc-frame { border: 1px solid #D1D5DB; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 8px 24px rgba(15,42,68,0.08); }
-  .map-zlc-frame iframe, .map-zlc-frame .folium-map { width: 100% !important; min-height: 480px; }
-</style>
+{% extends "core/marketplace_public_base.html" %}
+{% load static i18n %}
+{% comment %}CFZ company map — Leaflet + OpenStreetMap (free, no API key).{% endcomment %}
+
+{% block title %}{% trans "Map" %} — {% trans "Colón Free Zone" %} — TradeFlow Colón{% endblock %}
+
+{% block marketplace_extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="anonymous">
+<link rel="stylesheet" href="{% static 'css/tf-cfz-map.css' %}?v={{ tf_asset_version }}">
 {% endblock %}
-{% block content %}
-<div class="map-zlc-wrap">
-  <header class="map-zlc-head">
-    <h1>Companies in the Colón Free Zone</h1>
-    <p>Browse verified sellers and their catalog. Orange markers: verified company; gray: pending verification.</p>
-  </header>
-  <div class="map-zlc-frame">
-    {{ map_html|safe }}
+
+{% block marketplace_main %}
+<div class="map-zlc-layout">
+  <aside class="map-zlc-sidebar" aria-label="{% trans 'Company directory' %}">
+    <header class="map-zlc-sidebar__head">
+      <h1>{% trans "Companies in the Colón Free Zone" %}</h1>
+      <p>{% trans "Explore verified sellers on the map. Select a company to zoom in — powered by free OpenStreetMap data." %}</p>
+      <p class="map-zlc-stats" id="tf-cfz-map-stats" aria-live="polite"></p>
+      <div class="map-zlc-legend" aria-hidden="true">
+        <span><i class="verified"></i> {% trans "Verified seller" %}</span>
+        <span><i class="pending"></i> {% trans "Pending verification" %}</span>
+      </div>
+    </header>
+    <div class="map-zlc-controls">
+      <label class="visually-hidden" for="tf-cfz-map-filter">{% trans "Filter companies" %}</label>
+      <input type="search" class="map-zlc-filter" id="tf-cfz-map-filter" placeholder="{% trans 'Filter companies…' %}" autocomplete="off">
+      <label class="map-zlc-verified-toggle">
+        <input type="checkbox" id="tf-cfz-verified-only">
+        {% trans "Verified only" %}
+      </label>
+    </div>
+    <ul class="map-zlc-list" id="tf-cfz-map-list" role="list"></ul>
+  </aside>
+  <div class="map-zlc-mapcol">
+    <div id="tf-cfz-map" role="application" aria-label="{% trans 'Interactive map of CFZ companies' %}"></div>
   </div>
+  {{ map_payload|json_script:"tf-cfz-map-data" }}
 </div>
+{% endblock %}
+
+{% block marketplace_extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/tf-cfz-map.js' %}?v={{ tf_asset_version }}"></script>
 {% endblock %}

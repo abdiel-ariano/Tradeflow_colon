@@ -1,4 +1,5 @@
-{% load static %}
+{% load static i18n tf_catalog %}
+{% get_current_language as CURRENT_LANG %}
 {% comment %}Public navbar — Alibaba-style home, catalog, and about pages (English).{% endcomment %}
 <header class="cat-nav tf-nav-alibaba" id="cat-catalog-nav">
   <div class="navbar-primary">
@@ -9,10 +10,10 @@
 
     <div class="search-container">
       <form class="search-bar" action="{% url 'catalogo_publico' %}" method="get" role="search" id="cat-nav-search-form">
-        <label class="visually-hidden" for="cat-nav-search">Search catalog</label>
+        <label class="visually-hidden" for="cat-nav-search">{% trans "Search catalog" %}</label>
         <input type="search" id="cat-nav-search" name="buscar" value="{{ buscar|default:'' }}"
-               placeholder="Search {{ catalogo_stats.productos|default:'1,200+' }} CFZ products…" autocomplete="off">
-        <button type="button" class="btn-camera" aria-label="Search by image">
+               placeholder="{% blocktrans with count=catalogo_stats.productos|default:'1,200+' %}Search {{ count }} CFZ products…{% endblocktrans %}" autocomplete="off" data-tf-ai-search="public">
+        <button type="button" class="btn-camera" aria-label="{% trans 'Search by image' %}">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 0 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
             <circle cx="12" cy="13" r="4"/>
@@ -22,60 +23,70 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
           </svg>
-          <span class="btn-search-label">Search</span>
+          <span class="btn-search-label">{% trans "Search" %}</span>
         </button>
       </form>
     </div>
 
-    <button type="button" class="btn-hamburger" id="cat-nav-hamburger" aria-label="Open menu">
+    <button type="button" class="btn-hamburger" id="cat-nav-hamburger" aria-label="{% trans 'Open menu' %}"
+            aria-controls="cat-nav-secondary" aria-expanded="false">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path d="M4 6h16M4 12h16M4 18h16"/>
       </svg>
     </button>
 
     <div class="navbar-actions bn-actions">
-      <button type="button" class="bn-utility" title="Delivery region" aria-label="Deliver to Panama">
+      <button type="button" class="bn-utility" title="{% trans 'Delivery region' %}" aria-label="{% trans 'Deliver to Panama' %}">
         <span class="bn-utility__flag" aria-hidden="true">🇵🇦</span>
         <span class="bn-utility__stack">
-          <span class="bn-utility__label">Deliver to:</span>
+          <span class="bn-utility__label">{% trans "Deliver to:" %}</span>
           <span class="bn-utility__value">PA</span>
         </span>
       </button>
 
-      <button type="button" class="bn-utility bn-utility--lang" title="Language and currency" aria-label="English USD">
+      <div class="bn-utility bn-utility--lang" title="{% trans 'Language and currency' %}" aria-label="{% trans 'Language and currency' %}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
         </svg>
-        <span class="bn-utility__value">English · USD</span>
-      </button>
+        <div class="bn-lang-switch" role="group" aria-label="{% trans 'Language' %}">
+          <form action="{% url 'set_language' %}" method="post" class="bn-lang-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% tf_language_next 'es' %}">
+            <input type="hidden" name="language" value="es">
+            <button type="submit" class="bn-lang-link{% if CURRENT_LANG == 'es' %} is-active{% endif %}" lang="es">ES</button>
+          </form>
+          <span class="bn-lang-sep" aria-hidden="true">|</span>
+          <form action="{% url 'set_language' %}" method="post" class="bn-lang-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% tf_language_next 'en' %}">
+            <input type="hidden" name="language" value="en">
+            <button type="submit" class="bn-lang-link{% if CURRENT_LANG == 'en' %} is-active{% endif %}" lang="en">EN</button>
+          </form>
+        </div>
+        <span class="bn-utility__value">USD</span>
+      </div>
 
       {% if request.user.is_authenticated %}
-      <a href="{% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="Messages" aria-label="Messages">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-      </a>
-
-      <a href="{% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="Orders and lists" aria-label="Orders and lists">
+      <a href="{% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="{% trans 'My quotes' %}" aria-label="{% trans 'My quotes' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
         </svg>
       </a>
       {% else %}
-      <a href="{% url 'login' %}?next={% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="Messages" aria-label="Messages">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-      </a>
-
-      <a href="{% url 'login' %}?next={% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="Orders and lists" aria-label="Orders and lists">
+      <a href="{% url 'login' %}?next={% url 'mis_cotizaciones' %}" class="bn-utility bn-utility--icon" title="{% trans 'My quotes' %}" aria-label="{% trans 'My quotes' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
         </svg>
       </a>
       {% endif %}
 
-      <a href="{% url 'ver_carrito' %}" class="cart-btn" aria-label="Inquiry cart">
+      <a href="{% url 'mapa_zlc' %}" class="bn-utility bn-utility--icon" title="{% trans 'Company map' %}" aria-label="{% trans 'Company map' %}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>
+        </svg>
+      </a>
+
+      <a href="{% url 'ver_carrito' %}" class="cart-btn" aria-label="{% trans 'Inquiry cart' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
@@ -84,37 +95,61 @@
       </a>
 
       {% if request.user.is_authenticated %}
-      <a href="{% url 'mi_perfil' %}" class="bn-utility bn-utility--account" title="My account">
+      <a href="{% url 'mi_perfil' %}" class="bn-utility bn-utility--account" title="{% trans 'My account' %}">
         <span class="bn-user-avatar" aria-hidden="true">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
         <span class="bn-user-name">{{ request.user.get_full_name|default:request.user.username|truncatechars:14 }}</span>
       </a>
       {% else %}
-      <a href="{% url 'login' %}" class="bn-utility bn-utility--signin" title="Sign in">
+      <a href="{% url 'login' %}" class="bn-utility bn-utility--signin" title="{% trans 'Sign in' %}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
         </svg>
-        <span class="bn-utility__signin-label">Sign in</span>
+        <span class="bn-utility__signin-label">{% trans "Sign in" %}</span>
       </a>
-      <a href="{% url 'signup_buyer' %}" class="btn-create-account bn-create-account">Create account</a>
+      <a href="{% url 'signup_buyer' %}" class="btn-create-account bn-create-account">{% trans "Create account" %}</a>
       {% endif %}
     </div>
   </div>
 
-  <nav class="navbar-secondary" aria-label="Marketplace shortcuts">
+  <nav class="navbar-secondary" id="cat-nav-secondary"
+       aria-label="{% trans 'Marketplace shortcuts' %}">
     <div class="nav-secondary-inner">
       <div class="nav-secondary-left">
-        <button type="button" class="btn-all-categories" data-cat-modal-open data-cat-panel="discover">☰ All categories</button>
-        <a href="{% url 'home' %}"{% if marketplace_nav_active == 'home' %} class="is-active" aria-current="page"{% endif %}>Home</a>
-        <a href="{% url 'catalogo_publico' %}"{% if marketplace_nav_active == 'catalog' %} class="is-active" aria-current="page"{% endif %}>Catalog</a>
-        <a href="{% url 'marketplace_deals' %}"{% if marketplace_nav_active == 'deals' %} class="is-active" aria-current="page"{% endif %}>Deals</a>
-        <a href="{% url 'marketplace_verified_suppliers' %}"{% if marketplace_nav_active == 'verified' %} class="is-active" aria-current="page"{% endif %}>Verified suppliers</a>
-        <a href="{% url 'marketplace_order_protection' %}"{% if marketplace_nav_active == 'protection' %} class="is-active" aria-current="page"{% endif %}>Order protection</a>
-        <a href="{% url 'acerca_tradeflow' %}"{% if marketplace_nav_active == 'about' %} class="is-active" aria-current="page"{% endif %}>About TradeFlow</a>
+        <button type="button" class="btn-all-categories" data-cat-modal-open data-cat-panel="discover">☰ {% trans "All categories" %}</button>
+        <a href="{% url 'home' %}"{% if marketplace_nav_active == 'home' %} class="is-active" aria-current="page"{% endif %}>{% trans "Home" %}</a>
+        <a href="{% url 'catalogo_publico' %}"{% if marketplace_nav_active == 'catalog' %} class="is-active" aria-current="page"{% endif %}>{% trans "Catalog" %}</a>
+        <a href="{% url 'mapa_zlc' %}"{% if marketplace_nav_active == 'map' %} class="is-active" aria-current="page"{% endif %}>{% trans "Map" %}</a>
+        <a href="{% url 'marketplace_deals' %}"{% if marketplace_nav_active == 'deals' %} class="is-active" aria-current="page"{% endif %}>{% trans "Deals" %}</a>
+        <a href="{% url 'marketplace_verified_suppliers' %}"{% if marketplace_nav_active == 'verified' %} class="is-active" aria-current="page"{% endif %}>{% trans "Verified suppliers" %}</a>
+        <a href="{% url 'marketplace_order_protection' %}"{% if marketplace_nav_active == 'protection' %} class="is-active" aria-current="page"{% endif %}>{% trans "How RFQs work" %}</a>
+        <a href="{% url 'acerca_tradeflow' %}"{% if marketplace_nav_active == 'about' %} class="is-active" aria-current="page"{% endif %}>{% trans "About TradeFlow" %}</a>
       </div>
       <div class="nav-secondary-right">
-        <a href="{% url 'acerca_tradeflow' %}">Help center</a>
-        <a href="{% url 'signup_seller' %}">Sell on TradeFlow</a>
+        <button type="button" class="tf-install-app"
+                data-tf-install-app
+                title="{% trans 'Install App' %}"
+                aria-label="{% trans 'Install App' %}"
+                hidden>
+          <svg class="tf-install-app__icon" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2"
+               aria-hidden="true">
+            <path d="M12 3v12m0 0 4-4m-4 4-4-4"/>
+            <path d="M5 19h14"/>
+          </svg>
+          <span class="tf-install-app__label">{% trans "Install App" %}</span>
+        </button>
+        <a href="{% url 'acerca_tradeflow' %}">{% trans "Help center" %}</a>
+        {% if tf_seller_onboarding_pending %}
+        <a href="{% url 'seller_onboarding_company' %}">{% trans "Complete company setup" %}</a>
+        {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" %}
+        {% elif tf_user_role == 'seller' %}
+        <a href="{% url 'portal_seller' %}">{% trans "Seller portal" %}</a>
+        {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" %}
+        {% else %}
+        <a href="{% url 'signup_seller' %}">{% trans "Sell on TradeFlow" %}</a>
+        {% endif %}
       </div>
     </div>
   </nav>
 </header>
+{% include "core/includes/tf_ai_search_assets.html" %}

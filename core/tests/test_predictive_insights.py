@@ -1,4 +1,8 @@
-"""Tests de acceso a insights predictivos Enterprise."""
+"""Corporate Pro predictive insights portal access gates.
+
+Only Corporate Pro subscribers see forecasts; lower
+plans get an upgrade surface instead of empty analytics.
+"""
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -7,7 +11,7 @@ from django.urls import reverse
 
 from core.enterprise_models import SaasPlan
 from core.models import Company, UserProfile
-from core.utils.saas_billing import ensure_default_plans, get_or_create_subscription
+from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscription
 
 
 @override_settings(
@@ -17,7 +21,10 @@ from core.utils.saas_billing import ensure_default_plans, get_or_create_subscrip
     STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage',
 )
 class TestPredictiveInsightsAccess(TestCase):
+    """Assert upgrade vs insights panel by SaaS plan."""
+
     def setUp(self):
+        """Create verified seller company on a demo subscription."""
         ensure_default_plans()
         self.client = Client()
         self.user = User.objects.create_user('ent_seller', 'ent@test.pa', 'pass')
@@ -30,15 +37,17 @@ class TestPredictiveInsightsAccess(TestCase):
         )
         self.client.login(username='ent_seller', password='pass')
 
-    def test_non_enterprise_sees_upgrade_page(self):
-        get_or_create_subscription(self.company)
+    def test_digitalize_sees_corporate_pro_upgrade_page(self):
+        """Show Corporate Pro upgrade messaging on Digitalize."""
+        ensure_demo_subscription(self.company)
         resp = self.client.get(reverse('seller_predictive_insights'))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'Enterprise ecosystem')
+        self.assertContains(resp, 'Available on Corporate Pro')
 
-    def test_enterprise_sees_insights_panel(self):
-        sub = get_or_create_subscription(self.company)
-        sub.plan = SaasPlan.objects.get(slug='ecosistema_enterprise')
+    def test_corporate_pro_sees_insights_panel(self):
+        """Render the 30-day forecast panel for Corporate Pro subscribers."""
+        sub = ensure_demo_subscription(self.company)
+        sub.plan = SaasPlan.objects.get(slug='corporativo_pro')
         sub.save(update_fields=['plan'])
         resp = self.client.get(reverse('seller_predictive_insights'))
         self.assertEqual(resp.status_code, 200)

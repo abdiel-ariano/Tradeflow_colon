@@ -1,6 +1,8 @@
-"""
-Páginas del panel seller — shell tipo dashboard (Home, Balances, Tax, etc.).
-Algunas son funcionales; otras son base para features futuras.
+"""Seller portal shell pages beyond the main sales dashboard.
+
+Dashboard-style screens for CFZ sellers: balances, customers, tax
+stubs, disputes, setup guide, global search, and payment analytics.
+Some routes are fully wired; others scaffold future portal features.
 """
 from __future__ import annotations
 
@@ -8,7 +10,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Max, Q, Sum
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET
@@ -20,6 +22,7 @@ from .utils.seller_analytics import seller_portal_dashboard, seller_sales_dashbo
 
 
 def _seller_ctx(company, nav_activo: str, titulo: str, **extra):
+    """Build shared template context for seller shell pages."""
     return {
         'company': company,
         'nav_activo': nav_activo,
@@ -31,11 +34,25 @@ def _seller_ctx(company, nav_activo: str, titulo: str, **extra):
 @seller_required
 @require_GET
 def seller_balances(request):
-    """Balances: ingresos y resumen financiero del seller."""
+    """Show monthly sales income and payment approval totals.
+
+    Aggregates approved vs pending Payment rows for the seller company
+    so CFZ merchants can reconcile marketplace cash flow.
+    """
     company, resp = _seller_company_or_response(request, 'seller_balances')
     if resp:
         return resp
+    from .models import Payment
+
     sales = seller_sales_dashboard(company)
+    order_ids = OrderItem.objects.filter(product__company=company).values_list('order_id', flat=True).distinct()
+    payments = Payment.objects.filter(order_id__in=order_ids)
+    approved_total = payments.filter(status='approved').aggregate(t=Sum('amount'))['t'] or Decimal('0.00')
+    pending_total = payments.filter(status='pending').aggregate(t=Sum('amount'))['t'] or Decimal('0.00')
+    recent_payments = list(
+        payments.select_related('order', 'order__buyer')
+        .order_by('-paid_at', '-order__created_at')[:12]
+    )
     return render(
         request,
         'core/seller_balances.html',
@@ -46,6 +63,9 @@ def seller_balances(request):
             ingresos_mes=sales['ingresos_mes'],
             ventas_mes=sales['ventas_mes'],
             ticket_promedio=sales['ticket_promedio'],
+            approved_total=approved_total,
+            pending_total=pending_total,
+            recent_payments=recent_payments,
         ),
     )
 
@@ -53,7 +73,11 @@ def seller_balances(request):
 @seller_required
 @require_GET
 def seller_customers(request):
-    """Listado de compradores que han cotizado o comprado."""
+    """List buyers who quoted or purchased from this seller company.
+
+    Merges Order and Cotizacion activity per buyer so sellers see
+    spend, quote volume, and optional name/email search filters.
+    """
     company, resp = _seller_company_or_response(request, 'seller_customers')
     if resp:
         return resp
@@ -64,7 +88,7 @@ def seller_customers(request):
         .annotate(
             orders_count=Count('id', distinct=True),
             total_spent=Sum('total'),
-            last_order=Count('id'),
+            last_order_at=Max('created_at'),
         )
     )
     buyer_stats: dict[int, dict] = {}
@@ -76,6 +100,7 @@ def seller_customers(request):
             'orders_count': row['orders_count'],
             'total_spent': row['total_spent'] or Decimal('0'),
             'quotes_count': 0,
+            'last_order_at': row.get('last_order_at'),
         }
 
     quote_rows = (
@@ -113,6 +138,7 @@ def seller_customers(request):
                 'orders_count': stats['orders_count'],
                 'quotes_count': stats['quotes_count'],
                 'total_spent': stats['total_spent'],
+                'last_order_at': stats.get('last_order_at'),
             })
     buyers.sort(key=lambda b: b['total_spent'], reverse=True)
 
@@ -136,7 +162,7 @@ def seller_customers(request):
 @seller_required
 @require_GET
 def seller_tax(request):
-    """Tax — overview (CFZ export compliance; expansión futura)."""
+    """Render CFZ export tax overview tabs (scaffold for compliance)."""
     company, resp = _seller_company_or_response(request, 'seller_tax')
     if resp:
         return resp
@@ -151,7 +177,7 @@ def seller_tax(request):
 @seller_required
 @require_GET
 def seller_data_management(request):
-    """Exportación y gestión de datos del seller."""
+    """Show catalog and order counts for seller data export tooling."""
     company, resp = _seller_company_or_response(request, 'seller_data')
     if resp:
         return resp
@@ -175,7 +201,11 @@ def seller_data_management(request):
 @seller_required
 @require_GET
 def seller_disputes(request):
-    """Órdenes que requieren acción del seller (disputas / confirmación)."""
+    """List orders awaiting seller confirmation or dispute action.
+
+    Surfaces ``awaiting_seller`` / ``paid`` rows still pending
+    confirmation so merchants clear the post-payment SLA queue.
+    """
     company, resp = _seller_company_or_response(request, 'seller_disputes')
     if resp:
         return resp
@@ -199,7 +229,7 @@ def seller_disputes(request):
 @seller_required
 @require_GET
 def seller_apps(request):
-    """Marketplace de integraciones (base para futuras apps)."""
+    """Render the integrations marketplace shell for future seller apps."""
     company, resp = _seller_company_or_response(request, 'seller_apps')
     if resp:
         return resp
@@ -213,7 +243,11 @@ def seller_apps(request):
 @seller_required
 @require_GET
 def seller_setup_guide(request):
-    """Guía de configuración inicial del seller."""
+    """Checklist for first catalog publish, QR share, quotes, and sale.
+
+    Marks each onboarding step done from live Company/Product/Order
+    and Cotizacion state so new CFZ sellers see progress in-portal.
+    """
     company, resp = _seller_company_or_response(request, 'seller_setup')
     if resp:
         return resp
@@ -273,28 +307,51 @@ def seller_setup_guide(request):
 @seller_required
 @require_GET
 def seller_global_search(request):
-    """Búsqueda global en productos y órdenes del seller."""
+    """Search products, orders, buyers, and quotes for one company.
+
+    Combines ORM filters with AI tip/suggestion payload so sellers
+    find catalog and CRM records from a single portal search box.
+    """
     company, resp = _seller_company_or_response(request, 'seller_search')
     if resp:
         return resp
 
+    from .utils.ai_search import build_search_response
+
     q = request.GET.get('q', '').strip()
     products = []
     orders = []
+    customers = []
+    quotes = []
+    ai_payload = {}
     if q:
+        ai_payload = build_search_response('seller', q, request, limit=10)
         products = list(
             Product.objects.filter(company=company)
-            .filter(Q(name__icontains=q) | Q(sku__icontains=q))
+            .filter(Q(name__icontains=q) | Q(sku__icontains=q) | Q(description__icontains=q))
             .order_by('name')[:20]
         )
         orders = list(
             Order.objects.filter(
                 items__product__company=company,
-                order_number__icontains=q,
             )
+            .filter(Q(order_number__icontains=q) | Q(buyer__username__icontains=q) | Q(buyer__email__icontains=q))
             .distinct()
             .select_related('buyer')
             .order_by('-created_at')[:20]
+        )
+        quotes = list(
+            Cotizacion.objects.filter(empresa=company, numero__icontains=q)
+            .select_related('buyer')
+            .order_by('-created_at')[:15]
+        )
+        buyer_ids = set(
+            Order.objects.filter(items__product__company=company).values_list('buyer_id', flat=True)
+        )
+        customers = list(
+            User.objects.filter(pk__in=buyer_ids).filter(
+                Q(username__icontains=q) | Q(email__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q)
+            )[:15]
         )
 
     return render(
@@ -307,6 +364,11 @@ def seller_global_search(request):
             search_q=q,
             search_products=products,
             search_orders=orders,
+            search_customers=customers,
+            search_quotes=quotes,
+            ai_tip=ai_payload.get('tip', ''),
+            ai_related=ai_payload.get('related', []),
+            ai_suggestions=ai_payload.get('suggestions', []),
         ),
     )
 
@@ -314,7 +376,11 @@ def seller_global_search(request):
 @seller_required
 @require_GET
 def seller_reporting(request):
-    """Payments analytics — aceptación y rendimiento de pagos."""
+    """Payment acceptance analytics for a selectable day window.
+
+    Charts approval rates and revenue so sellers tune checkout
+    performance without leaving the portal shell.
+    """
     import json as _json
 
     company, resp = _seller_company_or_response(request, 'seller_reporting')
@@ -346,7 +412,5 @@ def seller_reporting(request):
             period_start=period_start,
             period_end=period_end,
             **data,
-            chart_labels_json=_json.dumps(data['chart_labels']),
-            chart_values_json=_json.dumps(data['chart_values']),
         ),
     )

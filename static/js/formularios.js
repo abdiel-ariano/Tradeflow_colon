@@ -187,10 +187,10 @@ function validateForm(form) {
 
   form.querySelectorAll('[required]').forEach(function (input) {
     if (!input.value.trim()) {
-      showFieldError(input, 'This field is required.');
+      showFieldError(input, (window.TF_I18N && window.TF_I18N.fieldRequired) || 'This field is required.');
       valid = false;
     } else if (input.type === 'email' && !isValidEmail(input.value)) {
-      showFieldError(input, 'Enter a valid email address.');
+      showFieldError(input, (window.TF_I18N && window.TF_I18N.emailInvalid) || 'Enter a valid email address.');
       valid = false;
     }
   });

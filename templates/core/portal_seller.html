@@ -14,7 +14,7 @@
 </section>
 
 <section class="sp-dash-section">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+  <div class="sp-stripe-page-head" style="margin-bottom:16px;">
     <h2 class="sp-dash-section-title" style="margin:0;">Your overview</h2>
     <div class="sp-dash-pills" style="margin:0;">
       <a href="{% url 'seller_agregar_producto' %}" class="sp-dash-pill">+ Add</a>
@@ -23,9 +23,9 @@
   </div>
 
   <div class="sp-dash-pills" role="group" aria-label="Filters">
-    <span class="sp-dash-pill is-on">Date range: Last 7 days</span>
-    <span class="sp-dash-pill">Daily</span>
-    <span class="sp-dash-pill">Compare: Previous period</span>
+    <a href="{% url 'seller_mis_ventas' %}" class="sp-dash-pill is-on">Date range: Last 7 days</a>
+    <a href="{% url 'seller_reporting' %}?days=7" class="sp-dash-pill">Daily analytics</a>
+    <a href="{% url 'seller_reporting' %}?days=30" class="sp-dash-pill">Compare: 30 days</a>
   </div>
 
   <div class="sp-dash-metrics">
@@ -42,7 +42,7 @@
     <article class="sp-dash-metric">
       <div class="sp-dash-metric-lbl">Active catalog</div>
       <p class="sp-dash-metric-val">{{ productos_activos }}</p>
-      <p class="sp-dash-metric-hint">{{ low }} low stock</p>
+      <p class="sp-dash-metric-hint">{{ bajo_stock }} low stock</p>
     </article>
   </div>
 </section>
@@ -126,14 +126,21 @@
 {% endblock %}
 
 {% block seller_extra_js %}
+{% load tf_csp %}
+{% json_data_block chart_revenue_labels "sp-portal-rev-labels" %}
+{% json_data_block chart_revenue_values "sp-portal-rev-values" %}
+{% json_data_block chart_week_labels "sp-portal-week-labels" %}
+{% json_data_block chart_week_orders "sp-portal-week-orders" %}
+{% json_data_block chart_status_labels "sp-portal-status-labels" %}
+{% json_data_block chart_status_values "sp-portal-status-values" %}
 <script nonce="{{ csp_nonce }}">
 window.SP_PORTAL = {
-  revenueLabels: {{ chart_revenue_labels_json|safe }},
-  revenueValues: {{ chart_revenue_values_json|safe }},
-  weekLabels: {{ chart_week_labels_json|safe }},
-  weekOrders: {{ chart_week_orders_json|safe }},
-  statusLabels: {{ chart_status_labels_json|safe }},
-  statusValues: {{ chart_status_values_json|safe }},
+  revenueLabels: JSON.parse(document.getElementById('sp-portal-rev-labels').textContent),
+  revenueValues: JSON.parse(document.getElementById('sp-portal-rev-values').textContent),
+  weekLabels: JSON.parse(document.getElementById('sp-portal-week-labels').textContent),
+  weekOrders: JSON.parse(document.getElementById('sp-portal-week-orders').textContent),
+  statusLabels: JSON.parse(document.getElementById('sp-portal-status-labels').textContent),
+  statusValues: JSON.parse(document.getElementById('sp-portal-status-values').textContent),
   catLabels: [],
   catValues: [],
   pollUrl: "{% url 'api_seller_dashboard' %}"

@@ -1,0 +1,6 @@
+{% load static %}
+{# AI search assets — include once per page (navbars already include this). #}
+{# Sets TF_AI_SEARCH_URL and loads tf-ai-search.js which binds [data-tf-ai-search] inputs. #}
+<link rel="stylesheet" href="{% static 'css/tf-ai-search.css' %}?v={{ tf_asset_version }}">
+<script nonce="{{ csp_nonce }}">window.TF_AI_SEARCH_URL = "{% url 'api_search_suggest' %}";</script>
+<script src="{% static 'js/tf-ai-search.js' %}?v={{ tf_asset_version }}"></script>

@@ -1,14 +1,10 @@
-"""
-Assign bundled category seed photographs to products without images.
+"""Assign bundled category seed photos to products without images.
 
-Seeds live in static/images/catalog-seeds/ (committed assets).
-Each product gets a cropped variant so grids do not look cloned.
+Seeds live in ``static/images/catalog-seeds/``. Each product gets a
+cropped variant so marketplace grids do not look cloned.
 
-Usage:
-    python manage.py seed_catalog_images
-    python manage.py seed_catalog_images --limit 50
-    python manage.py seed_catalog_images --force
-    python manage.py seed_catalog_images --storage remote
+Ops: local/CI after clone or seed. Prefer over runtime picsum. Use
+``--dry-run`` before writing; avoid ``--force`` on production uploads.
 """
 
 from __future__ import annotations
@@ -28,9 +24,12 @@ from core.utils.media_storage import local_media_file_exists
 
 
 class Command(BaseCommand):
+    """Seed product images from committed category JPEG assets."""
+
     help = 'Assign real category seed photos to products (bundled static assets, no runtime picsum).'
 
     def add_arguments(self, parser):
+        """Register limit, force, storage mode, and dry-run."""
         parser.add_argument('--limit', type=int, default=0, help='Max products (0 = all)')
         parser.add_argument('--force', action='store_true', help='Replace existing images')
         parser.add_argument(
@@ -42,10 +41,11 @@ class Command(BaseCommand):
         parser.add_argument('--dry-run', action='store_true')
 
     def handle(self, *args, **options):
+        """Assign seed variants to missing or broken local image paths."""
         limit = int(options['limit'] or 0)
         force = bool(options['force'])
         storage_mode = options['storage']
-        dry_run = bool(options['dry_run'])
+        dry_run = bool(options['dry-run'])
 
         qs = Product.objects.select_related('category').order_by('pk')
         if not force:

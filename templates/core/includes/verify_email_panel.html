@@ -1,0 +1,68 @@
+{% load i18n %}
+{# Panel OTP reutilizable en /verificar/ y checkout inline. #}
+<div class="otp-panel{% if inline %} otp-panel--inline{% endif %}">
+  <div class="otp-panel__icon" aria-hidden="true">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+      <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+      <path d="m22 6-10 7L2 6"/>
+    </svg>
+  </div>
+
+  <h2 class="otp-panel__title">{% trans "Verify your email" %}</h2>
+
+  {% if verify_for_checkout %}
+  <p class="otp-panel__lead">{% trans "One quick step before checkout" %}</p>
+  {% endif %}
+
+  <p class="otp-panel__sub">
+    {% blocktrans with email=masked_email %}We sent a 6-digit code to <strong>{{ email }}</strong>. Enter it below to continue.{% endblocktrans %}
+  </p>
+
+  <form method="post" action="{% url 'verificar_codigo' %}{% if next_url %}?next={{ next_url|urlencode }}{% endif %}" class="otp-panel__form" id="otp-form">
+    {% csrf_token %}
+    {% if next_url %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    {% endif %}
+    <input
+      type="text"
+      name="codigo"
+      id="otp-code"
+      class="otp-panel__input"
+      inputmode="numeric"
+      pattern="[0-9]{6}"
+      maxlength="6"
+      minlength="6"
+      placeholder="000000"
+      autocomplete="one-time-code"
+      required
+      autofocus
+      aria-label="{% trans '6-digit code' %}"
+    />
+    <button type="submit" class="otp-panel__submit">
+      {% if verify_for_checkout %}
+        {% trans "Verify and continue to checkout" %}
+      {% else %}
+        {% trans "Verify and continue" %}
+      {% endif %}
+    </button>
+  </form>
+
+  <p class="otp-panel__resend">
+    <a href="{% url 'enviar_codigo' %}{% if next_url %}?next={{ next_url|urlencode }}{% endif %}">
+      {% trans "Resend code" %}
+    </a>
+  </p>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var input = document.getElementById('otp-code');
+  var form = document.getElementById('otp-form');
+  if (!input || !form) return;
+  input.addEventListener('input', function () {
+    var digits = input.value.replace(/\D/g, '').slice(0, 6);
+    if (input.value !== digits) input.value = digits;
+    if (digits.length === 6) form.requestSubmit();
+  });
+})();
+</script>

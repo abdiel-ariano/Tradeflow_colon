@@ -1,4 +1,4 @@
-{% load tf_catalog %}
+{% load i18n tf_catalog %}
 {% comment %}
 Sidebar compacto — solo secciones del panel Alibaba de referencia.
 {% endcomment %}
@@ -9,12 +9,12 @@ Sidebar compacto — solo secciones del panel Alibaba de referencia.
     <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
     <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
   </svg>
-  Filtros
+  {% trans "Filters" %}
 </button>
 <div class="ali-sidebar-backdrop" id="tienda-sidebar-backdrop" hidden></div>
 
-<aside class="ali-filters" id="tienda-sidebar" aria-label="Filtros del catálogo">
-  <button type="button" class="ali-sidebar-close" id="tienda-sidebar-close" aria-label="Cerrar filtros">✕</button>
+<aside class="ali-filters" id="tienda-sidebar" aria-label="{% trans 'Catalog filters' %}">
+  <button type="button" class="ali-sidebar-close" id="tienda-sidebar-close" aria-label="{% trans 'Close filters' %}">✕</button>
 
   <form method="get" action="{% url 'tienda' %}" id="filtros-form" class="ali-filters-form">
     {% if tab_catalogo and tab_catalogo != 'todos' %}
@@ -24,31 +24,31 @@ Sidebar compacto — solo secciones del panel Alibaba de referencia.
     <input type="hidden" name="buscar" id="tienda-filter-buscar" value="{{ buscar|default:'' }}">
 
     <div class="ali-filter-block">
-      <h3 class="ali-filter-title">Valoraciones</h3>
+      <h3 class="ali-filter-title">{% trans "Ratings" %}</h3>
       <label class="ali-filter-option">
         <input type="radio" name="rating" value="4">
-        <span>4.0 en adelante</span>
+        <span>{% trans "4.0 and up" %}</span>
       </label>
       <label class="ali-filter-option">
         <input type="radio" name="rating" value="45">
-        <span>4.5 o más</span>
+        <span>{% trans "4.5 or higher" %}</span>
       </label>
       <label class="ali-filter-option">
         <input type="radio" name="rating" value="5">
-        <span>5.0</span>
+        <span>{% trans "5.0" %}</span>
       </label>
     </div>
 
     <div class="ali-filter-block">
-      <h3 class="ali-filter-title">Características del producto</h3>
+      <h3 class="ali-filter-title">{% trans "Product features" %}</h3>
       <label class="ali-filter-option">
         <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
-        <span>CFZ Verificado</span>
+        <span>{% trans "CFZ Verified" %}</span>
       </label>
     </div>
 
     <div class="ali-filter-block">
-      <h3 class="ali-filter-title">Categoría</h3>
+      <h3 class="ali-filter-title">{% trans "Category" %}</h3>
       {% if categoria_activa_obj %}
       <p class="ali-filter-current">{{ categoria_activa_obj.name|category_label }}</p>
       {% else %}
@@ -67,37 +67,37 @@ Sidebar compacto — solo secciones del panel Alibaba de referencia.
     </div>
 
     <div class="ali-filter-block">
-      <h3 class="ali-filter-title">Precio (USD)</h3>
+      <h3 class="ali-filter-title">{% trans "Price (USD)" %}</h3>
       <div class="ali-price-row">
-        <input type="number" name="precio_min" min="0" step="0.01" placeholder="Mín." value="{{ precio_min|default:'' }}" aria-label="Precio mínimo">
-        <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx." value="{{ precio_max|default:'' }}" aria-label="Precio máximo">
+        <input type="number" name="precio_min" min="0" step="0.01" placeholder="{% trans 'Min.' %}" value="{{ precio_min|default:'' }}" aria-label="{% trans 'Minimum price' %}">
+        <input type="number" name="precio_max" min="0" step="0.01" placeholder="{% trans 'Max.' %}" value="{{ precio_max|default:'' }}" aria-label="{% trans 'Maximum price' %}">
         <button type="button" class="ali-filter-ok" data-apply-filter="price">OK</button>
       </div>
     </div>
 
     <div class="ali-filter-block">
-      <h3 class="ali-filter-title">Pedido mínimo</h3>
+      <h3 class="ali-filter-title">{% trans "Minimum order" %}</h3>
       <div class="ali-moq-row">
-        <input type="number" name="moq_max" min="1" step="1" placeholder="Unidades" aria-label="Pedido mínimo">
+        <input type="number" name="moq_max" min="1" step="1" placeholder="{% trans 'Units' %}" aria-label="{% trans 'Minimum order' %}">
         <button type="button" class="ali-filter-ok" data-apply-filter="moq">OK</button>
       </div>
     </div>
 
     <div class="ali-filter-block">
-      <h3 class="ali-filter-title">País o región del proveedor</h3>
+      <h3 class="ali-filter-title">{% trans "Supplier country or region" %}</h3>
       <div class="ali-supplier-search">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="search" placeholder="Buscar país" aria-label="Buscar país" disabled>
+        <input type="search" placeholder="{% trans 'Search country' %}" aria-label="{% trans 'Search country' %}" disabled>
       </div>
       <label class="ali-filter-option">
         <input type="checkbox" name="pais" value="PA" checked disabled>
-        <span>Panamá (ZLC)</span>
+        <span>{% trans "Panama (CFZ)" %}</span>
       </label>
     </div>
 
     {% if cat_activa or empresa_activa or buscar or solo_verificado or precio_min or precio_max %}
     <div class="ali-filter-block ali-filter-block--actions">
-      <a href="{% url 'tienda' %}" id="btn-limpiar" class="ali-btn-clear">Limpiar filtros</a>
+      <a href="{% url 'tienda' %}" id="btn-limpiar" class="ali-btn-clear">{% trans "Clear filters" %}</a>
     </div>
     {% endif %}
   </form>

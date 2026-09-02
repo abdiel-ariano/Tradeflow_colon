@@ -1,145 +1,38 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load static i18n %}
+{% comment %}
+Portal seller — workspace shell only (sidebar + toolbar).
+No navy tf-nav from base; marketplace chrome stays on public pages.
+{% endcomment %}
+{% block body_shell_class %} sp-mode sp-dash{% endblock %}
+{% block site_navbar %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/colors.css' %}">
 <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version }}">
 <link rel="stylesheet" href="{% static 'css/seller_portal_premium.css' %}?v={{ tf_asset_version }}">
+<link rel="stylesheet" href="{% static 'css/tf-ai-search.css' %}?v={{ tf_asset_version }}">
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 {% block seller_extra_head %}{% endblock %}
 {% endblock %}
 {% block extra_css %}
-<style nonce="{{ csp_nonce }}">
-  body.sp-dash { background: var(--tf-light); }
-  body.sp-dash .tf-nav.tf-navbar { display: none !important; }
-  body.sp-dash main.tf-main { padding: 0; max-width: none; }
-  body.sp-dash .sp-dash-shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; background: var(--tf-light); }
-  body.sp-dash .sp-dash-side { background: var(--tf-white); border-right: 1px solid var(--tf-border); display: flex; flex-direction: column; padding: 12px 0 16px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-  body.sp-dash .sp-dash-workspace { display: flex; align-items: center; gap: 10px; padding: 8px 16px 16px; }
-  body.sp-dash .sp-dash-workspace__mark { width: 28px; height: 28px; border-radius: 8px; background: var(--tf-navy); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-  body.sp-dash .sp-dash-workspace__mark .tf-logo-img { height: 22px; width: auto; }
-  body.sp-dash .sp-dash-workspace__name { display: block; font-size: 13px; font-weight: 600; color: var(--tf-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  body.sp-dash .sp-dash-workspace__sub { display: block; font-size: 12px; color: var(--tf-muted); }
-  body.sp-dash .sp-dash-nav-label { display: block; padding: 16px 18px 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--tf-muted); }
-  body.sp-dash .sp-dash-nav { padding: 0 8px; }
-  body.sp-dash .sp-dash-nav a { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; color: var(--tf-gray-700); text-decoration: none; font-size: 14px; font-weight: 500; }
-  body.sp-dash .sp-dash-nav a:hover { background: rgba(15, 42, 68, 0.06); color: var(--tf-navy); }
-  body.sp-dash .sp-dash-nav a.is-active { background: rgba(242, 101, 34, 0.1); color: var(--tf-orange); font-weight: 600; }
-  body.sp-dash .sp-dash-nav a .material-symbols-rounded { font-size: 18px; color: var(--tf-muted); }
-  body.sp-dash .sp-dash-nav a.is-active .material-symbols-rounded { color: var(--tf-orange); }
-  body.sp-dash .sp-dash-side-foot { margin-top: auto; padding: 16px 18px 0; font-size: 12px; color: var(--tf-muted); }
-  body.sp-dash .sp-dash-main { display: flex; flex-direction: column; min-width: 0; min-height: 100vh; }
-  body.sp-dash .sp-dash-toolbar { display: flex; align-items: center; gap: 16px; padding: 12px 28px; background: var(--tf-white); border-bottom: 1px solid var(--tf-border); position: sticky; top: 0; z-index: 30; flex-wrap: wrap; }
-  body.sp-dash .sp-dash-search { flex: 1; max-width: 420px; display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 36px; border: 1px solid var(--tf-border); border-radius: 8px; background: var(--tf-light); text-decoration: none; color: inherit; }
-  body.sp-dash .sp-dash-search input { border: none; background: transparent; flex: 1; font-size: 14px; color: var(--tf-navy); outline: none; min-width: 0; }
-  body.sp-dash .sp-dash-toolbar-right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
-  body.sp-dash .sp-dash-icon-btn { width: 32px; height: 32px; border-radius: 8px; color: var(--tf-muted); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
-  body.sp-dash .sp-dash-icon-btn:hover { background: var(--tf-light); color: var(--tf-navy); }
-  body.sp-dash .sp-dash-create-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--tf-orange); color: var(--tf-white); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
-  body.sp-dash .sp-dash-setup { display: inline-flex; align-items: center; gap: 8px; margin-left: 8px; padding: 6px 12px; border: 1px solid var(--tf-border); border-radius: 999px; background: var(--tf-white); font-size: 13px; font-weight: 500; color: var(--tf-gray-700); text-decoration: none; }
-  body.sp-dash .sp-dash-setup:hover { border-color: var(--tf-orange); color: var(--tf-orange); }
-  body.sp-dash .sp-content { padding: 28px 32px 48px; max-width: 1280px; width: 100%; box-sizing: border-box; }
-  body.sp-dash .sp-page-head { margin-bottom: 24px; }
-  body.sp-dash .sp-page-head h1 { margin: 0; font-size: 1.5rem; font-weight: 600; color: var(--tf-navy); }
-  body.sp-dash .sp-page-head .sp-topbar-sub { margin: 6px 0 0; font-size: 14px; color: var(--tf-muted); }
-  body.sp-dash .sp-page-head:has(h1:empty) { display: none; }
-  body.sp-dash .sp-page-tabs { display: flex; gap: 20px; border-bottom: 1px solid var(--tf-border); margin-bottom: 24px; }
-  body.sp-dash .sp-page-tab { padding: 10px 0; font-size: 14px; color: var(--tf-muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-  body.sp-dash .sp-page-tab.is-active { color: var(--tf-navy); border-bottom-color: var(--tf-orange); font-weight: 600; }
-  body.sp-dash .sp-dash-hero { background: linear-gradient(135deg, rgba(15, 42, 68, 0.04), rgba(46, 91, 138, 0.08)); border: 1px solid var(--tf-border); border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; }
-  body.sp-dash .sp-dash-hero h2 { margin: 0 0 8px; font-size: 1.25rem; font-weight: 600; color: var(--tf-navy); }
-  body.sp-dash .sp-dash-hero p { margin: 0 0 16px; font-size: 14px; color: var(--tf-muted); line-height: 1.55; max-width: 560px; }
-  body.sp-dash .sp-dash-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-  body.sp-dash .sp-dash-feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
-  body.sp-dash .sp-dash-feature-card { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: 12px; padding: 20px; }
-  body.sp-dash .sp-dash-feature-card h3 { margin: 0 0 8px; font-size: 15px; font-weight: 600; color: var(--tf-navy); }
-  body.sp-dash .sp-dash-feature-card p { margin: 0 0 12px; font-size: 13px; color: var(--tf-muted); line-height: 1.5; }
-  body.sp-dash .sp-dash-feature-card a { font-size: 13px; font-weight: 600; color: var(--tf-blue); text-decoration: none; }
-  body.sp-dash .sp-dash-section-title { margin: 0 0 16px; font-size: 1.25rem; font-weight: 600; color: var(--tf-navy); }
-  body.sp-dash .sp-dash-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
-  body.sp-dash .sp-dash-metric { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: 12px; padding: 16px 18px; }
-  body.sp-dash .sp-dash-metric-lbl { font-size: 13px; color: var(--tf-muted); margin-bottom: 8px; }
-  body.sp-dash .sp-dash-metric-val { font-size: 1.75rem; font-weight: 600; color: var(--tf-navy); margin: 0 0 6px; }
-  body.sp-dash .sp-dash-metric-hint { font-size: 13px; color: var(--tf-muted); }
-  body.sp-dash .sp-dash-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-  body.sp-dash .sp-dash-pill { display: inline-flex; padding: 6px 12px; border: 1px solid var(--tf-border); border-radius: 999px; background: var(--tf-white); font-size: 13px; color: var(--tf-gray-700); text-decoration: none; }
-  body.sp-dash .sp-dash-pill.is-on { border-color: var(--tf-orange); background: rgba(242, 101, 34, 0.08); color: var(--tf-orange); }
-  body.sp-dash .sp-stripe-page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
-  body.sp-dash .sp-stripe-page-head h1 { margin: 0; font-size: 1.5rem; font-weight: 600; color: var(--tf-navy); }
-  body.sp-dash .sp-stripe-page-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  body.sp-dash .sp-stripe-subtabs { display: flex; gap: 20px; border-bottom: 1px solid var(--tf-border); margin-bottom: 20px; flex-wrap: wrap; }
-  body.sp-dash .sp-stripe-subtab { padding: 10px 0; font-size: 14px; color: var(--tf-muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-  body.sp-dash .sp-stripe-subtab.is-active { color: var(--tf-navy); border-bottom-color: var(--tf-orange); font-weight: 600; }
-  body.sp-dash .sp-stripe-subtab.is-disabled { color: var(--tf-muted); opacity: 0.55; pointer-events: none; }
-  body.sp-dash .sp-cat-status-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; max-width: 520px; }
-  body.sp-dash .sp-cat-status-card { display: block; padding: 14px 16px; border: 1px solid var(--tf-border); border-radius: 8px; background: var(--tf-white); text-decoration: none; color: inherit; }
-  body.sp-dash .sp-cat-status-card.is-active { border-color: var(--tf-orange); box-shadow: 0 0 0 1px rgba(242, 101, 34, 0.15); }
-  body.sp-dash .sp-cat-status-card span { display: block; font-size: 13px; color: var(--tf-muted); margin-bottom: 4px; }
-  body.sp-dash .sp-cat-status-card strong { font-size: 1.25rem; color: var(--tf-navy); font-weight: 600; }
-  body.sp-dash .sp-cat-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
-  body.sp-dash .sp-cat-filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  body.sp-dash .sp-cat-filter-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--tf-border); border-radius: 8px; background: var(--tf-white); font-size: 13px; color: var(--tf-gray-700); text-decoration: none; }
-  body.sp-dash .sp-cat-table-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  body.sp-dash .sp-cat-table-actions a, body.sp-dash .sp-cat-table-actions button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--tf-border); border-radius: 8px; background: var(--tf-white); font-size: 13px; color: var(--tf-gray-700); text-decoration: none; cursor: pointer; }
-  body.sp-dash .sp-stripe-empty { text-align: center; padding: 56px 24px; border: 1px dashed var(--tf-border); border-radius: 12px; background: var(--tf-white); }
-  body.sp-dash .sp-stripe-empty .material-symbols-rounded { font-size: 40px; color: var(--tf-muted); margin-bottom: 12px; }
-  body.sp-dash .sp-stripe-empty h3 { margin: 0 0 8px; font-size: 1.1rem; color: var(--tf-navy); }
-  body.sp-dash .sp-stripe-empty p { margin: 0 auto 16px; max-width: 420px; font-size: 14px; color: var(--tf-muted); line-height: 1.55; }
-  body.sp-dash .sp-analytics-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; align-items: start; }
-  body.sp-dash .sp-analytics-filter-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-  body.sp-dash .sp-analytics-aside { display: flex; flex-direction: column; gap: 16px; }
-  body.sp-dash .sp-analytics-aside-card { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: 12px; padding: 16px; }
-  body.sp-dash .sp-analytics-aside-card h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--tf-navy); }
-  body.sp-dash .sp-analytics-aside-card p, body.sp-dash .sp-analytics-aside-card a { font-size: 13px; color: var(--tf-muted); line-height: 1.5; text-decoration: none; }
-  body.sp-dash .sp-analytics-aside-card a:hover { color: var(--tf-blue); }
-  body.sp-dash .sp-analytics-ai-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; border: 1px solid var(--tf-border); border-radius: 8px; background: var(--tf-light); font-size: 13px; color: var(--tf-navy); text-decoration: none; margin-bottom: 8px; }
-  body.sp-dash .sp-chart-empty { min-height: 280px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--tf-border); border-radius: 12px; background: var(--tf-white); padding: 24px; text-align: center; color: var(--tf-muted); font-size: 14px; }
-  body.sp-dash .sp-product-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: 12px; overflow: hidden; }
-  body.sp-dash .sp-product-table th { text-align: left; padding: 12px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tf-muted); background: var(--tf-light); border-bottom: 1px solid var(--tf-border); }
-  body.sp-dash .sp-product-table td { padding: 14px; border-bottom: 1px solid var(--tf-border); vertical-align: middle; }
-  body.sp-dash .sp-product-table tr:last-child td { border-bottom: none; }
-  body.sp-dash .sp-product-cell { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  body.sp-dash .sp-product-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: var(--tf-light); border: 1px solid var(--tf-border); }
-  body.sp-dash .sp-product-name { font-weight: 600; color: var(--tf-navy); font-size: 14px; }
-  body.sp-dash .sp-product-meta { font-size: 12px; color: var(--tf-muted); margin-top: 2px; }
-  body.sp-dash .sp-cat-clear { font-size: 13px; color: var(--tf-blue); text-decoration: none; }
-  body.sp-dash .sp-cat-clear:hover { text-decoration: underline; }
-  body.sp-dash .sp-analytics-key-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-  body.sp-dash .sp-analytics-key-head h2 { margin: 0; font-size: 1rem; font-weight: 600; color: var(--tf-navy); }
-  body.sp-dash .sp-analytics-compare { font-size: 13px; color: var(--tf-muted); }
-  body.sp-dash .sp-analytics-section { margin-bottom: 32px; }
-  body.sp-dash .sp-analytics-section > h2 { margin: 0 0 8px; font-size: 1.1rem; font-weight: 600; color: var(--tf-navy); }
-  body.sp-dash .sp-analytics-section > p { margin: 0 0 16px; font-size: 13px; color: var(--tf-muted); line-height: 1.5; max-width: 720px; }
-  body.sp-dash .sp-filter-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--tf-border); border-radius: 8px; background: var(--tf-white); font-size: 13px; color: var(--tf-gray-700); text-decoration: none; cursor: pointer; }
-  body.sp-dash .sp-filter-pill:hover { border-color: var(--tf-orange); color: var(--tf-navy); }
-  body.sp-dash .sp-filter-pill.is-muted { color: var(--tf-muted); border-style: dashed; }
-  body.sp-dash .sp-filter-pill.is-on { border-color: var(--tf-orange); background: rgba(242, 101, 34, 0.08); color: var(--tf-orange); }
-  body.sp-dash .sp-stripe-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--tf-blue); text-decoration: none; }
-  body.sp-dash .sp-stripe-link:hover { text-decoration: underline; }
-  body.sp-dash .sp-chart-box--analytics { min-height: 280px; background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: 12px; padding: 16px; }
-  body.sp-dash .sp-sidebar { display: none; }
-  body.sp-dash .sp-shell { display: contents; }
-  @media (max-width: 1024px) { body.sp-dash .sp-dash-metrics, body.sp-dash .sp-dash-feature-grid { grid-template-columns: 1fr; } body.sp-dash .sp-analytics-layout { grid-template-columns: 1fr; } }
-  @media (max-width: 768px) {
-    body.sp-dash .sp-dash-shell { grid-template-columns: 1fr; }
-    body.sp-dash .sp-dash-side { position: relative; height: auto; border-bottom: 1px solid var(--tf-border); }
-    body.sp-dash .sp-dash-nav { display: flex; flex-wrap: wrap; }
-    body.sp-dash .sp-dash-nav-label { display: none; }
-    body.sp-dash .sp-content { padding: 20px 16px 40px; }
-    body.sp-dash .sp-dash-setup { display: none; }
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/seller_dash_shell.css' %}?v={{ tf_asset_version }}">
 {% block seller_extra_css %}{% endblock %}
 {% endblock %}
 {% block content %}
 <div class="sp-dash-shell" id="sp-shell">
   <aside class="sp-dash-side" aria-label="Seller panel">
     <div class="sp-dash-workspace">
-      <a href="{% url 'portal_seller' %}" class="sp-dash-workspace__mark" aria-label="Seller home">
-        {% include "core/includes/tf_logo.html" with variant="icon-color" size="sidebar" class="tf-logo-img" %}
+      <a href="{% url 'portal_seller' %}" class="sp-dash-brand" aria-label="TradeFlow seller home">
+        <span class="sp-dash-brand__mark" aria-hidden="true">
+          {% include "core/includes/tf_logo.html" with variant="icon-white" size="sidebar" class="tf-logo-img" %}
+        </span>
+        <span class="sp-dash-brand__copy">
+          <span class="sp-dash-brand__product">Trade<em>Flow</em></span>
+        </span>
       </a>
-      <div>
+      <div class="sp-dash-workspace__company">
+        <span class="sp-dash-workspace__eyebrow">Seller workspace</span>
         <span class="sp-dash-workspace__name">{{ company.name|default:"TradeFlow Colón" }}</span>
-        <span class="sp-dash-workspace__sub">Seller workspace</span>
       </div>
     </div>
     <nav class="sp-dash-nav" aria-label="Main">
@@ -148,6 +41,7 @@
       <a href="{% url 'seller_mis_ventas' %}" data-sp-nav="seller_ventas"><span class="material-symbols-rounded">sync_alt</span>Transactions</a>
       <a href="{% url 'seller_customers' %}" data-sp-nav="seller_customers"><span class="material-symbols-rounded">group</span>Customers</a>
       <a href="{% url 'seller_mis_productos' %}" data-sp-nav="seller_productos"><span class="material-symbols-rounded">inventory_2</span>Product catalog</a>
+      <a href="{% url 'analytics:seller_dashboard' %}" data-sp-nav="seller_analitica"{% if request.resolver_match.namespace == 'analytics' %} class="is-active"{% endif %}><span class="material-symbols-rounded">insights</span>Analytics</a>
     </nav>
     <span class="sp-dash-nav-label">Shortcuts</span>
     <nav class="sp-dash-nav" aria-label="Shortcuts">
@@ -172,18 +66,29 @@
     <header class="sp-dash-toolbar">
       <form class="sp-dash-search" method="get" action="{% url 'seller_global_search' %}">
         <span class="material-symbols-rounded" aria-hidden="true">search</span>
-        <input type="search" name="q" placeholder="Search" aria-label="Search" autocomplete="off">
+        <input type="search" name="q" placeholder="Search" aria-label="Search" autocomplete="off" data-tf-ai-search="seller">
       </form>
       <div class="sp-dash-toolbar-right">
         {% block seller_topbar_actions %}
+        <a href="{% url 'home' %}" class="sp-dash-icon-btn" title="{% trans 'Marketplace' %}" aria-label="{% trans 'Marketplace' %}"><span class="material-symbols-rounded">storefront</span></a>
         <a href="{% url 'seller_apps' %}" class="sp-dash-icon-btn" title="Apps" aria-label="Apps"><span class="material-symbols-rounded">apps</span></a>
         <a href="{% url 'mi_perfil' %}" class="sp-dash-icon-btn" title="Settings" aria-label="Settings"><span class="material-symbols-rounded">settings</span></a>
         <a href="{% url 'seller_agregar_producto' %}" class="sp-dash-create-btn" title="Create" aria-label="Create"><span class="material-symbols-rounded">add</span></a>
         <a href="{% url 'seller_setup_guide' %}" class="sp-dash-setup"><span class="material-symbols-rounded" style="font-size:16px;">track_changes</span>Setup guide</a>
+        {% include "core/includes/logout_control.html" with button_class="sp-dash-setup" icon="logout" icon_style="font-size:16px;" %}
         {% endblock %}
       </div>
     </header>
     {% endblock %}
+    {% if saas_snapshot and saas_snapshot.trial_days_left %}
+    <div class="sp-trial-banner">
+      <span>
+        <strong>{% trans "Digitalize trial" %}</strong> —
+        {% blocktrans with days=saas_snapshot.trial_days_left %}{{ days }} day(s) remaining{% endblocktrans %}
+      </span>
+      <a href="{% url 'seller_plan_consumo' %}">{% trans "Upgrade plan" %}</a>
+    </div>
+    {% endif %}
     <div class="sp-content">
       <header class="sp-page-head">
         <h1>{% block seller_page_title %}{{ titulo_pagina|default:"" }}{% endblock %}</h1>
@@ -193,7 +98,6 @@
     </div>
   </div>
 </div>
-<script nonce="{{ csp_nonce }}">document.body.classList.add('sp-mode', 'sp-dash');</script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var nav = '{{ nav_activo|default:""|escapejs }}';
@@ -205,6 +109,7 @@
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/tf-ai-search.js' %}?v={{ tf_asset_version }}"></script>
 <script src="{% static 'js/seller_portal.js' %}?v={{ tf_asset_version }}"></script>
 {% block seller_extra_js %}{% endblock %}
 {% endblock %}

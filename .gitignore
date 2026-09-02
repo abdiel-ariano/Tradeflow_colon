@@ -33,7 +33,9 @@ Thumbs.db
 desktop.ini
 ehthumbs.db
 
-# IDEs
+# IDEs / AI tooling
+.cursor/
+.impeccable/
 .vscode/
 .idea/
 *.swp
@@ -81,13 +83,22 @@ frontend/admin-saas/node_modules/
 frontend/admin-saas/dist/
 frontend/admin-saas/.vite/
 frontend/admin-saas/tsconfig.tsbuildinfo
-frontend/catalog/node_modules/
-frontend/catalog/dist/
-frontend/marketplace/node_modules/
-frontend/marketplace/dist/
-frontend/catalog/.vite/
-frontend/catalog/tsconfig.tsbuildinfo
 .parcel-cache/
+
+# Android / Bubblewrap (proyecto generado y secretos de firma)
+android/app/
+android/build/
+android/gradle/
+android/.gradle/
+android/*.apk
+android/*.aab
+android/*.keystore
+android/*.jks
+android/build.gradle
+android/gradle.properties
+android/gradlew
+android/gradlew.bat
+android/settings.gradle
 
 # Tools
 .bandit-report

@@ -1,38 +1,39 @@
+{% load i18n %}
 {% comment %}Static how-it-works — always visible, not inside hero carousel.{% endcomment %}
 <section class="hm-how hm-section hm-section--surface" id="como-funciona" data-hm-section aria-labelledby="hm-how-title">
   <div class="hm-section__inner hm-how__inner">
     <header class="hm-section__head hm-section__head--center hm-how__head--compact">
-      <span class="hm-section__eyebrow">How it works</span>
-      <h2 class="hm-section-title hm-section-title--center" id="hm-how-title">How TradeFlow works</h2>
+      <span class="hm-section__eyebrow">{% trans "How it works" %}</span>
+      <h2 class="hm-section-title hm-section-title--center" id="hm-how-title">{% trans "How TradeFlow works" %}</h2>
     </header>
     <ol class="hm-how__steps" data-hm-stagger>
       <li class="hm-how__step">
         <span class="hm-how__step-num" aria-hidden="true">1</span>
         <span class="hm-how__icon">{% include "core/includes/tf_icon.html" with name="travel_explore" class="tf-icon--lg" %}</span>
-        <h3 class="hm-how__step-title">Browse the catalog</h3>
-        <p class="hm-how__step-desc">Browse verified suppliers — no account required.</p>
+        <h3 class="hm-how__step-title">{% trans "Browse the catalog" %}</h3>
+        <p class="hm-how__step-desc">{% trans "Browse verified suppliers — no account required." %}</p>
       </li>
       <li class="hm-how__step">
         <span class="hm-how__step-num" aria-hidden="true">2</span>
         <span class="hm-how__icon">{% include "core/includes/tf_icon.html" with name="person_add" class="tf-icon--lg" %}</span>
-        <h3 class="hm-how__step-title">Create your account</h3>
-        <p class="hm-how__step-desc">Sign up when you are ready to order or quote.</p>
+        <h3 class="hm-how__step-title">{% trans "Register and verify your company" %}</h3>
+        <p class="hm-how__step-desc">{% trans "Submit the company RUC, DV, and supporting document before requesting quotes or orders." %}</p>
       </li>
       <li class="hm-how__step">
         <span class="hm-how__step-num" aria-hidden="true">3</span>
         <span class="hm-how__icon">{% include "core/includes/tf_icon.html" with name="shopping_cart" class="tf-icon--lg" %}</span>
-        <h3 class="hm-how__step-title">Place your order</h3>
-        <p class="hm-how__step-desc">Cart, quotes, and secure B2B checkout.</p>
+        <h3 class="hm-how__step-title">{% trans "Send supplier RFQs" %}</h3>
+        <p class="hm-how__step-desc">{% trans "Build an inquiry cart; TradeFlow creates one formal quotation request per supplier." %}</p>
       </li>
       <li class="hm-how__step">
         <span class="hm-how__step-num" aria-hidden="true">4</span>
         <span class="hm-how__icon">{% include "core/includes/tf_icon.html" with name="local_shipping" class="tf-icon--lg" %}</span>
-        <h3 class="hm-how__step-title">Receive your goods</h3>
-        <p class="hm-how__step-desc">Track delivery with export docs included.</p>
+        <h3 class="hm-how__step-title">{% trans "Accept a supplier quote" %}</h3>
+        <p class="hm-how__step-desc">{% trans "An accepted response creates a pending purchase order. Payment and logistics are coordinated under the agreed terms." %}</p>
       </li>
     </ol>
     <p class="hm-how__cta-wrap">
-      <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--primary hm-btn--lg">Start browsing →</a>
+      <a href="{% url 'catalogo_publico' %}" class="hm-btn hm-btn--primary hm-btn--lg">{% trans "Start browsing" %} →</a>
     </p>
   </div>
 </section>

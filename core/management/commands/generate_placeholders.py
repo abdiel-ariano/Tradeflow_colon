@@ -1,11 +1,7 @@
-"""
-Generate brand-colored PNG placeholder images for products without images.
+"""Generate brand-colored PNG placeholders for products without images.
 
-Usage:
-    python manage.py generate_placeholders
-    python manage.py generate_placeholders --limit 20
-    python manage.py generate_placeholders --storage local
-    python manage.py generate_placeholders --force
+Ops: local/staging catalog fill. Prefer catalog seed photos when
+available. Avoid ``--force`` on production seller-uploaded media.
 """
 
 from __future__ import annotations
@@ -28,9 +24,12 @@ from core.utils.media_storage import local_media_file_exists
 
 
 class Command(BaseCommand):
+    """Create 400×400 gradient placeholders with product initials."""
+
     help = 'Generate 400×400 PNG placeholders with brand gradient and product initials'
 
     def add_arguments(self, parser):
+        """Register limit, force, repair-missing, and storage mode."""
         parser.add_argument(
             '--limit',
             type=int,
@@ -55,6 +54,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Write placeholders for selected products and report remaining gaps."""
         limit = int(options['limit'] or 0)
         force = bool(options['force'])
         repair_missing = bool(options['repair_missing'])

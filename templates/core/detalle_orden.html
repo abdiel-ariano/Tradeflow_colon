@@ -1,6 +1,7 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% block title %}{{ orden.order_number }} — TradeFlow Colón{% endblock %}
+{% block body_shell_class %} tf-admin-unified{% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
   .adm-det-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.25rem; align-items: start; }
@@ -31,7 +32,8 @@
   .adm-info-row:last-child { border-bottom: none; }
   .adm-info-lbl { color: #6b7a88 !important; flex-shrink: 0; }
   .adm-estado-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
-  .adm-estado-wrap a {
+  .adm-estado-wrap a,
+  .adm-estado-wrap .adm-estado-btn {
     display: inline-flex;
     align-items: center;
     padding: 8px 12px;
@@ -43,8 +45,11 @@
     font-weight: 600;
     text-decoration: none !important;
     transition: border-color 0.15s ease, background 0.15s ease;
+    cursor: pointer;
+    font-family: inherit;
   }
-  .adm-estado-wrap a:hover { border-color: #f26522; background: #fff7ed; }
+  .adm-estado-wrap a:hover,
+  .adm-estado-wrap .adm-estado-btn:hover { border-color: #f26522; background: #fff7ed; }
   .adm-det-top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 1.25rem; }
   .adm-det-top a { display: inline-flex; align-items: center; gap: 6px; color: #2e5b8a !important; font-weight: 600; text-decoration: none; font-size: 0.875rem; }
   .adm-det-top a:hover { text-decoration: underline; }
@@ -166,7 +171,10 @@
           <h3>Change status</h3>
           <div class="adm-estado-wrap">
             {% for val, label in otros_estados %}
-            <a href="{% url 'cambiar_estado_orden' orden.pk val %}">{{ label }}</a>
+            <form method="post" action="{% url 'cambiar_estado_orden' orden.pk val %}" style="display:inline;" onsubmit="return confirm('Change order status to {{ label|escapejs }}?');">
+              {% csrf_token %}
+              <button type="submit" class="adm-estado-btn">{{ label }}</button>
+            </form>
             {% endfor %}
           </div>
         </div>
@@ -200,7 +208,4 @@
   });
 })();
 </script>
-{% endblock %}
-{% block extra_js %}
-<script src="{% static 'js/admin_rail.js' %}"></script>
 {% endblock %}

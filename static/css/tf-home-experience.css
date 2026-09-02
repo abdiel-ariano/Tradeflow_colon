@@ -26,6 +26,10 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   max-width: var(--hm-content-max);
   margin: 0 auto;
   padding-inline: var(--hm-gutter);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: clip;
 }
 
 .hm-section__head {
@@ -526,6 +530,9 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(160px, 200px);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   gap: 14px;
   overflow-x: auto;
   padding-bottom: 8px;
@@ -706,6 +713,29 @@ Home landing experience layer: section rhythm, media loading, motion choreograph
 .hm-suppliers__more-title {
   margin-bottom: 14px;
 }
+
+.hm-suppliers__chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hm-supplier-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--tf-gray-200, #E5E7EB);
+  border-radius: 10px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  min-height: 64px;
+}
+
 
 .hm-proof__head {
   margin-bottom: 20px !important;

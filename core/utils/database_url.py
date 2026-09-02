@@ -1,14 +1,7 @@
-"""
-Normalize DATABASE_URL for Supabase/Railway deploys.
+"""Normaliza DATABASE_URL para deploys en Supabase y Railway.
 
-Common production failures:
-- Pooler host with user ``postgres`` instead of ``postgres.<project-ref>``
-- Password special characters breaking URL parsing
-- Stale password after Supabase reset
-
-Supports component vars (password without URL encoding):
-  SUPABASE_DB_HOST, SUPABASE_DB_PORT, SUPABASE_DB_NAME,
-  SUPABASE_DB_USER, SUPABASE_DB_PASSWORD, SUPABASE_PROJECT_REF
+Corrige la forma del usuario del pooler, el encoding de la contraseña y los
+fallbacks de variables por componente para que los pods de producción ZLC conecten con fiabilidad.
 """
 from __future__ import annotations
 
@@ -24,6 +17,7 @@ _SUPABASE_URL_REF_RE = re.compile(r'https?://([a-z0-9]{10,})\.supabase\.co', re.
 
 
 def _clean_env(value: str) -> str:
+    """Quita comillas y espacios en blanco de un valor de entorno."""
     value = (value or '').strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in '"\'':
         value = value[1:-1]
@@ -31,6 +25,7 @@ def _clean_env(value: str) -> str:
 
 
 def infer_supabase_project_ref() -> str | None:
+    """Infiere el project ref desde SUPABASE_PROJECT_REF o SUPABASE_URL."""
     explicit = _clean_env(os.environ.get('SUPABASE_PROJECT_REF', ''))
     if explicit:
         return explicit
@@ -40,6 +35,7 @@ def infer_supabase_project_ref() -> str | None:
 
 
 def _pooler_username(user: str, project_ref: str | None) -> str:
+    """Reescribe el usuario del pooler a ``postgres.<project-ref>`` cuando hace falta."""
     if not project_ref or not user:
         return user
     if user == 'postgres':
@@ -52,6 +48,7 @@ def _pooler_username(user: str, project_ref: str | None) -> str:
 
 
 def build_database_url_from_components() -> str:
+    """Construye DATABASE_URL desde variables de entorno de componentes SUPABASE_DB_*."""
     host = _clean_env(os.environ.get('SUPABASE_DB_HOST', ''))
     password = _clean_env(os.environ.get('SUPABASE_DB_PASSWORD', ''))
     if not host or not password:
@@ -69,11 +66,7 @@ def build_database_url_from_components() -> str:
 
 
 def normalize_database_url(raw_url: str) -> str:
-    """
-    Return a DATABASE_URL safe for dj-database-url.parse().
-
-    Applies pooler username correction and optional DATABASE_PASSWORD override.
-    """
+    """Devuelve una DATABASE_URL segura para dj-database-url.parse()."""
     url = _clean_env(raw_url)
     if not url:
         url = build_database_url_from_components()
@@ -122,7 +115,7 @@ def normalize_database_url(raw_url: str) -> str:
 
 
 def database_connection_hint(error: Exception) -> str:
-    """Human-readable Railway/Supabase fix steps for deploy logs."""
+    """Devuelve pasos legibles de corrección Railway/Supabase para logs de deploy."""
     message = str(error).lower()
     lines = [
         'Database connection failed.',

@@ -1,0 +1,136 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      signing_mode:
+        description: APK signing key to use
+        required: true
+        default: test
+        type: choice
+        options:
+          - test
+          - production
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build signed Android package
+    runs-on: ubuntu-latest
+    env:
+      BUBBLEWRAP_VERSION: 1.24.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/admin-saas/package-lock.json
+
+      - name: Install pinned Bubblewrap CLI
+        run: npm install --global "@bubblewrap/cli@${BUBBLEWRAP_VERSION}"
+
+      - name: Verify deployed PWA resources
+        run: |
+          curl --fail --silent --show-error             https://tradeflowcolon.com/manifest.webmanifest             --output /tmp/tradeflow-manifest.json
+          python -m json.tool /tmp/tradeflow-manifest.json
+          curl --fail --silent --show-error \
+            https://tradeflowcolon.com/pwa/icon-512.png \
+            --output /tmp/tradeflow-icon.png
+          curl --fail --silent --show-error \
+            https://tradeflowcolon.com/.well-known/assetlinks.json \
+            --output /tmp/tradeflow-assetlinks.json
+          python -m json.tool /tmp/tradeflow-assetlinks.json
+
+      - name: Configure Bubblewrap toolchain
+        run: >-
+          bubblewrap updateConfig
+          --jdkPath="${JAVA_HOME}"
+          --androidSdkPath="${ANDROID_SDK_ROOT}"
+
+      - name: Create disposable test key
+        if: ${{ inputs.signing_mode == 'test' }}
+        run: |
+          password="$(openssl rand -hex 24)"
+          echo "::add-mask::${password}"
+          keytool -genkeypair -noprompt             -keystore android/tradeflow-test.keystore             -storepass "${password}"             -keypass "${password}"             -alias tradeflow-test             -keyalg RSA             -keysize 2048             -validity 3650             -dname "CN=TradeFlow Test, O=TradeFlow Colon, C=PA"
+          echo "BUBBLEWRAP_KEYSTORE_PASSWORD=${password}" >> "${GITHUB_ENV}"
+          echo "BUBBLEWRAP_KEY_PASSWORD=${password}" >> "${GITHUB_ENV}"
+          echo "SIGNING_KEY_PATH=./tradeflow-test.keystore" >> "${GITHUB_ENV}"
+          echo "SIGNING_KEY_ALIAS=tradeflow-test" >> "${GITHUB_ENV}"
+
+      - name: Load production signing key
+        if: ${{ inputs.signing_mode == 'production' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          test -n "${KEYSTORE_BASE64}"
+          test -n "${KEYSTORE_PASSWORD}"
+          test -n "${KEY_PASSWORD}"
+          test -n "${KEY_ALIAS}"
+          echo "::add-mask::${KEYSTORE_PASSWORD}"
+          echo "::add-mask::${KEY_PASSWORD}"
+          printf '%s' "${KEYSTORE_BASE64}" |
+            base64 --decode > android/tradeflow-upload.keystore
+          echo "BUBBLEWRAP_KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}"             >> "${GITHUB_ENV}"
+          echo "BUBBLEWRAP_KEY_PASSWORD=${KEY_PASSWORD}"             >> "${GITHUB_ENV}"
+          echo "SIGNING_KEY_PATH=./tradeflow-upload.keystore"             >> "${GITHUB_ENV}"
+          echo "SIGNING_KEY_ALIAS=${KEY_ALIAS}" >> "${GITHUB_ENV}"
+
+      - name: Verify production Digital Asset Links
+        if: ${{ inputs.signing_mode == 'production' }}
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          fingerprint="$(keytool -list -v \
+            -keystore android/tradeflow-upload.keystore \
+            -storepass "${KEYSTORE_PASSWORD}" \
+            -alias "${KEY_ALIAS}" |
+            sed -n 's/.*SHA256: //p' |
+            head -n 1)"
+          test -n "${fingerprint}"
+          python -m core.android_assetlinks \
+            --path /tmp/tradeflow-assetlinks.json \
+            --package com.tradeflowcolon.app \
+            --fingerprint "${fingerprint}"
+      - name: Generate Android project
+        working-directory: android
+        run: bubblewrap update --skipVersionUpgrade --manifest=.
+
+      - name: Build signed APK and app bundle
+        working-directory: android
+        run: >-
+          bubblewrap build
+          --skipPwaValidation
+          --manifest=.
+          --signingKeyPath="${SIGNING_KEY_PATH}"
+          --signingKeyAlias="${SIGNING_KEY_ALIAS}"
+
+      - name: Collect release artifacts and fingerprint
+        working-directory: android
+        run: |
+          mkdir -p artifacts
+          cp app-release-signed.apk             artifacts/tradeflow-colon.apk
+          cp app-release-bundle.aab             artifacts/tradeflow-colon.aab
+          keytool -list -v             -keystore "${SIGNING_KEY_PATH}"             -storepass "${BUBBLEWRAP_KEYSTORE_PASSWORD}"             -alias "${SIGNING_KEY_ALIAS}" |
+            sed -n 's/.*SHA256: //p' |
+            head -n 1 > artifacts/sha256-fingerprint.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tradeflow-colon-android-${{ inputs.signing_mode }}
+          path: android/artifacts/
+          if-no-files-found: error
+          retention-days: 14

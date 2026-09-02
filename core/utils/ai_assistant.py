@@ -1,8 +1,7 @@
-"""
-AI Assistant para TradeFlow Colón.
+"""TF Assistant responde desde el catálogo ZLC en vivo y el contexto de planes SaaS.
 
-Responde con datos públicos del catálogo (productos, empresas, ofertas).
-Si existe GROQ_API_KEY, enriquece respuestas vía Groq; si no, usa motor local.
+Usa Groq como motor principal cuando hay API key y conserva el catálogo ORM
+como respaldo cuando el proveedor no está disponible.
 """
 from __future__ import annotations
 
@@ -16,12 +15,12 @@ from django.urls import reverse
 from core.utils.contact import tradeflow_contact_email
 
 SYSTEM_PROMPT = """
-You are TF Assistant, assistant for TradeFlow Colón (B2B/B2C marketplace in the Colón Free Zone, Panama).
+You are TF Assistant, assistant for TradeFlow Colón (B2B wholesale marketplace in the Colón Free Zone, Panama).
 Always respond in the same language the user uses (Spanish or English).
 Be clear, friendly, and concise (max. 3 short paragraphs).
 Use ONLY the catalog data and SaaS plan data provided; do not invent products, stock, prices, or plan fees.
 For product prices use the format indicated in the catalog (USD with two decimals).
-If they ask how to buy: registration, email verification, store, and cart.
+If they ask how to buy: business registration, email verification, company RUC/DV verification, catalog, quote or cart.
 If they ask about seller plans, subscriptions, commissions, billing caps, or becoming a vendor:
 use ONLY the seller SaaS plan section in context (Digitalízate, Expansión, Corporativo Pro, Ecosistema Enterprise).
 If they ask about shipping or customs: indicate it depends on the seller and carrier; do not invent timelines.
@@ -39,7 +38,7 @@ _STOPWORDS = frozenset({
 
 
 def _fmt_money(currency: str, amount) -> str:
-    """Formatea precio para texto del asistente (USD unificado)."""
+    """Formatea un precio para texto del asistente (normalizado a USD cuando es posible)."""
     from .money_format import format_money_usd
 
     cur = (currency or 'USD').strip().upper()
@@ -53,16 +52,7 @@ def _fmt_money(currency: str, amount) -> str:
 
 
 def _product_line(product, include_link_hint: bool = False) -> str:
-    """
-    Una línea de texto por producto (sin datos sensibles).
-
-    Args:
-        product: instancia Product.
-        include_link_hint: si True, añade pista de búsqueda en tienda.
-
-    Returns:
-        str: línea formateada.
-    """
+    """Formatea una línea de producto público sin campos sensibles."""
     parts = [f'• {product.name}']
     parts.append(f'({_fmt_money(product.currency, product.display_price)})')
     parts.append(f'— {product.company.name}')
@@ -84,15 +74,7 @@ def _product_line(product, include_link_hint: bool = False) -> str:
 
 
 def build_catalog_snapshot(limit_products: int = 80) -> dict:
-    """
-    Arma contexto del catálogo activo desde el ORM.
-
-    Args:
-        limit_products: máximo de productos en el resumen.
-
-    Returns:
-        dict: conteos, listas y texto para Groq.
-    """
+    """Construye contexto de catálogo en vivo desde el ORM para prompts."""
     from .. import merchandising as merch
 
     productos_qs = merch.active_products_base()
@@ -152,7 +134,7 @@ def build_catalog_snapshot(limit_products: int = 80) -> dict:
 
 
 def _buscar_productos(terminos: list[str], limit: int = 8):
-    """Busca productos activos por palabras clave."""
+    """Busca productos activos que coincidan con tokens de palabras clave."""
     from .. import merchandising as merch
 
     qs = merch.active_products_base()
@@ -176,13 +158,13 @@ def _buscar_productos(terminos: list[str], limit: int = 8):
 
 
 def _tokens(mensaje: str) -> list[str]:
-    """Extrae tokens útiles del mensaje."""
+    """Extrae tokens de búsqueda útiles de un mensaje de usuario."""
     raw = re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9]+', mensaje.lower())
     return [t for t in raw if t not in _STOPWORDS and len(t) >= 2]
 
 
 def _match_any(msg: str, keywords: tuple[str, ...]) -> bool:
-    """Coincide frases completas o palabras aisladas (evita 'top' dentro de 'laptop')."""
+    """Coincide frases completas o palabras aisladas (evita falsos positivos cortos)."""
     words = set(re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9]+', msg))
     for k in keywords:
         if ' ' in k:
@@ -194,22 +176,13 @@ def _match_any(msg: str, keywords: tuple[str, ...]) -> bool:
 
 
 def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -> str:
-    """
-    Responde usando solo datos del catálogo (sin API externa).
-
-    Args:
-        mensaje_usuario: pregunta del usuario.
-        snapshot: contexto precalculado (opcional).
-
-    Returns:
-        str: respuesta en texto.
-    """
+    """Responde solo con datos ORM del catálogo (sin LLM externo)."""
     if snapshot is None:
         snapshot = build_catalog_snapshot()
 
     msg = mensaje_usuario.lower().strip()
     tokens = _tokens(mensaje_usuario)
-    tienda = reverse('tienda')
+    tienda = reverse('catalogo_publico')
     signup = reverse('signup')
 
     if _match_any(msg, ('hola', 'buenas', 'hello', 'hi', 'saludos', 'hey')):
@@ -217,7 +190,7 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
             'Hello! I am TF Assistant from TradeFlow Colón. '
             f'Right now there are {snapshot["total_productos"]} active products '
             f'from {snapshot["empresas_count"]} companies in the ZLC. '
-            'I can help you with deals, companies, categories, and price recommendations. '
+            'I can help you with suppliers, categories, quotes, and wholesale products. '
             f'Browse the catalog at {tienda} or create an account at {signup}.'
         )
 
@@ -245,14 +218,44 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
         )
 
     if _match_any(msg, (
+        'ruc', 'dígito verificador', 'digito verificador', 'dv',
+        'verificar empresa', 'verificación de empresa', 'verificacion de empresa',
+        'company verification', 'verify company', 'supporting document',
+        'aviso de operación', 'aviso de operacion', 'registro público', 'registro publico',
+    )):
+        spanish = _match_any(msg, (
+            'cómo', 'como', 'verificar', 'verificación', 'verificacion',
+            'empresa', 'aviso de operación', 'aviso de operacion',
+            'registro público', 'registro publico',
+        ))
+        if spanish:
+            return (
+                'Para verificar una empresa en TradeFlow: 1) verifica el correo del '
+                'representante autorizado; 2) registra nombre comercial, razón social, '
+                'RUC, DV, actividad de compra/venta y dirección; 3) adjunta aviso de '
+                'operación, registro público o documento equivalente; 4) espera la '
+                'revisión manual. La validación de formato no sustituye una consulta '
+                'gubernamental. Si el RUC ya pertenece a una empresa verificada, soporte '
+                f'debe autorizar al nuevo representante. Comienza en {signup}.'
+            )
+        return (
+            'To verify a company on TradeFlow: 1) verify the authorized representative '
+            'email; 2) enter the trade name, legal name, RUC, DV, buying/selling activity, '
+            'and address; 3) upload an operation notice, public-registry record, or '
+            'equivalent supporting document; 4) wait for manual review. Format validation '
+            'does not replace a government-registry check. If the RUC already belongs to '
+            f'a verified company, support must authorize the new representative. Start at {signup}.'
+        )
+
+    if _match_any(msg, (
         'cómo compro', 'como compro', 'comprar', 'registro', 'crear cuenta',
         'carrito', 'checkout', 'pedido', 'cuenta',
     )):
         return (
-            'To buy on TradeFlow: 1) Create a buyer account. '
-            f'2) Browse {tienda} and filter by category or company. '
-            '3) Add products to the cart and confirm your order. '
-            f'Sign up at {signup}. If you already have an account, log in and go to the store.'
+            'To buy on TradeFlow: 1) Create a business account and verify your email. '
+            '2) Provide the company RUC, DV, and supporting document for review. '
+            f'3) Browse {tienda}, request a quote or add wholesale products to the cart. '
+            f'Sign up at {signup}. If your company is already verified, log in and open the catalog.'
         )
 
     if _match_any(msg, (
@@ -331,7 +334,7 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
             lines.append(f'\n{tienda}?tab=destacados')
             return '\n'.join(lines)
 
-    # Búsqueda por palabras del mensaje
+    # Search by words from the message
     if tokens:
         encontrados = _buscar_productos(tokens, limit=8)
         if encontrados:
@@ -366,12 +369,7 @@ def responder_con_catalogo(mensaje_usuario: str, snapshot: dict | None = None) -
 
 
 def _consultar_groq(mensaje_usuario: str, historial, snapshot: dict) -> str | None:
-    """
-    Llama a Groq con contexto del catálogo.
-
-    Returns:
-        str | None: respuesta o None si falla.
-    """
+    """Llama a Groq con contexto de catálogo cuando hay API key configurada."""
     from groq import Groq
 
     from core.utils.saas_plan_catalog import build_saas_plans_ai_context
@@ -415,9 +413,16 @@ _CATEGORY_META = {
     'catalogo': ('storefront', 'Catalog'),
     'general': ('help', 'Information'),
     'soporte': ('support_agent', 'Support'),
+    'verificacion': ('verified_user', 'Company verification'),
 }
 
 _TOPIC_KEYWORDS = {
+    'verificacion': (
+        'ruc', 'dígito verificador', 'digito verificador', 'dv',
+        'verificar empresa', 'verificación de empresa', 'verificacion de empresa',
+        'company verification', 'verify company', 'supporting document',
+        'aviso de operación', 'aviso de operacion', 'registro público', 'registro publico',
+    ),
     'productos': (
         'producto', 'productos', 'stock', 'inventario', 'sku', 'catálogo',
         'catalogo', 'artículo', 'articulo', 'publicar', 'bajo stock',
@@ -437,6 +442,7 @@ _TOPIC_KEYWORDS = {
 
 
 def _detect_topic(mensaje: str) -> str:
+    """Clasifica el mensaje del usuario en una clave de tema del asistente."""
     msg = mensaje.lower()
     scores = {k: 0 for k in _TOPIC_KEYWORDS}
     words = set(_tokens(mensaje))
@@ -451,6 +457,7 @@ def _detect_topic(mensaje: str) -> str:
 
 
 def _html_escape(text: str) -> str:
+    """Escapa texto para respuestas HTML seguras del asistente."""
     return (
         str(text)
         .replace('&', '&amp;')
@@ -467,7 +474,7 @@ def format_structured_response(
     cta: str | None = None,
     cta_url: str | None = None,
 ) -> str:
-    """HTML seguro con encabezado, bullets, resumen y CTA opcional."""
+    """Construye HTML seguro con encabezado, viñetas, resumen y CTA opcional."""
     icon, title = _CATEGORY_META.get(categoria, _CATEGORY_META['general'])
     lines = [
         '<div class="tf-bot-card">',
@@ -492,7 +499,7 @@ def format_structured_response(
 
 
 def build_seller_rag_context(company) -> dict:
-    """Contexto RAG desde ORM: productos, ventas y cotizaciones del seller."""
+    """Construye contexto RAG del vendedor desde productos, ventas y cotizaciones ORM."""
     from datetime import timedelta
 
     from django.db.models import Count, Sum
@@ -552,12 +559,7 @@ def build_seller_rag_context(company) -> dict:
 
 
 def _seller_rag_answer(mensaje: str, ctx: dict, topic: str) -> tuple[list[str], str, float, str | None]:
-    """
-    Genera bullets, resumen, confianza (0-1) y tema para fallback.
-
-    Returns:
-        bullets, resumen, confianza, tema_label
-    """
+    """Produce viñetas, resumen, confianza y tema para el flujo del vendedor."""
     tokens = _tokens(mensaje)
     bullets: list[str] = []
     conf = 0.45
@@ -625,7 +627,7 @@ def _seller_rag_answer(mensaje: str, ctx: dict, topic: str) -> tuple[list[str], 
 
 
 def responder_seller_rag(mensaje: str, company) -> dict:
-    """Respuesta estructurada para vendedor con umbral de confianza 85%."""
+    """Respuesta estructurada del vendedor con umbral de confianza."""
     ctx = build_seller_rag_context(company)
     topic = _detect_topic(mensaje)
     bullets, resumen, conf, tema_label = _seller_rag_answer(mensaje, ctx, topic)
@@ -676,7 +678,7 @@ def responder_seller_rag(mensaje: str, company) -> dict:
 
 
 def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
-    """Convierte respuesta de catálogo a formato estructurado con confianza."""
+    """Convierte una respuesta de texto de catálogo en campos estructurados del asistente."""
     raw = responder_con_catalogo(mensaje, snapshot)
     topic = _detect_topic(mensaje)
     if topic in ('productos', 'ventas', 'cotizaciones'):
@@ -699,7 +701,7 @@ def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
         conf = 0.55
 
     resumen = lines[0][:180] if lines else 'TradeFlow Colón catalog information.'
-    tienda = reverse('tienda')
+    tienda = reverse('catalogo_publico')
 
     if conf < 0.85:
         tema = _CATEGORY_META.get(topic, _CATEGORY_META['catalogo'])[1]
@@ -735,12 +737,7 @@ def _catalog_to_structured(mensaje: str, snapshot: dict) -> dict:
 
 
 def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None):
-    """
-    Motor RAG + formato estructurado. Devuelve dict con texto, HTML y confianza.
-
-    historial: últimos mensajes (máx. 5 en API).
-    user/company: activan RAG de vendedor si hay empresa vinculada.
-    """
+    """Usa Groq primero para chat público y el RAG local como respaldo seguro."""
     mensaje = (mensaje_usuario or '').strip()
     if not mensaje:
         empty = 'Type your question and I will help you with the ZLC catalog.'
@@ -750,6 +747,7 @@ def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None
             'confianza': 1.0,
             'categoria': 'general',
             'baja_confianza': False,
+            'proveedor': 'catalogo',
         }
 
     historial = (historial or [])[-5:]
@@ -760,26 +758,39 @@ def consultar_asistente(mensaje_usuario, historial=None, user=None, company=None
             mensaje.lower(),
             _TOPIC_KEYWORDS['productos'] + _TOPIC_KEYWORDS['ventas'] + _TOPIC_KEYWORDS['cotizaciones'],
         ):
-            return responder_seller_rag(mensaje, company)
+            seller_result = responder_seller_rag(mensaje, company)
+            seller_result['proveedor'] = 'tradeflow_rag'
+            return seller_result
 
     snapshot = build_catalog_snapshot()
     result = _catalog_to_structured(mensaje, snapshot)
+    result['proveedor'] = 'catalogo'
 
     api_key = (getattr(settings, 'GROQ_API_KEY', None) or '').strip()
-    if api_key and not result.get('baja_confianza'):
+    # Company identity guidance is compliance-sensitive. Keep the reviewed RUC/DV
+    # workflow authoritative instead of allowing a generative provider to invent
+    # automatic government-registry checks or approval guarantees.
+    if api_key and result.get('categoria') != 'verificacion':
         try:
             groq_resp = _consultar_groq(mensaje, historial, snapshot)
             if groq_resp:
-                bullets = [groq_resp[:400]]
+                categoria = result.get('categoria') or 'catalogo'
+                if categoria == 'soporte':
+                    categoria = _detect_topic(mensaje)
+                    if categoria in ('productos', 'ventas', 'cotizaciones'):
+                        categoria = 'catalogo'
                 result['respuesta'] = groq_resp
                 result['respuesta_html'] = format_structured_response(
-                    result['categoria'],
-                    bullets,
-                    groq_resp[:200] if len(groq_resp) > 200 else '',
+                    categoria,
+                    [groq_resp],
+                    '',
                     'View store',
-                    reverse('tienda'),
+                    reverse('catalogo_publico'),
                 )
                 result['confianza'] = 0.9
+                result['categoria'] = categoria
+                result['baja_confianza'] = False
+                result['proveedor'] = 'groq'
         except Exception as exc:
             import logging
             logging.getLogger('tradeflow.ai').warning('Groq no disponible: %s', exc)

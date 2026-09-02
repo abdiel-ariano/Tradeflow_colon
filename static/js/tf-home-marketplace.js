@@ -71,23 +71,20 @@
     return '';
   }
 
-  function showToast(message) {
-    var toast = document.createElement('div');
-    toast.className = 'inquiry-toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    requestAnimationFrame(function () {
-      toast.classList.add('is-visible');
+  function showToast(message, level) {
+    if (!message || !window.tfNotify) return;
+    window.tfNotify(message, level || 'success', {
+      dedupeKey: 'home-add:' + message,
     });
-    setTimeout(function () {
-      toast.classList.remove('is-visible');
-      setTimeout(function () { toast.remove(); }, 300);
-    }, 2500);
   }
 
   function updateCartBadges(count) {
+    if (typeof window.tfUpdateCartBadge === 'function') {
+      window.tfUpdateCartBadge(count);
+      return;
+    }
     var n = parseInt(count, 10) || 0;
-    document.querySelectorAll('#cat-inquiry-badge, #tf-nav-cart-badge, [data-cart-badge]').forEach(function (badge) {
+    document.querySelectorAll('#cat-inquiry-badge, #bn-cart-badge, .cart-badge, #tf-nav-cart-badge, [data-cart-badge]').forEach(function (badge) {
       badge.textContent = String(n);
       badge.classList.toggle('has-count', n > 0);
     });
@@ -104,24 +101,35 @@
 
     fetch(inquiryUrlFor(productId), {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
         'X-CSRFToken': getCookie('csrftoken'),
         'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
       },
       body: 'cantidad=1',
     })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (data.ok) {
-          updateCartBadges(data.carrito_count);
-          showToast(data.message || 'Added to inquiry cart');
-        } else {
-          showToast(data.message || 'Could not add to inquiry cart');
+      .then(function (r) {
+        var contentType = r.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error('non-json');
         }
+        return r.json().then(function (data) {
+          return { ok: r.ok, data: data };
+        });
+      })
+      .then(function (res) {
+        var data = res.data || {};
+        if (!res.ok || data.ok === false) {
+          showToast(data.message || (window.TF_I18N && window.TF_I18N.catalogCartError) || 'Could not add to inquiry cart', 'error');
+          return;
+        }
+        updateCartBadges(data.carrito_count);
+        showToast(data.message || (window.TF_I18N && window.TF_I18N.catalogAddedToCart) || 'Added to inquiry cart', 'success');
       })
       .catch(function () {
-        showToast('Could not add to inquiry cart');
+        showToast((window.TF_I18N && window.TF_I18N.catalogNetworkError) || 'Connection error — try again', 'error');
       })
       .finally(function () {
         if (btn) btn.disabled = false;
@@ -131,6 +139,9 @@
   document.addEventListener('click', function (event) {
     var btn = event.target.closest('.hm-marketplace .btn-inquiry');
     if (!btn) return;
+    if (btn.closest('form.js-cart-add-form')) return;
+    if (btn.type === 'submit') return;
+    if (!btn.getAttribute('data-product-id')) return;
     event.preventDefault();
     event.stopPropagation();
     addToInquiry(btn.getAttribute('data-product-id'), btn);

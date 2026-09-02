@@ -1,0 +1,350 @@
+/**
+ * TradeFlow AI Search — typeahead panel and connected navbar shell.
+ * Loaded via templates/core/includes/tf_ai_search_assets.html
+ */
+
+.tf-ai-search-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.tf-ai-search-wrap > input[type="search"],
+.tf-ai-search-wrap > input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Dropdown must escape rounded shells; connected mode flattens the bar bottom. */
+.search-bar,
+.tf-hdr-search {
+  overflow: hidden;
+}
+
+.search-bar.is-suggesting,
+.tf-hdr-search.is-suggesting {
+  overflow: visible !important;
+}
+
+.search-container,
+.tf-nav-alibaba .search-container.bn-search-wrap {
+  position: relative;
+  overflow: visible;
+}
+
+.search-bar.is-suggesting,
+.tf-hdr-search.is-suggesting {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  position: relative;
+  z-index: 10051;
+}
+
+.tf-hdr-search .tf-ai-search-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.tf-hdr-search .tf-ai-search-wrap input[type="search"],
+.tf-hdr-search .tf-ai-search-wrap input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.tf-ai-search-panel {
+  background: var(--tf-white, #fff);
+  border: 1px solid var(--tf-border, #D1D5DB);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 42, 68, 0.12);
+  max-height: min(420px, 70vh);
+  overflow: auto;
+  display: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tf-ai-search-panel.tf-ai-search-panel--floating {
+  position: fixed;
+  z-index: 10050;
+}
+
+/* Visually continue the orange search shell (no gap, no double border on top). */
+.tf-ai-search-panel.is-connected.is-open {
+  border: 2px solid #FF7A3D;
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 14px 28px rgba(15, 42, 68, 0.14);
+}
+
+.search-bar.is-suggesting:focus-within,
+.tf-hdr-search.is-suggesting:focus-within {
+  box-shadow: none;
+}
+
+.tf-ai-search-panel.is-open {
+  display: block;
+}
+
+.tf-ai-search-panel-header {
+  padding: 10px 14px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tf-navy, #0F2A44);
+  border-bottom: 1px solid var(--tf-border-soft, #E5E7EB);
+  background: linear-gradient(180deg, rgba(255, 122, 61, 0.06) 0%, transparent 100%);
+}
+
+.tf-ai-search-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.tf-ai-search-skeleton {
+  height: 52px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(15, 42, 68, 0.06) 0%,
+    rgba(15, 42, 68, 0.1) 50%,
+    rgba(15, 42, 68, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: tf-ai-search-shimmer 1.1s ease-in-out infinite;
+}
+
+.tf-ai-search-skeleton--short {
+  height: 36px;
+  width: 70%;
+}
+
+@keyframes tf-ai-search-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.tf-ai-search-tip {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--tf-muted, #6B7A88);
+  border-bottom: 1px solid var(--tf-border, #D1D5DB);
+  background: rgba(242, 101, 34, 0.06);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.tf-ai-search-tip .material-symbols-rounded {
+  font-size: 16px;
+  color: var(--tf-orange, #F26522);
+  flex-shrink: 0;
+}
+
+.tf-ai-search-group-title {
+  padding: 8px 14px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-muted, #6B7A88);
+}
+
+.tf-ai-search-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  text-decoration: none;
+  color: var(--tf-navy, #0F2A44);
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.12s ease;
+}
+
+.tf-ai-search-item:hover,
+.tf-ai-search-item.is-active {
+  background: rgba(15, 42, 68, 0.05);
+}
+
+.tf-ai-search-item--product {
+  align-items: flex-start;
+  padding: 12px 14px;
+}
+
+.tf-ai-search-thumb {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--tf-light, #F2F3F5);
+  border: 1px solid var(--tf-border-soft, #E5E7EB);
+}
+
+.tf-ai-search-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tf-ai-search-thumb--icon {
+  display: grid;
+  place-items: center;
+  color: var(--tf-muted, #6B7A88);
+}
+
+.tf-ai-search-thumb--icon .material-symbols-rounded {
+  font-size: 22px;
+}
+
+.tf-ai-search-thumb--category {
+  background: rgba(31, 138, 87, 0.1);
+  color: var(--tf-emerald, #1F8A57);
+}
+
+.tf-ai-search-thumb--company {
+  background: rgba(242, 101, 34, 0.1);
+  color: var(--tf-orange, #F26522);
+}
+
+.tf-ai-search-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tf-ai-search-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tf-ai-search-item strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--tf-navy, #0F2A44);
+}
+
+.tf-ai-search-item--compact strong {
+  font-size: 13px;
+}
+
+.tf-ai-search-mark {
+  background: rgba(255, 122, 61, 0.2);
+  color: inherit;
+  padding: 0 1px;
+  border-radius: 2px;
+}
+
+.tf-ai-search-price {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tf-orange, #F26522);
+  white-space: nowrap;
+}
+
+.tf-ai-search-sku {
+  font-size: 11px;
+  color: var(--tf-muted, #6B7A88);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tf-ai-search-subtitle {
+  font-size: 12px;
+  color: var(--tf-muted, #6B7A88);
+  line-height: 1.35;
+}
+
+.tf-ai-search-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.tf-ai-search-meta-chip {
+  font-size: 11px;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--tf-light, #F2F3F5);
+  color: var(--tf-gray-700, #374151);
+  border: 1px solid var(--tf-border-soft, #E5E7EB);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tf-ai-search-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 14px 12px;
+  border-top: 1px solid var(--tf-border, #D1D5DB);
+}
+
+.tf-ai-search-related button {
+  border: 1px solid var(--tf-border, #D1D5DB);
+  background: var(--tf-light, #F2F3F5);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--tf-gray-700, #374151);
+  cursor: pointer;
+}
+
+.tf-ai-search-related button:hover {
+  border-color: var(--tf-orange, #F26522);
+  color: var(--tf-orange, #F26522);
+}
+
+.tf-ai-search-empty {
+  padding: 16px 14px;
+  font-size: 13px;
+  color: var(--tf-muted, #6B7A88);
+}
+
+.tf-ai-search-ask {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--tf-border, #D1D5DB);
+  background: rgba(15, 42, 68, 0.04);
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tf-navy, #0F2A44);
+  cursor: pointer;
+  text-align: left;
+}
+
+.tf-ai-search-ask:hover,
+.tf-ai-search-ask.is-active {
+  background: rgba(242, 101, 34, 0.1);
+  color: var(--tf-orange, #F26522);
+}
+
+.tf-ai-search-ask .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--tf-orange, #F26522);
+}

@@ -1,0 +1,63 @@
+{% extends "socialaccount/base_entrance.html" %}
+{% load static i18n %}
+{% comment %}
+Confirmación OAuth (SOCIALACCOUNT_LOGIN_ON_GET=False).
+Auto-POST seguro para no mostrar la página genérica de allauth;
+si JS está desactivado, el usuario puede pulsar Continuar.
+{% endcomment %}
+{% block title %}
+  {% if process == "connect" %}
+    {% blocktrans with provider.name as provider %}Connect {{ provider }} — TradeFlow Colón{% endblocktrans %}
+  {% else %}
+    {% blocktrans with provider.name as provider %}Continue with {{ provider }} — TradeFlow Colón{% endblocktrans %}
+  {% endif %}
+{% endblock %}
+{% block socialaccount_content %}
+  {% if process == "connect" %}
+    <h1 class="login-figma-card__title">
+      {% blocktrans with provider.name as provider %}Connect {{ provider }}{% endblocktrans %}
+    </h1>
+    <p class="login-figma-oauth-lead">
+      {% blocktrans with provider.name as provider %}You are about to connect your {{ provider }} account to TradeFlow Colón.{% endblocktrans %}
+    </p>
+  {% else %}
+    <h1 class="login-figma-card__title">
+      {% blocktrans with provider.name as provider %}Continue with {{ provider }}{% endblocktrans %}
+    </h1>
+    <p class="login-figma-oauth-lead" id="oauth-redirect-hint">
+      {% blocktrans with provider.name as provider %}Redirecting you to {{ provider }} to sign in securely…{% endblocktrans %}
+    </p>
+  {% endif %}
+
+  <form method="post" class="login-figma-form" id="oauth-provider-continue">
+    {% csrf_token %}
+    <button type="submit" class="login-figma-submit auth-submit" id="oauth-continue-btn">
+      {% if process == "connect" %}
+        {% blocktrans with provider.name as provider %}Connect {{ provider }}{% endblocktrans %}
+      {% else %}
+        {% blocktrans with provider.name as provider %}Continue with {{ provider }}{% endblocktrans %}
+      {% endif %}
+    </button>
+  </form>
+
+  <noscript>
+    <p class="login-figma-oauth-lead" style="margin-top:1rem;">
+      {% trans "JavaScript is disabled. Use the button above to continue." %}
+    </p>
+  </noscript>
+
+  <script nonce="{{ csp_nonce }}">
+  (function () {
+    var form = document.getElementById('oauth-provider-continue');
+    if (!form) return;
+    // Auto-continue on POST confirmation page (keeps LOGIN_ON_GET=False).
+    window.setTimeout(function () {
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+      } else {
+        form.submit();
+      }
+    }, 80);
+  })();
+  </script>
+{% endblock %}

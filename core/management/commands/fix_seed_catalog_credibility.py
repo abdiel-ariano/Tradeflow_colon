@@ -1,7 +1,10 @@
-"""
-Repair legacy seeded catalog rows: strip lot suffixes and rebalance stock.
+"""Repair legacy seeded catalog names and uniform high stock quantities.
 
-Safe to re-run. Targets products whose names still contain the old lot pattern.
+Strips old ``lot N`` suffixes and rebalances obviously fake stock so
+demo ZLC catalogs look credible to buyers.
+
+Ops: local/staging after older seed runs. Idempotent; use ``--dry-run``
+first. Avoid on production catalogs with real seller stock.
 """
 from __future__ import annotations
 
@@ -19,9 +22,12 @@ _LOT_PATTERN = re.compile(r'lot\s+\d+', re.IGNORECASE)
 
 
 class Command(BaseCommand):
+    """Remove lot-based names and redistribute inflated seed stock."""
+
     help = 'Remove lot-based product names and redistribute stock for seeded catalog credibility.'
 
     def add_arguments(self, parser):
+        """Register dry-run preview without persisting changes."""
         parser.add_argument(
             '--dry-run',
             action='store_true',
@@ -29,6 +35,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Rename and restock matching seeded products transactionally."""
         dry_run = options['dry_run']
         rng = random.Random(42)
         renamed = 0

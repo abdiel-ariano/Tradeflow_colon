@@ -1,4 +1,4 @@
-{% load static tf_money %}
+{% load static i18n tf_catalog tf_money %}
 {% comment %}
 ================================================================================
 ProductCardUnified — tarjeta de producto unificada (tienda + home).
@@ -16,32 +16,32 @@ Variables:
   {% if is_public %}
   <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__media">
   {% else %}
-  <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="tf-pcard__media">
+  <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="tf-pcard__media">
   {% endif %}
     {% include "core/includes/product_image_placeholder.html" with product=product %}
     {% if not product.available_qty %}
-    <span class="tf-pcard__badge tf-pcard__badge--out">Out of stock</span>
+    <span class="tf-pcard__badge tf-pcard__badge--out">{% trans "Out of stock" %}</span>
     {% elif product.available_qty <= 5 %}
-    <span class="tf-pcard__badge tf-pcard__badge--stock">Low stock</span>
+    <span class="tf-pcard__badge tf-pcard__badge--stock">{% trans "Low stock" %}</span>
     {% elif product.is_on_promo_now %}
     <span class="tf-pcard__badge tf-pcard__badge--promo">-{{ product.discount_pct }}%</span>
     {% elif product.is_bestseller %}
-    <span class="tf-pcard__badge tf-pcard__badge--top">Top CFZ</span>
+    <span class="tf-pcard__badge tf-pcard__badge--top">{% trans "Top CFZ" %}</span>
     {% elif product.is_featured %}
-    <span class="tf-pcard__badge tf-pcard__badge--feat">Featured</span>
+    <span class="tf-pcard__badge tf-pcard__badge--feat">{% trans "Featured" %}</span>
     {% endif %}
   </a>
 
   <div class="tf-pcard__body">
     {% if is_public and product.category and card_variant != 'deal' and card_variant != 'spotlight' %}
-    <p class="tf-pcard__eyebrow">{{ product.category.name }}</p>
+    <p class="tf-pcard__eyebrow">{{ product.category.name|category_label }}</p>
     {% endif %}
     {% if card_variant != 'deal' and card_variant != 'spotlight' %}
     <p class="tf-pcard__company">
       {% if is_public %}
       <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}">{{ product.company.name }}</a>
       {% else %}
-      <a href="{% url 'tienda' %}?empresa={{ product.company_id }}" class="js-tienda-empresa-link" data-empresa-id="{{ product.company_id }}">{{ product.company.name }}</a>
+      <a href="{% url 'catalogo_publico' %}?empresa={{ product.company_id }}" class="js-tienda-empresa-link" data-empresa-id="{{ product.company_id }}">{{ product.company.name }}</a>
       {% endif %}
     </p>
     {% endif %}
@@ -49,7 +49,7 @@ Variables:
       {% if is_public %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}">{{ product.name }}</a>
       {% else %}
-      <a href="{% url 'tienda' %}?buscar={{ product.name|urlencode }}">{{ product.name }}</a>
+      <a href="{% url 'catalogo_publico' %}?buscar={{ product.name|urlencode }}">{{ product.name }}</a>
       {% endif %}
     </h3>
     <div class="tf-pcard__price">
@@ -60,31 +60,31 @@ Variables:
       <span class="tf-pcard__price-now">{{ product.display_price|money_usd }}</span>
       {% endif %}
       {% if is_public %}
-      <span class="tf-pcard__price-unit">/ unit</span>
+      <span class="tf-pcard__price-unit">{% trans "/ unit" %}</span>
       {% endif %}
     </div>
     {% if is_public and card_variant != 'deal' and card_variant != 'spotlight' %}
-    <ul class="tf-pcard__signals" aria-label="Marketplace product details">
+    <ul class="tf-pcard__signals" aria-label="{% trans 'Marketplace product details' %}">
       {% if product.company.is_verified %}
-      <li class="tf-pcard__signal tf-pcard__signal--verified">CFZ Verified</li>
+      <li class="tf-pcard__signal tf-pcard__signal--verified">{% trans "CFZ Verified" %}</li>
       {% endif %}
       {% if product.available_qty > 0 %}
       <li class="tf-pcard__signal tf-pcard__signal--stock">
         {% if product.available_qty <= 5 %}
-        Low stock · {{ product.available_qty }} unit{{ product.available_qty|pluralize }}
+        {% trans "Limited availability" %}
         {% else %}
-        In stock · {{ product.available_qty }} unit{{ product.available_qty|pluralize }}
+        {% trans "In stock" %}
         {% endif %}
       </li>
       {% elif card_density != 'compact' %}
-      <li class="tf-pcard__signal tf-pcard__signal--out">Out of stock</li>
+      <li class="tf-pcard__signal tf-pcard__signal--out">{% trans "Out of stock" %}</li>
       {% endif %}
       {% if card_density != 'compact' %}
         {% if product.company.order_confirm_hours %}
-      <li class="tf-pcard__signal">Confirms in {{ product.company.order_confirm_hours }}h</li>
+      <li class="tf-pcard__signal">{% blocktrans with hours=product.company.order_confirm_hours %}Confirms in {{ hours }}h{% endblocktrans %}</li>
         {% endif %}
         {% if product.sku %}
-      <li class="tf-pcard__signal">Ref. {{ product.sku }}</li>
+      <li class="tf-pcard__signal">{% blocktrans with sku=product.sku %}Ref. {{ sku }}{% endblocktrans %}</li>
         {% endif %}
       {% endif %}
     </ul>
@@ -94,7 +94,7 @@ Variables:
       {% if is_public %}
       {% if card_variant != 'deal' and card_variant != 'spotlight' %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn{% if card_density == 'compact' %} tf-pcard__btn--primary{% else %} tf-pcard__btn--cta{% endif %}">
-        View &amp; quote →
+        {% trans "View & quote →" %}
       </a>
       {% endif %}
       {% elif show_cart_actions %}
@@ -104,23 +104,23 @@ Variables:
         <input type="hidden" name="cantidad" value="1">
         <button type="submit" class="tf-pcard__btn tf-pcard__btn--primary">
           <span class="material-symbols-rounded" aria-hidden="true" style="font-size:18px;">add_shopping_cart</span>
-          Add
+          {% trans "Add to inquiry" %}
         </button>
       </form>
         {% else %}
-      <span class="tf-pcard__btn tf-pcard__btn--disabled">Out of stock</span>
+      <span class="tf-pcard__btn tf-pcard__btn--disabled">{% trans "Out of stock" %}</span>
         {% endif %}
       <form method="post" action="{% url 'solicitar_cotizacion_automatica' product.pk %}" class="tf-pcard__form">
         {% csrf_token %}
         <input type="hidden" name="cantidad" value="1">
-        <button type="submit" class="tf-pcard__btn tf-pcard__btn--secondary" title="Get automatic quotes from every company that sells this product">
+        <button type="submit" class="tf-pcard__btn tf-pcard__btn--secondary" title="{% trans 'Get automatic quotes from every company that sells this product' %}">
           <span class="material-symbols-rounded" aria-hidden="true" style="font-size:18px;">request_quote</span>
-          Auto quote
+          {% trans "Auto quote" %}
         </button>
       </form>
       {% else %}
       <a href="{% url 'catalogo_producto_detail' product.pk %}" class="tf-pcard__btn tf-pcard__btn--cta">
-        View details →
+        {% trans "View details →" %}
       </a>
       {% endif %}
     </div>

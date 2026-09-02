@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% block title %}My orders — TradeFlow Colón{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "My orders" %} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <style nonce="{{ csp_nonce }}">
   .mo-wrap { max-width: 1000px; margin: 0 auto; padding: clamp(2.35rem, 6vw, 3.75rem) 1.5rem clamp(2rem, 4vw, 3rem); }
@@ -30,9 +30,9 @@
 {% endblock %}
 {% block content %}
 <div class="mo-wrap">
-  <h1 class="mo-title">My orders</h1>
+  <h1 class="mo-title">{% trans "My orders" %}</h1>
   <div class="mo-tabs" id="mo-tabs" data-current="{{ estado_actual|escapejs }}">
-    <a href="{% url 'mis_ordenes' %}" class="mo-tab" data-estado="">All</a>
+    <a href="{% url 'mis_ordenes' %}" class="mo-tab" data-estado="">{% trans "All" %}</a>
     {% for valor, etiqueta in status_choices %}
     <a href="?estado={{ valor }}" class="mo-tab" data-estado="{{ valor }}">{{ etiqueta }}</a>
     {% endfor %}
@@ -46,28 +46,28 @@
       </div>
       <div class="mo-prev">
         {% for item in orden.items.all|slice:":2" %}{{ item.qty }}× {{ item.product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-        {% if orden.items.count > 2 %} and {{ orden.items.count|add:"-2" }} more{% endif %}
+        {% if orden.items.count > 2 %}{% blocktrans count extra=orden.items.count|add:"-2" %}{{ extra }} more item{% plural %}{{ extra }} more items{% endblocktrans %}{% endif %}
       </div>
       <span class="mo-badge mo-st" data-st="{{ orden.status }}">{{ orden.get_status_display }}</span>
       <div class="mo-total">USD {{ orden.total }}</div>
-      <a href="{% url 'detalle_mi_orden' orden.pk %}" class="mo-link">View details <span class="material-symbols-rounded" style="font-size:18px;">chevron_right</span></a>
+      <a href="{% url 'detalle_mi_orden' orden.pk %}" class="mo-link">{% trans "View details" %} <span class="material-symbols-rounded" style="font-size:18px;">chevron_right</span></a>
     </div>
     {% endfor %}
     {% if ordenes.has_other_pages %}
     <div style="display:flex;justify-content:center;gap:8px;margin-top:1.5rem;flex-wrap:wrap;">
       {% if ordenes.has_previous %}
-      <a href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">Previous</a>
+      <a href="?page={{ ordenes.previous_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">{% trans "Previous" %}</a>
       {% endif %}
       {% if ordenes.has_next %}
-      <a href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">Next</a>
+      <a href="?page={{ ordenes.next_page_number }}&estado={{ estado_actual|urlencode }}" class="tf-btn-secondary" style="padding:8px 14px;font-size:0.875rem;">{% trans "Next" %}</a>
       {% endif %}
     </div>
     {% endif %}
   {% else %}
   <div class="mo-empty">
-    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">You have no orders yet</p>
-    <p style="margin:0;">Browse the catalog and place your first order.</p>
-    <a href="{% url 'tienda' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> Go to store</a>
+    <p style="font-family:'Inter',sans-serif;font-weight:600;color:#0F2A44;margin:0 0 8px;">{% trans "You have no orders yet" %}</p>
+    <p style="margin:0;">{% trans "Browse the catalog and place your first order." %}</p>
+    <a href="{% url 'catalogo_publico' %}" class="tf-btn-primary" style="margin-top:1.25rem;display:inline-flex;"><span class="material-symbols-rounded" style="font-size:18px;">storefront</span> {% trans "Go to catalog" %}</a>
   </div>
   {% endif %}
 </div>

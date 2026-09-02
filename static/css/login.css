@@ -5,6 +5,7 @@
  */
 
 /* Hide assistant FAB on login (not in Figma frame) */
+body:has(.login-page-wrap--figma) #tf-assistant-rail,
 body:has(.login-page-wrap--figma) #tf-assistant {
   display: none !important;
 }
@@ -27,22 +28,28 @@ main.tf-main > .login-page-wrap {
   --figma-link: var(--tf-primary, #0057A8);
   --figma-link-footer: var(--tf-primary-dark, #003D7A);
   --figma-border: var(--tf-border, #D1D5DB);
-  --figma-primary: var(--tf-primary, #0057A8);
-  --figma-focus-ring: var(--tf-primary, #0057A8);
-  --figma-focus-glow: var(--tf-primary-light, #E8F1FB);
+  --figma-primary: var(--tf-navy, #0F2A44);
+  --figma-focus-ring: var(--tf-blue, #2E5B8A);
+  --figma-focus-glow: rgba(46, 91, 138, 0.14);
   --figma-oauth-text: #273951;
   --figma-divider-text: #3c4f69;
   position: relative;
   min-height: 100vh;
   isolation: isolate;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  font-family: var(--tf-font-body, 'Montserrat', system-ui, -apple-system, sans-serif);
   color: var(--figma-text);
   overflow-x: hidden;
 }
 
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
 /* ── Background image (Figma asset) ── */
 .login-figma-bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
@@ -51,10 +58,45 @@ main.tf-main > .login-page-wrap {
 }
 
 .login-figma-bg__img {
+  object-position: center top;
+}
+
+.login-wave-video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center top;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-wave-static-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  pointer-events: none;
+  z-index: 0;
+  display: none;
+}
+
+.login-figma-bg:has(.login-wave-video) .login-wave-static-fallback {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-wave-video {
+    display: none;
+  }
+
+  .login-figma-bg:has(.login-wave-video) .login-wave-static-fallback,
+  .login-wave-static-fallback {
+    display: block;
+  }
 }
 
 /* ── Header logo (icon + wordmark, top-left) ── */
@@ -121,6 +163,11 @@ main.tf-main > .login-page-wrap {
     0 5px 15px rgba(0, 0, 0, 0.12),
     0 15px 35px rgba(48, 49, 61, 0.08);
   background: var(--login-card-surface);
+}
+
+.login-card {
+  position: relative;
+  z-index: 2;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -281,7 +328,7 @@ main.tf-main > .login-page-wrap {
   margin-top: 8px;
   padding: 0 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--figma-primary);
   box-shadow: 0 0 0 1px var(--figma-primary);
   font-family: inherit;

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-{% load static %}
+{% load static i18n tf_catalog %}
+{% get_current_language as LANGUAGE_CODE %}
 {% load tf_csp %}
 {% load tf_static_inline %}
 {% comment %}
@@ -11,13 +12,24 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 (sin <link> a /static/css/*.css) para evitar regresiones por estáticos ausentes.
 ================================================================================
 {% endcomment %}
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="{% block meta_description %}B2B and B2C marketplace in the Colón Free Zone — verified companies, catalog, logistics, and secure purchasing.{% endblock %}">
+  <meta name="theme-color" content="#0F2A44">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TradeFlow">
+  <meta name="description" content="{% block meta_description %}B2B wholesale marketplace in the Colón Free Zone — verified companies, catalog, quotes, logistics, and secure purchasing.{% endblock %}">
   <title>{% block title %}TradeFlow Colón{% endblock %}</title>
+  {% if request.user.is_authenticated %}
+    {% if request.user.is_superuser or tf_user_role == 'admin' %}
+  <style nonce="{{ csp_nonce }}">html{background:#F2F3F5}</style>
+    {% endif %}
+  {% endif %}
   {% block extra_head %}{% endblock %}
+  <link rel="manifest" href="{% url 'web_app_manifest' %}">
   <link rel="icon" type="image/png" href="{% static 'img/logo-icon-color.png' %}" sizes="32x32">
   <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
   <link rel="apple-touch-icon" href="{% static 'img/logo-icon-color.png' %}">
@@ -26,19 +38,71 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="stylesheet" href="{% static 'css/tf-design-system.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-components.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-public-shell.css' %}?v={{ tf_asset_version|default:'6' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-demo-notice.css' %}?v={{ tf_asset_version|default:'1' }}">
   <link rel="stylesheet" href="{% static 'css/tf-header.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-footer.css' %}?v={{ tf_asset_version|default:'2' }}">
   <link rel="stylesheet" href="{% static 'css/tf-buyer-shell.css' %}?v={{ tf_asset_version|default:'5' }}">
+  {# Marketplace Alibaba chrome (nav/search) — guests, buyers, and sellers on public pages. #}
+  <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'14' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-mobile-pwa.css' %}?v={{ tf_asset_version|default:'6' }}">
+  <link rel="stylesheet" href="{% static 'css/tf-toasts.css' %}?v={{ tf_asset_version|default:'1' }}">
+  <link rel="stylesheet" href="{% static 'css/logout-control.css' %}?v={{ tf_asset_version|default:'1' }}">
+  <script nonce="{{ csp_nonce }}" defer src="{% static 'js/tf-mobile-pwa.js' %}?v={{ tf_asset_version|default:'6' }}"></script>
+  <link rel="stylesheet" href="{% static 'css/tf-icons.css' %}?v={{ tf_asset_version|default:'2' }}">
+  {# Full-width rail: FAB starts LEFT; JS translates it RIGHT after scroll. #}
+  <style nonce="{{ csp_nonce }}">
+    #tf-assistant-rail {
+      position: fixed !important;
+      top: auto !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      z-index: 10050 !important;
+      display: flex !important;
+      justify-content: flex-start !important;
+      align-items: flex-end !important;
+      width: 100% !important;
+      max-width: 100vw !important;
+      overflow: hidden !important;
+      padding: 0 max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)) !important;
+      margin: 0 !important;
+      pointer-events: none !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    #tf-assistant-rail #tf-assistant {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
+      width: 56px !important;
+      margin: 0 !important;
+      pointer-events: none;
+      transform: translate3d(0, 0, 0);
+      transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+    #tf-assistant-rail #tf-assistant > * { pointer-events: auto; }
+    @media (max-width: 767px) {
+      #tf-assistant-rail {
+        padding: 0 max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)) !important;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #tf-assistant-rail #tf-assistant { transition: none !important; }
+    }
+  </style>
   {% if request.user.is_authenticated %}
-    {% if request.user.profile.role == 'buyer' %}
-  <link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'13' }}">
+    {% if request.user.is_superuser or tf_user_role == 'admin' %}
+  {% include "core/includes/admin_ops_assets.html" %}
     {% endif %}
   {% endif %}
-  <link rel="stylesheet" href="{% static 'css/tf-icons.css' %}?v={{ tf_asset_version|default:'2' }}">
   {% if request.resolver_match and request.resolver_match.url_name == 'home' %}
-  <link rel="preload" href="{% static 'img/logo-wordmark-white.png' %}?v={{ tf_asset_version|default:'6' %}" as="image" type="image/png" fetchpriority="high">
+  <link rel="preload" href="{% static 'img/logo-wordmark-white.png' %}?v={{ tf_asset_version|default:'6' }}" as="image" type="image/png" fetchpriority="high">
   {% else %}
-  <link rel="preload" href="{% static 'img/logo-icon-color.png' %}?v={{ tf_asset_version|default:'6' %}" as="image" type="image/png">
+  <link rel="preload" href="{% static 'img/logo-icon-color.png' %}?v={{ tf_asset_version|default:'6' }}" as="image" type="image/png">
   {% endif %}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
         rel="stylesheet"
@@ -47,9 +111,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
-  {% if not request.resolver_match or request.resolver_match.url_name != 'home' %}
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=block" rel="stylesheet">
-  {% endif %}
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
   <style nonce="{{ csp_nonce }}">
     /* ═══════════════════════════════════════════════════════════════════════════
        BLINDAJE — utilidades críticas (evita regresión de estilos)
@@ -668,106 +730,7 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       color: var(--tf-white);
     }
 
-    /* ----- Flash messages (esquina superior derecha; nunca invadir la zona del logo) ----- */
-    .tf-flash-stack {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 11000;
-      width: min(420px, calc(100vw - 32px));
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
-      pointer-events: none;
-    }
-    .tf-flash-stack > * { pointer-events: auto; }
-
-    .tf-flash {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 14px 16px;
-      border-radius: var(--tf-radius-card);
-      border: 1px solid var(--tf-border);
-      background: var(--tf-white);
-      box-shadow: var(--tf-shadow-card-hover);
-      font-size: 0.875rem;
-      line-height: 1.45;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .tf-flash .material-symbols-rounded {
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-    .tf-flash-msg { flex: 1; color: var(--tf-body); }
-    .tf-flash-close {
-      flex-shrink: 0;
-      border: none;
-      background: none;
-      cursor: pointer;
-      padding: 0;
-      color: var(--tf-muted);
-      line-height: 1;
-      transition: color 0.2s ease;
-    }
-    .tf-flash-close:hover { color: var(--tf-title); }
-    .tf-flash-success { border-color: #BBF7D0; background: #F0FDF4; }
-    .tf-flash-danger, .tf-flash-error { border-color: #FECACA; background: #FEF2F2; }
-    .tf-flash-warning { border-color: #FDE68A; background: #FFFBEB; }
-    .tf-flash-info, .tf-flash-debug { border-color: #BFDBFE; background: #EFF6FF; }
-
-    .tf-toast-root {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 11000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: min(380px, calc(100vw - 32px));
-      pointer-events: none;
-    }
-    .tf-toast-root > * { pointer-events: auto; }
-    .tf-toast,
-    .tf-flash {
-      transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-    .tf-toast {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--tf-border);
-      background: var(--tf-white);
-      box-shadow: 0 8px 24px rgba(15, 42, 68, 0.14);
-      opacity: 0;
-      transform: translateY(-8px);
-    }
-    .tf-toast.is-visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .tf-toast-critical { border-width: 2px; }
-    .tf-toast-success { border-color: #BBF7D0; background: #F0FDF4; }
-    .tf-toast-error { border-color: #FECACA; background: #FEF2F2; }
-    .tf-toast-warning { border-color: #FDE68A; background: #FFFBEB; }
-    .tf-toast-ico { font-size: 22px; flex-shrink: 0; color: var(--tf-blue); }
-    .tf-toast-success .tf-toast-ico { color: #15803d; }
-    .tf-toast-error .tf-toast-ico { color: #b91c1c; }
-    .tf-toast-msg { flex: 1; font-size: 0.875rem; color: var(--tf-body); line-height: 1.4; }
-    .tf-toast-close {
-      border: none;
-      background: transparent;
-      padding: 2px;
-      cursor: pointer;
-      color: var(--tf-muted);
-      line-height: 1;
-    }
+    /* Legacy flash/toast positioning — superseded by static/css/tf-toasts.css */
 
     /* ----- Buttons (global) ----- */
     .tf-btn {
@@ -1056,90 +1019,39 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </style>
   {% block extra_css %}{% endblock %}
 </head>
-<body class="tf-design-v2{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif not request.user.is_superuser and request.user.profile.role != 'admin' and request.user.profile.role != 'seller' %} tf-public-shell{% endif %}">
+<body class="tf-design-v2{% block body_shell_class %}{% if not request.user.is_authenticated %} tf-public tf-public-shell{% elif request.user.is_superuser or tf_user_role == 'admin' %} tf-admin-unified{% elif tf_user_role == 'seller' %} tf-public tf-public-shell{% else %} tf-public-shell{% endif %}{% endblock %}">
   {% if request.user.is_authenticated %}
   <div id="tf-nav-meta" class="d-none"
-       data-role="{{ request.user.profile.role }}"
+       data-role="{{ tf_user_role }}"
        data-superuser="{{ request.user.is_superuser|yesno:'1,0' }}"
        data-nav-active="{{ nav_activo|default:'' }}"
-       data-cart-count="{% firstof carrito_count 0 %}"></div>
+       data-cart-count="{% firstof carrito_count 0 %}"
+       data-seller-pending="{% if tf_seller_onboarding_pending %}1{% else %}0{% endif %}"></div>
   {% endif %}
 
+  {% block site_navbar %}
   {% if not request.user.is_authenticated %}
+    {# Guests: one Alibaba marketplace shell. Pages that include their own navbar are excluded. #}
     {% with nav_page=request.resolver_match.url_name|default:'' %}
-    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'catalogo_producto_detail' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' %}
-    {% include "core/includes/public_navbar.html" %}
+    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'marketplace_deals' and nav_page != 'marketplace_verified_suppliers' and nav_page != 'marketplace_order_protection' and nav_page != 'acerca_tradeflow' and nav_page != 'mapa_zlc' and nav_page != 'legal_terminos' and nav_page != 'legal_privacidad' and nav_page != 'legal_cookies' and nav_page != 'login' and nav_page != 'signup' and nav_page != 'signup_buyer' and nav_page != 'signup_seller' and nav_page != 'password_reset' and nav_page != 'password_reset_done' and nav_page != 'password_reset_confirm' and nav_page != 'password_reset_complete' and nav_page != 'google_login' and nav_page != 'microsoft_login' and nav_page != 'linkedin_oauth2_login' and nav_page != 'socialaccount_login_cancelled' and nav_page != 'socialaccount_login_error' and nav_page != 'socialaccount_signup' and nav_page != 'oauth_complete_signup' and nav_page != 'staff_mfa_setup' and nav_page != 'staff_mfa_verify' %}
+    {% include "core/includes/marketplace_public_navbar.html" %}
     {% endif %}
     {% endwith %}
-  {% elif request.user.is_superuser or request.user.profile.role == 'admin' or request.user.profile.role == 'seller' %}
-  {# Admin/seller: navbar por rol (tf-nav). Map oculto hasta fix mapa_zlc. #}
-  <nav class="tf-nav tf-navbar" aria-label="Principal">
-    <a href="{% url 'home' %}" class="tf-nav-brand" aria-label="TradeFlow Colón">
-      {% include "core/includes/tf_logo.html" with variant="icon-color" size="nav" class="tf-nav-logo-img" eager=1 %}
-    </a>
-
-    <button class="tf-hamburger" id="tf-hamburger" aria-label="Menu" type="button">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-
-    <div class="tf-nav-links">
-      {# Map disabled temporarily — production errors (mapa_zlc) #}
-      {% comment %}
-      <a href="{% url 'mapa_zlc' %}" class="nav-link-tf" data-tf-nav="mapa_zlc"><span class="material-symbols-rounded tf-ms-nav">map</span>Map</a>
-      {% endcomment %}
-      {% if request.user.is_authenticated %}
-        <div class="tf-nav-group" id="tf-nav-admin" data-tf-nav-group="admin">
-          <a href="{% url 'dashboard' %}" class="nav-link-tf" data-tf-nav="dashboard"><span class="material-symbols-rounded tf-ms-nav">dashboard</span>Dashboard</a>
-          <a href="{% url 'lista_ordenes' %}" class="nav-link-tf" data-tf-nav="ordenes"><span class="material-symbols-rounded tf-ms-nav">receipt_long</span>Orders</a>
-          <a href="{% url 'lista_productos' %}" class="nav-link-tf" data-tf-nav="productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
-          <a href="{% url 'lista_empresas' %}" class="nav-link-tf" data-tf-nav="empresas"><span class="material-symbols-rounded tf-ms-nav">business</span>Companies</a>
-          <a href="{% url 'admin_applications' %}" class="nav-link-tf" data-tf-nav="admin_applications">
-            <span class="material-symbols-rounded tf-ms-nav">assignment_ind</span>Applications
-            {% if pending_applications_count %}
-            <span style="background:var(--tf-orange);color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px;">{{ pending_applications_count }}</span>
-            {% endif %}
-          </a>
-        </div>
-        <div class="tf-nav-group" id="tf-nav-buyer" data-tf-nav-group="buyer">
-          <a href="{% url 'tienda' %}" class="nav-link-tf" data-tf-nav="tienda"><span class="material-symbols-rounded tf-ms-nav">storefront</span>Store</a>
-          <a href="{% url 'mis_ordenes' %}" class="nav-link-tf" data-tf-nav="mis_ordenes"><span class="material-symbols-rounded tf-ms-nav">package_2</span>My orders</a>
-          <a href="{% url 'mis_cotizaciones' %}" class="nav-link-tf" data-tf-nav="mis_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">description</span>My quotes</a>
-          <a href="{% url 'ver_carrito' %}" class="tf-nav-cart" id="tf-nav-cart-link" title="Cart" data-tf-nav="carrito">
-            <span class="material-symbols-rounded">shopping_cart</span>
-            <span class="tf-nav-cart-badge" id="tf-nav-cart-badge">0</span>
-          </a>
-        </div>
-        <div class="tf-nav-group" id="tf-nav-seller" data-tf-nav-group="seller">
-          <a href="{% url 'portal_seller' %}" class="nav-link-tf" data-tf-nav="mi_tienda"><span class="material-symbols-rounded tf-ms-nav">store</span>My Dashboard</a>
-          <a href="{% url 'seller_mis_productos' %}" class="nav-link-tf" data-tf-nav="seller_productos"><span class="material-symbols-rounded tf-ms-nav">inventory_2</span>Products</a>
-          <a href="{% url 'seller_mis_ventas' %}" class="nav-link-tf" data-tf-nav="seller_ventas"><span class="material-symbols-rounded tf-ms-nav">payments</span>My sales</a>
-          <a href="{% url 'seller_cotizaciones' %}" class="nav-link-tf" data-tf-nav="seller_cotizaciones"><span class="material-symbols-rounded tf-ms-nav">request_quote</span>Quotes</a>
-          <a href="{% url 'seller_company_qr' %}" class="nav-link-tf" data-tf-nav="seller_qr">
-            <span class="material-symbols-rounded tf-ms-nav">qr_code_2</span>My QR
-          </a>
-        </div>
-        <span class="tf-nav-divider" id="tf-nav-divider-auth"></span>
-        <div class="tf-nav-user-block">
-          <a href="{% url 'mi_perfil' %}" class="tf-nav-profile-link">
-            <div class="tf-nav-avatar" id="tf-nav-avatar-initials" aria-hidden="true"></div>
-            <span class="tf-nav-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
-          </a>
-          <a href="{% url 'logout' %}" class="tf-btn-ghost-nav">
-            <span class="material-symbols-rounded tf-ms-18">logout</span>Sign out
-          </a>
-        </div>
-      {% else %}
-        <a href="{% url 'login' %}" class="tf-btn-outline-sm">Sign in</a>
-        <a href="{% url 'signup_buyer' %}" class="tf-btn-primary-sm">Create account</a>
-      {% endif %}
-    </div>
-  </nav>
+  {% elif tf_user_role == 'seller' %}
+    {# Sellers on public pages: marketplace chrome (portal uses seller_layout → empty nav). #}
+    {% with nav_page=request.resolver_match.url_name|default:'' %}
+    {% if nav_page != 'home' and nav_page != 'catalogo_publico' and nav_page != 'marketplace_deals' and nav_page != 'marketplace_verified_suppliers' and nav_page != 'marketplace_order_protection' and nav_page != 'acerca_tradeflow' and nav_page != 'mapa_zlc' and nav_page != 'legal_terminos' and nav_page != 'legal_privacidad' and nav_page != 'legal_cookies' %}
+    {% include "core/includes/marketplace_public_navbar.html" %}
+    {% endif %}
+    {% endwith %}
+  {% elif request.user.is_superuser or tf_user_role == 'admin' %}
+  {# Shared ops header — same chrome on every admin page (no marketplace tf-nav). #}
+  {% include "core/includes/admin_header.html" with logout_url_name="logout" %}
   {% else %}
-    {# Buyer autenticado: buyer/buyer_navbar.html (3 niveles + búsqueda tf-hdr-search → tienda) #}
+    {# Buyer autenticado: buyer/buyer_navbar.html #}
     {% include "core/includes/buyer/buyer_navbar.html" %}
   {% endif %}
+  {% endblock site_navbar %}
 
   <script nonce="{{ csp_nonce }}">
   (function () {
@@ -1167,10 +1079,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
     if (isSuper || role === 'admin') {
       showGroup('tf-nav-admin');
-    } else if (role === 'buyer') {
-      showGroup('tf-nav-buyer');
-    } else if (role === 'seller') {
-      showGroup('tf-nav-seller');
     }
 
     var u = document.querySelector('.tf-nav-user-name');
@@ -1192,27 +1100,79 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
 
   {% if messages %}
   <script nonce="{{ csp_nonce }}">
-  document.addEventListener('DOMContentLoaded', function () {
-    if (typeof TF === 'undefined') return;
-    var messages = [
-      {% for message in messages %}
-      { texto: "{{ message|escapejs }}", tipo: "{{ message.tags }}" }{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    ];
-    messages.forEach(function (msg, i) {
-      setTimeout(function () {
-        var tipo = 'info';
-        if (msg.tipo.indexOf('success') !== -1) tipo = 'success';
-        else if (msg.tipo.indexOf('error') !== -1 || msg.tipo.indexOf('danger') !== -1) tipo = 'error';
-        else if (msg.tipo.indexOf('warning') !== -1) tipo = 'warning';
-        TF.notify(msg.texto, tipo);
-      }, i * 500);
-    });
-  });
+  window.TF_FLASH_MESSAGES = [
+    {% for message in messages %}
+    { text: "{{ message|escapejs }}", tags: "{{ message.tags }}" }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
   </script>
+  <noscript>
+    <div class="tf-flash-stack tf-flash-stack--noscript" role="status">
+      {% for message in messages %}
+      <div class="tf-flash tf-flash-{{ message.tags|default:'info' }}">
+        <span class="material-symbols-rounded" aria-hidden="true">info</span>
+        <span class="tf-flash-msg">{{ message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </noscript>
   {% endif %}
 
-  <div id="tf-toast-root" class="tf-toast-root" aria-live="polite" aria-atomic="true"></div>
+  <div id="tf-toast-root" class="tf-toast-root" role="region" aria-label="{% trans 'Notifications' %}"></div>
+
+  {# Cookie preferences (first-party only; no third-party trackers today). #}
+  <div id="tf-cookie-notice" class="tf-cookie-notice" hidden role="dialog" aria-label="{% trans 'Cookie preferences' %}">
+    <div class="tf-cookie-notice__copy">
+      <p>
+        {% blocktrans trimmed %}
+        We use essential cookies for login, cart, and security.
+        Optional preferences remember UI choices (language, dismissed banners).
+        See our
+        {% endblocktrans %}
+        <a href="{% url 'legal_cookies' %}">{% trans "Cookie Policy" %}</a>.
+      </p>
+      <label class="tf-cookie-notice__opt">
+        <input type="checkbox" id="tf-cookie-prefs" checked>
+        {% trans "Remember interface preferences" %}
+      </label>
+    </div>
+    <div class="tf-cookie-notice__actions">
+      <button type="button" id="tf-cookie-essential" class="tf-btn tf-btn-outline">{% trans "Essential only" %}</button>
+      <button type="button" id="tf-cookie-accept" class="tf-btn tf-btn-primary">{% trans "Save choices" %}</button>
+    </div>
+  </div>
+  <style nonce="{{ csp_nonce }}">
+    .tf-cookie-notice {
+      position: fixed; z-index: 1200; left: 16px; right: 16px; bottom: 16px;
+      max-width: 640px; margin: 0 auto; display: flex; gap: 14px; align-items: flex-start;
+      flex-wrap: wrap; padding: 14px 16px; border-radius: 12px;
+      background: #0F2A44; color: #fff; box-shadow: 0 8px 24px rgba(15,42,68,.28);
+      font-size: 13px; line-height: 1.45;
+    }
+    .tf-cookie-notice[hidden] { display: none !important; }
+    .tf-cookie-notice__copy { flex: 1 1 260px; }
+    .tf-cookie-notice__copy p { margin: 0 0 8px; }
+    .tf-cookie-notice a { color: #FDBA74; }
+    .tf-cookie-notice__opt {
+      display: flex; gap: 8px; align-items: center; margin: 0; font-size: 12px; color: #E5E7EB;
+    }
+    .tf-cookie-notice__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tf-cookie-notice .tf-btn { flex: 0 0 auto; }
+    .tf-cookie-notice .tf-btn-outline {
+      background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.35);
+    }
+  </style>
+
+  {% if demo_catalog_enabled %}
+  <aside class="tf-demo-notice" role="note"
+         aria-label="{% trans 'Simulated data notice' %}">
+    <span class="tf-demo-notice__badge" aria-hidden="true">DEMO</span>
+    <p class="tf-demo-notice__copy">
+      <strong>{% trans "Demonstration catalog." %}</strong>
+      {% trans "Companies, inventory, prices, and performance metrics are simulated; they do not yet represent active commercial suppliers." %}
+    </p>
+  </aside>
+  {% endif %}
 
   <main class="tf-main" style="flex: 1;">
     {% block content %}{% endblock %}
@@ -1227,67 +1187,77 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
             {% include "core/includes/tf_logo.html" with variant="wordmark-white" size="footer" lazy=1 %}
           </a>
           <p class="tf-footer-tagline">
-            B2B wholesale marketplace for the Colón Free Zone. Verified catalog, quotes, and logistics in one place.
+            {% trans "B2B wholesale marketplace for the Colón Free Zone. Verified catalog, quotes, and logistics in one place." %}
           </p>
           <a href="mailto:{{ tradeflow_contact_email }}" class="tf-footer-email">
             <span class="material-symbols-rounded" aria-hidden="true">mail</span>
             {{ tradeflow_contact_email }}
           </a>
-          <div class="tf-footer-social" aria-label="Social media">
-            <span class="tf-footer-social-label">Follow us</span>
-            <span class="tf-footer-social-btn" title="LinkedIn (coming soon)" aria-label="LinkedIn — coming soon">
+          <div class="tf-footer-social" aria-label="{% trans 'Social media' %}">
+            <span class="tf-footer-social-label">{% trans "Follow us" %}</span>
+            <span class="tf-footer-social-btn" title="{% trans 'LinkedIn (coming soon)' %}" aria-label="{% trans 'LinkedIn — coming soon' %}">
               <span class="material-symbols-rounded" aria-hidden="true">work</span>
             </span>
-            <span class="tf-footer-social-btn" title="Instagram (coming soon)" aria-label="Instagram — coming soon">
+            <span class="tf-footer-social-btn" title="{% trans 'Instagram (coming soon)' %}" aria-label="{% trans 'Instagram — coming soon' %}">
               <span class="material-symbols-rounded" aria-hidden="true">photo_camera</span>
             </span>
-            <span class="tf-footer-social-btn" title="Facebook (coming soon)" aria-label="Facebook — coming soon">
+            <span class="tf-footer-social-btn" title="{% trans 'Facebook (coming soon)' %}" aria-label="{% trans 'Facebook — coming soon' %}">
               <span class="material-symbols-rounded" aria-hidden="true">groups</span>
             </span>
           </div>
         </div>
 
         <div class="tf-footer-col">
-          <h2 class="tf-footer-col-title">Buyers</h2>
-          <nav class="tf-footer-links" aria-label="Buyer links">
-            <a href="{% url 'home' %}#como-funciona">How to buy</a>
-            <a href="{% url 'catalogo_publico' %}">Catalog</a>
-            <a href="{% url 'catalogo_publico' %}?verificado=1">Verified companies</a>
-            <span class="tf-footer-link-soon">FAQ <em>(coming soon)</em></span>
+          <h2 class="tf-footer-col-title">{% trans "Buyers" %}</h2>
+          <nav class="tf-footer-links" aria-label="{% trans 'Buyer links' %}">
+            <a href="{% url 'home' %}#como-funciona">{% trans "How to buy" %}</a>
+            <a href="{% url 'catalogo_publico' %}">{% trans "Catalog" %}</a>
+            <a href="{% url 'catalogo_publico' %}?verificado=1">{% trans "Verified companies" %}</a>
+            <span class="tf-footer-link-soon">{% trans "FAQ" %} <em>{% trans "(coming soon)" %}</em></span>
           </nav>
         </div>
 
         <div class="tf-footer-col">
-          <h2 class="tf-footer-col-title">Sellers</h2>
-          <nav class="tf-footer-links" aria-label="Seller links">
-            <a href="{% url 'signup_seller' %}">Sell on TradeFlow</a>
-            <a href="{% url 'solicitud_acceso' %}">CFZ requirements</a>
-            <span class="tf-footer-link-soon">Pricing <em>(coming soon)</em></span>
-            <a href="mailto:{{ tradeflow_contact_email }}">Contact</a>
+          <h2 class="tf-footer-col-title">{% trans "Sellers" %}</h2>
+          <nav class="tf-footer-links" aria-label="{% trans 'Seller links' %}">
+            <a href="{% url 'signup_seller' %}">{% trans "Sell on TradeFlow" %}</a>
+            <a href="{% url 'solicitud_acceso' %}">{% trans "CFZ requirements" %}</a>
+            <span class="tf-footer-link-soon">{% trans "Pricing" %} <em>{% trans "(coming soon)" %}</em></span>
+            <a href="mailto:{{ tradeflow_contact_email }}">{% trans "Contact" %}</a>
           </nav>
         </div>
 
         <div class="tf-footer-col">
-          <h2 class="tf-footer-col-title">Legal</h2>
-          <nav class="tf-footer-links" aria-label="Legal links">
-            <a href="{% url 'legal_terminos' %}">Terms of use</a>
-            <a href="{% url 'legal_privacidad' %}">Privacy</a>
-            <a href="{% url 'legal_cookies' %}">Cookies</a>
-            <span class="tf-footer-link-soon">Sitemap <em>(coming soon)</em></span>
+          <h2 class="tf-footer-col-title">{% trans "Legal" %}</h2>
+          <nav class="tf-footer-links" aria-label="{% trans 'Legal links' %}">
+            <a href="{% url 'legal_terminos' %}">{% trans "Terms of use" %}</a>
+            <a href="{% url 'legal_privacidad' %}">{% trans "Privacy" %}</a>
+            <a href="{% url 'legal_cookies' %}">{% trans "Cookies" %}</a>
+            <span class="tf-footer-link-soon">{% trans "Sitemap" %} <em>{% trans "(coming soon)" %}</em></span>
           </nav>
         </div>
       </div>
 
       <div class="tf-footer-bottom">
         <div class="tf-footer-bottom-meta">
-          <span>© 2026 TradeFlow Colón. All rights reserved.</span>
-          <span><strong>Colón Free Zone, Panama</strong></span>
+          <span>{% blocktrans %}© 2026 TradeFlow Colón. All rights reserved.{% endblocktrans %}</span>
+          <span><strong>{% trans "Colón Free Zone, Panama" %}</strong></span>
         </div>
-        <div class="tf-footer-lang" role="group" aria-label="Language selection">
+        <div class="tf-footer-lang" role="group" aria-label="{% trans 'Language selection' %}">
           <span class="tf-footer-lang-flag" aria-hidden="true">🇵🇦</span>
-          <button type="button" class="tf-footer-lang-opt" aria-disabled="true" title="Spanish — coming soon">ES</button>
+          <form action="{% url 'set_language' %}" method="post" class="tf-footer-lang-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% tf_language_next 'es' %}">
+            <input type="hidden" name="language" value="es">
+            <button type="submit" class="tf-footer-lang-opt{% if LANGUAGE_CODE == 'es' %} is-active{% endif %}" lang="es"{% if LANGUAGE_CODE == 'es' %} aria-current="true"{% endif %} title="{% trans 'Spanish' %}">ES</button>
+          </form>
           <span class="tf-footer-lang-sep" aria-hidden="true">|</span>
-          <button type="button" class="tf-footer-lang-opt is-active" aria-current="true" title="English (active)">EN</button>
+          <form action="{% url 'set_language' %}" method="post" class="tf-footer-lang-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% tf_language_next 'en' %}">
+            <input type="hidden" name="language" value="en">
+            <button type="submit" class="tf-footer-lang-opt{% if LANGUAGE_CODE == 'en' %} is-active{% endif %}" lang="en"{% if LANGUAGE_CODE == 'en' %} aria-current="true"{% endif %} title="{% trans 'English' %}">EN</button>
+          </form>
         </div>
       </div>
     </div>
@@ -1299,9 +1269,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
           crossorigin="anonymous"></script>
   <script nonce="{{ csp_nonce }}">window.TF_STATIC_LOGO = "{% static 'img/logo-icon-color.png' %}";</script>
   <script src="{% static 'js/tf_animations.js' %}"></script>
-  <script src="{% static 'js/tf_notifications.js' %}"></script>
+  <script src="{% static 'js/tf_notifications.js' %}?v={{ tf_asset_version|default:'4' }}"></script>
   <script src="{% static 'js/tf-media-fallback.js' %}"></script>
-  <script src="{% static 'js/cart_ajax.js' %}"></script>
+  <script src="{% static 'js/cart_ajax.js' %}?v={{ tf_asset_version|default:'3' }}"></script>
   <style nonce="{{ csp_nonce }}">
     .tf-bot-card { font-size: 13px; line-height: 1.5; }
     .tf-bot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0F2A44; }
@@ -1319,17 +1289,16 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     .tf-chat-feedback { display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #E5E7EB; font-size: 12px; }
     .tf-chat-feedback button { border: 1px solid #E5E7EB; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 11px; }
 
-    /* Assistant widget — fixed overlay, out of document flow */
-    #tf-assistant {
-      position: fixed;
-      right: max(16px, env(safe-area-inset-right, 0px));
-      bottom: max(16px, env(safe-area-inset-bottom, 0px));
-      z-index: 10050;
+    /* Assistant widget chrome (rail in <head> owns viewport docking). */
+    #tf-assistant-rail #tf-assistant {
       font-family: var(--tf-font-body);
-      pointer-events: none;
     }
-    #tf-assistant > * { pointer-events: auto; }
-    #tf-chat-toggle {
+    #tf-assistant-rail #tf-chat-toggle {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
       width: 56px;
       height: 56px;
       border-radius: 50%;
@@ -1343,11 +1312,15 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       justify-content: center;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    #tf-chat-toggle:hover { transform: scale(1.04); box-shadow: 0 6px 20px rgba(242, 101, 34, 0.45); }
-    #tf-chat-window {
+    #tf-assistant-rail #tf-chat-toggle:hover {
+      transform: scale(1.04);
+      box-shadow: 0 6px 20px rgba(242, 101, 34, 0.45);
+    }
+    #tf-assistant-rail #tf-chat-window {
       display: none;
       position: absolute;
-      right: 0;
+      left: 0;
+      right: auto;
       bottom: calc(100% + 12px);
       width: min(360px, calc(100vw - 32px));
       height: min(520px, calc(100vh - 120px));
@@ -1357,6 +1330,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       border: 1px solid #E5E7EB;
       flex-direction: column;
       overflow: hidden;
+    }
+    #tf-assistant-rail[data-tf-dock="right"] #tf-chat-window {
+      left: auto;
+      right: 0;
     }
     .tf-chat-header {
       display: flex;
@@ -1415,7 +1392,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       flex-direction: column;
       gap: 12px;
       background: #F4F6F8;
-      scroll-behavior: smooth;
+      /* auto: avoid smooth-scroll fight when swapping loading → reply */
+      scroll-behavior: auto;
     }
     .tf-msg-bot,
     .tf-msg-user {
@@ -1444,8 +1422,46 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
     .tf-msg-bot.tf-msg-loading {
       color: #6B7A88;
-      font-style: italic;
+      font-style: normal;
       background: #fff;
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+    }
+    #tf-assistant .tf-typing-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 16px;
+      padding: 2px 0;
+    }
+    #tf-assistant .tf-typing-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #6B7A88;
+      animation: tf-typing-bounce 1.2s infinite ease-in-out both;
+    }
+    #tf-assistant .tf-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+    #tf-assistant .tf-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes tf-typing-bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+      40% { transform: translateY(-5px); opacity: 1; }
+    }
+    #tf-chat-input:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      background: #EEF1F4;
+    }
+    #tf-chat-send:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .tf-msg-bot.tf-msg-error {
+      border-color: #FECACA;
+      background: #FEF2F2;
+      color: #991B1B;
     }
     .tf-chat-compose {
       display: flex;
@@ -1493,9 +1509,10 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     #tf-chat-send:hover { background: var(--tf-orange-h, #FF7A3D); }
     #tf-chat-send:active { transform: scale(0.96); }
     #tf-chat-send .material-symbols-rounded { font-size: 20px; }
-    @media (max-width: 480px) {
-      #tf-assistant { right: 12px; bottom: 12px; }
-      #tf-chat-window { width: calc(100vw - 24px); }
+    @media (max-width: 767px) {
+      #tf-assistant-rail #tf-chat-window {
+        width: min(360px, calc(100vw - 24px));
+      }
     }
   </style>
   {# CSP nonce: tag custom para que el <script type="application/json"> reciba nonce. #}
@@ -1509,37 +1526,83 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
   </script>
   {% block extra_js %}{% endblock %}
 
-  <!-- TF Assistant Widget -->
-  <div id="tf-assistant" aria-live="polite">
-    <button type="button" id="tf-chat-toggle" aria-label="Open assistant">
-      {% include "core/includes/tf_icon.html" with name="assistant" class="tf-icon--chat" %}
-    </button>
-    <div id="tf-chat-window" role="dialog" aria-label="TradeFlow Assistant">
-      <header class="tf-chat-header">
-        <div class="tf-chat-header-avatar" aria-hidden="true">
-          {% include "core/includes/tf_icon.html" with name="assistant" class="tf-icon--chat-header" %}
+  <!-- TF Assistant: full-width rail keeps FAB on the LEFT until scroll moves it RIGHT -->
+  <div id="tf-assistant-rail" data-tf-dock="left" aria-live="polite">
+    <div id="tf-assistant">
+      <button type="button" id="tf-chat-toggle" aria-label="Open assistant">
+        {% include "core/includes/tf_icon.html" with name="assistant" class="tf-icon--chat" %}
+      </button>
+      <div id="tf-chat-window" role="dialog" aria-label="TradeFlow Assistant">
+        <header class="tf-chat-header">
+          <div class="tf-chat-header-avatar" aria-hidden="true">
+            {% include "core/includes/tf_icon.html" with name="assistant" class="tf-icon--chat-header" %}
+          </div>
+          <div class="tf-chat-header-text">
+            <div class="tf-chat-header-title">TradeFlow Assistant</div>
+            <div class="tf-chat-header-sub">Free Zone B2B assistant · Groq AI + live catalog</div>
+          </div>
+          <button type="button" id="tf-chat-close" aria-label="Close">
+            {% include "core/includes/tf_icon.html" with name="close" %}
+          </button>
+        </header>
+        <div id="tf-chat-messages">
+          <div class="tf-msg-bot" id="tf-chat-welcome">
+            I can help with products, verified suppliers, company registration, quotes, and wholesale orders.
+            <div style="margin-top:8px;font-size:12px;opacity:.85;">
+              Answers are generated by Groq using the TradeFlow catalog. If Groq is temporarily unavailable, the catalog fallback keeps the assistant online. Do not share passwords or secrets.
+            </div>
+          </div>
         </div>
-        <div class="tf-chat-header-text">
-          <div class="tf-chat-header-title">TradeFlow Assistant</div>
-          <div class="tf-chat-header-sub">Free Zone virtual assistant</div>
+        <div class="tf-chat-compose">
+          <input type="text" id="tf-chat-input" placeholder="Type your question..." autocomplete="off" aria-label="Message">
+          <button type="button" id="tf-chat-send" aria-label="Send message">
+            {% include "core/includes/tf_icon.html" with name="send" %}
+          </button>
         </div>
-        <button type="button" id="tf-chat-close" aria-label="Close">
-          {% include "core/includes/tf_icon.html" with name="close" %}
-        </button>
-      </header>
-      <div id="tf-chat-messages">
-        <div class="tf-msg-bot" id="tf-chat-welcome">
-          Hi! I'm the TradeFlow Colón assistant. How can I help you today?
-        </div>
-      </div>
-      <div class="tf-chat-compose">
-        <input type="text" id="tf-chat-input" placeholder="Type your question..." autocomplete="off" aria-label="Message">
-        <button type="button" id="tf-chat-send" aria-label="Send message">
-          {% include "core/includes/tf_icon.html" with name="send" %}
-        </button>
       </div>
     </div>
   </div>
+  <script nonce="{{ csp_nonce }}">
+  (function () {
+    try {
+      var key = 'tf_cookie_prefs_v1';
+      var legacy = 'tf_cookie_notice_v1';
+      var box = document.getElementById('tf-cookie-notice');
+      var btnSave = document.getElementById('tf-cookie-accept');
+      var btnEssential = document.getElementById('tf-cookie-essential');
+      var prefBox = document.getElementById('tf-cookie-prefs');
+      if (!box || !btnSave || !btnEssential) return;
+      var existing = window.localStorage.getItem(key);
+      if (!existing && window.localStorage.getItem(legacy)) {
+        existing = JSON.stringify({ v: 1, essential: true, preferences: true, analytics: false });
+        window.localStorage.setItem(key, existing);
+      }
+      function savePrefs(preferences) {
+        window.localStorage.setItem(key, JSON.stringify({
+          v: 1,
+          essential: true,
+          preferences: !!preferences,
+          analytics: false
+        }));
+        box.hidden = true;
+      }
+      if (!existing) {
+        box.hidden = false;
+        btnSave.addEventListener('click', function () {
+          savePrefs(prefBox ? prefBox.checked : true);
+        });
+        btnEssential.addEventListener('click', function () {
+          if (prefBox) prefBox.checked = false;
+          savePrefs(false);
+        });
+      }
+      window.tfCookiePrefs = function () {
+        try { return JSON.parse(window.localStorage.getItem(key) || 'null'); }
+        catch (e) { return null; }
+      };
+    } catch (e) {}
+  })();
+  </script>
   <script nonce="{{ csp_nonce }}">
   (function () {
     'use strict';
@@ -1547,29 +1610,140 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     var tfChatHistory = [];
     var tfChatLoading = false;
     var TF_CHAT_MAX_HIST = 5;
+    var TF_CHAT_FETCH_MS = 25000;
     var win = document.getElementById('tf-chat-window');
-    var icon = document.getElementById('tf-chat-icon');
     var toggle = document.getElementById('tf-chat-toggle');
     var closeBtn = document.getElementById('tf-chat-close');
     var sendBtn = document.getElementById('tf-chat-send');
     var input = document.getElementById('tf-chat-input');
+    var assistant = document.getElementById('tf-assistant');
     var csrfToken = '{{ csrf_token }}';
+    var assistantRail = document.getElementById('tf-assistant-rail');
+    var assistantDockFrame = null;
+    var TF_DOCK_SCROLL_Y = 100;
+    var TF_DOCK_BTN = 56;
 
-    function toggleChat() {
-      tfChatOpen = !tfChatOpen;
-      if (!win || !icon) return;
-      if (tfChatOpen) {
-        win.style.display = 'flex';
-        icon.textContent = 'close';
-        if (input) input.focus();
-      } else {
-        win.style.display = 'none';
-        icon.textContent = 'smart_toy';
+    function assistantScrollY() {
+      var se = document.scrollingElement || document.documentElement;
+      var y = Math.max(
+        window.pageYOffset || 0,
+        (se && se.scrollTop) || 0,
+        document.body ? document.body.scrollTop : 0
+      );
+      /* Marketplace shells may scroll an inner container instead of window. */
+      var nodes = document.querySelectorAll(
+        'main, [data-tf-scroll], .tf-main, .cat-results-scroll, .home-scroll'
+      );
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].scrollTop > y) y = nodes[i].scrollTop;
       }
+      return y;
     }
 
-    if (toggle) toggle.addEventListener('click', toggleChat);
-    if (closeBtn) closeBtn.addEventListener('click', toggleChat);
+    function applyAssistantDock(goRight) {
+      if (!assistant || !assistantRail) return;
+      var dock = goRight ? 'right' : 'left';
+      assistantRail.setAttribute('data-tf-dock', dock);
+      assistant.classList.toggle('tf-assistant--right', !!goRight);
+      assistant.setAttribute('data-tf-dock', dock);
+
+      var railWidth = assistantRail.clientWidth || window.innerWidth;
+      var style = window.getComputedStyle(assistantRail);
+      var padL = parseFloat(style.paddingLeft) || 0;
+      var padR = parseFloat(style.paddingRight) || 0;
+      var travel = Math.max(0, railWidth - padL - padR - TF_DOCK_BTN);
+      var x = goRight ? travel : 0;
+      assistant.style.setProperty(
+        'transform',
+        'translate3d(' + x + 'px, 0, 0)',
+        'important'
+      );
+    }
+
+    function syncAssistantDock() {
+      if (!assistant || !assistantRail) return;
+      applyAssistantDock(assistantScrollY() > TF_DOCK_SCROLL_Y);
+    }
+
+    function scheduleAssistantDock() {
+      if (assistantDockFrame !== null) return;
+      assistantDockFrame = window.requestAnimationFrame(function () {
+        assistantDockFrame = null;
+        syncAssistantDock();
+      });
+    }
+
+    applyAssistantDock(false);
+    window.addEventListener(
+      'scroll',
+      scheduleAssistantDock,
+      { passive: true, capture: true }
+    );
+    document.addEventListener(
+      'scroll',
+      scheduleAssistantDock,
+      { passive: true, capture: true }
+    );
+    window.addEventListener('resize', scheduleAssistantDock);
+    window.addEventListener('pageshow', function () {
+      applyAssistantDock(false);
+      window.setTimeout(syncAssistantDock, 0);
+    });
+    window.setTimeout(syncAssistantDock, 0);
+    window.setTimeout(syncAssistantDock, 300);
+    syncAssistantDock();
+    window.TF_SYNC_ASSISTANT_DOCK = syncAssistantDock;
+
+    function setComposeDisabled(disabled) {
+      if (input) input.disabled = !!disabled;
+      if (sendBtn) sendBtn.disabled = !!disabled;
+    }
+
+    function setChatOpen(open) {
+      tfChatOpen = !!open;
+      if (!win) return;
+      win.style.display = tfChatOpen ? 'flex' : 'none';
+      if (assistant) {
+        assistant.classList.toggle('tf-assistant--open', tfChatOpen);
+      }
+      if (toggle) {
+        toggle.setAttribute('aria-expanded', tfChatOpen ? 'true' : 'false');
+        toggle.setAttribute('aria-label', tfChatOpen ? 'Close assistant' : 'Open assistant');
+      }
+      if (tfChatOpen) {
+        if (input && !input.disabled) {
+          window.requestAnimationFrame(function () { input.focus(); });
+        }
+      } else if (input) {
+        /* no-op close path */
+      }
+      syncAssistantDock();
+    }
+
+    function toggleChat() {
+      setChatOpen(!tfChatOpen);
+    }
+
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-controls', 'tf-chat-window');
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        toggleChat();
+      });
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        setChatOpen(false);
+      });
+    }
+
+    function scrollMessagesToBottom() {
+      var msgs = document.getElementById('tf-chat-messages');
+      if (!msgs) return;
+      msgs.scrollTop = msgs.scrollHeight;
+    }
 
     function appendMessage(content, isBot, htmlContent) {
       var msgs = document.getElementById('tf-chat-messages');
@@ -1582,7 +1756,32 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         div.textContent = content;
       }
       msgs.appendChild(div);
-      msgs.scrollTop = msgs.scrollHeight;
+      scrollMessagesToBottom();
+      return div;
+    }
+
+    function fillBotBubble(div, content, htmlContent, isError) {
+      if (!div) {
+        div = appendMessage(content, true, isError ? null : htmlContent);
+        if (isError && div) {
+          div.classList.add('tf-msg-error');
+          div.textContent = content;
+        }
+        return div;
+      }
+      div.classList.remove('tf-msg-loading');
+      if (isError) {
+        div.classList.add('tf-msg-error');
+        div.textContent = content;
+      } else {
+        div.classList.remove('tf-msg-error');
+        if (htmlContent) {
+          div.innerHTML = htmlContent;
+        } else {
+          div.textContent = content;
+        }
+      }
+      scrollMessagesToBottom();
       return div;
     }
 
@@ -1614,20 +1813,33 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       if (!mensaje) return;
       input.value = '';
       tfChatLoading = true;
+      setComposeDisabled(true);
       appendMessage(mensaje, false);
       tfChatHistory.push({ role: 'user', content: mensaje });
-      var loadingDiv = appendMessage('Typing...', true);
-      if (loadingDiv) loadingDiv.classList.add('tf-msg-loading');
+      var loadingDiv = appendMessage('', true);
+      if (loadingDiv) {
+        loadingDiv.classList.add('tf-msg-loading');
+        loadingDiv.innerHTML = '<span class="tf-typing-dots" aria-label="Assistant is typing"><span></span><span></span><span></span></span>';
+      }
+      var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timeoutId = null;
+      if (controller) {
+        timeoutId = window.setTimeout(function () {
+          try { controller.abort(); } catch (e) {}
+        }, TF_CHAT_FETCH_MS);
+      }
       fetch('{% url "api_asistente" %}', {
         method: 'POST',
         credentials: 'same-origin',
+        signal: controller ? controller.signal : undefined,
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({
           mensaje: mensaje,
-          historial: tfChatHistory.slice(0, -1).slice(-TF_CHAT_MAX_HIST)
+          historial: tfChatHistory.slice(0, -1).slice(-TF_CHAT_MAX_HIST),
+          contexto: (window.location.pathname.indexOf('/mi-tienda/') === 0) ? 'seller' : ''
         })
       })
       .then(function (r) {
@@ -1639,10 +1851,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         });
       })
       .then(function (data) {
-        if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
         var respuesta = data.respuesta || 'I could not process your request.';
         var html = data.respuesta_html || respuesta;
-        var botDiv = appendMessage(respuesta, true, html);
+        var botDiv = fillBotBubble(loadingDiv, respuesta, html, false);
         appendFeedback(botDiv);
         tfChatHistory.push({ role: 'assistant', content: respuesta });
         if (tfChatHistory.length > TF_CHAT_MAX_HIST * 2) {
@@ -1650,11 +1861,20 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         }
       })
       .catch(function (err) {
-        if (loadingDiv && loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
-        var msg = (err && err.message) ? err.message : 'Connection error. Try again later.';
-        appendMessage(msg, true);
+        var msg;
+        if (err && err.name === 'AbortError') {
+          msg = 'The assistant took too long to respond. Please try again.';
+        } else {
+          msg = (err && err.message) ? err.message : 'Connection error. Try again later.';
+        }
+        fillBotBubble(loadingDiv, msg, null, true);
       })
-      .finally(function () { tfChatLoading = false; });
+      .finally(function () {
+        if (timeoutId) window.clearTimeout(timeoutId);
+        tfChatLoading = false;
+        setComposeDisabled(false);
+        if (input && tfChatOpen) input.focus();
+      });
     }
 
     if (sendBtn) sendBtn.addEventListener('click', sendChatMessage);
@@ -1663,6 +1883,16 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
         if (e.key === 'Enter') sendChatMessage();
       });
     }
+
+    window.TF_OPEN_ASSISTANT = function (prefill) {
+      if (!tfChatOpen) setChatOpen(true);
+      if (input && prefill) {
+        input.value = prefill;
+        input.focus();
+      } else if (input) {
+        input.focus();
+      }
+    };
 
   })();
   </script>
@@ -1681,5 +1911,20 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     });
   })();
   </script>
+  <script nonce="{{ csp_nonce }}">
+  (function () {
+    'use strict';
+    if (!('serviceWorker' in navigator)) return;
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register(
+        '{% url "service_worker" %}',
+        { scope: '/' }
+      ).catch(function () {
+        /* The website remains fully functional when registration fails. */
+      });
+    });
+  })();
+  </script>
 </body>
 </html>
+

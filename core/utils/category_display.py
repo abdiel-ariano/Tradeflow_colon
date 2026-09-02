@@ -1,5 +1,12 @@
-"""English display labels for catalog categories (UI layer)."""
+"""Etiquetas de categoría del catálogo según idioma (capa de UI).
+
+Los datos semilla mezclan nombres en inglés y español; el marketplace debe
+mostrar un solo idioma sin reescribir las filas ``Category`` almacenadas.
+"""
 from __future__ import annotations
+
+from django.conf import settings
+from django.utils.translation import get_language
 
 _CATEGORY_LABEL_EN = {
     'electrónica': 'Electronics',
@@ -10,17 +17,33 @@ _CATEGORY_LABEL_EN = {
     'perfumeria y cosmeticos': 'Perfumery & Cosmetics',
 }
 
+_CATEGORY_LABEL_ES = {
+    'Electronics & Office': 'Electrónica y oficina',
+    'Textiles & Uniforms': 'Textiles y uniformes',
+    'Accessories & Leather Goods': 'Accesorios y marroquinería',
+    'Home & Appliances': 'Hogar y electrodomésticos',
+    'Gaming & Peripherals': 'Gaming y periféricos',
+    'Logistics & Packaging': 'Logística y empaque',
+    'General Imports': 'Importaciones generales',
+    'Electronics': 'Electrónica',
+    'Textiles': 'Textiles',
+    'Perfumery & Cosmetics': 'Perfumería y cosméticos',
+}
 
-def category_display_name(name: str | None) -> str:
-    """Return English-facing category label; falls back to stored name."""
+
+def category_display_name(name: str | None, lang: str | None = None) -> str:
+    """Devuelve la etiqueta de categoría para el locale; si no, el nombre guardado."""
     if not name:
         return ''
+    lang_code = (lang or get_language() or settings.LANGUAGE_CODE)[:2]
+    if lang_code == 'es':
+        return _CATEGORY_LABEL_ES.get(name.strip(), name)
     key = name.strip().lower()
     return _CATEGORY_LABEL_EN.get(key, name)
 
 
 def category_icon_name(name: str | None) -> str:
-    """Material Symbols icon for a category (header dropdown)."""
+    """Devuelve el nombre de icono Material Symbols para el menú de categoría."""
     if not name:
         return 'category'
     key = name.strip().lower()

@@ -1,15 +1,23 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% block title %}Application received — TradeFlow{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Application received — TradeFlow" %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
+<link rel="stylesheet" href="{% static 'css/solicitud_acceso.css' %}?v={{ tf_asset_version|default:'1' }}">
+{% endblock %}
 {% block content %}
-<div style="max-width:520px;margin:48px auto;padding:0 24px;">
-  <div class="sp-card" style="padding:32px;text-align:center;">
-    <span class="material-symbols-rounded" style="font-size:48px;color:var(--tf-blue);">mark_email_read</span>
-    <h1 style="font-family:'DM Serif Display',serif;color:var(--tf-navy);margin:16px 0 10px;">Application received</h1>
-    <p style="color:var(--tf-muted);font-size:14px;line-height:1.6;margin:0 0 20px;">
-      Check your email. When your access is approved, you can register or sign in with the same email.
-    </p>
-    <a href="{% url 'login' %}" class="sp-btn sp-btn-primary" style="justify-content:center;">Go to sign in</a>
+<div class="sa-page" id="solicitud-enviada-root">
+  <div class="sa-shell">
+    <section class="sa-panel sa-panel--center">
+      <h1 class="sa-confirm-title">{% trans "Application received" %}</h1>
+      <p class="sa-panel__sub">
+        {% trans "Check your email. When access is approved, sign in with the same address." %}
+      </p>
+      <a href="{% url 'login' %}" class="sa-submit sa-confirm-cta">
+        {% trans "Go to sign in" %}
+      </a>
+    </section>
   </div>
 </div>
 {% endblock %}

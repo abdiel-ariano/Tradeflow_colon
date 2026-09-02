@@ -1,6 +1,7 @@
-"""
-IA predictiva a nivel plataforma (panel admin): series mensuales y proyección.
-Persistencia opcional vía agregación ORM; no inventa datos sin historial.
+"""Pronóstico de ingresos a nivel plataforma para el dashboard SaaS admin.
+
+Agrega la serie mensual de GMV ZLC y proyecta el próximo trimestre con un
+modelo lineal simple — sin PII de vendedores.
 """
 from __future__ import annotations
 
@@ -23,12 +24,13 @@ MONTHS_ES = MONTHS_EN
 
 
 def _month_start(year: int, month: int):
+    """Devuelve el primer instante aware del mes dado."""
     tz = timezone.get_current_timezone()
     return timezone.make_aware(datetime(year, month, 1), tz)
 
 
 def _platform_monthly_revenue(months_back: int = 9) -> list[dict]:
-    """Ingresos USD por mes calendario (órdenes no canceladas)."""
+    """Devuelve ingresos USD por mes calendario para pedidos no cancelados."""
     now = timezone.localtime(timezone.now())
     rows = []
     y, m = now.year, now.month
@@ -61,7 +63,7 @@ def _platform_monthly_revenue(months_back: int = 9) -> list[dict]:
 
 
 def _linear_regression_forecast(values: list[float], forecast_count: int = 3) -> list[float]:
-    """Regresión lineal y = a + b*x; devuelve forecast_count puntos futuros."""
+    """Ajusta y = a + b*x y devuelve ``forecast_count`` puntos proyectados."""
     n = len(values)
     if n == 0:
         return [0.0] * forecast_count
@@ -82,6 +84,7 @@ def _linear_regression_forecast(values: list[float], forecast_count: int = 3) ->
 
 
 def _confidence_pct(n_points: int, trend: str) -> int:
+    """Mapea longitud/varianza de la serie a un puntaje de confianza 0–100."""
     base = min(95, 55 + n_points * 4)
     if trend == 'flat':
         base -= 8
@@ -89,9 +92,7 @@ def _confidence_pct(n_points: int, trend: str) -> int:
 
 
 def build_platform_predictive_payload() -> dict:
-    """
-    Payload para hero predictivo del admin: 9 meses reales + 3 proyectados.
-    """
+    """Construye payload hero admin: 9 meses reales más 3 meses proyectados."""
     history = _platform_monthly_revenue(9)
     values = [r['revenue_usd'] for r in history]
     forecasts = _linear_regression_forecast(values, 3)
@@ -179,4 +180,5 @@ def build_platform_predictive_payload() -> dict:
 
 
 def _period_key_now() -> str:
+    """Devuelve la clave de periodo YYYY-MM del mes actual."""
     return timezone.now().strftime('%Y-%m')

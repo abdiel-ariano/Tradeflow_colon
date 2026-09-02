@@ -1,11 +1,10 @@
-"""
-Regenerate product images for existing catalog rows (does not delete products).
+"""Regenerate local PNG product images without deleting catalog rows.
 
-Usage:
-    python manage.py regenerate_product_images
-    python manage.py regenerate_product_images --limit 50
-    python manage.py regenerate_product_images --missing-only
-    python manage.py regenerate_product_images --force
+Updates ``Product.image`` only. Useful when MEDIA_ROOT files are missing
+after a fresh clone or volume reset.
+
+Ops: local/staging media repair. Prefer ``--missing-only``. Avoid
+``--force`` on production where sellers uploaded real photos.
 """
 
 from __future__ import annotations
@@ -22,12 +21,15 @@ from core.utils.media_storage import local_media_file_exists
 
 
 class Command(BaseCommand):
+    """Write placeholder PNGs under media/productos/ for target products."""
+
     help = (
         'Generate local PNG product images under media/productos/ for existing products. '
         'Only updates Product.image; does not delete catalog data.'
     )
 
     def add_arguments(self, parser):
+        """Register limit, force, and missing-only selection flags."""
         parser.add_argument(
             '--limit',
             type=int,
@@ -46,6 +48,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Generate images for selected products and report success counts."""
         limit = int(options['limit'] or 0)
         force = bool(options['force'])
         missing_only = bool(options['missing_only']) or not force

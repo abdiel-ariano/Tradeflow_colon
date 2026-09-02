@@ -1,0 +1,112 @@
+{% extends "core/base.html" %}
+{% comment %}
+Template: seller_onboarding_company.html — identidad empresarial B2B.
+{% endcomment %}
+{% load static i18n %}
+{% block title %}{% trans "Set up your company" %} — TradeFlow{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/colors.css' %}">
+<style nonce="{{ csp_nonce }}">
+  .so-wrap { max-width: 820px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .so-card { background: var(--tf-white); border: 1px solid var(--tf-border); border-radius: 12px; padding: 2rem; box-shadow: 0 8px 24px rgba(15,42,68,.08); }
+  .so-card h1 { margin: 0 0 .5rem; font-size: 1.5rem; color: var(--tf-navy); }
+  .so-lead { color: var(--tf-gray-700); margin: 0 0 1.5rem; line-height: 1.6; font-size: .9375rem; }
+  .so-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(242,101,34,.1); color: var(--tf-orange); font-size: 13px; font-weight: 600; margin-bottom: 1.25rem; }
+  .so-field { margin-bottom: 1rem; }
+  .so-field label { display: block; font-size: 13px; font-weight: 600; color: var(--tf-navy); margin-bottom: 6px; }
+  .so-field input, .so-field textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--tf-border); border-radius: 8px; font-size: 14px; }
+  .so-field select { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--tf-border); border-radius: 8px; background: var(--tf-white); font-size: 14px; }
+  .so-field textarea { min-height: 80px; resize: vertical; }
+  .so-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  .so-help { display: block; margin-top: 5px; color: var(--tf-gray-600); font-size: 12px; line-height: 1.45; }
+  .so-process { margin: 0 0 1.5rem; padding: 1rem; border-radius: 10px; background: var(--tf-gray-50); display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .so-process div { font-size: 12px; line-height: 1.4; color: var(--tf-gray-700); }
+  .so-process strong { display: block; color: var(--tf-navy); margin-bottom: 3px; }
+  .so-actions { margin-top: 1.5rem; display: flex; gap: 12px; flex-wrap: wrap; }
+  @media (max-width: 680px) { .so-grid, .so-process { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="so-wrap">
+  <div class="so-card">
+    <div class="so-badge"><span class="material-symbols-rounded" style="font-size:18px;">domain_verification</span> {% trans "Business verification required" %}</div>
+    <h1>{{ titulo_pagina }}</h1>
+    <p class="so-lead">
+      {% trans "To buy or sell as a company we need to identify the legal entity and its representative. The tax ID and verification digit are reviewed together with the attached document before enabling operations." %}
+    </p>
+    {% if expo_demo_mode %}
+    <p class="so-lead" style="margin-top:-.75rem;padding:.75rem 1rem;border-radius:8px;background:rgba(242,101,34,.08);border:1px solid rgba(242,101,34,.2);">
+      {% trans "Demo mode active: you can submit without an attached document; the company is verified instantly to test the B2B flow." %}
+    </p>
+    {% endif %}
+    <div class="so-process" aria-label="{% trans 'Verification process' %}">
+      <div><strong>{% trans "1. Details" %}</strong>{% trans "You complete the business identity." %}</div>
+      <div><strong>{% trans "2. Human review" %}</strong>{% trans "TradeFlow verifies the data and evidence." %}</div>
+      <div><strong>{% trans "3. Access" %}</strong>{% trans "Approved features are enabled." %}</div>
+    </div>
+    <form method="post" action="{% url 'company_onboarding_post' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="so-field">
+        <label for="business_role">{% trans "What will your company do on TradeFlow?" %} *</label>
+        <select id="business_role" name="business_role" required>
+          <option value="buyer" {% if form_business_role == 'buyer' %}selected{% endif %}>{% trans "Buy products wholesale" %}</option>
+          <option value="seller" {% if form_business_role == 'seller' %}selected{% endif %}>{% trans "Sell products wholesale" %}</option>
+          <option value="both" {% if form_business_role == 'both' %}selected{% endif %}>{% trans "Buy and sell" %}</option>
+        </select>
+      </div>
+      <div class="so-grid">
+        <div class="so-field">
+          <label for="legal_name">{% trans "Registered legal name" %} *</label>
+          <input type="text" id="legal_name" name="legal_name" required maxlength="200" value="{{ form_legal_name }}" placeholder="{% trans 'e.g. Isthmus Importers, Inc.' %}">
+        </div>
+        <div class="so-field">
+          <label for="name">{% trans "Trade name" %} *</label>
+          <input type="text" id="name" name="name" required maxlength="200" value="{{ form_name }}" placeholder="{% trans 'e.g. Isthmus Importers' %}">
+        </div>
+      </div>
+      <div class="so-grid">
+        <div class="so-field">
+          <label for="ruc">{% trans "Tax ID (RUC)" %} *</label>
+          <input type="text" id="ruc" name="ruc" required maxlength="50" value="{{ form_ruc }}" placeholder="1556-123456-789">
+          <small class="so-help">{% trans "Enter it exactly as it appears on company documentation." %}</small>
+        </div>
+        <div class="so-field">
+          <label for="dv">{% trans "Verification digit (DV)" %} *</label>
+          <input type="text" id="dv" name="dv" required maxlength="20" value="{{ form_dv }}" placeholder="12">
+        </div>
+      </div>
+      <div class="so-grid">
+        <div class="so-field">
+          <label for="business_email">{% trans "Business email" %} *</label>
+          <input type="email" id="business_email" name="business_email" required value="{{ form_business_email }}" placeholder="purchasing@company.pa">
+        </div>
+        <div class="so-field">
+          <label for="business_phone">{% trans "Business phone" %}</label>
+          <input type="tel" id="business_phone" name="business_phone" maxlength="30" value="{{ form_business_phone }}" placeholder="+507 6000-0000">
+        </div>
+      </div>
+      <div class="so-field">
+        <label for="address_text">{% trans "Business address" %} *</label>
+        <textarea id="address_text" name="address_text" required placeholder="{% trans 'Province, district, township, building or unit' %}">{{ form_address }}</textarea>
+      </div>
+      <div class="so-field">
+        <label for="verification_document">{% trans "Supporting document" %}{% if not expo_demo_mode %} *{% endif %}</label>
+        <input type="file" id="verification_document" name="verification_document" accept=".pdf,image/jpeg,image/png,image/webp"{% if not expo_demo_mode %} required{% endif %}>
+        <small class="so-help">{% trans "Notice of operation, Public Registry certification, or equivalent document. PDF or image, max 8 MB." %}{% if expo_demo_mode %} {% trans "Optional in demo." %}{% endif %}</small>
+      </div>
+      <div class="so-field">
+        <label for="logo">{% trans "Logo (optional)" %}</label>
+        <input type="file" id="logo" name="logo" accept="image/*">
+      </div>
+      <div class="so-actions">
+        <button type="submit" class="tf-btn-primary">{% trans "Submit company for review" %}</button>
+      </div>
+    </form>
+    <p class="so-lead" style="margin-top:1.25rem;margin-bottom:0;font-size:.875rem;">
+      {% trans "Need to finish later?" %}
+      {% trans "Sign out" as logout_label %}
+      {% include "core/includes/logout_control.html" with button_class="tf-logout-control__link" label=logout_label %}
+    </p>
+  </div>
+</div>
+{% endblock %}

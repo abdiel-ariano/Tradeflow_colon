@@ -1,8 +1,13 @@
-"""Buyer store landing — recommended vitrine and spotlight image diversity."""
+"""Public catalog landing via /tienda/ → /catalogo/ redirect.
+
+Buyers must land on product-card grids with bundled seed photos, not
+external placeholder hosts, when browsing CFZ inventory.
+"""
 from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
+from django.urls import reverse
 
 from core.models import Category, Company, Product, UserProfile
 
@@ -17,7 +22,10 @@ from core.models import Category, Company, Product, UserProfile
     STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage',
 )
 class BuyerStoreLandingTests(TestCase):
+    """Assert store alias redirect and catalog card rendering."""
+
     def setUp(self):
+        """Seed featured products across two categories and a buyer."""
         self.company = Company.objects.create(name='ZLC Trading', is_verified=True)
         self.electronics = Category.objects.create(name='Electronics & Office')
         self.gaming = Category.objects.create(name='Gaming & Peripherals')
@@ -40,19 +48,17 @@ class BuyerStoreLandingTests(TestCase):
         )
         UserProfile.objects.create(user=self.buyer, role='buyer', email_verificado=True)
 
-    def test_tienda_landing_passes_diverse_recommended_products(self):
+    def test_tienda_redirects_to_catalog(self):
+        """Authenticated /tienda/ permanently redirects to /catalogo/."""
         self.client.login(username='store_buyer', password='TestPass123!')
-        response = self.client.get('/tienda/')
-        self.assertEqual(response.status_code, 200)
-        products = response.context['buyer_recommended_products']
-        self.assertGreaterEqual(len(products), 2)
-        from core import merchandising as merch
-        fps = [merch._product_image_fingerprint(p) for p in products]
-        self.assertEqual(len(fps), len(set(fps)))
+        response = self.client.get('/tienda/', follow=False)
+        self.assertEqual(response.status_code, 301)
+        self.assertIn('/catalogo/', response['Location'])
 
-    def test_recommended_section_hides_picsum_and_shows_names(self):
+    def test_catalog_shows_product_cards(self):
+        """Catalog HTML uses product-card markup without picsum URLs."""
         self.client.login(username='store_buyer', password='TestPass123!')
-        response = self.client.get('/tienda/')
+        response = self.client.get(reverse('catalogo_publico'))
         html = response.content.decode()
-        self.assertIn('bh-rec-name', html)
+        self.assertIn('product-card', html)
         self.assertNotIn('picsum.photos', html)

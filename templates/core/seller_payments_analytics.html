@@ -51,17 +51,17 @@
       <article class="sp-dash-metric">
         <div class="sp-dash-metric-lbl">Payment success rate</div>
         <p class="sp-dash-metric-val">{{ success_rate }}%</p>
-        <p class="sp-dash-metric-hint">{{ success_count }} of {{ total_orders }} orders</p>
+        <p class="sp-dash-metric-hint">{{ success_count }} approved · {% if rate_delta >= 0 %}+{% endif %}{{ rate_delta }}% vs prior period</p>
       </article>
       <article class="sp-dash-metric">
         <div class="sp-dash-metric-lbl">Gross volume</div>
         <p class="sp-dash-metric-val">USD {{ ingresos_period }}</p>
-        <p class="sp-dash-metric-hint">Paid orders in period</p>
+        <p class="sp-dash-metric-hint">Approved payments in period</p>
       </article>
       <article class="sp-dash-metric">
-        <div class="sp-dash-metric-lbl">Awaiting / cancelled</div>
-        <p class="sp-dash-metric-val">{{ awaiting_count }} / {{ cancelled_count }}</p>
-        <p class="sp-dash-metric-hint">Pending seller or cancelled</p>
+        <div class="sp-dash-metric-lbl">Rejected / pending</div>
+        <p class="sp-dash-metric-val">{{ rejected_count }} / {{ pending_count }}</p>
+        <p class="sp-dash-metric-hint">{{ cancelled_count }} orders cancelled</p>
       </article>
     </div>
 
@@ -80,12 +80,25 @@
 
     <section class="sp-analytics-section" style="margin-top:32px;">
       <h2>Payments breakdown</h2>
-      <p>Review payment method acceptance by different attributes. Includes blocked and failed payments when available.</p>
-      <div class="sp-stripe-empty" style="padding:40px 24px;">
-        <span class="material-symbols-rounded" aria-hidden="true">table_chart</span>
-        <h3>Breakdown table</h3>
-        <p>Detailed breakdown by card brand and country will appear here once you have enough payment volume.</p>
-      </div>
+      <p>Acceptance by payment provider for your store in this period.</p>
+      {% if provider_rows %}
+      <table class="sp-product-table">
+        <thead><tr><th>Provider</th><th>Attempts</th><th>Approved</th><th>Rejected</th><th>Success rate</th></tr></thead>
+        <tbody>
+          {% for row in provider_rows %}
+          <tr>
+            <td>{{ row.provider_label }}</td>
+            <td>{{ row.total }}</td>
+            <td>{{ row.approved }}</td>
+            <td>{{ row.rejected }}</td>
+            <td>{{ row.rate }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="sp-stripe-empty" style="padding:32px 20px;"><p>No payment attempts in this period yet.</p></div>
+      {% endif %}
     </section>
   </div>
 
@@ -115,33 +128,68 @@
   </aside>
 </div>
 
+{% elif analytics_tab == 'methods' %}
+<div class="sp-dash-metrics" style="margin-bottom:20px;">
+  <article class="sp-dash-metric"><div class="sp-dash-metric-lbl">Providers used</div><p class="sp-dash-metric-val">{{ provider_rows|length }}</p></article>
+  <article class="sp-dash-metric"><div class="sp-dash-metric-lbl">Success rate</div><p class="sp-dash-metric-val">{{ success_rate }}%</p></article>
+  <article class="sp-dash-metric"><div class="sp-dash-metric-lbl">Approved volume</div><p class="sp-dash-metric-val">USD {{ ingresos_period }}</p></article>
+</div>
+{% if provider_rows %}
+<table class="sp-product-table"><thead><tr><th>Provider</th><th>Attempts</th><th>Approved</th><th>Success rate</th></tr></thead><tbody>
+{% for row in provider_rows %}<tr><td>{{ row.provider_label }}</td><td>{{ row.total }}</td><td>{{ row.approved }}</td><td>{{ row.rate }}%</td></tr>{% endfor %}
+</tbody></table>
+{% else %}<div class="sp-stripe-empty"><p>No payment methods used yet.</p></div>{% endif %}
+
+{% elif analytics_tab == 'disputes' %}
+<div class="sp-dash-metrics" style="margin-bottom:20px;">
+  <article class="sp-dash-metric"><div class="sp-dash-metric-lbl">Cancelled orders</div><p class="sp-dash-metric-val">{{ cancelled_count }}</p></article>
+  <article class="sp-dash-metric"><div class="sp-dash-metric-lbl">Rejected payments</div><p class="sp-dash-metric-val">{{ rejected_count }}</p></article>
+  <article class="sp-dash-metric"><div class="sp-dash-metric-lbl">Refunded</div><p class="sp-dash-metric-val">{{ refunded_count }}</p></article>
+</div>
+<p style="font-size:14px;color:var(--tf-muted);">Review disputed or failed payments from <a href="{% url 'seller_disputes' %}">Disputes</a> and confirm pending orders promptly to protect acceptance rate.</p>
+
+{% elif analytics_tab == 'authentication' %}
+<div class="sp-dash-metrics" style="margin-bottom:20px;">
+  <article class="sp-dash-metric"><div class="sp-dash-metric-lbl">Pending authentication</div><p class="sp-dash-metric-val">{{ pending_count }}</p></article>
+  <article class="sp-dash-metric"><div class="sp-dash-metric-lbl">Awaiting seller</div><p class="sp-dash-metric-val">{{ awaiting_count }}</p></article>
+  <article class="sp-dash-metric"><div class="sp-dash-metric-lbl">Approved</div><p class="sp-dash-metric-val">{{ success_count }}</p></article>
+</div>
+<p style="font-size:14px;color:var(--tf-muted);">Payments pending authentication usually resolve when buyers complete checkout or sellers confirm B2B orders.</p>
+
+{% elif analytics_tab == 'optimization' %}
+<div class="sp-dash-feature-grid">
+  <article class="sp-dash-feature-card"><h3>Confirm faster</h3><p>{{ awaiting_count }} orders await seller confirmation — faster response improves conversion.</p><a href="{% url 'seller_disputes' %}">Review pending →</a></article>
+  <article class="sp-dash-feature-card"><h3>Reduce rejections</h3><p>{{ rejected_count }} rejected payments in period. Check buyer payment details and stock before confirming.</p><a href="{% url 'seller_mis_ventas' %}?estado=awaiting_seller">Open queue →</a></article>
+  <article class="sp-dash-feature-card"><h3>Catalog health</h3><p>Keep active SKUs in stock to avoid checkout failures after payment.</p><a href="{% url 'seller_mis_productos' %}">Edit catalog →</a></article>
+</div>
+
 {% else %}
 <div class="sp-stripe-empty">
-  <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
-  <h3>{{ analytics_tab|title }} analytics — coming soon</h3>
-  <p>This report is not available yet. Open <strong>Acceptance</strong> to review payment success rates for your store.</p>
-  <div style="margin-top:20px;">
-    <a href="{% url 'seller_reporting' %}?tab=acceptance&amp;days={{ analytics_days }}" class="sp-btn sp-btn-primary">Go to Acceptance</a>
-  </div>
+  <h3>Report not found</h3>
+  <p>Open <strong>Acceptance</strong> for payment success analytics.</p>
+  <a href="{% url 'seller_reporting' %}?tab=acceptance&amp;days={{ analytics_days }}" class="sp-btn sp-btn-primary">Go to Acceptance</a>
 </div>
 {% endif %}
 {% endblock %}
 
 {% block seller_extra_js %}
 {% if analytics_tab == 'acceptance' and has_chart_data %}
+{% load tf_csp %}
+{% json_data_block chart_labels "sp-pay-chart-labels" %}
+{% json_data_block chart_values "sp-pay-chart-values" %}
 <script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function () {
   if (!window.Chart || !window.TFSeller) return;
   var el = document.getElementById('sp-chart-acceptance');
   if (!el) return;
-  var labels = {{ chart_labels_json|safe }};
-  var values = {{ chart_values_json|safe }};
+  var labels = JSON.parse(document.getElementById('sp-pay-chart-labels').textContent);
+  var values = JSON.parse(document.getElementById('sp-pay-chart-values').textContent);
   new Chart(el.getContext('2d'), {
     type: 'line',
     data: {
       labels: labels,
       datasets: [{
-        label: 'Revenue (USD)',
+        label: 'Success rate %',
         data: values,
         borderColor: '#F26522',
         backgroundColor: 'rgba(242, 101, 34, 0.12)',

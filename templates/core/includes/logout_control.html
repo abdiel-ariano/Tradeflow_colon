@@ -1,0 +1,25 @@
+{% load i18n %}
+{% comment %}
+Secure POST logout control. Replaces GET links to /logout/ (POST-only view).
+
+Optional context:
+  button_class, button_style, form_class, form_style
+  label, icon, icon_style, aria_label, title
+{% endcomment %}
+<form
+  method="post"
+  action="{% url 'logout' %}"
+  class="tf-logout-control{% if form_class %} {{ form_class }}{% endif %}"
+  {% if form_style %}style="{{ form_style }}"{% endif %}
+>
+  {% csrf_token %}
+  <button
+    type="submit"
+    class="{% if button_class %}{{ button_class }}{% else %}tf-logout-control__btn{% endif %}"
+    {% if button_style %}style="{{ button_style }}"{% endif %}
+    {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+    {% if title %}title="{{ title }}"{% endif %}
+  >
+    {% if icon %}<span class="material-symbols-rounded"{% if icon_style %} style="{{ icon_style }}"{% endif %} aria-hidden="true">{{ icon }}</span>{% endif %}{% if label %}{{ label }}{% else %}{% trans "Sign out" %}{% endif %}
+  </button>
+</form>

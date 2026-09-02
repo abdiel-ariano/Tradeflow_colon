@@ -9,7 +9,7 @@
       TradeFlow operates with company review in the Colón Free Zone. Complete an application to enable purchases, sales, and logistics operations.
     </p>
     <a href="{% url 'solicitud_acceso' %}" class="sp-btn sp-btn-primary" style="width:100%;justify-content:center;margin-bottom:12px;">Submit access request</a>
-    <a href="{% url 'logout' %}" class="sp-btn sp-btn-secondary" style="width:100%;justify-content:center;">Sign out</a>
+    {% include "core/includes/logout_control.html" with button_class="sp-btn sp-btn-secondary" form_class="tf-logout-control--block" button_style="width:100%;justify-content:center;" label="Sign out" %}
   </div>
 </div>
 {% endblock %}

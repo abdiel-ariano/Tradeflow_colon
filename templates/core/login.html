@@ -1,26 +1,42 @@
 {% extends "core/base.html" %}
-{% load static %}
+{% load static i18n %}
 {% comment %}
 Figma C85mu7GOLfNLtNJGqH6BUw · node 8:3 — Stripe sign-in (TradeFlow Colón).
 Solo presentación; contrato del formulario sin cambios.
 {% endcomment %}
-{% block title %}Iniciar sesión — TradeFlow Colón{% endblock %}
+{% block title %}{% trans "Sign in — TradeFlow Colón" %}{% endblock %}
 {% block footer %}{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/tf-brand.css' %}">
 <link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% include "core/includes/auth_password_toggle_assets.html" %}
 {% endblock %}
 {% block content %}
-<div class="login-page-wrap login-page-wrap--figma" id="login-figma-root">
+<div class="login-page-wrap login-page-wrap--figma login-page" id="login-figma-root">
   <div class="login-figma-bg" aria-hidden="true">
+    <video
+      class="login-wave-video"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      poster="{% static 'images/login-figma/bg-wave.png' %}"
+      aria-hidden="true"
+    >
+      <source
+        src="{% static 'images/login-figma/login-wave.webm' %}"
+        type="video/webm"
+      >
+    </video>
     <img
-      class="login-figma-bg__img"
+      class="login-figma-bg__img login-wave-static-fallback"
       src="{% static 'images/login-figma/bg-wave.png' %}"
       alt=""
       width="1920"
       height="1200"
       decoding="async"
-      fetchpriority="high"
+      loading="lazy"
     >
   </div>
 
@@ -36,25 +52,25 @@ Solo presentación; contrato del formulario sin cambios.
     id="auth-login-root"
     data-require-verification="{% if require_email_verification %}1{% else %}0{% endif %}"
   >
-    <div class="login-figma-card">
+    <div class="login-figma-card login-card">
       <div class="login-figma-card__body">
         <div class="auth-dev-banner login-figma-dev-banner" id="auth-dev-banner" hidden>
-          Verificación de correo desactivada para pruebas locales.
+          {% trans "Email verification disabled for local testing." %}
         </div>
 
-        <h1 class="login-figma-card__title">Iniciar sesión en tu cuenta</h1>
+        <h1 class="login-figma-card__title">{% trans "Sign in to your account" %}</h1>
 
         <form method="post" action="{% url 'login' %}" novalidate class="login-figma-form">
           {% csrf_token %}
 
           <div class="login-figma-field">
-            <label class="login-figma-label" for="id_username">Correo electrónico</label>
+            <label class="login-figma-label" for="id_username">{% trans "Email" %}</label>
             <input
               type="text"
               name="username"
               id="id_username"
               class="login-figma-input login-figma-input--focus tf-input"
-              placeholder="tu_correo@ejemplo.com"
+              placeholder="{% trans 'you@example.com' %}"
               autocomplete="username"
               autofocus
               required
@@ -63,40 +79,43 @@ Solo presentación; contrato del formulario sin cambios.
 
           <div class="login-figma-field login-figma-field--password">
             <div class="login-figma-label-row">
-              <label class="login-figma-label" for="id_password">Contraseña</label>
-              <a class="login-figma-link" href="{% url 'password_reset' %}">¿No recuerdas la contraseña?</a>
+              <label class="login-figma-label" for="id_password">{% trans "Password" %}</label>
+              <a class="login-figma-link" href="{% url 'password_reset' %}">{% trans "Forgot your password?" %}</a>
             </div>
-            <input
-              type="password"
-              name="password"
-              id="id_password"
-              class="login-figma-input tf-input"
-              placeholder="Contraseña"
-              autocomplete="current-password"
-              required
-            >
+            <div class="login-figma-password-wrap auth-password-wrap">
+              <input
+                type="password"
+                name="password"
+                id="id_password"
+                class="login-figma-input tf-input"
+                placeholder="{% trans 'Password' %}"
+                autocomplete="current-password"
+                required
+              >
+              {% include "core/includes/auth_password_toggle_button.html" with target_id="id_password" %}
+            </div>
           </div>
 
           <label class="login-figma-remember">
             <input type="checkbox" class="login-figma-remember__input" checked>
             <span class="login-figma-remember__box" aria-hidden="true"></span>
-            <span class="login-figma-remember__text">Recuérdame en este dispositivo</span>
+            <span class="login-figma-remember__text">{% trans "Remember me on this device" %}</span>
           </label>
 
           <button type="submit" class="login-figma-submit auth-submit">
-            Iniciar sesión
+            {% trans "Sign in" %}
           </button>
         </form>
 
         {% include "core/includes/oauth_buttons_login.html" %}
 
         <div class="auth-verify-banner login-figma-verify-banner" id="auth-verify-resend" hidden>
-          <p style="margin:0 0 10px;">¿No recibiste el correo de verificación?</p>
+          <p style="margin:0 0 10px;">{% trans "Didn't receive the verification email?" %}</p>
           <form method="post" action="{% url 'reenviar_verificacion_public' %}">
             {% csrf_token %}
             <input type="hidden" name="email" id="auth-pending-email" value="{{ email_pendiente|default:'' }}">
             <button type="submit" class="login-figma-submit login-figma-submit--sm">
-              Reenviar correo de verificación
+              {% trans "Resend verification email" %}
             </button>
           </form>
         </div>
@@ -104,8 +123,8 @@ Solo presentación; contrato del formulario sin cambios.
 
       <div class="login-figma-card__footer">
         <p class="login-figma-card__footer-text">
-          ¿Eres nuevo en TradeFlow Colón?
-          <a href="{% url 'signup_buyer' %}" class="login-figma-card__footer-link">Crea una cuenta</a>
+          {% trans "New to TradeFlow Colón?" %}
+          <a href="{% url 'signup_buyer' %}" class="login-figma-card__footer-link">{% trans "Create an account" %}</a>
         </p>
       </div>
     </div>
@@ -113,7 +132,7 @@ Solo presentación; contrato del formulario sin cambios.
 
   <footer class="login-figma-page-footer" role="contentinfo">
     <span>© TradeFlow Colón</span>
-    <a href="{% url 'legal_privacidad' %}">Privacidad y condiciones</a>
+    <a href="{% url 'legal_privacidad' %}">{% trans "Privacy and terms" %}</a>
   </footer>
 </div>
 <script nonce="{{ csp_nonce }}">

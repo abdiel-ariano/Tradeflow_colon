@@ -27,18 +27,17 @@ MIGRACIÓN GRADUAL
 :root {
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     0. MASTER LANDING ALIASES — public redesign contract (Fase 2+)
-     Maps prompt tokens to the existing --tf-* palette; do not hardcode elsewhere.
+     0. MASTER LANDING ALIASES — map to --tf-* (do not collide with admin --color-*)
      ═══════════════════════════════════════════════════════════════════════════ */
-  --color-primary: #0B2545;
-  --color-primary-light: #13315C;
-  --color-surface: #FFFFFF;
-  --color-background: #F7F8FA;
-  --color-border: #E4E7EB;
-  --color-accent: #F2994A;
-  --color-accent-gold: #D4A94C;
-  --color-text-primary: #101828;
-  --color-text-secondary: #667085;
+  --landing-primary: var(--tf-navy);
+  --landing-primary-light: var(--tf-mid);
+  --landing-surface: #FFFFFF;
+  --landing-background: var(--tf-light);
+  --landing-border: var(--tf-border);
+  --landing-accent: var(--tf-orange);
+  --landing-accent-gold: #D4A94C;
+  --landing-text-primary: var(--tf-ink, #101828);
+  --landing-text-secondary: var(--tf-muted);
   --space-1: 8px;
   --space-2: 16px;
   --space-3: 24px;
@@ -69,6 +68,9 @@ MIGRACIÓN GRADUAL
 
   /* Uso: fondo de página, secciones claras alternas */
   --tf-light: #F2F3F5;
+
+  /* Uso: canvas marketplace público (catálogo, carrito, PDP, deals) */
+  --tf-market-bg: #E8EEF5;
 
   /* Uso: bordes de cards, inputs, divisores */
   --tf-border: #D1D5DB;
@@ -450,21 +452,21 @@ MIGRACIÓN GRADUAL
 
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     11. PANEL ADMIN — --color-*
+     11. PANEL ADMIN — --color-* (aliases to brand --tf-*; no legacy teal)
      ═══════════════════════════════════════════════════════════════════════════ */
 
-  --color-primary: #098698;
-  --color-primary-dark: #076f7f;
-  --color-primary-light: #e0f4f6;
-  --color-primary-glow: rgba(9, 134, 152, 0.12);
-  --color-primary-overlay: rgba(9, 134, 152, 0.2);
-  --color-secondary: #404b57;
-  --color-accent: #d9cab3;
-  --color-bg: #f0f0f0;
+  --color-primary: var(--tf-orange);
+  --color-primary-dark: var(--tf-orange-h);
+  --color-primary-light: var(--tf-orange-light);
+  --color-primary-glow: rgba(242, 101, 34, 0.12);
+  --color-primary-overlay: rgba(242, 101, 34, 0.18);
+  --color-secondary: var(--tf-navy);
+  --color-accent: var(--tf-blue);
+  --color-bg: var(--tf-light);
   --color-white: #ffffff;
-  --color-text: #2c3e50;
-  --color-muted: #7f8c8d;
-  --color-border: #e0e0e0;
+  --color-text: #172b3a;
+  --color-muted: var(--tf-muted);
+  --color-border: var(--tf-border);
   --color-success: #27ae60;
   --color-warning: #f39c12;
   --color-danger: #e74c3c;

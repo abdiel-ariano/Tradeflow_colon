@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""
-Genera .env local para TradeFlow (no commitear .env).
+"""Generate a local .env for TradeFlow Colón development.
 
-Uso (Windows PowerShell):
+Writes Supabase, database, and feature-flag defaults so new clones can
+migrate without hand-copying secrets. Never commit the resulting .env.
+
+Usage (Windows PowerShell):
   python scripts/bootstrap_dotenv.py --force `
     --database-url "postgresql://postgres:PASS@db.xxx.supabase.co:5432/postgres" `
     --supabase-url "https://xxx.supabase.co" `
@@ -20,6 +22,7 @@ ENV_PATH = ROOT / '.env'
 
 
 def _django_secret_key() -> str:
+    """Return a Django-compatible random SECRET_KEY for the new .env."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tradeflow_colon.settings')
     sys.path.insert(0, str(ROOT))
     from django.core.management.utils import get_random_secret_key
@@ -35,6 +38,7 @@ def build_env_content(
     supabase_anon: str,
     supabase_service: str,
 ) -> str:
+    """Assemble .env text with local DEBUG defaults and supplied secrets."""
     return f"""# Generado por scripts/bootstrap_dotenv.py — NO subir a git
 SECRET_KEY={secret_key}
 DEBUG=true
@@ -68,6 +72,7 @@ GROQ_API_KEY=
 
 
 def main() -> int:
+    """Parse CLI flags, write .env (unless present without --force), exit."""
     parser = argparse.ArgumentParser(description='Crea .env con Supabase + DATABASE_URL.')
     parser.add_argument('--database-url', default=os.environ.get('DATABASE_URL', ''))
     parser.add_argument('--supabase-url', default=os.environ.get('SUPABASE_URL', ''))

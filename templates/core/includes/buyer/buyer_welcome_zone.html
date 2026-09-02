@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 {% comment %}
 ================================================================================
 BuyerWelcomeZone — landing /tienda/ (zona de bienvenida estilo Alibaba).
@@ -12,27 +12,27 @@ Contexto: category_spotlights, categorias, empresas_catalogo, spotlight_destacad
 ================================================================================
 {% endcomment %}
 <section class="bh-welcome" id="bh-welcome" aria-labelledby="bh-welcome-title">
-  <h2 class="visually-hidden" id="bh-welcome-title">Bienvenido a TradeFlow Colón</h2>
+  <h2 class="visually-hidden" id="bh-welcome-title">{% trans "Welcome to TradeFlow Colón" %}</h2>
 
   {# ── Sidebar: acceso rápido por categoría ── #}
-  <aside class="bh-cat-sidebar" aria-label="Categorías">
+  <aside class="bh-cat-sidebar" aria-label="{% trans 'Categories' %}">
     {% for row in category_spotlights|slice:":8" %}
-    <a href="{% url 'tienda' %}?categoria={{ row.category.id }}" class="bh-cat-item">
+    <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.id }}" class="bh-cat-item">
       {% include "core/includes/tf_icon.html" with name="storefront" class="bh-cat-icon" %}
       {{ row.category.name }}
       {% include "core/includes/tf_icon.html" with name="chevron_right" class="bh-cat-chevron" %}
     </a>
     {% empty %}
     {% for cat in categorias|slice:":8" %}
-    <a href="{% url 'tienda' %}?categoria={{ cat.id }}" class="bh-cat-item">
+    <a href="{% url 'catalogo_publico' %}?categoria={{ cat.id }}" class="bh-cat-item">
       {% include "core/includes/tf_icon.html" with name="storefront" class="bh-cat-icon" %}
       {{ cat.name }}
       {% include "core/includes/tf_icon.html" with name="chevron_right" class="bh-cat-chevron" %}
     </a>
     {% empty %}
-    <a href="{% url 'tienda' %}?buscar=electronica" class="bh-cat-item">
+    <a href="{% url 'catalogo_publico' %}?buscar=electronica" class="bh-cat-item">
       {% include "core/includes/tf_icon.html" with name="storefront" class="bh-cat-icon" %}
-      Electrónica
+      {% trans "Electronics" %}
       {% include "core/includes/tf_icon.html" with name="chevron_right" class="bh-cat-chevron" %}
     </a>
     {% endfor %}
@@ -43,10 +43,10 @@ Contexto: category_spotlights, categorias, empresas_catalogo, spotlight_destacad
   <div class="bh-center">
     {% for row in category_spotlights|slice:":2" %}
     <article class="bh-freq-card">
-      <p class="bh-freq-label">Búsquedas frecuentes</p>
+      <p class="bh-freq-label">{% trans "Frequent searches" %}</p>
       <h3 class="bh-freq-title">{{ row.category.name }}</h3>
       {% with prod=row.products.0 %}
-      <a href="{% url 'tienda' %}?categoria={{ row.category.id }}">
+      <a href="{% url 'catalogo_publico' %}?categoria={{ row.category.id }}">
         <div class="bh-freq-img">
           {% include "core/includes/product_image_placeholder.html" with product=prod %}
         </div>
@@ -56,9 +56,9 @@ Contexto: category_spotlights, categorias, empresas_catalogo, spotlight_destacad
     {% empty %}
     {% for product in spotlight_destacados|slice:":2" %}
     <article class="bh-freq-card">
-      <p class="bh-freq-label">Búsquedas frecuentes</p>
+      <p class="bh-freq-label">{% trans "Frequent searches" %}</p>
       <h3 class="bh-freq-title">{{ product.category.name|default:product.name }}</h3>
-      <a href="{% url 'tienda' %}?categoria={{ product.category_id }}">
+      <a href="{% url 'catalogo_publico' %}?categoria={{ product.category_id }}">
         <div class="bh-freq-img">
           {% include "core/includes/product_image_placeholder.html" with product=product %}
         </div>
@@ -66,20 +66,20 @@ Contexto: category_spotlights, categorias, empresas_catalogo, spotlight_destacad
     </article>
     {% empty %}
     <article class="bh-freq-card">
-      <p class="bh-freq-label">Búsquedas frecuentes</p>
-      <h3 class="bh-freq-title">Electrónica</h3>
-      <a href="{% url 'tienda' %}?buscar=electronica">
+      <p class="bh-freq-label">{% trans "Frequent searches" %}</p>
+      <h3 class="bh-freq-title">{% trans "Electronics" %}</h3>
+      <a href="{% url 'catalogo_publico' %}?buscar=electronica">
         <div class="bh-freq-img">
-          <img src="{% static 'images/catalog-seeds/electronics.jpg' %}" alt="Electrónica" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
+          <img src="{% static 'images/catalog-seeds/electronics.jpg' %}" alt="{% trans 'Electronics' %}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
         </div>
       </a>
     </article>
     <article class="bh-freq-card">
-      <p class="bh-freq-label">Búsquedas frecuentes</p>
-      <h3 class="bh-freq-title">Textiles</h3>
-      <a href="{% url 'tienda' %}?buscar=textiles">
+      <p class="bh-freq-label">{% trans "Frequent searches" %}</p>
+      <h3 class="bh-freq-title">{% trans "Textiles" %}</h3>
+      <a href="{% url 'catalogo_publico' %}?buscar=textiles">
         <div class="bh-freq-img">
-          <img src="{% static 'images/catalog-seeds/textiles.jpg' %}" alt="Textiles" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
+          <img src="{% static 'images/catalog-seeds/textiles.jpg' %}" alt="{% trans 'Textiles' %}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
         </div>
       </a>
     </article>
@@ -88,18 +88,18 @@ Contexto: category_spotlights, categorias, empresas_catalogo, spotlight_destacad
   </div>
 
   {# ── Promo lateral: proveedores verificados ── #}
-  <aside class="bh-promo" aria-label="Promoción">
+  <aside class="bh-promo" aria-label="{% trans 'Promotion' %}">
     <div>
-      <h3>Proveedores y productos populares en la Zona Libre</h3>
+      <h3>{% trans "Popular suppliers and products in the Free Zone" %}</h3>
       <p>
         {% for emp in empresas_catalogo|slice:":1" %}
-        {{ emp.name }} y otras empresas verificadas en la CFZ.
+        {% blocktrans with name=emp.name %}{{ name }} and other verified companies in the CFZ.{% endblocktrans %}
         {% empty %}
-        Empresas ODM verificadas — descubre catálogos listos para exportación.
+        {% trans "Verified ODM companies — discover catalogs ready for export." %}
         {% endfor %}
       </p>
     </div>
-    <a href="{% url 'tienda' %}?vista=empresa" class="bh-promo-btn">Ver más</a>
+    <a href="{% url 'catalogo_publico' %}?vista=empresa" class="bh-promo-btn">{% trans "See more" %}</a>
     <div class="bh-promo-dots" aria-hidden="true">
       <span class="bh-promo-dot is-active"></span>
       <span class="bh-promo-dot"></span>

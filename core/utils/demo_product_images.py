@@ -1,9 +1,7 @@
-"""
-Helpers for demo product image management commands.
+"""Gestiona imágenes demo y referencias visuales de productos del catálogo ZLC.
 
-Production uses Supabase S3 (django-storages). The default storage checks
-HeadObject before upload (file_overwrite=False), which often returns 403.
-These helpers support explicit local filesystem writes and a safer remote path.
+Las referencias empaquetadas representan familias de producto concretas. Las
+cargas reales de proveedores siempre conservan prioridad sobre estos recursos.
 """
 
 from __future__ import annotations
@@ -50,6 +48,120 @@ CATEGORY_KEYWORDS = {
     'general': ['wholesale', 'bulk', 'merchandise', 'general'],
 }
 
+PRODUCT_REFERENCE_FILES = {
+    'ups_1500va': 'assets/products/reference/ups-1500va.webp',
+    'monitor_qhd_27': 'assets/products/reference/monitor-qhd-27.webp',
+    'usb_c_hub': 'assets/products/reference/usb-c-hub.webp',
+    'universal_docking_station': 'assets/products/reference/universal-docking-station.webp',
+    'mechanical_keyboard': 'assets/products/reference/mechanical-keyboard.webp',
+    'cat6_wiring_kit': 'assets/products/reference/cat6-wiring-kit.webp',
+    'vertical_ergonomic_mouse': 'assets/products/reference/vertical-ergonomic-mouse.webp',
+    'usb_condenser_microphone': 'assets/products/reference/usb-condenser-microphone.webp',
+    'industrial_cargo_pants': (
+        'assets/products/reference/industrial-cargo-pants.webp'
+    ),
+    'corporate_dry_fit_polo': (
+        'assets/products/reference/corporate-dry-fit-polo.webp'
+    ),
+    'staff_waterproof_jacket': (
+        'assets/products/reference/staff-waterproof-jacket.webp'
+    ),
+    'hospitality_set_300_thread': (
+        'assets/products/reference/hospitality-set-300-thread.webp'
+    ),
+    'rigid_executive_briefcase': (
+        'assets/products/reference/rigid-executive-briefcase.webp'
+    ),
+    'top_grain_leather_belt': (
+        'assets/products/reference/top-grain-leather-belt.webp'
+    ),
+    'travel_organizer_set': (
+        'assets/products/reference/travel-organizer-set.webp'
+    ),
+    'industrial_blender_2l': (
+        'assets/products/reference/industrial-blender-2l.webp'
+    ),
+    'digital_air_fryer_8l': (
+        'assets/products/reference/digital-air-fryer-8l.webp'
+    ),
+    'adjustable_led_floor_lamp': (
+        'assets/products/reference/adjustable-led-floor-lamp.webp'
+    ),
+    'xl_stitched_edge_pad': (
+        'assets/products/reference/xl-stitched-edge-pad.webp'
+    ),
+    'clear_pp_packing_tape': (
+        'assets/products/reference/clear-pp-packing-tape.webp'
+    ),
+    'manual_stretch_film_20': (
+        'assets/products/reference/manual-stretch-film-20.webp'
+    ),
+    'cardboard_corner_protectors': (
+        'assets/products/reference/cardboard-corner-protectors.webp'
+    ),
+    'q4_retail_assortment_kit': (
+        'assets/products/reference/q4-retail-assortment-kit.webp'
+    ),
+    'modular_pos_display': (
+        'assets/products/reference/modular-pos-display.webp'
+    ),
+    'assorted_sku_master_carton': (
+        'assets/products/reference/assorted-sku-master-carton.webp'
+    ),
+}
+
+# Ordered from most specific to least specific. Values are normalized below.
+PRODUCT_REFERENCE_MATCHES = (
+    ('ups_1500va', ('1500va interactive ups', 'ups 1500va')),
+    ('monitor_qhd_27', ('commercial 27" qhd led monitor', '27" qhd led monitor')),
+    ('usb_c_hub', ('aluminum 11-in-1 usb-c hub', '11-in-1 usb-c hub')),
+    ('universal_docking_station', ('universal docking station',)),
+    ('mechanical_keyboard', ('hot-swap mechanical keyboard', 'mechanical keyboard')),
+    ('cat6_wiring_kit', ('cat6 wiring kit',)),
+    ('vertical_ergonomic_mouse', ('vertical ergonomic mouse',)),
+    ('usb_condenser_microphone', ('usb condenser microphone',)),
+    ('industrial_cargo_pants', ('industrial cargo pants',)),
+    (
+        'corporate_dry_fit_polo',
+        ('corporate dry-fit polo', 'dry-fit polo'),
+    ),
+    (
+        'staff_waterproof_jacket',
+        ('staff waterproof jacket', 'waterproof staff jacket'),
+    ),
+    (
+        'hospitality_set_300_thread',
+        ('300-thread hospitality set', 'hospitality set'),
+    ),
+    ('rigid_executive_briefcase', ('rigid executive briefcase',)),
+    ('top_grain_leather_belt', ('top-grain leather belt',)),
+    ('travel_organizer_set', ('travel organizer set',)),
+    ('industrial_blender_2l', ('2l industrial blender',)),
+    ('digital_air_fryer_8l', ('8l digital air fryer',)),
+    ('adjustable_led_floor_lamp', ('adjustable led floor lamp',)),
+    ('xl_stitched_edge_pad', ('xl stitched edge pad',)),
+    (
+        'clear_pp_packing_tape',
+        ('48mm x 150m clear pp tape', 'clear pp tape'),
+    ),
+    ('manual_stretch_film_20', ('20" manual stretch film',)),
+    (
+        'cardboard_corner_protectors',
+        ('l-shaped cardboard corner protectors', 'corner protectors'),
+    ),
+    ('q4_retail_assortment_kit', ('q4 retail assortment kit',)),
+    (
+        'modular_pos_display',
+        ('modular point-of-sale display', 'modular pos display'),
+    ),
+    ('assorted_sku_master_carton', ('assorted sku master carton',)),
+)
+
+DEMO_IMAGE_PREFIXES = (
+    'products/demo/',
+    'productos/placeholders/',
+)
+
 BRAND_COLORS = [
     (15, 42, 68),
     (27, 59, 99),
@@ -59,6 +171,7 @@ BRAND_COLORS = [
 
 
 def category_keyword(product: Product) -> str:
+    """Mapea un nombre de categoría a un bucket de palabra clave de imagen semilla."""
     if not product.category_id or not product.category:
         return 'general'
     cat_name = product.category.name.lower()
@@ -71,66 +184,131 @@ def category_keyword(product: Product) -> str:
 
 
 def seed_slug(product: Product) -> str:
+    """Convierte texto a slug para nombres de archivo de imagen semilla."""
     raw = f'{product.pk}_{product.name[:40]}'
     return re.sub(r'[^a-zA-Z0-9_-]', '_', raw)
 
 
 def picsum_url(product: Product) -> str:
+    """Construye una URL Picsum determinista para imágenes demo."""
     return f'https://picsum.photos/seed/{seed_slug(product)}/{PICSUM_SIZE}'
 
 
 def use_runtime_picsum() -> bool:
-    """Remote picsum only when explicitly enabled (dev/demo). Production must stay False."""
+    """Devuelve True solo cuando Picsum remoto está explícitamente habilitado para demos."""
     return bool(getattr(settings, 'TRADEFLOW_USE_PICSUM_RUNTIME', False))
 
 
 def catalog_seed_relative_path(keyword: str) -> str:
+    """Devuelve la ruta relativa de un JPEG semilla de categoría empaquetado."""
     return CATALOG_SEED_FILES.get(keyword, CATALOG_SEED_FILES['general'])
 
 
 def catalog_seed_static_path(product: Product) -> str:
-    """Bundled category photograph — used by seed commands, not public card display."""
+    """Devuelve la ruta absoluta a la fotografía de categoría empaquetada para comandos seed."""
     return catalog_seed_relative_path(category_keyword(product))
 
 
 def category_icon_static_path(product: Product) -> str:
-    """Category SVG icon — final public fallback when no upload or AI asset exists."""
+    """Devuelve la ruta del icono SVG de categoría usado como último fallback de imagen pública."""
     keyword = category_keyword(product)
     return CATEGORY_ICON_FILES.get(keyword, CATEGORY_ICON_FILES['general'])
 
 
+def _normalized_product_name(value: str) -> str:
+    """Normaliza puntuación y espacios para resolver una familia de producto."""
+    normalized = (value or '').lower()
+    normalized = normalized.replace('“', '"').replace('”', '"').replace('″', '"')
+    return re.sub(r'\s+', ' ', normalized).strip()
+
+
+def product_reference_key(product: Product) -> str:
+    """Devuelve la familia de referencia visual que coincide con el producto."""
+    name = _normalized_product_name(getattr(product, 'name', ''))
+    for key, phrases in PRODUCT_REFERENCE_MATCHES:
+        if any(phrase in name for phrase in phrases):
+            return key
+    return ''
+
+
+def product_reference_relative_path(product: Product) -> str:
+    """Devuelve el WebP compartido para una familia de producto concreta."""
+    return PRODUCT_REFERENCE_FILES.get(product_reference_key(product), '')
+
+
+def product_reference_file_exists(product: Product) -> bool:
+    """Devuelve True cuando la referencia concreta está empaquetada."""
+    rel = product_reference_relative_path(product)
+    return bool(rel and (Path(settings.BASE_DIR) / 'static' / rel).is_file())
+
+
+def is_demo_generated_image(product: Product, rel_path: str = '') -> bool:
+    """Identifica media generada por fixtures sin ocultar cargas reales."""
+    rel = (rel_path or '').replace('\\', '/').lstrip('/')
+    # Simulation metadata belongs to the company, not to every image it uploads.
+    # Only paths managed by demo generators may be replaced by references/icons.
+    return any(rel.startswith(prefix) for prefix in DEMO_IMAGE_PREFIXES)
+
+
+def should_use_product_reference(product: Product) -> bool:
+    """Decide si una referencia puede sustituir media ausente o generada por demo."""
+    if not product or not product_reference_file_exists(product):
+        return False
+
+    from core.utils.media_storage import is_remote_media_storage, local_media_file_exists
+
+    rel = ''
+    if getattr(product, 'image', None) and product.image.name:
+        rel = product.image.name.replace('\\', '/')
+
+    if not rel or is_demo_generated_image(product, rel):
+        return True
+    if is_remote_media_storage():
+        return False
+    return not local_media_file_exists(rel)
+
+
 def ai_placeholder_relative_path(product: Product) -> str:
-    """Convention: static/assets/products/placeholder-ai/{category}-{sku}.webp"""
+    """Devuelve una referencia familiar o el placeholder SKU heredado."""
+    reference = product_reference_relative_path(product)
+    if reference:
+        return reference
     keyword = category_keyword(product)
     sku = re.sub(r'[^a-zA-Z0-9_-]', '-', (product.sku or f'p{product.pk}').lower())
     return f'assets/products/placeholder-ai/{keyword}-{sku}.webp'
 
 
 def ai_placeholder_static_path(product: Product) -> str:
+    """Devuelve la ruta estática de la referencia visual."""
     return ai_placeholder_relative_path(product)
 
 
 def ai_placeholder_file_exists(product: Product) -> bool:
+    """Devuelve True cuando existe la referencia familiar o SKU heredada."""
     rel = ai_placeholder_relative_path(product)
     return (Path(settings.BASE_DIR) / 'static' / rel).is_file()
 
 
 def product_uses_ai_reference_image(product: Product) -> bool:
-    """True when the public card will show a generated reference WebP."""
+    """Devuelve True cuando la tarjeta pública mostrará un WebP de referencia."""
+    if should_use_product_reference(product):
+        return True
     if not product:
         return False
+
     from core.utils.media_storage import is_remote_media_storage, local_media_file_exists
 
     rel = ''
     if getattr(product, 'image', None) and product.image.name:
         rel = product.image.name.replace('\\', '/')
-    if rel and (local_media_file_exists(rel) or is_remote_media_storage()):
-        return False
+    if rel and not is_demo_generated_image(product, rel):
+        if local_media_file_exists(rel) or is_remote_media_storage():
+            return False
     return ai_placeholder_file_exists(product)
 
 
 def catalog_seed_bytes(keyword: str) -> bytes:
-    """Load bundled JPEG for a category keyword."""
+    """Carga bytes JPEG empaquetados para una palabra clave de categoría."""
     rel = catalog_seed_relative_path(keyword)
     full = Path(settings.BASE_DIR) / 'static' / rel
     if not full.is_file():
@@ -139,10 +317,7 @@ def catalog_seed_bytes(keyword: str) -> bytes:
 
 
 def variant_image_bytes(product: Product, *, width: int = 800, height: int = 600) -> bytes:
-    """
-    Crop/resize a category seed with a per-product offset so SKUs in the same
-    category do not look identical on the home grid.
-    """
+    """Recorta/redimensiona una semilla de categoría con offset por producto para variedad de SKU."""
     from PIL import Image
 
     keyword = category_keyword(product)
@@ -171,7 +346,7 @@ def variant_image_bytes(product: Product, *, width: int = 800, height: int = 600
 
 
 def assign_catalog_seed_image(product: Product, *, log_fn=None) -> str:
-    """Persist a category seed variant as the product's image file."""
+    """Persiste una variante semilla de categoría como ImageField del producto."""
     if not product.pk:
         raise ValueError('Product must be saved before assigning an image')
 
@@ -186,7 +361,7 @@ def assign_catalog_seed_image(product: Product, *, log_fn=None) -> str:
 
 
 def extract_initials(name: str) -> str:
-    """First letter of first two words, or first two letters of a single word."""
+    """Devuelve las primeras letras de las dos primeras palabras, o las dos primeras de una sola."""
     words = [w for w in (name or '').split() if w]
     if len(words) >= 2:
         return f'{words[0][0]}{words[1][0]}'.upper()
@@ -198,16 +373,13 @@ def extract_initials(name: str) -> str:
 
 
 def placeholder_relative_path(product: Product) -> str:
+    """Devuelve la ruta relativa a MEDIA de un PNG placeholder de marca."""
     initials = extract_initials(product.name)
     return f'productos/placeholders/placeholder_{product.pk}_{initials}.png'
 
 
 def assign_product_image(product: Product, *, log_fn=None) -> str:
-    """
-    Generate a brand placeholder PNG, write to MEDIA_ROOT/productos/, return relative path.
-
-    Requires product.pk. Raises if the file is missing or zero bytes after write.
-    """
+    """Genera un PNG placeholder de marca bajo MEDIA_ROOT/productos/."""
     if not product.pk:
         raise ValueError('Product must be saved before assigning an image')
 
@@ -228,20 +400,23 @@ def assign_product_image(product: Product, *, log_fn=None) -> str:
 
 
 def relative_image_path(product: Product) -> str:
+    """Devuelve la ruta relativa de media para un nombre de imagen de producto."""
     return f'products/demo/product_{product.pk}.jpg'
 
 
 def is_remote_storage() -> bool:
+    """Devuelve True cuando el storage por defecto es un backend compatible con S3."""
     backend = settings.STORAGES.get('default', {}).get('BACKEND', '')
     return 's3boto3' in backend.lower() or 's3' in backend.lower()
 
 
 def local_media_storage() -> FileSystemStorage:
+    """Devuelve un FileSystemStorage con raíz en MEDIA_ROOT."""
     return FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
 
 
 def write_local_image(rel_path: str, content: bytes) -> str:
-    """Write bytes to MEDIA_ROOT/rel_path (overwrites if exists)."""
+    """Escribe bytes en MEDIA_ROOT/rel_path (sobrescribe si existe)."""
     full_path = Path(settings.MEDIA_ROOT) / rel_path
     full_path.parent.mkdir(parents=True, exist_ok=True)
     full_path.write_bytes(content)
@@ -249,7 +424,7 @@ def write_local_image(rel_path: str, content: bytes) -> str:
 
 
 def remote_command_storage():
-    """S3 storage for management commands — skip HeadObject via file_overwrite."""
+    """Devuelve storage S3 para management commands (omite HeadObject vía archivo)."""
     backend = settings.STORAGES['default']['BACKEND']
     options = dict(settings.STORAGES['default'].get('OPTIONS', {}))
     options['file_overwrite'] = True
@@ -266,14 +441,7 @@ def save_product_image_bytes(
     *,
     storage_mode: str = 'local',
 ) -> str:
-    """
-    Persist image bytes and update Product.image.
-
-    storage_mode:
-      - local: always write to MEDIA_ROOT (default, no S3 HeadObject)
-      - remote: upload via S3-compatible storage
-      - auto: try remote, fall back to local on failure
-    """
+    """Persiste bytes de imagen y actualiza ``Product.image``."""
     rel_path = relative_image_path(product)
     file_obj = ContentFile(content)
 
@@ -300,7 +468,7 @@ def save_product_image_bytes(
 
 
 def generate_placeholder_bytes(product: Product) -> bytes:
-    """400×400 PNG with vertical brand gradient and centered white initials."""
+    """Construye un PNG 400×400 con gradiente de marca e iniciales blancas centradas."""
     from PIL import Image, ImageDraw, ImageFont
 
     size = 400
@@ -345,7 +513,7 @@ def save_placeholder_for_product(
     *,
     storage_mode: str = 'local',
 ) -> str:
-    """Save PNG placeholder and assign product.image (idempotent path per product)."""
+    """Guarda el PNG placeholder y asigna ``product.image`` (ruta idempotente)."""
     rel_path = placeholder_relative_path(product)
 
     if storage_mode == 'local':
@@ -371,6 +539,7 @@ def save_placeholder_for_product(
 
 
 def storage_mode_help() -> str:
+    """Devuelve un texto corto de ayuda que describe el storage de media activo."""
     if is_remote_storage():
         return (
             'local (default): write to MEDIA_ROOT — safe in Docker/CI. '
@@ -378,3 +547,4 @@ def storage_mode_help() -> str:
             'auto: remote with local fallback.'
         )
     return 'local (default). remote/auto only apply when S3 storage is configured.'
+

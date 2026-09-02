@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}Thin product row — title + catalog cards grid.{% endcomment %}
 {% if row.products|length >= 2 %}
 <section class="hm-product-row" id="{{ row.dom_id }}" aria-labelledby="{{ row.dom_id }}-title">
@@ -5,14 +6,14 @@
     <header class="hm-product-row__head">
       <h2 class="hm-product-row__title" id="{{ row.dom_id }}-title">{{ row.title }}</h2>
       {% if row.see_all_query %}
-      <a href="{% url 'catalogo_publico' %}?{{ row.see_all_query }}" class="hm-product-row__see-all">See all →</a>
+      <a href="{% url 'catalogo_publico' %}?{{ row.see_all_query }}" class="hm-product-row__see-all">{% trans "See all" %} →</a>
       {% else %}
-      <a href="{% url 'catalogo_publico' %}" class="hm-product-row__see-all">View catalog →</a>
+      <a href="{% url 'catalogo_publico' %}" class="hm-product-row__see-all">{% trans "View catalog" %} →</a>
       {% endif %}
     </header>
     <div class="product-grid hm-product-row__grid">
       {% for product in row.products %}
-        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter visual_image=True %}
+        {% include "core/includes/catalogo_card.html" with product=product card_index=forloop.counter visual_image=True show_cart_actions=show_cart_actions %}
       {% endfor %}
     </div>
   </div>

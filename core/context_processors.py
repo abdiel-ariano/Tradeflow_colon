@@ -1,5 +1,7 @@
-"""
-Context processors: cart badge, JS strings, and public Supabase config.
+"""Template context processors for TradeFlow Colón UI shells.
+
+Inject cart badges, CSP nonces, public Supabase keys, SaaS snapshots,
+and localized JS string maps into every rendered template.
 """
 from __future__ import annotations
 
@@ -7,33 +9,73 @@ from django.conf import settings
 
 
 def csp_nonce_context(request):
-    """Expone `csp_nonce` (string) en todas las plantillas.
+    """Expose the per-request CSP nonce for inline script/style tags.
 
-    `SecurityHeadersMiddleware` lo asigna a `request.csp_nonce` antes del
-    view. Las plantillas DEBEN renderizarlo en cada `<script>` y `<style>`
-    inline para que la CSP `'nonce-...'` los autorize.
+    SecurityHeadersMiddleware sets ``request.csp_nonce`` before the view.
+    Templates must render it on every inline ``<script>`` and ``<style>``
+    so the CSP ``'nonce-...'`` directive authorizes them.
     """
     return {'csp_nonce': getattr(request, 'csp_nonce', '')}
 
 
-def pending_applications_badge(request):
-    """Pending access applications count for admin navbar."""
-    if not request.user.is_authenticated:
-        return {'pending_applications_count': 0}
-    if not (request.user.is_superuser or getattr(request.user, 'is_staff', False)):
-        try:
-            if request.user.profile.role != 'admin':
-                return {'pending_applications_count': 0}
-        except Exception:
-            return {'pending_applications_count': 0}
-    from core.models import UserApplication
+def demo_catalog_context(request):
+    """Expose whether public commercial data must be marked as simulated.
 
-    count = UserApplication.objects.filter(status='pending').count()
-    return {'pending_applications_count': count}
+    The flag is configuration-only and performs no database query, keeping the
+    processor safe for every public, buyer, seller, and administrative request.
+    """
+    enabled = getattr(settings, 'DEMO_CATALOG_DISCLOSURE', False)
+    return {'demo_catalog_enabled': bool(enabled)}
+
+
+def _is_platform_admin(user) -> bool:
+    """True when the user may see operator work-queue badges."""
+    if not getattr(user, 'is_authenticated', False):
+        return False
+    if user.is_superuser or getattr(user, 'is_staff', False):
+        return True
+    try:
+        return user.profile.role == 'admin'
+    except Exception:
+        return False
+
+
+def pending_applications_badge(request):
+    """Count pending approvals for admin rail badges and work queue."""
+    empty = {
+        'pending_applications_count': 0,
+        'pending_companies_count': 0,
+        'pending_carriers_count': 0,
+        'pending_saas_requests_count': 0,
+        'pending_stuck_orders_count': 0,
+    }
+    if not _is_platform_admin(request.user):
+        return empty
+
+    from core.enterprise_models import CompanyPlanCommercialRequest
+    from core.models import Company, Order, Transportista, UserApplication
+    from core.utils.company_verification_status import pending_companies_count
+
+    apps = UserApplication.objects.filter(status='pending').count()
+    companies_pending = pending_companies_count()
+    carriers = Transportista.objects.filter(estado='pendiente').count()
+    saas = CompanyPlanCommercialRequest.objects.filter(
+        status__in=('pending', 'en_revision'),
+    ).count()
+    stuck = Order.objects.filter(
+        status__in=('pending', 'awaiting_seller', 'paid', 'packed'),
+    ).count()
+    return {
+        'pending_applications_count': apps,
+        'pending_companies_count': companies_pending,
+        'pending_carriers_count': carriers,
+        'pending_saas_requests_count': saas,
+        'pending_stuck_orders_count': stuck,
+    }
 
 
 def cart_badge(request):
-    """Cart / inquiry count for navbar badge (session carrito)."""
+    """Session inquiry-cart line count for the buyer navbar badge."""
     carrito = request.session.get('carrito', {})
     count = sum(int(item.get('cantidad', 0) or 0) for item in carrito.values())
     if not request.user.is_authenticated:
@@ -48,7 +90,7 @@ def cart_badge(request):
 
 
 def tradeflow_contact(request):
-    """Public contact email (footer, legal pages, support links)."""
+    """Public support email for footer, legal pages, and contact links."""
     from core.utils.contact import tradeflow_contact_email
 
     email = tradeflow_contact_email()
@@ -56,48 +98,114 @@ def tradeflow_contact(request):
 
 
 def tf_i18n(request):
-    """UI strings for client scripts (TF_I18N)."""
+    """Localized UI string map for client scripts (``TF_I18N`` payload)."""
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
     from core.utils.contact import tradeflow_contact_email
 
     contact = tradeflow_contact_email()
-    payload = {
-        'contactEmail': contact,
-        'close': 'Close',
-        'cartTitle': 'Cart',
-        'slide': 'Slide',
-        'addedToCart': 'Product added to cart',
-        'cartAddedShort': 'Added to cart',
-        'cartError': 'Could not add to cart',
-        'networkError': 'Connection error',
-        'orders': 'Orders',
-        'products': 'Products',
-        'companies': 'Companies',
-        'emptySection': 'No products in this section yet.',
-        'chartOrders': 'Orders',
-        'chartUsd': 'USD',
-        'chartPending': 'Pending',
-        'chartPaid': 'Paid',
-        'chartShipped': 'Shipped',
-        'chartDelivered': 'Delivered',
-        'chartCancelled': 'Cancelled',
-        'chartLoadError': 'Could not load Chart.js. Reload the page.',
-        'chartDataError': 'Chart data is incomplete.',
-        'chartUpdateError': 'Could not update charts.',
-        'chartInitError': 'Could not initialize charts.',
-        'csvDownloaded': 'CSV file downloaded successfully.',
-        'geoConfirmed': 'Location confirmed.',
-        'geoDenied': 'Location permission denied.',
-        'geoUnsupported': 'Your browser does not support geolocation.',
-        'awaitingSeller': 'Awaiting company confirmation',
-        'orderUpdated': 'Order status updated',
-        'processing': 'Processing…',
-        'supportEmailPrompt': f'We will improve it. Email us at {contact}',
-    }
+    language = getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE)
+    with translation.override(language):
+        payload = {
+            'contactEmail': contact,
+            'close': _('Close'),
+            'cartTitle': _('Cart'),
+            'slide': _('Slide'),
+            'addedToCart': _('Product added to cart'),
+            'cartAddedShort': _('Added to cart'),
+            'cartError': _('Could not add to cart'),
+            'networkError': _('Connection error'),
+            'orders': _('Orders'),
+            'products': _('Products'),
+            'companies': _('Companies'),
+            'emptySection': _('No products in this section yet.'),
+            'chartOrders': _('Orders'),
+            'chartUsd': _('USD'),
+            'chartPending': _('Pending'),
+            'chartPaid': _('Paid'),
+            'chartShipped': _('Shipped'),
+            'chartDelivered': _('Delivered'),
+            'chartCancelled': _('Cancelled'),
+            'chartLoadError': _('Could not load Chart.js. Reload the page.'),
+            'chartDataError': _('Chart data is incomplete.'),
+            'chartUpdateError': _('Could not update charts.'),
+            'chartInitError': _('Could not initialize charts.'),
+            'csvDownloaded': _('CSV file downloaded successfully.'),
+            'geoConfirmed': _('Location confirmed.'),
+            'geoGettingLocation': _('Getting location…'),
+            'geoConfirmRequired': _('You must confirm your location to continue.'),
+            'geoDenied': _('Location permission denied.'),
+            'geoUnsupported': _('Your browser does not support geolocation.'),
+            'awaitingSeller': _('Awaiting company confirmation'),
+            'orderUpdated': _('Order status updated'),
+            'processing': _('Processing…'),
+            'supportEmailPrompt': _('We will improve it. Email us at %(email)s') % {'email': contact},
+            'catalogSortRelevance': _('Best match'),
+            'catalogSortPriceAsc': _('Price: low to high'),
+            'catalogSortPriceDesc': _('Price: high to low'),
+            'catalogSortNewest': _('Newest'),
+            'catalogChipVerified': _('Verified'),
+            'catalogChipStock': _('In stock'),
+            'catalogChipStockLow': _('Low stock'),
+            'catalogChipOnSale': _('On sale'),
+            'catalogSearchPrefix': _('Search:'),
+            'catalogCategoryFallback': _('Category'),
+            'catalogSupplierFallback': _('Supplier'),
+            'catalogPriceMinPrefix': _('Min. $'),
+            'catalogPriceMaxPrefix': _('Max. $'),
+            'catalogClearAll': _('Clear all'),
+            'catalogRateLimit': _('Too many requests — wait a moment and try again.'),
+            'catalogImageSearchSoon': _('Image search coming soon — use text search for now.'),
+            'catalogAddedToCart': _('Added to inquiry cart'),
+            'catalogCartError': _('Could not add to inquiry cart'),
+            'catalogNetworkError': _('Connection error — try again'),
+            'cartAdding': _('Adding…'),
+            'aiSearchEmpty': _('No suggestions — press Enter to search.'),
+            'aiSearchStart': _('Start typing to see AI recommendations.'),
+            'aiSearchUnavailable': _('Suggestions unavailable — press Enter to search.'),
+            'aiSearchRateLimit': _('Too many searches — wait a moment and try again.'),
+            'aiSearchAsk': _('Ask AI'),
+            'aiSearchAskAbout': _('Ask AI about this search'),
+            'aiSearchProducts': _('Products'),
+            'aiSearchCategories': _('Categories'),
+            'aiSearchCompanies': _('Companies'),
+            'aiSearchOrders': _('Orders'),
+            'aiSearchQuotes': _('Quotes'),
+            'aiSearchCustomers': _('Customers'),
+            'aiSearchActions': _('Quick actions'),
+            'aiSearchSuggestions': _('Suggestions'),
+            'cartQtyError': _('Could not update quantity.'),
+            'cartRemoveError': _('Could not remove product.'),
+            'cartNetworkRetry': _('Connection error. Please try again.'),
+            'fieldRequired': _('This field is required.'),
+            'emailInvalid': _('Enter a valid email address.'),
+            'toastError': _('Error'),
+            'toastSuccess': _('Success'),
+            'toastWarning': _('Warning'),
+            'toastInfo': _('Notice'),
+            'cvVerifiedTitle': _('Verified company'),
+            'cvVerifiedHeading': _('Business identity approved'),
+            'cvVerifiedLead': _('TradeFlow recorded the review and will enable only the capabilities approved for this company.'),
+            'cvContinue': _('Continue'),
+            'cvVerifiedToast': _('Your company was verified.'),
+            'cvVerifiedPendingStep': _('Your company was verified. One more access step is still pending.'),
+            'cvRejectedStatus': _('Requires correction'),
+            'cvRejectedHeading': _('We could not approve the information'),
+            'cvFixInformation': _('Correct information'),
+            'cvRejectedToast': _('Your application requires correction.'),
+        }
+        from core.utils.ui_labels import ORDER_STATUS_LABELS, USER_ROLE_LABELS
+
+        for key, label in ORDER_STATUS_LABELS.items():
+            payload[f'orderStatus_{key}'] = str(label)
+        for key, label in USER_ROLE_LABELS.items():
+            payload[f'userRole_{key}'] = str(label)
     return {'tf_i18n': payload}
 
 
 def enterprise_saas(request):
-    """SaaS plan, monthly usage, and ad credits for seller portal."""
+    """Seller SaaS plan, monthly usage, and ad credits for the portal."""
     import logging
 
     log = logging.getLogger('tradeflow.saas')
@@ -118,7 +226,8 @@ def enterprise_saas(request):
     try:
         from core.utils.saas_billing import subscription_usage_snapshot
 
-        snap = subscription_usage_snapshot(company)
+        # Read-mostly on HTML: avoid recomputing monthly volume every request.
+        snap = subscription_usage_snapshot(company, refresh=False)
         return {'saas_snapshot': snap, 'saas_company': company}
     except Exception as exc:
         log.warning(
@@ -132,7 +241,7 @@ def enterprise_saas(request):
 
 
 def supabase_public(request):
-    """Public Supabase keys for Realtime on the frontend."""
+    """Anon Supabase URL/key for browser Realtime subscriptions."""
     url = getattr(settings, 'SUPABASE_URL', '') or ''
     anon = getattr(settings, 'SUPABASE_ANON_KEY', '') or ''
     return {
@@ -143,23 +252,61 @@ def supabase_public(request):
 
 
 def tf_asset_version(request):
-    """Version string for static asset cache busting (?v=)."""
+    """Asset version string for static cache busting (``?v=``)."""
     return {'tf_asset_version': getattr(settings, 'TRADEFLOW_ASSET_VERSION', '1')}
 
 
+def tf_user_role(request):
+    """Expose marketplace role without raising when ``UserProfile`` is missing.
+
+    ``base.html`` and shell templates must not touch
+    ``request.user.profile`` directly — a RelatedObjectDoesNotExist there
+    becomes HTTP 500 right after login/OAuth for incomplete accounts.
+
+    Also exposes ``tf_seller_onboarding_pending`` so marketplace home/catalog
+    can use the public shell instead of stacking the seller dashboard nav.
+    """
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return {
+            'tf_user_role': '',
+            'tf_has_profile': False,
+            'tf_seller_onboarding_pending': False,
+        }
+    try:
+        role = request.user.profile.role or ''
+    except Exception:
+        return {
+            'tf_user_role': '',
+            'tf_has_profile': False,
+            'tf_seller_onboarding_pending': False,
+        }
+    pending = False
+    if role == 'seller':
+        try:
+            from core.utils.access_gating import seller_company_pending
+
+            pending = seller_company_pending(request.user)
+        except Exception:
+            pending = False
+    return {
+        'tf_user_role': role,
+        'tf_has_profile': True,
+        'tf_seller_onboarding_pending': pending,
+    }
+
+
 def nav_header_categories(request):
-    """Top categorías con productos activos — dropdown del header público."""
+    """Cached top categories with active products for the public header."""
     from core.utils.tradeflow_cache import cached_nav_categories
 
     return {'nav_header_categories': cached_nav_categories()}
 
 
 def buyer_mega_menu_context(request):
-    """
-    Datos del mega menú «Todas las categorías» en el navbar comprador.
+    """Buyer navbar mega-menu panels for authenticated buyers only.
 
-    Solo se inyecta para usuarios autenticados con rol buyer (o sin perfil
-    en transición) para no cargar consultas extra en admin/seller.
+    Skips the merchandising query for sellers and admins so portal pages
+    do not pay for catalog navigation data they never render.
     """
     if not request.user.is_authenticated:
         return {}
@@ -168,14 +315,14 @@ def buyer_mega_menu_context(request):
         if role not in (None, 'buyer'):
             return {}
     except Exception:
-        pass
-    from core.merchandising import buyer_mega_menu_panels
+        return {}
+    from core.utils.tradeflow_cache import cached_buyer_mega_menu_panels
 
-    return {'buyer_mega_menu_panels': buyer_mega_menu_panels()}
+    return {'buyer_mega_menu_panels': cached_buyer_mega_menu_panels()}
 
 
 def social_auth_context(request):
-    """OAuth providers enabled for login/signup templates."""
+    """Enabled OAuth provider slugs for login and signup templates."""
     from core.social_auth import provider_is_enabled, social_auth_enabled
 
     providers = []
@@ -190,3 +337,4 @@ def social_auth_context(request):
         'social_auth_enabled': bool(providers),
         'social_auth_providers': providers,
     }
+

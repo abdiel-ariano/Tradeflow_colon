@@ -1,4 +1,8 @@
-"""Registro en EXPO_DEMO_MODE: OTP + correo + sesión + redirect a /verificar/."""
+"""Signup OTP onboarding in expo demo and classic modes.
+
+New buyers receive a six-digit code and session pending-verify
+id even when Resend fails, so /verificar/ stays reachable.
+"""
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -18,10 +22,14 @@ from core.views_onboarding import SESSION_PENDING_VERIFY_USER_ID
     AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
 )
 class SignupOtpOnboardingTests(TestCase):
+    """Assert signup redirects and OTP persistence."""
+
     def setUp(self):
+        """Create a fresh test client."""
         self.client = Client()
 
     def _signup_payload(self, username='demo_new'):
+        """Build a valid buyer signup form payload."""
         return {
             'first_name': 'Demo',
             'last_name': 'User',
@@ -31,10 +39,12 @@ class SignupOtpOnboardingTests(TestCase):
             'role': 'buyer',
             'password1': 'SecurePass1!',
             'password2': 'SecurePass1!',
+            'accept_privacy': '1',
         }
 
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_signup_expo_demo_sends_otp_and_redirects_verificar(self, mock_send):
+        """Create user, send OTP, and store pending verify session."""
         mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
 
         resp = self.client.post(reverse('signup'), self._signup_payload(), follow=False)
@@ -44,6 +54,7 @@ class SignupOtpOnboardingTests(TestCase):
 
         user = User.objects.get(username='demo_new')
         self.assertTrue(user.is_active)
+        self.assertEqual(user.profile.business_role_intent, 'buyer')
         self.assertTrue(EmailVerification.objects.filter(user=user).exists())
         mock_send.assert_called_once()
         sent_email, sent_code = mock_send.call_args[0]
@@ -55,6 +66,7 @@ class SignupOtpOnboardingTests(TestCase):
 
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_signup_expo_demo_email_failure_still_redirects_with_warning(self, mock_send):
+        """Reach /verificar/ even when OTP email raises."""
         mock_send.side_effect = RuntimeError('Resend API key invalid')
 
         resp = self.client.post(
@@ -71,6 +83,7 @@ class SignupOtpOnboardingTests(TestCase):
 
     @patch('core.views_onboarding.enviar_codigo_verificacion')
     def test_verificar_renders_without_redirect_loop_expo_demo(self, mock_send):
+        """Render verify page without a long redirect chain."""
         mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
         self.client.post(reverse('signup'), self._signup_payload(username='demo_loop'), follow=False)
         resp = self.client.get('/verificar/', follow=True)
@@ -80,7 +93,8 @@ class SignupOtpOnboardingTests(TestCase):
 
     @override_settings(EXPO_DEMO_MODE=False, REQUIRE_EMAIL_VERIFICATION=True)
     @patch('core.views_onboarding.enviar_codigo_verificacion')
-    def test_signup_non_demo_redirects_to_verificar(self, mock_send):
+    def test_signup_non_demo_redirects_to_verificar_without_legacy_application(self, mock_send):
+        """Use company verification as the only review source for new B2B accounts."""
         mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
         resp = self.client.post(reverse('signup'), self._signup_payload(username='classic'), follow=False)
 
@@ -88,3 +102,41 @@ class SignupOtpOnboardingTests(TestCase):
         self.assertIn('/verificar', resp['Location'])
         user = User.objects.get(username='classic')
         self.assertTrue(user.is_active)
+        from core.models import UserApplication
+        self.assertFalse(UserApplication.objects.filter(user=user).exists())
+
+    @patch('core.views_onboarding.enviar_codigo_verificacion')
+    def test_company_can_choose_buyer_and_seller_intent(self, mock_send):
+        """The unified signup persists a dual B2B capability request."""
+        mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
+        payload = self._signup_payload(username='dual_company')
+        payload['business_role'] = 'both'
+
+        resp = self.client.post(reverse('signup'), payload, follow=False)
+
+        self.assertEqual(resp.status_code, 302)
+        profile = User.objects.get(username='dual_company').profile
+        self.assertEqual(profile.business_role_intent, 'both')
+        self.assertEqual(profile.role, 'seller')
+        self.assertIsNotNone(profile.onboarding_completed_at)
+
+    @patch('core.views_onboarding.enviar_codigo_verificacion')
+    def test_verified_business_continues_to_company_identity(self, mock_send):
+        """After OTP, a new company reaches RUC/DV onboarding, not a B2C wizard."""
+        mock_send.return_value = EmailSendResult(ok=True, channel='resend', detail='msg-1')
+        payload = self._signup_payload(username='company_after_otp')
+        payload['business_role'] = 'both'
+        self.client.post(reverse('signup'), payload, follow=False)
+        sent_code = mock_send.call_args[0][1]
+
+        resp = self.client.post('/verificar/', {'codigo': sent_code}, follow=False)
+
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(reverse('company_onboarding'), resp['Location'])
+
+    def test_signup_get_is_business_not_consumer_registration(self):
+        """The public entry visibly asks how the company will operate."""
+        resp = self.client.get(reverse('signup'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'How will your company use TradeFlow?')
+        self.assertContains(resp, 'name="business_role"', count=3)

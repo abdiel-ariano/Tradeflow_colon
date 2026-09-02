@@ -1,23 +1,24 @@
-"""
-=============================================================================
-ACCIÓN: CREAR — core/tests/test_flujo_compra.py
-=============================================================================
-Pruebas del flujo crítico del comprador (tienda, carrito, checkout, permisos).
+"""Critical B2B buyer flow: catalog, inquiry cart, supplier RFQs, and role gates.
+
+Covers formal quote requests without premature orders, payments, or stock
+reservation, plus order privacy and post-login routing by company role.
 """
 from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
+from django.urls import reverse
 
 from core.models import (
     Category,
     Company,
+    Cotizacion,
+    CotizacionItem,
     Inventory,
     Order,
     OrderItem,
     Payment,
     Product,
-    TransportCarrier,
     UserProfile,
 )
 
@@ -30,7 +31,7 @@ from core.models import (
     AXES_ENABLED=False,
     REQUIRE_EMAIL_VERIFICATION=False,
     REQUIRE_APPROVED_APPLICATION=False,
-    CHECKOUT_AUTO_APPROVE=True,
+    STAFF_MFA_REQUIRED=False,
     EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
     AUTHENTICATION_BACKENDS=[
         'django.contrib.auth.backends.ModelBackend',
@@ -38,19 +39,14 @@ from core.models import (
     STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage',
 )
 class TestFlujoBuyer(TestCase):
-    """Tests del flujo completo del comprador."""
+    """End-to-end buyer marketplace path and role-based redirects."""
 
     def setUp(self):
-        """Crea usuario buyer, empresa, categoría, producto e inventario de prueba."""
+        """Seed buyer, other buyer, seller, admin, product, and carrier."""
         self.company = Company.objects.create(
             name='Empresa Demo ZLC',
             ruc='123456',
-            is_verified=True,
-        )
-        self.carrier = TransportCarrier.objects.create(
-            code='test-carrier',
-            name='Test Carrier',
-            base_shipping_cost=Decimal('5.00'),
+            verification_status='verified',
         )
         self.cat = Category.objects.create(name='Electrónica')
         self.product = Product.objects.create(
@@ -73,7 +69,22 @@ class TestFlujoBuyer(TestCase):
             last_name='Buyer',
         )
         UserProfile.objects.create(
-            user=self.buyer, role='buyer', phone='+507 6000-0000', email_verificado=True,
+            user=self.buyer,
+            role='buyer',
+            business_role_intent='buyer',
+            phone='+507 6000-0000',
+            email_verificado=True,
+        )
+        self.buyer_company = Company.objects.create(
+            name='Compradora Demo, S.A.',
+            legal_name='Compradora Demo, S.A.',
+            ruc='8-COMPRA-1',
+            dv='10',
+            business_email=self.buyer.email,
+            business_role='buyer',
+            owner=self.buyer,
+            is_verified=True,
+            verification_status='verified',
         )
 
         self.other = User.objects.create_user(
@@ -89,6 +100,7 @@ class TestFlujoBuyer(TestCase):
             password='TestPass123!',
         )
         UserProfile.objects.create(user=self.seller_user, role='seller', email_verificado=True)
+        # Seller without company → wizard; with company+trial → portal (below).
 
         self.admin_user = User.objects.create_user(
             username='admin_test',
@@ -98,14 +110,14 @@ class TestFlujoBuyer(TestCase):
         )
         UserProfile.objects.create(user=self.admin_user, role='admin', email_verificado=True)
 
-    def test_buyer_puede_ver_tienda(self):
-        """El buyer autenticado accede a /tienda/ con 200."""
+    def test_buyer_puede_ver_catalogo(self):
+        """Authenticated buyer reaches /catalogo/ with HTTP 200."""
         self.client.login(username='buyer_test', password='TestPass123!')
-        r = self.client.get('/tienda/')
+        r = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(r.status_code, 200)
 
     def test_agregar_producto_al_carrito(self):
-        """POST a agregar_al_carrito actualiza la sesión."""
+        """POST add-to-cart updates the session carrito quantity."""
         self.client.login(username='buyer_test', password='TestPass123!')
         url = f'/carrito/agregar/{self.product.pk}/'
         r = self.client.post(url, {'cantidad': 2})
@@ -115,8 +127,8 @@ class TestFlujoBuyer(TestCase):
         self.assertIn(str(self.product.pk), carrito)
         self.assertEqual(carrito[str(self.product.pk)]['cantidad'], 2)
 
-    def test_checkout_crea_orden(self):
-        """POST a checkout crea Order, OrderItems y Payment."""
+    def test_checkout_crea_solicitud_cotizacion(self):
+        """Inquiry review creates a pending RFQ, not an order or payment."""
         self.client.login(username='buyer_test', password='TestPass123!')
         session = self.client.session
         session['carrito'] = {
@@ -129,23 +141,22 @@ class TestFlujoBuyer(TestCase):
             }
         }
         session.save()
-        r = self.client.post(
+        response = self.client.post(
             '/checkout/',
-            {
-                'notas': 'Test',
-                'transport_carrier': self.carrier.pk,
-                'buyer_latitude': '9.3667000',
-                'buyer_longitude': '-79.9000000',
-            },
+            {'notas': 'Cotizar FOB Colón', 'validez_dias': '30'},
         )
-        self.assertEqual(r.status_code, 302)
-        orden = Order.objects.filter(buyer=self.buyer).first()
-        self.assertIsNotNone(orden)
-        self.assertEqual(orden.items.count(), 1)
-        self.assertTrue(Payment.objects.filter(order=orden).exists())
 
-    def test_checkout_reserva_inventario(self):
-        """El stock reservado aumenta después del checkout."""
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('mis_cotizaciones'), response.url)
+        quote = Cotizacion.objects.get(buyer=self.buyer)
+        self.assertEqual(quote.empresa, self.company)
+        self.assertEqual(quote.estado, 'pendiente')
+        self.assertEqual(quote.validez_dias, 30)
+        self.assertEqual(quote.items.count(), 1)
+        self.assertFalse(Order.objects.filter(buyer=self.buyer).exists())
+
+    def test_solicitud_cotizacion_no_reserva_inventario(self):
+        """Sending an RFQ leaves sellable stock available until an order exists."""
         self.client.login(username='buyer_test', password='TestPass123!')
         session = self.client.session
         session['carrito'] = {
@@ -160,18 +171,147 @@ class TestFlujoBuyer(TestCase):
         session.save()
         self.client.post(
             '/checkout/',
+            {'notas': '', 'validez_dias': '45'},
+        )
+
+        self.assertTrue(Cotizacion.objects.filter(buyer=self.buyer).exists())
+        inventory = Inventory.objects.get(product=self.product)
+        self.assertEqual(inventory.reserved_qty, 0)
+
+    def test_aceptar_cotizacion_crea_orden_pendiente_sin_pago(self):
+        """Quote acceptance creates a pending purchase order without fake payment."""
+        quote = Cotizacion.objects.create(
+            buyer=self.buyer,
+            empresa=self.company,
+            estado='respondida',
+            notas_seller='Precio FOB Colón.',
+        )
+        CotizacionItem.objects.create(
+            cotizacion=quote,
+            product=self.product,
+            cantidad_solicitada=2,
+            precio_ofertado=Decimal('9.50'),
+        )
+        self.client.login(username='buyer_test', password='TestPass123!')
+
+        response = self.client.post(
+            reverse('detalle_cotizacion', args=[quote.pk]),
+            {'accion': 'convertir'},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        quote.refresh_from_db()
+        self.assertEqual(quote.estado, 'aceptada')
+        self.assertIsNotNone(quote.order_id)
+        self.assertEqual(quote.order.status, 'pending')
+        self.assertEqual(quote.order.confirming_company, self.company)
+        self.assertEqual(quote.order.seller_confirmation_status, 'accepted')
+        self.assertTrue(quote.order.confirmado_por_empresa)
+        self.assertEqual(quote.order.total, Decimal('19.00'))
+        self.assertFalse(Payment.objects.filter(order=quote.order).exists())
+        inventory = Inventory.objects.get(product=self.product)
+        self.assertEqual(inventory.reserved_qty, 2)
+
+    def test_confirmacion_vendedor_no_fabrica_pago(self):
+        """Seller acceptance leaves payment and logistics pending."""
+        from core.utils.order_workflow import accept_seller_order
+        from core.utils.saas_billing import ensure_default_plans, ensure_demo_subscription
+
+        ensure_default_plans()
+        ensure_demo_subscription(self.company)
+        order = Order.objects.create(
+            buyer=self.buyer,
+            shipping_cost=Decimal('0'),
+            status='awaiting_seller',
+            confirming_company=self.company,
+            seller_confirmation_status='pending',
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            qty=2,
+            unit_price_snapshot=Decimal('10.00'),
+        )
+        order.recalculate_totals()
+        order.save(update_fields=['subtotal', 'total', 'updated_at'])
+
+        accept_seller_order(order)
+
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'pending')
+        self.assertEqual(order.seller_confirmation_status, 'accepted')
+        self.assertTrue(order.confirmado_por_empresa)
+        self.assertFalse(Payment.objects.filter(order=order).exists())
+
+    def test_dashboard_volume_excluye_orden_sin_aceptacion(self):
+        """Financial charts exclude unaccepted orders and include accepted POs."""
+        from core.views.admin_ops import _build_dashboard_charts_payload
+
+        unaccepted = Order.objects.create(
+            buyer=self.buyer,
+            status='pending',
+            seller_confirmation_status='pending',
+            subtotal=Decimal('50.00'),
+            total=Decimal('50.00'),
+        )
+        accepted = Order.objects.create(
+            buyer=self.buyer,
+            status='pending',
+            seller_confirmation_status='accepted',
+            confirming_company=self.company,
+            subtotal=Decimal('20.00'),
+            total=Decimal('20.00'),
+        )
+        OrderItem.objects.create(
+            order=unaccepted,
+            product=self.product,
+            qty=5,
+            unit_price_snapshot=Decimal('10.00'),
+        )
+        OrderItem.objects.create(
+            order=accepted,
+            product=self.product,
+            qty=2,
+            unit_price_snapshot=Decimal('10.00'),
+        )
+
+        payload = _build_dashboard_charts_payload(7)
+
+        self.assertEqual(sum(payload['ingresos_por_dia']), 20.0)
+        self.assertEqual(payload['ventas_por_categoria'][0]['total'], 20.0)
+
+    def test_admin_crea_orden_manual_sin_pago_ficticio(self):
+        """Admin-created purchase orders remain pending without mock payments."""
+        self.client.login(username='admin_test', password='TestPass123!')
+        session = self.client.session
+        session['wizard_buyer_id'] = self.buyer.pk
+        session['wizard_items'] = [{
+            'producto_id': self.product.pk,
+            'nombre': self.product.name,
+            'precio': str(self.product.unit_price),
+            'cantidad': 2,
+            'subtotal': '20.00',
+        }]
+        session.save()
+
+        response = self.client.post(
+            reverse('nueva_orden_paso3'),
             {
-                'notas': '',
-                'transport_carrier': self.carrier.pk,
-                'buyer_latitude': '9.3667000',
-                'buyer_longitude': '-79.9000000',
+                'shipping_cost': '5.00',
+                'address_id': '',
+                'notas': 'Orden administrativa de prueba',
+                'metodo_pago': 'mock',
             },
         )
-        inv = Inventory.objects.get(product=self.product)
-        self.assertEqual(inv.reserved_qty, 3)
+
+        self.assertEqual(response.status_code, 302)
+        order = Order.objects.filter(buyer=self.buyer).latest('created_at')
+        self.assertEqual(order.status, 'pending')
+        self.assertEqual(order.total, Decimal('25.00'))
+        self.assertFalse(Payment.objects.filter(order=order).exists())
 
     def test_buyer_ve_solo_sus_ordenes(self):
-        """Un buyer no puede ver el detalle de órdenes de otro buyer."""
+        """Buyers cannot open another buyer's order detail (404)."""
         orden_otra = Order.objects.create(
             buyer=self.other,
             shipping_cost=Decimal('0'),
@@ -182,7 +322,7 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 404)
 
     def test_admin_detalle_orden_lista_todas_las_lineas(self):
-        """El detalle admin muestra todas las líneas OrderItem (órdenes grandes / seed)."""
+        """Admin order detail lists every OrderItem line for large orders."""
         orden = Order.objects.create(
             buyer=self.buyer,
             shipping_cost=Decimal('0'),
@@ -203,17 +343,40 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, self.product.name, count=n)
 
-    def test_login_redirige_buyer_a_tienda(self):
-        """Tras login sin ?next=, el buyer va al catálogo."""
+    def test_login_redirige_empresa_compradora_a_catalogo(self):
+        """A verified buying company lands on the wholesale catalog."""
         r = self.client.post(
             '/login/',
             {'username': 'buyer_test', 'password': 'TestPass123!'},
         )
         self.assertEqual(r.status_code, 302)
-        self.assertIn('/tienda/', r.url)
+        self.assertIn('/catalogo/', r.url)
 
-    def test_login_redirige_seller_a_portal(self):
-        """Tras login sin ?next=, el seller va directo a /mi-tienda/."""
+    def test_login_redirige_seller_sin_empresa_a_wizard(self):
+        """Seller without a Company.owner link goes to seller onboarding."""
+        r = self.client.post(
+            '/login/',
+            {'username': 'seller_test', 'password': 'TestPass123!'},
+        )
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('/onboarding/empresa/', r.url)
+
+    def test_login_redirige_seller_con_empresa_a_portal(self):
+        """Seller with company and active trial lands on /mi-tienda/."""
+        from core.utils.seller_lifecycle import start_seller_trial
+
+        company = Company.objects.create(
+            name='Seller Test Co',
+            legal_name='Seller Test Co, S.A.',
+            ruc='8-ST-1',
+            dv='11',
+            business_email=self.seller_user.email,
+            business_role='seller',
+            owner=self.seller_user,
+            is_verified=True,
+            verification_status='verified',
+        )
+        start_seller_trial(company)
         r = self.client.post(
             '/login/',
             {'username': 'seller_test', 'password': 'TestPass123!'},
@@ -221,16 +384,66 @@ class TestFlujoBuyer(TestCase):
         self.assertEqual(r.status_code, 302)
         self.assertIn('/mi-tienda/', r.url)
 
-    def test_home_redirige_seller_a_portal(self):
-        """Un seller autenticado en / no debe ver la landing del marketplace."""
+    def test_home_permite_seller_sin_empresa_salir_del_wizard(self):
+        """Seller without a company can open public home (escape the wizard)."""
         self.client.login(username='seller_test', password='TestPass123!')
         r = self.client.get('/')
-        self.assertEqual(r.status_code, 302)
-        self.assertIn('/mi-tienda/', r.url)
+        self.assertEqual(r.status_code, 200)
+
+    def test_checkout_spanish_ui(self):
+        """RFQ review renders Spanish quote-first copy without delivery fields."""
+        self.client.login(username='buyer_test', password='TestPass123!')
+        session = self.client.session
+        session['carrito'] = {
+            str(self.product.pk): {
+                'nombre': self.product.name,
+                'precio': str(self.product.unit_price),
+                'cantidad': 1,
+                'subtotal': str(self.product.unit_price),
+                'imagen': '',
+            }
+        }
+        session.save()
+        post_response = self.client.post(
+            reverse('set_language'),
+            {'language': 'es', 'next': reverse('checkout')},
+        )
+        response = self.client.get(post_response.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Solicitud de cotización')
+        self.assertContains(response, 'Flujo cotizar primero')
+        self.assertContains(response, 'Solicitud de cotización antes del pago')
+        self.assertNotContains(response, 'Ubicación de entrega')
+        self.assertNotContains(response, 'location_consent')
+        self.assertNotContains(response, 'Enviar pedido')
+
+    def test_checkout_no_requiere_ubicacion_para_cotizar(self):
+        """An RFQ can be sent without carrier, GPS coordinates, or consent."""
+        self.client.login(username='buyer_test', password='TestPass123!')
+        session = self.client.session
+        session['carrito'] = {
+            str(self.product.pk): {
+                'nombre': self.product.name,
+                'precio': str(self.product.unit_price),
+                'cantidad': 1,
+                'subtotal': str(self.product.unit_price),
+                'imagen': '',
+            }
+        }
+        session.save()
+        response = self.client.post(
+            '/checkout/',
+            {'notas': 'Sin datos de entrega', 'validez_dias': '30'},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Cotizacion.objects.filter(buyer=self.buyer).exists())
+        self.assertFalse(Order.objects.filter(buyer=self.buyer).exists())
 
     def test_acceso_sin_login_redirige(self):
-        """Invitados exploran /tienda/ y pueden usar el carrito de sesión."""
-        r = self.client.get('/tienda/')
+        """Guests browse catalog and cart; checkout still requires login."""
+        r = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.context['show_cart_actions'])
 
@@ -241,3 +454,32 @@ class TestFlujoBuyer(TestCase):
         r = self.client.get('/checkout/')
         self.assertEqual(r.status_code, 302)
         self.assertIn('/login/', r.url)
+
+
+    def test_public_rfq_page_describes_real_process_without_guarantee(self):
+        """Public navigation explains RFQs without promising buyer protection."""
+        response = self.client.get(reverse('marketplace_order_protection'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'How the RFQ process works')
+        self.assertContains(response, 'creates a pending order, not a paid order')
+        self.assertContains(response, 'does not provide escrow')
+        self.assertNotContains(response, 'Buyer protection program')
+        self.assertNotContains(response, 'Secure B2B checkout')
+
+
+    def test_home_and_terms_do_not_advertise_unimplemented_checkout(self):
+        """Homepage and terms match the implemented quote-first B2B flow."""
+        home = self.client.get(reverse('home'), follow=True)
+        self.assertEqual(home.status_code, 200)
+        self.assertContains(home, 'Send supplier RFQs')
+        self.assertContains(home, 'creates a pending purchase order')
+        self.assertNotContains(home, 'Secure B2B checkout')
+        self.assertNotContains(home, 'Track delivery with export docs included')
+
+        terms = self.client.get(reverse('legal_terminos'))
+        self.assertEqual(terms.status_code, 200)
+        self.assertContains(terms, 'An RFQ is not a purchase order')
+        self.assertContains(terms, 'does not process or hold marketplace payments')
+        self.assertContains(terms, 'does not currently provide escrow')
+        self.assertNotContains(terms, 'test or simulation mechanisms')

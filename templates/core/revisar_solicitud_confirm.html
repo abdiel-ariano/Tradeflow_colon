@@ -1,0 +1,22 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Review application" %} — TradeFlow Colón{% endblock %}
+{% block content %}
+<div class="tf-page" style="max-width:640px;margin:48px auto;padding:0 20px;">
+  <h1 style="font-size:1.5rem;color:var(--tf-navy);margin:0 0 12px;">
+    {% if aprobada %}{% trans "Approve application" %}{% else %}{% trans "Reject application" %}{% endif %}
+  </h1>
+  <p style="color:var(--tf-muted);margin:0 0 20px;">
+    {% blocktrans with name=app.full_name email=app.email %}
+    Confirm the decision for <strong>{{ name }}</strong> ({{ email }}).
+    {% endblocktrans %}
+  </p>
+  <form method="post" action="">
+    {% csrf_token %}
+    <button type="submit" class="tf-btn {% if aprobada %}tf-btn-primary{% else %}tf-btn-outline{% endif %}">
+      {% if aprobada %}{% trans "Confirm approval" %}{% else %}{% trans "Confirm rejection" %}{% endif %}
+    </button>
+    <a href="{% url 'home' %}" class="tf-btn tf-btn-ghost" style="margin-left:8px;">{% trans "Cancel" %}</a>
+  </form>
+</div>
+{% endblock %}

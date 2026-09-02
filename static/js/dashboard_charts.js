@@ -30,7 +30,7 @@
       ventas_por_categoria: [],
       ventas_por_empresa: [],
       productos_top: [],
-      ordenes_por_tipo: { b2b: 0, b2c: 0 },
+      ordenes_b2b: 0,
       period_label: '',
     };
   }
@@ -140,23 +140,19 @@
     var lineChart = null;
     var doughnutChart = null;
     var catChart = null;
-    var tipoChart = null;
     var empChart = null;
     var prodChart = null;
 
     function destroyCharts() {
-      [barChart, lineChart, doughnutChart, catChart, tipoChart, empChart, prodChart].forEach(function (c) {
+      [barChart, lineChart, doughnutChart, catChart, empChart, prodChart].forEach(function (c) {
         if (c) c.destroy();
       });
-      barChart = lineChart = doughnutChart = catChart = tipoChart = empChart = prodChart = null;
+      barChart = lineChart = doughnutChart = catChart = empChart = prodChart = null;
     }
 
-    function updateMetaTipo(tipo) {
+    function updateMetaB2b(total) {
       var b2b = document.getElementById('adm-meta-b2b');
-      var b2c = document.getElementById('adm-meta-b2c');
-      if (!tipo) return;
-      if (b2b) b2b.textContent = String(tipo.b2b || 0);
-      if (b2c) b2c.textContent = String(tipo.b2c || 0);
+      if (b2b) b2b.textContent = String(Number(total || 0));
     }
 
     function chartBaseOptions() {
@@ -442,35 +438,6 @@
         });
       }
 
-      var tipo = payload.ordenes_por_tipo || {};
-      var tipoB2b = Number(tipo.b2b || 0);
-      var tipoB2c = Number(tipo.b2c || 0);
-      var tipoTotal = tipoB2b + tipoB2c;
-      var tipoCtx = document.getElementById('admTipoDoughnut');
-      toggleEmpty(
-        document.getElementById('adm-tipo-empty'),
-        tipoCtx ? tipoCtx.parentElement : null,
-        tipoTotal === 0
-      );
-      if (tipoCtx && tipoTotal > 0) {
-        tipoChart = new Chart(tipoCtx, {
-          type: 'doughnut',
-          data: {
-            labels: ['B2B', 'B2C'],
-            datasets: [{
-              label: i18n('chartOrders', 'Orders'),
-              data: [tipoB2b, tipoB2c],
-              backgroundColor: ['#2E5B8A', '#F26522'],
-              borderWidth: 2,
-              borderColor: '#fff',
-            }],
-          },
-          options: Object.assign({}, chartBaseOptions(), {
-            plugins: pluginsPctDoughnut(),
-          }),
-        });
-      }
-
       var cats = payload.ventas_por_categoria || [];
       var catCtx = document.getElementById('admCatDoughnut');
       toggleEmpty(document.getElementById('adm-cat-empty'), catCtx ? catCtx.parentElement : null, cats.length === 0);
@@ -545,10 +512,10 @@
         });
       }
 
-      updateMetaTipo(payload.ordenes_por_tipo);
+      updateMetaB2b(payload.ordenes_b2b);
 
       requestAnimationFrame(function () {
-        [barChart, lineChart, doughnutChart, catChart, tipoChart, empChart, prodChart].forEach(function (c) {
+        [barChart, lineChart, doughnutChart, catChart, empChart, prodChart].forEach(function (c) {
           if (c && typeof c.resize === 'function') c.resize();
         });
       });

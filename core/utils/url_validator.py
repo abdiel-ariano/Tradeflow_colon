@@ -1,32 +1,22 @@
-"""
-Validacion de URLs outbound para prevenir SSRF (OWASP A10:2021).
+"""Valida URLs de salida para bloquear SSRF (OWASP A10:2021).
 
-Uso:
-    from core.utils.url_validator import validate_outbound_url
-
-    try:
-        validate_outbound_url(user_supplied_url)
-    except ValidationError as exc:
-        # Rechazar la URL
-        ...
-
-Bloquea:
-  - Esquemas no permitidos (solo http/https)
-  - Hostnames a IPs privadas (RFC 1918): 10.x, 172.16-31.x, 192.168.x
-  - Loopback: 127.x.x.x, localhost, ::1
-  - Link-local: 169.254.x (incluye AWS metadata 169.254.169.254)
-  - Multicast, broadcast, reserved
-  - IPv6 equivalentes de los anteriores
-  - Resolucion DNS a las mismas categorias (anti DNS rebinding)
+Los webhooks logísticos configurados por el vendedor no deben alcanzar IPs
+privadas ni endpoints de metadata cloud. ``safe_outbound_request`` conecta
+al IP resuelto (DNS-pin) con SNI/Host del hostname original.
 """
 from __future__ import annotations
 
+import http.client
 import ipaddress
+import logging
 import socket
-from typing import Iterable
+import ssl
+from dataclasses import dataclass
 from urllib.parse import urlparse
 
 from django.core.exceptions import ValidationError
+
+log = logging.getLogger('tradeflow.security')
 
 ALLOWED_SCHEMES = ('http', 'https')
 
@@ -40,6 +30,7 @@ BLOCKED_HOSTNAMES = frozenset({
 
 
 def _is_blocked_ip(ip):
+    """Devuelve True cuando la IP es privada, loopback o link-local."""
     if ip.is_loopback:
         return 'loopback (127.x / ::1)'
     if ip.is_private:
@@ -58,6 +49,7 @@ def _is_blocked_ip(ip):
 
 
 def _resolve_hostname(hostname):
+    """Resuelve el hostname a direcciones IP para comprobaciones SSRF."""
     try:
         infos = socket.getaddrinfo(hostname, None)
     except socket.gaierror as exc:
@@ -70,17 +62,20 @@ def _resolve_hostname(hostname):
             continue
 
 
-def validate_outbound_url(url: str, *, allow_http: bool = False) -> None:
-    """
-    Valida que una URL sea segura para hacer un request outbound.
+@dataclass(frozen=True)
+class SafeOutboundTarget:
+    """Validated outbound URL with DNS-pinned public IP addresses."""
 
-    Args:
-        url: URL a validar.
-        allow_http: si False (default), solo se permite https://.
+    url: str
+    scheme: str
+    hostname: str
+    port: int
+    path: str
+    ips: tuple[str, ...]
 
-    Raises:
-        ValidationError si la URL es invalida o apunta a recursos internos.
-    """
+
+def validate_outbound_url(url: str, *, allow_http: bool = False) -> SafeOutboundTarget:
+    """Valida URL saliente y devuelve target con IPs públicas resueltas."""
     if not url or not isinstance(url, str):
         raise ValidationError('URL vacia o no es string.')
 
@@ -110,11 +105,13 @@ def validate_outbound_url(url: str, *, allow_http: bool = False) -> None:
     if hostname == 'localhost' or hostname.endswith('.localhost'):
         raise ValidationError(f'Hostname "{hostname}" apunta a localhost.')
 
+    safe_ips: list[str] = []
     try:
         literal_ip = ipaddress.ip_address(hostname.strip('[]'))
         reason = _is_blocked_ip(literal_ip)
         if reason:
             raise ValidationError(f'IP literal {literal_ip} bloqueada: {reason}.')
+        safe_ips.append(str(literal_ip))
     except ValueError:
         for ip in _resolve_hostname(hostname):
             reason = _is_blocked_ip(ip)
@@ -122,9 +119,75 @@ def validate_outbound_url(url: str, *, allow_http: bool = False) -> None:
                 raise ValidationError(
                     f'El hostname "{hostname}" resuelve a {ip}, que esta bloqueada: {reason}.'
                 )
+            safe_ips.append(str(ip))
+
+    if not safe_ips:
+        raise ValidationError(f'No se obtuvo IP pública para "{hostname}".')
 
     blocked_ports = {22, 23, 25, 110, 143, 445, 631, 1433, 3306, 3389, 5432, 6379, 9200, 11211, 27017}
-    if parsed.port and parsed.port in blocked_ports:
+    port = parsed.port or (443 if scheme == 'https' else 80)
+    if port in blocked_ports:
         raise ValidationError(
-            f'Puerto {parsed.port} bloqueado (servicio interno tipico: SSH, SMTP, BD, Redis, etc.).'
+            f'Puerto {port} bloqueado (servicio interno tipico: SSH, SMTP, BD, Redis, etc.).'
         )
+
+    path = parsed.path or '/'
+    if parsed.query:
+        path = f'{path}?{parsed.query}'
+
+    return SafeOutboundTarget(
+        url=url.strip(),
+        scheme=scheme,
+        hostname=hostname,
+        port=port,
+        path=path,
+        ips=tuple(safe_ips),
+    )
+
+
+def safe_outbound_request(
+    url: str,
+    *,
+    data: bytes | None = None,
+    headers: dict | None = None,
+    method: str = 'POST',
+    timeout: float = 8,
+    allow_http: bool = False,
+) -> tuple[int, bytes]:
+    """HTTP request pinned to a validated public IP (mitiga DNS rebinding)."""
+    target = validate_outbound_url(url, allow_http=allow_http)
+    hdrs = {k: v for k, v in (headers or {}).items()}
+    hdrs.setdefault('Host', target.hostname)
+    ip = target.ips[0]
+    method = (method or 'GET').upper()
+
+    if target.scheme == 'https':
+        context = ssl.create_default_context()
+        conn = http.client.HTTPSConnection(ip, target.port, timeout=timeout, context=context)
+        # Force SNI / cert validation against the original hostname.
+        conn.host = target.hostname  # type: ignore[attr-defined]
+    else:
+        conn = http.client.HTTPConnection(ip, target.port, timeout=timeout)
+
+    try:
+        # Manually connect so TLS wraps with server_hostname=original host.
+        if target.scheme == 'https':
+            sock = socket.create_connection((ip, target.port), timeout=timeout)
+            ssock = context.wrap_socket(sock, server_hostname=target.hostname)
+            conn.sock = ssock
+            conn.request(method, target.path, body=data, headers=hdrs)
+        else:
+            conn.request(method, target.path, body=data, headers=hdrs)
+        resp = conn.getresponse()
+        body = resp.read()
+        status = resp.status
+        log.info(
+            'safe_outbound status=%s host=%s pinned_ip=%s',
+            status, target.hostname, ip,
+        )
+        return status, body
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass

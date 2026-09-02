@@ -1,0 +1,456 @@
+{% load i18n %}
+<div class="tf-page an-root {% if dark %}an-dark{% endif %}">
+  <div class="tf-page-header">
+    <div>
+      {% if seller_embedded %}
+      <p class="tf-page-subtitle" style="margin:0;">
+        Company analytics{% if company_name %} · <strong>{{ company_name }}</strong>{% endif %}
+      </p>
+      {% else %}
+      <h1 class="tf-page-title">{% trans "Analytics IA" %}</h1>
+      <p class="tf-page-subtitle">
+        {% trans "Carga un archivo, pega datos o analiza directamente tus tablas de Tradeflow con IA." %}
+      </p>
+      {% endif %}
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      {% if not seller_embedded %}
+      <a class="tf-btn tf-btn-secondary an-theme-toggle"
+         href="?theme={% if dark %}light{% else %}dark{% endif %}">
+        <span class="material-symbols-rounded tf-ms-18">{% if dark %}light_mode{% else %}dark_mode{% endif %}</span>
+        {% if dark %}{% trans "Claro" %}{% else %}{% trans "Oscuro" %}{% endif %}
+      </a>
+      {% endif %}
+      {% if has_data %}
+      {% if not seller_embedded %}<span class="tf-badge tf-badge-navy">{{ meta.origen }}</span>{% endif %}
+      {% if excel_sheets|length > 1 %}
+      <form method="post" action="{% url 'analytics:load_sheet' %}"
+            style="margin:0;display:flex;gap:6px;align-items:center;">
+        {% csrf_token %}
+        <select name="sheet" class="tf-input" style="max-width:200px;padding:8px 10px;">
+          {% for s in excel_sheets %}
+            <option value="{{ s }}" {% if s == excel_current %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <button class="tf-btn tf-btn-secondary" type="submit"
+                title="{% trans 'Analizar esta hoja' %}">{% trans "Hoja" %}</button>
+      </form>
+      {% endif %}
+      <a class="tf-btn tf-btn-secondary" href="{% url 'analytics:export' 'csv' %}">CSV</a>
+      <a class="tf-btn tf-btn-secondary" href="{% url 'analytics:export' 'xlsx' %}">Excel</a>
+      {% if seller_embedded %}
+      <a class="tf-btn tf-btn-primary" href="#talk-to-your-data">{% trans "Talk to your Data AI" %}</a>
+      {% endif %}
+      {% if not seller_embedded %}
+      <form method="post" action="{% url 'analytics:clear' %}" style="margin:0;">
+        {% csrf_token %}
+        <button class="tf-btn tf-btn-danger" type="submit">{% trans "Limpiar" %}</button>
+      </form>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  {% if seller_embedded and data_truncated %}
+  <div class="tf-alert tf-alert-warning" style="margin:16px 0;">
+    <span class="material-symbols-rounded" aria-hidden="true">filter_alt</span>
+    <div>
+      Showing the newest {{ data_limit|default:20000 }} of {{ data_total_rows }} sales lines
+      so charts stay fast. Older rows are omitted from this view and AI chat.
+    </div>
+  </div>
+  {% endif %}
+
+  {% if db_auto_error %}
+  <div class="tf-alert tf-alert-warning" style="margin:16px 0;">
+    <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
+    <div>
+      {% trans "No se pudo conectar automáticamente a la base de datos configurada" %}
+      ({{ db_auto_error }}). {% trans "Puede ser algo temporal — recarga la página, o conecta manualmente desde la pestaña" %} "{% trans "Base de datos" %}" {% trans "abajo." %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# El vendedor NO ve fuentes de datos arbitrarias: sus ventas se cargan solas. #}
+  {% if not seller_embedded %}
+  <!-- ── Fuente de datos ─────────────────────────────────────────────── -->
+  <div class="an-card" style="margin-bottom:26px;">
+    <div class="an-source-title">
+      <span class="material-symbols-rounded" aria-hidden="true">database</span>
+      {% trans "Fuente de datos" %}
+    </div>
+    <div class="an-tabs">
+      {% if company_mode %}
+      <button type="button" class="an-tab is-active" data-panel="company">{% trans "Empresa" %}</button>
+      {% endif %}
+      <button type="button" class="an-tab{% if not company_mode %} is-active{% endif %}" data-panel="file">{% trans "Archivo" %}</button>
+      <button type="button" class="an-tab" data-panel="paste">{% trans "Pegar texto" %}</button>
+      <button type="button" class="an-tab" data-panel="db">{% trans "Base de datos" %}</button>
+      {% if models %}
+      <button type="button" class="an-tab" data-panel="model">{% trans "Datos de Tradeflow" %}</button>
+      {% endif %}
+    </div>
+
+    {% if company_mode %}
+    <div class="an-panel is-active" data-panel="company">
+      <form method="post" action="{% url 'analytics:load_company' %}" class="an-row">
+        {% csrf_token %}
+        {% if is_company_admin %}
+          <div>
+            <label class="tf-label">{% trans "Empresa" %}</label>
+            <select name="company_id" class="tf-input" style="min-width:260px;">
+              {% for c in companies %}
+                <option value="{{ c.id }}" {% if my_company.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        {% else %}
+          <input type="hidden" name="company_id" value="{{ my_company.id }}">
+          <span class="tf-badge tf-badge-navy">{{ my_company.name }}</span>
+        {% endif %}
+        <button class="tf-btn tf-btn-primary" type="submit">{% trans "Cargar ventas de esta empresa" %}</button>
+      </form>
+      <div class="an-suggest">
+        {% if is_company_admin %}
+          {% trans "Como administrador puedes ver los datos de cualquier empresa (modo de pruebas). En producción, cada vendedor solo ve los suyos." %}
+        {% else %}
+          {% trans "Se cargan las ventas de tu empresa (productos, órdenes y montos)." %}
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="an-panel{% if not company_mode %} is-active{% endif %}" data-panel="file">
+      <form method="post" action="{% url 'analytics:load' %}" enctype="multipart/form-data" class="an-row">
+        {% csrf_token %}
+        <input type="hidden" name="source" value="file">
+        <div>
+          <label class="tf-label" for="an-file-input">{% trans "Archivo" %}</label>
+          <input type="file" id="an-file-input" name="file" accept=".csv,.xlsx,.xls,.json"
+                 class="tf-input" style="max-width:360px;" required>
+        </div>
+        <button class="tf-btn tf-btn-primary" type="submit">{% trans "Cargar" %}</button>
+      </form>
+      <div class="an-suggest">{% trans "Formatos: CSV, Excel (.xlsx/.xls), JSON." %}</div>
+    </div>
+
+    <div class="an-panel" data-panel="paste">
+      <form method="post" action="{% url 'analytics:load' %}">
+        {% csrf_token %}
+        <input type="hidden" name="source" value="paste">
+        <label class="tf-label" for="an-paste-text">{% trans "Datos en CSV (o separados por tabulador / punto y coma)" %}</label>
+        <textarea id="an-paste-text" name="text" class="tf-input" rows="6"
+                  placeholder="region,ventas&#10;Norte,120&#10;Sur,90"></textarea>
+        <button class="tf-btn tf-btn-primary" type="submit" style="margin-top:10px;">{% trans "Cargar" %}</button>
+      </form>
+    </div>
+
+    <div class="an-panel" data-panel="db">
+      {% if not db_available %}
+        <div class="tf-alert tf-alert-info">{% trans "Falta psycopg2 en el entorno (pip install psycopg2-binary)." %}</div>
+      {% else %}
+        <!-- Conexión: SIEMPRE visible (permite conectar o cambiar de base) -->
+        <form method="post" action="{% url 'analytics:db_connect' %}">
+          {% csrf_token %}
+          <label class="tf-label">{% trans "Cadena de conexión" %} — PostgreSQL/Supabase o MySQL/MariaDB</label>
+          <input type="password" name="conn" class="tf-input" autocomplete="off"
+                 placeholder="postgresql://...  ·  mysql://user:pass@host:3306/db">
+          <div class="an-row" style="margin-top:10px;">
+            <div>
+              <label class="tf-label">{% trans "Esquema" %}</label>
+              <input type="text" name="schema" value="{{ db_schema|default:'public' }}"
+                     class="tf-input" style="max-width:160px;">
+            </div>
+            <button class="tf-btn tf-btn-primary" type="submit">
+              {% if db_connected %}{% trans "Cambiar conexión" %}{% else %}{% trans "Conectar y listar tablas" %}{% endif %}
+            </button>
+          </div>
+        </form>
+        <div class="an-suggest" style="margin-bottom:4px;">
+          {% trans "Postgres:" %} <code>postgresql://user:pass@host:5432/db</code> ·
+          {% trans "MySQL:" %} <code>mysql://user:pass@host:3306/db</code>.
+          {% trans "La contraseña se guarda solo en el servidor durante tu sesión." %}
+        </div>
+
+        {% if db_connected %}
+        <hr style="border:none;border-top:1px solid var(--tf-border);margin:16px 0;">
+        <div class="an-row" style="margin-bottom:12px;">
+          <span class="tf-badge tf-badge-navy">{% trans "Conectado" %} · {{ db_schema }} ·
+            {{ db_tables|length }} {% trans "tablas" %} · {{ db_fks|length }} {% trans "relaciones" %}</span>
+          <form method="post" action="{% url 'analytics:db_disconnect' %}" style="margin:0;">
+            {% csrf_token %}
+            <button class="tf-btn tf-btn-secondary" type="submit">{% trans "Desconectar" %}</button>
+          </form>
+        </div>
+        <form method="post" action="{% url 'analytics:load' %}">
+          {% csrf_token %}
+          <input type="hidden" name="source" value="db">
+          <div class="an-row">
+            <div>
+              <label class="tf-label">{% trans "Tabla" %}</label>
+              <select name="table" class="tf-input" style="min-width:260px;">
+                {% for t in db_tables %}
+                  <option value="{{ t.name }}">{{ t.name }} · {{ t.rows }} {% trans "filas" %}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="tf-label">{% trans "Máx. filas" %}</label>
+              <input type="number" name="limit" value="5000" min="100" max="200000" step="500"
+                     class="tf-input" style="max-width:130px;">
+            </div>
+            <button class="tf-btn tf-btn-primary" type="submit">{% trans "Cargar tabla" %}</button>
+          </div>
+          {% if db_fks %}
+          <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--tf-muted);cursor:pointer;">
+            <input type="checkbox" name="joined" value="1">
+            {% trans "Incluir columnas de tablas relacionadas (JOIN por claves foráneas)" %}
+          </label>
+          {% endif %}
+        </form>
+
+        {% if db_fks %}
+        <details style="margin-top:12px;">
+          <summary class="an-details-toggle">
+            <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+            {% trans "Relaciones detectadas" %} ({{ db_fks|length }})
+          </summary>
+          <div class="an-suggest" style="margin-top:8px;line-height:1.9;">
+            {% for fk in db_fks %}
+              <code>{{ fk.table }}.{{ fk.column }}</code> → <code>{{ fk.ref_table }}.{{ fk.ref_column }}</code><br>
+            {% endfor %}
+          </div>
+        </details>
+        {% endif %}
+        <details style="margin-top:14px;">
+          <summary class="an-details-toggle">
+            <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+            {% trans "SQL personalizado (solo lectura)" %}
+          </summary>
+          <form method="post" action="{% url 'analytics:load' %}" style="margin-top:10px;">
+            {% csrf_token %}
+            <input type="hidden" name="source" value="db_sql">
+            <label class="tf-label" for="an-sql-text">{% trans "Consulta SQL" %}</label>
+            <textarea id="an-sql-text" name="sql" class="tf-input" rows="4"
+                      placeholder="SELECT * FROM orders WHERE total > 100"></textarea>
+            <button class="tf-btn tf-btn-primary" type="submit" style="margin-top:10px;">{% trans "Ejecutar SQL" %}</button>
+          </form>
+        </details>
+        {% endif %}{# db_connected #}
+      {% endif %}{# db_available #}
+    </div>
+
+    {% if models %}
+    <div class="an-panel" data-panel="model">
+      <form method="post" action="{% url 'analytics:load' %}" class="an-row">
+        {% csrf_token %}
+        <input type="hidden" name="source" value="model">
+        <div>
+          <label class="tf-label">{% trans "Tabla" %}</label>
+          <select name="model" class="tf-input" style="min-width:240px;">
+            {% for m in models %}
+              <option value="{{ m.value }}">{{ m.label }} ({{ m.count }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="tf-label">{% trans "Máx. filas" %}</label>
+          <input type="number" name="limit" value="5000" min="100" max="200000" step="500"
+                 class="tf-input" style="max-width:130px;">
+        </div>
+        <button class="tf-btn tf-btn-primary" type="submit">{% trans "Cargar" %}</button>
+      </form>
+      <div class="an-suggest">{% trans "Lee directamente de la base de datos de Tradeflow vía ORM (sin exportar archivos)." %}</div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}{# not seller_embedded #}
+
+  {% if has_data %}
+    <!-- ── KPIs ──────────────────────────────────────────────────────── -->
+    <div class="tf-metrics-grid">
+      {% for label, value in kpis %}
+      <div class="tf-metric-card">
+        <div class="tf-metric-value">{{ value }}</div>
+        <div class="tf-metric-label">{{ label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ── Gráficas ──────────────────────────────────────────────────── -->
+    <h2 class="tf-subtitle">{% if seller_embedded %}Charts{% else %}{% trans "Visualizaciones" %}{% endif %}</h2>
+    {% if not charts %}
+    <div class="tf-alert tf-alert-info">
+      <span class="material-symbols-rounded" aria-hidden="true">info</span>
+      {% if seller_embedded %}
+      Not enough numeric or categorical columns to chart yet. Use the chat below or expand the data preview.
+      {% else %}
+      {% trans "Esta tabla no tiene columnas numéricas o categóricas con datos suficientes para graficar. Prueba otra tabla (p. ej. una con métricas), usa el chat, o revisa la vista de datos abajo." %}
+      {% endif %}
+    </div>
+    {% endif %}
+    <div class="an-grid" id="an-charts">
+      {% for c in charts %}
+      <div class="an-skel" aria-hidden="true">
+        <div class="an-skel-title"></div>
+        <div class="an-skel-body"></div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ── Proyecciones automáticas ──────────────────────────────────── -->
+    <section class="an-forecast-block an-section" aria-labelledby="an-forecast-heading">
+    <h2 class="tf-subtitle an-section-title" id="an-forecast-heading">
+      <span class="material-symbols-rounded an-forecast-ico" aria-hidden="true">trending_up</span>
+      {% if seller_embedded %}Forecasts{% else %}{% trans "Proyecciones" %}{% endif %}
+      {% if proj_tables or forecast_charts %}
+      <span class="an-section-hint">{% if seller_embedded %}— auto-estimated from your history{% else %}{% trans "— estimadas automáticamente sobre tu histórico" %}{% endif %}</span>
+      {% endif %}
+    </h2>
+    {% if forecast_charts %}
+    <div class="an-grid an-forecast-charts" id="an-forecast-charts">
+      {% for c in forecast_charts %}
+      <div class="an-skel" aria-hidden="true">
+        <div class="an-skel-title"></div>
+        <div class="an-skel-body"></div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if proj_tables %}
+    <div class="an-grid an-proj-grid">
+      {% for t in proj_tables %}
+      <article class="an-card an-proj-card{% if t.kind == 'up' %} an-proj-up{% elif t.kind == 'down' %} an-proj-down{% elif t.kind == 'summary' %} an-proj-summary{% endif %}">
+        <header class="an-proj-title">
+          <span class="an-proj-badge" aria-hidden="true">
+            <span class="material-symbols-rounded">
+              {% if t.kind == 'up' %}trending_up{% elif t.kind == 'down' %}trending_down{% else %}insights{% endif %}
+            </span>
+          </span>
+          <span class="an-proj-title-text">{{ t.title }}</span>
+        </header>
+        {% if t.rows %}
+        <dl class="an-metric-list">
+          {% for row in t.rows %}
+          <div class="an-metric-row">
+            <dt>{{ row.label }}</dt>
+            <dd class="an-metric-val {% if row.tone == 'up' %}is-up{% elif row.tone == 'down' %}is-down{% elif row.tone == 'muted' %}is-muted{% endif %}">{{ row.value }}</dd>
+          </div>
+          {% endfor %}
+        </dl>
+        {% else %}
+        <div class="an-table-scroll">{{ t.html }}</div>
+        {% endif %}
+        {% if t.note %}
+        <p class="an-proj-note">{{ t.note }}</p>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    {% elif not forecast_charts %}
+    <div class="tf-alert tf-alert-info an-forecast-empty">
+      <span class="material-symbols-rounded" aria-hidden="true">timeline</span>
+      {% if seller_embedded %}
+      Forecasts need a date column and at least a few periods of history.
+      Once you have more dated orders, trend and forecast tables appear here automatically.
+      {% else %}
+      {% trans "Las proyecciones necesitan una columna de fecha y al menos unos periodos de histórico." %}
+      {% endif %}
+    </div>
+    {% endif %}
+    </section>
+
+    <!-- ── Chat ──────────────────────────────────────────────────────── -->
+    <section id="talk-to-your-data" class="an-section" aria-labelledby="an-talk-heading">
+    <h2 class="tf-subtitle" id="an-talk-heading">{% if seller_embedded %}Talk to your data{% else %}{% trans "Habla con tus datos" %}{% endif %}</h2>
+    <div class="an-card an-chat-box">
+      <div class="an-chat-msgs" id="an-chat-msgs">
+        <div class="an-bubble an-bubble-bot">
+          {% if seller_embedded %}
+          Ask for charts ("bars of sales by category"), tables ("top 10 by total"), questions ("what is the average?"), or forecasts ("project sales", "which products are declining?").
+          <div style="margin-top:8px;font-size:12px;opacity:.85;">AI replies may be generated via Groq. Avoid pasting secrets or personal data you do not need to analyze.</div>
+          {% else %}
+          {% trans "Pídeme gráficas (\"barras de ventas por region\"), tablas (\"top 10 por total\"), preguntas (\"¿cuál es el promedio?\") o proyecciones a futuro (\"proyecta las ventas\", \"¿qué productos están bajando?\")." %}
+          <div style="margin-top:8px;font-size:12px;opacity:.85;">{% trans "Las respuestas de IA pueden generarse vía Groq. Evita pegar secretos o datos personales innecesarios." %}</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="an-chat-input-row">
+        <input type="text" id="an-chat-input" class="tf-input"
+               aria-label="{% if seller_embedded %}Ask a question or request about your sales data{% else %}{% trans 'Escribe tu pregunta o petición para el chat de datos' %}{% endif %}"
+               placeholder="{% if seller_embedded %}Ask for a chart, table, or question…{% else %}{% trans 'Pide una gráfica, una tabla o haz una pregunta…' %}{% endif %}">
+        <button class="tf-btn tf-btn-primary" id="an-chat-send" type="button">{% if seller_embedded %}Send{% else %}{% trans "Enviar" %}{% endif %}</button>
+      </div>
+      <div class="an-suggest">
+        {% if seller_embedded %}Try:{% else %}{% trans "Prueba:" %}{% endif %}
+        {% if seller_embedded and company_view %}
+        <button type="button" class="an-ex">top 5 products by sales</button>
+        <button type="button" class="an-ex">pie chart of revenue by category</button>
+        <button type="button" class="an-ex">which product sells the most?</button>
+        <button type="button" class="an-ex">forecast sales</button>
+        <button type="button" class="an-ex">which products are declining?</button>
+        <button type="button" class="an-ex">growth next quarter</button>
+        {% elif company_view %}
+        <button type="button" class="an-ex">top 5 productos por ventas</button>
+        <button type="button" class="an-ex">ingresos por categoria en pastel</button>
+        <button type="button" class="an-ex">¿cuál producto vende más?</button>
+        <button type="button" class="an-ex">proyecta las ventas a futuro</button>
+        <button type="button" class="an-ex">¿qué productos están bajando?</button>
+        <button type="button" class="an-ex">crecimiento el próximo trimestre</button>
+        {% else %}
+        <button type="button" class="an-ex">treemap de total por status</button>
+        <button type="button" class="an-ex">top 5 por total</button>
+        <button type="button" class="an-ex">proyecta a futuro</button>
+        <button type="button" class="an-ex">¿qué está bajando?</button>
+        {% endif %}
+      </div>
+    </div>
+    </section>
+
+    <!-- ── Vista previa de datos ─────────────────────────────────────── -->
+    <details class="an-section">
+      <summary class="an-details-toggle">
+        <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+        {% if seller_embedded %}
+        View data ({{ n_preview }} of {{ n_total }} rows)
+        {% else %}
+        {% trans "Ver datos" %} ({{ n_preview }} {% trans "de" %} {{ n_total }} {% trans "filas" %})
+        {% endif %}
+      </summary>
+      <div class="an-table-scroll an-card" style="margin-top:10px;">{{ preview_html }}</div>
+    </details>
+
+    {{ charts|json_script:"an-charts-data" }}
+    {{ forecast_charts|json_script:"an-forecast-charts-data" }}
+  {% else %}
+    {% if no_company %}
+    <div class="tf-alert tf-alert-info">
+      <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
+      {% if seller_embedded %}
+      You don’t have a store linked to this account yet. Create your company in My Store to see sales analytics.
+      {% else %}
+      {% trans "Aún no tienes una tienda asociada a tu cuenta. Crea tu empresa en «Mi Tienda» para ver la analítica de tus ventas." %}
+      {% endif %}
+    </div>
+    {% elif no_sales %}
+    <div class="tf-alert tf-alert-info">
+      <span class="material-symbols-rounded" aria-hidden="true">insights</span>
+      {% if seller_embedded %}
+      No sales recorded for your company yet. When orders come in, KPIs, charts, and forecasts appear here automatically.
+      {% else %}
+      {% trans "Todavía no hay ventas registradas para tu empresa. Cuando recibas tus primeras órdenes, aquí verás KPIs, gráficas y proyecciones automáticamente." %}
+      {% endif %}
+    </div>
+    {% elif seller_embedded %}
+    <div class="tf-alert tf-alert-info">
+      <span class="material-symbols-rounded" aria-hidden="true">insights</span>
+      No data to show yet.
+    </div>
+    {% else %}
+    <div class="tf-alert tf-alert-info">
+      <span class="material-symbols-rounded" aria-hidden="true">insights</span>
+      {% trans "Carga datos arriba para ver KPIs, gráficas y el chat con IA." %}
+    </div>
+    {% endif %}
+  {% endif %}
+</div>

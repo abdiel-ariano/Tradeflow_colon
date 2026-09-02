@@ -1,161 +1,135 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% block title %}Confirm order — TradeFlow Colón{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Request for Quotation" %} — TradeFlow Colón{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/tf_animations.css' %}">
 <style nonce="{{ csp_nonce }}">
-  .co-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
-  .co-title { font-weight: 700; font-size: 1.75rem; color: #0F2A44; margin: 0 0 1.5rem; text-align: center; }
-  .co-card { background: #fff; border: 1px solid #D1D5DB; border-radius: 12px; padding: 1.35rem; margin-bottom: 1rem; }
-  .co-sec { font-weight: 600; font-size: 0.8125rem; color: #6B7A88; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 1rem; }
-  .co-carrier { display: flex; gap: 10px; padding: 12px; border: 1px solid #E5E7EB; border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
-  .co-carrier:has(input:checked) { border-color: #F26522; background: #FFF7ED; }
-  .co-geo-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 8px; border: 1.5px solid #2E5B8A; background: #fff; color: #0F2A44; font-weight: 600; cursor: pointer; }
-  .co-geo-btn.is-ok { border-color: #15803d; background: #F0FDF4; }
-  .co-geo-status { font-size: 0.85rem; color: #6B7A88; margin-top: 8px; }
-  .co-submit { width: 100%; margin-top: 1rem; padding: 12px; border: none; border-radius: 8px; background: #F26522; color: #fff; font-weight: 700; cursor: pointer; }
-  .co-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  .rfq-wrap { max-width: 980px; margin: 0 auto; padding: 42px 24px 64px; font-family: var(--tf-font-body, 'Montserrat', system-ui, sans-serif); }
+  .rfq-head { text-align: center; margin-bottom: 24px; }
+  .rfq-title { margin: 0 0 10px; color: var(--tf-navy, #0F2A44); font-size: clamp(1.75rem, 4vw, 2.45rem); font-weight: 800; }
+  .rfq-lead { max-width: 720px; margin: 0 auto; color: var(--tf-muted, #6B7A88); line-height: 1.6; }
+  .rfq-badges { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .rfq-badge { display: inline-flex; align-items: center; gap: 7px; border: 1px solid #C8D5E2; border-radius: 999px; padding: 7px 12px; color: var(--tf-navy, #0F2A44); background: #F8FAFC; font-size: .82rem; font-weight: 700; }
+  .rfq-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .75fr); gap: 20px; align-items: start; }
+  .rfq-card { background: #fff; border: 1px solid var(--tf-border, #D1D5DB); border-radius: 14px; padding: 20px; box-shadow: 0 12px 30px rgba(15,42,68,.06); }
+  .rfq-card + .rfq-card { margin-top: 14px; }
+  .rfq-company { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .rfq-company h2 { margin: 0; color: var(--tf-navy, #0F2A44); font-size: 1.05rem; }
+  .rfq-verified { color: #15803D; font-size: .8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+  .rfq-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 13px 0; border-top: 1px solid #EDF1F5; }
+  .rfq-product { color: var(--tf-navy, #0F2A44); font-weight: 700; }
+  .rfq-meta { color: var(--tf-muted, #6B7A88); font-size: .82rem; margin-top: 4px; }
+  .rfq-money { color: var(--tf-orange, #F26522); font-weight: 800; white-space: nowrap; }
+  .rfq-subtotal { display: flex; justify-content: space-between; gap: 16px; padding-top: 12px; border-top: 1px solid #DDE5ED; color: var(--tf-navy, #0F2A44); font-weight: 800; }
+  .rfq-side { position: sticky; top: 92px; }
+  .rfq-sec { margin: 0 0 10px; color: var(--tf-navy, #0F2A44); font-size: .88rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+  .rfq-note { border-left: 4px solid var(--tf-orange, #F26522); background: #FFF7ED; border-radius: 8px; padding: 13px 14px; color: #5E493B; font-size: .86rem; line-height: 1.55; margin-bottom: 16px; }
+  .rfq-label { display: block; margin: 14px 0 7px; color: var(--tf-navy, #0F2A44); font-size: .85rem; font-weight: 700; }
+  .rfq-input { width: 100%; border: 1px solid #CBD5E1; border-radius: 9px; padding: 11px 12px; background: #fff; color: var(--tf-navy, #0F2A44); }
+  textarea.rfq-input { min-height: 108px; resize: vertical; }
+  .rfq-submit { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; border: 0; border-radius: 10px; padding: 13px 16px; background: var(--tf-orange, #F26522); color: #fff; font-weight: 800; cursor: pointer; }
+  .rfq-submit:disabled { opacity: .55; cursor: wait; }
+  .rfq-back { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 12px; color: var(--tf-navy, #0F2A44); font-size: .88rem; font-weight: 700; text-decoration: none; }
+  .co-verify-card { border-color: var(--tf-orange, #F26522); background: linear-gradient(180deg, #fff 0%, #fff7ed 100%); margin-bottom: 18px; }
+  .co-order--locked { opacity: .45; pointer-events: none; user-select: none; }
+  .otp-panel--inline { text-align: center; }
+  .otp-panel__icon { width: 48px; height: 48px; margin: 0 auto 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(242,101,34,.12); color: var(--tf-orange, #F26522); }
+  .otp-panel__title { margin: 0 0 6px; font-size: 1.25rem; font-weight: 700; color: var(--tf-navy, #0F2A44); }
+  .otp-panel__lead { margin: 0 0 8px; font-size: .9rem; font-weight: 600; color: var(--tf-orange, #F26522); }
+  .otp-panel__sub { margin: 0 0 16px; font-size: .875rem; color: var(--tf-muted, #6B7A88); line-height: 1.5; }
+  .otp-panel__input { display: block; width: 100%; max-width: 240px; margin: 0 auto 14px; text-align: center; font-size: 1.5rem; font-weight: 700; letter-spacing: .38em; padding: 12px; border: 2px solid var(--tf-border, #D1D5DB); border-radius: 10px; }
+  .otp-panel__submit { display: block; width: 100%; max-width: 320px; margin: 0 auto; border: none; border-radius: 10px; padding: 12px 16px; font-weight: 700; color: #fff; background: var(--tf-orange, #F26522); cursor: pointer; }
+  @media (max-width: 780px) { .rfq-grid { grid-template-columns: 1fr; } .rfq-side { position: static; } }
 </style>
 {% endblock %}
 {% block content %}
-<div class="tf-page co-wrap">
-  <h1 class="co-title">Confirm order</h1>
-  <form method="post" id="co-form">
-    {% csrf_token %}
-    <input type="hidden" name="buyer_latitude" id="co-lat" value="">
-    <input type="hidden" name="buyer_longitude" id="co-lng" value="">
+<div class="tf-page rfq-wrap">
+  <header class="rfq-head">
+    <h1 class="rfq-title">{% trans "Request for Quotation" %}</h1>
+    <p class="rfq-lead">{% trans "Add products from multiple suppliers and request formal quotations." %}</p>
+    <div class="rfq-badges">
+      <span class="rfq-badge"><span class="material-symbols-rounded">verified</span>{{ suppliers_count }} {% trans "Companies" %}</span>
+      <span class="rfq-badge"><span class="material-symbols-rounded">inventory_2</span>{{ products_count }} {% trans "Products" %}</span>
+    </div>
+  </header>
 
-    <div class="co-card">
-      <div class="co-sec">Who transports your cargo?</div>
-      {% for t in transportistas %}
-      <label class="co-carrier">
-        <input type="radio" name="transport_carrier" value="{{ t.pk }}" required {% if forloop.first %}checked{% endif %}>
-        <div style="flex:1;">
-          <strong>{{ t.name }}</strong>
-          {% if t.description %}<div style="font-size:12px;color:#6B7A88;">{{ t.description }}</div>{% endif %}
+  {% if needs_email_verify %}
+  <div class="rfq-card co-verify-card">
+    {% include "core/includes/verify_email_panel.html" with inline=True %}
+    <p style="margin:12px 0 0;text-align:center;font-size:.8125rem;color:#6B7A88;">{% trans "Your cart is saved while you verify" %}</p>
+  </div>
+  {% endif %}
+
+  <div class="rfq-grid {% if needs_email_verify %}co-order--locked{% endif %}">
+    <section aria-label="{% trans 'Products' %}">
+      {% for group in rfq_groups %}
+      <article class="rfq-card">
+        <div class="rfq-company">
+          <h2>{{ group.company.name }}</h2>
+          <span class="rfq-verified"><span class="material-symbols-rounded">verified</span>{% trans "Verified suppliers" %}</span>
         </div>
-        <span style="font-weight:700;color:#F26522;">USD {{ t.base_shipping_cost }}</span>
-      </label>
-      {% empty %}
-      <p>No active carriers.</p>
+        {% for line in group.items %}
+        <div class="rfq-line">
+          <div>
+            <div class="rfq-product">{{ line.product.name }}</div>
+            <div class="rfq-meta">{% trans "Quantity" %}: {{ line.quantity }} · {{ line.product.sku|default:"—" }}</div>
+          </div>
+          <div class="rfq-money">USD {{ line.reference_total|floatformat:2 }}</div>
+        </div>
+        {% endfor %}
+        <div class="rfq-subtotal"><span>{% trans "Subtotal" %}</span><span>USD {{ group.reference_subtotal|floatformat:2 }}</span></div>
+      </article>
       {% endfor %}
-    </div>
+    </section>
 
-    <div class="co-card">
-      <div class="co-sec">Delivery location</div>
-      <button type="button" class="co-geo-btn" id="co-geo-btn">
-        <span class="material-symbols-rounded">my_location</span>
-        Use my current location
-      </button>
-      <p class="co-geo-status" id="co-geo-status">You must confirm your location to continue.</p>
-    </div>
+    <aside class="rfq-card rfq-side">
+      <h2 class="rfq-sec">{% trans "Quote-first workflow" %}</h2>
+      <div class="rfq-note">
+        <strong>{% trans "Request for Quotation before payment" %}</strong><br>
+        {% trans "Negotiate volume, shipping, and payment terms before funds move." %}
+      </div>
+      <form method="post" id="rfq-form">
+        {% csrf_token %}
+        <label class="rfq-label" for="rfq-validity">{% trans "Validity (days)" %}</label>
+        <select class="rfq-input" id="rfq-validity" name="validez_dias">
+          <option value="15">15</option>
+          <option value="30" selected>30</option>
+          <option value="45">45</option>
+          <option value="60">60</option>
+        </select>
 
-    <div class="co-card">
-      <div class="co-sec">Notes</div>
-      <textarea name="notas" class="tf-input" style="width:100%;min-height:80px;" placeholder="Delivery instructions…"></textarea>
-      {% if not checkout_auto_approve %}
-      <p style="font-size:0.85rem;color:#6B7A88;margin-top:10px;">
-        The company will confirm your order before charging (typical 48 h window).
-      </p>
-      {% endif %}
-      <button type="submit" class="co-submit" id="co-submit" disabled>
-        Submit order
-      </button>
-    </div>
-  </form>
+        <label class="rfq-label" for="rfq-notes">{% trans "Notes" %}</label>
+        <textarea class="rfq-input" id="rfq-notes" name="notas" placeholder="{% trans 'Notes' %}"></textarea>
 
-  <div class="co-card">
-    <div class="co-sec">Summary</div>
-    {% for prod_id, item in carrito.items %}
-    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:14px;">
-      <span>{{ item.nombre }} × {{ item.cantidad }}</span>
-      <span style="font-weight:700;color:#F26522;">USD {{ item.subtotal }}</span>
-    </div>
-    {% endfor %}
-    <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:10px;color:#0F2A44;">
-      <span>Subtotal</span><span>USD {{ subtotal }}</span>
-    </div>
+        <div class="rfq-subtotal" style="margin-top:16px;">
+          <span>{% trans "Summary" %}</span>
+          <span>USD {{ subtotal|floatformat:2 }}</span>
+        </div>
+        <button type="submit" class="rfq-submit" id="rfq-submit">
+          <span class="material-symbols-rounded">request_quote</span>
+          {% trans "Request for Quotation" %}
+        </button>
+      </form>
+      <a class="rfq-back" href="{% url 'ver_carrito' %}">
+        <span class="material-symbols-rounded">arrow_back</span>{% trans "Review quotes & terms" %}
+      </a>
+    </aside>
   </div>
 </div>
 {% endblock %}
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">
 (function () {
-  var I = window.TF_I18N || {};
-  // Centro ZLC — mismos defaults que Company.latitud/longitud y tests de checkout
-  var FALLBACK_LAT = '9.3667000';
-  var FALLBACK_LNG = '-79.9000000';
-  var GEO_TIMEOUT_MS = 5000;
-  var lat = document.getElementById('co-lat');
-  var lng = document.getElementById('co-lng');
-  var status = document.getElementById('co-geo-status');
-  var btn = document.getElementById('co-geo-btn');
-  var submit = document.getElementById('co-submit');
-  var form = document.getElementById('co-form');
-
-  function setOk() {
-    btn.classList.add('is-ok', 'tf-pulse-once');
-    submit.disabled = false;
-    status.textContent = I.geoConfirmed || 'Location confirmed.';
-    status.style.color = '#15803d';
-  }
-
-  function applyCoords(latVal, lngVal) {
-    lat.value = latVal;
-    lng.value = lngVal;
-    setOk();
-  }
-
-  function requestLocation() {
-    if (!navigator.geolocation) {
-      applyCoords(FALLBACK_LAT, FALLBACK_LNG);
-      return;
-    }
-    status.textContent = 'Getting location…';
-    var settled = false;
-    function finishWithFallback() {
-      if (settled) return;
-      settled = true;
-      applyCoords(FALLBACK_LAT, FALLBACK_LNG);
-    }
-    var timer = window.setTimeout(finishWithFallback, GEO_TIMEOUT_MS);
-    navigator.geolocation.getCurrentPosition(
-      function (pos) {
-        if (settled) return;
-        settled = true;
-        window.clearTimeout(timer);
-        applyCoords(
-          pos.coords.latitude.toFixed(7),
-          pos.coords.longitude.toFixed(7)
-        );
-      },
-      function () {
-        window.clearTimeout(timer);
-        finishWithFallback();
-      },
-      { enableHighAccuracy: true, timeout: GEO_TIMEOUT_MS, maximumAge: 60000 }
-    );
-  }
-
-  btn.addEventListener('click', requestLocation);
-
-  // Evita doble POST (doble Order/Payment): al enviar, deshabilita el botón.
-  if (form && submit) {
-    var submitted = false;
-    form.addEventListener('submit', function (e) {
-      // Respeta la validación nativa: si el form es inválido, no hacer nada.
-      if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
-        return;
-      }
-      if (submitted) {
-        e.preventDefault();
-        return;
-      }
-      submitted = true;
-      submit.disabled = true;
-      submit.textContent = I.processing || 'Processing…';
-    });
-  }
+  var form = document.getElementById('rfq-form');
+  var submit = document.getElementById('rfq-submit');
+  if (!form || !submit) return;
+  form.addEventListener('submit', function () {
+    submit.disabled = true;
+    submit.textContent = (window.TF_I18N || {}).processing || 'Processing…';
+  });
 })();
 </script>
+{% endblock %}
+{% block footer %}
+  {% include "core/includes/catalogo_footer.html" %}
 {% endblock %}

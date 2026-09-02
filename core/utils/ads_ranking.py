@@ -1,5 +1,7 @@
-"""
-TradeFlow Ads — boosts y ranking dinámico sobre merchandising existente.
+"""Impulso de productos patrocinados sobre el merchandising del catálogo.
+
+Los vendedores gastan créditos publicitarios del plan para elevar SKUs en
+búsqueda y secciones del home sin reemplazar bestsellers orgánicos ni flags destacados.
 """
 from __future__ import annotations
 
@@ -12,6 +14,7 @@ from core.enterprise_models import AdCampaign, AdCreditAccount
 
 
 def active_boost_map() -> dict[int, Decimal]:
+    """Mapa product_id → peso de impulso de campaña activa para el ranking."""
     now = timezone.now()
     boosts = {}
     for row in (
@@ -24,7 +27,7 @@ def active_boost_map() -> dict[int, Decimal]:
 
 
 def annotate_sponsored_score(queryset):
-    """Aumenta score de productos con campaña activa."""
+    """Eleva la puntuación del producto cuando una campaña activa lo apunta."""
     boosts = active_boost_map()
     if not boosts:
         return queryset.annotate(
@@ -42,6 +45,7 @@ def annotate_sponsored_score(queryset):
 
 
 def ensure_ad_credits(company, monthly_credits: int = 0):
+    """Asegura que exista la billetera de créditos publicitarios con al menos ``amount``."""
     account, created = AdCreditAccount.objects.get_or_create(company=company)
     if created and monthly_credits:
         account.balance = monthly_credits

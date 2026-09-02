@@ -442,4 +442,26 @@
   }
   markPagination(catalogRoot.getAttribute('data-cur-page') || '1');
   markTabs(meta ? meta.getAttribute('data-tab-active') || 'todos' : 'todos');
+
+  var tiendaSearch = document.getElementById('input-buscar');
+  if (tiendaSearch) {
+    tiendaSearch.setAttribute('data-tf-ai-search', 'buyer');
+    function bootAi() {
+      if (window.TFAiSearch) window.TFAiSearch.attach(tiendaSearch);
+    }
+    if (window.TFAiSearch) {
+      bootAi();
+    } else if (!document.getElementById('tf-ai-search-loader')) {
+      var marker = document.createElement('script');
+      marker.id = 'tf-ai-search-loader';
+      marker.src = '/static/js/tf-ai-search.js';
+      marker.onload = bootAi;
+      document.body.appendChild(marker);
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/static/css/tf-ai-search.css';
+      document.head.appendChild(link);
+      window.TF_AI_SEARCH_URL = window.TF_AI_SEARCH_URL || '/api/search/suggest/';
+    }
+  }
 })();

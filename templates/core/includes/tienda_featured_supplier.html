@@ -1,33 +1,33 @@
-{% load static tf_money tf_media %}
+{% load static i18n tf_money tf_media %}
 {% comment %}
 Proveedor destacado en resultados de búsqueda — estilo Alibaba Supplier Featured.
 Variables: company (con spotlight_products)
 {% endcomment %}
 {% if company %}
-<section class="td-featured td-featured--supplier" aria-label="Proveedor destacado">
+<section class="td-featured td-featured--supplier" aria-label="{% trans 'Featured supplier' %}">
   <header class="td-featured__head">
     <div class="td-featured__identity">
       {% include "core/includes/company_avatar.html" with company=company class="td-featured__avatar" %}
       <div class="td-featured__meta">
-        <span class="td-featured__eyebrow">Proveedor destacado</span>
+        <span class="td-featured__eyebrow">{% trans "Featured supplier" %}</span>
         <h2 class="td-featured__name">{{ company.name }}</h2>
         <div class="td-featured__badges">
           {% if company.is_verified %}
           <span class="td-featured__badge td-featured__badge--verified">
             {% include "core/includes/tf_icon.html" with name="verified" class="tf-icon--sm" %}
-            CFZ Verificado
+            {% trans "CFZ Verified" %}
           </span>
           {% endif %}
           <span class="td-featured__badge">🇵🇦 PA</span>
           {% if company.num_productos %}
-          <span class="td-featured__badge">{{ company.num_productos }} product{{ company.num_productos|pluralize }}</span>
+          <span class="td-featured__badge">{% blocktrans count counter=company.num_productos %}{{ counter }} product{% plural %}{{ counter }} products{% endblocktrans %}</span>
           {% endif %}
         </div>
       </div>
     </div>
     <div class="td-featured__actions">
-      <a href="{% url 'tienda' %}?empresa={{ company.pk }}" class="td-featured__btn td-featured__btn--outline">Ver catálogo</a>
-      <a href="{% url 'mis_cotizaciones' %}" class="td-featured__btn td-featured__btn--primary">Contactar</a>
+      <a href="{% url 'tienda' %}?empresa={{ company.pk }}" class="td-featured__btn td-featured__btn--outline">{% trans "View catalog" %}</a>
+      <a href="{% url 'mis_cotizaciones' %}" class="td-featured__btn td-featured__btn--primary">{% trans "Contact" %}</a>
     </div>
   </header>
 

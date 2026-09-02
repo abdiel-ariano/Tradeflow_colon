@@ -1,6 +1,8 @@
-"""
-Enterprise models: SaaS plans, ads, logistics API, and API keys.
-Extends the existing architecture without replacing core models.
+"""Modelos empresariales de SaaS, anuncios, API logística y auditoría para vendedores ZLC.
+
+Extienden las tablas de catálogo/pedidos del núcleo sin reemplazarlas. Los
+planes limitan volúmenes, créditos publicitarios, webhooks e IA predictiva
+para comerciantes de la Zona Libre de Colón.
 """
 from __future__ import annotations
 
@@ -14,7 +16,11 @@ from django.utils import timezone
 
 
 class SaasPlan(models.Model):
-    """Commercial TradeFlow plan (Digitalize → Enterprise)."""
+    """Nivel comercial de plan TradeFlow (Digitalize → Enterprise).
+
+    Los topes de volumen y los flags de funcionalidad definen qué puede usar
+    cada vendedor de la ZLC.
+    """
 
     slug = models.SlugField(max_length=40, unique=True)
     name = models.CharField(max_length=120)
@@ -37,20 +43,30 @@ class SaasPlan(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        """Opciones de modelo para planes SaaS."""
         ordering = ['sort_order', 'slug']
         verbose_name = 'SaaS plan'
         verbose_name_plural = 'SaaS plans'
 
     def __str__(self):
+        """Nombre del plan SaaS para admin y depuración."""
         return self.name
 
     @property
     def is_unlimited(self) -> bool:
+        """True cuando el GMV mensual no tiene tope."""
         return self.monthly_volume_limit_usd is None
 
 
 class CompanySubscription(models.Model):
-    """Active subscription for a seller company."""
+    """Ciclo de vida de la suscripción SaaS de una empresa vendedora de la ZLC.
+
+    Ciclo (ver ``core/utils/seller_lifecycle.py``):
+    - ``trialing``: Digitalize gratis 30 días tras el asistente de empresa.
+    - ``active``: plan de pago (upgrade en trial o tras la gracia).
+    - ``past_due``: trial terminado; 7 días de gracia para activar ≥ recomendado.
+    - ``cancelled``: baja suave; portal bloqueado, SKUs salen del marketplace.
+    """
 
     STATUS_CHOICES = [
         ('trialing', 'Trial'),
@@ -74,18 +90,43 @@ class CompanySubscription(models.Model):
     current_period_end = models.DateTimeField()
     auto_renew = models.BooleanField(default=True)
     upgraded_at = models.DateTimeField(null=True, blank=True)
+    # Snapshot at day 30: billable USD volume during the trial.
+    trial_volume_usd = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text='USD vendidos durante el trial; fijado al finalizar el periodo.',
+    )
+    # Minimum plan allowed at post-trial checkout (no downgrade).
+    recommended_plan = models.ForeignKey(
+        SaasPlan,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recommended_for_subscriptions',
+        help_text='Plan mínimo tras el trial según volumen; bloquea planes inferiores.',
+    )
+    # End of past_due grace; after this date → soft cancellation.
+    grace_ends_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Último día para activar plan antes de cancelación automática.',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Opciones de modelo para suscripciones de empresa."""
         verbose_name = 'Company subscription'
         verbose_name_plural = 'Company subscriptions'
 
     def __str__(self):
+        """Empresa y plan de la suscripción para admin y depuración."""
         return f'{self.company.name} — {self.plan.name}'
 
 
 class CompanyBillingUsage(models.Model):
-    """Billable volume aggregated by company and month."""
+    """GMV facturable agregado por empresa y mes calendario."""
 
     company = models.ForeignKey(
         'core.Company',
@@ -99,16 +140,18 @@ class CompanyBillingUsage(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Opciones de modelo para uso de facturación mensual."""
         unique_together = [('company', 'period_year', 'period_month')]
         verbose_name = 'Monthly billing usage'
         verbose_name_plural = 'Monthly billing usage'
 
     def __str__(self):
+        """Empresa y periodo de uso de facturación."""
         return f'{self.company_id} {self.period_year}-{self.period_month:02d}'
 
 
 class SubscriptionUpgradeLog(models.Model):
-    """Persistent plan change history (Supabase / PostgreSQL)."""
+    """Historial persistente de cambios de plan (Supabase / PostgreSQL)."""
 
     SOURCE_CHOICES = [
         ('self_serve', 'Seller activation'),
@@ -139,23 +182,31 @@ class SubscriptionUpgradeLog(models.Model):
     notes = models.CharField(max_length=255, blank=True)
 
     class Meta:
+        """Opciones de modelo para el historial de upgrades de plan."""
         ordering = ['-activated_at']
         verbose_name = 'Plan upgrade history'
         verbose_name_plural = 'Plan upgrade history'
 
 
 class CompanyPlanCheckout(models.Model):
-    """SaaS subscription checkout (simulated payment or future provider)."""
+    """Sesión de pago de plan SaaS (demo mock o transferencia bancaria, sin Stripe).
+
+    Flujo bancario (producción):
+    1. El vendedor elige plan → checkout ``pending`` + ``provider=bank``.
+    2. Envía referencia/comprobante → permanece ``pending`` hasta revisión.
+    3. El admin aprueba → ``complete_plan_checkout`` → suscripción ``active``.
+    """
 
     STATUS_CHOICES = [
         ('pending', 'Payment pending'),
         ('paid', 'Paid'),
         ('cancelled', 'Cancelled'),
         ('expired', 'Expired'),
+        ('rejected', 'Rejected'),
     ]
     PROVIDER_CHOICES = [
         ('mock', 'Card (demo)'),
-        ('stripe', 'Stripe'),
+        ('stripe', 'Stripe (disabled)'),
         ('bank', 'Bank transfer'),
     ]
 
@@ -180,23 +231,47 @@ class CompanyPlanCheckout(models.Model):
     currency = models.CharField(max_length=3, default='USD')
     billing_label = models.CharField(max_length=40, default='Monthly')
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='pending')
-    provider = models.CharField(max_length=12, choices=PROVIDER_CHOICES, default='mock')
+    provider = models.CharField(max_length=12, choices=PROVIDER_CHOICES, default='bank')
     txn_ref = models.CharField(max_length=120, blank=True)
+    # Reference the seller quotes when transferring (bank operation number).
+    transfer_reference = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text='Referencia / número de operación bancaria indicado por el seller.',
+    )
+    seller_notes = models.CharField(max_length=255, blank=True)
+    proof_file = models.FileField(
+        upload_to='plan_receipts/',
+        blank=True,
+        null=True,
+        help_text='Comprobante de transferencia (PDF/imagen).',
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_plan_checkouts',
+    )
+    review_notes = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Opciones de modelo para checkouts de plan SaaS."""
         ordering = ['-created_at']
         verbose_name = 'SaaS plan checkout'
         verbose_name_plural = 'SaaS plan checkouts'
 
     def __str__(self):
+        """Empresa, plan destino y estado del checkout."""
         return f'{self.company.name} → {self.target_plan.slug} [{self.status}]'
 
 
 class CompanyPlanCommercialRequest(models.Model):
-    """Enterprise commercial request linked to a company (persistent in Supabase)."""
+    """Solicitud comercial Enterprise vinculada a una empresa (respaldada en Supabase)."""
 
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -231,13 +306,14 @@ class CompanyPlanCommercialRequest(models.Model):
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Opciones de modelo para solicitudes comerciales de plan."""
         ordering = ['-created_at']
         verbose_name = 'Commercial plan request'
         verbose_name_plural = 'Commercial plan requests'
 
 
 class CompanyPredictiveSnapshot(models.Model):
-    """Predictive insights cache (Enterprise) by company and period."""
+    """Instantánea cacheada de insights predictivos (Enterprise) por empresa y periodo."""
 
     company = models.ForeignKey(
         'core.Company',
@@ -249,6 +325,7 @@ class CompanyPredictiveSnapshot(models.Model):
     computed_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Opciones de modelo para instantáneas predictivas."""
         unique_together = [('company', 'period_key')]
         verbose_name = 'Predictive snapshot'
         verbose_name_plural = 'Predictive snapshots'
@@ -256,6 +333,8 @@ class CompanyPredictiveSnapshot(models.Model):
 
 
 class AdCreditAccount(models.Model):
+    """Saldo de créditos publicitarios del vendedor para campañas de impulso en el marketplace."""
+
     company = models.OneToOneField(
         'core.Company',
         on_delete=models.CASCADE,
@@ -266,11 +345,14 @@ class AdCreditAccount(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Opciones de modelo para cuentas de créditos publicitarios."""
         verbose_name = 'Ad credits account'
         verbose_name_plural = 'Ad credits accounts'
 
 
 class AdCampaign(models.Model):
+    """Colocación de pago que impulsa un SKU del vendedor en búsqueda/home/categoría."""
+
     PLACEMENT_CHOICES = [
         ('search', 'Search'),
         ('home', 'Home'),
@@ -302,14 +384,18 @@ class AdCampaign(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Opciones de modelo para campañas publicitarias."""
         verbose_name = 'Ad campaign'
         verbose_name_plural = 'Ad campaigns'
 
     def __str__(self):
+        """Nombre de la campaña publicitaria para admin y depuración."""
         return self.name
 
 
 class LogisticsWebhookConfig(models.Model):
+    """Endpoint de webhook del socio para eventos logísticos salientes firmados."""
+
     company = models.ForeignKey(
         'core.Company',
         on_delete=models.CASCADE,
@@ -325,12 +411,29 @@ class LogisticsWebhookConfig(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Opciones de modelo para webhooks de logística."""
         verbose_name = 'Logistics webhook'
         verbose_name_plural = 'Logistics webhooks'
 
+    def clean(self):
+        """Reject private/metadata SSRF targets before the webhook is saved."""
+        from django.core.exceptions import ValidationError
+
+        from core.utils.url_validator import validate_outbound_url
+
+        try:
+            validate_outbound_url(self.endpoint_url)
+        except ValidationError as exc:
+            raise ValidationError({'endpoint_url': exc.messages if hasattr(exc, 'messages') else [str(exc)]}) from exc
+
+    def save(self, *args, **kwargs):
+        """Run full_clean so admin/API saves cannot skip SSRF checks."""
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
 
 class LogisticsEvent(models.Model):
-    """Timeline / logistics audit events."""
+    """Evento de línea de tiempo / auditoría del recorrido logístico de un pedido."""
 
     order = models.ForeignKey(
         'core.Order',
@@ -344,12 +447,15 @@ class LogisticsEvent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Opciones de modelo para eventos logísticos."""
         ordering = ['created_at']
         verbose_name = 'Logistics event'
         verbose_name_plural = 'Logistics events'
 
 
 class LogisticsDispatchQueue(models.Model):
+    """Cola de entrega de webhooks salientes con metadatos de reintento."""
+
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('sent', 'Sent'),
@@ -375,11 +481,14 @@ class LogisticsDispatchQueue(models.Model):
     sent_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Opciones de modelo para la cola de despacho logístico."""
         verbose_name = 'Logistics dispatch queue'
         verbose_name_plural = 'Logistics dispatch queue'
 
 
 class ApiKey(models.Model):
+    """Clave API del vendedor hasheada para integraciones de inventario/precios/webhooks."""
+
     company = models.ForeignKey(
         'core.Company',
         on_delete=models.CASCADE,
@@ -405,14 +514,18 @@ class ApiKey(models.Model):
     last_used_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        """Opciones de modelo para claves API."""
         verbose_name = 'API Key'
         verbose_name_plural = 'API Keys'
 
     def __str__(self):
+        """Nombre y prefijo de la clave API para admin y depuración."""
         return f'{self.name} ({self.key_prefix}…)'
 
 
 class ApiAuditLog(models.Model):
+    """Auditoría de solicitudes por uso de clave API del vendedor."""
+
     api_key = models.ForeignKey(
         ApiKey,
         on_delete=models.SET_NULL,
@@ -432,13 +545,14 @@ class ApiAuditLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Opciones de modelo para logs de auditoría de API."""
         ordering = ['-created_at']
         verbose_name = 'API audit log'
         verbose_name_plural = 'API audit logs'
 
 
 class EmailDeliveryLog(models.Model):
-    """Transactional email audit (deliverability / diagnostics)."""
+    """Auditoría de correo transaccional para diagnóstico de entregabilidad."""
 
     STATUS_CHOICES = [
         ('sent', 'Sent'),
@@ -455,13 +569,14 @@ class EmailDeliveryLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Opciones de modelo para logs de entrega de correo."""
         ordering = ['-created_at']
         verbose_name = 'Email log'
         verbose_name_plural = 'Email logs'
 
 
 def generate_api_key_pair() -> tuple[str, str, str]:
-    """Returns (raw_key, prefix, sha256_hash)."""
+    """Crea el triple de clave API en vivo: secreto, prefijo y hash SHA-256."""
     import hashlib
 
     raw = f'tf_live_{secrets.token_urlsafe(32)}'

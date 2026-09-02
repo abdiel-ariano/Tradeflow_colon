@@ -1,53 +1,51 @@
+{% load i18n %}
 <footer class="site-footer cat-site-footer" role="contentinfo">
   <div class="footer-inner">
     <div class="footer-cols">
       <div class="footer-col">
-        <h4>About TradeFlow</h4>
+        <h4>{% trans "About TradeFlow" %}</h4>
         <ul>
-          <li><a href="{% url 'acerca_tradeflow' %}">Why TradeFlow Colón</a></li>
-          <li><a href="{% url 'acerca_tradeflow' %}#free-zone">Colón Free Zone Guide</a></li>
-          <li><a href="{% url 'legal_privacidad' %}">Corporate responsibility</a></li>
+          <li><a href="{% url 'acerca_tradeflow' %}">{% trans "Why TradeFlow Colón" %}</a></li>
+          <li><a href="{% url 'acerca_tradeflow' %}#free-zone">{% trans "Colón Free Zone Guide" %}</a></li>
+          <li><a href="{% url 'legal_privacidad' %}">{% trans "Corporate responsibility" %}</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h4>Buyer Protection</h4>
+        <h4>{% trans "Quote-first workflow" %}</h4>
         <ul>
-          <li><a href="{% url 'marketplace_order_protection' %}">Secure payments</a></li>
-          <li><a href="{% url 'marketplace_order_protection' %}">Money-back guarantee</a></li>
-          <li><a href="{% url 'marketplace_order_protection' %}">Guaranteed delivery</a></li>
-          <li><a href="{% url 'legal_terminos' %}">After-sales protection</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">{% trans "Request for Quotation before payment" %}</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">{% trans "Review quotes & terms" %}</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">{% trans "Negotiate volume, shipping, and payment terms before funds move." %}</a></li>
+          <li><a href="{% url 'acerca_tradeflow' %}#free-zone">{% trans "Export documentation" %}</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h4>Source from CFZ</h4>
+        <h4>{% trans "Source from CFZ" %}</h4>
         <ul>
-          <li><a href="{% url 'marketplace_verified_suppliers' %}">CFZ Verified manufacturers</a></li>
-          <li><a href="{% url 'marketplace_order_protection' %}">Request for Quotation</a></li>
-          <li><a href="{% url 'acerca_tradeflow' %}#free-zone">Export documentation</a></li>
+          <li><a href="{% url 'marketplace_verified_suppliers' %}">{% trans "CFZ Verified manufacturers" %}</a></li>
+          <li><a href="{% url 'marketplace_order_protection' %}">{% trans "Request for Quotation" %}</a></li>
+          <li><a href="{% url 'acerca_tradeflow' %}#free-zone">{% trans "Export documentation" %}</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h4>Help Center</h4>
+        <h4>{% trans "Help Center" %}</h4>
         <ul>
-          <li><a href="{% url 'acerca_tradeflow' %}">For buyers</a></li>
-          <li><a href="mailto:{{ tradeflow_contact_email }}">Contact support</a></li>
-          <li><a href="{% url 'legal_terminos' %}">Open a dispute</a></li>
-          <li><a href="{% url 'signup_seller' %}">Sell on TradeFlow</a></li>
+          <li><a href="{% url 'acerca_tradeflow' %}">{% trans "For buyers" %}</a></li>
+          <li><a href="mailto:{{ tradeflow_contact_email }}">{% trans "Contact support" %}</a></li>
+          <li><a href="{% url 'legal_terminos' %}">{% trans "Open a dispute" %}</a></li>
+          <li><a href="{% url 'signup_seller' %}">{% trans "Sell on TradeFlow" %}</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-payments">
-      <span class="footer-payments-label">We accept:</span>
-      <span class="payment-chip">Visa</span>
-      <span class="payment-chip">Mastercard</span>
-      <span class="payment-chip">PayPal</span>
-      <span class="payment-chip">Apple Pay</span>
-      <span class="payment-chip">Google Pay</span>
-      <span class="payment-chip">Bank Transfer (T/T)</span>
+      <span class="material-symbols-rounded" aria-hidden="true">request_quote</span>
+      <span class="footer-payments-label">
+        {% trans "Every wholesale path on TradeFlow stays quote-first: verified CFZ suppliers, formal RFQs, and export-ready docs before you commit." %}
+      </span>
     </div>
   </div>
   <div class="footer-bottom">
-    <span>© 2025–2026 TradeFlow Colón · <a href="{% url 'legal_privacidad' %}">Privacy</a> · <a href="{% url 'legal_terminos' %}">Terms</a> · <a href="{% url 'legal_cookies' %}">Legal Notice</a></span>
-    <span>Trade from the Colón Free Zone · Panama 🇵🇦</span>
+    <span>© 2025–2026 TradeFlow Colón · <a href="{% url 'legal_privacidad' %}">{% trans "Privacy" %}</a> · <a href="{% url 'legal_terminos' %}">{% trans "Terms" %}</a> · <a href="{% url 'legal_cookies' %}">{% trans "Legal Notice" %}</a></span>
+    <span>{% trans "Trade from the Colón Free Zone · Panama" %} 🇵🇦</span>
   </div>
 </footer>

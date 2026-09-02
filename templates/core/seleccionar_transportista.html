@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% block title %}Select carrier — TradeFlow{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Select carrier" %} — TradeFlow{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -24,15 +24,15 @@
 {% endblock %}
 {% block content %}
 <div class="tf-card" style="max-width:900px;margin:2rem auto;padding:2rem;">
-  <h2 style="font-family:var(--tf-font-display);color:var(--tf-dark);">Choose your carrier</h2>
-  <p style="color:var(--tf-muted);">Order {{ num }}</p>
+  <h2 style="font-family:var(--tf-font-display);color:var(--tf-dark);">{% trans "Choose your carrier" %}</h2>
+  <p style="color:var(--tf-muted);">{% blocktrans with num=num %}Order {{ num }}{% endblocktrans %}</p>
   <form method="post" id="form-transporte">
     {% csrf_token %}
     <input type="hidden" name="transportista_id" id="transportista-id-input">
     <input type="hidden" name="pickup_lat" id="pickup-lat">
     <input type="hidden" name="pickup_lng" id="pickup-lng">
     <input type="hidden" name="pickup_descripcion" id="pickup-descripcion">
-    <h3 style="color:var(--tf-dark);">1. Carrier</h3>
+    <h3 style="color:var(--tf-dark);">{% trans "1. Carrier" %}</h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:2rem;">
       {% for t in transportistas %}
       <div class="transportista-card" data-tid="{{ t.id }}">
@@ -41,18 +41,18 @@
         <div style="font-weight:700;color:var(--tf-teal, var(--tf-orange));margin-top:.5rem;">USD {{ t.tarifa_base }}</div>
       </div>
       {% empty %}
-      <p>No carriers available.</p>
+      <p>{% trans "No carriers available." %}</p>
       {% endfor %}
     </div>
-    <h3 style="color:var(--tf-dark);">2. Pickup location</h3>
-    <button type="button" class="btn-tf btn-secondary-tf" id="btn-geo" style="margin-bottom:.75rem;">Use my current location</button>
+    <h3 style="color:var(--tf-dark);">{% trans "2. Pickup location" %}</h3>
+    <button type="button" class="btn-tf btn-secondary-tf" id="btn-geo" style="margin-bottom:.75rem;">{% trans "Use my current location" %}</button>
     <div id="mapa-pickup"></div>
     <div id="ubicacion-confirmada" style="display:none;margin-top:.75rem;color:var(--tf-teal);font-size:.875rem;"></div>
     <div class="tf-field" style="margin-top:1.5rem;">
-      <label class="tf-label">Notes (optional)</label>
+      <label class="tf-label">{% trans "Notes (optional)" %}</label>
       <textarea name="notas_buyer" class="tf-input" rows="2"></textarea>
     </div>
-    <button type="submit" id="btn-confirmar" class="btn-tf btn-primary-tf" disabled style="width:100%;margin-top:1rem;">Confirm carrier</button>
+    <button type="submit" id="btn-confirmar" class="btn-tf btn-primary-tf" disabled style="width:100%;margin-top:1rem;">{% trans "Confirm carrier" %}</button>
   </form>
 </div>
 {% endblock %}

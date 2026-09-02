@@ -1,0 +1,95 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}{{ empresa.name }} — Admin{% endblock %}
+{% block body_shell_class %} tf-admin-unified{% endblock %}
+{% block content %}
+<div class="adm-shell">
+  {% include "core/admin_rail.html" %}
+  <div class="adm-main">
+    <header class="adm-head">
+      <div>
+        <h1>{{ empresa.name }}</h1>
+        <p>RUC {{ empresa.ruc|default:"—" }} · {% if empresa.verification_status == "verified" %}Verified{% else %}{{ empresa.get_verification_status_display }}{% endif %}</p>
+      </div>
+      <div class="adm-head-actions">
+        <form method="post" action="{% url 'admin_toggle_company_verified' empresa.pk %}" style="display:inline;" onsubmit="return confirm('{% if empresa.verification_status == "verified" %}Return this company to pending review?{% else %}Verify this company?{% endif %}');">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" class="adm-btn adm-btn--primary">
+            {% if empresa.verification_status == "verified" %}Unverify{% else %}Verify{% endif %}
+          </button>
+        </form>
+        <a href="{% url 'lista_empresas' %}" class="adm-btn adm-btn--secondary">Back</a>
+      </div>
+    </header>
+
+    <div class="adm-apps-pills" style="margin-bottom:1rem;">
+      <a href="?tab=overview" class="{% if tab == 'overview' %}is-active{% endif %}">Overview</a>
+      <a href="?tab=products" class="{% if tab == 'products' %}is-active{% endif %}">Products</a>
+      <a href="?tab=orders" class="{% if tab == 'orders' %}is-active{% endif %}">Orders</a>
+      <a href="?tab=saas" class="{% if tab == 'saas' %}is-active{% endif %}">SaaS</a>
+    </div>
+
+    {% if tab == 'overview' or not tab %}
+    <div class="adm-table-card" style="padding:1.25rem;">
+      <p><strong>Owner:</strong> {% if empresa.owner %}{{ empresa.owner.get_full_name|default:empresa.owner.username }} ({{ empresa.owner.email }}){% else %}—{% endif %}</p>
+      <p><strong>Address:</strong> {{ empresa.address_text|default:"—" }}</p>
+      <p><strong>Tagline:</strong> {{ empresa.tagline_en|default:empresa.tagline_es|default:"—" }}</p>
+      <p><strong>Created:</strong> {{ empresa.created_at|date:"d/m/Y H:i" }}</p>
+      <p><strong>Submitted for review:</strong> {{ empresa.verification_submitted_at|date:"d/m/Y H:i"|default:"—" }}</p>
+      <p><strong>Verification evidence:</strong>
+        {% if empresa.verification_document %}
+        <a href="{{ empresa.verification_document.url }}" target="_blank" rel="noopener">Open document</a>
+        {% else %}—{% endif %}
+      </p>
+    </div>
+    {% elif tab == 'products' %}
+    <div class="adm-table-card">
+      <table class="adm-table">
+        <thead><tr><th>Product</th><th>Category</th><th style="text-align:right;">Price</th><th>Active</th></tr></thead>
+        <tbody>
+          {% for p in productos %}
+          <tr>
+            <td>{{ p.name }}</td>
+            <td>{% if p.category %}{{ p.category.name }}{% else %}—{% endif %}</td>
+            <td style="text-align:right;">{{ p.currency }} {{ p.unit_price }}</td>
+            <td>{% if p.is_active %}Yes{% else %}No{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="adm-empty">No products.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% elif tab == 'orders' %}
+    <div class="adm-table-card">
+      <table class="adm-table">
+        <thead><tr><th>Order</th><th>Buyer</th><th>Status</th><th>Created</th></tr></thead>
+        <tbody>
+          {% for o in ordenes %}
+          <tr>
+            <td><a href="{% url 'detalle_orden' o.pk %}">{{ o.order_number }}</a></td>
+            <td>{{ o.buyer.get_full_name|default:o.buyer.username }}</td>
+            <td>{{ o.get_status_display }}</td>
+            <td>{{ o.created_at|date:"d/m/Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="adm-empty">No related orders.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% elif tab == 'saas' %}
+    <div class="adm-table-card" style="padding:1.25rem;">
+      {% if subscription %}
+      <p><strong>Plan:</strong> {{ subscription.plan.name }}</p>
+      <p><strong>Status:</strong> {{ subscription.get_status_display }}</p>
+      <p><a href="{% url 'admin_saas_dashboard' %}">Open SaaS dashboard</a></p>
+      {% else %}
+      <p class="adm-empty">No active subscription linked.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

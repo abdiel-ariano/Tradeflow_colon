@@ -1,10 +1,8 @@
-"""
-Supabase Storage for Django: S3-compatible writes, native Supabase URLs for reads.
+"""Supabase Storage backend: S3 writes with native Supabase read URLs.
 
-django-storages S3Boto3Storage signs URLs with the S3-compatible endpoint using
-``service_role`` as AWSAccessKeyId, which produces invalid signatures in browsers.
-This backend keeps S3 uploads but overrides ``url()`` to use Supabase Storage's
-public or signed URL API instead.
+django-storages S3Boto3Storage signs URLs with the S3-compatible endpoint
+using ``service_role`` as AWSAccessKeyId, which browsers reject. Uploads
+stay on S3; ``url()`` uses Supabase public or signed object URLs instead.
 """
 from __future__ import annotations
 
@@ -19,16 +17,18 @@ log = logging.getLogger('tradeflow.media')
 
 
 def _bucket_name() -> str:
+    """Resolve the configured Supabase/S3 media bucket name."""
     opts = settings.STORAGES.get('default', {}).get('OPTIONS', {})
     return str(opts.get('bucket_name') or getattr(settings, 'SUPABASE_STORAGE_BUCKET', 'media'))
 
 
 def _normalize_object_path(name: str) -> str:
+    """Normalize storage object keys to forward-slash paths."""
     return (name or '').replace('\\', '/').lstrip('/')
 
 
 def supabase_public_url(name: str) -> str:
-    """Native Supabase public object URL (bucket must allow public read)."""
+    """Build a native Supabase public object URL for the media bucket."""
     path = _normalize_object_path(name)
     if not path:
         return ''
@@ -42,7 +42,7 @@ def supabase_public_url(name: str) -> str:
 
 
 def supabase_signed_url(name: str, expires_in: int | None = None) -> str:
-    """Native Supabase signed URL (private buckets)."""
+    """Create a time-limited Supabase signed URL for private buckets."""
     path = _normalize_object_path(name)
     if not path:
         return ''
@@ -73,7 +73,7 @@ def supabase_signed_url(name: str, expires_in: int | None = None) -> str:
 
 
 def supabase_media_url(name: str) -> str:
-    """Return the correct browser URL for a stored object path."""
+    """Return the browser URL for a stored object (public or signed)."""
     if getattr(settings, 'SUPABASE_STORAGE_PUBLIC', True):
         return supabase_public_url(name)
     return supabase_signed_url(name)
@@ -83,6 +83,7 @@ class SupabaseMediaStorage(S3Boto3Storage):
     """Upload via S3-compatible API; serve via native Supabase Storage URLs."""
 
     def url(self, name: str, parameters: Any = None, expire: Any = None, http_method: Any = None) -> str:
+        """Prefer native Supabase URLs; fall back to boto signed URLs."""
         native = supabase_media_url(name)
         if native:
             return native

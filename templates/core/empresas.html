@@ -1,85 +1,159 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% comment %}
-Admin — empresas registradas. Contexto: lista_empresas en core/views.py
-{% endcomment %}
-{% block title %}Companies — TradeFlow Colón{% endblock %}
+{% load static i18n %}
+{% comment %}Admin — companies directory with pending-review prioritization.{% endcomment %}
+{% block title %}{% trans "Companies" %} — TradeFlow Colón{% endblock %}
+{% block body_shell_class %} tf-admin-unified{% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin-companies-pending.css' %}?v={{ tf_asset_version|default:'1' }}">
 {% endblock %}
 {% block content %}
-<div class="adm-shell">
+<div class="adm-shell" id="adm-companies-shell" data-pending-watch-url="{% url 'api_admin_companies_pending_watch' %}">
   {% include "core/admin_rail.html" %}
   <div class="adm-main">
     <header class="adm-head">
       <div>
-        <h1>Companies</h1>
-        <p>Directory of sellers on the platform: verification, tax ID, and catalog volume.</p>
-      </div>
-      <div class="adm-head-actions">
-        <a href="/admin/core/company/add/" class="adm-btn adm-btn--primary" target="_blank" rel="noopener noreferrer">
-          <span class="material-symbols-rounded" aria-hidden="true">add</span>
-          New in Django Admin
-        </a>
+        <h1>{% trans "Companies" %}</h1>
+        <p>{% trans "Directory of B2B companies: documentary verification, tax ID, and catalog volume." %}</p>
       </div>
     </header>
 
+    {% if pending_companies_count %}
+    <section class="adm-pending-banner" aria-live="polite">
+      <div class="adm-pending-banner__copy">
+        <span class="material-symbols-rounded" aria-hidden="true">pending_actions</span>
+        <div>
+          <strong>{% blocktrans count counter=pending_companies_count %}{{ counter }} company pending review{% plural %}{{ counter }} companies pending review{% endblocktrans %}</strong>
+          <p>{% trans "We prioritize the most recent requests. Use the filter to review pending only." %}</p>
+        </div>
+      </div>
+      <a href="{% url 'lista_empresas' %}?estado=pending" class="adm-btn adm-btn--primary">{% trans "View pending" %}</a>
+    </section>
+    {% endif %}
+
+    <div id="adm-companies-new-alert" class="adm-companies-new-alert" hidden role="status" aria-live="polite">
+      <span class="adm-companies-new-alert__text"></span>
+      <a href="{% url 'lista_empresas' %}?estado=pending" class="adm-btn adm-btn--secondary adm-companies-new-alert__cta">{% trans "Review new" %}</a>
+      <button type="button" class="adm-companies-new-alert__dismiss" aria-label="{% trans 'Dismiss' %}">×</button>
+    </div>
+
+    <form class="adm-filter-card" method="get" action="">
+      <div class="adm-filter-grid">
+        <div class="adm-field adm-field--grow">
+          <label for="adm-emp-buscar">{% trans "Search" %}</label>
+          <input id="adm-emp-buscar" type="search" name="buscar" value="{{ buscar }}" placeholder="{% trans 'Name or RUC' %}" autocomplete="off">
+        </div>
+        <div class="adm-field">
+          <label for="adm-emp-estado">{% trans "Status" %}</label>
+          <select id="adm-emp-estado" name="estado">
+            <option value="">{% trans "All statuses" %}</option>
+            <option value="pending" {% if estado_filtro == 'pending' %}selected{% endif %}>{% trans "Pending review" %}</option>
+            <option value="verified" {% if estado_filtro == 'verified' %}selected{% endif %}>{% trans "Verified" %}</option>
+            <option value="rejected" {% if estado_filtro == 'rejected' %}selected{% endif %}>{% trans "Rejected" %}</option>
+            <option value="draft" {% if estado_filtro == 'draft' %}selected{% endif %}>{% trans "Draft" %}</option>
+          </select>
+        </div>
+        <div class="adm-field">
+          <label for="adm-emp-orden">{% trans "Sort" %}</label>
+          <select id="adm-emp-orden" name="orden">
+            <option value="">{% trans "Default (pending first)" %}</option>
+            <option value="enviado" {% if orden_filtro == 'enviado' %}selected{% endif %}>{% trans "Submitted (newest)" %}</option>
+            <option value="creado" {% if orden_filtro == 'creado' %}selected{% endif %}>{% trans "Created (newest)" %}</option>
+            <option value="nombre" {% if orden_filtro == 'nombre' %}selected{% endif %}>{% trans "Name (A–Z)" %}</option>
+          </select>
+        </div>
+        <div class="adm-filter-actions">
+          <button type="submit" class="adm-btn adm-btn--primary">{% trans "Apply" %}</button>
+          <a href="{% url 'lista_empresas' %}" class="adm-btn adm-btn--secondary">{% trans "Clear" %}</a>
+        </div>
+      </div>
+    </form>
+
     <p class="adm-result-hint">
-      Showing {{ empresas.start_index }}–{{ empresas.end_index }} of {{ empresas.paginator.count }} companies
+      {% blocktrans with start=empresas.start_index end=empresas.end_index total=empresas.paginator.count %}Showing {{ start }}–{{ end }} of {{ total }} companies{% endblocktrans %}
     </p>
 
     <div class="adm-table-card">
-      <div class="adm-table-head">
-        <span>Directory</span>
-      </div>
-      <table class="adm-table">
+      <div class="adm-table-head"><span>{% trans "Directory" %}</span></div>
+      <table class="adm-table" id="adm-companies-table">
         <thead>
           <tr>
             <th>#</th>
-            <th>Business</th>
-            <th>RUC</th>
-            <th>Verification</th>
-            <th style="text-align:right;">Products</th>
-            <th>Created</th>
-            <th style="text-align:right;">Actions</th>
+            <th>{% trans "Business" %}</th>
+            <th>{% trans "RUC" %}</th>
+            <th>{% trans "Submitted" %}</th>
+            <th>{% trans "Verification" %}</th>
+            <th style="text-align:right;">{% trans "Products" %}</th>
+            <th style="text-align:right;">{% trans "Actions" %}</th>
           </tr>
         </thead>
         <tbody>
           {% for empresa in empresas %}
-          <tr>
+          {% if empresa.verification_status == "verified" %}
+            {% blocktrans with name=empresa.name asvar confirm_msg %}Unverify {{ name }}?{% endblocktrans %}
+          {% else %}
+            {% blocktrans with name=empresa.name asvar confirm_msg %}Verify {{ name }}?{% endblocktrans %}
+          {% endif %}
+          <tr
+            class="{% if empresa.verification_status == 'pending' %}adm-company-row--pending{% endif %}"
+            data-company-id="{{ empresa.pk }}"
+            data-submitted-at="{% if empresa.verification_submitted_at %}{{ empresa.verification_submitted_at|date:'c' }}{% endif %}"
+          >
             <td>{{ empresa.pk }}</td>
-            <td><strong>{{ empresa.name }}</strong></td>
+            <td>
+              <a href="{% url 'admin_empresa_detalle' empresa.pk %}"><strong>{{ empresa.name }}</strong></a>
+              {% if empresa.verification_status == 'pending' and empresa.show_recent_badge %}
+              <span class="adm-badge adm-badge--recent" title="{% trans 'Submitted in the last 24 hours' %}">{% trans "Recent" %}</span>
+              {% endif %}
+            </td>
             <td>{{ empresa.ruc|default:"—" }}</td>
             <td>
-              {% if empresa.is_verified %}
-              <span class="adm-badge adm-emp-ver" data-verified="1">Verified</span>
+              {% if empresa.verification_submitted_at %}
+                {{ empresa.verification_submitted_at|date:"d/m/Y H:i" }}
               {% else %}
-              <span class="adm-badge adm-emp-ver" data-verified="0">Pending</span>
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if empresa.verification_status == "verified" %}
+              <span class="adm-badge adm-badge--verified">{% trans "Verified" %}</span>
+              {% elif empresa.verification_status == "pending" %}
+              <span class="adm-badge adm-badge--pending">
+                <span class="material-symbols-rounded" aria-hidden="true">hourglass_top</span>
+                {% trans "Pending review" %}
+              </span>
+              {% elif empresa.verification_status == "rejected" %}
+              <span class="adm-badge adm-badge--rejected">{% trans "Rejected" %}</span>
+              {% else %}
+              <span class="adm-badge">{{ empresa.get_verification_status_display }}</span>
               {% endif %}
             </td>
             <td style="text-align:right;">{{ empresa.total_productos }}</td>
-            <td>{{ empresa.created_at|date:"d/m/Y" }}</td>
             <td style="text-align:right;">
-              <a href="/admin/core/company/{{ empresa.pk }}/change/" class="adm-btn adm-btn--secondary" target="_blank" rel="noopener noreferrer" style="padding:6px 12px;font-size:0.78rem;">Edit</a>
-              <a href="{% url 'lista_productos' %}?buscar={{ empresa.name|urlencode }}" class="adm-btn adm-btn--secondary" style="padding:6px 12px;font-size:0.78rem;">Products</a>
+              <a href="{% url 'admin_empresa_detalle' empresa.pk %}" class="adm-btn adm-btn--primary adm-company-review-btn">{% trans "Review" %}</a>
+              <form method="post" action="{% url 'admin_toggle_company_verified' empresa.pk %}" style="display:inline;" onsubmit="return confirm('{{ confirm_msg|escapejs }}');">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="adm-btn adm-btn--secondary adm-company-verify-btn" style="padding:6px 12px;font-size:0.78rem;">
+                  {% if empresa.verification_status == "verified" %}{% trans "Unverify" %}{% else %}{% trans "Verify" %}{% endif %}
+                </button>
+              </form>
             </td>
           </tr>
           {% empty %}
-          <tr>
-            <td colspan="7" class="adm-empty">No companies registered.</td>
-          </tr>
+          <tr><td colspan="7" class="adm-empty">{% trans "No companies match the current filters." %}</td></tr>
           {% endfor %}
         </tbody>
       </table>
 
       {% if empresas.has_other_pages %}
       <div class="adm-pagination">
-        <span>Page {{ empresas.number }} of {{ empresas.paginator.num_pages }}</span>
+        <span>{% blocktrans with page=empresas.number pages=empresas.paginator.num_pages %}Page {{ page }} of {{ pages }}{% endblocktrans %}</span>
         <div class="adm-pagination-nums">
           {% if empresas.has_previous %}
-          <a class="adm-page-link" href="?page={{ empresas.previous_page_number }}">Previous</a>
+          <a class="adm-page-link" href="?{% if empresa_filtros_query %}{{ empresa_filtros_query }}&amp;{% endif %}page={{ empresas.previous_page_number }}">{% trans "Previous" %}</a>
           {% endif %}
           {% if empresas.has_next %}
-          <a class="adm-page-link" href="?page={{ empresas.next_page_number }}">Next</a>
+          <a class="adm-page-link" href="?{% if empresa_filtros_query %}{{ empresa_filtros_query }}&amp;{% endif %}page={{ empresas.next_page_number }}">{% trans "Next" %}</a>
           {% endif %}
         </div>
       </div>
@@ -87,21 +161,7 @@ Admin — empresas registradas. Contexto: lista_empresas en core/views.py
     </div>
   </div>
 </div>
-<script nonce="{{ csp_nonce }}">
-(function () {
-  document.querySelectorAll('.adm-emp-ver').forEach(function (el) {
-    var v = el.getAttribute('data-verified') === '1';
-    if (v) {
-      el.style.background = '#edf7ee';
-      el.style.color = '#166534';
-    } else {
-      el.style.background = '#fff7ed';
-      el.style.color = '#9a3412';
-    }
-  });
-})();
-</script>
 {% endblock %}
 {% block extra_js %}
-<script src="{% static 'js/admin_rail.js' %}"></script>
+<script src="{% static 'js/admin_companies_watch.js' %}?v={{ tf_asset_version|default:'1' }}" defer></script>
 {% endblock %}

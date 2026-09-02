@@ -1,6 +1,7 @@
-"""
-Centralized operational rules for orders (seller).
-Prevents UI/backend drift and invalid actions.
+"""Flags de acción de comprador y vendedor para pantallas de detalle de pedido.
+
+Deriva qué botones de confirmar, pagar y logística puede ver cada rol
+según el estado del pedido y la propiedad de la empresa.
 """
 from __future__ import annotations
 
@@ -12,12 +13,11 @@ CONFIRM_ALLOWED_STATUS = 'awaiting_seller'
 
 
 def get_seller_order_actions(order, company) -> dict:
-    """
-    Returns UI flags and messages for the seller portal.
+    """Devuelve flags de UI y mensajes para el portal del vendedor.
 
     Args:
-        order: Order instance
-        company: authenticated seller's Company
+        order: instancia Order
+        company: Company del vendedor autenticado
     """
     has_lines = order.items.filter(product__company=company).exists()
     if not has_lines:
@@ -79,6 +79,7 @@ def get_seller_order_actions(order, company) -> dict:
 
 
 def _dispatch_permission(order, read_only: bool, seller_st: str) -> tuple[bool, str]:
+    """Calcula si el actor puede despachar logística."""
     if read_only:
         return False, _('The order is closed or cancelled.')
     if seller_st in ('rejected', 'expired'):
@@ -102,13 +103,14 @@ def _dispatch_permission(order, read_only: bool, seller_st: str) -> tuple[bool, 
 
 
 def assert_can_dispatch(order, company) -> None:
-    """Backend validation; raises PermissionError if the action is invalid."""
+    """Validación de backend; lanza PermissionError si la acción no es válida."""
     actions = get_seller_order_actions(order, company)
     if not actions['can_dispatch']:
         raise PermissionError(actions['dispatch_block_reason'] or 'dispatch_not_allowed')
 
 
 def _actions_false(reason: str) -> dict:
+    """Devuelve un dict de flags de acción en falso para vistas denegadas."""
     return {
         'can_confirm': False,
         'can_reject': False,

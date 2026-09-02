@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% comment %}
+TradeFlow Colón — Django Admin shell.
+
+The native Django Admin and the operational dashboard use the same header,
+navigation rail, typography, spacing, and route-aware accordion. Django keeps
+its permissions, history, filters, and validation behavior.
+{% endcomment %}
+
+{% block title %}{{ title }} | TradeFlow Admin{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
+  >
+  <link rel="stylesheet" href="{% static 'css/admin_shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tradeflow_admin.css' %}">
+  <link
+    rel="stylesheet"
+    href="{% static 'css/tradeflow_admin_native.css' %}"
+  >
+{% endblock %}
+
+{% block nav-global %}
+  {% include "core/admin_rail.html" %}
+{% endblock %}
+
+{# Ops rail replaces Django's built-in model sidebar — avoid a second nav. #}
+{% block nav-sidebar %}{% endblock %}
+{% block nav-breadcrumbs %}
+  <nav aria-label="{% translate 'Breadcrumbs' %}">
+    {% block breadcrumbs %}
+      <div class="breadcrumbs">
+        <a href="{% url 'dashboard' %}">Operations</a>
+        {% if title %} &rsaquo; {{ title }}{% endif %}
+      </div>
+    {% endblock %}
+  </nav>
+{% endblock %}

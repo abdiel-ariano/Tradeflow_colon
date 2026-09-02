@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}
 Fragmento AJAX del catálogo comprador (grid Alibaba + paginación).
 {% endcomment %}
@@ -20,9 +21,9 @@ Fragmento AJAX del catálogo comprador (grid Alibaba + paginación).
   {% else %}
   <div class="td-results-hdr">
     <div>
-      <h1 id="td-results-title">Catálogo completo</h1>
+      <h1 id="td-results-title">{% trans "Full catalog" %}</h1>
       <p class="td-results-count" id="td-results-count">
-        {{ productos.paginator.count }} producto{{ productos.paginator.count|pluralize }}
+        {% blocktrans count counter=productos.paginator.count %}{{ counter }} product{% plural %}{{ counter }} products{% endblocktrans %}
       </p>
     </div>
   </div>
@@ -31,11 +32,11 @@ Fragmento AJAX del catálogo comprador (grid Alibaba + paginación).
   {% include "core/includes/tienda/tienda_product_grid.html" %}
 
   {% if productos.has_other_pages %}
-  <nav class="td-pag" id="td-pag" aria-label="Paginación">
+  <nav class="td-pag" id="td-pag" aria-label="{% trans 'Pagination' %}">
     {% if productos.has_previous %}
     <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.previous_page_number }}"
        class="td-pag-ajax td-pag-nav"
-       aria-label="Página anterior">
+       aria-label="{% trans 'Previous page' %}">
       {% include "core/includes/tf_icon.html" with name="chevron_left" class="tf-icon--sm" %}
     </a>
     {% endif %}
@@ -52,7 +53,7 @@ Fragmento AJAX del catálogo comprador (grid Alibaba + paginación).
     {% if productos.has_next %}
     <a href="{% url 'tienda' %}?{% if tienda_params %}{{ tienda_params }}&{% endif %}page={{ productos.next_page_number }}"
        class="td-pag-ajax td-pag-nav"
-       aria-label="Página siguiente">
+       aria-label="{% trans 'Next page' %}">
       {% include "core/includes/tf_icon.html" with name="chevron_right" class="tf-icon--sm" %}
     </a>
     {% endif %}

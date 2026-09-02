@@ -45,43 +45,55 @@
 </div>
 
 <div class="sp-cat-toolbar">
+  <form method="get" class="sp-cat-filter-row" style="flex:1;">
+    <input type="hidden" name="tab" value="products">
+    <input type="hidden" name="estado" value="{{ estado_filtro }}">
+    <input class="tf-input" type="search" name="buscar" value="{{ buscar }}" placeholder="Search name, SKU, description…" style="max-width:260px;" data-tf-ai-search="seller" autocomplete="off">
+    <select class="tf-input" name="categoria" style="max-width:180px;">
+      <option value="">All categories</option>
+      {% for c in categorias %}<option value="{{ c.pk }}" {% if cat_activa == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+    </select>
+    <select class="tf-input" name="stock" style="max-width:150px;">
+      <option value="">All stock</option>
+      <option value="bajo" {% if stock_filtro == 'bajo' %}selected{% endif %}>Low stock</option>
+      <option value="sin_ventas" {% if stock_filtro == 'sin_ventas' %}selected{% endif %}>No sales yet</option>
+    </select>
+    <select class="tf-input" name="orden" style="max-width:150px;">
+      <option value="nombre" {% if orden == 'nombre' %}selected{% endif %}>Sort: Name</option>
+      <option value="created" {% if orden == 'created' %}selected{% endif %}>Sort: Created</option>
+      <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Price ↑</option>
+      <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Price ↓</option>
+      <option value="stock" {% if orden == 'stock' %}selected{% endif %}>Stock</option>
+    </select>
+    <button type="submit" class="sp-btn sp-btn-secondary">Apply</button>
+  </form>
+</div>
+
+<div class="sp-cat-toolbar">
   <div class="sp-cat-filter-row">
-    <span class="sp-cat-filter-tag sp-filter-pill is-muted" title="Coming soon">
-      <span class="material-symbols-rounded" style="font-size:16px;">add</span>
-      Created
-    </span>
+    <a href="{% url 'seller_mis_productos' %}?tab=products&amp;created=7d&amp;estado={{ estado_filtro }}" class="sp-filter-pill {% if created_filtro == '7d' %}is-on{% endif %}">Created: 7 days</a>
+    <a href="{% url 'seller_mis_productos' %}?tab=products&amp;created=30d&amp;estado={{ estado_filtro }}" class="sp-filter-pill {% if created_filtro == '30d' %}is-on{% endif %}">30 days</a>
+    <a href="{% url 'seller_mis_productos' %}?tab=products&amp;created=90d&amp;estado={{ estado_filtro }}" class="sp-filter-pill {% if created_filtro == '90d' %}is-on{% endif %}">90 days</a>
     {% if estado_filtro == 'activo' %}
-    <span class="sp-cat-filter-tag">
-      Status
-      <span aria-hidden="true">|</span>
-      Active
-      <span class="material-symbols-rounded" style="font-size:16px;">expand_more</span>
-    </span>
+    <span class="sp-cat-filter-tag">Status <span aria-hidden="true">|</span> Active</span>
     {% elif estado_filtro == 'inactivo' %}
-    <span class="sp-cat-filter-tag">
-      Status
-      <span aria-hidden="true">|</span>
-      Archived
-      <span class="material-symbols-rounded" style="font-size:16px;">expand_more</span>
-    </span>
+    <span class="sp-cat-filter-tag">Status <span aria-hidden="true">|</span> Archived</span>
+    {% elif estado_filtro == 'todos' %}
+    <span class="sp-cat-filter-tag">Status <span aria-hidden="true">|</span> All</span>
     {% endif %}
-    {% if buscar or cat_activa or estado_filtro != 'activo' or stock_filtro %}
+    {% if buscar or cat_activa or estado_filtro != 'activo' or stock_filtro or created_filtro %}
     <a href="{% url 'seller_mis_productos' %}?tab=products" class="sp-cat-clear">Clear filters</a>
     {% endif %}
   </div>
   <div class="sp-cat-table-actions">
-    <button type="button" class="sp-filter-pill" disabled title="Coming soon">
+    <a href="{% url 'seller_export_precios_csv' %}?estado={{ estado_filtro }}" class="sp-filter-pill">
       <span class="material-symbols-rounded" style="font-size:16px;">download</span>
       Export prices
-    </button>
-    <button type="button" class="sp-filter-pill" disabled title="Coming soon">
+    </a>
+    <a href="{% url 'seller_export_productos_csv' %}?estado={{ estado_filtro }}" class="sp-filter-pill">
       <span class="material-symbols-rounded" style="font-size:16px;">download</span>
       Export products
-    </button>
-    <button type="button" class="sp-filter-pill" disabled title="Coming soon">
-      <span class="material-symbols-rounded" style="font-size:16px;">view_column</span>
-      Edit columns
-    </button>
+    </a>
   </div>
 </div>
 
@@ -148,7 +160,7 @@
   <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
   <h3>Add your first product</h3>
   <p>Products are what you sell to customers. They can be physical goods, digital services, or subscription plans for your Colón Free Zone store.</p>
-  <a href="#" class="sp-stripe-link" onclick="return false;">Learn more <span class="material-symbols-rounded" style="font-size:16px;">arrow_forward</span></a>
+  <a href="{% url 'seller_predictive_insights' %}" class="sp-stripe-link">Learn about catalog growth <span class="material-symbols-rounded" style="font-size:16px;">arrow_forward</span></a>
   <div style="margin-top:20px;">
     <a href="{% url 'seller_agregar_producto' %}" class="sp-btn sp-btn-primary">
       <span class="material-symbols-rounded" style="font-size:18px;">add</span>
@@ -158,11 +170,109 @@
 </div>
 {% endif %}
 
+{% elif catalog_tab == 'features' %}
+{% if tab_products %}
+<div style="overflow-x:auto;">
+  <table class="sp-product-table">
+    <thead><tr><th>Product</th><th>Badges</th><th>Price</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for p in tab_products %}
+      <tr>
+        <td><a href="{% url 'seller_editar_producto' p.pk %}">{{ p.name }}</a></td>
+        <td>{% if p.is_featured %}Featured{% endif %}{% if p.is_bestseller %} · Bestseller{% endif %}</td>
+        <td>{{ p.currency }} {{ p.display_price }}</td>
+        <td>{% if p.is_active %}Active{% else %}Archived{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="sp-stripe-empty"><h3>No featured products yet</h3><p>Mark products as featured or bestseller when editing them.</p></div>
+{% endif %}
+
+{% elif catalog_tab == 'coupons' %}
+{% if tab_products %}
+<div style="overflow-x:auto;">
+  <table class="sp-product-table">
+    <thead><tr><th>Product</th><th>Discount</th><th>Promo price</th><th>Ends</th></tr></thead>
+    <tbody>
+      {% for p in tab_products %}
+      <tr>
+        <td><a href="{% url 'seller_editar_producto' p.pk %}">{{ p.name }}</a></td>
+        <td>-{{ p.discount_pct }}%</td>
+        <td>{{ p.currency }} {{ p.display_price }}</td>
+        <td>{{ p.promo_end|date:"M j, Y"|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="sp-stripe-empty"><h3>No active promotions</h3><p>Set a discount on a product to run a coupon-style offer.</p></div>
+{% endif %}
+
+{% elif catalog_tab == 'pricing' %}
+{% if tab_pricing_rows %}
+<table class="sp-product-table">
+  <thead><tr><th>Category</th><th>Products</th><th>Min</th><th>Avg</th><th>Max</th></tr></thead>
+  <tbody>
+    {% for row in tab_pricing_rows %}
+    <tr>
+      <td>{{ row.category__name }}</td>
+      <td>{{ row.products }}</td>
+      <td>USD {{ row.min_price }}</td>
+      <td>USD {{ row.avg_price|floatformat:2 }}</td>
+      <td>USD {{ row.max_price }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="sp-stripe-empty"><h3>No pricing tables yet</h3><p>Add categorized products to see price ranges.</p></div>
+{% endif %}
+
+{% elif catalog_tab == 'shipping' %}
+{% if tab_shipping_rows %}
+<table class="sp-product-table">
+  <thead><tr><th>Status</th><th>Courier</th><th>Shipments</th></tr></thead>
+  <tbody>
+    {% for row in tab_shipping_rows %}
+    <tr>
+      <td>{{ row.status }}</td>
+      <td>{{ row.courier_name|default:"—" }}</td>
+      <td>{{ row.total }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="sp-stripe-empty"><h3>No shipments yet</h3><p>Shipping activity appears here after orders are dispatched.</p></div>
+{% endif %}
+
+{% elif catalog_tab == 'tax' %}
+{% if tab_tax_rows %}
+<table class="sp-product-table">
+  <thead><tr><th>Category</th><th>Active SKUs</th><th>Catalog value (list)</th></tr></thead>
+  <tbody>
+    {% for row in tab_tax_rows %}
+    <tr>
+      <td>{{ row.category__name }}</td>
+      <td>{{ row.products }}</td>
+      <td>USD {{ row.volume|floatformat:2 }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="sp-stripe-empty"><h3>No tax categories yet</h3><p>Assign categories to products for CFZ export reporting.</p></div>
+{% endif %}
+
 {% else %}
 <div class="sp-stripe-empty">
   <span class="material-symbols-rounded" aria-hidden="true">construction</span>
-  <h3>{{ catalog_tab|title }} — coming soon</h3>
-  <p>This section will be available in a future release. Manage your catalog from <strong>All products</strong> for now.</p>
+  <h3>Section not found</h3>
+  <p>Return to <strong>All products</strong> to manage your catalog.</p>
   <div style="margin-top:20px;">
     <a href="{% url 'seller_mis_productos' %}?tab=products" class="sp-btn sp-btn-primary">Back to All products</a>
   </div>

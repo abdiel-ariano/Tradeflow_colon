@@ -1,5 +1,8 @@
-"""
-Transactional email via Resend API (https://resend.com).
+"""Envío de correo transaccional vía Resend para TradeFlow Colón.
+
+La verificación OTP y otros correos del ciclo de vida usan la API HTTP de Resend.
+Si falta RESEND_API_KEY y DEBUG es True, el fallback es el backend consola de
+Django.
 """
 from __future__ import annotations
 
@@ -14,23 +17,26 @@ log = logging.getLogger('tradeflow.email')
 
 @dataclass
 class EmailSendResult:
+    """Resultado de un intento de envío de correo saliente."""
+
     ok: bool
     channel: str
     detail: str = ''
 
 
 def _verification_html(code: str) -> str:
+    """Genera el cuerpo HTML con marca para un OTP de verificación de email."""
     return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:24px;background:#0F2A44;font-family:Montserrat,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;">
     <tr>
       <td style="background:#1B3B63;border-radius:16px;padding:32px;text-align:center;border:2px solid #2E5B8A;">
         <p style="color:#F2F3F5;font-size:14px;margin:0 0 8px;">TradeFlow Colón</p>
-        <h1 style="color:#ffffff;font-size:22px;margin:0 0 24px;">Your verification code</h1>
+        <h1 style="color:#ffffff;font-size:22px;margin:0 0 24px;">Tu código de verificación</h1>
         <p style="color:#F26522;font-size:48px;font-weight:700;letter-spacing:10px;margin:0 0 16px;">{code}</p>
-        <p style="color:#F2F3F5;font-size:13px;margin:0;">Valid for 10 minutes. Do not share this code.</p>
+        <p style="color:#F2F3F5;font-size:13px;margin:0;">Válido por 10 minutos. No compartas este código.</p>
       </td>
     </tr>
   </table>
@@ -39,6 +45,7 @@ def _verification_html(code: str) -> str:
 
 
 def _send_via_resend(email: str, subject: str, html: str, text: str) -> EmailSendResult:
+    """Envía un mensaje mediante la API HTTP de Resend."""
     api_key = (getattr(settings, 'RESEND_API_KEY', '') or '').strip()
     if not api_key:
         log.warning('RESEND_API_KEY no configurada; correo no enviado a %s', email)
@@ -63,6 +70,7 @@ def _send_via_resend(email: str, subject: str, html: str, text: str) -> EmailSen
 
 
 def _send_via_console(email: str, subject: str, html: str, text: str) -> EmailSendResult:
+    """Usa send_mail de Django (backend consola en DEBUG local)."""
     from django.core.mail import send_mail
 
     try:
@@ -88,7 +96,7 @@ def enviar_email_transaccional(
     text: str,
     tipo: str = 'transactional',
 ) -> EmailSendResult:
-    """Envía correo transaccional vía Resend (consola Django solo en DEBUG)."""
+    """Envía correo transaccional por Resend; consola solo en DEBUG sin clave."""
     if not (email or '').strip():
         return EmailSendResult(ok=False, channel='none', detail='empty_recipient')
 
@@ -113,12 +121,12 @@ def enviar_email_transaccional(
 
 
 def enviar_codigo_verificacion(email: str, code: str) -> EmailSendResult:
-    """Send OTP code via Resend (console backend in DEBUG when key is missing)."""
-    subject = 'Your verification code — TradeFlow Colón'
+    """Envía OTP de verificación de cuenta (válido 10 minutos)."""
+    subject = 'Tu código de verificación — TradeFlow Colón'
     text = (
-        f'Your TradeFlow Colón verification code is: {code}\n\n'
-        'Valid for 10 minutes.\n\n'
-        '— Colón Free Zone, Panama'
+        f'Tu código de verificación en TradeFlow Colón es: {code}\n\n'
+        'Válido por 10 minutos.\n\n'
+        '— Zona Libre de Colón, Panamá'
     )
     html = _verification_html(code)
     return enviar_email_transaccional(email, subject, html, text, tipo='verification_code')

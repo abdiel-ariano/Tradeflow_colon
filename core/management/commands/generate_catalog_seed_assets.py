@@ -1,10 +1,10 @@
-"""
-Generate bundled category seed JPEGs in static/images/catalog-seeds/.
+"""Generate bundled category seed JPEGs under static/images/catalog-seeds/.
 
-These assets are required for product cards without uploads (no runtime picsum).
-Run once in CI/dev or after clone:
+These assets back product cards when sellers have not uploaded photos
+(no runtime picsum dependency).
 
-    python manage.py generate_catalog_seed_assets
+Ops: run once in CI/dev after clone, or when seed palettes change.
+Safe to commit outputs; not a production runtime cron.
 """
 
 from __future__ import annotations
@@ -29,6 +29,7 @@ _SEED_PALETTES = {
 
 
 def _render_seed_jpeg(keyword: str, width: int = 800, height: int = 600) -> bytes:
+    """Render a gradient JPEG for one catalog category keyword."""
     from PIL import Image, ImageDraw
 
     top, bottom, accent = _SEED_PALETTES.get(keyword, _SEED_PALETTES['general'])
@@ -58,12 +59,16 @@ def _render_seed_jpeg(keyword: str, width: int = 800, height: int = 600) -> byte
 
 
 class Command(BaseCommand):
+    """Write static catalog-seed JPEGs for each category keyword."""
+
     help = 'Generate static/images/catalog-seeds/*.jpg bundled assets.'
 
     def add_arguments(self, parser):
+        """Register force overwrite of existing seed files."""
         parser.add_argument('--force', action='store_true', help='Overwrite existing files')
 
     def handle(self, *args, **options):
+        """Create missing seed JPEGs (or overwrite with --force)."""
         force = bool(options['force'])
         out_dir = Path(settings.BASE_DIR) / 'static' / 'images' / 'catalog-seeds'
         out_dir.mkdir(parents=True, exist_ok=True)

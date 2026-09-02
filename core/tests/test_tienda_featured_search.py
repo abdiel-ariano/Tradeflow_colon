@@ -1,6 +1,11 @@
-"""Tienda featured supplier/category blocks in filtered search results."""
+"""Public catalog filters by empresa/categoria and seed images.
+
+Buyers narrow CFZ inventory without legacy Ali-style cards;
+partial /tienda/ URLs still redirect into /catalogo/.
+"""
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings
+from django.urls import reverse
 
 from core.models import Category, Company, Inventory, Product, UserProfile
 
@@ -12,7 +17,10 @@ from core.models import Category, Company, Inventory, Product, UserProfile
     REQUIRE_EMAIL_VERIFICATION=False,
 )
 class TiendaFeaturedSearchTests(TestCase):
+    """Assert catalog filters, cards, and seed image srcs."""
+
     def setUp(self):
+        """Seed verified company products and log in a buyer."""
         self.client = Client()
         self.user = User.objects.create_user(
             username='buyer_feat',
@@ -39,37 +47,38 @@ class TiendaFeaturedSearchTests(TestCase):
             Inventory.objects.create(product=product, stock_qty=50)
         self.client.force_login(self.user)
 
-    def test_empresa_filter_shows_featured_supplier(self):
-        resp = self.client.get(f'/tienda/?empresa={self.company.pk}')
+    def test_empresa_filter_shows_company_products(self):
+        """Filter catalog results to the selected company."""
+        resp = self.client.get(f'{reverse("catalogo_publico")}?empresa={self.company.pk}')
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'td-featured--supplier')
         self.assertContains(resp, 'CFZ Featured Co')
-        self.assertContains(resp, 'Proveedor destacado')
+        self.assertContains(resp, 'Widget 0')
 
     def test_categoria_filter_shows_compact_catalog_cards(self):
-        resp = self.client.get(f'/tienda/?categoria={self.category.pk}')
+        """Show compact product-card markup for category filters."""
+        resp = self.client.get(f'{reverse("catalogo_publico")}?categoria={self.category.pk}')
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'ali-filters')
         self.assertContains(resp, 'product-card')
         self.assertContains(resp, 'Electronics')
         self.assertContains(resp, 'MOQ')
         self.assertContains(resp, 'CFZ Verified')
         self.assertNotContains(resp, 'ali-product-card')
         self.assertNotContains(resp, 'Chatea ahora')
-        self.assertNotContains(resp, 'Añadir al carrito')
-        self.assertNotContains(resp, 'ali-filter-title">Empresa')
-        self.assertNotContains(resp, 'td-featured--category')
 
-    def test_partial_ajax_includes_featured_supplier(self):
+    def test_tienda_partial_redirects_to_catalog(self):
+        """301 legacy tienda partials onto catalogo with filters."""
         resp = self.client.get(
             f'/tienda/?empresa={self.company.pk}&partial=1',
             HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            follow=False,
         )
-        self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'td-featured--supplier')
+        self.assertEqual(resp.status_code, 301)
+        self.assertIn('/catalogo/', resp['Location'])
+        self.assertIn('partial=1', resp['Location'])
 
     def test_product_cards_use_catalog_seed_in_img_src(self):
-        resp = self.client.get('/tienda/')
+        """Use catalog-seeds images instead of category icons."""
+        resp = self.client.get(reverse('catalogo_publico'))
         self.assertEqual(resp.status_code, 200)
         html = resp.content.decode()
         self.assertIn('src="/static/images/catalog-seeds/', html)

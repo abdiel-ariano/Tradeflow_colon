@@ -1,5 +1,7 @@
-"""
-Despacho logístico enterprise: eventos, cola y webhooks firmados.
+"""Despacha envíos ZLC, eventos logísticos y webhooks firmados.
+
+Mueve pedidos pagados a empacado/en tránsito y notifica endpoints WMS
+del vendedor con validación saliente segura ante SSRF.
 """
 from __future__ import annotations
 
@@ -8,8 +10,6 @@ import hmac
 import json
 import logging
 from decimal import Decimal
-
-import urllib.request
 
 from django.utils import timezone
 
@@ -20,6 +20,7 @@ log = logging.getLogger(__name__)
 
 
 def record_logistics_event(order: Order, event_type: str, label: str = '', payload=None, source='system'):
+    """Persiste un evento de timeline logístico para el pedido."""
     return LogisticsEvent.objects.create(
         order=order,
         event_type=event_type,
@@ -30,10 +31,12 @@ def record_logistics_event(order: Order, event_type: str, label: str = '', paylo
 
 
 def sign_payload(secret: str, body: bytes) -> str:
+    """Devuelve la firma HMAC-SHA256 en hex del cuerpo del webhook."""
     return hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
 
 
 def build_dispatch_payload(order: Order, company) -> dict:
+    """Construye el payload JSON para un webhook company order.dispatch."""
     shipment = getattr(order, 'shipment', None)
     lines = list(
         order.items.filter(product__company=company).select_related('product')[:50]
@@ -63,6 +66,7 @@ def build_dispatch_payload(order: Order, company) -> dict:
 
 
 def enqueue_dispatch(order: Order, company, actor_user=None) -> LogisticsDispatchQueue:
+    """Encola el despacho, avanza pedido/envío y hace POST del webhook firmado."""
     payload = build_dispatch_payload(order, company)
     body = json.dumps(payload, default=str).encode()
     webhook = (
@@ -102,35 +106,24 @@ def enqueue_dispatch(order: Order, company, actor_user=None) -> LogisticsDispatc
 
 
 def _process_dispatch_queue(dispatch: LogisticsDispatchQueue, webhook: LogisticsWebhookConfig | None):
+    """Hace POST del payload de despacho o marca enviado cuando no hay webhook configurado."""
     if not webhook or not webhook.endpoint_url:
         dispatch.status = 'sent'
         dispatch.sent_at = timezone.now()
         dispatch.save(update_fields=['status', 'sent_at'])
         return
 
-    # SSRF defense (OWASP A10:2021): el seller configura `endpoint_url`
-    # libremente. Validamos que no apunte a IPs internas, metadata services
-    # de cloud, puertos sensibles, etc. ANTES de hacer el request.
+    # SSRF defense (OWASP A10:2021): the seller configures `endpoint_url`
+    # freely. Validate it does not target private IPs, cloud metadata
+    # services, sensitive ports, etc. BEFORE making the request.
     from django.core.exceptions import ValidationError as _ValidationError
 
-    from core.utils.url_validator import validate_outbound_url
-
-    try:
-        validate_outbound_url(webhook.endpoint_url)
-    except _ValidationError as exc:
-        dispatch.attempts += 1
-        dispatch.status = 'failed'
-        dispatch.last_error = f'SSRF rechazado: {exc.message if hasattr(exc, "message") else exc}'[:500]
-        dispatch.save(update_fields=['status', 'attempts', 'last_error'])
-        log.warning(
-            'Webhook URL bloqueada por SSRF guard webhook_id=%s url=%s reason=%s',
-            webhook.pk, webhook.endpoint_url, dispatch.last_error,
-        )
-        return
+    from core.utils.url_validator import safe_outbound_request
 
     body = json.dumps(dispatch.payload, default=str).encode()
     try:
-        req = urllib.request.Request(
+        # DNS-pin + SSRF checks happen inside safe_outbound_request.
+        status, _resp_body = safe_outbound_request(
             webhook.endpoint_url,
             data=body,
             headers={
@@ -139,16 +132,25 @@ def _process_dispatch_queue(dispatch: LogisticsDispatchQueue, webhook: Logistics
                 'X-TradeFlow-Event': 'order.dispatch',
             },
             method='POST',
+            timeout=8,
         )
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            if 200 <= resp.status < 300:
-                dispatch.status = 'sent'
-                dispatch.sent_at = timezone.now()
-            else:
-                dispatch.status = 'failed'
-                dispatch.last_error = f'HTTP {resp.status}'
+        if 200 <= status < 300:
+            dispatch.status = 'sent'
+            dispatch.sent_at = timezone.now()
+        else:
+            dispatch.status = 'failed'
+            dispatch.last_error = f'HTTP {status}'
         dispatch.attempts += 1
         dispatch.save(update_fields=['status', 'sent_at', 'attempts', 'last_error'])
+    except _ValidationError as exc:
+        dispatch.attempts += 1
+        dispatch.status = 'failed'
+        dispatch.last_error = f'SSRF rechazado: {exc}'[:500]
+        dispatch.save(update_fields=['status', 'attempts', 'last_error'])
+        log.warning(
+            'Webhook URL bloqueada por SSRF guard webhook_id=%s url=%s reason=%s',
+            webhook.pk, webhook.endpoint_url, dispatch.last_error,
+        )
     except Exception as exc:
         dispatch.attempts += 1
         dispatch.status = 'failed'

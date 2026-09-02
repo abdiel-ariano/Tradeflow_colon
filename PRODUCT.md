@@ -1,5 +1,11 @@
 # Product
 
+> **Resumen en español:** TradeFlow Colón es el marketplace mayorista B2B de la Zona
+> Libre de Colón. Compradores de las Américas descubren proveedores verificados,
+> comparan MOQ en USD y solicitan cotizaciones con documentación de exportación.
+> Vendedores gestionan catálogo y planes SaaS; operadores administran la plataforma.
+> Documentación técnica: [docs/DOCUMENTACION_TECNICA.md](docs/DOCUMENTACION_TECNICA.md).
+
 ## Register
 
 product

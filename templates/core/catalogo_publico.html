@@ -1,18 +1,19 @@
 {% extends "core/base.html" %}
-{% load static %}
-{% block title %}Colón Free Zone Wholesale Catalog | TradeFlow Colón{% endblock %}
+{% load static i18n %}
+{% block title %}{% trans "Colón Free Zone Wholesale Catalog | TradeFlow Colón" %}{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'18' }}">
-<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'8' }}">
+<link rel="stylesheet" href="{% static 'css/catalog.css' %}?v={{ tf_asset_version|default:'19' }}">
+<link rel="stylesheet" href="{% static 'css/catalog-filters-ali.css' %}?v={{ tf_asset_version|default:'31' }}">
 <link rel="stylesheet" href="{% static 'css/tf-home-experience.css' %}?v={{ tf_asset_version|default:'3' }}">
 <link rel="stylesheet" href="{% static 'css/home-alibaba.css' %}?v={{ tf_asset_version|default:'17' }}">
 {% if productos %}
+{% trans "Colón Free Zone Wholesale Catalog" as catalog_json_name %}
 <script type="application/ld+json" nonce="{{ csp_nonce }}">
 {
   "@context": "https://schema.org",
   "@type": "ItemList",
-  "name": "Colón Free Zone Wholesale Catalog",
+  "name": "{{ catalog_json_name|escapejs }}",
   "numberOfItems": {{ total_resultados|default:0 }},
   "itemListElement": [
     {% for producto in productos %}
@@ -28,20 +29,20 @@
 {% endif %}
 {% endblock %}
 
+{% block site_navbar %}
+{% if not request.user.is_authenticated or tf_user_role == 'seller' %}
+{% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='catalog' %}
+{% else %}
+{{ block.super }}
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="top-progress-bar" id="top-progress-bar" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100"></div>
 <div id="cat-page-config" hidden
      data-inquiry-url="{% url 'catalogo_agregar_inquiry' 0 %}"
      data-catalog-url="{% url 'catalogo_publico' %}"></div>
-<h1 class="visually-hidden">Colón Free Zone Catalog</h1>
-
-{% if not request.user.is_authenticated %}
-  {% include "core/includes/marketplace_public_navbar.html" with marketplace_nav_active='catalog' %}
-{% endif %}
-
-{% if category_discover %}
-  {% include "core/includes/home_category_discover.html" with category_discover_title="Shop by category" %}
-{% endif %}
+<h1 class="visually-hidden">{% trans "Colón Free Zone Catalog" %}</h1>
 
 <button type="button" class="btn-filter-floating" id="cat-filter-open" aria-expanded="false" aria-controls="cat-sidebar">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -50,107 +51,111 @@
     <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
     <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
   </svg>
-  Filters
+  <span class="btn-filter-floating__label">{% trans "Categories" %}</span>
+  <span class="btn-filter-floating__badge" id="cat-filter-badge" hidden aria-hidden="true">0</span>
 </button>
 <div class="sidebar-overlay" id="cat-sidebar-backdrop" hidden></div>
 
 <main class="catalog-main">
-  <div class="catalog-container">
-    <aside class="catalog-sidebar cat-sidebar-ali" id="cat-sidebar" aria-label="Filtros del catálogo">
-      <div class="ali-filter-head">
-        <h2 class="ali-filter-head__title">Filtros</h2>
-        <div class="ali-filter-head__actions">
-          <a href="{% url 'catalogo_publico' %}" class="ali-filter-head__clear">Limpiar</a>
-          <button type="button" class="sidebar-close" id="cat-sidebar-close" aria-label="Cerrar filtros">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M18 6 6 18M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form" id="cat-filters-form">
+  <div class="catalog-container cat-ali-layout">
+    <div class="cat-ali-head">
+      <form method="get" action="{% url 'catalogo_publico' %}" class="cat-filters-form cat-filters-form--toolbar" id="cat-filters-form">
         <input type="hidden" name="buscar" id="cat-filter-buscar" value="{{ buscar }}">
 
-        <div class="ali-filter-quick" role="group" aria-label="Filtros rápidos">
-          <label class="ali-quick-chip">
-            <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
-            <span>Verificado</span>
-          </label>
-          <label class="ali-quick-chip">
-            <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
-            <span>En stock</span>
-          </label>
-          <label class="ali-quick-chip">
-            <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
-            <span>Oferta</span>
-          </label>
-        </div>
+        <div class="cat-filters-toolbar" id="cat-filters-toolbar">
+          <p class="cat-filters-toolbar__heading">
+            <span class="cat-filters-toolbar__heading-icon" aria-hidden="true">▾</span>
+            {% trans "Refine results" %}
+          </p>
 
-        <div class="ali-filter-field">
-          <label class="ali-filter-label" for="cat-filter-categoria">Categoría</label>
-          <select name="categoria" id="cat-filter-categoria" class="ali-filter-select">
-            <option value="">Todas las categorías</option>
-            {% for cat in categorias %}
-            <option value="{{ cat.pk }}" {% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %}selected{% endif %}>
-              {{ cat.name }} ({{ cat.num_productos }})
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="ali-filter-field">
-          <label class="ali-filter-label" for="cat-filter-precio-min">Precio (US $)</label>
-          <div class="ali-price-row">
-            <input type="number" name="precio_min" id="cat-filter-precio-min" min="0" step="0.01" placeholder="Mín."
-                   value="{{ precio_min }}" aria-label="Precio mínimo" class="ali-price-input">
-            <span class="ali-price-sep" aria-hidden="true">—</span>
-            <input type="number" name="precio_max" min="0" step="0.01" placeholder="Máx."
-                   value="{{ precio_max }}" aria-label="Precio máximo" class="ali-price-input">
-            <button type="submit" class="ali-filter-ok">OK</button>
+          <div class="cat-filters-toolbar__quick" role="group" aria-label="{% trans 'Quick filters' %}">
+            <label class="ali-quick-chip">
+              <input type="checkbox" name="verificado" value="1" {% if solo_verificado %}checked{% endif %}>
+              <span>{% trans "Verified" %}</span>
+            </label>
+            <label class="ali-quick-chip">
+              <input type="checkbox" name="stock" value="1" {% if solo_stock %}checked{% endif %}>
+              <span>{% trans "In stock" %}</span>
+            </label>
+            <label class="ali-quick-chip">
+              <input type="checkbox" name="on_sale" value="1" {% if solo_on_sale %}checked{% endif %}>
+              <span>{% trans "On sale" %}</span>
+            </label>
           </div>
-        </div>
 
-        <div class="ali-filter-field ali-filter-field--last">
-          <label class="ali-filter-label" for="cat-filter-empresa">Proveedor</label>
-          <select name="empresa" id="cat-filter-empresa" class="ali-filter-select">
-            <option value="">Todos</option>
-            {% for emp in empresas|slice:":20" %}
-            <option value="{{ emp.pk }}" {% if empresa == emp.pk|stringformat:'s' %}selected{% endif %}>
-              {{ emp.name|truncatechars:28 }}
-            </option>
-            {% endfor %}
-          </select>
+          <div class="cat-filters-toolbar__divider" aria-hidden="true"></div>
+
+          <div class="cat-filters-toolbar__fields">
+            <label class="visually-hidden" for="cat-filter-categoria">{% trans "Category" %}</label>
+            <select name="categoria" id="cat-filter-categoria" class="ali-filter-select cat-filters-toolbar__select cat-filters-toolbar__select--category">
+              <option value="">{% trans "All categories" %}</option>
+              {% for cat in categorias %}
+              <option value="{{ cat.pk }}" {% if categorias_sel and cat.pk|stringformat:'s' == categorias_sel.0 %}selected{% endif %}>
+                {{ cat.name }} ({{ cat.num_productos }})
+              </option>
+              {% endfor %}
+            </select>
+
+            <label class="visually-hidden" for="cat-filter-empresa">{% trans "Supplier" %}</label>
+            <select name="empresa" id="cat-filter-empresa" class="ali-filter-select cat-filters-toolbar__select">
+              <option value="">{% trans "All suppliers" %}</option>
+              {% for emp in empresas|slice:":20" %}
+              <option value="{{ emp.pk }}" {% if empresa == emp.pk|stringformat:'s' %}selected{% endif %}>
+                {{ emp.name|truncatechars:28 }}
+              </option>
+              {% endfor %}
+            </select>
+
+            <div class="ali-price-row cat-filters-toolbar__price">
+              <input type="number" name="precio_min" id="cat-filter-precio-min" min="0" step="0.01" placeholder="{% trans 'Min $' %}"
+                     value="{{ precio_min }}" aria-label="{% trans 'Minimum price' %}" class="ali-price-input">
+              <span class="ali-price-sep" aria-hidden="true">—</span>
+              <input type="number" name="precio_max" min="0" step="0.01" placeholder="{% trans 'Max $' %}"
+                     value="{{ precio_max }}" aria-label="{% trans 'Maximum price' %}" class="ali-price-input">
+              <button type="submit" class="ali-filter-ok">OK</button>
+            </div>
+
+            <a href="{% url 'catalogo_publico' %}" class="cat-filters-toolbar__clear">{% trans "Clear" %}</a>
+          </div>
         </div>
 
         {% if solo_stock_low %}
         <input type="hidden" name="stock_low" value="1" id="cat-filter-stock-low">
         {% endif %}
       </form>
-    </aside>
 
-    <section class="catalog-content">
       <div class="active-filters" id="cat-active-filters" aria-live="polite" hidden></div>
       <div class="results-toolbar">
         <span class="results-count">
-          <strong>{{ total_resultados|default:catalogo_stats.productos }}</strong> wholesale products
-          {% if buscar %}for &ldquo;<em>{{ buscar }}</em>&rdquo;{% endif %}
+          <strong>{{ total_resultados|default:catalogo_stats.productos }}</strong> {% trans "wholesale products" %}
+          {% if buscar %}{% blocktrans with term=buscar %}for “{{ term }}”{% endblocktrans %}{% endif %}
         </span>
         <div class="results-controls">
-          <label class="results-sort-label" for="cat-sort-select">Ordenar</label>
-          <select name="orden" id="cat-sort-select" class="filter-select results-sort-select cat-sort-select" form="cat-filters-form" aria-label="Ordenar resultados">
-            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>Mejor coincidencia</option>
-            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Precio: menor a mayor</option>
-            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Precio: mayor a menor</option>
-            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>Más recientes</option>
+          <label class="results-sort-label" for="cat-sort-select">{% trans "Sort by" %}</label>
+          <select name="orden" id="cat-sort-select" class="filter-select results-sort-select cat-sort-select" form="cat-filters-form" aria-label="{% trans 'Sort results' %}">
+            <option value="relevancia" {% if orden == 'relevancia' %}selected{% endif %}>{% trans "Best match" %}</option>
+            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>{% trans "Price: low to high" %}</option>
+            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>{% trans "Price: high to low" %}</option>
+            <option value="novedades" {% if orden == 'novedades' %}selected{% endif %}>{% trans "Newest" %}</option>
           </select>
         </div>
       </div>
+    </div>
 
-      <div id="cat-results-host" aria-live="polite">
+    <div class="cat-ali-body">
+      <div class="cat-ali-rail-slot">
+        <aside class="cat-ali-category-rail" id="cat-sidebar" aria-label="{% trans 'Category navigation' %}">
+          <button type="button" class="cat-ali-category-rail__close sidebar-close" id="cat-sidebar-close" aria-label="{% trans 'Close categories' %}">
+            {% include "core/includes/tf_icon.html" with name="close" %}
+          </button>
+          {% include "core/includes/catalogo_ali_category_sidebar.html" %}
+        </aside>
+      </div>
+
+      <div id="cat-results-host" class="cat-ali-results-host" aria-live="polite">
         {% include "core/includes/catalogo_publico_results.html" %}
       </div>
-    </section>
+    </div>
   </div>
 </main>
 {% include "core/includes/home_categories_modal.html" %}
@@ -162,6 +167,7 @@
 
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">document.body.classList.add('cat-catalog-page');</script>
-<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'14' }}" nonce="{{ csp_nonce }}"></script>
+{% include "core/includes/tf_ai_search_assets.html" %}
+<script src="{% static 'js/catalogo-publico.js' %}?v={{ tf_asset_version|default:'21' }}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/tf-home-alibaba.js' %}?v={{ tf_asset_version|default:'2' }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

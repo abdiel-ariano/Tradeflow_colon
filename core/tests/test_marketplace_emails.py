@@ -1,4 +1,8 @@
-"""Tests for marketplace emails and cart activity tracking."""
+"""Marketplace lifecycle emails and cart activity snapshots.
+
+Abandoned-cart and promo mail drive B2B reactivation; profile
+cart counters feed reminder scheduling without extra queries.
+"""
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -16,17 +20,21 @@ from core.models import Category, Company, Inventory, Product, UserProfile
     PUBLIC_BASE_URL='https://tradeflowcolon.com',
 )
 class MarketplaceEmailTests(TestCase):
+    """Assert welcome, abandoned-cart, and promo HTML templates."""
+
     def setUp(self):
+        """Create verified buyer and a promo-priced CFZ product."""
         self.user = User.objects.create_user(
             username='buyer1',
             email='buyer1@example.com',
             password='pass12345',
             first_name='Ana',
         )
-        UserProfile.objects.filter(user=self.user).update(
-            role='buyer',
-            email_verificado=True,
-        )
+        profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        profile.role = 'buyer'
+        profile.email_verificado = True
+        profile.marketing_opt_in = True
+        profile.save(update_fields=['role', 'email_verificado', 'marketing_opt_in'])
         self.company = Company.objects.create(
             name='CFZ Demo Co',
             is_verified=True,
@@ -45,6 +53,7 @@ class MarketplaceEmailTests(TestCase):
 
     @patch('core.utils.email_sender.send_mail', return_value=True)
     def test_enviar_bienvenida_uses_marketplace_template(self, mock_send):
+        """Welcome email includes catalog CTA and Spanish greeting."""
         from core.utils.email_sender import enviar_bienvenida
 
         enviar_bienvenida(self.user)
@@ -56,6 +65,7 @@ class MarketplaceEmailTests(TestCase):
 
     @patch('core.utils.email_sender.send_mail', return_value=True)
     def test_enviar_carrito_abandonado(self, mock_send):
+        """Abandoned-cart email lists line items and return CTA."""
         from core.utils.email_sender import enviar_carrito_abandonado
 
         carrito = {
@@ -74,6 +84,7 @@ class MarketplaceEmailTests(TestCase):
 
     @patch('core.utils.email_sender.send_mail', return_value=True)
     def test_enviar_promociones_empresas(self, mock_send):
+        """Promo email highlights verified CFZ company names."""
         from core.utils.email_sender import enviar_promociones_empresas
 
         ok = enviar_promociones_empresas(self.user)
@@ -82,9 +93,28 @@ class MarketplaceEmailTests(TestCase):
         self.assertIn('CFZ Demo Co', html)
         self.assertIn('Promociones', html)
 
+    @patch('core.utils.email_sender.send_mail', return_value=True)
+    def test_marketing_skipped_without_opt_in(self, mock_send):
+        """Cart/promo mail must not send when marketing_opt_in is false."""
+        from core.utils.email_sender import (
+            enviar_carrito_abandonado,
+            enviar_promociones_empresas,
+        )
+
+        profile = self.user.profile
+        profile.marketing_opt_in = False
+        profile.save(update_fields=['marketing_opt_in'])
+        carrito = {'1': {'nombre': 'X', 'cantidad': 1, 'subtotal': '1.00'}}
+        self.assertFalse(enviar_carrito_abandonado(self.user, carrito))
+        self.assertFalse(enviar_promociones_empresas(self.user))
+        mock_send.assert_not_called()
+
 
 class CartActivitySyncTests(TestCase):
+    """Assert cart mutations update UserProfile activity fields."""
+
     def setUp(self):
+        """Create buyer with stocked product for cart POSTs."""
         self.client = Client()
         self.user = User.objects.create_user(
             username='cartbuyer',
@@ -108,6 +138,7 @@ class CartActivitySyncTests(TestCase):
         Inventory.objects.create(product=self.product, stock_qty=50, reserved_qty=0)
 
     def test_add_to_cart_updates_profile_activity(self):
+        """Increment cart_items_count and stamp last activity."""
         self.client.force_login(self.user)
         url = reverse('agregar_al_carrito', kwargs={'producto_id': self.product.pk})
         self.client.post(url, {'cantidad': 3})
@@ -117,6 +148,7 @@ class CartActivitySyncTests(TestCase):
         self.assertIsNone(profile.cart_reminder_sent_at)
 
     def test_empty_cart_clears_profile_snapshot(self):
+        """Clear activity fields when the last cart item is removed."""
         self.client.force_login(self.user)
         add_url = reverse('agregar_al_carrito', kwargs={'producto_id': self.product.pk})
         self.client.post(add_url, {'cantidad': 1})
@@ -128,7 +160,10 @@ class CartActivitySyncTests(TestCase):
 
 
 class HomeNavbarTests(TestCase):
+    """Assert home nav differs for guests vs authenticated buyers."""
+
     def setUp(self):
+        """Create a verified buyer for logged-in nav checks."""
         self.buyer = User.objects.create_user(
             username='loggedbuyer',
             email='logged@example.com',
@@ -137,6 +172,7 @@ class HomeNavbarTests(TestCase):
         UserProfile.objects.filter(user=self.buyer).update(role='buyer', email_verificado=True)
 
     def test_home_hides_duplicate_marketplace_nav_when_authenticated(self):
+        """Hide guest catalog nav when buyer shell is active."""
         self.client.force_login(self.buyer)
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
@@ -145,6 +181,7 @@ class HomeNavbarTests(TestCase):
         self.assertNotIn('id="cat-catalog-nav"', html)
 
     def test_home_shows_marketplace_nav_for_guests(self):
+        """Show catalog nav and auth CTAs for anonymous visitors."""
         response = self.client.get(reverse('home'))
         self.assertContains(response, 'id="cat-catalog-nav"')
         self.assertContains(response, 'Sign in')

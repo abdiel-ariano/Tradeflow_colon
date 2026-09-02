@@ -1,44 +1,128 @@
 {% comment %}
-Rail lateral compartido del panel administrativo (TradeFlow Colón).
-Contexto: nav_activo — dashboard | saas | ordenes | productos | empresas | admin_applications
+Shared TradeFlow administration rail — ops-first IA.
+
+Daily work stays in custom panel routes. Django Admin changelists remain
+reachable by direct URL for rare system edits; they are not rail destinations.
+CSS for this shell loads from <head> via admin_ops_assets (not here) to avoid FOUC.
 {% endcomment %}
-<aside class="adm-side" id="admRail" data-nav-active="{{ nav_activo|default:'dashboard' }}" aria-label="Admin menu">
-  <div class="adm-rail-brand">
-    <div class="adm-rail-brand-mark">
-      <span class="material-symbols-rounded" aria-hidden="true">hub</span>
-      <div class="adm-rail-brand-text">
-        <strong>TradeFlow</strong>
-        <span>Admin panel</span>
-      </div>
-    </div>
-  </div>
-  <nav class="adm-rail-nav">
-    <a href="{% url 'dashboard' %}" data-adm-nav="dashboard" title="Dashboard">
+{% load static %}
+<button
+  type="button"
+  id="tfAdminRailBackdrop"
+  class="tf-admin-rail-backdrop"
+  aria-label="Close administration menu"
+  tabindex="-1"
+></button>
+<aside
+  class="adm-side"
+  id="admRail"
+  data-nav-active="{{ nav_activo|default:'dashboard' }}"
+  aria-label="Administration menu"
+>
+  <nav class="adm-rail-nav" aria-label="TradeFlow modules" data-rail-accordion="multi">
+    <span class="adm-rail-section-label">Operations</span>
+    <a
+      class="adm-rail-link"
+      href="{% url 'dashboard' %}"
+      data-adm-nav="dashboard"
+      data-tf-admin-route="/dashboard/"
+      title="Dashboard"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
       <span class="adm-rail-label">Dashboard</span>
     </a>
-    <a href="{% url 'lista_ordenes' %}" data-adm-nav="ordenes" title="Orders">
+    <a
+      class="adm-rail-link"
+      href="{% url 'lista_ordenes' %}"
+      data-adm-nav="ordenes"
+      data-tf-admin-route="/ordenes/"
+      title="Orders"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">receipt_long</span>
       <span class="adm-rail-label">Orders</span>
+      {% if pending_stuck_orders_count %}
+      <span class="adm-rail-badge">{{ pending_stuck_orders_count }}</span>
+      {% endif %}
     </a>
-    <a href="{% url 'lista_productos' %}" data-adm-nav="productos" title="Products">
+
+    <span class="adm-rail-section-label">Directory</span>
+    <a
+      class="adm-rail-link"
+      href="{% url 'lista_productos' %}"
+      data-adm-nav="productos"
+      data-tf-admin-route="/productos/"
+      title="Products"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
       <span class="adm-rail-label">Products</span>
     </a>
-    <a href="{% url 'lista_empresas' %}" data-adm-nav="empresas" title="Companies">
+    <a
+      class="adm-rail-link"
+      href="{% url 'lista_empresas' %}"
+      data-adm-nav="empresas"
+      data-tf-admin-route="/empresas/"
+      title="Companies"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">business</span>
       <span class="adm-rail-label">Companies</span>
+      {% if pending_companies_count %}
+      <span class="adm-rail-badge" id="adm-companies-pending-badge">{{ pending_companies_count }}</span>
+      {% endif %}
     </a>
-    <a href="{% url 'admin_applications' %}" data-adm-nav="admin_applications" title="Applications">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin_panel_search' %}"
+      data-adm-nav="panel_search"
+      data-tf-admin-route="/panel/search/"
+      title="Search"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      <span class="adm-rail-label">Search</span>
+    </a>
+
+    <span class="adm-rail-section-label">Companies and users</span>
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin_applications' %}"
+      data-adm-nav="admin_applications"
+      data-tf-admin-route="/panel/applications/"
+      title="Applications"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">assignment_ind</span>
       <span class="adm-rail-label">Applications</span>
       {% if pending_applications_count %}
       <span class="adm-rail-badge">{{ pending_applications_count }}</span>
       {% endif %}
     </a>
-    <a href="{% url 'admin_saas_dashboard' %}" data-adm-nav="saas" title="SaaS Plans">
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin_transportistas' %}"
+      data-adm-nav="carriers"
+      data-tf-admin-route="/panel/carriers/"
+      title="Carriers"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">departure_board</span>
+      <span class="adm-rail-label">Carriers</span>
+      {% if pending_carriers_count %}
+      <span class="adm-rail-badge">{{ pending_carriers_count }}</span>
+      {% endif %}
+    </a>
+
+    <span class="adm-rail-section-label">SaaS</span>
+    <a
+      class="adm-rail-link"
+      href="{% url 'admin_saas_dashboard' %}"
+      data-adm-nav="saas"
+      data-tf-admin-route="/saas/"
+      title="SaaS dashboard"
+    >
       <span class="material-symbols-rounded" aria-hidden="true">workspace_premium</span>
-      <span class="adm-rail-label">SaaS Plans</span>
+      <span class="adm-rail-label">SaaS dashboard</span>
+      {% if pending_saas_requests_count %}
+      <span class="adm-rail-badge">{{ pending_saas_requests_count }}</span>
+      {% endif %}
     </a>
   </nav>
 </aside>
+<script defer src="{% static 'js/tradeflow_admin_nav.js' %}"></script>
+<script defer src="{% static 'js/admin_rail.js' %}"></script>

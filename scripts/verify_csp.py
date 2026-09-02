@@ -1,8 +1,7 @@
-r"""
-Smoke test del CSP nonce. Usa el Django test client para verificar que:
-  1) El header Content-Security-Policy contiene 'nonce-XXX' y NO 'unsafe-inline'.
-  2) El nonce del header coincide con el nonce en el HTML.
-  3) Cada <script> (sin src) y cada <style> tiene el atributo nonce="...".
+"""Smoke-test CSP nonce wiring against key marketplace pages.
+
+Uses Django's test client to assert that Content-Security-Policy carries
+a nonce (not unsafe-inline), and that inline script/style tags match it.
 """
 from __future__ import annotations
 
@@ -26,6 +25,11 @@ STYLE_TAG_RE = re.compile(r'<style\b([^>]*)>', re.IGNORECASE)
 
 
 def check_url(client, url):
+    """Validate CSP header and inline-tag nonces for one URL.
+
+    Returns (ok, notes). 404 pages are skipped as Django's debug 404 is
+    not a TradeFlow template.
+    """
     notes = []
     resp = client.get(url, follow=True)
     if resp.status_code == 404:
@@ -69,6 +73,7 @@ def check_url(client, url):
 
 
 def main():
+    """Hit core public URLs and /mapa/ Folium CSP exception; exit 1 on fail."""
     client = Client(SERVER_NAME='127.0.0.1')
     urls = ['/', '/login/', '/signup/', '/solicitud-acceso/']
     all_ok = True

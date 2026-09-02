@@ -1,5 +1,7 @@
-"""
-Integración django-axes para intentos fallidos de OTP (misma política que login).
+"""Helpers de bloqueo respaldados por AXES contra fuerza bruta de OTP.
+
+Registra intentos fallidos de verificación para que atacantes no pulvericen
+códigos contra correos de registro ZLC.
 """
 from __future__ import annotations
 
@@ -16,18 +18,18 @@ OTP_AXES_SENDER = 'tradeflow.otp_verify'
 
 
 def otp_axes_credentials(username: str) -> dict[str, Any]:
-    """Credenciales para axes; prefijo ``otp:`` separa contadores de password login."""
+    """Construye credenciales AXES; el prefijo ``otp:`` aísla OTP de contadores de contraseña."""
     return get_credentials(username=f'otp:{username}')
 
 
 def otp_axes_is_locked(request: HttpRequest, username: str) -> bool:
-    """True si el usuario/IP superó ``AXES_FAILURE_LIMIT`` (5) en OTP."""
+    """Devuelve True cuando AXES ha bloqueado intentos OTP para la petición."""
     credentials = otp_axes_credentials(username)
     return AxesProxyHandler.is_locked(request, credentials)
 
 
 def otp_axes_record_failure(request: HttpRequest, username: str) -> int:
-    """Registra intento fallido; retorna fallos acumulados."""
+    """Registra un intento OTP fallido con AXES."""
     credentials = otp_axes_credentials(username)
     AxesProxyHandler.user_login_failed(OTP_AXES_SENDER, credentials, request=request)
     failures = AxesProxyHandler.get_failures(request, credentials)
@@ -41,7 +43,7 @@ def otp_axes_record_failure(request: HttpRequest, username: str) -> int:
 
 
 def otp_axes_reset(username: str, request: HttpRequest) -> None:
-    """Limpia contador tras verificación exitosa (``AXES_RESET_ON_SUCCESS``)."""
+    """Limpia el estado de fallos AXES tras un OTP exitoso."""
     AxesProxyHandler.reset_attempts(
         username=f'otp:{username}',
         ip_address=get_client_ip_address(request),
@@ -54,7 +56,7 @@ def otp_axes_lockout_response(
     *,
     as_json: bool = False,
 ) -> HttpResponse:
-    """Respuesta de bloqueo temporal (cooloff 1 h según ``AXES_COOLOFF_TIME``)."""
+    """Devuelve respuesta HTTP/JSON de bloqueo (cooloff desde ``AXES_COOLOFF_TIME``)."""
     credentials = otp_axes_credentials(username)
     if as_json:
         return JsonResponse(

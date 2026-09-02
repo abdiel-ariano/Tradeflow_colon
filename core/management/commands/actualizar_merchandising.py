@@ -1,10 +1,10 @@
-"""
-=============================================================================
-ACCIÓN: CREAR
-DESTINO: core/management/commands/actualizar_merchandising.py
-=============================================================================
-Recalcula flags is_bestseller y desactiva promos vencidas.
-=============================================================================
+"""Refresh bestseller flags and clear expired product promotions.
+
+Uses non-cancelled OrderItem volume over the last 30 days to mark the
+top movers, then nulls promo fields past ``promo_ends_at``.
+
+Ops: schedule daily on staging/production after orders exist. Safe to
+re-run; invalidates merchandising cache afterward.
 """
 from datetime import timedelta
 
@@ -16,9 +16,12 @@ from core.models import OrderItem, Product
 
 
 class Command(BaseCommand):
-    help = 'Recalcula bestsellers (30 días) y limpia promociones vencidas.'
+    """Recalculate bestsellers and clean expired promo prices."""
+
+    help = 'Recalculate bestsellers (30 days) and clear expired promotions.'
 
     def handle(self, *args, **options):
+        """Update is_bestseller, clear expired promos, invalidate cache."""
         now = timezone.now()
         since = now - timedelta(days=30)
 

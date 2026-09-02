@@ -1,20 +1,31 @@
-{% load static %}
+{% load static i18n %}
 {% comment %}Reusable fragment: catalog grid + empty state + pagination.{% endcomment %}
 <div id="cat-results-root" data-total="{{ total_resultados|default:0 }}">
   {% if productos %}
-  <div class="product-grid cat-grid tf-pcard-grid" id="cat-product-grid">
-    {% for producto in productos %}
-      {% include "core/includes/catalogo_card.html" with product=producto card_index=forloop.counter %}
-    {% endfor %}
+  <div class="cat-product-grids" id="cat-product-grids">
+    <div class="product-grid cat-grid tf-pcard-grid cat-product-grid-top" id="cat-product-grid-top" aria-label="{% trans 'Featured results' %}">
+      {% for producto in productos %}
+        {% if forloop.counter <= 4 %}
+          {% include "core/includes/catalogo_card.html" with product=producto card_index=forloop.counter %}
+        {% endif %}
+      {% endfor %}
+    </div>
+    <div class="product-grid cat-grid tf-pcard-grid cat-product-grid-main" id="cat-product-grid-main" aria-label="{% trans 'More results' %}">
+      {% for producto in productos %}
+        {% if forloop.counter > 4 %}
+          {% include "core/includes/catalogo_card.html" with product=producto card_index=forloop.counter %}
+        {% endif %}
+      {% endfor %}
+    </div>
   </div>
 
   {% if productos.has_other_pages %}
-  <nav class="pagination cat-pagination" aria-label="Catalog pagination">
+  <nav class="pagination cat-pagination" aria-label="{% trans 'Catalog pagination' %}">
     {% if productos.has_previous %}
     <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ productos.previous_page_number }}"
-       class="page-btn" aria-label="Previous page">← Prev</a>
+       class="page-btn" aria-label="{% trans 'Previous page' %}">← {% trans "Prev" %}</a>
     {% else %}
-    <span class="page-btn page-btn--disabled" aria-hidden="true">← Prev</span>
+    <span class="page-btn page-btn--disabled" aria-hidden="true">← {% trans "Prev" %}</span>
     {% endif %}
 
     {% for slot in pagination_slots %}
@@ -29,24 +40,25 @@
 
     {% if productos.has_next %}
     <a href="{% url 'catalogo_publico' %}?{% if catalogo_params %}{{ catalogo_params }}&{% endif %}page={{ productos.next_page_number }}"
-       class="page-btn" aria-label="Next page">Next →</a>
+       class="page-btn" aria-label="{% trans 'Next page' %}">{% trans "Next" %} →</a>
     {% else %}
-    <span class="page-btn page-btn--disabled" aria-hidden="true">Next →</span>
+    <span class="page-btn page-btn--disabled" aria-hidden="true">{% trans "Next" %} →</span>
     {% endif %}
   </nav>
   {% endif %}
 
   {% else %}
   <div class="empty-state cat-empty" id="cat-empty-state">
-    <h2>No products found{% if buscar %} for &ldquo;{{ buscar }}&rdquo;{% endif %}</h2>
-    <p>Try these terms or adjust your filters:</p>
+    <img src="{% static 'img/no_data_found.svg' %}" alt="" class="cat-empty__illus" width="280" height="187" loading="lazy" decoding="async">
+    <h2>{% if buscar %}{% blocktrans with term=buscar %}No products found for “{{ term }}”{% endblocktrans %}{% else %}{% trans "No products found" %}{% endif %}</h2>
+    <p>{% trans "Try these terms or adjust your filters:" %}</p>
     <div class="cat-suggestions">
       {% for term in sugerencias %}
       <a href="{% url 'catalogo_publico' %}?buscar={{ term|urlencode }}" class="cat-suggestion-chip cat-ajax-chip">{{ term }}</a>
       {% endfor %}
     </div>
     <p class="cat-empty-action">
-      <a href="{% url 'catalogo_publico' %}" class="btn-clear-filters">View full catalog</a>
+      <a href="{% url 'catalogo_publico' %}" class="btn-clear-filters">{% trans "View full catalog" %}</a>
     </p>
   </div>
   {% endif %}
