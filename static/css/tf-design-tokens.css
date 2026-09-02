@@ -18,7 +18,7 @@ CONVENCIÓN
   --ui-*     Tokens puntuales de componentes
 
 MIGRACIÓN GRADUAL
-  1. Eliminar bloques :root duplicados en base.html (~L309–352), tienda.html (~L19–29).
+  1. Eliminar bloques :root duplicados en base.html (~L309–352).
   2. colors.css ya re-exporta este archivo vía @import.
   3. tf-design-system.css conserva solo componentes (.ds-btn, etc.), no :root.
 =============================================================================
