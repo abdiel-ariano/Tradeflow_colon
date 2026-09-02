@@ -110,7 +110,9 @@ Cards grow with translated or enlarged text so actions are not clipped.
 
 ## Release checklist
 
-1. Run the Django CI checks and `core.tests.test_pwa_android`.
+1. Run the Django CI checks, `core.tests.test_pwa_android`, and
+   `core.tests.test_mobile_menu`.
+2. Run `node scripts/test_mobile_menu_matrix.js` against the preview URL.
 2. Deploy and verify manifest, 512 px icon, service worker, and offline page.
 3. Build with the stable production key.
 4. Configure the Play app-signing fingerprint in Railway.

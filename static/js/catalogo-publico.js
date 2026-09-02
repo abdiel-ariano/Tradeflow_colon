@@ -18,7 +18,6 @@
   var activeFiltersEl = document.getElementById('cat-active-filters');
   var priceRange = document.getElementById('cat-price-range');
   var pageConfig = document.getElementById('cat-page-config');
-  var navHamburger = document.getElementById('cat-nav-hamburger');
   var navSearchForm = document.getElementById('cat-nav-search-form');
   var navSearchInput = document.getElementById('cat-nav-search');
   var filterBuscar = document.getElementById('cat-filter-buscar');
@@ -121,12 +120,6 @@
   if (openBtn && sidebar) {
     openBtn.addEventListener('click', function () {
       setSidebarOpen(!sidebar.classList.contains('is-open'));
-    });
-  }
-
-  if (navHamburger) {
-    navHamburger.addEventListener('click', function () {
-      setSidebarOpen(true);
     });
   }
 

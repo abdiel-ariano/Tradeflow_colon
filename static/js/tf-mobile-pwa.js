@@ -1,39 +1,75 @@
 /*
  * TradeFlow Colón — compact marketplace navigation and PWA installation.
  *
- * The module deliberately no-ops outside public marketplace pages. It keeps
- * Android and tablet navigation accessible and exposes the browser install
- * prompt only when the current device reports that installation is available.
+ * Supports the public marketplace navbar (#cat-catalog-nav) and the buyer shell
+ * (#bn-buyer-shell). Both share the tf-market-menu-open body class so mobile
+ * CSS can reveal the fixed secondary panel without clipping.
  */
 (function () {
   'use strict';
 
-  var header = document.getElementById('cat-catalog-nav');
-  var menuButton = document.getElementById('cat-nav-hamburger');
-  var menu = document.getElementById('cat-nav-secondary');
   var compactQuery = window.matchMedia(
     '(max-width: 1199px), ' +
       '(pointer: coarse) and (max-width: 1366px)'
   );
 
-  function setMenuOpen(isOpen) {
-    if (!menuButton || !menu) {
+  var menuConfigs = [
+    {
+      header: document.getElementById('cat-catalog-nav'),
+      menuButton: document.getElementById('cat-nav-hamburger'),
+      menu: document.getElementById('cat-nav-secondary'),
+    },
+    {
+      header: document.getElementById('bn-buyer-shell'),
+      menuButton: document.getElementById('bn-mobile-toggle'),
+      menu: document.getElementById('bn-l2'),
+    },
+  ];
+
+  var activeMenu = null;
+
+  function syncNavHeight(header) {
+    if (!header) {
+      return;
+    }
+    var height = Math.ceil(header.getBoundingClientRect().height);
+    document.body.style.setProperty('--cat-nav-height', height + 'px');
+  }
+
+  function setMenuOpen(config, isOpen) {
+    if (!config || !config.menuButton || !config.menu) {
       return;
     }
 
-    menu.classList.toggle('is-open', isOpen);
-    menuButton.setAttribute('aria-expanded', String(isOpen));
+    if (isOpen && activeMenu && activeMenu !== config) {
+      setMenuOpen(activeMenu, false);
+    }
+
+    config.menu.classList.toggle('is-open', isOpen);
+    config.menuButton.setAttribute('aria-expanded', String(isOpen));
     document.body.classList.toggle('tf-market-menu-open', isOpen);
+    activeMenu = isOpen ? config : null;
   }
 
-  if (header && menuButton && menu) {
-    menuButton.addEventListener('click', function () {
-      setMenuOpen(!menu.classList.contains('is-open'));
+  function initCompactMenu(config) {
+    var header = config.header;
+    var menuButton = config.menuButton;
+    var menu = config.menu;
+
+    if (!header || !menuButton || !menu) {
+      return;
+    }
+
+    syncNavHeight(header);
+
+    menuButton.addEventListener('click', function (event) {
+      event.preventDefault();
+      setMenuOpen(config, !menu.classList.contains('is-open'));
     });
 
     menu.addEventListener('click', function (event) {
       if (event.target.closest('a, [data-cat-modal-open]')) {
-        setMenuOpen(false);
+        setMenuOpen(config, false);
       }
     });
 
@@ -43,23 +79,35 @@
         menu.classList.contains('is-open') &&
         !header.contains(event.target)
       ) {
-        setMenuOpen(false);
+        setMenuOpen(config, false);
       }
     });
 
     document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') {
-        setMenuOpen(false);
+      if (event.key === 'Escape' && menu.classList.contains('is-open')) {
+        setMenuOpen(config, false);
         menuButton.focus();
       }
     });
 
     compactQuery.addEventListener('change', function (event) {
       if (!event.matches) {
-        setMenuOpen(false);
+        setMenuOpen(config, false);
       }
     });
+
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(function () {
+        syncNavHeight(header);
+      }).observe(header);
+    } else {
+      window.addEventListener('resize', function () {
+        syncNavHeight(header);
+      });
+    }
   }
+
+  menuConfigs.forEach(initCompactMenu);
 
   var deferredInstallPrompt = null;
   var installButtons = document.querySelectorAll(
@@ -110,7 +158,9 @@
 
       deferredInstallPrompt = null;
       setInstallButtonsVisible(false);
-      setMenuOpen(false);
+      if (activeMenu) {
+        setMenuOpen(activeMenu, false);
+      }
     });
   });
 
@@ -126,7 +176,8 @@
 
   function isMarketplaceCompact() {
     return (
-      document.body.classList.contains('cat-catalog-page') &&
+      (document.body.classList.contains('cat-catalog-page') ||
+        document.querySelector('.hm-marketplace, .hm-alibaba')) &&
       marketplaceCompactQuery.matches
     );
   }
@@ -179,7 +230,7 @@
     return (
       target &&
       target.closest(
-        '#cat-catalog-nav, button, a, input, textarea, select, label, [role="button"], [data-cat-modal-open]'
+        '#cat-catalog-nav, #bn-buyer-shell, button, a, input, textarea, select, label, [role="button"], [data-cat-modal-open]'
       )
     );
   }
