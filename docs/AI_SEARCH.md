@@ -1,5 +1,8 @@
 # TradeFlow AI Search
 
+> **Vista API:** `api_search_suggest` en `core/views/home_map.py` (reexportada desde
+> `core/views/__init__.py`). Motor: `core/utils/ai_search.py`.
+
 Google-style typeahead suggestions while the user types in any search bar.
 
 ## Flow
@@ -26,7 +29,7 @@ Google-style typeahead suggestions while the user types in any search bar.
 | Client JS | `static/js/tf-ai-search.js` | Bind inputs, fetch API, render panel, keyboard nav |
 | Client CSS | `static/css/tf-ai-search.css` | Connected shell + product card layout |
 | Assets include | `templates/core/includes/tf_ai_search_assets.html` | CSS/JS + `TF_AI_SEARCH_URL` |
-| API view | `core/views.py` → `api_search_suggest` | Auth by scope, rate limits, JSON response |
+| API view | `core/views/home_map.py` → `api_search_suggest` | Auth by scope, rate limits, JSON response |
 | Engine | `core/utils/ai_search.py` | `search_public`, `search_buyer`, `search_seller`, `search_admin` |
 | URL | `core/urls.py` | `api/search/suggest/` |
 | Tests | `core/tests/test_ai_search.py` | Public/seller API smoke tests |

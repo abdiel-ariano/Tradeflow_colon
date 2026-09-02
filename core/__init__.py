@@ -1,5 +1,5 @@
-"""Shared Django app for TradeFlow Colón marketplace foundations.
+"""Aplicación Django principal del marketplace TradeFlow Colón.
 
-Holds models, middleware, templatetags, storage, and cross-cutting
-services used by the CFZ B2B catalog, seller portal, and buyer flows.
+Modelos, middleware, plantillas, servicios transversales y vistas del catálogo
+B2B de la Zona Libre de Colón: flujos comprador, vendedor y operaciones.
 """
