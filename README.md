@@ -81,7 +81,8 @@ No se incluyen contraseñas en el repositorio.
 | Comprador | `demo_buyer` |
 | Vendedor | `demo_seller` |
 
-Para Django Admin use `python manage.py createsuperuser` en su entorno local.
+La cuenta `demo_admin` también se crea con `cargar_demo` para `/admin/`, pero su
+contraseña no se publica en la documentación del repositorio.
 
 ---
 

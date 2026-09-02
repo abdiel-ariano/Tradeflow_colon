@@ -216,7 +216,9 @@ Runbook: [SECURITY_OPS.md](SECURITY_OPS.md).
 | Comprador | `demo_buyer` |
 | Vendedor | `demo_seller` |
 
-Admin operativo: `python manage.py createsuperuser` (no hay cuenta admin presembrada).
+`demo_admin` se sembra con `cargar_demo` para acceso a Django Admin en demos
+locales; la contraseña se define con `DEMO_USER_PASSWORD` y no figura en estos
+documentos.
 
 ---
 

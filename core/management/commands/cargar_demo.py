@@ -1,7 +1,7 @@
 """Load lightweight CFZ marketplace demo data for local development.
 
 Creates categories, three ZLC companies, nine products (picsum images),
-carrier options, and demo_buyer / demo_seller accounts.
+carrier options, and demo_buyer / demo_seller / demo_admin accounts.
 
 Ops: local and disposable staging only. Do not run against production.
 Set DEMO_USER_PASSWORD in the environment before seeding; passwords are
@@ -180,14 +180,23 @@ USUARIOS_DEMO = [
         'role':       'seller',
         'phone':      '+507 6500-0002',
     },
+    {
+        'username':   'demo_admin',
+        'first_name': 'Patricia',
+        'last_name':  'Vásquez',
+        'email':      'demo.admin@tradeflow.pa',
+        'role':       'admin',
+        'phone':      '+507 6500-0003',
+        'is_staff':   True,
+    },
 ]
 
 
 class Command(BaseCommand):
     """Seed demo catalog, ZLC companies, and fixed test users.
 
-    Also links demo_seller to TechZone and ensures an active SaaS demo
-    subscription for the seller walkthrough.
+    Also links demo_seller to TechZone, ensures an active SaaS demo
+    subscription, and repairs demo_admin staff/admin permissions.
     """
 
     help = 'Load demo data with images for TradeFlow Colón'
@@ -302,6 +311,9 @@ class Command(BaseCommand):
                 email      = data['email'],
                 password   = demo_password,
             )
+            if data.get('is_staff'):
+                user.is_staff = True
+                user.save(update_fields=['is_staff'])
             UserProfile.objects.create(
                 user=user,
                 role=data['role'],
@@ -339,7 +351,47 @@ class Command(BaseCommand):
                 self.style.WARNING('  No se pudo vincular demo_seller (usuario o empresa ausente).')
             )
 
-        for uname in ('demo_buyer', 'demo_seller'):
+        # 6. Configure demo_admin for persistent Django Admin access.
+        self.stdout.write(
+            '\n[6/6] Ajustando cuenta demo_admin para la demostración...'
+        )
+        adm = User.objects.filter(username='demo_admin').first()
+        if adm:
+            prof = getattr(adm, 'profile', None)
+            if prof and prof.role != 'admin':
+                prof.role = 'admin'
+                prof.save(update_fields=['role'])
+                self.stdout.write(self.style.SUCCESS('  demo_admin → rol actualizado a admin'))
+            elif not prof:
+                UserProfile.objects.create(
+                    user=adm,
+                    role='admin',
+                    phone='+507 6500-0003',
+                    email_verificado=True,
+                    token_verificacion=None,
+                )
+                self.stdout.write(self.style.SUCCESS('  demo_admin → perfil admin creado'))
+            else:
+                self.stdout.write('  demo_admin — rol admin OK')
+
+            from core.utils.admin_permissions import sync_user_admin_access
+
+            sync_user_admin_access(adm)
+            self.stdout.write(
+                self.style.SUCCESS(
+                    '  demo_admin → Django Admin integral habilitado'
+                )
+            )
+
+            prof = getattr(adm, 'profile', None)
+            if prof and (not prof.email_verificado or prof.token_verificacion):
+                prof.email_verificado = True
+                prof.token_verificacion = None
+                prof.save(update_fields=['email_verificado', 'token_verificacion'])
+        else:
+            self.stdout.write(self.style.WARNING('  demo_admin no existe; ejecuta de nuevo o crea el usuario en admin.'))
+
+        for uname in ('demo_buyer', 'demo_seller', 'demo_admin'):
             u = User.objects.filter(username=uname).first()
             if not u:
                 continue
@@ -358,9 +410,10 @@ class Command(BaseCommand):
         self.stdout.write(f'  Productos: {Product.objects.count()}')
         self.stdout.write(f'  Empresas:  {Company.objects.count()}')
         self.stdout.write(f'  Usuarios:  {User.objects.filter(is_superuser=False).count()}')
-        self.stdout.write('\nAccesos de prueba (buyer / seller):')
+        self.stdout.write('\nAccesos de prueba:')
         self.stdout.write('  demo_buyer')
         self.stdout.write('  demo_seller (Mi Tienda → TechZone Colón S.A.)')
+        self.stdout.write('  demo_admin (/admin/ — clave no documentada en el repo)')
         if password_from_env:
             self.stdout.write(
                 '  Clave: definida en DEMO_USER_PASSWORD (no se imprime por seguridad).'
@@ -372,9 +425,7 @@ class Command(BaseCommand):
                     f'{demo_password}'
                 )
             )
-        self.stdout.write(
-            '  Admin Django: use `python manage.py createsuperuser` (no hay cuenta admin demo).'
-        )
+        self.stdout.write('=' * 60)
         if getattr(settings, 'REQUIRE_EMAIL_VERIFICATION', False):
             self.stdout.write(
                 self.style.WARNING(

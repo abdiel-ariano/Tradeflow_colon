@@ -39,9 +39,9 @@ python manage.py runserver
 ```
 
 - **No hay contraseñas en el repositorio.** `DEMO_USER_PASSWORD` define la clave
-  de `demo_buyer` y `demo_seller`.
-- **No se crea cuenta admin demo.** Para `/admin/` use
-  `python manage.py createsuperuser`.
+  de `demo_buyer`, `demo_seller` y `demo_admin`.
+- La documentación pública **no lista credenciales de admin**; el evaluador usa la
+  clave que definió en su entorno.
 
 ---
 
@@ -52,7 +52,8 @@ python manage.py runserver
 | Comprador | `demo_buyer` |
 | Vendedor | `demo_seller` |
 
-La contraseña es la que el evaluador definió en `DEMO_USER_PASSWORD`.
+`demo_admin` existe en el seed para `/admin/` en entornos demo, pero **no se
+documenta su contraseña** en el repositorio compartido.
 
 ---
 
@@ -67,7 +68,7 @@ La contraseña es la que el evaluador definió en `DEMO_USER_PASSWORD`.
 | `SUPABASE_*` | Storage y Realtime |
 | `GOOGLE_CLIENT_*`, `MICROSOFT_*`, `LINKEDIN_*` | OAuth |
 | `ANDROID_KEYSTORE_*` | Firma APK (CI) |
-| `DEMO_USER_PASSWORD` | Semilla local buyer/seller |
+| `DEMO_USER_PASSWORD` | Semilla local buyer/seller/admin |
 
 Plantillas vacías: `.env.example`, `.env.demo`.
 

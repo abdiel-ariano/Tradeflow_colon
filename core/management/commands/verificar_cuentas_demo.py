@@ -1,6 +1,6 @@
 """Mark demo accounts as email-verified for local login testing.
 
-Default targets demo_buyer and demo_seller so
+Default targets demo_buyer, demo_seller, and demo_admin so
 REQUIRE_EMAIL_VERIFICATION does not block walkthroughs.
 
 Ops: local DEBUG only. ``--todos`` marks every profile and requires
@@ -12,19 +12,19 @@ from django.core.management.base import BaseCommand, CommandError
 
 from core.models import UserProfile
 
-DEMO_USERNAMES = ('demo_buyer', 'demo_seller')
+DEMO_USERNAMES = ('demo_buyer', 'demo_seller', 'demo_admin')
 
 
 class Command(BaseCommand):
     """Repair demo profiles blocked by pending email verification.
 
-    By default only updates the buyer and seller demo usernames. ``--todos`` marks
+    By default only updates the three demo usernames. ``--todos`` marks
     all UserProfile rows (DEBUG or ``--force`` required).
     """
 
     help = (
-        'Set email_verificado=True on demo accounts (demo_buyer, demo_seller). '
-        'Option --todos for all profiles.'
+        'Set email_verificado=True on demo accounts (demo_buyer, demo_seller, '
+        'demo_admin). Option --todos for all profiles.'
     )
 
     def add_arguments(self, parser):
