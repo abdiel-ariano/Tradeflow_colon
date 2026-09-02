@@ -167,6 +167,16 @@ urlpatterns = [
     path('checkout/',                        views.checkout,            name='checkout'),
     path('mis-ordenes/',                     views.mis_ordenes,         name='mis_ordenes'),
     path('mis-ordenes/<int:pk>/',            views.detalle_mi_orden,    name='detalle_mi_orden'),
+    path(
+        'mis-ordenes/<int:order_pk>/pagar/stripe/',
+        views.stripe_checkout_start,
+        name='stripe_checkout_start',
+    ),
+    path(
+        'pagos/stripe/resultado/',
+        views.stripe_checkout_success,
+        name='stripe_checkout_success',
+    ),
     path('ordenes/<int:orden_pk>/factura/',  views.descargar_factura,   name='descargar_factura'),
     path('ordenes/<int:orden_pk>/packing-list/', views.descargar_packing_list, name='descargar_packing_list'),
 
