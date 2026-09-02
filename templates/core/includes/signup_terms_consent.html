@@ -1,6 +1,7 @@
 {% comment %}
 Checkbox + modal de Términos de Uso y Política de Seguridad (signup buyer/seller).
 {% endcomment %}
+{% load static %}
 <div class="signup-terms-consent">
   <label class="signup-terms-consent__label" for="id_terms_accepted">
     <input
@@ -54,7 +55,7 @@ Checkbox + modal de Términos de Uso y Política de Seguridad (signup buyer/sell
     </div>
     <footer class="signup-terms-modal__foot">
       <a
-        href="{% url 'legal_politicas_seguridad' %}"
+        href="{% static 'legal/politicas-seguridad-uso.pdf' %}"
         class="signup-terms-modal__full-doc"
         target="_blank"
         rel="noopener noreferrer"
