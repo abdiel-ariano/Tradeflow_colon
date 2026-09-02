@@ -22,6 +22,7 @@ urlpatterns = [
 
     # ── Páginas legales ─────────────────────────────────────────────────────
     path('terminos/', views.legal_terminos, name='legal_terminos'),
+    path('politicas-seguridad/', views.legal_politicas_seguridad, name='legal_politicas_seguridad'),
     path('privacidad/', views.legal_privacidad, name='legal_privacidad'),
     path('cookies/', views.legal_cookies, name='legal_cookies'),
     path('acerca/', views.acerca_tradeflow, name='acerca_tradeflow'),

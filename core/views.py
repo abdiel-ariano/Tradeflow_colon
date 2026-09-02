@@ -426,6 +426,7 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
         role = request.POST.get('role', 'buyer')
     password1 = request.POST.get('password1', '')
     password2 = request.POST.get('password2', '')
+    terms_accepted = request.POST.get('terms_accepted') in ('on', '1', 'true')
 
     errores = []
     signup_ctx = {
@@ -435,7 +436,14 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
         'form_last_name': request.POST.get('last_name', '').strip(),
         'form_email': email,
         'form_phone': phone,
+        'form_terms_accepted': terms_accepted,
     }
+
+    if not terms_accepted:
+        errores.append(
+            'Debes aceptar los Términos de Uso y la Política de Seguridad '
+            'para crear tu cuenta.'
+        )
 
     if not all([first_name, username, email, password1, password2]):
         errores.append('All fields marked with * are required.')
@@ -509,6 +517,8 @@ def _process_signup(request, forced_role=None, error_template='core/signup.html'
         }
     )
     profile.role = role
+    profile.terms_accepted = True
+    profile.terms_accepted_at = timezone.now()
     # Compradores nuevos deben completar el wizard de personalización post-registro
     if role == 'buyer':
         profile.onboarding_completed_at = None
@@ -4920,6 +4930,17 @@ def reject_application_view(request, pk):
 def legal_terminos(request):
     """Terms of Use for the TradeFlow Colón marketplace."""
     return render(request, 'core/legal_terminos.html')
+
+
+def legal_politicas_seguridad(request):
+    """Términos de Uso y Política de Seguridad — documento completo (HTML estático)."""
+    doc_path = settings.BASE_DIR / 'static' / 'legal' / 'politicas-seguridad-uso.html'
+    if not doc_path.is_file():
+        raise Http404('Document not found.')
+    return HttpResponse(
+        doc_path.read_bytes(),
+        content_type='text/html; charset=utf-8',
+    )
 
 
 def acerca_tradeflow(request):

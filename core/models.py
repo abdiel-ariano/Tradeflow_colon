@@ -113,6 +113,15 @@ class UserProfile(models.Model):
         verbose_name='Buyer onboarding completed',
         help_text='Null = wizard pending for new buyer signups; default now for legacy/test profiles.',
     )
+    terms_accepted = models.BooleanField(
+        default=False,
+        verbose_name='Terms and security policy accepted',
+    )
+    terms_accepted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Terms accepted at',
+    )
 
     class Meta:
         verbose_name        = 'User profile'
