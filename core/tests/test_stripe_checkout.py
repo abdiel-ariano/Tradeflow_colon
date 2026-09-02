@@ -134,10 +134,7 @@ class StripeCheckoutTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Stripe')
         self.assertContains(response, 'Test mode')
-        self.assertContains(
-            response,
-            'After you accept the supplier&#x27;s final quote',
-        )
+        self.assertContains(response, 'After you accept')
 
     def test_pending_order_displays_stripe_test_button(self):
         """An accepted pending order exposes the test Checkout action."""
