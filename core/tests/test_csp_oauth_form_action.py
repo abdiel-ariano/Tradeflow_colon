@@ -1,4 +1,4 @@
-"""CSP must allow OAuth IdP redirects after allauth confirmation POST."""
+"""CSP must allow approved external redirects after same-origin form posts."""
 from __future__ import annotations
 
 from django.test import Client, TestCase, override_settings
@@ -19,8 +19,8 @@ from django.test import Client, TestCase, override_settings
         },
     },
 )
-class OAuthCspFormActionTests(TestCase):
-    """Browsers apply form-action to the OAuth 302 redirect chain."""
+class ExternalCspFormActionTests(TestCase):
+    """Browsers apply form-action to external 302 redirect chains."""
 
     def setUp(self):
         self.client = Client(HTTP_HOST='localhost')
@@ -34,6 +34,7 @@ class OAuthCspFormActionTests(TestCase):
         self.assertIn('https://accounts.google.com', csp)
         self.assertIn('https://login.microsoftonline.com', csp)
         self.assertIn('https://www.linkedin.com', csp)
+        self.assertIn('https://checkout.stripe.com', csp)
 
     def test_google_login_post_redirects_to_google(self):
         """Confirmation POST still returns a Google authorize redirect."""
