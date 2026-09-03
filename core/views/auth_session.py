@@ -68,6 +68,7 @@ from ..utils.pdf_generator import (
 
 from .common import (
     AUTH_MODEL_BACKEND,
+    COMPANY_NAME_REGEX,
     EMAIL_REGEX,
     NOMBRE_REGEX,
     USERNAME_REGEX,
@@ -214,10 +215,10 @@ def _process_signup(request, forced_role=None, error_template='core/signup_selle
     if not all([first_name, username, email, password1, password2]):
         errores.append('All fields marked with * are required.')
 
-    if not NOMBRE_REGEX.match(first_name):
+    if not COMPANY_NAME_REGEX.match(first_name):
         errores.append(
-            'First name may only contain letters and spaces '
-            '(minimum 2 characters, maximum 50).'
+            'Company name may only contain letters, numbers, spaces, '
+            'and . , - & (2-100 characters).'
         )
 
     if last_name and not NOMBRE_REGEX.match(last_name):

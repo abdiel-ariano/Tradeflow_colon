@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from .common import (
     AUTH_MODEL_BACKEND,
+    COMPANY_NAME_REGEX,
     NOMBRE_REGEX,
     USERNAME_REGEX,
     EMAIL_REGEX,
@@ -185,6 +186,7 @@ from .public_pages import (
 __all__ = [
     'AUTH_MODEL_BACKEND',
     'NOMBRE_REGEX',
+    'COMPANY_NAME_REGEX',
     'USERNAME_REGEX',
     'EMAIL_REGEX',
     'log',
