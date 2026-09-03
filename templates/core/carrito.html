@@ -133,6 +133,19 @@
             {% trans "Quote before you commit" %}
           </a>
           {% endif %}
+
+          {% if stripe_test_mode %}
+          <div class="cart-summary__divider"></div>
+          <div class="cart-payments__badges" aria-label="{% trans 'Payment available after quote approval' %}">
+            <span class="cart-payments__badge">Stripe</span>
+            <span class="cart-payments__badge">{% trans "Test mode" %}</span>
+          </div>
+          <p class="cart-payments__note">
+            <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+            {% trans "After you accept the supplier's final quote, pay the resulting order in Stripe's test environment. No real funds are charged." %}
+          </p>
+          {% endif %}
+
           <a href="{% url 'catalogo_publico' %}" class="cart-btn-secondary">
             <span class="material-symbols-rounded" style="font-size:18px" aria-hidden="true">storefront</span>
             {% trans "Continue shopping" %}

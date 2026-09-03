@@ -732,6 +732,12 @@ def ver_carrito(request):
         'carrito_count': _contar_items(carrito),
         'titulo_pagina': 'My cart',
         'nav_activo':    'tienda',
+        'stripe_test_mode': bool(
+            getattr(settings, 'STRIPE_TEST_MODE', False)
+            and getattr(settings, 'STRIPE_TEST_SECRET_KEY', '').startswith(
+                ('sk_test_', 'rk_test_'),
+            )
+        ),
     }
     return render(request, 'core/carrito.html', context)
 
@@ -1030,12 +1036,29 @@ def detalle_mi_orden(request, pk):
         buyer=request.user,  # Clave de seguridad
     )
 
+    pago = getattr(orden, 'payment', None)
+    stripe_checkout_enabled = bool(
+        getattr(settings, 'STRIPE_TEST_MODE', False)
+        and getattr(settings, 'STRIPE_TEST_SECRET_KEY', '').startswith(
+            ('sk_test_', 'rk_test_'),
+        )
+    )
+    if request.GET.get('stripe') == 'cancelled':
+        messages.info(request, _('Stripe test payment was cancelled.'))
+
     context = {
         'orden':         orden,
-        'pago':          getattr(orden, 'payment', None),
+        'pago':          pago,
         'carrito_count': _contar_items(_get_carrito(request)),
         'titulo_pagina': f'Order {orden.order_number}',
         'nav_activo':    'mis_ordenes',
+        'stripe_test_mode': stripe_checkout_enabled,
+        'stripe_can_pay': bool(
+            stripe_checkout_enabled
+            and orden.status == 'pending'
+            and orden.seller_confirmation_status == 'accepted'
+            and (pago is None or pago.status != 'approved')
+        ),
     }
     return render(request, 'core/detalle_mi_orden.html', context)
 

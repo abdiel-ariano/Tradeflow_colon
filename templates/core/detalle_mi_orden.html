@@ -57,6 +57,52 @@
   transition: all 0.2s ease;
 }
 .detalle-factura-btn:hover { background: #F2F3F5; border-color: #2E5B8A; color: #0F2A44; }
+.stripe-test-card {
+  border-color: rgba(99, 91, 255, 0.35);
+  background: linear-gradient(145deg, #ffffff 0%, #f6f5ff 100%);
+}
+.stripe-test-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.stripe-test-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  background: #ebe9ff;
+  color: #4f46d8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.stripe-test-copy {
+  margin: 0 0 0.9rem;
+  color: var(--tf-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.stripe-pay-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  background: #635bff;
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.stripe-pay-btn:hover,
+.stripe-pay-btn:focus-visible { background: #5046e5; }
 </style>
 {% endblock %}
 
@@ -112,6 +158,25 @@
         <div class="resumen-fila"><span>{% trans "Shipping" %}</span><span>USD {{ orden.shipping_cost }}</span></div>
         <div class="resumen-total-final"><span>{% trans "Total" %}</span><span>USD {{ orden.total }}</span></div>
       </div>
+
+      {% if stripe_can_pay %}
+      <div class="detalle-card stripe-test-card">
+        <div class="detalle-card-title stripe-test-heading">
+          <span>{% trans "Pay with Stripe" %}</span>
+          <span class="stripe-test-chip">{% trans "Test mode" %}</span>
+        </div>
+        <p class="stripe-test-copy">
+          {% trans "Complete this approved order in Stripe's secure test checkout. No real funds are charged." %}
+        </p>
+        <form method="post" action="{% url 'stripe_checkout_start' order_pk=orden.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="stripe-pay-btn">
+            <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+            {% trans "Pay with Stripe — test" %}
+          </button>
+        </form>
+      </div>
+      {% endif %}
 
       {% if pago %}
       <div class="detalle-card">

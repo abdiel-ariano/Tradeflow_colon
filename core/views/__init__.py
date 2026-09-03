@@ -159,6 +159,12 @@ from .catalog_cart import (
     detalle_cotizacion,
 )
 
+from .stripe_checkout import (
+    stripe_checkout_start,
+    stripe_checkout_success,
+    stripe_webhook,
+)
+
 from .access_admin import (
     solicitud_acceso,
     revisar_solicitud,
@@ -317,6 +323,9 @@ __all__ = [
     'comparar_cotizaciones',
     'mis_cotizaciones',
     'detalle_cotizacion',
+    'stripe_checkout_start',
+    'stripe_checkout_success',
+    'stripe_webhook',
     'solicitud_acceso',
     'revisar_solicitud',
     'admin_saas_dashboard',

@@ -381,6 +381,19 @@ ALLOW_MOCK_PLAN_PAYMENT = config(
     cast=bool,
 )
 
+# Stripe-hosted Checkout for accepted purchase orders (test mode only).
+# Runtime guards reject live keys even if this feature is enabled accidentally.
+STRIPE_TEST_MODE = config('STRIPE_TEST_MODE', default=False, cast=bool)
+STRIPE_TEST_SECRET_KEY = config('STRIPE_TEST_SECRET_KEY', default='').strip()
+STRIPE_TEST_WEBHOOK_SECRET = config(
+    'STRIPE_TEST_WEBHOOK_SECRET',
+    default='',
+).strip()
+STRIPE_API_VERSION = config(
+    'STRIPE_API_VERSION',
+    default='2026-07-29.dahlia',
+).strip()
+
 # Bank details shown on /mi-tienda/plan/pago/... for manual plan settlement.
 SELLER_BANK_NAME = config('SELLER_BANK_NAME', default='Banco General')
 SELLER_BANK_ACCOUNT_NAME = config('SELLER_BANK_ACCOUNT_NAME', default='TradeFlow Colón S.A.')
