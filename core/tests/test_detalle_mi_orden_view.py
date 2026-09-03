@@ -68,6 +68,7 @@ class DetalleMiOrdenViewTests(TestCase):
             status='approved',
             amount=self.orden.total,
             currency='USD',
+            txn_ref='cs_test_reference_that_must_wrap_inside_the_payment_card',
         )
         self.client.force_login(self.buyer)
 
@@ -78,3 +79,8 @@ class DetalleMiOrdenViewTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, self.orden.order_number)
         self.assertContains(resp, 'Widget')
+        self.assertContains(resp, 'info-fila--reference')
+        self.assertContains(
+            resp,
+            'cs_test_reference_that_must_wrap_inside_the_payment_card',
+        )
