@@ -49,6 +49,22 @@
 .info-fila { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px; }
 .info-fila .lbl { color: var(--tf-muted); }
 .info-fila .val { color: var(--tf-dark); font-weight: 500; text-align: right; }
+.info-fila--reference { display: block; margin-top: 0.75rem; }
+.info-fila--reference .val {
+  display: block;
+  max-width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 6px;
+  background: #f6f7f8;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
 .detalle-factura-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; margin-top: 10px; padding: 10px 16px; border-radius: 8px;
@@ -187,7 +203,7 @@
         <div class="info-fila"><span class="lbl">{% trans "Paid on" %}</span><span class="val">{{ pago.paid_at|date:"d/m/Y H:i" }}</span></div>
         {% endif %}
         {% if pago.txn_ref %}
-        <div class="info-fila"><span class="lbl">{% trans "Reference" %}</span><span class="val" style="font-size:0.78rem;">{{ pago.txn_ref }}</span></div>
+        <div class="info-fila info-fila--reference"><span class="lbl">{% trans "Reference" %}</span><span class="val">{{ pago.txn_ref }}</span></div>
         {% endif %}
       </div>
       {% endif %}
