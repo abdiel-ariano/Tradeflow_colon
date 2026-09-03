@@ -77,14 +77,29 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       left: auto !important;
       right: auto !important;
       bottom: auto !important;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
       width: 56px !important;
       margin: 0 !important;
+      overflow: visible;
       pointer-events: none;
       transform: translate3d(0, 0, 0);
       transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
       will-change: transform;
     }
     #tf-assistant-rail #tf-assistant > * { pointer-events: auto; }
+    /* Open state: grow the dock so the panel stays in-flow (not clipped by
+       the rail's overflow:hidden, which only fits the 56px FAB). */
+    #tf-assistant-rail.is-chat-open {
+      overflow: visible !important;
+    }
+    #tf-assistant-rail #tf-assistant.tf-assistant--open {
+      width: min(360px, calc(100vw - 32px)) !important;
+    }
+    #tf-assistant-rail[data-tf-dock="right"] #tf-assistant {
+      align-items: flex-end;
+    }
     @media (max-width: 767px) {
       #tf-assistant-rail {
         padding: 0 max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)) !important;
@@ -1318,11 +1333,13 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     }
     #tf-assistant-rail #tf-chat-window {
       display: none;
-      position: absolute;
-      left: 0;
+      position: relative;
+      left: auto;
       right: auto;
-      bottom: calc(100% + 12px);
-      width: min(360px, calc(100vw - 32px));
+      bottom: auto;
+      order: -1;
+      margin-bottom: 12px;
+      width: 100%;
       height: min(520px, calc(100vh - 120px));
       background: #fff;
       border-radius: 16px;
@@ -1330,10 +1347,6 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       border: 1px solid #E5E7EB;
       flex-direction: column;
       overflow: hidden;
-    }
-    #tf-assistant-rail[data-tf-dock="right"] #tf-chat-window {
-      left: auto;
-      right: 0;
     }
     .tf-chat-header {
       display: flex;
@@ -1510,8 +1523,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
     #tf-chat-send:active { transform: scale(0.96); }
     #tf-chat-send .material-symbols-rounded { font-size: 20px; }
     @media (max-width: 767px) {
-      #tf-assistant-rail #tf-chat-window {
-        width: min(360px, calc(100vw - 24px));
+      #tf-assistant-rail #tf-assistant.tf-assistant--open {
+        width: min(360px, calc(100vw - 24px)) !important;
       }
     }
   </style>
@@ -1651,7 +1664,8 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       var style = window.getComputedStyle(assistantRail);
       var padL = parseFloat(style.paddingLeft) || 0;
       var padR = parseFloat(style.paddingRight) || 0;
-      var travel = Math.max(0, railWidth - padL - padR - TF_DOCK_BTN);
+      var dockWidth = assistant.offsetWidth || TF_DOCK_BTN;
+      var travel = Math.max(0, railWidth - padL - padR - dockWidth);
       var x = goRight ? travel : 0;
       assistant.style.setProperty(
         'transform',
@@ -1705,6 +1719,9 @@ CSS de paneles admin/seller/formularios embebido vía includes/static_css_bundle
       win.style.display = tfChatOpen ? 'flex' : 'none';
       if (assistant) {
         assistant.classList.toggle('tf-assistant--open', tfChatOpen);
+      }
+      if (assistantRail) {
+        assistantRail.classList.toggle('is-chat-open', tfChatOpen);
       }
       if (toggle) {
         toggle.setAttribute('aria-expanded', tfChatOpen ? 'true' : 'false');
