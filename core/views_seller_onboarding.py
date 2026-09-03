@@ -239,6 +239,7 @@ def seller_onboarding_company(request: HttpRequest) -> HttpResponse:
         request,
         'core/seller_onboarding_company.html',
         _form_context(
+            name=(request.user.first_name or '').strip(),
             business_email=request.user.email,
             business_role=_business_role_for_profile(profile) or 'both',
         ),
