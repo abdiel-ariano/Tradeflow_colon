@@ -13,6 +13,9 @@ AUTH_MODEL_BACKEND = 'django.contrib.auth.backends.ModelBackend'
 
 NOMBRE_REGEX = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s'\-]{2,50}$")
 
+COMPANY_NAME_REGEX = re.compile(
+    r"^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9\s.,&\-]{2,100}$"
+)
 
 USERNAME_REGEX = re.compile(r"^[a-zA-Z][a-zA-Z0-9._]{2,29}$")
 
