@@ -15,12 +15,13 @@ from django.http import HttpResponse, JsonResponse
 # Vendor CDNs used by Leaflet, supabase-js, Bootstrap, and Chart.js.
 _CSP_SCRIPT_CDN = "https://cdn.jsdelivr.net https://unpkg.com"
 _CSP_STYLE_CDN = "https://fonts.googleapis.com https://cdn.jsdelivr.net"
-# OAuth authorize endpoints (allauth POST → 302). Browsers enforce form-action
-# on the redirect chain, so 'self' alone blocks Google/Microsoft/LinkedIn login.
-_CSP_FORM_ACTION_OAUTH = (
+# External endpoints reached after a same-origin form POST → 302. Browsers
+# enforce form-action on the redirect chain, so each destination must be listed.
+_CSP_FORM_ACTION_EXTERNAL = (
     "https://accounts.google.com "
     "https://login.microsoftonline.com "
-    "https://www.linkedin.com"
+    "https://www.linkedin.com "
+    "https://checkout.stripe.com"
 )
 
 
@@ -76,7 +77,7 @@ class SecurityHeadersMiddleware:
                     "connect-src 'self' https: wss:; "
                     "frame-ancestors 'none'; "
                     "base-uri 'self'; "
-                    f"form-action 'self' {_CSP_FORM_ACTION_OAUTH};",
+                    f"form-action 'self' {_CSP_FORM_ACTION_EXTERNAL};",
                 )
             else:
                 # Strict nonce-based CSP for marketplace pages.
@@ -90,7 +91,7 @@ class SecurityHeadersMiddleware:
                     "connect-src 'self' https: wss:; "
                     "frame-ancestors 'none'; "
                     "base-uri 'self'; "
-                    f"form-action 'self' {_CSP_FORM_ACTION_OAUTH};",
+                    f"form-action 'self' {_CSP_FORM_ACTION_EXTERNAL};",
                 )
         if request.is_secure():
             response.headers.setdefault(
