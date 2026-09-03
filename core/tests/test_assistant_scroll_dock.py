@@ -23,6 +23,20 @@ class AssistantScrollDockTests(SimpleTestCase):
         self.assertIn("{ passive: true, capture: true }", source)
         self.assertIn('window.TF_SYNC_ASSISTANT_DOCK', source)
         self.assertIn('setChatOpen', source)
+        self.assertRegex(
+            source,
+            (
+                r'(?s)#tf-assistant-rail\\s*\\{[^}]*'
+                r'overflow:\\s*visible\\s*!important'
+            ),
+        )
+        self.assertNotRegex(
+            source,
+            (
+                r'(?s)#tf-assistant-rail\\s*\\{[^}]*'
+                r'overflow:\\s*hidden\\s*!important'
+            ),
+        )
         # Must not pin the FAB with position:fixed on the right by default.
         self.assertNotRegex(
             source,
