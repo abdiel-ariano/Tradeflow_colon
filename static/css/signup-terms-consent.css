@@ -1,12 +1,20 @@
 /* Signup — checkbox y modal de Términos / Política de Seguridad */
-.signup-buyer-page .auth-submit:disabled {
-  opacity: 0.55;
+.signup-buyer-page .auth-submit:disabled,
+.signup-buyer-page .auth-submit[aria-disabled="true"] {
+  background: var(--sb-submit-disabled, var(--tf-border, #D1D5DB));
+  border-color: var(--sb-submit-disabled, var(--tf-border, #D1D5DB));
+  color: var(--tf-muted, #6B7A88);
+  opacity: 1;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
-.signup-buyer-page .auth-submit:disabled:hover {
-  background: var(--signup-orange);
+.signup-buyer-page .auth-submit:disabled:hover,
+.signup-buyer-page .auth-submit[aria-disabled="true"]:hover {
+  background: var(--sb-submit-disabled, var(--tf-border, #D1D5DB));
+  border-color: var(--sb-submit-disabled, var(--tf-border, #D1D5DB));
+  color: var(--tf-muted, #6B7A88);
 }
 
 .signup-terms-consent {
