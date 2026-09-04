@@ -10,6 +10,7 @@ Checkbox + modal de Términos de Uso y Política de Seguridad (signup buyer/sell
       id="id_terms_accepted"
       class="signup-terms-consent__input"
       value="1"
+      required
       {% if form_terms_accepted %}checked{% endif %}
     >
     <span class="signup-terms-consent__text">
@@ -74,25 +75,46 @@ Checkbox + modal de Términos de Uso y Política de Seguridad (signup buyer/sell
   var modal = document.getElementById('signup-terms-modal');
   var checkbox = document.getElementById('id_terms_accepted');
   var form = checkbox ? checkbox.closest('form.signup-form') : null;
-  var submitBtn = form ? form.querySelector('.auth-submit') : null;
+  var submitBound = false;
+
+  /* The include is rendered BEFORE the submit button in signup_seller.html.
+     Query the button lazily so the first parse pass does not lock it disabled. */
+  function getSubmitBtn() {
+    return form ? form.querySelector('button.auth-submit[type="submit"]') : null;
+  }
 
   function syncSubmitState() {
-    if (!submitBtn || !checkbox) return;
-    submitBtn.disabled = !checkbox.checked;
+    if (!checkbox) return;
+    var submitBtn = getSubmitBtn();
+    if (!submitBtn) return;
+    var allow = !!checkbox.checked;
+    submitBtn.disabled = !allow;
+    submitBtn.setAttribute('aria-disabled', allow ? 'false' : 'true');
   }
 
-  if (checkbox) {
-    checkbox.addEventListener('change', syncSubmitState);
-    syncSubmitState();
-  }
-
-  if (form && checkbox) {
+  function bindSubmitGate() {
+    if (!form || !checkbox || submitBound) return;
+    submitBound = true;
     form.addEventListener('submit', function (e) {
       if (!checkbox.checked) {
         e.preventDefault();
+        syncSubmitState();
         checkbox.focus();
       }
     });
+  }
+
+  function initTermsGate() {
+    if (!checkbox) return;
+    checkbox.addEventListener('change', syncSubmitState);
+    bindSubmitGate();
+    syncSubmitState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTermsGate);
+  } else {
+    initTermsGate();
   }
 
   if (!modal) return;
